@@ -1,0 +1,1094 @@
+// app/rentals/add/page.tsx
+"use client";
+
+import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import { ensureBusinessProfileComplete } from "@/lib/ensureBusinessProfileComplete";
+
+type Cat = {
+  id: string;
+  name: string;
+  slug: string;
+  sort_order: number;
+  is_system_others: boolean;
+};
+
+type Sub = {
+  id: string;
+  category_id: string;
+  name: string;
+  slug: string;
+  sort_order: number;
+  is_system_others: boolean;
+};
+
+type Eq = {
+  id: string;
+  subcategory_id: string;
+  name: string;
+  slug: string;
+  sort_order: number;
+  is_system_others: boolean;
+};
+
+type PricingUnit = "hour" | "day" | "week" | "month" | "job";
+
+function isNonEmpty(s: string) {
+  return s.trim().length > 0;
+}
+
+function toNumberOrNull(s: string): number | null {
+  const t = s.trim();
+  if (!t) return null;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : null;
+}
+
+function safeJsonPhotosFromText(input: string): any[] {
+  const parts = input
+    .split(/[\n,]+/g)
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+  const urls = parts.filter((u) => /^https?:\/\/.+/i.test(u));
+  return urls.map((url) => ({ url }));
+}
+
+export default function AddRentalPage() {
+  const supabase = useMemo(() => getSupabaseBrowser(), []);
+  const router = useRouter();
+
+  // Auth
+  const [authLoading, setAuthLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // Profile completion banner (no auto redirect)
+  const [profileComplete, setProfileComplete] = useState<boolean>(false);
+
+  // Master data
+  const [loadingMaster, setLoadingMaster] = useState(true);
+  const [masterErr, setMasterErr] = useState<string | null>(null);
+  const [cats, setCats] = useState<Cat[]>([]);
+  const [subs, setSubs] = useState<Sub[]>([]);
+  const [eqs, setEqs] = useState<Eq[]>([]);
+
+  // Form fields
+  const [categoryId, setCategoryId] = useState<string>("");
+  const [subcategoryId, setSubcategoryId] = useState<string>("");
+  const [equipmentId, setEquipmentId] = useState<string>("");
+
+  const [otherCategoryText, setOtherCategoryText] = useState("");
+  const [otherSubcategoryText, setOtherSubcategoryText] = useState("");
+  const [otherEquipmentText, setOtherEquipmentText] = useState("");
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+
+  const [pricingUnit, setPricingUnit] = useState<PricingUnit>("day");
+  const [rate, setRate] = useState("");
+  const [securityDeposit, setSecurityDeposit] = useState("");
+
+  const [stateName, setStateName] = useState("");
+  const [district, setDistrict] = useState("");
+  const [city, setCity] = useState("");
+  const [locality, setLocality] = useState("");
+  const [pincode, setPincode] = useState("");
+
+  const [photosText, setPhotosText] = useState("");
+
+  // UX
+  const [saving, setSaving] = useState(false);
+  const [saveErr, setSaveErr] = useState<string | null>(null);
+  const [saveOk, setSaveOk] = useState<string | null>(null);
+
+  // Expand/collapse
+  const [openTaxonomy, setOpenTaxonomy] = useState(true);
+  const [openDetails, setOpenDetails] = useState(true);
+  const [openPricing, setOpenPricing] = useState(true);
+  const [openLocation, setOpenLocation] = useState(true);
+  const [openPhotos, setOpenPhotos] = useState(false);
+
+  // ---------- LOGIN GUARD ----------
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadUser() {
+      setAuthLoading(true);
+
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (cancelled) return;
+
+        const uid = data?.user?.id ?? null;
+
+        if (error || !uid) {
+          setUserId(null);
+          setAuthLoading(false);
+          router.replace(`/login?next=${encodeURIComponent("/rentals/add")}`);
+          return;
+        }
+
+        setUserId(uid);
+        setAuthLoading(false);
+      } catch {
+        if (cancelled) return;
+        setUserId(null);
+        setAuthLoading(false);
+        router.replace(`/login?next=${encodeURIComponent("/rentals/add")}`);
+      }
+    }
+
+    loadUser();
+
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      loadUser();
+    });
+
+    return () => {
+      cancelled = true;
+      sub?.subscription?.unsubscribe();
+    };
+  }, [supabase, router]);
+
+  // ---------- Profile completion banner (no redirect) ----------
+  useEffect(() => {
+    if (!userId) return;
+
+    let alive = true;
+
+    (async () => {
+      const { data: bp, error } = await supabase
+        .from("business_profiles")
+        .select("is_complete")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (!alive) return;
+
+      if (error) {
+        console.error(error);
+        setProfileComplete(false);
+        return;
+      }
+
+      setProfileComplete(!!bp?.is_complete);
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [supabase, userId]);
+
+  // ---------- Load master taxonomy once authenticated ----------
+  useEffect(() => {
+    if (authLoading) return;
+    if (!userId) return;
+
+    let alive = true;
+
+    async function loadMaster() {
+      setLoadingMaster(true);
+      setMasterErr(null);
+
+      const [cRes, sRes, eRes] = await Promise.all([
+        supabase
+          .from("rental_categories")
+          .select("id,name,slug,sort_order,is_system_others")
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true })
+          .order("name", { ascending: true }),
+
+        supabase
+          .from("rental_subcategories")
+          .select("id,category_id,name,slug,sort_order,is_system_others")
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true })
+          .order("name", { ascending: true }),
+
+        supabase
+          .from("rental_equipment")
+          .select("id,subcategory_id,name,slug,sort_order,is_system_others")
+          .eq("is_active", true)
+          .order("sort_order", { ascending: true })
+          .order("name", { ascending: true }),
+      ]);
+
+      if (!alive) return;
+
+      if (cRes.error || sRes.error || eRes.error) {
+        setMasterErr(
+          cRes.error?.message ||
+            sRes.error?.message ||
+            eRes.error?.message ||
+            "Failed to load master data"
+        );
+        setCats([]);
+        setSubs([]);
+        setEqs([]);
+        setLoadingMaster(false);
+        return;
+      }
+
+      const catsData = (cRes.data ?? []) as Cat[];
+      const subsData = (sRes.data ?? []) as Sub[];
+      const eqsData = (eRes.data ?? []) as Eq[];
+
+      setCats(catsData);
+      setSubs(subsData);
+      setEqs(eqsData);
+
+      // Defaults
+      const firstCat =
+        catsData.find((c) => !c.is_system_others && c.slug !== "others") ?? catsData[0];
+
+      if (firstCat) {
+        setCategoryId(firstCat.id);
+
+        const subList = subsData.filter((s) => s.category_id === firstCat.id);
+        const firstSub =
+          subList.find((s) => !s.is_system_others && s.slug !== "others") ?? subList[0];
+
+        if (firstSub) {
+          setSubcategoryId(firstSub.id);
+
+          const eqList = eqsData.filter((e) => e.subcategory_id === firstSub.id);
+          const firstEq =
+            eqList.find((e) => !e.is_system_others && e.slug !== "others") ?? eqList[0];
+
+          setEquipmentId(firstEq?.id ?? "");
+        }
+      }
+
+      setLoadingMaster(false);
+    }
+
+    loadMaster();
+    return () => {
+      alive = false;
+    };
+  }, [supabase, authLoading, userId]);
+
+  const selectedCat = useMemo(
+    () => cats.find((c) => c.id === categoryId) ?? null,
+    [cats, categoryId]
+  );
+
+  const catSubs = useMemo(
+    () => subs.filter((s) => s.category_id === categoryId),
+    [subs, categoryId]
+  );
+
+  const selectedSub = useMemo(
+    () => subs.find((s) => s.id === subcategoryId) ?? null,
+    [subs, subcategoryId]
+  );
+
+  const subEqs = useMemo(
+    () => eqs.filter((e) => e.subcategory_id === subcategoryId),
+    [eqs, subcategoryId]
+  );
+
+  const selectedEq = useMemo(
+    () => eqs.find((e) => e.id === equipmentId) ?? null,
+    [eqs, equipmentId]
+  );
+
+  // Reset cascade when category changes
+  useEffect(() => {
+    if (!categoryId) return;
+
+    const list = subs.filter((s) => s.category_id === categoryId);
+    const firstSub = list.find((s) => !s.is_system_others && s.slug !== "others") ?? list[0];
+
+    setSubcategoryId(firstSub?.id ?? "");
+    setEquipmentId("");
+
+    setOtherSubcategoryText("");
+    setOtherEquipmentText("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryId]);
+
+  // Reset cascade when subcategory changes
+  useEffect(() => {
+    if (!subcategoryId) return;
+
+    const list = eqs.filter((e) => e.subcategory_id === subcategoryId);
+    const firstEq = list.find((e) => !e.is_system_others && e.slug !== "others") ?? list[0];
+
+    setEquipmentId(firstEq?.id ?? "");
+    setOtherEquipmentText("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subcategoryId]);
+
+  function validate(): string[] {
+    const errors: string[] = [];
+
+    if (!categoryId) errors.push("Category is required.");
+    if (!subcategoryId) errors.push("Subcategory is required.");
+    if (subEqs.length > 0 && !equipmentId) errors.push("Equipment is required.");
+
+    if (!isNonEmpty(title)) errors.push("Title is required.");
+
+    const r = toNumberOrNull(rate);
+    if (r !== null && r < 0) errors.push("Rate cannot be negative.");
+
+    const d = toNumberOrNull(securityDeposit);
+    if (d !== null && d < 0) errors.push("Security deposit cannot be negative.");
+
+    if (selectedCat?.is_system_others || selectedCat?.slug === "others") {
+      if (!isNonEmpty(otherCategoryText)) errors.push("Please specify the category (Others).");
+    }
+    if (selectedSub?.is_system_others || selectedSub?.slug === "others") {
+      if (!isNonEmpty(otherSubcategoryText)) errors.push("Please specify the subcategory (Others).");
+    }
+    if (selectedEq && (selectedEq.is_system_others || selectedEq.slug === "others")) {
+      if (!isNonEmpty(otherEquipmentText)) errors.push("Please specify the equipment (Others).");
+    }
+
+    if (isNonEmpty(pincode) && !/^\d{6}$/.test(pincode.trim())) {
+      errors.push("Pincode should be 6 digits (or leave blank).");
+    }
+
+    return errors;
+  }
+
+  async function insertDraft(): Promise<{ ok: true; id: string } | { ok: false; message: string }> {
+    setSaveOk(null);
+    setSaveErr(null);
+
+    const errs = validate();
+    if (errs.length) return { ok: false, message: errs.join(" ") };
+
+    if (!userId) {
+      router.replace(`/login?next=${encodeURIComponent("/rentals/add")}`);
+      return { ok: false, message: "You must be logged in to add a rental listing." };
+    }
+
+    const payload = {
+      owner_id: userId,
+
+      category_id: categoryId,
+      subcategory_id: subcategoryId,
+      equipment_id: equipmentId || null,
+
+      other_category_text:
+        selectedCat?.is_system_others || selectedCat?.slug === "others"
+          ? otherCategoryText.trim()
+          : null,
+      other_subcategory_text:
+        selectedSub?.is_system_others || selectedSub?.slug === "others"
+          ? otherSubcategoryText.trim()
+          : null,
+      other_equipment_text:
+        selectedEq && (selectedEq.is_system_others || selectedEq.slug === "others")
+          ? otherEquipmentText.trim()
+          : null,
+
+      title: title.trim(),
+      description: description.trim() || null,
+
+      pricing_unit: pricingUnit,
+      rate: toNumberOrNull(rate),
+      rate_unit_label: null,
+      security_deposit: toNumberOrNull(securityDeposit),
+
+      country: "India",
+      state: stateName.trim() || null,
+      district: district.trim() || null,
+      city: city.trim() || null,
+      locality: locality.trim() || null,
+      pincode: pincode.trim() || null,
+
+      photos: safeJsonPhotosFromText(photosText),
+
+      status: "draft",
+      is_active: true,
+    };
+
+    const { data, error } = await supabase
+      .from("rental_listings")
+      .insert(payload)
+      .select("id")
+      .single();
+
+    if (error) return { ok: false, message: error.message };
+
+    const id = (data as any)?.id as string | undefined;
+    if (!id) return { ok: false, message: "Saved but could not read new listing ID." };
+
+    return { ok: true, id };
+  }
+
+  // Gate ONLY on save
+  async function onSaveDraftGated() {
+    const gate = await ensureBusinessProfileComplete("/rentals/add");
+    if (!gate.ok) {
+      router.push(gate.redirectTo);
+      return;
+    }
+
+    setSaving(true);
+    const res = await insertDraft();
+    setSaving(false);
+
+    if (!res.ok) {
+      setSaveErr(res.message);
+      return;
+    }
+
+    setSaveOk("Saved! Your rental listing is created as Draft.");
+
+    // reset some inputs (keep taxonomy as is)
+    setTitle("");
+    setDescription("");
+    setRate("");
+    setSecurityDeposit("");
+    setPhotosText("");
+
+    // FINAL STAGE: subscription page
+    const returnTo = "/rentals/my";
+    router.push(
+      `/dashboard/subscription?source=rentals&listingId=${encodeURIComponent(res.id)}&return=${encodeURIComponent(
+        returnTo
+      )}`
+    );
+  }
+
+  // ---------- UI ----------
+  if (authLoading) {
+    return (
+      <main className="rentalAdd">
+        <div className="wrap">
+          <div className="state">Checking login…</div>
+        </div>
+        <Style />
+      </main>
+    );
+  }
+
+  if (!userId) {
+    return (
+      <main className="rentalAdd">
+        <div className="wrap">
+          <div className="state">
+            Login required. Redirecting to <span className="mono">/login</span>…
+          </div>
+        </div>
+        <Style />
+      </main>
+    );
+  }
+
+  return (
+    <main className="rentalAdd">
+      <div className="wrap">
+        <div className="top">
+          <div>
+            <div className="kicker">Rentals</div>
+            <h1 className="h1">Add Rental Listing</h1>
+            <p className="p">
+              Vendors can add and manage their rental listings. Public users browse without login.
+            </p>
+          </div>
+
+          <div className="topRight">
+            <Link className="btn btnOutline" href="/rentals">
+              ← Back to Rentals
+            </Link>
+          </div>
+        </div>
+
+        {/* Profile banner only (no auto redirect) */}
+        {!profileComplete ? (
+          <div className="banner">
+            <div className="bannerTitle">Complete your Business / Author Profile to save drafts</div>
+            <div className="bannerText">
+              You can fill the form now, but “Save Draft” will redirect you to profile completion.
+            </div>
+            <div className="bannerActions">
+              <Link
+                className="btn btnPrimary"
+                href={`/onboarding/business?returnTo=${encodeURIComponent("/rentals/add")}`}
+              >
+                Complete Profile →
+              </Link>
+            </div>
+          </div>
+        ) : null}
+
+        {loadingMaster ? <div className="state">Loading rental master data…</div> : null}
+
+        {!loadingMaster && masterErr ? (
+          <div className="state stateErr">
+            <div className="stateTitle">Master data error</div>
+            <div className="mono">{masterErr}</div>
+            <div className="stateHint">
+              Ensure RLS allows SELECT for authenticated on rental_categories / rental_subcategories /
+              rental_equipment.
+            </div>
+          </div>
+        ) : null}
+
+        {!loadingMaster && !masterErr ? (
+          <>
+            {saveErr ? (
+              <div className="alert alertErr">
+                <b>Error:</b> {saveErr}
+              </div>
+            ) : null}
+            {saveOk ? (
+              <div className="alert alertOk">
+                <b>Success:</b> {saveOk}
+              </div>
+            ) : null}
+
+            <Section
+              title="1) Category → Subcategory → Equipment"
+              open={openTaxonomy}
+              setOpen={setOpenTaxonomy}
+            >
+              <div className="grid2">
+                <div className="field">
+                  <label className="label">Category</label>
+                  <select
+                    className="input"
+                    value={categoryId}
+                    onChange={(e) => {
+                      setCategoryId(e.target.value);
+                      setOtherCategoryText("");
+                    }}
+                  >
+                    {cats.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  {selectedCat && (selectedCat.is_system_others || selectedCat.slug === "others") ? (
+                    <div className="mt8">
+                      <label className="label">Others (specify category)</label>
+                      <input
+                        className="input"
+                        value={otherCategoryText}
+                        onChange={(e) => setOtherCategoryText(e.target.value)}
+                        placeholder="e.g., House/Flat/Room Rent"
+                      />
+                      <div className="hint">Required when Category is “Others (specify)”.</div>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="field">
+                  <label className="label">Subcategory</label>
+                  <select
+                    className="input"
+                    value={subcategoryId}
+                    onChange={(e) => {
+                      setSubcategoryId(e.target.value);
+                      setOtherSubcategoryText("");
+                    }}
+                    disabled={!categoryId}
+                  >
+                    {catSubs.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  {selectedSub && (selectedSub.is_system_others || selectedSub.slug === "others") ? (
+                    <div className="mt8">
+                      <label className="label">Others (specify subcategory)</label>
+                      <input
+                        className="input"
+                        value={otherSubcategoryText}
+                        onChange={(e) => setOtherSubcategoryText(e.target.value)}
+                        placeholder="e.g., Shop/Commercial Space Rent"
+                      />
+                      <div className="hint">Required when Subcategory is “Others (specify)”.</div>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="field">
+                  <label className="label">Equipment</label>
+                  <select
+                    className="input"
+                    value={equipmentId}
+                    onChange={(e) => {
+                      setEquipmentId(e.target.value);
+                      setOtherEquipmentText("");
+                    }}
+                    disabled={!subcategoryId || subEqs.length === 0}
+                  >
+                    {subEqs.length === 0 ? (
+                      <option value="">No equipment in this subcategory</option>
+                    ) : (
+                      subEqs.map((eq) => (
+                        <option key={eq.id} value={eq.id}>
+                          {eq.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+
+                  {selectedEq && (selectedEq.is_system_others || selectedEq.slug === "others") ? (
+                    <div className="mt8">
+                      <label className="label">Others (specify equipment)</label>
+                      <input
+                        className="input"
+                        value={otherEquipmentText}
+                        onChange={(e) => setOtherEquipmentText(e.target.value)}
+                        placeholder="e.g., Custom Machine Name"
+                      />
+                      <div className="hint">Required when Equipment is “Others (specify)”.</div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="hint2">
+                <b>Note:</b> “Others (specify)” exists at every level. If selected, the corresponding
+                text is mandatory.
+              </div>
+            </Section>
+
+            <Section title="2) Listing details" open={openDetails} setOpen={setOpenDetails}>
+              <div className="grid2">
+                <div className="field">
+                  <label className="label">Title *</label>
+                  <input
+                    className="input"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g., JCB Backhoe Loader on rent in Cooch Behar"
+                  />
+                  <div className="hint">This will be shown publicly (without owner details).</div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Description</label>
+                  <textarea
+                    className="input textarea"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Usage, condition, operator availability, minimum hours/days, etc."
+                  />
+                </div>
+              </div>
+            </Section>
+
+            <Section title="3) Pricing" open={openPricing} setOpen={setOpenPricing}>
+              <div className="grid2">
+                <div className="field">
+                  <label className="label">Pricing unit</label>
+                  <select
+                    className="input"
+                    value={pricingUnit}
+                    onChange={(e) => setPricingUnit(e.target.value as PricingUnit)}
+                  >
+                    <option value="hour">Hour</option>
+                    <option value="day">Day</option>
+                    <option value="week">Week</option>
+                    <option value="month">Month</option>
+                    <option value="job">Job</option>
+                  </select>
+                </div>
+
+                <div className="field">
+                  <label className="label">Rate</label>
+                  <input
+                    className="input"
+                    value={rate}
+                    onChange={(e) => setRate(e.target.value)}
+                    placeholder="e.g., 1200"
+                    inputMode="decimal"
+                  />
+                  <div className="hint">Optional now. Can be added later anytime.</div>
+                </div>
+
+                <div className="field">
+                  <label className="label">Security deposit</label>
+                  <input
+                    className="input"
+                    value={securityDeposit}
+                    onChange={(e) => setSecurityDeposit(e.target.value)}
+                    placeholder="e.g., 5000"
+                    inputMode="decimal"
+                  />
+                </div>
+              </div>
+            </Section>
+
+            <Section title="4) Location" open={openLocation} setOpen={setOpenLocation}>
+              <div className="grid2">
+                <div className="field">
+                  <label className="label">State</label>
+                  <input
+                    className="input"
+                    value={stateName}
+                    onChange={(e) => setStateName(e.target.value)}
+                    placeholder="West Bengal"
+                  />
+                </div>
+                <div className="field">
+                  <label className="label">District</label>
+                  <input
+                    className="input"
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                    placeholder="Cooch Behar"
+                  />
+                </div>
+                <div className="field">
+                  <label className="label">City / Town</label>
+                  <input
+                    className="input"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="Cooch Behar"
+                  />
+                </div>
+                <div className="field">
+                  <label className="label">Locality</label>
+                  <input
+                    className="input"
+                    value={locality}
+                    onChange={(e) => setLocality(e.target.value)}
+                    placeholder="Khagrabari / Mahishbathan etc."
+                  />
+                </div>
+                <div className="field">
+                  <label className="label">Pincode</label>
+                  <input
+                    className="input"
+                    value={pincode}
+                    onChange={(e) => setPincode(e.target.value)}
+                    placeholder="6 digits"
+                    inputMode="numeric"
+                  />
+                </div>
+              </div>
+            </Section>
+
+            <Section title="5) Photos (optional)" open={openPhotos} setOpen={setOpenPhotos}>
+              <div className="field">
+                <label className="label">Photo URLs</label>
+                <textarea
+                  className="input textarea"
+                  value={photosText}
+                  onChange={(e) => setPhotosText(e.target.value)}
+                  placeholder={`Paste image URLs (http/https). Separate by comma or new lines.\nExample:\nhttps://...jpg\nhttps://...png`}
+                />
+                <div className="hint">We will add proper upload later. For now: URLs only.</div>
+              </div>
+            </Section>
+
+            <div className="footerBar">
+              <button className="btn btnPrimary" onClick={onSaveDraftGated} disabled={saving}>
+                {saving ? "Saving…" : "Save Draft"}
+              </button>
+              <span className="tiny">After save, you’ll be sent to the subscription final stage.</span>
+            </div>
+          </>
+        ) : null}
+      </div>
+
+      <Style />
+    </main>
+  );
+}
+
+function Section(props: {
+  title: string;
+  open: boolean;
+  setOpen: (v: boolean) => void;
+  children: React.ReactNode;
+}) {
+  const { title, open, setOpen, children } = props;
+  return (
+    <section className="section">
+      <button type="button" className="sectionHead" onClick={() => setOpen(!open)}>
+        <span className="sectionTitle">{title}</span>
+        <span className="sectionToggle">{open ? "−" : "+"}</span>
+      </button>
+      {open ? <div className="sectionBody">{children}</div> : null}
+    </section>
+  );
+}
+
+function Style() {
+  return (
+    <style jsx global>{`
+      .rentalAdd {
+        padding: 26px 0 64px;
+        background: #fff;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      }
+
+      .rentalAdd .wrap {
+        width: min(1120px, 92vw);
+        margin: 0 auto;
+      }
+
+      .rentalAdd .top {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+      }
+
+      .rentalAdd .kicker {
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: 8px;
+      }
+
+      .rentalAdd .h1 {
+        margin: 0;
+        font-size: 34px;
+        line-height: 1.1;
+        letter-spacing: -0.3px;
+      }
+
+      .rentalAdd .p {
+        margin: 10px 0 0;
+        color: #6b7280;
+        font-size: 14px;
+        max-width: 80ch;
+      }
+
+      .rentalAdd .banner {
+        margin-top: 14px;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 14px;
+        background: #fff;
+      }
+      .rentalAdd .bannerTitle {
+        font-weight: 900;
+        margin-bottom: 6px;
+      }
+      .rentalAdd .bannerText {
+        color: #6b7280;
+        font-size: 13px;
+        margin-bottom: 10px;
+      }
+      .rentalAdd .bannerActions {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .rentalAdd .section {
+        margin-top: 16px;
+        border: 1px solid #eee;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #fff;
+      }
+
+      .rentalAdd .sectionHead {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 14px;
+        border: 0;
+        background: #fafafa;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .rentalAdd .sectionTitle {
+        font-weight: 800;
+        font-size: 14px;
+      }
+
+      .rentalAdd .sectionToggle {
+        font-size: 18px;
+        line-height: 1;
+        color: #111827;
+      }
+
+      .rentalAdd .sectionBody {
+        padding: 14px;
+      }
+
+      .rentalAdd .grid2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      @media (max-width: 860px) {
+        .rentalAdd .grid2 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .rentalAdd .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .rentalAdd .label {
+        font-size: 12px;
+        color: #4b5563;
+        font-weight: 800;
+      }
+
+      .rentalAdd .input {
+        border: 1px solid #e6e6e6;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 14px;
+        outline: none;
+        background: #fff;
+      }
+
+      .rentalAdd .input:focus {
+        border-color: #111827;
+        box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.12);
+      }
+
+      .rentalAdd .textarea {
+        min-height: 92px;
+        resize: vertical;
+      }
+
+      .rentalAdd .hint {
+        font-size: 12px;
+        color: #6b7280;
+      }
+
+      .rentalAdd .hint2 {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #374151;
+        background: #f9fafb;
+        border: 1px dashed #d1d5db;
+        border-radius: 12px;
+        padding: 10px;
+      }
+
+      .rentalAdd .mt8 {
+        margin-top: 8px;
+      }
+
+      .rentalAdd .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 13px;
+        text-decoration: none;
+        border: 1px solid transparent;
+        user-select: none;
+        cursor: pointer;
+      }
+
+      .rentalAdd .btnOutline {
+        background: #fff;
+        color: #111;
+        border-color: #e5e7eb;
+      }
+
+      .rentalAdd .btnOutline:hover {
+        background: #f9fafb;
+      }
+
+      .rentalAdd .btnPrimary {
+        background: #111;
+        color: #fff;
+        border-color: #111;
+        font-weight: 800;
+      }
+
+      .rentalAdd .btnPrimary:hover {
+        opacity: 0.92;
+      }
+
+      .rentalAdd .btnPrimary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .rentalAdd .alert {
+        margin-top: 14px;
+        border-radius: 14px;
+        padding: 12px 14px;
+        font-size: 13px;
+        border: 1px solid #eee;
+      }
+
+      .rentalAdd .alertErr {
+        border-color: #f2b8b8;
+        background: #fff5f5;
+        color: #7a1b1b;
+      }
+
+      .rentalAdd .alertOk {
+        border-color: #bfe7c9;
+        background: #f3fff6;
+        color: #165a2b;
+      }
+
+      .rentalAdd .state {
+        margin-top: 18px;
+        border: 1px solid #eeeeee;
+        border-radius: 14px;
+        padding: 14px;
+        color: #555;
+        font-size: 13px;
+        background: #fff;
+      }
+
+      .rentalAdd .stateErr {
+        border-color: #f2b8b8;
+        background: #fff5f5;
+        color: #7a1b1b;
+      }
+
+      .rentalAdd .stateTitle {
+        font-weight: 800;
+        margin-bottom: 8px;
+      }
+
+      .rentalAdd .stateHint {
+        margin-top: 8px;
+        color: #7a1b1b;
+        font-size: 12px;
+      }
+
+      .rentalAdd .footerBar {
+        margin-top: 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .rentalAdd .tiny {
+        font-size: 12px;
+        color: #6b7280;
+      }
+
+      .rentalAdd .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+      }
+    `}</style>
+  );
+}

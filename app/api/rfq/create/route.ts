@@ -1,0 +1,292 @@
+// app/api/rfq/create/route.ts
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
+
+type AttachmentPayload = {
+  bucket: string;
+  object_path: string;
+  file_name: string;
+  mime_type: string | null;
+  file_size: number | null;
+};
+
+type ItemPayload = {
+  material_name: string;
+  qty: number | null;
+  unit: string | null;
+  notes: string | null;
+  sort_order: number;
+};
+
+type RfqModule = "materials" | "services" | "rentals" | "properties";
+
+// ✅ DB allows ONLY these item_type values:
+type RfqItemType = "material" | "service" | "rental" | "property" | "work_package";
+
+function jsonError(message: string, status = 400) {
+  return NextResponse.json({ ok: false, error: message }, { status });
+}
+
+function normalizeModule(x: any): RfqModule | null {
+  const m = String(x ?? "").trim().toLowerCase();
+  if (m === "materials") return "materials";
+  if (m === "services") return "services";
+  if (m === "rentals") return "rentals";
+  if (m === "properties") return "properties";
+  return null;
+}
+
+// ✅ map rfqs.module -> rfq_items.item_type (plural -> singular)
+function moduleToItemType(module: RfqModule): RfqItemType {
+  if (module === "materials") return "material";
+  if (module === "services") return "service";
+  if (module === "rentals") return "rental";
+  return "property";
+}
+
+export async function POST(req: Request) {
+  try {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!url || !serviceKey) {
+      return jsonError(
+        "Server missing env vars: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY",
+        500
+      );
+    }
+
+    // ✅ A) SSR cookie-based user detection
+    const cookieStore = await cookies();
+
+    const supabaseSsr = createServerClient(url, serviceKey, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        },
+      },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    });
+
+    const {
+      data: { user },
+    } = await supabaseSsr.auth.getUser();
+
+    const isAuthed = !!user?.id;
+
+    // ✅ B) Admin client
+    const supabaseAdmin = createClient(url, serviceKey, {
+      auth: { persistSession: false },
+    });
+
+    const body = await req.json();
+
+    // ✅ module (required)
+    const module = normalizeModule(body?.module);
+    if (!module) {
+      return jsonError(
+        "Module is required and must be one of: materials, services, rentals, properties."
+      );
+    }
+
+    const title = String(body?.title ?? "").trim();
+    if (!title) return jsonError("Title is required.");
+
+    const city = String(body?.city ?? "").trim();
+    const locality = String(body?.locality ?? "").trim();
+    const pincode = String(body?.pincode ?? "").trim();
+
+    if (!city || !locality || !pincode) {
+      return jsonError("Location is required: City, Locality, Pincode.");
+    }
+
+    const contact_phone = String(body?.contact_phone ?? "").trim();
+    const contact_email = String(body?.contact_email ?? "").trim();
+    const contact_whatsapp = String(body?.contact_whatsapp ?? "").trim();
+
+    // ✅ Public submission requires phone or email, but logged-in users can submit without it
+    if (!isAuthed && !contact_phone && !contact_email) {
+      return jsonError("For public submission, phone or email is required.");
+    }
+
+    const description = String(body?.description ?? "").trim();
+    const address = String(body?.address ?? "").trim();
+    const district = String(body?.district ?? "").trim(); // optional
+    const contact_name = String(body?.contact_name ?? "").trim();
+    const needed_by = body?.needed_by ? String(body.needed_by) : null;
+
+    const items: ItemPayload[] = Array.isArray(body?.items) ? body.items : [];
+    const attachments: AttachmentPayload[] = Array.isArray(body?.attachments)
+      ? body.attachments
+      : [];
+
+    const hasTyped = items.some((x) => String(x.material_name ?? "").trim() !== "");
+    const hasFiles = attachments.length > 0;
+    if (!hasTyped && !hasFiles) {
+      return jsonError("Please add at least one typed item OR upload an attachment.");
+    }
+
+    // ✅ If authed and contact_email is empty, store user's email if available
+    const finalContactEmail = contact_email || (isAuthed ? user?.email || "" : "");
+    const finalContactPhone = contact_phone;
+
+    // 1) Create RFQ (v2)
+    const { data: rfq, error: rfqErr } = await supabaseAdmin
+      .from("rfqs")
+      .insert({
+        requester_user_id: isAuthed ? user!.id : null,
+        module, // ✅ must match rfqs_v2_module_check
+        status: "open",
+        title,
+        description: description || null,
+        city,
+        district: district || null,
+        locality,
+        address: address || null,
+        pincode,
+        needed_by,
+        contact_name: contact_name || null,
+        contact_phone: finalContactPhone || null,
+        contact_email: finalContactEmail ? finalContactEmail : null,
+        contact_whatsapp: contact_whatsapp || null,
+      })
+      .select("id")
+      .single();
+
+    if (rfqErr || !rfq?.id) {
+      return jsonError(rfqErr?.message || "RFQ insert failed.", 500);
+    }
+
+    const rfqId = String(rfq.id);
+
+    // 2) Insert items (rfq_items v2)
+    // ✅ item_type must be one of: material/service/rental/property/work_package
+    const item_type = moduleToItemType(module);
+
+    const cleanItems = items
+      .map((x, idx) => {
+        const itemTitle = String(x.material_name ?? "").trim();
+        if (!itemTitle) return null;
+
+        return {
+          rfq_id: rfqId,
+
+          // ✅ REQUIRED for unique constraint (rfq_id, line_no)
+          line_no: idx + 1,
+
+          // ✅ REQUIRED for check constraint
+          item_type,
+
+          // ✅ REQUIRED (NOT NULL)
+          title: itemTitle,
+
+          // Optional columns
+          qty: x.qty ?? null,
+          unit: x.unit ?? null,
+          uom: x.unit ?? null, // safe if column exists; if not, remove this line
+          notes: x.notes ?? null,
+          sort_order: Number.isFinite(x.sort_order) ? x.sort_order : idx,
+
+          // Keep for backward compatibility / convenience
+          material_name: itemTitle,
+        };
+      })
+      .filter(Boolean) as any[];
+
+    if (cleanItems.length > 0) {
+      const { error: itemsErr } = await supabaseAdmin.from("rfq_items").insert(cleanItems);
+      if (itemsErr) return jsonError(itemsErr.message || "Items insert failed.", 500);
+    }
+
+    // 2.5) ✅ NEW: Create vendor targets (so Vendor Inbox table shows newest RFQs)
+    // Strategy:
+    // - Match vendors by pincode first
+    // - fallback to city/locality (ilike)
+    // - Insert rows into rfq_targets (rfq_id, vendor_user_id)
+    // NOTE: assumes vendors are stored in business_profiles (as your vendor APIs do)
+    try {
+      const ors: string[] = [];
+
+      if (pincode) ors.push(`pincode.eq.${pincode}`);
+      if (city) ors.push(`city.ilike.%${city}%`);
+      if (locality) ors.push(`locality.ilike.%${locality}%`);
+
+      // If we have no location at all, skip targeting (should not happen due to validation)
+      if (ors.length > 0) {
+        const { data: vendors, error: vErr } = await supabaseAdmin
+          .from("business_profiles")
+          .select("user_id")
+          .not("user_id", "is", null)
+          .or(ors.join(","))
+          .limit(200);
+
+        if (!vErr && vendors && vendors.length > 0) {
+          const targetRows = vendors
+            .map((v: any) => String(v.user_id))
+            // do not target the requester themselves (if logged in)
+            .filter((uid) => !isAuthed || uid !== user!.id)
+            .map((vendor_user_id) => ({
+              rfq_id: rfqId,
+              vendor_user_id,
+            }));
+
+          if (targetRows.length > 0) {
+            // Use upsert to avoid duplicate target rows if API retried
+            const { error: tErr } = await supabaseAdmin
+              .from("rfq_targets")
+              .upsert(targetRows as any, {
+                onConflict: "rfq_id,vendor_user_id",
+                ignoreDuplicates: true,
+              });
+
+            if (tErr) {
+              // Don't fail the RFQ creation if targeting fails (optional).
+              // If you want HARD fail, return jsonError(tErr.message, 500);
+              console.warn("rfq_targets upsert failed:", tErr.message);
+            }
+          }
+        }
+      }
+    } catch (e: any) {
+      // Keep RFQ created even if targeting fails
+      console.warn("rfq_targets targeting error:", e?.message || e);
+    }
+
+    // 3) Insert attachments metadata
+    if (attachments.length > 0) {
+      const rows = attachments.map((a) => ({
+        rfq_id: rfqId,
+        bucket: a.bucket,
+        object_path: a.object_path,
+        file_name: a.file_name,
+        mime_type: a.mime_type ?? null,
+        file_size: a.file_size ?? null,
+      }));
+
+      const { error: attErr } = await supabaseAdmin.from("rfq_attachments").insert(rows);
+      if (attErr) return jsonError(attErr.message || "Attachments insert failed.", 500);
+    }
+
+    return NextResponse.json({
+      ok: true,
+      rfqId,
+      authed: isAuthed,
+      requester_user_id: isAuthed ? user!.id : null,
+      module,
+      item_type,
+    });
+  } catch (e: any) {
+    return jsonError(e?.message || "Unknown server error", 500);
+  }
+}
