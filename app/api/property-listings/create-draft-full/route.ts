@@ -3,28 +3,49 @@ import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  }
-);
+const supabaseUrl =
+  process.env.SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "";
+
+const supabaseKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "";
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
 
 export async function POST(req: Request) {
   try {
+    if (!supabaseUrl) {
+      return NextResponse.json(
+        { error: "Missing Supabase URL environment variable." },
+        { status: 500 }
+      );
+    }
+
+    if (!supabaseKey) {
+      return NextResponse.json(
+        { error: "Missing Supabase key environment variable." },
+        { status: 500 }
+      );
+    }
+
     const body = await req.json();
 
-    const {
-      minimalInsert,
-      extraUpdate,
-    } = body || {};
+    const { minimalInsert, extraUpdate } = body || {};
 
     if (!minimalInsert) {
-      return NextResponse.json({ error: "minimalInsert is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "minimalInsert is required" },
+        { status: 400 }
+      );
     }
 
     const {
@@ -42,22 +63,45 @@ export async function POST(req: Request) {
     } = minimalInsert;
 
     if (!owner_id) {
-      return NextResponse.json({ error: "owner_id is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "owner_id is required" },
+        { status: 400 }
+      );
     }
+
     if (!listing_intent) {
-      return NextResponse.json({ error: "listing_intent is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "listing_intent is required" },
+        { status: 400 }
+      );
     }
+
     if (!type_id) {
-      return NextResponse.json({ error: "type_id is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "type_id is required" },
+        { status: 400 }
+      );
     }
+
     if (!subtype_id) {
-      return NextResponse.json({ error: "subtype_id is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "subtype_id is required" },
+        { status: 400 }
+      );
     }
+
     if (!title) {
-      return NextResponse.json({ error: "title is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "title is required" },
+        { status: 400 }
+      );
     }
+
     if (!city) {
-      return NextResponse.json({ error: "city is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "city is required" },
+        { status: 400 }
+      );
     }
 
     const insertPayload = {
@@ -98,7 +142,9 @@ export async function POST(req: Request) {
       const cleanExtraUpdate: Record<string, any> = { ...extraUpdate };
 
       Object.keys(cleanExtraUpdate).forEach((k) => {
-        if (cleanExtraUpdate[k] === undefined) delete cleanExtraUpdate[k];
+        if (cleanExtraUpdate[k] === undefined) {
+          delete cleanExtraUpdate[k];
+        }
       });
 
       if (Object.keys(cleanExtraUpdate).length > 0) {
