@@ -1,7 +1,7 @@
 // app/dashboard/buyer/enquiries/page.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
@@ -118,7 +118,7 @@ function isJwtError(msg: string) {
   return /jwt expired|invalid jwt|expired/i.test(msg ?? "");
 }
 
-export default function BuyerEnquiriesPage() {
+function BuyerEnquiriesPageInner() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const sp = useSearchParams();
@@ -694,5 +694,24 @@ export default function BuyerEnquiriesPage() {
         </div>
       </Container>
     </main>
+  );
+}
+export default function BuyerEnquiriesPage() {
+  return (
+    <Suspense
+      fallback={
+        <main>
+          <Container>
+            <SectionHeader
+              title="My Enquiries"
+              subtitle="Loading..."
+            />
+            <div style={{ opacity: 0.8 }}>Preparing your inbox…</div>
+          </Container>
+        </main>
+      }
+    >
+      <BuyerEnquiriesPageInner />
+    </Suspense>
   );
 }
