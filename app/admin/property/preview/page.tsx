@@ -62,7 +62,7 @@ function formatMoneyINR(value: number | null): string {
   }
 }
 
-export default function AdminPropertyPreviewPage() {
+function AdminPropertyPreviewPageInner() {
   const searchParams = useSearchParams();
 
   // ✅ TS-safe Supabase (avoid TS2589)
@@ -381,5 +381,26 @@ export default function AdminPropertyPreviewPage() {
         </Card>
       )}
     </Container>
+  );
+}
+import { Suspense } from "react";
+
+export default function AdminPropertyPreviewPage() {
+  return (
+    <Suspense
+      fallback={
+        <Container>
+          <SectionHeader
+            title="Admin Property Preview"
+            subtitle="Loading preview..."
+          />
+          <Card>
+            <CardBody>Loading…</CardBody>
+          </Card>
+        </Container>
+      }
+    >
+      <AdminPropertyPreviewPageInner />
+    </Suspense>
   );
 }
