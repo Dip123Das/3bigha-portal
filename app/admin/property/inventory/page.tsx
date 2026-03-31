@@ -1,7 +1,7 @@
 // app/admin/property/inventory/page.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
@@ -154,7 +154,7 @@ function isJwtExpiredError(err: any): boolean {
 
 type Flash = { kind: "success" | "error"; message: string } | null;
 
-export default function AdminPropertyInventoryPage() {
+function AdminPropertyInventoryPageInner() {
   const searchParams = useSearchParams();
 
   /**
@@ -1695,5 +1695,25 @@ try {
         </Grid>
       )}
     </Container>
+  );
+}
+
+export default function AdminPropertyInventoryPage() {
+  return (
+    <Suspense
+      fallback={
+        <Container>
+          <SectionHeader
+            title="Property • Builder Inventory"
+            subtitle="Loading inventory page..."
+          />
+          <Card>
+            <CardBody>Loading…</CardBody>
+          </Card>
+        </Container>
+      }
+    >
+      <AdminPropertyInventoryPageInner />
+    </Suspense>
   );
 }
