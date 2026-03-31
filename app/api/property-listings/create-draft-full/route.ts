@@ -23,19 +23,30 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseKey, {
 
 export async function POST(req: Request) {
   try {
-    if (!supabaseUrl) {
+    const supabaseUrl =
+      process.env.SUPABASE_URL ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+    const supabaseKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.SUPABASE_ANON_KEY ||
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json(
-        { error: "Missing Supabase URL environment variable." },
+        { error: "Supabase env not configured properly" },
         { status: 500 }
       );
     }
 
-    if (!supabaseKey) {
-      return NextResponse.json(
-        { error: "Missing Supabase key environment variable." },
-        { status: 500 }
-      );
-    }
+    const supabaseAdmin = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+
+    // 👇 KEEP YOUR EXISTING LOGIC BELOW (do NOT change)
 
     const body = await req.json();
 
