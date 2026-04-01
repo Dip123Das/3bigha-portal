@@ -1,7 +1,7 @@
 // app/rfq/general/new/page.tsx
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
@@ -118,7 +118,7 @@ function scrollToWithOffset(el: HTMLElement, offsetPx: number) {
 
 const DRAFT_KEY = "rfq_general_new_draft_v1";
 
-export default function RfqGeneralNewPage() {
+function RfqGeneralNewPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -809,5 +809,13 @@ setTimeout(() => {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function RfqGeneralNewPage() {
+  return (
+    <Suspense fallback={<div className="container pageBody" style={{ paddingTop: 16 }}>Loading...</div>}>
+      <RfqGeneralNewPageInner />
+    </Suspense>
   );
 }

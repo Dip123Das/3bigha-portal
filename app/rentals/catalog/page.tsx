@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getSupabasePublicBrowser } from "@/lib/supabasePublicBrowser";
 
@@ -50,7 +50,7 @@ function firstOf<T>(v: T | T[] | null | undefined): T | null {
   return v as T;
 }
 
-export default function RentalsCatalogPage() {
+function RentalsCatalogPageInner() {
   const supabase = useMemo(() => getSupabasePublicBrowser(), []);
   const sp = useSearchParams();
 
@@ -562,5 +562,12 @@ export default function RentalsCatalogPage() {
         }
       `}</style>
     </main>
+  );
+}
+export default function RentalsCatalogPage() {
+  return (
+    <Suspense fallback={<div>Loading rental catalog…</div>}>
+      <RentalsCatalogPageInner />
+    </Suspense>
   );
 }

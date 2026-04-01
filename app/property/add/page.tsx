@@ -4,7 +4,7 @@
 
 import type React from "react";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -1229,7 +1229,7 @@ function renderDynField(opts: {
 
 
 
-export default function AddPropertyPage() {
+function AddPropertyPageInner() {
 
   const router = useRouter();
 
@@ -5274,5 +5274,30 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
         }
       `}</style>
     </main>
+  );
+}
+
+export default function AddPropertyPage() {
+  return (
+    <Suspense
+      fallback={
+        <main>
+          <Container>
+            <EmptyState message="Loading property form..." />
+          </Container>
+          <style jsx global>{`
+            header,
+            footer {
+              display: none !important;
+            }
+            body {
+              background: #f8fafc;
+            }
+          `}</style>
+        </main>
+      }
+    >
+      <AddPropertyPageInner />
+    </Suspense>
   );
 }

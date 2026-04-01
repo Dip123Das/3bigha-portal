@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
@@ -112,7 +112,7 @@ async function trySelectAny(
   return { data: null, error: lastErr };
 }
 
-export default function SearchPage() {
+function SearchPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -844,5 +844,13 @@ if (want.includes("rentals")) {
         </>
       )}
     </Container>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<Container><EmptyState message="Loading search…" /></Container>}>
+      <SearchPageInner />
+    </Suspense>
   );
 }

@@ -1,7 +1,7 @@
 // app/property/builder/projects/page.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
@@ -55,7 +55,7 @@ type InvestmentPlanRow = {
   status: string | null;
 };
 
-export default function BuilderProjectsPage() {
+function BuilderProjectsPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
 
@@ -583,5 +583,12 @@ export default function BuilderProjectsPage() {
         </>
       )}
     </Container>
+  );
+}
+export default function BuilderProjectsPage() {
+  return (
+    <Suspense fallback={<div>Loading projects…</div>}>
+      <BuilderProjectsPageInner />
+    </Suspense>
   );
 }

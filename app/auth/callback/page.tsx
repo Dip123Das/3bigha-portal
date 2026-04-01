@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
@@ -13,7 +13,7 @@ function safeNextPath(raw: string | null) {
   return raw;
 }
 
-export default function AuthCallbackPage() {
+function AuthCallbackPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -126,5 +126,33 @@ export default function AuthCallbackPage() {
         <div style={{ opacity: 0.8 }}>{msg}</div>
       </div>
     </main>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <main style={{ padding: "40px 20px" }}>
+          <div
+            style={{
+              maxWidth: 720,
+              margin: "0 auto",
+              border: "1px solid rgba(0,0,0,0.08)",
+              borderRadius: 16,
+              padding: 20,
+              background: "white",
+            }}
+          >
+            <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 8 }}>
+              Auth Callback
+            </div>
+            <div style={{ opacity: 0.8 }}>Finishing login…</div>
+          </div>
+        </main>
+      }
+    >
+      <AuthCallbackPageInner />
+    </Suspense>
   );
 }

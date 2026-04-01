@@ -1,7 +1,7 @@
 // app/property/inventory/page.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getSupabasePublicBrowser } from "@/lib/supabasePublicBrowser";
@@ -75,7 +75,7 @@ function setUrlSlug(slug: string) {
   window.history.replaceState({}, "", url.toString());
 }
 
-export default function PublicInventoryPage() {
+function PublicInventoryPageInner() {
   const searchParams = useSearchParams();
   const supabase = useMemo(() => getSupabasePublicBrowser(), []);
 
@@ -420,5 +420,12 @@ export default function PublicInventoryPage() {
         </Grid>
       )}
     </Container>
+  );
+}
+export default function PublicInventoryPage() {
+  return (
+    <Suspense fallback={<div>Loading inventory…</div>}>
+      <PublicInventoryPageInner />
+    </Suspense>
   );
 }

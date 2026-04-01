@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { resolveAccessForUser, getDefaultPostLoginPath } from "@/lib/access/resolveAccess";
@@ -21,7 +21,7 @@ function hardRedirect(path: string) {
   }
 }
 
-export default function PostLoginPage() {
+function PostLoginPageInner() {
   const sp = useSearchParams();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
 
@@ -128,5 +128,33 @@ export default function PostLoginPage() {
         <div style={{ opacity: 0.8 }}>{msg}</div>
       </div>
     </main>
+  );
+}
+
+export default function PostLoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main style={{ padding: "40px 20px" }}>
+          <div
+            style={{
+              maxWidth: 720,
+              margin: "0 auto",
+              border: "1px solid rgba(0,0,0,0.08)",
+              borderRadius: 16,
+              padding: 20,
+              background: "white",
+            }}
+          >
+            <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 8 }}>
+              Signing you in
+            </div>
+            <div style={{ opacity: 0.8 }}>Preparing your access…</div>
+          </div>
+        </main>
+      }
+    >
+      <PostLoginPageInner />
+    </Suspense>
   );
 }
