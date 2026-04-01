@@ -1,7 +1,7 @@
 // app/dashboard/buyer/enquiries/page.tsx
 "use client";
 
-import React, { Suspense, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
@@ -697,21 +697,5 @@ function BuyerEnquiriesPageInner() {
   );
 }
 export default function BuyerEnquiriesPageClient() {
-  return (
-    <Suspense
-      fallback={
-        <main>
-          <Container>
-            <SectionHeader
-              title="My Enquiries"
-              subtitle="Loading..."
-            />
-            <div style={{ opacity: 0.8 }}>Preparing your inbox…</div>
-          </Container>
-        </main>
-      }
-    >
-      <BuyerEnquiriesPageInner />
-    </Suspense>
-  );
+  return <BuyerEnquiriesPageInner />;
 }
