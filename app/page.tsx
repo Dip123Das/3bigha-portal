@@ -19,62 +19,70 @@ export default function HomePage() {
         <SectionHeader
           title="3Bigha.com"
           subtitle="Real-estate & construction ecosystem — properties, materials, services, rentals, and news."
-          right={
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                flexWrap: "wrap",
-              }}
-            >
-              <span
-                style={{
-                  fontWeight: 700,
-                  color: "#0b57d0",
-                  marginRight: 6,
-                }}
-              >
-                Browse
-              </span>
-
-              <ActionButton
-                href="/property"
-                variant={isActive("/property") ? "primary" : "secondary"}
-              >
-                Properties
-              </ActionButton>
-
-              <ActionButton
-                href="/materials"
-                variant={isActive("/materials") ? "primary" : "secondary"}
-              >
-                Materials
-              </ActionButton>
-
-              <ActionButton
-                href="/services"
-                variant={isActive("/services") ? "primary" : "secondary"}
-              >
-                Services
-              </ActionButton>
-
-              <ActionButton
-                href="/rentals"
-                variant={isActive("/rentals") ? "primary" : "secondary"}
-              >
-                Rentals
-              </ActionButton>
-
-              <ActionButton
-                href="/blog"
-                variant={isActive("/blog") ? "primary" : "secondary"}
-              >
-                Blog / News
-              </ActionButton>
-            </div>
-          }
         />
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            flexWrap: "wrap",
+            marginTop: 10,
+            marginBottom: 6,
+          }}
+        >
+          <span
+            style={{
+              fontWeight: 900,
+              color: "#0b57d0",
+              marginRight: 4,
+            }}
+          >
+            Browse
+          </span>
+
+          <ActionButton
+            href="/property"
+            variant={isActive("/property") ? "primary" : "secondary"}
+          >
+            Properties
+          </ActionButton>
+
+          <ActionButton
+            href="/materials"
+            variant={isActive("/materials") ? "primary" : "secondary"}
+          >
+            Materials
+          </ActionButton>
+
+          <ActionButton
+            href="/services"
+            variant={isActive("/services") ? "primary" : "secondary"}
+          >
+            Services
+          </ActionButton>
+
+          <ActionButton
+            href="/rentals"
+            variant={isActive("/rentals") ? "primary" : "secondary"}
+          >
+            Rentals
+          </ActionButton>
+
+          <ActionButton
+            href="/dashboard/investor/deal-rooms"
+            variant={isActive("/dashboard/investor") ? "primary" : "secondary"}
+          >
+            Investment
+          </ActionButton>
+
+          <ActionButton
+            href="/blog"
+            variant={isActive("/blog") ? "primary" : "secondary"}
+          >
+            Blog / News
+          </ActionButton>
+        </div>
 
         <div style={{ marginTop: 12 }}>
           <Card>
