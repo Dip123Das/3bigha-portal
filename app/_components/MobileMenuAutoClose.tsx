@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export default function MobileMenuAutoClose() {
+  const pathname = usePathname();
+
   useEffect(() => {
     function getManagedDetails() {
       return Array.from(
@@ -24,7 +27,7 @@ export default function MobileMenuAutoClose() {
       if (!target) return;
 
       const clickedAction = target.closest(
-        ".topMobilePanel a, .rfqTogglePanel a, .searchPanel a, .postMenuPanel a, .rfqTogglePanel button"
+        ".topMobilePanel a, .rfqTogglePanel a, .searchPanel a, .postMenuPanel a, .rfqTogglePanel button, .postMenuPanel button, .searchPanel button"
       );
 
       if (clickedAction) {
@@ -79,6 +82,15 @@ export default function MobileMenuAutoClose() {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, []);
+
+  useEffect(() => {
+    const all = document.querySelectorAll<HTMLDetailsElement>(
+      "details.topMobileMenu, details.rfqToggle, details.searchMenu, details.postMenu"
+    );
+    all.forEach((el) => {
+      el.open = false;
+    });
+  }, [pathname]);
 
   return null;
 }

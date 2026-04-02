@@ -327,6 +327,7 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   background:rgba(255,255,255,0.92);
   position: relative;
   z-index: 300;
+  overflow: visible;
 }
 .topSubBarInner{
   width:min(1200px,calc(100% - 32px));
@@ -337,9 +338,17 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   align-items:center;
   padding:8px 0;
   flex-wrap:wrap;
+  overflow: visible;
 }
 .topHint{font-size:12px;color:var(--muted);font-weight:650;}
-.topSubLinks{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.topSubLinks{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+  position: relative;
+  overflow: visible;
+}
 .topSubLink{font-size:12px;text-decoration:none;font-weight:950;color:var(--primary);}
 .topSubLink:hover{text-decoration:underline;}
 
@@ -684,6 +693,7 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   position: relative;
   display: inline-block;
   z-index: 350;
+  overflow: visible;
 }
 
 .rfqToggleBtn {
@@ -715,12 +725,32 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   top: calc(100% + 8px);
   width: min(420px, calc(100vw - 32px));
   max-width: calc(100vw - 32px);
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  overflow-x: hidden;
   background: #fff;
   border: 1px solid rgba(0,0,0,0.12);
   border-radius: 14px;
   padding: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.10);
   z-index: 1200;
+}
+
+.topSubLinks > .rfqToggle:first-child .rfqTogglePanel,
+.topSubLinks > .rfqToggle:nth-child(2) .rfqTogglePanel {
+  left: 0;
+  right: auto;
+}
+
+.topSubLinks > .rfqToggle:nth-child(3) .rfqTogglePanel {
+  right: 0;
+  left: auto;
+}
+
+@media (min-width: 701px) {
+  .rfqTogglePanel {
+    scrollbar-width: thin;
+  }
 }
 
 .rfqToggleTitle {
