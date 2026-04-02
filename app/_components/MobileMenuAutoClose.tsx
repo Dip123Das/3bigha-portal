@@ -23,10 +23,11 @@ export default function MobileMenuAutoClose() {
       const target = e.target as HTMLElement | null;
       if (!target) return;
 
-      const clickedLink = target.closest(
-        ".topMobilePanel a, .rfqTogglePanel a, .searchPanel a, .postMenuPanel a"
+      const clickedAction = target.closest(
+        ".topMobilePanel a, .rfqTogglePanel a, .searchPanel a, .postMenuPanel a, .rfqTogglePanel button"
       );
-      if (clickedLink) {
+
+      if (clickedAction) {
         closeAll();
         return;
       }
@@ -57,11 +58,24 @@ export default function MobileMenuAutoClose() {
       }
     }
 
+    function onOutsideClick(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      const inside = target.closest(
+        ".topMobileMenu, .rfqToggle, .searchMenu, .postMenu"
+      );
+
+      if (!inside) {
+        closeAll();
+      }
+    }
+
     document.addEventListener("click", onClick);
+    document.addEventListener("click", onOutsideClick);
     document.addEventListener("keydown", onKeyDown);
 
     return () => {
       document.removeEventListener("click", onClick);
+      document.removeEventListener("click", onOutsideClick);
       document.removeEventListener("keydown", onKeyDown);
     };
   }, []);

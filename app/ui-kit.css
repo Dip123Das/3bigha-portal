@@ -322,7 +322,12 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
 .postMenuInlineLink:hover{text-decoration:underline;}
 
 /* Sub bar */
-.topSubBar{border-top:1px solid rgba(0,0,0,0.06);background:rgba(255,255,255,0.92);}
+.topSubBar{
+  border-top:1px solid rgba(0,0,0,0.06);
+  background:rgba(255,255,255,0.92);
+  position: relative;
+  z-index: 300;
+}
 .topSubBarInner{
   width:min(1200px,calc(100% - 32px));
   margin:0 auto;
@@ -678,6 +683,7 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
 .rfqToggle {
   position: relative;
   display: inline-block;
+  z-index: 350;
 }
 
 .rfqToggleBtn {
@@ -714,7 +720,7 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   border-radius: 14px;
   padding: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.10);
-  z-index: 50;
+  z-index: 1200;
 }
 
 .rfqToggleTitle {
