@@ -333,9 +333,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     My Dashboard
                   </ActiveLink>
 
-                  <div style={{ padding: "6px 0" }}>
-                    <AuthButtons />
-                  </div>
+                  <Link className="topMobileLink" href="/login">
+                    Login / Account
+                  </Link>
                 </div>
               </div>
             </details>
