@@ -290,13 +290,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     variant="subLink"
                     title="Open unified inbox with unread chat count"
                   />
-                  <GlobalUnreadBadge
-                    className="topMobileLink"
-                    href="/dashboard/inbox-v2"
-                    label="Unified Inbox"
-                    variant="subLink"
-                    title="Open unified inbox with unread chat count"
-                  />
                   <ActiveLink className="topMobileLink" href="/rfq/general/new">
                     Submit Requirement
                   </ActiveLink>
