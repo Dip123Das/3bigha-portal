@@ -9,6 +9,7 @@ import AuthButtons from "./_components/AuthButtons";
 import ActiveLink from "./_components/ActiveLink";
 import GlobalUnreadBadge from "./_components/GlobalUnreadBadge";
 import PresenceHeartbeat from "./_components/PresenceHeartbeat";
+import MobileMenuAutoClose from "./_components/MobileMenuAutoClose";
 
 export const metadata: Metadata = {
   title: "3Bigha.com",
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" data-path="/">
       <body>
         <PresenceHeartbeat currentPage="global" />
+        <MobileMenuAutoClose />
         <header className="topHeader">
           <div className="topHeaderInner">
             {/* Brand */}
