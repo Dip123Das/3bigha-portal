@@ -47,13 +47,19 @@ export default function AuthButtons() {
     }
 
     try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role,is_vendor")
-        .eq("id", userId)
-        .maybeSingle();
+      const roleRes = await Promise.race([
+        supabase
+          .from("profiles")
+          .select("role,is_vendor")
+          .eq("id", userId)
+          .maybeSingle(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Role lookup timed out")), 4000)
+        ),
+      ]);
 
-      setRoleLabel(prettyRole((profile as any)?.role, (profile as any)?.is_vendor));
+      const profile = (roleRes as any)?.data ?? null;
+      setRoleLabel(prettyRole(profile?.role, profile?.is_vendor));
     } catch {
       setRoleLabel("");
     }
@@ -61,8 +67,14 @@ export default function AuthButtons() {
 
   async function syncAuthState() {
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const s = sessionData.session ?? null;
+      const sessionRes = await Promise.race([
+        supabase.auth.getSession(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Session lookup timed out")), 4000)
+        ),
+      ]);
+
+      const s = (sessionRes as any)?.data?.session ?? null;
 
       if (s?.user?.id) {
         setSession({
@@ -71,22 +83,29 @@ export default function AuthButtons() {
             id: s.user.id ?? null,
           },
         });
-        await loadRole(s.user.id);
         setLoading(false);
+        loadRole(s.user.id);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const userRes = await Promise.race([
+        supabase.auth.getUser(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("User lookup timed out")), 4000)
+        ),
+      ]);
 
-      if (!userError && userData.user?.id) {
+      const user = (userRes as any)?.data?.user ?? null;
+
+      if (user?.id) {
         setSession({
           user: {
-            email: userData.user.email ?? null,
-            id: userData.user.id ?? null,
+            email: user.email ?? null,
+            id: user.id ?? null,
           },
         });
-        await loadRole(userData.user.id);
         setLoading(false);
+        loadRole(user.id);
         return;
       }
 
@@ -120,13 +139,14 @@ export default function AuthButtons() {
             id: s.user.id ?? null,
           },
         });
-        await loadRole(s.user.id);
+        setLoading(false);
+        loadRole(s.user.id);
       } else {
         setSession(null);
         setRoleLabel("");
+        setLoading(false);
       }
 
-      setLoading(false);
       router.refresh();
     });
 
