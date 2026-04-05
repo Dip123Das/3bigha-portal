@@ -30,8 +30,23 @@ function addOpenEnquiryToNext(nextPath: string, openEnquiry: string | null) {
   return u.pathname + (u.search ? u.search : "");
 }
 
-function buildCallbackRedirectTo(origin: string, nextWithOpenEnquiry: string) {
-  const u = new URL(`${origin}/auth/callback`);
+function getAppBaseUrl() {
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+
+  if (envUrl) {
+    return envUrl.replace(/\/$/, "");
+  }
+
+  if (typeof window !== "undefined") {
+    return window.location.origin.replace(/\/$/, "");
+  }
+
+  return "http://localhost:3000";
+}
+
+function buildCallbackRedirectTo(nextWithOpenEnquiry: string) {
+  const baseUrl = getAppBaseUrl();
+  const u = new URL(`${baseUrl}/auth/callback`);
   u.searchParams.set("next", nextWithOpenEnquiry);
   return u.toString();
 }
@@ -303,8 +318,7 @@ export default function LoginClient() {
     try {
       setPhase("google-start");
       const supabase = getSupabaseBrowser();
-      const origin = window.location.origin;
-      const redirectTo = buildCallbackRedirectTo(origin, nextWithOpen);
+      const redirectTo = buildCallbackRedirectTo(nextWithOpen);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -346,8 +360,7 @@ export default function LoginClient() {
       debug(`Env: url=${supabaseUrl || "(missing)"} anon=${maskKey(anonKey)}`);
 
       const supabase = getSupabaseBrowser();
-      const origin = window.location.origin;
-      const callbackUrl = buildCallbackRedirectTo(origin, nextWithOpen);
+      const callbackUrl = buildCallbackRedirectTo(nextWithOpen);
       debug(`Magic callbackUrl=${callbackUrl}`);
 
       setPhase("magic-signinwithotp");
@@ -380,8 +393,7 @@ export default function LoginClient() {
     const addr = email.trim() || "test@example.com";
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-    const origin = window.location.origin;
-    const callbackUrl = buildCallbackRedirectTo(origin, nextWithOpen);
+    const callbackUrl = buildCallbackRedirectTo(nextWithOpen);
 
     setMsg({ type: "info", text: "Running auth network probe…" });
     setPhase("probe");
