@@ -11,7 +11,7 @@ function safeNextPath(raw: string | null) {
   return raw;
 }
 
-function AuthCallbackPageInner() {
+export default function AuthCallbackPageClient() {
   const router = useRouter();
   const sp = useSearchParams();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -37,21 +37,6 @@ function AuthCallbackPageInner() {
           return;
         }
 
-        setMsg("Checking existing session…");
-
-        const sessionRes = await supabase.auth.getSession();
-        const existingSession = sessionRes.data.session ?? null;
-
-        if (existingSession?.user?.id) {
-          console.log("AUTH_CALLBACK_ALREADY_SIGNED_IN", {
-            userId: existingSession.user.id,
-          });
-          if (!alive) return;
-          setMsg("Already signed in. Redirecting…");
-          router.replace(`/auth/post-login${next ? `?next=${encodeURIComponent(next)}` : ""}`);
-          return;
-        }
-
         if (!code) {
           console.warn("AUTH_CALLBACK_NO_CODE");
           if (!alive) return;
@@ -64,17 +49,40 @@ function AuthCallbackPageInner() {
 
         setMsg("Exchanging session…");
 
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        const exchangeRes = await Promise.race([
+          supabase.auth.exchangeCodeForSession(code),
+          new Promise<never>((_, reject) =>
+            setTimeout(
+              () => reject(new Error("Auth callback exchange timed out after 10000ms")),
+              10000
+            )
+          ),
+        ]);
 
         if (!alive) return;
+
+        const { error } = exchangeRes as Awaited<
+          ReturnType<typeof supabase.auth.exchangeCodeForSession>
+        >;
 
         if (error) {
           console.error("AUTH_CALLBACK_EXCHANGE_ERROR", error);
 
-          const latestSessionRes = await supabase.auth.getSession();
-          const latestSession = latestSessionRes.data.session ?? null;
+          const sessionRes = await Promise.race([
+            supabase.auth.getSession(),
+            new Promise<never>((_, reject) =>
+              setTimeout(
+                () => reject(new Error("Session check timed out after 4000ms")),
+                4000
+              )
+            ),
+          ]);
 
-          if (latestSession?.user?.id) {
+          if (!alive) return;
+
+          const session = (sessionRes as any)?.data?.session ?? null;
+
+          if (session?.user?.id) {
             setMsg("Signed in. Redirecting…");
             router.replace(`/auth/post-login${next ? `?next=${encodeURIComponent(next)}` : ""}`);
             return;
@@ -89,7 +97,7 @@ function AuthCallbackPageInner() {
 
         console.log("AUTH_CALLBACK_SUCCESS");
 
-        setMsg("Redirecting…");
+        setMsg("Signed in. Redirecting…");
         router.replace(`/auth/post-login${next ? `?next=${encodeURIComponent(next)}` : ""}`);
       } catch (e) {
         console.error("AUTH_CALLBACK_FAIL", e);
@@ -125,8 +133,4 @@ function AuthCallbackPageInner() {
       </div>
     </main>
   );
-}
-
-export default function AuthCallbackPageClient() {
-  return <AuthCallbackPageInner />;
 }
