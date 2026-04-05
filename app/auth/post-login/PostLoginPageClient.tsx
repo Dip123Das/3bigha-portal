@@ -30,7 +30,7 @@ export default function PostLoginPageClient() {
       try {
         const next = safeNextPath(sp.get("next"));
 
-        console.log("POST_LOGIN_V4_START", { next });
+        console.log("POST_LOGIN_V5_START", { next });
 
         setMsg("Checking your session…");
 
@@ -49,7 +49,7 @@ export default function PostLoginPageClient() {
         const session = (sessionRes as any)?.data?.session ?? null;
         const user = session?.user ?? null;
 
-        console.log("POST_LOGIN_V4_SESSION", {
+        console.log("POST_LOGIN_V5_SESSION", {
           hasSession: !!session,
           userId: user?.id ?? null,
           email: user?.email ?? null,
@@ -60,6 +60,92 @@ export default function PostLoginPageClient() {
           setTimeout(() => {
             hardRedirect(`/login${next ? `?next=${encodeURIComponent(next)}` : ""}`);
           }, 800);
+          return;
+        }
+
+        setMsg("Checking your registration…");
+
+        const profileRes = await Promise.race([
+          supabase
+            .from("profiles")
+            .select("id,email,role,approval_status,requested_role,is_vendor")
+            .eq("id", user.id)
+            .maybeSingle(),
+          new Promise<never>((_, reject) =>
+            setTimeout(
+              () => reject(new Error("Profile lookup timed out after 4000ms")),
+              4000
+            )
+          ),
+        ]);
+
+        if (!alive) return;
+
+        const profile = (profileRes as any)?.data ?? null;
+        const profileError = (profileRes as any)?.error ?? null;
+
+        if (profileError) {
+          console.error("POST_LOGIN_V5_PROFILE_LOOKUP_ERROR", profileError);
+        }
+
+        // Auto-repair/create minimal profile row if missing
+        if (!profile?.id) {
+          setMsg("Creating your profile…");
+
+          const inferredRequestedRole = "buyer";
+
+          const upsertRes = await Promise.race([
+            supabase.from("profiles").upsert(
+              {
+                id: user.id,
+                email: user.email ?? null,
+                role: null,
+                is_vendor: false,
+                approval_status: "pending",
+                requested_role: inferredRequestedRole,
+              },
+              { onConflict: "id" }
+            ),
+            new Promise<never>((_, reject) =>
+              setTimeout(
+                () => reject(new Error("Profile creation timed out after 4000ms")),
+                4000
+              )
+            ),
+          ]);
+
+          const upsertError = (upsertRes as any)?.error ?? null;
+
+          if (upsertError) {
+            console.error("POST_LOGIN_V5_PROFILE_CREATE_ERROR", upsertError);
+            setMsg("Could not prepare your registration. Redirecting…");
+            setTimeout(() => {
+              hardRedirect("/");
+            }, 1000);
+            return;
+          }
+
+          hardRedirect(`/auth/register-role${next ? `?next=${encodeURIComponent(next)}` : ""}`);
+          return;
+        }
+
+        // Repair missing email
+        if (!profile.email && user.email) {
+          await supabase
+            .from("profiles")
+            .update({ email: user.email })
+            .eq("id", user.id);
+        }
+
+        // Role not chosen yet → registration page
+        if (!profile.role) {
+          hardRedirect(`/auth/register-role${next ? `?next=${encodeURIComponent(next)}` : ""}`);
+          return;
+        }
+
+        // Not approved yet → waiting page
+        if (profile.approval_status !== "approved") {
+          hardRedirect("/auth/awaiting-approval");
           return;
         }
 
@@ -82,15 +168,15 @@ export default function PostLoginPageClient() {
 
           redirectTo = next || getDefaultPostLoginPath(access);
         } catch (accessErr) {
-          console.error("POST_LOGIN_V4_ACCESS_FALLBACK", accessErr);
+          console.error("POST_LOGIN_V5_ACCESS_FALLBACK", accessErr);
           redirectTo = next || "/";
         }
 
-        console.log("POST_LOGIN_V4_REDIRECT", { redirectTo });
+        console.log("POST_LOGIN_V5_REDIRECT", { redirectTo });
 
         hardRedirect(redirectTo);
       } catch (e: any) {
-        console.error("POST_LOGIN_V4_FAIL", e);
+        console.error("POST_LOGIN_V5_FAIL", e);
 
         if (!alive) return;
 

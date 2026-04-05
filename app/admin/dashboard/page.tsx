@@ -84,6 +84,13 @@ export default async function AdminDashboardPage() {
 
   const cards = [
     {
+      title: "Admin · User Approvals",
+      desc: "Review new user registrations, requested roles, and approve or reject access.",
+      href: "/admin/users",
+      show: isMaster(role),
+      badges: ["profiles", "pending → approved/rejected"],
+    },
+    {
       title: "Admin · Property",
       desc: "Review, approve, or reject property listings.",
       href: "/admin/property",

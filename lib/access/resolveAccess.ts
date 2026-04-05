@@ -5,11 +5,19 @@ export type PortalRole =
   | "guest"
   | "buyer"
   | "vendor"
+  | "builder"
+  | "hub_vendor"
   | "blogger"
   | "blog_admin"
   | "master_admin";
 
-export type VendorModuleKey = "property" | "materials" | "services" | "rentals";
+export type VendorCapabilityKey =
+  | "materials"
+  | "services"
+  | "rentals"
+  | "property_owner"
+  | "property_builder"
+  | "blog_author";
 
 export type AccessContext = {
   userId: string;
@@ -20,8 +28,10 @@ export type AccessContext = {
   isBlogAdmin: boolean;
   isBuyer: boolean;
   isVendor: boolean;
+  isBuilder: boolean;
+  isHubVendor: boolean;
 
-  vendorModules: VendorModuleKey[];
+  vendorCapabilities: VendorCapabilityKey[];
   vendorHasFullAccess: boolean;
 };
 
@@ -31,6 +41,8 @@ function normalizeRole(raw: unknown): PortalRole | null {
   if (!v) return null;
   if (v === "buyer") return "buyer";
   if (v === "vendor") return "vendor";
+  if (v === "builder") return "builder";
+  if (v === "hub_vendor") return "hub_vendor";
   if (v === "blogger") return "blogger";
   if (v === "blog_admin") return "blog_admin";
   if (v === "master_admin") return "master_admin";
@@ -38,12 +50,37 @@ function normalizeRole(raw: unknown): PortalRole | null {
   return null;
 }
 
-function uniqueModules(values: string[]): VendorModuleKey[] {
-  const allowed: VendorModuleKey[] = ["property", "materials", "services", "rentals"];
-  const set = new Set<VendorModuleKey>();
+function normalizeCapability(raw: unknown): VendorCapabilityKey | null {
+  const v = String(raw ?? "").trim().toLowerCase();
+
+  if (!v) return null;
+
+  // New approved capability model
+  if (v === "materials") return "materials";
+  if (v === "services") return "services";
+  if (v === "rentals") return "rentals";
+  if (v === "property_owner") return "property_owner";
+  if (v === "property_builder") return "property_builder";
+  if (v === "blog_author") return "blog_author";
+
+  // Backward compatibility with your existing grant values
+  if (v === "property") return "property_owner";
+  if (v === "materials_vendor") return "materials";
+  if (v === "services_vendor") return "services";
+  if (v === "rentals_vendor") return "rentals";
+  if (v === "owner") return "property_owner";
+  if (v === "builder") return "property_builder";
+  if (v === "author") return "blog_author";
+
+  return null;
+}
+
+function uniqueCapabilities(values: unknown[]): VendorCapabilityKey[] {
+  const set = new Set<VendorCapabilityKey>();
 
   for (const v of values) {
-    if ((allowed as string[]).includes(v)) set.add(v as VendorModuleKey);
+    const normalized = normalizeCapability(v);
+    if (normalized) set.add(normalized);
   }
 
   return Array.from(set);
@@ -65,7 +102,9 @@ export async function resolveAccessForUser(
 ): Promise<AccessContext> {
   let role: PortalRole | null = null;
   let isVendor = false;
-  let vendorModules: VendorModuleKey[] = [];
+  let isBuilder = false;
+  let isHubVendor = false;
+  let vendorCapabilities: VendorCapabilityKey[] = [];
 
   const [profSettled, bpSettled] = await Promise.allSettled([
     withTimeout(
@@ -93,7 +132,16 @@ export async function resolveAccessForUser(
     if (!profRes?.error && profRes?.data) {
       role = normalizeRole(profRes.data.role);
 
-      if (role === "vendor" || profRes.data.is_vendor === true) {
+      if (role === "vendor" || role === "hub_vendor" || profRes.data.is_vendor === true) {
+        isVendor = true;
+      }
+
+      if (role === "builder") {
+        isBuilder = true;
+      }
+
+      if (role === "hub_vendor") {
+        isHubVendor = true;
         isVendor = true;
       }
     }
@@ -106,7 +154,7 @@ export async function resolveAccessForUser(
     }
   }
 
-  if (isVendor) {
+  if (isVendor || isBuilder || isHubVendor) {
     const grantsSettled = await Promise.allSettled([
       withTimeout(
         supabase
@@ -123,28 +171,44 @@ export async function resolveAccessForUser(
       grantsSettled[0].status === "fulfilled" ? grantsSettled[0].value : null;
 
     if (!grantsRes?.error && Array.isArray(grantsRes?.data)) {
-      vendorModules = uniqueModules(
-        grantsRes.data
-          .map((x: any) => String(x.module_key ?? "").trim().toLowerCase())
-          .filter(Boolean)
+      vendorCapabilities = uniqueCapabilities(
+        grantsRes.data.map((x: any) => x.module_key)
       );
     }
 
-    if (vendorModules.length === 0) {
-      vendorModules = ["property", "materials", "services", "rentals"];
+    if (role === "hub_vendor") {
+      vendorCapabilities = [
+        "materials",
+        "services",
+        "rentals",
+        "property_owner",
+        "property_builder",
+        "blog_author",
+      ];
     }
 
-    if (!role) role = "vendor";
+    if (role === "builder" && vendorCapabilities.length === 0) {
+      vendorCapabilities = ["property_builder"];
+    }
+
+    if (role === "vendor" && vendorCapabilities.length === 0) {
+      vendorCapabilities = ["materials", "services", "rentals", "property_owner"];
+    }
+
+    if (!role && isVendor) role = "vendor";
   }
 
   const isAdmin = role === "master_admin";
   const isBlogAdmin = role === "blog_admin" || role === "master_admin";
   const isBuyer = role === "buyer";
+
   const vendorHasFullAccess =
-    vendorModules.includes("property") &&
-    vendorModules.includes("materials") &&
-    vendorModules.includes("services") &&
-    vendorModules.includes("rentals");
+    vendorCapabilities.includes("materials") &&
+    vendorCapabilities.includes("services") &&
+    vendorCapabilities.includes("rentals") &&
+    vendorCapabilities.includes("property_owner") &&
+    vendorCapabilities.includes("property_builder") &&
+    vendorCapabilities.includes("blog_author");
 
   return {
     userId,
@@ -154,7 +218,9 @@ export async function resolveAccessForUser(
     isBlogAdmin,
     isBuyer,
     isVendor,
-    vendorModules,
+    isBuilder,
+    isHubVendor,
+    vendorCapabilities,
     vendorHasFullAccess,
   };
 }
@@ -163,14 +229,22 @@ export function getDefaultPostLoginPath(access: AccessContext): string {
   if (access.isAdmin) return "/admin/dashboard";
   if (access.isBlogAdmin) return "/admin/blog";
 
+  if (access.isBuilder) return "/dashboard/builder";
+
+  if (access.isHubVendor) return "/vendor/hub";
+
   if (access.isVendor) {
-    if (access.vendorModules.length === 1) {
-      const m = access.vendorModules[0];
-      if (m === "property") return "/property/my";
-      if (m === "materials") return "/materials/my";
-      if (m === "services") return "/services/my";
-      if (m === "rentals") return "/rentals/my";
+    if (access.vendorCapabilities.length === 1) {
+      const c = access.vendorCapabilities[0];
+
+      if (c === "property_owner") return "/property/my";
+      if (c === "property_builder") return "/property/builder/projects";
+      if (c === "materials") return "/materials/my";
+      if (c === "services") return "/services/my";
+      if (c === "rentals") return "/rentals/my";
+      if (c === "blog_author") return "/blog/my";
     }
+
     return "/vendor/inbox-v2";
   }
 
