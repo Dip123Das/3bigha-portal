@@ -1,0 +1,63 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630">
+      <stop stop-color="#0B1220"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+
+```
+<linearGradient id="accent" x1="0" y1="0" x2="1200" y2="630">
+  <stop stop-color="#22C55E" stop-opacity="0.2"/>
+  <stop offset="1" stop-color="#3B82F6" stop-opacity="0.1"/>
+</linearGradient>
+```
+
+  </defs>
+
+  <!-- Background -->
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Glow -->
+
+  <circle cx="1000" cy="100" r="200" fill="#2563EB" fill-opacity="0.1"/>
+  <circle cx="900" cy="500" r="150" fill="#22C55E" fill-opacity="0.08"/>
+
+  <!-- Main Card -->
+
+  <rect x="80" y="80" width="1040" height="470" rx="30" fill="white" fill-opacity="0.05" stroke="white" stroke-opacity="0.1"/>
+
+  <!-- Logo -->
+
+  <rect x="130" y="130" width="80" height="80" rx="20" fill="white"/>
+  <image href="/logo.png" x="130" y="130" width="80" height="80"/>
+
+  <!-- Brand -->
+
+  <text x="230" y="165" fill="white" font-size="40" font-family="Arial" font-weight="700">
+    3Bigha
+  </text>
+
+  <!-- Modules -->
+
+  <text x="230" y="200" fill="white" fill-opacity="0.7" font-size="20">
+    Real Estate • Materials • Services • Rentals • Investment
+  </text>
+
+  <!-- Tagline -->
+
+  <text x="130" y="310" fill="white" font-size="60" font-weight="700">
+    Build. Buy. Rent. Invest.
+  </text>
+
+  <text x="130" y="360" fill="white" fill-opacity="0.8" font-size="26">
+    India’s modern property & construction ecosystem
+  </text>
+
+  <!-- Website -->
+
+  <rect x="130" y="420" width="260" height="50" rx="12" fill="white" fill-opacity="0.1"/>
+  <text x="150" y="452" fill="white" font-size="22" font-weight="600">
+    3bigha.com
+  </text>
+</svg>
