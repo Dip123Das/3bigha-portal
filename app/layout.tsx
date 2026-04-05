@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-image-new.jpg",
+        url: "https://www.3bigha.com/og-image-new.jpg",
         width: 1200,
         height: 630,
         alt: "3Bigha.com – Real Estate, Materials, Services, Rentals & Investment",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     title: "3Bigha.com – Real Estate & Construction Ecosystem",
     description:
       "Browse property, materials, services and rentals. Submit requirements and get competitive quotes.",
-    images: ["/og-image-new.jpg"],
+    images: ["https://www.3bigha.com/og-image-new.jpg"],
   },
 };
 
