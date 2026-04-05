@@ -1,4 +1,3 @@
-// app/dashboard/vendor/page.tsx
 "use client";
 
 import Link from "next/link";
@@ -6,7 +5,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
-import { resolveAccessForUser, type VendorModuleKey } from "@/lib/access/resolveAccess";
+import { resolveAccessForUser, type VendorCapabilityKey } from "@/lib/access/resolveAccess";
 
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
@@ -64,7 +63,6 @@ function titleCase(s: string) {
   return t.length ? t.charAt(0).toUpperCase() + t.slice(1) : t;
 }
 
-// simple pill (since Badge has no variant prop in your UI kit)
 function Pill({
   children,
   tone = "neutral",
@@ -92,25 +90,14 @@ function StatusPill({ status }: { status: EnquiryStatus }) {
   if (s === "spam") return <Pill>spam</Pill>;
   return <Pill>{s}</Pill>;
 }
-function moduleLabel(moduleKey: VendorModuleKey) {
-  if (moduleKey === "property") return "Property";
-  if (moduleKey === "materials") return "Materials";
-  if (moduleKey === "services") return "Services";
-  return "Rentals";
-}
 
-function moduleHref(moduleKey: VendorModuleKey) {
-  if (moduleKey === "property") return "/property/my";
-  if (moduleKey === "materials") return "/materials/my";
-  if (moduleKey === "services") return "/services/my";
-  return "/rentals/my";
-}
-
-function moduleAddHref(moduleKey: VendorModuleKey) {
-  if (moduleKey === "property") return "/property/add";
-  if (moduleKey === "materials") return "/materials/add";
-  if (moduleKey === "services") return "/services/add";
-  return "/rentals/add";
+function capabilityLabel(cap: VendorCapabilityKey) {
+  if (cap === "property_owner") return "Property Owner";
+  if (cap === "property_builder") return "Property Builder";
+  if (cap === "materials") return "Materials";
+  if (cap === "services") return "Services";
+  if (cap === "rentals") return "Rentals";
+  return "Blog Author";
 }
 
 export default function VendorDashboardPage() {
@@ -126,7 +113,7 @@ export default function VendorDashboardPage() {
   const [vendorComplete, setVendorComplete] = useState<boolean | null>(null);
   const [vendorPct, setVendorPct] = useState<number | null>(null);
 
-  const [vendorModules, setVendorModules] = useState<VendorModuleKey[]>([]);
+  const [vendorCapabilities, setVendorCapabilities] = useState<VendorCapabilityKey[]>([]);
   const [vendorHasFullAccess, setVendorHasFullAccess] = useState(false);
 
   const [enquiriesLoading, setEnquiriesLoading] = useState(false);
@@ -141,7 +128,7 @@ export default function VendorDashboardPage() {
     const { data: s, error: sErr } = await supabase.auth.getSession();
     if (sErr) {
       setErr(sErr.message);
-      setVendorModules([]);
+      setVendorCapabilities([]);
       setVendorHasFullAccess(false);
       setLoading(false);
       return;
@@ -155,29 +142,27 @@ export default function VendorDashboardPage() {
 
     setEmail(session.user.email ?? null);
 
-        // ✅ Resolve access using profiles + business_profiles + vendor_module_grants
     const access = await resolveAccessForUser(
       supabase,
       session.user.id,
       session.user.email ?? null
     );
 
-    const v = access.isVendor;
+    const v = access.isVendor || access.isHubVendor;
     setIsVendor(v);
-    setVendorModules(access.vendorModules);
+    setVendorCapabilities(access.vendorCapabilities);
     setVendorHasFullAccess(access.vendorHasFullAccess);
 
     if (!v) {
       setVendorComplete(null);
       setVendorPct(null);
-      setVendorModules([]);
+      setVendorCapabilities([]);
       setVendorHasFullAccess(false);
       setRecentEnquiries([]);
       setLoading(false);
       return;
     }
 
-    // Best-effort: completeness view
     const { data: comp, error: compErr } = await supabase
       .from("v_vendor_profile_completeness")
       .select("*")
@@ -197,7 +182,6 @@ export default function VendorDashboardPage() {
       setVendorComplete(null);
     }
 
-    // Recent enquiries (last 5)
     setEnquiriesLoading(true);
     setEnquiriesErr(null);
 
@@ -279,8 +263,8 @@ export default function VendorDashboardPage() {
             <ActionButton href="/dashboard" variant="secondary">
               ← Back
             </ActionButton>
-            <ActionButton href="/onboarding/business" variant="primary">
-       {vendorPct !== null ? <Pill>{vendorPct}%</Pill> : null}       Start Vendor Registration →
+            <ActionButton href="/auth/register-role" variant="primary">
+              Start Vendor Registration →
             </ActionButton>
           </div>
 
@@ -336,8 +320,8 @@ export default function VendorDashboardPage() {
 
             {vendorHasFullAccess ? (
               <Pill tone="ok">Full Hub Access</Pill>
-            ) : vendorModules.length > 0 ? (
-              <Pill>{vendorModules.length} Module{vendorModules.length > 1 ? "s" : ""}</Pill>
+            ) : vendorCapabilities.length > 0 ? (
+              <Pill>{vendorCapabilities.length} Capability{vendorCapabilities.length > 1 ? "ies" : "y"}</Pill>
             ) : null}
 
             {vendorComplete === true ? (
@@ -350,22 +334,22 @@ export default function VendorDashboardPage() {
           </div>
         </div>
 
-                <Card>
+        <Card>
           <CardBody>
             <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>
               Your Access
             </div>
             <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
-              These are the business modules currently enabled for your vendor account.
+              These are the business capabilities currently enabled for your vendor account.
             </div>
 
             <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {vendorModules.length === 0 ? (
-                <Pill tone="warn">No modules enabled</Pill>
+              {vendorCapabilities.length === 0 ? (
+                <Pill tone="warn">No capabilities enabled</Pill>
               ) : (
-                vendorModules.map((m) => (
-                  <Pill key={m} tone={vendorHasFullAccess ? "ok" : "neutral"}>
-                    {moduleLabel(m)}
+                vendorCapabilities.map((cap) => (
+                  <Pill key={cap} tone={vendorHasFullAccess ? "ok" : "neutral"}>
+                    {capabilityLabel(cap)}
                   </Pill>
                 ))
               )}
@@ -374,7 +358,8 @@ export default function VendorDashboardPage() {
             </div>
           </CardBody>
         </Card>
-                <div style={{ height: 12 }} />
+
+        <div style={{ height: 12 }} />
 
         {vendorComplete === false ? (
           <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
@@ -396,7 +381,6 @@ export default function VendorDashboardPage() {
           </div>
         ) : null}
 
-        {/* Recent Enquiries */}
         <div style={{ marginBottom: 12 }}>
           <Card>
             <CardBody>
@@ -493,7 +477,7 @@ export default function VendorDashboardPage() {
           </Card>
         </div>
 
-                {vendorModules.length === 0 ? (
+        {vendorCapabilities.length === 0 ? (
           <div
             style={{
               marginBottom: 12,
@@ -505,11 +489,10 @@ export default function VendorDashboardPage() {
               fontWeight: 700,
             }}
           >
-            No vendor business modules are enabled for this account yet. Please contact admin or upgrade your subscription.
+            No vendor business capabilities are enabled for this account yet. Please contact admin or upgrade your subscription.
           </div>
         ) : null}
 
-        {/* Quick actions */}
         <Card>
           <CardBody>
             <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Quick Actions</div>
@@ -518,26 +501,39 @@ export default function VendorDashboardPage() {
             </div>
 
             <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-              {vendorModules.includes("property") ? (
+              {vendorCapabilities.includes("property_owner") ? (
                 <ActionButton href="/property/add" variant="primary">
                   Post Property
                 </ActionButton>
               ) : null}
 
-              {vendorModules.includes("materials") ? (
+              {vendorCapabilities.includes("property_builder") ? (
+                <ActionButton href="/property/builder/projects/add" variant="secondary">
+                  Add Builder Project
+                </ActionButton>
+              ) : null}
+
+              {vendorCapabilities.includes("materials") ? (
                 <ActionButton href="/materials/add" variant="secondary">
                   Add Material
                 </ActionButton>
               ) : null}
-              {vendorModules.includes("services") ? (
+
+              {vendorCapabilities.includes("services") ? (
                 <ActionButton href="/services/add" variant="secondary">
                   Add Service
                 </ActionButton>
               ) : null}
 
-              {vendorModules.includes("rentals") ? (
+              {vendorCapabilities.includes("rentals") ? (
                 <ActionButton href="/rentals/add" variant="secondary">
                   Add Rental
+                </ActionButton>
+              ) : null}
+
+              {vendorCapabilities.includes("blog_author") ? (
+                <ActionButton href="/blog/new" variant="secondary">
+                  Write Blog Post
                 </ActionButton>
               ) : null}
 
@@ -548,10 +544,9 @@ export default function VendorDashboardPage() {
           </CardBody>
         </Card>
 
-        {/* Modules */}
         <div style={{ marginTop: 12 }}>
           <Grid min={280} gap={12}>
-            {vendorModules.includes("property") ? (
+            {vendorCapabilities.includes("property_owner") ? (
               <Card>
                 <CardBody>
                   <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Properties</div>
@@ -578,7 +573,34 @@ export default function VendorDashboardPage() {
               </Card>
             ) : null}
 
-            {vendorModules.includes("materials") ? (
+            {vendorCapabilities.includes("property_builder") ? (
+              <Card>
+                <CardBody>
+                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Builder Projects</div>
+                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
+                    Manage builder projects, units, inventory and related listing flows.
+                  </div>
+
+                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <Pill>Projects</Pill>
+                    <Pill>Units</Pill>
+                    <Pill>Inventory</Pill>
+                  </div>
+                </CardBody>
+                <CardFooter>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
+                    <ActionButton href="/property/builder/projects" variant="primary">
+                      Open →
+                    </ActionButton>
+                    <Link href="/property/builder/projects" style={{ fontWeight: 800, alignSelf: "center" }}>
+                      /property/builder/projects
+                    </Link>
+                  </div>
+                </CardFooter>
+              </Card>
+            ) : null}
+
+            {vendorCapabilities.includes("materials") ? (
               <Card>
                 <CardBody>
                   <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Materials</div>
@@ -604,7 +626,7 @@ export default function VendorDashboardPage() {
               </Card>
             ) : null}
 
-                        {vendorModules.includes("services") ? (
+            {vendorCapabilities.includes("services") ? (
               <Card>
                 <CardBody>
                   <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Services</div>
@@ -630,7 +652,7 @@ export default function VendorDashboardPage() {
               </Card>
             ) : null}
 
-                        {vendorModules.includes("rentals") ? (
+            {vendorCapabilities.includes("rentals") ? (
               <Card>
                 <CardBody>
                   <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Rentals</div>
@@ -656,29 +678,31 @@ export default function VendorDashboardPage() {
               </Card>
             ) : null}
 
-            <Card>
-              <CardBody>
-                <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Blog / News</div>
-                <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
-                  Write category-first posts. Drafts are always allowed; publish may be gated.
-                </div>
-                <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <Pill>My posts</Pill>
-                  <Pill>Drafts</Pill>
-                  {vendorComplete === false ? <Pill tone="warn">Publish locked</Pill> : <Pill tone="ok">Publish enabled</Pill>}
-                </div>
-              </CardBody>
-              <CardFooter>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
-                  <ActionButton href="/blog/my" variant="primary">
-                    Open →
-                  </ActionButton>
-                  <Link href="/blog/my" style={{ fontWeight: 800, alignSelf: "center" }}>
-                    /blog/my
-                  </Link>
-                </div>
-              </CardFooter>
-            </Card>
+            {vendorCapabilities.includes("blog_author") ? (
+              <Card>
+                <CardBody>
+                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Blog / News</div>
+                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
+                    Write category-first posts. Drafts are always allowed; publish may be gated.
+                  </div>
+                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <Pill>My posts</Pill>
+                    <Pill>Drafts</Pill>
+                    {vendorComplete === false ? <Pill tone="warn">Publish locked</Pill> : <Pill tone="ok">Publish enabled</Pill>}
+                  </div>
+                </CardBody>
+                <CardFooter>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
+                    <ActionButton href="/blog/my" variant="primary">
+                      Open →
+                    </ActionButton>
+                    <Link href="/blog/my" style={{ fontWeight: 800, alignSelf: "center" }}>
+                      /blog/my
+                    </Link>
+                  </div>
+                </CardFooter>
+              </Card>
+            ) : null}
           </Grid>
         </div>
 
