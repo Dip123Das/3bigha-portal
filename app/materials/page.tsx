@@ -80,11 +80,15 @@ function moneyINR(v: any) {
   return `₹ ${num}`;
 }
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+function createAnonSupabase(): SupabaseClient | null {
+  if (typeof window === "undefined") return null;
 
-function createAnonSupabase(): SupabaseClient {
-  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anonKey) return null;
+
+  return createClient(url, anonKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
@@ -145,9 +149,14 @@ function safeClearExpiredSupabaseSessions() {
   } catch {}
 }
 
+export const dynamic = "force-dynamic";
+
 export default function MaterialsPage() {
   const router = useRouter();
-  const supabaseAnon = useMemo(() => createAnonSupabase(), []);
+  const supabaseAnon = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    return createAnonSupabase();
+  }, []);
 
   const [checkingAdd, setCheckingAdd] = useState(false);
 
@@ -166,6 +175,9 @@ export default function MaterialsPage() {
   }, []);
 
   async function loadProductGroupsBestEffort(): Promise<PgRow[]> {
+    if (!supabaseAnon) {
+      throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    }
     try {
       const { data, error } = await (supabaseAnon as any).rpc("get_public_material_product_groups");
       if (!error && Array.isArray(data)) return data as PgRow[];
@@ -200,6 +212,10 @@ export default function MaterialsPage() {
   async function loadAllOnce() {
     setLoading(true);
     setErr(null);
+
+    if (!supabaseAnon) {
+      throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    }
 
     const tRes = await (supabaseAnon as any)
       .from("material_taxons")
@@ -249,6 +265,12 @@ export default function MaterialsPage() {
   }
 
   useEffect(() => {
+    if (!supabaseAnon) {
+      setLoading(false);
+      setErr("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+      return;
+    }
+
     let alive = true;
 
     (async () => {

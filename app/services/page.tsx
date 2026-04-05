@@ -116,14 +116,15 @@ function fmtMoney(currency: string | null | undefined, amount: number | null | u
   return `${symbol}${amount}`;
 }
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+function createAnonSupabase(): SupabaseClient | null {
+  if (typeof window === "undefined") return null;
 
-function createAnonSupabase(): SupabaseClient {
-  // Public page must ALWAYS behave as anon:
-  // - never reads persisted sessions (localStorage ignored)
-  // - never auto-refreshes tokens
-  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anonKey) return null;
+
+  return createClient(url, anonKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
@@ -138,8 +139,6 @@ function createAnonSupabase(): SupabaseClient {
 }
 
 function safeClearExpiredSupabaseSessions() {
-  // Clears ONLY expired/invalid stored sessions so public pages don't break with “JWT expired”.
-  // Leaves valid sessions untouched (no impact on admin/vendor authenticated flows).
   try {
     if (typeof window === "undefined") return;
 
@@ -149,8 +148,8 @@ function safeClearExpiredSupabaseSessions() {
     for (let i = 0; i < window.localStorage.length; i++) {
       const k = window.localStorage.key(i);
       if (!k) continue;
-      if (k.includes("-auth-token")) keys.push(k); // sb-<project>-auth-token, etc.
-      if (k === "supabase.auth.token") keys.push(k); // legacy
+      if (k.includes("-auth-token")) keys.push(k);
+      if (k === "supabase.auth.token") keys.push(k);
     }
 
     for (const key of keys) {
@@ -166,14 +165,11 @@ function safeClearExpiredSupabaseSessions() {
       }
 
       const expiresAt: number | null = typeof parsed?.expires_at === "number" ? parsed.expires_at : null;
-
-      // If we can't confidently detect expiry, do nothing (avoid affecting valid flows).
       if (!expiresAt) continue;
 
       if (expiresAt <= nowSec - 30) {
         window.localStorage.removeItem(key);
 
-        // best-effort cleanup for common related keys
         try {
           const prefix = key.replace(/-auth-token.*$/, "");
           const maybeRelated = [
@@ -193,8 +189,13 @@ function safeClearExpiredSupabaseSessions() {
   }
 }
 
+export const dynamic = "force-dynamic";
+
 export default function ServicesPage() {
-  const supabaseAnon = useMemo(() => createAnonSupabase(), []);
+  const supabaseAnon = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    return createAnonSupabase();
+  }, []);
 
   const [group, setGroup] = useState<ServiceGroup>("Professional / Skilled");
   const [active, setActive] = useState<string>("all");
@@ -209,46 +210,51 @@ export default function ServicesPage() {
   }, []);
 
   useEffect(() => {
+    if (!supabaseAnon) {
+      setLoading(false);
+      setLoadErr("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+      return;
+    }
+
     let alive = true;
 
     (async () => {
       setLoading(true);
       setLoadErr(null);
 
-      // ✅ Always query using anon client for this public page
+      const selectCols = [
+        "provider_service_id",
+        "provider_id",
+        "provider_name",
+        "provider_slug",
+        "provider_kind",
+        "provider_phone",
+        "provider_email",
+        "city",
+        "district",
+        "state",
+        "country",
+        "primary_pincode",
+        "provider_status",
+        "custom_category",
+        "custom_subcategory",
+        "custom_service",
+        "service_description",
+        "service_is_active",
+        "provider_service_created_at",
+        "segment",
+        "segment_slug",
+        "category_slug",
+        "service_slug",
+        "pricing_kind",
+        "min_price",
+        "max_price",
+        "currency",
+      ].join(",");
+
       const { data, error } = await (supabaseAnon as any)
         .from("v_service_listings")
-        .select(
-          [
-            "provider_service_id",
-            "provider_id",
-            "provider_name",
-            "provider_slug",
-            "provider_kind",
-            "provider_phone",
-            "provider_email",
-            "city",
-            "district",
-            "state",
-            "country",
-            "primary_pincode",
-            "provider_status",
-            "custom_category",
-            "custom_subcategory",
-            "custom_service",
-            "service_description",
-            "service_is_active",
-            "provider_service_created_at",
-            "segment",
-            "segment_slug",
-            "category_slug",
-            "service_slug",
-            "pricing_kind",
-            "min_price",
-            "max_price",
-            "currency",
-          ].join(",")
-        )
+        .select(selectCols)
         .eq("service_is_active", true)
         .order("provider_service_created_at", { ascending: false });
 
@@ -261,37 +267,7 @@ export default function ServicesPage() {
 
           const retry = await (supabaseAnon as any)
             .from("v_service_listings")
-            .select(
-              [
-                "provider_service_id",
-                "provider_id",
-                "provider_name",
-                "provider_slug",
-                "provider_kind",
-                "provider_phone",
-                "provider_email",
-                "city",
-                "district",
-                "state",
-                "country",
-                "primary_pincode",
-                "provider_status",
-                "custom_category",
-                "custom_subcategory",
-                "custom_service",
-                "service_description",
-                "service_is_active",
-                "provider_service_created_at",
-                "segment",
-                "segment_slug",
-                "category_slug",
-                "service_slug",
-                "pricing_kind",
-                "min_price",
-                "max_price",
-                "currency",
-              ].join(",")
-            )
+            .select(selectCols)
             .eq("service_is_active", true)
             .order("provider_service_created_at", { ascending: false });
 
@@ -382,7 +358,10 @@ export default function ServicesPage() {
   return (
     <main>
       <Container>
-        <SectionHeader title="Services" subtitle="Discover and compare service providers across construction, real estate and legal support." />
+        <SectionHeader
+          title="Services"
+          subtitle="Discover and compare service providers across construction, real estate and legal support."
+        />
 
         <div
           style={{
@@ -434,7 +413,12 @@ export default function ServicesPage() {
             }}
           >
             <div style={{ flex: "1 1 560px" }}>
-              <FilterBar items={activeFilterItems} activeKey={active} onChange={(k) => setActive(k)} ariaLabel="Service categories" />
+              <FilterBar
+                items={activeFilterItems}
+                activeKey={active}
+                onChange={(k) => setActive(String(k))}
+                ariaLabel="Service categories"
+              />
             </div>
 
             <div style={{ flex: "0 1 320px", display: "flex", justifyContent: "flex-end" }}>
@@ -463,7 +447,7 @@ export default function ServicesPage() {
             ) : (
               <>
                 <Grid min={260} gap={14}>
-                  {filtered.map((r) => {
+                  {filtered.map((r: ServiceRow) => {
                     const name =
                       r.custom_service?.trim() ||
                       (r.service_slug ? r.service_slug.replace(/-/g, " ") : "") ||
@@ -511,7 +495,6 @@ export default function ServicesPage() {
                             {priceText ? <span>Price: {priceText}</span> : null}
                           </div>
 
-                          {/* ✅ NEW: Send Enquiry button inside each card */}
                           <div style={{ marginTop: 12 }}>
                             <SendEnquiryButton
                               module="service"
@@ -526,7 +509,10 @@ export default function ServicesPage() {
                         </CardBody>
 
                         <CardFooter>
-                          <ActionButton href={`/services/${encodeURIComponent(String(r.provider_service_id))}`} variant="secondary">
+                          <ActionButton
+                            href={`/services/${encodeURIComponent(String(r.provider_service_id))}`}
+                            variant="secondary"
+                          >
                             View details →
                           </ActionButton>
                         </CardFooter>
@@ -536,7 +522,9 @@ export default function ServicesPage() {
                 </Grid>
 
                 {filtered.length === 0 ? (
-                  <EmptyState message={q.trim() ? "No services found for this search." : "No services found for this category."} />
+                  <EmptyState
+                    message={q.trim() ? "No services found for this search." : "No services found for this category."}
+                  />
                 ) : null}
               </>
             )}

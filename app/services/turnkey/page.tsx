@@ -116,9 +116,11 @@ function normalizeRateUnit(u: string | null | undefined) {
   return u.startsWith("/") ? u : `/${u.replace(/^per_/, "")}`;
 }
 
+export const dynamic = "force-dynamic";
+
 export default function PublicTurnkeyPage() {
   const router = useRouter();
-  const supabase = useMemo(() => getSupabaseBrowser(), []);
+  const [supabase, setSupabase] = useState<ReturnType<typeof getSupabaseBrowser> | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -127,14 +129,25 @@ export default function PublicTurnkeyPage() {
 
   const openRow = useMemo(() => rows.find((r) => r.id === openId) ?? null, [rows, openId]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const client = getSupabaseBrowser();
+      setSupabase(client);
+    } catch (e: any) {
+      setErr(e?.message || "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+      setLoading(false);
+    }
+  }, []);
+
   async function load() {
+    if (!supabase) return;
+
     setErr(null);
     setLoading(true);
 
     try {
-      // IMPORTANT:
-      // This assumes provider_turnkey_packages.provider_id -> service_providers.id FK exists.
-      // Using !inner ensures only rows with provider.
       const { data, error } = await supabase
         .from("provider_turnkey_packages")
         .select(
@@ -179,9 +192,9 @@ export default function PublicTurnkeyPage() {
   }
 
   useEffect(() => {
+    if (!supabase) return;
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [supabase]);
 
   return (
     <main>
@@ -225,7 +238,7 @@ export default function PublicTurnkeyPage() {
               <EmptyState message="No turnkey packages found yet." />
             ) : (
               <Grid min={280} gap={12}>
-                {rows.map((r) => {
+                {rows.map((r: TurnkeyPkgRow) => {
                   const p = r.service_providers ?? null;
                   const title = (r.marketing_title || r.package_name || r.package_code || "Turnkey Package").trim();
 
@@ -290,7 +303,6 @@ export default function PublicTurnkeyPage() {
         </Card>
       </Container>
 
-      {/* DETAILS MODAL */}
       {openRow ? (
         <div
           style={styles.modalOverlay}

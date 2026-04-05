@@ -4,24 +4,6 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const supabaseUrl =
-  process.env.SUPABASE_URL ||
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  "";
-
-const supabaseKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.SUPABASE_ANON_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "";
-
-const supabaseAdmin = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-});
-
 export async function POST(req: Request) {
   try {
     const supabaseUrl =
@@ -46,8 +28,6 @@ export async function POST(req: Request) {
         persistSession: false,
       },
     });
-
-    // 👇 KEEP YOUR EXISTING LOGIC BELOW (do NOT change)
 
     const body = await req.json();
 

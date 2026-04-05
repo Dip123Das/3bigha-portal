@@ -102,11 +102,15 @@ function firstPhotoUrl(photos: any): string | null {
   return null;
 }
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+function createAnonSupabase(): SupabaseClient | null {
+  if (typeof window === "undefined") return null;
 
-function createAnonSupabase(): SupabaseClient {
-  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anonKey) return null;
+
+  return createClient(url, anonKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
@@ -167,8 +171,13 @@ function safeClearExpiredSupabaseSessions() {
   } catch {}
 }
 
+export const dynamic = "force-dynamic";
+
 export default function RentalsPublicPage() {
-  const supabaseAnon = useMemo(() => createAnonSupabase(), []);
+  const supabaseAnon = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    return createAnonSupabase();
+  }, []);
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -190,6 +199,10 @@ export default function RentalsPublicPage() {
   async function loadTypesOnce() {
     setTaxLoading(true);
     setTaxErr(null);
+
+    if (!supabaseAnon) {
+      throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    }
 
     const { data, error } = await (supabaseAnon as any)
       .from("rental_taxons")
@@ -236,6 +249,10 @@ export default function RentalsPublicPage() {
     setLoading(true);
     setErr(null);
 
+    if (!supabaseAnon) {
+      throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    }
+
     const { data, error } = await supabaseAnon
       .from("rental_listings_public")
       .select(
@@ -276,7 +293,6 @@ export default function RentalsPublicPage() {
 
     const publicRows = ((data ?? []) as unknown) as Row[];
 
-    // Best-effort vendor mapping for chat/enquiry from list page
     const ids = publicRows.map((r) => String(r.id)).filter(Boolean);
 
     let vendorMap = new Map<string, string | null>();
@@ -311,6 +327,14 @@ export default function RentalsPublicPage() {
   }
 
   useEffect(() => {
+    if (!supabaseAnon) {
+      setLoading(false);
+      setTaxLoading(false);
+      setErr("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+      setTaxErr("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+      return;
+    }
+
     let alive = true;
 
     (async () => {
@@ -364,7 +388,6 @@ export default function RentalsPublicPage() {
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabaseAnon]);
 
   const typeItems: FilterBarItem[] = useMemo(() => {
@@ -528,7 +551,7 @@ export default function RentalsPublicPage() {
               </div>
             ) : (
               <Grid>
-                {filtered.map((r) => {
+                {filtered.map((r: Row) => {
                   const loc = [r.locality, r.city, r.district, r.state, r.country, r.pincode].filter(Boolean).join(", ");
                   const cover = firstPhotoUrl(r.photos);
                   const title = (r.title ?? "").trim() || "Rental listing";

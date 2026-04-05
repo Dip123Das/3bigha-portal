@@ -18,61 +18,35 @@ export const metadata: Metadata = {
     "Buy, sell and rent property, discover building materials, services, rentals and compare quotations on 3Bigha.com.",
 
   openGraph: {
-  title: "3Bigha.com – Property, Materials, Services & Rentals",
-  description:
-    "A real estate and construction ecosystem to browse listings, submit requirements and receive competitive quotes.",
-  url: "https://www.3bigha.com",
-  siteName: "3Bigha.com",
-  locale: "en_IN",
-  type: "website",
-  images: ["https://www.3bigha.com/og-image.jpg"],
+    title: "3Bigha.com – Property, Materials, Services & Rentals",
+    description:
+      "A real estate and construction ecosystem to browse listings, submit requirements and receive competitive quotes.",
+    url: "https://www.3bigha.com",
+    siteName: "3Bigha.com",
+    locale: "en_IN",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1024,
+        height: 1024,
+        alt: "3Bigha",
+      },
+    ],
   },
 
-    twitter: {
-      card: "summary_large_image",
-      title: "3Bigha.com – Real Estate & Construction Ecosystem",
-      description:
-        "Browse property, materials, services and rentals. Submit requirements and get competitive quotes.",
-      images: ["https://www.3bigha.com/og-image.jpg"],
-    },
-  };
+  twitter: {
+    card: "summary_large_image",
+    title: "3Bigha.com – Real Estate & Construction Ecosystem",
+    description:
+      "Browse property, materials, services and rentals. Submit requirements and get competitive quotes.",
+    images: ["/og-image.jpg"],
+  },
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-path="/">
-      <head>
-        <title>3Bigha.com – Real Estate & Construction Ecosystem</title>
-        <meta
-          name="description"
-          content="Buy, sell and rent property, discover building materials, services, rentals and compare quotations on 3Bigha.com."
-        />
-
-        <meta property="og:title" content="3Bigha.com – Property, Materials, Services & Rentals" />
-        <meta
-          property="og:description"
-          content="A real estate and construction ecosystem to browse listings, submit requirements and receive competitive quotes."
-        />
-        <meta property="og:url" content="https://www.3bigha.com" />
-        <meta property="og:site_name" content="3Bigha.com" />
-        <meta property="og:locale" content="en_IN" />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://www.3bigha.com/og-image.jpg" />
-        <meta property="og:image:secure_url" content="https://www.3bigha.com/og-image.jpg" />
-        <meta property="og:image:type" content="image/jpeg" />
-        <meta property="og:image:width" content="1024" />
-        <meta property="og:image:height" content="1024" />
-        <meta property="og:image:alt" content="3Bigha.com – Real Estate & Construction Ecosystem" />
-
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="3Bigha.com – Real Estate & Construction Ecosystem" />
-        <meta
-          name="twitter:description"
-          content="Browse property, materials, services and rentals. Submit requirements and get competitive quotes."
-        />
-        <meta name="twitter:image" content="https://www.3bigha.com/og-image.jpg" />
-
-        <link rel="canonical" href="https://www.3bigha.com" />
-      </head>
+    <html lang="en">
       <body>
         <PresenceHeartbeat currentPage="global" />
         <MobileMenuAutoClose />

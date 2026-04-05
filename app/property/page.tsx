@@ -209,9 +209,21 @@ function chipStyle(active: boolean) {
   };
 }
 
+export const dynamic = "force-dynamic";
+
 export default function PropertyPublicListPage() {
   // ✅ ONLY public client here (no session, no JWT refresh)
-  const supabase = useMemo(() => getSupabasePublicBrowser(), []);
+  const [supabase, setSupabase] = useState<ReturnType<typeof getSupabasePublicBrowser> | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const client = getSupabasePublicBrowser();
+      setSupabase(client);
+    } catch (e: any) {
+      setErr(e?.message || "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    }
+  }, []);
 
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -294,6 +306,7 @@ export default function PropertyPublicListPage() {
   }
 
   async function loadTypeAndSubtypeMaps(nextListings: ListingRow[]) {
+    if (!supabase) return;
     const typeIds = Array.from(new Set(nextListings.map((x) => x.type_id).filter(Boolean))) as string[];
     const subtypeIds = Array.from(new Set(nextListings.map((x) => x.subtype_id).filter(Boolean))) as string[];
 
@@ -419,13 +432,16 @@ export default function PropertyPublicListPage() {
 
   // first load
   useEffect(() => {
+    if (!supabase) return;
     console.log("PROPERTY_PUBLIC_PAGE_LOAD_START");
     loadPage(0, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [supabase]);
 
   // infinite scroll observer
   useEffect(() => {
+    if (!supabase) return;
+
     const el = sentinelRef.current;
     if (!el) return;
 
@@ -581,7 +597,7 @@ export default function PropertyPublicListPage() {
         ) : (
           <>
             <Grid>
-              {filtered.map((p) => {
+              {filtered.map((p: ListingRow) => {
                 const typeName = p.type_id ? typeMap[p.type_id]?.name : "";
                 const subtypeName = p.subtype_id ? subtypeMap[p.subtype_id]?.name : "";
 

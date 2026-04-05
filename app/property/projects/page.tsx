@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { getSupabasePublicBrowser } from "@/lib/supabasePublicBrowser";
 
 import { Container } from "@/components/layout/Container";
@@ -48,17 +48,29 @@ function friendlyDbError(err: any): string {
   return String(err?.message ?? err?.hint ?? err?.details ?? err ?? "Unknown error");
 }
 
-export default function PropertyProjectsPublicPage() {
-  const supabase: any = useMemo(() => {
-    const factory: any = getSupabasePublicBrowser as any;
-    return factory();
-  }, []);
+export const dynamic = "force-dynamic";
 
+export default function PropertyProjectsPublicPage() {
+  const [supabase, setSupabase] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [projects, setProjects] = useState<ProjectRow[]>([]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const factory: any = getSupabasePublicBrowser as any;
+      setSupabase(factory());
+    } catch (e: any) {
+      setErr(e?.message || "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY");
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return;
+
     let alive = true;
 
     async function loadProjects() {
@@ -105,7 +117,7 @@ export default function PropertyProjectsPublicPage() {
         <EmptyState message="No public active builder projects are available right now." />
       ) : (
         <Grid>
-          {projects.map((p) => (
+          {projects.map((p: ProjectRow) => (
             <Card key={p.id}>
               <CardBody>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
