@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
@@ -11,7 +11,6 @@ type SessionLite = {
 
 function shortEmail(email?: string | null) {
   if (!email) return "Signed in";
-  // example: dipankar…@gmail.com
   const [name, domain] = email.split("@");
   if (!domain) return email;
   const shortName = name.length > 7 ? `${name.slice(0, 7)}…` : name;
@@ -26,6 +25,8 @@ function prettyRole(role?: string | null, isVendor?: boolean | null) {
   if (r === "blogger") return "Blogger";
   if (r === "vendor") return "Vendor";
   if (r === "buyer") return "Buyer";
+  if (r === "builder") return "Builder";
+  if (r === "hub_vendor") return "HUB Vendor";
   if (isVendor === true) return "Vendor";
 
   return "";
@@ -33,73 +34,125 @@ function prettyRole(role?: string | null, isVendor?: boolean | null) {
 
 export default function AuthButtons() {
   const router = useRouter();
-  const supabase = getSupabaseBrowser();
+  const supabase = useMemo(() => getSupabaseBrowser(), []);
 
   const [session, setSession] = useState<SessionLite>(null);
   const [roleLabel, setRoleLabel] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
+  async function loadRole(userId: string | null | undefined) {
+    if (!userId) {
+      setRoleLabel("");
+      return;
+    }
+
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role,is_vendor")
+        .eq("id", userId)
+        .maybeSingle();
+
+      setRoleLabel(prettyRole((profile as any)?.role, (profile as any)?.is_vendor));
+    } catch {
+      setRoleLabel("");
+    }
+  }
+
+  async function syncAuthState() {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const s = sessionData.session ?? null;
+
+      if (s?.user?.id) {
+        setSession({
+          user: {
+            email: s.user.email ?? null,
+            id: s.user.id ?? null,
+          },
+        });
+        await loadRole(s.user.id);
+        setLoading(false);
+        return;
+      }
+
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+
+      if (!userError && userData.user?.id) {
+        setSession({
+          user: {
+            email: userData.user.email ?? null,
+            id: userData.user.id ?? null,
+          },
+        });
+        await loadRole(userData.user.id);
+        setLoading(false);
+        return;
+      }
+
+      setSession(null);
+      setRoleLabel("");
+      setLoading(false);
+    } catch {
+      setSession(null);
+      setRoleLabel("");
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     let alive = true;
 
-    (async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (!alive) return;
+    const guardedSync = async () => {
+      if (!alive) return;
+      await syncAuthState();
+    };
 
-        const s = data.session;
-        setSession(s ? { user: { email: s.user.email, id: s.user.id } } : null);
-
-        if (s?.user?.id) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("role,is_vendor")
-            .eq("id", s.user.id)
-            .maybeSingle();
-
-          if (!alive) return;
-          setRoleLabel(prettyRole((profile as any)?.role, (profile as any)?.is_vendor));
-        } else {
-          setRoleLabel("");
-        }
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
+    guardedSync();
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (_event, s) => {
       if (!alive) return;
 
-      setSession(s ? { user: { email: s.user.email, id: s.user.id } } : null);
-
       if (s?.user?.id) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role,is_vendor")
-          .eq("id", s.user.id)
-          .maybeSingle();
-
-        if (!alive) return;
-        setRoleLabel(prettyRole((profile as any)?.role, (profile as any)?.is_vendor));
+        setSession({
+          user: {
+            email: s.user.email ?? null,
+            id: s.user.id ?? null,
+          },
+        });
+        await loadRole(s.user.id);
       } else {
+        setSession(null);
         setRoleLabel("");
       }
 
       setLoading(false);
-
-      // keep server components fresh
       router.refresh();
     });
+
+    const onFocus = () => {
+      guardedSync();
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        guardedSync();
+      }
+    };
+
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       alive = false;
       sub.subscription.unsubscribe();
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [router, supabase]);
 
   async function handleLogout() {
     try {
-      // immediately reflect in UI
       setSession(null);
       setRoleLabel("");
       setLoading(false);
@@ -110,16 +163,14 @@ export default function AuthButtons() {
     }
   }
 
-  // Loading → show Login (prevents flicker)
   if (loading) {
     return (
-      <Link className="topBtn topBtnGhost" href="/login">
-        Login
-      </Link>
+      <span className="topBtn topBtnGhost" style={{ opacity: 0.75 }}>
+        Account
+      </span>
     );
   }
 
-  // Logged out → Login
   if (!session) {
     return (
       <Link className="topBtn topBtnGhost" href="/login">
@@ -128,11 +179,10 @@ export default function AuthButtons() {
     );
   }
 
-  // Logged in → show email + Logout
   const email = session.user.email ?? null;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
       <span
         title={email ?? undefined}
         style={{
@@ -152,7 +202,7 @@ export default function AuthButtons() {
         {shortEmail(email)}
       </span>
 
-            {roleLabel ? (
+      {roleLabel ? (
         <span
           style={{
             fontSize: 12,
