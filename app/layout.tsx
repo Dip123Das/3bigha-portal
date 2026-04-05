@@ -2,6 +2,7 @@
 import "./globals.css";
 import "./ui-kit.css";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 
 // ✅ confirmed existing files (from your terminal output)
@@ -27,10 +28,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-image.jpg",
-        width: 1024,
-        height: 1024,
-        alt: "3Bigha",
+        url: "/og-image-new.jpg",
+        width: 1200,
+        height: 630,
+        alt: "3Bigha.com – Real Estate, Materials, Services, Rentals & Investment",
       },
     ],
   },
@@ -40,11 +41,11 @@ export const metadata: Metadata = {
     title: "3Bigha.com – Real Estate & Construction Ecosystem",
     description:
       "Browse property, materials, services and rentals. Submit requirements and get competitive quotes.",
-    images: ["/og-image.jpg"],
+    images: ["/og-image-new.jpg"],
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
