@@ -79,7 +79,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <ActiveLink className="topNavLink" href="/rentals">
                 Rentals
               </ActiveLink>
-              <ActiveLink className="topNavLink" href="/dashboard/investor/deal-rooms">
+              <ActiveLink className="topNavLink" href="/investment">
                 Investment
               </ActiveLink>
               <ActiveLink className="topNavLink" href="/blog">
@@ -295,7 +295,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <ActiveLink className="topMobileLink" href="/rentals">
                     Rentals
                   </ActiveLink>
-                  <ActiveLink className="topMobileLink" href="/dashboard/investor/deal-rooms">
+                  <ActiveLink className="topMobileLink" href="/investment">
                     Investment
                   </ActiveLink>
                   <ActiveLink className="topMobileLink" href="/blog">
@@ -483,8 +483,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   title="Open unified inbox with unread chat count"
                 />
 
-                <Link className="topSubLink" href="/dashboard/investor/deal-rooms">
-                  Investment Hub
+                <Link className="topSubLink" href="/investment">
+                  Investment
                 </Link>
 
                 {/* ✅ Keep Vendor Inbox as a direct link */}

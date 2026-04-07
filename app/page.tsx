@@ -70,8 +70,8 @@ export default function HomePage() {
           </ActionButton>
 
           <ActionButton
-            href="/dashboard/investor/deal-rooms"
-            variant={isActive("/dashboard/investor") ? "primary" : "secondary"}
+            href="/investment"
+            variant={isActive("/investment") ? "primary" : "secondary"}
           >
             Investment
           </ActionButton>
