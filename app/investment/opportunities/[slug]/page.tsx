@@ -15,11 +15,24 @@ export async function generateMetadata({
   const cookieStore = await cookies();
   const supabase = getSupabaseServerClient(cookieStore);
 
-  const { data } = await supabase
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      slugOrId
+    );
+
+  let query = supabase
     .from("investment_opportunities")
     .select("title, description, cover_image_url")
-    .or(`slug.eq.${slugOrId}`)
-    .maybeSingle();
+    .eq("visibility", "public")
+    .eq("status", "active");
+
+  if (isUuid) {
+    query = query.or(`slug.eq.${slugOrId},id.eq.${slugOrId}`);
+  } else {
+    query = query.eq("slug", slugOrId);
+  }
+
+  const { data } = await query.maybeSingle();
 
   const title = data?.title || "Investment Opportunity | 3Bigha";
   const description =
