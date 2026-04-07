@@ -78,7 +78,9 @@ function getRiskBadgeClass(risk?: string | null) {
 
 async function getOpportunityBySlugOrId(slugOrId: string) {
   const cleanValue = String(slugOrId || "").trim();
-  if (!cleanValue) return null;
+  if (!cleanValue) {
+    return { opportunity: null, debugError: "Empty slug or id." };
+  }
 
   const cookieStore = await cookies();
   const supabase = getSupabaseServerClient(cookieStore);
@@ -127,11 +129,29 @@ async function getOpportunityBySlugOrId(slugOrId: string) {
   const { data, error } = await query.maybeSingle();
 
   if (error) {
-    console.error("INVESTMENT_DETAIL_ERROR", error);
-    return null;
+    console.error("INVESTMENT_DETAIL_ERROR", {
+      cleanValue,
+      isUuid,
+      error,
+    });
+
+    return {
+      opportunity: null,
+      debugError: error.message || "Unknown Supabase error.",
+    };
   }
 
-  return (data ?? null) as OpportunityRow | null;
+  if (!data) {
+    return {
+      opportunity: null,
+      debugError: `No row returned for slug/id: ${cleanValue}`,
+    };
+  }
+
+  return {
+    opportunity: data as OpportunityRow,
+    debugError: null,
+  };
 }
 
 async function getBuilderSummary(
@@ -251,9 +271,27 @@ export default async function InvestmentOpportunityDetailPage({
   params: { slug: string };
 }) {
   const slugOrId = decodeURIComponent(params.slug || "").trim();
-  const opportunity = await getOpportunityBySlugOrId(slugOrId);
+  const { opportunity, debugError } = await getOpportunityBySlugOrId(slugOrId);
 
-  if (!opportunity) notFound();
+  if (!opportunity) {
+    return (
+      <div className="min-h-screen bg-white p-6">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-red-200 bg-red-50 p-6">
+          <h1 className="text-xl font-bold text-red-700">
+            Investment detail debug
+          </h1>
+          <div className="mt-4 text-sm text-red-700">
+            <div>
+              <strong>Route param:</strong> {slugOrId}
+            </div>
+            <div className="mt-2">
+              <strong>Debug error:</strong> {debugError || "Unknown error"}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const title = opportunity.title || "Untitled Opportunity";
   const description =
