@@ -27,7 +27,7 @@ type OpportunityRow = {
   cover_image_url: string | null;
   created_at: string | null;
   updated_at?: string | null;
-  builder_user_id?: string | null;
+  created_by_user_id?: string | null;
 };
 
 type BuilderSummary = {
@@ -101,7 +101,7 @@ async function getOpportunityBySlugOrId(slugOrId: string) {
     cover_image_url,
     created_at,
     updated_at,
-    builder_user_id
+    created_by_user_id
   `;
 
   const bySlug = await supabase
@@ -254,7 +254,7 @@ export default async function InvestmentOpportunityDetailPage({
     opportunity.short_description?.trim() ||
     "Full investment details will be shared after initial review and interest confirmation.";
   const location = getLocationText(opportunity);
-  const builderSummary = await getBuilderSummary(opportunity.builder_user_id);
+  const builderSummary = await getBuilderSummary(opportunity.created_by_user_id);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
