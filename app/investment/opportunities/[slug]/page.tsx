@@ -11,7 +11,6 @@ type OpportunityRow = {
   slug: string | null;
   title: string | null;
   description: string | null;
-  short_description?: string | null;
   opportunity_type: string | null;
   source_type: string | null;
   city: string | null;
@@ -22,7 +21,6 @@ type OpportunityRow = {
   min_investment: number | null;
   max_investment: number | null;
   expected_holding_months: number | null;
-  expected_roi_percent?: number | null;
   risk_level: "low" | "medium" | "high" | null;
   cover_image_url: string | null;
   created_at: string | null;
@@ -78,9 +76,7 @@ function getRiskBadgeClass(risk?: string | null) {
 
 async function getOpportunityBySlugOrId(slugOrId: string) {
   const cleanValue = String(slugOrId || "").trim();
-  if (!cleanValue) {
-    return { opportunity: null, debugError: "Empty slug or id." };
-  }
+  if (!cleanValue) return null;
 
   const cookieStore = await cookies();
   const supabase = getSupabaseServerClient(cookieStore);
@@ -100,7 +96,6 @@ async function getOpportunityBySlugOrId(slugOrId: string) {
     min_investment,
     max_investment,
     expected_holding_months,
-    expected_roi_percent,
     risk_level,
     cover_image_url,
     created_at,
@@ -133,24 +128,10 @@ async function getOpportunityBySlugOrId(slugOrId: string) {
       isUuid,
       error,
     });
-
-    return {
-      opportunity: null,
-      debugError: error.message || "Unknown Supabase error.",
-    };
+    return null;
   }
 
-  if (!data) {
-    return {
-      opportunity: null,
-      debugError: `No row returned for slug/id: ${cleanValue}`,
-    };
-  }
-
-  return {
-    opportunity: data as OpportunityRow,
-    debugError: null,
-  };
+  return (data ?? null) as OpportunityRow | null;
 }
 
 async function getBuilderSummary(
@@ -270,32 +251,13 @@ export default async function InvestmentOpportunityDetailPage({
   params: { slug: string };
 }) {
   const slugOrId = decodeURIComponent(params.slug || "").trim();
-  const { opportunity, debugError } = await getOpportunityBySlugOrId(slugOrId);
+  const opportunity = await getOpportunityBySlugOrId(slugOrId);
 
-  if (!opportunity) {
-    return (
-      <div className="min-h-screen bg-white p-6">
-        <div className="mx-auto max-w-3xl rounded-2xl border border-red-200 bg-red-50 p-6">
-          <h1 className="text-xl font-bold text-red-700">
-            Investment detail debug
-          </h1>
-          <div className="mt-4 text-sm text-red-700">
-            <div>
-              <strong>Route param:</strong> {slugOrId}
-            </div>
-            <div className="mt-2">
-              <strong>Debug error:</strong> {debugError || "Unknown error"}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (!opportunity) notFound();
 
   const title = opportunity.title || "Untitled Opportunity";
   const description =
     opportunity.description?.trim() ||
-    "Full investment details will be shared after initial review and interest confirmation.";
     "Full investment details will be shared after initial review and interest confirmation.";
   const location = getLocationText(opportunity);
   const builderSummary = await getBuilderSummary(opportunity.created_by_user_id);
@@ -398,12 +360,7 @@ export default async function InvestmentOpportunityDetailPage({
                 />
                 <MetricCard
                   label="Expected ROI"
-                  value={
-                    opportunity.expected_roi_percent !== null &&
-                    opportunity.expected_roi_percent !== undefined
-                      ? `${opportunity.expected_roi_percent}%`
-                      : "Not specified"
-                  }
+                  value="Not specified"
                 />
               </div>
 
@@ -489,10 +446,7 @@ export default async function InvestmentOpportunityDetailPage({
                       Expected ROI
                     </div>
                     <div className="mt-1 text-sm font-semibold text-slate-900">
-                      {opportunity.expected_roi_percent !== null &&
-                      opportunity.expected_roi_percent !== undefined
-                        ? `${opportunity.expected_roi_percent}%`
-                        : "Not specified"}
+                      Not specified
                     </div>
                   </div>
                 </div>
