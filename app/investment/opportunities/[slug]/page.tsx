@@ -77,6 +77,9 @@ function getRiskBadgeClass(risk?: string | null) {
 }
 
 async function getOpportunityBySlugOrId(slugOrId: string) {
+  const cleanValue = String(slugOrId || "").trim();
+  if (!cleanValue) return null;
+
   const cookieStore = await cookies();
   const supabase = getSupabaseServerClient(cookieStore);
 
@@ -107,9 +110,9 @@ async function getOpportunityBySlugOrId(slugOrId: string) {
   const { data, error } = await supabase
     .from("investment_opportunities")
     .select(baseSelect)
-    .or(`slug.eq.${slugOrId},id.eq.${slugOrId}`)
-    .eq("status", "active")
     .eq("visibility", "public")
+    .eq("status", "active")
+    .or(`slug.eq.${cleanValue},id.eq.${cleanValue}`)
     .maybeSingle();
 
   if (error) {
@@ -117,7 +120,7 @@ async function getOpportunityBySlugOrId(slugOrId: string) {
     return null;
   }
 
-  return data as OpportunityRow | null;
+  return (data ?? null) as OpportunityRow | null;
 }
 
 async function getBuilderSummary(
@@ -236,7 +239,7 @@ export default async function InvestmentOpportunityDetailPage({
 }: {
   params: { slug: string };
 }) {
-  const slugOrId = decodeURIComponent(params.slug || "");
+  const slugOrId = decodeURIComponent(params.slug || "").trim();
   const opportunity = await getOpportunityBySlugOrId(slugOrId);
 
   if (!opportunity) notFound();
