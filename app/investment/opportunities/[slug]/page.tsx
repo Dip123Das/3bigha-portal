@@ -107,13 +107,24 @@ async function getOpportunityBySlugOrId(slugOrId: string) {
     created_by_user_id
   `;
 
-  const { data, error } = await supabase
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      cleanValue
+    );
+
+  let query = supabase
     .from("investment_opportunities")
     .select(baseSelect)
     .eq("visibility", "public")
-    .eq("status", "active")
-    .or(`slug.eq.${cleanValue},id.eq.${cleanValue}`)
-    .maybeSingle();
+    .eq("status", "active");
+
+  if (isUuid) {
+    query = query.or(`slug.eq.${cleanValue},id.eq.${cleanValue}`);
+  } else {
+    query = query.eq("slug", cleanValue);
+  }
+
+  const { data, error } = await query.maybeSingle();
 
   if (error) {
     console.error("INVESTMENT_DETAIL_ERROR", error);
