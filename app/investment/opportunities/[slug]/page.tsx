@@ -5,6 +5,39 @@ import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import OpportunitySidebarClient from "./OpportunitySidebarClient";
 
 export const dynamic = "force-dynamic";
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const slugOrId = decodeURIComponent(params.slug || "").trim();
+
+  const cookieStore = await cookies();
+  const supabase = getSupabaseServerClient(cookieStore);
+
+  const { data } = await supabase
+    .from("investment_opportunities")
+    .select("title, description, cover_image_url")
+    .or(`slug.eq.${slugOrId}`)
+    .maybeSingle();
+
+  const title = data?.title || "Investment Opportunity | 3Bigha";
+  const description =
+    data?.description ||
+    "Explore verified investment opportunities on 3Bigha.";
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: data?.cover_image_url
+        ? [data.cover_image_url]
+        : ["/og-image.jpg"],
+    },
+  };
+}
 
 type OpportunityRow = {
   id: string;
