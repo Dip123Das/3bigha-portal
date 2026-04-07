@@ -90,7 +90,6 @@ async function getOpportunityBySlugOrId(slugOrId: string) {
     slug,
     title,
     description,
-    short_description,
     opportunity_type,
     source_type,
     city,
@@ -296,7 +295,7 @@ export default async function InvestmentOpportunityDetailPage({
   const title = opportunity.title || "Untitled Opportunity";
   const description =
     opportunity.description?.trim() ||
-    opportunity.short_description?.trim() ||
+    "Full investment details will be shared after initial review and interest confirmation.";
     "Full investment details will be shared after initial review and interest confirmation.";
   const location = getLocationText(opportunity);
   const builderSummary = await getBuilderSummary(opportunity.created_by_user_id);
