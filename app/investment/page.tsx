@@ -106,10 +106,10 @@ export default async function InvestmentPage() {
       created_at
     `)
     .eq("visibility", "public")
-    .in("status", ["active", "approved"])
+    .eq("status", "active")
     .order("created_at", { ascending: false });
 
-  const items = ((error ? [] : data) ?? []) as OpportunityRow[];
+  const items = (data ?? []) as OpportunityRow[];
 
   return (
     <div style={{ padding: 20 }}>
@@ -121,7 +121,22 @@ export default async function InvestmentPage() {
         Explore only those builder projects and properties that are open for investment.
       </p>
 
-      {items.length === 0 ? (
+      {error ? (
+        <div
+          style={{
+            border: "1px solid #fecaca",
+            borderRadius: 16,
+            padding: 20,
+            background: "#fff1f2",
+            color: "#9f1239",
+          }}
+        >
+          <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 6 }}>
+            Could not load public investment opportunities
+          </div>
+          <div>{error.message}</div>
+        </div>
+      ) : items.length === 0 ? (
         <div
           style={{
             border: "1px solid #ddd",
