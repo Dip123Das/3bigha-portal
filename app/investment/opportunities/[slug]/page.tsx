@@ -104,27 +104,20 @@ async function getOpportunityBySlugOrId(slugOrId: string) {
     created_by_user_id
   `;
 
-  const bySlug = await supabase
+  const { data, error } = await supabase
     .from("investment_opportunities")
     .select(baseSelect)
-    .eq("slug", slugOrId)
+    .or(`slug.eq.${slugOrId},id.eq.${slugOrId}`)
     .eq("status", "active")
     .eq("visibility", "public")
     .maybeSingle();
 
-  if (bySlug.data) return bySlug.data as OpportunityRow;
+  if (error) {
+    console.error("INVESTMENT_DETAIL_ERROR", error);
+    return null;
+  }
 
-  const byId = await supabase
-    .from("investment_opportunities")
-    .select(baseSelect)
-    .eq("id", slugOrId)
-    .eq("status", "active")
-    .eq("visibility", "public")
-    .maybeSingle();
-
-  if (byId.data) return byId.data as OpportunityRow;
-
-  return null;
+  return data as OpportunityRow | null;
 }
 
 async function getBuilderSummary(
