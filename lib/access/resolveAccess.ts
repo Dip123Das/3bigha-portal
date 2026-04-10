@@ -17,7 +17,8 @@ export type VendorCapabilityKey =
   | "rentals"
   | "property_owner"
   | "property_builder"
-  | "blog_author";
+  | "blog_author"
+  | "investor";
 
 export type AccessContext = {
   userId: string;
@@ -62,6 +63,7 @@ function normalizeCapability(raw: unknown): VendorCapabilityKey | null {
   if (v === "property_owner") return "property_owner";
   if (v === "property_builder") return "property_builder";
   if (v === "blog_author") return "blog_author";
+  if (v === "investor") return "investor";
 
   // Backward compatibility with your existing grant values
   if (v === "property") return "property_owner";
@@ -71,6 +73,7 @@ function normalizeCapability(raw: unknown): VendorCapabilityKey | null {
   if (v === "owner") return "property_owner";
   if (v === "builder") return "property_builder";
   if (v === "author") return "blog_author";
+  if (v === "investment" || v === "investor_access") return "investor";
 
   return null;
 }
@@ -154,7 +157,7 @@ export async function resolveAccessForUser(
     }
   }
 
-  if (isVendor || isBuilder || isHubVendor) {
+  if (isVendor || isBuilder || isHubVendor || role === "blogger") {
     const grantsSettled = await Promise.allSettled([
       withTimeout(
         supabase
@@ -184,6 +187,7 @@ export async function resolveAccessForUser(
         "property_owner",
         "property_builder",
         "blog_author",
+        "investor",
       ];
     }
 
@@ -208,7 +212,8 @@ export async function resolveAccessForUser(
     vendorCapabilities.includes("rentals") &&
     vendorCapabilities.includes("property_owner") &&
     vendorCapabilities.includes("property_builder") &&
-    vendorCapabilities.includes("blog_author");
+    vendorCapabilities.includes("blog_author") &&
+    vendorCapabilities.includes("investor");
 
   return {
     userId,
@@ -243,6 +248,7 @@ export function getDefaultPostLoginPath(access: AccessContext): string {
       if (c === "services") return "/services/my";
       if (c === "rentals") return "/rentals/my";
       if (c === "blog_author") return "/blog/my";
+      if (c === "investor") return "/dashboard/investor";
     }
 
     return "/vendor/inbox-v2";

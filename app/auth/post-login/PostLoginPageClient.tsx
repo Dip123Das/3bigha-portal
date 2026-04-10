@@ -18,6 +18,20 @@ function hardRedirect(path: string) {
   }
 }
 
+function hasValue(v: unknown) {
+  return typeof v === "string" ? v.trim().length > 0 : !!v;
+}
+
+function isBusinessRole(role: string | null | undefined) {
+  return ["vendor", "builder", "hub_vendor", "blogger"].includes(
+    (role || "").trim().toLowerCase()
+  );
+}
+
+function normalizeRole(raw: string | null | undefined) {
+  return (raw || "").trim().toLowerCase();
+}
+
 export default function PostLoginPageClient() {
   const sp = useSearchParams();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -30,7 +44,7 @@ export default function PostLoginPageClient() {
       try {
         const next = safeNextPath(sp.get("next"));
 
-        console.log("POST_LOGIN_V5_START", { next });
+        console.log("POST_LOGIN_V6_START", { next });
 
         setMsg("Checking your session…");
 
@@ -49,7 +63,7 @@ export default function PostLoginPageClient() {
         const session = (sessionRes as any)?.data?.session ?? null;
         const user = session?.user ?? null;
 
-        console.log("POST_LOGIN_V5_SESSION", {
+        console.log("POST_LOGIN_V6_SESSION", {
           hasSession: !!session,
           userId: user?.id ?? null,
           email: user?.email ?? null,
@@ -63,12 +77,26 @@ export default function PostLoginPageClient() {
           return;
         }
 
-        setMsg("Checking your registration…");
+        setMsg("Checking your account setup…");
 
         const profileRes = await Promise.race([
           supabase
             .from("profiles")
-            .select("id,email,role,approval_status,requested_role,is_vendor")
+            .select(
+              [
+                "id",
+                "email",
+                "role",
+                "requested_role",
+                "is_vendor",
+                "approval_status",
+                "full_name",
+                "phone",
+                "city",
+                "state",
+                "is_profile_complete",
+              ].join(",")
+            )
             .eq("id", user.id)
             .maybeSingle(),
           new Promise<never>((_, reject) =>
@@ -85,14 +113,12 @@ export default function PostLoginPageClient() {
         const profileError = (profileRes as any)?.error ?? null;
 
         if (profileError) {
-          console.error("POST_LOGIN_V5_PROFILE_LOOKUP_ERROR", profileError);
+          console.error("POST_LOGIN_V6_PROFILE_LOOKUP_ERROR", profileError);
         }
 
-        // Auto-repair/create minimal profile row if missing
+        // Create minimal profile if missing.
         if (!profile?.id) {
-          setMsg("Creating your profile…");
-
-          const inferredRequestedRole = "buyer";
+          setMsg("Preparing your account…");
 
           const upsertRes = await Promise.race([
             supabase.from("profiles").upsert(
@@ -100,9 +126,10 @@ export default function PostLoginPageClient() {
                 id: user.id,
                 email: user.email ?? null,
                 role: null,
+                requested_role: null,
                 is_vendor: false,
-                approval_status: "pending",
-                requested_role: inferredRequestedRole,
+                approval_status: "active",
+                is_profile_complete: false,
               },
               { onConflict: "id" }
             ),
@@ -117,7 +144,7 @@ export default function PostLoginPageClient() {
           const upsertError = (upsertRes as any)?.error ?? null;
 
           if (upsertError) {
-            console.error("POST_LOGIN_V5_PROFILE_CREATE_ERROR", upsertError);
+            console.error("POST_LOGIN_V6_PROFILE_CREATE_ERROR", upsertError);
             setMsg("Could not prepare your registration. Redirecting…");
             setTimeout(() => {
               hardRedirect("/");
@@ -129,27 +156,118 @@ export default function PostLoginPageClient() {
           return;
         }
 
-        // Repair missing email
+        // Repair missing email if needed.
         if (!profile.email && user.email) {
-          await supabase
-            .from("profiles")
-            .update({ email: user.email })
-            .eq("id", user.id);
+          await supabase.from("profiles").update({ email: user.email }).eq("id", user.id);
         }
 
-        // Role not chosen yet → registration page
-        if (!profile.role) {
+        const role = normalizeRole(profile.role);
+        const requestedRole = normalizeRole(profile.requested_role);
+
+        // If role is not chosen, go to onboarding.
+        if (!role) {
           hardRedirect(`/auth/register-role${next ? `?next=${encodeURIComponent(next)}` : ""}`);
           return;
         }
 
-        // Not approved yet → waiting page
-        if (profile.approval_status !== "approved") {
-          hardRedirect("/auth/awaiting-approval");
-          return;
+        const phone = profile.phone ?? null;
+        const fullName = profile.full_name ?? null;
+        const city = profile.city ?? null;
+        const state = profile.state ?? null;
+
+        const basicComplete =
+          hasValue(fullName) &&
+          hasValue(phone) &&
+          hasValue(city) &&
+          hasValue(state);
+
+        const patch: Record<string, any> = {};
+
+        if (profile.approval_status !== "active") {
+          patch.approval_status = "active";
         }
 
-        setMsg("Resolving your dashboard access…");
+        if (!profile.requested_role && role) {
+          patch.requested_role = role;
+        }
+
+        let isComplete = false;
+
+        if (isBusinessRole(role)) {
+          const completenessRes = await Promise.race([
+            supabase
+              .from("v_vendor_profile_completeness")
+              .select("registration_complete,is_complete,completion_score,missing_fields")
+              .eq("user_id", user.id)
+              .maybeSingle(),
+            new Promise<never>((_, reject) =>
+              setTimeout(
+                () => reject(new Error("Business completeness lookup timed out after 4000ms")),
+                4000
+              )
+            ),
+          ]);
+
+          if (!alive) return;
+
+          const completeness = (completenessRes as any)?.data ?? null;
+          const completenessError = (completenessRes as any)?.error ?? null;
+
+          if (completenessError) {
+            console.error("POST_LOGIN_V6_COMPLETENESS_LOOKUP_ERROR", completenessError);
+          }
+
+          const registrationComplete = !!completeness?.registration_complete;
+          const businessIsComplete = !!completeness?.is_complete;
+
+          isComplete = basicComplete && registrationComplete && businessIsComplete;
+
+          if (isComplete && !profile.is_profile_complete) {
+            patch.is_profile_complete = true;
+          }
+
+          if (Object.keys(patch).length > 0) {
+            const patchRes = await supabase.from("profiles").update(patch).eq("id", user.id);
+            if ((patchRes as any)?.error) {
+              console.error("POST_LOGIN_V6_PROFILE_PATCH_ERROR", (patchRes as any).error);
+            }
+          }
+
+          if (!isComplete) {
+            const qs = new URLSearchParams();
+            qs.set("returnTo", next || "/dashboard");
+            if (role) qs.set("role", role);
+            if (requestedRole && !qs.get("role")) qs.set("role", requestedRole);
+
+            hardRedirect(`/onboarding/business?${qs.toString()}`);
+            return;
+          }
+        } else {
+          isComplete = basicComplete;
+
+          if (isComplete && !profile.is_profile_complete) {
+            patch.is_profile_complete = true;
+          }
+
+          if (Object.keys(patch).length > 0) {
+            const patchRes = await supabase.from("profiles").update(patch).eq("id", user.id);
+            if ((patchRes as any)?.error) {
+              console.error("POST_LOGIN_V6_PROFILE_PATCH_ERROR", (patchRes as any).error);
+            }
+          }
+
+          if (!isComplete) {
+            const onboardingRole = role || requestedRole;
+            const qs = new URLSearchParams();
+            if (next) qs.set("next", next);
+            if (onboardingRole) qs.set("role", onboardingRole);
+
+            hardRedirect(`/auth/register-role${qs.toString() ? `?${qs.toString()}` : ""}`);
+            return;
+          }
+        }
+
+        setMsg("Preparing your dashboard…");
 
         let redirectTo = next || "/dashboard";
 
@@ -168,15 +286,15 @@ export default function PostLoginPageClient() {
 
           redirectTo = next || getDefaultPostLoginPath(access);
         } catch (accessErr) {
-          console.error("POST_LOGIN_V5_ACCESS_FALLBACK", accessErr);
+          console.error("POST_LOGIN_V6_ACCESS_FALLBACK", accessErr);
           redirectTo = next || "/";
         }
 
-        console.log("POST_LOGIN_V5_REDIRECT", { redirectTo });
+        console.log("POST_LOGIN_V6_REDIRECT", { redirectTo });
 
         hardRedirect(redirectTo);
       } catch (e: any) {
-        console.error("POST_LOGIN_V5_FAIL", e);
+        console.error("POST_LOGIN_V6_FAIL", e);
 
         if (!alive) return;
 

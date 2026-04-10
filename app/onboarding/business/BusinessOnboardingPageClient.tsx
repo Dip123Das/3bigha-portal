@@ -102,13 +102,18 @@ function safeArr(v: any): string[] {
 function computeCompletion(bp: Partial<BusinessProfile>) {
   const nature = safeArr(bp.nature_of_business);
   const hasBlog = nature.includes("blog");
+  const hasNonBlogBusiness = nature.some((x) =>
+    ["property", "materials", "services", "rentals"].includes(x)
+  );
+  const isPureBlogOnly = hasBlog && !hasNonBlogBusiness;
 
   const natureOk = nature.length > 0;
 
-  // At least one name (business OR author)
-  const businessOrAuthorNameOk =
-    !!(bp.business_name && bp.business_name.trim()) ||
-    !!(bp.author_display_name && bp.author_display_name.trim());
+  const businessNameOk = !!(bp.business_name && bp.business_name.trim());
+  const authorNameOk = !!(bp.author_display_name && bp.author_display_name.trim());
+
+  // Pure blog-only profile may use author identity instead of business identity.
+  const identityOk = isPureBlogOnly ? authorNameOk : businessNameOk;
 
   const contactOk = !!(bp.contact_person && bp.contact_person.trim());
 
@@ -119,28 +124,44 @@ function computeCompletion(bp: Partial<BusinessProfile>) {
   const locationOk =
     !!(bp.district && bp.district.trim()) && !!(bp.state && bp.state.trim());
 
-  // Author required only if blog selected
-  const authorOk = !hasBlog
+  // For actual business operators, GST or Trade License is mandatory.
+  const businessProofOk = isPureBlogOnly
     ? true
-    : !!(bp.author_display_name && bp.author_display_name.trim());
+    : !!(bp.gstin && bp.gstin.trim()) ||
+      !!(bp.trade_license_no && bp.trade_license_no.trim());
+
+  // Author identity required if blog is selected at all.
+  const authorOk = !hasBlog ? true : authorNameOk;
 
   const missing: string[] = [];
   if (!natureOk) missing.push("Select at least one Nature of Business");
-  if (!businessOrAuthorNameOk)
-    missing.push("Business Name or Author Display Name");
+  if (!identityOk) {
+    missing.push(
+      isPureBlogOnly ? "Author Display Name" : "Business Name"
+    );
+  }
   if (!contactOk) missing.push("Contact Person");
   if (!commOk) missing.push("Phone or Email");
   if (!locationOk) missing.push("District and State");
-  if (hasBlog) {
-    if (!(bp.author_display_name && bp.author_display_name.trim()))
-      missing.push("Author Display Name (Blog)");
+  if (!businessProofOk) missing.push("GSTIN or Trade License No");
+  if (hasBlog && !authorNameOk) {
+    missing.push("Author Display Name (Blog)");
   }
 
-  const checks = [natureOk, businessOrAuthorNameOk, contactOk, commOk, locationOk, authorOk];
+  const checks = [
+    natureOk,
+    identityOk,
+    contactOk,
+    commOk,
+    locationOk,
+    businessProofOk,
+    authorOk,
+  ];
+
   const passed = checks.filter(Boolean).length;
   const score = Math.round((passed / checks.length) * 100);
-
   const isComplete = checks.every(Boolean);
+
   return { isComplete, score, missing };
 }
 
@@ -214,6 +235,7 @@ function groupMissingByStep(
       s.includes("business name") ||
       s.includes("business type") ||
       s.includes("gst") ||
+      s.includes("gstin") ||
       s.includes("pan") ||
       s.includes("trade license") ||
       s.includes("udyam")
@@ -284,6 +306,7 @@ export default function BusinessOnboardingPageClient() {
   const sp = useSearchParams();
 
   const returnTo = sp.get("returnTo") || "/dashboard";
+  const roleFromQuery = (sp.get("role") || "").trim().toLowerCase();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -378,9 +401,33 @@ export default function BusinessOnboardingPageClient() {
         }
 
         if (!data) {
+          const initialNature =
+            roleFromQuery === "builder"
+              ? ["property"]
+              : roleFromQuery === "hub_vendor"
+              ? ["property", "materials", "services", "rentals", "blog"]
+              : roleFromQuery === "blogger"
+              ? ["blog"]
+              : [];
+
+          const initialBusinessType =
+            roleFromQuery === "builder"
+              ? "builder"
+              : roleFromQuery === "hub_vendor"
+              ? "hub"
+              : roleFromQuery === "blogger"
+              ? "blogger"
+              : roleFromQuery === "vendor"
+              ? "vendor"
+              : null;
+
           const { error: insErr } = await supabase
             .from("business_profiles")
-            .insert({ user_id: uid });
+            .insert({
+              user_id: uid,
+              nature_of_business: initialNature,
+              business_type: initialBusinessType,
+            });
 
           if (!alive) return;
 
@@ -390,11 +437,40 @@ export default function BusinessOnboardingPageClient() {
             return;
           }
 
-          setBp({ user_id: uid, nature_of_business: [] });
+          setBp({
+            user_id: uid,
+            nature_of_business: initialNature,
+            business_type: initialBusinessType,
+          });
         } else {
+          const existingNature = safeArr(data.nature_of_business);
+          const seededNature =
+            existingNature.length > 0
+              ? existingNature
+              : roleFromQuery === "builder"
+              ? ["property"]
+              : roleFromQuery === "hub_vendor"
+              ? ["property", "materials", "services", "rentals", "blog"]
+              : roleFromQuery === "blogger"
+              ? ["blog"]
+              : existingNature;
+
+          const seededBusinessType =
+            data.business_type ??
+            (roleFromQuery === "builder"
+              ? "builder"
+              : roleFromQuery === "hub_vendor"
+              ? "hub"
+              : roleFromQuery === "blogger"
+              ? "blogger"
+              : roleFromQuery === "vendor"
+              ? "vendor"
+              : null);
+
           setBp({
             ...data,
-            nature_of_business: safeArr(data.nature_of_business),
+            business_type: seededBusinessType,
+            nature_of_business: seededNature,
             missing_fields: safeArr(data.missing_fields),
           });
         }
@@ -413,7 +489,7 @@ export default function BusinessOnboardingPageClient() {
     return () => {
       alive = false;
     };
-  }, [supabase, returnTo]);
+  }, [supabase, returnTo, roleFromQuery]);
 
   function toggleNature(key: string) {
     const curr = safeArr(bp.nature_of_business);
@@ -437,24 +513,35 @@ export default function BusinessOnboardingPageClient() {
   const missingByStep = groupMissingByStep(missingUI, { hasProperty: false, hasBlog });
 
   // Field-level missing mapping (simple + clear)
-  const missingBusinessOrAuthor = missingUI.some((m) =>
-    m.toLowerCase().includes("business name or author")
-  );
+  const missingBusinessOrAuthor = missingUI.some((m) => {
+    const s = m.toLowerCase();
+    return s.includes("business name") || s.includes("author display name");
+  });
+
   const missingContactPerson = missingUI.some((m) =>
     m.toLowerCase().includes("contact person")
   );
+
   const missingPhoneOrEmail = missingUI.some((m) =>
     m.toLowerCase().includes("phone or email")
   );
+
   const missingDistrictState = missingUI.some((m) =>
     m.toLowerCase().includes("district and state")
   );
+
   const missingNature = missingUI.some((m) =>
     m.toLowerCase().includes("nature")
   );
+
   const missingAuthorName = missingUI.some((m) =>
     m.toLowerCase().includes("author display name")
   );
+
+  const missingBusinessProof = missingUI.some((m) => {
+    const s = m.toLowerCase();
+    return s.includes("gstin") || s.includes("trade license");
+  });
 
   type StepDef = {
     key: StepKey;
@@ -548,13 +635,29 @@ export default function BusinessOnboardingPageClient() {
 
     if (!res.isComplete) {
       setMsg("Saved ✅ Please complete the highlighted required fields to continue.");
-      // auto jump to first pending section
       scrollToId(firstPendingStep.targetId || "sec-review");
       return;
     }
 
-    router.push(returnTo);
-    router.refresh();
+    if (userId) {
+      const { data: latestVc } = await supabase
+        .from("v_vendor_profile_completeness")
+        .select("registration_complete")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      await fetchCompleteness(userId);
+
+      setMsg(
+        latestVc?.registration_complete
+          ? "Saved ✅ Registration already complete. You can go to the dashboard."
+          : "Saved ✅ Profile is complete. Now click 'Activate My Dashboard' to finish setup."
+      );
+    } else {
+      setMsg("Saved ✅ Profile is complete. Now click 'Activate My Dashboard' to finish setup.");
+    }
+
+    scrollToId("sec-review");
   }
 
   async function onFinishRegistration() {
@@ -593,6 +696,20 @@ export default function BusinessOnboardingPageClient() {
       return;
     }
 
+    const { error: profileUpdateError } = await supabase
+      .from("profiles")
+      .update({
+        approval_status: "active",
+        is_profile_complete: true,
+      })
+      .eq("id", userId);
+
+    if (profileUpdateError) {
+      setMsg(profileUpdateError.message);
+      await fetchCompleteness(userId);
+      return;
+    }
+
     setMsg("✅ Registration Complete. Redirecting...");
     await fetchCompleteness(userId);
     router.push(returnTo);
@@ -609,10 +726,9 @@ export default function BusinessOnboardingPageClient() {
 
   return (
     <div style={{ maxWidth: 900, margin: "40px auto", padding: 16 }}>
-      <h1 style={{ fontSize: 26, fontWeight: 800 }}>Business / Author Profile</h1>
+      <h1 style={{ fontSize: 26, fontWeight: 800 }}>Complete Your Business Profile</h1>
       <p style={{ opacity: 0.8 }}>
-        This single profile is required before you can <b>final submit</b> listings or{" "}
-        <b>publish</b> blog posts.
+        Complete this profile to activate your business-side access on 3bigha. After all required details are filled, click <b>Finish Registration</b> to enable your dashboard actions, listing submission, and publishing access.
       </p>
 
       <div style={{ marginTop: 12, padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
@@ -682,7 +798,7 @@ export default function BusinessOnboardingPageClient() {
             <>
               <div style={{ fontWeight: 800, color: "green" }}>✅ Registration Complete</div>
               <button type="button" onClick={() => router.push(returnTo)} style={{ padding: 10, fontWeight: 700 }}>
-                Go to Dashboard
+                Open Dashboard
               </button>
             </>
           ) : (
@@ -693,9 +809,13 @@ export default function BusinessOnboardingPageClient() {
                 onClick={onFinishRegistration}
                 style={{ padding: 10, fontWeight: 700 }}
               >
-                {saving ? "Finishing..." : "Finish Registration"}
+                {saving ? "Activating..." : "Activate My Dashboard"}
               </button>
-              {!isCompleteUI && <span style={{ opacity: 0.8 }}>Complete highlighted fields to enable finishing.</span>}
+              {!isCompleteUI && (
+                <span style={{ opacity: 0.8 }}>
+                  Complete the highlighted fields, then activate your dashboard.
+                </span>
+              )}
             </>
           )}
         </div>
@@ -750,10 +870,15 @@ export default function BusinessOnboardingPageClient() {
             </Field>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <Field label="GSTIN (optional)">
+              <Field
+                label="GSTIN"
+                required
+                missing={missingBusinessProof}
+                hint="Provide GSTIN or Trade License No"
+              >
                 <input
                   value={bp.gstin ?? ""}
-                  onChange={(e) => setField("gstin", e.target.value)}
+                  onChange={(e) => setField("gstin", e.target.value.toUpperCase())}
                   style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
                 />
               </Field>
@@ -767,7 +892,12 @@ export default function BusinessOnboardingPageClient() {
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <Field label="Trade License No (optional)">
+              <Field
+                label="Trade License No"
+                required
+                missing={missingBusinessProof}
+                hint="For business operators, provide GSTIN or Trade License No"
+              >
                 <input
                   value={bp.trade_license_no ?? ""}
                   onChange={(e) => setField("trade_license_no", e.target.value)}
@@ -781,6 +911,21 @@ export default function BusinessOnboardingPageClient() {
                   style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
                 />
               </Field>
+            </div>
+
+            <div
+              style={{
+                padding: 10,
+                borderRadius: 8,
+                background: "#eff6ff",
+                border: "1px solid #bfdbfe",
+                color: "#1d4ed8",
+                fontSize: 13,
+              }}
+            >
+              For all business activities on 3bigha, at least one proof is required:
+              <b> GSTIN or Trade License No</b>.
+              Pure blog-only profiles may complete without business proof.
             </div>
           </div>
         </section>
@@ -979,7 +1124,7 @@ export default function BusinessOnboardingPageClient() {
           </button>
 
           <button type="button" disabled={saving} onClick={onSaveAndContinue} style={{ padding: 10, fontWeight: 700 }}>
-            Save & Continue
+            Save & Go to Review
           </button>
 
           <button type="button" onClick={() => router.push(returnTo)} style={{ padding: 10 }}>
