@@ -2,12 +2,21 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
 type SessionLite = {
   user: { email?: string | null; id?: string | null };
 } | null;
+
+type ProfileLite = {
+  role?: string | null;
+  is_vendor?: boolean | null;
+  onboarding_version?: number | null;
+  onboarding_completed?: boolean | null;
+  portal_use_reason?: string | null;
+  role_display_label?: string | null;
+};
 
 function shortEmail(email?: string | null) {
   if (!email) return "Signed in";
@@ -17,30 +26,40 @@ function shortEmail(email?: string | null) {
   return `${shortName}@${domain}`;
 }
 
-function prettyRole(role?: string | null, isVendor?: boolean | null) {
-  const r = String(role ?? "").trim().toLowerCase();
+function prettyRole(profile?: ProfileLite | null) {
+  const display = String(profile?.role_display_label ?? "").trim();
+  if (display) return display;
+
+  const r = String(profile?.role ?? "").trim().toLowerCase();
 
   if (r === "master_admin") return "Master Admin";
   if (r === "blog_admin") return "Blog Admin";
-  if (r === "blogger") return "Blogger";
-  if (r === "vendor") return "Vendor";
+  if (r === "blogger") return "Blogger / Author";
   if (r === "buyer") return "Buyer";
-  if (r === "builder") return "Builder";
-  if (r === "hub_vendor") return "HUB Vendor";
-  if (isVendor === true) return "Vendor";
+  if (r === "builder") return "Builder / Developer";
+  if (r === "hub_vendor") return "Vendor Hub";
+  if (r === "vendor") return "Vendor";
+
+  if (profile?.is_vendor === true) return "Vendor";
 
   return "";
 }
 
+function isBusinessRole(role?: string | null) {
+  const r = String(role ?? "").trim().toLowerCase();
+  return r === "vendor" || r === "builder" || r === "hub_vendor" || r === "blogger";
+}
+
 export default function AuthButtons() {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
 
   const [session, setSession] = useState<SessionLite>(null);
   const [roleLabel, setRoleLabel] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
-  async function loadRole(userId: string | null | undefined) {
+  async function loadProfileAndGuard(userId: string | null | undefined) {
     if (!userId) {
       setRoleLabel("");
       return;
@@ -50,7 +69,9 @@ export default function AuthButtons() {
       const roleRes = await Promise.race([
         supabase
           .from("profiles")
-          .select("role,is_vendor")
+          .select(
+            "role,is_vendor,onboarding_version,onboarding_completed,portal_use_reason,role_display_label"
+          )
           .eq("id", userId)
           .maybeSingle(),
         new Promise<never>((_, reject) =>
@@ -58,8 +79,40 @@ export default function AuthButtons() {
         ),
       ]);
 
-      const profile = (roleRes as any)?.data ?? null;
-      setRoleLabel(prettyRole(profile?.role, profile?.is_vendor));
+      const profile = ((roleRes as any)?.data ?? null) as ProfileLite | null;
+
+      setRoleLabel(prettyRole(profile));
+
+      const onboardingReady =
+        profile?.onboarding_version === 2 &&
+        profile?.onboarding_completed === true &&
+        !!String(profile?.portal_use_reason ?? "").trim() &&
+        !!String(profile?.role_display_label ?? "").trim();
+
+      const currentPath = pathname || "/";
+      const alreadyOnRegister =
+        currentPath.startsWith("/auth/register-role") ||
+        currentPath.startsWith("/onboarding/business") ||
+        currentPath.startsWith("/auth/callback") ||
+        currentPath.startsWith("/auth/post-login") ||
+        currentPath.startsWith("/login");
+
+      if (!alreadyOnRegister && !onboardingReady) {
+        const role = String(profile?.role ?? "").trim().toLowerCase();
+
+        if (isBusinessRole(role)) {
+          const qs = new URLSearchParams();
+          qs.set("returnTo", currentPath || "/dashboard");
+          if (role) qs.set("role", role);
+          router.replace(`/onboarding/business?${qs.toString()}`);
+          return;
+        }
+
+        const qs = new URLSearchParams();
+        qs.set("next", currentPath || "/dashboard");
+        if (role) qs.set("role", role);
+        router.replace(`/auth/register-role?${qs.toString()}`);
+      }
     } catch {
       setRoleLabel("");
     }
@@ -84,7 +137,7 @@ export default function AuthButtons() {
           },
         });
         setLoading(false);
-        loadRole(s.user.id);
+        await loadProfileAndGuard(s.user.id);
         return;
       }
 
@@ -105,7 +158,7 @@ export default function AuthButtons() {
           },
         });
         setLoading(false);
-        loadRole(user.id);
+        await loadProfileAndGuard(user.id);
         return;
       }
 
@@ -140,7 +193,7 @@ export default function AuthButtons() {
           },
         });
         setLoading(false);
-        loadRole(s.user.id);
+        await loadProfileAndGuard(s.user.id);
       } else {
         setSession(null);
         setRoleLabel("");
@@ -169,7 +222,7 @@ export default function AuthButtons() {
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [router, supabase]);
+  }, [router, supabase, pathname]);
 
   async function handleLogout() {
     try {
