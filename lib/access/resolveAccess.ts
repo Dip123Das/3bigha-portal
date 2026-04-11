@@ -56,7 +56,7 @@ function normalizeCapability(raw: unknown): VendorCapabilityKey | null {
 
   if (!v) return null;
 
-  // New approved capability model
+  // Current capability model
   if (v === "materials") return "materials";
   if (v === "services") return "services";
   if (v === "rentals") return "rentals";
@@ -65,7 +65,7 @@ function normalizeCapability(raw: unknown): VendorCapabilityKey | null {
   if (v === "blog_author") return "blog_author";
   if (v === "investor") return "investor";
 
-  // Backward compatibility with your existing grant values
+  // Backward compatibility
   if (v === "property") return "property_owner";
   if (v === "materials_vendor") return "materials";
   if (v === "services_vendor") return "services";
@@ -89,7 +89,11 @@ function uniqueCapabilities(values: unknown[]): VendorCapabilityKey[] {
   return Array.from(set);
 }
 
-async function withTimeout<T>(promise: PromiseLike<T>, ms: number, label: string): Promise<T> {
+async function withTimeout<T>(
+  promise: PromiseLike<T>,
+  ms: number,
+  label: string
+): Promise<T> {
   return Promise.race([
     promise,
     new Promise<never>((_, reject) =>
@@ -135,7 +139,10 @@ export async function resolveAccessForUser(
     if (!profRes?.error && profRes?.data) {
       role = normalizeRole(profRes.data.role);
 
-      if (role === "vendor" || role === "hub_vendor" || profRes.data.is_vendor === true) {
+      // IMPORTANT:
+      // Do not infer vendor from old is_vendor flag anymore.
+      // Access must be based on role + explicit grants.
+      if (role === "vendor") {
         isVendor = true;
       }
 
@@ -147,14 +154,18 @@ export async function resolveAccessForUser(
         isHubVendor = true;
         isVendor = true;
       }
+
+      if (role === "blogger") {
+        isVendor = false;
+      }
     }
   }
 
   if (bpSettled.status === "fulfilled") {
     const bpRes: any = bpSettled.value;
     if (!bpRes?.error && bpRes?.data?.user_id) {
-      // Business profile existence alone should not silently grant vendor access.
-      // Role + explicit module grants should decide access.
+      // Keep this lookup for future diagnostics if needed,
+      // but do NOT infer vendor access from business_profiles alone.
     }
   }
 
@@ -196,6 +207,8 @@ export async function resolveAccessForUser(
       vendorCapabilities = ["property_builder"];
     }
 
+    // IMPORTANT:
+    // Do not silently grant default vendor capabilities anymore.
     if (role === "vendor" && vendorCapabilities.length === 0) {
       vendorCapabilities = [];
     }
