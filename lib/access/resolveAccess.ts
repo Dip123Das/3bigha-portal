@@ -153,7 +153,8 @@ export async function resolveAccessForUser(
   if (bpSettled.status === "fulfilled") {
     const bpRes: any = bpSettled.value;
     if (!bpRes?.error && bpRes?.data?.user_id) {
-      isVendor = true;
+      // Business profile existence alone should not silently grant vendor access.
+      // Role + explicit module grants should decide access.
     }
   }
 
@@ -196,7 +197,7 @@ export async function resolveAccessForUser(
     }
 
     if (role === "vendor" && vendorCapabilities.length === 0) {
-      vendorCapabilities = ["materials", "services", "rentals", "property_owner"];
+      vendorCapabilities = [];
     }
 
     if (!role && isVendor) role = "vendor";

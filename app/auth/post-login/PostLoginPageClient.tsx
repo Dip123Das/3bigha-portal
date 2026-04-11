@@ -220,7 +220,40 @@ export default function PostLoginPageClient() {
           const registrationComplete = !!completeness?.registration_complete;
           const businessIsComplete = !!completeness?.is_complete;
 
-          isComplete = basicComplete && registrationComplete && businessIsComplete;
+          let hasExplicitVendorGrants = true;
+
+          if (role === "vendor") {
+            const grantsRes = await Promise.race([
+              supabase
+                .from("vendor_module_grants")
+                .select("module_key")
+                .eq("user_id", user.id)
+                .eq("is_active", true),
+              new Promise<never>((_, reject) =>
+                setTimeout(
+                  () => reject(new Error("Vendor grants lookup timed out after 4000ms")),
+                  4000
+                )
+              ),
+            ]);
+
+            if (!alive) return;
+
+            const grants = (grantsRes as any)?.data ?? [];
+            const grantsError = (grantsRes as any)?.error ?? null;
+
+            if (grantsError) {
+              console.error("POST_LOGIN_V6_VENDOR_GRANTS_LOOKUP_ERROR", grantsError);
+            }
+
+            hasExplicitVendorGrants = Array.isArray(grants) && grants.length > 0;
+          }
+
+          isComplete =
+            basicComplete &&
+            registrationComplete &&
+            businessIsComplete &&
+            hasExplicitVendorGrants;
 
           if (isComplete && !profile.is_profile_complete) {
             patch.is_profile_complete = true;
@@ -234,6 +267,14 @@ export default function PostLoginPageClient() {
           }
 
           if (!isComplete) {
+            if (role === "vendor") {
+              const qs = new URLSearchParams();
+              if (next) qs.set("next", next);
+              qs.set("role", "vendor");
+              hardRedirect(`/auth/register-role?${qs.toString()}`);
+              return;
+            }
+
             const qs = new URLSearchParams();
             qs.set("returnTo", next || "/dashboard");
             if (role) qs.set("role", role);
