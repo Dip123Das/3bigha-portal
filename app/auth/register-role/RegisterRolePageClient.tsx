@@ -20,6 +20,17 @@ type VendorCapability =
   | "blog_author"
   | "investor";
 
+type UseReason =
+  | "buy_property_or_materials"
+  | "sell_materials"
+  | "offer_services"
+  | "provide_rentals"
+  | "list_property_for_sale"
+  | "manage_builder_projects"
+  | "operate_multiple_businesses"
+  | "invest_in_opportunities"
+  | "publish_blog_or_news";
+
 function safeNextPath(raw: string | null) {
   if (!raw) return "";
   if (!raw.startsWith("/")) return "";
@@ -33,6 +44,34 @@ function goesToBusinessOnboarding(role: PortalRole | "") {
 
 function normalizePhone(raw: string) {
   return raw.replace(/[^\d+]/g, "").trim();
+}
+
+function getRoleDisplayLabel(
+  role: PortalRole,
+  caps: VendorCapability[]
+): string {
+  if (role === "buyer") return "Buyer";
+  if (role === "builder") return "Builder / Developer";
+  if (role === "hub_vendor") return "Vendor Hub";
+  if (role === "blogger") return "Blogger / Author";
+
+  if (role === "vendor") {
+    if (caps.length === 1) {
+      const c = caps[0];
+      if (c === "materials") return "Materials Vendor";
+      if (c === "services") return "Service Vendor";
+      if (c === "rentals") return "Rental Vendor";
+      if (c === "property_owner") return "Property Vendor / Seller";
+      if (c === "property_builder") return "Builder / Developer";
+      if (c === "blog_author") return "Blogger / Author";
+      if (c === "investor") return "Investor";
+    }
+
+    if (caps.includes("investor") && caps.length === 1) return "Investor";
+    return "Multi-Service Vendor";
+  }
+
+  return "User";
 }
 
 export default function RegisterRolePageClient() {
@@ -53,6 +92,7 @@ export default function RegisterRolePageClient() {
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [stateName, setStateName] = useState("");
+  const [useReason, setUseReason] = useState<UseReason | "">("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -86,6 +126,10 @@ export default function RegisterRolePageClient() {
 
     if (!trimmedState) {
       return "Please enter your state.";
+    }
+
+    if (!useReason) {
+      return "Please tell us why you want to use 3bigha.";
     }
 
     if (role === "vendor" && caps.length === 0) {
@@ -183,7 +227,13 @@ export default function RegisterRolePageClient() {
         return;
       }
 
-      const isVendor = role === "vendor" || role === "hub_vendor" || role === "builder" || role === "blogger";
+      const isVendor =
+        role === "vendor" ||
+        role === "hub_vendor" ||
+        role === "builder" ||
+        role === "blogger";
+
+      const roleDisplayLabel = getRoleDisplayLabel(role as PortalRole, caps);
 
       const profilePayload: Record<string, any> = {
         id: user.id,
@@ -196,7 +246,10 @@ export default function RegisterRolePageClient() {
         role: role,
         approval_status: "active",
         is_vendor: isVendor,
-        is_profile_complete: !goesToBusinessOnboarding(role),
+        onboarding_version: 2,
+        onboarding_completed: !goesToBusinessOnboarding(role),
+        portal_use_reason: useReason,
+        role_display_label: roleDisplayLabel,
       };
 
       const { error: profileError } = await supabase
@@ -260,7 +313,6 @@ export default function RegisterRolePageClient() {
         const qs = new URLSearchParams();
         qs.set("returnTo", next || "/dashboard");
         qs.set("role", role);
-
         router.replace(`/onboarding/business?${qs.toString()}`);
         return;
       }
@@ -289,7 +341,7 @@ export default function RegisterRolePageClient() {
         </div>
 
         <div style={{ opacity: 0.8, marginBottom: 20 }}>
-          Choose your role and enter your basic details. If your role needs business setup, you will be guided to the next step automatically.
+          Tell us who you are and why you want to use 3bigha. If your role needs business setup, you will be guided to the next step automatically.
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: 16 }}>
@@ -356,33 +408,33 @@ export default function RegisterRolePageClient() {
           </div>
 
           <div>
-            <div style={{ fontWeight: 800, marginBottom: 8 }}>Choose Role *</div>
+            <div style={{ fontWeight: 800, marginBottom: 8 }}>Who are you? *</div>
             <div style={{ display: "grid", gap: 10 }}>
               {[
                 {
                   value: "buyer",
-                  label: "Buyer / Requirement Submitter",
-                  desc: "Browse listings, submit requirements, compare quotes, and contact vendors.",
+                  label: "Buyer",
+                  desc: "I want to browse, enquire, submit requirements, and compare offers.",
                 },
                 {
                   value: "vendor",
-                  label: "Vendor (Materials / Services / Rentals)",
-                  desc: "Sell materials, offer services, or provide rental items through the portal.",
+                  label: "Vendor",
+                  desc: "I want to sell materials, offer services, provide rentals, list property, or invest.",
                 },
                 {
                   value: "builder",
                   label: "Builder / Developer",
-                  desc: "List builder projects, manage inventory, and receive buyer or investor interest.",
+                  desc: "I want to list builder projects, manage inventory, and receive buyer or investor interest.",
                 },
                 {
                   value: "hub_vendor",
-                  label: "Business Hub (All-in-One Operator)",
-                  desc: "A single account for running multiple businesses on 3bigha across property, materials, services, rentals, blog/news, and investment-related activities.",
+                  label: "Vendor Hub",
+                  desc: "I want to operate multiple businesses on 3bigha from one account.",
                 },
                 {
                   value: "blogger",
                   label: "Blogger / Author",
-                  desc: "Publish blog and news content on the portal.",
+                  desc: "I want to publish blog or news content on the portal.",
                 },
               ].map((item) => (
                 <label
@@ -414,20 +466,48 @@ export default function RegisterRolePageClient() {
             </div>
           </div>
 
+          <div>
+            <div style={{ fontWeight: 800, marginBottom: 8 }}>
+              Why do you want to use 3bigha? *
+            </div>
+            <select
+              value={useReason}
+              onChange={(e) => setUseReason(e.target.value as UseReason)}
+              style={{
+                width: "100%",
+                borderRadius: 10,
+                border: "1px solid #dbe0e6",
+                padding: "10px 12px",
+                background: "white",
+              }}
+            >
+              <option value="">Select your purpose</option>
+              <option value="buy_property_or_materials">To buy property or materials</option>
+              <option value="sell_materials">To sell materials</option>
+              <option value="offer_services">To offer services</option>
+              <option value="provide_rentals">To provide rentals</option>
+              <option value="list_property_for_sale">To list property for sale</option>
+              <option value="manage_builder_projects">To manage builder projects</option>
+              <option value="operate_multiple_businesses">To operate multiple businesses through one account</option>
+              <option value="invest_in_opportunities">To invest in opportunities</option>
+              <option value="publish_blog_or_news">To publish blog or news content</option>
+            </select>
+          </div>
+
           {role === "vendor" ? (
             <div>
               <div style={{ fontWeight: 800, marginBottom: 8 }}>
-                Choose Vendor Capabilities *
+                Choose Your Vendor Type *
               </div>
 
               <div style={{ display: "grid", gap: 10 }}>
                 {[
-                  ["materials", "Materials Supplier"],
-                  ["services", "Service Provider"],
-                  ["rentals", "Rental Provider"],
-                  ["property_owner", "Property Owner / Seller"],
+                  ["materials", "Materials Vendor"],
+                  ["services", "Service Vendor"],
+                  ["rentals", "Rental Vendor"],
+                  ["property_owner", "Property Vendor / Seller"],
                   ["property_builder", "Builder / Developer"],
-                  ["blog_author", "Blog / Content Author"],
+                  ["blog_author", "Blogger / Author"],
                   ["investor", "Investor"],
                 ].map(([value, label]) => (
                   <label

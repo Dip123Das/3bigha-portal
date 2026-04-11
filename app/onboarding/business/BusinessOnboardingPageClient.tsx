@@ -10,7 +10,6 @@ async function ensureSessionOrRedirect(
   nextPath: string
 ) {
   try {
-    // First try user fetch (usually more reliable in browser)
     const userRes = await supabase.auth.getUser();
     const user = userRes?.data?.user ?? null;
 
@@ -18,7 +17,6 @@ async function ensureSessionOrRedirect(
       return { user };
     }
 
-    // Fallback to session check
     const sessRes = await supabase.auth.getSession();
     const session = sessRes?.data?.session ?? null;
 
@@ -36,7 +34,6 @@ async function ensureSessionOrRedirect(
 
 type BusinessProfile = {
   user_id: string;
-
   business_name: string | null;
   business_type: string | null;
   nature_of_business: string[];
@@ -44,12 +41,10 @@ type BusinessProfile = {
   pan: string | null;
   trade_license_no: string | null;
   udyam_no: string | null;
-
   contact_person: string | null;
   phone_primary: string | null;
   phone_whatsapp: string | null;
   email_business: string | null;
-
   address_line1: string | null;
   address_line2: string | null;
   landmark: string | null;
@@ -57,16 +52,13 @@ type BusinessProfile = {
   district: string | null;
   state: string | null;
   pincode: string | null;
-
   rera_registration_no: string | null;
   rera_state: string | null;
   rera_expiry_date: string | null;
-
   author_display_name: string | null;
   author_bio: string | null;
   author_category: string | null;
   author_portfolio_url: string | null;
-
   is_complete: boolean;
   completion_score: number;
   missing_fields: string[];
@@ -94,11 +86,6 @@ function safeArr(v: any): string[] {
   return Array.isArray(v) ? v.filter(Boolean) : [];
 }
 
-/**
- * IMPORTANT CHANGE:
- * RERA is OPTIONAL for everyone.
- * (You requested: "Don't make rera number required for everyone.")
- */
 function computeCompletion(bp: Partial<BusinessProfile>) {
   const nature = safeArr(bp.nature_of_business);
   const hasBlog = nature.includes("blog");
@@ -108,13 +95,9 @@ function computeCompletion(bp: Partial<BusinessProfile>) {
   const isPureBlogOnly = hasBlog && !hasNonBlogBusiness;
 
   const natureOk = nature.length > 0;
-
   const businessNameOk = !!(bp.business_name && bp.business_name.trim());
   const authorNameOk = !!(bp.author_display_name && bp.author_display_name.trim());
-
-  // Pure blog-only profile may use author identity instead of business identity.
   const identityOk = isPureBlogOnly ? authorNameOk : businessNameOk;
-
   const contactOk = !!(bp.contact_person && bp.contact_person.trim());
 
   const commOk =
@@ -124,21 +107,17 @@ function computeCompletion(bp: Partial<BusinessProfile>) {
   const locationOk =
     !!(bp.district && bp.district.trim()) && !!(bp.state && bp.state.trim());
 
-  // For actual business operators, GST or Trade License is mandatory.
   const businessProofOk = isPureBlogOnly
     ? true
     : !!(bp.gstin && bp.gstin.trim()) ||
       !!(bp.trade_license_no && bp.trade_license_no.trim());
 
-  // Author identity required if blog is selected at all.
   const authorOk = !hasBlog ? true : authorNameOk;
 
   const missing: string[] = [];
   if (!natureOk) missing.push("Select at least one Nature of Business");
   if (!identityOk) {
-    missing.push(
-      isPureBlogOnly ? "Author Display Name" : "Business Name"
-    );
+    missing.push(isPureBlogOnly ? "Author Display Name" : "Business Name");
   }
   if (!contactOk) missing.push("Contact Person");
   if (!commOk) missing.push("Phone or Email");
@@ -247,9 +226,7 @@ function groupMissingByStep(
     push("review", m);
   }
 
-  // Property bucket is not used as required anymore (RERA optional)
   buckets.property = [];
-
   if (!opts.hasBlog) buckets.author = [];
   return buckets;
 }
@@ -298,6 +275,34 @@ function Field({
       </div>
     </label>
   );
+}
+
+function getRoleDisplayLabelFromNature(nature: string[]) {
+  const items = safeArr(nature);
+
+  if (items.length === 1) {
+    const one = items[0];
+    if (one === "materials") return "Materials Vendor";
+    if (one === "services") return "Service Vendor";
+    if (one === "rentals") return "Rental Vendor";
+    if (one === "property") return "Property Vendor / Seller";
+    if (one === "blog") return "Blogger / Author";
+  }
+
+  if (
+    items.includes("property") &&
+    items.includes("materials") &&
+    items.includes("services") &&
+    items.includes("rentals")
+  ) {
+    return "Vendor Hub";
+  }
+
+  if (items.includes("property") && items.length === 1) {
+    return "Property Vendor / Seller";
+  }
+
+  return "Multi-Service Vendor";
 }
 
 export default function BusinessOnboardingPageClient() {
@@ -357,7 +362,7 @@ export default function BusinessOnboardingPageClient() {
     });
   }
 
-    useEffect(() => {
+  useEffect(() => {
     let alive = true;
 
     (async () => {
@@ -503,7 +508,6 @@ export default function BusinessOnboardingPageClient() {
     setBp((p) => ({ ...p, [key]: value }));
   }
 
-  // Prefer view for display. Fall back to local compute if view not available.
   const localCompletion = computeCompletion(bp);
   const isCompleteUI = vc?.is_complete ?? localCompletion.isComplete;
   const scoreUI = clampPct(vc?.completion_score ?? localCompletion.score);
@@ -512,7 +516,6 @@ export default function BusinessOnboardingPageClient() {
 
   const missingByStep = groupMissingByStep(missingUI, { hasProperty: false, hasBlog });
 
-  // Field-level missing mapping (simple + clear)
   const missingBusinessOrAuthor = missingUI.some((m) => {
     const s = m.toLowerCase();
     return s.includes("business name") || s.includes("author display name");
@@ -577,7 +580,6 @@ export default function BusinessOnboardingPageClient() {
   async function saveCommon() {
     if (!userId) return { ok: false };
 
-    // Refresh session BEFORE write (fixes your JWT expired problem)
     const authOk = await ensureSessionOrRedirect(
       supabase,
       `/onboarding/business?returnTo=${encodeURIComponent(returnTo)}`
@@ -696,11 +698,22 @@ export default function BusinessOnboardingPageClient() {
       return;
     }
 
+    const roleDisplayLabel =
+      roleFromQuery === "builder"
+        ? "Builder / Developer"
+        : roleFromQuery === "hub_vendor"
+        ? "Vendor Hub"
+        : roleFromQuery === "blogger"
+        ? "Blogger / Author"
+        : getRoleDisplayLabelFromNature(safeArr(bp.nature_of_business));
+
     const { error: profileUpdateError } = await supabase
       .from("profiles")
       .update({
         approval_status: "active",
-        is_profile_complete: true,
+        onboarding_version: 2,
+        onboarding_completed: true,
+        role_display_label: roleDisplayLabel,
       })
       .eq("id", userId);
 
@@ -728,7 +741,7 @@ export default function BusinessOnboardingPageClient() {
     <div style={{ maxWidth: 900, margin: "40px auto", padding: 16 }}>
       <h1 style={{ fontSize: 26, fontWeight: 800 }}>Complete Your Business Profile</h1>
       <p style={{ opacity: 0.8 }}>
-        Complete this profile to activate your business-side access on 3bigha. After all required details are filled, click <b>Finish Registration</b> to enable your dashboard actions, listing submission, and publishing access.
+        Complete this profile to activate your business-side access on 3bigha. After all required details are filled, click <b>Activate My Dashboard</b> to enable your dashboard actions, listing submission, and publishing access.
       </p>
 
       <div style={{ marginTop: 12, padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
@@ -822,7 +835,6 @@ export default function BusinessOnboardingPageClient() {
       </div>
 
       <form onSubmit={onSave} style={{ marginTop: 20, display: "grid", gap: 16 }}>
-        {/* Nature */}
         <section id="sec-nature" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Nature of Business</h3>
           <p style={{ marginTop: 0, opacity: 0.8 }}>Select all that apply.</p>
@@ -840,7 +852,6 @@ export default function BusinessOnboardingPageClient() {
           </div>
         </section>
 
-        {/* Identity */}
         <section id="sec-identity" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Business Identity</h3>
 
@@ -930,7 +941,6 @@ export default function BusinessOnboardingPageClient() {
           </div>
         </section>
 
-        {/* Contact */}
         <section id="sec-contact" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Contact</h3>
 
@@ -971,7 +981,6 @@ export default function BusinessOnboardingPageClient() {
           </div>
         </section>
 
-        {/* Address */}
         <section id="sec-address" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Address</h3>
 
@@ -1029,7 +1038,6 @@ export default function BusinessOnboardingPageClient() {
           </div>
         </section>
 
-        {/* Property: RERA (optional) */}
         {nature.includes("property") ? (
           <section id="sec-property" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
             <h3 style={{ marginTop: 0 }}>Property Compliance (RERA)</h3>
@@ -1067,7 +1075,6 @@ export default function BusinessOnboardingPageClient() {
           </section>
         ) : null}
 
-        {/* Blog: Author */}
         {hasBlog ? (
           <section id="sec-author" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
             <h3 style={{ marginTop: 0 }}>Author / Writer Identity (Blog)</h3>
@@ -1132,7 +1139,8 @@ export default function BusinessOnboardingPageClient() {
           </button>
         </div>
       </form>
-            <style jsx global>{`
+
+      <style jsx global>{`
         header,
         footer {
           display: none !important;
