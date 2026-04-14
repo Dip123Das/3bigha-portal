@@ -65,6 +65,19 @@ type MessageRow = {
 
 type InvestmentRow = Record<string, any>;
 
+type InvestmentConversationRow = {
+  id: string;
+  title: string | null;
+  buyer_user_id: string | null;
+  vendor_user_id: string | null;
+  context_type: string | null;
+  context_id: string | null;
+  investment_deal_room_id?: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  is_closed?: boolean | null;
+};
+
 type UnifiedInboxItem = {
   id: string;
   module: "investment" | "rfq" | "direct";
@@ -823,98 +836,181 @@ async function fetchInvestmentRows(
   supabase: ReturnType<typeof getSupabaseServerClient>,
   userId: string
 ) {
-  const [investorRes, builderRes] = await Promise.all([
-    supabase
-      .from("investment_deal_rooms")
-      .select("*")
-      .eq("investor_user_id", userId)
-      .order("updated_at", { ascending: false })
-      .limit(50),
-    supabase
-      .from("investment_deal_rooms")
-      .select("*")
-      .eq("builder_user_id", userId)
-      .order("updated_at", { ascending: false })
-      .limit(50),
-  ]);
-
-  const investorRows = (investorRes.data ?? []) as InvestmentRow[];
-  const builderRows = (builderRes.data ?? []) as InvestmentRow[];
-
-  const counterpartIds = Array.from(
-    new Set(
+  const { data: convoData, error: convoError } = await supabase
+    .from("conversations")
+    .select(
       [
-        ...investorRows.map((r) => String(r.builder_user_id ?? "").trim()),
-        ...builderRows.map((r) => String(r.investor_user_id ?? "").trim()),
-      ].filter(Boolean)
+        "id",
+        "title",
+        "buyer_user_id",
+        "vendor_user_id",
+        "context_type",
+        "context_id",
+        "investment_deal_room_id",
+        "created_at",
+        "updated_at",
+        "is_closed",
+      ].join(",")
+    )
+    .eq("context_type", "investment_deal_room")
+    .or(`buyer_user_id.eq.${userId},vendor_user_id.eq.${userId}`)
+    .order("updated_at", { ascending: false })
+    .limit(50);
+
+  if (convoError || !convoData?.length) return [];
+
+  const rows: InvestmentConversationRow[] = Array.isArray(convoData)
+    ? (convoData as unknown as InvestmentConversationRow[])
+    : [];
+
+  const conversationIds = rows.map((r) => String(r.id));
+  const dealRoomIds = Array.from(
+    new Set(
+      rows
+        .map((r) => String(r.investment_deal_room_id || r.context_id || "").trim())
+        .filter(Boolean)
     )
   );
 
-  const profileMap = await buildProfileNameMap(
-    supabase,
-    counterpartIds,
-    "User"
+  let participants: ParticipantRow[] = [];
+  let messages: MessageRow[] = [];
+  let dealRooms: InvestmentRow[] = [];
+
+  const [{ data: partData }, { data: msgData }, { data: roomData }] =
+    await Promise.all([
+      supabase
+        .from("conversation_participants")
+        .select("conversation_id,user_id,role,last_read_at")
+        .eq("user_id", userId)
+        .in("conversation_id", conversationIds),
+
+      supabase
+        .from("conversation_messages")
+        .select(
+          "id,conversation_id,sender_user_id,sender_role,message_type,body,created_at"
+        )
+        .in("conversation_id", conversationIds)
+        .order("created_at", { ascending: true }),
+
+      dealRoomIds.length
+        ? supabase
+            .from("investment_deal_rooms")
+            .select("*")
+            .in("id", dealRoomIds)
+        : Promise.resolve({ data: [] as InvestmentRow[] }),
+    ]);
+
+  participants = (partData ?? []) as ParticipantRow[];
+  messages = (msgData ?? []) as MessageRow[];
+  dealRooms = (roomData ?? []) as InvestmentRow[];
+
+  const participantMap = new Map<string, ParticipantRow>();
+  for (const p of participants) {
+    participantMap.set(String(p.conversation_id), p);
+  }
+
+  const latestMessageByConversation = new Map<string, MessageRow>();
+  const unreadCountByConversation = new Map<string, number>();
+
+  for (const m of messages) {
+    const convId = String(m.conversation_id || "").trim();
+    if (!convId) continue;
+
+    latestMessageByConversation.set(convId, m);
+
+    const participant = participantMap.get(convId);
+    const lastReadMs = participant?.last_read_at
+      ? new Date(participant.last_read_at).getTime()
+      : 0;
+
+    const senderUserId = String(m.sender_user_id || "").trim();
+    const createdAtMs = m.created_at ? new Date(m.created_at).getTime() : 0;
+
+    if (senderUserId && senderUserId !== userId && createdAtMs > lastReadMs) {
+      unreadCountByConversation.set(
+        convId,
+        (unreadCountByConversation.get(convId) ?? 0) + 1
+      );
+    }
+  }
+
+  const dealRoomMap = new Map<string, InvestmentRow>();
+  for (const row of dealRooms) {
+    dealRoomMap.set(String(row.id), row);
+  }
+
+  const counterpartIds = Array.from(
+    new Set(
+      rows
+        .map((row) =>
+          String(
+            row.buyer_user_id === userId ? row.vendor_user_id : row.buyer_user_id
+          ).trim()
+        )
+        .filter(Boolean)
+    )
   );
 
-  const investorItems: UnifiedInboxItem[] = investorRows.map((row) => {
-    const unread =
-      parseMs(row.last_message_at) > parseMs(row.investor_last_read_at) ? 1 : 0;
-    const counterpartId = String(row.builder_user_id ?? "").trim();
+  const profileMap = await buildProfileNameMap(supabase, counterpartIds, "User");
+
+  const items: UnifiedInboxItem[] = rows.map((row) => {
+    const conversationId = String(row.id);
+    const dealRoomId = String(
+      row.investment_deal_room_id || row.context_id || ""
+    ).trim();
+    const dealRoom = dealRoomMap.get(dealRoomId) || null;
+
+    const isInvestor = String(row.buyer_user_id || "") === userId;
+    const side: UnifiedInboxItem["side"] = isInvestor ? "investor" : "builder";
+
+    const counterpartId = String(
+      isInvestor ? row.vendor_user_id : row.buyer_user_id
+    ).trim();
+
+    const latest = latestMessageByConversation.get(conversationId);
+    const unreadCount = unreadCountByConversation.get(conversationId) ?? 0;
+
+    const fallbackTitle =
+      dealRoom && investmentTitle(dealRoom)
+        ? investmentTitle(dealRoom)
+        : row.title || "Investment Deal Room";
+
+    const fallbackSubtitle =
+      dealRoom && investmentSubtitle(dealRoom)
+        ? investmentSubtitle(dealRoom)
+        : latest
+        ? buildPreview(
+            latest.body,
+            latest.message_type,
+            String(latest.sender_user_id || "") === userId,
+            latest.sender_role
+          )
+        : "Investment conversation";
 
     return {
-      id: `investment-investor-${String(row.id)}`,
+      id: `investment-${conversationId}`,
       module: "investment",
-      side: "investor",
-      title: investmentTitle(row),
-      subtitle: investmentSubtitle(row),
+      side,
+      title: fallbackTitle,
+      subtitle: fallbackSubtitle,
       counterpart:
         profileMap.get(counterpartId) ||
-        row.builder_name ||
-        counterpartId ||
-        "Builder",
-      statusLabel: investmentStatusLabel(row.status),
-      stageLabel: investmentStageLabel(row.stage, row.status),
-      unreadCount: unread,
-      lastActivityAt:
-        row.last_message_at || row.updated_at || row.created_at || null,
-      href: `/dashboard/investor/deal-rooms/${encodeURIComponent(String(row.id))}`,
+        (isInvestor ? "Builder" : "Investor"),
+      statusLabel: investmentStatusLabel(dealRoom?.status),
+      stageLabel: investmentStageLabel(dealRoom?.stage, dealRoom?.status),
+      unreadCount,
+      lastActivityAt: latest?.created_at || row.updated_at || row.created_at || null,
+      href: isInvestor
+        ? `/dashboard/investor/deal-rooms/${encodeURIComponent(dealRoomId)}`
+        : `/dashboard/builder/deal-rooms/${encodeURIComponent(dealRoomId)}`,
       badgeTone: "violet",
-      metaLine: row.opportunity_id
-        ? `Opportunity ID: ${String(row.opportunity_id)}`
-        : undefined,
+      metaLine: dealRoom?.opportunity_id
+        ? `Opportunity ID: ${String(dealRoom.opportunity_id)}`
+        : `Conversation ID: ${conversationId}`,
     };
   });
 
-  const builderItems: UnifiedInboxItem[] = builderRows.map((row) => {
-    const unread =
-      parseMs(row.last_message_at) > parseMs(row.builder_last_read_at) ? 1 : 0;
-    const counterpartId = String(row.investor_user_id ?? "").trim();
-
-    return {
-      id: `investment-builder-${String(row.id)}`,
-      module: "investment",
-      side: "builder",
-      title: investmentTitle(row),
-      subtitle: investmentSubtitle(row),
-      counterpart:
-        profileMap.get(counterpartId) ||
-        row.investor_name ||
-        counterpartId ||
-        "Investor",
-      statusLabel: investmentStatusLabel(row.status),
-      stageLabel: investmentStageLabel(row.stage, row.status),
-      unreadCount: unread,
-      lastActivityAt:
-        row.last_message_at || row.updated_at || row.created_at || null,
-      href: `/dashboard/builder/deal-rooms/${encodeURIComponent(String(row.id))}`,
-      badgeTone: "violet",
-      metaLine: row.opportunity_id
-        ? `Opportunity ID: ${String(row.opportunity_id)}`
-        : undefined,
-    };
-  });
-
-  return [...investorItems, ...builderItems];
+  return items;
 }
 
 export default async function DashboardInboxV2Page({
