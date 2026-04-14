@@ -707,6 +707,23 @@ export default function BusinessOnboardingPageClient() {
         ? "Blogger / Author"
         : getRoleDisplayLabelFromNature(safeArr(bp.nature_of_business));
 
+    const fallbackUseReason =
+      roleFromQuery === "builder"
+        ? "manage_builder_projects"
+        : roleFromQuery === "hub_vendor"
+        ? "operate_multiple_businesses"
+        : roleFromQuery === "blogger"
+        ? "publish_blog_or_news"
+        : safeArr(bp.nature_of_business).includes("materials")
+        ? "sell_materials"
+        : safeArr(bp.nature_of_business).includes("services")
+        ? "offer_services"
+        : safeArr(bp.nature_of_business).includes("rentals")
+        ? "provide_rentals"
+        : safeArr(bp.nature_of_business).includes("property")
+        ? "list_property_for_sale"
+        : "operate_multiple_businesses";
+
     const { error: profileUpdateError } = await supabase
       .from("profiles")
       .update({
@@ -714,6 +731,7 @@ export default function BusinessOnboardingPageClient() {
         onboarding_version: 2,
         onboarding_completed: true,
         role_display_label: roleDisplayLabel,
+        portal_use_reason: fallbackUseReason,
       })
       .eq("id", userId);
 
