@@ -97,7 +97,9 @@ function capabilityLabel(cap: VendorCapabilityKey) {
   if (cap === "materials") return "Materials";
   if (cap === "services") return "Services";
   if (cap === "rentals") return "Rentals";
-  return "Blog Author";
+  if (cap === "blog_author") return "Blog Author";
+  if (cap === "investor") return "Investor";
+  return titleCase(String(cap));
 }
 
 export default function VendorDashboardPage() {
@@ -114,7 +116,20 @@ export default function VendorDashboardPage() {
   const [vendorPct, setVendorPct] = useState<number | null>(null);
 
   const [vendorCapabilities, setVendorCapabilities] = useState<VendorCapabilityKey[]>([]);
+    const uniqueVendorCapabilities = useMemo(
+    () => Array.from(new Set(vendorCapabilities)),
+    [vendorCapabilities]
+  );
   const [vendorHasFullAccess, setVendorHasFullAccess] = useState(false);
+    const dashboardTitle = vendorHasFullAccess
+    ? "Vendor Hub Dashboard"
+    : uniqueVendorCapabilities.includes("property_builder") &&
+      uniqueVendorCapabilities.length === 1
+    ? "Builder Dashboard"
+    : uniqueVendorCapabilities.includes("investor") &&
+      uniqueVendorCapabilities.length === 1
+    ? "Investor Dashboard"
+    : "Vendor Dashboard";
 
   const [enquiriesLoading, setEnquiriesLoading] = useState(false);
   const [enquiriesErr, setEnquiriesErr] = useState<string | null>(null);
@@ -214,7 +229,7 @@ export default function VendorDashboardPage() {
     return (
       <main>
         <Container>
-          <SectionHeader title="Vendor Dashboard" subtitle="Loading..." />
+          <SectionHeader title={dashboardTitle} subtitle="Loading..." />
           <div style={{ opacity: 0.8 }}>Preparing your vendor workspace…</div>
         </Container>
       </main>
@@ -225,7 +240,7 @@ export default function VendorDashboardPage() {
     return (
       <main>
         <Container>
-          <SectionHeader title="Vendor Dashboard" subtitle="" />
+          <SectionHeader title={dashboardTitle} subtitle="" />
           <EmptyState message="Something went wrong while loading your vendor dashboard." />
           <div style={{ marginTop: 12, color: "crimson", fontWeight: 800 }}>{err}</div>
           <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -257,7 +272,7 @@ export default function VendorDashboardPage() {
     return (
       <main>
         <Container>
-          <SectionHeader title="Vendor Dashboard" subtitle="Vendor access required." />
+          <SectionHeader title={dashboardTitle} subtitle="Vendor access required." />
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
             <ActionButton href="/dashboard" variant="secondary">
@@ -282,7 +297,7 @@ export default function VendorDashboardPage() {
     <main>
       <Container>
         <SectionHeader
-          title="Vendor Dashboard"
+          title={dashboardTitle}
           subtitle="Manage your listings, profile, and business actions from one place."
         />
 
@@ -320,8 +335,11 @@ export default function VendorDashboardPage() {
 
             {vendorHasFullAccess ? (
               <Pill tone="ok">Full Hub Access</Pill>
-            ) : vendorCapabilities.length > 0 ? (
-              <Pill>{vendorCapabilities.length} Capability{vendorCapabilities.length > 1 ? "ies" : "y"}</Pill>
+            ) : uniqueVendorCapabilities.length > 0 ? (
+              <Pill>
+                {uniqueVendorCapabilities.length} Capability
+                {uniqueVendorCapabilities.length > 1 ? "ies" : "y"}
+              </Pill>
             ) : null}
 
             {vendorComplete === true ? (
@@ -344,17 +362,19 @@ export default function VendorDashboardPage() {
             </div>
 
             <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {vendorCapabilities.length === 0 ? (
+              {uniqueVendorCapabilities.length === 0 ? (
                 <Pill tone="warn">No capabilities enabled</Pill>
               ) : (
-                vendorCapabilities.map((cap) => (
+                uniqueVendorCapabilities.map((cap) => (
                   <Pill key={cap} tone={vendorHasFullAccess ? "ok" : "neutral"}>
                     {capabilityLabel(cap)}
                   </Pill>
                 ))
               )}
 
-              {vendorHasFullAccess ? <Pill tone="ok">3Bigha Full Real Estate Hub</Pill> : null}
+              {vendorHasFullAccess && uniqueVendorCapabilities.length === 7 ? (
+                <Pill tone="ok">3Bigha Full Real Estate Hub</Pill>
+              ) : null}
             </div>
           </CardBody>
         </Card>
@@ -477,7 +497,7 @@ export default function VendorDashboardPage() {
           </Card>
         </div>
 
-        {vendorCapabilities.length === 0 ? (
+        {uniqueVendorCapabilities.length === 0 ? (
           <div
             style={{
               marginBottom: 12,
@@ -501,37 +521,37 @@ export default function VendorDashboardPage() {
             </div>
 
             <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-              {vendorCapabilities.includes("property_owner") ? (
+              {uniqueVendorCapabilities.includes("property_owner") ? (
                 <ActionButton href="/property/add" variant="primary">
                   Post Property
                 </ActionButton>
               ) : null}
 
-              {vendorCapabilities.includes("property_builder") ? (
+              {uniqueVendorCapabilities.includes("property_builder") ? (
                 <ActionButton href="/property/builder/projects/add" variant="secondary">
                   Add Builder Project
                 </ActionButton>
               ) : null}
 
-              {vendorCapabilities.includes("materials") ? (
+              {uniqueVendorCapabilities.includes("materials") ? (
                 <ActionButton href="/materials/add" variant="secondary">
                   Add Material
                 </ActionButton>
               ) : null}
 
-              {vendorCapabilities.includes("services") ? (
+              {uniqueVendorCapabilities.includes("services") ? (
                 <ActionButton href="/services/add" variant="secondary">
                   Add Service
                 </ActionButton>
               ) : null}
 
-              {vendorCapabilities.includes("rentals") ? (
+              {uniqueVendorCapabilities.includes("rentals") ? (
                 <ActionButton href="/rentals/add" variant="secondary">
                   Add Rental
                 </ActionButton>
               ) : null}
 
-              {vendorCapabilities.includes("blog_author") ? (
+              {uniqueVendorCapabilities.includes("blog_author") ? (
                 <ActionButton href="/blog/new" variant="secondary">
                   Write Blog Post
                 </ActionButton>
@@ -546,7 +566,7 @@ export default function VendorDashboardPage() {
 
         <div style={{ marginTop: 12 }}>
           <Grid min={280} gap={12}>
-            {vendorCapabilities.includes("property_owner") ? (
+            {uniqueVendorCapabilities.includes("property_owner") ? (
               <Card>
                 <CardBody>
                   <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Properties</div>
@@ -573,7 +593,7 @@ export default function VendorDashboardPage() {
               </Card>
             ) : null}
 
-            {vendorCapabilities.includes("property_builder") ? (
+            {uniqueVendorCapabilities.includes("property_builder") ? (
               <Card>
                 <CardBody>
                   <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Builder Projects</div>
@@ -600,7 +620,7 @@ export default function VendorDashboardPage() {
               </Card>
             ) : null}
 
-            {vendorCapabilities.includes("materials") ? (
+            {uniqueVendorCapabilities.includes("materials") ? (
               <Card>
                 <CardBody>
                   <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Materials</div>
@@ -626,7 +646,7 @@ export default function VendorDashboardPage() {
               </Card>
             ) : null}
 
-            {vendorCapabilities.includes("services") ? (
+            {uniqueVendorCapabilities.includes("services") ? (
               <Card>
                 <CardBody>
                   <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Services</div>
@@ -652,7 +672,7 @@ export default function VendorDashboardPage() {
               </Card>
             ) : null}
 
-            {vendorCapabilities.includes("rentals") ? (
+            {uniqueVendorCapabilities.includes("rentals") ? (
               <Card>
                 <CardBody>
                   <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Rentals</div>
@@ -678,7 +698,7 @@ export default function VendorDashboardPage() {
               </Card>
             ) : null}
 
-            {vendorCapabilities.includes("blog_author") ? (
+            {uniqueVendorCapabilities.includes("blog_author") ? (
               <Card>
                 <CardBody>
                   <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Blog / News</div>
