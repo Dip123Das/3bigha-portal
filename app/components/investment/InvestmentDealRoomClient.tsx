@@ -764,6 +764,12 @@ export default function InvestmentDealRoomClient({
       ? "/dashboard/builder/deal-rooms"
       : "/dashboard/investor/deal-rooms";
 
+  const unifiedInboxHref = room?.conversation_id
+    ? `/dashboard/inbox-v2?conversationId=${encodeURIComponent(
+        String(room.conversation_id)
+      )}`
+    : "/dashboard/inbox-v2";
+
   const currentUserId =
     viewerRole === "builder"
       ? String(room?.builder_user_id || "")
@@ -2091,10 +2097,10 @@ export default function InvestmentDealRoomClient({
             </button>
 
             <Link
-              href="/dashboard/inbox-v2"
+              href={unifiedInboxHref}
               className="inline-flex items-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
             >
-              Unified Inbox
+              {room?.conversation_id ? "Open in Unified Inbox" : "Unified Inbox"}
             </Link>
           </div>
         </div>
@@ -3100,6 +3106,15 @@ export default function InvestmentDealRoomClient({
                 </div>
                 <div className="mt-1 break-all text-sm text-slate-900">
                   {room?.opportunity_id || "—"}
+                </div>
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  Conversation ID
+                </div>
+                <div className="mt-1 break-all text-sm text-slate-900">
+                  {room?.conversation_id || "—"}
                 </div>
               </div>
 
