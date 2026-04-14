@@ -557,9 +557,15 @@ export default function VendorDashboardPage() {
                 </ActionButton>
               ) : null}
 
-              <ActionButton href="/onboarding/business" variant="secondary">
-                Business Profile
+              {uniqueVendorCapabilities.includes("investor") ? (
+              <ActionButton href="/dashboard/investor" variant="secondary">
+                Investment Dashboard
               </ActionButton>
+            ) : null}
+
+            <ActionButton href="/onboarding/business" variant="secondary">
+              Business Profile
+            </ActionButton>
             </div>
           </CardBody>
         </Card>
@@ -718,6 +724,32 @@ export default function VendorDashboardPage() {
                     </ActionButton>
                     <Link href="/blog/my" style={{ fontWeight: 800, alignSelf: "center" }}>
                       /blog/my
+                    </Link>
+                  </div>
+                </CardFooter>
+              </Card>
+            ) : null}
+
+            {uniqueVendorCapabilities.includes("investor") ? (
+              <Card>
+                <CardBody>
+                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Investment</div>
+                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
+                    Manage your investment opportunities, applications, and deal rooms.
+                  </div>
+                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <Pill>Opportunities</Pill>
+                    <Pill>Applications</Pill>
+                    <Pill>Deal Rooms</Pill>
+                  </div>
+                </CardBody>
+                <CardFooter>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
+                    <ActionButton href="/dashboard/investor" variant="primary">
+                      Open →
+                    </ActionButton>
+                    <Link href="/dashboard/investor" style={{ fontWeight: 800, alignSelf: "center" }}>
+                      /dashboard/investor
                     </Link>
                   </div>
                 </CardFooter>
