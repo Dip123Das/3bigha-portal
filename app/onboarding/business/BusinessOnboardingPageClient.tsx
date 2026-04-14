@@ -760,13 +760,79 @@ export default function BusinessOnboardingPageClient() {
       .from("profiles")
       .upsert(profilePayload, { onConflict: "id" });
 
-    setSaving(false);
-
     if (profileUpdateError) {
+      setSaving(false);
       setMsg(profileUpdateError.message);
       await fetchCompleteness(userId);
       return;
     }
+
+    // Rebuild grants from final onboarding selection
+    const finalRole =
+      roleFromQuery === "builder"
+        ? "builder"
+        : roleFromQuery === "hub_vendor"
+        ? "hub_vendor"
+        : roleFromQuery === "blogger"
+        ? "blogger"
+        : "vendor";
+
+    const grantRows =
+      finalRole === "hub_vendor"
+        ? [
+            "materials",
+            "services",
+            "rentals",
+            "property_owner",
+            "property_builder",
+            "blog_author",
+            "investor",
+          ]
+        : finalRole === "builder"
+        ? ["property_builder"]
+        : finalRole === "blogger"
+        ? ["blog_author"]
+        : safeArr(bp.nature_of_business).flatMap((x) => {
+            if (x === "materials") return ["materials"];
+            if (x === "services") return ["services"];
+            if (x === "rentals") return ["rentals"];
+            if (x === "property") return ["property_owner"];
+            if (x === "blog") return ["blog_author"];
+            return [];
+          });
+
+    const uniqueGrantRows = Array.from(new Set(grantRows)).map((module_key) => ({
+      user_id: userId,
+      module_key,
+      is_active: true,
+    }));
+
+    const { error: deleteGrantError } = await supabase
+      .from("vendor_module_grants")
+      .delete()
+      .eq("user_id", userId);
+
+    if (deleteGrantError) {
+      setSaving(false);
+      setMsg(deleteGrantError.message);
+      await fetchCompleteness(userId);
+      return;
+    }
+
+    if (uniqueGrantRows.length > 0) {
+      const { error: insertGrantError } = await supabase
+        .from("vendor_module_grants")
+        .insert(uniqueGrantRows);
+
+      if (insertGrantError) {
+        setSaving(false);
+        setMsg(insertGrantError.message);
+        await fetchCompleteness(userId);
+        return;
+      }
+    }
+
+    setSaving(false);
 
     setMsg("✅ Registration Complete. Redirecting...");
     await fetchCompleteness(userId);
