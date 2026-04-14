@@ -30,6 +30,7 @@ function prettyRole(profile?: ProfileLite | null) {
   const display = String(profile?.role_display_label ?? "").trim();
   if (display) return display;
 
+  const reason = String(profile?.portal_use_reason ?? "").trim().toLowerCase();
   const r = String(profile?.role ?? "").trim().toLowerCase();
 
   if (r === "master_admin") return "Master Admin";
@@ -38,7 +39,17 @@ function prettyRole(profile?: ProfileLite | null) {
   if (r === "buyer") return "Buyer";
   if (r === "builder") return "Builder / Developer";
   if (r === "hub_vendor") return "Vendor Hub";
-  if (r === "vendor") return "Vendor";
+
+  if (r === "vendor") {
+    if (reason === "sell_materials") return "Materials Vendor";
+    if (reason === "offer_services") return "Service Vendor";
+    if (reason === "provide_rentals") return "Rental Vendor";
+    if (reason === "list_property_for_sale") return "Property Vendor / Seller";
+    if (reason === "invest_in_opportunities") return "Investor";
+    if (reason === "publish_blog_or_news") return "Blogger / Author";
+    if (reason === "operate_multiple_businesses") return "Vendor Hub";
+    return "Vendor";
+  }
 
   if (profile?.is_vendor === true) return "Vendor";
 
@@ -85,9 +96,7 @@ export default function AuthButtons() {
 
       const onboardingReady =
         profile?.onboarding_version === 2 &&
-        profile?.onboarding_completed === true &&
-        !!String(profile?.portal_use_reason ?? "").trim() &&
-        !!String(profile?.role_display_label ?? "").trim();
+        profile?.onboarding_completed === true;
 
       const currentPath = pathname || "/";
       const alreadyOnRegister =
