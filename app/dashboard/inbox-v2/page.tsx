@@ -1000,9 +1000,7 @@ async function fetchInvestmentRows(
       stageLabel: investmentStageLabel(dealRoom?.stage, dealRoom?.status),
       unreadCount,
       lastActivityAt: latest?.created_at || row.updated_at || row.created_at || null,
-      href: isInvestor
-        ? `/dashboard/investor/deal-rooms/${encodeURIComponent(dealRoomId)}`
-        : `/dashboard/builder/deal-rooms/${encodeURIComponent(dealRoomId)}`,
+      href: `/dashboard/inbox-v2/thread/${encodeURIComponent(conversationId)}`,
       badgeTone: "violet",
       metaLine: dealRoom?.opportunity_id
         ? `Opportunity ID: ${String(dealRoom.opportunity_id)}`
@@ -1081,7 +1079,7 @@ export default async function DashboardInboxV2Page({
       unreadCount: Number(row.unread_count ?? 0),
       lastActivityAt:
         row.last_message_at || row.updated_at || row.created_at || null,
-      href: `/dashboard/vendor/chat/${encodeURIComponent(String(row.id))}`,
+      href: `/dashboard/inbox-v2/thread/${encodeURIComponent(String(row.id))}`,
       badgeTone: "blue",
       metaLine: row.context_type ? titleCase(row.context_type) : undefined,
     })
@@ -1099,7 +1097,7 @@ export default async function DashboardInboxV2Page({
       unreadCount: Number(row.unread_count ?? 0),
       lastActivityAt:
         row.last_message_at || row.updated_at || row.created_at || null,
-      href: `/dashboard/buyer/chat/${encodeURIComponent(String(row.id))}`,
+      href: `/dashboard/inbox-v2/thread/${encodeURIComponent(String(row.id))}`,
       badgeTone: "blue",
       metaLine: row.context_type ? titleCase(row.context_type) : undefined,
     })
