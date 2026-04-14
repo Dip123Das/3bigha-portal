@@ -673,6 +673,7 @@ export default function BusinessOnboardingPageClient() {
       setSaving(false);
       return;
     }
+
     if (!res.isComplete) {
       setSaving(false);
       setMsg("Please complete the highlighted required fields before finishing registration.");
@@ -684,15 +685,15 @@ export default function BusinessOnboardingPageClient() {
       p_vendor_id: userId,
     });
 
-    setSaving(false);
-
     if (error) {
+      setSaving(false);
       setMsg(error.message);
       return;
     }
 
     const ok = !!data;
     if (!ok) {
+      setSaving(false);
       setMsg("Profile complete, but registration is still not marked complete. Try again.");
       await fetchCompleteness(userId);
       return;
@@ -724,16 +725,42 @@ export default function BusinessOnboardingPageClient() {
         ? "list_property_for_sale"
         : "operate_multiple_businesses";
 
+    const sessionRes = await supabase.auth.getSession();
+    const sessionUser = sessionRes.data.session?.user ?? null;
+
+    const profilePayload = {
+      id: userId,
+      email: sessionUser?.email ?? null,
+      requested_role: roleFromQuery || null,
+      role:
+        roleFromQuery === "builder"
+          ? "builder"
+          : roleFromQuery === "hub_vendor"
+          ? "hub_vendor"
+          : roleFromQuery === "blogger"
+          ? "blogger"
+          : "vendor",
+      is_vendor:
+        roleFromQuery === "builder" ||
+        roleFromQuery === "hub_vendor" ||
+        roleFromQuery === "blogger" ||
+        roleFromQuery === "vendor",
+      approval_status: "active",
+      onboarding_version: 2,
+      onboarding_completed: true,
+      portal_use_reason: fallbackUseReason,
+      role_display_label: roleDisplayLabel,
+      full_name: bp.contact_person ?? null,
+      phone: bp.phone_primary ?? null,
+      city: bp.city ?? null,
+      state: bp.state ?? null,
+    };
+
     const { error: profileUpdateError } = await supabase
       .from("profiles")
-      .update({
-        approval_status: "active",
-        onboarding_version: 2,
-        onboarding_completed: true,
-        role_display_label: roleDisplayLabel,
-        portal_use_reason: fallbackUseReason,
-      })
-      .eq("id", userId);
+      .upsert(profilePayload, { onConflict: "id" });
+
+    setSaving(false);
 
     if (profileUpdateError) {
       setMsg(profileUpdateError.message);
