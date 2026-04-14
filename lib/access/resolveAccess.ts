@@ -56,7 +56,6 @@ function normalizeCapability(raw: unknown): VendorCapabilityKey | null {
 
   if (!v) return null;
 
-  // Current capability model
   if (v === "materials") return "materials";
   if (v === "services") return "services";
   if (v === "rentals") return "rentals";
@@ -65,7 +64,6 @@ function normalizeCapability(raw: unknown): VendorCapabilityKey | null {
   if (v === "blog_author") return "blog_author";
   if (v === "investor") return "investor";
 
-  // Backward compatibility
   if (v === "property") return "property_owner";
   if (v === "materials_vendor") return "materials";
   if (v === "services_vendor") return "services";
@@ -117,7 +115,9 @@ export async function resolveAccessForUser(
     withTimeout(
       supabase
         .from("profiles")
-        .select("role,is_vendor")
+        .select(
+          "role,is_vendor,onboarding_completed,onboarding_version,portal_use_reason"
+        )
         .eq("id", userId)
         .maybeSingle(),
       3500,
@@ -134,14 +134,14 @@ export async function resolveAccessForUser(
     ),
   ]);
 
+  let profile: any = null;
+
   if (profSettled.status === "fulfilled") {
     const profRes: any = profSettled.value;
     if (!profRes?.error && profRes?.data) {
-      role = normalizeRole(profRes.data.role);
+      profile = profRes.data;
+      role = normalizeRole(profile.role);
 
-      // IMPORTANT:
-      // Do not infer vendor from old is_vendor flag anymore.
-      // Access must be based on role + explicit grants.
       if (role === "vendor") {
         isVendor = true;
       }
@@ -164,8 +164,76 @@ export async function resolveAccessForUser(
   if (bpSettled.status === "fulfilled") {
     const bpRes: any = bpSettled.value;
     if (!bpRes?.error && bpRes?.data?.user_id) {
-      // Keep this lookup for future diagnostics if needed,
-      // but do NOT infer vendor access from business_profiles alone.
+      // Intentionally not inferring vendor access from business_profiles alone.
+    }
+  }
+
+  // AUTO-HEAL: if onboarding is complete but grants are missing, rebuild them.
+  if (
+    profile?.onboarding_completed === true &&
+    profile?.onboarding_version === 2
+  ) {
+    try {
+      const grantsCheckRes = await withTimeout(
+        supabase
+          .from("vendor_module_grants")
+          .select("module_key")
+          .eq("user_id", userId)
+          .eq("is_active", true),
+        3000,
+        "vendor_module_grants auto-heal lookup"
+      );
+
+      const existingGrantRows = (grantsCheckRes as any)?.data ?? [];
+
+      if (Array.isArray(existingGrantRows) && existingGrantRows.length === 0) {
+        const portalUseReason = String(profile?.portal_use_reason ?? "")
+          .trim()
+          .toLowerCase();
+
+        const autoModules =
+          role === "hub_vendor" || portalUseReason === "operate_multiple_businesses"
+            ? [
+                "materials",
+                "services",
+                "rentals",
+                "property_owner",
+                "property_builder",
+                "blog_author",
+                "investor",
+              ]
+            : role === "builder" || portalUseReason === "manage_builder_projects"
+            ? ["property_builder"]
+            : role === "blogger" || portalUseReason === "publish_blog_or_news"
+            ? ["blog_author"]
+            : portalUseReason === "sell_materials"
+            ? ["materials"]
+            : portalUseReason === "offer_services"
+            ? ["services"]
+            : portalUseReason === "provide_rentals"
+            ? ["rentals"]
+            : portalUseReason === "list_property_for_sale"
+            ? ["property_owner"]
+            : portalUseReason === "invest_in_opportunities"
+            ? ["investor"]
+            : [];
+
+        if (autoModules.length > 0) {
+          await withTimeout(
+            supabase.from("vendor_module_grants").insert(
+              autoModules.map((module_key) => ({
+                user_id: userId,
+                module_key,
+                is_active: true,
+              }))
+            ),
+            3000,
+            "vendor_module_grants auto-heal insert"
+          );
+        }
+      }
+    } catch (e) {
+      console.error("RESOLVE_ACCESS_AUTO_HEAL_ERROR", e);
     }
   }
 
@@ -191,7 +259,7 @@ export async function resolveAccessForUser(
       );
     }
 
-    if (role === "hub_vendor") {
+    if (role === "hub_vendor" && vendorCapabilities.length === 0) {
       vendorCapabilities = [
         "materials",
         "services",
@@ -207,8 +275,6 @@ export async function resolveAccessForUser(
       vendorCapabilities = ["property_builder"];
     }
 
-    // IMPORTANT:
-    // Do not silently grant default vendor capabilities anymore.
     if (role === "vendor" && vendorCapabilities.length === 0) {
       vendorCapabilities = [];
     }
