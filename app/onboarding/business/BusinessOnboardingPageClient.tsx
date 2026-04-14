@@ -806,11 +806,35 @@ export default function BusinessOnboardingPageClient() {
           </div>
         ) : null}
 
-        <div id="sec-review" style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+        <div
+          id="sec-review"
+          style={{
+            marginTop: 14,
+            display: "flex",
+            gap: 12,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
           {registrationCompleteUI ? (
             <>
-              <div style={{ fontWeight: 800, color: "green" }}>✅ Registration Complete</div>
-              <button type="button" onClick={() => router.push(returnTo)} style={{ padding: 10, fontWeight: 700 }}>
+              <div style={{ fontWeight: 800, color: "green" }}>
+                ✅ Registration Complete
+              </div>
+
+              <button
+                type="button"
+                onClick={() => router.push(returnTo)}
+                style={{
+                  padding: "12px 18px",
+                  fontWeight: 800,
+                  borderRadius: 10,
+                  border: "1px solid #16a34a",
+                  background: "#16a34a",
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+              >
                 Open Dashboard
               </button>
             </>
@@ -820,10 +844,20 @@ export default function BusinessOnboardingPageClient() {
                 type="button"
                 disabled={saving || !isCompleteUI}
                 onClick={onFinishRegistration}
-                style={{ padding: 10, fontWeight: 700 }}
+                style={{
+                  padding: "12px 18px",
+                  fontWeight: 800,
+                  borderRadius: 10,
+                  border: "1px solid #16a34a",
+                  background: saving || !isCompleteUI ? "#cbd5e1" : "#16a34a",
+                  color: "#fff",
+                  cursor: saving || !isCompleteUI ? "not-allowed" : "pointer",
+                  opacity: saving || !isCompleteUI ? 0.8 : 1,
+                }}
               >
-                {saving ? "Activating..." : "Activate My Dashboard"}
+                {saving ? "Activating..." : "🚀 Activate My Dashboard"}
               </button>
+
               {!isCompleteUI && (
                 <span style={{ opacity: 0.8 }}>
                   Complete the highlighted fields, then activate your dashboard.
