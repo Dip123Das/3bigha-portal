@@ -177,10 +177,11 @@ export default async function VendorConversationPage({
     .select("conversation_id,user_id,role,last_read_at,last_seen_message_id")
     .eq("conversation_id", conversationId)
     .eq("user_id", user.id)
-    .maybeSingle();
+    .order("last_read_at", { ascending: false, nullsFirst: false });
 
   const participantErr = participantRes.error;
-  const participant = (participantRes.data ?? null) as ParticipantRow | null;
+  const participantRows = (participantRes.data ?? []) as ParticipantRow[];
+  const participant = participantRows.length > 0 ? participantRows[0] : null;
   const initialUnreadCutoffAt = participant?.last_read_at ?? null;
 
   if (participantErr) {
