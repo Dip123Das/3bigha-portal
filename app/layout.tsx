@@ -257,7 +257,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {/* Keep your existing vendor dashboard shortcut */}
               <GlobalUnreadBadge
                 className="topBtn topBtnGhost"
-                href="/vendor"
+                href="/dashboard"
                 label="My Dashboard"
                 variant="topBtn"
                 title="Open dashboard with unread chat count"
