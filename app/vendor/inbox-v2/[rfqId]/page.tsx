@@ -151,11 +151,15 @@ export default async function VendorRfqDetailV2Page({
     console.error("mark viewed exception:", e?.message || e);
   }
 
-  const { data: header, error: headerErr } = await supabase
+  const headerRes = await supabase
     .from("vendor_rfq_detail")
     .select("*")
     .eq("rfq_id", rfqId)
-    .maybeSingle();
+    .order("created_at", { ascending: false });
+
+  const headerErr = headerRes.error;
+  const headerRows = (headerRes.data ?? []) as any[];
+  const header = headerRows.length > 0 ? headerRows[0] : null;
 
   if (headerErr) {
     return (
