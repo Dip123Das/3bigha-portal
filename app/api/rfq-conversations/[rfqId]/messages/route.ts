@@ -198,6 +198,41 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
   }
 
     const senderRole = isBuyer ? "buyer" : "vendor";
+  
+  // 🔥 UNIFIED CONVERSATION (NEW SYSTEM)
+let unifiedConversationId: string | null = null;
+
+const { data: existingConvo } = await supabase
+  .from("conversations")
+  .select("id")
+  .eq("context_type", "rfq")
+  .eq("context_id", rfqId)
+  .maybeSingle();
+
+if (existingConvo?.id) {
+  unifiedConversationId = existingConvo.id;
+} else {
+  const { data: newConvo, error: newConvoErr } = await supabase
+    .from("conversations")
+    .insert({
+      context_type: "rfq",
+      context_id: rfqId,
+      buyer_user_id: conv.buyer_user_id,
+      vendor_user_id: conv.vendor_user_id,
+      title: "RFQ Conversation",
+    })
+    .select("id")
+    .single();
+
+  if (newConvoErr || !newConvo) {
+    return NextResponse.json(
+      { error: "Failed to create unified conversation" },
+      { status: 500 }
+    );
+  }
+
+  unifiedConversationId = newConvo.id;
+}
 
   let replyMeta: ReplyMeta | null = null;
 
@@ -278,6 +313,16 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
     meta.reply_to = replyMeta;
   }
 
+  // 🔥 INSERT INTO UNIFIED CHAT SYSTEM
+await supabase.from("conversation_messages").insert({
+  conversation_id: unifiedConversationId,
+  sender_user_id: user.id,
+  sender_role: senderRole,
+  message_type: messageType,
+  body: messageBody,
+  meta,
+});
+
   const { data: inserted, error: insErr } = await supabase
     .from("rfq_messages")
     .insert({
@@ -300,9 +345,9 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
   }
 
   await supabase
-    .from("rfq_conversations")
+    .from("conversations")
     .update({ updated_at: new Date().toISOString() })
-    .eq("id", conversationId);
+    .eq("id", unifiedConversationId);
 
   return NextResponse.json({
     ok: true,

@@ -16,13 +16,17 @@ export const dynamic = "force-dynamic";
 
 export default async function UnifiedInboxThreadResolverPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ threadId: string }>;
+  searchParams?: Promise<{ kind?: string }>;
 }) {
   const { threadId } = await params;
-  const conversationId = decodeURIComponent(String(threadId || "")).trim();
+  const sp = (await searchParams) ?? {};
+  const resolvedKind = String(sp.kind || "").trim().toLowerCase();
+  const rawThreadId = decodeURIComponent(String(threadId || "")).trim();
 
-  if (!conversationId) {
+  if (!rawThreadId) {
     redirect("/dashboard/inbox-v2");
   }
 
@@ -34,13 +38,23 @@ export default async function UnifiedInboxThreadResolverPage({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login?next=${encodeURIComponent(`/dashboard/inbox-v2/thread/${conversationId}`)}`);
+    redirect(
+      `/login?next=${encodeURIComponent(
+        `/dashboard/inbox-v2/thread/${rawThreadId}${resolvedKind ? `?kind=${resolvedKind}` : ""}`
+      )}`
+    );
+  }
+
+  if (resolvedKind === "rfq") {
+    redirect(`/vendor/inbox-v2?focus=${encodeURIComponent(rawThreadId)}`);
   }
 
   const { data, error } = await supabase
     .from("conversations")
-    .select("id, context_type, investment_deal_room_id, buyer_user_id, vendor_user_id")
-    .eq("id", conversationId)
+    .select(
+      "id, context_type, investment_deal_room_id, buyer_user_id, vendor_user_id"
+    )
+    .eq("id", rawThreadId)
     .maybeSingle();
 
   if (error || !data) {
@@ -54,16 +68,21 @@ export default async function UnifiedInboxThreadResolverPage({
 
   if (row.context_type === "investment_deal_room") {
     const dealRoomId = String(row.investment_deal_room_id || "").trim();
+
     if (!dealRoomId) {
       redirect("/dashboard/inbox-v2");
     }
 
     if (isBuyer) {
-      redirect(`/dashboard/investor/deal-rooms/${encodeURIComponent(dealRoomId)}`);
+      redirect(
+        `/dashboard/investor/deal-rooms/${encodeURIComponent(dealRoomId)}`
+      );
     }
 
     if (isVendor) {
-      redirect(`/dashboard/builder/deal-rooms/${encodeURIComponent(dealRoomId)}`);
+      redirect(
+        `/dashboard/builder/deal-rooms/${encodeURIComponent(dealRoomId)}`
+      );
     }
 
     redirect("/dashboard/inbox-v2");
@@ -76,11 +95,11 @@ export default async function UnifiedInboxThreadResolverPage({
     row.context_type === "rental_inquiry"
   ) {
     if (isBuyer) {
-      redirect(`/dashboard/buyer/chat/${encodeURIComponent(conversationId)}`);
+      redirect(`/dashboard/buyer/chat/${encodeURIComponent(rawThreadId)}`);
     }
 
     if (isVendor) {
-      redirect(`/dashboard/vendor/chat/${encodeURIComponent(conversationId)}`);
+      redirect(`/dashboard/vendor/chat/${encodeURIComponent(rawThreadId)}`);
     }
 
     redirect("/dashboard/inbox-v2");

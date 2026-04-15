@@ -1000,7 +1000,7 @@ async function fetchInvestmentRows(
       stageLabel: investmentStageLabel(dealRoom?.stage, dealRoom?.status),
       unreadCount,
       lastActivityAt: latest?.created_at || row.updated_at || row.created_at || null,
-      href: `/dashboard/inbox-v2/thread/${encodeURIComponent(conversationId)}`,
+      href: `/dashboard/thread/${encodeURIComponent(conversationId)}`,
       badgeTone: "violet",
       metaLine: dealRoom?.opportunity_id
         ? `Opportunity ID: ${String(dealRoom.opportunity_id)}`
@@ -1059,7 +1059,7 @@ export default async function DashboardInboxV2Page({
     unreadCount: Number(row.is_unread ? 1 : 0),
     lastActivityAt:
       row.latest_quote_updated_at || row.updated_at || row.created_at || null,
-    href: `/vendor/inbox-v2?focus=${encodeURIComponent(String(row.rfq_id))}`,
+    href: `/dashboard/inbox-v2/thread/${encodeURIComponent(String(row.rfq_id))}?kind=rfq`,
     badgeTone: "amber",
     metaLine:
       row.latest_quote_version != null
@@ -1079,7 +1079,7 @@ export default async function DashboardInboxV2Page({
       unreadCount: Number(row.unread_count ?? 0),
       lastActivityAt:
         row.last_message_at || row.updated_at || row.created_at || null,
-      href: `/dashboard/inbox-v2/thread/${encodeURIComponent(String(row.id))}`,
+      href: `/dashboard/thread/${encodeURIComponent(String(row.id))}`,
       badgeTone: "blue",
       metaLine: row.context_type ? titleCase(row.context_type) : undefined,
     })
