@@ -78,6 +78,19 @@ type InvestmentConversationRow = {
   is_closed?: boolean | null;
 };
 
+type RfqConversationRow = {
+  id: string;
+  title: string | null;
+  buyer_user_id: string | null;
+  vendor_user_id: string | null;
+  context_type: string | null;
+  context_id: string | null;
+  rfq_id?: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  is_closed?: boolean | null;
+};
+
 type UnifiedInboxItem = {
   id: string;
   module: "investment" | "rfq" | "direct";
@@ -832,6 +845,147 @@ async function fetchBuyerListingConversations(
   });
 }
 
+async function fetchUnifiedRfqRows(
+  supabase: ReturnType<typeof getSupabaseServerClient>,
+  userId: string
+) {
+  const { data: convoData, error: convoError } = await supabase
+    .from("conversations")
+    .select(
+      [
+        "id",
+        "title",
+        "buyer_user_id",
+        "vendor_user_id",
+        "context_type",
+        "context_id",
+        "rfq_id",
+        "created_at",
+        "updated_at",
+        "is_closed",
+      ].join(",")
+    )
+    .eq("context_type", "rfq")
+    .or(`buyer_user_id.eq.${userId},vendor_user_id.eq.${userId}`)
+    .order("updated_at", { ascending: false })
+    .limit(50);
+
+  if (convoError || !convoData?.length) return [];
+
+  const rows: RfqConversationRow[] = Array.isArray(convoData)
+    ? (convoData as unknown as RfqConversationRow[])
+    : [];
+
+  const conversationIds = rows.map((r) => String(r.id));
+
+  let participants: ParticipantRow[] = [];
+  let messages: MessageRow[] = [];
+
+  if (conversationIds.length > 0) {
+    const [{ data: partData }, { data: msgData }] = await Promise.all([
+      supabase
+        .from("conversation_participants")
+        .select("conversation_id,user_id,role,last_read_at")
+        .eq("user_id", userId)
+        .in("conversation_id", conversationIds),
+
+      supabase
+        .from("conversation_messages")
+        .select(
+          "id,conversation_id,sender_user_id,sender_role,message_type,body,created_at"
+        )
+        .in("conversation_id", conversationIds)
+        .order("created_at", { ascending: true }),
+    ]);
+
+    participants = (partData ?? []) as ParticipantRow[];
+    messages = (msgData ?? []) as MessageRow[];
+  }
+
+  const participantMap = new Map<string, ParticipantRow>();
+  for (const p of participants) {
+    participantMap.set(String(p.conversation_id), p);
+  }
+
+  const latestMessageByConversation = new Map<string, MessageRow>();
+  const unreadCountByConversation = new Map<string, number>();
+
+  for (const m of messages) {
+    const convId = String(m.conversation_id || "").trim();
+    if (!convId) continue;
+
+    latestMessageByConversation.set(convId, m);
+
+    const participant = participantMap.get(convId);
+    const lastReadMs = participant?.last_read_at
+      ? new Date(participant.last_read_at).getTime()
+      : 0;
+
+    const senderUserId = String(m.sender_user_id || "").trim();
+    const createdAtMs = m.created_at ? new Date(m.created_at).getTime() : 0;
+
+    if (senderUserId && senderUserId !== userId && createdAtMs > lastReadMs) {
+      unreadCountByConversation.set(
+        convId,
+        (unreadCountByConversation.get(convId) ?? 0) + 1
+      );
+    }
+  }
+
+  const counterpartIds = Array.from(
+    new Set(
+      rows
+        .map((row) =>
+          String(
+            row.buyer_user_id === userId ? row.vendor_user_id : row.buyer_user_id
+          ).trim()
+        )
+        .filter(Boolean)
+    )
+  );
+
+  const profileMap = await buildProfileNameMap(supabase, counterpartIds, "User");
+
+  const items: UnifiedInboxItem[] = rows.map((row) => {
+    const conversationId = String(row.id);
+    const latest = latestMessageByConversation.get(conversationId);
+    const unreadCount = unreadCountByConversation.get(conversationId) ?? 0;
+
+    const isBuyer = String(row.buyer_user_id || "") === userId;
+    const side: UnifiedInboxItem["side"] = isBuyer ? "buyer" : "vendor";
+
+    const counterpartId = String(
+      isBuyer ? row.vendor_user_id : row.buyer_user_id
+    ).trim();
+
+    return {
+      id: `rfq-unified-${conversationId}`,
+      module: "rfq",
+      side,
+      title: row.title || `RFQ ${String(row.rfq_id || row.context_id || "").slice(0, 8)}`,
+      subtitle: latest
+        ? buildPreview(
+            latest.body,
+            latest.message_type,
+            String(latest.sender_user_id || "") === userId,
+            latest.sender_role
+          )
+        : "RFQ conversation",
+      counterpart: profileMap.get(counterpartId) || (isBuyer ? "Vendor" : "Buyer"),
+      statusLabel: "Active",
+      unreadCount,
+      lastActivityAt: latest?.created_at || row.updated_at || row.created_at || null,
+      href: `/dashboard/thread/${encodeURIComponent(conversationId)}`,
+      badgeTone: "amber",
+      metaLine: row.rfq_id
+        ? `RFQ ID: ${String(row.rfq_id)}`
+        : `Conversation ID: ${conversationId}`,
+    };
+  });
+
+  return items;
+}
+
 async function fetchInvestmentRows(
   supabase: ReturnType<typeof getSupabaseServerClient>,
   userId: string
@@ -1037,16 +1191,17 @@ export default async function DashboardInboxV2Page({
 
   const userId = String(user.id);
 
-  const [rfqRes, vendorDirectRows, buyerDirectRows, investmentRows] =
+  const [rfqRes, unifiedRfqRows, vendorDirectRows, buyerDirectRows, investmentRows] =
     await Promise.all([
       fetchVendorInbox({ limit: 50, offset: 0 }),
+      fetchUnifiedRfqRows(supabase, userId),
       fetchVendorListingConversations(),
       fetchBuyerListingConversations(supabase, userId),
       fetchInvestmentRows(supabase, userId),
     ]);
 
-  const rfqItems: UnifiedInboxItem[] = (rfqRes.rows ?? []).map((row: any) => ({
-    id: `rfq-${String(row.rfq_id)}`,
+  const legacyRfqItems: UnifiedInboxItem[] = (rfqRes.rows ?? []).map((row: any) => ({
+    id: `rfq-legacy-${String(row.rfq_id)}`,
     module: "rfq",
     side: "vendor",
     title: String(row.rfq_no || row.rfq_id || "RFQ Conversation"),
@@ -1066,6 +1221,18 @@ export default async function DashboardInboxV2Page({
         ? `Latest quote v${String(row.latest_quote_version)}`
         : "Quote not submitted yet",
   }));
+
+  const rfqItemsMap = new Map<string, UnifiedInboxItem>();
+
+  for (const item of legacyRfqItems) {
+    rfqItemsMap.set(item.id, item);
+  }
+
+  for (const item of unifiedRfqRows) {
+    rfqItemsMap.set(item.id, item);
+  }
+
+  const rfqItems: UnifiedInboxItem[] = Array.from(rfqItemsMap.values());
 
   const vendorDirectItems: UnifiedInboxItem[] = (vendorDirectRows as any[]).map(
     (row) => ({
