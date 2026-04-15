@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import BuyerConversationChatBox from "@/app/dashboard/buyer/chat/[conversationId]/buyer-conversation-chat-box";
+import RfqUnifiedReplyBox from "@/app/dashboard/thread/[conversationId]/rfq-unified-reply-box";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,7 @@ type ConversationRow = {
   id: string;
   context_type: string | null;
   context_id: string | null;
+  rfq_id?: string | null;
   investment_deal_room_id?: string | null;
   buyer_user_id: string | null;
   vendor_user_id: string | null;
@@ -206,6 +208,7 @@ export default async function UniversalThreadPage({
         "id",
         "context_type",
         "context_id",
+        "rfq_id",
         "investment_deal_room_id",
         "buyer_user_id",
         "vendor_user_id",
@@ -322,6 +325,10 @@ export default async function UniversalThreadPage({
   const isClosed = !!conv.is_closed;
   const lastReadAt = participant?.last_read_at ?? null;
   const isUnifiedLiveChat = isUnifiedLiveChatType(conv.context_type);
+  const rfqId =
+    String(conv.context_type || "").trim().toLowerCase() === "rfq"
+      ? String((conv as any).rfq_id || conv.context_id || "").trim()
+      : "";
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 space-y-6">
@@ -384,8 +391,7 @@ export default async function UniversalThreadPage({
           <div className="border-b px-5 py-4">
             <h2 className="text-lg font-semibold text-slate-900">Messages</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Universal thread entry is active. RFQ live chat will be connected
-              next.
+              RFQ unified thread is active.
             </p>
           </div>
 
@@ -449,10 +455,17 @@ export default async function UniversalThreadPage({
           </div>
 
           <div className="border-t px-5 py-4">
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
-              Live composer for {titleCase(conv.context_type)} will be connected
-              in the next step.
-            </div>
+            {String(conv.context_type || "").trim().toLowerCase() === "rfq" && rfqId ? (
+              <RfqUnifiedReplyBox
+                rfqId={rfqId}
+                conversationId={conversationId}
+              />
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
+                Live composer for {titleCase(conv.context_type)} will be connected
+                in the next step.
+              </div>
+            )}
           </div>
         </div>
       )}
