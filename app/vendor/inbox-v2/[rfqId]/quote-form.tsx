@@ -525,102 +525,89 @@ export default function QuoteForm(props: { rfqId: string; items: QuoteItemInput[
         )}
       </div>
 
-      {/* Items pricing + per-item GST */}
-      <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
-        {uiItems.map((it) => {
-          const qDefault = it.quantity ?? 1;
-          const q = toNum(qtys[it.key] ?? "") ?? qDefault;
-          const up = toNum(unitPrices[it.key] ?? "") ?? 0;
-          const baseLine = (q ?? 0) * (up ?? 0);
+      {/* Items pricing table */}
+      <div style={{ marginTop: 16 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ borderBottom: "2px solid #e5e7eb" }}>
+              <th style={{ padding: 8, textAlign: "left" }}>Item</th>
+              <th style={{ padding: 8 }}>RFQ Qty</th>
+              <th style={{ padding: 8 }}>Quote Qty</th>
+              <th style={{ padding: 8 }}>Unit Price (₹)</th>
+              <th style={{ padding: 8 }}>GST %</th>
+              <th style={{ padding: 8 }}>Total</th>
+            </tr>
+          </thead>
 
-          const rate = toNum(itemGstRates[it.key] ?? "") ?? toNum(defaultGstRate) ?? 0;
+          <tbody>
+            {uiItems.map((it) => {
+              const qDefault = it.quantity ?? 1;
+              const q = toNum(qtys[it.key] ?? "") ?? qDefault;
+              const up = toNum(unitPrices[it.key] ?? "") ?? 0;
+              const baseLine = (q ?? 0) * (up ?? 0);
 
-          let gstAmt = 0;
-          let total = 0;
+              const rate = toNum(itemGstRates[it.key] ?? "") ?? toNum(defaultGstRate) ?? 0;
 
-          if (gstMode === "inclusive") {
-            gstAmt = rate > 0 ? baseLine * (rate / (100 + rate)) : 0;
-            total = baseLine;
-          } else {
-            gstAmt = rate > 0 ? baseLine * (rate / 100) : 0;
-            total = baseLine + gstAmt;
-          }
+              let gstAmt = 0;
+              let total = 0;
 
-          return (
-            <div key={it.key} style={{ padding: 12, border: "1px solid #f3f4f6", borderRadius: 10 }}>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                <div style={{ fontWeight: 700 }}>
-                  {it.label}
-                  {it.isExtra ? <span style={{ marginLeft: 8, fontSize: 12, opacity: 0.7 }}>(extra)</span> : null}
-                </div>
-              </div>
+              if (gstMode === "inclusive") {
+                gstAmt = rate > 0 ? baseLine * (rate / (100 + rate)) : 0;
+                total = baseLine;
+              } else {
+                gstAmt = rate > 0 ? baseLine * (rate / 100) : 0;
+                total = baseLine + gstAmt;
+              }
 
-              <div style={{ marginTop: 4, opacity: 0.7, fontSize: 13 }}>
-                RFQ Qty: {it.quantity ?? "—"} {it.unit ?? ""}
-              </div>
+              return (
+                <tr key={it.key} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                  <td style={{ padding: 8 }}>
+                    {it.label}
+                    {it.isExtra && <div style={{ fontSize: 11, opacity: 0.6 }}>(extra)</div>}
+                  </td>
 
-              <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "end" }}>
-                <div>
-                  <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Quote Qty</div>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    placeholder={String(qDefault)}
-                    value={qtys[it.key] ?? ""}
-                    onChange={(e) => setQty(it.key, e.target.value)}
-                    style={{ padding: 8, width: 140 }}
-                  />
-                </div>
+                  <td style={{ padding: 8, textAlign: "center" }}>
+                    {it.quantity ?? "-"}
+                  </td>
 
-                <div>
-                  <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Unit Price (₹)</div>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    placeholder="0"
-                    value={unitPrices[it.key] ?? ""}
-                    onChange={(e) => setUnitPrice(it.key, e.target.value)}
-                    style={{ padding: 8, width: 160 }}
-                  />
-                </div>
+                  <td style={{ padding: 8 }}>
+                    <input
+                      type="number"
+                      value={qtys[it.key] ?? ""}
+                      placeholder={String(qDefault)}
+                      onChange={(e) => setQty(it.key, e.target.value)}
+                      style={{ width: 80, padding: 6 }}
+                    />
+                  </td>
 
-                <div>
-                  <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>GST Rate (%)</div>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    placeholder={defaultGstRate}
-                    value={itemGstRates[it.key] ?? ""}
-                    onChange={(e) => setItemGst(it.key, e.target.value)}
-                    style={{ padding: 8, width: 140 }}
-                  />
-                </div>
+                  <td style={{ padding: 8 }}>
+                    <input
+                      type="number"
+                      value={unitPrices[it.key] ?? ""}
+                      placeholder="0"
+                      onChange={(e) => setUnitPrice(it.key, e.target.value)}
+                      style={{ width: 100, padding: 6 }}
+                    />
+                  </td>
 
-                <div style={{ marginLeft: "auto", minWidth: 260 }}>
-                  <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Line Preview</div>
-                  <div style={{ padding: 10, border: "1px solid #e5e7eb", borderRadius: 10, background: "#fafafa" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span>Base</span>
-                      <strong>₹{r2(baseLine).toFixed(2)}</strong>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-                      <span>GST</span>
-                      <strong>₹{r2(gstAmt).toFixed(2)}</strong>
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-                      <span>Total</span>
-                      <strong>₹{r2(total).toFixed(2)}</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  <td style={{ padding: 8 }}>
+                    <input
+                      type="number"
+                      value={itemGstRates[it.key] ?? ""}
+                      placeholder={defaultGstRate}
+                      onChange={(e) => setItemGst(it.key, e.target.value)}
+                      style={{ width: 70, padding: 6 }}
+                    />
+                  </td>
 
-              <div style={{ marginTop: 8, opacity: 0.7, fontSize: 12 }}>
-                Unit Price is treated as <strong>{gstMode}</strong>. GST is calculated per item.
-              </div>
-            </div>
-          );
-        })}
+                  <td style={{ padding: 8, fontWeight: 700 }}>
+                    ₹{r2(total).toFixed(2)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
       <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
