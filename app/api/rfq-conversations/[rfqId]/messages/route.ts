@@ -200,51 +200,110 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
     const senderRole = isBuyer ? "buyer" : "vendor";
   
   // 🔥 UNIFIED CONVERSATION (NEW SYSTEM)
-let unifiedConversationId: string | null = null;
+  let unifiedConversationId: string | null = null;
 
-const { data: existingConvo } = await supabase
-  .from("conversations")
-  .select("id")
-  .eq("context_type", "rfq")
-  .eq("rfq_id", rfqId)
-  .maybeSingle();
-
-if (existingConvo?.id) {
-  unifiedConversationId = existingConvo.id;
-} else {
-  const { data: newConvo, error: newConvoErr } = await supabase
+  const { data: existingConvo, error: existingConvoErr } = await supabase
     .from("conversations")
-    .insert({
-      context_type: "rfq",
-      context_id: rfqId,
-      rfq_id: rfqId,
-
-      // 🔥 CRITICAL FIX
-      buyer_user_id: conv.buyer_user_id,
-      vendor_user_id: conv.vendor_user_id,
-      created_by_user_id: user.id, // ← ALWAYS CURRENT USER
-
-      title: "RFQ Conversation",
-      context_snapshot: {
-        rfq_id: rfqId,
-        legacy_rfq_conversation_id: conversationId,
-        rfq_no: rfqId,
-      },
-    })
     .select("id")
-    .single();
+    .eq("context_type", "rfq")
+    .eq("rfq_id", rfqId)
+    .maybeSingle();
 
-  if (newConvoErr || !newConvo) {
+  if (existingConvoErr) {
     return NextResponse.json(
-      {
-        error:
-          newConvoErr?.message || "Failed to create unified conversation",
-      },
+      { error: existingConvoErr.message || "Failed to check unified conversation." },
       { status: 500 }
     );
   }
 
-  unifiedConversationId = newConvo.id;
+  if (existingConvo?.id) {
+    unifiedConversationId = String(existingConvo.id);
+  } else {
+    const { error: newConvoErr } = await supabase
+      .from("conversations")
+      .insert({
+        context_type: "rfq",
+        context_id: rfqId,
+        rfq_id: rfqId,
+        buyer_user_id: conv.buyer_user_id,
+        vendor_user_id: conv.vendor_user_id,
+        created_by_user_id: user.id,
+        title: "RFQ Conversation",
+        context_snapshot: {
+          rfq_id: rfqId,
+          legacy_rfq_conversation_id: conversationId,
+          rfq_no: rfqId,
+        },
+      });
+
+    if (newConvoErr) {
+      return NextResponse.json(
+        {
+          error:
+            newConvoErr.message || "Failed to create unified conversation",
+        },
+        { status: 500 }
+      );
+    }
+
+    const { data: createdConvo, error: createdConvoErr } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("context_type", "rfq")
+      .eq("rfq_id", rfqId)
+      .maybeSingle();
+
+    if (createdConvoErr || !createdConvo?.id) {
+      return NextResponse.json(
+        {
+          error:
+            createdConvoErr?.message ||
+            "Unified conversation was created but could not be loaded.",
+        },
+        { status: 500 }
+      );
+    }
+
+    unifiedConversationId = String(createdConvo.id);
+  }
+
+  if (!unifiedConversationId) {
+    return NextResponse.json(
+      { error: "Unified conversation id is missing." },
+      { status: 500 }
+    );
+  }
+
+  // 🔥 ENSURE CONVERSATION PARTICIPANTS FOR UNIFIED CHAT
+const participantUpsertRes = await supabase
+  .from("conversation_participants")
+  .upsert(
+    [
+      {
+        conversation_id: unifiedConversationId,
+        user_id: String(conv.buyer_user_id),
+        role: "buyer",
+      },
+      {
+        conversation_id: unifiedConversationId,
+        user_id: String(conv.vendor_user_id),
+        role: "vendor",
+      },
+    ],
+    {
+      onConflict: "conversation_id,user_id",
+    }
+  );
+
+if (participantUpsertRes.error) {
+  return NextResponse.json(
+    {
+      error:
+        participantUpsertRes.error.message ||
+        "Failed to ensure conversation participants.",
+    },
+    { status: 500 }
+  );
 }
 
   let replyMeta: ReplyMeta | null = null;
@@ -327,14 +386,25 @@ if (existingConvo?.id) {
   }
 
   // 🔥 INSERT INTO UNIFIED CHAT SYSTEM
-await supabase.from("conversation_messages").insert({
-  conversation_id: unifiedConversationId,
-  sender_user_id: user.id,
-  sender_role: senderRole,
-  message_type: messageType,
-  body: messageBody,
-  meta,
-});
+  const unifiedInsertRes = await supabase.from("conversation_messages").insert({
+    conversation_id: unifiedConversationId,
+    sender_user_id: user.id,
+    sender_role: senderRole,
+    message_type: messageType,
+    body: messageBody,
+    meta,
+  });
+
+  if (unifiedInsertRes.error) {
+    return NextResponse.json(
+      {
+        error:
+          unifiedInsertRes.error.message ||
+          "Failed to insert unified conversation message.",
+      },
+      { status: 500 }
+    );
+  }
 
   const { data: inserted, error: insErr } = await supabase
     .from("rfq_messages")
@@ -357,10 +427,21 @@ await supabase.from("conversation_messages").insert({
     );
   }
 
-  await supabase
+  const unifiedUpdateRes = await supabase
     .from("conversations")
     .update({ updated_at: new Date().toISOString() })
     .eq("id", unifiedConversationId);
+
+  if (unifiedUpdateRes.error) {
+    return NextResponse.json(
+      {
+        error:
+          unifiedUpdateRes.error.message ||
+          "Failed to update unified conversation timestamp.",
+      },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({
     ok: true,
