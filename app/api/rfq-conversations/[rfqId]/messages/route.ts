@@ -206,7 +206,7 @@ const { data: existingConvo } = await supabase
   .from("conversations")
   .select("id")
   .eq("context_type", "rfq")
-  .eq("context_id", rfqId)
+  .eq("rfq_id", rfqId)
   .maybeSingle();
 
 if (existingConvo?.id) {
@@ -217,16 +217,26 @@ if (existingConvo?.id) {
     .insert({
       context_type: "rfq",
       context_id: rfqId,
+      rfq_id: rfqId,
       buyer_user_id: conv.buyer_user_id,
       vendor_user_id: conv.vendor_user_id,
+      created_by_user_id: conv.buyer_user_id,
       title: "RFQ Conversation",
+      context_snapshot: {
+        rfq_id: rfqId,
+        legacy_rfq_conversation_id: conversationId,
+        rfq_no: rfqId,
+      },
     })
     .select("id")
     .single();
 
   if (newConvoErr || !newConvo) {
     return NextResponse.json(
-      { error: "Failed to create unified conversation" },
+      {
+        error:
+          newConvoErr?.message || "Failed to create unified conversation",
+      },
       { status: 500 }
     );
   }
