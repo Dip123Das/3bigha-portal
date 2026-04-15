@@ -218,9 +218,12 @@ if (existingConvo?.id) {
       context_type: "rfq",
       context_id: rfqId,
       rfq_id: rfqId,
+
+      // 🔥 CRITICAL FIX
       buyer_user_id: conv.buyer_user_id,
       vendor_user_id: conv.vendor_user_id,
-      created_by_user_id: conv.buyer_user_id,
+      created_by_user_id: user.id, // ← ALWAYS CURRENT USER
+
       title: "RFQ Conversation",
       context_snapshot: {
         rfq_id: rfqId,
