@@ -275,36 +275,45 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
   }
 
   // 🔥 ENSURE CONVERSATION PARTICIPANTS FOR UNIFIED CHAT
-const participantUpsertRes = await supabase
-  .from("conversation_participants")
-  .upsert(
-    [
-      {
-        conversation_id: unifiedConversationId,
-        user_id: String(conv.buyer_user_id),
-        role: "buyer",
-      },
-      {
-        conversation_id: unifiedConversationId,
-        user_id: String(conv.vendor_user_id),
-        role: "vendor",
-      },
-    ],
+  const participantRows = [
     {
-      onConflict: "conversation_id,user_id",
-    }
-  );
-
-if (participantUpsertRes.error) {
-  return NextResponse.json(
-    {
-      error:
-        participantUpsertRes.error.message ||
-        "Failed to ensure conversation participants.",
+      conversation_id: unifiedConversationId,
+      user_id: String(conv.buyer_user_id),
+      role: "buyer",
     },
-    { status: 500 }
-  );
-}
+    {
+      conversation_id: unifiedConversationId,
+      user_id: String(conv.vendor_user_id),
+      role: "vendor",
+    },
+  ];
+
+  for (const participantRow of participantRows) {
+    const insertRes = await supabase
+      .from("conversation_participants")
+      .insert(participantRow);
+
+    if (insertRes.error) {
+      const message = String(insertRes.error.message || "").toLowerCase();
+
+      // Ignore duplicate insert attempts safely
+      const isDuplicate =
+        message.includes("duplicate key") ||
+        message.includes("already exists") ||
+        message.includes("unique constraint");
+
+      if (!isDuplicate) {
+        return NextResponse.json(
+          {
+            error:
+              insertRes.error.message ||
+              "Failed to ensure conversation participants.",
+          },
+          { status: 500 }
+        );
+      }
+    }
+  }
 
   let replyMeta: ReplyMeta | null = null;
 
