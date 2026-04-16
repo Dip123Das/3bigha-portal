@@ -5,7 +5,6 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import BuyerConversationChatBox from "@/app/dashboard/buyer/chat/[conversationId]/buyer-conversation-chat-box";
-import RfqUnifiedReplyBox from "@/app/dashboard/thread/[conversationId]/rfq-unified-reply-box";
 
 export const dynamic = "force-dynamic";
 
@@ -148,7 +147,7 @@ function buildBackHref(conv: ConversationRow, isBuyer: boolean) {
   }
 
   if (conv.context_type === "rfq") {
-    return "/vendor/inbox-v2";
+    return isBuyer ? "/dashboard/inbox-v2" : "/vendor/inbox-v2";
   }
 
   return "/dashboard/inbox-v2";
@@ -456,10 +455,27 @@ export default async function UniversalThreadPage({
 
           <div className="border-t px-5 py-4">
             {String(conv.context_type || "").trim().toLowerCase() === "rfq" && rfqId ? (
-              <RfqUnifiedReplyBox
-                rfqId={rfqId}
-                conversationId={conversationId}
-              />
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="text-sm font-semibold text-slate-800">
+                  Continue this RFQ conversation in the live chat view.
+                </div>
+                <div className="mt-2 text-sm text-slate-600">
+                  The unified thread is showing the message history correctly. Use the
+                  live RFQ chat page to reply.
+                </div>
+                <div className="mt-4">
+                  <Link
+                    href={
+                      isBuyer
+                        ? `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}/chat`
+                        : `/vendor/inbox-v2/${encodeURIComponent(rfqId)}/chat`
+                    }
+                    className="inline-flex rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                  >
+                    Open live RFQ chat
+                  </Link>
+                </div>
+              </div>
             ) : (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
                 Live composer for {titleCase(conv.context_type)} will be connected
