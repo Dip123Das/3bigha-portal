@@ -2,9 +2,13 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import ConversationMessageList from "@/app/components/chat/ConversationMessageList";
+import ConversationComposer from "@/app/components/chat/ConversationComposer";
+import ConversationActionMenu from "@/app/components/chat/ConversationActionMenu";
+import ConversationDeleteConfirm from "@/app/components/chat/ConversationDeleteConfirm";
 
 type AttachmentRow = {
-  kind?: "image" | "file";
+  kind?: "image" | "file" | "audio";
   name?: string;
   path?: string;
   mime?: string;
@@ -33,10 +37,89 @@ type MsgRow = {
   created_at: string | null;
 };
 
-type ConversationReadRow = {
+function toDisplayRole(role?: string | null) {
+  const value = String(role ?? "").trim();
+  if (!value) return "User";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function normalizeConversationMessageRow(row: any): MsgRow | null {
+  if (!row?.id) return null;
+
+  return {
+    id: String(row.id),
+    sender_user_id: String(row.sender_user_id ?? ""),
+    sender_role: String(row.sender_role ?? ""),
+    message_type: String(row.message_type ?? "text"),
+    body: String(row.body ?? ""),
+    meta: row.meta && typeof row.meta === "object" ? row.meta : {},
+    created_at: row.created_at ?? null,
+  };
+}
+
+function sortMessages(messages: MsgRow[]) {
+  return [...messages].sort((a, b) => {
+    const at = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const bt = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return at - bt;
+  });
+}
+
+function mergeMessageLists(existing: MsgRow[], incoming: MsgRow[]) {
+  const map = new Map<string, MsgRow>();
+
+  for (const msg of existing) {
+    map.set(String(msg.id), msg);
+  }
+
+  for (const msg of incoming) {
+    const id = String(msg.id);
+    const prev = map.get(id);
+
+    map.set(id, {
+      ...(prev ?? {}),
+      ...msg,
+      meta: msg.meta ?? prev?.meta ?? {},
+    });
+  }
+
+  return sortMessages(Array.from(map.values()));
+}
+
+function upsertMessageInList(existing: MsgRow[], incoming: MsgRow) {
+  return mergeMessageLists(existing, [incoming]);
+}
+
+function updateMessageInList(
+  existing: MsgRow[],
+  messageId: string,
+  updater: (msg: MsgRow) => MsgRow
+) {
+  return existing.map((m) =>
+    String(m.id) === String(messageId) ? updater(m) : m
+  );
+}
+
+function removeMessageFromList(existing: MsgRow[], messageId: string) {
+  return existing.filter((m) => String(m.id) !== String(messageId));
+}
+
+function buildMessagesSignature(messages: MsgRow[]) {
+  return messages
+    .map(
+      (m) =>
+        `${String(m.id)}:${String(m.body ?? "")}:${String(
+          m.message_type ?? ""
+        )}:${JSON.stringify(m.meta ?? {})}:${String(m.created_at ?? "")}`
+    )
+    .join("|");
+}
+
+type ConversationParticipantRow = {
   conversation_id: string;
   user_id: string;
-  last_seen_at: string | null;
+  role: string | null;
+  last_read_at: string | null;
 };
 
 type UserPresenceRow = {
@@ -170,6 +253,7 @@ function isImageAttachment(att?: AttachmentRow) {
 function isAudioAttachment(att?: AttachmentRow) {
   return String(att?.mime || "").toLowerCase().startsWith("audio/");
 }
+
 const REACTION_EMOJIS = ["👍","❤️","😂","😮","😢","👎"];
 const COMPOSER_EMOJIS = ["😀", "😂", "😍", "👍", "🙏", "❤️", "😮", "😢", "🎉", "🔥"];
 const QUICK_REPLIES = [
@@ -191,11 +275,20 @@ export default function VendorRfqChatBox(props: {
   rfqId: string;
   conversationId: string;
   currentUserId: string;
-  buyerName: string;
+  buyerName?: string;
   buyerPhone?: string | null;
+  participantName?: string;
+  participantPhone?: string | null;
   initialMessages: MsgRow[];
 }) {
-  const { rfqId, conversationId, currentUserId, initialMessages, buyerPhone } = props;
+  const {
+    rfqId,
+    conversationId,
+    currentUserId,
+    initialMessages,
+    buyerPhone,
+    participantPhone,
+  } = props;
 
   const supabase = useMemo(() => getSupabaseBrowser(), []);
 
@@ -255,6 +348,7 @@ const [editingText, setEditingText] = useState("");
   const presenceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const orderedRef = useRef<MsgRow[]>(initialMessages);
   const isNearBottomRef = useRef(true);
+  const lastAutoScrollMessageIdRef = useRef<string>("");
 
   const ordered = useMemo(() => {
     return [...messages].sort((a, b) => {
@@ -267,6 +361,15 @@ const [editingText, setEditingText] = useState("");
   useEffect(() => {
     orderedRef.current = ordered;
   }, [ordered]);
+
+  useEffect(() => {
+    setMessages(initialMessages ?? []);
+    setDidAutoScrollToUnread(false);
+    setFirstUnreadMessageId(null);
+    setStickyDate("");
+    lastAutoScrollMessageIdRef.current = "";
+    isNearBottomRef.current = true;
+  }, [conversationId]);
   useEffect(() => {
   if (!ordered.length) return;
 
@@ -302,9 +405,10 @@ const [editingText, setEditingText] = useState("");
   }, [ordered, currentUserId]);
 
   useEffect(() => {
-  setMessages(initialMessages ?? []);
-  setDidAutoScrollToUnread(false);
-}, [initialMessages]);
+    if (!initialMessages?.length) return;
+
+    setMessages((prev) => mergeMessageLists(prev, initialMessages));
+  }, [initialMessages]);
 
   useEffect(() => {
     const nextMap: Record<string, string> = {};
@@ -334,9 +438,37 @@ const [editingText, setEditingText] = useState("");
   }, [selectedFiles]);
 
   useEffect(() => {
-    if (!isNearBottomRef.current) return;
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [ordered]);
+    if (!ordered.length) return;
+
+    const lastMessage = ordered[ordered.length - 1];
+    const lastMessageId = String(lastMessage?.id ?? "");
+
+    if (!lastMessageId) return;
+
+    const alreadyHandled =
+      String(lastAutoScrollMessageIdRef.current) === lastMessageId;
+
+    if (alreadyHandled) return;
+
+    const mine =
+      String(lastMessage?.sender_user_id ?? "") === String(currentUserId);
+
+    const shouldScroll = mine || isNearBottomRef.current;
+
+    if (!shouldScroll) {
+      lastAutoScrollMessageIdRef.current = lastMessageId;
+      return;
+    }
+
+    window.setTimeout(() => {
+      endRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }, 40);
+
+    lastAutoScrollMessageIdRef.current = lastMessageId;
+  }, [ordered, currentUserId]);
   useEffect(() => {
   if (!firstUnreadMessageId) return;
   if (didAutoScrollToUnread) return;
@@ -397,12 +529,17 @@ const [editingText, setEditingText] = useState("");
 }, []);
 
   function upsertMessage(next: MsgRow) {
-    setMessages((prev) => {
-      const exists = prev.some((m) => String(m.id) === String(next.id));
-      if (exists) return prev;
-      return [...prev, next];
-    });
+    setMessages((prev) => upsertMessageInList(prev, next));
   }
+
+  function updateMessageById(messageId: string, updater: (msg: MsgRow) => MsgRow) {
+    setMessages((prev) => updateMessageInList(prev, messageId, updater));
+  }
+
+  function removeMessageById(messageId: string) {
+    setMessages((prev) => removeMessageFromList(prev, messageId));
+  }
+
   function scrollToLatest() {
   endRef.current?.scrollIntoView({
     behavior: "smooth",
@@ -430,10 +567,13 @@ function jumpToMessage(messageId?: string | null) {
 
   function replaceAllMessages(next: MsgRow[]) {
     setMessages((prev) => {
-      const prevIds = prev.map((m) => String(m.id)).join("|");
-      const nextIds = next.map((m) => String(m.id)).join("|");
-      if (prevIds === nextIds) return prev;
-      return next;
+      const merged = mergeMessageLists(prev, next);
+
+      const prevSignature = buildMessagesSignature(prev);
+      const nextSignature = buildMessagesSignature(merged);
+
+      if (prevSignature === nextSignature) return prev;
+      return merged;
     });
   }
 
@@ -489,68 +629,63 @@ function jumpToMessage(messageId?: string | null) {
     }, 1000);
   }
 
-    async function getCounterpartUserId() {
+  async function getCounterpartUserId() {
     if (!conversationId || !currentUserId) return "";
 
     try {
-      const { data: conv } = await supabase
-        .from("rfq_conversations")
-        .select("buyer_user_id,vendor_user_id")
-        .eq("id", conversationId)
-        .maybeSingle();
+      const { data } = await supabase
+        .from("conversation_participants")
+        .select("conversation_id,user_id,role,last_read_at")
+        .eq("conversation_id", conversationId);
 
-      const counterpartUserId =
-        String(conv?.buyer_user_id ?? "") === String(currentUserId)
-          ? String(conv?.vendor_user_id ?? "")
-          : String(conv?.buyer_user_id ?? "");
+      const rows = (data ?? []) as ConversationParticipantRow[];
 
-      return counterpartUserId || "";
+      const counterpart = rows.find(
+        (row) => String(row.user_id ?? "") !== String(currentUserId)
+      );
+
+      return String(counterpart?.user_id ?? "");
     } catch {
       return "";
     }
   }
 
   async function markConversationRead() {
-  if (!conversationId || !currentUserId) return;
-
-  try {
-    const nowIso = new Date().toISOString();
-
-    setMyLastSeenAt(nowIso);
-
-    await supabase.from("rfq_conversation_reads").upsert(
-      {
-        conversation_id: conversationId,
-        user_id: currentUserId,
-        last_seen_at: nowIso,
-      },
-      {
-        onConflict: "conversation_id,user_id",
-      }
-    );
-
-    stopTitleFlash();
-  } catch {}
-}
-
-    async function loadCounterpartReadStatus() {
     if (!conversationId || !currentUserId) return;
 
     try {
-      const { data: readData } = await supabase
-        .from("rfq_conversation_reads")
-        .select("conversation_id,user_id,last_seen_at")
+      const nowIso = new Date().toISOString();
+
+      setMyLastSeenAt(nowIso);
+
+      await supabase
+        .from("conversation_participants")
+        .update({
+          last_read_at: nowIso,
+        })
         .eq("conversation_id", conversationId)
-        .neq("user_id", currentUserId);
+        .eq("user_id", currentUserId);
 
-      const rows = (readData ?? []) as ConversationReadRow[];
-      const latest = [...rows].sort((a, b) => {
-        const at = a.last_seen_at ? new Date(a.last_seen_at).getTime() : 0;
-        const bt = b.last_seen_at ? new Date(b.last_seen_at).getTime() : 0;
-        return bt - at;
-      })[0];
+      stopTitleFlash();
+    } catch {}
+  }
 
-      setCounterpartLastSeenAt(latest?.last_seen_at ?? null);
+  async function loadCounterpartReadStatus() {
+    if (!conversationId || !currentUserId) return;
+
+    try {
+      const { data } = await supabase
+        .from("conversation_participants")
+        .select("conversation_id,user_id,role,last_read_at")
+        .eq("conversation_id", conversationId);
+
+      const rows = (data ?? []) as ConversationParticipantRow[];
+
+      const counterpart = rows.find(
+        (row) => String(row.user_id ?? "") !== String(currentUserId)
+      );
+
+      setCounterpartLastSeenAt(counterpart?.last_read_at ?? null);
       await loadCounterpartPresence();
     } catch {
       setCounterpartLastSeenAt(null);
@@ -559,37 +694,28 @@ function jumpToMessage(messageId?: string | null) {
   }
 
   async function loadMyReadStatus() {
-  if (!conversationId || !currentUserId) return;
-
-  try {
-    const { data } = await supabase
-      .from("rfq_conversation_reads")
-      .select("conversation_id,user_id,last_seen_at")
-      .eq("conversation_id", conversationId)
-      .eq("user_id", currentUserId)
-      .maybeSingle();
-
-    const row = (data ?? null) as ConversationReadRow | null;
-    setMyLastSeenAt(row?.last_seen_at ?? null);
-  } catch {
-    setMyLastSeenAt(null);
-  }
-}
-
-    async function loadCounterpartPresence() {
     if (!conversationId || !currentUserId) return;
 
     try {
-      const { data: conv } = await supabase
-        .from("rfq_conversations")
-        .select("buyer_user_id,vendor_user_id")
-        .eq("id", conversationId)
+      const { data } = await supabase
+        .from("conversation_participants")
+        .select("conversation_id,user_id,role,last_read_at")
+        .eq("conversation_id", conversationId)
+        .eq("user_id", currentUserId)
         .maybeSingle();
 
-      const counterpartUserId =
-        String(conv?.buyer_user_id ?? "") === String(currentUserId)
-          ? String(conv?.vendor_user_id ?? "")
-          : String(conv?.buyer_user_id ?? "");
+      const row = (data ?? null) as ConversationParticipantRow | null;
+      setMyLastSeenAt(row?.last_read_at ?? null);
+    } catch {
+      setMyLastSeenAt(null);
+    }
+  }
+
+  async function loadCounterpartPresence() {
+    if (!conversationId || !currentUserId) return;
+
+    try {
+      const counterpartUserId = await getCounterpartUserId();
 
       if (!counterpartUserId) {
         setCounterpartOnline(false);
@@ -621,27 +747,33 @@ function jumpToMessage(messageId?: string | null) {
     }
   }
 
-  async function pollLatestMessages() {
+  async function loadLatestConversationMessages() {
     if (!conversationId) return;
 
     try {
       const { data } = await supabase
-        .from("rfq_messages")
+        .from("conversation_messages")
         .select("id,sender_user_id,sender_role,message_type,body,meta,created_at")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true });
 
-      const rows = (data ?? []) as MsgRow[];
+      const rows = ((data ?? [])
+        .map((row) => normalizeConversationMessageRow(row))
+        .filter(Boolean)) as MsgRow[];
+
       if (!rows.length) return;
 
       const prevOrdered = orderedRef.current;
-      const prevLastId = prevOrdered.length ? String(prevOrdered[prevOrdered.length - 1]?.id ?? "") : "";
+      const prevLastId = prevOrdered.length
+        ? String(prevOrdered[prevOrdered.length - 1]?.id ?? "")
+        : "";
       const nextLastId = String(rows[rows.length - 1]?.id ?? "");
 
       replaceAllMessages(rows);
 
       const newest = rows[rows.length - 1];
-      const isIncoming = String(newest?.sender_user_id ?? "") !== String(currentUserId);
+      const isIncoming =
+        String(newest?.sender_user_id ?? "") !== String(currentUserId);
 
       if (prevLastId && nextLastId && prevLastId !== nextLastId && isIncoming) {
         const pageVisible = document.visibilityState === "visible";
@@ -660,16 +792,33 @@ function jumpToMessage(messageId?: string | null) {
     } catch {}
   }
 
-  function sendTypingPulse() {
+  function sendTypingStart() {
     if (!typingChannelRef.current) return;
 
     try {
       typingChannelRef.current.send({
         type: "broadcast",
-        event: "typing",
+        event: "typing:start",
         payload: {
           user: currentUserId,
           at: new Date().toISOString(),
+          conversation_id: conversationId,
+        },
+      });
+    } catch {}
+  }
+
+  function sendTypingStop() {
+    if (!typingChannelRef.current) return;
+
+    try {
+      typingChannelRef.current.send({
+        type: "broadcast",
+        event: "typing:stop",
+        payload: {
+          user: currentUserId,
+          at: new Date().toISOString(),
+          conversation_id: conversationId,
         },
       });
     } catch {}
@@ -687,22 +836,23 @@ function jumpToMessage(messageId?: string | null) {
     if (!conversationId) return;
 
     const messageChannel = supabase
-      .channel(`vendor-rfq-chat-${conversationId}-${currentUserId}`)
+      .channel(`conversation-messages-${conversationId}`)
       .on(
         "postgres_changes",
         {
           event: "INSERT",
           schema: "public",
-          table: "rfq_messages",
+          table: "conversation_messages",
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload: any) => {
-          const row = payload?.new as MsgRow | undefined;
+          const row = normalizeConversationMessageRow(payload?.new);
           if (!row?.id) return;
 
           upsertMessage(row);
 
-          const isIncoming = String(row.sender_user_id ?? "") !== String(currentUserId);
+          const isIncoming =
+            String(row.sender_user_id ?? "") !== String(currentUserId);
 
           if (isIncoming) {
             const pageVisible = document.visibilityState === "visible";
@@ -720,34 +870,73 @@ function jumpToMessage(messageId?: string | null) {
           }
         }
       )
-            .on(
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "conversation_messages",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload: any) => {
+          const row = normalizeConversationMessageRow(payload?.new);
+          if (!row?.id) return;
+
+          updateMessageById(row.id, (prev) => ({
+            ...prev,
+            body: row.body,
+            message_type: row.message_type,
+            meta: row.meta ?? prev.meta ?? {},
+            created_at: row.created_at ?? prev.created_at,
+            sender_role: row.sender_role || prev.sender_role,
+            sender_user_id: row.sender_user_id || prev.sender_user_id,
+          }));
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "conversation_messages",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload: any) => {
+          const row = payload?.old;
+          const messageId = String(row?.id ?? "");
+          if (!messageId) return;
+
+          removeMessageById(messageId);
+        }
+      )
+      .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
-          table: "rfq_conversation_reads",
+          table: "conversation_participants",
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload: any) => {
-          const row = (payload?.new ?? payload?.old) as ConversationReadRow | undefined;
+          const row = (payload?.new ?? payload?.old) as ConversationParticipantRow | undefined;
           if (!row?.conversation_id) return;
           if (String(row.user_id ?? "") === String(currentUserId)) return;
 
-          setCounterpartLastSeenAt(row.last_seen_at ?? null);
+          setCounterpartLastSeenAt(row.last_read_at ?? null);
           await loadCounterpartPresence();
         }
       )
       .subscribe();
 
     const typingChannel = supabase
-      .channel(`typing-${conversationId}-${currentUserId}`, {
+      .channel(`conversation-typing-${conversationId}`, {
         config: {
           broadcast: {
             self: false,
           },
         },
       })
-      .on("broadcast", { event: "typing" }, () => {
+      .on("broadcast", { event: "typing:start" }, () => {
         setIsCounterpartTyping(true);
 
         if (typingTimeoutRef.current) {
@@ -758,12 +947,18 @@ function jumpToMessage(messageId?: string | null) {
           setIsCounterpartTyping(false);
         }, 3000);
       })
+      .on("broadcast", { event: "typing:stop" }, () => {
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+
+        setIsCounterpartTyping(false);
+      })
       .subscribe();
 
     typingChannelRef.current = typingChannel;
 
     pollTimerRef.current = setInterval(() => {
-      void pollLatestMessages();
       void loadCounterpartReadStatus();
       void loadCounterpartPresence();
     }, POLL_INTERVAL_MS);
@@ -777,7 +972,7 @@ function jumpToMessage(messageId?: string | null) {
       }
     }, HEARTBEAT_INTERVAL_MS);
 
-    void pollLatestMessages();
+    void loadLatestConversationMessages();
 
     return () => {
       stopTitleFlash();
@@ -789,6 +984,8 @@ function jumpToMessage(messageId?: string | null) {
       if (typingStopTimeoutRef.current) {
         clearTimeout(typingStopTimeoutRef.current);
       }
+
+      sendTypingStop();
 
       if (pollTimerRef.current) {
         clearInterval(pollTimerRef.current);
@@ -802,7 +999,7 @@ function jumpToMessage(messageId?: string | null) {
         clearInterval(presenceTimerRef.current);
       }
 
-            typingChannelRef.current = null;
+      typingChannelRef.current = null;
 
       if (presenceChannelRef.current) {
         supabase.removeChannel(presenceChannelRef.current);
@@ -856,7 +1053,7 @@ function onVisibility() {
       }
 
       const presenceChannel = supabase
-        .channel(`vendor-presence-${conversationId}-${counterpartUserId}`)
+        .channel(`conversation-presence-${conversationId}-${counterpartUserId}`)
         .on(
           "postgres_changes",
           {
@@ -971,7 +1168,15 @@ function onVisibility() {
 
   function getReplyPreviewSender(message?: MsgRow | null) {
     if (!message) return "";
-    return String(message.sender_user_id ?? "") === String(currentUserId) ? "You" : "Buyer";
+
+    if (String(message.sender_user_id ?? "") === String(currentUserId)) {
+      return "You";
+    }
+
+    const role = String(message.sender_role ?? "").trim();
+    if (!role) return "Other user";
+
+    return role.charAt(0).toUpperCase() + role.slice(1);
   }
 
   function startReply(message: MsgRow) {
@@ -1133,30 +1338,25 @@ async function deleteMessageForEveryone(messageId: string) {
     };
 
     const { error } = await supabase
-      .from("rfq_messages")
+      .from("conversation_messages")
       .update({
         meta: {
           ...(message.meta || {}),
           reactions: nextReactions,
         },
       })
-      .eq("id", message.id);
+      .eq("id", message.id)
+      .eq("conversation_id", conversationId);
 
     if (error) return;
 
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === message.id
-          ? {
-              ...m,
-              meta: {
-                ...(m.meta || {}),
-                reactions: nextReactions,
-              },
-            }
-          : m
-      )
-    );
+    updateMessageById(message.id, (m) => ({
+      ...m,
+      meta: {
+        ...(m.meta || {}),
+        reactions: nextReactions,
+      },
+    }));
   } catch {}
 }
   function clearRecordedAudio() {
@@ -1352,6 +1552,16 @@ async function deleteMessageForEveryone(messageId: string) {
         meta: json?.meta ?? {},
       });
 
+      isNearBottomRef.current = true;
+
+      window.setTimeout(() => {
+        endRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
+      }, 30);
+
+      sendTypingStop();
       setText("");
       clearSelectedFiles();
       clearRecordedAudio();
@@ -1476,6 +1686,20 @@ async function deleteMessageForEveryone(messageId: string) {
     );
   }
 
+  const counterpartRoleLabel = toDisplayRole(
+    ordered.find(
+      (m) => String(m.sender_user_id ?? "") !== String(currentUserId)
+    )?.sender_role || "buyer"
+  );
+
+  const headerParticipantName =
+    String(props.participantName ?? "").trim() ||
+    String(props.buyerName ?? "").trim() ||
+    counterpartRoleLabel;
+
+  const headerParticipantPhone =
+    String(participantPhone ?? "").trim() || String(buyerPhone ?? "").trim();
+
   const presenceLabel = isCounterpartTyping
     ? "Typing..."
     : counterpartOnline
@@ -1515,8 +1739,8 @@ async function deleteMessageForEveryone(messageId: string) {
         }}
       >
         <div>
-          <div style={{ fontWeight: 900, fontSize: 16 }}>{props.buyerName}</div>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>Buyer</div>
+          <div style={{ fontWeight: 900, fontSize: 16 }}>{headerParticipantName}</div>
+          <div style={{ fontSize: 12, opacity: 0.7 }}>{counterpartRoleLabel}</div>
           <div
             style={{
               fontSize: 12,
@@ -1541,9 +1765,9 @@ async function deleteMessageForEveryone(messageId: string) {
           </div>
         </div>
 
-        {buyerPhone ? (
+        {headerParticipantPhone ? (
           <a
-            href={`tel:${buyerPhone}`}
+            href={`tel:${headerParticipantPhone}`}
             style={{
               textDecoration: "none",
               fontWeight: 900,
@@ -1599,454 +1823,35 @@ async function deleteMessageForEveryone(messageId: string) {
     </div>
   </div>
 ) : null}
-        {ordered.length === 0 ? (
-          <div style={{ opacity: 0.7 }}>No messages yet.</div>
-        ) : (
-          ordered.map((m, index) => {
-            const mine = m.sender_user_id === currentUserId && m.sender_role !== "system";
-            const isSystem = m.sender_role === "system" || m.message_type === "system";
-            const attachments = Array.isArray(m.meta?.attachments) ? m.meta?.attachments : [];
-            const seenThisMessage =
-              mine &&
-              latestOwnMessageId === m.id &&
-              !!counterpartLastSeenAt &&
-              !!m.created_at &&
-              new Date(counterpartLastSeenAt).getTime() >= new Date(m.created_at).getTime();
-              const deliveryState = fmtDeliveryStatus({
-  mine,
-  isLatestOwnMessage: latestOwnMessageId === m.id,
-  seenThisMessage,
-  counterpartOnline,
-  counterpartLastSeenAt,
-  createdAt: m.created_at,
-});
-
-            const prev = index > 0 ? ordered[index - 1] : null;
-            const showDateDivider =
-              !prev ||
-              new Date(prev.created_at ?? 0).toDateString() !== new Date(m.created_at ?? 0).toDateString();
-              const next = index < ordered.length - 1 ? ordered[index + 1] : null;
-
-const prevTime = prev?.created_at ? new Date(prev.created_at).getTime() : 0;
-const currentTime = m.created_at ? new Date(m.created_at).getTime() : 0;
-
-const prevMine =
-  !!prev &&
-  String(prev.sender_user_id ?? "") === String(m.sender_user_id ?? "") &&
-  prev.sender_role === m.sender_role &&
-  prev.message_type !== "system" &&
-  m.message_type !== "system" &&
-  !showDateDivider &&
-  currentTime - prevTime < 5 * 60 * 1000;
-
-const nextTime = next?.created_at ? new Date(next.created_at).getTime() : 0;
-
-const nextMine =
-  !!next &&
-  String(next.sender_user_id ?? "") === String(m.sender_user_id ?? "") &&
-  next.sender_role === m.sender_role &&
-  next.message_type !== "system" &&
-  m.message_type !== "system" &&
-  new Date(next.created_at ?? 0).toDateString() ===
-    new Date(m.created_at ?? 0).toDateString() &&
-  nextTime - currentTime < 5 * 60 * 1000;
-
-            if (isSystem) {
-              return (
-                <div key={m.id} style={{ textAlign: "center" }}>
-                  <div
-                    style={{
-                      display: "inline-block",
-                      padding: "8px 12px",
-                      borderRadius: 999,
-                      background: "#eef2f7",
-                      fontSize: 12,
-                      color: "#374151",
-                      maxWidth: "85%",
-                    }}
-                  >
-                    {m.body}
-                  </div>
-                  <div
-                    style={{ marginTop: 4, fontSize: 11, opacity: 0.6 }}
-                    suppressHydrationWarning
-                  >
-                    {fmtDateTime(m.created_at)}
-                  </div>
-                </div>
-              );
-            }
-
-            return (
-                <React.Fragment key={m.id}>
-  {firstUnreadMessageId === m.id ? (
-  <div
-    ref={unreadDividerRef}
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
-      margin: "10px 0",
-    }}
-  >
-      <div style={{ flex: 1, height: 1, background: "#e5e7eb" }} />
-      <div
-        style={{
-          fontSize: 12,
-          fontWeight: 900,
-          color: "#dc2626",
-          background: "#fff",
-          padding: "2px 10px",
-          borderRadius: 999,
-          border: "1px solid #fecaca",
-        }}
-      >
-        {(() => {
-  const unreadCount = ordered.filter((x) => {
-    if (String(x.sender_user_id ?? "") === String(currentUserId)) return false;
-    if (!x.created_at) return false;
-    if (!myLastSeenAt) return true;
-
-    return new Date(x.created_at).getTime() > new Date(myLastSeenAt).getTime();
-  }).length;
-
-  return `${unreadCount} Unread Message${unreadCount === 1 ? "" : "s"}`;
-})()}
-      </div>
-      <div style={{ flex: 1, height: 1, background: "#e5e7eb" }} />
-    </div>
-  ) : null}
-
-<div
-  ref={(el) => {
-    messageRefs.current[m.id] = el;
-  }}
-  data-msg-date={getDateDividerLabel(m.created_at)}
-  style={{
-    display: "flex",
-    justifyContent: mine ? "flex-end" : "flex-start",
-    marginTop: prevMine ? -2 : 0,
-  }}
->
-                <div
-                  onDoubleClick={(e) => {
-                    openActionMenu(m, e.clientX, e.clientY);
-                  }}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    openActionMenu(m, e.clientX, e.clientY);
-                  }}
-                  onMouseEnter={() => {
-  if (!m.meta?.deleted) {
-    setHoverReactionMessageId(m.id);
-  }
-}}
-onMouseLeave={() => {
-  setHoverReactionMessageId((prev) => (prev === m.id ? null : prev));
-}}
-                  onTouchStart={(e) => {
-                    if (typingTimeoutRef.current) {
-                      clearTimeout(typingTimeoutRef.current);
-                    }
-
-                    const touch = e.touches[0];
-
-                    typingTimeoutRef.current = setTimeout(() => {
-  setHoverReactionMessageId(m.id);
-  openActionMenu(m, touch.clientX, touch.clientY);
-}, 450);
-                  }}
-                  onTouchEnd={() => {
-                    if (typingTimeoutRef.current) {
-                      clearTimeout(typingTimeoutRef.current);
-                    }
-                  }}
-style={{
-  maxWidth: "76%",
-  position: "relative",
-  padding: "10px 12px",
-  borderRadius: mine
-    ? prevMine && nextMine
-      ? "16px 4px 4px 16px"
-      : prevMine
-      ? "16px 4px 16px 16px"
-      : nextMine
-      ? "16px 16px 4px 16px"
-      : "16px 16px 4px 16px"
-    : prevMine && nextMine
-    ? "4px 16px 16px 4px"
-    : prevMine
-    ? "4px 16px 16px 16px"
-    : nextMine
-    ? "16px 16px 16px 4px"
-    : "16px 16px 16px 4px",
-  background: mine ? "#dcfce7" : "#ffffff",
-  border: "1px solid #e5e7eb",
-  outline: highlightedMessageId === m.id ? "2px solid #f59e0b" : "none",
-  boxShadow:
-    highlightedMessageId === m.id
-      ? "0 0 0 4px rgba(245,158,11,0.18)"
-      : "0 1px 2px rgba(0,0,0,0.03)",
-  marginTop: prevMine ? 2 : 0,
-}}
-                >
-{!prevMine ? (
-  <div
-    style={{
-      fontSize: 12,
-      fontWeight: 800,
-      marginBottom: 4,
-      opacity: 0.8,
-    }}
-  >
-    {mine ? "You" : "Buyer"}
-  </div>
-) : null}
-
-{m.meta?.reply_to ? (
-  <div
-    onClick={() => jumpToMessage(m.meta?.reply_to?.id)}
-    style={{
-      marginBottom: m.body ? 8 : 6,
-      padding: "8px 10px",
-      borderLeft: "3px solid #94a3b8",
-      background: "#f8fafc",
-      borderRadius: 8,
-      fontSize: 12,
-      cursor: "pointer",
-    }}
-    title="Jump to original message"
-  >
-                      <div style={{ fontWeight: 800, marginBottom: 2 }}>
-                        {String(m.meta.reply_to.sender_user_id ?? "") === String(currentUserId)
-                          ? "You"
-                          : "Buyer"}
-                      </div>
-                      <div
-                        style={{
-                          opacity: 0.8,
-                          whiteSpace: "pre-wrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {String(m.meta.reply_to.body ?? "").trim() || "Message"}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {m.meta?.deleted ? (
-  <div
-    style={{
-      whiteSpace: "pre-wrap",
-      lineHeight: 1.45,
-      fontStyle: "italic",
-      opacity: 0.65,
-    }}
-  >
-    This message was deleted.
-  </div>
-) : editingMessageId === m.id ? (
-  <div style={{ display: "grid", gap: 8 }}>
-    <textarea
-      value={editingText}
-      onChange={(e) => setEditingText(e.target.value)}
-      rows={3}
-      style={{
-        width: "100%",
-        padding: 10,
-        borderRadius: 10,
-        border: "1px solid #d1d5db",
-        resize: "vertical",
-        outline: "none",
-        background: "#fff",
-      }}
-    />
-
-    <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", flexWrap: "wrap" }}>
-      <button
-        type="button"
-        onClick={cancelEditMessage}
-        style={{
-          padding: "6px 10px",
-          borderRadius: 8,
-          border: "1px solid #d1d5db",
-          background: "#fff",
-          fontWeight: 800,
-          cursor: "pointer",
-        }}
-      >
-        Cancel
-      </button>
-
-      <button
-        type="button"
-        onClick={() => saveEditMessage(m.id)}
-        style={{
-          padding: "6px 10px",
-          borderRadius: 8,
-          border: "1px solid #bbf7d0",
-          background: "#ecfdf5",
-          color: "#065f46",
-          fontWeight: 800,
-          cursor: "pointer",
-        }}
-      >
-        Save
-      </button>
-    </div>
-  </div>
-) : m.body ? (
-  <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.45 }}>{m.body}</div>
-) : null}
-
-                                    {attachments.length > 0 ? (
-                    <div style={{ marginTop: m.body ? 6 : 0 }}>
-                      {attachments.map((att, i) => renderAttachment(att, i))}
-                    </div>
-                  ) : null}
-
-                  {m.meta?.reactions ? (
-                    <div
-                      style={{
-                        marginTop: 6,
-                        display: "flex",
-                        gap: 6,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      {Object.entries(m.meta.reactions).map(([emoji, users]) => {
-                        const reactionUsers = Array.isArray(users) ? (users as string[]) : [];
-                        const count = reactionUsers.length;
-                        if (!count) return null;
-
-                        const reacted = reactionUsers.includes(currentUserId);
-
-                        return (
-                          <button
-                            key={emoji}
-                            type="button"
-                            onClick={() => toggleReaction(m, emoji)}
-                            style={{
-                              borderRadius: 999,
-                              border: "1px solid #e5e7eb",
-                              background: reacted ? "#dcfce7" : "#fff",
-                              padding: "2px 8px",
-                              fontSize: 12,
-                              cursor: "pointer",
-                            }}
-                          >
-                            {emoji} {count}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : null}
-                  {hoverReactionMessageId === m.id && !m.meta?.deleted ? (
-  <div
-    onClick={(e) => e.stopPropagation()}
-    style={{
-      position: "absolute",
-      top: -18,
-      right: mine ? 8 : "auto",
-      left: mine ? "auto" : 8,
-      display: "flex",
-      gap: 6,
-      alignItems: "center",
-      background: "#fff",
-      border: "1px solid #e5e7eb",
-      borderRadius: 999,
-      padding: "4px 6px",
-      boxShadow: "0 8px 20px rgba(0,0,0,0.10)",
-      zIndex: 3,
-    }}
-  >
-    {REACTION_EMOJIS.slice(0, 4).map((emoji) => (
-      <button
-        key={emoji}
-        type="button"
-        onClick={async () => {
-          await toggleReaction(m, emoji);
-          setHoverReactionMessageId(null);
-        }}
-        style={{
-          border: "none",
-          background: "transparent",
-          cursor: "pointer",
-          fontSize: 16,
-          lineHeight: 1,
-          padding: 2,
-        }}
-      >
-        {emoji}
-      </button>
-    ))}
-
-    <button
-      type="button"
-      onClick={(e) => {
-  e.stopPropagation();
-  setActionMenu({
-    message: m,
-    x: e.clientX,
-    y: e.clientY,
-  });
-  setShowReactionPicker(true);
-  setHoverReactionMessageId(null);
-}}
-      style={{
-        border: "none",
-        background: "transparent",
-        cursor: "pointer",
-        fontSize: 14,
-        lineHeight: 1,
-        padding: "2px 4px",
-        fontWeight: 900,
-      }}
-      title="More actions"
-    >
-      +
-    </button>
-  </div>
-) : null}
-
-<div
-  style={{
-    marginTop: 6,
-    fontSize: 11,
-    opacity: 0.72,
-    textAlign: "right",
-    display: "flex",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    gap: 6,
-    flexWrap: "wrap",
-  }}
-  suppressHydrationWarning
->
-  <span>
-    {m.meta?.edited ? "edited • " : ""}
-    {fmtDateTime(m.created_at)}
-  </span>
-
-  {deliveryState ? (
-    <span
-      style={{
-        fontWeight: 800,
-        color: deliveryState.color,
-      }}
-    >
-      {deliveryState.text}
-    </span>
-  ) : null}
-</div>
-
-                </div>
-              </div>
-            </React.Fragment>
-            );
-          })
-        )}
+        <ConversationMessageList
+          ordered={ordered}
+          currentUserId={currentUserId}
+          firstUnreadMessageId={firstUnreadMessageId}
+          unreadDividerRef={unreadDividerRef}
+          messageRefs={messageRefs}
+          highlightedMessageId={highlightedMessageId}
+          hoverReactionMessageId={hoverReactionMessageId}
+          setHoverReactionMessageId={setHoverReactionMessageId}
+          latestOwnMessageId={latestOwnMessageId}
+          counterpartLastSeenAt={counterpartLastSeenAt}
+          counterpartOnline={counterpartOnline}
+          myLastSeenAt={myLastSeenAt}
+          openActionMenu={openActionMenu}
+          jumpToMessage={jumpToMessage}
+          toggleReaction={toggleReaction}
+          setActionMenu={setActionMenu}
+          setShowReactionPicker={setShowReactionPicker}
+          editingMessageId={editingMessageId}
+          editingText={editingText}
+          setEditingText={setEditingText}
+          cancelEditMessage={cancelEditMessage}
+          saveEditMessage={saveEditMessage}
+          renderAttachment={renderAttachment}
+          fmtDateTime={fmtDateTime}
+          getDateDividerLabel={getDateDividerLabel}
+          toDisplayRole={toDisplayRole}
+          REACTION_EMOJIS={REACTION_EMOJIS}
+        />
         <div ref={endRef} />
         {showJumpToLatest ? (
   <button
@@ -2072,271 +1877,33 @@ style={{
 ) : null}
       </div>
 
-      {actionMenu ? (
-        <div
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            position: "fixed",
-            top: actionMenu.y,
-            left: actionMenu.x,
-            zIndex: 1000,
-            background: "#fff",
-            border: "1px solid #e5e7eb",
-            borderRadius: 14,
-            boxShadow: "0 18px 40px rgba(0,0,0,0.14)",
-            padding: 8,
-            minWidth: 180,
-          }}
-        >
-          <div
-  style={{
-    padding: "6px 12px 8px 12px",
-    borderBottom: "1px solid #f1f5f9",
-    marginBottom: 6,
-  }}
->
-  <div
-    style={{
-      fontSize: 11,
-      fontWeight: 900,
-      letterSpacing: 0.2,
-      color:
-        String(actionMenu.message.sender_user_id ?? "") === String(currentUserId)
-          ? "#065f46"
-          : "#475569",
-      textTransform: "uppercase",
-    }}
-  >
-    {String(actionMenu.message.sender_user_id ?? "") === String(currentUserId)
-      ? "Your message"
-      : "Buyer message"}
-  </div>
-</div>
-          <button
-            type="button"
-            onClick={() => {
-              startReply(actionMenu.message);
-              closeActionMenu();
-            }}
-            style={{
-              width: "100%",
-              textAlign: "left",
-              border: "none",
-              background: "transparent",
-              padding: "10px 12px",
-              borderRadius: 10,
-              cursor: "pointer",
-              fontWeight: 700,
-            }}
-          >
-            Reply
-          </button>
+      <ConversationActionMenu
+        actionMenu={actionMenu}
+        currentUserId={currentUserId}
+        showReactionPicker={showReactionPicker}
+        setShowReactionPicker={setShowReactionPicker}
+        startReply={startReply}
+        closeActionMenu={closeActionMenu}
+        startEditMessage={startEditMessage}
+        openDeleteConfirm={openDeleteConfirm}
+        copyMessageText={copyMessageText}
+        toggleReaction={toggleReaction}
+        toDisplayRole={toDisplayRole}
+        REACTION_EMOJIS={REACTION_EMOJIS}
+      />
 
-          {String(actionMenu.message.sender_user_id ?? "") === String(currentUserId) &&
-          !(actionMenu.message.meta?.deleted) ? (
-            <React.Fragment>
-              <button
-                type="button"
-                onClick={() => startEditMessage(actionMenu.message)}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  border: "none",
-                  background: "transparent",
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  cursor: "pointer",
-                  fontWeight: 700,
-                }}
-              >
-                Edit
-              </button>
-
-              <button
-                type="button"
-                  onClick={() => openDeleteConfirm(actionMenu.message)}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  border: "none",
-                  background: "transparent",
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  cursor: "pointer",
-                  fontWeight: 700,
-                  color: "#b91c1c",
-                }}
-              >
-                Delete
-              </button>
-            </React.Fragment>
-          ) : null}
-          {deleteConfirmMessage ? (
-  <div
-    onClick={closeDeleteConfirm}
-    style={{
-      position: "fixed",
-      inset: 0,
-      background: "rgba(0,0,0,0.28)",
-      zIndex: 1100,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 16,
-    }}
-  >
-    <div
-      onClick={(e) => e.stopPropagation()}
-      style={{
-        width: "100%",
-        maxWidth: 360,
-        background: "#fff",
-        borderRadius: 16,
-        boxShadow: "0 24px 60px rgba(0,0,0,0.18)",
-        border: "1px solid #e5e7eb",
-        padding: 16,
-      }}
-    >
-      <div style={{ fontSize: 16, fontWeight: 900 }}>
-        Delete message?
-      </div>
-
-      <div
-        style={{
-          marginTop: 8,
-          fontSize: 13,
-          lineHeight: 1.5,
-          color: "#4b5563",
-        }}
-      >
-        This will delete the message for everyone.
-      </div>
-
-      <div
-        style={{
-          marginTop: 14,
-          padding: "10px 12px",
-          borderRadius: 10,
-          background: "#f9fafb",
-          border: "1px solid #e5e7eb",
-          fontSize: 13,
-          maxHeight: 100,
-          overflow: "auto",
-        }}
-      >
-        {String(deleteConfirmMessage.body ?? "").trim() || "Attachment / message"}
-      </div>
-
-      <div
-        style={{
-          marginTop: 16,
-          display: "flex",
-          justifyContent: "flex-end",
-          gap: 8,
-        }}
-      >
-        <button
-          type="button"
-          onClick={closeDeleteConfirm}
-          style={{
-            padding: "9px 12px",
-            borderRadius: 10,
-            border: "1px solid #d1d5db",
-            background: "#fff",
-            fontWeight: 800,
-            cursor: "pointer",
-          }}
-        >
-          Cancel
-        </button>
-
-        <button
-          type="button"
-          onClick={() => deleteMessageForEveryone(deleteConfirmMessage.id)}
-          style={{
-            padding: "9px 12px",
-            borderRadius: 10,
-            border: "1px solid #fecaca",
-            background: "#fff1f2",
-            color: "#b91c1c",
-            fontWeight: 900,
-            cursor: "pointer",
-          }}
-        >
-          Delete for everyone
-        </button>
-      </div>
-    </div>
-  </div>
-) : null}
-
-          <button
-            type="button"
-            onClick={() => copyMessageText(actionMenu.message)}
-            style={{
-              width: "100%",
-              textAlign: "left",
-              border: "none",
-              background: "transparent",
-              padding: "10px 12px",
-              borderRadius: 10,
-              cursor: "pointer",
-              fontWeight: 700,
-            }}
-          >
-            Copy
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowReactionPicker((v) => !v)}
-            style={{
-              width: "100%",
-              textAlign: "left",
-              border: "none",
-              background: "transparent",
-              padding: "10px 12px",
-              borderRadius: 10,
-              cursor: "pointer",
-              fontWeight: 700,
-            }}
-          >
-            React
-          </button>
-
-          {showReactionPicker ? (
-            <div
-              style={{
-                display: "flex",
-                gap: 6,
-                flexWrap: "wrap",
-                padding: "8px 12px 4px 12px",
-              }}
-            >
-              {REACTION_EMOJIS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={async () => {
-                    await toggleReaction(actionMenu.message, emoji);
-                    closeActionMenu();
-                  }}
-                  style={{
-                    border: "1px solid #e5e7eb",
-                    background: "#fff",
-                    borderRadius: 999,
-                    padding: "6px 10px",
-                    cursor: "pointer",
-                    fontSize: 16,
-                  }}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
+      <ConversationDeleteConfirm
+        deleteConfirmMessage={
+          deleteConfirmMessage
+            ? {
+                id: deleteConfirmMessage.id,
+                body: String(deleteConfirmMessage.body ?? ""),
+              }
+            : null
+        }
+        closeDeleteConfirm={closeDeleteConfirm}
+        deleteMessageForEveryone={deleteMessageForEveryone}
+      />
 
       {isCounterpartTyping ? (
         <div
@@ -2348,451 +1915,46 @@ style={{
             background: "#fff",
           }}
         >
-          Buyer is typing...
+          {counterpartRoleLabel} is typing...
         </div>
       ) : null}
 
-      <div style={{ padding: 12, borderTop: "1px solid #e5e7eb", background: "#fff" }}>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
-          {QUICK_REPLIES.map((q) => (
-            <button
-              key={q}
-              type="button"
-              onClick={() => applyQuickReply(q)}
-              style={{
-                padding: "6px 10px",
-                borderRadius: 999,
-                border: "1px solid #d1d5db",
-                background: "#fff",
-                fontSize: 12,
-                fontWeight: 800,
-                cursor: "pointer",
-              }}
-            >
-              {q}
-            </button>
-          ))}
-        </div>
-
-                {replyingTo ? (
-          <div
-            style={{
-              marginBottom: 10,
-              border: "1px solid #dbeafe",
-              background: "#eff6ff",
-              borderRadius: 12,
-              padding: 10,
-              display: "flex",
-              alignItems: "flex-start",
-              justifyContent: "space-between",
-              gap: 10,
-            }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "#1d4ed8", marginBottom: 4 }}>
-                Replying to {getReplyPreviewSender(replyingTo)}
-              </div>
-              <div
-                style={{
-                  fontSize: 13,
-                  color: "#1f2937",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  maxWidth: 520,
-                }}
-              >
-                {getReplyPreviewText(replyingTo)}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={cancelReply}
-              style={{
-                border: "none",
-                background: "transparent",
-                cursor: "pointer",
-                fontWeight: 900,
-                fontSize: 16,
-                lineHeight: 1,
-                color: "#334155",
-              }}
-              title="Cancel reply"
-            >
-              ×
-            </button>
-          </div>
-        ) : null}
-
-        <div style={{ marginBottom: 10, position: "relative" }}>
-          <button
-            type="button"
-            onClick={(e) => {
-  e.stopPropagation();
-  setShowEmojiBox((v) => !v);
-}}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 10,
-              border: "1px solid #d1d5db",
-              background: "#fff",
-              fontWeight: 800,
-              cursor: "pointer",
-            }}
-          >
-            😊 Emoji
-          </button>
-
-          {showEmojiBox ? (
-            <div
-            onClick={(e) => e.stopPropagation()}
-              style={{
-                position: "absolute",
-                top: "44px",
-                left: 0,
-                zIndex: 20,
-                background: "#fff",
-                border: "1px solid #e5e7eb",
-                borderRadius: 12,
-                boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-                padding: 10,
-                display: "grid",
-                gridTemplateColumns: "repeat(5, 1fr)",
-                gap: 8,
-                minWidth: 220,
-              }}
-            >
-              {COMPOSER_EMOJIS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => insertEmoji(emoji)}
-                  style={{
-                    border: "none",
-                    background: "#fff",
-                    cursor: "pointer",
-                    fontSize: 22,
-                    lineHeight: 1.2,
-                    padding: 6,
-                    borderRadius: 8,
-                  }}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-
-        <textarea
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-
-            sendTypingPulse();
-
-            if (typingStopTimeoutRef.current) {
-              clearTimeout(typingStopTimeoutRef.current);
-            }
-
-            typingStopTimeoutRef.current = setTimeout(() => {
-              // passive timeout only
-            }, 1500);
-          }}
-          onFocus={() => {
-            setShowEmojiBox(false);
-            void markConversationRead();
-          }}
-          onKeyDown={(e) => {
-            if (e.key !== "Enter") return;
-            if (e.shiftKey) return;
-
-            e.preventDefault();
-            void sendMessage();
-          }}
-          placeholder="Type your message..."
-          rows={4}
-          style={{
-            width: "100%",
-            padding: 12,
-            borderRadius: 14,
-            border: "1px solid #d1d5db",
-            resize: "vertical",
-            outline: "none",
-          }}
-        />
-
-        <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            onChange={(e) => onPickFiles(e.target.files)}
-            style={{ display: "none" }}
-          />
-
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={loading || isRecording}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 10,
-              border: "1px solid #d1d5db",
-              background: "#fff",
-              fontWeight: 800,
-              cursor: loading || isRecording ? "default" : "pointer",
-            }}
-          >
-            📎 Attach File / Image
-          </button>
-
-          <button
-            type="button"
-            onClick={handleMicClick}
-            onMouseDown={handleMicPressStart}
-            onMouseUp={handleMicPressEnd}
-            onMouseLeave={handleMicPressEnd}
-            onTouchStart={handleMicPressStart}
-            onTouchEnd={handleMicPressEnd}
-            disabled={loading}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 10,
-              border: isRecording ? "1px solid #fecaca" : "1px solid #d1d5db",
-              background: isRecording ? "#fff1f2" : "#fff",
-              color: isRecording ? "#b91c1c" : "#111827",
-              fontWeight: 800,
-              cursor: loading ? "default" : "pointer",
-            }}
-            title="Tap to start/stop. Hold to record and release to stop."
-          >
-            {isRecording ? "⏺ Recording..." : "🎤 Voice"}
-          </button>
-
-          {selectedFiles.length > 0 ? (
-            <button
-              type="button"
-              onClick={clearSelectedFiles}
-              disabled={loading}
-              style={{
-                padding: "8px 12px",
-                borderRadius: 10,
-                border: "1px solid #fecaca",
-                background: "#fff1f2",
-                color: "#9f1239",
-                fontWeight: 800,
-                cursor: loading ? "default" : "pointer",
-              }}
-            >
-              Clear Attachments
-            </button>
-          ) : null}
-
-          <div style={{ fontSize: 12, opacity: 0.7 }}>
-            Max {MAX_FILES} files, 10 MB each
-          </div>
-        </div>
-
-        {recordedAudioPreviewUrl ? (
-          <div
-            style={{
-              marginTop: 10,
-              border: "1px solid #e5e7eb",
-              borderRadius: 12,
-              padding: 10,
-              background: "#f9fafb",
-            }}
-          >
-            <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 8 }}>
-              Voice Message Preview
-            </div>
-
-            <audio controls src={recordedAudioPreviewUrl} style={{ width: "100%" }} />
-
-            <div style={{ marginTop: 10 }}>
-              <button
-                type="button"
-                onClick={clearRecordedAudio}
-                disabled={loading}
-                style={{
-                  padding: "6px 10px",
-                  borderRadius: 8,
-                  border: "1px solid #fecaca",
-                  background: "#fff1f2",
-                  color: "#9f1239",
-                  fontWeight: 800,
-                  cursor: loading ? "default" : "pointer",
-                }}
-              >
-                Remove Voice
-              </button>
-            </div>
-          </div>
-        ) : null}
-
-        {selectedFiles.length > 0 ? (
-          <div
-            style={{
-              marginTop: 10,
-              border: "1px solid #e5e7eb",
-              borderRadius: 12,
-              padding: 10,
-              background: "#f9fafb",
-            }}
-          >
-            <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 8 }}>
-              Selected Attachments ({selectedFiles.length})
-            </div>
-
-            <div style={{ display: "grid", gap: 8 }}>
-              {selectedFiles.map((file, index) => {
-                const previewKey = `${file.name}-${file.size}-${file.lastModified}`;
-                const previewUrl = selectedFilePreviewUrls[previewKey] || "";
-
-                return (
-                  <div
-                    key={`${file.name}-${file.size}-${index}`}
-                    style={{
-                      display: "flex",
-                      gap: 10,
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 10,
-                      padding: 8,
-                      background: "#fff",
-                    }}
-                  >
-                    <div style={{ display: "flex", gap: 10, alignItems: "center", minWidth: 0 }}>
-                      {previewUrl ? (
-                        <img
-                          src={previewUrl}
-                          alt={file.name}
-                          style={{
-                            width: 52,
-                            height: 52,
-                            objectFit: "cover",
-                            borderRadius: 8,
-                            border: "1px solid #d1d5db",
-                            flexShrink: 0,
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: 52,
-                            height: 52,
-                            borderRadius: 8,
-                            border: "1px solid #d1d5db",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            background: "#f3f4f6",
-                            flexShrink: 0,
-                            fontSize: 20,
-                          }}
-                        >
-                          📄
-                        </div>
-                      )}
-
-                      <div style={{ minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 800,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            maxWidth: 260,
-                          }}
-                        >
-                          {file.name}
-                        </div>
-                        <div style={{ fontSize: 12, opacity: 0.72 }}>
-                          {file.type || "Unknown type"} • {formatBytes(file.size)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => removeSelectedFile(index)}
-                      disabled={loading}
-                      style={{
-                        padding: "6px 10px",
-                        borderRadius: 8,
-                        border: "1px solid #fecaca",
-                        background: "#fff1f2",
-                        color: "#9f1239",
-                        fontWeight: 800,
-                        cursor: loading ? "default" : "pointer",
-                        flexShrink: 0,
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
-
-        <div
-          style={{
-            marginTop: 10,
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 10,
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
-          <div style={{ color: "crimson", fontSize: 13 }}>{err}</div>
-
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        <button
-              type="button"
-              onClick={() => sendMessage("Hello")}
-              disabled={loading}
-              style={{
-                padding: "10px 14px",
-                borderRadius: 12,
-                border: "1px solid #d1d5db",
-                background: "#fff",
-                fontWeight: 900,
-                cursor: loading ? "default" : "pointer",
-              }}
-            >
-              Quick Hello
-            </button>
-
-            <button
-              type="button"
-              onClick={() => sendMessage()}
-              disabled={loading}
-              style={{
-                padding: "10px 16px",
-                borderRadius: 12,
-                border: "1px solid #bbf7d0",
-                background: "#ecfdf5",
-                color: "#065f46",
-                fontWeight: 900,
-                cursor: loading ? "default" : "pointer",
-              }}
-            >
-              {loading
-                ? "Sending..."
-                : selectedFiles.length > 0 || recordedAudioFile
-                ? "Send Message + Media"
-                : "Send Message"}
-            </button>
-          </div>
-        </div>
-      </div>
+      <ConversationComposer
+        QUICK_REPLIES={QUICK_REPLIES}
+        COMPOSER_EMOJIS={COMPOSER_EMOJIS}
+        MAX_FILES={MAX_FILES}
+        text={text}
+        setText={setText}
+        showEmojiBox={showEmojiBox}
+        setShowEmojiBox={setShowEmojiBox}
+        replyingTo={replyingTo}
+        getReplyPreviewSender={getReplyPreviewSender}
+        getReplyPreviewText={getReplyPreviewText}
+        cancelReply={cancelReply}
+        insertEmoji={insertEmoji}
+        sendTypingStart={sendTypingStart}
+        sendTypingStop={sendTypingStop}
+        typingStopTimeoutRef={typingStopTimeoutRef}
+        markConversationRead={markConversationRead}
+        sendMessage={sendMessage}
+        loading={loading}
+        fileInputRef={fileInputRef}
+        onPickFiles={onPickFiles}
+        isRecording={isRecording}
+        handleMicClick={handleMicClick}
+        handleMicPressStart={handleMicPressStart}
+        handleMicPressEnd={handleMicPressEnd}
+        clearSelectedFiles={clearSelectedFiles}
+        selectedFiles={selectedFiles}
+        recordedAudioFile={recordedAudioFile}
+        recordedAudioPreviewUrl={recordedAudioPreviewUrl}
+        clearRecordedAudio={clearRecordedAudio}
+        selectedFilePreviewUrls={selectedFilePreviewUrls}
+        removeSelectedFile={removeSelectedFile}
+        formatBytes={formatBytes}
+        err={err}
+        applyQuickReply={applyQuickReply}
+      />
     </div>
   );
 }

@@ -3,6 +3,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { clearInboxReminder } from "@/lib/inbox/clearInboxReminder";
+import ConversationMessageList from "@/app/components/chat/ConversationMessageList";
+import ConversationComposer from "@/app/components/chat/ConversationComposer";
+import ConversationActionMenu from "@/app/components/chat/ConversationActionMenu";
+import ConversationDeleteConfirm from "@/app/components/chat/ConversationDeleteConfirm";
 import {
   fmtBubbleTime,
   fmtShortSeen,
@@ -42,6 +46,25 @@ function isSameDay(a?: string | null, b?: string | null) {
   } catch {
     return false;
   }
+}
+
+function isDuplicateMessage(existing: MsgRow[], incoming: MsgRow) {
+  if (!incoming?.created_at) return false;
+
+  const incomingTime = new Date(incoming.created_at).getTime();
+
+  return existing.some((m) => {
+    if (!m?.created_at) return false;
+
+    const t = new Date(m.created_at).getTime();
+
+    return (
+      String(m.sender_user_id) === String(incoming.sender_user_id) &&
+      String(m.body ?? "") === String(incoming.body ?? "") &&
+      String(m.message_type ?? "") === String(incoming.message_type ?? "") &&
+      Math.abs(t - incomingTime) < 3000
+    );
+  });
 }
 
 function formatDayLabel(v?: string | null) {
@@ -272,6 +295,16 @@ function getReplyPreviewSender(message: MsgRow | null, currentUserId: string, co
   return String(message.sender_user_id ?? "") === String(currentUserId) ? "You" : counterpartName;
 }
 
+function createTempId() {
+  return `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function toDisplayRole(role?: string | null) {
+  const value = String(role ?? "").trim();
+  if (!value) return "User";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export default function BuyerConversationChatBox(props: {
   conversationId: string;
   currentUserId: string;
@@ -461,16 +494,33 @@ export default function BuyerConversationChatBox(props: {
     setMessages((prev) => replaceMessageById(prev, next));
   }
 
-  function sendTypingPulse() {
+  function sendTypingStart() {
     if (!typingChannelRef.current) return;
 
     try {
       typingChannelRef.current.send({
         type: "broadcast",
-        event: "typing",
+        event: "typing:start",
         payload: {
           user: currentUserId,
           at: new Date().toISOString(),
+          conversation_id: conversationId,
+        },
+      });
+    } catch {}
+  }
+
+  function sendTypingStop() {
+    if (!typingChannelRef.current) return;
+
+    try {
+      typingChannelRef.current.send({
+        type: "broadcast",
+        event: "typing:stop",
+        payload: {
+          user: currentUserId,
+          at: new Date().toISOString(),
+          conversation_id: conversationId,
         },
       });
     } catch {}
@@ -561,13 +611,8 @@ export default function BuyerConversationChatBox(props: {
     } catch {}
   }
 
-    function stopTypingIndicator() {
+  function stopTypingIndicator() {
     setIsCounterpartTyping(false);
-
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = null;
-    }
   }
 
   function openActionMenu(message: MsgRow, x: number, y: number) {
@@ -645,10 +690,6 @@ export default function BuyerConversationChatBox(props: {
         return;
       }
 
-      if (json?.message) {
-        replaceMessage(json.message as MsgRow);
-      }
-
       cancelEditMessage();
     } catch (e: any) {
       setErr(e?.message ?? "Failed to edit message.");
@@ -672,10 +713,6 @@ export default function BuyerConversationChatBox(props: {
       if (!res.ok) {
         setErr(json?.error ?? "Failed to delete message.");
         return;
-      }
-
-      if (json?.message) {
-        replaceMessage(json.message as MsgRow);
       }
 
       cancelEditMessage();
@@ -719,10 +756,6 @@ export default function BuyerConversationChatBox(props: {
       if (!res.ok) {
         setErr(json?.error ?? "Failed to update reaction.");
         return;
-      }
-
-      if (json?.message) {
-        replaceMessage(json.message as MsgRow);
       }
 
       closeActionMenu();
@@ -931,7 +964,6 @@ export default function BuyerConversationChatBox(props: {
         return;
       }
 
-      upsertMessage(sendJson as MsgRow);
       setReplyingTo(null);
       setErr("");
       clearRecordedAudio();
@@ -970,16 +1002,37 @@ export default function BuyerConversationChatBox(props: {
     setLoading(true);
     setErr("");
 
-    try {
-      const replyMeta = replyingTo
-        ? {
-            id: replyingTo.id,
-            body: replyingTo.body,
-            sender_role: replyingTo.sender_role,
-            sender_user_id: replyingTo.sender_user_id,
-          }
-        : undefined;
+    const replyMeta = replyingTo
+      ? {
+          id: replyingTo.id,
+          body: replyingTo.body,
+          sender_role: replyingTo.sender_role,
+          sender_user_id: replyingTo.sender_user_id,
+        }
+      : undefined;
 
+    const tempId = createTempId();
+
+    upsertMessage({
+      id: tempId,
+      sender_user_id: currentUserId,
+      sender_role: "buyer",
+      message_type: "text",
+      body,
+      meta: replyMeta ? { reply_to: replyMeta } : {},
+      created_at: new Date().toISOString(),
+    });
+
+    sendTypingStop();
+    setText("");
+    setReplyingTo(null);
+    setErr("");
+
+    wasNearBottomRef.current = true;
+    setShowJumpToLatest(false);
+    scrollToBottom("smooth");
+
+    try {
       const res = await fetch(`/api/conversations/${encodeURIComponent(conversationId)}/messages`, {
         method: "POST",
         headers: {
@@ -997,24 +1050,43 @@ export default function BuyerConversationChatBox(props: {
 
       if (!res.ok) {
         setErr(json?.error ?? "Failed to send message.");
-        setLoading(false);
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        setText(body);
+        if (replyMeta) {
+          setReplyingTo({
+            id: replyMeta.id,
+            body: replyMeta.body,
+            sender_role: replyMeta.sender_role,
+            sender_user_id: replyMeta.sender_user_id,
+            message_type: "text",
+            meta: {},
+            created_at: null,
+          });
+        }
         return;
       }
 
-      upsertMessage(json as MsgRow);
-
-      setText("");
-      setReplyingTo(null);
-      setErr("");
-
-      wasNearBottomRef.current = true;
-      setShowJumpToLatest(false);
-      scrollToBottom("smooth");
+      setMessages((prev) =>
+        prev.map((m) => (m.id === tempId ? (json as MsgRow) : m))
+      );
 
       void markSeen().catch(() => {});
       void loadReadState().catch(() => {});
     } catch (e: any) {
       setErr(e?.message ?? "Failed to send message.");
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setText(body);
+      if (replyMeta) {
+        setReplyingTo({
+          id: replyMeta.id,
+          body: replyMeta.body,
+          sender_role: replyMeta.sender_role,
+          sender_user_id: replyMeta.sender_user_id,
+          message_type: "text",
+          meta: {},
+          created_at: null,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -1097,10 +1169,13 @@ export default function BuyerConversationChatBox(props: {
           const row = (payload?.new ?? payload?.old) as MsgRow | undefined;
           if (!row?.id) return;
 
-          replaceMessage(row);
-
           if (payload?.eventType === "INSERT") {
-            upsertMessage(row);
+            setMessages((prev) => {
+              if (isDuplicateMessage(prev, row)) return prev;
+              return upsertUniqueMessage(prev, row);
+            });
+          } else {
+            replaceMessage(row);
           }
 
           const isIncoming = String(row.sender_user_id ?? "") !== String(currentUserId);
@@ -1144,18 +1219,9 @@ export default function BuyerConversationChatBox(props: {
           },
         },
       })
-      .on("broadcast", { event: "typing" }, (payload: any) => {
+      .on("broadcast", { event: "typing:start" }, (payload: any) => {
         if (String(payload?.payload?.user ?? "") === String(currentUserId)) return;
-
         setIsCounterpartTyping(true);
-
-        if (typingTimeoutRef.current) {
-          clearTimeout(typingTimeoutRef.current);
-        }
-
-        typingTimeoutRef.current = setTimeout(() => {
-          stopTypingIndicator();
-        }, 2500);
       })
       .subscribe();
 
@@ -1201,6 +1267,7 @@ export default function BuyerConversationChatBox(props: {
       stopTitleFlash();
 
       stopTypingIndicator();
+      sendTypingStop();
 
       supabase.removeChannel(messageChannel);
       supabase.removeChannel(typingChannel);
@@ -1348,474 +1415,41 @@ useEffect(() => {
             background: "#f3f4f6",
           }}
         >
-          {ordered.length === 0 ? (
-            <div style={{ opacity: 0.7 }}>No messages yet.</div>
-          ) : (
-            ordered.map((m, index) => {
-              const prev = index > 0 ? ordered[index - 1] : undefined;
-              const mine = String(m.sender_user_id ?? "") === String(currentUserId);
-              const isSystem = m.sender_role === "system" || m.message_type === "system";
-              const groupedWithPrevious = isGroupedWithPrevious(prev, m);
-              const showDateSeparator = !prev || !isSameDay(prev.created_at, m.created_at);
-              const showSenderName = !mine && !groupedWithPrevious && !isSystem;
-              const showUnreadDivider = unreadDividerMessageId === m.id;
-              const attachments = getMessageAttachments(m);
-              const replyTo = getReplyMeta(m);
-              const reactions = getReactionMap(m);
-              const isLastOwnVisibleMessage = mine && m.id === lastOwnVisibleMessageId;
-              const seenByCounterpart = isLastOwnVisibleMessage
-                ? isMessageSeenByCounterpart(m, counterpartLastReadAt)
-                : false;
-
-              if (isSystem) {
-                return (
-                  <React.Fragment key={m.id}>
-                    {showDateSeparator ? (
-                      <div style={{ textAlign: "center", margin: "8px 0 4px 0" }}>
-                        <div
-                          style={{
-                            display: "inline-block",
-                            padding: "6px 10px",
-                            borderRadius: 999,
-                            background: "#e5e7eb",
-                            color: "#374151",
-                            fontSize: 11,
-                            fontWeight: 800,
-                          }}
-                        >
-                          {formatDayLabel(m.created_at)}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {showUnreadDivider ? (
-                      <div style={{ textAlign: "center", margin: "10px 0 6px 0" }}>
-                        <div
-                          style={{
-                            display: "inline-block",
-                            padding: "6px 12px",
-                            borderRadius: 999,
-                            background: "#dbeafe",
-                            color: "#1d4ed8",
-                            fontSize: 11,
-                            fontWeight: 900,
-                            border: "1px solid #bfdbfe",
-                          }}
-                        >
-                          Unread messages
-                        </div>
-                      </div>
-                    ) : null}
-
-                    <div style={{ textAlign: "center", marginTop: groupedWithPrevious ? 2 : 8 }}>
-                      <div
-                        style={{
-                          display: "inline-block",
-                          padding: "8px 12px",
-                          borderRadius: 999,
-                          background: "#eef2f7",
-                          fontSize: 12,
-                          color: "#374151",
-                          maxWidth: "85%",
-                        }}
-                      >
-                        {m.body}
-                      </div>
-                    </div>
-                  </React.Fragment>
-                );
-              }
-
-              return (
-                <React.Fragment key={m.id}>
-                  {showDateSeparator ? (
-                    <div style={{ textAlign: "center", margin: "8px 0 4px 0" }}>
-                      <div
-                        style={{
-                          display: "inline-block",
-                          padding: "6px 10px",
-                          borderRadius: 999,
-                          background: "#e5e7eb",
-                          color: "#374151",
-                          fontSize: 11,
-                          fontWeight: 800,
-                        }}
-                      >
-                        {formatDayLabel(m.created_at)}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {showUnreadDivider ? (
-                    <div style={{ textAlign: "center", margin: "10px 0 6px 0" }}>
-                      <div
-                        style={{
-                          display: "inline-block",
-                          padding: "6px 12px",
-                          borderRadius: 999,
-                          background: "#dbeafe",
-                          color: "#1d4ed8",
-                          fontSize: 11,
-                          fontWeight: 900,
-                          border: "1px solid #bfdbfe",
-                        }}
-                      >
-                        Unread messages
-                      </div>
-                    </div>
-                  ) : null}
-
-                  <div
-                    ref={(el) => {
-                      messageRefs.current[m.id] = el;
-                    }}
-                    style={{
-                      display: "flex",
-                      justifyContent: mine ? "flex-end" : "flex-start",
-                      marginTop: groupedWithPrevious ? 2 : 8,
-                    }}
-                  >
-                    <div
-                      onDoubleClick={(e) => {
-                        if (!m.meta?.deleted) openActionMenu(m, e.clientX, e.clientY);
-                      }}
-                      onContextMenu={(e) => {
-                        if (m.meta?.deleted) return;
-                        e.preventDefault();
-                        openActionMenu(m, e.clientX, e.clientY);
-                      }}
-                      onMouseEnter={() => {
-                        if (!m.meta?.deleted) setHoverReactionMessageId(m.id);
-                      }}
-                      onMouseLeave={() => {
-                        setHoverReactionMessageId((prevId) => (prevId === m.id ? null : prevId));
-                      }}
-                      style={{
-                        maxWidth: "76%",
-                        padding: "10px 12px",
-                        borderRadius: mine ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                        background: mine ? "#dcfce7" : "#ffffff",
-                        border: "1px solid #e5e7eb",
-                        position: "relative",
-                        outline: highlightedMessageId === m.id ? "2px solid #f59e0b" : "none",
-                        boxShadow:
-                          highlightedMessageId === m.id
-                            ? "0 0 0 4px rgba(245,158,11,0.18)"
-                            : "0 1px 2px rgba(0,0,0,0.03)",
-                      }}
-                    >
-                      {showSenderName ? (
-                        <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 4, opacity: 0.8 }}>
-                          {counterpartName}
-                        </div>
-                      ) : null}
-
-                      {replyTo ? (
-                        <div
-                          onClick={() => jumpToMessage(replyTo.id)}
-                          style={{
-                            marginBottom: m.body || attachments.length > 0 ? 8 : 6,
-                            padding: "8px 10px",
-                            borderLeft: "3px solid #94a3b8",
-                            background: "#f8fafc",
-                            borderRadius: 8,
-                            fontSize: 12,
-                            cursor: "pointer",
-                          }}
-                          title="Jump to original message"
-                        >
-                          <div style={{ fontWeight: 800, marginBottom: 2 }}>
-                            {getReplyPreviewSender(
-                              {
-                                id: String(replyTo.id ?? ""),
-                                body: String(replyTo.body ?? ""),
-                                sender_role: String(replyTo.sender_role ?? ""),
-                                sender_user_id: String(replyTo.sender_user_id ?? ""),
-                                message_type: "text",
-                                meta: {},
-                                created_at: null,
-                              },
-                              currentUserId,
-                              counterpartName
-                            )}
-                          </div>
-                          <div
-                            style={{
-                              opacity: 0.8,
-                              whiteSpace: "pre-wrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {String(replyTo.body ?? "").trim() || "Message"}
-                          </div>
-                        </div>
-                      ) : null}
-
-                      {m.meta?.deleted ? (
-                        <div
-                          style={{
-                            whiteSpace: "pre-wrap",
-                            lineHeight: 1.45,
-                            fontStyle: "italic",
-                            opacity: 0.65,
-                          }}
-                        >
-                          This message was deleted.
-                        </div>
-                      ) : editingMessageId === m.id ? (
-                        <div style={{ display: "grid", gap: 8 }}>
-                          <textarea
-                            value={editingText}
-                            onChange={(e) => setEditingText(e.target.value)}
-                            rows={3}
-                            style={{
-                              width: "100%",
-                              padding: 10,
-                              borderRadius: 10,
-                              border: "1px solid #d1d5db",
-                              resize: "vertical",
-                              outline: "none",
-                              background: "#fff",
-                            }}
-                          />
-                          {recordedAudioPreviewUrl ? (
-                          <div
-                            style={{
-                              marginTop: 10,
-                              border: "1px solid #e5e7eb",
-                              borderRadius: 12,
-                              padding: 10,
-                              background: "#f9fafb",
-                            }}
-                          >
-                            <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 8 }}>
-                              Voice Message Preview
-                            </div>
-
-                            <audio controls src={recordedAudioPreviewUrl} style={{ width: "100%" }} />
-
-                            <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                              <button
-                                type="button"
-                                onClick={sendRecordedAudio}
-                                disabled={loading || uploading || isRecording}
-                                style={{
-                                  padding: "8px 12px",
-                                  borderRadius: 10,
-                                  border: "1px solid #bbf7d0",
-                                  background: "#f0fdf4",
-                                  color: "#166534",
-                                  fontWeight: 800,
-                                  cursor: loading || uploading || isRecording ? "default" : "pointer",
-                                }}
-                              >
-                                Send Voice
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={clearRecordedAudio}
-                                disabled={loading || uploading}
-                                style={{
-                                  padding: "8px 12px",
-                                  borderRadius: 10,
-                                  border: "1px solid #fecaca",
-                                  background: "#fff1f2",
-                                  color: "#9f1239",
-                                  fontWeight: 800,
-                                  cursor: loading || uploading ? "default" : "pointer",
-                                }}
-                              >
-                                Remove Voice
-                              </button>
-                            </div>
-                          </div>
-                        ) : null}
-
-                          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", flexWrap: "wrap" }}>
-                            <button
-                              type="button"
-                              onClick={cancelEditMessage}
-                              style={{
-                                padding: "6px 10px",
-                                borderRadius: 8,
-                                border: "1px solid #d1d5db",
-                                background: "#fff",
-                                fontWeight: 800,
-                                cursor: "pointer",
-                              }}
-                            >
-                              Cancel
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => saveEditMessage(m.id)}
-                              style={{
-                                padding: "6px 10px",
-                                borderRadius: 8,
-                                border: "1px solid #bbf7d0",
-                                background: "#ecfdf5",
-                                color: "#065f46",
-                                fontWeight: 800,
-                                cursor: "pointer",
-                              }}
-                            >
-                              Save
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          {String(m.body ?? "").trim() ? (
-                            <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.45 }}>{m.body}</div>
-                          ) : null}
-
-                          {attachments.length > 0 ? (
-                            <div style={{ marginTop: String(m.body ?? "").trim() ? 6 : 0 }}>
-                              {attachments.map((att, i) => renderAttachment(att, i))}
-                            </div>
-                          ) : null}
-                        </>
-                      )}
-
-                      {Object.keys(reactions).length > 0 ? (
-                        <div
-                          style={{
-                            marginTop: 6,
-                            display: "flex",
-                            gap: 6,
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          {Object.entries(reactions).map(([emoji, users]) => {
-                            const reactionUsers = Array.isArray(users) ? (users as string[]) : [];
-                            const count = reactionUsers.length;
-                            if (!count) return null;
-
-                            const reacted = reactionUsers.includes(currentUserId);
-
-                            return (
-                              <button
-                                key={emoji}
-                                type="button"
-                                onClick={() => toggleReaction(m, emoji)}
-                                style={{
-                                  borderRadius: 999,
-                                  border: "1px solid #e5e7eb",
-                                  background: reacted ? "#dcfce7" : "#fff",
-                                  padding: "2px 8px",
-                                  fontSize: 12,
-                                  cursor: "pointer",
-                                }}
-                              >
-                                {emoji} {count}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ) : null}
-
-                      {hoverReactionMessageId === m.id && !m.meta?.deleted ? (
-                        <div
-                          onClick={(e) => e.stopPropagation()}
-                          style={{
-                            position: "absolute",
-                            top: -18,
-                            right: mine ? 8 : "auto",
-                            left: mine ? "auto" : 8,
-                            display: "flex",
-                            gap: 6,
-                            alignItems: "center",
-                            background: "#fff",
-                            border: "1px solid #e5e7eb",
-                            borderRadius: 999,
-                            padding: "4px 6px",
-                            boxShadow: "0 8px 20px rgba(0,0,0,0.10)",
-                            zIndex: 3,
-                          }}
-                        >
-                          {REACTION_EMOJIS.slice(0, 4).map((emoji) => (
-                            <button
-                              key={emoji}
-                              type="button"
-                              onClick={async () => {
-                                await toggleReaction(m, emoji);
-                                setHoverReactionMessageId(null);
-                              }}
-                              style={{
-                                border: "none",
-                                background: "transparent",
-                                cursor: "pointer",
-                                fontSize: 16,
-                                lineHeight: 1,
-                                padding: 2,
-                              }}
-                            >
-                              {emoji}
-                            </button>
-                          ))}
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActionMenu({
-                                message: m,
-                                x: e.clientX,
-                                y: e.clientY,
-                              });
-                              setShowReactionPicker(true);
-                              setHoverReactionMessageId(null);
-                            }}
-                            style={{
-                              border: "none",
-                              background: "transparent",
-                              cursor: "pointer",
-                              fontSize: 14,
-                              lineHeight: 1,
-                              padding: "2px 4px",
-                              fontWeight: 900,
-                            }}
-                            title="More actions"
-                          >
-                            +
-                          </button>
-                        </div>
-                      ) : null}
-
-                      <div
-                        style={{
-                          marginTop: 6,
-                          fontSize: 11,
-                          opacity: 0.72,
-                          textAlign: "right",
-                          display: "flex",
-                          justifyContent: "flex-end",
-                          alignItems: "center",
-                          gap: 6,
-                          flexWrap: "wrap",
-                        }}
-                        suppressHydrationWarning
-                      >
-                        <span>
-                          {m.meta?.edited ? "edited • " : ""}
-                          {mine && !groupedWithPrevious ? "You • " : ""}
-                          {fmtBubbleTime(m.created_at)}
-                          {mine && isLastOwnVisibleMessage
-                            ? seenByCounterpart
-                              ? " • Seen"
-                              : " • Delivered"
-                            : ""}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </React.Fragment>
-              );
-            })
-          )}
+          <ConversationMessageList
+            ordered={ordered}
+            currentUserId={currentUserId}
+            firstUnreadMessageId={unreadDividerMessageId}
+            unreadDividerRef={{ current: null }}
+            messageRefs={messageRefs}
+            highlightedMessageId={highlightedMessageId}
+            hoverReactionMessageId={hoverReactionMessageId}
+            setHoverReactionMessageId={setHoverReactionMessageId}
+            latestOwnMessageId={lastOwnVisibleMessageId}
+            counterpartLastSeenAt={counterpartLastReadAt}
+            counterpartOnline={false}
+            myLastSeenAt={initialUnreadCutoffAt ?? null}
+            openActionMenu={openActionMenu}
+            jumpToMessage={jumpToMessage}
+            toggleReaction={toggleReaction}
+            setActionMenu={setActionMenu}
+            setShowReactionPicker={setShowReactionPicker}
+            editingMessageId={editingMessageId}
+            editingText={editingText}
+            setEditingText={setEditingText}
+            cancelEditMessage={cancelEditMessage}
+            saveEditMessage={saveEditMessage}
+            renderAttachment={renderAttachment}
+            fmtDateTime={fmtBubbleTime}
+            getDateDividerLabel={formatDayLabel}
+            toDisplayRole={(role?: string | null) => {
+              if (!role) return counterpartName || "User";
+              return String(role).toLowerCase() === "buyer" ||
+                String(role).toLowerCase() === "vendor"
+                ? counterpartName || toDisplayRole(role)
+                : toDisplayRole(role);
+            }}
+            REACTION_EMOJIS={REACTION_EMOJIS}
+          />
           <div ref={endRef} />
         </div>
 
@@ -1848,268 +1482,33 @@ useEffect(() => {
         ) : null}
       </div>
 
-      {actionMenu ? (
-        <div
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            position: "fixed",
-            top: actionMenu.y,
-            left: actionMenu.x,
-            zIndex: 1000,
-            background: "#fff",
-            border: "1px solid #e5e7eb",
-            borderRadius: 14,
-            boxShadow: "0 18px 40px rgba(0,0,0,0.14)",
-            padding: 8,
-            minWidth: 180,
-          }}
-        >
-          <div
-            style={{
-              padding: "6px 12px 8px 12px",
-              borderBottom: "1px solid #f1f5f9",
-              marginBottom: 6,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 900,
-                letterSpacing: 0.2,
-                color:
-                  String(actionMenu.message.sender_user_id ?? "") === String(currentUserId)
-                    ? "#065f46"
-                    : "#475569",
-                textTransform: "uppercase",
-              }}
-            >
-              {String(actionMenu.message.sender_user_id ?? "") === String(currentUserId)
-                ? "Your message"
-                : `${counterpartName} message`}
-            </div>
-          </div>
+      <ConversationActionMenu
+        actionMenu={actionMenu}
+        currentUserId={currentUserId}
+        showReactionPicker={showReactionPicker}
+        setShowReactionPicker={setShowReactionPicker}
+        startReply={startReply}
+        closeActionMenu={closeActionMenu}
+        startEditMessage={startEditMessage}
+        openDeleteConfirm={openDeleteConfirm}
+        copyMessageText={copyMessageText}
+        toggleReaction={toggleReaction}
+        toDisplayRole={() => counterpartName || "User"}
+        REACTION_EMOJIS={REACTION_EMOJIS}
+      />
 
-          <button
-            type="button"
-            onClick={() => startReply(actionMenu.message)}
-            style={{
-              width: "100%",
-              textAlign: "left",
-              border: "none",
-              background: "transparent",
-              padding: "10px 12px",
-              borderRadius: 10,
-              cursor: "pointer",
-              fontWeight: 700,
-            }}
-          >
-            Reply
-          </button>
-
-          {String(actionMenu.message.sender_user_id ?? "") === String(currentUserId) &&
-          !actionMenu.message.meta?.deleted ? (
-            <>
-              <button
-                type="button"
-                onClick={() => startEditMessage(actionMenu.message)}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  border: "none",
-                  background: "transparent",
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  cursor: "pointer",
-                  fontWeight: 700,
-                }}
-              >
-                Edit
-              </button>
-
-              <button
-                type="button"
-                onClick={() => openDeleteConfirm(actionMenu.message)}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  border: "none",
-                  background: "transparent",
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  cursor: "pointer",
-                  fontWeight: 700,
-                  color: "#b91c1c",
-                }}
-              >
-                Delete
-              </button>
-            </>
-          ) : null}
-
-          <button
-            type="button"
-            onClick={() => copyMessageText(actionMenu.message)}
-            style={{
-              width: "100%",
-              textAlign: "left",
-              border: "none",
-              background: "transparent",
-              padding: "10px 12px",
-              borderRadius: 10,
-              cursor: "pointer",
-              fontWeight: 700,
-            }}
-          >
-            Copy
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowReactionPicker((v) => !v)}
-            style={{
-              width: "100%",
-              textAlign: "left",
-              border: "none",
-              background: "transparent",
-              padding: "10px 12px",
-              borderRadius: 10,
-              cursor: "pointer",
-              fontWeight: 700,
-            }}
-          >
-            React
-          </button>
-
-          {showReactionPicker ? (
-            <div
-              style={{
-                display: "flex",
-                gap: 6,
-                flexWrap: "wrap",
-                padding: "8px 12px 4px 12px",
-              }}
-            >
-              {REACTION_EMOJIS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={async () => {
-                    await toggleReaction(actionMenu.message, emoji);
-                    closeActionMenu();
-                  }}
-                  style={{
-                    border: "1px solid #e5e7eb",
-                    background: "#fff",
-                    borderRadius: 999,
-                    padding: "6px 10px",
-                    cursor: "pointer",
-                    fontSize: 16,
-                  }}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
-      {deleteConfirmMessage ? (
-        <div
-          onClick={closeDeleteConfirm}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.28)",
-            zIndex: 1100,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "100%",
-              maxWidth: 360,
-              background: "#fff",
-              borderRadius: 16,
-              boxShadow: "0 24px 60px rgba(0,0,0,0.18)",
-              border: "1px solid #e5e7eb",
-              padding: 16,
-            }}
-          >
-            <div style={{ fontSize: 16, fontWeight: 900 }}>Delete message?</div>
-
-            <div
-              style={{
-                marginTop: 8,
-                fontSize: 13,
-                lineHeight: 1.5,
-                color: "#4b5563",
-              }}
-            >
-              This will delete the message for everyone.
-            </div>
-
-            <div
-              style={{
-                marginTop: 14,
-                padding: "10px 12px",
-                borderRadius: 10,
-                background: "#f9fafb",
-                border: "1px solid #e5e7eb",
-                fontSize: 13,
-                maxHeight: 100,
-                overflow: "auto",
-              }}
-            >
-              {String(deleteConfirmMessage.body ?? "").trim() || "Attachment / message"}
-            </div>
-
-            <div
-              style={{
-                marginTop: 16,
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 8,
-              }}
-            >
-              <button
-                type="button"
-                onClick={closeDeleteConfirm}
-                style={{
-                  padding: "9px 12px",
-                  borderRadius: 10,
-                  border: "1px solid #d1d5db",
-                  background: "#fff",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                onClick={() => deleteMessageForEveryone(deleteConfirmMessage.id)}
-                style={{
-                  padding: "9px 12px",
-                  borderRadius: 10,
-                  border: "1px solid #fecaca",
-                  background: "#fff1f2",
-                  color: "#b91c1c",
-                  fontWeight: 900,
-                  cursor: "pointer",
-                }}
-              >
-                Delete for everyone
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <ConversationDeleteConfirm
+        deleteConfirmMessage={
+          deleteConfirmMessage
+            ? {
+                id: deleteConfirmMessage.id,
+                body: String(deleteConfirmMessage.body ?? ""),
+              }
+            : null
+        }
+        closeDeleteConfirm={closeDeleteConfirm}
+        deleteMessageForEveryone={deleteMessageForEveryone}
+      />
 
       {isCounterpartTyping ? (
         <div
@@ -2132,301 +1531,53 @@ useEffect(() => {
         src="/sounds/message-pop.mp3"
       />
 
-      <div style={{ padding: 12, borderTop: "1px solid #e5e7eb", background: "#fff" }}>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
-          {QUICK_REPLIES.map((q) => (
-            <button
-              key={q}
-              type="button"
-              onClick={() => {
-              setText(q);
-              textareaRef.current?.focus();
-            }}
-              style={{
-                padding: "6px 10px",
-                borderRadius: 999,
-                border: "1px solid #d1d5db",
-                background: "#fff",
-                fontSize: 12,
-                fontWeight: 800,
-                cursor: "pointer",
-              }}
-            >
-              {q}
-            </button>
-          ))}
-        </div>
-
-        {replyingTo ? (
-          <div
-            style={{
-              marginBottom: 10,
-              border: "1px solid #dbeafe",
-              background: "#eff6ff",
-              borderRadius: 12,
-              padding: 10,
-              display: "flex",
-              alignItems: "flex-start",
-              justifyContent: "space-between",
-              gap: 10,
-            }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "#1d4ed8", marginBottom: 4 }}>
-                Replying to {getReplyPreviewSender(replyingTo, currentUserId, counterpartName)}
-              </div>
-              <div
-                style={{
-                  fontSize: 13,
-                  color: "#1f2937",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  maxWidth: 520,
-                }}
-              >
-                {getReplyPreviewText(replyingTo)}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={cancelReply}
-              style={{
-                border: "none",
-                background: "transparent",
-                cursor: "pointer",
-                fontWeight: 900,
-                fontSize: 16,
-                lineHeight: 1,
-                color: "#334155",
-              }}
-              title="Cancel reply"
-            >
-              ×
-            </button>
-          </div>
-        ) : null}
-
-        <div style={{ marginBottom: 10, position: "relative" }}>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowEmojiBox((v) => !v);
-            }}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 10,
-              border: "1px solid #d1d5db",
-              background: "#fff",
-              fontWeight: 800,
-              cursor: "pointer",
-            }}
-          >
-            😊 Emoji
-          </button>
-
-          {showEmojiBox ? (
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                position: "absolute",
-                top: "44px",
-                left: 0,
-                zIndex: 20,
-                background: "#fff",
-                border: "1px solid #e5e7eb",
-                borderRadius: 12,
-                boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
-                padding: 10,
-                display: "grid",
-                gridTemplateColumns: "repeat(5, 1fr)",
-                gap: 8,
-                minWidth: 220,
-              }}
-            >
-              {COMPOSER_EMOJIS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => insertEmoji(emoji)}
-                  style={{
-                    border: "none",
-                    background: "#fff",
-                    cursor: "pointer",
-                    fontSize: 22,
-                    lineHeight: 1.2,
-                    padding: 6,
-                    borderRadius: 8,
-                  }}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*,.pdf,.txt,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.mp3,.wav,.m4a,.webm"
-          style={{ display: "none" }}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            void sendAttachmentMessage(file);
-          }}
-        />
-
-        <textarea
-          ref={textareaRef}
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            sendTypingPulse();
-          }}
-          onFocus={() => {
-            stopTitleFlash();
-            if (checkIfNearBottom()) {
-              wasNearBottomRef.current = true;
-              void markSeen();
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key !== "Enter") return;
-            if ((e.nativeEvent as any)?.isComposing) return;
-
-            if (e.ctrlKey || e.metaKey) {
-              if (!text.trim() || loading || uploading) {
-                e.preventDefault();
-                return;
-              }
-              e.preventDefault();
-              void sendMessage();
-              return;
-            }
-
-            if (e.shiftKey || e.altKey) return;
-
-            if (!text.trim() || loading || uploading) {
-              e.preventDefault();
-              return;
-            }
-
-            e.preventDefault();
-            void sendMessage();
-          }}
-          placeholder="Type your message... (Enter to send, Shift+Enter for new line, Ctrl/Cmd+Enter also sends)"
-          rows={4}
-          style={{
-            width: "100%",
-            padding: 12,
-            borderRadius: 14,
-            border: "1px solid #d1d5db",
-            resize: "none",
-            outline: "none",
-            minHeight: 104,
-            maxHeight: 180,
-            overflowY: "auto",
-          }}
-        />
-
-        <div
-          style={{
-            marginTop: 10,
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 10,
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
-          <div style={{ color: "crimson", fontSize: 13 }}>
-            {uploading ? "Uploading attachment..." : err}
-          </div>
-
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={loading || uploading || isRecording}
-              style={{
-                padding: "10px 14px",
-                borderRadius: 12,
-                border: "1px solid #d1d5db",
-                background: "#fff",
-                fontWeight: 900,
-                cursor: loading || uploading ? "default" : "pointer",
-              }}
-            >
-              {uploading ? "Uploading..." : "Attach File"}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setText("Hello");
-                void sendMessage("Hello");
-              }}
-              disabled={loading || uploading}
-              style={{
-                padding: "10px 14px",
-                borderRadius: 12,
-                border: "1px solid #d1d5db",
-                background: "#fff",
-                fontWeight: 900,
-                cursor: loading || uploading ? "default" : "pointer",
-              }}
-            >
-              Quick Hello
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                stopTitleFlash();
-                void sendMessage();
-              }}
-              disabled={!canSend}
-              style={{
-                padding: "10px 16px",
-                borderRadius: 12,
-                border: "1px solid #bbf7d0",
-                background: canSend ? "#ecfdf5" : "#f3f4f6",
-                color: canSend ? "#065f46" : "#9ca3af",
-                fontWeight: 900,
-                cursor: canSend ? "pointer" : "default",
-              }}
-            >
-              {loading ? "Sending..." : "Send Message"}
-            </button>
-                      <button
-            type="button"
-            onClick={handleMicClick}
-            onMouseDown={handleMicPressStart}
-            onMouseUp={handleMicPressEnd}
-            onMouseLeave={handleMicPressEnd}
-            onTouchStart={handleMicPressStart}
-            onTouchEnd={handleMicPressEnd}
-            disabled={loading || uploading}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 10,
-              border: isRecording ? "1px solid #fecaca" : "1px solid #d1d5db",
-              background: isRecording ? "#fff1f2" : "#fff",
-              color: isRecording ? "#b91c1c" : "#111827",
-              fontWeight: 800,
-              cursor: loading || uploading ? "default" : "pointer",
-            }}
-            title="Tap to start/stop. Hold to record and release to stop."
-          >
-            {isRecording ? "⏺ Recording..." : "🎤 Voice"}
-          </button>
-          </div>
-        </div>
+      <ConversationComposer
+        QUICK_REPLIES={QUICK_REPLIES}
+        COMPOSER_EMOJIS={COMPOSER_EMOJIS}
+        MAX_FILES={1}
+        text={text}
+        setText={setText}
+        showEmojiBox={showEmojiBox}
+        setShowEmojiBox={setShowEmojiBox}
+        replyingTo={replyingTo}
+        getReplyPreviewSender={(message) =>
+          getReplyPreviewSender(message ?? null, currentUserId, counterpartName)
+        }
+        getReplyPreviewText={getReplyPreviewText}
+        cancelReply={cancelReply}
+        insertEmoji={insertEmoji}
+        sendTypingStart={sendTypingStart}
+        sendTypingStop={sendTypingStop}
+        typingStopTimeoutRef={typingTimeoutRef}
+        markConversationRead={markSeen}
+        sendMessage={sendMessage}
+        loading={loading || uploading}
+        fileInputRef={fileInputRef}
+        onPickFiles={(files) => {
+          const file = files?.[0];
+          if (!file) return;
+          void sendAttachmentMessage(file);
+        }}
+        isRecording={isRecording}
+        handleMicClick={handleMicClick}
+        handleMicPressStart={handleMicPressStart}
+        handleMicPressEnd={handleMicPressEnd}
+        clearSelectedFiles={() => {
+          if (fileInputRef.current) fileInputRef.current.value = "";
+        }}
+        selectedFiles={[]}
+        recordedAudioFile={recordedAudioFile}
+        recordedAudioPreviewUrl={recordedAudioPreviewUrl}
+        clearRecordedAudio={clearRecordedAudio}
+        selectedFilePreviewUrls={{}}
+        removeSelectedFile={() => {}}
+        formatBytes={formatFileSize}
+        err={uploading ? "Uploading attachment..." : err}
+        applyQuickReply={(value) => {
+          setText(value);
+          textareaRef.current?.focus();
+        }}
+      />
       </div>
-    </div>
   );
 }
