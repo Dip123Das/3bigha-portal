@@ -840,22 +840,46 @@ function jumpToMessage(messageId?: string | null) {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "conversation_messages",
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload: any) => {
-          const row = normalizeConversationMessageRow(payload?.new);
+          const eventType = String(payload?.eventType ?? "").toUpperCase();
+          const row =
+            eventType === "DELETE"
+              ? payload?.old
+              : normalizeConversationMessageRow(payload?.new);
+
           if (!row?.id) return;
 
-          upsertMessage(row);
+          if (eventType === "DELETE") {
+            removeMessageById(String(row.id));
+            void loadLatestConversationMessages();
+            return;
+          }
+
+          if (eventType === "INSERT") {
+            upsertMessage(row);
+          } else {
+            updateMessageById(String(row.id), (prev) => ({
+              ...prev,
+              body: row.body,
+              message_type: row.message_type,
+              meta: row.meta ?? prev.meta ?? {},
+              created_at: row.created_at ?? prev.created_at,
+              sender_role: row.sender_role || prev.sender_role,
+              sender_user_id: row.sender_user_id || prev.sender_user_id,
+            }));
+          }
+
           void loadLatestConversationMessages();
 
           const isIncoming =
             String(row.sender_user_id ?? "") !== String(currentUserId);
 
-          if (isIncoming) {
+          if (eventType === "INSERT" && isIncoming) {
             const pageVisible = document.visibilityState === "visible";
             const pageFocused =
               typeof document.hasFocus === "function" ? document.hasFocus() : true;
@@ -869,45 +893,6 @@ function jumpToMessage(messageId?: string | null) {
               await markConversationRead();
             }
           }
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "conversation_messages",
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload: any) => {
-          const row = normalizeConversationMessageRow(payload?.new);
-          if (!row?.id) return;
-
-          updateMessageById(row.id, (prev) => ({
-            ...prev,
-            body: row.body,
-            message_type: row.message_type,
-            meta: row.meta ?? prev.meta ?? {},
-            created_at: row.created_at ?? prev.created_at,
-            sender_role: row.sender_role || prev.sender_role,
-            sender_user_id: row.sender_user_id || prev.sender_user_id,
-          }));
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "conversation_messages",
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload: any) => {
-          const row = payload?.old;
-          const messageId = String(row?.id ?? "");
-          if (!messageId) return;
-
-          removeMessageById(messageId);
         }
       )
       .on(
@@ -929,6 +914,10 @@ function jumpToMessage(messageId?: string | null) {
       )
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
+          void loadLatestConversationMessages();
+        }
+
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
           void loadLatestConversationMessages();
         }
       });
