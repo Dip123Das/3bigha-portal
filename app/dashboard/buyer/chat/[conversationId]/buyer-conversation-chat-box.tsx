@@ -376,13 +376,19 @@ export default function BuyerConversationChatBox(props: {
   const ordered = useMemo(() => sortMessagesByCreatedAt(messages), [messages]);
   const canSend = text.trim().length > 0 && !loading && !uploading;
 
-  const presenceLabel = isCounterpartTyping
+    const presenceLabel = isCounterpartTyping
     ? "Typing..."
+    : counterpartOnline
+    ? "Online"
     : counterpartLastReadAt
     ? `Last seen ${fmtShortSeen(counterpartLastReadAt)}`
     : "Offline";
 
-  const presenceColor = isCounterpartTyping ? "#2563eb" : "#6b7280";
+  const presenceColor = isCounterpartTyping
+    ? "#2563eb"
+    : counterpartOnline
+    ? "#16a34a"
+    : "#6b7280";
 
   const lastOwnVisibleMessageId = useMemo(() => {
     for (let i = ordered.length - 1; i >= 0; i -= 1) {

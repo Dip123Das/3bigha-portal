@@ -390,14 +390,6 @@ export default function VendorConversationChatBox(props: {
     ? "#16a34a"
     : "#6b7280";
 
-  const presenceLabel = isCounterpartTyping
-    ? "Typing..."
-    : counterpartLastReadAt
-    ? `Last seen ${fmtShortSeen(counterpartLastReadAt)}`
-    : "Offline";
-
-  const presenceColor = isCounterpartTyping ? "#2563eb" : "#6b7280";
-
   const lastOwnVisibleMessageId = useMemo(() => {
     for (let i = ordered.length - 1; i >= 0; i -= 1) {
       const m = ordered[i];
