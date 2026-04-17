@@ -200,7 +200,6 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
         const { error: touchErr } = await supabase
           .from("conversations")
           .update({
-            accepted_quote_id: qt.id,
             status: "open",
             is_closed: false,
             updated_at: nowIso,
@@ -219,7 +218,6 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
             rfq_id: rfqId,
             buyer_user_id: buyerUserId,
             vendor_user_id: vendorUserId,
-            accepted_quote_id: qt.id,
             status: "open",
             is_closed: false,
           })
@@ -285,7 +283,6 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
             body: systemText,
             meta: {
               rfq_id: rfqId,
-              accepted_quote_id: qt.id,
               accepted_vendor_id: vendorUserId,
               accepted_at: nowIso,
             },

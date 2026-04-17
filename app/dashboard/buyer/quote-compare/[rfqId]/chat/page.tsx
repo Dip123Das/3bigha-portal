@@ -56,7 +56,7 @@ export default async function BuyerRfqChatPage({
   if (vendorId) {
     const res = await supabase
       .from("conversations")
-      .select("id,rfq_id,context_id,buyer_user_id,vendor_user_id,accepted_quote_id,status,is_closed,created_at,updated_at")
+      .select("id,rfq_id,context_id,buyer_user_id,vendor_user_id,status,is_closed,created_at,updated_at")
       .eq("context_type", "rfq")
       .eq("rfq_id", rfqId)
       .eq("buyer_user_id", user.id)
@@ -70,7 +70,7 @@ export default async function BuyerRfqChatPage({
   if (!conv && !convErr) {
     const fallback = await supabase
       .from("conversations")
-      .select("id,rfq_id,context_id,buyer_user_id,vendor_user_id,accepted_quote_id,status,is_closed,created_at,updated_at")
+      .select("id,rfq_id,context_id,buyer_user_id,vendor_user_id,status,is_closed,created_at,updated_at")
       .eq("context_type", "rfq")
       .eq("rfq_id", rfqId)
       .eq("buyer_user_id", user.id)
