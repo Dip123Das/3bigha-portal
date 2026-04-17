@@ -850,6 +850,7 @@ function jumpToMessage(messageId?: string | null) {
           if (!row?.id) return;
 
           upsertMessage(row);
+          void loadLatestConversationMessages();
 
           const isIncoming =
             String(row.sender_user_id ?? "") !== String(currentUserId);
@@ -1019,22 +1020,24 @@ function jumpToMessage(messageId?: string | null) {
 
   useEffect(() => {
     function onFocus() {
-  void markConversationRead();
-  void loadMyReadStatus();
-  void loadCounterpartReadStatus();
-  void loadCounterpartPresence();
-  stopTitleFlash();
-}
+      void loadLatestConversationMessages();
+      void markConversationRead();
+      void loadMyReadStatus();
+      void loadCounterpartReadStatus();
+      void loadCounterpartPresence();
+      stopTitleFlash();
+    }
 
-function onVisibility() {
-  if (document.visibilityState === "visible") {
-    void markConversationRead();
-    void loadMyReadStatus();
-    void loadCounterpartReadStatus();
-    void loadCounterpartPresence();
-    stopTitleFlash();
-  }
-}
+    function onVisibility() {
+      if (document.visibilityState === "visible") {
+        void loadLatestConversationMessages();
+        void markConversationRead();
+        void loadMyReadStatus();
+        void loadCounterpartReadStatus();
+        void loadCounterpartPresence();
+        stopTitleFlash();
+      }
+    }
 
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisibility);
