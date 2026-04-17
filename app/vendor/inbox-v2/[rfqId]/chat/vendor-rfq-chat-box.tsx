@@ -1359,6 +1359,7 @@ async function deleteMessageForEveryone(messageId: string) {
     }));
   } catch {}
 }
+
   function clearRecordedAudio() {
     if (recordedAudioPreviewUrl) {
       URL.revokeObjectURL(recordedAudioPreviewUrl);
@@ -1486,10 +1487,11 @@ async function deleteMessageForEveryone(messageId: string) {
     }
   }
 
-    async function sendMessage(messageOverride?: string) {
+  async function sendMessage(messageOverride?: string, replyOverride?: MsgRow | null) {
     const body = (messageOverride ?? text).trim();
     const hasFiles = selectedFiles.length > 0 || !!recordedAudioFile;
-    const replyToId = String(replyingTo?.id ?? "").trim();
+    const effectiveReplyingTo = replyOverride ?? replyingTo;
+    const replyToId = String(effectiveReplyingTo?.id ?? "").trim();
 
     if ((!body && !hasFiles) || loading) return;
 

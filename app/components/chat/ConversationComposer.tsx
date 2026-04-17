@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 type AttachmentRow = {
   kind?: "image" | "file" | "audio";
@@ -104,6 +104,44 @@ export default function ConversationComposer(props: {
     err,
     applyQuickReply,
   } = props;
+
+  const [lastTextAttempt, setLastTextAttempt] = useState("");
+  const [retryText, setRetryText] = useState("");
+
+  useEffect(() => {
+    if (err && lastTextAttempt) {
+      setRetryText(lastTextAttempt);
+      return;
+    }
+
+    if (!loading && !err) {
+      setLastTextAttempt("");
+      setRetryText("");
+    }
+  }, [err, loading, lastTextAttempt]);
+
+  const handleSend = (messageOverride?: string) => {
+    const candidateText =
+      typeof messageOverride === "string" ? messageOverride : String(text ?? "");
+
+    const trimmedText = candidateText.trim();
+    const isTextOnlyAttempt =
+      !!trimmedText && selectedFiles.length === 0 && !recordedAudioFile;
+
+    if (isTextOnlyAttempt) {
+      setLastTextAttempt(trimmedText);
+    } else if (!loading && !err) {
+      setLastTextAttempt("");
+    }
+
+    void sendMessage(messageOverride);
+  };
+
+  const handleRetryFailedText = () => {
+    if (!retryText.trim() || loading) return;
+    setLastTextAttempt(retryText.trim());
+    void sendMessage(retryText.trim());
+  };
 
   return (
     <div style={{ padding: 12, borderTop: "1px solid #e5e7eb", background: "#fff" }}>
@@ -271,7 +309,7 @@ export default function ConversationComposer(props: {
           if (e.shiftKey) return;
 
           e.preventDefault();
-          void sendMessage();
+          handleSend();
         }}
         placeholder="Type your message..."
         rows={4}
@@ -513,12 +551,41 @@ export default function ConversationComposer(props: {
           alignItems: "center",
         }}
       >
-        <div style={{ color: "crimson", fontSize: 13 }}>{err}</div>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            alignItems: "center",
+            minHeight: 22,
+          }}
+        >
+          <div style={{ color: "crimson", fontSize: 13 }}>{err}</div>
+
+          {err && retryText ? (
+            <button
+              type="button"
+              onClick={handleRetryFailedText}
+              disabled={loading}
+              style={{
+                padding: "6px 10px",
+                borderRadius: 8,
+                border: "1px solid #fecaca",
+                background: "#fff1f2",
+                color: "#9f1239",
+                fontWeight: 800,
+                cursor: loading ? "default" : "pointer",
+              }}
+            >
+              Retry Failed Text
+            </button>
+          ) : null}
+        </div>
 
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button
             type="button"
-            onClick={() => sendMessage("Hello")}
+            onClick={() => handleSend("Hello")}
             disabled={loading}
             style={{
               padding: "10px 14px",
@@ -534,7 +601,7 @@ export default function ConversationComposer(props: {
 
           <button
             type="button"
-            onClick={() => sendMessage()}
+            onClick={() => handleSend()}
             disabled={loading}
             style={{
               padding: "10px 16px",

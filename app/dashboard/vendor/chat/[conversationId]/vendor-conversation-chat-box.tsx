@@ -1023,19 +1023,21 @@ export default function VendorConversationChatBox(props: {
     }
   }
 
-  async function sendMessage(messageOverride?: string) {
+  async function sendMessage(messageOverride?: string, replyOverride?: MsgRow | null) {
     const body = (messageOverride ?? text).trim();
     if (!body || loading || uploading || isRecording) return;
 
     setLoading(true);
     setErr("");
 
-    const replyMeta = replyingTo
+    const effectiveReplyingTo = replyOverride ?? replyingTo;
+
+    const replyMeta = effectiveReplyingTo
       ? {
-          id: replyingTo.id,
-          body: replyingTo.body,
-          sender_role: replyingTo.sender_role,
-          sender_user_id: replyingTo.sender_user_id,
+          id: effectiveReplyingTo.id,
+          body: effectiveReplyingTo.body,
+          sender_role: effectiveReplyingTo.sender_role,
+          sender_user_id: effectiveReplyingTo.sender_user_id,
         }
       : undefined;
 
@@ -1079,18 +1081,6 @@ export default function VendorConversationChatBox(props: {
       if (!res.ok) {
         setErr(json?.error ?? "Failed to send message.");
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
-        setText(body);
-        if (replyMeta) {
-          setReplyingTo({
-            id: replyMeta.id,
-            body: replyMeta.body,
-            sender_role: replyMeta.sender_role,
-            sender_user_id: replyMeta.sender_user_id,
-            message_type: "text",
-            meta: {},
-            created_at: null,
-          });
-        }
         return;
       }
 
@@ -1103,18 +1093,6 @@ export default function VendorConversationChatBox(props: {
     } catch (e: any) {
       setErr(e?.message ?? "Failed to send message.");
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      setText(body);
-      if (replyMeta) {
-        setReplyingTo({
-          id: replyMeta.id,
-          body: replyMeta.body,
-          sender_role: replyMeta.sender_role,
-          sender_user_id: replyMeta.sender_user_id,
-          message_type: "text",
-          meta: {},
-          created_at: null,
-        });
-      }
     } finally {
       setLoading(false);
     }

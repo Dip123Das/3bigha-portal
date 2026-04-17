@@ -219,6 +219,10 @@ export default function BuyerRfqChatBox(props: {
   const [isCounterpartTyping, setIsCounterpartTyping] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const [failedTextRetry, setFailedTextRetry] = useState<{
+    body: string;
+    replyTo: MsgRow | null;
+  } | null>(null);
   const [recordedAudioFile, setRecordedAudioFile] = useState<File | null>(null);
   const [recordedAudioPreviewUrl, setRecordedAudioPreviewUrl] = useState("");
   const [isRecording, setIsRecording] = useState(false);
@@ -1187,6 +1191,12 @@ async function deleteMessageForEveryone(messageId: string) {
       );
     } catch {}
   }
+
+    function retryFailedTextSend() {
+    if (!failedTextRetry || loading) return;
+    void sendMessage(failedTextRetry.body, failedTextRetry.replyTo);
+  }
+
     function clearRecordedAudio() {
     if (recordedAudioPreviewUrl) {
       URL.revokeObjectURL(recordedAudioPreviewUrl);
@@ -1314,15 +1324,20 @@ async function deleteMessageForEveryone(messageId: string) {
     }
   }
 
-  async function sendMessage(messageOverride?: string) {
+  async function sendMessage(messageOverride?: string, replyOverride?: MsgRow | null) {
     const body = (messageOverride ?? text).trim();
     const hasFiles = selectedFiles.length > 0 || !!recordedAudioFile;
-    const replyToId = String(replyingTo?.id ?? "").trim();
+    const effectiveReplyingTo = replyOverride ?? replyingTo;
+    const replyToId = String(effectiveReplyingTo?.id ?? "").trim();
 
     if ((!body && !hasFiles) || loading) return;
 
     setLoading(true);
     setErr("");
+
+    if (!hasFiles) {
+      setFailedTextRetry(null);
+    }
 
     try {
       let res: Response;
@@ -1367,6 +1382,14 @@ async function deleteMessageForEveryone(messageId: string) {
 
       if (!res.ok) {
         setErr(json?.error ?? "Failed to send message.");
+
+        if (!hasFiles && body) {
+          setFailedTextRetry({
+            body,
+            replyTo: effectiveReplyingTo ?? null,
+          });
+        }
+
         return;
       }
 
@@ -1386,9 +1409,17 @@ async function deleteMessageForEveryone(messageId: string) {
       setReplyingTo(null);
       setShowEmojiBox(false);
       setIsCounterpartTyping(false);
+      setFailedTextRetry(null);
       await markConversationRead();
     } catch (e: any) {
       setErr(e?.message ?? "Failed to send message.");
+
+      if (!hasFiles && body) {
+        setFailedTextRetry({
+          body,
+          replyTo: effectiveReplyingTo ?? null,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -2775,7 +2806,29 @@ style={{
             alignItems: "center",
           }}
         >
-          <div style={{ color: "crimson", fontSize: 13 }}>{err}</div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ color: "crimson", fontSize: 13 }}>{err}</div>
+
+            {failedTextRetry ? (
+              <button
+                type="button"
+                onClick={retryFailedTextSend}
+                disabled={loading}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: 999,
+                  border: "1px solid #fecaca",
+                  background: "#fff1f2",
+                  color: "#b91c1c",
+                  fontWeight: 800,
+                  cursor: loading ? "default" : "pointer",
+                  fontSize: 12,
+                }}
+              >
+                Retry failed text
+              </button>
+            ) : null}
+          </div>
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button
