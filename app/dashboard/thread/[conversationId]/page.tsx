@@ -1,6 +1,8 @@
 // app/dashboard/thread/[conversationId]/page.tsx
 
 import Link from "next/link";
+import BuyerRfqChatBox from "@/app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box";
+import VendorRfqChatBox from "@/app/vendor/inbox-v2/[rfqId]/chat/vendor-rfq-chat-box";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
@@ -455,27 +457,25 @@ export default async function UniversalThreadPage({
 
           <div className="border-t px-5 py-4">
             {String(conv.context_type || "").trim().toLowerCase() === "rfq" && rfqId ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div className="text-sm font-semibold text-slate-800">
-                  Continue this RFQ conversation in the live chat view.
-                </div>
-                <div className="mt-2 text-sm text-slate-600">
-                  The unified thread is showing the message history correctly. Use the
-                  live RFQ chat page to reply.
-                </div>
-                <div className="mt-4">
-                  <Link
-                    href={
-                      isBuyer
-                        ? `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}/chat`
-                        : `/vendor/inbox-v2/${encodeURIComponent(rfqId)}/chat`
-                    }
-                    className="inline-flex rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
-                  >
-                    Open live RFQ chat
-                  </Link>
-                </div>
-              </div>
+                    isBuyer ? (
+                    <BuyerRfqChatBox
+                      rfqId={rfqId}
+                      conversationId={conversationId}
+                      currentUserId={user.id}
+                      vendorName={counterpartName}
+                      vendorPhone={counterpartPhone ?? null}
+                      initialMessages={messages as any}
+                    />
+                  ) : (
+                    <VendorRfqChatBox
+                      rfqId={rfqId}
+                      conversationId={conversationId}
+                      currentUserId={user.id}
+                      buyerName={counterpartName}
+                      buyerPhone={counterpartPhone ?? null}
+                      initialMessages={messages as any}
+                    />
+                  )
             ) : (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
                 Live composer for {titleCase(conv.context_type)} will be connected

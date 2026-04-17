@@ -338,6 +338,7 @@ export default function VendorConversationChatBox(props: {
   const [isHoldRecording, setIsHoldRecording] = useState(false);
   const [err, setErr] = useState("");
   const [counterpartLastReadAt, setCounterpartLastReadAt] = useState<string | null>(null);
+  const [counterpartOnline, setCounterpartOnline] = useState(false);
   const [isCounterpartTyping, setIsCounterpartTyping] = useState(false);
   const [showJumpToLatest, setShowJumpToLatest] = useState(false);
   const [replyingTo, setReplyingTo] = useState<MsgRow | null>(null);
@@ -374,6 +375,28 @@ export default function VendorConversationChatBox(props: {
 
   const ordered = useMemo(() => sortMessagesByCreatedAt(messages), [messages]);
   const canSend = text.trim().length > 0 && !loading && !uploading;
+
+  const presenceLabel = isCounterpartTyping
+    ? "Typing..."
+    : counterpartOnline
+    ? "Online"
+    : counterpartLastReadAt
+    ? `Last seen ${fmtShortSeen(counterpartLastReadAt)}`
+    : "Offline";
+
+  const presenceColor = isCounterpartTyping
+    ? "#2563eb"
+    : counterpartOnline
+    ? "#16a34a"
+    : "#6b7280";
+
+  const presenceLabel = isCounterpartTyping
+    ? "Typing..."
+    : counterpartLastReadAt
+    ? `Last seen ${fmtShortSeen(counterpartLastReadAt)}`
+    : "Offline";
+
+  const presenceColor = isCounterpartTyping ? "#2563eb" : "#6b7280";
 
   const lastOwnVisibleMessageId = useMemo(() => {
     for (let i = ordered.length - 1; i >= 0; i -= 1) {
@@ -477,14 +500,27 @@ export default function VendorConversationChatBox(props: {
     await markConversationSeen(conversationId, currentUserId, latestVisibleMessageId);
   }
 
-  async function loadReadState() {
-    const lastReadAt = await loadConversationCounterpartReadState(
-      supabase,
-      conversationId,
-      currentUserId
-    );
-    setCounterpartLastReadAt(lastReadAt);
-  }
+    async function loadReadState() {
+      if (!conversationId) return;
+
+      try {
+        const res = await fetch(`/api/conversations/${encodeURIComponent(conversationId)}/read-state`, {
+          cache: "no-store",
+        });
+
+        const json = await res.json().catch(() => null);
+        if (!res.ok) return;
+
+        setCounterpartLastReadAt(json?.counterpartLastReadAt ?? null);
+
+        const participants = Array.isArray(json?.participants) ? json.participants : [];
+        const counterpart = participants.find(
+          (p: any) => String(p.user_id ?? "") !== String(currentUserId)
+        );
+
+        setCounterpartOnline(Boolean(counterpart?.is_online));
+      } catch {}
+    }
 
   function upsertMessage(next: MsgRow) {
     setMessages((prev) => upsertUniqueMessage(prev, next));
@@ -1363,15 +1399,23 @@ useEffect(() => {
             style={{
               fontSize: 12,
               marginTop: 2,
-              color: isCounterpartTyping ? "#2563eb" : "#6b7280",
+              color: presenceColor,
               fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
             }}
           >
-            {isCounterpartTyping
-              ? "Typing..."
-              : counterpartLastReadAt
-              ? `Last seen ${fmtShortSeen(counterpartLastReadAt)}`
-              : "Offline"}
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 999,
+                background: presenceColor,
+                display: "inline-block",
+              }}
+            />
+            {presenceLabel}
           </div>
         </div>
 
@@ -1430,7 +1474,7 @@ useEffect(() => {
             setHoverReactionMessageId={setHoverReactionMessageId}
             latestOwnMessageId={lastOwnVisibleMessageId}
             counterpartLastSeenAt={counterpartLastReadAt}
-            counterpartOnline={false}
+            counterpartOnline={counterpartOnline}
             myLastSeenAt={initialUnreadCutoffAt ?? null}
             openActionMenu={openActionMenu}
             jumpToMessage={jumpToMessage}
