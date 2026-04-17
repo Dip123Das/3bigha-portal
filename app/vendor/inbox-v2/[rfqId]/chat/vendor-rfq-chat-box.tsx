@@ -346,6 +346,7 @@ const [editingText, setEditingText] = useState("");
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const heartbeatTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const presenceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const messageResyncTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const orderedRef = useRef<MsgRow[]>(initialMessages);
   const isNearBottomRef = useRef(true);
   const lastAutoScrollMessageIdRef = useRef<string>("");
@@ -761,17 +762,17 @@ function jumpToMessage(messageId?: string | null) {
         .map((row) => normalizeConversationMessageRow(row))
         .filter(Boolean)) as MsgRow[];
 
-      if (!rows.length) return;
-
       const prevOrdered = orderedRef.current;
       const prevLastId = prevOrdered.length
         ? String(prevOrdered[prevOrdered.length - 1]?.id ?? "")
         : "";
-      const nextLastId = String(rows[rows.length - 1]?.id ?? "");
+      const nextLastId = rows.length
+        ? String(rows[rows.length - 1]?.id ?? "")
+        : "";
 
-      replaceAllMessages(rows);
+      setMessages(rows);
 
-      const newest = rows[rows.length - 1];
+      const newest = rows.length ? rows[rows.length - 1] : null;
       const isIncoming =
         String(newest?.sender_user_id ?? "") !== String(currentUserId);
 
@@ -790,6 +791,26 @@ function jumpToMessage(messageId?: string | null) {
         }
       }
     } catch {}
+  }
+
+  function scheduleMessagesResync() {
+    void loadLatestConversationMessages();
+
+    for (const timer of messageResyncTimersRef.current) {
+      clearTimeout(timer);
+    }
+
+    messageResyncTimersRef.current = [
+      setTimeout(() => {
+        void loadLatestConversationMessages();
+      }, 250),
+      setTimeout(() => {
+        void loadLatestConversationMessages();
+      }, 1000),
+      setTimeout(() => {
+        void loadLatestConversationMessages();
+      }, 2500),
+    ];
   }
 
   function sendTypingStart() {
@@ -825,6 +846,7 @@ function jumpToMessage(messageId?: string | null) {
   }
 
   useEffect(() => {
+  scheduleMessagesResync();
   void markConversationRead();
   void loadMyReadStatus();
   void loadCounterpartReadStatus();
@@ -856,7 +878,7 @@ function jumpToMessage(messageId?: string | null) {
 
           if (eventType === "DELETE") {
             removeMessageById(String(row.id));
-            void loadLatestConversationMessages();
+            scheduleMessagesResync();
             return;
           }
 
@@ -874,7 +896,7 @@ function jumpToMessage(messageId?: string | null) {
             }));
           }
 
-          void loadLatestConversationMessages();
+          scheduleMessagesResync();
 
           const isIncoming =
             String(row.sender_user_id ?? "") !== String(currentUserId);
@@ -914,11 +936,11 @@ function jumpToMessage(messageId?: string | null) {
       )
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
-          void loadLatestConversationMessages();
+          scheduleMessagesResync();
         }
 
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-          void loadLatestConversationMessages();
+          scheduleMessagesResync();
         }
       });
 
@@ -953,7 +975,7 @@ function jumpToMessage(messageId?: string | null) {
     typingChannelRef.current = typingChannel;
 
     pollTimerRef.current = setInterval(() => {
-      void loadLatestConversationMessages();
+      scheduleMessagesResync();
       void loadCounterpartReadStatus();
       void loadCounterpartPresence();
     }, POLL_INTERVAL_MS);
@@ -967,7 +989,7 @@ function jumpToMessage(messageId?: string | null) {
       }
     }, HEARTBEAT_INTERVAL_MS);
 
-    void loadLatestConversationMessages();
+    scheduleMessagesResync();
 
     return () => {
       stopTitleFlash();
@@ -994,6 +1016,11 @@ function jumpToMessage(messageId?: string | null) {
         clearInterval(presenceTimerRef.current);
       }
 
+      for (const timer of messageResyncTimersRef.current) {
+        clearTimeout(timer);
+      }
+      messageResyncTimersRef.current = [];
+
       typingChannelRef.current = null;
 
       if (presenceChannelRef.current) {
@@ -1009,7 +1036,7 @@ function jumpToMessage(messageId?: string | null) {
 
   useEffect(() => {
     function onFocus() {
-      void loadLatestConversationMessages();
+      scheduleMessagesResync();
       void markConversationRead();
       void loadMyReadStatus();
       void loadCounterpartReadStatus();
@@ -1019,7 +1046,7 @@ function jumpToMessage(messageId?: string | null) {
 
     function onVisibility() {
       if (document.visibilityState === "visible") {
-        void loadLatestConversationMessages();
+        scheduleMessagesResync();
         void markConversationRead();
         void loadMyReadStatus();
         void loadCounterpartReadStatus();
