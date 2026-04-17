@@ -762,17 +762,17 @@ function jumpToMessage(messageId?: string | null) {
         .map((row) => normalizeConversationMessageRow(row))
         .filter(Boolean)) as MsgRow[];
 
+      if (!rows.length) return;
+
       const prevOrdered = orderedRef.current;
       const prevLastId = prevOrdered.length
         ? String(prevOrdered[prevOrdered.length - 1]?.id ?? "")
         : "";
-      const nextLastId = rows.length
-        ? String(rows[rows.length - 1]?.id ?? "")
-        : "";
+      const nextLastId = String(rows[rows.length - 1]?.id ?? "");
 
-      setMessages(rows);
+      replaceAllMessages(rows);
 
-      const newest = rows.length ? rows[rows.length - 1] : null;
+      const newest = rows[rows.length - 1];
       const isIncoming =
         String(newest?.sender_user_id ?? "") !== String(currentUserId);
 
@@ -794,22 +794,19 @@ function jumpToMessage(messageId?: string | null) {
   }
 
   function scheduleMessagesResync() {
-    void loadLatestConversationMessages();
-
     for (const timer of messageResyncTimersRef.current) {
       clearTimeout(timer);
     }
 
+    void loadLatestConversationMessages();
+
     messageResyncTimersRef.current = [
       setTimeout(() => {
         void loadLatestConversationMessages();
-      }, 250),
+      }, 400),
       setTimeout(() => {
         void loadLatestConversationMessages();
-      }, 1000),
-      setTimeout(() => {
-        void loadLatestConversationMessages();
-      }, 2500),
+      }, 1200),
     ];
   }
 
