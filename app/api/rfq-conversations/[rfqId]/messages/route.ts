@@ -178,7 +178,7 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
 
   const { data: conv, error: convErr } = await supabase
     .from("conversations")
-    .select("id,rfq_id,context_id,buyer_user_id,vendor_user_id,status,is_closed")
+    .select("id,rfq_id,context_id,buyer_user_id,vendor_user_id,is_closed")
     .eq("context_type", "rfq")
     .eq("rfq_id", rfqId)
     .maybeSingle();

@@ -200,7 +200,6 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
         const { error: touchErr } = await supabase
           .from("conversations")
           .update({
-            status: "open",
             is_closed: false,
             updated_at: nowIso,
           })
@@ -218,7 +217,6 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
             rfq_id: rfqId,
             buyer_user_id: buyerUserId,
             vendor_user_id: vendorUserId,
-            status: "open",
             is_closed: false,
           })
           .select("id")
