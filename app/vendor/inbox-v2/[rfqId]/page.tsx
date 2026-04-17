@@ -236,10 +236,11 @@ export default async function VendorRfqDetailV2Page({
   let buyerPhone: string | null = null;
   let buyerName: string | null = (header as any).buyer_name ?? null;
 
-  if (hasSubmittedQuote) {
+    if (hasSubmittedQuote) {
     const { data: conv } = await supabase
-      .from("rfq_conversations")
-      .select("id,buyer_user_id,vendor_user_id")
+      .from("conversations")
+      .select("id,buyer_user_id,vendor_user_id,context_type,context_id,rfq_id,is_closed")
+      .eq("context_type", "rfq")
       .eq("rfq_id", rfqId)
       .eq("vendor_user_id", user.id)
       .maybeSingle();

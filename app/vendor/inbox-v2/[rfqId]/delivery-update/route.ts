@@ -89,16 +89,31 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
     return NextResponse.json({ error: insErr.message ?? "Failed to save delivery update." }, { status: 400 });
   }
 
-  // also push into rfq_messages timeline if conversation exists
+  // also push into unified conversation timeline if conversation exists
   try {
     const { data: conv } = await supabase
-      .from("rfq_conversations")
+      .from("conversations")
       .select("id")
+      .eq("context_type", "rfq")
       .eq("rfq_id", rfqId)
       .eq("vendor_user_id", user.id)
       .maybeSingle();
 
     if (conv?.id) {
+      await supabase
+        .from("conversation_participants")
+        .upsert(
+          [
+            {
+              conversation_id: conv.id,
+              user_id: user.id,
+              role: "vendor",
+              last_read_at: new Date().toISOString(),
+            },
+          ],
+          { onConflict: "conversation_id,user_id" }
+        );
+
       const parts = [
         `Delivery status updated: ${status}`,
         expectedDispatchDate ? `Dispatch: ${expectedDispatchDate}` : null,
@@ -106,14 +121,14 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
         message ? `Note: ${message}` : null,
       ].filter(Boolean);
 
-      await supabase.from("rfq_messages").insert({
+      await supabase.from("conversation_messages").insert({
         conversation_id: conv.id,
-        rfq_id: rfqId,
         sender_user_id: user.id,
         sender_role: "vendor",
         message_type: "delivery_update",
         body: parts.join(" | "),
         meta: {
+          rfq_id: rfqId,
           status,
           expected_dispatch_date: expectedDispatchDate,
           expected_delivery_date: expectedDeliveryDate,

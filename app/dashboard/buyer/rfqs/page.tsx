@@ -73,21 +73,26 @@ type SelectedVendorSummary = {
 
 type ConversationRow = {
   id: string;
-  rfq_id: string;
+  rfq_id?: string | null;
+  context_id?: string | null;
+  buyer_user_id?: string | null;
+  context_type?: string | null;
+  is_closed?: boolean | null;
 };
 
 type ConversationReadRow = {
   conversation_id: string;
   user_id: string;
-  last_seen_at: string | null;
+  last_read_at: string | null;
 };
 
 type MessageLiteRow = {
   conversation_id: string;
-  sender_user_id: string | null;
+  sender_user_id: string;
+  sender_role?: string | null;
   created_at: string | null;
-  body?: string | null;
-  message_type?: string | null;
+  body: string | null;
+  message_type: string | null;
 };
 
 function fmtDate(iso: string | null | undefined) {
@@ -261,8 +266,9 @@ export default function BuyerRfqsPage() {
 
     try {
       const convQuery = supabase
-        .from("rfq_conversations")
-        .select("id,rfq_id")
+        .from("conversations")
+        .select("id,rfq_id,context_id,buyer_user_id,context_type,is_closed")
+        .eq("context_type", "rfq")
         .eq("buyer_user_id", uid)
         .in("rfq_id", rfqIds);
 
@@ -279,14 +285,14 @@ export default function BuyerRfqsPage() {
       const convIds = conversations.map((c) => c.id);
 
       const readsQuery = supabase
-        .from("rfq_conversation_reads")
-        .select("conversation_id,user_id,last_seen_at")
+        .from("conversation_participants")
+        .select("conversation_id,user_id,last_read_at")
         .eq("user_id", uid)
         .in("conversation_id", convIds);
 
       const msgsQuery = supabase
-        .from("rfq_messages")
-        .select("conversation_id,sender_user_id,created_at,body,message_type")
+        .from("conversation_messages")
+        .select("conversation_id,sender_user_id,sender_role,created_at,body,message_type")
         .in("conversation_id", convIds);
 
       const [{ data: readData }, { data: msgData }] = await Promise.all([
@@ -294,16 +300,20 @@ export default function BuyerRfqsPage() {
         runWithJwtRetry<MessageLiteRow[]>(() => msgsQuery as any),
       ]);
 
+      const reads = (readData ?? []) as ConversationReadRow[];
+
       const lastSeenByConv: Record<string, number> = {};
-      for (const rd of readData ?? []) {
-        lastSeenByConv[String(rd.conversation_id)] = rd.last_seen_at
-          ? new Date(rd.last_seen_at).getTime()
+      for (const rd of reads) {
+        lastSeenByConv[String(rd.conversation_id)] = rd.last_read_at
+          ? new Date(rd.last_read_at).getTime()
           : 0;
       }
 
       const rfqIdByConv: Record<string, string> = {};
       for (const c of conversations) {
-        rfqIdByConv[String(c.id)] = String(c.rfq_id);
+        const resolvedRfqId = String((c as any).rfq_id ?? (c as any).context_id ?? "");
+        if (!resolvedRfqId) continue;
+        rfqIdByConv[String(c.id)] = resolvedRfqId;
       }
 
       const unreadByRfq: Record<string, number> = {};
@@ -317,10 +327,13 @@ export default function BuyerRfqsPage() {
         if (!rfqId) continue;
 
         const senderIsSelf = String(m.sender_user_id ?? "") === String(uid);
+        const isSystemMessage =
+          String((m as any).sender_role ?? "").trim().toLowerCase() === "system" ||
+          String(m.message_type ?? "").trim().toLowerCase() === "system";
         const createdAtMs = m.created_at ? new Date(m.created_at).getTime() : 0;
         const lastSeen = lastSeenByConv[convId] ?? 0;
 
-        if (!senderIsSelf && createdAtMs > lastSeen) {
+        if (!senderIsSelf && !isSystemMessage && createdAtMs > lastSeen) {
           unreadByRfq[rfqId] = (unreadByRfq[rfqId] ?? 0) + 1;
         }
 
@@ -633,7 +646,7 @@ export default function BuyerRfqsPage() {
         {
           event: "*",
           schema: "public",
-          table: "rfq_messages",
+          table: "conversation_messages",
         },
         async () => {
           void refreshSignals();
@@ -644,7 +657,7 @@ export default function BuyerRfqsPage() {
         {
           event: "*",
           schema: "public",
-          table: "rfq_conversation_reads",
+          table: "conversation_participants",
           filter: `user_id=eq.${userId}`,
         },
         async () => {

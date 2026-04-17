@@ -651,6 +651,28 @@ function jumpToMessage(messageId?: string | null) {
     }
   }
 
+  async function touchMyPresence() {
+    if (!currentUserId) return;
+
+    try {
+      const nowIso = new Date().toISOString();
+
+      await supabase.from("user_presence").upsert(
+        {
+          user_id: currentUserId,
+          is_online: true,
+          last_active_at: nowIso,
+          last_heartbeat_at: nowIso,
+          current_page: `/vendor/inbox-v2/${rfqId}/chat`,
+          updated_at: nowIso,
+        },
+        {
+          onConflict: "user_id",
+        }
+      );
+    } catch {}
+  }
+
   async function markConversationRead() {
     if (!conversationId || !currentUserId) return;
 
@@ -762,15 +784,17 @@ function jumpToMessage(messageId?: string | null) {
         .map((row) => normalizeConversationMessageRow(row))
         .filter(Boolean)) as MsgRow[];
 
-      if (!rows.length) return;
-
       const prevOrdered = orderedRef.current;
       const prevLastId = prevOrdered.length
         ? String(prevOrdered[prevOrdered.length - 1]?.id ?? "")
         : "";
-      const nextLastId = String(rows[rows.length - 1]?.id ?? "");
+      const nextLastId = rows.length
+        ? String(rows[rows.length - 1]?.id ?? "")
+        : "";
 
       replaceAllMessages(rows);
+
+      if (!rows.length) return;
 
       const newest = rows[rows.length - 1];
       const isIncoming =
@@ -845,6 +869,7 @@ function jumpToMessage(messageId?: string | null) {
   useEffect(() => {
   scheduleMessagesResync();
   void markConversationRead();
+  void touchMyPresence();
   void loadMyReadStatus();
   void loadCounterpartReadStatus();
   void loadCounterpartPresence();
@@ -983,6 +1008,7 @@ function jumpToMessage(messageId?: string | null) {
         (typeof document.hasFocus !== "function" || document.hasFocus())
       ) {
         void markConversationRead();
+        void touchMyPresence();
       }
     }, HEARTBEAT_INTERVAL_MS);
 
@@ -1033,8 +1059,8 @@ function jumpToMessage(messageId?: string | null) {
 
   useEffect(() => {
     function onFocus() {
-      scheduleMessagesResync();
       void markConversationRead();
+      void touchMyPresence();
       void loadMyReadStatus();
       void loadCounterpartReadStatus();
       void loadCounterpartPresence();
@@ -1043,8 +1069,8 @@ function jumpToMessage(messageId?: string | null) {
 
     function onVisibility() {
       if (document.visibilityState === "visible") {
-        scheduleMessagesResync();
         void markConversationRead();
+        void touchMyPresence();
         void loadMyReadStatus();
         void loadCounterpartReadStatus();
         void loadCounterpartPresence();
@@ -1592,6 +1618,7 @@ async function deleteMessageForEveryone(messageId: string) {
       setShowEmojiBox(false);
       setIsCounterpartTyping(false);
       await markConversationRead();
+      await touchMyPresence();
     } catch (e: any) {
       setErr(e?.message ?? "Failed to send message.");
     } finally {
@@ -1846,35 +1873,39 @@ async function deleteMessageForEveryone(messageId: string) {
     </div>
   </div>
 ) : null}
-        <ConversationMessageList
-          ordered={ordered}
-          currentUserId={currentUserId}
-          firstUnreadMessageId={firstUnreadMessageId}
-          unreadDividerRef={unreadDividerRef}
-          messageRefs={messageRefs}
-          highlightedMessageId={highlightedMessageId}
-          hoverReactionMessageId={hoverReactionMessageId}
-          setHoverReactionMessageId={setHoverReactionMessageId}
-          latestOwnMessageId={latestOwnMessageId}
-          counterpartLastSeenAt={counterpartLastSeenAt}
-          counterpartOnline={counterpartOnline}
-          myLastSeenAt={myLastSeenAt}
-          openActionMenu={openActionMenu}
-          jumpToMessage={jumpToMessage}
-          toggleReaction={toggleReaction}
-          setActionMenu={setActionMenu}
-          setShowReactionPicker={setShowReactionPicker}
-          editingMessageId={editingMessageId}
-          editingText={editingText}
-          setEditingText={setEditingText}
-          cancelEditMessage={cancelEditMessage}
-          saveEditMessage={saveEditMessage}
-          renderAttachment={renderAttachment}
-          fmtDateTime={fmtDateTime}
-          getDateDividerLabel={getDateDividerLabel}
-          toDisplayRole={toDisplayRole}
-          REACTION_EMOJIS={REACTION_EMOJIS}
-        />
+        {ordered.length === 0 ? (
+          <div style={{ opacity: 0.7 }}>No messages yet.</div>
+        ) : (
+          <ConversationMessageList
+            ordered={ordered}
+            currentUserId={currentUserId}
+            firstUnreadMessageId={firstUnreadMessageId}
+            unreadDividerRef={unreadDividerRef}
+            messageRefs={messageRefs}
+            highlightedMessageId={highlightedMessageId}
+            hoverReactionMessageId={hoverReactionMessageId}
+            setHoverReactionMessageId={setHoverReactionMessageId}
+            latestOwnMessageId={latestOwnMessageId}
+            counterpartLastSeenAt={counterpartLastSeenAt}
+            counterpartOnline={counterpartOnline}
+            myLastSeenAt={myLastSeenAt}
+            openActionMenu={openActionMenu}
+            jumpToMessage={jumpToMessage}
+            toggleReaction={toggleReaction}
+            setActionMenu={setActionMenu}
+            setShowReactionPicker={setShowReactionPicker}
+            editingMessageId={editingMessageId}
+            editingText={editingText}
+            setEditingText={setEditingText}
+            cancelEditMessage={cancelEditMessage}
+            saveEditMessage={saveEditMessage}
+            renderAttachment={renderAttachment}
+            fmtDateTime={fmtDateTime}
+            getDateDividerLabel={getDateDividerLabel}
+            toDisplayRole={toDisplayRole}
+            REACTION_EMOJIS={REACTION_EMOJIS}
+          />
+        )}
         <div ref={endRef} />
         {showJumpToLatest ? (
   <button
@@ -1959,6 +1990,7 @@ async function deleteMessageForEveryone(messageId: string) {
         sendTypingStop={sendTypingStop}
         typingStopTimeoutRef={typingStopTimeoutRef}
         markConversationRead={markConversationRead}
+        touchMyPresence={touchMyPresence}
         sendMessage={sendMessage}
         loading={loading}
         fileInputRef={fileInputRef}

@@ -33,10 +33,11 @@ type MsgRow = {
   created_at: string | null;
 };
 
-type ConversationReadRow = {
+type ConversationParticipantRow = {
   conversation_id: string;
   user_id: string;
-  last_seen_at: string | null;
+  role?: string | null;
+  last_read_at: string | null;
 };
 
 type UserPresenceRow = {
@@ -512,18 +513,18 @@ function jumpToMessage(messageId?: string | null) {
   if (!conversationId || !currentUserId) return "";
 
   try {
-    const { data: conv } = await supabase
-      .from("rfq_conversations")
-      .select("buyer_user_id,vendor_user_id")
-      .eq("id", conversationId)
-      .maybeSingle();
+    const { data } = await supabase
+      .from("conversation_participants")
+      .select("conversation_id,user_id,role,last_read_at")
+      .eq("conversation_id", conversationId);
 
-    const counterpartUserId =
-      String(conv?.buyer_user_id ?? "") === String(currentUserId)
-        ? String(conv?.vendor_user_id ?? "")
-        : String(conv?.buyer_user_id ?? "");
+    const rows = (data ?? []) as ConversationParticipantRow[];
 
-    return counterpartUserId || "";
+    const counterpart = rows.find(
+      (row) => String(row.user_id ?? "") !== String(currentUserId)
+    );
+
+    return String(counterpart?.user_id ?? "");
   } catch {
     return "";
   }
@@ -558,16 +559,14 @@ function jumpToMessage(messageId?: string | null) {
 
     setMyLastSeenAt(nowIso);
 
-    await supabase.from("rfq_conversation_reads").upsert(
-      {
-        conversation_id: conversationId,
-        user_id: currentUserId,
-        last_seen_at: nowIso,
-      },
-      {
-        onConflict: "conversation_id,user_id",
-      }
-    );
+    await supabase
+      .from("conversation_participants")
+      .update({
+        last_read_at: nowIso,
+      })
+      .eq("conversation_id", conversationId)
+      .eq("user_id", currentUserId);
+
     stopTitleFlash();
   } catch {}
 }
@@ -577,19 +576,19 @@ function jumpToMessage(messageId?: string | null) {
 
     try {
       const { data: readData } = await supabase
-        .from("rfq_conversation_reads")
-        .select("conversation_id,user_id,last_seen_at")
+        .from("conversation_participants")
+        .select("conversation_id,user_id,role,last_read_at")
         .eq("conversation_id", conversationId)
         .neq("user_id", currentUserId);
 
-      const rows = (readData ?? []) as ConversationReadRow[];
+      const rows = (readData ?? []) as ConversationParticipantRow[];
       const latest = [...rows].sort((a, b) => {
-        const at = a.last_seen_at ? new Date(a.last_seen_at).getTime() : 0;
-        const bt = b.last_seen_at ? new Date(b.last_seen_at).getTime() : 0;
+        const at = a.last_read_at ? new Date(a.last_read_at).getTime() : 0;
+        const bt = b.last_read_at ? new Date(b.last_read_at).getTime() : 0;
         return bt - at;
       })[0];
 
-      setCounterpartLastSeenAt(latest?.last_seen_at ?? null);
+      setCounterpartLastSeenAt(latest?.last_read_at ?? null);
       await loadCounterpartPresence();
     } catch {
       setCounterpartLastSeenAt(null);
@@ -601,14 +600,14 @@ function jumpToMessage(messageId?: string | null) {
 
   try {
     const { data } = await supabase
-      .from("rfq_conversation_reads")
-      .select("conversation_id,user_id,last_seen_at")
+      .from("conversation_participants")
+      .select("conversation_id,user_id,role,last_read_at")
       .eq("conversation_id", conversationId)
       .eq("user_id", currentUserId)
       .maybeSingle();
 
-    const row = (data ?? null) as ConversationReadRow | null;
-    setMyLastSeenAt(row?.last_seen_at ?? null);
+    const row = (data ?? null) as ConversationParticipantRow | null;
+    setMyLastSeenAt(row?.last_read_at ?? null);
   } catch {
     setMyLastSeenAt(null);
   }
@@ -655,19 +654,20 @@ function jumpToMessage(messageId?: string | null) {
 
     try {
       const { data } = await supabase
-        .from("rfq_messages")
+        .from("conversation_messages")
         .select("id,sender_user_id,sender_role,message_type,body,meta,created_at")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true });
 
       const rows = (data ?? []) as MsgRow[];
-      if (!rows.length) return;
 
       const prevOrdered = orderedRef.current;
       const prevLastId = prevOrdered.length ? String(prevOrdered[prevOrdered.length - 1]?.id ?? "") : "";
-      const nextLastId = String(rows[rows.length - 1]?.id ?? "");
+      const nextLastId = rows.length ? String(rows[rows.length - 1]?.id ?? "") : "";
 
       replaceAllMessages(rows);
+
+      if (!rows.length) return;
 
       const newest = rows[rows.length - 1];
       const isIncoming = String(newest?.sender_user_id ?? "") !== String(currentUserId);
@@ -723,7 +723,7 @@ function jumpToMessage(messageId?: string | null) {
         {
           event: "INSERT",
           schema: "public",
-          table: "rfq_messages",
+          table: "conversation_messages",
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload: any) => {
@@ -755,19 +755,19 @@ function jumpToMessage(messageId?: string | null) {
   {
     event: "*",
     schema: "public",
-    table: "rfq_conversation_reads",
+    table: "conversation_participants",
     filter: `conversation_id=eq.${conversationId}`,
   },
   async (payload: any) => {
-    const row = (payload?.new ?? payload?.old) as ConversationReadRow | undefined;
+    const row = (payload?.new ?? payload?.old) as ConversationParticipantRow | undefined;
     if (!row?.conversation_id) return;
 
     if (String(row.user_id ?? "") === String(currentUserId)) {
-      setMyLastSeenAt(row.last_seen_at ?? null);
+      setMyLastSeenAt(row.last_read_at ?? null);
       return;
     }
 
-    setCounterpartLastSeenAt(row.last_seen_at ?? null);
+    setCounterpartLastSeenAt(row.last_read_at ?? null);
     await loadCounterpartPresence();
   }
 )
@@ -1165,7 +1165,7 @@ async function deleteMessageForEveryone(messageId: string) {
       };
 
       const { error } = await supabase
-        .from("rfq_messages")
+        .from("conversation_messages")
         .update({
           meta: {
             ...(message.meta || {}),
@@ -1411,6 +1411,7 @@ async function deleteMessageForEveryone(messageId: string) {
       setIsCounterpartTyping(false);
       setFailedTextRetry(null);
       await markConversationRead();
+      await touchMyPresence();
     } catch (e: any) {
       setErr(e?.message ?? "Failed to send message.");
 

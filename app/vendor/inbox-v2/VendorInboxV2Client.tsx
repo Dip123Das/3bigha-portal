@@ -23,13 +23,16 @@ type InboxRow = {
 
 type ConversationRow = {
   id: string;
-  rfq_id: string;
+  rfq_id?: string | null;
+  context_id?: string | null;
+  vendor_user_id?: string | null;
 };
 
-type ConversationReadRow = {
+type ConversationParticipantRow = {
   conversation_id: string;
   user_id: string;
-  last_seen_at: string | null;
+  role?: string | null;
+  last_read_at: string | null;
 };
 
 type MessageLiteRow = {
@@ -224,8 +227,9 @@ export default function VendorInboxV2Client({ rows, focusId }: { rows: InboxRow[
 
     try {
       const { data: convData } = await supabase
-        .from("rfq_conversations")
-        .select("id,rfq_id")
+        .from("conversations")
+        .select("id,rfq_id,context_id,vendor_user_id")
+        .eq("context_type", "rfq")
         .eq("vendor_user_id", uid)
         .in("rfq_id", rfqIds);
 
@@ -241,29 +245,31 @@ export default function VendorInboxV2Client({ rows, focusId }: { rows: InboxRow[
 
       const [{ data: readData }, { data: msgData }] = await Promise.all([
         supabase
-          .from("rfq_conversation_reads")
-          .select("conversation_id,user_id,last_seen_at")
+          .from("conversation_participants")
+          .select("conversation_id,user_id,role,last_read_at")
           .eq("user_id", uid)
           .in("conversation_id", convIds),
         supabase
-          .from("rfq_messages")
+          .from("conversation_messages")
           .select("conversation_id,sender_user_id,sender_role,created_at,body,message_type")
           .in("conversation_id", convIds),
       ]);
 
-      const reads = (readData ?? []) as ConversationReadRow[];
+      const reads = (readData ?? []) as ConversationParticipantRow[];
       const messages = (msgData ?? []) as MessageLiteRow[];
 
       const lastSeenByConv: Record<string, number> = {};
       for (const rd of reads) {
-        lastSeenByConv[String(rd.conversation_id)] = rd.last_seen_at
-          ? new Date(rd.last_seen_at).getTime()
+        lastSeenByConv[String(rd.conversation_id)] = rd.last_read_at
+          ? new Date(rd.last_read_at).getTime()
           : 0;
       }
 
       const rfqIdByConv: Record<string, string> = {};
       for (const c of conversations) {
-        rfqIdByConv[String(c.id)] = String(c.rfq_id);
+        const resolvedRfqId = String((c as any).rfq_id ?? (c as any).context_id ?? "");
+        if (!resolvedRfqId) continue;
+        rfqIdByConv[String(c.id)] = resolvedRfqId;
       }
 
       const unreadByRfq: Record<string, number> = {};
@@ -388,7 +394,7 @@ export default function VendorInboxV2Client({ rows, focusId }: { rows: InboxRow[
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "rfq_messages" },
+        { event: "*", schema: "public", table: "conversation_messages" },
         async () => {
           await refreshSignals();
         }
@@ -398,7 +404,7 @@ export default function VendorInboxV2Client({ rows, focusId }: { rows: InboxRow[
         {
           event: "*",
           schema: "public",
-          table: "rfq_conversation_reads",
+          table: "conversation_participants",
         },
         async () => {
           await refreshSignals();

@@ -49,7 +49,8 @@ export default function ConversationComposer(props: {
   sendTypingStop: () => void;
   typingStopTimeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>;
   markConversationRead: () => Promise<void>;
-  sendMessage: (messageOverride?: string) => Promise<void>;
+  touchMyPresence?: () => Promise<void>;
+  sendMessage: (messageOverride?: string, replyOverride?: MsgRow | null) => Promise<void>;
   loading: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   onPickFiles: (files: FileList | null) => void;
@@ -85,6 +86,7 @@ export default function ConversationComposer(props: {
     sendTypingStop,
     typingStopTimeoutRef,
     markConversationRead,
+    touchMyPresence,
     sendMessage,
     loading,
     fileInputRef,
@@ -277,33 +279,26 @@ export default function ConversationComposer(props: {
         ) : null}
       </div>
 
-      <textarea
-        value={text}
-        onChange={(e) => {
-          const nextValue = e.target.value;
-          setText(nextValue);
-
-          if (nextValue.trim()) {
+        <textarea
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            void touchMyPresence?.();
             sendTypingStart();
-          } else {
-            sendTypingStop();
-          }
 
-          if (typingStopTimeoutRef.current) {
-            clearTimeout(typingStopTimeoutRef.current);
-          }
+            if (typingStopTimeoutRef.current) {
+              clearTimeout(typingStopTimeoutRef.current);
+            }
 
-          typingStopTimeoutRef.current = setTimeout(() => {
-            sendTypingStop();
-          }, 1200);
-        }}
+            typingStopTimeoutRef.current = setTimeout(() => {
+              sendTypingStop();
+            }, 1500);
+          }}
         onFocus={() => {
-          setShowEmojiBox(false);
-          if (!String(text ?? "").trim()) {
-            sendTypingStop();
-          }
-          void markConversationRead();
-        }}
+            setShowEmojiBox(false);
+            void markConversationRead();
+            void touchMyPresence?.();
+          }}
         onKeyDown={(e) => {
           if (e.key !== "Enter") return;
           if (e.shiftKey) return;

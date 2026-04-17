@@ -182,49 +182,80 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
     } else if (!UUID_RE.test(vendorUserId)) {
       conversationWarning = "Vendor user id is invalid for RFQ conversation.";
     } else {
-      // find existing conversation
+      // find existing unified conversation
       const { data: existingConv, error: existingConvErr } = await supabase
-        .from("rfq_conversations")
+        .from("conversations")
         .select("id")
+        .eq("context_type", "rfq")
         .eq("rfq_id", rfqId)
         .eq("buyer_user_id", buyerUserId)
         .eq("vendor_user_id", vendorUserId)
         .maybeSingle();
 
       if (existingConvErr) {
-        conversationWarning = existingConvErr.message ?? "Could not check RFQ conversation.";
+        conversationWarning = existingConvErr.message ?? "Could not check unified conversation.";
       } else if (existingConv?.id) {
         conversationId = String(existingConv.id);
 
         const { error: touchErr } = await supabase
-          .from("rfq_conversations")
+          .from("conversations")
           .update({
             accepted_quote_id: qt.id,
             status: "open",
+            is_closed: false,
             updated_at: nowIso,
           })
           .eq("id", conversationId);
 
         if (touchErr) {
-          conversationWarning = touchErr.message ?? "Could not update RFQ conversation.";
+          conversationWarning = touchErr.message ?? "Could not update unified conversation.";
         }
       } else {
         const { data: newConv, error: newConvErr } = await supabase
-          .from("rfq_conversations")
+          .from("conversations")
           .insert({
+            context_type: "rfq",
+            context_id: rfqId,
             rfq_id: rfqId,
             buyer_user_id: buyerUserId,
             vendor_user_id: vendorUserId,
             accepted_quote_id: qt.id,
             status: "open",
+            is_closed: false,
           })
           .select("id")
           .single();
 
         if (newConvErr) {
-          conversationWarning = newConvErr.message ?? "Could not create RFQ conversation.";
+          conversationWarning = newConvErr.message ?? "Could not create unified conversation.";
         } else {
           conversationId = String(newConv.id);
+        }
+      }
+
+      if (conversationId) {
+        const { error: participantErr } = await supabase
+          .from("conversation_participants")
+          .upsert(
+            [
+              {
+                conversation_id: conversationId,
+                user_id: buyerUserId,
+                role: "buyer",
+                last_read_at: nowIso,
+              },
+              {
+                conversation_id: conversationId,
+                user_id: vendorUserId,
+                role: "vendor",
+              },
+            ],
+            { onConflict: "conversation_id,user_id" }
+          );
+
+        if (participantErr && !conversationWarning) {
+          conversationWarning =
+            participantErr.message ?? "Could not ensure unified conversation participants.";
         }
       }
 
@@ -234,7 +265,7 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
           "Quote accepted. Buyer and vendor can now coordinate here for confirmation, delivery schedule, and updates.";
 
         const { data: existingMsg, error: existingMsgErr } = await supabase
-          .from("rfq_messages")
+          .from("conversation_messages")
           .select("id")
           .eq("conversation_id", conversationId)
           .eq("message_type", "system")
@@ -246,14 +277,14 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
             conversationWarning = existingMsgErr.message ?? "Could not check existing system message.";
           }
         } else if (!existingMsg?.id) {
-          const { error: msgErr } = await supabase.from("rfq_messages").insert({
+          const { error: msgErr } = await supabase.from("conversation_messages").insert({
             conversation_id: conversationId,
-            rfq_id: rfqId,
             sender_user_id: buyerUserId,
             sender_role: "system",
             message_type: "system",
             body: systemText,
             meta: {
+              rfq_id: rfqId,
               accepted_quote_id: qt.id,
               accepted_vendor_id: vendorUserId,
               accepted_at: nowIso,
@@ -267,7 +298,7 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
       }
     }
   } catch (e: any) {
-    conversationWarning = e?.message ?? "Could not initialize RFQ conversation.";
+    conversationWarning = e?.message ?? "Could not initialize unified conversation.";
   }
 
   if (wantsJson(req)) {

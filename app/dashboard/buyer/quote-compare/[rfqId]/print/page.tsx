@@ -52,8 +52,9 @@ export default async function BuyerAcceptedQuotePrintPage({
   }
 
   const { data: conv } = await supabase
-    .from("rfq_conversations")
+    .from("conversations")
     .select("id")
+    .eq("context_type", "rfq")
     .eq("rfq_id", rfqId)
     .eq("buyer_user_id", user.id)
     .maybeSingle();

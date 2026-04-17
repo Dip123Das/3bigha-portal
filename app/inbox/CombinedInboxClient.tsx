@@ -152,23 +152,27 @@ export default function CombinedInboxClient({ rows }: { rows: CombinedInboxRow[]
     try {
       const [{ data: readData }, { data: msgData }] = await Promise.all([
         supabase
-          .from("rfq_conversation_reads")
-          .select("conversation_id,user_id,last_seen_at")
+          .from("conversation_participants")
+          .select("conversation_id,user_id,last_read_at")
           .eq("user_id", uid)
           .in("conversation_id", conversationIds),
         supabase
-          .from("rfq_messages")
+          .from("conversation_messages")
           .select("id,conversation_id,sender_user_id,sender_role,body,message_type,created_at")
           .in("conversation_id", conversationIds),
       ]);
 
-      const reads = (readData ?? []) as ReadRow[];
+      const reads = (readData ?? []) as Array<{
+        conversation_id: string;
+        user_id: string;
+        last_read_at: string | null;
+      }>;
       const messages = (msgData ?? []) as MessageLiteRow[];
 
       const lastSeenByConv: Record<string, number> = {};
       for (const r of reads) {
-        lastSeenByConv[String(r.conversation_id)] = r.last_seen_at
-          ? new Date(r.last_seen_at).getTime()
+        lastSeenByConv[String(r.conversation_id)] = r.last_read_at
+          ? new Date(r.last_read_at).getTime()
           : 0;
       }
 
@@ -209,7 +213,7 @@ export default function CombinedInboxClient({ rows }: { rows: CombinedInboxRow[]
             unread_count: unreadCount,
             last_seen_at:
               reads.find((x) => String(x.conversation_id) === String(row.conversation_id))
-                ?.last_seen_at ?? row.last_seen_at,
+                ?.last_read_at ?? row.last_seen_at,
             last_message_id: lastMessage?.id ?? row.last_message_id,
             last_message_body: lastMessage?.body ?? row.last_message_body,
             last_message_type: lastMessage?.message_type ?? row.last_message_type,
@@ -233,7 +237,7 @@ export default function CombinedInboxClient({ rows }: { rows: CombinedInboxRow[]
       .channel(`combined-inbox-${currentUserId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "rfq_messages" },
+        { event: "*", schema: "public", table: "conversation_messages" },
         async () => {
           await refreshSignals();
         }
@@ -243,7 +247,7 @@ export default function CombinedInboxClient({ rows }: { rows: CombinedInboxRow[]
         {
           event: "*",
           schema: "public",
-          table: "rfq_conversation_reads",
+          table: "conversation_participants",
           filter: `user_id=eq.${currentUserId}`,
         },
         async () => {

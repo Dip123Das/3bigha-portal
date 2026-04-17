@@ -112,16 +112,28 @@ export default function GlobalUnreadBadge({
         buyerListingConvRes,
         vendorListingConvRes,
       ] = await Promise.all([
-        supabase.from("rfq_conversations").select("id").eq("buyer_user_id", uid),
-        supabase.from("rfq_conversations").select("id").eq("vendor_user_id", uid),
         supabase
           .from("conversations")
           .select("id")
+          .eq("context_type", "rfq")
           .eq("buyer_user_id", uid)
           .eq("is_closed", false),
         supabase
           .from("conversations")
           .select("id")
+          .eq("context_type", "rfq")
+          .eq("vendor_user_id", uid)
+          .eq("is_closed", false),
+        supabase
+          .from("conversations")
+          .select("id")
+          .neq("context_type", "rfq")
+          .eq("buyer_user_id", uid)
+          .eq("is_closed", false),
+        supabase
+          .from("conversations")
+          .select("id")
+          .neq("context_type", "rfq")
           .eq("vendor_user_id", uid)
           .eq("is_closed", false),
       ]);
@@ -134,30 +146,40 @@ export default function GlobalUnreadBadge({
       const listingConvIds = uniqIds([
         ...((buyerListingConvRes.data ?? []) as ConversationRow[]),
         ...((vendorListingConvRes.data ?? []) as ConversationRow[]),
-      ]);
+      ]).filter((id) => !rfqConvIds.includes(id));
 
       let unread = 0;
 
       if (rfqConvIds.length > 0) {
         const [{ data: readData }, { data: msgData }] = await Promise.all([
           supabase
-            .from("rfq_conversation_reads")
-            .select("conversation_id,user_id,last_seen_at")
+            .from("conversation_participants")
+            .select("conversation_id,user_id,last_read_at")
             .eq("user_id", uid)
             .in("conversation_id", rfqConvIds),
           supabase
-            .from("rfq_messages")
-            .select("conversation_id,sender_user_id,created_at")
+            .from("conversation_messages")
+            .select("conversation_id,sender_user_id,sender_role,message_type,created_at")
             .in("conversation_id", rfqConvIds),
         ]);
 
-        const reads = (readData ?? []) as RfqConversationReadRow[];
-        const msgs = (msgData ?? []) as RfqMessageLiteRow[];
+        const reads = (readData ?? []) as Array<{
+          conversation_id: string;
+          user_id: string;
+          last_read_at: string | null;
+        }>;
+        const msgs = (msgData ?? []) as Array<{
+          conversation_id: string;
+          sender_user_id: string;
+          sender_role?: string | null;
+          message_type?: string | null;
+          created_at: string | null;
+        }>;
 
         const lastSeenByConv: Record<string, number> = {};
         for (const rd of reads) {
-          lastSeenByConv[String(rd.conversation_id)] = rd.last_seen_at
-            ? new Date(rd.last_seen_at).getTime()
+          lastSeenByConv[String(rd.conversation_id)] = rd.last_read_at
+            ? new Date(rd.last_read_at).getTime()
             : 0;
         }
 
@@ -165,6 +187,12 @@ export default function GlobalUnreadBadge({
           const convId = String(m.conversation_id ?? "");
           if (!convId) continue;
           if (String(m.sender_user_id ?? "") === String(uid)) continue;
+
+          const isSystem =
+            String(m.sender_role ?? "").trim().toLowerCase() === "system" ||
+            String(m.message_type ?? "").trim().toLowerCase() === "system";
+
+          if (isSystem) continue;
 
           const createdAt = m.created_at ? new Date(m.created_at).getTime() : 0;
           const lastSeen = lastSeenByConv[convId] ?? 0;
@@ -245,7 +273,7 @@ export default function GlobalUnreadBadge({
       .channel(`global-unread-badge-${userId}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "rfq_messages" },
+        { event: "*", schema: "public", table: "conversation_messages" },
         async () => {
           void refresh();
         }
@@ -255,7 +283,7 @@ export default function GlobalUnreadBadge({
         {
           event: "*",
           schema: "public",
-          table: "rfq_conversation_reads",
+          table: "conversation_participants",
           filter: `user_id=eq.${userId}`,
         },
         async () => {

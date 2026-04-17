@@ -55,8 +55,9 @@ export default async function BuyerRfqChatPage({
 
   if (vendorId) {
     const res = await supabase
-      .from("rfq_conversations")
-      .select("id,rfq_id,buyer_user_id,vendor_user_id,accepted_quote_id,status,created_at,updated_at")
+      .from("conversations")
+      .select("id,rfq_id,context_id,buyer_user_id,vendor_user_id,accepted_quote_id,status,is_closed,created_at,updated_at")
+      .eq("context_type", "rfq")
       .eq("rfq_id", rfqId)
       .eq("buyer_user_id", user.id)
       .eq("vendor_user_id", vendorId)
@@ -68,8 +69,9 @@ export default async function BuyerRfqChatPage({
 
   if (!conv && !convErr) {
     const fallback = await supabase
-      .from("rfq_conversations")
-      .select("id,rfq_id,buyer_user_id,vendor_user_id,accepted_quote_id,status,created_at,updated_at")
+      .from("conversations")
+      .select("id,rfq_id,context_id,buyer_user_id,vendor_user_id,accepted_quote_id,status,is_closed,created_at,updated_at")
+      .eq("context_type", "rfq")
       .eq("rfq_id", rfqId)
       .eq("buyer_user_id", user.id)
       .order("updated_at", { ascending: false })
@@ -103,17 +105,16 @@ export default async function BuyerRfqChatPage({
     );
   }
 
-  await supabase.from("rfq_conversation_reads").upsert(
-    {
-      conversation_id: conv.id,
-      user_id: user.id,
-      last_seen_at: new Date().toISOString(),
-    },
-    { onConflict: "conversation_id,user_id" }
-  );
+  await supabase
+    .from("conversation_participants")
+    .update({
+      last_read_at: new Date().toISOString(),
+    })
+    .eq("conversation_id", conv.id)
+    .eq("user_id", user.id);
 
   const { data: msgs, error: msgsErr } = await supabase
-    .from("rfq_messages")
+    .from("conversation_messages")
     .select("id,sender_user_id,sender_role,message_type,body,meta,created_at")
     .eq("conversation_id", conv.id)
     .order("created_at", { ascending: true });
@@ -212,7 +213,7 @@ export default async function BuyerRfqChatPage({
           currentUserId={user.id}
           vendorName={vendorName}
           vendorPhone={vendorPhone}
-          initialMessages={msgs ?? []}
+          initialMessages={(msgs ?? []) as any}
         />
       </div>
     </div>

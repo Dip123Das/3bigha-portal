@@ -39,6 +39,9 @@ type ConversationRow = {
   buyer_user_id: string | null;
   vendor_user_id: string | null;
   status: string | null;
+  context_type?: string | null;
+  context_id?: string | null;
+  is_closed?: boolean | null;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -58,7 +61,7 @@ type ProfileRow = {
 type ReadRow = {
   conversation_id: string;
   user_id: string;
-  last_seen_at: string | null;
+  last_read_at: string | null;
 };
 
 type MessageRow = {
@@ -115,8 +118,9 @@ export async function fetchCombinedInbox(params?: {
   }
 
   const { data: convData, error: convErr } = await supabase
-    .from("rfq_conversations")
-    .select("id,rfq_id,buyer_user_id,vendor_user_id,status,created_at,updated_at")
+    .from("conversations")
+    .select("id,rfq_id,context_type,context_id,buyer_user_id,vendor_user_id,status,is_closed,created_at,updated_at")
+    .eq("context_type", "rfq")
     .or(`buyer_user_id.eq.${userId},vendor_user_id.eq.${userId}`);
 
   if (convErr) {
@@ -153,7 +157,13 @@ export async function fetchCombinedInbox(params?: {
     };
   }
 
-  const rfqIds = Array.from(new Set(conversations.map((c) => String(c.rfq_id)).filter(Boolean)));
+  const rfqIds = Array.from(
+    new Set(
+      conversations
+        .map((c) => String(c.rfq_id ?? c.context_id ?? ""))
+        .filter(Boolean)
+    )
+  );
   const counterpartIds = Array.from(
     new Set(conversations.map((c) => String(c.counterpart_user_id ?? "")).filter(Boolean))
   );
@@ -165,12 +175,12 @@ export async function fetchCombinedInbox(params?: {
       ? supabase.from("profiles").select("id,full_name,phone").in("id", counterpartIds)
       : Promise.resolve({ data: [], error: null } as any),
     supabase
-      .from("rfq_conversation_reads")
-      .select("conversation_id,user_id,last_seen_at")
+      .from("conversation_participants")
+      .select("conversation_id,user_id,last_read_at")
       .eq("user_id", userId)
       .in("conversation_id", conversationIds),
     supabase
-      .from("rfq_messages")
+      .from("conversation_messages")
       .select("id,conversation_id,sender_user_id,sender_role,body,message_type,created_at")
       .in("conversation_id", conversationIds),
   ]);
@@ -226,12 +236,12 @@ export async function fetchCombinedInbox(params?: {
   }
 
   const rows: CombinedInboxRow[] = conversations.map((c) => {
-    const rfq = rfqById[String(c.rfq_id)];
+    const rfq = rfqById[String(c.rfq_id ?? c.context_id ?? "")];
     const counterpart = c.counterpart_user_id
       ? profileById[String(c.counterpart_user_id)]
       : undefined;
     const read = readByConversationId[String(c.id)];
-    const lastSeenAt = read?.last_seen_at ?? null;
+    const lastSeenAt = read?.last_read_at ?? null;
     const lastSeenMs = lastSeenAt ? new Date(lastSeenAt).getTime() : 0;
 
     const msgs = (messagesByConversationId[String(c.id)] ?? []).sort((a, b) => {
@@ -281,7 +291,7 @@ export async function fetchCombinedInbox(params?: {
       created_at: c.created_at ?? null,
       updated_at: c.updated_at ?? null,
 
-      open_href: buildOpenHref(c.role, c.rfq_id),
+      open_href: buildOpenHref(c.role, String(c.rfq_id ?? c.context_id ?? "")),
     };
   });
 

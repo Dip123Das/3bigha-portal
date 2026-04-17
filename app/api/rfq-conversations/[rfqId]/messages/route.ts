@@ -177,9 +177,9 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
   }
 
   const { data: conv, error: convErr } = await supabase
-    .from("rfq_conversations")
-    .select("id,rfq_id,buyer_user_id,vendor_user_id")
-    .eq("id", conversationId)
+    .from("conversations")
+    .select("id,rfq_id,context_id,buyer_user_id,vendor_user_id,status,accepted_quote_id,is_closed")
+    .eq("context_type", "rfq")
     .eq("rfq_id", rfqId)
     .maybeSingle();
 
@@ -323,10 +323,10 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
     }
 
     const { data: replyRow, error: replyErr } = await supabase
-      .from("rfq_messages")
+      .from("conversation_messages")
       .select("id,body,sender_role,sender_user_id")
       .eq("id", replyToId)
-      .eq("conversation_id", conversationId)
+      .eq("conversation_id", unifiedConversationId)
       .maybeSingle();
 
     if (replyErr || !replyRow) {
@@ -352,7 +352,7 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
       const originalName = String(file.name || `file-${i + 1}`);
       const safeName = sanitizeFileName(originalName);
       const finalName = `${Date.now()}-${i + 1}-${safeName}`;
-      const path = `${rfqId}/${conversationId}/${user.id}/${finalName}`;
+      const path = `${rfqId}/${unifiedConversationId}/${user.id}/${finalName}`;
 
       const uploadRes = await supabase.storage.from(CHAT_BUCKET).upload(path, file, {
         upsert: false,
@@ -394,32 +394,11 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
     meta.reply_to = replyMeta;
   }
 
-  // 🔥 INSERT INTO UNIFIED CHAT SYSTEM
-  const unifiedInsertRes = await supabase.from("conversation_messages").insert({
-    conversation_id: unifiedConversationId,
-    sender_user_id: user.id,
-    sender_role: senderRole,
-    message_type: messageType,
-    body: messageBody,
-    meta,
-  });
-
-  if (unifiedInsertRes.error) {
-    return NextResponse.json(
-      {
-        error:
-          unifiedInsertRes.error.message ||
-          "Failed to insert unified conversation message.",
-      },
-      { status: 500 }
-    );
-  }
-
+  // 🔥 INSERT INTO UNIFIED CHAT SYSTEM ONLY
   const { data: inserted, error: insErr } = await supabase
-    .from("rfq_messages")
+    .from("conversation_messages")
     .insert({
-      conversation_id: conversationId,
-      rfq_id: rfqId,
+      conversation_id: unifiedConversationId,
       sender_user_id: user.id,
       sender_role: senderRole,
       message_type: messageType,
@@ -429,10 +408,13 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
     .select("id,created_at,message_type,body,meta")
     .single();
 
-  if (insErr) {
+  if (insErr || !inserted) {
     return NextResponse.json(
-      { error: insErr.message ?? "Failed to send message." },
-      { status: 400 }
+      {
+        error:
+          insErr?.message || "Failed to insert unified conversation message.",
+      },
+      { status: 500 }
     );
   }
 
@@ -459,5 +441,6 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
     message_type: inserted.message_type,
     body: inserted.body,
     meta: inserted.meta ?? {},
+    conversation_id: unifiedConversationId,
   });
 }
