@@ -926,7 +926,11 @@ function jumpToMessage(messageId?: string | null) {
           await loadCounterpartPresence();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          void loadLatestConversationMessages();
+        }
+      });
 
     const typingChannel = supabase
       .channel(`conversation-typing-${conversationId}`, {
@@ -959,6 +963,7 @@ function jumpToMessage(messageId?: string | null) {
     typingChannelRef.current = typingChannel;
 
     pollTimerRef.current = setInterval(() => {
+      void loadLatestConversationMessages();
       void loadCounterpartReadStatus();
       void loadCounterpartPresence();
     }, POLL_INTERVAL_MS);
