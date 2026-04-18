@@ -156,9 +156,11 @@ export async function POST(req: Request) {
       (policies as DistrictPolicyRow[] | null)?.find((policy) => {
         const countryOk = placeMatches(policy.country, country);
         const stateOk = placeMatches(policy.state, state);
+
+        // 🔥 PRIORITY: locality first (most accurate)
         const districtOk =
-          placeMatches(policy.district, district) ||
-          placeMatches(policy.district, locality);
+          placeMatches(policy.district, locality) || // primary
+          placeMatches(policy.district, district);   // fallback
 
         return countryOk && stateOk && districtOk;
       }) || null;
