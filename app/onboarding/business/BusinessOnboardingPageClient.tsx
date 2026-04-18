@@ -59,6 +59,15 @@ type BusinessProfile = {
   author_bio: string | null;
   author_category: string | null;
   author_portfolio_url: string | null;
+
+  location_verification_status: string | null;
+  verified_country: string | null;
+  verified_state: string | null;
+  verified_district: string | null;
+  verified_locality: string | null;
+  verified_postcode: string | null;
+  eligible_free: boolean | null;
+
   is_complete: boolean;
   completion_score: number;
   missing_fields: string[];
@@ -104,8 +113,7 @@ function computeCompletion(bp: Partial<BusinessProfile>) {
     !!(bp.phone_primary && bp.phone_primary.trim()) ||
     !!(bp.email_business && bp.email_business.trim());
 
-  const locationOk =
-    !!(bp.district && bp.district.trim()) && !!(bp.state && bp.state.trim());
+  const locationOk = (bp.location_verification_status || "").trim().toLowerCase() === "verified";
 
   const businessProofOk = isPureBlogOnly
     ? true
@@ -121,7 +129,7 @@ function computeCompletion(bp: Partial<BusinessProfile>) {
   }
   if (!contactOk) missing.push("Contact Person");
   if (!commOk) missing.push("Phone or Email");
-  if (!locationOk) missing.push("District and State");
+  if (!locationOk) missing.push("Live Location Verification");
   if (!businessProofOk) missing.push("GSTIN or Trade License No");
   if (hasBlog && !authorNameOk) {
     missing.push("Author Display Name (Blog)");
@@ -204,7 +212,9 @@ function groupMissingByStep(
       s.includes("district") ||
       s.includes("state") ||
       s.includes("pincode") ||
-      s.includes("pin")
+      s.includes("pin") ||
+      s.includes("location verification") ||
+      s.includes("live location")
     ) {
       push("address", m);
       continue;
@@ -529,8 +539,8 @@ export default function BusinessOnboardingPageClient() {
     m.toLowerCase().includes("phone or email")
   );
 
-  const missingDistrictState = missingUI.some((m) =>
-    m.toLowerCase().includes("district and state")
+  const missingLocationVerification = missingUI.some((m) =>
+    m.toLowerCase().includes("location verification")
   );
 
   const missingNature = missingUI.some((m) =>
@@ -558,7 +568,7 @@ export default function BusinessOnboardingPageClient() {
     { key: "nature", title: "Step 1 — Nature", subtitle: "Choose what you do", show: true, targetId: "sec-nature" },
     { key: "identity", title: "Step 2 — Identity", subtitle: "Business / Legal info", show: true, targetId: "sec-identity" },
     { key: "contact", title: "Step 3 — Contact", subtitle: "Phone / email", show: true, targetId: "sec-contact" },
-    { key: "address", title: "Step 4 — Address", subtitle: "District + state required", show: true, targetId: "sec-address" },
+    { key: "address", title: "Step 4 — Address", subtitle: "Live location verification required", show: true, targetId: "sec-address" },
     { key: "property", title: "Step 5 — Property Compliance", subtitle: "RERA details (optional)", show: nature.includes("property"), targetId: "sec-property" },
     { key: "author", title: "Step 6 — Author Identity", subtitle: "Blog profile", show: hasBlog, targetId: "sec-author" },
     { key: "review", title: "Step 7 — Review & Finish", subtitle: "Confirm completion", show: true, targetId: "sec-review" },
@@ -1130,6 +1140,21 @@ export default function BusinessOnboardingPageClient() {
           <h3 style={{ marginTop: 0 }}>Address</h3>
 
           <div style={{ display: "grid", gap: 10 }}>
+            <div
+              style={{
+                padding: 10,
+                borderRadius: 8,
+                background: missingLocationVerification ? "#fff1f2" : "#f0fdf4",
+                border: `1px solid ${missingLocationVerification ? "#fecdd3" : "#bbf7d0"}`,
+                color: missingLocationVerification ? "#9f1239" : "#166534",
+                fontSize: 13,
+                fontWeight: 700,
+              }}
+            >
+              {missingLocationVerification
+                ? "Live location verification is now mandatory before dashboard activation."
+                : `Live location verified: ${bp.verified_locality || bp.verified_district || "Verified"}${bp.eligible_free ? " • Free district eligible" : ""}`}
+            </div>
             <Field label="Address Line 1 (optional)">
               <input
                 value={bp.address_line1 ?? ""}
@@ -1155,7 +1180,7 @@ export default function BusinessOnboardingPageClient() {
                 />
               </Field>
 
-              <Field label="District" required missing={missingDistrictState}>
+              <Field label="District">
                 <input
                   value={bp.district ?? ""}
                   onChange={(e) => setField("district", e.target.value)}
@@ -1165,7 +1190,7 @@ export default function BusinessOnboardingPageClient() {
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <Field label="State" required missing={missingDistrictState}>
+              <Field label="State">
                 <input
                   value={bp.state ?? ""}
                   onChange={(e) => setField("state", e.target.value)}
