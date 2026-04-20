@@ -41,12 +41,15 @@ export default function HomePage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 8,
-                  padding: "8px 12px",
+                  padding: "8px 14px",
                   borderRadius: 999,
-                  background: "rgba(255,255,255,0.14)",
-                  border: "1px solid rgba(255,255,255,0.22)",
-                  fontWeight: 800,
+                  background: "rgba(255,255,255,0.22)",
+                  border: "1px solid rgba(255,255,255,0.35)",
+                  fontWeight: 900,
                   fontSize: 13,
+                  color: "#ffffff",
+                  letterSpacing: "0.02em",
+                  textShadow: "0 1px 6px rgba(0,0,0,0.2)",
                 }}
               >
                 Trusted local marketplace for real estate & construction
