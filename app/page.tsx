@@ -16,73 +16,250 @@ export default function HomePage() {
   return (
     <main>
       <Container>
-        <SectionHeader
-          title="3Bigha.com"
-          subtitle="Real-estate & construction ecosystem — properties, materials, services, rentals, and news."
-        />
-
-        <div
+        <section
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            flexWrap: "wrap",
-            marginTop: 10,
-            marginBottom: 6,
+            marginTop: 8,
+            borderRadius: 24,
+            overflow: "hidden",
+            background:
+              "linear-gradient(135deg, #0b57d0 0%, #0f766e 55%, #dbeafe 100%)",
+            boxShadow: "0 18px 50px rgba(11,87,208,0.18)",
           }}
         >
-          <span
+          <div
             style={{
-              fontWeight: 900,
-              color: "#0b57d0",
-              marginRight: 4,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 20,
+              padding: 24,
+              alignItems: "center",
             }}
           >
-            Browse
-          </span>
+            <div style={{ color: "#fff" }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 12px",
+                  borderRadius: 999,
+                  background: "rgba(255,255,255,0.14)",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  fontWeight: 800,
+                  fontSize: 13,
+                }}
+              >
+                Trusted local marketplace for real estate & construction
+              </div>
 
-          <ActionButton
-            href="/property"
-            variant={isActive("/property") ? "primary" : "secondary"}
-          >
-            Properties
-          </ActionButton>
+              <div style={{ marginTop: 14 }}>
+                <SectionHeader
+                  title="3Bigha.com"
+                  subtitle="A smarter real-estate and construction marketplace for property, materials, services, rentals, investment and local business discovery."
+                />
+              </div>
 
-          <ActionButton
-            href="/materials"
-            variant={isActive("/materials") ? "primary" : "secondary"}
-          >
-            Materials
-          </ActionButton>
+              <div
+                style={{
+                  marginTop: 10,
+                  color: "rgba(255,255,255,0.92)",
+                  fontSize: 15,
+                  lineHeight: 1.65,
+                  maxWidth: 640,
+                }}
+              >
+                Discover verified opportunities, submit your requirement, compare quotations, and connect with nearby vendors, owners, builders and investors through one unified platform.
+              </div>
 
-          <ActionButton
-            href="/services"
-            variant={isActive("/services") ? "primary" : "secondary"}
-          >
-            Services
-          </ActionButton>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  marginTop: 16,
+                }}
+              >
+                <ActionButton href="/property" variant="secondary">
+                  Explore Property
+                </ActionButton>
 
-          <ActionButton
-            href="/rentals"
-            variant={isActive("/rentals") ? "primary" : "secondary"}
-          >
-            Rentals
-          </ActionButton>
+                <ActionButton href="/rfq/general/new" variant="primary">
+                  Submit Requirement
+                </ActionButton>
+              </div>
 
-          <ActionButton
-            href="/investment"
-            variant={isActive("/investment") ? "primary" : "secondary"}
-          >
-            Investment
-          </ActionButton>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  marginTop: 16,
+                }}
+              >
+                <span
+                  style={{
+                    fontWeight: 900,
+                    color: "#fff",
+                    marginRight: 4,
+                  }}
+                >
+                  Browse
+                </span>
 
-          <ActionButton
-            href="/blog"
-            variant={isActive("/blog") ? "primary" : "secondary"}
-          >
-            Blog / News
-          </ActionButton>
-        </div>
+                <ActionButton
+                  href="/property"
+                  variant={isActive("/property") ? "primary" : "secondary"}
+                >
+                  Properties
+                </ActionButton>
+
+                <ActionButton
+                  href="/materials"
+                  variant={isActive("/materials") ? "primary" : "secondary"}
+                >
+                  Materials
+                </ActionButton>
+
+                <ActionButton
+                  href="/services"
+                  variant={isActive("/services") ? "primary" : "secondary"}
+                >
+                  Services
+                </ActionButton>
+
+                <ActionButton
+                  href="/rentals"
+                  variant={isActive("/rentals") ? "primary" : "secondary"}
+                >
+                  Rentals
+                </ActionButton>
+
+                <ActionButton
+                  href="/investment"
+                  variant={isActive("/investment") ? "primary" : "secondary"}
+                >
+                  Investment
+                </ActionButton>
+
+                <ActionButton
+                  href="/blog"
+                  variant={isActive("/blog") ? "primary" : "secondary"}
+                >
+                  Blog / News
+                </ActionButton>
+              </div>
+            </div>
+
+            <div>
+              <div
+                style={{
+                  minHeight: 320,
+                  borderRadius: 22,
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 100%)",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  padding: 18,
+                  backdropFilter: "blur(6px)",
+                  display: "grid",
+                  gap: 12,
+                }}
+              >
+                <div
+                  style={{
+                    borderRadius: 18,
+                    background: "#ffffff",
+                    padding: 16,
+                    color: "#0f172a",
+                  }}
+                >
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "#0b57d0" }}>
+                    MARKETPLACE COVERAGE
+                  </div>
+                  <div style={{ marginTop: 6, fontSize: 22, fontWeight: 900 }}>
+                    Property • Materials • Services • Rentals
+                  </div>
+                  <div style={{ marginTop: 6, color: "#5b6472", lineHeight: 1.5 }}>
+                    One portal to discover, compare and connect across the complete construction and real-estate ecosystem.
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    gap: 12,
+                  }}
+                >
+                  <div
+                    style={{
+                      borderRadius: 16,
+                      background: "rgba(255,255,255,0.92)",
+                      padding: 14,
+                    }}
+                  >
+                    <div style={{ fontSize: 24 }}>📍</div>
+                    <div style={{ marginTop: 8, fontWeight: 900, color: "#0f172a" }}>
+                      Local discovery
+                    </div>
+                    <div style={{ marginTop: 4, color: "#5b6472", fontSize: 14, lineHeight: 1.45 }}>
+                      Nearby search and district-focused onboarding.
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      borderRadius: 16,
+                      background: "rgba(255,255,255,0.92)",
+                      padding: 14,
+                    }}
+                  >
+                    <div style={{ fontSize: 24 }}>🧾</div>
+                    <div style={{ marginTop: 8, fontWeight: 900, color: "#0f172a" }}>
+                      Requirement to quote
+                    </div>
+                    <div style={{ marginTop: 4, color: "#5b6472", fontSize: 14, lineHeight: 1.45 }}>
+                      Buyers can submit needs and receive competitive responses.
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      borderRadius: 16,
+                      background: "rgba(255,255,255,0.92)",
+                      padding: 14,
+                    }}
+                  >
+                    <div style={{ fontSize: 24 }}>🤝</div>
+                    <div style={{ marginTop: 8, fontWeight: 900, color: "#0f172a" }}>
+                      Business networking
+                    </div>
+                    <div style={{ marginTop: 4, color: "#5b6472", fontSize: 14, lineHeight: 1.45 }}>
+                      Connect vendors, owners, builders, buyers and investors.
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      borderRadius: 16,
+                      background: "rgba(255,255,255,0.92)",
+                      padding: 14,
+                    }}
+                  >
+                    <div style={{ fontSize: 24 }}>🏗️</div>
+                    <div style={{ marginTop: 8, fontWeight: 900, color: "#0f172a" }}>
+                      Professional image
+                    </div>
+                    <div style={{ marginTop: 4, color: "#5b6472", fontSize: 14, lineHeight: 1.45 }}>
+                      Stronger first impression for visitors landing on your portal.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <div style={{ marginTop: 12 }}>
           <Card>
