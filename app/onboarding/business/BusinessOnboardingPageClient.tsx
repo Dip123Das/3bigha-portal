@@ -519,9 +519,9 @@ export default function BusinessOnboardingPageClient() {
   }
 
   const localCompletion = computeCompletion(bp);
-  const isCompleteUI = vc?.is_complete ?? localCompletion.isComplete;
-  const scoreUI = clampPct(vc?.completion_score ?? localCompletion.score);
-  const missingUI = vc ? safeArr(vc.missing_fields) : localCompletion.missing;
+  const isCompleteUI = localCompletion.isComplete;
+  const scoreUI = clampPct(localCompletion.score);
+  const missingUI = localCompletion.missing;
   const registrationCompleteUI = vc?.registration_complete ?? false;
 
   const missingByStep = groupMissingByStep(missingUI, { hasProperty: false, hasBlog });
@@ -622,6 +622,14 @@ export default function BusinessOnboardingPageClient() {
     }
 
     await fetchCompleteness(userId);
+
+    setBp((prev) => ({
+      ...prev,
+      is_complete: isComplete,
+      completion_score: score,
+      missing_fields: missing,
+    }));
+
     return { ok: true, isComplete };
   }
 
