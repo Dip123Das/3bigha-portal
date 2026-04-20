@@ -85,11 +85,13 @@ export default function HomePage() {
 
               <div
                 style={{
-                  marginTop: 10,
-                  color: "rgba(255,255,255,0.92)",
-                  fontSize: 15,
-                  lineHeight: 1.65,
+                  marginTop: 12,
+                  color: "#ffffff",
+                  fontSize: 17,
+                  lineHeight: 1.75,
+                  fontWeight: 500,
                   maxWidth: 640,
+                  textShadow: "0 1px 8px rgba(0,0,0,0.16)",
                 }}
               >
                 Discover verified opportunities, submit your requirement, compare quotations, and connect with nearby vendors, owners, builders and investors through one unified platform.
