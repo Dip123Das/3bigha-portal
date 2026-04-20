@@ -53,10 +53,34 @@ export default function HomePage() {
               </div>
 
               <div style={{ marginTop: 14 }}>
-                <SectionHeader
-                  title="3Bigha.com"
-                  subtitle="A smarter real-estate and construction marketplace for property, materials, services, rentals, investment and local business discovery."
-                />
+                <h1
+                  style={{
+                    margin: 0,
+                    fontSize: "clamp(34px, 5vw, 52px)",
+                    lineHeight: 1.05,
+                    fontWeight: 900,
+                    color: "#ffffff",
+                    letterSpacing: "-0.02em",
+                    textShadow: "0 2px 10px rgba(0,0,0,0.18)",
+                  }}
+                >
+                  3Bigha.com
+                </h1>
+
+                <p
+                  style={{
+                    marginTop: 12,
+                    marginBottom: 0,
+                    fontSize: 18,
+                    lineHeight: 1.6,
+                    fontWeight: 600,
+                    color: "rgba(255,255,255,0.96)",
+                    maxWidth: 700,
+                    textShadow: "0 1px 6px rgba(0,0,0,0.12)",
+                  }}
+                >
+                  A smarter real-estate and construction marketplace for property, materials, services, rentals, investment and local business discovery.
+                </p>
               </div>
 
               <div
