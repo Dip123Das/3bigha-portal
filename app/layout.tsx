@@ -59,19 +59,22 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               style={{
                 minWidth: 0,
                 flex: "0 1 auto",
+                display: "flex",
+                alignItems: "center",
               }}
             >
               <Link
                 className="topBrandLink"
                 href="/"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  textDecoration: "none",
-                  minWidth: 0,
-                  width: "fit-content",
-                }}
+               style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                textDecoration: "none",
+                minWidth: 0,
+                width: "fit-content",
+                flexWrap: "nowrap",
+              }}
               >
                 <div
                   style={{
@@ -100,6 +103,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
+                    lineHeight: 1.1,
                   }}
                 >
                   <div
