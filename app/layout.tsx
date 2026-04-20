@@ -55,9 +55,66 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <div className="topHeaderInner">
             {/* Brand */}
             <div className="topBrand">
-              <Link className="topBrandLink" href="/">
-                <div className="topBrandName">3Bigha.com</div>
-                <div className="topBrandTagline">Real Estate &amp; Construction Ecosystem</div>
+              <Link
+                className="topBrandLink"
+                href="/"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  textDecoration: "none",
+                }}
+              >
+                <div
+                  style={{
+                    width: 46,
+                    height: 46,
+                    borderRadius: 14,
+                    background:
+                      "linear-gradient(135deg, #0b57d0 0%, #0f766e 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#ffffff",
+                    fontWeight: 900,
+                    fontSize: 18,
+                    boxShadow: "0 10px 24px rgba(11,87,208,0.22)",
+                    flexShrink: 0,
+                  }}
+                  aria-hidden="true"
+                >
+                  3B
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+                  <div
+                    className="topBrandName"
+                    style={{
+                      fontSize: 34,
+                      lineHeight: 1,
+                      fontWeight: 900,
+                      letterSpacing: "-0.04em",
+                      color: "#0f172a",
+                      margin: 0,
+                    }}
+                  >
+                    3Bigha.com
+                  </div>
+
+                  <div
+                    className="topBrandTagline"
+                    style={{
+                      marginTop: 4,
+                      fontSize: 13,
+                      lineHeight: 1.35,
+                      color: "#475569",
+                      fontWeight: 700,
+                      letterSpacing: "0.01em",
+                    }}
+                  >
+                    Real Estate &amp; Construction Ecosystem
+                  </div>
+                </div>
               </Link>
             </div>
 
