@@ -39,7 +39,7 @@ export default function HomePage() {
         <section
           style={{
             marginTop: 8,
-            borderRadius: 28,
+            borderRadius: 24,
             overflow: "hidden",
             background:
               "radial-gradient(circle at top left, rgba(96,165,250,0.35) 0%, rgba(96,165,250,0) 28%), linear-gradient(135deg, #0b57d0 0%, #0b6aa2 38%, #0f766e 72%, #dbeafe 100%)",
@@ -60,9 +60,9 @@ export default function HomePage() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "minmax(0, 1.15fr) minmax(320px, 0.95fr)",
-              gap: 24,
-              padding: 28,
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+              gap: 20,
+              padding: "20px",
               alignItems: "center",
               position: "relative",
             }}
@@ -73,27 +73,30 @@ export default function HomePage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 8,
-                  padding: "9px 15px",
+                  padding: "9px 14px",
                   borderRadius: 999,
                   background: "rgba(255,255,255,0.20)",
                   border: "1px solid rgba(255,255,255,0.34)",
                   fontWeight: 900,
-                  fontSize: 13,
+                  fontSize: 12,
                   color: "#ffffff",
                   letterSpacing: "0.02em",
                   textShadow: "0 1px 6px rgba(0,0,0,0.2)",
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.15)",
+                  maxWidth: "100%",
+                  whiteSpace: "normal",
+                  lineHeight: 1.4,
                 }}
               >
                 Trusted local marketplace for real estate & construction
               </div>
 
-              <div style={{ marginTop: 18, maxWidth: 760 }}>
+              <div style={{ marginTop: 18, maxWidth: 760, width: "100%" }}>
                 <h1
                   style={{
                     margin: 0,
-                    fontSize: "clamp(38px, 5.5vw, 64px)",
-                    lineHeight: 0.98,
+                    fontSize: "clamp(32px, 9vw, 64px)",
+                    lineHeight: 1.02,
                     fontWeight: 900,
                     color: "#ffffff",
                     letterSpacing: "-0.04em",
@@ -105,10 +108,10 @@ export default function HomePage() {
 
                 <p
                   style={{
-                    marginTop: 16,
+                    marginTop: 14,
                     marginBottom: 0,
-                    fontSize: 20,
-                    lineHeight: 1.65,
+                    fontSize: "clamp(16px, 4.6vw, 20px)",
+                    lineHeight: 1.6,
                     fontWeight: 700,
                     color: "rgba(255,255,255,0.98)",
                     maxWidth: 720,
@@ -125,8 +128,8 @@ export default function HomePage() {
                 style={{
                   marginTop: 14,
                   color: "#ffffff",
-                  fontSize: 17,
-                  lineHeight: 1.82,
+                  fontSize: "clamp(15px, 4.2vw, 17px)",
+                  lineHeight: 1.72,
                   fontWeight: 500,
                   maxWidth: 680,
                   textShadow: "0 1px 8px rgba(0,0,0,0.16)",
@@ -158,10 +161,11 @@ export default function HomePage() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
                   gap: 10,
                   marginTop: 18,
                   maxWidth: 700,
+                  width: "100%",
                 }}
               >
                 <div
@@ -291,12 +295,12 @@ export default function HomePage() {
             <div>
               <div
                 style={{
-                  minHeight: 360,
-                  borderRadius: 24,
+                  minHeight: 0,
+                  borderRadius: 22,
                   background:
                     "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.10) 100%)",
                   border: "1px solid rgba(255,255,255,0.22)",
-                  padding: 18,
+                  padding: 16,
                   backdropFilter: "blur(8px)",
                   display: "grid",
                   gap: 12,
@@ -347,7 +351,7 @@ export default function HomePage() {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 140px), 1fr))",
                     gap: 12,
                   }}
                 >
@@ -465,7 +469,7 @@ export default function HomePage() {
                   flexWrap: "wrap",
                 }}
               >
-                <div style={{ minWidth: 260, flex: 1 }}>
+                <div style={{ minWidth: 0, flex: "1 1 320px" }}>
                   <div
                     style={{
                       fontWeight: 900,
@@ -508,7 +512,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div style={{ minWidth: 290 }}>
+                <div style={{ minWidth: 0, width: "100%", maxWidth: 340, flex: "1 1 300px" }}>
                   <details
                     style={{
                       border: "1px solid rgba(15,23,42,0.10)",
@@ -619,7 +623,7 @@ export default function HomePage() {
           style={{
             display: "grid",
             gap: 14,
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
             marginTop: 14,
           }}
         >
