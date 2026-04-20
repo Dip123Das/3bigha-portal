@@ -57,8 +57,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <div
               className="topBrand"
               style={{
-                display: "flex",
-                alignItems: "center",
                 minWidth: 0,
                 flex: "0 1 auto",
               }}
@@ -67,19 +65,19 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 className="topBrandLink"
                 href="/"
                 style={{
-                  display: "inline-flex",
+                  display: "flex",
                   alignItems: "center",
                   gap: 10,
                   textDecoration: "none",
-                  flexWrap: "nowrap",
                   minWidth: 0,
+                  width: "fit-content",
                 }}
               >
                 <div
                   style={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: 12,
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
                     background:
                       "linear-gradient(135deg, #0b57d0 0%, #0f766e 100%)",
                     display: "flex",
@@ -87,8 +85,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     justifyContent: "center",
                     color: "#ffffff",
                     fontWeight: 900,
-                    fontSize: 17,
-                    boxShadow: "0 8px 20px rgba(11,87,208,0.20)",
+                    fontSize: 15,
+                    boxShadow: "0 6px 16px rgba(11,87,208,0.18)",
                     flexShrink: 0,
                   }}
                   aria-hidden="true"
@@ -98,20 +96,19 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
                 <div
                   style={{
+                    minWidth: 0,
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
-                    minWidth: 0,
-                    whiteSpace: "nowrap",
                   }}
                 >
                   <div
                     className="topBrandName"
                     style={{
-                      fontSize: 26,
-                      lineHeight: 1.02,
+                      fontSize: 22,
+                      lineHeight: 1,
                       fontWeight: 900,
-                      letterSpacing: "-0.035em",
+                      letterSpacing: "-0.03em",
                       color: "#0f172a",
                       margin: 0,
                     }}
@@ -122,13 +119,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <div
                     className="topBrandTagline"
                     style={{
-                      marginTop: 3,
-                      fontSize: 12,
-                      lineHeight: 1.25,
+                      marginTop: 2,
+                      fontSize: 11,
+                      lineHeight: 1.2,
                       color: "#475569",
                       fontWeight: 700,
                       letterSpacing: "0.01em",
-                      whiteSpace: "normal",
                     }}
                   >
                     Real Estate &amp; Construction Ecosystem
@@ -576,7 +572,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="container pageBody">{children}</main>
+        <main className="container pageBody" style={{ marginTop: 8 }}>
+          {children}
+        </main>
 
         <footer className="siteFooter">
           <div className="footerInner">
