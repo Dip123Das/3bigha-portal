@@ -3,10 +3,30 @@
 
 import { usePathname } from "next/navigation";
 import { Container } from "@/components/layout/Container";
-import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { ActionButton } from "@/components/ui/ActionButton";
 import GlobalUnreadBadge from "./_components/GlobalUnreadBadge";
+
+const chipStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  border: "1px solid rgba(15,23,42,0.10)",
+  borderRadius: 999,
+  padding: "7px 12px",
+  fontWeight: 800,
+  fontSize: 13,
+  background: "#fff",
+  color: "#0f172a",
+  boxShadow: "0 4px 14px rgba(15,23,42,0.04)",
+};
+
+const featureCardStyle: React.CSSProperties = {
+  borderRadius: 18,
+  background: "rgba(255,255,255,0.96)",
+  padding: 16,
+  boxShadow: "0 10px 28px rgba(15,23,42,0.10)",
+};
 
 export default function HomePage() {
   const pathname = usePathname();
@@ -19,20 +39,32 @@ export default function HomePage() {
         <section
           style={{
             marginTop: 8,
-            borderRadius: 24,
+            borderRadius: 28,
             overflow: "hidden",
             background:
-              "linear-gradient(135deg, #0b57d0 0%, #0f766e 55%, #dbeafe 100%)",
-            boxShadow: "0 18px 50px rgba(11,87,208,0.18)",
+              "radial-gradient(circle at top left, rgba(96,165,250,0.35) 0%, rgba(96,165,250,0) 28%), linear-gradient(135deg, #0b57d0 0%, #0b6aa2 38%, #0f766e 72%, #dbeafe 100%)",
+            boxShadow: "0 20px 60px rgba(11,87,208,0.18)",
+            position: "relative",
           }}
         >
           <div
             style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0) 30%, rgba(255,255,255,0.05) 100%)",
+              pointerEvents: "none",
+            }}
+          />
+
+          <div
+            style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: 20,
-              padding: 24,
+              gridTemplateColumns: "minmax(0, 1.15fr) minmax(320px, 0.95fr)",
+              gap: 24,
+              padding: 28,
               alignItems: "center",
+              position: "relative",
             }}
           >
             <div style={{ color: "#fff" }}>
@@ -41,30 +73,31 @@ export default function HomePage() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 8,
-                  padding: "8px 14px",
+                  padding: "9px 15px",
                   borderRadius: 999,
-                  background: "rgba(255,255,255,0.22)",
-                  border: "1px solid rgba(255,255,255,0.35)",
+                  background: "rgba(255,255,255,0.20)",
+                  border: "1px solid rgba(255,255,255,0.34)",
                   fontWeight: 900,
                   fontSize: 13,
                   color: "#ffffff",
                   letterSpacing: "0.02em",
                   textShadow: "0 1px 6px rgba(0,0,0,0.2)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.15)",
                 }}
               >
                 Trusted local marketplace for real estate & construction
               </div>
 
-              <div style={{ marginTop: 14 }}>
+              <div style={{ marginTop: 18, maxWidth: 760 }}>
                 <h1
                   style={{
                     margin: 0,
-                    fontSize: "clamp(34px, 5vw, 52px)",
-                    lineHeight: 1.05,
+                    fontSize: "clamp(38px, 5.5vw, 64px)",
+                    lineHeight: 0.98,
                     fontWeight: 900,
                     color: "#ffffff",
-                    letterSpacing: "-0.02em",
-                    textShadow: "0 2px 10px rgba(0,0,0,0.18)",
+                    letterSpacing: "-0.04em",
+                    textShadow: "0 3px 16px rgba(0,0,0,0.22)",
                   }}
                 >
                   3Bigha.com
@@ -72,32 +105,36 @@ export default function HomePage() {
 
                 <p
                   style={{
-                    marginTop: 12,
+                    marginTop: 16,
                     marginBottom: 0,
-                    fontSize: 18,
-                    lineHeight: 1.6,
-                    fontWeight: 600,
-                    color: "rgba(255,255,255,0.96)",
-                    maxWidth: 700,
-                    textShadow: "0 1px 6px rgba(0,0,0,0.12)",
+                    fontSize: 20,
+                    lineHeight: 1.65,
+                    fontWeight: 700,
+                    color: "rgba(255,255,255,0.98)",
+                    maxWidth: 720,
+                    textShadow: "0 1px 8px rgba(0,0,0,0.14)",
                   }}
                 >
-                  A smarter real-estate and construction marketplace for property, materials, services, rentals, investment and local business discovery.
+                  A smarter real-estate and construction marketplace for
+                  property, materials, services, rentals, investment and local
+                  business discovery.
                 </p>
               </div>
 
               <div
                 style={{
-                  marginTop: 12,
+                  marginTop: 14,
                   color: "#ffffff",
                   fontSize: 17,
-                  lineHeight: 1.75,
+                  lineHeight: 1.82,
                   fontWeight: 500,
-                  maxWidth: 640,
+                  maxWidth: 680,
                   textShadow: "0 1px 8px rgba(0,0,0,0.16)",
                 }}
               >
-                Discover verified opportunities, submit your requirement, compare quotations, and connect with nearby vendors, owners, builders and investors through one unified platform.
+                Discover verified opportunities, submit your requirement,
+                compare quotations, and connect with nearby vendors, owners,
+                builders and investors through one unified platform.
               </div>
 
               <div
@@ -106,7 +143,7 @@ export default function HomePage() {
                   alignItems: "center",
                   gap: 10,
                   flexWrap: "wrap",
-                  marginTop: 16,
+                  marginTop: 18,
                 }}
               >
                 <ActionButton href="/property" variant="secondary">
@@ -120,11 +157,81 @@ export default function HomePage() {
 
               <div
                 style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+                  gap: 10,
+                  marginTop: 18,
+                  maxWidth: 700,
+                }}
+              >
+                <div
+                  style={{
+                    borderRadius: 16,
+                    padding: "12px 14px",
+                    background: "rgba(255,255,255,0.14)",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    color: "#fff",
+                  }}
+                >
+                  <div style={{ fontSize: 12, opacity: 0.9, fontWeight: 700 }}>
+                    COVERAGE
+                  </div>
+                  <div style={{ marginTop: 5, fontSize: 18, fontWeight: 900 }}>
+                    All-in-one
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 13, lineHeight: 1.45 }}>
+                    Property, materials, services, rentals and investment
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    borderRadius: 16,
+                    padding: "12px 14px",
+                    background: "rgba(255,255,255,0.14)",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    color: "#fff",
+                  }}
+                >
+                  <div style={{ fontSize: 12, opacity: 0.9, fontWeight: 700 }}>
+                    LOCAL-FIRST
+                  </div>
+                  <div style={{ marginTop: 5, fontSize: 18, fontWeight: 900 }}>
+                    Nearby reach
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 13, lineHeight: 1.45 }}>
+                    Better discovery using verified location-based onboarding
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    borderRadius: 16,
+                    padding: "12px 14px",
+                    background: "rgba(255,255,255,0.14)",
+                    border: "1px solid rgba(255,255,255,0.18)",
+                    color: "#fff",
+                  }}
+                >
+                  <div style={{ fontSize: 12, opacity: 0.9, fontWeight: 700 }}>
+                    WORKFLOW
+                  </div>
+                  <div style={{ marginTop: 5, fontSize: 18, fontWeight: 900 }}>
+                    RFQ to chat
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 13, lineHeight: 1.45 }}>
+                    Submit needs, compare quotes and continue in unified inbox
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
                   flexWrap: "wrap",
-                  marginTop: 16,
+                  marginTop: 18,
                 }}
               >
                 <span
@@ -184,33 +291,56 @@ export default function HomePage() {
             <div>
               <div
                 style={{
-                  minHeight: 320,
-                  borderRadius: 22,
+                  minHeight: 360,
+                  borderRadius: 24,
                   background:
-                    "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.08) 100%)",
+                    "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.10) 100%)",
                   border: "1px solid rgba(255,255,255,0.22)",
                   padding: 18,
-                  backdropFilter: "blur(6px)",
+                  backdropFilter: "blur(8px)",
                   display: "grid",
                   gap: 12,
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
                 }}
               >
                 <div
                   style={{
-                    borderRadius: 18,
+                    borderRadius: 20,
                     background: "#ffffff",
-                    padding: 16,
+                    padding: 18,
                     color: "#0f172a",
+                    boxShadow: "0 12px 30px rgba(15,23,42,0.10)",
                   }}
                 >
-                  <div style={{ fontSize: 12, fontWeight: 800, color: "#0b57d0" }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 900,
+                      color: "#0b57d0",
+                      letterSpacing: "0.04em",
+                    }}
+                  >
                     MARKETPLACE COVERAGE
                   </div>
-                  <div style={{ marginTop: 6, fontSize: 22, fontWeight: 900 }}>
+                  <div
+                    style={{
+                      marginTop: 6,
+                      fontSize: 22,
+                      fontWeight: 900,
+                      lineHeight: 1.35,
+                    }}
+                  >
                     Property • Materials • Services • Rentals
                   </div>
-                  <div style={{ marginTop: 6, color: "#5b6472", lineHeight: 1.5 }}>
-                    One portal to discover, compare and connect across the complete construction and real-estate ecosystem.
+                  <div
+                    style={{
+                      marginTop: 6,
+                      color: "#475569",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    One portal to discover, compare and connect across the
+                    complete construction and real-estate ecosystem.
                   </div>
                 </div>
 
@@ -221,67 +351,100 @@ export default function HomePage() {
                     gap: 12,
                   }}
                 >
-                  <div
-                    style={{
-                      borderRadius: 16,
-                      background: "rgba(255,255,255,0.92)",
-                      padding: 14,
-                    }}
-                  >
+                  <div style={featureCardStyle}>
                     <div style={{ fontSize: 24 }}>📍</div>
-                    <div style={{ marginTop: 8, fontWeight: 900, color: "#0f172a" }}>
+                    <div
+                      style={{
+                        marginTop: 8,
+                        fontWeight: 900,
+                        color: "#0f172a",
+                        fontSize: 16,
+                      }}
+                    >
                       Local discovery
                     </div>
-                    <div style={{ marginTop: 4, color: "#5b6472", fontSize: 14, lineHeight: 1.45 }}>
+                    <div
+                      style={{
+                        marginTop: 4,
+                        color: "#475569",
+                        fontSize: 14,
+                        lineHeight: 1.55,
+                      }}
+                    >
                       Nearby search and district-focused onboarding.
                     </div>
                   </div>
 
-                  <div
-                    style={{
-                      borderRadius: 16,
-                      background: "rgba(255,255,255,0.92)",
-                      padding: 14,
-                    }}
-                  >
+                  <div style={featureCardStyle}>
                     <div style={{ fontSize: 24 }}>🧾</div>
-                    <div style={{ marginTop: 8, fontWeight: 900, color: "#0f172a" }}>
+                    <div
+                      style={{
+                        marginTop: 8,
+                        fontWeight: 900,
+                        color: "#0f172a",
+                        fontSize: 16,
+                      }}
+                    >
                       Requirement to quote
                     </div>
-                    <div style={{ marginTop: 4, color: "#5b6472", fontSize: 14, lineHeight: 1.45 }}>
+                    <div
+                      style={{
+                        marginTop: 4,
+                        color: "#475569",
+                        fontSize: 14,
+                        lineHeight: 1.55,
+                      }}
+                    >
                       Buyers can submit needs and receive competitive responses.
                     </div>
                   </div>
 
-                  <div
-                    style={{
-                      borderRadius: 16,
-                      background: "rgba(255,255,255,0.92)",
-                      padding: 14,
-                    }}
-                  >
+                  <div style={featureCardStyle}>
                     <div style={{ fontSize: 24 }}>🤝</div>
-                    <div style={{ marginTop: 8, fontWeight: 900, color: "#0f172a" }}>
+                    <div
+                      style={{
+                        marginTop: 8,
+                        fontWeight: 900,
+                        color: "#0f172a",
+                        fontSize: 16,
+                      }}
+                    >
                       Business networking
                     </div>
-                    <div style={{ marginTop: 4, color: "#5b6472", fontSize: 14, lineHeight: 1.45 }}>
+                    <div
+                      style={{
+                        marginTop: 4,
+                        color: "#475569",
+                        fontSize: 14,
+                        lineHeight: 1.55,
+                      }}
+                    >
                       Connect vendors, owners, builders, buyers and investors.
                     </div>
                   </div>
 
-                  <div
-                    style={{
-                      borderRadius: 16,
-                      background: "rgba(255,255,255,0.92)",
-                      padding: 14,
-                    }}
-                  >
+                  <div style={featureCardStyle}>
                     <div style={{ fontSize: 24 }}>🏗️</div>
-                    <div style={{ marginTop: 8, fontWeight: 900, color: "#0f172a" }}>
+                    <div
+                      style={{
+                        marginTop: 8,
+                        fontWeight: 900,
+                        color: "#0f172a",
+                        fontSize: 16,
+                      }}
+                    >
                       Professional image
                     </div>
-                    <div style={{ marginTop: 4, color: "#5b6472", fontSize: 14, lineHeight: 1.45 }}>
-                      Stronger first impression for visitors landing on your portal.
+                    <div
+                      style={{
+                        marginTop: 4,
+                        color: "#475569",
+                        fontSize: 14,
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      Stronger first impression for visitors landing on your
+                      portal.
                     </div>
                   </div>
                 </div>
@@ -290,103 +453,69 @@ export default function HomePage() {
           </div>
         </section>
 
-        <div style={{ marginTop: 12 }}>
+        <div style={{ marginTop: 14 }}>
           <Card>
             <CardBody>
               <div
                 style={{
                   display: "flex",
-                  gap: 14,
+                  gap: 16,
                   alignItems: "flex-start",
                   justifyContent: "space-between",
                   flexWrap: "wrap",
                 }}
               >
                 <div style={{ minWidth: 260, flex: 1 }}>
-                  <div style={{ fontWeight: 900, fontSize: 18, lineHeight: 1.2 }}>
-                    ✍️ Need Property, Materials, Services or Rentals? Submit your Requirement (RFQ)
+                  <div
+                    style={{
+                      fontWeight: 900,
+                      fontSize: 20,
+                      lineHeight: 1.25,
+                      color: "#0f172a",
+                    }}
+                  >
+                    ✍️ Need Property, Materials, Services or Rentals? Submit your
+                    Requirement (RFQ)
                   </div>
 
-                  <div style={{ marginTop: 8, color: "#5b6472", lineHeight: 1.5 }}>
-                    Upload a handwritten list / PDF or type your requirement. <br />
-                    <b>Enter your location</b> so nearby vendors, owners or service providers can send{" "}
-                    <b>competitive quotations</b>.
+                  <div
+                    style={{
+                      marginTop: 10,
+                      color: "#475569",
+                      lineHeight: 1.7,
+                      fontSize: 16,
+                    }}
+                  >
+                    Upload a handwritten list / PDF or type your requirement.
+                    <br />
+                    <b style={{ color: "#0f172a" }}>Enter your location</b> so
+                    nearby vendors, owners or service providers can send{" "}
+                    <b style={{ color: "#0f172a" }}>competitive quotations</b>.
                   </div>
 
-                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        border: "1px solid rgba(0,0,0,0.12)",
-                        borderRadius: 999,
-                        padding: "6px 10px",
-                        fontWeight: 700,
-                        fontSize: 13,
-                        background: "#fff",
-                      }}
-                    >
-                      📄 PDF / List
-                    </span>
-
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        border: "1px solid rgba(0,0,0,0.12)",
-                        borderRadius: 999,
-                        padding: "6px 10px",
-                        fontWeight: 700,
-                        fontSize: 13,
-                        background: "#fff",
-                      }}
-                    >
-                      📝 Handwritten photo
-                    </span>
-
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        border: "1px solid rgba(0,0,0,0.12)",
-                        borderRadius: 999,
-                        padding: "6px 10px",
-                        fontWeight: 700,
-                        fontSize: 13,
-                        background: "#fff",
-                      }}
-                    >
-                      📍 Location-based quotes
-                    </span>
-
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        border: "1px solid rgba(0,0,0,0.12)",
-                        borderRadius: 999,
-                        padding: "6px 10px",
-                        fontWeight: 700,
-                        fontSize: 13,
-                        background: "#fff",
-                      }}
-                    >
-                      ⚡ Competitive pricing
-                    </span>
+                  <div
+                    style={{
+                      marginTop: 12,
+                      display: "flex",
+                      gap: 8,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <span style={chipStyle}>📄 PDF / List</span>
+                    <span style={chipStyle}>📝 Handwritten photo</span>
+                    <span style={chipStyle}>📍 Location-based quotes</span>
+                    <span style={chipStyle}>⚡ Competitive pricing</span>
                   </div>
                 </div>
 
-                <div style={{ minWidth: 280 }}>
+                <div style={{ minWidth: 290 }}>
                   <details
                     style={{
-                      border: "1px solid rgba(0,0,0,0.12)",
-                      borderRadius: 14,
-                      padding: 10,
-                      background: "rgba(11,87,208,0.04)",
+                      border: "1px solid rgba(15,23,42,0.10)",
+                      borderRadius: 16,
+                      padding: 12,
+                      background:
+                        "linear-gradient(180deg, rgba(11,87,208,0.05) 0%, rgba(15,118,110,0.03) 100%)",
                     }}
                   >
                     <summary
@@ -398,23 +527,39 @@ export default function HomePage() {
                         alignItems: "center",
                         justifyContent: "space-between",
                         gap: 10,
+                        color: "#0f172a",
                       }}
                     >
                       What is “Submit Requirement”?
                       <span style={{ opacity: 0.7 }}>▾</span>
                     </summary>
 
-                    <div style={{ marginTop: 10, color: "#333", lineHeight: 1.5 }}>
-                      <div style={{ fontWeight: 800, marginBottom: 6 }}>How it works</div>
+                    <div style={{ marginTop: 10, color: "#334155", lineHeight: 1.6 }}>
+                      <div
+                        style={{
+                          fontWeight: 800,
+                          marginBottom: 6,
+                          color: "#0f172a",
+                        }}
+                      >
+                        How it works
+                      </div>
                       <ol style={{ margin: 0, paddingLeft: 18 }}>
                         <li>Enter your location (City + Locality).</li>
-                        <li>Upload a list or type your requirement (materials / property / service / rental).</li>
-                        <li>Nearby vendors, owners or service providers will quote competitively.</li>
+                        <li>
+                          Upload a list or type your requirement (materials /
+                          property / service / rental).
+                        </li>
+                        <li>
+                          Nearby vendors, owners or service providers will quote
+                          competitively.
+                        </li>
                         <li>You compare and choose the best offer.</li>
                       </ol>
-                      <div style={{ marginTop: 10, color: "#5b6472" }}>
-                        Tip: If you don’t know exact names/details, just upload a photo or write in simple words—our
-                        vendors/providers will guide you.
+                      <div style={{ marginTop: 10, color: "#475569" }}>
+                        Tip: If you don’t know exact names/details, just upload
+                        a photo or write in simple words—our vendors/providers
+                        will guide you.
                       </div>
                     </div>
                   </details>
@@ -426,14 +571,15 @@ export default function HomePage() {
 
                     <div
                       style={{
-                        minHeight: 44,
-                        borderRadius: 12,
-                        border: "1px solid rgba(0,0,0,0.12)",
+                        minHeight: 46,
+                        borderRadius: 14,
+                        border: "1px solid rgba(15,23,42,0.10)",
                         background: "#fff",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         fontWeight: 900,
+                        boxShadow: "0 8px 22px rgba(15,23,42,0.05)",
                       }}
                     >
                       <GlobalUnreadBadge
@@ -445,14 +591,15 @@ export default function HomePage() {
 
                     <div
                       style={{
-                        minHeight: 44,
-                        borderRadius: 12,
-                        border: "1px solid rgba(0,0,0,0.12)",
+                        minHeight: 46,
+                        borderRadius: 14,
+                        border: "1px solid rgba(15,23,42,0.10)",
                         background: "#fff",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         fontWeight: 900,
+                        boxShadow: "0 8px 22px rgba(15,23,42,0.05)",
                       }}
                     >
                       <GlobalUnreadBadge
@@ -478,9 +625,10 @@ export default function HomePage() {
         >
           <Card>
             <CardBody>
-              <h3 style={{ margin: 0 }}>Property</h3>
-              <p style={{ margin: "6px 0 0", color: "#5b6472" }}>
-                Sell, rent, land, commercial listings.
+              <div style={{ fontSize: 22 }}>🏠</div>
+              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>Property</h3>
+              <p style={{ margin: "6px 0 0", color: "#475569", lineHeight: 1.6 }}>
+                Sell, rent, land, residential and commercial listings.
               </p>
               <div style={{ marginTop: 12 }}>
                 <ActionButton href="/property" variant="secondary" fullWidth>
@@ -492,9 +640,10 @@ export default function HomePage() {
 
           <Card>
             <CardBody>
-              <h3 style={{ margin: 0 }}>Materials</h3>
-              <p style={{ margin: "6px 0 0", color: "#5b6472" }}>
-                Building materials marketplace.
+              <div style={{ fontSize: 22 }}>🧱</div>
+              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>Materials</h3>
+              <p style={{ margin: "6px 0 0", color: "#475569", lineHeight: 1.6 }}>
+                Building materials marketplace for suppliers and buyers.
               </p>
               <div style={{ marginTop: 12 }}>
                 <ActionButton href="/materials" variant="secondary" fullWidth>
@@ -506,9 +655,10 @@ export default function HomePage() {
 
           <Card>
             <CardBody>
-              <h3 style={{ margin: 0 }}>Services</h3>
-              <p style={{ margin: "6px 0 0", color: "#5b6472" }}>
-                Professional, skilled, legal & technical services.
+              <div style={{ fontSize: 22 }}>🛠️</div>
+              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>Services</h3>
+              <p style={{ margin: "6px 0 0", color: "#475569", lineHeight: 1.6 }}>
+                Professional, skilled, legal and technical services.
               </p>
               <div style={{ marginTop: 12 }}>
                 <ActionButton href="/services" variant="secondary" fullWidth>
@@ -520,9 +670,10 @@ export default function HomePage() {
 
           <Card>
             <CardBody>
-              <h3 style={{ margin: 0 }}>Rentals</h3>
-              <p style={{ margin: "6px 0 0", color: "#5b6472" }}>
-                Machinery, tools, shuttering & equipment rentals.
+              <div style={{ fontSize: 22 }}>🚜</div>
+              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>Rentals</h3>
+              <p style={{ margin: "6px 0 0", color: "#475569", lineHeight: 1.6 }}>
+                Machinery, tools, shuttering and equipment rentals.
               </p>
               <div style={{ marginTop: 12 }}>
                 <ActionButton href="/rentals" variant="secondary" fullWidth>
@@ -534,13 +685,29 @@ export default function HomePage() {
 
           <Card>
             <CardBody>
-              <h3 style={{ margin: 0 }}>Blog / News</h3>
-              <p style={{ margin: "6px 0 0", color: "#5b6472" }}>
-                Real-estate & construction updates, guides and insights.
+              <div style={{ fontSize: 22 }}>📰</div>
+              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>Blog / News</h3>
+              <p style={{ margin: "6px 0 0", color: "#475569", lineHeight: 1.6 }}>
+                Real-estate and construction updates, guides and insights.
               </p>
               <div style={{ marginTop: 12 }}>
                 <ActionButton href="/blog" variant="secondary" fullWidth>
                   Read Posts
+                </ActionButton>
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardBody>
+              <div style={{ fontSize: 22 }}>💼</div>
+              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>Investment</h3>
+              <p style={{ margin: "6px 0 0", color: "#475569", lineHeight: 1.6 }}>
+                Discover opportunities and connect builders with investors.
+              </p>
+              <div style={{ marginTop: 12 }}>
+                <ActionButton href="/investment" variant="secondary" fullWidth>
+                  Explore Investment
                 </ActionButton>
               </div>
             </CardBody>
