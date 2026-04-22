@@ -494,7 +494,7 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     top: 0;
     z-index: 100;
   }
-
+  
   .topHeaderInner{
     width: min(100%, calc(100% - 20px));
     grid-template-columns: 1fr auto;
@@ -820,43 +820,43 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
 
 @media (max-width: 700px){
   .pageBody{
-    padding-top: 12px;
-    padding-bottom: 18px;
+    padding-top: 8px;
+    padding-bottom: 14px;
   }
 
   .topHeaderInner{
-    padding: 8px 0;
-    gap: 8px;
+    padding: 6px 0;
+    gap: 6px;
   }
 
   .topBrandName{
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .topBrandTagline{
-    font-size: 10px;
-    line-height: 1.2;
+    font-size: 9px;
+    line-height: 1.15;
   }
 
   .searchMenuBtn{
-    min-width: 96px;
-    height: 38px;
-    padding: 0 12px;
-    font-size: 13px;
+    min-width: 88px;
+    height: 34px;
+    padding: 0 10px;
+    font-size: 12px;
   }
 
   .topHamburger{
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
   }
 
   .homeHero{
-    margin-top: 6px;
+    margin-top: 4px;
   }
 
   .homeHeroInner{
-    gap: 14px !important;
-    padding: 14px !important;
+    gap: 10px !important;
+    padding: 12px !important;
   }
 
   .homeHeroMain{
@@ -872,9 +872,9 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   }
 
   .homeHeroPanel{
-    padding: 12px !important;
-    gap: 10px !important;
-    border-radius: 18px !important;
+    padding: 10px !important;
+    gap: 8px !important;
+    border-radius: 16px !important;
   }
 
   .homeHeroFeatureGrid{
@@ -883,8 +883,8 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   }
 
   .homeHeroFeatureCard{
-    padding: 14px !important;
-    border-radius: 16px !important;
+    padding: 12px !important;
+    border-radius: 14px !important;
   }
 
   .homeHeroFeatureCardOptional{
@@ -892,16 +892,28 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   }
 
   .homeCardsGrid{
-    gap: 12px !important;
+    gap: 10px !important;
   }
 }
 
 @media (max-width: 480px){
   .homeHeroInner{
-    padding: 12px !important;
+    padding: 10px !important;
+    gap: 8px !important;
   }
 
   .homeHeroPanel{
-    padding: 10px !important;
+    padding: 8px !important;
+  }
+}
+
+@media (max-width: 700px){
+  .ui-card__body{
+    padding: 12px !important;
+  }
+
+  .ui-btn{
+    padding: 8px 10px !important;
+    font-size: 13px !important;
   }
 }
