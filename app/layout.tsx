@@ -4,8 +4,9 @@ import "./ui-kit.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { Container } from "@/components/layout/Container";
 
-// ✅ confirmed existing files (from your terminal output)
+// confirmed existing files
 import AuthButtons from "./_components/AuthButtons";
 import ActiveLink from "./_components/ActiveLink";
 import GlobalUnreadBadge from "./_components/GlobalUnreadBadge";
@@ -51,9 +52,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <PresenceHeartbeat currentPage="global" />
         <MobileMenuAutoClose />
-        <header className="topHeader">
-          <div className="topHeaderInner">
-            {/* Brand */}
+
+        <header
+          className="topHeader"
+          style={{
+            borderBottom: "1px solid rgba(15,23,42,0.10)",
+            boxShadow:
+              "0 1px 0 rgba(255,255,255,0.9), 0 8px 24px rgba(15,23,42,0.04)",
+            background: "#fff",
+          }}
+        >
+          <Container className="topHeaderInner">
             <div
               className="topBrand"
               style={{
@@ -66,15 +75,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <Link
                 className="topBrandLink"
                 href="/"
-               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                textDecoration: "none",
-                minWidth: 0,
-                width: "fit-content",
-                flexWrap: "nowrap",
-              }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  textDecoration: "none",
+                  minWidth: 0,
+                  width: "fit-content",
+                  flexWrap: "nowrap",
+                }}
               >
                 <div
                   style={{
@@ -109,7 +118,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <div
                     className="topBrandName"
                     style={{
-                      fontSize: 22,
+                      fontSize: 20,
                       lineHeight: 1,
                       fontWeight: 900,
                       letterSpacing: "-0.03em",
@@ -123,7 +132,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <div
                     className="topBrandTagline"
                     style={{
-                      marginTop: 2,
+                      marginTop: 1,
                       fontSize: 11,
                       lineHeight: 1.2,
                       color: "#475569",
@@ -137,12 +146,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </Link>
             </div>
 
-            {/* Desktop nav */}
             <nav className="topNav" aria-label="Primary navigation">
               <ActiveLink className="topNavLink" href="/" exact>
                 Home
               </ActiveLink>
-
               <ActiveLink className="topNavLink" href="/property">
                 Property
               </ActiveLink>
@@ -163,7 +170,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </ActiveLink>
             </nav>
 
-            {/* Search menu (submits to /search) */}
             <details className="searchMenu">
               <summary className="searchMenuBtn">Search</summary>
 
@@ -171,13 +177,19 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <div className="searchPanelHeader">
                   <div className="searchPanelTitle">Smart Search</div>
                   <div className="searchPanelSubtitle">
-                    Unified search page with filters, Near me and Voice (inside /search).
+                    Unified search page with filters, Near me and Voice (inside
+                    /search).
                   </div>
                 </div>
 
                 <form action="/search" method="get">
                   <div className="searchRow">
-                    <select className="searchSelect" name="scope" defaultValue="all" aria-label="Search scope">
+                    <select
+                      className="searchSelect"
+                      name="scope"
+                      defaultValue="all"
+                      aria-label="Search scope"
+                    >
                       <option value="all">All</option>
                       <option value="property">Property</option>
                       <option value="materials">Materials</option>
@@ -186,10 +198,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <option value="blog">Blog / News</option>
                     </select>
 
-                    <input className="searchInput" name="q" placeholder="Search listings, materials, services…" />
+                    <input
+                      className="searchInput"
+                      name="q"
+                      placeholder="Search listings, materials, services…"
+                    />
 
                     <input className="searchMini" name="city" placeholder="City" />
-                    <input className="searchMini" name="locality" placeholder="Locality" />
+                    <input
+                      className="searchMini"
+                      name="locality"
+                      placeholder="Locality"
+                    />
                     <input className="searchMini" name="min" placeholder="Min ₹" />
                     <input className="searchMini" name="max" placeholder="Max ₹" />
 
@@ -198,7 +218,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     </button>
                   </div>
 
-                  {/* Near me + Voice */}
                   <div className="searchRowSecondary" aria-label="Quick actions">
                     <Link className="searchPill searchPillStrong" href="/search?near=1">
                       📍 Near me
@@ -212,7 +231,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   </div>
 
                   <div className="searchNote">
-                    Near me + Voice search are available inside the unified search page:{" "}
+                    Near me + Voice search are available inside the unified
+                    search page:{" "}
                     <Link className="postMenuInlineLink" href="/search">
                       /search →
                     </Link>
@@ -221,9 +241,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </div>
             </details>
 
-            {/* Actions */}
             <div className="topActions">
-              {/* Post/List mega menu */}
               <details className="postMenu">
                 <summary className="topBtn topBtnPrimary">
                   Post / List <span className="postMenuCaret">▾</span>
@@ -233,7 +251,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <div className="postMenuHeader">
                     <div className="postMenuTitle">Post / List on 3Bigha</div>
                     <div className="postMenuSubtitle">
-                      Choose what you want to list. Each section has its own dedicated workflow.
+                      Choose what you want to list. Each section has its own
+                      dedicated workflow.
                     </div>
                   </div>
 
@@ -242,7 +261,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <div className="postCardIcon">🏠</div>
                       <div>
                         <div className="postCardTitle">Property</div>
-                        <div className="postCardDesc">Individual property listing (sell / rent / lease).</div>
+                        <div className="postCardDesc">
+                          Individual property listing (sell / rent / lease).
+                        </div>
                         <div className="postCardActions">
                           <Link className="postCardBtn postCardBtnPrimary" href="/property/add">
                             Post Property →
@@ -258,7 +279,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <div className="postCardIcon">🧱</div>
                       <div>
                         <div className="postCardTitle">Materials</div>
-                        <div className="postCardDesc">List building materials for buyers &amp; contractors.</div>
+                        <div className="postCardDesc">
+                          List building materials for buyers &amp; contractors.
+                        </div>
                         <div className="postCardActions">
                           <Link className="postCardBtn postCardBtnPrimary" href="/materials/add">
                             List Material →
@@ -274,7 +297,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <div className="postCardIcon">🛠️</div>
                       <div>
                         <div className="postCardTitle">Services</div>
-                        <div className="postCardDesc">Legal, professional &amp; technical services listing.</div>
+                        <div className="postCardDesc">
+                          Legal, professional &amp; technical services listing.
+                        </div>
                         <div className="postCardActions">
                           <Link className="postCardBtn postCardBtnPrimary" href="/services/add">
                             List Service →
@@ -290,7 +315,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <div className="postCardIcon">🚜</div>
                       <div>
                         <div className="postCardTitle">Rentals</div>
-                        <div className="postCardDesc">Equipment &amp; services available on rent.</div>
+                        <div className="postCardDesc">
+                          Equipment &amp; services available on rent.
+                        </div>
                         <div className="postCardActions">
                           <Link className="postCardBtn postCardBtnPrimary" href="/rentals/add">
                             List Rental →
@@ -306,7 +333,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <div className="postCardIcon">📰</div>
                       <div>
                         <div className="postCardTitle">Blog / News</div>
-                        <div className="postCardDesc">Post updates, guides, announcements &amp; news.</div>
+                        <div className="postCardDesc">
+                          Post updates, guides, announcements &amp; news.
+                        </div>
                         <div className="postCardActions">
                           <Link className="postCardBtn postCardBtnPrimary" href="/blog/new">
                             Write Post →
@@ -330,7 +359,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </div>
               </details>
 
-              {/* Keep your existing vendor dashboard shortcut */}
               <GlobalUnreadBadge
                 className="topBtn topBtnGhost"
                 href="/dashboard"
@@ -339,11 +367,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 title="Open dashboard with unread chat count"
               />
 
-              {/* ✅ Intelligent Login/Logout */}
               <AuthButtons />
             </div>
 
-            {/* Mobile menu */}
             <details className="topMobileMenu">
               <summary className="topHamburger" aria-label="Open menu">
                 <span />
@@ -358,7 +384,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <ActiveLink className="topMobileLink" href="/" exact>
                     Home
                   </ActiveLink>
-
                   <ActiveLink className="topMobileLink" href="/property">
                     Property
                   </ActiveLink>
@@ -404,14 +429,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
                 <div className="topMobileGroup">
                   <div className="topMobileTitle">Investment</div>
-
                   <ActiveLink
                     className="topMobileLink"
                     href="/dashboard/investor/deal-rooms"
                   >
                     Investor Deal Rooms
                   </ActiveLink>
-
                   <ActiveLink
                     className="topMobileLink"
                     href="/dashboard/builder/deal-rooms"
@@ -432,22 +455,22 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <ActiveLink className="topMobileLink" href="/vendor">
                     My Dashboard
                   </ActiveLink>
-
                   <Link className="topMobileLink" href="/login">
                     Login / Account
                   </Link>
                 </div>
               </div>
             </details>
-          </div>
+          </Container>
 
-          {/* SUB BAR */}
           <div className="topSubBar">
-            <div className="topSubBarInner">
-              <div className="topHint">Browse verified listings • Compare quotes • Contact vendors • Track enquiries</div>
+            <Container className="topSubBarInner">
+              <div className="topHint">
+                Browse verified listings • Compare quotes • Contact vendors • Track
+                enquiries
+              </div>
 
               <div className="topSubLinks">
-                {/* ✅ ONE SIMPLE MY DASHBOARD MENU (single entry, not scattered) */}
                 <details className="rfqToggle">
                   <summary className="rfqToggleBtn">
                     🧑‍💼 My Dashboard <span className="rfqToggleCaret">▾</span>
@@ -457,8 +480,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     <div className="rfqToggleTitle">My Dashboard</div>
 
                     <div className="rfqToggleDesc">
-                      Everything you need in one place: submit requirements, track vendor responses, compare quotes, and
-                      continue messages.
+                      Everything you need in one place: submit requirements,
+                      track vendor responses, compare quotes, and continue
+                      messages.
                     </div>
 
                     <div className="rfqToggleActions" style={{ display: "grid", gap: 8 }}>
@@ -498,9 +522,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     <div className="rfqToggleTitle">Investment Hub</div>
 
                     <div className="rfqToggleDesc">
-                      Manage investment conversations and deal execution from one place.
-                      Open investor or builder deal rooms and continue document-sharing,
-                      stage tracking, and protected discussions.
+                      Manage investment conversations and deal execution from one
+                      place. Open investor or builder deal rooms and continue
+                      document-sharing, stage tracking, and protected
+                      discussions.
                     </div>
 
                     <div className="rfqToggleActions" style={{ display: "grid", gap: 8 }}>
@@ -521,7 +546,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   </div>
                 </details>
 
-                {/* Submit Requirement dropdown (keep your existing structure) */}
                 <details className="rfqToggle">
                   <summary className="rfqToggleBtn">
                     ✍️ Submit Requirement <span className="rfqToggleCaret">▾</span>
@@ -531,8 +555,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     <div className="rfqToggleTitle">Submit Requirement</div>
 
                     <div className="rfqToggleDesc">
-                      Submit your requirement for <b>Materials, Property, Services</b> or <b>Rentals</b>. Upload a PDF /
-                      handwritten list or type items. Nearby vendors will send competitive quotations.
+                      Submit your requirement for <b>Materials, Property, Services</b>{" "}
+                      or <b>Rentals</b>. Upload a PDF / handwritten list or type
+                      items. Nearby vendors will send competitive quotations.
                     </div>
 
                     <div className="rfqToggleActions" style={{ display: "grid", gap: 8 }}>
@@ -563,7 +588,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   Investment
                 </Link>
 
-                {/* ✅ Keep Vendor Inbox as a direct link */}
                 <GlobalUnreadBadge
                   className="topSubLink"
                   href="/vendor/inbox-v2"
@@ -572,21 +596,22 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   title="Open vendor inbox with unread chat count"
                 />
               </div>
-            </div>
+            </Container>
           </div>
         </header>
 
-        <main className="container pageBody" style={{ marginTop: 8 }}>
-          {children}
+        <main style={{ marginTop: 8 }}>
+          <Container className="pageBody">{children}</Container>
         </main>
 
         <footer className="siteFooter">
-          <div className="footerInner">
+          <Container className="footerInner">
             <div>
-              © <span suppressHydrationWarning>{new Date().getFullYear()}</span> 3Bigha.com
+              © <span suppressHydrationWarning>{new Date().getFullYear()}</span>{" "}
+              3Bigha.com
             </div>
             <div>Built for scale • Plain CSS • Next.js App Router</div>
-          </div>
+          </Container>
         </footer>
       </body>
     </html>
