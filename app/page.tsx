@@ -37,12 +37,16 @@ export default function HomePage() {
     <main>
       <Container>
         <section
+          className="homeHero"
           style={{
             marginTop: 8,
             borderRadius: 24,
             overflow: "hidden",
             background:
-              "radial-gradient(circle at top left, rgba(96,165,250,0.35) 0%, rgba(96,165,250,0) 28%), linear-gradient(135deg, #0b57d0 0%, #0b6aa2 38%, #0f766e 72%, #dbeafe 100%)",
+              "linear-gradient(rgba(11,87,208,0.78), rgba(15,118,110,0.78)), url('/hero-real-estate.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
             boxShadow: "0 20px 60px rgba(11,87,208,0.18)",
             position: "relative",
           }}
@@ -58,6 +62,7 @@ export default function HomePage() {
           />
 
           <div
+            className="homeHeroInner"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
@@ -67,7 +72,7 @@ export default function HomePage() {
               position: "relative",
             }}
           >
-            <div style={{ color: "#fff" }}>
+            <div className="homeHeroMain" style={{ color: "#fff" }}>
               <div
                 style={{
                   display: "inline-flex",
@@ -159,6 +164,7 @@ export default function HomePage() {
               </div>
 
               <div
+                className="homeHeroStats"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
@@ -292,8 +298,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div>
+            <div className="homeHeroSide">
               <div
+                className="homeHeroPanel"
                 style={{
                   minHeight: 0,
                   borderRadius: 22,
@@ -349,13 +356,14 @@ export default function HomePage() {
                 </div>
 
                 <div
+                  className="homeHeroFeatureGrid"
                   style={{
                     display: "grid",
                     gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 140px), 1fr))",
                     gap: 12,
                   }}
                 >
-                  <div style={featureCardStyle}>
+                  <div className="homeHeroFeatureCard" style={featureCardStyle}>
                     <div style={{ fontSize: 24 }}>📍</div>
                     <div
                       style={{
@@ -379,7 +387,7 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <div style={featureCardStyle}>
+                  <div className="homeHeroFeatureCard" style={featureCardStyle}>
                     <div style={{ fontSize: 24 }}>🧾</div>
                     <div
                       style={{
@@ -403,7 +411,7 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <div style={featureCardStyle}>
+                  <div className="homeHeroFeatureCard homeHeroFeatureCardOptional" style={featureCardStyle}>
                     <div style={{ fontSize: 24 }}>🤝</div>
                     <div
                       style={{
@@ -427,7 +435,7 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <div style={featureCardStyle}>
+                  <div className="homeHeroFeatureCard homeHeroFeatureCardOptional" style={featureCardStyle}>
                     <div style={{ fontSize: 24 }}>🏗️</div>
                     <div
                       style={{
@@ -620,6 +628,7 @@ export default function HomePage() {
         </div>
 
         <div
+          className="homeCardsGrid"
           style={{
             display: "grid",
             gap: 14,
