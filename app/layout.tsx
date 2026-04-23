@@ -79,40 +79,76 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                    gap: 0,
+                    gap: 10,
                   textDecoration: "none",
                   minWidth: 0,
                   width: "fit-content",
                   flexWrap: "nowrap",
                 }}
               >
-                <div
-                  className="siteLogoWrap"
+                              <div
                   style={{
-                    width: 260,
-                    height: 68,
+                    width: 44,
+                    height: 44,
                     flexShrink: 0,
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "flex-start",
+                    justifyContent: "center",
                   }}
                 >
                   <Image
-                    src="/logo.png"
-                    alt="3Bigha.com logo"
-                    width={260}
-                    height={68}
+                    src="/logo-icon.png"
+                    alt="3Bigha icon"
+                    width={44}
+                    height={44}
                     style={{
                       width: "100%",
                       height: "100%",
                       objectFit: "contain",
                       display: "block",
+                      borderRadius: 10,
                     }}
                     priority
                   />
                 </div>
 
-                <span style={{ display: "none" }} />
+                <div
+                  style={{
+                    minWidth: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    lineHeight: 1.1,
+                  }}
+                >
+                  <div
+                    className="topBrandName"
+                    style={{
+                      fontSize: 20,
+                      lineHeight: 1,
+                      fontWeight: 900,
+                      letterSpacing: "-0.03em",
+                      color: "#0f172a",
+                      margin: 0,
+                    }}
+                  >
+                    3Bigha.com
+                  </div>
+
+                  <div
+                    className="topBrandTagline"
+                    style={{
+                      marginTop: 2,
+                      fontSize: 11,
+                      lineHeight: 1.2,
+                      color: "#475569",
+                      fontWeight: 700,
+                      letterSpacing: "0.01em",
+                    }}
+                  >
+                    Real Estate &amp; Construction Ecosystem
+                  </div>
+                </div>
               </Link>
             </div>
 

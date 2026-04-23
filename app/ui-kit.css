@@ -976,21 +976,3 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     height: auto !important;
   }
 }
-
-.siteLogoWrap{
-  width: 260px !important;
-  height: 68px !important;
-}
-
-@media (max-width: 700px){
-  .siteLogoWrap{
-    width: 150px !important;
-    height: 44px !important;
-  }
-
-  .siteLogoWrap img{
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain !important;
-  }
-}
