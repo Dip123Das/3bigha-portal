@@ -36,7 +36,9 @@ a { color: inherit; text-decoration: none; }
 .nav a:hover { background: #f4f4f4; }
 
 /* Page */
-.pageBody { padding: 24px 16px 40px; }
+.pageBody {
+  padding: 16px 0 32px;
+}
 
 /* Footer */
 .siteFooter { border-top: 1px solid #e6e6e6; margin-top: 40px; }
@@ -59,8 +61,10 @@ a { color: inherit; text-decoration: none; }
 /* ===== Reusable UI components (3Bigha UI Kit) ===== */
 
 .layout-container {
-  width: min(1280px, calc(100% - 32px));
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 
 .section-header {
