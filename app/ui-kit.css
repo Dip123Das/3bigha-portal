@@ -25,8 +25,8 @@ a{color:inherit;}
 .container{
   width:100%;
   margin:0;
-  padding-left:16px;
-  padding-right:16px;
+  padding-left:12px;
+  padding-right:12px;
 }
 .pageBody{
   padding-top:18px;
@@ -500,8 +500,8 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     z-index: 100;
   }
 .container{
-  padding-left: 12px;
-  padding-right: 12px;
+  padding-left: 0;
+  padding-right: 0;
 }
   
   .topHeaderInner{
@@ -842,12 +842,16 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
 
 .homeHeroInner{
   width: 100%;
+  max-width: 100%;
+  margin: 0;
 }
 
 @media (max-width: 700px){
   .pageBody{
     padding-top: 8px;
     padding-bottom: 14px;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .topHeaderInner{
@@ -927,8 +931,8 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
 
 @media (max-width: 480px){
   .container{
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .homeHeroInner{
@@ -949,5 +953,19 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   .ui-btn{
     padding: 8px 10px !important;
     font-size: 13px !important;
+  }
+}
+
+@media (max-width: 700px){
+  .homeHero,
+  .homeHeroInner,
+  .homeHeroMain,
+  .homeHeroSide,
+  .homeHeroPanel,
+  .homeCardsGrid,
+  .pageBody,
+  .container{
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
