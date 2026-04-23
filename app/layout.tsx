@@ -87,9 +87,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 }}
               >
                 <div
+                  className="siteLogoWrap"
                   style={{
-                    width: 210,
-                    height: 54,
+                    width: 260,
+                    height: 68,
                     flexShrink: 0,
                     display: "flex",
                     alignItems: "center",
@@ -99,8 +100,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <Image
                     src="/logo.png"
                     alt="3Bigha.com logo"
-                    width={210}
-                    height={54}
+                    width={260}
+                    height={68}
                     style={{
                       width: "100%",
                       height: "100%",
