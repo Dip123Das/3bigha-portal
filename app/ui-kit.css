@@ -510,8 +510,8 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     grid-template-areas:
       "brand actions"
       "search search";
-    gap: 8px;
-    padding: 6px 0;
+    gap: 6px;
+    padding: 4px 0;
     align-items: start;
     overflow: visible;
   }
@@ -519,6 +519,7 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   .topBrand{
     min-width: 0;
     overflow: hidden;
+    padding-right: 4px;
   }
 
   .topBrandLink{
@@ -530,7 +531,7 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   }
 
   .topBrandName{
-    font-size: 17px;
+    font-size: 15px;
     line-height: 1.05;
     word-break: normal;
     font-weight: 950;
@@ -539,9 +540,9 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
 
   .topBrandTagline{
     display: block;
-    margin-top: 4px;
-    font-size: 11px;
-    line-height: 1.35;
+    margin-top: 2px;
+    font-size: 9px;
+    line-height: 1.2;
     color: #4b5563;
     font-weight: 700;
   }
@@ -550,11 +551,11 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 6px;
+    gap: 4px;
     flex-wrap: nowrap;
-    min-width: fit-content;
+    min-width: auto;
     overflow: visible;
-    padding-right: 2px;
+    padding-right: 0;
   }
 
   .topActions > .postMenu,
@@ -565,17 +566,25 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   }
 
   .topMobileMenu{
-    display: inline-block !important;
+    display: inline-flex !important;
     position: relative;
     z-index: 120;
+    flex: 0 0 auto;
+    margin-left: 4px;
   }
 
   .topHamburger{
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
     border-radius: 12px;
     border: 1px solid rgba(0,0,0,0.16);
     background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 40px;
   }
 
   .topHamburger span{
@@ -940,12 +949,5 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   .ui-btn{
     padding: 8px 10px !important;
     font-size: 13px !important;
-  }
-}
-
-@media (max-width: 700px){
-  .topMobileMenu{
-    flex: 0 0 auto;
-    margin-left: 2px;
   }
 }
