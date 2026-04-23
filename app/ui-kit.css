@@ -969,3 +969,10 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     max-width: 100% !important;
   }
 }
+
+@media (max-width: 700px){
+  .topBrandLink img{
+    width: 150px !important;
+    height: auto !important;
+  }
+}

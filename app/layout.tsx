@@ -4,7 +4,7 @@ import "./ui-kit.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-// import Image from "next/image";
+import Image from "next/image";
 import { Container } from "@/components/layout/Container";
 
 // confirmed existing files
@@ -79,7 +79,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 8,
+                    gap: 0,
                   textDecoration: "none",
                   minWidth: 0,
                   width: "fit-content",
@@ -88,63 +88,30 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               >
                 <div
                   style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 10,
-                    overflow: "hidden",
-                    boxShadow: "0 6px 16px rgba(11,87,208,0.18)",
+                    width: 210,
+                    height: 54,
                     flexShrink: 0,
-                    background:
-                      "linear-gradient(135deg, #0b57d0 0%, #0f766e 100%)",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    color: "#ffffff",
-                    fontWeight: 900,
-                    fontSize: 16,
-                  }}
-                  aria-hidden="true"
-                >
-                  3B
-                </div>
-
-                <div
-                  style={{
-                    minWidth: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    lineHeight: 1.1,
+                    justifyContent: "flex-start",
                   }}
                 >
-                  <div
-                    className="topBrandName"
+                  <Image
+                    src="/logo.png"
+                    alt="3Bigha.com logo"
+                    width={210}
+                    height={54}
                     style={{
-                      fontSize: 20,
-                      lineHeight: 1,
-                      fontWeight: 900,
-                      letterSpacing: "-0.03em",
-                      color: "#0f172a",
-                      margin: 0,
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                      display: "block",
                     }}
-                  >
-                    3Bigha.com
-                  </div>
-
-                  <div
-                    className="topBrandTagline"
-                    style={{
-                      marginTop: 1,
-                      fontSize: 11,
-                      lineHeight: 1.2,
-                      color: "#475569",
-                      fontWeight: 700,
-                      letterSpacing: "0.01em",
-                    }}
-                  >
-                    Real Estate &amp; Construction Ecosystem
-                  </div>
+                    priority
+                  />
                 </div>
+
+                <span style={{ display: "none" }} />
               </Link>
             </div>
 
