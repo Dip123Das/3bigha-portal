@@ -4,6 +4,7 @@ import "./ui-kit.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Container } from "@/components/layout/Container";
 
 // confirmed existing files
@@ -87,23 +88,31 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               >
                 <div
                   style={{
-                    width: 36,
-                    height: 36,
+                    width: 40,
+                    height: 40,
                     borderRadius: 10,
-                    background:
-                      "linear-gradient(135deg, #0b57d0 0%, #0f766e 100%)",
+                    overflow: "hidden",
+                    boxShadow: "0 6px 16px rgba(11,87,208,0.18)",
+                    flexShrink: 0,
+                    background: "#ffffff",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#ffffff",
-                    fontWeight: 900,
-                    fontSize: 15,
-                    boxShadow: "0 6px 16px rgba(11,87,208,0.18)",
-                    flexShrink: 0,
                   }}
-                  aria-hidden="true"
                 >
-                  3B
+                  <Image
+                    src="/logo.png"
+                    alt="3Bigha.com logo"
+                    width={40}
+                    height={40}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: "block",
+                    }}
+                    priority
+                  />
                 </div>
 
                 <div
