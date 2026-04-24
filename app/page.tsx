@@ -74,6 +74,24 @@ export default function HomePage() {
           >
             <div className="homeHeroMain" style={{ color: "#fff" }}>
               <div
+                className="heroLogoFull"
+                style={{
+                  marginBottom: 10,
+                }}
+              >
+                <img
+                  src="/logo.png"
+                  alt="3Bigha"
+                  style={{
+                    width: "100%",
+                    maxWidth: 420,
+                    height: "auto",
+                    objectFit: "contain",
+                    display: "block",
+                  }}
+                />
+              </div>
+              <div
                 style={{
                   display: "inline-flex",
                   alignItems: "center",

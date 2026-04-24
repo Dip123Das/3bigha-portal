@@ -997,3 +997,14 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     width: 100% !important;
   }
 }
+
+/* HERO LOGO (BIG DESKTOP, CONTROLLED MOBILE) */
+.heroLogoFull img{
+  max-width: 420px;
+}
+
+@media (max-width: 700px){
+  .heroLogoFull img{
+    max-width: 260px;
+  }
+}
