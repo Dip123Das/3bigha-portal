@@ -24,8 +24,9 @@ const chipStyle: React.CSSProperties = {
 const featureCardStyle: React.CSSProperties = {
   borderRadius: 18,
   background: "rgba(255,255,255,0.96)",
-  padding: 16,
+  padding: "12px 14px",
   boxShadow: "0 10px 28px rgba(15,23,42,0.10)",
+  minHeight: 118,
 };
 
 export default function HomePage() {
@@ -322,7 +323,7 @@ export default function HomePage() {
                 display: "flex",
                 flexDirection: "column",
                 height: "100%",
-                justifyContent: "center",
+                justifyContent: "flex-start",
               }}
             >
               <div
@@ -336,6 +337,7 @@ export default function HomePage() {
                   backdropFilter: "blur(8px)",
                   display: "grid",
                   gridTemplateRows: "auto auto",
+                  alignContent: "start",
                   gap: 12,
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
                 }}
@@ -393,7 +395,7 @@ export default function HomePage() {
                     <div style={{ fontSize: 24 }}>📍</div>
                     <div
                       style={{
-                        marginTop: 8,
+                        marginTop: 4,
                         fontWeight: 900,
                         color: "#0f172a",
                         fontSize: 16,
@@ -414,7 +416,7 @@ export default function HomePage() {
                   </div>
 
                   <div className="homeHeroFeatureCard" style={featureCardStyle}>
-                    <div style={{ fontSize: 24 }}>🧾</div>
+                    <div style={{ fontSize: 20 }}>🧾</div>
                     <div
                       style={{
                         marginTop: 8,
