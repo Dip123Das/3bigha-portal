@@ -1008,3 +1008,58 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     max-width: 260px;
   }
 }
+
+/* Premium hero logo + mobile header cleanup */
+.heroLogoFull{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: min(420px, 100%);
+  padding: 14px 18px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.94);
+  box-shadow: 0 18px 44px rgba(15,23,42,0.16);
+  margin-bottom: 16px !important;
+}
+
+.heroLogoFull img{
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
+
+@media (max-width: 700px){
+  .topBrand{
+    display: none !important;
+  }
+
+  .topHeaderInner{
+    grid-template-columns: 1fr auto !important;
+    grid-template-areas:
+      "search actions" !important;
+    align-items: center !important;
+    padding: 8px 0 !important;
+  }
+
+  .searchMenu{
+    grid-area: search !important;
+    padding-left: 10px;
+  }
+
+  .topActions{
+    grid-area: actions !important;
+    padding-right: 10px;
+  }
+
+  .heroLogoFull{
+    width: 100%;
+    padding: 12px;
+    border-radius: 20px;
+    margin-bottom: 12px !important;
+  }
+
+  .heroLogoFull img{
+    max-width: 320px !important;
+    margin: 0 auto;
+  }
+}
