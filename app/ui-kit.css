@@ -1188,3 +1188,54 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     padding: 0 14px;
   }
 }
+
+/* Mobile: search and hamburger in one line */
+@media (max-width: 700px){
+  .topHeaderInner{
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 44px !important;
+    grid-template-areas: "search actions" !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 8px 10px !important;
+  }
+
+  .topSearchQuick{
+    grid-area: search !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 0 !important;
+    gap: 6px !important;
+  }
+
+  .topSearchInput{
+    min-width: 0 !important;
+    height: 40px !important;
+    font-size: 13px !important;
+  }
+
+  .topSearchButton{
+    height: 40px !important;
+    padding: 0 14px !important;
+    font-size: 13px !important;
+  }
+
+  .topActions{
+    grid-area: actions !important;
+    width: 44px !important;
+    padding: 0 !important;
+    justify-content: flex-end !important;
+  }
+
+  .topMobileMenu{
+    margin-left: 0 !important;
+  }
+
+  .topHamburger{
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+  }
+}
