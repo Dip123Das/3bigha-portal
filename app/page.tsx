@@ -94,7 +94,7 @@ export default function HomePage() {
               <div
                 style={{
                   display: "inline-flex",
-                  alignItems: "center",
+                  alignItems: "start",
                   gap: 8,
                   padding: "9px 14px",
                   borderRadius: 999,

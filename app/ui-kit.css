@@ -1063,3 +1063,27 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     margin: 0 auto;
   }
 }
+
+/* Desktop hero logo premium alignment */
+@media (min-width: 701px){
+  .heroLogoFull{
+    display: flex !important;
+    width: min(560px, 42vw) !important;
+    height: 150px !important;
+    padding: 0 !important;
+    margin-bottom: 16px !important;
+    border-radius: 24px !important;
+    overflow: hidden !important;
+    background: rgba(255,255,255,0.96) !important;
+    box-shadow: 0 18px 44px rgba(15,23,42,0.16) !important;
+  }
+
+  .heroLogoFull img{
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    display: block !important;
+  }
+}
