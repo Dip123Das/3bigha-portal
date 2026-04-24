@@ -970,35 +970,30 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
   }
 }
 
-@media (max-width: 700px){
-  .topBrandLink img{
-    width: 150px !important;
-    height: auto !important;
-  }
+/* Final prominent full logo */
+.siteLogoFull{
+  width: 260px;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 0;
 }
 
-/* Header logo final size fix */
-.topBrandLink img{
-  width: 56px !important;
-  height: 56px !important;
+.siteLogoFull img{
+  width: 100% !important;
+  height: 100% !important;
   object-fit: contain !important;
 }
 
 @media (max-width: 700px){
-  .topBrandLink img{
-    width: 58px !important;
-    height: 58px !important;
+  .siteLogoFull{
+    width: 230px;
+    height: 76px;
+    margin-left: 10px;
   }
 
-  .topBrandName{
-    font-size: 20px !important;
-  }
-
-  .topBrandTagline{
-    font-size: 12px !important;
-  }
-
-  .topHeaderInner{
-    padding: 8px 0 !important;
+  .topBrandLink{
+    width: 100% !important;
   }
 }
