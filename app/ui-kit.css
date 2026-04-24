@@ -1087,3 +1087,18 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     display: block !important;
   }
 }
+
+/* Fix hero right panel spacing */
+@media (min-width: 701px){
+  .homeHeroInner{
+    align-items: stretch !important;
+  }
+
+  .homeHeroSide{
+    height: 100%;
+  }
+
+  .homeHeroSide > div{
+    height: 100%;
+  }
+}
