@@ -86,10 +86,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   flexWrap: "nowrap",
                 }}
               >
-                              <div
+                <div
                   style={{
-                    width: 44,
-                    height: 44,
+                    width: 68,
+                    height: 68,
                     flexShrink: 0,
                     display: "flex",
                     alignItems: "center",
@@ -99,8 +99,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <Image
                     src="/logo-icon.png"
                     alt="3Bigha icon"
-                    width={44}
-                    height={44}
+                    width={68}
+                    height={68}
                     style={{
                       width: "100%",
                       height: "100%",
@@ -124,7 +124,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <div
                     className="topBrandName"
                     style={{
-                      fontSize: 20,
+                      fontSize: 22,
                       lineHeight: 1,
                       fontWeight: 900,
                       letterSpacing: "-0.03em",
@@ -139,7 +139,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     className="topBrandTagline"
                     style={{
                       marginTop: 2,
-                      fontSize: 11,
+                      fontSize: 12,
                       lineHeight: 1.2,
                       color: "#475569",
                       fontWeight: 700,
