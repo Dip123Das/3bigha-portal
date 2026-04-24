@@ -1091,14 +1091,18 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
 /* Fix hero right panel spacing */
 @media (min-width: 701px){
   .homeHeroInner{
-    align-items: stretch !important;
+    align-items: start !important;
   }
 
   .homeHeroSide{
-    height: 100%;
+    margin-top: 10px;
   }
 
-  .homeHeroSide > div{
-    height: 100%;
+  .homeHeroPanel{
+    padding: 20px !important;
+  }
+
+  .homeHeroFeatureGrid{
+    margin-top: 10px;
   }
 }

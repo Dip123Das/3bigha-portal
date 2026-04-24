@@ -327,7 +327,6 @@ export default function HomePage() {
               <div
                 className="homeHeroPanel"
                 style={{
-                  minHeight: "100%",
                   borderRadius: 22,
                   background:
                     "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.10) 100%)",
@@ -335,9 +334,8 @@ export default function HomePage() {
                   padding: 16,
                   backdropFilter: "blur(8px)",
                   display: "grid",
-                  gridTemplateRows: "auto 1fr",
+                  gridTemplateRows: "auto",
                   gap: 12,
-                  height: "100%",
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
                 }}
               >
@@ -386,7 +384,7 @@ export default function HomePage() {
                   className="homeHeroFeatureGrid"
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
                     gap: 12,
                   }}
                 >
