@@ -1309,3 +1309,32 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     min-height: 118px;
   }
 }
+
+/* ===== HERO RIGHT PANEL FULL HEIGHT FIX ===== */
+
+.homeHeroInner{
+  align-items: stretch !important;
+}
+
+.homeHeroSide{
+  height: 100% !important;
+  display: flex !important;
+}
+
+.homeHeroPanel{
+  flex: 1 !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.homeHeroFeatureGrid{
+  flex: 1 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 12px !important;
+}
+
+.homeHeroFeatureCard{
+  height: 100% !important;
+}
