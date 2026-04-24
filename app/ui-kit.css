@@ -1239,3 +1239,62 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     min-height: 42px !important;
   }
 }
+
+/* FINAL mobile header: search + hamburger same line */
+@media (max-width: 700px){
+  .topHeaderInner{
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    padding: 8px 10px !important;
+  }
+
+  .topSearchQuick{
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  .topSearchInput{
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: auto !important;
+  }
+
+  .topSearchButton{
+    flex: 0 0 auto !important;
+    padding: 0 12px !important;
+  }
+
+  .topActions{
+    flex: 0 0 44px !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+  }
+
+  .topMobileMenu{
+    display: inline-flex !important;
+    margin: 0 !important;
+    flex: 0 0 42px !important;
+  }
+
+  .topHamburger{
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+  }
+}
