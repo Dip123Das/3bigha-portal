@@ -322,6 +322,7 @@ export default function HomePage() {
                 display: "flex",
                 flexDirection: "column",
                 height: "100%",
+                justifyContent: "center",
               }}
             >
               <div
@@ -334,7 +335,7 @@ export default function HomePage() {
                   padding: 16,
                   backdropFilter: "blur(8px)",
                   display: "grid",
-                  gridTemplateRows: "auto",
+                  gridTemplateRows: "auto auto",
                   gap: 12,
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
                 }}
@@ -384,7 +385,7 @@ export default function HomePage() {
                   className="homeHeroFeatureGrid"
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
                     gap: 12,
                   }}
                 >

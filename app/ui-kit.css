@@ -1298,3 +1298,14 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     min-height: 42px !important;
   }
 }
+
+/* Premium desktop hero balance */
+@media (min-width: 701px){
+  .homeHeroPanel{
+    max-height: 430px;
+  }
+
+  .homeHeroFeatureCard{
+    min-height: 118px;
+  }
+}
