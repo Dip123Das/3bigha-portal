@@ -976,3 +976,29 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     height: auto !important;
   }
 }
+
+/* Header logo final size fix */
+.topBrandLink img{
+  width: 56px !important;
+  height: 56px !important;
+  object-fit: contain !important;
+}
+
+@media (max-width: 700px){
+  .topBrandLink img{
+    width: 58px !important;
+    height: 58px !important;
+  }
+
+  .topBrandName{
+    font-size: 20px !important;
+  }
+
+  .topBrandTagline{
+    font-size: 12px !important;
+  }
+
+  .topHeaderInner{
+    padding: 8px 0 !important;
+  }
+}
