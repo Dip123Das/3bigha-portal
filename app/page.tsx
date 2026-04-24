@@ -186,7 +186,8 @@ export default function HomePage() {
                 className="homeHeroStats"
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
                   gap: 10,
                   marginTop: 18,
                   maxWidth: 700,
@@ -333,7 +334,7 @@ export default function HomePage() {
                   background:
                     "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.10) 100%)",
                   border: "1px solid rgba(255,255,255,0.22)",
-                  padding: 16,
+                  padding: "10px 14px",
                   backdropFilter: "blur(8px)",
                   display: "grid",
                   gridTemplateRows: "auto auto",
