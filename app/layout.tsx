@@ -128,76 +128,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </ActiveLink>
             </nav>
 
-            <details className="searchMenu">
-              <summary className="searchMenuBtn">Search</summary>
-
-              <div className="searchPanel" role="dialog" aria-label="Smart search">
-                <div className="searchPanelHeader">
-                  <div className="searchPanelTitle">Smart Search</div>
-                  <div className="searchPanelSubtitle">
-                    Unified search page with filters, Near me and Voice (inside
-                    /search).
-                  </div>
-                </div>
-
-                <form action="/search" method="get">
-                  <div className="searchRow">
-                    <select
-                      className="searchSelect"
-                      name="scope"
-                      defaultValue="all"
-                      aria-label="Search scope"
-                    >
-                      <option value="all">All</option>
-                      <option value="property">Property</option>
-                      <option value="materials">Materials</option>
-                      <option value="services">Services</option>
-                      <option value="rentals">Rentals</option>
-                      <option value="blog">Blog / News</option>
-                    </select>
-
-                    <input
-                      className="searchInput"
-                      name="q"
-                      placeholder="Search listings, materials, services…"
-                    />
-
-                    <input className="searchMini" name="city" placeholder="City" />
-                    <input
-                      className="searchMini"
-                      name="locality"
-                      placeholder="Locality"
-                    />
-                    <input className="searchMini" name="min" placeholder="Min ₹" />
-                    <input className="searchMini" name="max" placeholder="Max ₹" />
-
-                    <button className="searchBtnPrimary" type="submit">
-                      Search
-                    </button>
-                  </div>
-
-                  <div className="searchRowSecondary" aria-label="Quick actions">
-                    <Link className="searchPill searchPillStrong" href="/search?near=1">
-                      📍 Near me
-                    </Link>
-                    <Link className="searchPill searchPillStrong" href="/search?voice=1">
-                      🎙️ Voice search
-                    </Link>
-                    <Link className="searchPill" href="/search">
-                      Open full search →
-                    </Link>
-                  </div>
-
-                  <div className="searchNote">
-                    Near me + Voice search are available inside the unified
-                    search page:{" "}
-                    <Link className="postMenuInlineLink" href="/search">
-                      /search →
-                    </Link>
-                  </div>
-                </form>
-              </div>
-            </details>
+            <form className="topSearchQuick" action="/search" method="get">
+              <input
+                className="topSearchInput"
+                name="q"
+                placeholder="Search property, materials, services..."
+              />
+              <button className="topSearchButton" type="submit">
+                Search
+              </button>
+            </form>
 
             <div className="topActions">
               <details className="postMenu">

@@ -1106,3 +1106,85 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     margin-top: 10px;
   }
 }
+
+/* Fill hero right-side empty area cleanly */
+@media (min-width: 701px){
+  .homeHeroInner{
+    align-items: stretch !important;
+  }
+
+  .homeHeroSide{
+    display: flex !important;
+    height: 100% !important;
+  }
+
+  .homeHeroPanel{
+    min-height: 100% !important;
+  }
+
+  .homeHeroFeatureGrid{
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .homeHeroFeatureCard{
+    min-height: 132px;
+  }
+}
+
+/* Real header search box */
+.topSearchQuick{
+  grid-area: search;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 260px;
+  max-width: 420px;
+}
+
+.topSearchInput{
+  width: 100%;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,23,42,0.16);
+  padding: 0 14px;
+  font-weight: 700;
+  outline: none;
+  background: #fff;
+}
+
+.topSearchInput:focus{
+  border-color: rgba(11,87,208,0.45);
+  box-shadow: 0 0 0 4px rgba(11,87,208,0.10);
+}
+
+.topSearchButton{
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(11,87,208,0.25);
+  background: #0b57d0;
+  color: #fff;
+  padding: 0 16px;
+  font-weight: 950;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px){
+  .topSearchQuick{
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .topSearchInput{
+    height: 40px;
+    font-size: 13px;
+  }
+
+  .topSearchButton{
+    height: 40px;
+    padding: 0 14px;
+  }
+}
