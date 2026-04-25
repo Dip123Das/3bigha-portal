@@ -1,7 +1,8 @@
 // app/page.tsx
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { Container } from "@/components/layout/Container";
 import { Card, CardBody } from "@/components/ui/Card";
 import { ActionButton } from "@/components/ui/ActionButton";
@@ -28,10 +29,163 @@ const featureCardStyle: React.CSSProperties = {
   boxShadow: "0 10px 28px rgba(15,23,42,0.10)",
 };
 
+const suggestionBoxStyle: React.CSSProperties = {
+  width: "100%",
+  background: "#111827",
+  borderRadius: 10,
+  marginTop: 4,
+  padding: 6,
+  border: "1px solid rgba(255,255,255,0.12)",
+  boxShadow: "0 12px 28px rgba(0,0,0,0.25)",
+};
+
+const suggestionItemStyle: React.CSSProperties = {
+  padding: "7px 9px",
+  cursor: "pointer",
+  fontSize: 13,
+  color: "#fff",
+  borderRadius: 8,
+};
+
 export default function HomePage() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const [heroSearch, setHeroSearch] = useState("");
+  const [searchModule, setSearchModule] = useState("property");
+  const [locationText, setLocationText] = useState("");
+  const [useNearMe, setUseNearMe] = useState(true);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const suggestions = useMemo(
+    () => [
+      "cement supplier",
+      "cement price",
+      "brick supplier",
+      "sand price",
+      "steel rod dealer",
+      "house construction service",
+      "property for sale",
+      "plot for investment",
+      "rental house",
+      "2BHK flat",
+      "land for sale",
+      "builder project",
+    ],
+    []
+  );
+
+  const trendingSearches = useMemo(
+    () => [
+      "cement supplier",
+      "2BHK flat",
+      "plot for sale",
+      "construction service",
+      "steel rod price",
+      "investment opportunity",
+    ],
+    []
+  );
 
   const isActive = (path: string) => pathname.startsWith(path);
+
+  const getFinalQuery = (raw: string) => {
+    const clean = raw.trim();
+    if (!clean) return "";
+
+    return useNearMe && locationText ? `${clean} ${locationText}` : clean;
+  };
+
+  const saveRecentSearch = (raw: string) => {
+    const clean = raw.trim();
+    if (!clean) return;
+
+    const prev = JSON.parse(localStorage.getItem("recentSearches") || "[]");
+    const updated = [clean, ...prev.filter((p: string) => p !== clean)].slice(
+      0,
+      5
+    );
+
+    localStorage.setItem("recentSearches", JSON.stringify(updated));
+    setRecentSearches(updated);
+  };
+
+  const runHeroSearch = (raw = heroSearch) => {
+    const finalQuery = getFinalQuery(raw);
+    if (!finalQuery) return;
+
+    saveRecentSearch(raw);
+    setShowSuggestions(false);
+
+    router.push(
+      `/search?module=${searchModule}&q=${encodeURIComponent(finalQuery)}`
+    );
+  };
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const { latitude, longitude } = pos.coords;
+
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+        );
+        const data = await res.json();
+
+        const city =
+          data?.address?.city ||
+          data?.address?.town ||
+          data?.address?.village ||
+          data?.address?.county ||
+          "";
+
+        if (city) setLocationText(city);
+      } catch {
+        // Location display is helpful, but not required.
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("recentSearches") || "[]");
+    setRecentSearches(stored);
+  }, []);
+
+  useEffect(() => {
+    if (!heroSearch.trim()) return;
+
+    const timer = setTimeout(() => {
+      runHeroSearch(heroSearch);
+    }, 900);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [heroSearch]);
+
+  const filteredSuggestions = suggestions
+    .filter((s) => s.toLowerCase().includes(heroSearch.toLowerCase()))
+    .slice(0, 5);
+
+  const renderHighlightedSuggestion = (s: string) => {
+    const idx = s.toLowerCase().indexOf(heroSearch.toLowerCase());
+
+    if (!heroSearch || idx === -1) return s;
+
+    const before = s.slice(0, idx);
+    const match = s.slice(idx, idx + heroSearch.length);
+    const after = s.slice(idx + heroSearch.length);
+
+    return (
+      <>
+        {before}
+        <span style={{ color: "#22c55e", fontWeight: 800 }}>{match}</span>
+        {after}
+      </>
+    );
+  };
 
   return (
     <main>
@@ -47,7 +201,8 @@ export default function HomePage() {
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
-            boxShadow: "0 30px 80px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.08)",
+            boxShadow:
+              "0 30px 80px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.08)",
             position: "relative",
           }}
         >
@@ -65,7 +220,8 @@ export default function HomePage() {
             className="homeHeroInner"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
               gap: 20,
               padding: "20px",
               alignItems: "center",
@@ -73,12 +229,7 @@ export default function HomePage() {
             }}
           >
             <div className="homeHeroMain" style={{ color: "#fff" }}>
-              <div
-                className="heroLogoFull"
-                style={{
-                  marginBottom: 10,
-                }}
-              >
+              <div className="heroLogoFull" style={{ marginBottom: 10 }}>
                 <img
                   src="/logo.png"
                   alt="3Bigha"
@@ -91,6 +242,7 @@ export default function HomePage() {
                   }}
                 />
               </div>
+
               <div
                 style={{
                   display: "inline-flex",
@@ -141,9 +293,10 @@ export default function HomePage() {
                     textShadow: "0 1px 8px rgba(0,0,0,0.14)",
                   }}
                 >
-                  A smarter real-estate and construction marketplace for
-                  property, materials, services, rentals, investment and local
-                  business discovery.
+                  Built for your local area, anywhere in India — 3Bigha connects
+                  property, materials, services, rentals and trusted businesses,
+                  while unlocking powerful investment opportunities for local
+                  people to grow their earnings.
                 </p>
               </div>
 
@@ -158,9 +311,9 @@ export default function HomePage() {
                   textShadow: "0 1px 8px rgba(0,0,0,0.16)",
                 }}
               >
-                Discover verified opportunities, submit your requirement,
-                compare quotations, and connect with nearby vendors, owners,
-                builders and investors through one unified platform.
+                Search nearby opportunities, submit your requirement, compare
+                quotations, connect with verified businesses, and explore local
+                investment possibilities through one unified platform.
               </div>
 
               <div
@@ -179,6 +332,20 @@ export default function HomePage() {
                 <ActionButton href="/rfq/general/new" variant="primary">
                   Submit Requirement
                 </ActionButton>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  marginTop: 16,
+                }}
+              >
+                <span style={chipStyle}>📍 Local-first discovery</span>
+                <span style={chipStyle}>✅ Verified businesses</span>
+                <span style={chipStyle}>💬 RFQ + unified chat</span>
+                <span style={chipStyle}>📈 Local investment growth</span>
               </div>
 
               <div
@@ -256,64 +423,282 @@ export default function HomePage() {
 
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  flexWrap: "wrap",
                   marginTop: 18,
+                  maxWidth: 760,
+                  width: "100%",
                 }}
               >
-                <span
+                {locationText && (
+                  <div
+                    style={{
+                      fontSize: 13,
+                      marginBottom: 6,
+                      color: "#e5e7eb",
+                      fontWeight: 700,
+                    }}
+                  >
+                    📍 Showing results for {locationText}
+                  </div>
+                )}
+
+                <div
                   style={{
-                    fontWeight: 900,
-                    color: "#fff",
-                    marginRight: 4,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    marginBottom: 6,
+                    fontSize: 13,
+                    color: "#e5e7eb",
+                    fontWeight: 700,
                   }}
                 >
-                  Browse
-                </span>
+                  <input
+                    type="checkbox"
+                    checked={useNearMe}
+                    onChange={(e) => setUseNearMe(e.target.checked)}
+                  />
+                  <span>Near me</span>
+                </div>
 
-                <ActionButton
-                  href="/property"
-                  variant={isActive("/property") ? "primary" : "secondary"}
+                <div
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => {
+                    setTimeout(() => setShowSuggestions(false), 160);
+                  }}
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    marginBottom: 12,
+                    flexWrap: "wrap",
+                  }}
                 >
-                  Properties
-                </ActionButton>
+                  <select
+                    value={searchModule}
+                    onChange={(e) => setSearchModule(e.target.value)}
+                    style={{
+                      padding: "10px",
+                      borderRadius: 8,
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      background: "rgba(255,255,255,0.08)",
+                      color: "#fff",
+                    }}
+                  >
+                    <option value="property">Property</option>
+                    <option value="materials">Materials</option>
+                    <option value="services">Services</option>
+                    <option value="rentals">Rentals</option>
+                    <option value="investment">Investment</option>
+                  </select>
 
-                <ActionButton
-                  href="/materials"
-                  variant={isActive("/materials") ? "primary" : "secondary"}
-                >
-                  Materials
-                </ActionButton>
+                  <input
+                    type="text"
+                    value={heroSearch}
+                    onChange={(e) => setHeroSearch(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && heroSearch.trim()) {
+                        runHeroSearch(heroSearch);
+                      }
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    placeholder="Search property, materials, services, investment..."
+                    style={{
+                      flex: 1,
+                      minWidth: 220,
+                      padding: "10px 12px",
+                      borderRadius: 8,
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      outline: "none",
+                      background: "rgba(255,255,255,0.08)",
+                      color: "#fff",
+                    }}
+                  />
 
-                <ActionButton
-                  href="/services"
-                  variant={isActive("/services") ? "primary" : "secondary"}
-                >
-                  Services
-                </ActionButton>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const SpeechRecognition =
+                        (window as any).SpeechRecognition ||
+                        (window as any).webkitSpeechRecognition;
 
-                <ActionButton
-                  href="/rentals"
-                  variant={isActive("/rentals") ? "primary" : "secondary"}
-                >
-                  Rentals
-                </ActionButton>
+                      if (!SpeechRecognition) {
+                        alert("Voice search not supported in this browser");
+                        return;
+                      }
 
-                <ActionButton
-                  href="/investment"
-                  variant={isActive("/investment") ? "primary" : "secondary"}
-                >
-                  Investment
-                </ActionButton>
+                      const recognition = new SpeechRecognition();
+                      recognition.lang = "en-IN";
 
-                <ActionButton
-                  href="/blog"
-                  variant={isActive("/blog") ? "primary" : "secondary"}
+                      recognition.onresult = (event: any) => {
+                        const text = event.results[0][0].transcript;
+                        setHeroSearch(text);
+                        setShowSuggestions(false);
+                      };
+
+                      recognition.start();
+                    }}
+                    style={{
+                      padding: "10px 12px",
+                      borderRadius: 8,
+                      border: "none",
+                      background: "#22c55e",
+                      color: "#fff",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    🎤
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => runHeroSearch(heroSearch)}
+                    style={{
+                      padding: "10px 16px",
+                      borderRadius: 8,
+                      border: "none",
+                      background: "#ef4444",
+                      color: "#fff",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Search
+                  </button>
+
+                  {showSuggestions && heroSearch.length > 1 ? (
+                    <div style={suggestionBoxStyle}>
+                      {filteredSuggestions.length > 0 ? (
+                        filteredSuggestions.map((s) => (
+                          <div
+                            key={s}
+                            onMouseDown={() => {
+                              setHeroSearch(s);
+                              setShowSuggestions(false);
+                            }}
+                            style={suggestionItemStyle}
+                          >
+                            {renderHighlightedSuggestion(s)}
+                          </div>
+                        ))
+                      ) : (
+                        <div style={{ ...suggestionItemStyle, opacity: 0.75 }}>
+                          Press Enter to search “{heroSearch}”
+                        </div>
+                      )}
+                    </div>
+                  ) : showSuggestions && recentSearches.length > 0 ? (
+                    <div style={suggestionBoxStyle}>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          opacity: 0.7,
+                          marginBottom: 4,
+                          color: "#fff",
+                        }}
+                      >
+                        Recent searches
+                      </div>
+
+                      {recentSearches.map((s) => (
+                        <div
+                          key={s}
+                          onMouseDown={() => {
+                            setHeroSearch(s);
+                            setShowSuggestions(false);
+                          }}
+                          style={suggestionItemStyle}
+                        >
+                          {s}
+                        </div>
+                      ))}
+                    </div>
+                  ) : showSuggestions ? (
+                    <div style={suggestionBoxStyle}>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          opacity: 0.7,
+                          marginBottom: 4,
+                          color: "#fff",
+                        }}
+                      >
+                        Trending searches
+                      </div>
+
+                      {trendingSearches.map((s) => (
+                        <div
+                          key={s}
+                          onMouseDown={() => {
+                            setHeroSearch(s);
+                            setShowSuggestions(false);
+                          }}
+                          style={suggestionItemStyle}
+                        >
+                          {s}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    flexWrap: "wrap",
+                    marginTop: 6,
+                  }}
                 >
-                  Blog / News
-                </ActionButton>
+                  <span
+                    style={{
+                      fontWeight: 900,
+                      color: "#fff",
+                      marginRight: 4,
+                    }}
+                  >
+                    Choose your need
+                  </span>
+
+                  <ActionButton
+                    href="/property"
+                    variant={isActive("/property") ? "primary" : "secondary"}
+                  >
+                    Buy / Sell Property
+                  </ActionButton>
+
+                  <ActionButton
+                    href="/materials"
+                    variant={isActive("/materials") ? "primary" : "secondary"}
+                  >
+                    Get Materials
+                  </ActionButton>
+
+                  <ActionButton
+                    href="/services"
+                    variant={isActive("/services") ? "primary" : "secondary"}
+                  >
+                    Hire Services
+                  </ActionButton>
+
+                  <ActionButton
+                    href="/rentals"
+                    variant={isActive("/rentals") ? "primary" : "secondary"}
+                  >
+                    Find Rentals
+                  </ActionButton>
+
+                  <ActionButton href="/investment" variant="primary">
+                    🚀 Invest & Earn
+                  </ActionButton>
+
+                  <ActionButton
+                    href="/blog"
+                    variant={isActive("/blog") ? "primary" : "secondary"}
+                  >
+                    Learn / News
+                  </ActionButton>
+                </div>
               </div>
             </div>
 
@@ -358,7 +743,7 @@ export default function HomePage() {
                       letterSpacing: "0.04em",
                     }}
                   >
-                    MARKETPLACE COVERAGE
+                    SMART LOCAL MARKETPLACE
                   </div>
                   <div
                     style={{
@@ -368,7 +753,7 @@ export default function HomePage() {
                       lineHeight: 1.35,
                     }}
                   >
-                    Property • Materials • Services • Rentals
+                    Search • Compare • Connect • Invest
                   </div>
                   <div
                     style={{
@@ -377,8 +762,8 @@ export default function HomePage() {
                       lineHeight: 1.6,
                     }}
                   >
-                    One portal to discover, compare and connect across the
-                    complete construction and real-estate ecosystem.
+                    A single platform for local discovery, RFQ comparison,
+                    business networking and real investment opportunities.
                   </div>
                 </div>
 
@@ -438,7 +823,10 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <div className="homeHeroFeatureCard homeHeroFeatureCardOptional" style={featureCardStyle}>
+                  <div
+                    className="homeHeroFeatureCard homeHeroFeatureCardOptional"
+                    style={featureCardStyle}
+                  >
                     <div style={{ fontSize: 24 }}>🤝</div>
                     <div
                       style={{
@@ -462,7 +850,10 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <div className="homeHeroFeatureCard homeHeroFeatureCardOptional" style={featureCardStyle}>
+                  <div
+                    className="homeHeroFeatureCard homeHeroFeatureCardOptional"
+                    style={featureCardStyle}
+                  >
                     <div style={{ fontSize: 24 }}>🏗️</div>
                     <div
                       style={{
@@ -513,8 +904,8 @@ export default function HomePage() {
                       color: "#0f172a",
                     }}
                   >
-                    ✍️ Need Property, Materials, Services or Rentals? Submit your
-                    Requirement (RFQ)
+                    ✍️ Need Property, Materials, Services or Rentals? Submit
+                    your Requirement (RFQ)
                   </div>
 
                   <div
@@ -547,7 +938,14 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <div style={{ minWidth: 0, width: "100%", maxWidth: 340, flex: "1 1 300px" }}>
+                <div
+                  style={{
+                    minWidth: 0,
+                    width: "100%",
+                    maxWidth: 340,
+                    flex: "1 1 300px",
+                  }}
+                >
                   <details
                     style={{
                       border: "1px solid rgba(15,23,42,0.10)",
@@ -573,7 +971,13 @@ export default function HomePage() {
                       <span style={{ opacity: 0.7 }}>▾</span>
                     </summary>
 
-                    <div style={{ marginTop: 10, color: "#334155", lineHeight: 1.6 }}>
+                    <div
+                      style={{
+                        marginTop: 10,
+                        color: "#334155",
+                        lineHeight: 1.6,
+                      }}
+                    >
                       <div
                         style={{
                           fontWeight: 800,
@@ -604,7 +1008,11 @@ export default function HomePage() {
                   </details>
 
                   <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-                    <ActionButton href="/rfq/general/new" variant="primary" fullWidth>
+                    <ActionButton
+                      href="/rfq/general/new"
+                      variant="primary"
+                      fullWidth
+                    >
                       Submit Requirement →
                     </ActionButton>
 
@@ -659,15 +1067,24 @@ export default function HomePage() {
           style={{
             display: "grid",
             gap: 14,
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
             marginTop: 14,
           }}
         >
           <Card>
             <CardBody>
               <div style={{ fontSize: 22 }}>🏠</div>
-              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>Property</h3>
-              <p style={{ margin: "6px 0 0", color: "#475569", lineHeight: 1.6 }}>
+              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>
+                Property
+              </h3>
+              <p
+                style={{
+                  margin: "6px 0 0",
+                  color: "#475569",
+                  lineHeight: 1.6,
+                }}
+              >
                 Sell, rent, land, residential and commercial listings.
               </p>
               <div style={{ marginTop: 12 }}>
@@ -681,8 +1098,16 @@ export default function HomePage() {
           <Card>
             <CardBody>
               <div style={{ fontSize: 22 }}>🧱</div>
-              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>Materials</h3>
-              <p style={{ margin: "6px 0 0", color: "#475569", lineHeight: 1.6 }}>
+              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>
+                Materials
+              </h3>
+              <p
+                style={{
+                  margin: "6px 0 0",
+                  color: "#475569",
+                  lineHeight: 1.6,
+                }}
+              >
                 Building materials marketplace for suppliers and buyers.
               </p>
               <div style={{ marginTop: 12 }}>
@@ -696,8 +1121,16 @@ export default function HomePage() {
           <Card>
             <CardBody>
               <div style={{ fontSize: 22 }}>🛠️</div>
-              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>Services</h3>
-              <p style={{ margin: "6px 0 0", color: "#475569", lineHeight: 1.6 }}>
+              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>
+                Services
+              </h3>
+              <p
+                style={{
+                  margin: "6px 0 0",
+                  color: "#475569",
+                  lineHeight: 1.6,
+                }}
+              >
                 Professional, skilled, legal and technical services.
               </p>
               <div style={{ marginTop: 12 }}>
@@ -711,8 +1144,16 @@ export default function HomePage() {
           <Card>
             <CardBody>
               <div style={{ fontSize: 22 }}>🚜</div>
-              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>Rentals</h3>
-              <p style={{ margin: "6px 0 0", color: "#475569", lineHeight: 1.6 }}>
+              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>
+                Rentals
+              </h3>
+              <p
+                style={{
+                  margin: "6px 0 0",
+                  color: "#475569",
+                  lineHeight: 1.6,
+                }}
+              >
                 Machinery, tools, shuttering and equipment rentals.
               </p>
               <div style={{ marginTop: 12 }}>
@@ -726,8 +1167,16 @@ export default function HomePage() {
           <Card>
             <CardBody>
               <div style={{ fontSize: 22 }}>📰</div>
-              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>Blog / News</h3>
-              <p style={{ margin: "6px 0 0", color: "#475569", lineHeight: 1.6 }}>
+              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>
+                Blog / News
+              </h3>
+              <p
+                style={{
+                  margin: "6px 0 0",
+                  color: "#475569",
+                  lineHeight: 1.6,
+                }}
+              >
                 Real-estate and construction updates, guides and insights.
               </p>
               <div style={{ marginTop: 12 }}>
@@ -741,8 +1190,16 @@ export default function HomePage() {
           <Card>
             <CardBody>
               <div style={{ fontSize: 22 }}>💼</div>
-              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>Investment</h3>
-              <p style={{ margin: "6px 0 0", color: "#475569", lineHeight: 1.6 }}>
+              <h3 style={{ margin: "8px 0 0", color: "#0f172a" }}>
+                Investment
+              </h3>
+              <p
+                style={{
+                  margin: "6px 0 0",
+                  color: "#475569",
+                  lineHeight: 1.6,
+                }}
+              >
                 Discover opportunities and connect builders with investors.
               </p>
               <div style={{ marginTop: 12 }}>
