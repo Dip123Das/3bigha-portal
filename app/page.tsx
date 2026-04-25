@@ -37,6 +37,8 @@ const suggestionBoxStyle: React.CSSProperties = {
   padding: 6,
   border: "1px solid rgba(255,255,255,0.12)",
   boxShadow: "0 12px 28px rgba(0,0,0,0.25)",
+  position: "relative",
+  zIndex: 5,
 };
 
 const suggestionItemStyle: React.CSSProperties = {
@@ -154,17 +156,6 @@ export default function HomePage() {
     setRecentSearches(stored);
   }, []);
 
-  useEffect(() => {
-    if (!heroSearch.trim()) return;
-
-    const timer = setTimeout(() => {
-      runHeroSearch(heroSearch);
-    }, 900);
-
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [heroSearch]);
-
   const filteredSuggestions = suggestions
     .filter((s) => s.toLowerCase().includes(heroSearch.toLowerCase()))
     .slice(0, 5);
@@ -204,6 +195,7 @@ export default function HomePage() {
             boxShadow:
               "0 30px 80px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.08)",
             position: "relative",
+            zIndex: 1,
           }}
         >
           <div
@@ -476,6 +468,8 @@ export default function HomePage() {
                     borderRadius: 12,
                     backdropFilter: "blur(6px)",
                     border: "1px solid rgba(255,255,255,0.15)",
+                    position: "relative",
+                    zIndex: 10,
                   }}
                 >
                   <select
