@@ -24,9 +24,8 @@ const chipStyle: React.CSSProperties = {
 const featureCardStyle: React.CSSProperties = {
   borderRadius: 18,
   background: "rgba(255,255,255,0.96)",
-  padding: "12px 14px",
+  padding: "14px 16px",
   boxShadow: "0 10px 28px rgba(15,23,42,0.10)",
-  minHeight: 118,
 };
 
 export default function HomePage() {
@@ -48,7 +47,7 @@ export default function HomePage() {
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
-            boxShadow: "0 20px 60px rgba(11,87,208,0.18)",
+            boxShadow: "0 30px 80px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.08)",
             position: "relative",
           }}
         >
@@ -323,8 +322,7 @@ export default function HomePage() {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                height: "100%",
-                justifyContent: "flex-start",
+                justifyContent: "center",
               }}
             >
               <div
@@ -334,7 +332,7 @@ export default function HomePage() {
                   background:
                     "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.10) 100%)",
                   border: "1px solid rgba(255,255,255,0.22)",
-                  padding: "10px 14px",
+                  padding: 16,
                   backdropFilter: "blur(8px)",
                   display: "grid",
                   gridTemplateRows: "auto auto",

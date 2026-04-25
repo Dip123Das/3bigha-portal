@@ -1394,3 +1394,21 @@ html[data-path^="/blog"] .topNavLink[data-match="/blog"]{
     box-shadow: 0 12px 28px rgba(15,23,42,0.14) !important;
   }
 }
+
+/* Compact right hero panel after premium polish */
+@media (min-width: 701px){
+  .homeHeroPanel{
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
+  .homeHeroFeatureGrid{
+    flex: 0 0 auto !important;
+  }
+
+  .homeHeroFeatureCard{
+    min-height: 0 !important;
+    height: auto !important;
+  }
+}
