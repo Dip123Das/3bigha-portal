@@ -470,17 +470,24 @@ export default function HomePage() {
                     gap: 8,
                     marginBottom: 12,
                     flexWrap: "wrap",
+                    alignItems: "center",
+                    background: "rgba(0,0,0,0.25)",
+                    padding: "8px",
+                    borderRadius: 12,
+                    backdropFilter: "blur(6px)",
+                    border: "1px solid rgba(255,255,255,0.15)",
                   }}
                 >
                   <select
                     value={searchModule}
                     onChange={(e) => setSearchModule(e.target.value)}
                     style={{
-                      padding: "10px",
-                      borderRadius: 8,
-                      border: "1px solid rgba(255,255,255,0.2)",
-                      background: "rgba(255,255,255,0.08)",
+                      padding: "12px 10px",
+                      borderRadius: 10,
+                      border: "1px solid rgba(255,255,255,0.25)",
+                      background: "rgba(0,0,0,0.35)",
                       color: "#fff",
+                      fontWeight: 700,
                     }}
                   >
                     <option value="property">Property</option>
@@ -504,12 +511,13 @@ export default function HomePage() {
                     style={{
                       flex: 1,
                       minWidth: 220,
-                      padding: "10px 12px",
-                      borderRadius: 8,
-                      border: "1px solid rgba(255,255,255,0.2)",
+                      padding: "12px 14px",
+                      borderRadius: 10,
+                      border: "1px solid rgba(255,255,255,0.25)",
                       outline: "none",
-                      background: "rgba(255,255,255,0.08)",
+                      background: "rgba(0,0,0,0.35)",
                       color: "#fff",
+                      fontSize: 14,
                     }}
                   />
 
@@ -546,20 +554,21 @@ export default function HomePage() {
                       cursor: "pointer",
                     }}
                   >
-                    🎤
+                    🎤 Speak
                   </button>
 
                   <button
                     type="button"
                     onClick={() => runHeroSearch(heroSearch)}
                     style={{
-                      padding: "10px 16px",
-                      borderRadius: 8,
+                      padding: "12px 18px",
+                      borderRadius: 10,
                       border: "none",
-                      background: "#ef4444",
+                      background: "linear-gradient(135deg, #ef4444, #dc2626)",
                       color: "#fff",
-                      fontWeight: 700,
+                      fontWeight: 800,
                       cursor: "pointer",
+                      boxShadow: "0 6px 18px rgba(239,68,68,0.4)",
                     }}
                   >
                     Search
@@ -764,6 +773,48 @@ export default function HomePage() {
                   >
                     A single platform for local discovery, RFQ comparison,
                     business networking and real investment opportunities.
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 14,
+                    background: "#ffffff",
+                    borderRadius: 16,
+                    padding: 16,
+                    boxShadow: "0 10px 28px rgba(15,23,42,0.10)",
+                  }}
+                >
+                  <div style={{ fontWeight: 900, fontSize: 16, color: "#0f172a" }}>
+                    Start Now
+                  </div>
+
+                  <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
+                    <ActionButton href="/rfq/general/new" variant="primary" fullWidth>
+                      Submit Requirement →
+                    </ActionButton>
+
+                    <ActionButton href="/property" variant="secondary" fullWidth>
+                      Browse Property →
+                    </ActionButton>
+
+                    <ActionButton href="/investment" variant="secondary" fullWidth>
+                      Explore Investment →
+                    </ActionButton>
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 12,
+                      fontSize: 12,
+                      color: "#64748b",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    ✔ Verified businesses <br />
+                    ✔ Local discovery <br />
+                    ✔ Direct connection <br />
+                    ✔ Real investment opportunities
                   </div>
                 </div>
 
