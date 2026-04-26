@@ -310,111 +310,6 @@ export default function HomePage() {
 
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  flexWrap: "wrap",
-                  marginTop: 18,
-                }}
-              >
-                <ActionButton href="/property" variant="secondary">
-                  Explore Property
-                </ActionButton>
-
-                <ActionButton href="/rfq/general/new" variant="primary">
-                  Submit Requirement
-                </ActionButton>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: 8,
-                  flexWrap: "wrap",
-                  marginTop: 16,
-                }}
-              >
-                <span style={chipStyle}>📍 Local-first discovery</span>
-                <span style={chipStyle}>✅ Verified businesses</span>
-                <span style={chipStyle}>💬 RFQ + unified chat</span>
-                <span style={chipStyle}>📈 Local investment growth</span>
-              </div>
-
-              <div
-                className="homeHeroStats"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
-                  gap: 10,
-                  marginTop: 18,
-                  maxWidth: 700,
-                  width: "100%",
-                }}
-              >
-                <div
-                  style={{
-                    borderRadius: 16,
-                    padding: "12px 14px",
-                    background: "rgba(255,255,255,0.14)",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    color: "#fff",
-                  }}
-                >
-                  <div style={{ fontSize: 12, opacity: 0.9, fontWeight: 700 }}>
-                    COVERAGE
-                  </div>
-                  <div style={{ marginTop: 5, fontSize: 18, fontWeight: 900 }}>
-                    All-in-one
-                  </div>
-                  <div style={{ marginTop: 4, fontSize: 13, lineHeight: 1.45 }}>
-                    Property, materials, services, rentals and investment
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    borderRadius: 16,
-                    padding: "12px 14px",
-                    background: "rgba(255,255,255,0.14)",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    color: "#fff",
-                  }}
-                >
-                  <div style={{ fontSize: 12, opacity: 0.9, fontWeight: 700 }}>
-                    LOCAL-FIRST
-                  </div>
-                  <div style={{ marginTop: 5, fontSize: 18, fontWeight: 900 }}>
-                    Nearby reach
-                  </div>
-                  <div style={{ marginTop: 4, fontSize: 13, lineHeight: 1.45 }}>
-                    Better discovery using verified location-based onboarding
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    borderRadius: 16,
-                    padding: "12px 14px",
-                    background: "rgba(255,255,255,0.14)",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                    color: "#fff",
-                  }}
-                >
-                  <div style={{ fontSize: 12, opacity: 0.9, fontWeight: 700 }}>
-                    WORKFLOW
-                  </div>
-                  <div style={{ marginTop: 5, fontSize: 18, fontWeight: 900 }}>
-                    RFQ to chat
-                  </div>
-                  <div style={{ marginTop: 4, fontSize: 13, lineHeight: 1.45 }}>
-                    Submit needs, compare quotes and continue in unified inbox
-                  </div>
-                </div>
-              </div>
-
-              <div
-                style={{
                   marginTop: 18,
                   maxWidth: 760,
                   width: "100%",
@@ -491,29 +386,123 @@ export default function HomePage() {
                     <option value="investment">Investment</option>
                   </select>
 
-                  <input
-                    type="text"
-                    value={heroSearch}
-                    onChange={(e) => setHeroSearch(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && heroSearch.trim()) {
-                        runHeroSearch(heroSearch);
-                      }
-                    }}
-                    onFocus={() => setShowSuggestions(true)}
-                    placeholder="Search property, materials, services, investment..."
+                  <div
                     style={{
-                      flex: 1,
+                      position: "relative",
+                      flex: "1 1 260px",
                       minWidth: 220,
-                      padding: "12px 14px",
-                      borderRadius: 10,
-                      border: "1px solid rgba(255,255,255,0.25)",
-                      outline: "none",
-                      background: "rgba(0,0,0,0.35)",
-                      color: "#fff",
-                      fontSize: 14,
                     }}
-                  />
+                  >
+                    <input
+                      type="text"
+                      value={heroSearch}
+                      onChange={(e) => setHeroSearch(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && heroSearch.trim()) {
+                          runHeroSearch(heroSearch);
+                        }
+                      }}
+                      onFocus={() => setShowSuggestions(true)}
+                      placeholder="Search property, materials, services, investment..."
+                      style={{
+                        width: "100%",
+                        padding: "12px 14px",
+                        borderRadius: 10,
+                        border: "1px solid rgba(255,255,255,0.25)",
+                        outline: "none",
+                        background: "rgba(0,0,0,0.35)",
+                        color: "#fff",
+                        fontSize: 14,
+                      }}
+                    />
+
+                    {showSuggestions ? (
+                      <div
+                        style={{
+                          ...suggestionBoxStyle,
+                          position: "absolute",
+                          top: "calc(100% + 4px)",
+                          left: 0,
+                          right: 0,
+                          marginTop: 0,
+                          zIndex: 50,
+                        }}
+                      >
+                        {heroSearch.length > 1 ? (
+                          filteredSuggestions.length > 0 ? (
+                            filteredSuggestions.map((s) => (
+                              <div
+                                key={s}
+                                onMouseDown={() => {
+                                  setHeroSearch(s);
+                                  setShowSuggestions(false);
+                                }}
+                                style={suggestionItemStyle}
+                              >
+                                {renderHighlightedSuggestion(s)}
+                              </div>
+                            ))
+                          ) : (
+                            <div style={{ ...suggestionItemStyle, opacity: 0.75 }}>
+                              Press Enter to search “{heroSearch}”
+                            </div>
+                          )
+                        ) : recentSearches.length > 0 ? (
+                          <>
+                            <div
+                              style={{
+                                fontSize: 12,
+                                opacity: 0.7,
+                                marginBottom: 4,
+                                color: "#fff",
+                              }}
+                            >
+                              Recent searches
+                            </div>
+
+                            {recentSearches.map((s) => (
+                              <div
+                                key={s}
+                                onMouseDown={() => {
+                                  setHeroSearch(s);
+                                  setShowSuggestions(false);
+                                }}
+                                style={suggestionItemStyle}
+                              >
+                                {s}
+                              </div>
+                            ))}
+                          </>
+                        ) : (
+                          <>
+                            <div
+                              style={{
+                                fontSize: 12,
+                                opacity: 0.7,
+                                marginBottom: 4,
+                                color: "#fff",
+                              }}
+                            >
+                              Trending searches
+                            </div>
+
+                            {trendingSearches.map((s) => (
+                              <div
+                                key={s}
+                                onMouseDown={() => {
+                                  setHeroSearch(s);
+                                  setShowSuggestions(false);
+                                }}
+                                style={suggestionItemStyle}
+                              >
+                                {s}
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
 
                   <button
                     type="button"
@@ -539,12 +528,12 @@ export default function HomePage() {
                       recognition.start();
                     }}
                     style={{
-                      padding: "10px 12px",
-                      borderRadius: 8,
+                      padding: "12px 12px",
+                      borderRadius: 10,
                       border: "none",
                       background: "#22c55e",
                       color: "#fff",
-                      fontWeight: 700,
+                      fontWeight: 800,
                       cursor: "pointer",
                     }}
                   >
@@ -567,81 +556,6 @@ export default function HomePage() {
                   >
                     Search
                   </button>
-
-                  {showSuggestions && heroSearch.length > 1 ? (
-                    <div style={suggestionBoxStyle}>
-                      {filteredSuggestions.length > 0 ? (
-                        filteredSuggestions.map((s) => (
-                          <div
-                            key={s}
-                            onMouseDown={() => {
-                              setHeroSearch(s);
-                              setShowSuggestions(false);
-                            }}
-                            style={suggestionItemStyle}
-                          >
-                            {renderHighlightedSuggestion(s)}
-                          </div>
-                        ))
-                      ) : (
-                        <div style={{ ...suggestionItemStyle, opacity: 0.75 }}>
-                          Press Enter to search “{heroSearch}”
-                        </div>
-                      )}
-                    </div>
-                  ) : showSuggestions && recentSearches.length > 0 ? (
-                    <div style={suggestionBoxStyle}>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          opacity: 0.7,
-                          marginBottom: 4,
-                          color: "#fff",
-                        }}
-                      >
-                        Recent searches
-                      </div>
-
-                      {recentSearches.map((s) => (
-                        <div
-                          key={s}
-                          onMouseDown={() => {
-                            setHeroSearch(s);
-                            setShowSuggestions(false);
-                          }}
-                          style={suggestionItemStyle}
-                        >
-                          {s}
-                        </div>
-                      ))}
-                    </div>
-                  ) : showSuggestions ? (
-                    <div style={suggestionBoxStyle}>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          opacity: 0.7,
-                          marginBottom: 4,
-                          color: "#fff",
-                        }}
-                      >
-                        Trending searches
-                      </div>
-
-                      {trendingSearches.map((s) => (
-                        <div
-                          key={s}
-                          onMouseDown={() => {
-                            setHeroSearch(s);
-                            setShowSuggestions(false);
-                          }}
-                          style={suggestionItemStyle}
-                        >
-                          {s}
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
                 </div>
 
                 <div
@@ -729,6 +643,75 @@ export default function HomePage() {
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
                 }}
               >
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() =>
+                    router.push(
+                      "/search?module=materials&q=price%20today"
+                    )
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      router.push(
+                        "/search?module=materials&q=price%20today"
+                      );
+                    }
+                  }}
+                  style={{
+                    borderRadius: 20,
+                    background:
+                      "linear-gradient(135deg, #f97316 0%, #dc2626 55%, #7c2d12 100%)",
+                    transition: "all 0.25s ease",
+                    padding: 16,
+                    color: "#ffffff",
+                    boxShadow: "0 16px 36px rgba(220,38,38,0.34)",
+                    cursor: "pointer",
+                    border: "1px solid rgba(255,255,255,0.35)",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.transform = "scale(1.03)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.transform = "scale(1)";
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 900,
+                      letterSpacing: "0.06em",
+                      opacity: 0.95,
+                    }}
+                  >
+                    PRICE TODAY
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 6,
+                      fontSize: 21,
+                      fontWeight: 950,
+                      lineHeight: 1.25,
+                    }}
+                  >
+                    Check material & property price trends
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 6,
+                      fontSize: 13,
+                      lineHeight: 1.5,
+                      opacity: 0.94,
+                      fontWeight: 700,
+                    }}
+                  >
+                    Cement, steel, sand, aggregate, brick, land and per sq.ft.
+                    market indication.
+                  </div>
+                </div>
+
                 <div
                   style={{
                     borderRadius: 20,
@@ -820,108 +803,91 @@ export default function HomePage() {
                     gap: 12,
                   }}
                 >
-                  <div className="homeHeroFeatureCard" style={featureCardStyle}>
-                    <div style={{ fontSize: 24 }}>📍</div>
-                    <div
+                  {[
+                    {
+                      icon: "📍",
+                      title: "Local discovery",
+                      text: "Nearby search and district-focused onboarding.",
+                      href: "/search?module=property&q=near%20me",
+                    },
+                    {
+                      icon: "🧾",
+                      title: "Requirement to quote",
+                      text: "Submit needs and receive competitive responses.",
+                      href: "/rfq/general/new",
+                    },
+                    {
+                      icon: "🤝",
+                      title: "Business networking",
+                      text: "Connect vendors, owners, builders, buyers and investors.",
+                      href: "/dashboard/inbox",
+                    },
+                    {
+                      icon: "🏗️",
+                      title: "Professional image",
+                      text: "Create a stronger first impression for visitors.",
+                      href: "/register",
+                    },
+                    {
+                      icon: "🗺️",
+                      title: "Local-first discovery",
+                      text: "Find local property, materials, services and rentals.",
+                      href: "/search?module=property&q=local",
+                    },
+                    {
+                      icon: "✅",
+                      title: "Verified businesses",
+                      text: "Discover trusted local businesses and providers.",
+                      href: "/search?module=services&q=verified%20business",
+                    },
+                    {
+                      icon: "💬",
+                      title: "RFQ + unified chat",
+                      text: "Manage quotations and messages in one flow.",
+                      href: "/dashboard/inbox",
+                    },
+                    {
+                      icon: "📈",
+                      title: "Local investment growth",
+                      text: "Explore local investment opportunities.",
+                      href: "/investment",
+                    },
+                  ].map((item) => (
+                    <a
+                      key={item.title}
+                      href={item.href}
+                      className="homeHeroFeatureCard"
                       style={{
-                        marginTop: 4,
-                        fontWeight: 900,
-                        color: "#0f172a",
-                        fontSize: 16,
+                        ...featureCardStyle,
+                        textDecoration: "none",
+                        color: "inherit",
+                        display: "block",
+                        cursor: "pointer",
                       }}
                     >
-                      Local discovery
-                    </div>
-                    <div
-                      style={{
-                        marginTop: 4,
-                        color: "#475569",
-                        fontSize: 14,
-                        lineHeight: 1.55,
-                      }}
-                    >
-                      Nearby search and district-focused onboarding.
-                    </div>
-                  </div>
-
-                  <div className="homeHeroFeatureCard" style={featureCardStyle}>
-                    <div style={{ fontSize: 20 }}>🧾</div>
-                    <div
-                      style={{
-                        marginTop: 8,
-                        fontWeight: 900,
-                        color: "#0f172a",
-                        fontSize: 16,
-                      }}
-                    >
-                      Requirement to quote
-                    </div>
-                    <div
-                      style={{
-                        marginTop: 4,
-                        color: "#475569",
-                        fontSize: 14,
-                        lineHeight: 1.55,
-                      }}
-                    >
-                      Buyers can submit needs and receive competitive responses.
-                    </div>
-                  </div>
-
-                  <div
-                    className="homeHeroFeatureCard homeHeroFeatureCardOptional"
-                    style={featureCardStyle}
-                  >
-                    <div style={{ fontSize: 24 }}>🤝</div>
-                    <div
-                      style={{
-                        marginTop: 8,
-                        fontWeight: 900,
-                        color: "#0f172a",
-                        fontSize: 16,
-                      }}
-                    >
-                      Business networking
-                    </div>
-                    <div
-                      style={{
-                        marginTop: 4,
-                        color: "#475569",
-                        fontSize: 14,
-                        lineHeight: 1.55,
-                      }}
-                    >
-                      Connect vendors, owners, builders, buyers and investors.
-                    </div>
-                  </div>
-
-                  <div
-                    className="homeHeroFeatureCard homeHeroFeatureCardOptional"
-                    style={featureCardStyle}
-                  >
-                    <div style={{ fontSize: 24 }}>🏗️</div>
-                    <div
-                      style={{
-                        marginTop: 8,
-                        fontWeight: 900,
-                        color: "#0f172a",
-                        fontSize: 16,
-                      }}
-                    >
-                      Professional image
-                    </div>
-                    <div
-                      style={{
-                        marginTop: 4,
-                        color: "#475569",
-                        fontSize: 14,
-                        lineHeight: 1.55,
-                      }}
-                    >
-                      Stronger first impression for visitors landing on your
-                      portal.
-                    </div>
-                  </div>
+                      <div style={{ fontSize: 24 }}>{item.icon}</div>
+                      <div
+                        style={{
+                          marginTop: 6,
+                          fontWeight: 900,
+                          color: "#0f172a",
+                          fontSize: 16,
+                        }}
+                      >
+                        {item.title}
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 4,
+                          color: "#475569",
+                          fontSize: 14,
+                          lineHeight: 1.55,
+                        }}
+                      >
+                        {item.text}
+                      </div>
+                    </a>
+                  ))}
                 </div>
               </div>
             </div>
