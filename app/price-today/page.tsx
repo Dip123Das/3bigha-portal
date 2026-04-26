@@ -1,10 +1,7 @@
-import Link from "next/link";
+"use client";
 
-export const metadata = {
-  title: "Price Today | 3bigha",
-  description:
-    "Check today’s construction material prices, property price trends, service rates, rental rates, discounts and offers on 3bigha.",
-};
+import Link from "next/link";
+import { useMemo, useState } from "react";
 
 const locations = [
   "Cooch Behar",
@@ -15,46 +12,48 @@ const locations = [
 ];
 
 const categoryOptions = [
-  "All Categories",
-  "Materials",
-  "Services",
-  "Rentals",
-  "Properties",
+  { label: "Materials", href: "/materials" },
+  { label: "Services", href: "/services" },
+  { label: "Rentals", href: "/rentals" },
+  { label: "Properties", href: "/property" },
 ];
 
-const subCategoryOptions = [
-  "All Items",
-
-  "Cement",
-  "Steel Rod",
-  "Sand",
-  "Brick",
-  "Aggregate",
-  "Stone Chips",
-  "Paint",
-  "Tiles",
-  "Plumbing Materials",
-  "Electrical Fittings",
-
-  "Mason",
-  "Plumber",
-  "Electrician",
-  "Painter",
-  "Interior Work",
-  "Legal Service",
-
-  "JCB Rental",
-  "Tractor Rental",
-  "Mixer Machine Rental",
-  "Scaffolding Rental",
-  "Shuttering Material Rental",
-
-  "Land",
-  "Flat",
-  "Shop",
-  "Office",
-  "Commercial Space",
-];
+const subCategoryMap: Record<string, string[]> = {
+  Materials: [
+    "Cement",
+    "Steel Rod",
+    "Sand",
+    "Brick",
+    "Aggregate",
+    "Stone Chips",
+    "Paint",
+    "Tiles",
+    "Plumbing Materials",
+    "Electrical Fittings",
+  ],
+  Services: [
+    "Mason",
+    "Plumber",
+    "Electrician",
+    "Painter",
+    "Interior Work",
+    "Legal Service",
+  ],
+  Rentals: [
+    "JCB Rental",
+    "Tractor Rental",
+    "Mixer Machine Rental",
+    "Scaffolding Rental",
+    "Shuttering Material Rental",
+  ],
+  Properties: [
+    "Land",
+    "Flat",
+    "Shop",
+    "Office",
+    "Commercial Space",
+  ],
+};
 
 const materials = [
   { name: "Cement", price: "₹390 - ₹430 / bag", trend: "Stable", icon: "🏗️" },
@@ -102,6 +101,17 @@ function TrendBadge({ trend }: { trend: string }) {
 }
 
 export default function PriceTodayPage() {
+  const [category, setCategory] = useState("Materials");
+  const [item, setItem] = useState("All Items");
+
+  const selectedCategory = categoryOptions.find((cat) => cat.label === category);
+
+  const subCategories = useMemo(() => {
+    return subCategoryMap[category] || [];
+  }, [category]);
+
+  const listingHref = selectedCategory?.href || "/search";
+
   return (
     <main className="min-h-screen bg-[#f8faf7]">
       <section className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
@@ -163,29 +173,61 @@ export default function PriceTodayPage() {
               <label className="text-sm font-black text-slate-700">
                 Select Category
               </label>
-              <select className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800 outline-none focus:border-emerald-500">
-                {categoryOptions.map((item) => (
-                  <option key={item}>{item}</option>
+              <select
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setItem("All Items");
+                }}
+                className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800 outline-none focus:border-emerald-500"
+              >
+                {categoryOptions.map((cat) => (
+                  <option key={cat.label} value={cat.label}>
+                    {cat.label}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div>
               <label className="text-sm font-black text-slate-700">
-                Select Exact Material / Service / Rental / Property
+                Select Exact Item
               </label>
-              <select className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800 outline-none focus:border-emerald-500">
-                {subCategoryOptions.map((item) => (
-                  <option key={item}>{item}</option>
+              <select
+                value={item}
+                onChange={(e) => setItem(e.target.value)}
+                className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800 outline-none focus:border-emerald-500"
+              >
+                <option>All Items</option>
+                {subCategories.map((subItem) => (
+                  <option key={subItem} value={subItem}>
+                    {subItem}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
 
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href={listingHref}
+              className="rounded-2xl bg-blue-700 px-5 py-3 text-sm font-black text-white hover:bg-blue-800"
+            >
+              View {category} Listings →
+            </Link>
+
+            <Link
+              href={`/search?q=${encodeURIComponent(item === "All Items" ? category : item)}`}
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-black text-slate-800 hover:bg-slate-100"
+            >
+              Search Selected Item →
+            </Link>
+          </div>
+
           <p className="mt-3 text-xs font-medium text-slate-500">
-            UI only for now. Later category and exact item dropdowns will be
-            connected with all materials, services, rentals and properties
-            already added in the portal and future master data.
+            Now category and item selection are linked. Later this will be
+            connected directly with live master data and listing data from the
+            portal.
           </p>
         </div>
 
