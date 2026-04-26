@@ -213,14 +213,23 @@ export default function HomePage() {
             style={{
               display: "grid",
               gridTemplateColumns:
-                "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
+                "repeat(auto-fit, minmax(min(100%, 430px), 1fr))",
               gap: 20,
               padding: "20px",
-              alignItems: "center",
+              alignItems: "stretch",
               position: "relative",
             }}
           >
-            <div className="homeHeroMain" style={{ color: "#fff" }}>
+            <div
+              className="homeHeroMain"
+              style={{
+                color: "#fff",
+                minWidth: 0,
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
               <div className="heroLogoFull" style={{ marginBottom: 10 }}>
                 <img
                   src="/logo.png"
@@ -624,11 +633,12 @@ export default function HomePage() {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                justifyContent: "center",
+                justifyContent: "stretch",
+                minWidth: 0,
+                height: "100%",
               }}
             >
               <div
-                className="homeHeroPanel"
                 style={{
                   borderRadius: 22,
                   background:
@@ -637,9 +647,10 @@ export default function HomePage() {
                   padding: 16,
                   backdropFilter: "blur(8px)",
                   display: "grid",
-                  gridTemplateRows: "auto auto",
-                  alignContent: "start",
+                  gridTemplateRows: "auto auto auto 1fr",
+                  alignContent: "stretch",
                   gap: 12,
+                  height: "100%",
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
                 }}
               >
