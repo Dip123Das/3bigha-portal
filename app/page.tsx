@@ -625,6 +625,105 @@ export default function HomePage() {
                     Learn / News
                   </ActionButton>
                 </div>
+                <div
+                  style={{
+                    marginTop: "auto",
+                    background: "rgba(255,255,255,0.96)",
+                    borderRadius: 18,
+                    padding: 16,
+                    color: "#0f172a",
+                    boxShadow: "0 14px 34px rgba(15,23,42,0.16)",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 950,
+                      fontSize: 18,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    ✍️ Need Property, Materials, Services or Rentals? Submit your
+                    Requirement (RFQ)
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 8,
+                      color: "#475569",
+                      lineHeight: 1.55,
+                      fontSize: 14,
+                    }}
+                  >
+                    Upload a handwritten list / PDF or type your requirement.
+                    Enter your location so nearby vendors, owners or service
+                    providers can send competitive quotations.
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 10,
+                      display: "flex",
+                      gap: 8,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <span style={chipStyle}>📄 PDF / List</span>
+                    <span style={chipStyle}>📝 Handwritten photo</span>
+                    <span style={chipStyle}>📍 Location-based quotes</span>
+                    <span style={chipStyle}>⚡ Competitive pricing</span>
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 12,
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                      gap: 10,
+                    }}
+                  >
+                    <ActionButton href="/rfq/general/new" variant="primary" fullWidth>
+                      Submit →
+                    </ActionButton>
+
+                    <div
+                      style={{
+                        minHeight: 40,
+                        borderRadius: 12,
+                        border: "1px solid rgba(15,23,42,0.10)",
+                        background: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 900,
+                      }}
+                    >
+                      <GlobalUnreadBadge
+                        href="/vendor/inbox-v2"
+                        label="Vendor Inbox →"
+                        title="Open Vendor Inbox"
+                      />
+                    </div>
+
+                    <div
+                      style={{
+                        minHeight: 40,
+                        borderRadius: 12,
+                        border: "1px solid rgba(15,23,42,0.10)",
+                        background: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 900,
+                      }}
+                    >
+                      <GlobalUnreadBadge
+                        href="/dashboard/inbox"
+                        label="Unified Inbox →"
+                        title="Open Unified Inbox"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -647,7 +746,7 @@ export default function HomePage() {
                   padding: 16,
                   backdropFilter: "blur(8px)",
                   display: "grid",
-                  gridTemplateRows: "auto auto auto 1fr",
+                  gridTemplateRows: "auto auto 1fr",
                   alignContent: "stretch",
                   gap: 12,
                   height: "100%",
@@ -759,48 +858,6 @@ export default function HomePage() {
                 </div>
 
                 <div
-                  style={{
-                    marginTop: 14,
-                    background: "#ffffff",
-                    borderRadius: 16,
-                    padding: 16,
-                    boxShadow: "0 10px 28px rgba(15,23,42,0.10)",
-                  }}
-                >
-                  <div style={{ fontWeight: 900, fontSize: 16, color: "#0f172a" }}>
-                    Start Now
-                  </div>
-
-                  <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
-                    <ActionButton href="/rfq/general/new" variant="primary" fullWidth>
-                      Submit Requirement →
-                    </ActionButton>
-
-                    <ActionButton href="/property" variant="secondary" fullWidth>
-                      Browse Property →
-                    </ActionButton>
-
-                    <ActionButton href="/investment" variant="secondary" fullWidth>
-                      Explore Investment →
-                    </ActionButton>
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 12,
-                      fontSize: 12,
-                      color: "#64748b",
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    ✔ Verified businesses <br />
-                    ✔ Local discovery <br />
-                    ✔ Direct connection <br />
-                    ✔ Real investment opportunities
-                  </div>
-                </div>
-
-                <div
                   className="homeHeroFeatureGrid"
                   style={{
                     display: "grid",
@@ -898,185 +955,6 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-
-        <div style={{ marginTop: 14 }}>
-          <Card>
-            <CardBody>
-              <div
-                style={{
-                  display: "flex",
-                  gap: 16,
-                  alignItems: "flex-start",
-                  justifyContent: "space-between",
-                  flexWrap: "wrap",
-                }}
-              >
-                <div style={{ minWidth: 0, flex: "1 1 320px" }}>
-                  <div
-                    style={{
-                      fontWeight: 900,
-                      fontSize: 20,
-                      lineHeight: 1.25,
-                      color: "#0f172a",
-                    }}
-                  >
-                    ✍️ Need Property, Materials, Services or Rentals? Submit
-                    your Requirement (RFQ)
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 10,
-                      color: "#475569",
-                      lineHeight: 1.7,
-                      fontSize: 16,
-                    }}
-                  >
-                    Upload a handwritten list / PDF or type your requirement.
-                    <br />
-                    <b style={{ color: "#0f172a" }}>Enter your location</b> so
-                    nearby vendors, owners or service providers can send{" "}
-                    <b style={{ color: "#0f172a" }}>competitive quotations</b>.
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 12,
-                      display: "flex",
-                      gap: 8,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <span style={chipStyle}>📄 PDF / List</span>
-                    <span style={chipStyle}>📝 Handwritten photo</span>
-                    <span style={chipStyle}>📍 Location-based quotes</span>
-                    <span style={chipStyle}>⚡ Competitive pricing</span>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    minWidth: 0,
-                    width: "100%",
-                    maxWidth: 340,
-                    flex: "1 1 300px",
-                  }}
-                >
-                  <details
-                    style={{
-                      border: "1px solid rgba(15,23,42,0.10)",
-                      borderRadius: 16,
-                      padding: 12,
-                      background:
-                        "linear-gradient(180deg, rgba(11,87,208,0.05) 0%, rgba(15,118,110,0.03) 100%)",
-                    }}
-                  >
-                    <summary
-                      style={{
-                        cursor: "pointer",
-                        listStyle: "none",
-                        fontWeight: 900,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 10,
-                        color: "#0f172a",
-                      }}
-                    >
-                      What is “Submit Requirement”?
-                      <span style={{ opacity: 0.7 }}>▾</span>
-                    </summary>
-
-                    <div
-                      style={{
-                        marginTop: 10,
-                        color: "#334155",
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontWeight: 800,
-                          marginBottom: 6,
-                          color: "#0f172a",
-                        }}
-                      >
-                        How it works
-                      </div>
-                      <ol style={{ margin: 0, paddingLeft: 18 }}>
-                        <li>Enter your location (City + Locality).</li>
-                        <li>
-                          Upload a list or type your requirement (materials /
-                          property / service / rental).
-                        </li>
-                        <li>
-                          Nearby vendors, owners or service providers will quote
-                          competitively.
-                        </li>
-                        <li>You compare and choose the best offer.</li>
-                      </ol>
-                      <div style={{ marginTop: 10, color: "#475569" }}>
-                        Tip: If you don’t know exact names/details, just upload
-                        a photo or write in simple words—our vendors/providers
-                        will guide you.
-                      </div>
-                    </div>
-                  </details>
-
-                  <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-                    <ActionButton
-                      href="/rfq/general/new"
-                      variant="primary"
-                      fullWidth
-                    >
-                      Submit Requirement →
-                    </ActionButton>
-
-                    <div
-                      style={{
-                        minHeight: 46,
-                        borderRadius: 14,
-                        border: "1px solid rgba(15,23,42,0.10)",
-                        background: "#fff",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 900,
-                        boxShadow: "0 8px 22px rgba(15,23,42,0.05)",
-                      }}
-                    >
-                      <GlobalUnreadBadge
-                        href="/vendor/inbox-v2"
-                        label="Vendor Inbox →"
-                        title="Open Vendor Inbox"
-                      />
-                    </div>
-
-                    <div
-                      style={{
-                        minHeight: 46,
-                        borderRadius: 14,
-                        border: "1px solid rgba(15,23,42,0.10)",
-                        background: "#fff",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 900,
-                        boxShadow: "0 8px 22px rgba(15,23,42,0.05)",
-                      }}
-                    >
-                      <GlobalUnreadBadge
-                        href="/dashboard/inbox"
-                        label="Unified Inbox →"
-                        title="Open Unified Inbox"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        </div>
 
         <div
           className="homeCardsGrid"
