@@ -3,8 +3,32 @@ import Link from "next/link";
 export const metadata = {
   title: "Price Today | 3bigha",
   description:
-    "Check today’s construction material prices, property price trends, discounts and offers on 3bigha.",
+    "Check today’s construction material prices, property price trends, service rates, rental rates, discounts and offers on 3bigha.",
 };
+
+const locations = [
+  "Cooch Behar",
+  "Siliguri",
+  "Jalpaiguri",
+  "Alipurduar",
+  "Kolkata",
+];
+
+const productOptions = [
+  "All",
+  "Cement",
+  "Steel Rod",
+  "Sand",
+  "Brick",
+  "Aggregate",
+  "Stone Chips",
+  "Paint",
+  "Tiles",
+  "Plumbing Materials",
+  "Electrical Fittings",
+  "Services",
+  "Rentals",
+];
 
 const materials = [
   { name: "Cement", price: "₹390 - ₹430 / bag", trend: "Stable", icon: "🏗️" },
@@ -55,7 +79,7 @@ export default function PriceTodayPage() {
 
           <p className="mt-3 max-w-3xl text-base font-medium leading-7 text-white/90">
             Approximate local market indication for construction materials,
-            land, flats, shops, offices and commercial spaces.
+            land, flats, shops, offices, services and rentals.
           </p>
 
           <div className="mt-5 max-w-sm rounded-2xl bg-white p-4 text-slate-950">
@@ -72,23 +96,45 @@ export default function PriceTodayPage() {
         </div>
 
         <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <label className="text-sm font-black text-slate-700">
-            Select City / District
-          </label>
-          <select className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800">
-            <option>Cooch Behar</option>
-            <option>Siliguri</option>
-            <option>Jalpaiguri</option>
-            <option>Kolkata</option>
-          </select>
-          <p className="mt-2 text-xs font-medium text-slate-500">
-            UI only for now. Live district-wise pricing will be connected later.
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="text-sm font-black text-slate-700">
+                Type District / Town / City
+              </label>
+              <input
+                list="price-today-locations"
+                placeholder="Type or select location"
+                className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800 outline-none focus:border-emerald-500"
+              />
+              <datalist id="price-today-locations">
+                {locations.map((location) => (
+                  <option key={location} value={location} />
+                ))}
+              </datalist>
+            </div>
+
+            <div>
+              <label className="text-sm font-black text-slate-700">
+                Select Material / Service / Rental
+              </label>
+              <select className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800 outline-none focus:border-emerald-500">
+                {productOptions.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <p className="mt-3 text-xs font-medium text-slate-500">
+            UI only for now. Later this dropdown will be connected with all
+            products, services and rentals already added in the portal and future
+            master data.
           </p>
         </div>
 
         <div className="mt-6">
           <h2 className="text-2xl font-black text-slate-950">
-            Material Prices
+            Main Material Prices
           </h2>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -143,8 +189,9 @@ export default function PriceTodayPage() {
             Discounts & Offers
           </h2>
           <p className="mt-2 text-sm font-semibold leading-6 text-slate-700">
-            Manufacturers, distributors, local material suppliers, builders and
-            property sellers will be able to show limited-period offers here.
+            Manufacturers, distributors, local material suppliers, service
+            providers, rental providers, builders and property sellers will be
+            able to show limited-period offers here.
           </p>
         </div>
       </section>
