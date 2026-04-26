@@ -14,8 +14,17 @@ const locations = [
   "Kolkata",
 ];
 
-const productOptions = [
-  "All",
+const categoryOptions = [
+  "All Categories",
+  "Materials",
+  "Services",
+  "Rentals",
+  "Properties",
+];
+
+const subCategoryOptions = [
+  "All Items",
+
   "Cement",
   "Steel Rod",
   "Sand",
@@ -26,22 +35,59 @@ const productOptions = [
   "Tiles",
   "Plumbing Materials",
   "Electrical Fittings",
-  "Services",
-  "Rentals",
+
+  "Mason",
+  "Plumber",
+  "Electrician",
+  "Painter",
+  "Interior Work",
+  "Legal Service",
+
+  "JCB Rental",
+  "Tractor Rental",
+  "Mixer Machine Rental",
+  "Scaffolding Rental",
+  "Shuttering Material Rental",
+
+  "Land",
+  "Flat",
+  "Shop",
+  "Office",
+  "Commercial Space",
 ];
 
 const materials = [
   { name: "Cement", price: "₹390 - ₹430 / bag", trend: "Stable", icon: "🏗️" },
   { name: "Steel Rod", price: "₹58 - ₹64 / kg", trend: "Up", icon: "🔩" },
-  { name: "Sand", price: "₹3,200 - ₹4,200 / tractor", trend: "Down", icon: "🏖️" },
+  {
+    name: "Sand",
+    price: "₹3,200 - ₹4,200 / tractor",
+    trend: "Down",
+    icon: "🏖️",
+  },
   { name: "Brick", price: "₹9 - ₹12 / piece", trend: "Stable", icon: "🧱" },
 ];
 
 const propertyPrices = [
   { name: "Land", price: "₹8L - ₹13L / katha", trend: "Up", icon: "🌾" },
-  { name: "Flat", price: "₹2,800 - ₹4,500 / sq.ft.", trend: "Stable", icon: "🏢" },
-  { name: "Shop", price: "₹6,000 - ₹12,000 / sq.ft.", trend: "Up", icon: "🏬" },
-  { name: "Office", price: "₹4,000 - ₹8,000 / sq.ft.", trend: "Stable", icon: "🏦" },
+  {
+    name: "Flat",
+    price: "₹2,800 - ₹4,500 / sq.ft.",
+    trend: "Stable",
+    icon: "🏢",
+  },
+  {
+    name: "Shop",
+    price: "₹6,000 - ₹12,000 / sq.ft.",
+    trend: "Up",
+    icon: "🏬",
+  },
+  {
+    name: "Office",
+    price: "₹4,000 - ₹8,000 / sq.ft.",
+    trend: "Stable",
+    icon: "🏦",
+  },
 ];
 
 function TrendBadge({ trend }: { trend: string }) {
@@ -96,7 +142,7 @@ export default function PriceTodayPage() {
         </div>
 
         <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <div>
               <label className="text-sm font-black text-slate-700">
                 Type District / Town / City
@@ -115,10 +161,21 @@ export default function PriceTodayPage() {
 
             <div>
               <label className="text-sm font-black text-slate-700">
-                Select Material / Service / Rental
+                Select Category
               </label>
               <select className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800 outline-none focus:border-emerald-500">
-                {productOptions.map((item) => (
+                {categoryOptions.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm font-black text-slate-700">
+                Select Exact Material / Service / Rental / Property
+              </label>
+              <select className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800 outline-none focus:border-emerald-500">
+                {subCategoryOptions.map((item) => (
                   <option key={item}>{item}</option>
                 ))}
               </select>
@@ -126,9 +183,9 @@ export default function PriceTodayPage() {
           </div>
 
           <p className="mt-3 text-xs font-medium text-slate-500">
-            UI only for now. Later this dropdown will be connected with all
-            products, services and rentals already added in the portal and future
-            master data.
+            UI only for now. Later category and exact item dropdowns will be
+            connected with all materials, services, rentals and properties
+            already added in the portal and future master data.
           </p>
         </div>
 
