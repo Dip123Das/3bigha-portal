@@ -646,16 +646,10 @@ export default function HomePage() {
                 <div
                   role="button"
                   tabIndex={0}
-                  onClick={() =>
-                    router.push(
-                      "/search?module=materials&q=price%20today"
-                    )
-                  }
+                  onClick={() => router.push("/price-today")}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      router.push(
-                        "/search?module=materials&q=price%20today"
-                      );
+                      router.push("/price-today");
                     }
                   }}
                   style={{
