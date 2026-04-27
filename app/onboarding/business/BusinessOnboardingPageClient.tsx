@@ -1334,7 +1334,11 @@ export default function BusinessOnboardingPageClient() {
                 cursor: locationVerifying ? "not-allowed" : "pointer",
               }}
             >
-              {locationVerifying ? "Verifying live location..." : "📍 Use My Live Location to Verify"}
+              {locationVerifying
+                ? "Verifying live location..."
+                : missingLocationVerification
+                ? "📍 Use My Live Location to Verify"
+                : "✅ Location Verified (Tap to re-check)"}
             </button>
 
             {!missingLocationVerification ? (
