@@ -7,6 +7,24 @@ import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 type UserState = "checking" | "allowed" | "blocked";
 type CategoryKey = "Materials" | "Services" | "Rentals" | "Properties";
 
+type MyPriceRow = {
+  id: string;
+  category: string;
+  item: string;
+  brand: string | null;
+  grade: string | null;
+  price_min: number | null;
+  price_max: number | null;
+  unit: string | null;
+  location: string | null;
+  trend: string | null;
+  offer: string | null;
+  offer_start: string | null;
+  offer_end: string | null;
+  source_type: string | null;
+  created_at: string | null;
+};
+
 const itemOptions: Record<CategoryKey, string[]> = {
   Materials: [
     "Cement",
@@ -60,11 +78,21 @@ const gradeSuggestions: Record<CategoryKey, string[]> = {
   Properties: ["Residential", "Commercial", "Road Side", "Premium Location"],
 };
 
+function formatDate(value: string | null) {
+  if (!value) return "";
+  return new Date(value).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 export default function AddPricePage() {
   const supabase = getSupabaseBrowser();
 
   const [userState, setUserState] = useState<UserState>("checking");
   const [userId, setUserId] = useState<string | null>(null);
+  const [myPrices, setMyPrices] = useState<MyPriceRow[]>([]);
 
   const [form, setForm] = useState({
     category: "Materials" as CategoryKey,
@@ -83,6 +111,7 @@ export default function AddPricePage() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
   const currentItems = useMemo(() => {
@@ -97,6 +126,25 @@ export default function AddPricePage() {
     return gradeSuggestions[form.category] || [];
   }, [form.category]);
 
+  async function loadMyPrices(nextUserId: string) {
+    setListLoading(true);
+
+    const { data, error } = await supabase
+      .from("material_price_updates")
+      .select(
+        "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,offer_start,offer_end,source_type,created_at"
+      )
+      .eq("created_by", nextUserId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (!error && data) {
+      setMyPrices(data as MyPriceRow[]);
+    }
+
+    setListLoading(false);
+  }
+
   useEffect(() => {
     async function checkUser() {
       const { data } = await supabase.auth.getUser();
@@ -108,10 +156,12 @@ export default function AddPricePage() {
 
       setUserId(data.user.id);
       setUserState("allowed");
+      loadMyPrices(data.user.id);
     }
 
     checkUser();
-  }, [supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -182,6 +232,7 @@ export default function AddPricePage() {
       setMsg("❌ Error: " + error.message);
     } else {
       setMsg("✅ Price added successfully. It will now appear in Price Today.");
+
       setForm({
         category: "Materials",
         item: "Cement",
@@ -197,6 +248,8 @@ export default function AddPricePage() {
         offer_end: "",
         source_type: "vendor",
       });
+
+      loadMyPrices(userId);
     }
 
     setLoading(false);
@@ -233,174 +286,246 @@ export default function AddPricePage() {
 
   return (
     <main className="min-h-screen bg-[#f8faf7] p-6">
-      <div className="mx-auto max-w-3xl rounded-3xl bg-white p-6 shadow">
-        <div className="mb-5">
-          <Link
-            href="/price-today"
-            className="text-sm font-bold text-emerald-700"
-          >
-            ← Back to Price Today
-          </Link>
+      <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-3xl bg-white p-6 shadow">
+          <div className="mb-5">
+            <Link
+              href="/price-today"
+              className="text-sm font-bold text-emerald-700"
+            >
+              ← Back to Price Today
+            </Link>
+          </div>
+
+          <h1 className="text-2xl font-black">Add Price Update</h1>
+          <p className="mt-2 text-sm font-semibold text-slate-600">
+            Select category and item carefully so the price appears correctly in
+            Price Today.
+          </p>
+
+          <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
+            <select
+              name="category"
+              value={form.category}
+              onChange={handleChange}
+              className="rounded-2xl border px-4 py-3 font-bold"
+            >
+              <option>Materials</option>
+              <option>Services</option>
+              <option>Rentals</option>
+              <option>Properties</option>
+            </select>
+
+            <select
+              name="item"
+              value={form.item}
+              onChange={handleChange}
+              className="rounded-2xl border px-4 py-3 font-bold"
+              required
+            >
+              {currentItems.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+
+            <input
+              name="brand"
+              placeholder="Brand / Source, e.g. UltraTech, Local Supplier"
+              value={form.brand}
+              onChange={handleChange}
+              className="rounded-2xl border px-4 py-3 font-bold"
+            />
+
+            <input
+              name="grade"
+              list="grade-suggestions"
+              placeholder="Grade / Quality, e.g. OPC 53, First Class"
+              value={form.grade}
+              onChange={handleChange}
+              className="rounded-2xl border px-4 py-3 font-bold"
+            />
+            <datalist id="grade-suggestions">
+              {currentGrades.map((grade) => (
+                <option key={grade} value={grade} />
+              ))}
+            </datalist>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <input
+                name="price_min"
+                type="number"
+                placeholder="Min Price"
+                value={form.price_min}
+                onChange={handleChange}
+                required
+                className="rounded-2xl border px-4 py-3 font-bold"
+              />
+
+              <input
+                name="price_max"
+                type="number"
+                placeholder="Max Price"
+                value={form.price_max}
+                onChange={handleChange}
+                required
+                className="rounded-2xl border px-4 py-3 font-bold"
+              />
+            </div>
+
+            <select
+              name="unit"
+              value={form.unit}
+              onChange={handleChange}
+              className="rounded-2xl border px-4 py-3 font-bold"
+              required
+            >
+              {currentUnits.map((unit) => (
+                <option key={unit} value={unit}>
+                  {unit}
+                </option>
+              ))}
+            </select>
+
+            <input
+              name="location"
+              placeholder="Location"
+              value={form.location}
+              onChange={handleChange}
+              required
+              className="rounded-2xl border px-4 py-3 font-bold"
+            />
+
+            <select
+              name="trend"
+              value={form.trend}
+              onChange={handleChange}
+              className="rounded-2xl border px-4 py-3 font-bold"
+            >
+              <option>Stable</option>
+              <option>Up</option>
+              <option>Down</option>
+            </select>
+
+            <input
+              name="offer"
+              placeholder="Offer, optional"
+              value={form.offer}
+              onChange={handleChange}
+              className="rounded-2xl border px-4 py-3 font-bold"
+            />
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <input
+                type="date"
+                name="offer_start"
+                value={form.offer_start}
+                onChange={handleChange}
+                className="rounded-2xl border px-4 py-3 font-bold"
+              />
+
+              <input
+                type="date"
+                name="offer_end"
+                value={form.offer_end}
+                onChange={handleChange}
+                className="rounded-2xl border px-4 py-3 font-bold"
+              />
+            </div>
+
+            <select
+              name="source_type"
+              value={form.source_type}
+              onChange={handleChange}
+              className="rounded-2xl border px-4 py-3 font-bold"
+            >
+              <option value="manufacturer">Manufacturer</option>
+              <option value="distributor">Distributor</option>
+              <option value="vendor">Vendor</option>
+            </select>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-2xl bg-blue-700 py-3 font-black text-white disabled:opacity-60"
+            >
+              {loading ? "Saving..." : "Add Price"}
+            </button>
+
+            {msg ? <p className="text-sm font-bold">{msg}</p> : null}
+          </form>
         </div>
 
-        <h1 className="text-2xl font-black">Add Price Update</h1>
-        <p className="mt-2 text-sm font-semibold text-slate-600">
-          Select category and item carefully so the price appears correctly in
-          Price Today.
-        </p>
+        <div className="rounded-3xl bg-white p-6 shadow">
+          <h2 className="text-xl font-black">My Latest Price Updates</h2>
+          <p className="mt-2 text-sm font-semibold text-slate-600">
+            Your latest 20 submitted prices.
+          </p>
 
-        <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
-          <select
-            name="category"
-            value={form.category}
-            onChange={handleChange}
-            className="rounded-2xl border px-4 py-3 font-bold"
-          >
-            <option>Materials</option>
-            <option>Services</option>
-            <option>Rentals</option>
-            <option>Properties</option>
-          </select>
+          <div className="mt-5 grid gap-3">
+            {listLoading ? (
+              <div className="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-600">
+                Loading your prices...
+              </div>
+            ) : myPrices.length ? (
+              myPrices.map((price) => (
+                <div
+                  key={price.id}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-xs font-black uppercase text-slate-500">
+                        {price.category} • {price.location || "No location"}
+                      </div>
+                      <h3 className="mt-1 text-lg font-black text-slate-950">
+                        {price.item}
+                      </h3>
+                    </div>
 
-          <select
-            name="item"
-            value={form.item}
-            onChange={handleChange}
-            className="rounded-2xl border px-4 py-3 font-bold"
-            required
-          >
-            {currentItems.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-700">
+                      {price.trend || "Stable"}
+                    </span>
+                  </div>
 
-          <input
-            name="brand"
-            placeholder="Brand / Source, e.g. UltraTech, Local Supplier"
-            value={form.brand}
-            onChange={handleChange}
-            className="rounded-2xl border px-4 py-3 font-bold"
-          />
+                  <div className="mt-2 text-sm font-bold text-slate-700">
+                    Brand: {price.brand || "Not given"}
+                  </div>
+                  <div className="text-sm font-bold text-slate-700">
+                    Grade: {price.grade || "Standard"}
+                  </div>
 
-          <input
-            name="grade"
-            list="grade-suggestions"
-            placeholder="Grade / Quality, e.g. OPC 53, First Class"
-            value={form.grade}
-            onChange={handleChange}
-            className="rounded-2xl border px-4 py-3 font-bold"
-          />
-          <datalist id="grade-suggestions">
-            {currentGrades.map((grade) => (
-              <option key={grade} value={grade} />
-            ))}
-          </datalist>
+                  <div className="mt-3 text-xl font-black text-emerald-700">
+                    ₹{price.price_min} - ₹{price.price_max} /{" "}
+                    {price.unit || "unit"}
+                  </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <input
-              name="price_min"
-              type="number"
-              placeholder="Min Price"
-              value={form.price_min}
-              onChange={handleChange}
-              required
-              className="rounded-2xl border px-4 py-3 font-bold"
-            />
+                  <div className="mt-2 text-xs font-bold text-slate-500">
+                    Source: {price.source_type || "vendor"} • Added:{" "}
+                    {formatDate(price.created_at)}
+                  </div>
 
-            <input
-              name="price_max"
-              type="number"
-              placeholder="Max Price"
-              value={form.price_max}
-              onChange={handleChange}
-              required
-              className="rounded-2xl border px-4 py-3 font-bold"
-            />
+                  {price.offer ? (
+                    <div className="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-bold text-slate-700">
+                      {price.offer}
+                      {(price.offer_start || price.offer_end) && (
+                        <div className="mt-1 text-slate-500">
+                          Offer: {formatDate(price.offer_start)} -{" "}
+                          {formatDate(price.offer_end)}
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-600">
+                No price update submitted yet.
+              </div>
+            )}
           </div>
-
-          <select
-            name="unit"
-            value={form.unit}
-            onChange={handleChange}
-            className="rounded-2xl border px-4 py-3 font-bold"
-            required
-          >
-            {currentUnits.map((unit) => (
-              <option key={unit} value={unit}>
-                {unit}
-              </option>
-            ))}
-          </select>
-
-          <input
-            name="location"
-            placeholder="Location"
-            value={form.location}
-            onChange={handleChange}
-            required
-            className="rounded-2xl border px-4 py-3 font-bold"
-          />
-
-          <select
-            name="trend"
-            value={form.trend}
-            onChange={handleChange}
-            className="rounded-2xl border px-4 py-3 font-bold"
-          >
-            <option>Stable</option>
-            <option>Up</option>
-            <option>Down</option>
-          </select>
-
-          <input
-            name="offer"
-            placeholder="Offer, optional"
-            value={form.offer}
-            onChange={handleChange}
-            className="rounded-2xl border px-4 py-3 font-bold"
-          />
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <input
-              type="date"
-              name="offer_start"
-              value={form.offer_start}
-              onChange={handleChange}
-              className="rounded-2xl border px-4 py-3 font-bold"
-            />
-
-            <input
-              type="date"
-              name="offer_end"
-              value={form.offer_end}
-              onChange={handleChange}
-              className="rounded-2xl border px-4 py-3 font-bold"
-            />
-          </div>
-
-          <select
-            name="source_type"
-            value={form.source_type}
-            onChange={handleChange}
-            className="rounded-2xl border px-4 py-3 font-bold"
-          >
-            <option value="manufacturer">Manufacturer</option>
-            <option value="distributor">Distributor</option>
-            <option value="vendor">Vendor</option>
-          </select>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-2xl bg-blue-700 py-3 font-black text-white disabled:opacity-60"
-          >
-            {loading ? "Saving..." : "Add Price"}
-          </button>
-
-          {msg ? <p className="text-sm font-bold">{msg}</p> : null}
-        </form>
+        </div>
       </div>
     </main>
   );
