@@ -477,7 +477,11 @@ if (userData.user) {
         ]),
       });
 
-      setPriceRows(livePriceRows.length ? livePriceRows : fallbackPriceRows);
+      setPriceRows(
+        livePriceRows.length
+          ? [...livePriceRows, ...fallbackPriceRows]
+          : fallbackPriceRows
+      );
       setLoading(false);
     }
 
@@ -794,9 +798,9 @@ if (userData.user) {
               ))
             ) : (
               <div className="rounded-3xl bg-white p-5 text-sm font-bold text-slate-600 shadow-sm">
-                No exact price row found yet for this selection. This item will
-                show price after vendor / distributor / local market price data
-                is added.
+                No price found for your selected filters. Try changing category,
+                item, brand, grade or location. Vendors, builders and owners can
+                add today’s price from the button above.
               </div>
             )}
           </div>
