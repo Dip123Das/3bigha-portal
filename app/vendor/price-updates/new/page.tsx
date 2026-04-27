@@ -485,9 +485,14 @@ export default function AddPricePage() {
               onChange={handleChange}
               className="rounded-2xl border px-4 py-3 font-bold"
             >
-              <option value="manufacturer">Manufacturer</option>
-              <option value="distributor">Distributor</option>
-              <option value="vendor">Vendor</option>
+            <option value="vendor">Vendor</option>
+            <option value="vendor">Vendor</option>
+            <option value="builder">Builder</option>
+            <option value="property_owner">Property Owner</option>
+            <option value="property_builder">Property Builder</option>
+            <option value="hub_vendor">Hub Vendor</option>
+            <option value="manufacturer">Manufacturer</option>
+            <option value="distributor">Distributor</option>
             </select>
 
             <button
