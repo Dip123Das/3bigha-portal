@@ -1,10 +1,64 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
 type UserState = "checking" | "allowed" | "blocked";
+type CategoryKey = "Materials" | "Services" | "Rentals" | "Properties";
+
+const itemOptions: Record<CategoryKey, string[]> = {
+  Materials: [
+    "Cement",
+    "Steel Rod",
+    "Sand",
+    "Brick",
+    "Aggregate",
+    "Stone Chips",
+    "Paint",
+    "Tiles",
+    "Plumbing Materials",
+    "Electrical Fittings",
+  ],
+  Services: [
+    "Mason",
+    "Plumber",
+    "Electrician",
+    "Painter",
+    "Interior Work",
+    "Legal Service",
+  ],
+  Rentals: [
+    "JCB Rental",
+    "Tractor Rental",
+    "Mixer Machine Rental",
+    "Scaffolding Rental",
+    "Shuttering Material Rental",
+  ],
+  Properties: ["Land", "Flat", "Shop", "Office", "Commercial Space"],
+};
+
+const unitSuggestions: Record<CategoryKey, string[]> = {
+  Materials: ["bag", "kg", "piece", "tractor", "cft", "sq.ft.", "bundle"],
+  Services: ["day", "job", "sq.ft.", "point", "visit", "hour"],
+  Rentals: ["hour", "day", "month", "trip", "shift"],
+  Properties: ["katha", "sq.ft.", "decimal", "acre", "bigha"],
+};
+
+const gradeSuggestions: Record<CategoryKey, string[]> = {
+  Materials: [
+    "OPC 53",
+    "PPC",
+    "Fe 500D",
+    "Fe 550D",
+    "First Class",
+    "Standard",
+    "Premium",
+  ],
+  Services: ["Standard", "Skilled", "Expert", "Contract Basis"],
+  Rentals: ["Standard", "With Operator", "Without Operator"],
+  Properties: ["Residential", "Commercial", "Road Side", "Premium Location"],
+};
 
 export default function AddPricePage() {
   const supabase = getSupabaseBrowser();
@@ -13,13 +67,13 @@ export default function AddPricePage() {
   const [userId, setUserId] = useState<string | null>(null);
 
   const [form, setForm] = useState({
-    category: "Materials",
-    item: "",
+    category: "Materials" as CategoryKey,
+    item: "Cement",
     brand: "",
     grade: "",
     price_min: "",
     price_max: "",
-    unit: "",
+    unit: "bag",
     location: "Cooch Behar",
     trend: "Stable",
     offer: "",
@@ -30,6 +84,18 @@ export default function AddPricePage() {
 
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+
+  const currentItems = useMemo(() => {
+    return itemOptions[form.category] || [];
+  }, [form.category]);
+
+  const currentUnits = useMemo(() => {
+    return unitSuggestions[form.category] || [];
+  }, [form.category]);
+
+  const currentGrades = useMemo(() => {
+    return gradeSuggestions[form.category] || [];
+  }, [form.category]);
 
   useEffect(() => {
     async function checkUser() {
@@ -50,7 +116,23 @@ export default function AddPricePage() {
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "category") {
+      const nextCategory = value as CategoryKey;
+
+      setForm({
+        ...form,
+        category: nextCategory,
+        item: itemOptions[nextCategory][0] || "",
+        grade: "",
+        unit: unitSuggestions[nextCategory][0] || "",
+      });
+
+      return;
+    }
+
+    setForm({ ...form, [name]: value });
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -58,6 +140,19 @@ export default function AddPricePage() {
 
     if (!userId) {
       setMsg("❌ Please login first.");
+      return;
+    }
+
+    const minPrice = Number(form.price_min);
+    const maxPrice = Number(form.price_max);
+
+    if (!Number.isFinite(minPrice) || !Number.isFinite(maxPrice)) {
+      setMsg("❌ Please enter valid min and max price.");
+      return;
+    }
+
+    if (maxPrice < minPrice) {
+      setMsg("❌ Max price cannot be lower than min price.");
       return;
     }
 
@@ -69,9 +164,9 @@ export default function AddPricePage() {
         category: form.category,
         item: form.item.trim(),
         brand: form.brand.trim(),
-        grade: form.grade.trim(),
-        price_min: Number(form.price_min),
-        price_max: Number(form.price_max),
+        grade: form.grade.trim() || "Standard",
+        price_min: minPrice,
+        price_max: maxPrice,
         unit: form.unit.trim(),
         location: form.location.trim(),
         trend: form.trend,
@@ -89,12 +184,12 @@ export default function AddPricePage() {
       setMsg("✅ Price added successfully. It will now appear in Price Today.");
       setForm({
         category: "Materials",
-        item: "",
+        item: "Cement",
         brand: "",
         grade: "",
         price_min: "",
         price_max: "",
-        unit: "",
+        unit: "bag",
         location: "Cooch Behar",
         trend: "Stable",
         offer: "",
@@ -140,14 +235,18 @@ export default function AddPricePage() {
     <main className="min-h-screen bg-[#f8faf7] p-6">
       <div className="mx-auto max-w-3xl rounded-3xl bg-white p-6 shadow">
         <div className="mb-5">
-          <Link href="/price-today" className="text-sm font-bold text-emerald-700">
+          <Link
+            href="/price-today"
+            className="text-sm font-bold text-emerald-700"
+          >
             ← Back to Price Today
           </Link>
         </div>
 
         <h1 className="text-2xl font-black">Add Price Update</h1>
         <p className="mt-2 text-sm font-semibold text-slate-600">
-          Add today’s price by category, item, brand/source, grade and location.
+          Select category and item carefully so the price appears correctly in
+          Price Today.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
@@ -163,14 +262,19 @@ export default function AddPricePage() {
             <option>Properties</option>
           </select>
 
-          <input
+          <select
             name="item"
-            placeholder="Item, e.g. Cement, Sand, Land"
             value={form.item}
             onChange={handleChange}
-            required
             className="rounded-2xl border px-4 py-3 font-bold"
-          />
+            required
+          >
+            {currentItems.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
 
           <input
             name="brand"
@@ -182,11 +286,17 @@ export default function AddPricePage() {
 
           <input
             name="grade"
+            list="grade-suggestions"
             placeholder="Grade / Quality, e.g. OPC 53, First Class"
             value={form.grade}
             onChange={handleChange}
             className="rounded-2xl border px-4 py-3 font-bold"
           />
+          <datalist id="grade-suggestions">
+            {currentGrades.map((grade) => (
+              <option key={grade} value={grade} />
+            ))}
+          </datalist>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <input
@@ -210,14 +320,19 @@ export default function AddPricePage() {
             />
           </div>
 
-          <input
+          <select
             name="unit"
-            placeholder="Unit, e.g. bag / kg / sq.ft / katha"
             value={form.unit}
             onChange={handleChange}
-            required
             className="rounded-2xl border px-4 py-3 font-bold"
-          />
+            required
+          >
+            {currentUnits.map((unit) => (
+              <option key={unit} value={unit}>
+                {unit}
+              </option>
+            ))}
+          </select>
 
           <input
             name="location"
