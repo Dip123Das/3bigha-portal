@@ -540,16 +540,33 @@ export default function PriceTodayClient() {
             brand/source and grade/quality.
           </p>
 
-          <div className="mt-5 max-w-sm rounded-2xl bg-white p-4 text-slate-950">
-            <div className="text-sm font-black text-red-600">
-              Current Offer
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl bg-white p-4 text-slate-950">
+              <div className="text-sm font-black text-red-600">
+                Current Offer
+              </div>
+              <div className="mt-1 text-xl font-black">
+                Vendor launch discount available
+              </div>
+              <div className="mt-1 text-sm font-semibold text-slate-600">
+                Offer period: 26 April 2026 - 31 May 2026
+              </div>
             </div>
-            <div className="mt-1 text-xl font-black">
-              Vendor launch discount available
-            </div>
-            <div className="mt-1 text-sm font-semibold text-slate-600">
-              Offer period: 26 April 2026 - 31 May 2026
-            </div>
+
+            <Link
+              href="/vendor/price-updates/new"
+              className="rounded-2xl bg-slate-950 p-4 text-white shadow-sm hover:bg-slate-900"
+            >
+              <div className="text-sm font-black text-orange-200">
+                Vendor / Distributor
+              </div>
+              <div className="mt-1 text-xl font-black">
+                Add Today’s Price →
+              </div>
+              <div className="mt-1 text-sm font-semibold text-white/75">
+                Submit brand, grade, rate, location and offer period.
+              </div>
+            </Link>
           </div>
         </div>
 
