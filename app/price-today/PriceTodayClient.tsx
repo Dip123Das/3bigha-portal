@@ -477,7 +477,11 @@ if (userData.user) {
         ]),
       });
 
-      setPriceRows(livePriceRows.length ? livePriceRows : fallbackPriceRows);
+      setPriceRows(
+        livePriceRows.length
+          ? [...livePriceRows, ...fallbackPriceRows]
+          : fallbackPriceRows
+      );
       setLoading(false);
     }
 
