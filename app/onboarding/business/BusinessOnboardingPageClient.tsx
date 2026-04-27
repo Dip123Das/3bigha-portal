@@ -113,7 +113,12 @@ function computeCompletion(bp: Partial<BusinessProfile>) {
     !!(bp.phone_primary && bp.phone_primary.trim()) ||
     !!(bp.email_business && bp.email_business.trim());
 
-  const locationOk = (bp.location_verification_status || "").trim().toLowerCase() === "verified";
+  const locationVerified =
+    (bp.location_verification_status || "").trim().toLowerCase() === "verified";
+
+  const districtProvided = !!(bp.district && bp.district.trim());
+
+  const locationOk = locationVerified || districtProvided;
 
   const businessProofOk = isPureBlogOnly
     ? true
@@ -568,7 +573,7 @@ export default function BusinessOnboardingPageClient() {
     { key: "nature", title: "Step 1 — Nature", subtitle: "Choose what you do", show: true, targetId: "sec-nature" },
     { key: "identity", title: "Step 2 — Identity", subtitle: "Business / Legal info", show: true, targetId: "sec-identity" },
     { key: "contact", title: "Step 3 — Contact", subtitle: "Phone / email", show: true, targetId: "sec-contact" },
-    { key: "address", title: "Step 4 — Address", subtitle: "Live location verification required", show: true, targetId: "sec-address" },
+    { key: "address", title: "Step 4 — Address", subtitle: "District or live location required", show: true, targetId: "sec-address" },
     { key: "property", title: "Step 5 — Property Compliance", subtitle: "RERA details (optional)", show: nature.includes("property"), targetId: "sec-property" },
     { key: "author", title: "Step 6 — Author Identity", subtitle: "Blog profile", show: hasBlog, targetId: "sec-author" },
     { key: "review", title: "Step 7 — Review & Finish", subtitle: "Confirm completion", show: true, targetId: "sec-review" },
@@ -1152,16 +1157,25 @@ export default function BusinessOnboardingPageClient() {
               style={{
                 padding: 10,
                 borderRadius: 8,
-                background: missingLocationVerification ? "#fff1f2" : "#f0fdf4",
-                border: `1px solid ${missingLocationVerification ? "#fecdd3" : "#bbf7d0"}`,
-                color: missingLocationVerification ? "#9f1239" : "#166534",
+                background:
+                  missingLocationVerification && !bp.district ? "#fff1f2" : "#f0fdf4",
+                border: `1px solid ${
+                  missingLocationVerification && !bp.district ? "#fecdd3" : "#bbf7d0"
+                }`,
+                color:
+                  missingLocationVerification && !bp.district ? "#9f1239" : "#166534",
                 fontSize: 13,
                 fontWeight: 700,
               }}
             >
-              {missingLocationVerification
-                ? "Live location verification is now mandatory before dashboard activation."
-                : `Live location verified: ${bp.verified_locality || bp.verified_district || "Verified"}${bp.eligible_free ? " • Free district eligible" : ""}`}
+              {(missingLocationVerification && !bp.district)
+                ? "Please verify your live location OR fill your district to proceed."
+                : `Location accepted: ${
+                    bp.verified_locality ||
+                    bp.verified_district ||
+                    bp.district ||
+                    "Provided"
+                  }${bp.eligible_free ? " • Free district eligible" : ""}`}
             </div>
             <Field label="Address Line 1 (optional)">
               <input
