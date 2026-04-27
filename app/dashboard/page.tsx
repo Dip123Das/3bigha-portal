@@ -41,6 +41,38 @@ export default function DashboardEntryPage() {
           session.user.email ?? null
         );
 
+        const profileRes = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .maybeSingle();
+
+        const role = (profileRes.data?.role || "").trim().toLowerCase();
+        const isBusinessRole = ["vendor", "builder", "hub_vendor", "blogger"].includes(role);
+
+        if (isBusinessRole) {
+          const businessProfileRes = await supabase
+            .from("business_profiles")
+            .select("eligible_free, location_verification_status")
+            .eq("user_id", session.user.id)
+            .maybeSingle();
+
+          const bp = businessProfileRes.data;
+
+          const locationVerified =
+            (bp?.location_verification_status || "").trim().toLowerCase() === "verified";
+
+          if (!locationVerified) {
+            router.replace("/onboarding/business?returnTo=/dashboard");
+            return;
+          }
+
+          if (bp?.eligible_free !== true) {
+            router.replace("/dashboard/subscription?reason=district_free_not_eligible");
+            return;
+          }
+        }
+
         if (!alive) return;
 
         const target = getDefaultPostLoginPath(access);

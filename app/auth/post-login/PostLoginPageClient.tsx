@@ -218,6 +218,33 @@ export default function PostLoginPageClient() {
           return;
         }
 
+                if (isBusinessRole(role)) {
+          setMsg("Checking district-free access eligibility…");
+
+          const businessProfileRes = await supabase
+            .from("business_profiles")
+            .select("eligible_free, location_verification_status")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          const businessProfile = businessProfileRes.data;
+
+          const locationVerified =
+            (businessProfile?.location_verification_status || "")
+              .trim()
+              .toLowerCase() === "verified";
+
+          if (!locationVerified) {
+            hardRedirect(`/onboarding/business?returnTo=${encodeURIComponent(next || "/dashboard")}`);
+            return;
+          }
+
+          if (businessProfile?.eligible_free !== true) {
+            hardRedirect(`/dashboard/subscription?reason=district_free_not_eligible`);
+            return;
+          }
+        }
+
         setMsg("Preparing your dashboard…");
 
         let redirectTo = next || "/dashboard";
