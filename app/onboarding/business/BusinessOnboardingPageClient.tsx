@@ -376,6 +376,17 @@ export default function BusinessOnboardingPageClient() {
   useEffect(() => {
     let alive = true;
 
+    const loadingSafetyTimer = window.setTimeout(() => {
+      if (!alive) return;
+      setLoading(false);
+      setMsg((m) => m ?? "Profile loading took longer than expected. You can still review and save your details.");
+    }, 12000);
+
+    const finishLoading = () => {
+      window.clearTimeout(loadingSafetyTimer);
+      setLoading(false);
+    };
+
     (async () => {
       setLoading(true);
       setMsg(null);
@@ -412,7 +423,7 @@ export default function BusinessOnboardingPageClient() {
 
         if (error) {
           setMsg(error.message);
-          setLoading(false);
+          finishLoading();
           return;
         }
 
@@ -449,7 +460,7 @@ export default function BusinessOnboardingPageClient() {
 
           if (insErr) {
             setMsg(insErr.message);
-            setLoading(false);
+            finishLoading();
             return;
           }
 
@@ -491,19 +502,22 @@ export default function BusinessOnboardingPageClient() {
           });
         }
 
-        await fetchCompleteness(uid);
-
         if (!alive) return;
-        setLoading(false);
+        finishLoading();
+
+        fetchCompleteness(uid).catch((e) => {
+          console.error("fetchCompleteness failed", e);
+        });
       } catch (e: any) {
         if (!alive) return;
         setMsg(e?.message || "Failed to load business profile.");
-        setLoading(false);
+        finishLoading();
       }
     })();
 
     return () => {
       alive = false;
+      window.clearTimeout(loadingSafetyTimer);
     };
   }, [supabase, returnTo, roleFromQuery]);
 
