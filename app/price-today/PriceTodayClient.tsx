@@ -291,7 +291,9 @@ if (userData.user) {
     ["vendor", "builder", "property_owner", "hub_vendor", "master_admin"].includes(role) ||
     ["vendor", "builder", "property_owner", "hub_vendor"].includes(requestedRole);
 
-  const approved = approvalStatus === "approved" || role === "master_admin";
+  const approved =
+    ["approved", "active"].includes(approvalStatus) ||
+    role === "master_admin";
 
   setCanAddPrice(Boolean(allowedRole && approved));
 }
