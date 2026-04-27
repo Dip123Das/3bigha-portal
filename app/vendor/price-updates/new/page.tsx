@@ -78,13 +78,42 @@ const gradeSuggestions: Record<CategoryKey, string[]> = {
   Properties: ["Residential", "Commercial", "Road Side", "Premium Location"],
 };
 
+const emptyForm = {
+  category: "Materials" as CategoryKey,
+  item: "Cement",
+  brand: "",
+  grade: "",
+  price_min: "",
+  price_max: "",
+  unit: "bag",
+  location: "Cooch Behar",
+  trend: "Stable",
+  offer: "",
+  offer_start: "",
+  offer_end: "",
+  source_type: "vendor",
+};
+
 function formatDate(value: string | null) {
   if (!value) return "";
+
   return new Date(value).toLocaleDateString("en-IN", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
+}
+
+function normalizeDateForInput(value: string | null) {
+  if (!value) return "";
+  return String(value).slice(0, 10);
+}
+
+function normalizeCategory(value: string | null): CategoryKey {
+  if (value === "Services") return "Services";
+  if (value === "Rentals") return "Rentals";
+  if (value === "Properties") return "Properties";
+  return "Materials";
 }
 
 export default function AddPricePage() {
@@ -93,22 +122,9 @@ export default function AddPricePage() {
   const [userState, setUserState] = useState<UserState>("checking");
   const [userId, setUserId] = useState<string | null>(null);
   const [myPrices, setMyPrices] = useState<MyPriceRow[]>([]);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [form, setForm] = useState({
-    category: "Materials" as CategoryKey,
-    item: "Cement",
-    brand: "",
-    grade: "",
-    price_min: "",
-    price_max: "",
-    unit: "bag",
-    location: "Cooch Behar",
-    trend: "Stable",
-    offer: "",
-    offer_start: "",
-    offer_end: "",
-    source_type: "vendor",
-  });
+  const [form, setForm] = useState(emptyForm);
 
   const [loading, setLoading] = useState(false);
   const [listLoading, setListLoading] = useState(false);
@@ -160,27 +176,40 @@ export default function AddPricePage() {
         .eq("id", data.user.id)
         .maybeSingle();
 
-        const role = String(profile?.role || "");
-        const requestedRole = String(profile?.requested_role || "");
-        const approvalStatus = String(profile?.approval_status || "");
+      const role = String(profile?.role || "");
+      const requestedRole = String(profile?.requested_role || "");
+      const approvalStatus = String(profile?.approval_status || "");
 
-        const allowedRole =
+      const allowedRole =
         profile?.is_vendor === true ||
-        ["vendor", "builder", "property_owner", "hub_vendor", "master_admin"].includes(role) ||
-        ["vendor", "builder", "property_owner", "hub_vendor"].includes(requestedRole);
+        [
+          "vendor",
+          "builder",
+          "property_owner",
+          "property_builder",
+          "hub_vendor",
+          "master_admin",
+        ].includes(role) ||
+        [
+          "vendor",
+          "builder",
+          "property_owner",
+          "property_builder",
+          "hub_vendor",
+        ].includes(requestedRole);
 
-        const approved =
-            ["approved", "active"].includes(approvalStatus) ||
-            role === "master_admin";
+      const approved =
+        ["approved", "active"].includes(approvalStatus) ||
+        role === "master_admin";
 
-        if (!allowedRole || !approved) {
+      if (!allowedRole || !approved) {
         setUserState("blocked");
         return;
-        }
+      }
 
-        setUserId(data.user.id);
-        setUserState("allowed");
-        loadMyPrices(data.user.id);
+      setUserId(data.user.id);
+      setUserState("allowed");
+      loadMyPrices(data.user.id);
     }
 
     checkUser();
@@ -209,26 +238,67 @@ export default function AddPricePage() {
     setForm({ ...form, [name]: value });
   }
 
-  async function handleDeletePrice(priceId: string) {
-  if (!userId) return;
+  function startEdit(price: MyPriceRow) {
+    const category = normalizeCategory(price.category);
 
-  const ok = window.confirm("Delete this price update?");
-  if (!ok) return;
+    setEditingId(price.id);
+    setMsg("Editing selected price. Update the form and click Save Update.");
 
-  const { error } = await supabase
-    .from("material_price_updates")
-    .delete()
-    .eq("id", priceId)
-    .eq("created_by", userId);
+    setForm({
+      category,
+      item: price.item || itemOptions[category][0] || "",
+      brand: price.brand || "",
+      grade: price.grade || "",
+      price_min:
+        price.price_min === null || price.price_min === undefined
+          ? ""
+          : String(price.price_min),
+      price_max:
+        price.price_max === null || price.price_max === undefined
+          ? ""
+          : String(price.price_max),
+      unit: price.unit || unitSuggestions[category][0] || "",
+      location: price.location || "Cooch Behar",
+      trend: price.trend || "Stable",
+      offer: price.offer || "",
+      offer_start: normalizeDateForInput(price.offer_start),
+      offer_end: normalizeDateForInput(price.offer_end),
+      source_type: price.source_type || "vendor",
+    });
 
-  if (error) {
-    setMsg("❌ Delete failed: " + error.message);
-    return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  setMsg("✅ Price update deleted.");
-  loadMyPrices(userId);
-}
+  function cancelEdit() {
+    setEditingId(null);
+    setForm(emptyForm);
+    setMsg("");
+  }
+
+  async function handleDeletePrice(priceId: string) {
+    if (!userId) return;
+
+    const ok = window.confirm("Delete this price update?");
+    if (!ok) return;
+
+    const { error } = await supabase
+      .from("material_price_updates")
+      .delete()
+      .eq("id", priceId)
+      .eq("created_by", userId);
+
+    if (error) {
+      setMsg("❌ Delete failed: " + error.message);
+      return;
+    }
+
+    if (editingId === priceId) {
+      cancelEdit();
+    }
+
+    setMsg("✅ Price update deleted.");
+    loadMyPrices(userId);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -254,46 +324,42 @@ export default function AddPricePage() {
     setLoading(true);
     setMsg("");
 
-    const { error } = await supabase.from("material_price_updates").insert([
-      {
-        category: form.category,
-        item: form.item.trim(),
-        brand: form.brand.trim(),
-        grade: form.grade.trim() || "Standard",
-        price_min: minPrice,
-        price_max: maxPrice,
-        unit: form.unit.trim(),
-        location: form.location.trim(),
-        trend: form.trend,
-        offer: form.offer.trim(),
-        offer_start: form.offer_start || null,
-        offer_end: form.offer_end || null,
-        source_type: form.source_type,
-        created_by: userId,
-      },
-    ]);
+    const payload = {
+      category: form.category,
+      item: form.item.trim(),
+      brand: form.brand.trim(),
+      grade: form.grade.trim() || "Standard",
+      price_min: minPrice,
+      price_max: maxPrice,
+      unit: form.unit.trim(),
+      location: form.location.trim(),
+      trend: form.trend,
+      offer: form.offer.trim(),
+      offer_start: form.offer_start || null,
+      offer_end: form.offer_end || null,
+      source_type: form.source_type,
+      created_by: userId,
+    };
 
-    if (error) {
-      setMsg("❌ Error: " + error.message);
+    const result = editingId
+      ? await supabase
+          .from("material_price_updates")
+          .update(payload)
+          .eq("id", editingId)
+          .eq("created_by", userId)
+      : await supabase.from("material_price_updates").insert([payload]);
+
+    if (result.error) {
+      setMsg("❌ Error: " + result.error.message);
     } else {
-      setMsg("✅ Price added successfully. It will now appear in Price Today.");
+      setMsg(
+        editingId
+          ? "✅ Price updated successfully."
+          : "✅ Price added successfully. It will now appear in Price Today."
+      );
 
-      setForm({
-        category: "Materials",
-        item: "Cement",
-        brand: "",
-        grade: "",
-        price_min: "",
-        price_max: "",
-        unit: "bag",
-        location: "Cooch Behar",
-        trend: "Stable",
-        offer: "",
-        offer_start: "",
-        offer_end: "",
-        source_type: "vendor",
-      });
-
+      setEditingId(null);
+      setForm(emptyForm);
       loadMyPrices(userId);
     }
 
@@ -315,9 +381,10 @@ export default function AddPricePage() {
       <main className="min-h-screen bg-[#f8faf7] p-6">
         <div className="mx-auto max-w-3xl rounded-3xl bg-white p-6 shadow">
           <h1 className="text-2xl font-black">Access Restricted</h1>
-            <p className="mt-2 text-sm font-semibold text-slate-600">
-            Only approved vendors, builders and property owners can add Price Today updates.
-            </p>
+          <p className="mt-2 text-sm font-semibold text-slate-600">
+            Only approved vendors, builders and property owners can add Price
+            Today updates.
+          </p>
           <Link
             href="/login"
             className="mt-4 inline-flex rounded-2xl bg-blue-700 px-5 py-3 text-sm font-black text-white"
@@ -342,11 +409,26 @@ export default function AddPricePage() {
             </Link>
           </div>
 
-          <h1 className="text-2xl font-black">Add Price Update</h1>
+          <h1 className="text-2xl font-black">
+            {editingId ? "Edit Price Update" : "Add Price Update"}
+          </h1>
           <p className="mt-2 text-sm font-semibold text-slate-600">
             Select category and item carefully so the price appears correctly in
             Price Today.
           </p>
+
+          {editingId ? (
+            <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-3 text-sm font-bold text-blue-800">
+              Editing existing price update.
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="ml-3 rounded-xl bg-white px-3 py-1 text-xs font-black text-blue-700"
+              >
+                Cancel Edit
+              </button>
+            </div>
+          ) : null}
 
           <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
             <select
@@ -485,23 +567,38 @@ export default function AddPricePage() {
               onChange={handleChange}
               className="rounded-2xl border px-4 py-3 font-bold"
             >
-            <option value="vendor">Vendor</option>
-            <option value="vendor">Vendor</option>
-            <option value="builder">Builder</option>
-            <option value="property_owner">Property Owner</option>
-            <option value="property_builder">Property Builder</option>
-            <option value="hub_vendor">Hub Vendor</option>
-            <option value="manufacturer">Manufacturer</option>
-            <option value="distributor">Distributor</option>
+              <option value="vendor">Vendor</option>
+              <option value="builder">Builder</option>
+              <option value="property_owner">Property Owner</option>
+              <option value="property_builder">Property Builder</option>
+              <option value="hub_vendor">Hub Vendor</option>
+              <option value="manufacturer">Manufacturer</option>
+              <option value="distributor">Distributor</option>
             </select>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-2xl bg-blue-700 py-3 font-black text-white disabled:opacity-60"
-            >
-              {loading ? "Saving..." : "Add Price"}
-            </button>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="rounded-2xl bg-blue-700 py-3 font-black text-white disabled:opacity-60"
+              >
+                {loading
+                  ? "Saving..."
+                  : editingId
+                  ? "Save Update"
+                  : "Add Price"}
+              </button>
+
+              {editingId ? (
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 py-3 font-black text-slate-700"
+                >
+                  Cancel Edit
+                </button>
+              ) : null}
+            </div>
 
             {msg ? <p className="text-sm font-bold">{msg}</p> : null}
           </form>
@@ -522,7 +619,11 @@ export default function AddPricePage() {
               myPrices.map((price) => (
                 <div
                   key={price.id}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                  className={`rounded-2xl border p-4 ${
+                    editingId === price.id
+                      ? "border-blue-300 bg-blue-50"
+                      : "border-slate-200 bg-slate-50"
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -556,13 +657,23 @@ export default function AddPricePage() {
                     {formatDate(price.created_at)}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleDeletePrice(price.id)}
-                    className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-black text-red-700"
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => startEdit(price)}
+                      className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-black text-blue-700"
                     >
-                    Delete Price
+                      Edit Price
                     </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePrice(price.id)}
+                      className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-black text-red-700"
+                    >
+                      Delete Price
+                    </button>
+                  </div>
 
                   {price.offer ? (
                     <div className="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-bold text-slate-700">
