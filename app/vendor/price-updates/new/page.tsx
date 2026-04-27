@@ -209,6 +209,27 @@ export default function AddPricePage() {
     setForm({ ...form, [name]: value });
   }
 
+  async function handleDeletePrice(priceId: string) {
+  if (!userId) return;
+
+  const ok = window.confirm("Delete this price update?");
+  if (!ok) return;
+
+  const { error } = await supabase
+    .from("material_price_updates")
+    .delete()
+    .eq("id", priceId)
+    .eq("created_by", userId);
+
+  if (error) {
+    setMsg("❌ Delete failed: " + error.message);
+    return;
+  }
+
+  setMsg("✅ Price update deleted.");
+  loadMyPrices(userId);
+}
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
@@ -529,6 +550,14 @@ export default function AddPricePage() {
                     Source: {price.source_type || "vendor"} • Added:{" "}
                     {formatDate(price.created_at)}
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeletePrice(price.id)}
+                    className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-black text-red-700"
+                    >
+                    Delete Price
+                    </button>
 
                   {price.offer ? (
                     <div className="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-bold text-slate-700">
