@@ -154,9 +154,31 @@ export default function AddPricePage() {
         return;
       }
 
-      setUserId(data.user.id);
-      setUserState("allowed");
-      loadMyPrices(data.user.id);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role,requested_role,is_vendor,approval_status")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+        const role = String(profile?.role || "");
+        const requestedRole = String(profile?.requested_role || "");
+        const approvalStatus = String(profile?.approval_status || "");
+
+        const allowedRole =
+        profile?.is_vendor === true ||
+        ["vendor", "builder", "property_owner", "hub_vendor", "master_admin"].includes(role) ||
+        ["vendor", "builder", "property_owner", "hub_vendor"].includes(requestedRole);
+
+        const approved = approvalStatus === "approved" || role === "master_admin";
+
+        if (!allowedRole || !approved) {
+        setUserState("blocked");
+        return;
+        }
+
+        setUserId(data.user.id);
+        setUserState("allowed");
+        loadMyPrices(data.user.id);
     }
 
     checkUser();
@@ -269,10 +291,10 @@ export default function AddPricePage() {
     return (
       <main className="min-h-screen bg-[#f8faf7] p-6">
         <div className="mx-auto max-w-3xl rounded-3xl bg-white p-6 shadow">
-          <h1 className="text-2xl font-black">Login Required</h1>
-          <p className="mt-2 text-sm font-semibold text-slate-600">
-            Please login before adding price updates.
-          </p>
+          <h1 className="text-2xl font-black">Access Restricted</h1>
+            <p className="mt-2 text-sm font-semibold text-slate-600">
+            Only approved vendors, builders and property owners can add Price Today updates.
+            </p>
           <Link
             href="/login"
             className="mt-4 inline-flex rounded-2xl bg-blue-700 px-5 py-3 text-sm font-black text-white"

@@ -263,6 +263,7 @@ export default function PriceTodayClient() {
     useState<Record<CategoryKey, ItemOption[]>>(fallbackItems);
   const [priceRows, setPriceRows] = useState<PriceRow[]>(fallbackPriceRows);
   const [loading, setLoading] = useState(true);
+  const [canAddPrice, setCanAddPrice] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -271,6 +272,29 @@ export default function PriceTodayClient() {
       setLoading(true);
 
       const supabase = getSupabaseBrowser();
+
+      const { data: userData } = await supabase.auth.getUser();
+
+if (userData.user) {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role,requested_role,is_vendor,approval_status")
+    .eq("id", userData.user.id)
+    .maybeSingle();
+
+  const role = String(profile?.role || "");
+  const requestedRole = String(profile?.requested_role || "");
+  const approvalStatus = String(profile?.approval_status || "");
+
+  const allowedRole =
+    profile?.is_vendor === true ||
+    ["vendor", "builder", "property_owner", "hub_vendor", "master_admin"].includes(role) ||
+    ["vendor", "builder", "property_owner", "hub_vendor"].includes(requestedRole);
+
+  const approved = approvalStatus === "approved" || role === "master_admin";
+
+  setCanAddPrice(Boolean(allowedRole && approved));
+}
 
       const next: Record<CategoryKey, ItemOption[]> = {
         Materials: [],
@@ -553,20 +577,34 @@ export default function PriceTodayClient() {
               </div>
             </div>
 
-            <Link
-              href="/vendor/price-updates/new"
-              className="rounded-2xl bg-slate-950 p-4 text-white shadow-sm hover:bg-slate-900"
-            >
-              <div className="text-sm font-black text-orange-200">
-                Vendor / Distributor
+            {canAddPrice ? (
+              <Link
+                href="/vendor/price-updates/new"
+                className="rounded-2xl bg-slate-950 p-4 text-white shadow-sm hover:bg-slate-900"
+              >
+                <div className="text-sm font-black text-orange-200">
+                  Vendor / Builder / Owner
+                </div>
+                <div className="mt-1 text-xl font-black">
+                  Add Today’s Price →
+                </div>
+                <div className="mt-1 text-sm font-semibold text-white/75">
+                  Submit brand, grade, rate, location and offer period.
+                </div>
+              </Link>
+            ) : (
+              <div className="rounded-2xl bg-slate-950/80 p-4 text-white shadow-sm">
+                <div className="text-sm font-black text-orange-200">
+                  Vendor / Builder / Owner only
+                </div>
+                <div className="mt-1 text-xl font-black">
+                  Price update access restricted
+                </div>
+                <div className="mt-1 text-sm font-semibold text-white/75">
+                  Approved vendors, builders and property owners can submit live prices.
+                </div>
               </div>
-              <div className="mt-1 text-xl font-black">
-                Add Today’s Price →
-              </div>
-              <div className="mt-1 text-sm font-semibold text-white/75">
-                Submit brand, grade, rate, location and offer period.
-              </div>
-            </Link>
+            )}
           </div>
         </div>
 
