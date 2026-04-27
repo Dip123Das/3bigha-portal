@@ -660,7 +660,7 @@ export default function BusinessOnboardingPageClient() {
     }
 
     setSaving(true);
-    setMsg("Requesting device location permission...");
+    setMsg("Requesting live location permission...");
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -1273,7 +1273,7 @@ export default function BusinessOnboardingPageClient() {
           <h3 style={{ marginTop: 0 }}>Address</h3>
 
           <div style={{ display: "grid", gap: 10 }}>
-            <div
+                        <div
               style={{
                 padding: 12,
                 borderRadius: 10,
@@ -1307,7 +1307,7 @@ export default function BusinessOnboardingPageClient() {
                 cursor: saving ? "not-allowed" : "pointer",
               }}
             >
-              📍 Use My Live Location to Verify
+              {saving ? "Verifying..." : "📍 Use My Live Location to Verify"}
             </button>
 
             {!missingLocationVerification ? (
@@ -1333,6 +1333,7 @@ export default function BusinessOnboardingPageClient() {
                 Pincode: <b>{bp.verified_postcode || "Detected"}</b>
               </div>
             ) : null}
+
             <Field label="Address Line 1 (optional)">
               <input
                 value={bp.address_line1 ?? ""}
