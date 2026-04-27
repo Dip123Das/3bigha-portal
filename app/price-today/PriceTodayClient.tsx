@@ -19,6 +19,8 @@ type PriceRow = {
   brand: string;
   grade: string;
   price: string;
+  priceMin: number;
+  priceMax: number;
   unit: string;
   trend: TrendValue;
   location?: string;
@@ -76,6 +78,8 @@ const fallbackPriceRows: PriceRow[] = [
     brand: "UltraTech",
     grade: "OPC 53",
     price: "₹410 - ₹435",
+    priceMin: 410,
+    priceMax: 435,
     unit: "bag",
     trend: "Stable",
     location: "Cooch Behar",
@@ -89,6 +93,8 @@ const fallbackPriceRows: PriceRow[] = [
     brand: "Ambuja",
     grade: "PPC",
     price: "₹390 - ₹420",
+    priceMin: 390,
+    priceMax: 420,
     unit: "bag",
     trend: "Down",
     location: "Cooch Behar",
@@ -102,6 +108,8 @@ const fallbackPriceRows: PriceRow[] = [
     brand: "Tata Tiscon",
     grade: "Fe 500D",
     price: "₹60 - ₹66",
+    priceMin: 60,
+    priceMax: 66,
     unit: "kg",
     trend: "Up",
     location: "Cooch Behar",
@@ -113,6 +121,8 @@ const fallbackPriceRows: PriceRow[] = [
     brand: "Local Supplier",
     grade: "Medium River Sand",
     price: "₹3,200 - ₹4,200",
+    priceMin: 3200,
+    priceMax: 4200,
     unit: "tractor",
     trend: "Down",
     location: "Cooch Behar",
@@ -124,6 +134,8 @@ const fallbackPriceRows: PriceRow[] = [
     brand: "Local Market",
     grade: "Residential",
     price: "₹8L - ₹13L",
+    priceMin: 800000,
+    priceMax: 1300000,
     unit: "katha",
     trend: "Up",
     location: "Cooch Behar",
@@ -135,6 +147,8 @@ const fallbackPriceRows: PriceRow[] = [
     brand: "Local Market",
     grade: "Residential Apartment",
     price: "₹2,800 - ₹4,500",
+    priceMin: 2800,
+    priceMax: 4500,
     unit: "sq.ft.",
     trend: "Stable",
     location: "Cooch Behar",
@@ -431,6 +445,8 @@ if (userData.user) {
           brand: String(row.brand || row.source_type || "Local Market").trim(),
           grade: String(row.grade || "Standard").trim(),
           price: formatDbPrice(row),
+          priceMin: Number(row.price_min || 0),
+          priceMax: Number(row.price_max || row.price_min || 0),
           unit: String(row.unit || "unit").trim(),
           trend: normalizeTrend(row.trend),
           location: String(row.location || "").trim(),
@@ -515,6 +531,33 @@ if (userData.user) {
       return true;
     });
   }, [priceRows, category, item, brand, grade, location]);
+
+  const groupedPriceRows = useMemo(() => {
+  const grouped = new Map<string, PriceRow & { vendorCount: number }>();
+
+  matchingRows.forEach((row) => {
+    const key = `${row.category}-${row.item}-${row.location || ""}-${row.unit}`;
+
+    const existing = grouped.get(key);
+
+    if (!existing) {
+      grouped.set(key, {
+        ...row,
+        vendorCount: 1,
+      });
+      return;
+    }
+
+    grouped.set(key, {
+      ...existing,
+      priceMin: Math.min(existing.priceMin, row.priceMin),
+      priceMax: Math.max(existing.priceMax, row.priceMax),
+      vendorCount: existing.vendorCount + 1,
+    });
+  });
+
+  return Array.from(grouped.values());
+}, [matchingRows]);
 
   const brandOptions = useMemo(() => {
     return uniqueStrings(
@@ -750,10 +793,10 @@ if (userData.user) {
           </h2>
 
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            {matchingRows.length ? (
-              matchingRows.map((row, index) => (
+            {groupedPriceRows.length ? (
+              groupedPriceRows.map((row, index) => (
                 <div
-                  key={`${row.id || index}-${row.item}-${row.brand}-${row.grade}`}
+                  key={`${row.id || index}-${row.item}-${row.location}-${row.unit}`}
                   className="rounded-3xl bg-white p-5 shadow-sm"
                 >
                   <div className="text-sm font-black text-slate-500">
@@ -765,19 +808,20 @@ if (userData.user) {
                   </h3>
 
                   <div className="mt-2 text-sm font-bold text-slate-700">
-                    Brand / Source: {row.brand}
+                    Market range based on {row.vendorCount} price source
+                    {row.vendorCount > 1 ? "s" : ""}
                   </div>
 
                   <div className="mt-1 text-sm font-bold text-slate-700">
-                    Grade / Quality: {row.grade}
+                    Sample brand/source: {row.brand}
                   </div>
 
                   <div className="mt-1 text-sm font-bold text-slate-700">
-                    Price Source: {row.sourceType || "Vendor"}
+                    Sample grade/quality: {row.grade}
                   </div>
 
                   <div className="mt-3 text-2xl font-black text-emerald-700">
-                    {row.price} / {row.unit}
+                    ₹{row.priceMin} - ₹{row.priceMax} / {row.unit}
                   </div>
 
                   <div className="mt-3">
