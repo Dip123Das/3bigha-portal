@@ -326,6 +326,7 @@ export default function BusinessOnboardingPageClient() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [locationVerifying, setLocationVerifying] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
   const [userId, setUserId] = useState<string | null>(null);
@@ -648,19 +649,29 @@ export default function BusinessOnboardingPageClient() {
     return { ok: true, isComplete };
   }
 
-    async function verifyLiveLocation() {
+  async function verifyLiveLocation() {
     if (!userId) {
       setMsg("Please login first.");
       return;
     }
 
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
+    if (typeof window === "undefined" || typeof navigator === "undefined") {
+      setMsg("Live location is not available here. Please open this page in your browser.");
+      return;
+    }
+
+    if (!window.isSecureContext) {
+      setMsg("Live location works only on HTTPS. Please open https://www.3bigha.com.");
+      return;
+    }
+
+    if (!navigator.geolocation) {
       setMsg("Live location is not supported on this device or browser.");
       return;
     }
 
-    setSaving(true);
-    setMsg("Requesting live location permission...");
+    setLocationVerifying(true);
+    setMsg("Please allow location permission in your browser popup...");
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -668,16 +679,23 @@ export default function BusinessOnboardingPageClient() {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
 
+          setMsg(`Device GPS captured. Verifying location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}...`);
+
           const res = await fetch("/api/onboarding/verify-location", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ latitude, longitude }),
+            body: JSON.stringify({
+              latitude,
+              longitude,
+              lat: latitude,
+              lng: longitude,
+            }),
           });
 
           const json = await res.json().catch(() => null);
 
           if (!res.ok || !json?.ok) {
-            setSaving(false);
+            setLocationVerifying(false);
             setMsg(json?.error || "Could not verify your live location.");
             return;
           }
@@ -721,7 +739,7 @@ export default function BusinessOnboardingPageClient() {
             })
             .eq("user_id", userId);
 
-          setSaving(false);
+          setLocationVerifying(false);
 
           if (error) {
             setMsg(error.message);
@@ -736,15 +754,20 @@ export default function BusinessOnboardingPageClient() {
             }${json.eligible_free ? " • Free district eligible" : ""}`
           );
         } catch (e: any) {
-          setSaving(false);
+          setLocationVerifying(false);
           setMsg(e?.message || "Location verification failed.");
         }
       },
       (error) => {
-        setSaving(false);
+        setLocationVerifying(false);
 
         if (error.code === error.PERMISSION_DENIED) {
-          setMsg("Location permission denied. Please allow location access from your browser and try again.");
+          setMsg("Location permission denied. Please allow location access from browser site settings and try again.");
+          return;
+        }
+
+        if (error.code === error.TIMEOUT) {
+          setMsg("Location request timed out. Please turn on GPS/location and try again.");
           return;
         }
 
@@ -752,7 +775,7 @@ export default function BusinessOnboardingPageClient() {
       },
       {
         enableHighAccuracy: true,
-        timeout: 15000,
+        timeout: 20000,
         maximumAge: 0,
       }
     );
@@ -1295,8 +1318,12 @@ export default function BusinessOnboardingPageClient() {
 
             <button
               type="button"
-              onClick={verifyLiveLocation}
-              disabled={saving}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                verifyLiveLocation();
+              }}
+              disabled={locationVerifying}
               style={{
                 padding: 12,
                 borderRadius: 10,
@@ -1304,10 +1331,10 @@ export default function BusinessOnboardingPageClient() {
                 background: "#2563eb",
                 color: "#ffffff",
                 fontWeight: 900,
-                cursor: saving ? "not-allowed" : "pointer",
+                cursor: locationVerifying ? "not-allowed" : "pointer",
               }}
             >
-              {saving ? "Verifying..." : "📍 Use My Live Location to Verify"}
+              {locationVerifying ? "Verifying live location..." : "📍 Use My Live Location to Verify"}
             </button>
 
             {!missingLocationVerification ? (
