@@ -113,12 +113,8 @@ function computeCompletion(bp: Partial<BusinessProfile>) {
     !!(bp.phone_primary && bp.phone_primary.trim()) ||
     !!(bp.email_business && bp.email_business.trim());
 
-  const locationVerified =
+  const locationOk =
     (bp.location_verification_status || "").trim().toLowerCase() === "verified";
-
-  const districtProvided = !!(bp.district && bp.district.trim());
-
-  const locationOk = locationVerified || districtProvided;
 
   const businessProofOk = isPureBlogOnly
     ? true
@@ -573,7 +569,7 @@ export default function BusinessOnboardingPageClient() {
     { key: "nature", title: "Step 1 — Nature", subtitle: "Choose what you do", show: true, targetId: "sec-nature" },
     { key: "identity", title: "Step 2 — Identity", subtitle: "Business / Legal info", show: true, targetId: "sec-identity" },
     { key: "contact", title: "Step 3 — Contact", subtitle: "Phone / email", show: true, targetId: "sec-contact" },
-    { key: "address", title: "Step 4 — Address", subtitle: "District or live location required", show: true, targetId: "sec-address" },
+    { key: "address", title: "Step 4 — Address", subtitle: "Device live location required", show: true, targetId: "sec-address" },
     { key: "property", title: "Step 5 — Property Compliance", subtitle: "RERA details (optional)", show: nature.includes("property"), targetId: "sec-property" },
     { key: "author", title: "Step 6 — Author Identity", subtitle: "Blog profile", show: hasBlog, targetId: "sec-author" },
     { key: "review", title: "Step 7 — Review & Finish", subtitle: "Confirm completion", show: true, targetId: "sec-review" },
@@ -636,6 +632,116 @@ export default function BusinessOnboardingPageClient() {
     }));
 
     return { ok: true, isComplete };
+  }
+
+    async function verifyLiveLocation() {
+    if (!userId) {
+      setMsg("Please login first.");
+      return;
+    }
+
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setMsg("Live location is not supported on this device or browser.");
+      return;
+    }
+
+    setSaving(true);
+    setMsg("Requesting device location permission...");
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          const res = await fetch("/api/onboarding/verify-location", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ latitude, longitude }),
+          });
+
+          const json = await res.json().catch(() => null);
+
+          if (!res.ok || !json?.ok) {
+            setSaving(false);
+            setMsg(json?.error || "Could not verify your live location.");
+            return;
+          }
+
+          const nextBp = {
+            ...bp,
+            location_verification_status: "verified",
+            verified_country: json.country ?? null,
+            verified_state: json.state ?? null,
+            verified_district: json.district ?? null,
+            verified_locality: json.locality ?? null,
+            verified_postcode: json.postcode ?? null,
+            eligible_free: !!json.eligible_free,
+            district: json.district || bp.district || null,
+            state: json.state || bp.state || null,
+            city: json.locality || bp.city || null,
+            pincode: json.postcode || bp.pincode || null,
+          };
+
+          setBp(nextBp);
+
+          const completion = computeCompletion(nextBp);
+
+          const { error } = await supabase
+            .from("business_profiles")
+            .update({
+              location_verification_status: "verified",
+              verified_country: json.country ?? null,
+              verified_state: json.state ?? null,
+              verified_district: json.district ?? null,
+              verified_locality: json.locality ?? null,
+              verified_postcode: json.postcode ?? null,
+              eligible_free: !!json.eligible_free,
+              district: json.district || bp.district || null,
+              state: json.state || bp.state || null,
+              city: json.locality || bp.city || null,
+              pincode: json.postcode || bp.pincode || null,
+              is_complete: completion.isComplete,
+              completion_score: completion.score,
+              missing_fields: completion.missing,
+            })
+            .eq("user_id", userId);
+
+          setSaving(false);
+
+          if (error) {
+            setMsg(error.message);
+            return;
+          }
+
+          await fetchCompleteness(userId);
+
+          setMsg(
+            `✅ Device location verified: ${
+              json.locality || json.district || "Location detected"
+            }${json.eligible_free ? " • Free district eligible" : ""}`
+          );
+        } catch (e: any) {
+          setSaving(false);
+          setMsg(e?.message || "Location verification failed.");
+        }
+      },
+      (error) => {
+        setSaving(false);
+
+        if (error.code === error.PERMISSION_DENIED) {
+          setMsg("Location permission denied. Please allow location access from your browser and try again.");
+          return;
+        }
+
+        setMsg("Could not get your device location. Please turn on GPS/location and try again.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      }
+    );
   }
 
   async function onSave(e: React.FormEvent) {
@@ -1155,28 +1261,64 @@ export default function BusinessOnboardingPageClient() {
           <div style={{ display: "grid", gap: 10 }}>
             <div
               style={{
-                padding: 10,
-                borderRadius: 8,
-                background:
-                  missingLocationVerification && !bp.district ? "#fff1f2" : "#f0fdf4",
-                border: `1px solid ${
-                  missingLocationVerification && !bp.district ? "#fecdd3" : "#bbf7d0"
-                }`,
-                color:
-                  missingLocationVerification && !bp.district ? "#9f1239" : "#166534",
+                padding: 12,
+                borderRadius: 10,
+                background: missingLocationVerification ? "#fff1f2" : "#f0fdf4",
+                border: `1px solid ${missingLocationVerification ? "#fecdd3" : "#bbf7d0"}`,
+                color: missingLocationVerification ? "#9f1239" : "#166534",
                 fontSize: 13,
                 fontWeight: 700,
               }}
             >
-              {(missingLocationVerification && !bp.district)
-                ? "Please verify your live location OR fill your district to proceed."
-                : `Location accepted: ${
+              {missingLocationVerification
+                ? "Device live location verification is mandatory. Manual address or copied district will not activate dashboard access."
+                : `Device location verified: ${
                     bp.verified_locality ||
                     bp.verified_district ||
-                    bp.district ||
-                    "Provided"
+                    "Verified"
                   }${bp.eligible_free ? " • Free district eligible" : ""}`}
             </div>
+
+            <button
+              type="button"
+              onClick={verifyLiveLocation}
+              disabled={saving}
+              style={{
+                padding: 12,
+                borderRadius: 10,
+                border: "1px solid #2563eb",
+                background: "#2563eb",
+                color: "#ffffff",
+                fontWeight: 900,
+                cursor: saving ? "not-allowed" : "pointer",
+              }}
+            >
+              📍 Use My Live Location to Verify
+            </button>
+
+            {!missingLocationVerification ? (
+              <div
+                style={{
+                  padding: 10,
+                  borderRadius: 8,
+                  background: "#eff6ff",
+                  border: "1px solid #bfdbfe",
+                  color: "#1d4ed8",
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                }}
+              >
+                Verified from device GPS:
+                <br />
+                District: <b>{bp.verified_district || "Detected"}</b>
+                <br />
+                Locality: <b>{bp.verified_locality || "Detected"}</b>
+                <br />
+                State: <b>{bp.verified_state || "Detected"}</b>
+                <br />
+                Pincode: <b>{bp.verified_postcode || "Detected"}</b>
+              </div>
+            ) : null}
             <Field label="Address Line 1 (optional)">
               <input
                 value={bp.address_line1 ?? ""}
