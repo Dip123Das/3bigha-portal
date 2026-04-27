@@ -195,6 +195,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({
+      ok: true,
       success: true,
       district,
       state,
