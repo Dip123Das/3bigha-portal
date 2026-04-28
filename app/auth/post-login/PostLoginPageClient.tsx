@@ -280,11 +280,13 @@ export default function PostLoginPageClient() {
           redirectTo = next || "/";
         }
 
+        // 🚀 ONLY handle exact register-role case (STRICT MATCH)
         if (redirectTo === "/auth/register-role?role=master_admin") {
           hardRedirect("/admin/dashboard");
           return;
         }
 
+        // 🚫 DO NOT interfere with normal admin navigation
         hardRedirect(redirectTo);
       } catch (e: any) {
         console.error("POST_LOGIN_V7_FAIL", e);
