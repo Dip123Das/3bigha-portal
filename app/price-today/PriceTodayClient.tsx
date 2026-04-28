@@ -27,6 +27,8 @@ type PriceRow = {
   offer?: string;
   offerPeriod?: string;
   sourceType?: string;
+  trustLabel?: string;
+  trustScore?: number;
 };
 
 const locations = [
@@ -254,6 +256,53 @@ function formatOfferPeriod(row: any) {
   if (end) return `Till ${end}`;
 
   return "";
+}
+
+function getTrustInfo(row: PriceRow, vendorCount = 1) {
+  const source = String(row.sourceType || "").toLowerCase();
+
+  let score = 50;
+  let label = "Indicative";
+
+  if (source.includes("manufacturer")) {
+    score += 25;
+    label = "Manufacturer sourced";
+  } else if (source.includes("distributor")) {
+    score += 20;
+    label = "Distributor sourced";
+  } else if (source.includes("vendor")) {
+    score += 12;
+    label = "Vendor submitted";
+  } else if (source.includes("market")) {
+    score += 8;
+    label = "Market indication";
+  }
+
+  if (vendorCount >= 3) score += 15;
+  else if (vendorCount >= 2) score += 8;
+
+  score = Math.min(score, 95);
+
+  if (score >= 80) return { score, label: `High trust • ${label}` };
+  if (score >= 65) return { score, label: `Moderate trust • ${label}` };
+
+  return { score, label: `Indicative only • ${label}` };
+}
+
+function TrustBadge({
+  row,
+  vendorCount,
+}: {
+  row: PriceRow;
+  vendorCount?: number;
+}) {
+  const trust = getTrustInfo(row, vendorCount || 1);
+
+  return (
+    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">
+      🛡️ {trust.label} ({trust.score}%)
+    </span>
+  );
 }
 
 function TrendBadge({ trend }: { trend: string }) {
@@ -807,6 +856,12 @@ if (userData.user) {
             Selected Price Result
           </h2>
 
+          <p className="mt-2 text-sm font-semibold text-slate-600">
+            Trust score is based on source type and number of matching price
+            sources. Prices are indicative until directly confirmed with the
+            vendor, distributor, builder or owner.
+          </p>
+
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             {groupedPriceRows.length ? (
               groupedPriceRows.map((row, index) => (
@@ -839,8 +894,9 @@ if (userData.user) {
                     ₹{row.priceMin} - ₹{row.priceMax} / {row.unit}
                   </div>
 
-                  <div className="mt-3">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     <TrendBadge trend={row.trend} />
+                    <TrustBadge row={row} vendorCount={row.vendorCount} />
                   </div>
 
                   {row.offer ? (
