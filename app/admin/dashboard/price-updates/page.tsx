@@ -30,71 +30,63 @@ export default function AdminPriceUpdatesPage() {
   const [workingId, setWorkingId] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
 
-  async function getToken() {
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      window.setTimeout(() => reject(new Error("Session check timed out.")), 6000);
-    });
-
-    const sessionRes = await Promise.race([
-      supabase.auth.getSession(),
-      timeoutPromise,
-    ]);
-
-    if (sessionRes.error) {
-      throw new Error(sessionRes.error.message);
-    }
-
-    return sessionRes.data.session?.access_token || "";
-  }
-
   async function loadRows() {
     setLoading(true);
     setMsg("");
 
     const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), 12000);
+    const timer = window.setTimeout(() => controller.abort(), 8000);
 
     try {
-      const token = await getToken();
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+
+      if (sessionError) {
+        setMsg("Session error: " + sessionError.message);
+        return;
+      }
+
+      const token = sessionData?.session?.access_token;
 
       if (!token) {
-        setMsg("Please login as master admin.");
-        setRows([]);
+        setMsg("No login session found. Please login again as master admin.");
         return;
       }
 
       const res = await fetch("/api/admin/price-updates", {
         method: "GET",
+        cache: "no-store",
+        signal: controller.signal,
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        signal: controller.signal,
       });
 
       const text = await res.text();
-      let json: any = {};
 
+      let json: any = {};
       try {
         json = text ? JSON.parse(text) : {};
       } catch {
-        json = {};
-      }
-
-      if (!res.ok || json?.ok === false) {
-        setMsg(json?.error || `Failed to load price updates. Status: ${res.status}`);
-        setRows([]);
+        setMsg("Invalid API response: " + text.slice(0, 200));
         return;
       }
 
-      setRows(Array.isArray(json.rows) ? json.rows : []);
-    } catch (e: any) {
-      if (e?.name === "AbortError") {
-        setMsg("Loading took too long. Please refresh and try again.");
-      } else {
-        setMsg(e?.message || "Failed to load pending price updates.");
+      if (!res.ok) {
+        setMsg(json?.error || `API failed with status ${res.status}`);
+        return;
       }
 
-      setRows([]);
+      setRows(json.rows || []);
+    } catch (e: any) {
+      if (e?.name === "AbortError") {
+        setMsg(
+          "API timeout. Admin price verification could not load within 8 seconds."
+        );
+        return;
+      }
+
+      setMsg(e?.message || "Failed to load pending price updates.");
     } finally {
       window.clearTimeout(timer);
       setLoading(false);
@@ -113,10 +105,20 @@ export default function AdminPriceUpdatesPage() {
     setMsg("");
 
     try {
-      const token = await getToken();
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+
+      if (sessionError) {
+        setMsg("Session error: " + sessionError.message);
+        setWorkingId(null);
+        return;
+      }
+
+      const token = sessionData?.session?.access_token;
 
       if (!token) {
         setMsg("Please login again as master admin.");
+        setWorkingId(null);
         return;
       }
 
@@ -130,16 +132,19 @@ export default function AdminPriceUpdatesPage() {
       });
 
       const text = await res.text();
-      let json: any = {};
 
+      let json: any = {};
       try {
         json = text ? JSON.parse(text) : {};
       } catch {
-        json = {};
+        setMsg("Invalid API response: " + text.slice(0, 200));
+        setWorkingId(null);
+        return;
       }
 
-      if (!res.ok || json?.ok === false) {
+      if (!res.ok) {
         setMsg(json?.error || "Action failed.");
+        setWorkingId(null);
         return;
       }
 
@@ -153,24 +158,7 @@ export default function AdminPriceUpdatesPage() {
   }
 
   useEffect(() => {
-    let alive = true;
-
-    const safetyTimer = window.setTimeout(() => {
-      if (!alive) return;
-      setLoading(false);
-      setMsg(
-        "Loading stopped. Please click Refresh. If it continues, your admin login session may have expired."
-      );
-    }, 10000);
-
-    loadRows().finally(() => {
-      window.clearTimeout(safetyTimer);
-    });
-
-    return () => {
-      alive = false;
-      window.clearTimeout(safetyTimer);
-    };
+    loadRows();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -189,7 +177,9 @@ export default function AdminPriceUpdatesPage() {
         <div className="rounded-3xl bg-white p-6 shadow">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-black">Admin · Price Verification</h1>
+              <h1 className="text-2xl font-black">
+                Admin · Price Verification
+              </h1>
               <p className="mt-2 text-sm font-semibold text-slate-600">
                 Verify genuine vendor prices. Reject removes fake or doubtful
                 submissions.
@@ -200,21 +190,27 @@ export default function AdminPriceUpdatesPage() {
               type="button"
               onClick={loadRows}
               disabled={loading}
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-800 disabled:opacity-60"
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-black text-slate-700 disabled:opacity-60"
             >
               Refresh
             </button>
           </div>
 
           {msg ? (
-            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-800">
+            <div
+              className={`mt-4 rounded-2xl p-3 text-sm font-bold ${
+                msg.startsWith("✅")
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "bg-red-50 text-red-700"
+              }`}
+            >
               {msg}
             </div>
           ) : null}
 
           {loading ? (
             <div className="mt-6 rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-600">
-              Loading pending price updates... checking admin access.
+              Loading pending price updates... checking admin API and session.
             </div>
           ) : rows.length === 0 ? (
             <div className="mt-6 rounded-2xl bg-emerald-50 p-4 text-sm font-bold text-emerald-700">
