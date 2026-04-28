@@ -88,10 +88,14 @@ export async function PATCH(req: Request) {
     const supabase = getSupabaseAdmin();
     const auth = await requireMasterAdmin(req);
 
-    if (auth.error) {
-      return NextResponse.json({ error: auth.error }, { status: 403 });
+    if (auth.error || !auth.user) {
+      return NextResponse.json(
+        { error: auth.error ?? "Unauthorized. Please login again." },
+        { status: 403 }
+      );
     }
 
+    const user = auth.user;
     const body = await req.json();
     const id = String(body?.id || "");
     const action = String(body?.action || "");
@@ -106,7 +110,11 @@ export async function PATCH(req: Request) {
     if (action === "verify") {
       const { error } = await supabase
         .from("material_price_updates")
-        .update({ verified: true })
+        .update({
+          verified: true,
+          verified_by: user.id,
+          verified_at: new Date().toISOString(),
+        })
         .eq("id", id);
 
       if (error) {
