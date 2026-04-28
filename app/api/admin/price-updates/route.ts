@@ -48,27 +48,34 @@ async function requireMasterAdmin(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const supabase = getSupabaseAdmin();
-  const auth = await requireMasterAdmin(req);
+  try {
+    const supabase = getSupabaseAdmin();
+    const auth = await requireMasterAdmin(req);
 
-  if (auth.error) {
-    return NextResponse.json({ error: auth.error }, { status: 403 });
+    if (auth.error) {
+      return NextResponse.json({ error: auth.error }, { status: 403 });
+    }
+
+    const { data, error } = await supabase
+      .from("material_price_updates")
+      .select(
+        "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,source_type,created_by,verified,created_at"
+      )
+      .or("verified.is.false,verified.is.null")
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ ok: true, rows: data || [] });
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: e?.message || "Failed to load pending prices" },
+      { status: 500 }
+    );
   }
-
-  const { data, error } = await supabase
-    .from("material_price_updates")
-    .select(
-      "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,source_type,created_by,verified,created_at"
-    )
-    .eq("verified", false)
-    .order("created_at", { ascending: false })
-    .limit(100);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
-
-  return NextResponse.json({ ok: true, rows: data || [] });
 }
 
 export async function PATCH(req: Request) {

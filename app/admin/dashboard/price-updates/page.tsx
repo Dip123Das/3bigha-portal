@@ -34,31 +34,35 @@ export default function AdminPriceUpdatesPage() {
     setLoading(true);
     setMsg("");
 
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData?.session?.access_token;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
 
-    if (!token) {
-      setMsg("Please login as master admin.");
+      if (!token) {
+        setMsg("Please login as master admin.");
+        return;
+      }
+
+      const res = await fetch("/api/admin/price-updates", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const text = await res.text();
+      const json = text ? JSON.parse(text) : {};
+
+      if (!res.ok) {
+        setMsg(json?.error || `Failed to load price updates. Status: ${res.status}`);
+        return;
+      }
+
+      setRows(json.rows || []);
+    } catch (e: any) {
+      setMsg(e?.message || "Failed to load price updates.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const res = await fetch("/api/admin/price-updates", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const json = await res.json();
-
-    if (!res.ok) {
-      setMsg(json?.error || "Failed to load price updates.");
-      setLoading(false);
-      return;
-    }
-
-    setRows(json.rows || []);
-    setLoading(false);
   }
 
   async function act(id: string, action: "verify" | "reject") {
