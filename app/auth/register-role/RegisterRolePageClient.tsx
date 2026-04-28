@@ -90,9 +90,9 @@ export default function RegisterRolePageClient() {
 
   useEffect(() => {
     if (isMasterAdminRequest) {
-      router.replace(next || "/admin/dashboard");
+      window.location.replace(next || "/admin/dashboard");
     }
-  }, [isMasterAdminRequest, next, router]);
+  }, [isMasterAdminRequest, next]);
 
   const [role, setRole] = useState<PortalRole | "">(
     ["buyer", "vendor", "builder", "hub_vendor", "blogger"].includes(
