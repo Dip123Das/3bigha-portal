@@ -29,6 +29,7 @@ export default function AdminPriceUpdatesPage() {
   const [loading, setLoading] = useState(true);
   const [workingId, setWorkingId] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
+  const [aiWorking, setAiWorking] = useState(false);
 
   async function loadRows() {
     setLoading(true);
@@ -157,6 +158,51 @@ export default function AdminPriceUpdatesPage() {
     }
   }
 
+    async function generateAiDrafts() {
+    if (!window.confirm("Generate AI draft prices for admin verification?")) return;
+
+    setAiWorking(true);
+    setMsg("");
+
+    try {
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+
+      if (sessionError) {
+        setMsg("Session error: " + sessionError.message);
+        return;
+      }
+
+      const token = sessionData?.session?.access_token;
+
+      if (!token) {
+        setMsg("Please login again as master admin.");
+        return;
+      }
+
+      const res = await fetch("/api/admin/price-updates/ai-draft", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        setMsg(json?.error || "AI draft generation failed.");
+        return;
+      }
+
+      setMsg(`✅ AI generated ${json.count || 0} draft price updates.`);
+      await loadRows();
+    } catch (e: any) {
+      setMsg(e?.message || "AI draft generation failed.");
+    } finally {
+      setAiWorking(false);
+    }
+  }
+
   useEffect(() => {
     loadRows();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -186,14 +232,25 @@ export default function AdminPriceUpdatesPage() {
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={loadRows}
-              disabled={loading}
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-black text-slate-700 disabled:opacity-60"
-            >
-              Refresh
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={generateAiDrafts}
+                disabled={aiWorking || loading}
+                className="rounded-2xl bg-slate-950 px-4 py-2 text-sm font-black text-white disabled:opacity-60"
+              >
+                {aiWorking ? "Generating..." : "Generate AI Drafts"}
+              </button>
+
+              <button
+                type="button"
+                onClick={loadRows}
+                disabled={loading}
+                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-black text-slate-700 disabled:opacity-60"
+              >
+                Refresh
+              </button>
+            </div>
           </div>
 
           {msg ? (
