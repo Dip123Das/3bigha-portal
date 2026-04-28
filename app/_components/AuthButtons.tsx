@@ -109,6 +109,12 @@ export default function AuthButtons() {
       if (!alreadyOnRegister && !onboardingReady) {
         const role = String(profile?.role ?? "").trim().toLowerCase();
 
+        // Master admin is a system-level role.
+        // It must never be forced into user role registration/onboarding.
+        if (role === "master_admin") {
+          return;
+        }
+
         if (isBusinessRole(role)) {
           const qs = new URLSearchParams();
           qs.set("returnTo", currentPath || "/dashboard");
