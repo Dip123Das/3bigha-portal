@@ -178,6 +178,12 @@ export default function PostLoginPageClient() {
 
         const role = normalizeRole(profile.role);
 
+        // 🚀 MASTER ADMIN FULL BYPASS (FINAL FIX)
+        if (role === "master_admin") {
+          hardRedirect(next || "/admin/dashboard");
+          return;
+        }
+
         // MASTER ADMIN MUST NEVER BE SENT TO REGISTER-ROLE.
         if (role === "master_admin") {
           hardRedirect(next || "/admin/dashboard");
@@ -227,7 +233,7 @@ export default function PostLoginPageClient() {
           }
         }
 
-        if (!basicComplete) {
+        if (role !== "master_admin" && !basicComplete) {
           const qs = new URLSearchParams();
           if (next) qs.set("next", next);
           if (role) qs.set("role", role);
@@ -236,7 +242,7 @@ export default function PostLoginPageClient() {
           return;
         }
 
-        if (!onboardingReady) {
+        if (role !== "master_admin" && !onboardingReady) {
           if (isBusinessRole(role)) {
             const qs = new URLSearchParams();
             qs.set("returnTo", next || "/dashboard");
@@ -254,7 +260,7 @@ export default function PostLoginPageClient() {
           return;
         }
 
-        if (isBusinessRole(role)) {
+        if (role !== "master_admin" && isBusinessRole(role)) {
           setMsg("Checking district-free access eligibility…");
 
           const businessProfileRes = await supabase
