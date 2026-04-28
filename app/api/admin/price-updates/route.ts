@@ -13,35 +13,45 @@ function getSupabaseAdmin() {
     );
   }
 
-  return createClient(supabaseUrl, serviceRoleKey);
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
 }
 
 async function requireMasterAdmin(req: Request) {
   const supabase = getSupabaseAdmin();
   const authHeader = req.headers.get("authorization");
 
-  if (!authHeader) {
-    return { user: null, error: "Unauthorized" };
+  if (!authHeader?.startsWith("Bearer ")) {
+    return { user: null, error: "Unauthorized. Missing admin session token." };
   }
 
-  const token = authHeader.replace("Bearer ", "");
+  const token = authHeader.replace("Bearer ", "").trim();
 
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser(token);
 
-  if (!user) {
-    return { user: null, error: "Invalid user" };
+  if (userError || !user) {
+    return { user: null, error: "Invalid or expired admin session." };
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
     .maybeSingle();
 
+  if (profileError) {
+    return { user: null, error: profileError.message };
+  }
+
   if (profile?.role !== "master_admin") {
-    return { user: null, error: "Master admin required" };
+    return { user: null, error: "Master admin required." };
   }
 
   return { user, error: null };
@@ -53,7 +63,7 @@ export async function GET(req: Request) {
     const auth = await requireMasterAdmin(req);
 
     if (auth.error) {
-      return NextResponse.json({ error: auth.error }, { status: 403 });
+      return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
     }
 
     const { data, error } = await supabase
@@ -66,59 +76,69 @@ export async function GET(req: Request) {
       .limit(100);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
     }
 
     return NextResponse.json({ ok: true, rows: data || [] });
   } catch (e: any) {
     return NextResponse.json(
-      { error: e?.message || "Failed to load pending prices" },
+      { ok: false, error: e?.message || "Failed to load pending prices." },
       { status: 500 }
     );
   }
 }
 
 export async function PATCH(req: Request) {
-  const supabase = getSupabaseAdmin();
-  const auth = await requireMasterAdmin(req);
+  try {
+    const supabase = getSupabaseAdmin();
+    const auth = await requireMasterAdmin(req);
 
-  if (auth.error) {
-    return NextResponse.json({ error: auth.error }, { status: 403 });
-  }
-
-  const body = await req.json();
-  const id = String(body?.id || "");
-  const action = String(body?.action || "");
-
-  if (!id) {
-    return NextResponse.json({ error: "Missing price update id" }, { status: 400 });
-  }
-
-  if (action === "verify") {
-    const { error } = await supabase
-      .from("material_price_updates")
-      .update({ verified: true })
-      .eq("id", id);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    if (auth.error) {
+      return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
     }
 
-    return NextResponse.json({ ok: true });
-  }
+    const body = await req.json();
+    const id = String(body?.id || "").trim();
+    const action = String(body?.action || "").trim();
 
-  if (action === "reject") {
-    const { error } = await supabase
-      .from("material_price_updates")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    if (!id) {
+      return NextResponse.json(
+        { ok: false, error: "Missing price update id." },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({ ok: true });
-  }
+    if (action === "verify") {
+      const { error } = await supabase
+        .from("material_price_updates")
+        .update({ verified: true })
+        .eq("id", id);
 
-  return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+      if (error) {
+        return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+      }
+
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === "reject") {
+      const { error } = await supabase
+        .from("material_price_updates")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+      }
+
+      return NextResponse.json({ ok: true });
+    }
+
+    return NextResponse.json({ ok: false, error: "Invalid action." }, { status: 400 });
+  } catch (e: any) {
+    return NextResponse.json(
+      { ok: false, error: e?.message || "Action failed." },
+      { status: 500 }
+    );
+  }
 }

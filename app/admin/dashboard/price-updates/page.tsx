@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
 type PriceUpdateRow = {
@@ -23,44 +23,73 @@ type PriceUpdateRow = {
 };
 
 export default function AdminPriceUpdatesPage() {
-  const supabase = getSupabaseBrowser();
+  const supabase = useMemo(() => getSupabaseBrowser(), []);
 
   const [rows, setRows] = useState<PriceUpdateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [workingId, setWorkingId] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
 
+  async function getToken() {
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data.session?.access_token || "";
+  }
+
   async function loadRows() {
     setLoading(true);
     setMsg("");
 
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 12000);
+
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
+      const token = await getToken();
 
       if (!token) {
         setMsg("Please login as master admin.");
+        setRows([]);
         return;
       }
 
       const res = await fetch("/api/admin/price-updates", {
+        method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        signal: controller.signal,
       });
 
       const text = await res.text();
-      const json = text ? JSON.parse(text) : {};
+      let json: any = {};
 
-      if (!res.ok) {
+      try {
+        json = text ? JSON.parse(text) : {};
+      } catch {
+        json = {};
+      }
+
+      if (!res.ok || json?.ok === false) {
         setMsg(json?.error || `Failed to load price updates. Status: ${res.status}`);
+        setRows([]);
         return;
       }
 
-      setRows(json.rows || []);
+      setRows(Array.isArray(json.rows) ? json.rows : []);
     } catch (e: any) {
-      setMsg(e?.message || "Failed to load price updates.");
+      if (e?.name === "AbortError") {
+        setMsg("Loading took too long. Please refresh and try again.");
+      } else {
+        setMsg(e?.message || "Failed to load pending price updates.");
+      }
+
+      setRows([]);
     } finally {
+      window.clearTimeout(timer);
       setLoading(false);
     }
   }
@@ -76,35 +105,44 @@ export default function AdminPriceUpdatesPage() {
     setWorkingId(id);
     setMsg("");
 
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData?.session?.access_token;
+    try {
+      const token = await getToken();
 
-    if (!token) {
-      setMsg("Please login again.");
+      if (!token) {
+        setMsg("Please login again as master admin.");
+        return;
+      }
+
+      const res = await fetch("/api/admin/price-updates", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id, action }),
+      });
+
+      const text = await res.text();
+      let json: any = {};
+
+      try {
+        json = text ? JSON.parse(text) : {};
+      } catch {
+        json = {};
+      }
+
+      if (!res.ok || json?.ok === false) {
+        setMsg(json?.error || "Action failed.");
+        return;
+      }
+
+      setRows((prev) => prev.filter((row) => row.id !== id));
+      setMsg(action === "verify" ? "✅ Price verified." : "✅ Price rejected.");
+    } catch (e: any) {
+      setMsg(e?.message || "Action failed.");
+    } finally {
       setWorkingId(null);
-      return;
     }
-
-    const res = await fetch("/api/admin/price-updates", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ id, action }),
-    });
-
-    const json = await res.json();
-
-    if (!res.ok) {
-      setMsg(json?.error || "Action failed.");
-      setWorkingId(null);
-      return;
-    }
-
-    setRows((prev) => prev.filter((row) => row.id !== id));
-    setMsg(action === "verify" ? "✅ Price verified." : "✅ Price rejected.");
-    setWorkingId(null);
   }
 
   useEffect(() => {
@@ -116,22 +154,43 @@ export default function AdminPriceUpdatesPage() {
     <main className="min-h-screen bg-[#f8faf7] p-6">
       <div className="mx-auto max-w-6xl">
         <div className="mb-5">
-          <Link href="/admin/dashboard" className="text-sm font-bold text-emerald-700">
+          <Link
+            href="/admin/dashboard"
+            className="text-sm font-bold text-emerald-700"
+          >
             ← Back to Admin Dashboard
           </Link>
         </div>
 
         <div className="rounded-3xl bg-white p-6 shadow">
-          <h1 className="text-2xl font-black">Admin · Price Verification</h1>
-          <p className="mt-2 text-sm font-semibold text-slate-600">
-            Verify genuine vendor prices. Reject removes fake or doubtful submissions.
-          </p>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-black">Admin · Price Verification</h1>
+              <p className="mt-2 text-sm font-semibold text-slate-600">
+                Verify genuine vendor prices. Reject removes fake or doubtful
+                submissions.
+              </p>
+            </div>
 
-          {msg ? <div className="mt-4 text-sm font-bold">{msg}</div> : null}
+            <button
+              type="button"
+              onClick={loadRows}
+              disabled={loading}
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-800 disabled:opacity-60"
+            >
+              Refresh
+            </button>
+          </div>
+
+          {msg ? (
+            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm font-bold text-amber-800">
+              {msg}
+            </div>
+          ) : null}
 
           {loading ? (
             <div className="mt-6 rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-600">
-              Loading pending price updates...
+              Loading pending price updates... checking admin access.
             </div>
           ) : rows.length === 0 ? (
             <div className="mt-6 rounded-2xl bg-emerald-50 p-4 text-sm font-bold text-emerald-700">
@@ -147,7 +206,8 @@ export default function AdminPriceUpdatesPage() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <div className="text-xs font-black uppercase tracking-wide text-slate-400">
-                        {row.category || "Category"} · {row.location || "Location"}
+                        {row.category || "Category"} ·{" "}
+                        {row.location || "Location"}
                       </div>
 
                       <h2 className="mt-1 text-xl font-black text-slate-950">
@@ -155,15 +215,18 @@ export default function AdminPriceUpdatesPage() {
                       </h2>
 
                       <div className="mt-2 text-sm font-bold text-slate-700">
-                        Brand/source: {row.brand || "—"} · Grade: {row.grade || "Standard"}
+                        Brand/source: {row.brand || "—"} · Grade:{" "}
+                        {row.grade || "Standard"}
                       </div>
 
                       <div className="mt-1 text-sm font-bold text-slate-700">
-                        Source type: {row.source_type || "vendor"} · Trend: {row.trend || "Stable"}
+                        Source type: {row.source_type || "vendor"} · Trend:{" "}
+                        {row.trend || "Stable"}
                       </div>
 
                       <div className="mt-3 text-2xl font-black text-emerald-700">
-                        ₹{row.price_min ?? "—"} - ₹{row.price_max ?? "—"} / {row.unit || "unit"}
+                        ₹{row.price_min ?? "—"} - ₹{row.price_max ?? "—"} /{" "}
+                        {row.unit || "unit"}
                       </div>
 
                       {row.offer ? (
@@ -175,7 +238,10 @@ export default function AdminPriceUpdatesPage() {
                       <div className="mt-3 text-xs font-semibold text-slate-500">
                         Submitted by: {row.created_by || "—"}
                         <br />
-                        Submitted at: {row.created_at ? new Date(row.created_at).toLocaleString("en-IN") : "—"}
+                        Submitted at:{" "}
+                        {row.created_at
+                          ? new Date(row.created_at).toLocaleString("en-IN")
+                          : "—"}
                       </div>
                     </div>
 
