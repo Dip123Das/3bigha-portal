@@ -329,7 +329,20 @@ function aggregatePriceRows(rows: PriceRow[]) {
     });
   });
 
-  return Array.from(grouped.values());
+  return Array.from(grouped.values()).map((row) => {
+    const avg =
+      row.vendorCount > 0
+        ? Math.round((row.priceMin + row.priceMax) / 2)
+        : row.priceMin;
+
+    const confidence = Math.min(95, 40 + row.vendorCount * 15);
+
+    return {
+      ...row,
+      avgPrice: avg,
+      confidence,
+    };
+  });
 }
 
 function getItemIcon(item: string, category: CategoryKey) {
@@ -1008,16 +1021,30 @@ if (userData.user) {
                   </h3>
 
                   <div className="mt-2 text-sm font-bold text-slate-700">
-                    Market range based on {row.vendorCount} price source
-                    {row.vendorCount > 1 ? "s" : ""}
+                    <div className="text-sm text-slate-600">
+                      Market Avg: <b>₹{row.avgPrice}</b> / {row.unit}
+                    </div>
+
+                    <div className="text-sm text-slate-600">
+                      Range: ₹{row.priceMin} – ₹{row.priceMax}
+                    </div>
+
+                    <div className="text-sm text-slate-600">
+                      Sources: {row.vendorCount}
+                    </div>
+
+                    <div className="text-xs font-bold text-amber-600">
+                      Confidence: {row.confidence}%
+                    </div>
+                    
                   </div>
 
                   <div className="mt-1 text-sm font-bold text-slate-700">
-                    Sample brand/source: {row.brand}
+                    
                   </div>
 
                   <div className="mt-1 text-sm font-bold text-slate-700">
-                    Sample grade/quality: {row.grade}
+                  
                   </div>
 
                   <div className="mt-3 text-2xl font-black text-emerald-700">
