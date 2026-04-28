@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
@@ -95,6 +95,104 @@ export default function RegisterRolePageClient() {
   const [useReason, setUseReason] = useState<UseReason | "">("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+
+  const isMasterAdminRequest = preselectedRole === "master_admin";
+  const [masterAdminChecking, setMasterAdminChecking] = useState(isMasterAdminRequest);
+  const [masterAdminDenied, setMasterAdminDenied] = useState("");
+
+  useEffect(() => {
+  if (!isMasterAdminRequest) return;
+
+  let alive = true;
+
+  async function checkMasterAdminAccess() {
+    setMasterAdminChecking(true);
+    setMasterAdminDenied("");
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user ?? null;
+
+    if (!alive) return;
+
+    if (!user?.id) {
+      setMasterAdminDenied("Please login first to access Master Admin.");
+      setMasterAdminChecking(false);
+      return;
+    }
+
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("role, requested_role, approval_status")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!alive) return;
+
+    const isMasterAdmin =
+      profile?.role === "master_admin" ||
+      profile?.requested_role === "master_admin";
+
+    if (!error && isMasterAdmin) {
+      router.replace("/admin/dashboard");
+      return;
+    }
+
+    setMasterAdminDenied("Unauthorized Master Admin access.");
+    setMasterAdminChecking(false);
+  }
+
+  checkMasterAdminAccess();
+
+  return () => {
+    alive = false;
+  };
+}, [isMasterAdminRequest, router, supabase]);
+
+    if (isMasterAdminRequest) {
+    return (
+      <main style={{ padding: "40px 20px" }}>
+        <div
+          style={{
+            maxWidth: 760,
+            margin: "0 auto",
+            border: "1px solid rgba(0,0,0,0.08)",
+            borderRadius: 16,
+            padding: 24,
+            background: "white",
+          }}
+        >
+          <div style={{ fontWeight: 900, fontSize: 22, marginBottom: 8 }}>
+            Master Admin Access
+          </div>
+
+          <div style={{ color: "#475569", lineHeight: 1.6 }}>
+            {masterAdminChecking
+              ? "Checking Master Admin access..."
+              : masterAdminDenied}
+          </div>
+
+          {!masterAdminChecking && masterAdminDenied && (
+            <button
+              type="button"
+              onClick={() => router.replace("/")}
+              style={{
+                marginTop: 16,
+                padding: "10px 14px",
+                borderRadius: 10,
+                border: "none",
+                background: "#0b57d0",
+                color: "#fff",
+                fontWeight: 800,
+                cursor: "pointer",
+              }}
+            >
+              Go to Home
+            </button>
+          )}
+        </div>
+      </main>
+    );
+  }
 
   function toggleCap(cap: VendorCapability) {
     setCaps((prev) =>

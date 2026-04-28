@@ -3,13 +3,22 @@ import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      "Server missing env vars: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY"
+    );
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey);
+}
 
 export async function POST(req: Request) {
   try {
+    const supabase = getSupabaseAdmin();
     const body = await req.json();
 
     const authHeader = req.headers.get("authorization");
@@ -28,7 +37,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid user" }, { status: 401 });
     }
 
-    // 🔒 PROFILE CHECK
     const { data: profile } = await supabase
       .from("profiles")
       .select("role,is_vendor,approval_status")
@@ -55,7 +63,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // 🔒 LOCATION CHECK
     const { data: bp } = await supabase
       .from("business_profiles")
       .select("location_verification_status")
@@ -69,7 +76,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🔒 RATE LIMIT (5 per day)
     const today = new Date().toISOString().slice(0, 10);
 
     const { count } = await supabase
@@ -85,7 +91,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🔒 FORCE SOURCE TYPE
     let sourceType = profile.role;
 
     if (profile.role === "vendor") sourceType = "vendor";
@@ -108,6 +113,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json(
+      { error: e?.message || "Something went wrong" },
+      { status: 500 }
+    );
   }
 }
