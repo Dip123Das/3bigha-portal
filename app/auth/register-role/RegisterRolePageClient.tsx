@@ -39,7 +39,12 @@ function safeNextPath(raw: string | null) {
 }
 
 function goesToBusinessOnboarding(role: PortalRole | "") {
-  return role === "vendor" || role === "builder" || role === "hub_vendor" || role === "blogger";
+  return (
+    role === "vendor" ||
+    role === "builder" ||
+    role === "hub_vendor" ||
+    role === "blogger"
+  );
 }
 
 function normalizePhone(raw: string) {
@@ -81,9 +86,18 @@ export default function RegisterRolePageClient() {
 
   const next = safeNextPath(sp.get("next"));
   const preselectedRole = (sp.get("role") || "").trim().toLowerCase();
+  const isMasterAdminRequest = preselectedRole === "master_admin";
+
+  useEffect(() => {
+    if (isMasterAdminRequest) {
+      router.replace(next || "/admin/dashboard");
+    }
+  }, [isMasterAdminRequest, next, router]);
 
   const [role, setRole] = useState<PortalRole | "">(
-    ["buyer", "vendor", "builder", "hub_vendor", "blogger"].includes(preselectedRole)
+    ["buyer", "vendor", "builder", "hub_vendor", "blogger"].includes(
+      preselectedRole
+    )
       ? (preselectedRole as PortalRole)
       : ""
   );
@@ -96,99 +110,11 @@ export default function RegisterRolePageClient() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
-  const isMasterAdminRequest = preselectedRole === "master_admin";
-  const [masterAdminChecking, setMasterAdminChecking] = useState(isMasterAdminRequest);
-  const [masterAdminDenied, setMasterAdminDenied] = useState("");
-
-  useEffect(() => {
-  if (!isMasterAdminRequest) return;
-
-  let alive = true;
-
-  async function checkMasterAdminAccess() {
-    setMasterAdminChecking(true);
-    setMasterAdminDenied("");
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    const user = sessionData.session?.user ?? null;
-
-    if (!alive) return;
-
-    if (!user?.id) {
-      setMasterAdminDenied("Please login first to access Master Admin.");
-      setMasterAdminChecking(false);
-      return;
-    }
-
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("role, requested_role, approval_status")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (!alive) return;
-
-    const isMasterAdmin =
-      profile?.role === "master_admin" ||
-      profile?.requested_role === "master_admin";
-
-    if (!error && isMasterAdmin) {
-      router.replace("/admin/dashboard");
-      return;
-    }
-
-    setMasterAdminDenied("Unauthorized Master Admin access.");
-    setMasterAdminChecking(false);
-  }
-
-  checkMasterAdminAccess();
-
-  return () => {
-    alive = false;
-  };
-}, [isMasterAdminRequest, router, supabase]);
-
-    if (isMasterAdminRequest) {
+  if (isMasterAdminRequest) {
     return (
-      <main style={{ padding: "40px 20px" }}>
-        <div
-          style={{
-            maxWidth: 760,
-            margin: "0 auto",
-            border: "1px solid rgba(0,0,0,0.08)",
-            borderRadius: 16,
-            padding: 24,
-            background: "white",
-          }}
-        >
-          <div style={{ fontWeight: 900, fontSize: 22, marginBottom: 8 }}>
-            Master Admin Access
-          </div>
-
-          <div style={{ color: "#475569", lineHeight: 1.6 }}>
-            {masterAdminChecking
-              ? "Checking Master Admin access..."
-              : masterAdminDenied}
-          </div>
-
-          {!masterAdminChecking && masterAdminDenied && (
-            <button
-              type="button"
-              onClick={() => router.replace("/")}
-              style={{
-                marginTop: 16,
-                padding: "10px 14px",
-                borderRadius: 10,
-                border: "none",
-                background: "#0b57d0",
-                color: "#fff",
-                fontWeight: 800,
-                cursor: "pointer",
-              }}
-            >
-              Go to Home
-            </button>
-          )}
+      <main style={{ padding: "40px 20px", textAlign: "center" }}>
+        <div style={{ fontWeight: 900, fontSize: 18 }}>
+          Redirecting to Master Admin...
         </div>
       </main>
     );
@@ -206,33 +132,15 @@ export default function RegisterRolePageClient() {
     const trimmedCity = city.trim();
     const trimmedState = stateName.trim();
 
-    if (!role) {
-      return "Please choose your role.";
-    }
-
-    if (!trimmedName) {
-      return "Please enter your full name.";
-    }
-
-    if (!trimmedPhone || trimmedPhone.length < 10) {
+    if (!role) return "Please choose your role.";
+    if (!trimmedName) return "Please enter your full name.";
+    if (!trimmedPhone || trimmedPhone.length < 10)
       return "Please enter a valid phone number.";
-    }
-
-    if (!trimmedCity) {
-      return "Please enter your city.";
-    }
-
-    if (!trimmedState) {
-      return "Please enter your state.";
-    }
-
-    if (!useReason) {
-      return "Please tell us why you want to use 3bigha.";
-    }
-
-    if (role === "vendor" && caps.length === 0) {
+    if (!trimmedCity) return "Please enter your city.";
+    if (!trimmedState) return "Please enter your state.";
+    if (!useReason) return "Please tell us why you want to use 3bigha.";
+    if (role === "vendor" && caps.length === 0)
       return "Please choose at least one vendor capability.";
-    }
 
     return "";
   }
@@ -255,7 +163,10 @@ export default function RegisterRolePageClient() {
         return { error: null as any };
       }
 
-      const { error } = await supabase.from("vendor_module_grants").insert(capabilityRows);
+      const { error } = await supabase
+        .from("vendor_module_grants")
+        .insert(capabilityRows);
+
       return { error };
     }
 
@@ -296,7 +207,10 @@ export default function RegisterRolePageClient() {
         is_active: true,
       }));
 
-      const { error } = await supabase.from("vendor_module_grants").insert(capabilityRows);
+      const { error } = await supabase
+        .from("vendor_module_grants")
+        .insert(capabilityRows);
+
       return { error };
     }
 
@@ -360,7 +274,10 @@ export default function RegisterRolePageClient() {
         return;
       }
 
-      const { error: grantsError } = await saveModuleGrants(user.id, role as PortalRole);
+      const { error: grantsError } = await saveModuleGrants(
+        user.id,
+        role as PortalRole
+      );
 
       if (grantsError) {
         setMsg(grantsError.message || "Could not save module access.");
@@ -439,7 +356,8 @@ export default function RegisterRolePageClient() {
         </div>
 
         <div style={{ opacity: 0.8, marginBottom: 20 }}>
-          Tell us who you are and why you want to use 3bigha. If your role needs business setup, you will be guided to the next step automatically.
+          Tell us who you are and why you want to use 3bigha. If your role needs
+          business setup, you will be guided to the next step automatically.
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: 16 }}>
@@ -473,7 +391,13 @@ export default function RegisterRolePageClient() {
             />
           </div>
 
-          <div style={{ display: "grid", gap: 16, gridTemplateColumns: "1fr 1fr" }}>
+          <div
+            style={{
+              display: "grid",
+              gap: 16,
+              gridTemplateColumns: "1fr 1fr",
+            }}
+          >
             <div>
               <div style={{ fontWeight: 800, marginBottom: 8 }}>City *</div>
               <input
@@ -506,7 +430,10 @@ export default function RegisterRolePageClient() {
           </div>
 
           <div>
-            <div style={{ fontWeight: 800, marginBottom: 8 }}>Who are you? *</div>
+            <div style={{ fontWeight: 800, marginBottom: 8 }}>
+              Who are you? *
+            </div>
+
             <div style={{ display: "grid", gap: 10 }}>
               {[
                 {
@@ -546,7 +473,9 @@ export default function RegisterRolePageClient() {
                     cursor: "pointer",
                   }}
                 >
-                  <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <div
+                    style={{ display: "flex", gap: 10, alignItems: "center" }}
+                  >
                     <input
                       type="radio"
                       name="role"
@@ -556,7 +485,10 @@ export default function RegisterRolePageClient() {
                     />
                     <span style={{ fontWeight: 700 }}>{item.label}</span>
                   </div>
-                  <div style={{ fontSize: 13, opacity: 0.75, paddingLeft: 26 }}>
+
+                  <div
+                    style={{ fontSize: 13, opacity: 0.75, paddingLeft: 26 }}
+                  >
                     {item.desc}
                   </div>
                 </label>
@@ -568,6 +500,7 @@ export default function RegisterRolePageClient() {
             <div style={{ fontWeight: 800, marginBottom: 8 }}>
               Why do you want to use 3bigha? *
             </div>
+
             <select
               value={useReason}
               onChange={(e) => setUseReason(e.target.value as UseReason)}
@@ -580,15 +513,27 @@ export default function RegisterRolePageClient() {
               }}
             >
               <option value="">Select your purpose</option>
-              <option value="buy_property_or_materials">To buy property or materials</option>
+              <option value="buy_property_or_materials">
+                To buy property or materials
+              </option>
               <option value="sell_materials">To sell materials</option>
               <option value="offer_services">To offer services</option>
               <option value="provide_rentals">To provide rentals</option>
-              <option value="list_property_for_sale">To list property for sale</option>
-              <option value="manage_builder_projects">To manage builder projects</option>
-              <option value="operate_multiple_businesses">To operate multiple businesses through one account</option>
-              <option value="invest_in_opportunities">To invest in opportunities</option>
-              <option value="publish_blog_or_news">To publish blog or news content</option>
+              <option value="list_property_for_sale">
+                To list property for sale
+              </option>
+              <option value="manage_builder_projects">
+                To manage builder projects
+              </option>
+              <option value="operate_multiple_businesses">
+                To operate multiple businesses through one account
+              </option>
+              <option value="invest_in_opportunities">
+                To invest in opportunities
+              </option>
+              <option value="publish_blog_or_news">
+                To publish blog or news content
+              </option>
             </select>
           </div>
 
@@ -647,7 +592,14 @@ export default function RegisterRolePageClient() {
             </div>
           ) : null}
 
-          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
             <button
               type="submit"
               disabled={loading}
