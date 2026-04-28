@@ -41,73 +41,20 @@ export default function DashboardEntryPage() {
           session.user.email ?? null
         );
 
-        const profileRes = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .maybeSingle();
-
-        const role = (profileRes.data?.role || "").trim().toLowerCase();
-        const isBusinessRole = ["vendor", "builder", "hub_vendor", "blogger"].includes(role);
-
-        if (isBusinessRole) {
-          const businessProfileRes = await supabase
-            .from("business_profiles")
-            .select("eligible_free, location_verification_status")
-            .eq("user_id", session.user.id)
-            .maybeSingle();
-
-          const bp = businessProfileRes.data;
-
-          const locationVerified =
-            (bp?.location_verification_status || "").trim().toLowerCase() === "verified";
-
-          if (!locationVerified) {
-            router.replace("/onboarding/business?returnTo=/dashboard");
-            return;
-          }
-
-          if (bp?.eligible_free !== true) {
-            router.replace("/dashboard/subscription?reason=district_free_not_eligible");
-            return;
-          }
-        }
-
         if (!alive) return;
 
         const target = getDefaultPostLoginPath(access);
 
-        // 🚫 STOP REDIRECT LOOP
-        if (!target) {
-          setMessage("Unable to resolve dashboard route.");
+        if (!target || target === "/dashboard") {
+          setMessage("Dashboard access ready.");
           return;
         }
 
-        // If already on correct page → DO NOTHING
-        if (typeof window !== "undefined") {
-          const currentPath = window.location.pathname;
-
-          if (currentPath === target) {
-            return;
-          }
-        }
-
-        // Handle fallback cases
-        if (target === "/dashboard") {
-          if (access.isBuyer) {
-            if (window.location.pathname !== "/dashboard/buyer") {
-              router.replace("/dashboard/buyer");
-            }
-            return;
-          }
-
-          if (window.location.pathname !== "/auth/register-role") {
-            router.replace("/auth/register-role?next=/dashboard");
-          }
+        if (typeof window !== "undefined" && window.location.pathname === target) {
+          setMessage("Dashboard access ready.");
           return;
         }
 
-        // ✅ SAFE REDIRECT (only if different)
         router.replace(target);
       } catch (e: any) {
         if (!alive) return;

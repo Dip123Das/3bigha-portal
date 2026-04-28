@@ -13,9 +13,16 @@ function safeNextPath(raw: string | null) {
 }
 
 function hardRedirect(path: string) {
-  if (typeof window !== "undefined") {
-    window.location.replace(path);
+  if (typeof window === "undefined") return;
+
+  const target = path || "/";
+  const current = window.location.pathname + window.location.search;
+
+  if (current === target || window.location.pathname === target) {
+    return;
   }
+
+  window.location.href = target;
 }
 
 function hasValue(v: unknown) {
@@ -160,6 +167,11 @@ export default function PostLoginPageClient() {
         const role = normalizeRole(profile.role);
         const requestedRole = normalizeRole(profile.requested_role);
 
+        if (role === "master_admin") {
+          hardRedirect(next || "/admin/dashboard");
+          return;
+        }
+
         if (!role) {
           hardRedirect(`/auth/register-role${next ? `?next=${encodeURIComponent(next)}` : ""}`);
           return;
@@ -266,6 +278,11 @@ export default function PostLoginPageClient() {
         } catch (accessErr) {
           console.error("POST_LOGIN_V7_ACCESS_FALLBACK", accessErr);
           redirectTo = next || "/";
+        }
+
+        if (redirectTo === "/auth/register-role?role=master_admin") {
+          hardRedirect("/admin/dashboard");
+          return;
         }
 
         hardRedirect(redirectTo);

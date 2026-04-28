@@ -89,10 +89,9 @@ export default function RegisterRolePageClient() {
   const isMasterAdminRequest = preselectedRole === "master_admin";
 
   useEffect(() => {
-    if (isMasterAdminRequest) {
-      window.location.replace(next || "/admin/dashboard");
-    }
-  }, [isMasterAdminRequest, next]);
+    // Master admin must not repeatedly auto-redirect from register-role.
+    // Post-login and dashboard routing will handle the correct destination.
+  }, []);
 
   const [role, setRole] = useState<PortalRole | "">(
     ["buyer", "vendor", "builder", "hub_vendor", "blogger"].includes(
@@ -114,8 +113,26 @@ export default function RegisterRolePageClient() {
     return (
       <main style={{ padding: "40px 20px", textAlign: "center" }}>
         <div style={{ fontWeight: 900, fontSize: 18 }}>
-          Redirecting to Master Admin...
+          Master Admin access is already configured.
         </div>
+        <div style={{ marginTop: 8, opacity: 0.75 }}>
+          Open the admin dashboard from the button below.
+        </div>
+        <a
+          href="/admin/dashboard"
+          style={{
+            display: "inline-flex",
+            marginTop: 16,
+            padding: "10px 16px",
+            borderRadius: 10,
+            background: "#2563eb",
+            color: "white",
+            fontWeight: 800,
+            textDecoration: "none",
+          }}
+        >
+          Open Master Admin Dashboard
+        </a>
       </main>
     );
   }
