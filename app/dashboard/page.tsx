@@ -77,16 +77,37 @@ export default function DashboardEntryPage() {
 
         const target = getDefaultPostLoginPath(access);
 
-        if (!target || target === "/dashboard") {
-          if (access.isBuyer) {
-            router.replace("/dashboard/buyer");
-            return;
-          }
-
-          router.replace("/auth/register-role?next=/dashboard");
+        // 🚫 STOP REDIRECT LOOP
+        if (!target) {
+          setMessage("Unable to resolve dashboard route.");
           return;
         }
 
+        // If already on correct page → DO NOTHING
+        if (typeof window !== "undefined") {
+          const currentPath = window.location.pathname;
+
+          if (currentPath === target) {
+            return;
+          }
+        }
+
+        // Handle fallback cases
+        if (target === "/dashboard") {
+          if (access.isBuyer) {
+            if (window.location.pathname !== "/dashboard/buyer") {
+              router.replace("/dashboard/buyer");
+            }
+            return;
+          }
+
+          if (window.location.pathname !== "/auth/register-role") {
+            router.replace("/auth/register-role?next=/dashboard");
+          }
+          return;
+        }
+
+        // ✅ SAFE REDIRECT (only if different)
         router.replace(target);
       } catch (e: any) {
         if (!alive) return;
