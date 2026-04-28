@@ -162,36 +162,64 @@ const fallbackPriceRows: PriceRow[] = [
 ];
 
 const mainMaterials = [
-  { name: "Cement", price: "₹390 - ₹435 / bag", trend: "Stable", icon: "🏗️" },
-  { name: "Steel Rod", price: "₹58 - ₹66 / kg", trend: "Up", icon: "🔩" },
+  {
+    name: "Cement",
+    price: "₹390 - ₹435 / bag",
+    trend: "Stable",
+    icon: "🏗️",
+    vendorCount: 1,
+  },
+  {
+    name: "Steel Rod",
+    price: "₹58 - ₹66 / kg",
+    trend: "Up",
+    icon: "🔩",
+    vendorCount: 1,
+  },
   {
     name: "Sand",
     price: "₹3,200 - ₹4,200 / tractor",
     trend: "Down",
     icon: "🏖️",
+    vendorCount: 1,
   },
-  { name: "Brick", price: "₹9 - ₹12 / piece", trend: "Stable", icon: "🧱" },
+  {
+    name: "Brick",
+    price: "₹9 - ₹12 / piece",
+    trend: "Stable",
+    icon: "🧱",
+    vendorCount: 1,
+  },
 ];
 
 const propertyPrices = [
-  { name: "Land", price: "₹8L - ₹13L / katha", trend: "Up", icon: "🌾" },
+  {
+    name: "Land",
+    price: "₹8L - ₹13L / katha",
+    trend: "Up",
+    icon: "🌾",
+    vendorCount: 1,
+  },
   {
     name: "Flat",
     price: "₹2,800 - ₹4,500 / sq.ft.",
     trend: "Stable",
     icon: "🏢",
+    vendorCount: 1,
   },
   {
     name: "Shop",
     price: "₹6,000 - ₹12,000 / sq.ft.",
     trend: "Up",
     icon: "🏬",
+    vendorCount: 1,
   },
   {
     name: "Office",
     price: "₹4,000 - ₹8,000 / sq.ft.",
     trend: "Stable",
     icon: "🏦",
+    vendorCount: 1,
   },
 ];
 
@@ -263,6 +291,45 @@ function formatOfferPeriod(row: any) {
 
 function formatCardPrice(row: PriceRow) {
   return `₹${row.priceMin} - ₹${row.priceMax} / ${row.unit}`;
+}
+
+function makeGroupKey(row: PriceRow) {
+  return [
+    row.category,
+    row.item.trim().toLowerCase(),
+    String(row.location || "").trim().toLowerCase(),
+    row.unit.trim().toLowerCase(),
+  ].join("|");
+}
+
+function aggregatePriceRows(rows: PriceRow[]) {
+  const grouped = new Map<string, PriceRow & { vendorCount: number }>();
+
+  rows.forEach((row) => {
+    const key = makeGroupKey(row);
+    const existing = grouped.get(key);
+
+    if (!existing) {
+      grouped.set(key, { ...row, vendorCount: 1 });
+      return;
+    }
+
+    grouped.set(key, {
+      ...existing,
+      priceMin: Math.min(existing.priceMin, row.priceMin),
+      priceMax: Math.max(existing.priceMax, row.priceMax),
+      vendorCount: existing.vendorCount + 1,
+      verified: existing.verified || row.verified,
+      createdAt:
+        existing.createdAt && row.createdAt
+          ? new Date(existing.createdAt) > new Date(row.createdAt)
+            ? existing.createdAt
+            : row.createdAt
+          : existing.createdAt || row.createdAt || null,
+    });
+  });
+
+  return Array.from(grouped.values());
 }
 
 function getItemIcon(item: string, category: CategoryKey) {
@@ -651,31 +718,8 @@ if (userData.user) {
   }, [priceRows, category, item, brand, grade, location]);
 
   const groupedPriceRows = useMemo(() => {
-  const grouped = new Map<string, PriceRow & { vendorCount: number }>();
-
-  matchingRows.forEach((row) => {
-    const key = `${row.category}-${row.item}-${row.location || ""}-${row.unit}`;
-
-    const existing = grouped.get(key);
-
-    if (!existing) {
-      grouped.set(key, {
-        ...row,
-        vendorCount: 1,
-      });
-      return;
-    }
-
-    grouped.set(key, {
-      ...existing,
-      priceMin: Math.min(existing.priceMin, row.priceMin),
-      priceMax: Math.max(existing.priceMax, row.priceMax),
-      vendorCount: existing.vendorCount + 1,
-    });
-  });
-
-  return Array.from(grouped.values());
-}, [matchingRows]);
+    return aggregatePriceRows(matchingRows);
+  }, [matchingRows]);
 
   const brandOptions = useMemo(() => {
     return uniqueStrings(
@@ -706,7 +750,9 @@ if (userData.user) {
   const searchText = item === "All Items" ? category : item;
 
   const mainMaterialCards = useMemo(() => {
-    const rows = priceRows.filter((row) => row.category === "Materials");
+    const rows = aggregatePriceRows(
+      priceRows.filter((row) => row.category === "Materials")
+    );
 
     if (!rows.length) return mainMaterials;
 
@@ -715,11 +761,14 @@ if (userData.user) {
       price: formatCardPrice(row),
       trend: row.trend,
       icon: getItemIcon(row.item, "Materials"),
+      vendorCount: row.vendorCount,
     }));
   }, [priceRows]);
 
   const propertyPriceCards = useMemo(() => {
-    const rows = priceRows.filter((row) => row.category === "Properties");
+    const rows = aggregatePriceRows(
+      priceRows.filter((row) => row.category === "Properties")
+    );
 
     if (!rows.length) return propertyPrices;
 
@@ -728,6 +777,7 @@ if (userData.user) {
       price: formatCardPrice(row),
       trend: row.trend,
       icon: getItemIcon(row.item, "Properties"),
+      vendorCount: row.vendorCount,
     }));
   }, [priceRows]);
 
@@ -1019,8 +1069,13 @@ if (userData.user) {
                 <div className="mt-2 text-xl font-black text-emerald-700">
                   {mainItem.price}
                 </div>
-                <div className="mt-3">
+                <div className="mt-3 flex flex-wrap gap-2">
                   <TrendBadge trend={mainItem.trend} />
+                  {typeof mainItem.vendorCount === "number" ? (
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                      {mainItem.vendorCount} source{mainItem.vendorCount > 1 ? "s" : ""}
+                    </span>
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -1045,8 +1100,13 @@ if (userData.user) {
                 <div className="mt-2 text-xl font-black text-blue-700">
                   {propertyItem.price}
                 </div>
-                <div className="mt-3">
+                <div className="mt-3 flex flex-wrap gap-2">
                   <TrendBadge trend={propertyItem.trend} />
+                  {typeof propertyItem.vendorCount === "number" ? (
+                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                      {propertyItem.vendorCount} source{propertyItem.vendorCount > 1 ? "s" : ""}
+                    </span>
+                  ) : null}
                 </div>
               </div>
             ))}
