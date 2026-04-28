@@ -42,7 +42,7 @@ async function requireMasterAdmin(req: Request) {
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role,email")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -50,8 +50,13 @@ async function requireMasterAdmin(req: Request) {
     return { user: null, error: profileError.message };
   }
 
-  if (profile?.role !== "master_admin") {
-    return { user: null, error: "Master admin required." };
+  const role = String(profile?.role || "").trim().toLowerCase();
+
+  if (role !== "master_admin") {
+    return {
+      user: null,
+      error: `Master admin required. Current role: ${role || "none"}`,
+    };
   }
 
   return { user, error: null };

@@ -31,13 +31,20 @@ export default function AdminPriceUpdatesPage() {
   const [msg, setMsg] = useState("");
 
   async function getToken() {
-    const { data, error } = await supabase.auth.getSession();
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      window.setTimeout(() => reject(new Error("Session check timed out.")), 6000);
+    });
 
-    if (error) {
-      throw new Error(error.message);
+    const sessionRes = await Promise.race([
+      supabase.auth.getSession(),
+      timeoutPromise,
+    ]);
+
+    if (sessionRes.error) {
+      throw new Error(sessionRes.error.message);
     }
 
-    return data.session?.access_token || "";
+    return sessionRes.data.session?.access_token || "";
   }
 
   async function loadRows() {
@@ -146,7 +153,24 @@ export default function AdminPriceUpdatesPage() {
   }
 
   useEffect(() => {
-    loadRows();
+    let alive = true;
+
+    const safetyTimer = window.setTimeout(() => {
+      if (!alive) return;
+      setLoading(false);
+      setMsg(
+        "Loading stopped. Please click Refresh. If it continues, your admin login session may have expired."
+      );
+    }, 10000);
+
+    loadRows().finally(() => {
+      window.clearTimeout(safetyTimer);
+    });
+
+    return () => {
+      alive = false;
+      window.clearTimeout(safetyTimer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
