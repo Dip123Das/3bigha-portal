@@ -29,6 +29,9 @@ type PriceRow = {
   sourceType?: string;
   trustLabel?: string;
   trustScore?: number;
+  verified?: boolean;
+  createdAt?: string | null;
+  userId?: string | null;
 };
 
 const locations = [
@@ -258,6 +261,28 @@ function formatOfferPeriod(row: any) {
   return "";
 }
 
+function formatCardPrice(row: PriceRow) {
+  return `₹${row.priceMin} - ₹${row.priceMax} / ${row.unit}`;
+}
+
+function getItemIcon(item: string, category: CategoryKey) {
+  const text = item.toLowerCase();
+
+  if (text.includes("cement")) return "🏗️";
+  if (text.includes("steel") || text.includes("rod")) return "🔩";
+  if (text.includes("sand")) return "🏖️";
+  if (text.includes("brick")) return "🧱";
+  if (text.includes("land")) return "🌾";
+  if (text.includes("flat") || text.includes("apartment")) return "🏢";
+  if (text.includes("shop")) return "🏬";
+  if (text.includes("office")) return "🏦";
+
+  if (category === "Materials") return "🏗️";
+  if (category === "Properties") return "🏡";
+  if (category === "Services") return "🛠️";
+  return "🚜";
+}
+
 function getTrustInfo(row: any, vendorCount = 1) {
   const source = String(row.sourceType || "").toLowerCase();
 
@@ -445,6 +470,7 @@ if (userData.user) {
           .select(
             "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,offer_start,offer_end,source_type,created_at,verified,user_id"
           )
+          .eq("verified", true)
           .order("created_at", { ascending: false })
           .limit(300),
       ]);
@@ -589,11 +615,7 @@ if (userData.user) {
         ]),
       });
 
-      setPriceRows(
-        livePriceRows.length
-          ? [...livePriceRows, ...fallbackPriceRows]
-          : fallbackPriceRows
-      );
+      setPriceRows(livePriceRows.length ? livePriceRows : fallbackPriceRows);
       setLoading(false);
     }
 
@@ -682,6 +704,32 @@ if (userData.user) {
 
   const listingHref = selectedCategory?.href || "/search";
   const searchText = item === "All Items" ? category : item;
+
+  const mainMaterialCards = useMemo(() => {
+    const rows = priceRows.filter((row) => row.category === "Materials");
+
+    if (!rows.length) return mainMaterials;
+
+    return rows.slice(0, 4).map((row) => ({
+      name: row.item,
+      price: formatCardPrice(row),
+      trend: row.trend,
+      icon: getItemIcon(row.item, "Materials"),
+    }));
+  }, [priceRows]);
+
+  const propertyPriceCards = useMemo(() => {
+    const rows = priceRows.filter((row) => row.category === "Properties");
+
+    if (!rows.length) return propertyPrices;
+
+    return rows.slice(0, 4).map((row) => ({
+      name: row.item,
+      price: formatCardPrice(row),
+      trend: row.trend,
+      icon: getItemIcon(row.item, "Properties"),
+    }));
+  }, [priceRows]);
 
   return (
     <main className="min-h-screen bg-[#f8faf7]">
@@ -959,7 +1007,7 @@ if (userData.user) {
           </h2>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {mainMaterials.map((mainItem) => (
+            {mainMaterialCards.map((mainItem) => (
               <div
                 key={mainItem.name}
                 className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
@@ -985,7 +1033,7 @@ if (userData.user) {
           </h2>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {propertyPrices.map((propertyItem) => (
+            {propertyPriceCards.map((propertyItem) => (
               <div
                 key={propertyItem.name}
                 className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
