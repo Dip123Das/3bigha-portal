@@ -268,7 +268,7 @@ function TrendBadge({ trend }: { trend: string }) {
 }
 
 export default function PriceTodayClient() {
-  const [location, setLocation] = useState("Cooch Behar");
+  const [location, setLocation] = useState("");
   const [category, setCategory] = useState<CategoryKey>("Materials");
   const [item, setItem] = useState("All Items");
   const [brand, setBrand] = useState("All Brands");
@@ -295,6 +295,21 @@ if (userData.user) {
     .select("role,requested_role,is_vendor,approval_status")
     .eq("id", userData.user.id)
     .maybeSingle();
+
+      const { data: businessProfile } = await supabase
+    .from("business_profiles")
+    .select("verified_district, verified_locality")
+    .eq("user_id", userData.user.id)
+    .maybeSingle();
+
+  const detectedLocation =
+    businessProfile?.verified_locality ||
+    businessProfile?.verified_district ||
+    "";
+
+  if (detectedLocation) {
+    setLocation(detectedLocation);
+  }
 
   const role = String(profile?.role || "");
   const requestedRole = String(profile?.requested_role || "");
