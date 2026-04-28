@@ -762,7 +762,9 @@ export default function BusinessOnboardingPageClient() {
         setLocationVerifying(false);
 
         if (error.code === error.PERMISSION_DENIED) {
-          setMsg("Location permission denied. Please allow location access from browser site settings and try again.");
+          setMsg(
+            "Location permission is blocked. Tap the lock/site icon beside the browser address bar, open Site settings, allow Location, reload this page, then try again."
+          );
           return;
         }
 
@@ -1355,7 +1357,7 @@ export default function BusinessOnboardingPageClient() {
               >
                 Verified from device GPS:
                 <br />
-                District: <b>{bp.verified_district || "Detected"}</b>
+                District: <b>{bp.verified_locality || bp.verified_district || "Detected"}</b>
                 <br />
                 Locality: <b>{bp.verified_locality || "Detected"}</b>
                 <br />
