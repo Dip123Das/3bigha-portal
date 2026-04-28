@@ -341,28 +341,36 @@ export default function AddPricePage() {
       created_by: userId,
     };
 
-    const result = editingId
-      ? await supabase
-          .from("material_price_updates")
-          .update(payload)
-          .eq("id", editingId)
-          .eq("created_by", userId)
-      : await supabase.from("material_price_updates").insert([payload]);
+    const { data: sessionData } = await supabase.auth.getSession();
 
-    if (result.error) {
-      setMsg("❌ Error: " + result.error.message);
-    } else {
-      setMsg(
-        editingId
-          ? "✅ Price updated successfully."
-          : "✅ Price added successfully. It will now appear in Price Today."
-      );
+    const token = sessionData?.session?.access_token;
 
-      setEditingId(null);
-      setForm(emptyForm);
-      loadMyPrices(userId);
+    if (!token) {
+      setMsg("❌ Session expired. Please login again.");
+      setLoading(false);
+      return;
     }
 
+    const res = await fetch("/api/vendor/price-updates", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const json = await res.json();
+
+    if (!res.ok) {
+      setMsg("❌ " + (json?.error || "Submission failed"));
+    } else {
+      setMsg("✅ Price submitted successfully (pending verification)");
+      setForm(emptyForm);
+      loadMyPrices(userId!);
+    }
+
+    setEditingId(null);
     setLoading(false);
   }
 

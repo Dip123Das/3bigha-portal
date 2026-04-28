@@ -258,33 +258,52 @@ function formatOfferPeriod(row: any) {
   return "";
 }
 
-function getTrustInfo(row: PriceRow, vendorCount = 1) {
+function getTrustInfo(row: any, vendorCount = 1) {
   const source = String(row.sourceType || "").toLowerCase();
 
-  let score = 50;
+  let score = 40;
   let label = "Indicative";
 
+  // Source weight
   if (source.includes("manufacturer")) {
-    score += 25;
+    score += 30;
     label = "Manufacturer sourced";
   } else if (source.includes("distributor")) {
-    score += 20;
+    score += 25;
     label = "Distributor sourced";
   } else if (source.includes("vendor")) {
-    score += 12;
+    score += 15;
     label = "Vendor submitted";
-  } else if (source.includes("market")) {
+  } else {
     score += 8;
     label = "Market indication";
   }
 
-  if (vendorCount >= 3) score += 15;
-  else if (vendorCount >= 2) score += 8;
+  // Vendor count weight
+  if (vendorCount >= 5) score += 20;
+  else if (vendorCount >= 3) score += 12;
+  else if (vendorCount >= 2) score += 6;
 
-  score = Math.min(score, 95);
+  // 🔥 VERIFIED BOOST
+  if (row.verified) {
+    score += 15;
+    label = `Verified • ${label}`;
+  }
 
-  if (score >= 80) return { score, label: `High trust • ${label}` };
-  if (score >= 65) return { score, label: `Moderate trust • ${label}` };
+  // 🔥 FRESHNESS BOOST
+  if (row.createdAt) {
+    const days =
+      (Date.now() - new Date(row.createdAt).getTime()) /
+      (1000 * 60 * 60 * 24);
+
+    if (days <= 7) score += 10;
+    else if (days <= 30) score += 5;
+  }
+
+  score = Math.min(score, 98);
+
+  if (score >= 85) return { score, label: `High trust • ${label}` };
+  if (score >= 70) return { score, label: `Moderate trust • ${label}` };
 
   return { score, label: `Indicative only • ${label}` };
 }
@@ -299,7 +318,15 @@ function TrustBadge({
   const trust = getTrustInfo(row, vendorCount || 1);
 
   return (
-    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">
+    <span
+      className={`rounded-full px-3 py-1 text-xs font-black ${
+        trust.score >= 85
+          ? "bg-green-50 text-green-700"
+          : trust.score >= 70
+          ? "bg-blue-50 text-blue-700"
+          : "bg-amber-50 text-amber-700"
+      }`}
+    >
       🛡️ {trust.label} ({trust.score}%)
     </span>
   );
@@ -416,7 +443,7 @@ if (userData.user) {
         supabase
           .from("material_price_updates")
           .select(
-            "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,offer_start,offer_end,source_type,created_at"
+            "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,offer_start,offer_end,source_type,created_at,verified,user_id"
           )
           .order("created_at", { ascending: false })
           .limit(300),
@@ -517,6 +544,11 @@ if (userData.user) {
           offer: String(row.offer || "").trim(),
           offerPeriod: formatOfferPeriod(row),
           sourceType: String(row.source_type || "Vendor").trim(),
+
+          // 🔥 TRUST INPUTS (NEW)
+          verified: row.verified ?? false,
+          createdAt: row.created_at ?? null,
+          userId: row.user_id ?? null,
         }));
       }
 

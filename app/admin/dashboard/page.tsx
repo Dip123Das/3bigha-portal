@@ -126,11 +126,11 @@ export default async function AdminDashboardPage() {
       badges: ["blog_posts", "draft → published"],
     },
     {
-      title: "Admin · Investment",
-      desc: "Manage builder-project investment plans and approvals.",
-      href: "/admin/dashboard/investment",
-      show: isMaster(role) || role === "investment_admin",
-      badges: ["investment", "plans / approvals"],
+      title: "Admin · Price Verification",
+      desc: "Verify or reject vendor-submitted Price Today updates.",
+      href: "/admin/dashboard/price-updates",
+      show: isMaster(role),
+      badges: ["price today", "pending → verified/rejected"],
     },
   ].filter((c) => c.show);
 

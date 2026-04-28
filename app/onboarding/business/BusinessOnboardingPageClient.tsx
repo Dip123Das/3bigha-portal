@@ -1343,6 +1343,24 @@ export default function BusinessOnboardingPageClient() {
                 : "✅ Location Verified (Tap to re-check)"}
             </button>
 
+            {missingLocationVerification ? (
+              <div
+                style={{
+                  padding: 10,
+                  borderRadius: 8,
+                  background: "#fff7ed",
+                  border: "1px solid #fed7aa",
+                  color: "#9a3412",
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                }}
+              >
+                Mobile help: If the button does not open the location popup,
+                tap the lock/site icon beside the browser address bar, allow
+                Location permission, reload this page, then try again.
+              </div>
+            ) : null}
+
             {!missingLocationVerification ? (
               <div
                 style={{
