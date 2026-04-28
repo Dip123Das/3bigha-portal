@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
-import { resolveAccessForUser, getDefaultPostLoginPath } from "@/lib/access/resolveAccess";
+import {
+  getDefaultPostLoginPath,
+  resolveAccessForUser,
+} from "@/lib/access/resolveAccess";
 
 function safeNextPath(raw: string | null) {
   if (!raw) return "";
@@ -18,9 +21,7 @@ function hardRedirect(path: string) {
   const target = path || "/";
   const current = window.location.pathname + window.location.search;
 
-  if (current === target || window.location.pathname === target) {
-    return;
-  }
+  if (current === target || window.location.pathname === target) return;
 
   window.location.href = target;
 }
@@ -57,7 +58,10 @@ export default function PostLoginPageClient() {
           supabase.auth.getSession(),
           new Promise<never>((_, reject) =>
             setTimeout(
-              () => reject(new Error("Post-login session lookup timed out after 4000ms")),
+              () =>
+                reject(
+                  new Error("Post-login session lookup timed out after 4000ms")
+                ),
               4000
             )
           ),
@@ -71,7 +75,9 @@ export default function PostLoginPageClient() {
         if (!user?.id) {
           setMsg("No active session found. Redirecting to login…");
           setTimeout(() => {
-            hardRedirect(`/login${next ? `?next=${encodeURIComponent(next)}` : ""}`);
+            hardRedirect(
+              `/login${next ? `?next=${encodeURIComponent(next)}` : ""}`
+            );
           }, 800);
           return;
         }
@@ -139,7 +145,8 @@ export default function PostLoginPageClient() {
             ),
             new Promise<never>((_, reject) =>
               setTimeout(
-                () => reject(new Error("Profile creation timed out after 4000ms")),
+                () =>
+                  reject(new Error("Profile creation timed out after 4000ms")),
                 4000
               )
             ),
@@ -156,24 +163,31 @@ export default function PostLoginPageClient() {
             return;
           }
 
-          hardRedirect(`/auth/register-role${next ? `?next=${encodeURIComponent(next)}` : ""}`);
+          hardRedirect(
+            `/auth/register-role${next ? `?next=${encodeURIComponent(next)}` : ""}`
+          );
           return;
         }
 
         if (!profile.email && user.email) {
-          await supabase.from("profiles").update({ email: user.email }).eq("id", user.id);
+          await supabase
+            .from("profiles")
+            .update({ email: user.email })
+            .eq("id", user.id);
         }
 
         const role = normalizeRole(profile.role);
-        const requestedRole = normalizeRole(profile.requested_role);
 
+        // MASTER ADMIN MUST NEVER BE SENT TO REGISTER-ROLE.
         if (role === "master_admin") {
           hardRedirect(next || "/admin/dashboard");
           return;
         }
 
         if (!role) {
-          hardRedirect(`/auth/register-role${next ? `?next=${encodeURIComponent(next)}` : ""}`);
+          hardRedirect(
+            `/auth/register-role${next ? `?next=${encodeURIComponent(next)}` : ""}`
+          );
           return;
         }
 
@@ -200,9 +214,16 @@ export default function PostLoginPageClient() {
         }
 
         if (Object.keys(patch).length > 0) {
-          const patchRes = await supabase.from("profiles").update(patch).eq("id", user.id);
+          const patchRes = await supabase
+            .from("profiles")
+            .update(patch)
+            .eq("id", user.id);
+
           if ((patchRes as any)?.error) {
-            console.error("POST_LOGIN_V7_PROFILE_PATCH_ERROR", (patchRes as any).error);
+            console.error(
+              "POST_LOGIN_V7_PROFILE_PATCH_ERROR",
+              (patchRes as any).error
+            );
           }
         }
 
@@ -210,6 +231,7 @@ export default function PostLoginPageClient() {
           const qs = new URLSearchParams();
           if (next) qs.set("next", next);
           if (role) qs.set("role", role);
+
           hardRedirect(`/auth/register-role?${qs.toString()}`);
           return;
         }
@@ -219,6 +241,7 @@ export default function PostLoginPageClient() {
             const qs = new URLSearchParams();
             qs.set("returnTo", next || "/dashboard");
             if (role) qs.set("role", role);
+
             hardRedirect(`/onboarding/business?${qs.toString()}`);
             return;
           }
@@ -226,11 +249,12 @@ export default function PostLoginPageClient() {
           const qs = new URLSearchParams();
           if (next) qs.set("next", next);
           if (role) qs.set("role", role);
+
           hardRedirect(`/auth/register-role?${qs.toString()}`);
           return;
         }
 
-                if (isBusinessRole(role)) {
+        if (isBusinessRole(role)) {
           setMsg("Checking district-free access eligibility…");
 
           const businessProfileRes = await supabase
@@ -247,12 +271,18 @@ export default function PostLoginPageClient() {
               .toLowerCase() === "verified";
 
           if (!locationVerified) {
-            hardRedirect(`/onboarding/business?returnTo=${encodeURIComponent(next || "/dashboard")}`);
+            hardRedirect(
+              `/onboarding/business?returnTo=${encodeURIComponent(
+                next || "/dashboard"
+              )}`
+            );
             return;
           }
 
           if (businessProfile?.eligible_free !== true) {
-            hardRedirect(`/dashboard/subscription?reason=district_free_not_eligible`);
+            hardRedirect(
+              "/dashboard/subscription?reason=district_free_not_eligible"
+            );
             return;
           }
         }
@@ -266,7 +296,8 @@ export default function PostLoginPageClient() {
             resolveAccessForUser(supabase, user.id, user.email ?? null),
             new Promise<never>((_, reject) =>
               setTimeout(
-                () => reject(new Error("Access resolution timed out after 3000ms")),
+                () =>
+                  reject(new Error("Access resolution timed out after 3000ms")),
                 3000
               )
             ),
@@ -280,13 +311,6 @@ export default function PostLoginPageClient() {
           redirectTo = next || "/";
         }
 
-        // 🚀 ONLY handle exact register-role case (STRICT MATCH)
-        if (redirectTo === "/auth/register-role?role=master_admin") {
-          hardRedirect("/admin/dashboard");
-          return;
-        }
-
-        // 🚫 DO NOT interfere with normal admin navigation
         hardRedirect(redirectTo);
       } catch (e: any) {
         console.error("POST_LOGIN_V7_FAIL", e);
