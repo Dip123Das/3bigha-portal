@@ -558,7 +558,7 @@ function getBuySignal(row: AggregatedPriceRow) {
   if (row.trend === "Down" && typeof row.changePercent === "number") {
     if (row.changePercent <= -3) {
       return {
-        label: "Buy soon → Price falling",
+        label: "🔻 Price falling → Buy soon",
         color: "green",
       };
     }
@@ -579,6 +579,65 @@ function getBuySignal(row: AggregatedPriceRow) {
   return {
     label: "Monitor price",
     color: "amber",
+  };
+}
+
+function getDistrictMarketSummary(rows: AggregatedPriceRow[], location: string) {
+  if (!rows.length) {
+    return {
+      title: `${location || "Selected market"} Market Signal`,
+      headline: "No strong price signal yet",
+      detail:
+        "More verified local price submissions are needed to generate a reliable district-level market signal.",
+      bestAction: "Collect more local price data",
+      strongestItem: "No item selected",
+      confidenceLabel: "Low confidence",
+    };
+  }
+
+  const risingRows = rows.filter((row) => row.trend === "Up");
+  const fallingRows = rows.filter((row) => row.trend === "Down");
+  const stableRows = rows.filter((row) => row.trend === "Stable");
+
+  const strongestRow =
+    [...rows].sort((a, b) => {
+      const aMove = Math.abs(a.changePercent ?? 0);
+      const bMove = Math.abs(b.changePercent ?? 0);
+      return bMove - aMove;
+    })[0] || rows[0];
+
+  const avgConfidence = Math.round(
+    rows.reduce((sum, row) => sum + row.confidence, 0) / rows.length
+  );
+
+  const confidenceLabel =
+    avgConfidence >= 75
+      ? "Strong confidence"
+      : avgConfidence >= 60
+      ? "Moderate confidence"
+      : "Low confidence";
+
+  let headline = "Market is mostly stable";
+  let bestAction = "Compare vendors before final decision";
+
+  if (risingRows.length > fallingRows.length && risingRows.length >= stableRows.length) {
+    headline = "Prices are showing upward pressure";
+    bestAction = "Act early or negotiate before further rise";
+  } else if (
+    fallingRows.length > risingRows.length &&
+    fallingRows.length >= stableRows.length
+  ) {
+    headline = "Some prices are softening";
+    bestAction = "Watch closely and negotiate better rates";
+  }
+
+  return {
+    title: `${location || strongestRow.location || "Selected market"} Market Signal`,
+    headline,
+    detail: `${strongestRow.item} is the strongest signal today. Average confidence is ${avgConfidence}% across ${rows.length} price group${rows.length > 1 ? "s" : ""}.`,
+    bestAction,
+    strongestItem: strongestRow.item,
+    confidenceLabel,
   };
 }
 
@@ -869,6 +928,10 @@ if (userData.user) {
   const groupedPriceRows = useMemo(() => {
     return aggregatePriceRows(matchingRows);
   }, [matchingRows]);
+
+    const districtMarketSummary = useMemo(() => {
+    return getDistrictMarketSummary(groupedPriceRows, location);
+  }, [groupedPriceRows, location]);
 
     useEffect(() => {
     if (!groupedPriceRows.length) return;
@@ -1247,6 +1310,40 @@ if (userData.user) {
               ? "Loading live portal categories and price data..."
               : "Category and exact item are connected with portal master/listing data where available. Price rows are connected with material_price_updates when available."}
           </p>
+        </div>
+
+        <div className="mt-6 rounded-3xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wide text-blue-700">
+                Level 2 Market Intelligence
+              </p>
+              <h2 className="mt-1 text-2xl font-black text-slate-950">
+                {districtMarketSummary.title}
+              </h2>
+              <p className="mt-2 text-sm font-bold text-blue-900">
+                {districtMarketSummary.headline}
+              </p>
+              <p className="mt-1 text-sm font-semibold leading-6 text-slate-700">
+                {districtMarketSummary.detail}
+              </p>
+            </div>
+
+            <div className="min-w-[220px] rounded-2xl bg-white p-4 shadow-sm">
+              <div className="text-xs font-black text-slate-500">
+                Best Action Today
+              </div>
+              <div className="mt-1 text-sm font-black text-emerald-700">
+                {districtMarketSummary.bestAction}
+              </div>
+              <div className="mt-3 text-xs font-bold text-slate-500">
+                Confidence
+              </div>
+              <div className="mt-1 text-sm font-black text-blue-700">
+                {districtMarketSummary.confidenceLabel}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
