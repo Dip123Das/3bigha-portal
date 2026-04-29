@@ -843,6 +843,12 @@ if (userData.user) {
 
         if (cached) {
           setAiExplanations((prev) => ({ ...prev, [key]: cached }));
+
+          setAiExplanationLoading((prev) => ({
+            ...prev,
+            [key]: false,
+          }));
+
           continue;
         }
 
@@ -883,29 +889,42 @@ if (userData.user) {
 
           if (!cancelled && res.ok && json?.explanation) {
             const explanation = String(json.explanation);
-            setAiExplanations((prev) => ({ ...prev, [key]: explanation }));
 
             window.clearTimeout(timeout);
+
+            setAiExplanations((prev) => ({
+              ...prev,
+              [key]: explanation,
+            }));
+
+            setAiExplanationLoading((prev) => ({
+              ...prev,
+              [key]: false,
+            }));
 
             if (typeof window !== "undefined") {
               window.sessionStorage.setItem(`price-ai:${key}`, explanation);
             }
           }
         } catch {
-          window.clearTimeout(timeout);
+            window.clearTimeout(timeout);
 
-          const fallback = getMarketExplanation(row);
+            const fallback = getMarketExplanation(row);
 
-          setAiExplanations((prev) => ({
-            ...prev,
-            [key]: fallback,
-          }));
-        } finally {
-          window.clearTimeout(timeout);
-          if (!cancelled) {
-            setAiExplanationLoading((prev) => ({ ...prev, [key]: false }));
+            setAiExplanations((prev) => ({
+              ...prev,
+              [key]: fallback,
+            }));
+
+            setAiExplanationLoading((prev) => ({
+              ...prev,
+              [key]: false,
+            }));
+
+            if (typeof window !== "undefined") {
+              window.sessionStorage.setItem(`price-ai:${key}`, fallback);
+            }
           }
-        }
       }
     }
 
