@@ -534,21 +534,52 @@ function getMarketExplanation(row: AggregatedPriceRow) {
 }
 
 function getBuySignal(row: AggregatedPriceRow) {
-  if (typeof row.changePercent === "number") {
-    if (row.changePercent > 3) {
-      return { label: "Wait — price rising", color: "red" };
-    }
-
-    if (row.changePercent < -3) {
-      return { label: "Good time to buy", color: "green" };
-    }
+  if (row.vendorCount <= 1 || row.confidence < 55) {
+    return {
+      label: "Data weak → Monitor price",
+      color: "amber",
+    };
   }
 
-  if (row.confidence >= 70 && row.trend === "Stable") {
-    return { label: "Good time to buy", color: "green" };
+  if (row.trend === "Up" && typeof row.changePercent === "number") {
+    if (row.changePercent >= 3) {
+      return {
+        label: "Wait → Price rising fast",
+        color: "red",
+      };
+    }
+
+    return {
+      label: "Monitor → Mild upward trend",
+      color: "amber",
+    };
   }
 
-  return { label: "Monitor price", color: "amber" };
+  if (row.trend === "Down" && typeof row.changePercent === "number") {
+    if (row.changePercent <= -3) {
+      return {
+        label: "Buy soon → Price falling",
+        color: "green",
+      };
+    }
+
+    return {
+      label: "Monitor → Slight decline",
+      color: "amber",
+    };
+  }
+
+  if (row.trend === "Stable") {
+    return {
+      label: "Safe to transact",
+      color: "green",
+    };
+  }
+
+  return {
+    label: "Monitor price",
+    color: "amber",
+  };
 }
 
 export default function PriceTodayClient() {
@@ -1289,7 +1320,7 @@ if (userData.user) {
                               : "bg-amber-50 text-amber-700"
                           }`}
                         >
-                          📊 Decision: {signal.label}
+                          📊 Smart Decision: {signal.label}
                         </div>
                       );
                     })()}
