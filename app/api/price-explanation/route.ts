@@ -17,13 +17,6 @@ export async function POST(req: Request) {
   try {
     const apiKey = process.env.OPENAI_API_KEY;
 
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "OPENAI_API_KEY is missing." },
-        { status: 500 }
-      );
-    }
-
     const body = await req.json();
 
     const item = String(body?.item || "this item").slice(0, 80);
@@ -36,6 +29,19 @@ export async function POST(req: Request) {
     const unit = String(body?.unit || "unit").slice(0, 40);
     const priceMin = Number(body?.priceMin || 0);
     const priceMax = Number(body?.priceMax || 0);
+
+    const fallbackExplanation =
+      sources <= 1
+        ? `${item} price in ${location} is indicative because more verified local sources are needed.`
+        : `${item} price in ${location} is based on current verified market inputs and recent price movement.`;
+
+    if (!apiKey) {
+      return NextResponse.json({
+        ok: true,
+        fallback: true,
+        explanation: fallbackExplanation,
+      });
+    }
 
     const prompt = `
 Write one short market explanation for 3bigha Price Today.
@@ -51,7 +57,9 @@ Data:
 Item: ${item}
 Location: ${location}
 Trend: ${trend}
-Change percent: ${changePercent === null ? "not enough history" : `${changePercent}%`}
+Change percent: ${
+      changePercent === null ? "not enough history" : `${changePercent}%`
+    }
 Sources: ${sources}
 Confidence: ${confidence}%
 Price range: ₹${priceMin} - ₹${priceMax} / ${unit}
@@ -65,7 +73,12 @@ Price range: ₹${priceMin} - ₹${priceMax} / ${unit}
       },
       body: JSON.stringify({
         model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-        input: prompt,
+        input: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
         temperature: 0.3,
         max_output_tokens: 80,
       }),
@@ -74,24 +87,31 @@ Price range: ₹${priceMin} - ₹${priceMax} / ${unit}
     const aiJson = await aiRes.json();
 
     if (!aiRes.ok) {
-      return NextResponse.json(
-        { error: aiJson?.error?.message || "AI explanation failed." },
-        { status: 500 }
-      );
+      console.error("OpenAI price explanation error:", aiJson);
+
+      return NextResponse.json({
+        ok: true,
+        fallback: true,
+        explanation: fallbackExplanation,
+      });
     }
 
     const explanation =
-      extractText(aiJson).trim() ||
-      `${item} price is indicative in ${location} based on current verified market inputs.`;
+      extractText(aiJson).trim() || fallbackExplanation;
 
     return NextResponse.json({
       ok: true,
+      fallback: false,
       explanation: explanation.replace(/^["']|["']$/g, ""),
     });
   } catch (e: any) {
-    return NextResponse.json(
-      { error: e?.message || "AI explanation failed." },
-      { status: 500 }
-    );
+    console.error("Price explanation route error:", e);
+
+    return NextResponse.json({
+      ok: true,
+      fallback: true,
+      explanation:
+        "This price is indicative and based on current verified market inputs.",
+    });
   }
 }
