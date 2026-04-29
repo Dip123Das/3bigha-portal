@@ -610,6 +610,37 @@ function getDistrictMarketSummary(rows: AggregatedPriceRow[], location: string) 
     rows.reduce((sum, row) => sum + row.confidence, 0) / rows.length
   );
 
+    const avgChange =
+    rows.reduce((sum, row) => sum + (row.changePercent || 0), 0) /
+    rows.length;
+
+  let prediction = "Stable movement expected";
+  let timeWindow = "Wait and monitor next 3–5 days";
+  let advice = "Compare multiple vendors before decision";
+
+  if (avgChange > 2) {
+    prediction = "Prices likely to rise in next 7 days";
+    timeWindow = "Buy within 1–3 days if needed";
+    advice = "Act early or negotiate quickly";
+  } else if (avgChange < -2) {
+    prediction = "Prices may soften further";
+    timeWindow = "Wait 3–7 days for better rates";
+    advice = "Monitor and negotiate lower prices";
+  }
+
+  let heatScore = 50;
+
+  heatScore += avgChange * 5;
+  heatScore += (avgConfidence - 50) * 0.6;
+  heatScore += rows.length * 2;
+
+  heatScore = Math.max(10, Math.min(95, Math.round(heatScore)));
+
+  let heatLabel = "Balanced Market";
+
+  if (heatScore >= 75) heatLabel = "Hot Market 🔥";
+  else if (heatScore <= 35) heatLabel = "Slow Market 🧊";
+
   const confidenceLabel =
     avgConfidence >= 75
       ? "Strong confidence"
@@ -632,13 +663,18 @@ function getDistrictMarketSummary(rows: AggregatedPriceRow[], location: string) 
   }
 
   return {
-    title: `${location || strongestRow.location || "Selected market"} Market Signal`,
-    headline,
-    detail: `${strongestRow.item} is the strongest signal today. Average confidence is ${avgConfidence}% across ${rows.length} price group${rows.length > 1 ? "s" : ""}.`,
-    bestAction,
-    strongestItem: strongestRow.item,
-    confidenceLabel,
-  };
+  title: `${location || strongestRow.location || "Selected market"} Market Signal`,
+  headline,
+  detail: `${strongestRow.item} is the strongest signal today. Average confidence is ${avgConfidence}% across ${rows.length} price group${rows.length > 1 ? "s" : ""}.`,
+  bestAction,
+  strongestItem: strongestRow.item,
+  confidenceLabel,
+  heatScore,
+  heatLabel,
+    prediction,
+  timeWindow,
+  advice,
+};
 }
 
 export default function PriceTodayClient() {
@@ -1329,20 +1365,55 @@ if (userData.user) {
               </p>
             </div>
 
-            <div className="min-w-[220px] rounded-2xl bg-white p-4 shadow-sm">
-              <div className="text-xs font-black text-slate-500">
-                Best Action Today
-              </div>
-              <div className="mt-1 text-sm font-black text-emerald-700">
-                {districtMarketSummary.bestAction}
-              </div>
-              <div className="mt-3 text-xs font-bold text-slate-500">
-                Confidence
-              </div>
-              <div className="mt-1 text-sm font-black text-blue-700">
-                {districtMarketSummary.confidenceLabel}
-              </div>
+            <div className="min-w-[240px] rounded-2xl bg-white p-4 shadow-sm">
+            <div className="mt-4 text-xs font-black text-slate-500">
+              Next 7 Days
             </div>
+            <div className="mt-1 text-sm font-black text-purple-700">
+              {districtMarketSummary.prediction}
+            </div>
+
+            <div className="mt-3 text-xs font-black text-slate-500">
+              Best Time Window
+            </div>
+            <div className="mt-1 text-sm font-black text-orange-600">
+              {districtMarketSummary.timeWindow}
+            </div>
+
+            <div className="mt-3 text-xs font-black text-slate-500">
+              AI Advice
+            </div>
+            <div className="mt-1 text-sm font-black text-emerald-700">
+              {districtMarketSummary.advice}
+            </div>
+            <div className="text-xs font-black text-slate-500">
+              Market Heat
+            </div>
+
+            <div className="mt-1 text-lg font-black text-red-600">
+              {districtMarketSummary.heatLabel}
+            </div>
+
+            <div className="mt-1 text-xs font-bold text-slate-500">
+              Score: {districtMarketSummary.heatScore}/100
+            </div>
+
+            <div className="mt-4 text-xs font-black text-slate-500">
+              Best Action Today
+            </div>
+
+            <div className="mt-1 text-sm font-black text-emerald-700">
+              {districtMarketSummary.bestAction}
+            </div>
+
+            <div className="mt-3 text-xs font-bold text-slate-500">
+              Confidence
+            </div>
+
+            <div className="mt-1 text-sm font-black text-blue-700">
+              {districtMarketSummary.confidenceLabel}
+            </div>
+          </div>
           </div>
         </div>
 
@@ -1408,21 +1479,81 @@ if (userData.user) {
                         : getMarketExplanation(row)}
                     </div>
 
-                                        {(() => {
+                    {(() => {
                       const signal = getBuySignal(row);
 
+                      const urgency =
+                        row.trend === "Up" && (row.changePercent || 0) > 3
+                          ? "🔥 High urgency"
+                          : row.trend === "Down"
+                          ? "🟢 Opportunity"
+                          : "⚖️ Neutral";
+                      
+                      const isBestPrice =
+                        row.avgPrice > 0 && row.priceMin <= row.avgPrice * 0.95;
+
+                      const isHighTrust = row.confidence >= 70 && row.vendorCount >= 3;
+
+                      const isOpportunity =
+                        row.trend === "Down" && row.vendorCount >= 2;
+
+                      const ctaText =
+                        isBestPrice
+                          ? "🏆 Grab Best Price Now"
+                          : signal.color === "red"
+                          ? "⚡ Book Now (Prices Rising)"
+                          : signal.color === "green"
+                          ? "🟢 Get Best Deals"
+                          : "🔎 Compare Vendors";
+
                       return (
-                        <div
-                          className={`mt-2 rounded-xl px-3 py-2 text-xs font-bold ${
-                            signal.color === "green"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : signal.color === "red"
-                              ? "bg-red-50 text-red-700"
-                              : "bg-amber-50 text-amber-700"
-                          }`}
-                        >
-                          📊 Smart Decision: {signal.label}
-                        </div>
+                        <>
+                          <div
+                            className={`mt-2 rounded-xl px-3 py-2 text-xs font-bold ${
+                              signal.color === "green"
+                                ? "bg-emerald-50 text-emerald-700"
+                                : signal.color === "red"
+                                ? "bg-red-50 text-red-700"
+                                : "bg-amber-50 text-amber-700"
+                            }`}
+                          >
+                            📊 Smart Decision: {signal.label}
+                          </div>
+
+                          <div className="mt-2 flex flex-wrap gap-2 text-xs font-black">
+
+
+                            {isHighTrust && (
+                              <span className="rounded-full bg-blue-100 px-2 py-1 text-blue-700">
+                                🛡️ Trusted Market
+                              </span>
+                            )}
+
+                            {isOpportunity && (
+                              <span className="rounded-full bg-purple-100 px-2 py-1 text-purple-700">
+                                ⭐ Opportunity Zone
+                              </span>
+                            )}
+
+                            <span className="text-purple-700">
+                              {urgency}
+                            </span>
+                          </div>
+
+                          <div className="mt-3">
+                            <button
+                              onClick={() => {
+                                const query = encodeURIComponent(
+                                  row.item + " " + row.location
+                                );
+                                window.location.href = `/search?q=${query}&intent=buy`;
+                              }}
+                              className="w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-black text-white transition hover:bg-blue-700"
+                            >
+                              {ctaText}
+                            </button>
+                          </div>
+                        </>
                       );
                     })()}
                     
@@ -1430,6 +1561,9 @@ if (userData.user) {
 
                   <div className="mt-3 text-2xl font-black text-emerald-700">
                     ₹{row.priceMin} - ₹{row.priceMax} / {row.unit}
+                    <div className="mt-1 text-xs font-bold text-slate-600">
+                      {row.vendorCount} vendor{row.vendorCount > 1 ? "s" : ""} contributing
+                    </div>
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -1491,6 +1625,14 @@ if (userData.user) {
                       {mainItem.vendorCount} source{mainItem.vendorCount > 1 ? "s" : ""}
                     </span>
                   ) : null}
+
+                  <div className="mt-2 text-xs font-black text-purple-700">
+                    {mainItem.trend === "Up"
+                      ? "📈 Rising trend"
+                      : mainItem.trend === "Down"
+                      ? "📉 Softening market"
+                      : "⚖️ Stable market"}
+                  </div>
                 </div>
               </div>
             ))}
