@@ -533,6 +533,24 @@ function getMarketExplanation(row: AggregatedPriceRow) {
   return `${item} price is indicative because more verified local sources are needed for stronger market intelligence.`;
 }
 
+function getBuySignal(row: AggregatedPriceRow) {
+  if (typeof row.changePercent === "number") {
+    if (row.changePercent > 3) {
+      return { label: "Wait — price rising", color: "red" };
+    }
+
+    if (row.changePercent < -3) {
+      return { label: "Good time to buy", color: "green" };
+    }
+  }
+
+  if (row.confidence >= 70 && row.trend === "Stable") {
+    return { label: "Good time to buy", color: "green" };
+  }
+
+  return { label: "Monitor price", color: "amber" };
+}
+
 export default function PriceTodayClient() {
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState<CategoryKey>("Materials");
@@ -1247,13 +1265,34 @@ if (userData.user) {
                     </div>
 
                     <div className="mt-2 rounded-2xl bg-blue-50 px-3 py-2 text-xs font-bold leading-5 text-blue-800">
-                      AI insight:{" "}
+                      <span className="flex items-center gap-1">
+                        🤖 AI insight
+                        {aiExplanationLoading[getAiExplanationKey(row)] && (
+                          <span className="text-blue-500 text-[10px]">(updating)</span>
+                        )}
+                      </span>{" "}
                       {aiExplanations[getAiExplanationKey(row)]
                         ? aiExplanations[getAiExplanationKey(row)]
-                        : aiExplanationLoading[getAiExplanationKey(row)]
-                        ? "Generating live market explanation..."
                         : getMarketExplanation(row)}
                     </div>
+
+                                        {(() => {
+                      const signal = getBuySignal(row);
+
+                      return (
+                        <div
+                          className={`mt-2 rounded-xl px-3 py-2 text-xs font-bold ${
+                            signal.color === "green"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : signal.color === "red"
+                              ? "bg-red-50 text-red-700"
+                              : "bg-amber-50 text-amber-700"
+                          }`}
+                        >
+                          📊 Decision: {signal.label}
+                        </div>
+                      );
+                    })()}
                     
                   </div>
 
