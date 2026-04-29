@@ -901,6 +901,7 @@ if (userData.user) {
             [key]: fallback,
           }));
         } finally {
+          window.clearTimeout(timeout);
           if (!cancelled) {
             setAiExplanationLoading((prev) => ({ ...prev, [key]: false }));
           }
@@ -1228,10 +1229,11 @@ if (userData.user) {
 
                     <div className="mt-2 rounded-2xl bg-blue-50 px-3 py-2 text-xs font-bold leading-5 text-blue-800">
                       AI insight:{" "}
-                      {aiExplanationLoading[getAiExplanationKey(row)]
+                      {aiExplanations[getAiExplanationKey(row)]
+                        ? aiExplanations[getAiExplanationKey(row)]
+                        : aiExplanationLoading[getAiExplanationKey(row)]
                         ? "Generating live market explanation..."
-                        : aiExplanations[getAiExplanationKey(row)] ||
-                          getMarketExplanation(row)}
+                        : getMarketExplanation(row)}
                     </div>
                     
                   </div>
