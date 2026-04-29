@@ -491,6 +491,48 @@ function TrendBadge({
   );
 }
 
+function getAiExplanationKey(row: AggregatedPriceRow) {
+  return [
+    row.category,
+    row.item,
+    row.location || "",
+    row.unit,
+    row.priceMin,
+    row.priceMax,
+    row.changePercent ?? "no-history",
+    row.vendorCount,
+  ]
+    .join("|")
+    .toLowerCase();
+}
+
+function getMarketExplanation(row: AggregatedPriceRow) {
+  const item = row.item || "this item";
+  const location = row.location || "selected market";
+
+  if (typeof row.changePercent === "number") {
+    if (row.changePercent > 3) {
+      return `${item} is moving upward in ${location}, likely due to stronger local demand or limited supply.`;
+    }
+
+    if (row.changePercent < -3) {
+      return `${item} is softening in ${location}, likely due to better supply or lower recent demand.`;
+    }
+
+    return `${item} is mostly stable in ${location}, with only minor movement in recent verified prices.`;
+  }
+
+  if (row.vendorCount >= 3) {
+    return `${item} has good market confidence because multiple verified sources are available.`;
+  }
+
+  if (row.sourceType === "ai_draft") {
+    return `${item} is AI-assisted draft intelligence and should be treated as indicative until more vendor sources are added.`;
+  }
+
+  return `${item} price is indicative because more verified local sources are needed for stronger market intelligence.`;
+}
+
 export default function PriceTodayClient() {
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState<CategoryKey>("Materials");
@@ -501,6 +543,8 @@ export default function PriceTodayClient() {
     useState<Record<CategoryKey, ItemOption[]>>(fallbackItems);
   const [priceRows, setPriceRows] = useState<PriceRow[]>(fallbackPriceRows);
   const [loading, setLoading] = useState(true);
+  const [aiExplanations, setAiExplanations] = useState<Record<string, string>>({});
+  const [aiExplanationLoading, setAiExplanationLoading] = useState<Record<string, boolean>>({});
   const [canAddPrice, setCanAddPrice] = useState(false);
 
   useEffect(() => {
@@ -776,6 +820,77 @@ if (userData.user) {
   const groupedPriceRows = useMemo(() => {
     return aggregatePriceRows(matchingRows);
   }, [matchingRows]);
+
+    useEffect(() => {
+    if (!groupedPriceRows.length) return;
+
+    let cancelled = false;
+
+    async function loadAiExplanations() {
+      const rowsToExplain = groupedPriceRows.slice(0, 6);
+
+      for (const row of rowsToExplain) {
+        const key = getAiExplanationKey(row);
+
+        if (aiExplanations[key] || aiExplanationLoading[key]) {
+          continue;
+        }
+
+        const cached =
+          typeof window !== "undefined"
+            ? window.sessionStorage.getItem(`price-ai:${key}`)
+            : null;
+
+        if (cached) {
+          setAiExplanations((prev) => ({ ...prev, [key]: cached }));
+          continue;
+        }
+
+        setAiExplanationLoading((prev) => ({ ...prev, [key]: true }));
+
+        try {
+          const res = await fetch("/api/price-explanation", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              item: row.item,
+              location: row.location || location,
+              trend: row.trend,
+              changePercent: row.changePercent,
+              sources: row.vendorCount,
+              confidence: row.confidence,
+              unit: row.unit,
+              priceMin: row.priceMin,
+              priceMax: row.priceMax,
+            }),
+          });
+
+          const json = await res.json();
+
+          if (!cancelled && res.ok && json?.explanation) {
+            const explanation = String(json.explanation);
+            setAiExplanations((prev) => ({ ...prev, [key]: explanation }));
+
+            if (typeof window !== "undefined") {
+              window.sessionStorage.setItem(`price-ai:${key}`, explanation);
+            }
+          }
+        } catch {
+          // Keep rule-based fallback silently.
+        } finally {
+          if (!cancelled) {
+            setAiExplanationLoading((prev) => ({ ...prev, [key]: false }));
+          }
+        }
+      }
+    }
+
+    loadAiExplanations();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [groupedPriceRows, location, aiExplanations, aiExplanationLoading]);
 
   const brandOptions = useMemo(() => {
     return uniqueStrings(
@@ -1086,6 +1201,14 @@ if (userData.user) {
                       {typeof row.changePercent === "number"
                         ? `${row.changePercent > 0 ? "+" : ""}${row.changePercent}%`
                         : "Not enough history"}
+                    </div>
+
+                    <div className="mt-2 rounded-2xl bg-blue-50 px-3 py-2 text-xs font-bold leading-5 text-blue-800">
+                      AI insight:{" "}
+                      {aiExplanationLoading[getAiExplanationKey(row)]
+                        ? "Generating live market explanation..."
+                        : aiExplanations[getAiExplanationKey(row)] ||
+                          getMarketExplanation(row)}
                     </div>
                     
                   </div>
