@@ -84,10 +84,11 @@ export async function POST(req: Request) {
 
       if (cached?.explanation) {
         return NextResponse.json({
-          ok: true,
-          cached: true,
-          explanation: cached.explanation,
-        });
+            ok: true,
+            cached: true,
+            explanation: cached.explanation,
+            source: "cache",
+            });
       }
     }
 
@@ -170,16 +171,18 @@ Price range: ₹${priceMin} - ₹${priceMax} / ${unit}
     }
 
     return NextResponse.json({
-      ok: true,
-      cached: false,
-      explanation,
+    ok: true,
+    cached: false,
+    explanation,
+    source: "ai",
     });
   } catch {
     return NextResponse.json({
-      ok: true,
-      cached: false,
-      fallback: true,
-      explanation: fallbackExplanation,
+    ok: true,
+    cached: false,
+    fallback: true,
+    explanation: fallbackExplanation,
+    source: "fallback",
     });
   }
 }

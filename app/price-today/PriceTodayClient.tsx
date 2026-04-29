@@ -536,7 +536,7 @@ function getMarketExplanation(row: AggregatedPriceRow) {
 function getBuySignal(row: AggregatedPriceRow) {
   if (row.vendorCount <= 1 || row.confidence < 55) {
     return {
-      label: "Data weak → Monitor price",
+      label: "⚠️ Low data → Monitor market",
       color: "amber",
     };
   }
@@ -544,7 +544,7 @@ function getBuySignal(row: AggregatedPriceRow) {
   if (row.trend === "Up" && typeof row.changePercent === "number") {
     if (row.changePercent >= 3) {
       return {
-        label: "Wait → Price rising fast",
+        label: "🔺 Price rising fast → Wait",
         color: "red",
       };
     }
@@ -951,9 +951,13 @@ if (userData.user) {
               [key]: false,
             }));
 
+            // 🔥 cache in browser
             if (typeof window !== "undefined") {
               window.sessionStorage.setItem(`price-ai:${key}`, explanation);
             }
+
+            // 🔥 DEBUG (optional)
+            console.log("AI SOURCE:", json.source);
           }
         } catch {
             window.clearTimeout(timeout);
