@@ -34,6 +34,14 @@ type PriceRow = {
   userId?: string | null;
 };
 
+type AggregatedPriceRow = PriceRow & {
+  vendorCount: number;
+  avgPrice: number;
+  confidence: number;
+  changePercent: number | null;
+  trend: TrendValue;
+};
+
 const locations = [
   "Cooch Behar",
   "Siliguri",
@@ -302,45 +310,68 @@ function makeGroupKey(row: PriceRow) {
   ].join("|");
 }
 
-function aggregatePriceRows(rows: PriceRow[]) {
-  const grouped = new Map<string, PriceRow & { vendorCount: number }>();
+function aggregatePriceRows(rows: PriceRow[]): AggregatedPriceRow[] {
+  const grouped = new Map<string, PriceRow[]>();
 
   rows.forEach((row) => {
     const key = makeGroupKey(row);
-    const existing = grouped.get(key);
-
-    if (!existing) {
-      grouped.set(key, { ...row, vendorCount: 1 });
-      return;
-    }
-
-    grouped.set(key, {
-      ...existing,
-      priceMin: Math.min(existing.priceMin, row.priceMin),
-      priceMax: Math.max(existing.priceMax, row.priceMax),
-      vendorCount: existing.vendorCount + 1,
-      verified: existing.verified || row.verified,
-      createdAt:
-        existing.createdAt && row.createdAt
-          ? new Date(existing.createdAt) > new Date(row.createdAt)
-            ? existing.createdAt
-            : row.createdAt
-          : existing.createdAt || row.createdAt || null,
-    });
+    const existing = grouped.get(key) || [];
+    grouped.set(key, [...existing, row]);
   });
 
-  return Array.from(grouped.values()).map((row) => {
-    const avg =
-      row.vendorCount > 0
-        ? Math.round((row.priceMin + row.priceMax) / 2)
-        : row.priceMin;
+  return Array.from(grouped.values()).map((groupRows) => {
+    const sortedRows = [...groupRows].sort((a, b) => {
+      const at = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bt = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bt - at;
+    });
 
-    const confidence = Math.min(95, 40 + row.vendorCount * 15);
+    const latest = sortedRows[0];
+    const latestAvg = Math.round((latest.priceMin + latest.priceMax) / 2);
+
+    const previous =
+      sortedRows.find((row) => row.id !== latest.id) || sortedRows[1] || null;
+
+    const previousAvg = previous
+      ? Math.round((previous.priceMin + previous.priceMax) / 2)
+      : null;
+
+    const changePercent =
+      previousAvg && previousAvg > 0
+        ? Number((((latestAvg - previousAvg) / previousAvg) * 100).toFixed(1))
+        : null;
+
+    const autoTrend: TrendValue =
+      changePercent === null
+        ? latest.trend
+        : changePercent > 1
+        ? "Up"
+        : changePercent < -1
+        ? "Down"
+        : "Stable";
+
+    const priceMin = Math.min(...groupRows.map((row) => row.priceMin));
+    const priceMax = Math.max(...groupRows.map((row) => row.priceMax));
+    const vendorCount = groupRows.length;
+
+    const confidence = Math.min(
+      95,
+      40 +
+        vendorCount * 15 +
+        (groupRows.some((row) => row.verified) ? 10 : 0) +
+        (latest.createdAt ? 5 : 0)
+    );
 
     return {
-      ...row,
-      avgPrice: avg,
+      ...latest,
+      priceMin,
+      priceMax,
+      vendorCount,
+      avgPrice: latestAvg,
       confidence,
+      changePercent,
+      trend: autoTrend,
+      verified: groupRows.some((row) => row.verified),
     };
   });
 }
@@ -437,13 +468,25 @@ function TrustBadge({
   );
 }
 
-function TrendBadge({ trend }: { trend: string }) {
+function TrendBadge({
+  trend,
+  changePercent,
+}: {
+  trend: string;
+  changePercent?: number | null;
+}) {
   const label =
     trend === "Up" ? "↑ Up" : trend === "Down" ? "↓ Down" : "→ Stable";
+
+  const changeLabel =
+    typeof changePercent === "number"
+      ? ` (${changePercent > 0 ? "+" : ""}${changePercent}%)`
+      : "";
 
   return (
     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
       {label}
+      {changeLabel}
     </span>
   );
 }
@@ -775,6 +818,7 @@ if (userData.user) {
       trend: row.trend,
       icon: getItemIcon(row.item, "Materials"),
       vendorCount: row.vendorCount,
+      changePercent: row.changePercent,
     }));
   }, [priceRows]);
 
@@ -1036,15 +1080,14 @@ if (userData.user) {
                     <div className="text-xs font-bold text-amber-600">
                       Confidence: {row.confidence}%
                     </div>
-                    
-                  </div>
 
-                  <div className="mt-1 text-sm font-bold text-slate-700">
+                    <div className="text-xs font-bold text-slate-500">
+                      7-day movement:{" "}
+                      {typeof row.changePercent === "number"
+                        ? `${row.changePercent > 0 ? "+" : ""}${row.changePercent}%`
+                        : "Not enough history"}
+                    </div>
                     
-                  </div>
-
-                  <div className="mt-1 text-sm font-bold text-slate-700">
-                  
                   </div>
 
                   <div className="mt-3 text-2xl font-black text-emerald-700">
@@ -1052,7 +1095,7 @@ if (userData.user) {
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <TrendBadge trend={row.trend} />
+                    <TrendBadge trend={row.trend} changePercent={row.changePercent} />
                     <TrustBadge row={row} vendorCount={row.vendorCount} />
                   </div>
 
@@ -1097,7 +1140,14 @@ if (userData.user) {
                   {mainItem.price}
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <TrendBadge trend={mainItem.trend} />
+                  <TrendBadge
+                    trend={mainItem.trend}
+                    changePercent={
+                      typeof (mainItem as any).changePercent === "number"
+                        ? (mainItem as any).changePercent
+                        : null
+                    }
+                  />
                   {typeof mainItem.vendorCount === "number" ? (
                     <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
                       {mainItem.vendorCount} source{mainItem.vendorCount > 1 ? "s" : ""}
@@ -1128,7 +1178,14 @@ if (userData.user) {
                   {propertyItem.price}
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <TrendBadge trend={propertyItem.trend} />
+                  <TrendBadge
+                    trend={propertyItem.trend}
+                    changePercent={
+                      typeof (propertyItem as any).changePercent === "number"
+                        ? (propertyItem as any).changePercent
+                        : null
+                    }
+                  />
                   {typeof propertyItem.vendorCount === "number" ? (
                     <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
                       {propertyItem.vendorCount} source{propertyItem.vendorCount > 1 ? "s" : ""}
