@@ -846,6 +846,20 @@ if (userData.user) {
           continue;
         }
 
+                const timeout = window.setTimeout(() => {
+          const fallback = getMarketExplanation(row);
+
+          setAiExplanations((prev) => ({
+            ...prev,
+            [key]: fallback,
+          }));
+
+          setAiExplanationLoading((prev) => ({
+            ...prev,
+            [key]: false,
+          }));
+        }, 6000);
+
         setAiExplanationLoading((prev) => ({ ...prev, [key]: true }));
 
         try {
@@ -871,12 +885,21 @@ if (userData.user) {
             const explanation = String(json.explanation);
             setAiExplanations((prev) => ({ ...prev, [key]: explanation }));
 
+            window.clearTimeout(timeout);
+
             if (typeof window !== "undefined") {
               window.sessionStorage.setItem(`price-ai:${key}`, explanation);
             }
           }
         } catch {
-          // Keep rule-based fallback silently.
+          window.clearTimeout(timeout);
+
+          const fallback = getMarketExplanation(row);
+
+          setAiExplanations((prev) => ({
+            ...prev,
+            [key]: fallback,
+          }));
         } finally {
           if (!cancelled) {
             setAiExplanationLoading((prev) => ({ ...prev, [key]: false }));

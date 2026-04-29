@@ -72,7 +72,7 @@ Price range: ₹${priceMin} - ₹${priceMax} / ${unit}
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+        model: "gpt-4.1-mini",
         input: [
           {
             role: "user",
