@@ -275,13 +275,21 @@ export async function POST(req: Request) {
       if (ors.length > 0) {
         const { data: vendors, error: vErr } = await supabaseAdmin
           .from("business_profiles")
-          .select("user_id,phone")
+          .select("user_id,phone,boost_priority")
           .not("user_id", "is", null)
           .or(ors.join(","))
-          .limit(200);
+          .order("boost_priority", { ascending: false }) // ⭐ BOOST CORE
+          .limit(50); // tighter pool = boost more valuable
 
         if (!vErr && vendors && vendors.length > 0) {
-          const targetRows = vendors
+          // ⭐ BOOST SPLIT
+          const boosted = (vendors || []).filter((v: any) => (v.boost_priority || 0) > 0);
+          const normal = (vendors || []).filter((v: any) => (v.boost_priority || 0) === 0);
+
+          // ⭐ PRIORITY: boosted first
+          const sortedVendors = [...boosted, ...normal];
+
+          const targetRows = sortedVendors
             .map((v: any) => ({
               vendor_user_id: String(v.user_id),
               vendor_phone: String(v.phone || "").trim(),
