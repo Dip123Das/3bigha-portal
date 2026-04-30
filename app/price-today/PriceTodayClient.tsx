@@ -1039,9 +1039,23 @@ if (userData.user) {
     });
   }, [priceRows, category, item, brand, grade, location]);
 
-  const groupedPriceRows = useMemo(() => {
-    return aggregatePriceRows(matchingRows);
-  }, [matchingRows]);
+    const groupedPriceRows = useMemo(() => {
+      return aggregatePriceRows(matchingRows).sort((a: any, b: any) => {
+        const priority = (row: any) => {
+          if (row.subscriptionPlan === "hub_vendor") return 20;
+          if (row.subscriptionPlan === "premium_vendor") return 10;
+          if (row.subscriptionPlan === "basic_vendor") return 5;
+          return 0;
+        };
+
+        const boostA = priority(a);
+        const boostB = priority(b);
+
+        if (boostA !== boostB) return boostB - boostA;
+
+        return Number(b.confidence || 0) - Number(a.confidence || 0);
+      });
+    }, [matchingRows]);
 
     const districtMarketSummary = useMemo(() => {
     return getDistrictMarketSummary(groupedPriceRows, location);
@@ -1200,7 +1214,20 @@ if (userData.user) {
 
     if (!rows.length) return mainMaterials;
 
-    return rows.slice(0, 4).map((row) => ({
+    const sorted = [...rows].sort((a: any, b: any) => {
+      const boostA = Number(a.boost_priority || 0);
+      const boostB = Number(b.boost_priority || 0);
+
+      if (boostA !== boostB) return boostB - boostA; // 🔥 HIGH BOOST FIRST
+
+      // fallback: higher confidence first
+      const confA = Number(a.confidence || 0);
+      const confB = Number(b.confidence || 0);
+
+      return confB - confA;
+    });
+
+    return sorted.slice(0, 4).map((row) => ({
       name: row.item,
       price: formatCardPrice(row),
       trend: row.trend,
