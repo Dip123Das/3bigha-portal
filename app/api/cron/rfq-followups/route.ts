@@ -76,9 +76,11 @@ export async function GET(req: Request) {
   try {
     const cronSecret = process.env.CRON_SECRET;
     const authHeader = req.headers.get("authorization") || "";
+    const url = new URL(req.url);
+    const queryKey = url.searchParams.get("key") || "";
     const token = authHeader.replace("Bearer ", "").trim();
 
-    if (cronSecret && token !== cronSecret) {
+    if (cronSecret && token !== cronSecret && queryKey !== cronSecret) {
       return NextResponse.json(
         { ok: false, error: "Unauthorized cron request." },
         { status: 401 }
