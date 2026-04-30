@@ -1517,9 +1517,12 @@ if (userData.user) {
                     {row.location || location || "Selected Location"}
                   </div>
 
-                  <h3 className="mt-1 text-xl font-black text-slate-950">
-                    {row.item}
-                  </h3>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <h3 className="text-xl font-black text-slate-950">
+                      {row.item}
+                    </h3>
+                    <SubscriptionBadge row={row} />
+                  </div>
 
                   <div className="mt-2 text-sm font-bold text-slate-700">
                     <div className="text-sm text-slate-600">
@@ -1636,12 +1639,6 @@ if (userData.user) {
                               </span>
                             )}
 
-                            {(row as any).boost_priority > 0 && (
-                              <span className="rounded-full bg-pink-100 px-2 py-1 text-pink-700">
-                                ⭐ Premium Vendor
-                              </span>
-                            )}
-
                             <span className="text-purple-700">
                               {urgency}
                             </span>
@@ -1685,9 +1682,11 @@ if (userData.user) {
                             >
                               {ctaText}
                             </button>
-                            <div className="mt-2 text-xs font-bold text-red-600">
-                              ⚠️ Free vendors get fewer enquiries. Upgrade to increase visibility.
-                            </div>
+                            {String(row.subscriptionStatus || "free") !== "active" && (
+                              <div className="mt-2 text-xs font-bold text-red-600">
+                                ⚠️ Free vendors get fewer enquiries. Upgrade to increase visibility.
+                              </div>
+                            )}
                             <button
                               onClick={() => (window.location.href = "/dashboard/subscription")}
                               className="mt-2 w-full rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-white hover:bg-amber-600"
