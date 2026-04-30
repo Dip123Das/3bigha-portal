@@ -96,8 +96,14 @@ export async function POST(req: Request) {
     if (profile.role === "vendor") sourceType = "vendor";
     if (profile.role === "builder") sourceType = "builder";
 
+    const { boost_priority, boost_expires_at, boost_payment_id, ...safeBody } =
+      body || {};
+
     const payload = {
-      ...body,
+      ...safeBody,
+      boost_priority: 0,
+      boost_expires_at: null,
+      boost_payment_id: null,
       source_type: sourceType,
       created_by: user.id,
       verified: false,

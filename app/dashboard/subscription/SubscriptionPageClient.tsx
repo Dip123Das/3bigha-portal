@@ -10,7 +10,7 @@ type SessionUser = {
   email?: string | null;
 };
 
-type PlanKey = "free" | "pro" | "business";
+type PlanKey = "free" | "basic_vendor" | "premium_vendor" | "hub_vendor";
 
 function safePath(p: string | null, fallback: string) {
   if (!p) return fallback;
@@ -58,7 +58,8 @@ export default function SubscriptionPageClient() {
   const [err, setErr] = useState<string | null>(null);
 
   const [activePlan, setActivePlan] = useState<PlanKey>("free");
-  const [isActive, setIsActive] = useState<boolean>(true); // free is always effectively active for MVP
+  const [isActive, setIsActive] = useState<boolean>(true);
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -119,7 +120,7 @@ export default function SubscriptionPageClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 2) Load active plan from your VIEW (best source of truth)
+  // 2) Load active plan from business_profiles
   useEffect(() => {
     if (!user?.id) return;
 
@@ -127,21 +128,38 @@ export default function SubscriptionPageClient() {
 
     (async () => {
       const { data, error } = await supabase
-        .from("v_vendor_active_subscription")
-        .select("plan_key,is_active,status")
+        .from("business_profiles")
+        .select("subscription_plan,subscription_status,subscription_expires_at")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (!alive) return;
 
-      if (!error && data?.plan_key) {
-        const pk = String(data.plan_key) as PlanKey;
-        if (pk === "free" || pk === "pro" || pk === "business") setActivePlan(pk);
-        setIsActive(!!data?.is_active);
+      if (!error && data?.subscription_plan) {
+        const pk = String(data.subscription_plan) as PlanKey;
+        const status = String(data.subscription_status || "free");
+        const exp = data.subscription_expires_at || null;
+        const expMs = exp ? new Date(exp).getTime() : 0;
+
+        if (
+          pk === "free" ||
+          pk === "basic_vendor" ||
+          pk === "premium_vendor" ||
+          pk === "hub_vendor"
+        ) {
+          setActivePlan(pk);
+        }
+
+        setExpiresAt(exp);
+        setIsActive(
+          pk === "free" ||
+            (status === "active" &&
+              (!exp || (Number.isFinite(expMs) && expMs > Date.now())))
+        );
       } else {
-        // fallback: keep FREE
         setActivePlan("free");
         setIsActive(true);
+        setExpiresAt(null);
       }
     })();
 
@@ -159,30 +177,31 @@ export default function SubscriptionPageClient() {
 
     try {
       if (plan !== "free") {
-        setMsg("Paid plans payment integration is not connected yet. Activate FREE for now.");
+        setMsg(
+          "Paid subscription checkout is not connected yet. Please contact admin to activate this vendor plan."
+        );
         setSaving(false);
         return;
       }
 
-      // Insert a row (MVP). View will pick latest.
-      // If RLS blocks or table missing, we still allow user to continue.
-      const { error } = await supabase.from("vendor_subscriptions").insert({
-        user_id: user.id,
-        plan_key: "free",
-        status: "active",
-        source,
-        listing_id: listingIdMissing ? null : listingId,
-      });
+      const { error } = await supabase
+        .from("business_profiles")
+        .update({
+          subscription_plan: "free",
+          subscription_status: "free",
+          subscription_expires_at: null,
+        })
+        .eq("user_id", user.id);
 
       if (error) {
-        console.warn("vendor_subscriptions insert error (MVP continue):", error.message);
+        console.warn("business_profiles subscription update error:", error.message);
       }
 
       setActivePlan("free");
       setIsActive(true);
+      setExpiresAt(null);
       setMsg("✅ FREE plan is active. Continuing…");
 
-      // redirect back to intended page
       router.replace(returnTo);
     } catch (e: any) {
       setErr(e?.message || "Failed to activate plan.");
@@ -262,39 +281,78 @@ export default function SubscriptionPageClient() {
                 </div>
               ) : null}
               <div className="pill">
-                <b>Active plan:</b> {activePlan.toUpperCase()} {isActive ? "✅" : ""}
+                <b>Current plan:</b>{" "}
+                {activePlan.replaceAll("_", " ").toUpperCase()}{" "}
+                {isActive ? "✅" : "⚠️"}
               </div>
+              {expiresAt ? (
+                <div className="pill">
+                  <b>Expiry:</b> {new Date(expiresAt).toLocaleDateString()}
+                </div>
+              ) : null}
             </div>
 
             <div className="grid">
               <PlanCard
                 title="FREE"
                 price="₹0 / month"
-                bullets={["Create drafts", "Submit for review", "Basic visibility"]}
+                bullets={[
+                  "Basic listing access",
+                  "Standard visibility",
+                  "Best for trial and district-free onboarding",
+                ]}
                 active={activePlan === "free" && isActive}
-                cta={saving ? "Please wait…" : activePlan === "free" && isActive ? "Active" : "Activate FREE"}
+                cta={
+                  saving
+                    ? "Please wait…"
+                    : activePlan === "free" && isActive
+                    ? "Active"
+                    : "Activate FREE"
+                }
                 disabled={saving || (activePlan === "free" && isActive)}
                 onClick={() => activatePlan("free")}
               />
 
               <PlanCard
-                title="PRO"
-                price="Coming soon"
-                bullets={["Higher visibility", "Priority approval", "Featured badge (limited)"]}
-                active={activePlan === "pro" && isActive}
-                cta="Coming soon"
-                disabled
-                onClick={() => {}}
+                title="BASIC VENDOR"
+                price="Subscription plan"
+                bullets={[
+                  "Priority level 5",
+                  "Better lead visibility than free vendors",
+                  "Suitable for small local sellers",
+                ]}
+                active={activePlan === "basic_vendor" && isActive}
+                cta="Contact admin"
+                disabled={saving}
+                onClick={() => activatePlan("basic_vendor")}
               />
 
               <PlanCard
-                title="BUSINESS"
-                price="Coming soon"
-                bullets={["Multi-user team", "Top placement", "Dedicated support"]}
-                active={activePlan === "business" && isActive}
-                cta="Coming soon"
-                disabled
-                onClick={() => {}}
+                title="⭐ PREMIUM VENDOR"
+                price="Subscription plan"
+                bullets={[
+                  "Priority level 10",
+                  "Premium Vendor badge in Price Today",
+                  "Higher chance of buyer chat routing",
+                ]}
+                active={activePlan === "premium_vendor" && isActive}
+                cta="Contact admin"
+                disabled={saving}
+                onClick={() => activatePlan("premium_vendor")}
+              />
+
+              <PlanCard
+                title="🔥 HUB VENDOR"
+                price="Subscription plan"
+                bullets={[
+                  "Priority level 20",
+                  "Highest visibility across categories",
+                  "Best for large suppliers and multi-category vendors",
+                ]}
+                active={activePlan === "hub_vendor" && isActive}
+                cta="Contact admin"
+                disabled={saving}
+                onClick={() => activatePlan("hub_vendor")}
               />
             </div>
 

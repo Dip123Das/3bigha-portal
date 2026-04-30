@@ -6,6 +6,7 @@ import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
 type UserState = "checking" | "allowed" | "blocked";
 type CategoryKey = "Materials" | "Services" | "Rentals" | "Properties";
+type BoostPlanKey = "basic" | "premium" | "super";
 
 type MyPriceRow = {
   id: string;
@@ -22,6 +23,7 @@ type MyPriceRow = {
   offer_start: string | null;
   offer_end: string | null;
   source_type: string | null;
+  boost_priority: number | null;
   created_at: string | null;
 };
 
@@ -63,6 +65,30 @@ const unitSuggestions: Record<CategoryKey, string[]> = {
   Properties: ["katha", "sq.ft.", "decimal", "acre", "bigha"],
 };
 
+const boostPlans: Record<
+  BoostPlanKey,
+  { label: string; priority: number; price: number; duration: string }
+> = {
+  basic: {
+    label: "Basic Vendor",
+    priority: 5,
+    price: 99,
+    duration: "1 day",
+  },
+  premium: {
+    label: "Premium Vendor",
+    priority: 10,
+    price: 299,
+    duration: "1 day",
+  },
+  super: {
+    label: "Hub Vendor",
+    priority: 20,
+    price: 999,
+    duration: "3 days",
+  },
+};
+
 const gradeSuggestions: Record<CategoryKey, string[]> = {
   Materials: [
     "OPC 53",
@@ -92,6 +118,7 @@ const emptyForm = {
   offer_start: "",
   offer_end: "",
   source_type: "vendor",
+  request_boost: false,
 };
 
 function formatDate(value: string | null) {
@@ -129,6 +156,7 @@ export default function AddPricePage() {
   const [loading, setLoading] = useState(false);
   const [listLoading, setListLoading] = useState(false);
   const [msg, setMsg] = useState("");
+  const [boostPlan, setBoostPlan] = useState<BoostPlanKey>("premium");
 
   const currentItems = useMemo(() => {
     return itemOptions[form.category] || [];
@@ -148,7 +176,7 @@ export default function AddPricePage() {
     const { data, error } = await supabase
       .from("material_price_updates")
       .select(
-        "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,offer_start,offer_end,source_type,created_at"
+        "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,offer_start,offer_end,source_type,boost_priority,created_at"
       )
       .eq("created_by", nextUserId)
       .order("created_at", { ascending: false })
@@ -264,6 +292,7 @@ export default function AddPricePage() {
       offer_start: normalizeDateForInput(price.offer_start),
       offer_end: normalizeDateForInput(price.offer_end),
       source_type: price.source_type || "vendor",
+      request_boost: Number(price.boost_priority || 0) > 0,
     });
 
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -339,6 +368,7 @@ export default function AddPricePage() {
       offer_end: form.offer_end || null,
       source_type: form.source_type,
       created_by: userId,
+      boost_priority: form.request_boost ? boostPlans[boostPlan].priority : 0,
     };
 
     const { data: sessionData } = await supabase.auth.getSession();
@@ -350,6 +380,7 @@ export default function AddPricePage() {
       setLoading(false);
       return;
     }
+
 
     const res = await fetch("/api/vendor/price-updates", {
       method: "POST",
@@ -584,6 +615,61 @@ export default function AddPricePage() {
               <option value="distributor">Distributor</option>
             </select>
 
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <label className="flex cursor-pointer items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={form.request_boost}
+                  onChange={(e) =>
+                    setForm({ ...form, request_boost: e.target.checked })
+                  }
+                  className="mt-1"
+                />
+                <span>
+                  <span className="block text-sm font-black text-amber-800">
+                    Request Subscription Priority
+                  </span>
+                  <span className="mt-1 block text-xs font-bold text-amber-700">
+                    No sales commission will be taken by 3bigha. This priority
+                    is a subscription/admin-approved visibility benefit. Buyer
+                    payment and order settlement will remain directly between
+                    buyer and vendor.
+                  </span>
+                </span>
+              </label>
+
+              {form.request_boost ? (
+                <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                  {(Object.keys(boostPlans) as BoostPlanKey[]).map((key) => {
+                    const plan = boostPlans[key];
+
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setBoostPlan(key)}
+                        className={`rounded-2xl border p-3 text-left ${
+                          boostPlan === key
+                            ? "border-amber-500 bg-white"
+                            : "border-amber-100 bg-amber-100/40"
+                        }`}
+                      >
+                        <span className="block text-sm font-black text-slate-950">
+                          {plan.label}
+                        </span>
+                        <span className="mt-1 block text-xs font-bold text-slate-600">
+                          ₹{plan.price} · {plan.duration}
+                        </span>
+                        <span className="mt-1 block text-xs font-black text-amber-700">
+                          Priority {plan.priority}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+
             <div className="grid gap-3 sm:grid-cols-2">
               <button
                 type="submit"
@@ -646,6 +732,15 @@ export default function AddPricePage() {
                     <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-700">
                       {price.trend || "Stable"}
                     </span>
+                    {Number(price.boost_priority || 0) >= 10 ? (
+                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">
+                        ⭐ Premium Vendor
+                      </span>
+                    ) : Number(price.boost_priority || 0) > 0 ? (
+                      <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">
+                        Priority Requested
+                      </span>
+                    ) : null}
                   </div>
 
                   <div className="mt-2 text-sm font-bold text-slate-700">

@@ -32,6 +32,9 @@ type PriceRow = {
   verified?: boolean;
   createdAt?: string | null;
   userId?: string | null;
+  subscriptionPlan?: string | null;
+  subscriptionStatus?: string | null;
+  subscriptionExpiresAt?: string | null;
 };
 
 type AggregatedPriceRow = PriceRow & {
@@ -372,6 +375,25 @@ function aggregatePriceRows(rows: PriceRow[]): AggregatedPriceRow[] {
       changePercent,
       trend: autoTrend,
       verified: groupRows.some((row) => row.verified),
+      subscriptionPlan:
+        groupRows.find((row) => row.subscriptionPlan === "hub_vendor")
+          ?.subscriptionPlan ||
+        groupRows.find((row) => row.subscriptionPlan === "premium_vendor")
+          ?.subscriptionPlan ||
+        groupRows.find((row) => row.subscriptionPlan === "basic_vendor")
+          ?.subscriptionPlan ||
+        latest.subscriptionPlan ||
+        null,
+      subscriptionStatus:
+        groupRows.find((row) => row.subscriptionStatus === "active")
+          ?.subscriptionStatus ||
+        latest.subscriptionStatus ||
+        null,
+      subscriptionExpiresAt:
+        groupRows.find((row) => row.subscriptionStatus === "active")
+          ?.subscriptionExpiresAt ||
+        latest.subscriptionExpiresAt ||
+        null,
     };
   });
 }
@@ -466,6 +488,48 @@ function TrustBadge({
       🛡️ {trust.label} ({trust.score}%)
     </span>
   );
+}
+
+function SubscriptionBadge({ row }: { row: PriceRow }) {
+  const plan = String(row.subscriptionPlan || "free");
+  const status = String(row.subscriptionStatus || "free");
+
+  const expiresAt = row.subscriptionExpiresAt
+    ? new Date(row.subscriptionExpiresAt).getTime()
+    : 0;
+
+  const active =
+    status === "active" &&
+    (!row.subscriptionExpiresAt ||
+      (Number.isFinite(expiresAt) && expiresAt > Date.now()));
+
+  if (!active) return null;
+
+  if (plan === "hub_vendor") {
+    return (
+      <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-black text-purple-800">
+        🔥 Hub Vendor
+      </span>
+    );
+  }
+
+  if (plan === "premium_vendor") {
+    return (
+      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">
+        ⭐ Premium Vendor
+      </span>
+    );
+  }
+
+  if (plan === "basic_vendor") {
+    return (
+      <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-800">
+        Basic Vendor
+      </span>
+    );
+  }
+
+  return null;
 }
 
 function TrendBadge({
@@ -779,7 +843,7 @@ if (userData.user) {
         supabase
           .from("material_price_updates")
           .select(
-            "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,offer_start,offer_end,source_type,created_at,verified,user_id"
+            "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,offer_start,offer_end,source_type,created_at,verified,user_id,business_profiles!material_price_updates_created_by_fkey(subscription_plan,subscription_status,subscription_expires_at)"
           )
           .eq("verified", true)
           .order("created_at", { ascending: false })
@@ -882,10 +946,24 @@ if (userData.user) {
           offerPeriod: formatOfferPeriod(row),
           sourceType: String(row.source_type || "Vendor").trim(),
 
-          // 🔥 TRUST INPUTS (NEW)
+          // 🔥 TRUST INPUTS
           verified: row.verified ?? false,
           createdAt: row.created_at ?? null,
           userId: row.user_id ?? null,
+
+          // 🔥 SUBSCRIPTION VISIBILITY
+          subscriptionPlan:
+            row.business_profiles?.subscription_plan ||
+            row.business_profiles?.[0]?.subscription_plan ||
+            null,
+          subscriptionStatus:
+            row.business_profiles?.subscription_status ||
+            row.business_profiles?.[0]?.subscription_status ||
+            null,
+          subscriptionExpiresAt:
+            row.business_profiles?.subscription_expires_at ||
+            row.business_profiles?.[0]?.subscription_expires_at ||
+            null,
         }));
       }
 
@@ -1535,6 +1613,24 @@ if (userData.user) {
                               </span>
                             )}
 
+                            {row.vendorCount >= 5 && (
+                              <span className="rounded-full bg-yellow-100 px-2 py-1 text-yellow-700">
+                                🏆 Top Vendor Zone
+                              </span>
+                            )}
+
+                            {row.confidence >= 80 && (
+                              <span className="rounded-full bg-indigo-100 px-2 py-1 text-indigo-700">
+                                🛡️ High Confidence Market
+                              </span>
+                            )}
+
+                            {(row as any).boost_priority > 0 && (
+                              <span className="rounded-full bg-pink-100 px-2 py-1 text-pink-700">
+                                ⭐ Premium Vendor
+                              </span>
+                            )}
+
                             <span className="text-purple-700">
                               {urgency}
                             </span>
@@ -1542,13 +1638,39 @@ if (userData.user) {
 
                           <div className="mt-3">
                             <button
-                              onClick={() => {
-                                const query = encodeURIComponent(
-                                  row.item + " " + row.location
-                                );
-                                window.location.href = `/search?q=${query}&intent=buy`;
-                              }}
                               className="w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-black text-white transition hover:bg-blue-700"
+                              onClick={async () => {
+                                try {
+                                  const message = `Hi, I am interested in ${row.item} price ₹${row.priceMin}-${row.priceMax} in ${row.location}. Please share best offer.`;
+
+                                  const res = await fetch("/api/conversations/ensure", {
+                                    method: "POST",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify({
+                                      context_type: "price_lead",
+                                      item: row.item,
+                                      location: row.location,
+                                      price_min: row.priceMin,
+                                      price_max: row.priceMax,
+                                      unit: row.unit,
+                                      message,
+                                      routing: "best_verified_vendor",
+                                    }),
+                                  });
+
+                                  const json = await res.json();
+
+                                  if (json?.conversationId) {
+                                    window.location.href = `/dashboard/thread/${json.conversationId}`;
+                                  } else {
+                                    alert(json?.error || "No verified vendor found for this price lead yet.");
+                                  }
+                                } catch (e) {
+                                  alert("Something went wrong.");
+                                }
+                              }}
                             >
                               {ctaText}
                             </button>
@@ -1569,6 +1691,7 @@ if (userData.user) {
                   <div className="mt-3 flex flex-wrap gap-2">
                     <TrendBadge trend={row.trend} changePercent={row.changePercent} />
                     <TrustBadge row={row} vendorCount={row.vendorCount} />
+                    <SubscriptionBadge row={row} />
                   </div>
 
                   {row.offer ? (

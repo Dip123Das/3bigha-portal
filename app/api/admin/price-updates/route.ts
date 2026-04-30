@@ -64,7 +64,7 @@ export async function GET(req: Request) {
     const { data, error } = await supabase
       .from("material_price_updates")
       .select(
-        "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,source_type,created_by,verified,created_at"
+        "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,source_type,created_by,verified,boost_priority,created_at"
       )
       .or("verified.eq.false,verified.is.null")
       .order("created_at", { ascending: false })
@@ -114,6 +114,21 @@ export async function PATCH(req: Request) {
           verified: true,
           verified_by: user.id,
           verified_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+
+      return NextResponse.json({ ok: true });
+    }
+
+        if (action === "boost") {
+      const { error } = await supabase
+        .from("material_price_updates")
+        .update({
+          boost_priority: 10,
         })
         .eq("id", id);
 

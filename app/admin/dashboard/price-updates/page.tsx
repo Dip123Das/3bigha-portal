@@ -19,6 +19,7 @@ type PriceUpdateRow = {
   source_type: string | null;
   created_by: string | null;
   verified: boolean | null;
+  boost_priority: number | null;
   created_at: string | null;
 };
 
@@ -94,10 +95,12 @@ export default function AdminPriceUpdatesPage() {
     }
   }
 
-  async function act(id: string, action: "verify" | "reject") {
+  async function act(id: string, action: "verify" | "reject" | "boost") {
     const confirmText =
       action === "verify"
         ? "Verify this price update?"
+        : action === "boost"
+        ? "Approve paid boost for this vendor price?"
         : "Reject and delete this price update?";
 
     if (!window.confirm(confirmText)) return;
@@ -149,8 +152,17 @@ export default function AdminPriceUpdatesPage() {
         return;
       }
 
-      setRows((prev) => prev.filter((row) => row.id !== id));
-      setMsg(action === "verify" ? "✅ Price verified." : "✅ Price rejected.");
+      if (action === "boost") {
+        setRows((prev) =>
+          prev.map((row) =>
+            row.id === id ? { ...row, boost_priority: 10 } : row
+          )
+        );
+        setMsg("✅ Paid boost approved.");
+      } else {
+        setRows((prev) => prev.filter((row) => row.id !== id));
+        setMsg(action === "verify" ? "✅ Price verified." : "✅ Price rejected.");
+      }
     } catch (e: any) {
       setMsg(e?.message || "Action failed.");
     } finally {
@@ -301,6 +313,16 @@ export default function AdminPriceUpdatesPage() {
                         {row.trend || "Stable"}
                       </div>
 
+                      {Number(row.boost_priority || 0) >= 10 ? (
+                        <div className="mt-2 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">
+                          ⭐ Premium Vendor
+                        </div>
+                      ) : Number(row.boost_priority || 0) > 0 ? (
+                        <div className="mt-2 inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">
+                          Boost Requested
+                        </div>
+                      ) : null}
+
                       <div className="mt-3 text-2xl font-black text-emerald-700">
                         ₹{row.price_min ?? "—"} - ₹{row.price_max ?? "—"} /{" "}
                         {row.unit || "unit"}
@@ -331,6 +353,18 @@ export default function AdminPriceUpdatesPage() {
                       >
                         Verify
                       </button>
+
+                                            {Number(row.boost_priority || 0) > 0 &&
+                      Number(row.boost_priority || 0) < 10 ? (
+                        <button
+                          type="button"
+                          disabled={workingId === row.id}
+                          onClick={() => act(row.id, "boost")}
+                          className="rounded-2xl bg-amber-500 px-4 py-3 text-sm font-black text-white disabled:opacity-60"
+                        >
+                          Approve Boost
+                        </button>
+                      ) : null}
 
                       <button
                         type="button"
