@@ -15,6 +15,22 @@ import { ActionButton } from "@/components/ui/ActionButton";
 import { Grid } from "@/components/ui/Grid";
 import { EmptyState } from "@/components/ui/EmptyState";
 
+<Link
+  href="/dashboard/vendor/notifications"
+  style={{
+    background: "#111",
+    color: "white",
+    padding: "8px 12px",
+    borderRadius: 8,
+    fontWeight: 900,
+    marginLeft: 10,
+    display: "inline-block",
+    textDecoration: "none",
+  }}
+>
+  🔔 Notifications
+</Link>
+
 type CompletenessRow = {
   user_id?: string;
   business_profile_complete?: boolean;
@@ -135,6 +151,15 @@ export default function VendorDashboardPage() {
   const [enquiriesErr, setEnquiriesErr] = useState<string | null>(null);
   const [recentEnquiries, setRecentEnquiries] = useState<EnquiryRow[]>([]);
 
+  // 🔥 RFQ ANALYTICS
+  const [leadStats, setLeadStats] = useState({
+    leadsLast7Days: 0,
+    leadsLast30Days: 0,
+    newLeadCount: 0,
+    viewedLeadCount: 0,
+    estimatedPremiumLeads: 0,
+  });
+
   async function load() {
     setLoading(true);
     setErr(null);
@@ -200,47 +225,158 @@ export default function VendorDashboardPage() {
     setEnquiriesLoading(true);
     setEnquiriesErr(null);
 
-    const { data: enq, error: enqErr } = await supabase
-      .from("enquiries")
-      .select(
-        "id,buyer_user_id,vendor_user_id,subject_type,subject_id,buyer_name,buyer_phone,buyer_email,message,status,created_at"
-      )
-      .eq("vendor_user_id", session.user.id)
-      .order("created_at", { ascending: false })
-      .limit(5);
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
 
-    if (enqErr) {
-      setEnquiriesErr(enqErr.message);
+    const rfqRes = await fetch("/api/vendor/rfqs?limit=100", {
+      headers: {
+        Authorization: `Bearer ${currentSession?.access_token}`,
+      },
+    });
+
+    const rfqJson = await rfqRes.json();
+
+    if (!rfqRes.ok) {
+      setEnquiriesErr(rfqJson?.error || "Failed to load RFQs");
       setRecentEnquiries([]);
     } else {
-      setRecentEnquiries((enq ?? []) as EnquiryRow[]);
+      const rows = rfqJson.rows || [];
+      setRecentEnquiries(rows.slice(0, 5));
+      setLeadStats(rfqJson.analytics || {});
     }
 
     setEnquiriesLoading(false);
     setLoading(false);
-  }
+    }
 
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    useEffect(() => {
+      load();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      setInterval(() => {
+        window.location.reload();
+      }, 60000); // refresh every 60 seconds to keep lead stats up to date
+    }, []);
 
-  if (loading) {
-    return (
-      <main>
-        <Container>
-          <SectionHeader title={dashboardTitle} subtitle="Loading..." />
-          <div style={{ opacity: 0.8 }}>Preparing your vendor workspace…</div>
-        </Container>
-      </main>
-    );
-  }
+    if (loading) {
+      return (
+        <main>
+          <Container>
+            <SectionHeader title={dashboardTitle} subtitle="Loading..." />
+            <div style={{ opacity: 0.8 }}>Preparing your vendor workspace…</div>
+          </Container>
+        </main>
+      );
+    }
 
-  if (err) {
-    return (
-      <main>
-        <Container>
-          <SectionHeader title={dashboardTitle} subtitle="" />
+    if (err) {
+      return (
+        <main>
+          <Container>
+          <>
+            {leadStats.newLeadCount > 0 && (
+              <div
+                style={{
+                  background: "#ffe0e0",
+                  padding: 12,
+                  borderRadius: 10,
+                  marginBottom: 15,
+                  fontWeight: 900,
+                }}
+              >
+                🔥 You have {leadStats.newLeadCount} new buyer enquiries waiting!
+                <div style={{ marginTop: 6 }}>
+                  <button
+                    onClick={() => router.push("/dashboard/vendor/enquiries")}
+                    style={{
+                      background: "red",
+                      color: "white",
+                      border: "none",
+                      padding: "6px 10px",
+                      borderRadius: 6,
+                      fontWeight: 900,
+                      cursor: "pointer",
+                    }}
+                  >
+                    View Now
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <SectionHeader title={dashboardTitle} subtitle="" />
+          </>
+          <div style={{ marginBottom: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <Card>
+              <CardBody>
+                <div style={{ fontSize: 12, opacity: 0.7 }}>Leads (7 days)</div>
+                <div style={{ fontSize: 24, fontWeight: 900 }}>
+                  {leadStats.leadsLast7Days}
+                </div>
+              </CardBody>
+            </Card>
+
+            <Card>
+              <CardBody>
+                <div style={{ fontSize: 12, opacity: 0.7 }}>Leads (30 days)</div>
+                <div style={{ fontSize: 24, fontWeight: 900 }}>
+                  {leadStats.leadsLast30Days}
+                </div>
+              </CardBody>
+            </Card>
+
+            <Card>
+              <CardBody>
+                <div style={{ fontSize: 12, opacity: 0.7 }}>New Leads</div>
+                <div style={{ fontSize: 24, fontWeight: 900 }}>
+                  {leadStats.newLeadCount}
+
+                  {leadStats.newLeadCount > 0 && (
+                    <div style={{ marginTop: 6, color: "red", fontWeight: 900 }}>
+                      🔔 You have {leadStats.newLeadCount} new RFQ enquiries!
+                    </div>
+                  )}
+                </div>
+              </CardBody>
+            </Card>
+
+            <Card>
+              <CardBody>
+                <div style={{ fontSize: 12, opacity: 0.7 }}>Viewed Leads</div>
+                <div style={{ fontSize: 24, fontWeight: 900 }}>
+                  {leadStats.viewedLeadCount}
+                </div>
+              </CardBody>
+            </Card>
+          </div>
+          <div
+            style={{
+              background: "#fff3cd",
+              border: "1px solid #ffeeba",
+              padding: 12,
+              borderRadius: 10,
+              fontWeight: 800,
+              marginBottom: 20,
+            }}
+          >
+            🚀 Premium vendors get up to{" "}
+            <b>{leadStats.estimatedPremiumLeads}</b> leads monthly.  
+            You are currently getting <b>{leadStats.leadsLast30Days}</b>.
+            <div style={{ marginTop: 8 }}>
+              <button
+                onClick={() => router.push("/dashboard/subscription")}
+                style={{
+                  background: "#f59e0b",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                Upgrade to Premium
+              </button>
+            </div>
+          </div>
           <EmptyState message="Something went wrong while loading your vendor dashboard." />
           <div style={{ marginTop: 12, color: "crimson", fontWeight: 800 }}>{err}</div>
           <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>

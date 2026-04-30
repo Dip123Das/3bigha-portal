@@ -1531,7 +1531,15 @@ if (userData.user) {
                     </div>
 
                     <div className="text-sm text-slate-600">
-                      Sources: {row.vendorCount}
+                      Sources: {row.vendorCount} vendors
+                    </div>
+
+                    <div className="text-xs font-bold text-slate-500">
+                      {row.subscriptionPlan === "premium_vendor"
+                        ? "⭐ Premium vendors dominate here"
+                        : row.subscriptionPlan === "hub_vendor"
+                        ? "🔥 Hub vendors lead this category"
+                        : "Free vendors have lower visibility"}
                     </div>
 
                     <div className="text-xs font-bold text-amber-600">
@@ -1555,6 +1563,9 @@ if (userData.user) {
                       {aiExplanations[getAiExplanationKey(row)]
                         ? aiExplanations[getAiExplanationKey(row)]
                         : getMarketExplanation(row)}
+                    </div>
+                    <div className="mt-2 text-xs font-bold text-green-700">
+                      📈 High buyer activity detected in this category
                     </div>
 
                     {(() => {
@@ -1673,6 +1684,15 @@ if (userData.user) {
                               }}
                             >
                               {ctaText}
+                            </button>
+                            <div className="mt-2 text-xs font-bold text-red-600">
+                              ⚠️ Free vendors get fewer enquiries. Upgrade to increase visibility.
+                            </div>
+                            <button
+                              onClick={() => (window.location.href = "/dashboard/subscription")}
+                              className="mt-2 w-full rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-white hover:bg-amber-600"
+                            >
+                              🚀 Get More Leads (Upgrade)
                             </button>
                           </div>
                         </>

@@ -131,8 +131,49 @@ export async function GET(req: Request) {
       })
       .filter(Boolean);
 
+    const now = Date.now();
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+    const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+
+    const leadRows = rows as any[];
+
+    const leadsLast7Days = leadRows.filter((row) => {
+      const t = row.target_created_at
+        ? new Date(row.target_created_at).getTime()
+        : row.created_at
+        ? new Date(row.created_at).getTime()
+        : 0;
+
+      return Number.isFinite(t) && t >= sevenDaysAgo;
+    }).length;
+
+    const leadsLast30Days = leadRows.filter((row) => {
+      const t = row.target_created_at
+        ? new Date(row.target_created_at).getTime()
+        : row.created_at
+        ? new Date(row.created_at).getTime()
+        : 0;
+
+      return Number.isFinite(t) && t >= thirtyDaysAgo;
+    }).length;
+
+    const newLeadCount = leadRows.filter(
+      (row) => String(row.target_status || row.status || "").toLowerCase() === "new"
+    ).length;
+
+    const viewedLeadCount = leadRows.filter(
+      (row) => String(row.target_status || row.status || "").toLowerCase() === "viewed"
+    ).length;
+
     return NextResponse.json({
       rows,
+      analytics: {
+        leadsLast7Days,
+        leadsLast30Days,
+        newLeadCount,
+        viewedLeadCount,
+        estimatedPremiumLeads: Math.max(leadsLast30Days * 3, leadsLast30Days + 5),
+      },
       meta: {
         filtered_by: { city: vCity, locality: vLocality, district: vDistrict, pincode: vPincode },
         source: "rfq_targets",

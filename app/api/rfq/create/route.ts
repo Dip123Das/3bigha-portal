@@ -29,6 +29,55 @@ function jsonError(message: string, status = 400) {
   return NextResponse.json({ ok: false, error: message }, { status });
 }
 
+function normalizeIndianPhone(phone: string) {
+  const digits = String(phone || "").replace(/\D/g, "");
+
+  if (digits.length === 10) return `91${digits}`;
+  if (digits.length === 12 && digits.startsWith("91")) return digits;
+
+  return "";
+}
+
+async function sendGupshupWhatsApp({
+  to,
+  text,
+}: {
+  to: string;
+  text: string;
+}) {
+  const apiKey = process.env.GUPSHUP_API_KEY;
+  const sourcePhone = process.env.GUPSHUP_SOURCE_PHONE;
+  const appName = process.env.GUPSHUP_APP_NAME;
+
+  if (!apiKey || !sourcePhone || !appName || !to) {
+    return { ok: false, skipped: true, error: "Gupshup env vars or phone missing." };
+  }
+
+  const form = new URLSearchParams();
+  form.set("channel", "whatsapp");
+  form.set("source", sourcePhone);
+  form.set("destination", to);
+  form.set("src.name", appName);
+  form.set("message", JSON.stringify({ type: "text", text }));
+
+  const res = await fetch("https://api.gupshup.io/sm/api/v1/msg", {
+    method: "POST",
+    headers: {
+      apikey: apiKey,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: form.toString(),
+  });
+
+  const json = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    return { ok: false, skipped: false, error: json?.message || "Gupshup send failed." };
+  }
+
+  return { ok: true, skipped: false, data: json };
+}
+
 function normalizeModule(x: any): RfqModule | null {
   const m = String(x ?? "").trim().toLowerCase();
   if (m === "materials") return "materials";
@@ -226,19 +275,23 @@ export async function POST(req: Request) {
       if (ors.length > 0) {
         const { data: vendors, error: vErr } = await supabaseAdmin
           .from("business_profiles")
-          .select("user_id")
+          .select("user_id,phone")
           .not("user_id", "is", null)
           .or(ors.join(","))
           .limit(200);
 
         if (!vErr && vendors && vendors.length > 0) {
           const targetRows = vendors
-            .map((v: any) => String(v.user_id))
+            .map((v: any) => ({
+              vendor_user_id: String(v.user_id),
+              vendor_phone: String(v.phone || "").trim(),
+            }))
             // do not target the requester themselves (if logged in)
-            .filter((uid) => !isAuthed || uid !== user!.id)
-            .map((vendor_user_id) => ({
+            .filter((v) => !isAuthed || v.vendor_user_id !== user!.id)
+            .map((v) => ({
               rfq_id: rfqId,
-              vendor_user_id,
+              vendor_user_id: v.vendor_user_id,
+              vendor_phone: v.vendor_phone,
             }));
 
           if (targetRows.length > 0) {
@@ -254,6 +307,59 @@ export async function POST(req: Request) {
               // Don't fail the RFQ creation if targeting fails (optional).
               // If you want HARD fail, return jsonError(tErr.message, 500);
               console.warn("rfq_targets upsert failed:", tErr.message);
+            } else {
+              const rfqLink = `https://www.3bigha.com/dashboard/vendor/rfqs/${rfqId}`;
+
+              const whatsappText = encodeURIComponent(
+                `📢 New RFQ Received!\n\n${title}\n📍 ${locality}, ${city}\n\n👉 Open: ${rfqLink}`
+              );
+
+              const notificationRows = targetRows.map((target: any) => ({
+                vendor_user_id: target.vendor_user_id,
+                vendor_phone: target.vendor_phone || null,
+                rfq_id: rfqId,
+                type: "new_rfq",
+                title: "New RFQ received",
+                message: `${title} enquiry received from ${locality}, ${city}`,
+                whatsapp_url: `https://wa.me/?text=${whatsappText}`,
+                channel: "in_app",
+                status: "pending",
+              }));
+
+              const { error: notifyErr } = await supabaseAdmin
+                .from("vendor_notifications")
+                .insert(notificationRows);
+
+              if (notifyErr) {
+                console.warn("vendor_notifications insert failed:", notifyErr.message);
+              }
+
+              await Promise.allSettled(
+                targetRows.map(async (target: any) => {
+                  const to = normalizeIndianPhone(target.vendor_phone || "");
+
+                  if (!to) return;
+
+                  const sendText = `📢 New RFQ Received!
+
+${title}
+📍 ${locality}, ${city}
+
+👉 Open: ${rfqLink}`;
+
+                  const result = await sendGupshupWhatsApp({
+                    to,
+                    text: sendText,
+                  });
+
+                  if (!result.ok && !result.skipped) {
+                    console.warn(
+                      "Gupshup WhatsApp send failed:",
+                      result.error
+                    );
+                  }
+                })
+              );
             }
           }
         }
