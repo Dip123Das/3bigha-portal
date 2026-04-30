@@ -76,11 +76,17 @@ export async function GET(req: Request) {
   try {
     const cronSecret = process.env.CRON_SECRET;
     const authHeader = req.headers.get("authorization") || "";
+    const vercelCron = req.headers.get("x-vercel-cron");
     const url = new URL(req.url);
     const queryKey = url.searchParams.get("key") || "";
     const token = authHeader.replace("Bearer ", "").trim();
 
-    if (cronSecret && token !== cronSecret && queryKey !== cronSecret) {
+    if (
+      cronSecret &&
+      token !== cronSecret &&
+      queryKey !== cronSecret &&
+      !vercelCron
+    ) {
       return NextResponse.json(
         { ok: false, error: "Unauthorized cron request." },
         { status: 401 }
@@ -102,7 +108,10 @@ export async function GET(req: Request) {
       .limit(25);
 
     if (error) {
-      return NextResponse.json({ ok: false, error: error.message }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: error.message },
+        { status: 400 }
+      );
     }
 
     const siteUrl =
