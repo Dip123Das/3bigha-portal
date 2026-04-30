@@ -42,6 +42,12 @@ function buildSelfUrl(params: { source: string; listingId: string | null; return
 }
 
 export default function SubscriptionPageClient() {
+  useEffect(() => {
+  const script = document.createElement("script");
+  script.src = "https://checkout.razorpay.com/v1/checkout.js";
+  script.async = true;
+  document.body.appendChild(script);
+}, []);
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const router = useRouter();
   const sp = useSearchParams();
@@ -167,6 +173,64 @@ export default function SubscriptionPageClient() {
       alive = false;
     };
   }, [supabase, user?.id]);
+
+  async function handlePayment(plan: string) {
+  try {
+    const res = await fetch("/api/payment/create-order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ plan }),
+    });
+
+    const order = await res.json();
+
+    if (!order.id) {
+      alert("Order creation failed");
+      return;
+    }
+
+    const supabase = (await import("@/lib/supabaseBrowser")).getSupabaseBrowser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const options: any = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: order.currency,
+      name: "3Bigha",
+      description: "Subscription Payment",
+      order_id: order.id,
+      handler: async function (response: any) {
+        await fetch("/api/payment/verify", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...response,
+            plan,
+            user_id: user?.id,
+          }),
+        });
+
+        alert("Payment successful 🎉");
+        window.location.reload();
+      },
+      theme: {
+        color: "#f59e0b",
+      },
+    };
+
+    const rzp = new (window as any).Razorpay(options);
+    rzp.open();
+  } catch (e) {
+    console.error(e);
+    alert("Payment failed");
+  }
+}
 
   async function activatePlan(plan: PlanKey) {
     if (!user?.id) return;
@@ -315,44 +379,44 @@ export default function SubscriptionPageClient() {
 
               <PlanCard
                 title="BASIC VENDOR"
-                price="Subscription plan"
+                price="₹499 / month"
                 bullets={[
                   "Boost priority level 5",
                   "Better RFQ targeting than free vendors",
                   "Suitable for small local sellers",
                 ]}
                 active={activePlan === "basic_vendor" && isActive}
-                cta="Contact admin"
-                disabled={saving}
-                onClick={() => activatePlan("basic_vendor")}
+                cta={activePlan === "basic_vendor" && isActive ? "Active" : "Pay ₹499"}
+                disabled={saving || (activePlan === "basic_vendor" && isActive)}
+                onClick={() => handlePayment("basic_vendor")}
               />
 
               <PlanCard
                 title="⭐ PREMIUM VENDOR"
-                price="Subscription plan"
+                price="₹999 / month"
                 bullets={[
                   "Boost priority level 10",
                   "Premium Vendor badge in Price Today",
                   "Higher chance of RFQ + buyer chat routing",
                 ]}
                 active={activePlan === "premium_vendor" && isActive}
-                cta="Contact admin"
-                disabled={saving}
-                onClick={() => activatePlan("premium_vendor")}
+                cta={activePlan === "premium_vendor" && isActive ? "Active" : "Pay ₹999"}
+                disabled={saving || (activePlan === "premium_vendor" && isActive)}
+                onClick={() => handlePayment("premium_vendor")}
               />
 
               <PlanCard
                 title="🔥 HUB VENDOR"
-                price="Subscription plan"
+                price="₹1999 / month"
                 bullets={[
                   "Boost priority level 20",
                   "Highest RFQ visibility across categories",
                   "Best for large suppliers and multi-category vendors",
                 ]}
                 active={activePlan === "hub_vendor" && isActive}
-                cta="Contact admin"
-                disabled={saving}
-                onClick={() => activatePlan("hub_vendor")}
+                cta={activePlan === "hub_vendor" && isActive ? "Active" : "Pay ₹1999"}
+                disabled={saving || (activePlan === "hub_vendor" && isActive)}
+                onClick={() => handlePayment("hub_vendor")}
               />
             </div>
 
