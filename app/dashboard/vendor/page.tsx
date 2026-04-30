@@ -160,6 +160,11 @@ export default function VendorDashboardPage() {
     estimatedPremiumLeads: 0,
   });
 
+  // ⭐ BOOST / SUBSCRIPTION VISIBILITY
+  const [vendorPlan, setVendorPlan] = useState("free");
+  const [vendorStatus, setVendorStatus] = useState("free");
+  const [vendorBoostPriority, setVendorBoostPriority] = useState(0);
+
   async function load() {
     setLoading(true);
     setErr(null);
@@ -221,6 +226,16 @@ export default function VendorDashboardPage() {
       setVendorPct(null);
       setVendorComplete(null);
     }
+
+    const { data: businessPlan } = await supabase
+      .from("business_profiles")
+      .select("subscription_plan,subscription_status,boost_priority")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+
+    setVendorPlan(String(businessPlan?.subscription_plan || "free"));
+    setVendorStatus(String(businessPlan?.subscription_status || "free"));
+    setVendorBoostPriority(Number(businessPlan?.boost_priority || 0));
 
     setEnquiriesLoading(true);
     setEnquiriesErr(null);
@@ -436,6 +451,62 @@ export default function VendorDashboardPage() {
           title={dashboardTitle}
           subtitle="Manage your listings, profile, and business actions from one place."
         />
+
+        <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 14,
+            padding: 14,
+            border:
+              vendorBoostPriority > 0
+                ? "1px solid #f59e0b"
+                : "1px solid #e5e7eb",
+            background:
+              vendorBoostPriority > 0
+                ? "#fffbeb"
+                : "#f8fafc",
+            fontWeight: 800,
+          }}
+        >
+          {vendorBoostPriority > 0 ? (
+            <>
+              ⭐ <b>Boost Active:</b> Your profile has priority level{" "}
+              {vendorBoostPriority}. You will receive RFQ targeting preference.
+            </>
+          ) : (
+            <>
+              ⚠️ <b>No Boost Active:</b> Free vendors get lower RFQ visibility.
+              Upgrade to Premium / Hub plan to get more buyer leads.
+            </>
+          )}
+
+          <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <Badge>
+              Plan: {vendorPlan.replace(/_/g, " ").toUpperCase()}
+            </Badge>
+            <Badge>
+              Status: {vendorStatus.toUpperCase()}
+            </Badge>
+            <Badge>
+              Boost: {vendorBoostPriority}
+            </Badge>
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/subscription")}
+              style={{
+                background: "#f59e0b",
+                color: "white",
+                border: "none",
+                padding: "6px 10px",
+                borderRadius: 8,
+                fontWeight: 900,
+                cursor: "pointer",
+              }}
+            >
+              Upgrade Visibility
+            </button>
+          </div>
+        </div>
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
           <ActionButton href="/dashboard" variant="secondary">

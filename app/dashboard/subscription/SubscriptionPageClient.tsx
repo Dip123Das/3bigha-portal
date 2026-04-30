@@ -317,8 +317,8 @@ export default function SubscriptionPageClient() {
                 title="BASIC VENDOR"
                 price="Subscription plan"
                 bullets={[
-                  "Priority level 5",
-                  "Better lead visibility than free vendors",
+                  "Boost priority level 5",
+                  "Better RFQ targeting than free vendors",
                   "Suitable for small local sellers",
                 ]}
                 active={activePlan === "basic_vendor" && isActive}
@@ -331,9 +331,9 @@ export default function SubscriptionPageClient() {
                 title="⭐ PREMIUM VENDOR"
                 price="Subscription plan"
                 bullets={[
-                  "Priority level 10",
+                  "Boost priority level 10",
                   "Premium Vendor badge in Price Today",
-                  "Higher chance of buyer chat routing",
+                  "Higher chance of RFQ + buyer chat routing",
                 ]}
                 active={activePlan === "premium_vendor" && isActive}
                 cta="Contact admin"
@@ -345,8 +345,8 @@ export default function SubscriptionPageClient() {
                 title="🔥 HUB VENDOR"
                 price="Subscription plan"
                 bullets={[
-                  "Priority level 20",
-                  "Highest visibility across categories",
+                  "Boost priority level 20",
+                  "Highest RFQ visibility across categories",
                   "Best for large suppliers and multi-category vendors",
                 ]}
                 active={activePlan === "hub_vendor" && isActive}
@@ -484,7 +484,7 @@ export default function SubscriptionPageClient() {
         .subPage .grid {
           margin-top: 14px;
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(4, 1fr);
           gap: 12px;
         }
         @media (max-width: 920px) {
