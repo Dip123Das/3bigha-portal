@@ -508,7 +508,24 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               © <span suppressHydrationWarning>{new Date().getFullYear()}</span>{" "}
               3Bigha.com
             </div>
-            <div>Built for scale • Plain CSS • Next.js App Router</div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: 12,
+                flexWrap: "wrap",
+                justifyContent: "center",
+                fontSize: 13,
+              }}
+            >
+              <Link href="/about">About Us</Link>
+              <Link href="/contact">Contact Us</Link>
+              <Link href="/privacy-policy">Privacy Policy</Link>
+              <Link href="/terms-and-conditions">Terms &amp; Conditions</Link>
+              <Link href="/refund-cancellation-policy">
+                Refund / Cancellation
+              </Link>
+            </div>
           </Container>
         </footer>
       </body>

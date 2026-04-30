@@ -99,6 +99,131 @@ export default function HomePage() {
     return useNearMe && locationText ? `${clean} ${locationText}` : clean;
   };
 
+  const buildAutoRFQParams = (raw: string) => {
+    const clean = raw.trim();
+    const text = clean.toLowerCase();
+
+    const quantityMatch = text.match(/\b(\d+)\s*(bags?|pcs?|pieces?|cft|sqft|tons?|kg|bricks?)?\b/);
+    const quantity = quantityMatch?.[1] || "";
+    const unit = quantityMatch?.[2] || "";
+
+    const itemWords = [
+      "cement",
+      "steel",
+      "sand",
+      "brick",
+      "bricks",
+      "rod",
+      "stone",
+      "chips",
+      "paint",
+      "tiles",
+      "pipe",
+      "wire",
+    ];
+
+    const item = itemWords.find((word) => text.includes(word)) || "";
+
+    const urgency =
+      text.includes("urgent") ||
+      text.includes("immediate") ||
+      text.includes("asap") ||
+      text.includes("fast")
+        ? "urgent"
+        : "normal";
+
+    const params = new URLSearchParams();
+    params.set("query", clean);
+
+    if (item) params.set("item", item);
+    if (quantity) params.set("quantity", quantity);
+    if (unit) params.set("unit", unit);
+    if (urgency) params.set("urgency", urgency);
+    if (locationText) params.set("location", locationText);
+
+    return params.toString();
+  };
+
+  const inferAICommand = (raw: string) => {
+    const text = raw.toLowerCase();
+
+    const has = (...words: string[]) =>
+      words.some((w) => text.includes(w));
+
+    const isUrgent = has("urgent", "immediate", "fast", "asap");
+    const hasQty = /\d+/.test(text);
+
+    // RFQ / requirement intent
+    if (
+      has(
+        "need",
+        "require",
+        "rfq",
+        "quotation",
+        "quote",
+        "supplier",
+        "vendor"
+      ) ||
+      hasQty
+    ) {
+      return {
+        module: "materials",
+        label: `RFQ Auto-fill${hasQty ? " → Qty detected" : ""}${
+          isUrgent ? " → Urgent" : ""
+        }`,
+        path: `/rfq/general/new?${buildAutoRFQParams(raw)}`,
+      };
+    }
+
+    // price intent
+    if (has("price", "rate", "cost", "cement", "steel", "sand", "brick")) {
+      return {
+        module: "materials",
+        label: "Price → Market rates",
+        path: `/price-today?q=${encodeURIComponent(raw.trim())}`,
+      };
+    }
+
+    // investment intent
+    if (has("invest", "investment", "roi", "return", "profit")) {
+      return {
+        module: "investment",
+        label: "Investment → Opportunities",
+        path: `/investment/opportunities?q=${encodeURIComponent(raw.trim())}`,
+      };
+    }
+
+    // rental intent
+    if (has("rent", "rental", "machine", "equipment", "hire")) {
+      return {
+        module: "rentals",
+        label: "Rental → Nearby options",
+        path: `/search?module=rentals&q=${encodeURIComponent(
+          getFinalQuery(raw)
+        )}`,
+      };
+    }
+
+    // service intent
+    if (has("service", "mason", "engineer", "contractor", "labour")) {
+      return {
+        module: "services",
+        label: "Service → Provider search",
+        path: `/search?module=services&q=${encodeURIComponent(
+          getFinalQuery(raw)
+        )}`,
+      };
+    }
+
+    return {
+      module: searchModule,
+      label: "Smart search → Results",
+      path: `/search?module=${searchModule}&q=${encodeURIComponent(
+        getFinalQuery(raw)
+      )}`,
+    };
+  };
+
   const saveRecentSearch = (raw: string) => {
     const clean = raw.trim();
     if (!clean) return;
@@ -114,15 +239,15 @@ export default function HomePage() {
   };
 
   const runHeroSearch = (raw = heroSearch) => {
-    const finalQuery = getFinalQuery(raw);
-    if (!finalQuery) return;
+    const clean = raw.trim();
+    if (!clean) return;
 
-    saveRecentSearch(raw);
+    const aiCommand = inferAICommand(clean);
+
+    saveRecentSearch(clean);
     setShowSuggestions(false);
 
-    router.push(
-      `/search?module=${searchModule}&q=${encodeURIComponent(finalQuery)}`
-    );
+    router.push(aiCommand.path);
   };
 
   useEffect(() => {
@@ -159,6 +284,18 @@ export default function HomePage() {
   const filteredSuggestions = suggestions
     .filter((s) => s.toLowerCase().includes(heroSearch.toLowerCase()))
     .slice(0, 5);
+
+  const aiCommandPreview = heroSearch.trim()
+    ? (() => {
+        const ai = inferAICommand(heroSearch);
+        const parsed = buildAutoRFQParams(heroSearch);
+
+        return {
+          ...ai,
+          parsed,
+        };
+      })()
+    : null;
 
   const renderHighlightedSuggestion = (s: string) => {
     const idx = s.toLowerCase().indexOf(heroSearch.toLowerCase());
@@ -212,10 +349,9 @@ export default function HomePage() {
             className="homeHeroInner"
             style={{
               display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(min(100%, 430px), 1fr))",
-              gap: 20,
-              padding: "20px",
+              gridTemplateColumns: "1fr",
+              gap: 12,
+              padding: "12px",
               alignItems: "stretch",
               position: "relative",
             }}
@@ -236,7 +372,7 @@ export default function HomePage() {
                   alt="3Bigha"
                   style={{
                     width: "100%",
-                    maxWidth: 420,
+                    maxWidth: 260,
                     height: "auto",
                     objectFit: "contain",
                     display: "block",
@@ -247,31 +383,31 @@ export default function HomePage() {
               <div
                 style={{
                   display: "inline-flex",
-                  alignItems: "start",
+                  alignItems: "center",
                   gap: 8,
-                  padding: "9px 14px",
+                  padding: "6px 10px",
                   borderRadius: 999,
-                  background: "rgba(255,255,255,0.20)",
+                  background: "rgba(34,197,94,0.20)",
                   border: "1px solid rgba(255,255,255,0.34)",
                   fontWeight: 900,
-                  fontSize: 12,
+                  fontSize: 11,
                   color: "#ffffff",
                   letterSpacing: "0.02em",
                   textShadow: "0 1px 6px rgba(0,0,0,0.2)",
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.15)",
                   maxWidth: "100%",
                   whiteSpace: "normal",
-                  lineHeight: 1.4,
+                  lineHeight: 1.3,
                 }}
               >
-                Trusted local marketplace for real estate & construction
+                AI workflow
               </div>
 
-              <div style={{ marginTop: 18, maxWidth: 760, width: "100%" }}>
+              <div style={{ marginTop: 10, maxWidth: 760, width: "100%" }}>
                 <h1
                   style={{
                     margin: 0,
-                    fontSize: "clamp(32px, 9vw, 64px)",
+                    fontSize: "clamp(22px, 5.2vw, 36px)",
                     lineHeight: 1.02,
                     fontWeight: 900,
                     color: "#ffffff",
@@ -284,42 +420,37 @@ export default function HomePage() {
 
                 <p
                   style={{
-                    marginTop: 14,
+                    marginTop: 8,
                     marginBottom: 0,
-                    fontSize: "clamp(16px, 4.6vw, 20px)",
-                    lineHeight: 1.6,
-                    fontWeight: 700,
+                    fontSize: "clamp(14px, 3.8vw, 17px)",
+                    lineHeight: 1.35,
+                    fontWeight: 800,
                     color: "rgba(255,255,255,0.98)",
                     maxWidth: 720,
                     textShadow: "0 1px 8px rgba(0,0,0,0.14)",
                   }}
                 >
-                  Built for your local area, anywhere in India — 3Bigha connects
-                  property, materials, services, rentals and trusted businesses,
-                  while unlocking powerful investment opportunities for local
-                  people to grow their earnings.
+                  Search, RFQ, price compare, chat and local opportunity workflow.
                 </p>
               </div>
 
               <div
                 style={{
-                  marginTop: 14,
+                  marginTop: 8,
                   color: "#ffffff",
-                  fontSize: "clamp(15px, 4.2vw, 17px)",
-                  lineHeight: 1.72,
-                  fontWeight: 500,
+                  fontSize: "clamp(13px, 3.5vw, 15px)",
+                  lineHeight: 1.35,
+                  fontWeight: 700,
                   maxWidth: 680,
                   textShadow: "0 1px 8px rgba(0,0,0,0.16)",
                 }}
               >
-                Search nearby opportunities, submit your requirement, compare
-                quotations, connect with verified businesses, and explore local
-                investment possibilities through one unified platform.
+                AI-assisted discovery for property, materials, services, rentals and investment.
               </div>
 
               <div
                 style={{
-                  marginTop: 18,
+                  marginTop: 10,
                   maxWidth: 760,
                   width: "100%",
                 }}
@@ -412,7 +543,7 @@ export default function HomePage() {
                         }
                       }}
                       onFocus={() => setShowSuggestions(true)}
-                      placeholder="Search property, materials, services, investment..."
+                      placeholder="Type your requirement... (e.g. 500 cement bags urgent)"
                       style={{
                         width: "100%",
                         padding: "12px 14px",
@@ -513,6 +644,28 @@ export default function HomePage() {
                     ) : null}
                   </div>
 
+                  {aiCommandPreview ? (
+                    <div
+                      style={{
+                        flex: "1 1 100%",
+                        padding: "8px 10px",
+                        borderRadius: 10,
+                        background: "rgba(34,197,94,0.18)",
+                        border: "1px solid rgba(34,197,94,0.35)",
+                        color: "#dcfce7",
+                        fontSize: 13,
+                        fontWeight: 800,
+                      }}
+                    >
+                      🤖 {aiCommandPreview.label}
+                      {heroSearch.match(/\d+/) ? " • Qty detected" : ""}
+                      {heroSearch.toLowerCase().includes("cement") ? " • Cement" : ""}
+                      {heroSearch.toLowerCase().includes("steel") ? " • Steel" : ""}
+                      {heroSearch.toLowerCase().includes("sand") ? " • Sand" : ""}
+                      → Enter to proceed
+                    </div>
+                  ) : null}
+
                   <button
                     type="button"
                     onClick={() => {
@@ -563,7 +716,7 @@ export default function HomePage() {
                       boxShadow: "0 6px 18px rgba(239,68,68,0.4)",
                     }}
                   >
-                    Search
+                    Run AI
                   </button>
                 </div>
 
@@ -571,9 +724,9 @@ export default function HomePage() {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 10,
+                    gap: 8,
                     flexWrap: "wrap",
-                    marginTop: 6,
+                    marginTop: 4,
                   }}
                 >
                   <span
@@ -583,7 +736,7 @@ export default function HomePage() {
                       marginRight: 4,
                     }}
                   >
-                    Choose your need
+                    Start workflow
                   </span>
 
                   <ActionButton
@@ -642,8 +795,7 @@ export default function HomePage() {
                       lineHeight: 1.3,
                     }}
                   >
-                    ✍️ Need Property, Materials, Services or Rentals? Submit your
-                    Requirement (RFQ)
+                    ✍️ Submit Requirement (RFQ)
                   </div>
 
                   <div
@@ -654,9 +806,8 @@ export default function HomePage() {
                       fontSize: 14,
                     }}
                   >
-                    Upload a handwritten list / PDF or type your requirement.
-                    Enter your location so nearby vendors, owners or service
-                    providers can send competitive quotations.
+                    Type your need or upload a list. AI helps prepare the RFQ
+                    and nearby vendors can respond with quotations.
                   </div>
 
                   <div
@@ -667,10 +818,9 @@ export default function HomePage() {
                       flexWrap: "wrap",
                     }}
                   >
-                    <span style={chipStyle}>📄 PDF / List</span>
-                    <span style={chipStyle}>📝 Handwritten photo</span>
-                    <span style={chipStyle}>📍 Location-based quotes</span>
-                    <span style={chipStyle}>⚡ Competitive pricing</span>
+                    <span style={chipStyle}>🤖 AI RFQ draft</span>
+                    <span style={chipStyle}>📍 Nearby vendors</span>
+                    <span style={chipStyle}>💬 Unified chat</span>
                   </div>
 
                   <div
@@ -730,11 +880,7 @@ export default function HomePage() {
             <div
               className="homeHeroSide"
               style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "stretch",
-                minWidth: 0,
-                height: "100%",
+                display: "none",
               }}
             >
               <div
@@ -743,7 +889,7 @@ export default function HomePage() {
                   background:
                     "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.10) 100%)",
                   border: "1px solid rgba(255,255,255,0.22)",
-                  padding: 16,
+                  padding: 12,
                   backdropFilter: "blur(8px)",
                   display: "grid",
                   gridTemplateRows: "auto auto 1fr",
@@ -759,7 +905,8 @@ export default function HomePage() {
                   onClick={() => router.push("/price-today")}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      router.push("/price-today");
+                      e.preventDefault();
+                      runHeroSearch(heroSearch);
                     }
                   }}
                   style={{
@@ -833,7 +980,7 @@ export default function HomePage() {
                       letterSpacing: "0.04em",
                     }}
                   >
-                    SMART LOCAL MARKETPLACE
+                    AI WORKFLOW ENGINE
                   </div>
                   <div
                     style={{
@@ -843,7 +990,7 @@ export default function HomePage() {
                       lineHeight: 1.35,
                     }}
                   >
-                    Search • Compare • Connect • Invest
+                    Requirement → Match → Quote → Chat → Close
                   </div>
                   <div
                     style={{
@@ -852,8 +999,8 @@ export default function HomePage() {
                       lineHeight: 1.6,
                     }}
                   >
-                    A single platform for local discovery, RFQ comparison,
-                    business networking and real investment opportunities.
+                    Users move directly from requirement to vendor response,
+                    price comparison and unified conversation.
                   </div>
                 </div>
 
@@ -885,10 +1032,10 @@ export default function HomePage() {
                       href: "/dashboard/inbox",
                     },
                     {
-                      icon: "🏗️",
-                      title: "Professional image",
-                      text: "Create a stronger first impression for visitors.",
-                      href: "/register",
+                      icon: "🤖",
+                      title: "AI-assisted matching",
+                      text: "Help users reach the right listing, vendor or service faster.",
+                      href: "/search?module=property&q=ai%20match",
                     },
                     {
                       icon: "🗺️",

@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
+import { ensureConversation } from "@/lib/conversations/ensureConversation";
+import type { ConversationContextType } from "@/types/conversation";
 
 type AttachmentPayload = {
   bucket: string;
@@ -219,6 +221,11 @@ export async function POST(req: Request) {
 
     const rfqId = String(rfq.id);
 
+    let autoConversationId: string | null = null;
+    let autoChatUrl: string | null = null;
+    let autoChatVendorUserId: string | null = null;
+    let autoChatVendorName: string | null = null;
+
     // 2) Insert items (rfq_items v2)
     // ✅ item_type must be one of: material/service/rental/property/work_package
     const item_type = moduleToItemType(module);
@@ -368,6 +375,66 @@ ${title}
                   }
                 })
               );
+
+              // ✅ AUTO CHAT CONNECT: create unified chat with top matched vendor
+              try {
+                const firstTarget = targetRows.find(
+                  (target: any) =>
+                    String(target.vendor_user_id || "").trim() &&
+                    (!isAuthed || String(target.vendor_user_id) !== user!.id)
+                );
+
+                if (isAuthed && firstTarget?.vendor_user_id) {
+                  const itemSummary = cleanItems
+                    .map((x) => {
+                      const qty = x.qty ? `${x.qty}` : "";
+                      const unit = x.unit ? ` ${x.unit}` : "";
+                      return `${qty}${unit} ${x.title}`.trim();
+                    })
+                    .filter(Boolean)
+                    .join(", ");
+
+                  const starterMessage = `Hello, I need ${itemSummary || title}${
+                    locality || city
+                      ? ` in ${[locality, city].filter(Boolean).join(", ")}`
+                      : ""
+                  }.
+Please share your best price and delivery timeline.`;
+
+                  const conversation = await ensureConversation(supabaseAdmin as any, {
+                    contextType: "rfq" as ConversationContextType,
+                    contextId: rfqId,
+                    buyerUserId: user!.id,
+                    vendorUserId: String(firstTarget.vendor_user_id),
+                    title: `RFQ: ${title}`,
+                    contextSnapshot: {
+                      rfq_id: rfqId,
+                      module,
+                      title,
+                      city,
+                      locality,
+                      pincode,
+                      source: "rfq_create_auto_connect",
+                    },
+                    rfqId,
+                    starterMessage,
+                  });
+
+                  autoConversationId = conversation?.conversationId || null;
+                  autoChatUrl =
+                    conversation?.chatUrl ||
+                    (autoConversationId
+                      ? `/dashboard/thread/${autoConversationId}`
+                      : null);
+                  autoChatVendorUserId = String(firstTarget.vendor_user_id);
+                  autoChatVendorName = "matched vendor";
+                }
+              } catch (chatErr: any) {
+                console.warn(
+                  "Auto chat connect failed:",
+                  chatErr?.message || chatErr
+                );
+              }
             }
           }
         }
@@ -399,6 +466,11 @@ ${title}
       requester_user_id: isAuthed ? user!.id : null,
       module,
       item_type,
+      auto_chat_created: Boolean(autoConversationId),
+      autoConversationId,
+      autoChatUrl,
+      autoChatVendorUserId,
+      autoChatVendorName,
     });
   } catch (e: any) {
     return jsonError(e?.message || "Unknown server error", 500);

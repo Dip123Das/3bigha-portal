@@ -15,6 +15,18 @@ type ItemRow = {
   notes: string;
 };
 
+type AiVendorMatch = {
+  user_id?: string;
+  name: string;
+  reason: string;
+  score: number;
+  city?: string;
+  locality?: string;
+  district?: string;
+  pincode?: string;
+  source?: string;
+};
+
 /* ---------- Simple popup helper (NEW) ---------- */
 function showPopup(message: string, type: "success" | "error" = "success") {
   const bg = type === "success" ? "#16a34a" : "#dc2626";
@@ -145,6 +157,11 @@ function RfqGeneralNewPageInner() {
 
   const [items, setItems] = useState<ItemRow[]>([{ item_name: "", qty: "", unit: "", notes: "" }]);
   const [files, setFiles] = useState<File[]>([]); // ⚠ cannot persist in sessionStorage
+
+  const [aiAutoFillApplied, setAiAutoFillApplied] = useState(false);
+  const [aiAutoFillSummary, setAiAutoFillSummary] = useState("");
+
+  const [aiVendorMatches, setAiVendorMatches] = useState<AiVendorMatch[]>([]);
 
   // ✅ Module box focus + flash
   const moduleBoxRef = useRef<HTMLDivElement | null>(null);
@@ -322,6 +339,65 @@ function RfqGeneralNewPageInner() {
     });
   }
 
+  // ✅ Apply AI auto-fill from homepage command bar
+  useEffect(() => {
+    const query = normalizePickedText(sp.get("query") || "");
+    const item = normalizePickedText(sp.get("item") || "");
+    const quantity = normalizePickedText(sp.get("quantity") || "");
+    const unit = normalizePickedText(sp.get("unit") || "");
+    const urgency = normalizePickedText(sp.get("urgency") || "");
+    const location = normalizePickedText(sp.get("location") || "");
+
+    if (!query && !item && !quantity && !urgency && !location) return;
+
+    setModule("materials");
+
+    if (query && !title.trim()) {
+      setTitle(query.length > 70 ? `${query.slice(0, 70)}...` : query);
+    }
+
+    if (query && !description.trim()) {
+      setDescription(`AI drafted requirement from homepage:\n${query}`);
+    }
+
+    if (item || quantity || unit) {
+      setItems([
+        {
+          item_name: item || "",
+          qty: quantity || "",
+          unit: unit || "",
+          notes: urgency === "urgent" ? "Urgent requirement" : "",
+        },
+      ]);
+      setShowInlineModule(true);
+    }
+
+    if (location && !city.trim() && !locality.trim()) {
+      setCity(location);
+    }
+
+    const summaryParts = [
+      item ? `Item: ${item}` : "",
+      quantity ? `Qty: ${quantity}` : "",
+      unit ? `Unit: ${unit}` : "",
+      urgency === "urgent" ? "Urgency: urgent" : "",
+      location ? `Location: ${location}` : "",
+    ].filter(Boolean);
+
+    setAiAutoFillApplied(true);
+    setAiAutoFillSummary(summaryParts.join(" • ") || "Homepage AI command applied");
+
+    const clean = new URLSearchParams(sp.toString());
+    clean.delete("query");
+    clean.delete("item");
+    clean.delete("quantity");
+    clean.delete("unit");
+    clean.delete("urgency");
+    clean.delete("location");
+    router.replace(`/rfq/general/new?${clean.toString()}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sp]);
+
   // ✅ APPLY selection coming back from /rfq/general/browse/[module]
   useEffect(() => {
     // A) New richer payload support (picked=JSON)
@@ -487,11 +563,18 @@ return;
         sessionStorage.removeItem(DRAFT_KEY);
       } catch {}
 
-      showPopup("RFQ submitted successfully 🎉", "success");
+      if (out?.auto_chat_created && out?.autoChatUrl) {
+        const vendorName =
+          typeof out?.autoChatVendorName === "string" && out.autoChatVendorName.trim()
+            ? out.autoChatVendorName.trim()
+            : "matched vendor";
 
-setTimeout(() => {
-  router.push("/rfq/success");
-}, 1200);
+        showPopup(`RFQ submitted successfully.\nConnecting you to ${vendorName}...`);
+        router.push(out.autoChatUrl);
+      } else {
+        showPopup("RFQ submitted successfully. Vendors will be notified shortly.");
+        router.push("/rfq/success");
+      }
     } catch (e: any) {
   const msg = e?.message || "Something went wrong.";
   setErr(msg);
@@ -504,6 +587,48 @@ setTimeout(() => {
 
   const hint = defaultTitleHint(module);
 
+  const primaryItem = normalizePickedText(items.find((x) => normalizePickedText(x.item_name))?.item_name || "");
+
+  useEffect(() => {
+    const item = normalizePickedText(primaryItem);
+    const place = normalizePickedText(locality || city || pincode);
+
+    if (!item && !place) {
+      setAiVendorMatches([]);
+      return;
+    }
+
+    const t = window.setTimeout(async () => {
+      try {
+        const params = new URLSearchParams();
+        params.set("module", module);
+        if (item) params.set("item", item);
+        if (city) params.set("city", city);
+        if (locality) params.set("locality", locality);
+        if (pincode) params.set("pincode", pincode);
+
+        const res = await fetch(`/api/rfq/vendor-matches?${params.toString()}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const json = await res.json().catch(() => null);
+
+        if (!res.ok) {
+          setAiVendorMatches([]);
+          return;
+        }
+
+        const rows = Array.isArray(json?.matches) ? json.matches : [];
+        setAiVendorMatches(rows.slice(0, 5));
+      } catch {
+        setAiVendorMatches([]);
+      }
+    }, 300);
+
+    return () => window.clearTimeout(t);
+  }, [module, primaryItem, city, locality, pincode]);
+
   const browseLink = `${browseHref(module)}?returnTo=${encodeURIComponent("/rfq/general/new")}&module=${encodeURIComponent(module)}`;
 
   return (
@@ -512,6 +637,85 @@ setTimeout(() => {
       <div style={{ opacity: 0.8, marginBottom: 16 }}>
         Select module → describe requirement → add items/work or upload a handwritten/PDF list.
       </div>
+
+      {aiAutoFillApplied ? (
+        <div
+          style={{
+            border: "1px solid rgba(34,197,94,0.35)",
+            background: "rgba(34,197,94,0.08)",
+            color: "#166534",
+            borderRadius: 12,
+            padding: 12,
+            marginBottom: 12,
+            fontWeight: 800,
+            lineHeight: 1.6,
+          }}
+        >
+          🤖 AI auto-filled this RFQ from homepage command.
+          {aiAutoFillSummary ? <div style={{ fontWeight: 700 }}>{aiAutoFillSummary}</div> : null}
+        </div>
+      ) : null}
+
+      {aiVendorMatches.length > 0 ? (
+        <div
+          style={{
+            border: "1px solid rgba(59,130,246,0.28)",
+            background: "rgba(59,130,246,0.06)",
+            borderRadius: 12,
+            padding: 12,
+            marginBottom: 12,
+          }}
+        >
+          <div style={{ fontWeight: 900, color: "#1e3a8a", marginBottom: 8 }}>
+            🤖 AI Vendor Matching Preview
+          </div>
+
+          <div style={{ display: "grid", gap: 8 }}>
+            {aiVendorMatches.map((v, idx) => (
+              <div
+                key={`${v.name}-${idx}`}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  background: "#ffffff",
+                  border: "1px solid rgba(15,23,42,0.08)",
+                  borderRadius: 10,
+                  padding: 10,
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 900, color: "#0f172a" }}>{v.name}</div>
+                  <div style={{ color: "#475569", fontSize: 13 }}>{v.reason}</div>
+                  {[v.locality, v.city, v.district, v.pincode].filter(Boolean).length > 0 ? (
+                    <div style={{ color: "#64748b", fontSize: 12, marginTop: 3 }}>
+                      {[v.locality, v.city, v.district, v.pincode].filter(Boolean).join(", ")}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div
+                  style={{
+                    fontWeight: 900,
+                    color: "#166534",
+                    background: "#dcfce7",
+                    borderRadius: 999,
+                    padding: "6px 10px",
+                    alignSelf: "center",
+                  }}
+                >
+                  {v.score}% match
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 8, color: "#64748b", fontSize: 13 }}>
+            After submission, 3Bigha will try to connect you directly with the best matched vendor through unified chat.
+          </div>
+        </div>
+      ) : null}
 
       {err ? (
         <div
