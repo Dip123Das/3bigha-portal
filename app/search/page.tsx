@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
@@ -162,6 +162,7 @@ function SearchPageInner() {
   const [err, setErr] = useState<string | null>(null);
   const [rows, setRows] = useState<ResultRow[]>([]);
   const [note, setNote] = useState<string | null>(null);
+  const aiAutoAppliedRef = useRef<string>("");
 
   // Sync inputs with URL changes
   useEffect(() => {
@@ -285,6 +286,26 @@ function SearchPageInner() {
     );
   }
 
+  useEffect(() => {
+  const query = safeText(qInput);
+
+  if (!query) return;
+
+  const autoKey = query;
+
+  if (aiAutoAppliedRef.current === autoKey) return;
+
+  aiAutoAppliedRef.current = autoKey;
+
+  const t = setTimeout(() => {
+    applyAiSearchIntent(query);
+  }, 120);
+
+  return () => clearTimeout(t);
+
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [qInput]);
+
   function startVoice() {
     setNote(null);
 
@@ -309,8 +330,8 @@ function SearchPageInner() {
     rec.start();
   }
 
-  async function applyAiSearchIntent() {
-    const query = safeText(qInput);
+  async function applyAiSearchIntent(queryOverride?: string) {
+    const query = safeText(queryOverride || qInput);
 
     if (!query) {
       setNote("Type what you are looking for, then use Smart AI Search.");
@@ -740,7 +761,7 @@ if (want.includes("rentals")) {
 
               <button
                 type="button"
-                onClick={applyAiSearchIntent}
+                onClick={() => applyAiSearchIntent()}
                 disabled={aiBusy}
                 style={{
                   height: 44,
