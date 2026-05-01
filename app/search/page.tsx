@@ -287,7 +287,7 @@ function SearchPageInner() {
   }
 
   useEffect(() => {
-  const query = safeText(qInput);
+    const query = safeText(qFromUrl);
 
   if (!query) return;
 
@@ -304,7 +304,7 @@ function SearchPageInner() {
   return () => clearTimeout(t);
 
 // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [qInput]);
+}, [qFromUrl]);
 
   function startVoice() {
     setNote(null);
