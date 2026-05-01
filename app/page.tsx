@@ -49,6 +49,13 @@ const suggestionItemStyle: React.CSSProperties = {
   borderRadius: 8,
 };
 
+type WorkflowStep = {
+  label: string;
+  href: string;
+  active: boolean;
+  hint: string;
+};
+
 export default function HomePage() {
   const pathname = usePathname();
   const router = useRouter();
@@ -296,6 +303,68 @@ export default function HomePage() {
         };
       })()
     : null;
+
+  const dynamicWorkflowSteps = useMemo<WorkflowStep[]>(() => {
+    const latestSearch = recentSearches[0] || "";
+    const activityText = `${heroSearch} ${latestSearch}`.toLowerCase();
+
+    const hasRequirementIntent =
+      /\d+/.test(activityText) ||
+      activityText.includes("need") ||
+      activityText.includes("cement") ||
+      activityText.includes("steel") ||
+      activityText.includes("sand") ||
+      activityText.includes("brick") ||
+      activityText.includes("supplier");
+
+    const hasPriceIntent =
+      activityText.includes("price") ||
+      activityText.includes("rate") ||
+      activityText.includes("cost");
+
+    const hasChatIntent =
+      pathname.includes("/dashboard/inbox") ||
+      pathname.includes("/dashboard/thread");
+
+    return [
+      {
+        label: hasRequirementIntent ? "Resume RFQ →" : "Requirement →",
+        href: "/rfq/general/new",
+        active: hasRequirementIntent || pathname.includes("/rfq"),
+        hint: hasRequirementIntent
+          ? "AI detected requirement intent from your activity"
+          : "Start with a new requirement",
+      },
+      {
+        label: hasPriceIntent ? "Check Rates →" : "Match →",
+        href: hasPriceIntent ? "/price-today" : "/rfq/general",
+        active: hasPriceIntent,
+        hint: hasPriceIntent
+          ? "Recent activity suggests price discovery"
+          : "Find matching vendors and responses",
+      },
+      {
+        label: "Quote →",
+        href: "/dashboard/buyer",
+        active: pathname.includes("/dashboard/buyer"),
+        hint: "Compare quotations and buyer activity",
+      },
+      {
+        label: hasChatIntent ? "Continue Chat →" : "Chat →",
+        href: "/dashboard/inbox",
+        active: hasChatIntent,
+        hint: "Open unified inbox and conversations",
+      },
+      {
+        label: "Close",
+        href: "/dashboard",
+        active: pathname === "/dashboard",
+        hint: locationText
+          ? `Workflow tuned for ${locationText}`
+          : "Track work and dashboard activity",
+      },
+    ];
+  }, [heroSearch, recentSearches, pathname, locationText]);
 
   const renderHighlightedSuggestion = (s: string) => {
     const idx = s.toLowerCase().indexOf(heroSearch.toLowerCase());
@@ -998,41 +1067,25 @@ export default function HomePage() {
                       flexWrap: "wrap",
                     }}
                   >
-                    <button
-                      type="button"
-                      onClick={() => router.push("/rfq/general/new")}
-                      style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", color: "#0b57d0", font: "inherit" }}
-                    >
-                      Requirement →
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => router.push("/rfq/general")}
-                      style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", color: "#0b57d0", font: "inherit" }}
-                    >
-                      Match →
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => router.push("/dashboard/buyer")}
-                      style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", color: "#0b57d0", font: "inherit" }}
-                    >
-                      Quote →
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => router.push("/dashboard/inbox")}
-                      style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", color: "#0b57d0", font: "inherit" }}
-                    >
-                      Chat →
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => router.push("/dashboard")}
-                      style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", color: "#0b57d0", font: "inherit" }}
-                    >
-                      Close
-                    </button>
+                    {dynamicWorkflowSteps.map((step) => (
+                      <button
+                        key={step.label}
+                        type="button"
+                        title={step.hint}
+                        onClick={() => router.push(step.href)}
+                        style={{
+                          border: "none",
+                          background: step.active ? "rgba(11,87,208,0.10)" : "transparent",
+                          padding: step.active ? "2px 7px" : 0,
+                          borderRadius: 999,
+                          cursor: "pointer",
+                          color: step.active ? "#dc2626" : "#0b57d0",
+                          font: "inherit",
+                        }}
+                      >
+                        {step.label}
+                      </button>
+                    ))}
                   </div>
                   <div
                     style={{
