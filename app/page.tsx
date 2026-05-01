@@ -850,7 +850,72 @@ export default function HomePage() {
                 </div>
                 <div
                   style={{
-                    marginTop: "auto",
+                    marginTop: 12,
+                    borderRadius: 18,
+                    background: "#ffffff",
+                    padding: 14,
+                    color: "#0f172a",
+                    boxShadow: "0 12px 30px rgba(15,23,42,0.12)",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 900,
+                      color: "#0b57d0",
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    AI WORKFLOW ENGINE
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 6,
+                      fontSize: 18,
+                      fontWeight: 900,
+                      lineHeight: 1.35,
+                      display: "flex",
+                      gap: 8,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {dynamicWorkflowSteps.map((step) => (
+                      <button
+                        key={step.label}
+                        type="button"
+                        title={step.hint}
+                        onClick={() => router.push(step.href)}
+                        style={{
+                          border: "none",
+                          background: step.active ? "rgba(11,87,208,0.10)" : "transparent",
+                          padding: step.active ? "2px 7px" : 0,
+                          borderRadius: 999,
+                          cursor: "pointer",
+                          color: step.active ? "#dc2626" : "#0b57d0",
+                          font: "inherit",
+                        }}
+                      >
+                        {step.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 6,
+                      color: "#475569",
+                      fontSize: 13,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Direct flow from requirement to vendor response, chat and deal closure.
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 12,
                     background: "rgba(255,255,255,0.96)",
                     borderRadius: 18,
                     padding: 16,
@@ -1034,68 +1099,6 @@ export default function HomePage() {
                   >
                     Cement, steel, sand, aggregate, brick, land and per sq.ft.
                     market indication.
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    borderRadius: 20,
-                    background: "#ffffff",
-                    padding: 18,
-                    color: "#0f172a",
-                    boxShadow: "0 12px 30px rgba(15,23,42,0.10)",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 900,
-                      color: "#0b57d0",
-                      letterSpacing: "0.04em",
-                    }}
-                  >
-                    AI WORKFLOW ENGINE
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 6,
-                      fontSize: 22,
-                      fontWeight: 900,
-                      lineHeight: 1.35,
-                      display: "flex",
-                      gap: 8,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    {dynamicWorkflowSteps.map((step) => (
-                      <button
-                        key={step.label}
-                        type="button"
-                        title={step.hint}
-                        onClick={() => router.push(step.href)}
-                        style={{
-                          border: "none",
-                          background: step.active ? "rgba(11,87,208,0.10)" : "transparent",
-                          padding: step.active ? "2px 7px" : 0,
-                          borderRadius: 999,
-                          cursor: "pointer",
-                          color: step.active ? "#dc2626" : "#0b57d0",
-                          font: "inherit",
-                        }}
-                      >
-                        {step.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 6,
-                      color: "#475569",
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    Users move directly from requirement to vendor response,
-                    price comparison and unified conversation.
                   </div>
                 </div>
 
