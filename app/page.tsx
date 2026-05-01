@@ -317,7 +317,7 @@ export default function HomePage() {
 
   return (
     <main>
-      <Container>
+      <Container style={{ maxWidth: "100%", padding: "0 24px" }}>
         <section
           className="homeHero"
           style={{
@@ -403,7 +403,7 @@ export default function HomePage() {
                 AI workflow
               </div>
 
-              <div style={{ marginTop: 10, maxWidth: 760, width: "100%" }}>
+              <div style={{ marginTop: 10, maxWidth: "100%", width: "100%" }}>
                 <h1
                   style={{
                     margin: 0,
@@ -441,7 +441,7 @@ export default function HomePage() {
                   fontSize: "clamp(13px, 3.5vw, 15px)",
                   lineHeight: 1.35,
                   fontWeight: 700,
-                  maxWidth: 680,
+                  maxWidth: 920,
                   textShadow: "0 1px 8px rgba(0,0,0,0.16)",
                 }}
               >
