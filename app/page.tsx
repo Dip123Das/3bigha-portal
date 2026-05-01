@@ -56,6 +56,13 @@ type WorkflowStep = {
   hint: string;
 };
 
+type SmartChip = {
+  label: string;
+  href: string;
+  active: boolean;
+  hint: string;
+};
+
 export default function HomePage() {
   const pathname = usePathname();
   const router = useRouter();
@@ -304,9 +311,9 @@ export default function HomePage() {
       })()
     : null;
 
+  const activityText = `${heroSearch} ${recentSearches[0] || ""}`.toLowerCase();
+
   const dynamicWorkflowSteps = useMemo<WorkflowStep[]>(() => {
-    const latestSearch = recentSearches[0] || "";
-    const activityText = `${heroSearch} ${latestSearch}`.toLowerCase();
 
     const hasRequirementIntent =
       /\d+/.test(activityText) ||
@@ -364,7 +371,55 @@ export default function HomePage() {
           : "Track work and dashboard activity",
       },
     ];
-  }, [heroSearch, recentSearches, pathname, locationText]);
+  }, [activityText, pathname, locationText]);
+
+  const smartChips = useMemo<SmartChip[]>(() => {
+    const hasRequirementIntent =
+      /\d+/.test(activityText) ||
+      activityText.includes("need") ||
+      activityText.includes("cement") ||
+      activityText.includes("steel") ||
+      activityText.includes("sand") ||
+      activityText.includes("brick") ||
+      activityText.includes("supplier");
+
+    const hasVendorIntent =
+      hasRequirementIntent ||
+      activityText.includes("vendor") ||
+      activityText.includes("quote") ||
+      activityText.includes("quotation");
+
+    const hasChatIntent =
+      pathname.includes("/dashboard/inbox") ||
+      pathname.includes("/dashboard/thread");
+
+    return [
+      {
+        label: hasRequirementIntent ? "🤖 Resume AI RFQ" : "🤖 AI RFQ draft",
+        href: "/rfq/general/new",
+        active: hasRequirementIntent,
+        hint: hasRequirementIntent
+          ? "AI detected requirement intent from your activity"
+          : "Start an AI-assisted RFQ draft",
+      },
+      {
+        label: hasVendorIntent ? "📍 Matched vendors" : "📍 Nearby vendors",
+        href: "/rfq/general",
+        active: hasVendorIntent,
+        hint: hasVendorIntent
+          ? "Vendor matching is relevant for your requirement"
+          : "Explore nearby vendors",
+      },
+      {
+        label: hasChatIntent ? "💬 Continue chat" : "💬 Unified chat",
+        href: "/dashboard/inbox",
+        active: hasChatIntent,
+        hint: hasChatIntent
+          ? "Continue your active conversation"
+          : "Open unified chat inbox",
+      },
+    ];
+  }, [activityText, pathname]);
 
   const renderHighlightedSuggestion = (s: string) => {
     const idx = s.toLowerCase().indexOf(heroSearch.toLowerCase());
@@ -953,9 +1008,24 @@ export default function HomePage() {
                       flexWrap: "wrap",
                     }}
                   >
-                    <span style={chipStyle}>🤖 AI RFQ draft</span>
-                    <span style={chipStyle}>📍 Nearby vendors</span>
-                    <span style={chipStyle}>💬 Unified chat</span>
+                    {smartChips.map((chip) => (
+                      <span
+                        key={chip.label}
+                        title={chip.hint}
+                        style={{
+                          ...chipStyle,
+                          cursor: "pointer",
+                          background: chip.active ? "#dcfce7" : chipStyle.background,
+                          color: chip.active ? "#166534" : chipStyle.color,
+                          border: chip.active
+                            ? "1px solid rgba(22,101,52,0.22)"
+                            : chipStyle.border,
+                        }}
+                        onClick={() => router.push(chip.href)}
+                      >
+                        {chip.label}
+                      </span>
+                    ))}
                   </div>
 
                   <div
