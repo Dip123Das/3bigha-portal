@@ -109,6 +109,8 @@ export default function ConversationComposer(props: {
 
   const [lastTextAttempt, setLastTextAttempt] = useState("");
   const [retryText, setRetryText] = useState("");
+  const [aiAssistLoading, setAiAssistLoading] = useState(false);
+  const [aiAssistError, setAiAssistError] = useState("");
 
   useEffect(() => {
     if (err && lastTextAttempt) {
@@ -145,6 +147,52 @@ export default function ConversationComposer(props: {
     void sendMessage(retryText.trim());
   };
 
+  const applyAiDealSuggestion = (value: string) => {
+    setText(value);
+    void touchMyPresence?.();
+    sendTypingStart();
+
+    if (typingStopTimeoutRef.current) {
+      clearTimeout(typingStopTimeoutRef.current);
+    }
+
+    typingStopTimeoutRef.current = setTimeout(() => {
+      sendTypingStop();
+    }, 1500);
+  };
+
+  const improveMessageWithAi = async () => {
+    const rawText = String(text ?? "").trim();
+
+    if (!rawText || loading || aiAssistLoading) {
+      setAiAssistError("Please type a message first.");
+      return;
+    }
+
+    setAiAssistLoading(true);
+    setAiAssistError("");
+
+    try {
+      const res = await fetch("/api/ai/deal-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: rawText }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.message) {
+        throw new Error(data?.error || "AI could not improve this message.");
+      }
+
+      applyAiDealSuggestion(String(data.message));
+    } catch (error: any) {
+      setAiAssistError(error?.message || "AI assistant is not available right now.");
+    } finally {
+      setAiAssistLoading(false);
+    }
+  };
+
   return (
     <div style={{ padding: 12, borderTop: "1px solid #e5e7eb", background: "#fff" }}>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
@@ -166,6 +214,112 @@ export default function ConversationComposer(props: {
             {q}
           </button>
         ))}
+      </div>
+
+      <div
+        style={{
+          marginBottom: 10,
+          border: "1px solid #c7d2fe",
+          background: "linear-gradient(90deg, #eef2ff, #ffffff)",
+          borderRadius: 14,
+          padding: "10px 12px",
+        }}
+      >
+        <div style={{ fontSize: 13, fontWeight: 900, color: "#3730a3", marginBottom: 8 }}>
+          ✨ AI Deal Assistant
+        </div>
+
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={() =>
+              applyAiDealSuggestion(
+                "Please confirm the exact item, quantity, delivery location, final price and expected delivery time."
+              )
+            }
+            disabled={loading}
+            style={{
+              padding: "7px 10px",
+              borderRadius: 999,
+              border: "1px solid #c7d2fe",
+              background: "#fff",
+              color: "#3730a3",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: loading ? "default" : "pointer",
+            }}
+          >
+            Ask full deal details
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              applyAiDealSuggestion(
+                "Thank you. Please share your best final rate, including delivery charges and any applicable taxes."
+              )
+            }
+            disabled={loading}
+            style={{
+              padding: "7px 10px",
+              borderRadius: 999,
+              border: "1px solid #c7d2fe",
+              background: "#fff",
+              color: "#3730a3",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: loading ? "default" : "pointer",
+            }}
+          >
+            Negotiate better price
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              applyAiDealSuggestion(
+                "Before we proceed, please confirm your business name, location, availability, and whether you can provide proper bill or document if required."
+              )
+            }
+            disabled={loading}
+            style={{
+              padding: "7px 10px",
+              borderRadius: 999,
+              border: "1px solid #c7d2fe",
+              background: "#fff",
+              color: "#3730a3",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: loading ? "default" : "pointer",
+            }}
+          >
+            Verify vendor trust
+          </button>
+
+          <button
+            type="button"
+            onClick={improveMessageWithAi}
+            disabled={loading || aiAssistLoading}
+            style={{
+              padding: "7px 10px",
+              borderRadius: 999,
+              border: "1px solid #7c3aed",
+              background: aiAssistLoading ? "#ede9fe" : "#7c3aed",
+              color: aiAssistLoading ? "#5b21b6" : "#fff",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: loading || aiAssistLoading ? "default" : "pointer",
+            }}
+          >
+            {aiAssistLoading ? "AI improving..." : "✨ Improve typed message"}
+          </button>
+
+          {aiAssistError ? (
+            <span style={{ fontSize: 12, fontWeight: 800, color: "#b91c1c" }}>
+              {aiAssistError}
+            </span>
+          ) : null}
+        </div>
       </div>
 
       {replyingTo ? (
@@ -218,6 +372,52 @@ export default function ConversationComposer(props: {
           </button>
         </div>
       ) : null}
+
+      <div
+        style={{
+          marginBottom: 10,
+          border: "1px solid #bbf7d0",
+          background: "linear-gradient(90deg, #ecfdf5, #ffffff)",
+          borderRadius: 14,
+          padding: "10px 12px",
+          display: "flex",
+          gap: 10,
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 900, color: "#065f46" }}>
+            Ready to close this deal?
+          </div>
+          <div style={{ fontSize: 12, color: "#475569", marginTop: 2 }}>
+            Confirm item, quantity, location and final price in chat before payment.
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() =>
+            handleSend(
+              "I confirm that the item, quantity, location and final price are discussed. Please confirm from your side."
+            )
+          }
+          disabled={loading}
+          style={{
+            padding: "8px 12px",
+            borderRadius: 10,
+            border: "1px solid #047857",
+            background: loading ? "#d1fae5" : "#059669",
+            color: "#fff",
+            fontSize: 12,
+            fontWeight: 900,
+            cursor: loading ? "default" : "pointer",
+          }}
+        >
+          ✅ Confirm Deal Details
+        </button>
+      </div>
 
       <div style={{ marginBottom: 10, position: "relative" }}>
         <button
@@ -555,7 +755,26 @@ export default function ConversationComposer(props: {
             minHeight: 22,
           }}
         >
-          <div style={{ color: "crimson", fontSize: 13 }}>{err}</div>
+          {err ? (
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                alignItems: "center",
+                flexWrap: "wrap",
+                border: "1px solid #fecaca",
+                background: "#fef2f2",
+                color: "#991b1b",
+                borderRadius: 12,
+                padding: "8px 10px",
+                fontSize: 12,
+                fontWeight: 800,
+              }}
+            >
+              <span>⚠ Message could not be sent.</span>
+              <span style={{ fontWeight: 700, opacity: 0.85 }}>{err}</span>
+            </div>
+          ) : null}
 
           {err && retryText ? (
             <button
@@ -563,16 +782,17 @@ export default function ConversationComposer(props: {
               onClick={handleRetryFailedText}
               disabled={loading}
               style={{
-                padding: "6px 10px",
-                borderRadius: 8,
-                border: "1px solid #fecaca",
-                background: "#fff1f2",
-                color: "#9f1239",
-                fontWeight: 800,
+                padding: "8px 12px",
+                borderRadius: 10,
+                border: "1px solid #dc2626",
+                background: loading ? "#fecaca" : "#dc2626",
+                color: "#fff",
+                fontWeight: 900,
                 cursor: loading ? "default" : "pointer",
+                boxShadow: loading ? "none" : "0 4px 10px rgba(220,38,38,0.22)",
               }}
             >
-              Retry Failed Text
+              {loading ? "Retrying..." : "🔁 Retry sending"}
             </button>
           ) : null}
         </div>

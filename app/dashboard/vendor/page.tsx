@@ -15,22 +15,6 @@ import { ActionButton } from "@/components/ui/ActionButton";
 import { Grid } from "@/components/ui/Grid";
 import { EmptyState } from "@/components/ui/EmptyState";
 
-<Link
-  href="/dashboard/vendor/notifications"
-  style={{
-    background: "#111",
-    color: "white",
-    padding: "8px 12px",
-    borderRadius: 8,
-    fontWeight: 900,
-    marginLeft: 10,
-    display: "inline-block",
-    textDecoration: "none",
-  }}
->
-  🔔 Notifications
-</Link>
-
 type CompletenessRow = {
   user_id?: string;
   business_profile_complete?: boolean;
@@ -54,6 +38,28 @@ type EnquiryRow = {
   status: EnquiryStatus;
   created_at: string;
 };
+
+function getUpsellMessage(plan: string) {
+  const p = String(plan || "free").toLowerCase();
+
+  if (p === "free") {
+    return {
+      show: true,
+      text: "You are currently on Free plan. Your visibility is limited in AI vendor matching.",
+      highlight: "Upgrade to get more buyer enquiries.",
+    };
+  }
+
+  if (p === "basic_vendor") {
+    return {
+      show: true,
+      text: "You are getting some visibility, but higher plans rank above you.",
+      highlight: "Upgrade to increase your RFQ chances.",
+    };
+  }
+
+  return { show: false };
+}
 
 function toNumber(v: unknown): number | null {
   const n = typeof v === "number" ? v : Number(v);
@@ -118,6 +124,27 @@ function capabilityLabel(cap: VendorCapabilityKey) {
   return titleCase(String(cap));
 }
 
+function getPlanBoostLabel(plan: string, boostPriority: number) {
+  const p = String(plan || "free").toLowerCase();
+
+  if (p === "platinum") return "Platinum AI Boost";
+  if (p === "gold") return "Gold AI Boost";
+  if (p === "silver") return "Silver AI Boost";
+  if (boostPriority > 0) return "Manual Boost Active";
+
+  return "Free Visibility";
+}
+
+function getPlanBoostPower(plan: string, boostPriority: number) {
+  const p = String(plan || "free").toLowerCase();
+
+  if (p === "platinum") return 20 + boostPriority;
+  if (p === "gold") return 10 + boostPriority;
+  if (p === "silver") return 5 + boostPriority;
+
+  return boostPriority;
+}
+
 export default function VendorDashboardPage() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -152,18 +179,86 @@ export default function VendorDashboardPage() {
   const [recentEnquiries, setRecentEnquiries] = useState<EnquiryRow[]>([]);
 
   // 🔥 RFQ ANALYTICS
-  const [leadStats, setLeadStats] = useState({
-    leadsLast7Days: 0,
-    leadsLast30Days: 0,
-    newLeadCount: 0,
-    viewedLeadCount: 0,
-    estimatedPremiumLeads: 0,
-  });
+ const [leadStats, setLeadStats] = useState({
+  leadsLast7Days: 0,
+  leadsLast30Days: 0,
+  newLeadCount: 0,
+  viewedLeadCount: 0,
+  estimatedPremiumLeads: 0,
+});
+
+const [successStats, setSuccessStats] = useState({
+  totalDeals: 0,
+  dealsCompleted: 0,
+  successRate: 0,
+});
+
+const [funnelStats, setFunnelStats] = useState({
+  totalLeads: 0,
+  repliedLeads: 0,
+});
+
+const missedLeads = Math.max(
+  0,
+  (leadStats.leadsLast7Days || 0) - (leadStats.viewedLeadCount || 0)
+);
+
+const vendorPerformanceLevel =
+  successStats.dealsCompleted >= 10 && successStats.successRate >= 50
+    ? "Top Performing Vendor"
+    : successStats.dealsCompleted >= 3 && successStats.successRate >= 30
+    ? "Trusted Vendor"
+    : funnelStats.repliedLeads > 0 || leadStats.viewedLeadCount > 0
+    ? "Active Vendor"
+    : "New Vendor";
+
+const vendorPerformanceTone =
+  vendorPerformanceLevel === "Top Performing Vendor" ||
+  vendorPerformanceLevel === "Trusted Vendor"
+    ? "ok"
+    : vendorPerformanceLevel === "Active Vendor"
+    ? "neutral"
+    : "warn";
+
+const monetizationIntent =
+  funnelStats.totalLeads > funnelStats.repliedLeads
+    ? "boost_replies"
+    : successStats.successRate < 20
+    ? "ai_followups"
+    : vendorPerformanceLevel === "Top Performing Vendor"
+    ? "premium_maintain"
+    : "boost_visibility";
+
+const successCtaLabel =
+  monetizationIntent === "boost_replies"
+    ? "⚡ Recover Missed Leads"
+    : monetizationIntent === "ai_followups"
+    ? "🎯 Improve Deal Closing"
+    : monetizationIntent === "premium_maintain"
+    ? "🏆 Maintain Premium Visibility"
+    : "🚀 Boost to Top Vendor";
+
+const dealProgressPercent = Math.min(
+  100,
+  Math.round((successStats.dealsCompleted / 10) * 100)
+);
+
+const successRateProgressPercent = Math.min(
+  100,
+  Math.round((successStats.successRate / 50) * 100)
+);
+
+const topVendorProgressPercent = Math.min(
+  100,
+  Math.round((dealProgressPercent + successRateProgressPercent) / 2)
+);
 
   // ⭐ BOOST / SUBSCRIPTION VISIBILITY
   const [vendorPlan, setVendorPlan] = useState("free");
   const [vendorStatus, setVendorStatus] = useState("free");
   const [vendorBoostPriority, setVendorBoostPriority] = useState(0);
+
+  const upsell = getUpsellMessage(vendorPlan);
 
   async function load() {
     setLoading(true);
@@ -237,6 +332,61 @@ export default function VendorDashboardPage() {
     setVendorStatus(String(businessPlan?.subscription_status || "free"));
     setVendorBoostPriority(Number(businessPlan?.boost_priority || 0));
 
+    const { data: participantRows } = await supabase
+      .from("conversation_participants")
+      .select("conversation_id")
+      .eq("user_id", session.user.id);
+
+    const conversationIds = (participantRows || [])
+      .map((row: { conversation_id: string | null }) => row.conversation_id)
+      .filter(Boolean) as string[];
+
+    if (conversationIds.length > 0) {
+      const { data: conversationRows } = await supabase
+        .from("conversations")
+        .select("id,is_closed")
+        .in("id", conversationIds);
+
+      const totalDeals = conversationRows?.length || 0;
+      const dealsCompleted =
+        conversationRows?.filter((row: { is_closed: boolean | null }) => row.is_closed === true)
+          .length || 0;
+
+      setSuccessStats({
+        totalDeals,
+        dealsCompleted,
+        successRate: totalDeals > 0 ? Math.round((dealsCompleted / totalDeals) * 100) : 0,
+      });
+
+      // 👉 Funnel Logic
+      const { data: messageRows } = await supabase
+        .from("conversation_messages")
+        .select("conversation_id,sender_id")
+        .in("conversation_id", conversationIds);
+
+      const repliedConversationSet = new Set(
+        (messageRows || [])
+          .filter((msg: { sender_id: string }) => msg.sender_id === session.user.id)
+          .map((msg: { conversation_id: string }) => msg.conversation_id)
+      );
+
+      setFunnelStats({
+        totalLeads: totalDeals,
+        repliedLeads: repliedConversationSet.size,
+      });
+    } else {
+      setSuccessStats({
+        totalDeals: 0,
+        dealsCompleted: 0,
+        successRate: 0,
+      });
+
+      setFunnelStats({
+        totalLeads: 0,
+        repliedLeads: 0,
+      });
+    }
+
     setEnquiriesLoading(true);
     setEnquiriesErr(null);
 
@@ -265,10 +415,13 @@ export default function VendorDashboardPage() {
 
     useEffect(() => {
       load();
+
+      const refreshTimer = window.setInterval(() => {
+        load();
+      }, 60000);
+
+      return () => window.clearInterval(refreshTimer);
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      setInterval(() => {
-        window.location.reload();
-      }, 60000); // refresh every 60 seconds to keep lead stats up to date
     }, []);
 
     if (loading) {
@@ -286,138 +439,39 @@ export default function VendorDashboardPage() {
       return (
         <main>
           <Container>
-          <>
-            {leadStats.newLeadCount > 0 && (
-              <div
-                style={{
-                  background: "#ffe0e0",
-                  padding: 12,
-                  borderRadius: 10,
-                  marginBottom: 15,
-                  fontWeight: 900,
-                }}
-              >
-                🔥 You have {leadStats.newLeadCount} new buyer enquiries waiting!
-                <div style={{ marginTop: 6 }}>
-                  <button
-                    onClick={() => router.push("/dashboard/vendor/enquiries")}
-                    style={{
-                      background: "red",
-                      color: "white",
-                      border: "none",
-                      padding: "6px 10px",
-                      borderRadius: 6,
-                      fontWeight: 900,
-                      cursor: "pointer",
-                    }}
-                  >
-                    View Now
-                  </button>
-                </div>
-              </div>
-            )}
+            <SectionHeader title={dashboardTitle} subtitle="Something went wrong." />
 
-            <SectionHeader title={dashboardTitle} subtitle="" />
-          </>
-          <div style={{ marginBottom: 20, display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <Card>
-              <CardBody>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>Leads (7 days)</div>
-                <div style={{ fontSize: 24, fontWeight: 900 }}>
-                  {leadStats.leadsLast7Days}
-                </div>
-              </CardBody>
-            </Card>
+            <EmptyState message="Something went wrong while loading your vendor dashboard." />
 
-            <Card>
-              <CardBody>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>Leads (30 days)</div>
-                <div style={{ fontSize: 24, fontWeight: 900 }}>
-                  {leadStats.leadsLast30Days}
-                </div>
-              </CardBody>
-            </Card>
+            <div style={{ marginTop: 12, color: "crimson", fontWeight: 800 }}>
+              {err}
+            </div>
 
-            <Card>
-              <CardBody>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>New Leads</div>
-                <div style={{ fontSize: 24, fontWeight: 900 }}>
-                  {leadStats.newLeadCount}
+            <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <ActionButton href="/dashboard" variant="secondary">
+                ← Back to Dashboard
+              </ActionButton>
 
-                  {leadStats.newLeadCount > 0 && (
-                    <div style={{ marginTop: 6, color: "red", fontWeight: 900 }}>
-                      🔔 You have {leadStats.newLeadCount} new RFQ enquiries!
-                    </div>
-                  )}
-                </div>
-              </CardBody>
-            </Card>
-
-            <Card>
-              <CardBody>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>Viewed Leads</div>
-                <div style={{ fontSize: 24, fontWeight: 900 }}>
-                  {leadStats.viewedLeadCount}
-                </div>
-              </CardBody>
-            </Card>
-          </div>
-          <div
-            style={{
-              background: "#fff3cd",
-              border: "1px solid #ffeeba",
-              padding: 12,
-              borderRadius: 10,
-              fontWeight: 800,
-              marginBottom: 20,
-            }}
-          >
-            🚀 Premium vendors get up to{" "}
-            <b>{leadStats.estimatedPremiumLeads}</b> leads monthly.  
-            You are currently getting <b>{leadStats.leadsLast30Days}</b>.
-            <div style={{ marginTop: 8 }}>
               <button
-                onClick={() => router.push("/dashboard/subscription")}
+                type="button"
+                onClick={() => load()}
                 style={{
-                  background: "#f59e0b",
-                  color: "white",
-                  border: "none",
-                  padding: "8px 12px",
-                  borderRadius: 8,
-                  fontWeight: 900,
+                  height: 40,
+                  padding: "0 14px",
+                  borderRadius: 12,
+                  border: "1px solid rgba(0,0,0,0.12)",
+                  background: "white",
+                  fontWeight: 800,
                   cursor: "pointer",
                 }}
               >
-                Upgrade to Premium
+                Retry
               </button>
             </div>
-          </div>
-          <EmptyState message="Something went wrong while loading your vendor dashboard." />
-          <div style={{ marginTop: 12, color: "crimson", fontWeight: 800 }}>{err}</div>
-          <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <ActionButton href="/dashboard" variant="secondary">
-              ← Back to Dashboard
-            </ActionButton>
-            <button
-              type="button"
-              onClick={() => load()}
-              style={{
-                height: 40,
-                padding: "0 14px",
-                borderRadius: 12,
-                border: "1px solid rgba(0,0,0,0.12)",
-                background: "white",
-                fontWeight: 800,
-                cursor: "pointer",
-              }}
-            >
-              Retry
-            </button>
-          </div>
-        </Container>
-      </main>
-    );
-  }
+          </Container>
+        </main>
+      );
+    }
 
   if (!isVendor) {
     return (
@@ -429,6 +483,7 @@ export default function VendorDashboardPage() {
             <ActionButton href="/dashboard" variant="secondary">
               ← Back
             </ActionButton>
+
             <ActionButton href="/auth/register-role" variant="primary">
               Start Vendor Registration →
             </ActionButton>
@@ -452,44 +507,94 @@ export default function VendorDashboardPage() {
           subtitle="Manage your listings, profile, and business actions from one place."
         />
 
+        {upsell.show ? (
+          <div
+            style={{
+              marginBottom: 14,
+              border: "1px solid #fecaca",
+              background: "linear-gradient(135deg, #fff1f2, #ffffff)",
+              borderRadius: 16,
+              padding: 14,
+              fontWeight: 800,
+            }}
+          >
+            <div style={{ color: "#b91c1c", fontWeight: 900 }}>
+              ⚠️ AI Visibility Alert
+            </div>
+
+            <div style={{ marginTop: 6, fontSize: 13, color: "#475569" }}>
+              {upsell.text}
+            </div>
+
+            <div style={{ marginTop: 6, fontSize: 13, color: "#111827" }}>
+              {upsell.highlight}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/subscription")}
+              style={{
+                marginTop: 10,
+                background: "#dc2626",
+                color: "#fff",
+                border: "none",
+                padding: "8px 12px",
+                borderRadius: 10,
+                fontWeight: 900,
+                cursor: "pointer",
+              }}
+            >
+              🚀 Upgrade Now
+            </button>
+          </div>
+        ) : null}
+
         <div
           style={{
             marginBottom: 16,
-            borderRadius: 14,
-            padding: 14,
+            borderRadius: 18,
+            padding: 16,
             border:
-              vendorBoostPriority > 0
+              getPlanBoostPower(vendorPlan, vendorBoostPriority) > 0
                 ? "1px solid #f59e0b"
                 : "1px solid #e5e7eb",
             background:
-              vendorBoostPriority > 0
-                ? "#fffbeb"
-                : "#f8fafc",
+              getPlanBoostPower(vendorPlan, vendorBoostPriority) > 0
+                ? "linear-gradient(135deg, #fffbeb, #ffffff)"
+                : "linear-gradient(135deg, #f8fafc, #ffffff)",
+            boxShadow: "0 10px 24px rgba(15,23,42,0.06)",
             fontWeight: 800,
           }}
         >
-          {vendorBoostPriority > 0 ? (
-            <>
-              ⭐ <b>Boost Active:</b> Your profile has priority level{" "}
-              {vendorBoostPriority}. You will receive RFQ targeting preference.
-            </>
-          ) : (
-            <>
-              ⚠️ <b>No Boost Active:</b> Free vendors get lower RFQ visibility.
-              Upgrade to Premium / Hub plan to get more buyer leads.
-            </>
-          )}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 14,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 950, color: "#111827" }}>
+                ⭐ AI Visibility Boost
+              </div>
 
-          <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <Badge>
-              Plan: {vendorPlan.replace(/_/g, " ").toUpperCase()}
-            </Badge>
-            <Badge>
-              Status: {vendorStatus.toUpperCase()}
-            </Badge>
-            <Badge>
-              Boost: {vendorBoostPriority}
-            </Badge>
+              <div style={{ marginTop: 6, color: "#475569", fontSize: 13, lineHeight: 1.5 }}>
+                {getPlanBoostPower(vendorPlan, vendorBoostPriority) > 0 ? (
+                  <>
+                    Your account is running <b>{getPlanBoostLabel(vendorPlan, vendorBoostPriority)}</b>.
+                    You receive extra ranking power in AI vendor matching.
+                  </>
+                ) : (
+                  <>
+                    You are currently on <b>Free Visibility</b>. Upgrade to get higher
+                    placement in AI vendor matching and receive more buyer RFQs.
+                  </>
+                )}
+              </div>
+            </div>
+
             <button
               type="button"
               onClick={() => router.push("/dashboard/subscription")}
@@ -497,15 +602,267 @@ export default function VendorDashboardPage() {
                 background: "#f59e0b",
                 color: "white",
                 border: "none",
-                padding: "6px 10px",
-                borderRadius: 8,
-                fontWeight: 900,
+                padding: "10px 14px",
+                borderRadius: 12,
+                fontWeight: 950,
                 cursor: "pointer",
+                boxShadow: "0 8px 18px rgba(245,158,11,0.28)",
               }}
             >
-              Upgrade Visibility
+              💰 Boost My Leads
             </button>
           </div>
+
+          <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <Badge>
+              Plan: {vendorPlan.replace(/_/g, " ").toUpperCase()}
+            </Badge>
+            <Badge>
+              Status: {vendorStatus.toUpperCase()}
+            </Badge>
+            <Badge>
+              AI Boost Power: +{getPlanBoostPower(vendorPlan, vendorBoostPriority)}
+            </Badge>
+            <Badge>
+              More visibility = more buyer enquiries
+            </Badge>
+          </div>
+        </div>
+
+        <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 18,
+            padding: 16,
+            border: "1px solid #bbf7d0",
+            background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
+            boxShadow: "0 10px 24px rgba(15,23,42,0.06)",
+          }}
+        >
+          <div style={{ fontSize: 18, fontWeight: 950, color: "#064e3b" }}>
+            🏆 Vendor Success Proof
+          </div>
+
+          <div style={{ marginTop: 6, color: "#475569", fontSize: 13, lineHeight: 1.5 }}>
+            Buyers trust active vendors. Completed deals improve your business proof and help motivate upgrades.
+          </div>
+
+          <div style={{ marginTop: 10, fontSize: 13, fontWeight: 900, color: "#334155" }}>
+            {successStats.successRate >= 50
+              ? "🔥 You are performing better than most vendors."
+              : successStats.successRate >= 20
+              ? "⚡ You are doing good, but top vendors perform even better."
+              : "🚀 Top vendors close 3x more deals. Improve visibility to grow faster."}
+          </div>
+
+          <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
+            <div style={{ border: "1px solid #dcfce7", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>Deals Completed</div>
+              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#065f46" }}>
+                {successStats.dealsCompleted}
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #dcfce7", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>Success Rate</div>
+              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#065f46" }}>
+                {successStats.successRate}%
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #fed7aa", borderRadius: 14, padding: 12, background: "#fff7ed" }}>
+              <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>Upgrade Motivation</div>
+              <div style={{ marginTop: 4, fontSize: 13, color: "#7c2d12", fontWeight: 850, lineHeight: 1.5 }}>
+                Top vendors close 3x more deals with better visibility, faster replies, and AI boost ranking.
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 16 }}>
+            <div style={{ fontSize: 14, fontWeight: 900, color: "#0f172a" }}>
+              📊 Lead Conversion Funnel
+            </div>
+
+            <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
+              <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 10, background: "#fff" }}>
+                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>Leads Received</div>
+                <div style={{ fontSize: 22, fontWeight: 950 }}>{funnelStats.totalLeads}</div>
+              </div>
+
+              <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 10, background: "#fff" }}>
+                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>Leads Replied</div>
+                <div style={{ fontSize: 22, fontWeight: 950 }}>{funnelStats.repliedLeads}</div>
+              </div>
+
+              <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 10, background: "#fff" }}>
+                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>Deals Closed</div>
+                <div style={{ fontSize: 22, fontWeight: 950 }}>{successStats.dealsCompleted}</div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginTop: 16,
+              borderRadius: 14,
+              border: "1px solid #bfdbfe",
+              background: "#eff6ff",
+              padding: 12,
+            }}
+          >
+            <div style={{ fontSize: 14, fontWeight: 950, color: "#1e3a8a" }}>
+              🤖 AI Business Coach
+            </div>
+
+            <div style={{ marginTop: 6, fontSize: 13, fontWeight: 850, color: "#1e40af", lineHeight: 1.5 }}>
+              {funnelStats.totalLeads > funnelStats.repliedLeads
+                ? "Reply to every buyer lead quickly. Faster replies can improve your deal conversion."
+                : successStats.successRate < 20
+                ? "You are replying, but deal closure is low. Improve follow-up quality and use AI reply suggestions."
+                : successStats.successRate < 50
+                ? "Your funnel is active. Boost visibility and faster follow-ups can help you reach top vendor level."
+                : "Excellent performance. Keep your visibility active to maintain buyer trust and lead flow."}
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginTop: 12,
+              borderRadius: 14,
+              border: "1px solid #fed7aa",
+              background: "linear-gradient(135deg, #fff7ed, #ffffff)",
+              padding: 12,
+            }}
+          >
+            <div style={{ fontSize: 14, fontWeight: 950, color: "#9a3412" }}>
+              🏅 Vendor Leaderboard Benchmark
+            </div>
+
+            <div style={{ marginTop: 6, fontSize: 13, fontWeight: 850, color: "#7c2d12", lineHeight: 1.5 }}>
+              Top vendors in your area usually close up to 3x more deals by replying faster,
+              completing more conversations, and keeping AI visibility active.
+            </div>
+
+            <div style={{ marginTop: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 12, fontWeight: 900, color: "#9a3412" }}>
+                <span>Progress to Top Vendor</span>
+                <span>{topVendorProgressPercent}%</span>
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  height: 10,
+                  borderRadius: 999,
+                  background: "#ffedd5",
+                  overflow: "hidden",
+                  border: "1px solid #fed7aa",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${topVendorProgressPercent}%`,
+                    height: "100%",
+                    borderRadius: 999,
+                    background: "#f97316",
+                  }}
+                />
+              </div>
+
+              <div style={{ marginTop: 6, fontSize: 12, color: "#7c2d12", fontWeight: 800 }}>
+                Target: 10+ completed deals and 50% success rate.
+              </div>
+            </div>
+
+            <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10 }}>
+              <div style={{ border: "1px solid #fed7aa", borderRadius: 12, padding: 10, background: "#fff" }}>
+                <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>Your Level</div>
+                <div style={{ marginTop: 4, fontSize: 14, color: "#111827", fontWeight: 950 }}>
+                  {vendorPerformanceLevel}
+                </div>
+              </div>
+
+              <div style={{ border: "1px solid #fed7aa", borderRadius: 12, padding: 10, background: "#fff" }}>
+                <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>Top Vendor Target</div>
+                <div style={{ marginTop: 4, fontSize: 14, color: "#111827", fontWeight: 950 }}>
+                  10+ deals / 50% success
+                </div>
+              </div>
+
+              <div style={{ border: "1px solid #fed7aa", borderRadius: 12, padding: 10, background: "#fff" }}>
+                <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>Gap</div>
+                <div style={{ marginTop: 4, fontSize: 14, color: "#111827", fontWeight: 950 }}>
+                  {vendorPerformanceLevel === "Top Performing Vendor"
+                    ? "You are at top level"
+                    : "Boost replies + close more"}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginTop: 12,
+              borderRadius: 14,
+              border: "1px solid #e0e7ff",
+              background: "#f8faff",
+              padding: 12,
+            }}
+          >
+            <div style={{ fontSize: 14, fontWeight: 950, color: "#3730a3" }}>
+              📈 Smart Growth Indicator
+            </div>
+
+            <div style={{ marginTop: 6, fontSize: 13, fontWeight: 850, color: "#1e293b", lineHeight: 1.5 }}>
+              {funnelStats.totalLeads > funnelStats.repliedLeads
+                ? "🚨 Your biggest growth blocker is slow replies. Fix this first to unlock more deals."
+                : successStats.successRate < 30
+                ? "⚠️ You are getting leads but not converting enough. Improve follow-ups."
+                : successStats.dealsCompleted < 5
+                ? "📊 Increase deal volume to build strong trust and ranking."
+                : "🔥 You are on a strong growth path. Maintain consistency and visibility."}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await fetch("/api/inbox-ai-action", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    action: "vendor_growth_cta_click",
+                    intent: monetizationIntent,
+                    dealsCompleted: successStats.dealsCompleted,
+                    successRate: successStats.successRate,
+                    totalLeads: funnelStats.totalLeads,
+                    repliedLeads: funnelStats.repliedLeads,
+                  }),
+                });
+              } catch {}
+
+              if (monetizationIntent === "boost_replies" || monetizationIntent === "boost_visibility") {
+                router.push("/dashboard/subscription?focus=boost");
+              } else if (monetizationIntent === "ai_followups") {
+                router.push("/dashboard/subscription?focus=ai");
+              } else {
+                router.push("/dashboard/subscription?focus=premium");
+              }
+            }}
+            style={{
+              marginTop: 12,
+              background: "#059669",
+              color: "white",
+              border: "none",
+              padding: "9px 13px",
+              borderRadius: 12,
+              fontWeight: 950,
+              cursor: "pointer",
+            }}
+          >
+            {successCtaLabel}
+          </button>
         </div>
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
@@ -554,6 +911,10 @@ export default function VendorDashboardPage() {
             ) : (
               <Pill tone="warn">Incomplete</Pill>
             )}
+
+            <Pill tone={vendorPerformanceTone as "neutral" | "warn" | "ok"}>
+              🛡️ {vendorPerformanceLevel}
+            </Pill>
 
             {vendorPct !== null ? <Pill>{vendorPct}%</Pill> : null}
           </div>

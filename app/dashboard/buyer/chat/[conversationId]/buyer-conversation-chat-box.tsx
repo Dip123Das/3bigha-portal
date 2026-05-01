@@ -1023,6 +1023,28 @@ export default function BuyerConversationChatBox(props: {
     }
   }
 
+  async function closeDeal() {
+  if (!conversationId) return;
+
+  try {
+    const res = await fetch(`/api/conversations/${conversationId}/close`, {
+      method: "POST",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data?.error || "Failed to close deal");
+      return;
+    }
+
+    alert("✅ Deal marked as completed");
+    window.location.reload();
+  } catch {
+    alert("Failed to close deal");
+  }
+}
+
   async function sendMessage(messageOverride?: string, replyOverride?: MsgRow | null) {
     const body = (messageOverride ?? text).trim();
     if (!body || loading || uploading || isRecording) return;
@@ -1334,6 +1356,23 @@ useEffect(() => {
   };
 }, [recordedAudioPreviewUrl]);
 
+<div style={{ marginBottom: 10 }}>
+  <button
+    onClick={closeDeal}
+    style={{
+      background: "#16a34a",
+      color: "white",
+      border: "none",
+      padding: "8px 12px",
+      borderRadius: 8,
+      fontWeight: 900,
+      cursor: "pointer",
+    }}
+  >
+    ✅ Mark Deal as Completed
+  </button>
+</div>
+
   return (
     <div
       style={{
@@ -1463,6 +1502,7 @@ useEffect(() => {
                 : toDisplayRole(role);
             }}
             REACTION_EMOJIS={REACTION_EMOJIS}
+            onSendAiSuggestion={sendMessage}
           />
           <div ref={endRef} />
         </div>

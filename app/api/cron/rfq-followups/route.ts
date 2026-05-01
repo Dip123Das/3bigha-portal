@@ -24,6 +24,82 @@ function normalizeIndianPhone(phone: string) {
   return "";
 }
 
+async function generateAiFollowupText({
+  title,
+  message,
+  rfqLink,
+}: {
+  title?: string | null;
+  message?: string | null;
+  rfqLink: string;
+}) {
+  const fallbackText = `⏰ RFQ Reminder
+
+You have not viewed/responded to this buyer enquiry yet.
+
+${message || title || "A buyer enquiry is waiting for your response."}
+
+👉 Open now: ${rfqLink}`;
+
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey) return fallbackText;
+
+  try {
+    const prompt = `
+Write a short WhatsApp RFQ follow-up message for a vendor on 3bigha.com.
+
+Rules:
+- Keep it polite and urgent.
+- Mention that a buyer enquiry is waiting.
+- Ask vendor to open and respond.
+- Do not mention AI.
+- Do not add false promises.
+- Keep it under 90 words.
+- Include this link exactly once: ${rfqLink}
+
+RFQ title/message:
+${message || title || "Buyer enquiry waiting."}
+`;
+
+    const aiRes = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
+        input: [{ role: "user", content: prompt }],
+        temperature: 0.25,
+        max_output_tokens: 180,
+      }),
+    });
+
+    const aiJson = await aiRes.json().catch(() => null);
+    const outputText =
+      typeof aiJson?.output_text === "string"
+        ? aiJson.output_text
+        : aiJson?.output
+            ?.flatMap((item: any) => item?.content || [])
+            ?.map((content: any) => content?.text)
+            ?.filter(Boolean)
+            ?.join("\n");
+
+    const cleanText = String(outputText || "").trim();
+
+    if (!aiRes.ok || !cleanText) return fallbackText;
+
+    return cleanText.includes(rfqLink)
+      ? cleanText
+      : `${cleanText}
+
+👉 Open now: ${rfqLink}`;
+  } catch {
+    return fallbackText;
+  }
+}
+
 async function sendGupshupWhatsApp({
   to,
   text,
@@ -140,13 +216,11 @@ export async function GET(req: Request) {
 
       const rfqLink = `${siteUrl}/dashboard/vendor/rfqs/${row.rfq_id}`;
 
-      const text = `⏰ RFQ Reminder
-
-You have not viewed/responded to this buyer enquiry yet.
-
-${row.message || row.title}
-
-👉 Open now: ${rfqLink}`;
+      const text = await generateAiFollowupText({
+        title: row.title,
+        message: row.message,
+        rfqLink,
+      });
 
       const result = await sendGupshupWhatsApp({ to, text });
 

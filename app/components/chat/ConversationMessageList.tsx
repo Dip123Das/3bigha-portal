@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 type AttachmentRow = {
   kind?: "image" | "file" | "audio";
@@ -32,6 +32,22 @@ type MsgRow = {
     [key: string]: any;
   } | null;
   created_at: string | null;
+};
+
+type AiDealStage = {
+  stage: string;
+  confidence: number;
+  reason: string;
+  ctaLabel: string;
+  ctaMessage: string;
+};
+
+type AiDealScore = {
+  score: number;
+  label: string;
+  insight: string;
+  actionLabel: string;
+  actionMessage: string;
 };
 
 export default function ConversationMessageList(props: {
@@ -68,6 +84,7 @@ export default function ConversationMessageList(props: {
   getDateDividerLabel: (v?: string | null) => string;
   toDisplayRole: (role?: string | null) => string;
   REACTION_EMOJIS: string[];
+  onSendAiSuggestion?: (messageOverride?: string) => Promise<void>;
 }) {
   const {
     ordered,
@@ -97,7 +114,200 @@ export default function ConversationMessageList(props: {
     getDateDividerLabel,
     toDisplayRole,
     REACTION_EMOJIS,
+    onSendAiSuggestion,
   } = props;
+
+  const recentDealMessages = useMemo(
+    () =>
+      ordered
+        .filter((m) => !m.meta?.deleted && m.message_type !== "system" && m.sender_role !== "system")
+        .slice(-6)
+        .map((m) => ({
+          role: m.sender_user_id === currentUserId ? "me" : toDisplayRole(m.sender_role),
+          body: String(m.body || "").slice(0, 500),
+        })),
+    [ordered, currentUserId, toDisplayRole]
+  );
+
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiSuggestionsLoading, setAiSuggestionsLoading] = useState(false);
+  const [aiSuggestionsError, setAiSuggestionsError] = useState("");
+  const [aiDealStage, setAiDealStage] = useState<AiDealStage | null>(null);
+  const [aiDealStageLoading, setAiDealStageLoading] = useState(false);
+  const [aiDealStageError, setAiDealStageError] = useState("");
+
+  const [aiDealScore, setAiDealScore] = useState<AiDealScore | null>(null);
+  const [aiDealScoreLoading, setAiDealScoreLoading] = useState(false);
+  const [aiDealScoreError, setAiDealScoreError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAiSuggestions() {
+      if (recentDealMessages.length === 0) {
+        setAiSuggestions([]);
+        return;
+      }
+
+      setAiSuggestionsLoading(true);
+      setAiSuggestionsError("");
+
+      try {
+        const res = await fetch("/api/ai/chat-reply-suggestions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: recentDealMessages }),
+        });
+
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok || !Array.isArray(data?.suggestions)) {
+          throw new Error(data?.error || "AI suggestions are not available.");
+        }
+
+        if (!cancelled) {
+          setAiSuggestions(data.suggestions.slice(0, 3).map((x: any) => String(x)));
+        }
+      } catch (error: any) {
+        if (!cancelled) {
+          setAiSuggestions([]);
+          setAiSuggestionsError(error?.message || "AI suggestions are not available.");
+        }
+      } finally {
+        if (!cancelled) {
+          setAiSuggestionsLoading(false);
+        }
+      }
+    }
+
+    void loadAiSuggestions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [recentDealMessages]);
+
+useEffect(() => {
+  let cancelled = false;
+
+  async function loadAiDealScore() {
+    if (recentDealMessages.length === 0) {
+      setAiDealScore(null);
+      return;
+    }
+
+    setAiDealScoreLoading(true);
+    setAiDealScoreError("");
+
+    try {
+      const res = await fetch("/api/ai/deal-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: recentDealMessages }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.score) {
+        throw new Error(data?.error || "AI deal score not available.");
+      }
+
+      if (!cancelled) {
+        setAiDealScore({
+          score: Number(data.score || 50),
+          label: String(data.label || "Moderate"),
+          insight: String(data.insight || ""),
+          actionLabel: String(data.actionLabel || "Continue"),
+          actionMessage: String(data.actionMessage || ""),
+        });
+      }
+    } catch (error: any) {
+      if (!cancelled) {
+        setAiDealScore(null);
+        setAiDealScoreError(error?.message || "AI score not available.");
+      }
+    } finally {
+      if (!cancelled) {
+        setAiDealScoreLoading(false);
+      }
+    }
+  }
+
+  void loadAiDealScore();
+
+  return () => {
+    cancelled = true;
+  };
+}, [recentDealMessages]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAiDealStage() {
+      if (recentDealMessages.length === 0) {
+        setAiDealStage(null);
+        return;
+      }
+
+      setAiDealStageLoading(true);
+      setAiDealStageError("");
+
+      try {
+        const res = await fetch("/api/ai/deal-stage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: recentDealMessages }),
+        });
+
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok || !data?.stage) {
+          throw new Error(data?.error || "AI deal stage is not available.");
+        }
+
+        if (!cancelled) {
+          setAiDealStage({
+            stage: String(data.stage || "discussion"),
+            confidence: Number(data.confidence || 0),
+            reason: String(data.reason || ""),
+            ctaLabel: String(data.ctaLabel || "Continue Deal"),
+            ctaMessage: String(data.ctaMessage || "Please confirm the next step for this deal."),
+          });
+        }
+      } catch (error: any) {
+        if (!cancelled) {
+          setAiDealStage(null);
+          setAiDealStageError(error?.message || "AI deal stage is not available.");
+        }
+      } finally {
+        if (!cancelled) {
+          setAiDealStageLoading(false);
+        }
+      }
+    }
+
+    void loadAiDealStage();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [recentDealMessages]);
+
+  const useAiSuggestion = async (suggestion: string) => {
+    const cleanSuggestion = String(suggestion || "").trim();
+    if (!cleanSuggestion) return;
+
+    if (onSendAiSuggestion) {
+      await onSendAiSuggestion(cleanSuggestion);
+      return;
+    }
+
+    try {
+      await navigator.clipboard?.writeText(cleanSuggestion);
+    } catch {
+      // Clipboard may be blocked. In that case, show the text visually only.
+    }
+  };
 
   function fmtDeliveryStatus(args: {
     mine: boolean;
@@ -120,8 +330,10 @@ export default function ConversationMessageList(props: {
 
     if (seenThisMessage) {
       return {
-        text: "Seen",
+        text: "✓✓ Seen",
         color: "#166534",
+        bg: "#dcfce7",
+        border: "#bbf7d0",
       };
     }
 
@@ -135,17 +347,81 @@ export default function ConversationMessageList(props: {
       return {
         text: "Delivered",
         color: "#2563eb",
+        bg: "#dbeafe",
+        border: "#bfdbfe",
       };
     }
 
     return {
       text: "Sent",
       color: "#475569",
+      bg: "#f1f5f9",
+      border: "#e2e8f0",
     };
   }
 
   return (
     <>
+      <div
+        style={{
+          margin: "0 0 12px 0",
+          border: "1px solid #bfdbfe",
+          background: "linear-gradient(90deg, #ffffff, #eff6ff)",
+          borderRadius: 18,
+          padding: "12px 14px",
+          boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+              alignItems: "center",
+              fontSize: 12,
+              fontWeight: 800,
+              color: "#334155",
+            }}
+          >
+            <span style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 999, padding: "5px 10px" }}>
+              📦 Item under discussion
+            </span>
+            <span style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 999, padding: "5px 10px" }}>
+              📍 Location shared
+            </span>
+            <span style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 999, padding: "5px 10px" }}>
+              💬 Live negotiation
+            </span>
+          </div>
+
+          <button
+            type="button"
+            style={{
+              border: "1px solid #1d4ed8",
+              background: "#2563eb",
+              color: "#fff",
+              borderRadius: 12,
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: "pointer",
+              boxShadow: "0 6px 14px rgba(37,99,235,0.18)",
+            }}
+          >
+            Confirm Deal Details
+          </button>
+        </div>
+      </div>
+
       {ordered.length === 0 ? (
         <div style={{ opacity: 0.7 }}>No messages yet.</div>
       ) : (
@@ -576,9 +852,15 @@ export default function ConversationMessageList(props: {
                     {deliveryState ? (
                       <span
                         style={{
-                          fontWeight: 800,
+                          fontWeight: 900,
                           color: deliveryState.color,
+                          background: deliveryState.bg,
+                          border: `1px solid ${deliveryState.border}`,
+                          borderRadius: 999,
+                          padding: "2px 7px",
+                          lineHeight: 1.4,
                         }}
+                        title="Message delivery status"
                       >
                         {deliveryState.text}
                       </span>
@@ -590,6 +872,191 @@ export default function ConversationMessageList(props: {
           );
         })
       )}
+
+      {ordered.length > 0 ? (
+        <div
+          style={{
+            marginTop: 14,
+            border: "1px solid #fca5a5",
+            background: "linear-gradient(90deg, #fff1f2, #ffffff)",
+            borderRadius: 18,
+            padding: "12px 14px",
+          }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 900, color: "#b91c1c", marginBottom: 8 }}>
+            🔥 AI deal strength
+          </div>
+
+          {aiDealScoreLoading ? (
+            <div style={{ fontSize: 12 }}>Analyzing deal...</div>
+          ) : aiDealScore ? (
+            <div style={{ display: "grid", gap: 8 }}>
+              <div style={{ display: "flex", gap: 8 }}>
+                <span style={{ fontWeight: 900 }}>
+                  {aiDealScore.score}%
+                </span>
+                <span>{aiDealScore.label}</span>
+              </div>
+
+              <div style={{ fontSize: 12 }}>{aiDealScore.insight}</div>
+
+              <button
+                type="button"
+                onClick={() => onSendAiSuggestion?.(aiDealScore.actionMessage)}
+                style={{
+                  border: "none",
+                  background: "#dc2626",
+                  color: "#fff",
+                  borderRadius: 999,
+                  padding: "8px 12px",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                {aiDealScore.actionLabel}
+              </button>
+            </div>
+          ) : (
+            <div style={{ fontSize: 12 }}>
+              {aiDealScoreError || "AI will analyze deal soon."}
+            </div>
+          )}
+        </div>
+      ) : null}
+        <div
+          style={{
+            marginTop: 14,
+            border: "1px solid #bbf7d0",
+            background: "linear-gradient(90deg, #ecfdf5, #ffffff)",
+            borderRadius: 18,
+            padding: "12px 14px",
+          }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 900, color: "#065f46", marginBottom: 8 }}>
+            🧠 AI deal stage intelligence
+          </div>
+
+          {aiDealStageLoading ? (
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#047857" }}>
+              AI is detecting the current deal stage...
+            </div>
+          ) : aiDealStage ? (
+            <div style={{ display: "grid", gap: 8 }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <span
+                  style={{
+                    border: "1px solid #bbf7d0",
+                    background: "#fff",
+                    color: "#065f46",
+                    borderRadius: 999,
+                    padding: "6px 10px",
+                    fontSize: 12,
+                    fontWeight: 900,
+                  }}
+                >
+                  Stage: {aiDealStage.stage.replaceAll("_", " ")}
+                </span>
+
+                <span
+                  style={{
+                    border: "1px solid #d1fae5",
+                    background: "#fff",
+                    color: "#047857",
+                    borderRadius: 999,
+                    padding: "6px 10px",
+                    fontSize: 12,
+                    fontWeight: 900,
+                  }}
+                >
+                  Confidence: {Math.round(aiDealStage.confidence * 100)}%
+                </span>
+              </div>
+
+              {aiDealStage.reason ? (
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>
+                  {aiDealStage.reason}
+                </div>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => useAiSuggestion(aiDealStage.ctaMessage)}
+                style={{
+                  justifySelf: "start",
+                  border: "1px solid #047857",
+                  background: "#059669",
+                  color: "#fff",
+                  borderRadius: 999,
+                  padding: "8px 12px",
+                  fontSize: 12,
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                {aiDealStage.ctaLabel}
+              </button>
+            </div>
+          ) : (
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#64748b" }}>
+              {aiDealStageError || "AI will detect the deal stage after more messages."}
+            </div>
+          )}
+        </div>
+
+      {ordered.length > 0 ? (
+        <div
+          style={{
+            marginTop: 14,
+            border: "1px solid #ddd6fe",
+            background: "linear-gradient(90deg, #faf5ff, #ffffff)",
+            borderRadius: 18,
+            padding: "12px 14px",
+          }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 900, color: "#5b21b6", marginBottom: 8 }}>
+            ✨ AI smart reply suggestions
+          </div>
+
+          {aiSuggestionsLoading ? (
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#6b21a8" }}>
+              AI is reading the deal context...
+            </div>
+          ) : aiSuggestions.length > 0 ? (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {aiSuggestions.map((suggestion, index) => (
+                <button
+                  key={`${suggestion}-${index}`}
+                  type="button"
+                  onClick={() => useAiSuggestion(suggestion)}
+                  title={onSendAiSuggestion ? "Click to send this AI suggestion" : "Click to copy this AI suggestion"}
+                  style={{
+                    border: "1px solid #c4b5fd",
+                    background: "#fff",
+                    color: "#4c1d95",
+                    borderRadius: 999,
+                    padding: "7px 10px",
+                    fontSize: 12,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                  }}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#64748b" }}>
+              {aiSuggestionsError || "AI suggestions will appear after deal messages are available."}
+            </div>
+          )}
+
+          <div style={{ marginTop: 8, fontSize: 11, color: "#64748b", fontWeight: 700 }}>
+            {onSendAiSuggestion
+              ? "Click any suggestion to send it directly."
+              : "Click any suggestion to copy it, then paste/send from the message box."}
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

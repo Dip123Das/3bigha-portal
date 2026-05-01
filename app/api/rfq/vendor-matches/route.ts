@@ -17,6 +17,85 @@ function includesLoose(a: string, b: string) {
   return x.includes(y) || y.includes(x);
 }
 
+async function aiVendorScore(row: any, input: { module: string; item: string; city: string; locality: string; pincode: string }) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return null;
+
+  try {
+    const prompt = `
+Score this vendor for a buyer RFQ on 3bigha.com.
+
+Return only JSON:
+{"score": 0-20, "reason": "short reason"}
+
+Buyer RFQ:
+module=${input.module}
+item=${input.item}
+city=${input.city}
+locality=${input.locality}
+pincode=${input.pincode}
+
+Vendor:
+business=${clean(row.business_name) || clean(row.company_name) || clean(row.name)}
+type=${clean(row.vendor_type) || clean(row.business_type)}
+category=${clean(row.category)}
+city=${clean(row.city)}
+locality=${clean(row.locality)}
+district=${clean(row.district)}
+pincode=${clean(row.pincode)}
+verified=${row.verified === true || row.is_verified === true || clean(row.approval_status).toLowerCase() === "approved"}
+boosted=${!!row.boost_priority || !!row.is_boosted}
+description=${clean(row.description).slice(0, 300)}
+`;
+
+    const aiRes = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
+        input: [{ role: "user", content: prompt }],
+        temperature: 0.15,
+        max_output_tokens: 120,
+      }),
+    });
+
+    const aiJson = await aiRes.json().catch(() => null);
+    const raw =
+      typeof aiJson?.output_text === "string"
+        ? aiJson.output_text
+        : aiJson?.output
+            ?.flatMap((item: any) => item?.content || [])
+            ?.map((content: any) => content?.text)
+            ?.filter(Boolean)
+            ?.join("\n");
+
+    const parsed = JSON.parse(String(raw || "{}"));
+    const score = Number(parsed?.score);
+
+    if (!aiRes.ok || !Number.isFinite(score)) return null;
+
+    return {
+      score: Math.max(0, Math.min(20, score)),
+      reason: clean(parsed?.reason).slice(0, 120),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function getPlanBoost(row: any) {
+  const plan = clean(row.subscription_plan).toLowerCase();
+
+  if (plan === "platinum") return 20;
+  if (plan === "gold") return 10;
+  if (plan === "silver") return 5;
+
+  return 0;
+}
+
 function scoreVendor(row: any, input: { module: string; item: string; city: string; locality: string; pincode: string }) {
   let score = 45;
   const reasons: string[] = [];
@@ -108,9 +187,10 @@ export async function GET(req: Request) {
 
     const rows = Array.isArray(data) ? data : [];
 
-    const matches = rows
-      .map((row: any) => {
+    const scoredRows = await Promise.all(
+      rows.map(async (row: any) => {
         const ranked = scoreVendor(row, { module, item, city, locality, pincode });
+        const aiRanked = await aiVendorScore(row, { module, item, city, locality, pincode });
 
         const displayName =
           clean(row.business_name) ||
@@ -119,11 +199,33 @@ export async function GET(req: Request) {
           clean(row.owner_name) ||
           "Local vendor";
 
+        const planBoost = getPlanBoost(row);
+        const manualBoost = Number(row.boost_priority || 0);
+
+        const finalScore = Math.min(
+          ranked.score + (aiRanked?.score || 0) + planBoost + manualBoost,
+          99
+        );
+
+        const boostReasonParts = [];
+        if (planBoost > 0) boostReasonParts.push(`plan boost +${planBoost}`);
+        if (manualBoost > 0) boostReasonParts.push(`manual boost +${manualBoost}`);
+
+        const boostReason = boostReasonParts.length
+          ? ` • ${boostReasonParts.join(" • ")}`
+          : "";
+
+        const finalReason = aiRanked?.reason
+          ? `${ranked.reason} • AI match: ${aiRanked.reason}${boostReason}`
+          : `${ranked.reason}${boostReason}`;
+
         return {
           user_id: clean(row.user_id),
           name: displayName,
-          reason: ranked.reason,
-          score: ranked.score,
+          reason: finalReason,
+          score: finalScore,
+          base_score: ranked.score,
+          ai_score: aiRanked?.score || 0,
           city: clean(row.city),
           locality: clean(row.locality),
           district: clean(row.district),
@@ -131,6 +233,9 @@ export async function GET(req: Request) {
           source: "business_profiles",
         };
       })
+    );
+
+    const matches = scoredRows
       .filter((row) => row.score >= 45)
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);

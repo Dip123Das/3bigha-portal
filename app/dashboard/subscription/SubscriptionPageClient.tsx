@@ -12,6 +12,13 @@ type SessionUser = {
 
 type PlanKey = "free" | "basic_vendor" | "premium_vendor" | "hub_vendor";
 
+function planAiBoostPower(plan: PlanKey) {
+  if (plan === "hub_vendor") return 20;
+  if (plan === "premium_vendor") return 10;
+  if (plan === "basic_vendor") return 5;
+  return 0;
+}
+
 function safePath(p: string | null, fallback: string) {
   if (!p) return fallback;
   if (!p.startsWith("/")) return fallback; // internal only
@@ -356,6 +363,28 @@ export default function SubscriptionPageClient() {
               ) : null}
             </div>
 
+            <div className="revenueHero">
+              <div>
+                <div className="revenueKicker">AI Boost Monetization</div>
+                <div className="revenueTitle">
+                  Get more buyer RFQs with AI-powered vendor ranking
+                </div>
+                <div className="revenueText">
+                  3Bigha now ranks vendors using location relevance, verification,
+                  AI match quality and subscription boost power. Higher plans get
+                  stronger visibility in buyer matching.
+                </div>
+              </div>
+
+              <div className="revenueScore">
+                <div className="scoreLabel">Your current AI boost power</div>
+                <div className="scoreValue">+{planAiBoostPower(activePlan)}</div>
+                <div className="scoreHint">
+                  Upgrade can increase your RFQ visibility by 3x–5x depending on buyer demand.
+                </div>
+              </div>
+            </div>
+
             <div className="grid">
               <PlanCard
                 title="FREE"
@@ -378,11 +407,13 @@ export default function SubscriptionPageClient() {
               />
 
               <PlanCard
-                title="BASIC VENDOR"
+                title="SILVER AI BOOST"
                 price="₹499 / month"
+                boost="+5 AI Boost"
+                highlight="Starter revenue plan"
                 bullets={[
-                  "Boost priority level 5",
-                  "Better RFQ targeting than free vendors",
+                  "Better RFQ visibility than free vendors",
+                  "AI ranking advantage in buyer matching",
                   "Suitable for small local sellers",
                 ]}
                 active={activePlan === "basic_vendor" && isActive}
@@ -392,10 +423,12 @@ export default function SubscriptionPageClient() {
               />
 
               <PlanCard
-                title="⭐ PREMIUM VENDOR"
+                title="⭐ GOLD AI BOOST"
                 price="₹999 / month"
+                boost="+10 AI Boost"
+                highlight="Most popular"
                 bullets={[
-                  "Boost priority level 10",
+                  "Strong AI ranking advantage",
                   "Premium Vendor badge in Price Today",
                   "Higher chance of RFQ + buyer chat routing",
                 ]}
@@ -406,12 +439,14 @@ export default function SubscriptionPageClient() {
               />
 
               <PlanCard
-                title="🔥 HUB VENDOR"
+                title="🔥 PLATINUM HUB BOOST"
                 price="₹1999 / month"
+                boost="+20 AI Boost"
+                highlight="Maximum visibility"
                 bullets={[
-                  "Boost priority level 20",
-                  "Highest RFQ visibility across categories",
-                  "Best for large suppliers and multi-category vendors",
+                  "Highest AI vendor matching priority",
+                  "Best RFQ visibility across categories",
+                  "Ideal for large suppliers and multi-category vendors",
                 ]}
                 active={activePlan === "hub_vendor" && isActive}
                 cta={activePlan === "hub_vendor" && isActive ? "Active" : "Pay ₹1999"}
@@ -545,6 +580,67 @@ export default function SubscriptionPageClient() {
           font-size: 12px;
           color: #111827;
         }
+        .subPage .revenueHero {
+          margin-top: 14px;
+          border: 1px solid #fde68a;
+          background: linear-gradient(135deg, #fffbeb, #ffffff);
+          border-radius: 20px;
+          padding: 18px;
+          display: flex;
+          justify-content: space-between;
+          gap: 18px;
+          flex-wrap: wrap;
+          box-shadow: 0 14px 30px rgba(15, 23, 42, 0.07);
+        }
+        .subPage .revenueKicker {
+          font-size: 12px;
+          font-weight: 950;
+          color: #92400e;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        }
+        .subPage .revenueTitle {
+          margin-top: 6px;
+          font-size: 24px;
+          line-height: 1.12;
+          font-weight: 950;
+          color: #111827;
+          max-width: 640px;
+        }
+        .subPage .revenueText {
+          margin-top: 8px;
+          font-size: 13px;
+          line-height: 1.55;
+          color: #475569;
+          max-width: 720px;
+          font-weight: 700;
+        }
+        .subPage .revenueScore {
+          min-width: 220px;
+          border: 1px solid #f59e0b;
+          background: #fff;
+          border-radius: 18px;
+          padding: 14px;
+        }
+        .subPage .scoreLabel {
+          font-size: 12px;
+          color: #64748b;
+          font-weight: 900;
+        }
+        .subPage .scoreValue {
+          margin-top: 4px;
+          font-size: 38px;
+          line-height: 1;
+          font-weight: 950;
+          color: #b45309;
+        }
+        .subPage .scoreHint {
+          margin-top: 8px;
+          font-size: 12px;
+          line-height: 1.45;
+          color: #475569;
+          font-weight: 800;
+        }
         .subPage .grid {
           margin-top: 14px;
           display: grid;
@@ -577,6 +673,28 @@ export default function SubscriptionPageClient() {
           color: #6b7280;
           font-size: 13px;
           font-weight: 800;
+        }
+        .subPage .boostTag {
+          margin-top: 8px;
+          display: inline-flex;
+          border: 1px solid #fde68a;
+          background: #fffbeb;
+          color: #92400e;
+          border-radius: 999px;
+          padding: 5px 9px;
+          font-size: 12px;
+          font-weight: 950;
+        }
+        .subPage .highlightTag {
+          margin-top: 8px;
+          display: inline-flex;
+          border: 1px solid #bfdbfe;
+          background: #eff6ff;
+          color: #1d4ed8;
+          border-radius: 999px;
+          padding: 5px 9px;
+          font-size: 12px;
+          font-weight: 950;
         }
         .subPage .badge {
           border-radius: 999px;
@@ -629,6 +747,8 @@ export default function SubscriptionPageClient() {
 function PlanCard(props: {
   title: string;
   price: string;
+  boost?: string;
+  highlight?: string;
   bullets: string[];
   active: boolean;
   cta: string;
@@ -641,6 +761,8 @@ function PlanCard(props: {
         <div>
           <div className="cardTitle">{props.title}</div>
           <div className="cardPrice">{props.price}</div>
+          {props.boost ? <div className="boostTag">{props.boost}</div> : null}
+          {props.highlight ? <div className="highlightTag">{props.highlight}</div> : null}
         </div>
         <div className={`badge ${props.active ? "badgeOn" : ""}`}>{props.active ? "ACTIVE" : "PLAN"}</div>
       </div>
