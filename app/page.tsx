@@ -167,6 +167,30 @@ export default function HomePage() {
     const isUrgent = has("urgent", "immediate", "fast", "asap");
     const hasQty = /\d+/.test(text);
 
+    // property intent must come before RFQ because property searches often contain numbers like "10 lakh", "2 katha", "1000 sq ft"
+    if (
+      has(
+        "land",
+        "plot",
+        "property",
+        "flat",
+        "house",
+        "apartment",
+        "builder",
+        "katha",
+        "bigha",
+        "sq ft",
+        "sqft",
+        "acre"
+      )
+    ) {
+      return {
+        module: "property",
+        label: "Property → Smart search",
+        path: `/search?module=property&q=${encodeURIComponent(raw.trim())}`,
+      };
+    }
+
     // RFQ / requirement intent
     if (
       has(
@@ -212,9 +236,7 @@ export default function HomePage() {
       return {
         module: "rentals",
         label: "Rental → Nearby options",
-        path: `/search?module=rentals&q=${encodeURIComponent(
-          getFinalQuery(raw)
-        )}`,
+        path: `/search?module=rentals&q=${encodeURIComponent(raw.trim())}`,
       };
     }
 
@@ -223,18 +245,14 @@ export default function HomePage() {
       return {
         module: "services",
         label: "Service → Provider search",
-        path: `/search?module=services&q=${encodeURIComponent(
-          getFinalQuery(raw)
-        )}`,
+        path: `/search?module=services&q=${encodeURIComponent(raw.trim())}`,
       };
     }
 
     return {
       module: searchModule,
       label: "Smart search → Results",
-      path: `/search?module=${searchModule}&q=${encodeURIComponent(
-        getFinalQuery(raw)
-      )}`,
+      path: `/search?module=${searchModule}&q=${encodeURIComponent(raw.trim())}`,
     };
   };
 
