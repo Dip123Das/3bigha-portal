@@ -993,9 +993,46 @@ export default function HomePage() {
                       fontSize: 22,
                       fontWeight: 900,
                       lineHeight: 1.35,
+                      display: "flex",
+                      gap: 8,
+                      flexWrap: "wrap",
                     }}
                   >
-                    Requirement → Match → Quote → Chat → Close
+                    <button
+                      type="button"
+                      onClick={() => router.push("/rfq/general/new")}
+                      style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", color: "#0b57d0", font: "inherit" }}
+                    >
+                      Requirement →
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/rfq/general")}
+                      style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", color: "#0b57d0", font: "inherit" }}
+                    >
+                      Match →
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/dashboard/buyer")}
+                      style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", color: "#0b57d0", font: "inherit" }}
+                    >
+                      Quote →
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/dashboard/inbox")}
+                      style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", color: "#0b57d0", font: "inherit" }}
+                    >
+                      Chat →
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/dashboard")}
+                      style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", color: "#0b57d0", font: "inherit" }}
+                    >
+                      Close
+                    </button>
                   </div>
                   <div
                     style={{
