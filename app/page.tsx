@@ -349,9 +349,10 @@ export default function HomePage() {
             className="homeHeroInner"
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr",
-              gap: 12,
-              padding: "12px",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(min(100%, 460px), 1fr))",
+              gap: 16,
+              padding: "16px",
               alignItems: "stretch",
               position: "relative",
             }}
@@ -451,7 +452,7 @@ export default function HomePage() {
               <div
                 style={{
                   marginTop: 10,
-                  maxWidth: 760,
+                  maxWidth: "100%",
                   width: "100%",
                 }}
               >
@@ -880,7 +881,11 @@ export default function HomePage() {
             <div
               className="homeHeroSide"
               style={{
-                display: "none",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "stretch",
+                minWidth: 0,
+                height: "100%",
               }}
             >
               <div
