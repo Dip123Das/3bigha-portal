@@ -16,6 +16,20 @@ type ModFilter = "all" | SearchModule;
 
 type PropertyIntent = "all" | "sell" | "rent" | "lease" | "pg";
 
+type AiSearchIntent = {
+  ok?: boolean;
+  source?: "ai" | "fallback";
+  query?: string;
+  module?: ModFilter;
+  intent?: PropertyIntent;
+  min?: string;
+  max?: string;
+  near?: boolean;
+  confidence?: number;
+  explanation?: string;
+  error?: string;
+};
+
 type ResultRow = {
   module: SearchModule;
   id: string;
@@ -144,6 +158,7 @@ function SearchPageInner() {
   const [nearKm, setNearKm] = useState(String(kmFromUrl));
 
   const [loading, setLoading] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [rows, setRows] = useState<ResultRow[]>([]);
   const [note, setNote] = useState<string | null>(null);
@@ -292,6 +307,66 @@ function SearchPageInner() {
 
     rec.onerror = () => setNote("Voice search failed. Please try again.");
     rec.start();
+  }
+
+  async function applyAiSearchIntent() {
+    const query = safeText(qInput);
+
+    if (!query) {
+      setNote("Type what you are looking for, then use Smart AI Search.");
+      return;
+    }
+
+    setAiBusy(true);
+    setErr(null);
+    setNote(null);
+
+    try {
+      const res = await fetch("/api/ai/search-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+
+      const data = (await res.json()) as AiSearchIntent;
+
+      if (!res.ok || !data?.ok) {
+        setNote(data?.error || "Smart AI Search could not understand this query.");
+        return;
+      }
+
+      const nextQ = safeText(data.query) || query;
+      const nextModule = data.module || "all";
+      const nextIntent = data.intent || "all";
+      const nextMin = safeText(data.min);
+      const nextMax = safeText(data.max);
+      const nextNear = Boolean(data.near);
+
+      setQInput(nextQ);
+      setModInput(nextModule);
+      setIntentInput(nextIntent);
+      setMinInput(nextMin);
+      setMaxInput(nextMax);
+      setNearOn(nextNear);
+
+      setNote(data.explanation || "Smart AI Search applied better filters.");
+
+      pushUrl({
+        q: nextQ,
+        module: nextModule,
+        intent: nextIntent,
+        min: nextMin,
+        max: nextMax,
+        near: nextNear,
+        lat: latFromUrl,
+        lng: lngFromUrl,
+        km: nearKm,
+      });
+    } catch {
+      setNote("Smart AI Search failed. Normal search is still available.");
+    } finally {
+      setAiBusy(false);
+    }
   }
 
   // Search runner
@@ -661,6 +736,25 @@ if (want.includes("rentals")) {
                 }}
               >
                 Search
+              </button>
+
+              <button
+                type="button"
+                onClick={applyAiSearchIntent}
+                disabled={aiBusy}
+                style={{
+                  height: 44,
+                  borderRadius: 12,
+                  border: "1px solid #dbeafe",
+                  background: aiBusy ? "#eff6ff" : "#2563eb",
+                  color: aiBusy ? "#1d4ed8" : "white",
+                  fontWeight: 950,
+                  padding: "0 16px",
+                  cursor: aiBusy ? "not-allowed" : "pointer",
+                }}
+                title="AI understands natural language and applies the best filters"
+              >
+                {aiBusy ? "AI reading…" : "✨ Smart AI Search"}
               </button>
 
               <button
