@@ -88,10 +88,18 @@ description=${clean(row.description).slice(0, 300)}
 
 function getPlanBoost(row: any) {
   const plan = clean(row.subscription_plan).toLowerCase();
+  const status = clean(row.subscription_status).toLowerCase();
+  const expiresAt = clean(row.subscription_expires_at);
 
-  if (plan === "platinum") return 20;
-  if (plan === "gold") return 10;
-  if (plan === "silver") return 5;
+  const isActive =
+    status === "active" &&
+    (!expiresAt || new Date(expiresAt).getTime() >= Date.now());
+
+  if (!isActive) return 0;
+
+  if (plan === "hub_vendor" || plan === "platinum") return 20;
+  if (plan === "premium_vendor" || plan === "gold") return 10;
+  if (plan === "basic_vendor" || plan === "silver") return 5;
 
   return 0;
 }
@@ -202,8 +210,10 @@ export async function GET(req: Request) {
         const planBoost = getPlanBoost(row);
         const manualBoost = Number(row.boost_priority || 0);
 
+        const weightedBoost = (planBoost * 5) + manualBoost;
+
         const finalScore = Math.min(
-          ranked.score + (aiRanked?.score || 0) + planBoost + manualBoost,
+          ranked.score + (aiRanked?.score || 0) + weightedBoost,
           99
         );
 
@@ -226,6 +236,9 @@ export async function GET(req: Request) {
           score: finalScore,
           base_score: ranked.score,
           ai_score: aiRanked?.score || 0,
+          plan_boost: planBoost,
+          manual_boost: manualBoost,
+          weighted_boost: weightedBoost,
           city: clean(row.city),
           locality: clean(row.locality),
           district: clean(row.district),
@@ -237,7 +250,13 @@ export async function GET(req: Request) {
 
     const matches = scoredRows
       .filter((row) => row.score >= 45)
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => {
+        if ((b.weighted_boost || 0) !== (a.weighted_boost || 0)) {
+          return (b.weighted_boost || 0) - (a.weighted_boost || 0);
+        }
+
+        return b.score - a.score;
+      })
       .slice(0, 5);
 
     return NextResponse.json({

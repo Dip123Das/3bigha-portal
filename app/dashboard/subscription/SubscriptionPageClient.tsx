@@ -40,26 +40,27 @@ function defaultReturnForSource(source: string): string {
   return "/dashboard";
 }
 
-function buildSelfUrl(params: { source: string; listingId: string | null; returnTo: string }) {
+function buildSelfUrl(params: {
+  source: string;
+  listingId: string | null;
+  returnTo: string;
+  focus?: string;
+}) {
   const q = new URLSearchParams();
   q.set("source", params.source);
+  if (params.focus && params.focus !== "unknown") q.set("focus", params.focus);
   if (params.listingId) q.set("listingId", params.listingId);
   q.set("return", params.returnTo);
   return `/dashboard/subscription?${q.toString()}`;
 }
 
 export default function SubscriptionPageClient() {
-  useEffect(() => {
-  const script = document.createElement("script");
-  script.src = "https://checkout.razorpay.com/v1/checkout.js";
-  script.async = true;
-  document.body.appendChild(script);
-}, []);
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const router = useRouter();
   const sp = useSearchParams();
 
   const source = sp.get("source") || "unknown";
+  const focus = normalizeSource(sp.get("focus"));
   const listingId = sp.get("listingId");
 
   // if return is missing, we fallback to per-source default
@@ -96,7 +97,7 @@ export default function SubscriptionPageClient() {
           setErr(error.message || "Failed to read session.");
           setLoading(false);
 
-          const nextUrl = buildSelfUrl({ source, listingId, returnTo });
+          const nextUrl = buildSelfUrl({ source, listingId, returnTo, focus });
           router.replace(`/login?next=${encodeURIComponent(nextUrl)}`);
           return;
         }
@@ -106,7 +107,7 @@ export default function SubscriptionPageClient() {
           setUser(null);
           setLoading(false);
 
-          const nextUrl = buildSelfUrl({ source, listingId, returnTo });
+          const nextUrl = buildSelfUrl({ source, listingId, returnTo, focus });
           router.replace(`/login?next=${encodeURIComponent(nextUrl)}`);
           return;
         }
@@ -181,63 +182,59 @@ export default function SubscriptionPageClient() {
     };
   }, [supabase, user?.id]);
 
-  async function handlePayment(plan: string) {
-  try {
-    const res = await fetch("/api/payment/create-order", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ plan }),
-    });
+    async function handlePayment(plan: PlanKey) {
+    if (!user?.id) return;
 
-    const order = await res.json();
+    setSaving(true);
+    setMsg(null);
+    setErr(null);
 
-    if (!order.id) {
-      alert("Order creation failed");
-      return;
+    try {
+      await fetch("/api/inbox-ai-action", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "subscription_purchase_intent",
+          plan,
+          source,
+          focus,
+          listingId,
+          returnTo,
+          userId: user.id,
+        }),
+      });
+
+      const { error: requestError } = await supabase
+        .from("business_profiles")
+        .update({
+          subscription_plan: plan,
+          subscription_status: "requested",
+          subscription_expires_at: null,
+        })
+        .eq("user_id", user.id);
+
+      if (requestError) {
+        console.warn("subscription request update failed:", requestError.message);
+      }
+
+      setActivePlan(plan);
+      setIsActive(false);
+      setExpiresAt(null);
+
+      setMsg(
+        "✅ Plan request submitted. Online payment is coming soon. Admin can now manually activate this plan after payment confirmation."
+      );
+    } catch (e: any) {
+      console.warn("subscription purchase intent tracking failed:", e?.message || e);
+      setMsg(
+        "Payment is coming soon. Please contact admin for manual activation of this plan."
+      );
+    } finally {
+      setSaving(false);
     }
-
-    const supabase = (await import("@/lib/supabaseBrowser")).getSupabaseBrowser();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    const options: any = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-      amount: order.amount,
-      currency: order.currency,
-      name: "3Bigha",
-      description: "Subscription Payment",
-      order_id: order.id,
-      handler: async function (response: any) {
-        await fetch("/api/payment/verify", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...response,
-            plan,
-            user_id: user?.id,
-          }),
-        });
-
-        alert("Payment successful 🎉");
-        window.location.reload();
-      },
-      theme: {
-        color: "#f59e0b",
-      },
-    };
-
-    const rzp = new (window as any).Razorpay(options);
-    rzp.open();
-  } catch (e) {
-    console.error(e);
-    alert("Payment failed");
   }
-}
 
   async function activatePlan(plan: PlanKey) {
     if (!user?.id) return;
@@ -289,8 +286,13 @@ export default function SubscriptionPageClient() {
             <div className="kicker">Subscription</div>
             <h1 className="h1">Subscription & Plans</h1>
             <p className="p">
-              3Bigha is a listing & discovery platform. Vendors sell directly to buyers.
-              We charge only subscription (no commission).
+              {focus === "boost"
+                ? "Recover missed leads by boosting your visibility in AI vendor matching."
+                : focus === "ai"
+                ? "Improve deal closing with AI-powered replies and smarter follow-ups."
+                : focus === "premium"
+                ? "Maintain top vendor position with maximum visibility and priority ranking."
+                : "3Bigha is a listing & discovery platform. Vendors sell directly to buyers. We charge only subscription (no commission)."}
             </p>
           </div>
 
@@ -315,7 +317,28 @@ export default function SubscriptionPageClient() {
           </div>
         ) : (
           <>
-            {listingIdMissing ? (
+            {focus === "boost" ? (
+              <div className="alert alertWarn" style={{ borderColor: "#f97316", background: "#fff7ed" }}>
+                <b>⚠️ You are missing potential leads.</b>
+                <div style={{ marginTop: 6 }}>
+                  Upgrade visibility so more buyer RFQs reach you first.
+                </div>
+              </div>
+            ) : focus === "ai" ? (
+              <div className="alert" style={{ borderColor: "#2563eb", background: "#eff6ff", color: "#1e3a8a" }}>
+                <b>⚠️ Your deal conversion needs improvement.</b>
+                <div style={{ marginTop: 6 }}>
+                  Use AI-powered replies and better follow-ups to close more deals.
+                </div>
+              </div>
+            ) : focus === "premium" ? (
+              <div className="alert" style={{ borderColor: "#059669", background: "#ecfdf5", color: "#064e3b" }}>
+                <b>🏆 Premium visibility recommended.</b>
+                <div style={{ marginTop: 6 }}>
+                  Maintain stronger ranking and stay ahead of competing vendors.
+                </div>
+              </div>
+            ) : listingIdMissing ? (
               <div className="alert alertWarn">
                 <b>Missing listingId:</b> This page was opened without a valid listing id.
                 <div style={{ marginTop: 6 }}>
@@ -343,6 +366,11 @@ export default function SubscriptionPageClient() {
               <div className="pill">
                 <b>Source:</b> {source}
               </div>
+              {focus !== "unknown" ? (
+                <div className="pill">
+                  <b>Focus:</b> {focus}
+                </div>
+              ) : null}
               <div className="pill">
                 <b>Return:</b> {returnTo}
               </div>
@@ -367,12 +395,22 @@ export default function SubscriptionPageClient() {
               <div>
                 <div className="revenueKicker">AI Boost Monetization</div>
                 <div className="revenueTitle">
-                  Get more buyer RFQs with AI-powered vendor ranking
+                  {focus === "boost"
+                    ? "Recover missed leads with stronger AI boost visibility"
+                    : focus === "ai"
+                    ? "Improve deal closing with AI-assisted vendor growth"
+                    : focus === "premium"
+                    ? "Stay ahead with premium vendor visibility"
+                    : "Get more buyer RFQs with AI-powered vendor ranking"}
                 </div>
                 <div className="revenueText">
-                  3Bigha now ranks vendors using location relevance, verification,
-                  AI match quality and subscription boost power. Higher plans get
-                  stronger visibility in buyer matching.
+                  {focus === "boost"
+                    ? "Your vendor dashboard found missed lead opportunities. Upgrade visibility so more buyer RFQs reach you first."
+                    : focus === "ai"
+                    ? "Use AI-powered visibility and smarter follow-ups to convert more conversations into completed deals."
+                    : focus === "premium"
+                    ? "Keep your ranking strong with higher boost power, premium trust signals, and maximum buyer visibility."
+                    : "3Bigha now ranks vendors using location relevance, verification, AI match quality and subscription boost power. Higher plans get stronger visibility in buyer matching."}
                 </div>
               </div>
 
@@ -383,6 +421,10 @@ export default function SubscriptionPageClient() {
                   Upgrade can increase your RFQ visibility by 3x–5x depending on buyer demand.
                 </div>
               </div>
+            </div>
+
+            <div className="alert alertWarn">
+              <b>Payment Safe Mode:</b> Online payment is not active yet. Plan requests are recorded now, and Razorpay checkout will be enabled only after GST, current bank account, and legal setup are complete.
             </div>
 
             <div className="grid">
@@ -410,14 +452,15 @@ export default function SubscriptionPageClient() {
                 title="SILVER AI BOOST"
                 price="₹499 / month"
                 boost="+5 AI Boost"
-                highlight="Starter revenue plan"
+                highlight={focus === "boost" ? "Recommended for missed leads" : "Starter revenue plan"}
+                recommended={focus === "boost"}
                 bullets={[
                   "Better RFQ visibility than free vendors",
                   "AI ranking advantage in buyer matching",
                   "Suitable for small local sellers",
                 ]}
                 active={activePlan === "basic_vendor" && isActive}
-                cta={activePlan === "basic_vendor" && isActive ? "Active" : "Pay ₹499"}
+                cta={activePlan === "basic_vendor" && isActive ? "Active" : saving ? "Please wait…" : "Request Silver Activation"}
                 disabled={saving || (activePlan === "basic_vendor" && isActive)}
                 onClick={() => handlePayment("basic_vendor")}
               />
@@ -426,14 +469,15 @@ export default function SubscriptionPageClient() {
                 title="⭐ GOLD AI BOOST"
                 price="₹999 / month"
                 boost="+10 AI Boost"
-                highlight="Most popular"
+                highlight={focus === "ai" ? "Recommended for deal closing" : "Most popular"}
+                recommended={focus === "ai"}
                 bullets={[
                   "Strong AI ranking advantage",
                   "Premium Vendor badge in Price Today",
                   "Higher chance of RFQ + buyer chat routing",
                 ]}
                 active={activePlan === "premium_vendor" && isActive}
-                cta={activePlan === "premium_vendor" && isActive ? "Active" : "Pay ₹999"}
+                cta={activePlan === "premium_vendor" && isActive ? "Active" : saving ? "Please wait…" : "Request Gold Activation"}
                 disabled={saving || (activePlan === "premium_vendor" && isActive)}
                 onClick={() => handlePayment("premium_vendor")}
               />
@@ -442,14 +486,15 @@ export default function SubscriptionPageClient() {
                 title="🔥 PLATINUM HUB BOOST"
                 price="₹1999 / month"
                 boost="+20 AI Boost"
-                highlight="Maximum visibility"
+                highlight={focus === "premium" ? "Recommended for top visibility" : "Maximum visibility"}
+                recommended={focus === "premium"}
                 bullets={[
                   "Highest AI vendor matching priority",
                   "Best RFQ visibility across categories",
                   "Ideal for large suppliers and multi-category vendors",
                 ]}
                 active={activePlan === "hub_vendor" && isActive}
-                cta={activePlan === "hub_vendor" && isActive ? "Active" : "Pay ₹1999"}
+                cta={activePlan === "hub_vendor" && isActive ? "Active" : saving ? "Please wait…" : "Request Platinum Activation"}
                 disabled={saving || (activePlan === "hub_vendor" && isActive)}
                 onClick={() => handlePayment("hub_vendor")}
               />
@@ -658,6 +703,11 @@ export default function SubscriptionPageClient() {
           background: #fff;
           padding: 14px;
         }
+        .subPage .cardRecommended {
+          border: 2px solid #f59e0b;
+          box-shadow: 0 16px 34px rgba(245, 158, 11, 0.18);
+          transform: translateY(-2px);
+        }
         .subPage .cardTop {
           display: flex;
           justify-content: space-between;
@@ -751,12 +801,13 @@ function PlanCard(props: {
   highlight?: string;
   bullets: string[];
   active: boolean;
+  recommended?: boolean;
   cta: string;
   disabled?: boolean;
   onClick: () => void;
 }) {
   return (
-    <div className="card">
+    <div className={`card ${props.recommended ? "cardRecommended" : ""}`}>
       <div className="cardTop">
         <div>
           <div className="cardTitle">{props.title}</div>
