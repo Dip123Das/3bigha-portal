@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import LeadScore from "./LeadScore";
 
 type AttachmentRow = {
   kind?: "image" | "file" | "audio";
@@ -674,6 +675,45 @@ useEffect(() => {
                           background: "#fff",
                         }}
                       />
+                      <div style={{ marginTop: 8 }}>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const text =
+                              (document.querySelector("textarea") as HTMLTextAreaElement)?.value || "";
+
+                            if (!text) {
+                              alert("Write message first");
+                              return;
+                            }
+
+                            const res = await fetch("/api/ai/deal-message", {
+                              method: "POST",
+                              headers: {
+                                "Content-Type": "application/json",
+                              },
+                              body: JSON.stringify({ message: text }),
+                            });
+
+                            const data = await res.json();
+
+                            if (data?.message) {
+                              const textarea = document.querySelector("textarea") as HTMLTextAreaElement;
+                              textarea.value = data.message;
+                            }
+                          }}
+                          style={{
+                            padding: "6px 10px",
+                            borderRadius: 8,
+                            background: "#22c55e",
+                            color: "#fff",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                          }}
+                        >
+                          ⚡ Improve with AI
+                        </button>
+                      </div>
 
                       <div
                         style={{
@@ -716,7 +756,13 @@ useEffect(() => {
                       </div>
                     </div>
                   ) : m.body ? (
-                    <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.45 }}>{m.body}</div>
+                    <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.45 }}>
+                      {m.body}
+
+                      {String(m.sender_role || "").toLowerCase() === "buyer" ? (
+                        <LeadScore message={m.body} />
+                      ) : null}
+                    </div>
                   ) : null}
 
                   {attachments.length > 0 ? (

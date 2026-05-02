@@ -124,6 +124,12 @@ export default function ConversationComposer(props: {
     }
   }, [err, loading, lastTextAttempt]);
 
+  const [isPremium, setIsPremium] = useState(false);
+
+  useEffect(() => {
+    setIsPremium(true); // TEMP: replace with real subscription later
+  }, []);
+
   const handleSend = (messageOverride?: string) => {
     const candidateText =
       typeof messageOverride === "string" ? messageOverride : String(text ?? "");
@@ -798,9 +804,65 @@ export default function ConversationComposer(props: {
         </div>
 
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {isPremium ? (
+            <button
+              type="button"
+              onClick={async () => {
+                const currentText = String(text ?? "").trim();
+
+                if (!currentText) {
+                  alert("Write message first");
+                  return;
+                }
+
+                const res = await fetch("/api/ai/deal-message", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ message: currentText }),
+                });
+
+                const data = await res.json();
+
+                if (data?.message) {
+                  handleSend(data.message);
+                }
+              }}
+              disabled={loading}
+              style={{
+                padding: "10px 14px",
+                borderRadius: 12,
+                border: "1px solid #facc15",
+                background: "#f59e0b",
+                color: "#fff",
+                fontWeight: 900,
+                cursor: loading ? "default" : "pointer",
+              }}
+            >
+              ⚡ Auto AI Reply
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => alert("Upgrade to Gold to unlock Auto AI Reply")}
+              disabled={loading}
+              style={{
+                padding: "10px 14px",
+                borderRadius: 12,
+                border: "1px solid #d1d5db",
+                background: "#f3f4f6",
+                fontWeight: 900,
+                cursor: "pointer",
+              }}
+            >
+              🔒 Auto AI Reply
+            </button>
+          )}
+
           <button
             type="button"
-            onClick={() => handleSend("Hello")}
+            onClick={() => handleSend("Hello, I am interested. Please share more details.")}
             disabled={loading}
             style={{
               padding: "10px 14px",
