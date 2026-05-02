@@ -570,10 +570,24 @@ return;
             : "matched vendor";
 
         showPopup(`RFQ submitted successfully.\nConnecting you to ${vendorName}...`);
-        router.push(out.autoChatUrl);
+
+        const safeChatUrl =
+          typeof out?.autoConversationId === "string" && out.autoConversationId.trim()
+            ? `/dashboard/thread/${encodeURIComponent(out.autoConversationId.trim())}`
+            : typeof out?.rfqId === "string" && out.rfqId.trim()
+              ? `/dashboard/buyer/quote-compare/${encodeURIComponent(out.rfqId.trim())}`
+              : "/dashboard/buyer/rfqs";
+
+        router.push(safeChatUrl);
       } else {
         showPopup("RFQ submitted successfully. Vendors will be notified shortly.");
-        router.push("/rfq/success");
+
+        const safeRfqUrl =
+          typeof out?.rfqId === "string" && out.rfqId.trim()
+            ? `/dashboard/buyer/quote-compare/${encodeURIComponent(out.rfqId.trim())}`
+            : "/dashboard/buyer/rfqs";
+
+        router.push(safeRfqUrl);
       }
     } catch (e: any) {
   const msg = e?.message || "Something went wrong.";

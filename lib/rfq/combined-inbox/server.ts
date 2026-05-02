@@ -98,9 +98,13 @@ async function requireUser() {
   };
 }
 
-function buildOpenHref(role: CombinedInboxRole, rfqId: string) {
+function buildOpenHref(role: CombinedInboxRole, rfqId: string, conversationId?: string | null) {
+  if (conversationId) {
+    return `/dashboard/thread/${encodeURIComponent(conversationId)}`;
+  }
+
   return role === "buyer"
-    ? `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}/chat`
+    ? `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}`
     : `/vendor/inbox-v2/${encodeURIComponent(rfqId)}/chat`;
 }
 
@@ -119,7 +123,7 @@ export async function fetchCombinedInbox(params?: {
 
   const { data: convData, error: convErr } = await supabase
     .from("conversations")
-    .select("id,rfq_id,context_type,context_id,buyer_user_id,vendor_user_id,status,is_closed,created_at,updated_at")
+    .select("id,rfq_id,context_type,context_id,buyer_user_id,vendor_user_id,is_closed,created_at,updated_at")
     .eq("context_type", "rfq")
     .or(`buyer_user_id.eq.${userId},vendor_user_id.eq.${userId}`);
 
@@ -291,7 +295,7 @@ export async function fetchCombinedInbox(params?: {
       created_at: c.created_at ?? null,
       updated_at: c.updated_at ?? null,
 
-      open_href: buildOpenHref(c.role, String(c.rfq_id ?? c.context_id ?? "")),
+      open_href: buildOpenHref(c.role, String(c.rfq_id ?? c.context_id ?? ""), c.id),
     };
   });
 

@@ -22,6 +22,7 @@ type RfqMeta = {
 
 type RfqRow = {
   id: string;
+  conversation_id?: string | null;
   public_id: string | null;
   module: string | null;
   title: string | null;
@@ -853,7 +854,9 @@ export default function BuyerRfqsPage() {
                 const isFreshChat = !!lastMessageAt && Date.now() - new Date(lastMessageAt).getTime() <= 1000 * 60 * 60 * 12;
 
                 const openHref = `/dashboard/buyer/quote-compare/${encodeURIComponent(r.id)}`;
-                const chatHref = `/dashboard/buyer/quote-compare/${encodeURIComponent(r.id)}/chat`;
+                const chatHref = r.conversation_id
+                  ? `/dashboard/thread/${encodeURIComponent(r.conversation_id)}`
+                  : `/dashboard/thread/${encodeURIComponent(r.id)}`;
                 const printHref = `/dashboard/buyer/quote-compare/${encodeURIComponent(r.id)}/print`;
 
                 return (
@@ -1005,7 +1008,7 @@ export default function BuyerRfqsPage() {
                                   color: unreadChatCount > 0 ? "#b45309" : "#475569",
                                 }}
                               >
-                                Open chat now →
+                               Continue chat →
                               </div>
                             </Link>
                           ) : null}

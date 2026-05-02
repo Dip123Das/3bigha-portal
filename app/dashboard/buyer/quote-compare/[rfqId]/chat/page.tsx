@@ -50,6 +50,8 @@ export default async function BuyerRfqChatPage({
     return <div style={{ padding: 16 }}>Please login.</div>;
   }
 
+  const currentUserId = user.id;
+
   let conv: any = null;
   let convErr: any = null;
 
@@ -59,7 +61,7 @@ export default async function BuyerRfqChatPage({
       .select("id,rfq_id,context_id,buyer_user_id,vendor_user_id,is_closed,created_at,updated_at")
       .eq("context_type", "rfq")
       .eq("rfq_id", rfqId)
-      .eq("buyer_user_id", user.id)
+      .eq("buyer_user_id", currentUserId)
       .eq("vendor_user_id", vendorId)
       .maybeSingle();
 
@@ -70,10 +72,10 @@ export default async function BuyerRfqChatPage({
   if (!conv && !convErr) {
     const fallback = await supabase
       .from("conversations")
-      .select("id,rfq_id,context_id,buyer_user_id,vendor_user_id,status,is_closed,created_at,updated_at")
+      .select("id,rfq_id,context_id,buyer_user_id,vendor_user_id,is_closed,created_at,updated_at")
       .eq("context_type", "rfq")
       .eq("rfq_id", rfqId)
-      .eq("buyer_user_id", user.id)
+      .eq("buyer_user_id", currentUserId)
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -86,7 +88,7 @@ export default async function BuyerRfqChatPage({
     return <div style={{ padding: 16, color: "crimson" }}>{convErr.message}</div>;
   }
 
-  if (!conv) {
+  if (!conv?.id) {
     return (
       <div style={{ padding: 16 }}>
         <h1 style={{ fontSize: 22, fontWeight: 800 }}>RFQ Chat</h1>
@@ -111,7 +113,7 @@ export default async function BuyerRfqChatPage({
       last_read_at: new Date().toISOString(),
     })
     .eq("conversation_id", conv.id)
-    .eq("user_id", user.id);
+    .eq("user_id", currentUserId);
 
   const { data: msgs, error: msgsErr } = await supabase
     .from("conversation_messages")
@@ -120,7 +122,11 @@ export default async function BuyerRfqChatPage({
     .order("created_at", { ascending: true });
 
   if (msgsErr) {
-    return <div style={{ padding: 16, color: "crimson" }}>{msgsErr.message}</div>;
+    return (
+      <div style={{ padding: 16, color: "crimson" }}>
+        {msgsErr.message || "Failed to load messages."}
+      </div>
+    );
   }
 
   const { data: vendorBiz } = await supabase
@@ -141,20 +147,20 @@ export default async function BuyerRfqChatPage({
     (vendorProfile as any)?.name ??
     "Vendor";
 
-  const vendorPhone = (vendorProfile as any)?.phone ?? null;
+  const vendorPhone = ((vendorProfile as any)?.phone ?? null) as string | null;
   const cleanPhone = digitsOnly(vendorPhone);
 
-  const whatsappHref = cleanPhone
+  const whatsappHref: string | undefined = cleanPhone
     ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
         `Please check 3Bigha RFQ chat for RFQ ${rfqId.slice(0, 8)}.`
       )}`
-    : null;
+    : undefined;
 
-  const smsHref = cleanPhone
+  const smsHref: string | undefined = cleanPhone
     ? `sms:${cleanPhone}?body=${encodeURIComponent(
         `Please check 3Bigha RFQ chat for RFQ ${rfqId.slice(0, 8)}.`
       )}`
-    : null;
+    : undefined;
 
   const backHref = vendorId
     ? `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}?vendorId=${encodeURIComponent(vendorId)}`
@@ -174,16 +180,19 @@ export default async function BuyerRfqChatPage({
           <Link href={backHref} style={{ fontWeight: 800 }}>
             ← Back to RFQ
           </Link>
+
           {vendorPhone ? (
             <a href={`tel:${vendorPhone}`} style={{ fontWeight: 800, textDecoration: "none" }}>
               Call
             </a>
           ) : null}
+
           {whatsappHref ? (
-            <a href={whatsappHref} target="_blank" style={{ fontWeight: 800, textDecoration: "none" }}>
+            <a href={whatsappHref} target="_blank" rel="noreferrer" style={{ fontWeight: 800, textDecoration: "none" }}>
               WhatsApp
             </a>
           ) : null}
+
           {smsHref ? (
             <a href={smsHref} style={{ fontWeight: 800, textDecoration: "none" }}>
               SMS
@@ -201,16 +210,22 @@ export default async function BuyerRfqChatPage({
           background: "#fff",
         }}
       >
-        <div><strong>Vendor:</strong> {vendorName}</div>
-        <div style={{ marginTop: 6 }}><strong>Role:</strong> Vendor</div>
-        <div style={{ marginTop: 6 }}><strong>Conversation Updated:</strong> {fmtDateTime(conv.updated_at)}</div>
+        <div>
+          <strong>Vendor:</strong> {vendorName}
+        </div>
+        <div style={{ marginTop: 6 }}>
+          <strong>Role:</strong> Vendor
+        </div>
+        <div style={{ marginTop: 6 }}>
+          <strong>Conversation Updated:</strong> {fmtDateTime(conv.updated_at)}
+        </div>
       </div>
 
       <div style={{ marginTop: 16 }}>
         <BuyerRfqChatBox
           rfqId={rfqId}
           conversationId={conv.id}
-          currentUserId={user.id}
+          currentUserId={currentUserId}
           vendorName={vendorName}
           vendorPhone={vendorPhone}
           initialMessages={(msgs ?? []) as any}

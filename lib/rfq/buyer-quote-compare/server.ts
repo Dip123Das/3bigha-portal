@@ -7,6 +7,7 @@ export type BuyerQuoteVendor = {
   version: number;
   status: string | null;
   based_on_revision_no: number | null;
+  conversation_id?: string | null;
 
   delivery_days: number | null;
   valid_till: string | null;
@@ -144,6 +145,21 @@ export async function fetchBuyerQuoteCompare(rfqId: string) {
     }
   }
 
+  let conversationMap: Record<string, string> = {};
+
+  if (vendorIds.length > 0) {
+    const { data: convs } = await supabase
+      .from("conversations")
+      .select("id, vendor_user_id")
+      .eq("context_type", "rfq")
+      .eq("rfq_id", rfqId)
+      .in("vendor_user_id", vendorIds);
+
+    for (const c of convs ?? []) {
+      conversationMap[String((c as any).vendor_user_id)] = String((c as any).id);
+    }
+  }
+
   const vendorsWithNames: BuyerQuoteVendor[] = vendorQuotes.map((v) => {
     const p = vendorProfileById[v.vendor_id];
     return {
@@ -151,6 +167,9 @@ export async function fetchBuyerQuoteCompare(rfqId: string) {
       vendor_business_name: p?.business_name ?? null,
       vendor_city: p?.city ?? null,
       vendor_locality: p?.locality ?? null,
+
+      // ✅ ADD THIS
+      conversation_id: conversationMap[v.vendor_id] ?? null,
     };
   });
 

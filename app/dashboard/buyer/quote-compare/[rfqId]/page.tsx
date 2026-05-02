@@ -473,9 +473,9 @@ export default async function BuyerQuoteComparePage({
                 (acceptedVendorId && String(acceptedVendorId) === String(v.vendor_id)) ||
                 (acceptedQuoteId && String(acceptedQuoteId) === String(v.quote_id));
 
-              const talkHref = `/dashboard/buyer/quote-compare/${encodeURIComponent(
-                rfqId
-              )}/chat?vendorId=${encodeURIComponent(String(v.vendor_id ?? ""))}`;
+              const talkHref = v.conversation_id
+                ? `/dashboard/thread/${encodeURIComponent(v.conversation_id)}`
+                : `/dashboard/thread/${encodeURIComponent(rfqId)}`;
 
               return (
                 <div

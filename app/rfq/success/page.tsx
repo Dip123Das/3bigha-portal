@@ -13,9 +13,12 @@ export default function RfqSuccessPage() {
           Go Home
         </Link>
 
-        {/* ✅ real vendor inbox v2 */}
-        <Link className="topBtn topBtnGhost" href="/vendor/inbox-v2">
-          Open Vendor Inbox →
+        <Link className="topBtn topBtnGhost" href="/dashboard/buyer/rfqs">
+          View My Requirements →
+        </Link>
+
+        <Link className="topBtn topBtnGhost" href="/dashboard/buyer/inbox">
+          Open Buyer Inbox →
         </Link>
       </div>
     </div>
