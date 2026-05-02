@@ -26,6 +26,38 @@ function planAiTrustLevel(plan: PlanKey) {
   return "⚪ STANDARD";
 }
 
+function planLeadPrediction(plan: PlanKey) {
+  if (plan === "hub_vendor") {
+    return {
+      multiplier: "5x",
+      leads: "12–20",
+      label: "Maximum buyer visibility",
+    };
+  }
+
+  if (plan === "premium_vendor") {
+    return {
+      multiplier: "3x–4x",
+      leads: "8–12",
+      label: "Strong premium visibility",
+    };
+  }
+
+  if (plan === "basic_vendor") {
+    return {
+      multiplier: "2x",
+      leads: "4–7",
+      label: "Better than free visibility",
+    };
+  }
+
+  return {
+    multiplier: "1x",
+    leads: "0–3",
+    label: "Limited free visibility",
+  };
+}
+
 function safePath(p: string | null, fallback: string) {
   if (!p) return fallback;
   if (!p.startsWith("/")) return fallback; // internal only
@@ -86,6 +118,10 @@ export default function SubscriptionPageClient() {
 
   // if listingId is missing, show a clear banner (do NOT break the page)
   const listingIdMissing = !listingId || String(listingId).trim().length < 6;
+
+  const activePrediction = planLeadPrediction(activePlan);
+  const goldPrediction = planLeadPrediction("premium_vendor");
+  const platinumPrediction = planLeadPrediction("hub_vendor");
 
   // 1) Read session robustly (no infinite loading)
   useEffect(() => {
@@ -431,6 +467,68 @@ export default function SubscriptionPageClient() {
                 <div className="scoreHint">
                   Vendors with higher AI trust level get significantly more RFQs and appear earlier in buyer matching.
                 </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: 14,
+                borderRadius: 18,
+                padding: 16,
+                border: "1px solid #fde68a",
+                background: "linear-gradient(135deg, #fffbeb, #ffffff)",
+                boxShadow: "0 12px 28px rgba(245,158,11,0.10)",
+              }}
+            >
+              <div style={{ fontSize: 18, fontWeight: 950, color: "#92400e" }}>
+                📈 Predictive Revenue Engine
+              </div>
+
+              <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 800, lineHeight: 1.6 }}>
+                Estimate how your visibility may improve when your vendor plan is upgraded.
+              </div>
+
+              <div
+                style={{
+                  marginTop: 12,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+                  gap: 10,
+                }}
+              >
+                <div style={{ border: "1px solid #fed7aa", borderRadius: 14, padding: 12, background: "#fff" }}>
+                  <div style={{ fontSize: 12, color: "#92400e", fontWeight: 900 }}>Current Plan</div>
+                  <div style={{ marginTop: 4, fontSize: 22, fontWeight: 950, color: "#111827" }}>
+                    {activePrediction.multiplier}
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 12, color: "#64748b", fontWeight: 800 }}>
+                    {activePrediction.leads} expected enquiries / week
+                  </div>
+                </div>
+
+                <div style={{ border: "1px solid #bfdbfe", borderRadius: 14, padding: 12, background: "#eff6ff" }}>
+                  <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 900 }}>Gold Upgrade</div>
+                  <div style={{ marginTop: 4, fontSize: 22, fontWeight: 950, color: "#1d4ed8" }}>
+                    {goldPrediction.multiplier}
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 12, color: "#1e3a8a", fontWeight: 800 }}>
+                    {goldPrediction.leads} expected enquiries / week
+                  </div>
+                </div>
+
+                <div style={{ border: "1px solid #fecaca", borderRadius: 14, padding: 12, background: "#fff1f2" }}>
+                  <div style={{ fontSize: 12, color: "#be123c", fontWeight: 900 }}>Platinum Upgrade</div>
+                  <div style={{ marginTop: 4, fontSize: 22, fontWeight: 950, color: "#be123c" }}>
+                    {platinumPrediction.multiplier}
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 12, color: "#7f1d1d", fontWeight: 800 }}>
+                    {platinumPrediction.leads} expected enquiries / week
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 10, fontSize: 12, color: "#78716c", fontWeight: 800 }}>
+                Prediction is an estimate based on AI boost power, ranking priority, and buyer visibility logic.
               </div>
             </div>
 

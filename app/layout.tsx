@@ -11,6 +11,7 @@ import { Container } from "@/components/layout/Container";
 import AuthButtons from "./_components/AuthButtons";
 import ActiveLink from "./_components/ActiveLink";
 import GlobalUnreadBadge from "./_components/GlobalUnreadBadge";
+import GlobalNotificationBell from "./_components/GlobalNotificationBell";
 import PresenceHeartbeat from "./_components/PresenceHeartbeat";
 import MobileMenuAutoClose from "./_components/MobileMenuAutoClose";
 
@@ -265,6 +266,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 title="Open dashboard with unread chat count"
               />
 
+              <GlobalNotificationBell
+                className="topBtn topBtnGhost"
+                label="Alerts"
+              />
+
               <AuthButtons />
             </div>
 
@@ -319,6 +325,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     label="Unified Inbox"
                     variant="subLink"
                     title="Open unified inbox with unread chat count"
+                  />
+
+                  <GlobalNotificationBell
+                    className="topMobileLink"
+                    label="Notifications"
                   />
                   <ActiveLink className="topMobileLink" href="/rfq/general/new">
                     Submit Requirement

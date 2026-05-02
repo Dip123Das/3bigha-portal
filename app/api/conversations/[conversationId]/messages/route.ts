@@ -365,9 +365,10 @@ export async function POST(req: Request, { params }: RouteContext) {
     const requestedMessageType = normalizeMessageType(body?.messageType);
     const messageType: "text" | "image" | "file" | "audio" =
       requestedMessageType === "system" ? "text" : requestedMessageType;
-
+    
     const messageBody = String(body?.body ?? "");
     const trimmedMessageBody = messageBody.trim();
+    const msgLower = messageBody.toLowerCase();
     const meta = sanitizeMeta(messageType, body?.meta);
 
     const {
@@ -377,6 +378,54 @@ export async function POST(req: Request, { params }: RouteContext) {
 
     if (userErr || !user) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
+
+    // 🧠 AI AUTOPILOT DEAL + PAYMENT DETECTION
+    const isDealReady =
+      msgLower.includes("final") ||
+      msgLower.includes("confirm") ||
+      msgLower.includes("ok") ||
+      msgLower.includes("done");
+
+    if (isDealReady) {
+      await supabase.from("vendor_notifications").insert({
+        user_id: user.id,
+        type: "deal_ready",
+        title: "Deal closing opportunity 🎯",
+        message: "Buyer is ready. Respond immediately to close this deal.",
+        is_read: false,
+      });
+    }
+
+    const isPaymentSignal =
+      msgLower.includes("payment") ||
+      msgLower.includes("advance") ||
+      msgLower.includes("upi") ||
+      msgLower.includes("transfer");
+
+    if (isPaymentSignal) {
+      await supabase.from("vendor_notifications").insert({
+        user_id: user.id,
+        type: "payment_intent",
+        title: "Payment intent detected 💰",
+        message: "Buyer is discussing payment. Push for deal closure now.",
+        is_read: false,
+      });
+    }
+
+    // 🚨 FRAUD DETECTION (CHAT)
+    const msgText = messageBody.toLowerCase();
+    const fraudPatterns = ["send otp", "bank transfer", "pay advance", "upi id", "account number"];
+    const isFraudMessage = fraudPatterns.some((p) => msgText.includes(p));
+
+    if (isFraudMessage) {
+      await supabase.from("vendor_notifications").insert({
+        user_id: user.id,
+        type: "fraud_chat",
+        title: "Suspicious message detected",
+        message: "⚠️ This message may be unsafe. Avoid sharing sensitive details.",
+        is_read: false,
+      });
     }
 
     const validated = await getValidatedConversation(supabase, conversationId, user.id);

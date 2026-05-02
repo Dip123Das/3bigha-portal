@@ -83,6 +83,9 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
 
   const nowIso = new Date().toISOString();
 
+  // 🧠 SELF EVOLVING AI — LEARNING SIGNAL
+  const LEARNING_ENABLED = true;
+
   // Update RFQ meta/status
   const prevMeta = (rfq.meta ?? {}) as any;
   const nextMeta = {
@@ -93,6 +96,15 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
     accepted_at: nowIso,
   };
 
+  // 🧠 Identify winner & losers
+  const winningVendorId = qt.vendor_id;
+
+  // get all vendors involved
+  const { data: allTargets } = await supabase
+    .from("rfq_targets")
+    .select("vendor_user_id")
+    .eq("rfq_id", rfqId);
+
   const { error: upErr } = await supabase
     .from("rfqs")
     .update({
@@ -101,6 +113,36 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
       updated_at: nowIso,
     })
     .eq("id", rfqId);
+
+  // 🧠 APPLY LEARNING
+  if (LEARNING_ENABLED && winningVendorId && Array.isArray(allTargets)) {
+    for (const t of allTargets) {
+      const vid = String(t.vendor_user_id || "");
+      if (!vid) continue;
+
+      const isWinner = vid === String(winningVendorId);
+
+      await supabase.from("vendor_performance_metrics").upsert(
+        {
+          user_id: vid,
+          total_matches: 1,
+          total_selected: isWinner ? 1 : 0,
+          total_converted: isWinner ? 1 : 0,
+        },
+        { onConflict: "user_id" }
+      );
+
+      if (isWinner) {
+        await supabase.from("vendor_notifications").insert({
+          user_id: vid,
+          type: "ai_learning_win",
+          title: "You were selected 🎯",
+          message: "Your profile performed well. AI ranking boosted.",
+          is_read: false,
+        });
+      }
+    }
+  }
 
   if (upErr) {
     return NextResponse.json(
@@ -294,6 +336,20 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
     }
   } catch (e: any) {
     conversationWarning = e?.message ?? "Could not initialize unified conversation.";
+  }
+
+    // 🔥 TRACK VENDOR SELECTION
+  const selectedVendorUserId = String(acceptedVendorUserId ?? qt.vendor_id ?? "");
+
+  if (UUID_RE.test(selectedVendorUserId)) {
+    await supabase.from("vendor_performance_metrics").upsert(
+      {
+        user_id: selectedVendorUserId,
+        total_selected: 1,
+        last_updated: new Date().toISOString(),
+      },
+      { onConflict: "user_id" }
+    );
   }
 
   if (wantsJson(req)) {

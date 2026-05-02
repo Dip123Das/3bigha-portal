@@ -111,6 +111,9 @@ export default function ConversationComposer(props: {
   const [retryText, setRetryText] = useState("");
   const [aiAssistLoading, setAiAssistLoading] = useState(false);
   const [aiAssistError, setAiAssistError] = useState("");
+  const [showDealCloser, setShowDealCloser] = useState(false);
+  const [showAutoPilotHint, setShowAutoPilotHint] = useState(false);
+  const [showPaymentTrigger, setShowPaymentTrigger] = useState(false);
 
   useEffect(() => {
     if (err && lastTextAttempt) {
@@ -125,6 +128,32 @@ export default function ConversationComposer(props: {
   }, [err, loading, lastTextAttempt]);
 
   const [isPremium, setIsPremium] = useState(false);
+
+  useEffect(() => {
+    const t = String(text || "").toLowerCase();
+
+    const hasPrice =
+      /\d+/.test(t) ||
+      t.includes("price") ||
+      t.includes("rate") ||
+      t.includes("final");
+
+    const hasIntent =
+      t.includes("confirm") ||
+      t.includes("ok") ||
+      t.includes("done") ||
+      t.includes("deal");
+
+    if (hasPrice && hasIntent) {
+      setShowAutoPilotHint(true);
+      setShowDealCloser(true);
+      setShowPaymentTrigger(true);
+    } else {
+      setShowAutoPilotHint(false);
+      setShowDealCloser(false);
+      setShowPaymentTrigger(false);
+    }
+  }, [text]);
 
   useEffect(() => {
     setIsPremium(true); // TEMP: replace with real subscription later
@@ -171,7 +200,7 @@ export default function ConversationComposer(props: {
     const rawText = String(text ?? "").trim();
 
     if (!rawText || loading || aiAssistLoading) {
-      setAiAssistError("Please type a message first.");
+      setAiAssistError("Type a message to let AI improve your negotiation.");
       return;
     }
 
@@ -182,7 +211,10 @@ export default function ConversationComposer(props: {
       const res = await fetch("/api/ai/deal-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: rawText }),
+        body: JSON.stringify({
+          message: rawText,
+          context: "negotiation",
+        }),
       });
 
       const data = await res.json().catch(() => null);
@@ -201,6 +233,22 @@ export default function ConversationComposer(props: {
 
   return (
     <div style={{ padding: 12, borderTop: "1px solid #e5e7eb", background: "#fff" }}>
+      {showAutoPilotHint && (
+        <div
+          style={{
+            marginBottom: 10,
+            padding: 10,
+            borderRadius: 10,
+            background: "#ecfeff",
+            border: "1px solid #67e8f9",
+            fontWeight: 900,
+            fontSize: 12,
+            color: "#0e7490",
+          }}
+        >
+          🤖 AI Suggestion: Buyer is ready. Push for final confirmation & payment.
+        </div>
+      )}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
         {QUICK_REPLIES.map((q) => (
           <button
@@ -256,6 +304,94 @@ export default function ConversationComposer(props: {
             }}
           >
             Ask full deal details
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              applyAiDealSuggestion(
+                "Your price seems slightly higher than expected. Could you offer a better rate or any discount for immediate confirmation?"
+              )
+            }
+            disabled={loading}
+            style={{
+              padding: "7px 10px",
+              borderRadius: 999,
+              border: "1px solid #f59e0b",
+              background: "#fff",
+              color: "#92400e",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: loading ? "default" : "pointer",
+            }}
+          >
+            💰 Ask for discount
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              applyAiDealSuggestion(
+                "I am comparing multiple vendors. If you can give your best final rate now, I can confirm quickly."
+              )
+            }
+            disabled={loading}
+            style={{
+              padding: "7px 10px",
+              borderRadius: 999,
+              border: "1px solid #0ea5e9",
+              background: "#fff",
+              color: "#075985",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: loading ? "default" : "pointer",
+            }}
+          >
+            📊 Compare vendors
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              applyAiDealSuggestion(
+                "If the price and delivery can be finalized today, I am ready to proceed immediately."
+              )
+            }
+            disabled={loading}
+            style={{
+              padding: "7px 10px",
+              borderRadius: 999,
+              border: "1px solid #16a34a",
+              background: "#fff",
+              color: "#065f46",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: loading ? "default" : "pointer",
+            }}
+          >
+            ⚡ Create urgency
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              applyAiDealSuggestion(
+                "Please confirm your final best offer. If everything is aligned, I will close this deal right now."
+              )
+            }
+            disabled={loading}
+            style={{
+              padding: "7px 10px",
+              borderRadius: 999,
+              border: "1px solid #7c3aed",
+              background: "#fff",
+              color: "#4c1d95",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: loading ? "default" : "pointer",
+            }}
+          >
+            🏁 Close deal fast
           </button>
 
           <button
@@ -484,6 +620,99 @@ export default function ConversationComposer(props: {
           </div>
         ) : null}
       </div>
+
+      {showDealCloser ? (
+        <div
+          style={{
+            marginBottom: 10,
+            border: "1px solid #fde68a",
+            background: "linear-gradient(90deg, #fffbeb, #ffffff)",
+            borderRadius: 14,
+            padding: "10px 12px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 10,
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#92400e" }}>
+              ⚡ AI suggests closing this deal
+            </div>
+            <div style={{ fontSize: 12, color: "#475569" }}>
+              You seem close to agreement. Confirm details and finalize.
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() =>
+              handleSend(
+                "I confirm that we have agreed on price, quantity and delivery. Please confirm so we can proceed."
+              )
+            }
+            disabled={loading}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "1px solid #f59e0b",
+              background: "#f59e0b",
+              color: "#fff",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: loading ? "default" : "pointer",
+            }}
+          >
+            🚀 Send Final Confirmation
+          </button>
+        </div>
+      ) : null}
+
+      {showPaymentTrigger ? (
+        <div
+          style={{
+            marginBottom: 10,
+            border: "1px solid #bbf7d0",
+            background: "linear-gradient(90deg, #ecfdf5, #ffffff)",
+            borderRadius: 14,
+            padding: "10px 12px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 10,
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 900, color: "#065f46" }}>
+              💳 Ready for Payment
+            </div>
+            <div style={{ fontSize: 12, color: "#475569" }}>
+              Deal looks finalized. Proceed to secure payment.
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = "/dashboard/subscription/boost";
+            }}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "1px solid #059669",
+              background: "#059669",
+              color: "#fff",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: "pointer",
+            }}
+          >
+            💳 Proceed to Payment
+          </button>
+        </div>
+      ) : null}
 
         <textarea
           value={text}

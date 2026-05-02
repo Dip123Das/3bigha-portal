@@ -184,8 +184,15 @@ async function getLatestPriceSignal(admin: any, row: any, input: VendorMatchInpu
 }
 
 function scoreVendor(row: any, input: VendorMatchInput) {
-  let score = 45;
+  let score = 0;
   const reasons: string[] = [];
+
+  // 🔥 AI WEIGHT SYSTEM
+  let replySpeedScore = 0;
+  let trustScore = 0;
+  let relevanceScore = 0;
+  let locationScore = 0;
+  let boostScore = 0;
 
   const rowCity = clean(row.city);
   const rowLocality = clean(row.locality);
@@ -193,23 +200,32 @@ function scoreVendor(row: any, input: VendorMatchInput) {
   const rowPincode = clean(row.pincode);
 
   if (input.pincode && rowPincode && input.pincode === rowPincode) {
-    score += 25;
+    locationScore += 25;
     reasons.push("same pincode");
   }
 
   if (input.locality && rowLocality && includesLoose(rowLocality, input.locality)) {
-    score += 20;
+    relevanceScore += 20;
     reasons.push("locality match");
   }
 
   if (input.city && rowCity && includesLoose(rowCity, input.city)) {
-    score += 18;
+    locationScore += 18;
     reasons.push("city match");
   }
 
   if (input.city && rowDistrict && includesLoose(rowDistrict, input.city)) {
     score += 10;
     reasons.push("district relevance");
+  }
+
+  // 🚫 AUTO BAN FILTER
+  if (clean(row.ai_visibility_status) === "restricted") {
+    return {
+      score: 0,
+      risk_score: 100,
+      reason: "Restricted by system (high risk)",
+    };
   }
 
   const searchable = [
@@ -226,24 +242,171 @@ function scoreVendor(row: any, input: VendorMatchInput) {
     .toLowerCase();
 
   if (input.item && searchable.includes(input.item.toLowerCase())) {
-    score += 12;
+    relevanceScore += 12;
     reasons.push(`relevant to ${input.item}`);
   }
 
   if (row.verified === true || row.is_verified === true || clean(row.approval_status).toLowerCase() === "approved") {
-    score += 8;
+    trustScore += 8;
     reasons.push("verified profile");
   }
 
   if (row.boost_priority || row.is_boosted) {
-    score += 7;
+    boostScore += Math.min(20, Number(row.boost_priority || 7));
     reasons.push("boosted vendor");
   }
 
-  return {
-    score: Math.min(score, 98),
-    reason: reasons.length ? reasons.join(" • ") : "Relevant vendor profile",
+  // 🔥 FINAL AI WEIGHTED SCORE
+  // 🚨 FRAUD PENALTY SIGNAL
+  let fraudPenalty = 0;
+
+  const suspiciousVendor =
+    clean(row.business_name).length < 3 ||
+    clean(row.description).length < 10;
+
+  if (suspiciousVendor) {
+    fraudPenalty = 15;
+    reasons.push("low trust profile");
+  }
+
+const riskScore = computeRiskScore(row);
+const reputationScore = computeReputationScore(row);
+const revenueScore = Math.min(20, Number(row.ai_revenue_score || 0));
+
+  // 🚨 AUTO BAN LOGIC
+  if (riskScore >= 70) {
+    row.ai_visibility_status = "restricted";
+  }
+
+// 🧠 AI MARKET DOMINANCE WEIGHTING
+
+const demandBoost =
+  input.item && searchable.includes(input.item.toLowerCase()) ? 5 : 0;
+
+const highValueVendor =
+  revenueScore > 10 && reputationScore > 60 ? 1.1 : 1;
+
+const finalScore = Math.max(
+  0,
+  Math.min(
+    100,
+    Math.round(
+      (
+        locationScore * 0.2 +
+        relevanceScore * 0.18 +
+        trustScore * 0.1 +
+        boostScore * 0.15 +
+        reputationScore * 0.17 +
+        revenueScore * 0.15 +
+        demandBoost
+      ) * highValueVendor -
+        fraudPenalty -
+        riskScore * 0.3
+    )
+  )
+);
+
+// 🧠 LEARNING DISABLED HERE (must stay sync)
+// moved to RFQ accept flow
+
+// 🧠 DEMAND SUPPLY EDGE
+const scarcityBoost =
+  input.item && !searchable.includes(input.item.toLowerCase()) ? 2 : 0;
+
+return {
+  score: Math.min(100, finalScore + scarcityBoost),
+  risk_score: riskScore,
+  reputation_score: reputationScore,
+  revenue_score: revenueScore,
+    reason:
+      reasons.length
+        ? reasons.join(" • ")
+        : "AI ranked vendor based on location, relevance, trust, and boost",
   };
+}
+
+function computeReputationScore(row: any) {
+  let rep = 50; // base neutral score
+
+  const m = row.vendor_performance_metrics;
+
+  if (m) {
+    const totalMatches = Number(m.total_matches || 0);
+    const totalSelected = Number(m.total_selected || 0);
+    const totalConverted = Number(m.total_converted || 0);
+
+    if (totalMatches > 0) {
+      const selectionRate = totalSelected / totalMatches;
+      rep += selectionRate * 30;
+    }
+
+    if (totalSelected > 0) {
+      const conversionRate = totalConverted / totalSelected;
+      rep += conversionRate * 20;
+    }
+
+    if (totalMatches > 20) {
+      rep += 10; // consistency bonus
+    }
+  }
+
+  if (row.verified === true || clean(row.approval_status).toLowerCase() === "approved") {
+    rep += 10;
+  }
+
+  if ((row.boost_priority || 0) > 0) {
+    rep += 5;
+  }
+
+  return Math.max(0, Math.min(100, Math.round(rep)));
+}
+
+function computeRiskScore(row: any) {
+  let risk = 0;
+
+  const name = clean(row.business_name);
+  const desc = clean(row.description);
+
+  if (!name || name.length < 3) risk += 20;
+  if (!desc || desc.length < 15) risk += 15;
+
+  if (!row.verified && clean(row.approval_status).toLowerCase() !== "approved") {
+    risk += 20;
+  }
+
+  if (!row.city && !row.locality) {
+    risk += 10;
+  }
+
+  if ((row.boost_priority || 0) > 30) {
+    risk += 15;
+  }
+
+  return Math.min(100, risk);
+}
+
+function predictWinProbability(row: any, baseScore: number) {
+  const m = row.vendor_performance_metrics;
+
+  if (!m) return Math.min(0.6, baseScore / 100);
+
+  const selectionRate =
+    m.total_matches > 0 ? m.total_selected / m.total_matches : 0;
+
+  const conversionRate =
+    m.total_selected > 0 ? m.total_converted / m.total_selected : 0;
+
+  const consistency =
+    m.total_matches > 20 ? 1 : m.total_matches / 20;
+
+  const probability =
+    baseScore * 0.5 +
+    selectionRate * 30 +
+    conversionRate * 20;
+
+  const normalized = Math.min(100, probability);
+
+  return Math.round((normalized / 100) * consistency * 100) / 100;
 }
 
 export async function GET(req: Request) {
@@ -265,7 +428,14 @@ export async function GET(req: Request) {
 
     const { data, error } = await admin
       .from("business_profiles")
-      .select("*")
+      .select(`
+        *,
+        vendor_performance_metrics (
+          total_matches,
+          total_selected,
+          total_converted
+        )
+      `)
       .limit(80);
 
     if (error) {
@@ -312,11 +482,29 @@ export async function GET(req: Request) {
         const weightedBoost =
           ((planBoost * 5) + manualBoost + priceBoost) * boostMultiplier;
 
+        // 🔥 PERFORMANCE MULTIPLIER
+        let performanceBoost = 0;
+
+        const m = row.vendor_performance_metrics?.[0];
+
+        if (m) {
+          const selectionRate =
+            m.total_matches > 0 ? m.total_selected / m.total_matches : 0;
+
+          const conversionRate =
+            m.total_selected > 0 ? m.total_converted / m.total_selected : 0;
+
+          performanceBoost =
+            selectionRate * 15 + // max +15
+            conversionRate * 10; // max +10
+        }
+
         const finalScore = Math.min(
           ranked.score +
             (aiRanked?.score || 0) +
             smartPriceScore +
-            weightedBoost,
+            weightedBoost +
+            performanceBoost,
           99
         );
 
@@ -333,11 +521,15 @@ export async function GET(req: Request) {
           ? `${ranked.reason} • AI match: ${aiRanked.reason}${boostReason}`
           : `${ranked.reason}${boostReason}`;
 
+        const winProbability = predictWinProbability(row, finalScore);
+
         return {
           user_id: clean(row.user_id),
           name: displayName,
           reason: finalReason,
           score: finalScore,
+          win_probability: winProbability,
+          is_top_recommended: winProbability > 0.7,
           base_score: ranked.score,
           ai_score: aiRanked?.score || 0,
           smart_price_score: smartPriceScore,
@@ -358,21 +550,54 @@ export async function GET(req: Request) {
     const filtered = scoredRows
       .filter((row) => row.score >= 45)
       .sort((a, b) => {
-        if ((b.weighted_boost || 0) !== (a.weighted_boost || 0)) {
-          return (b.weighted_boost || 0) - (a.weighted_boost || 0);
-        }
-        return b.score - a.score;
-      });
+      // 🔥 PRIORITY 1: Win Probability (AI Prediction)
+      const pDiff = (b.win_probability || 0) - (a.win_probability || 0);
+      if (Math.abs(pDiff) > 0.05) return pDiff;
+
+      // 🔥 PRIORITY 2: Boost (Revenue logic)
+      if ((b.weighted_boost || 0) !== (a.weighted_boost || 0)) {
+        return (b.weighted_boost || 0) - (a.weighted_boost || 0);
+      }
+
+      // 🔥 PRIORITY 3: Score fallback
+      return (b.score || 0) - (a.score || 0);
+    });
+
+    // 🔥 LIMIT TOP RECOMMENDED (ONLY ONE)
+    let topRecommendedAssigned = false;
+
+    const filteredWithTop = filtered.map((v) => {
+      if (!topRecommendedAssigned && (v.win_probability || 0) > 0.7) {
+        topRecommendedAssigned = true;
+        return { ...v, is_top_recommended: true };
+      }
+      return { ...v, is_top_recommended: false };
+    });
 
     // 🧠 HARD REVENUE CONTROL
-    const paid = filtered.filter((row) => (row.plan_boost || 0) > 0);
-    const free = filtered.filter((row) => (row.plan_boost || 0) === 0);
+    const paid = filteredWithTop.filter((row) => (row.plan_boost || 0) > 0);
+    const free = filteredWithTop.filter((row) => (row.plan_boost || 0) === 0);
 
     // 👉 LIMIT FREE VISIBILITY
     const limitedFree = free.slice(0, 2);
 
     // 👉 PRIORITIZE PAID + TOP FREE
     const matches = [...paid, ...limitedFree].slice(0, 5);
+
+    // 🔥 TRACK MATCH EXPOSURE
+    if (matches.length > 0) {
+      // 🧠 LEARNING SAFE CLIENT
+const learningClient = createClient(SUPABASE_URL, SUPABASE_SERVICE);
+
+await learningClient.from("vendor_performance_metrics").upsert(
+        matches.map((v: any) => ({
+          user_id: v.user_id,
+          total_matches: 1,
+          last_updated: new Date().toISOString(),
+        })),
+        { onConflict: "user_id", ignoreDuplicates: false }
+      );
+    }
 
     return NextResponse.json({
       matches,

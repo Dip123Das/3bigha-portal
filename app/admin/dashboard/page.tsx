@@ -177,6 +177,20 @@ export default async function AdminDashboardPage() {
       show: isMaster(role),
       badges: ["price today", "pending → verified/rejected"],
     },
+    {
+      title: "Admin · Vendor Control",
+      desc: "Control vendor boost, ranking power, and marketplace visibility.",
+      href: "/admin/dashboard/vendor-control",
+      show: isMaster(role),
+      badges: ["boost control", "ranking override", "AI marketplace"],
+    },
+    {
+      title: "Admin · Vendor Control AI",
+      desc: "Control vendor boost, visibility priority, and manual admin alerts.",
+      href: "/admin/dashboard/vendor-control",
+      show: isMaster(role),
+      badges: ["boost control", "manual alerts", "AI marketplace control"],
+    },
   ].filter((c) => c.show);
 
   return (

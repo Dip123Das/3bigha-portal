@@ -183,6 +183,22 @@ export async function POST(req: Request) {
       : [];
 
     const hasTyped = items.some((x) => String(x.material_name ?? "").trim() !== "");
+    // 🚨 FRAUD DETECTION (RFQ LEVEL)
+    const suspiciousWords = ["urgent money", "advance payment", "send money", "otp", "bank details"];
+
+    const combinedText = `${title} ${description}`.toLowerCase();
+
+    const isSuspicious = suspiciousWords.some((w) => combinedText.includes(w));
+
+    if (isSuspicious) {
+      await supabaseAdmin.from("vendor_notifications").insert({
+        user_id: isAuthed ? user!.id : null,
+        type: "fraud_flag",
+        title: "Suspicious RFQ detected",
+        message: "⚠️ Your RFQ content looks suspicious and may be reviewed by admin.",
+        is_read: false,
+      });
+    }
     const hasFiles = attachments.length > 0;
     if (!hasTyped && !hasFiles) {
       return jsonError("Please add at least one typed item OR upload an attachment.");
@@ -217,6 +233,56 @@ export async function POST(req: Request) {
 
     if (rfqErr || !rfq?.id) {
       return jsonError(rfqErr?.message || "RFQ insert failed.", 500);
+    }
+
+    // 🚀 AI AUTOPILOT (SAFE NON-BLOCKING)
+    try {
+      const matchUrl = new URL("/api/rfq/vendor-matches", req.url);
+
+      matchUrl.searchParams.set("module", module);
+      matchUrl.searchParams.set("item", title);
+      matchUrl.searchParams.set("city", city);
+      matchUrl.searchParams.set("locality", locality);
+      matchUrl.searchParams.set("pincode", pincode);
+
+      const matchRes = await fetch(matchUrl.toString());
+      const matchJson = await matchRes.json();
+
+      const vendors = Array.isArray(matchJson?.vendors)
+        ? matchJson.vendors.slice(0, 3) // top 3 vendors only
+        : [];
+
+      for (const v of vendors) {
+        if (!v?.user_id) continue;
+
+        try {
+          if (!isAuthed) continue;
+
+          await ensureConversation(supabaseAdmin as any, {
+            contextType: "rfq" as ConversationContextType,
+            contextId: rfq.id,
+            buyerUserId: user!.id,
+            vendorUserId: String(v.user_id),
+            title: `RFQ: ${title}`,
+            starterMessage: `🚀 New Buyer Requirement
+
+            Item: "${title}"
+            Location: ${locality}, ${city} (${pincode})
+
+            Please share:
+            ✔ Best final price
+            ✔ Delivery timeline
+            ✔ Availability status
+
+            ⚡ Buyer is actively comparing vendors. Fast response increases chances of deal closure.`,
+            rfqId: rfq.id,
+          });
+        } catch {
+          // ignore per-vendor failure
+        }
+      }
+    } catch {
+      // autopilot should NEVER break RFQ creation
     }
 
     const rfqId = String(rfq.id);

@@ -272,12 +272,161 @@ const topVendorProgressPercent = Math.min(
   Math.round((dealProgressPercent + successRateProgressPercent) / 2)
 );
 
-  // ⭐ BOOST / SUBSCRIPTION VISIBILITY
-  const [vendorPlan, setVendorPlan] = useState("free");
-  const [vendorStatus, setVendorStatus] = useState("free");
-  const [vendorBoostPriority, setVendorBoostPriority] = useState(0);
+// ⭐ BOOST / SUBSCRIPTION VISIBILITY
+const [vendorPlan, setVendorPlan] = useState("free");
+const [vendorStatus, setVendorStatus] = useState("free");
+const [vendorBoostPriority, setVendorBoostPriority] = useState(0);
+const [vendorBoostExpiresAt, setVendorBoostExpiresAt] = useState<string | null>(null);
 
-  const upsell = getUpsellMessage(vendorPlan);
+// 🔴 TRUE REAL-TIME RANK TRACKING
+const [previousKnownRank, setPreviousKnownRank] = useState<number | null>(null);
+const [rankAlert, setRankAlert] = useState<string | null>(null);
+const [rankHistorySaved, setRankHistorySaved] = useState(false);
+const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+const [rankToast, setRankToast] = useState<string | null>(null);
+const [conversionAlert, setConversionAlert] = useState<{
+  show: boolean;
+  message: string;
+} | null>(null);
+
+const [aiRankingBreakdown, setAiRankingBreakdown] = useState({
+  replySpeedScore: 0,
+  priceScore: 0,
+  trustScore: 0,
+  boostScore: 0,
+});
+
+const upsell = getUpsellMessage(vendorPlan);
+
+const activeBoostPriority =
+  vendorBoostExpiresAt && new Date(vendorBoostExpiresAt) < new Date()
+    ? 0
+    : vendorBoostPriority;
+
+const replySpeedScore = Math.min(
+  30,
+  funnelStats.totalLeads > 0
+    ? Math.round((funnelStats.repliedLeads / funnelStats.totalLeads) * 30)
+    : 0
+);
+
+const priceScore = Math.min(
+  25,
+  priceIntelligenceStats.averageDeviation === null
+    ? 5
+    : Math.max(0, 25 - priceIntelligenceStats.averageDeviation)
+);
+
+const trustScore = Math.min(
+  25,
+  Math.round(topVendorProgressPercent * 0.25)
+);
+
+const boostScore = Math.min(
+  20,
+  getPlanBoostPower(vendorPlan, activeBoostPriority)
+);
+
+const growthVisibilityScore = Math.min(
+  100,
+  Math.round(replySpeedScore + priceScore + trustScore + boostScore)
+);
+
+const leaderboardStatus =
+  growthVisibilityScore >= 80
+    ? "🔥 Top Vendor Zone"
+    : growthVisibilityScore >= 55
+    ? "⚡ Rising Vendor"
+    : growthVisibilityScore >= 30
+    ? "🔵 Visible but Not Leading"
+    : "🔒 Low Visibility";
+
+const leaderboardGap =
+  growthVisibilityScore >= 80
+    ? "You are close to premium leaderboard strength."
+    : "Upgrade visibility, improve AI pricing, and reply faster to enter top vendor zone.";
+
+// 🏆 RANK POSITION SYSTEM
+const estimatedRank =
+  growthVisibilityScore >= 85
+    ? 1
+    : growthVisibilityScore >= 75
+    ? 2
+    : growthVisibilityScore >= 65
+    ? 3
+    : growthVisibilityScore >= 55
+    ? 5
+    : growthVisibilityScore >= 40
+    ? 7
+    : growthVisibilityScore >= 25
+    ? 10
+    : 12;
+
+const rankLabel =
+  estimatedRank <= 3
+    ? "🥇 Top Vendor"
+    : estimatedRank <= 5
+    ? "⚡ High Visibility"
+    : estimatedRank <= 8
+    ? "⚠️ Medium Visibility"
+    : "🔒 Low Visibility";
+
+// 🚀 AUTO BOOST ENGINE
+const boostedRankEstimate =
+  estimatedRank <= 3 ? estimatedRank : Math.max(1, estimatedRank - 4);
+
+const autoBoostMessage =
+  estimatedRank <= 3
+    ? "You are already near the top. Maintain your boost to protect this position."
+    : `Boost now to potentially move from Rank #${estimatedRank} to Rank #${boostedRankEstimate}.`;
+
+const autoBoostCta =
+  estimatedRank <= 3
+    ? "🏆 Protect Top Position"
+    : "🚀 Boost My Rank Now";
+
+// 🔴 TRUE REAL-TIME COMPETITION ALERT
+const rankDropDetected =
+  previousKnownRank !== null && estimatedRank > previousKnownRank;
+
+const competitionAlertMessage =
+  rankAlert ||
+  (estimatedRank > 5
+    ? "⚡ Competitors in your area are actively improving visibility."
+    : "🔥 You are holding a strong position. Competitors may try to overtake you.");
+
+// 🧠 AI RECOMMENDATIONS ENGINE
+const aiRecommendations: string[] = [];
+
+if ((priceIntelligenceStats.averageDeviation || 0) > 8) {
+  aiRecommendations.push(
+    `📉 Your prices are ${priceIntelligenceStats.averageDeviation}% above market. Adjust pricing to improve visibility.`
+  );
+}
+
+if (priceIntelligenceStats.aiOptimizedCount < 3) {
+  aiRecommendations.push(
+    "📊 Increase AI-optimized price updates to enter top vendor ranking."
+  );
+}
+
+if (missedLeads > 3) {
+  aiRecommendations.push(
+    `📬 You missed ${missedLeads} leads. Faster response increases ranking priority.`
+  );
+}
+
+if (getPlanBoostPower(vendorPlan, vendorBoostPriority) === 0) {
+  aiRecommendations.push(
+    "🚀 Upgrade your plan to unlock higher AI visibility and better RFQ routing."
+  );
+}
+
+if (aiRecommendations.length === 0) {
+  aiRecommendations.push(
+    "🔥 Strong performance! Maintain pricing accuracy and response speed to dominate rankings."
+  );
+}
 
   const hiddenVendorWarning =
     getPlanBoostPower(vendorPlan, vendorBoostPriority) <= 0 &&
@@ -347,15 +496,31 @@ const topVendorProgressPercent = Math.min(
       setVendorComplete(null);
     }
 
+    const { count: notificationCount } = await supabase
+      .from("vendor_notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", session.user.id)
+      .eq("is_read", false);
+
+    setUnreadNotificationCount(notificationCount || 0);
+
     const { data: businessPlan } = await supabase
       .from("business_profiles")
-      .select("subscription_plan,subscription_status,boost_priority")
+      .select("subscription_plan,subscription_status,boost_priority,boost_expires_at")
       .eq("user_id", session.user.id)
       .maybeSingle();
 
+    const boostExpiresAt = businessPlan?.boost_expires_at
+      ? String(businessPlan.boost_expires_at)
+      : null;
+
+    const boostExpired =
+      boostExpiresAt !== null && new Date(boostExpiresAt) < new Date();
+
     setVendorPlan(String(businessPlan?.subscription_plan || "free"));
     setVendorStatus(String(businessPlan?.subscription_status || "free"));
-    setVendorBoostPriority(Number(businessPlan?.boost_priority || 0));
+    setVendorBoostPriority(boostExpired ? 0 : Number(businessPlan?.boost_priority || 0));
+    setVendorBoostExpiresAt(boostExpired ? null : boostExpiresAt);
 
     const { data: priceRows } = await supabase
       .from("material_price_updates")
@@ -460,11 +625,18 @@ const topVendorProgressPercent = Math.min(
       setLeadStats(rfqJson.analytics || {});
     }
 
+    setAiRankingBreakdown({
+      replySpeedScore,
+      priceScore,
+      trustScore,
+      boostScore,
+    });
+
     setEnquiriesLoading(false);
     setLoading(false);
     }
 
-    useEffect(() => {
+        useEffect(() => {
       load();
 
       fetch("/api/ai/vendor-coach", {
@@ -488,13 +660,108 @@ const topVendorProgressPercent = Math.min(
           setAiTips([]);
         });
 
+      const notificationTimer = window.setInterval(async () => {
+        try {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+
+          if (!session?.user?.id) return;
+
+          const { count } = await supabase
+            .from("vendor_notifications")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", session.user.id)
+            .eq("is_read", false);
+
+          setUnreadNotificationCount(count || 0);
+        } catch {}
+      }, 30000);
+
       const refreshTimer = window.setInterval(() => {
         load();
       }, 60000);
 
-      return () => window.clearInterval(refreshTimer);
+      return () => {
+        window.clearInterval(notificationTimer);
+        window.clearInterval(refreshTimer);
+      };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+      if (loading) return;
+
+      setPreviousKnownRank((prev) => {
+        if (prev === null) return estimatedRank;
+
+    if (estimatedRank > prev) {
+      const message = `⚠️ Your rank dropped from #${prev} to #${estimatedRank}. A competitor may have improved visibility.`;
+
+      setRankAlert(message);
+      setRankToast(message);
+
+      // 🔥 CONVERSION TRIGGER
+      if (estimatedRank >= 5) {
+        setConversionAlert({
+          show: true,
+          message: `🚨 You dropped to Rank #${estimatedRank}. Buyers may stop seeing you. Immediate boost recommended.`,
+        });
+      }
+
+      window.setTimeout(() => setRankToast(null), 7000);
+    } else if (estimatedRank < prev) {
+      const message = `🔥 Your rank improved from #${prev} to #${estimatedRank}. Keep your visibility active.`;
+
+      setRankAlert(message);
+      setRankToast(message);
+
+      window.setTimeout(() => setRankToast(null), 7000);
+    }
+
+        return estimatedRank;
+      });
+    }, [estimatedRank, loading]);
+
+    useEffect(() => {
+      if (loading || rankHistorySaved) return;
+
+      async function saveRankHistory() {
+        try {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+
+          if (!session?.access_token) return;
+
+          const res = await fetch("/api/vendor/rank-history", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              rank: estimatedRank,
+              score: growthVisibilityScore,
+            }),
+          });
+
+          const json = await res.json().catch(() => null);
+
+          if (json?.alertMessage) {
+            setRankAlert(json.alertMessage);
+            setRankToast(json.alertMessage);
+            window.setTimeout(() => setRankToast(null), 7000);
+          }
+
+          setRankHistorySaved(true);
+        } catch {
+          // Do not block dashboard if backend rank tracking fails.
+        }
+      }
+
+      saveRankHistory();
+    }, [estimatedRank, growthVisibilityScore, loading, rankHistorySaved, supabase]);
 
     if (loading) {
       return (
@@ -611,6 +878,124 @@ const topVendorProgressPercent = Math.min(
           </div>
         </div>
 
+        <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 18,
+            padding: 16,
+            border: "1px solid #c7d2fe",
+            background: "linear-gradient(135deg, #eef2ff, #ffffff)",
+            boxShadow: "0 10px 24px rgba(79,70,229,0.08)",
+          }}
+        >
+          <div style={{ fontSize: 18, fontWeight: 950, color: "#312e81" }}>
+            🏆 Growth Mode Leaderboard
+          </div>
+
+          <div style={{ marginTop: 6, color: "#475569", fontSize: 13, fontWeight: 800, lineHeight: 1.5 }}>
+            Your AI visibility score decides how strongly you appear against competing vendors.
+          </div>
+
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
+            <div style={{ border: "1px solid #e0e7ff", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>Visibility Score</div>
+              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#4338ca" }}>
+                {growthVisibilityScore}/100
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #e0e7ff", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>Leaderboard Status</div>
+              <div style={{ marginTop: 4, fontSize: 16, fontWeight: 950, color: "#111827" }}>
+                {leaderboardStatus}
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #fed7aa", borderRadius: 14, padding: 12, background: "#fff7ed" }}>
+              <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>Growth Gap</div>
+              <div style={{ marginTop: 4, fontSize: 13, color: "#7c2d12", fontWeight: 850, lineHeight: 1.5 }}>
+                {leaderboardGap}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <Badge>🏆 Rank: #{estimatedRank}</Badge>
+            <Badge>{rankLabel}</Badge>
+            <Badge>AI Optimized Prices: {priceIntelligenceStats.aiOptimizedCount}</Badge>
+            <Badge>
+              Avg Deviation:{" "}
+              {priceIntelligenceStats.averageDeviation === null
+                ? "No data"
+                : `${priceIntelligenceStats.averageDeviation}%`}
+            </Badge>
+            <Badge>
+              AI Boost: +{getPlanBoostPower(vendorPlan, vendorBoostPriority)}
+            </Badge>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/subscription/boost")}
+            style={{
+              marginTop: 12,
+              background: "#4f46e5",
+              color: "#fff",
+              border: "none",
+              padding: "10px 14px",
+              borderRadius: 12,
+              fontWeight: 950,
+              cursor: "pointer",
+            }}
+          >
+            🏆 Enter Top Vendor Zone
+          </button>
+        </div>
+
+        <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 18,
+            padding: 16,
+            border: "1px solid #bbf7d0",
+            background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
+            boxShadow: "0 10px 24px rgba(16,185,129,0.08)",
+          }}
+        >
+          <div style={{ fontSize: 18, fontWeight: 950, color: "#065f46" }}>
+            🧠 AI Recommendations
+          </div>
+
+          <div style={{ marginTop: 6, color: "#475569", fontSize: 13, fontWeight: 800 }}>
+            Based on your current performance, here’s how to improve visibility and leads:
+          </div>
+
+          <ul style={{ marginTop: 10, paddingLeft: 18 }}>
+            {aiRecommendations.map((rec, i) => (
+              <li key={i} style={{ marginBottom: 6, fontSize: 13, fontWeight: 850, color: "#065f46" }}>
+                {rec}
+              </li>
+            ))}
+          </ul>
+
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/subscription?focus=ai")}
+            style={{
+              marginTop: 12,
+              background: "#10b981",
+              color: "#fff",
+              border: "none",
+              padding: "10px 14px",
+              borderRadius: 12,
+              fontWeight: 950,
+              cursor: "pointer",
+            }}
+          >
+            ⚡ Improve My Ranking
+          </button>
+        </div>
+
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
             <ActionButton href="/dashboard" variant="secondary">
               ← Back
@@ -634,10 +1019,150 @@ const topVendorProgressPercent = Math.min(
   return (
     <main>
       <Container>
+        {conversionAlert?.show ? (
+          <div
+            style={{
+              position: "fixed",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 10000,
+              width: "min(420px, 92vw)",
+              borderRadius: 20,
+              border: "2px solid #dc2626",
+              background: "white",
+              boxShadow: "0 30px 80px rgba(0,0,0,0.35)",
+              padding: 18,
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: 22, fontWeight: 950, color: "#dc2626" }}>
+              🚨 Visibility Drop Detected
+            </div>
+
+            <div style={{ marginTop: 10, fontSize: 14, fontWeight: 850, color: "#374151", lineHeight: 1.6 }}>
+              {conversionAlert.message}
+            </div>
+
+            <div style={{ marginTop: 14, fontSize: 13, color: "#6b7280", fontWeight: 800 }}>
+              Vendors above you are getting more buyer leads right now.
+            </div>
+
+            <div style={{ marginTop: 16, display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+              <button
+                onClick={() => {
+                  setConversionAlert(null);
+                  router.push("/dashboard/subscription/boost");
+                }}
+                style={{
+                  background: "#dc2626",
+                  color: "white",
+                  border: "none",
+                  padding: "10px 14px",
+                  borderRadius: 12,
+                  fontWeight: 950,
+                  cursor: "pointer",
+                }}
+              >
+                🚀 Boost My Rank Now
+              </button>
+
+              <button
+                onClick={() => setConversionAlert(null)}
+                style={{
+                  background: "#f3f4f6",
+                  color: "#111827",
+                  border: "none",
+                  padding: "10px 14px",
+                  borderRadius: 12,
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                Later
+              </button>
+            </div>
+          </div>
+        ) : null}
+          <div
+            style={{
+              position: "fixed",
+              right: 18,
+              top: 18,
+              zIndex: 9999,
+              maxWidth: 360,
+              borderRadius: 18,
+              border: "1px solid #f59e0b",
+              background: "linear-gradient(135deg, #fffbeb, #ffffff)",
+              boxShadow: "0 20px 45px rgba(15,23,42,0.22)",
+              padding: 14,
+            }}
+          >
+            <div style={{ fontWeight: 950, color: "#92400e" }}>
+              🔔 Rank Alert
+            </div>
+
+            <div style={{ marginTop: 6, fontSize: 13, fontWeight: 850, color: "#475569", lineHeight: 1.5 }}>
+              {rankToast}
+            </div>
+
+            <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard/vendor/notifications")}
+                style={{
+                  border: "none",
+                  borderRadius: 10,
+                  background: "#f59e0b",
+                  color: "#fff",
+                  padding: "8px 10px",
+                  fontWeight: 950,
+                  cursor: "pointer",
+                }}
+              >
+                View Alerts
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setRankToast(null)}
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 10,
+                  background: "#fff",
+                  color: "#111827",
+                  padding: "8px 10px",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+
         <SectionHeader
           title={dashboardTitle}
           subtitle="Manage your listings, profile, and business actions from one place."
         />
+
+        {vendorBoostExpiresAt ? (
+          <div
+            style={{
+              marginBottom: 14,
+              padding: 12,
+              borderRadius: 14,
+              background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
+              border: "1px solid #bbf7d0",
+              fontWeight: 900,
+              color: "#065f46",
+            }}
+          >
+            🚀 Boost Active until{" "}
+            {new Date(vendorBoostExpiresAt).toLocaleDateString()} — Current AI Boost Power: +
+            {getPlanBoostPower(vendorPlan, activeBoostPriority)}
+          </div>
+        ) : null}
 
                 {aiTips.length > 0 ? (
           <div
@@ -660,6 +1185,89 @@ const topVendorProgressPercent = Math.min(
           </div>
         ) : null}
 
+        <div
+          style={{
+            marginBottom: 14,
+            borderRadius: 18,
+            padding: 16,
+            border: "1px solid #c7d2fe",
+            background: "linear-gradient(135deg, #eef2ff, #ffffff)",
+            boxShadow: "0 10px 24px rgba(79,70,229,0.08)",
+          }}
+        >
+          <div style={{ fontSize: 18, fontWeight: 950, color: "#312e81" }}>
+            🧠 AI Ranking Optimization
+          </div>
+
+          <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 850 }}>
+            Your ranking is now calculated from reply speed, pricing accuracy, trust score, and active boost.
+          </div>
+
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
+            <div style={{ border: "1px solid #e0e7ff", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>Reply Speed</div>
+              <div style={{ marginTop: 4, fontSize: 24, fontWeight: 950 }}>{aiRankingBreakdown.replySpeedScore}/30</div>
+            </div>
+
+            <div style={{ border: "1px solid #e0e7ff", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>Price Accuracy</div>
+              <div style={{ marginTop: 4, fontSize: 24, fontWeight: 950 }}>{aiRankingBreakdown.priceScore}/25</div>
+            </div>
+
+            <div style={{ border: "1px solid #e0e7ff", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>Trust Score</div>
+              <div style={{ marginTop: 4, fontSize: 24, fontWeight: 950 }}>{aiRankingBreakdown.trustScore}/25</div>
+            </div>
+
+            <div style={{ border: "1px solid #fed7aa", borderRadius: 14, padding: 12, background: "#fff7ed" }}>
+              <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>Boost Power</div>
+              <div style={{ marginTop: 4, fontSize: 24, fontWeight: 950 }}>{aiRankingBreakdown.boostScore}/20</div>
+            </div>
+          </div>
+        </div>
+
+        {rankAlert || estimatedRank > 3 ? (
+          <div
+            style={{
+              marginBottom: 14,
+              border: "1px solid #f87171",
+              background: "linear-gradient(135deg, #fef2f2, #ffffff)",
+              borderRadius: 18,
+              padding: 14,
+              boxShadow: "0 10px 24px rgba(239,68,68,0.10)",
+            }}
+          >
+            <div style={{ fontWeight: 950, color: "#b91c1c", fontSize: 16 }}>
+              🔴 Real-Time Competition Alert
+            </div>
+
+            <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 850 }}>
+              {competitionAlertMessage}
+            </div>
+
+            <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Badge>Current Rank: #{estimatedRank}</Badge>
+              <Badge>Visibility Score: {growthVisibilityScore}</Badge>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/subscription/boost")}
+              style={{
+                marginTop: 10,
+                background: "#dc2626",
+                color: "#fff",
+                border: "none",
+                padding: "8px 12px",
+                borderRadius: 10,
+                fontWeight: 900,
+                cursor: "pointer",
+              }}
+            >
+              🚀 Recover My Rank
+            </button>
+          </div>
+        ) : null}
         {hiddenVendorWarning ? (
           <div
             style={{
@@ -721,7 +1329,7 @@ const topVendorProgressPercent = Math.min(
             <button
               type="button"
               onClick={() =>
-                router.push("/dashboard/subscription?focus=boost")
+                router.push("/dashboard/subscription/boost")
               }
               style={{
                 marginTop: 12,
@@ -738,6 +1346,48 @@ const topVendorProgressPercent = Math.min(
             </button>
           </div>
         ) : null}
+
+        <div
+          style={{
+            marginBottom: 14,
+            border: "1px solid #f59e0b",
+            background: "linear-gradient(135deg, #fffbeb, #ffffff)",
+            borderRadius: 18,
+            padding: 16,
+            boxShadow: "0 12px 28px rgba(245,158,11,0.12)",
+          }}
+        >
+          <div style={{ color: "#92400e", fontWeight: 950, fontSize: 18 }}>
+            🚀 Auto Boost Recommendation
+          </div>
+
+          <div style={{ marginTop: 8, fontSize: 13, color: "#475569", fontWeight: 850, lineHeight: 1.6 }}>
+            {autoBoostMessage}
+          </div>
+
+          <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <Badge>Current Rank: #{estimatedRank}</Badge>
+            <Badge>After Boost: #{boostedRankEstimate}</Badge>
+            <Badge>Visibility Score: {growthVisibilityScore}/100</Badge>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/subscription/boost")}
+            style={{
+              marginTop: 12,
+              background: "#f59e0b",
+              color: "#fff",
+              border: "none",
+              padding: "10px 14px",
+              borderRadius: 12,
+              fontWeight: 950,
+              cursor: "pointer",
+            }}
+          >
+            {autoBoostCta}
+          </button>
+        </div>
 
         {upsell.show ? (
           <div
@@ -764,7 +1414,7 @@ const topVendorProgressPercent = Math.min(
 
             <button
               type="button"
-              onClick={() => router.push("/dashboard/subscription")}
+              onClick={() => router.push("/dashboard/subscription/boost")}
               style={{
                 marginTop: 10,
                 background: "#dc2626",
@@ -1075,11 +1725,11 @@ const topVendorProgressPercent = Math.min(
               } catch {}
 
               if (monetizationIntent === "boost_replies" || monetizationIntent === "boost_visibility") {
-                router.push("/dashboard/subscription?focus=boost");
+                router.push("/dashboard/subscription/boost");
               } else if (monetizationIntent === "ai_followups") {
-                router.push("/dashboard/subscription?focus=ai");
+                router.push("/dashboard/subscription/ai");
               } else {
-                router.push("/dashboard/subscription?focus=premium");
+                router.push("/dashboard/subscription/premium");
               }
             }}
             style={{
@@ -1116,6 +1766,22 @@ const topVendorProgressPercent = Math.min(
             }}
           >
             Refresh
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/vendor/notifications")}
+            style={{
+              height: 40,
+              padding: "0 14px",
+              borderRadius: 12,
+              border: unreadNotificationCount > 0 ? "1px solid #f59e0b" : "1px solid rgba(0,0,0,0.12)",
+              background: unreadNotificationCount > 0 ? "#fffbeb" : "white",
+              fontWeight: 950,
+              cursor: "pointer",
+            }}
+          >
+            🔔 Notifications {unreadNotificationCount > 0 ? `(${unreadNotificationCount})` : ""}
           </button>
 
           <div
