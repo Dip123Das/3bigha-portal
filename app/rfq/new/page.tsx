@@ -60,6 +60,7 @@ export default function RfqNewPage() {
   const [address, setAddress] = useState("");
   const [pincode, setPincode] = useState("");
   const [neededBy, setNeededBy] = useState("");
+  const [aiItems, setAiItems] = useState<any[]>([]);
 
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
@@ -228,6 +229,7 @@ export default function RfqNewPage() {
 
         <label>
           <div style={{ fontWeight: 700 }}>Description (write clearly)</div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -245,6 +247,92 @@ export default function RfqNewPage() {
               resize: "vertical",
             }}
           />
+          {aiItems.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <div style={{ fontWeight: 700, marginBottom: 6 }}>
+                🤖 AI Suggested Items
+              </div>
+
+              {aiItems.map((it, idx) => (
+                <div key={idx} style={{ fontSize: 14 }}>
+                  {it.item} — {it.qty} {it.unit}
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{ marginTop: 10 }}>
+            <button
+              type="button"
+              onClick={async () => {
+                const text =
+                  (document.querySelector("textarea") as HTMLTextAreaElement)?.value || "";
+
+                if (!text) {
+                  alert("Please write your requirement first");
+                  return;
+                }
+
+                const res = await fetch("/api/ai/rfq-generator", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ text }),
+                });
+
+                const data = await res.json();
+
+                if (data?.items?.length) {
+                  setAiItems(data.items);
+                } else {
+                  alert("AI could not generate items");
+                }
+              }}
+              style={{
+                padding: "8px 12px",
+                borderRadius: 8,
+                background: "#2563eb",
+                color: "#fff",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              ✨ Generate RFQ with AI
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={async () => {
+              const text = (document.querySelector("textarea") as HTMLTextAreaElement)?.value;
+
+              const res = await fetch("/api/ai/rfq-generator", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text }),
+              });
+
+              const data = await res.json();
+
+              if (data?.items?.length) {
+                alert("AI generated " + data.items.length + " items");
+                console.log(data.items);
+              } else {
+                alert("AI could not generate items");
+              }
+            }}
+            style={{
+              padding: "8px 12px",
+              borderRadius: 8,
+              background: "#2563eb",
+              color: "#fff",
+              fontWeight: 700,
+              cursor: "pointer"
+            }}
+          >
+            ✨ AI Generate
+          </button>
+          </div>
         </label>
 
         {/* Manual location */}

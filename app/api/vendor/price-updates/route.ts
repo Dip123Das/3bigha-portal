@@ -96,11 +96,29 @@ export async function POST(req: Request) {
     if (profile.role === "vendor") sourceType = "vendor";
     if (profile.role === "builder") sourceType = "builder";
 
-    const { boost_priority, boost_expires_at, boost_payment_id, ...safeBody } =
-      body || {};
+    const {
+      boost_priority,
+      boost_expires_at,
+      boost_payment_id,
+      ai_suggested_price,
+      ai_price_deviation_percent,
+      ...safeBody
+    } = body || {};
+
+    const aiSuggested = Number(ai_suggested_price || 0);
+    const enteredAvg =
+      (Number(safeBody?.price_min || 0) + Number(safeBody?.price_max || 0)) / 2;
+
+    let aiDeviation: number | null = null;
+
+    if (aiSuggested > 0 && enteredAvg > 0) {
+      aiDeviation = Math.round(((enteredAvg - aiSuggested) / aiSuggested) * 100);
+    }
 
     const payload = {
       ...safeBody,
+      ai_suggested_price: aiSuggested || null,
+      ai_price_deviation_percent: aiDeviation,
       boost_priority: 0,
       boost_expires_at: null,
       boost_payment_id: null,

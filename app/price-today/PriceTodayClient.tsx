@@ -35,6 +35,8 @@ type PriceRow = {
   subscriptionPlan?: string | null;
   subscriptionStatus?: string | null;
   subscriptionExpiresAt?: string | null;
+  aiSuggestedPrice?: number | null;
+  aiPriceDeviationPercent?: number | null;
 };
 
 type AggregatedPriceRow = PriceRow & {
@@ -394,6 +396,16 @@ function aggregatePriceRows(rows: PriceRow[]): AggregatedPriceRow[] {
           ?.subscriptionExpiresAt ||
         latest.subscriptionExpiresAt ||
         null,
+      aiSuggestedPrice:
+        groupRows.find((row) => row.aiSuggestedPrice !== null && row.aiSuggestedPrice !== undefined)
+          ?.aiSuggestedPrice ||
+        latest.aiSuggestedPrice ||
+        null,
+      aiPriceDeviationPercent:
+        groupRows.find((row) => row.aiPriceDeviationPercent !== null && row.aiPriceDeviationPercent !== undefined)
+          ?.aiPriceDeviationPercent ||
+        latest.aiPriceDeviationPercent ||
+        null,
     };
   });
 }
@@ -486,6 +498,34 @@ function TrustBadge({
       }`}
     >
       🛡️ {trust.label} ({trust.score}%)
+    </span>
+  );
+}
+
+function AiPriceBadge({ row }: { row: PriceRow }) {
+  const deviation = Math.abs(Number(row.aiPriceDeviationPercent));
+
+  if (!Number.isFinite(deviation)) return null;
+
+  if (deviation <= 3) {
+    return (
+      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">
+        🟢 AI Optimized
+      </span>
+    );
+  }
+
+  if (deviation <= 12) {
+    return (
+      <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-800">
+        🔵 Competitive
+      </span>
+    );
+  }
+
+  return (
+    <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-black text-orange-800">
+      🟠 Needs Correction
     </span>
   );
 }
@@ -843,7 +883,7 @@ if (userData.user) {
         supabase
           .from("material_price_updates")
           .select(
-            "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,offer_start,offer_end,source_type,created_at,verified,user_id,business_profiles!material_price_updates_created_by_fkey(subscription_plan,subscription_status,subscription_expires_at)"
+            "id,category,item,brand,grade,price_min,price_max,unit,location,trend,offer,offer_start,offer_end,source_type,created_at,verified,user_id,ai_suggested_price,ai_price_deviation_percent,business_profiles!material_price_updates_created_by_fkey(subscription_plan,subscription_status,subscription_expires_at)"
           )
           .eq("verified", true)
           .order("created_at", { ascending: false })
@@ -964,6 +1004,17 @@ if (userData.user) {
             row.business_profiles?.subscription_expires_at ||
             row.business_profiles?.[0]?.subscription_expires_at ||
             null,
+
+          // 🧠 AI PRICE VISIBILITY
+          aiSuggestedPrice:
+            row.ai_suggested_price !== null && row.ai_suggested_price !== undefined
+              ? Number(row.ai_suggested_price)
+              : null,
+          aiPriceDeviationPercent:
+            row.ai_price_deviation_percent !== null &&
+            row.ai_price_deviation_percent !== undefined
+              ? Number(row.ai_price_deviation_percent)
+              : null,
         }));
       }
 
@@ -1549,6 +1600,7 @@ if (userData.user) {
                       {row.item}
                     </h3>
                     <SubscriptionBadge row={row} />
+                    <AiPriceBadge row={row} />
                   </div>
 
                   <div className="mt-2 text-sm font-bold text-slate-700">
@@ -1738,6 +1790,7 @@ if (userData.user) {
                     <TrendBadge trend={row.trend} changePercent={row.changePercent} />
                     <TrustBadge row={row} vendorCount={row.vendorCount} />
                     <SubscriptionBadge row={row} />
+                    <AiPriceBadge row={row} />
                   </div>
 
                   {row.offer ? (

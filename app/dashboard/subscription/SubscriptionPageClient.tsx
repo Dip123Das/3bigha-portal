@@ -19,6 +19,13 @@ function planAiBoostPower(plan: PlanKey) {
   return 0;
 }
 
+function planAiTrustLevel(plan: PlanKey) {
+  if (plan === "hub_vendor") return "🔥 AI VERIFIED (MAX TRUST)";
+  if (plan === "premium_vendor") return "⭐ AI VERIFIED";
+  if (plan === "basic_vendor") return "🔵 AI BOOSTED";
+  return "⚪ STANDARD";
+}
+
 function safePath(p: string | null, fallback: string) {
   if (!p) return fallback;
   if (!p.startsWith("/")) return fallback; // internal only
@@ -410,15 +417,19 @@ export default function SubscriptionPageClient() {
                     ? "Use AI-powered visibility and smarter follow-ups to convert more conversations into completed deals."
                     : focus === "premium"
                     ? "Keep your ranking strong with higher boost power, premium trust signals, and maximum buyer visibility."
-                    : "3Bigha now ranks vendors using location relevance, verification, AI match quality and subscription boost power. Higher plans get stronger visibility in buyer matching."}
+                    : "3Bigha now ranks vendors using AI price accuracy, buyer matching intelligence, and subscription boost power. Higher plans unlock AI VERIFIED status and dominate buyer visibility."}
                 </div>
               </div>
 
               <div className="revenueScore">
-                <div className="scoreLabel">Your current AI boost power</div>
+                <div className="scoreLabel">Your AI visibility score</div>
                 <div className="scoreValue">+{planAiBoostPower(activePlan)}</div>
+
+                <div style={{ marginTop: 8, fontWeight: 900, fontSize: 14 }}>
+                  {planAiTrustLevel(activePlan)}
+                </div>
                 <div className="scoreHint">
-                  Upgrade can increase your RFQ visibility by 3x–5x depending on buyer demand.
+                  Vendors with higher AI trust level get significantly more RFQs and appear earlier in buyer matching.
                 </div>
               </div>
             </div>

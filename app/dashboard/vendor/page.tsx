@@ -25,6 +25,14 @@ type CompletenessRow = {
 
 type EnquiryStatus = "new" | "contacted" | "closed" | "spam" | string;
 
+type PriceIntelligenceStats = {
+  totalUpdates: number;
+  aiOptimizedCount: number;
+  competitiveCount: number;
+  overpricedCount: number;
+  averageDeviation: number | null;
+};
+
 type EnquiryRow = {
   id: string;
   buyer_user_id: string;
@@ -198,6 +206,17 @@ const [funnelStats, setFunnelStats] = useState({
   repliedLeads: 0,
 });
 
+const [aiTips, setAiTips] = useState<string[]>([]);
+
+const [priceIntelligenceStats, setPriceIntelligenceStats] =
+  useState<PriceIntelligenceStats>({
+    totalUpdates: 0,
+    aiOptimizedCount: 0,
+    competitiveCount: 0,
+    overpricedCount: 0,
+    averageDeviation: null,
+  });
+
 const missedLeads = Math.max(
   0,
   (leadStats.leadsLast7Days || 0) - (leadStats.viewedLeadCount || 0)
@@ -259,6 +278,12 @@ const topVendorProgressPercent = Math.min(
   const [vendorBoostPriority, setVendorBoostPriority] = useState(0);
 
   const upsell = getUpsellMessage(vendorPlan);
+
+  const hiddenVendorWarning =
+    getPlanBoostPower(vendorPlan, vendorBoostPriority) <= 0 &&
+    (missedLeads > 0 ||
+      priceIntelligenceStats.overpricedCount > 0 ||
+      priceIntelligenceStats.totalUpdates === 0);
 
   async function load() {
     setLoading(true);
@@ -331,6 +356,32 @@ const topVendorProgressPercent = Math.min(
     setVendorPlan(String(businessPlan?.subscription_plan || "free"));
     setVendorStatus(String(businessPlan?.subscription_status || "free"));
     setVendorBoostPriority(Number(businessPlan?.boost_priority || 0));
+
+    const { data: priceRows } = await supabase
+      .from("material_price_updates")
+      .select("ai_price_deviation_percent")
+      .eq("created_by", session.user.id)
+      .not("ai_price_deviation_percent", "is", null)
+      .limit(50);
+
+    const deviations = (priceRows || [])
+      .map((row: { ai_price_deviation_percent: number | string | null }) =>
+        Math.abs(Number(row.ai_price_deviation_percent || 0))
+      )
+      .filter((value) => Number.isFinite(value));
+
+    setPriceIntelligenceStats({
+      totalUpdates: deviations.length,
+      aiOptimizedCount: deviations.filter((value) => value <= 3).length,
+      competitiveCount: deviations.filter((value) => value > 3 && value <= 12).length,
+      overpricedCount: deviations.filter((value) => value > 12).length,
+      averageDeviation:
+        deviations.length > 0
+          ? Math.round(
+              deviations.reduce((sum, value) => sum + value, 0) / deviations.length
+            )
+          : null,
+    });
 
     const { data: participantRows } = await supabase
       .from("conversation_participants")
@@ -416,6 +467,27 @@ const topVendorProgressPercent = Math.min(
     useEffect(() => {
       load();
 
+      fetch("/api/ai/vendor-coach", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          stats: {
+            leads: 10,
+            replies: 5,
+            conversion: 2,
+          },
+        }),
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d?.tips) setAiTips(d.tips);
+        })
+        .catch(() => {
+          setAiTips([]);
+        });
+
       const refreshTimer = window.setInterval(() => {
         load();
       }, 60000);
@@ -479,7 +551,67 @@ const topVendorProgressPercent = Math.min(
         <Container>
           <SectionHeader title={dashboardTitle} subtitle="Vendor access required." />
 
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+          <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 18,
+            padding: 16,
+            border: "1px solid #bbf7d0",
+            background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
+            boxShadow: "0 10px 24px rgba(15,23,42,0.06)",
+          }}
+        >
+          <div style={{ fontSize: 18, fontWeight: 950, color: "#064e3b" }}>
+            💡 AI Price Intelligence
+          </div>
+
+          <div style={{ marginTop: 6, color: "#475569", fontSize: 13, lineHeight: 1.5 }}>
+            Your pricing accuracy now affects vendor matching and buyer lead visibility.
+          </div>
+
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
+            <div style={{ border: "1px solid #dcfce7", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>AI Optimized</div>
+              <div style={{ marginTop: 4, fontSize: 26, fontWeight: 950, color: "#047857" }}>
+                {priceIntelligenceStats.aiOptimizedCount}
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #dbeafe", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>Competitive</div>
+              <div style={{ marginTop: 4, fontSize: 26, fontWeight: 950, color: "#1d4ed8" }}>
+                {priceIntelligenceStats.competitiveCount}
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #fed7aa", borderRadius: 14, padding: 12, background: "#fff7ed" }}>
+              <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>Needs Correction</div>
+              <div style={{ marginTop: 4, fontSize: 26, fontWeight: 950, color: "#c2410c" }}>
+                {priceIntelligenceStats.overpricedCount}
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #e2e8f0", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>Avg. Deviation</div>
+              <div style={{ marginTop: 4, fontSize: 26, fontWeight: 950, color: "#0f172a" }}>
+                {priceIntelligenceStats.averageDeviation === null
+                  ? "—"
+                  : `${priceIntelligenceStats.averageDeviation}%`}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <ActionButton href="/vendor/price-updates/new" variant="primary">
+              Update Smart Price →
+            </ActionButton>
+            <span style={{ color: "#475569", fontSize: 13, alignSelf: "center", fontWeight: 800 }}>
+              Keep prices close to AI suggestion to improve ranking.
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
             <ActionButton href="/dashboard" variant="secondary">
               ← Back
             </ActionButton>
@@ -506,6 +638,106 @@ const topVendorProgressPercent = Math.min(
           title={dashboardTitle}
           subtitle="Manage your listings, profile, and business actions from one place."
         />
+
+                {aiTips.length > 0 ? (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: 12,
+              background: "#f1f5f9",
+              borderRadius: 8,
+            }}
+          >
+            <div style={{ fontWeight: 700, marginBottom: 6 }}>
+              🤖 AI Growth Suggestions
+            </div>
+
+            {aiTips.map((tip, i) => (
+              <div key={i} style={{ fontSize: 14 }}>
+                • {tip}
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {hiddenVendorWarning ? (
+          <div
+            style={{
+              marginBottom: 14,
+              border: "1px solid #fb7185",
+              background: "linear-gradient(135deg, #fff1f2, #ffffff)",
+              borderRadius: 18,
+              padding: 16,
+              boxShadow: "0 12px 28px rgba(190,18,60,0.10)",
+            }}
+          >
+            <div style={{ color: "#be123c", fontWeight: 950, fontSize: 18 }}>
+              🚨 You are NOT in Top Vendor Matches
+            </div>
+
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 13,
+                color: "#475569",
+                fontWeight: 800,
+                lineHeight: 1.6,
+              }}
+            >
+              Your current ranking is below visibility threshold. Buyers are mostly seeing AI-optimized and paid vendors before you.
+            </div>
+
+            <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Badge>
+                Current Plan: {vendorPlan.replace(/_/g, " ").toUpperCase()}
+              </Badge>
+              <Badge>
+                AI Boost: +{getPlanBoostPower(vendorPlan, vendorBoostPriority)}
+              </Badge>
+              <Badge>Missed Leads: {missedLeads}</Badge>
+              <Badge>
+                Avg Deviation:{" "}
+                {priceIntelligenceStats.averageDeviation === null
+                  ? "No AI data"
+                  : `${priceIntelligenceStats.averageDeviation}%`}
+              </Badge>
+            </div>
+
+            <div
+              style={{
+                marginTop: 12,
+                padding: 10,
+                borderRadius: 12,
+                background: "#fff",
+                border: "1px dashed #fb7185",
+                fontWeight: 900,
+                fontSize: 13,
+                color: "#7f1d1d",
+              }}
+            >
+              🔒 Your position is locked outside Top 5 matches
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                router.push("/dashboard/subscription?focus=boost")
+              }
+              style={{
+                marginTop: 12,
+                background: "#be123c",
+                color: "#fff",
+                border: "none",
+                padding: "10px 14px",
+                borderRadius: 12,
+                fontWeight: 950,
+                cursor: "pointer",
+              }}
+            >
+              🔥 Unlock Top Position (Upgrade Now)
+            </button>
+          </div>
+        ) : null}
 
         {upsell.show ? (
           <div

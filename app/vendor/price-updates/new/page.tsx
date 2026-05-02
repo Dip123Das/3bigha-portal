@@ -8,6 +8,14 @@ type UserState = "checking" | "allowed" | "blocked";
 type CategoryKey = "Materials" | "Services" | "Rentals" | "Properties";
 type BoostPlanKey = "basic" | "premium" | "super";
 
+type AiPriceSuggestion = {
+  suggestedPrice: number;
+  marketAverage: number;
+  confidence: "High" | "Medium" | "Low";
+  sampleSize: number;
+  note: string;
+};
+
 type MyPriceRow = {
   id: string;
   category: string;
@@ -157,6 +165,9 @@ export default function AddPricePage() {
   const [listLoading, setListLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [boostPlan, setBoostPlan] = useState<BoostPlanKey>("premium");
+  const [aiSuggestion, setAiSuggestion] =
+    useState<AiPriceSuggestion | null>(null);
+  const [aiSuggestionLoading, setAiSuggestionLoading] = useState(false);
 
   const currentItems = useMemo(() => {
     return itemOptions[form.category] || [];
@@ -249,6 +260,8 @@ export default function AddPricePage() {
   ) {
     const { name, value } = e.target;
 
+    setAiSuggestion(null);
+
     if (name === "category") {
       const nextCategory = value as CategoryKey;
 
@@ -264,6 +277,59 @@ export default function AddPricePage() {
     }
 
     setForm({ ...form, [name]: value });
+  }
+
+  async function handleAiPriceSuggestion() {
+    const minPrice = Number(form.price_min);
+    const maxPrice = Number(form.price_max);
+
+    if (!Number.isFinite(minPrice) || !Number.isFinite(maxPrice)) {
+      setMsg("❌ Enter min and max price first for AI suggestion.");
+      return;
+    }
+
+    if (maxPrice < minPrice) {
+      setMsg("❌ Max price cannot be lower than min price.");
+      return;
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+
+    if (!token) {
+      setMsg("❌ Session expired. Please login again.");
+      return;
+    }
+
+    setAiSuggestionLoading(true);
+    setMsg("");
+
+    const res = await fetch("/api/ai/price-suggestion", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        category: form.category,
+        item: form.item,
+        unit: form.unit,
+        location: form.location,
+        price_min: minPrice,
+        price_max: maxPrice,
+      }),
+    });
+
+    const json = await res.json();
+
+    if (!res.ok) {
+      setMsg("❌ " + (json?.error || "AI suggestion failed"));
+      setAiSuggestion(null);
+    } else {
+      setAiSuggestion(json as AiPriceSuggestion);
+    }
+
+    setAiSuggestionLoading(false);
   }
 
   function startEdit(price: MyPriceRow) {
@@ -369,6 +435,7 @@ export default function AddPricePage() {
       source_type: form.source_type,
       created_by: userId,
       boost_priority: form.request_boost ? boostPlans[boostPlan].priority : 0,
+      ai_suggested_price: aiSuggestion?.suggestedPrice || null,
     };
 
     const { data: sessionData } = await supabase.auth.getSession();
@@ -398,6 +465,7 @@ export default function AddPricePage() {
     } else {
       setMsg("✅ Price submitted successfully (pending verification)");
       setForm(emptyForm);
+      setAiSuggestion(null);
       loadMyPrices(userId!);
     }
 
@@ -538,6 +606,77 @@ export default function AddPricePage() {
                 required
                 className="rounded-2xl border px-4 py-3 font-bold"
               />
+            </div>
+
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <div className="text-sm font-black text-emerald-900">
+                    AI Price Suggestion
+                  </div>
+                  <div className="mt-1 text-xs font-bold text-emerald-700">
+                    Get a competitive price suggestion before submitting.
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAiPriceSuggestion}
+                  disabled={aiSuggestionLoading}
+                  className="rounded-2xl bg-emerald-700 px-4 py-2 text-xs font-black text-white disabled:opacity-60"
+                >
+                  {aiSuggestionLoading ? "Checking..." : "Suggest Price"}
+                </button>
+              </div>
+
+              {aiSuggestion ? (
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-white p-3">
+                    <div className="text-xs font-black text-slate-500">
+                      Suggested Price
+                    </div>
+                    <div className="mt-1 text-lg font-black text-emerald-700">
+                      ₹{aiSuggestion.suggestedPrice}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          price_min: String(aiSuggestion.suggestedPrice),
+                          price_max: String(aiSuggestion.suggestedPrice),
+                        })
+                      }
+                      className="mt-2 w-full rounded-xl bg-emerald-600 px-3 py-2 text-xs font-black text-white"
+                    >
+                      Use this price
+                    </button>
+                  </div>
+
+                  <div className="rounded-2xl bg-white p-3">
+                    <div className="text-xs font-black text-slate-500">
+                      Market Average
+                    </div>
+                    <div className="mt-1 text-lg font-black text-slate-950">
+                      ₹{aiSuggestion.marketAverage}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl bg-white p-3">
+                    <div className="text-xs font-black text-slate-500">
+                      Confidence
+                    </div>
+                    <div className="mt-1 text-lg font-black text-blue-700">
+                      {aiSuggestion.confidence}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl bg-white p-3 text-xs font-bold text-slate-600 sm:col-span-3">
+                    {aiSuggestion.note}
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <select

@@ -17,7 +17,7 @@ function includesLoose(a: string, b: string) {
   return x.includes(y) || y.includes(x);
 }
 
-async function aiVendorScore(row: any, input: { module: string; item: string; city: string; locality: string; pincode: string }) {
+async function aiVendorScore(row: any, input: VendorMatchInput) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return null;
 
@@ -104,7 +104,86 @@ function getPlanBoost(row: any) {
   return 0;
 }
 
-function scoreVendor(row: any, input: { module: string; item: string; city: string; locality: string; pincode: string }) {
+type VendorMatchInput = {
+  module: string;
+  item: string;
+  city: string;
+  locality: string;
+  pincode: string;
+};
+
+async function getLatestPriceSignal(admin: any, row: any, input: VendorMatchInput) {
+  const userId = clean(row.user_id);
+
+  if (!userId || clean(input.module).toLowerCase() !== "materials") {
+    return null;
+  }
+
+  let query = admin
+    .from("material_price_updates")
+    .select(
+      "ai_price_deviation_percent,ai_suggested_price,price_min,price_max,boost_priority,item,location,verified,created_at"
+    )
+    .eq("created_by", userId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (input.item) {
+    query = query.ilike("item", `%${input.item}%`);
+  }
+
+  if (input.city) {
+    query = query.ilike("location", `%${input.city}%`);
+  }
+
+  const { data, error } = await query;
+
+  if (error || !Array.isArray(data) || data.length === 0) {
+    return null;
+  }
+
+  const latest = data[0];
+  const deviation = Math.abs(Number(latest.ai_price_deviation_percent || 0));
+  const latestBoost = Number(latest.boost_priority || 0);
+
+  let score = 0;
+  const reasons: string[] = [];
+
+  if (Number.isFinite(deviation)) {
+    if (deviation <= 3) {
+      score += 15;
+      reasons.push("AI optimized price");
+    } else if (deviation <= 7) {
+      score += 10;
+      reasons.push("competitive price");
+    } else if (deviation <= 12) {
+      score += 6;
+      reasons.push("near market price");
+    } else if (deviation <= 20) {
+      score += 3;
+      reasons.push("acceptable price range");
+    }
+  }
+
+  if (latest.verified === true) {
+    score += 5;
+    reasons.push("verified price");
+  }
+
+  if (latestBoost > 0) {
+    score += latestBoost;
+    reasons.push(`price boost +${latestBoost}`);
+  }
+
+  return {
+    score: Math.min(score, 25),
+    boost: latestBoost,
+    deviation: Number.isFinite(deviation) ? deviation : null,
+    reason: reasons.join(" • "),
+  };
+}
+
+function scoreVendor(row: any, input: VendorMatchInput) {
   let score = 45;
   const reasons: string[] = [];
 
@@ -197,8 +276,10 @@ export async function GET(req: Request) {
 
     const scoredRows = await Promise.all(
       rows.map(async (row: any) => {
-        const ranked = scoreVendor(row, { module, item, city, locality, pincode });
-        const aiRanked = await aiVendorScore(row, { module, item, city, locality, pincode });
+        const input = { module, item, city, locality, pincode };
+        const ranked = scoreVendor(row, input);
+        const aiRanked = await aiVendorScore(row, input);
+        const priceRanked = await getLatestPriceSignal(admin, row, input);
 
         const displayName =
           clean(row.business_name) ||
@@ -210,16 +291,39 @@ export async function GET(req: Request) {
         const planBoost = getPlanBoost(row);
         const manualBoost = Number(row.boost_priority || 0);
 
-        const weightedBoost = (planBoost * 5) + manualBoost;
+        const priceBoost = priceRanked?.boost || 0;
+        const smartPriceScore = priceRanked?.score || 0;
+        const deviation = Math.abs(Number(priceRanked?.deviation || 0));
+
+        // 🧠 AI CONTROL: reduce boost impact if pricing is poor
+        let boostMultiplier = 1;
+
+        if (Number.isFinite(deviation)) {
+          if (deviation > 15) {
+            boostMultiplier = 0.4; // very poor pricing → heavy penalty
+          } else if (deviation > 10) {
+            boostMultiplier = 0.6;
+          } else if (deviation > 5) {
+            boostMultiplier = 0.8;
+          }
+        }
+
+        // 🎯 Controlled boost (cannot override AI quality)
+        const weightedBoost =
+          ((planBoost * 5) + manualBoost + priceBoost) * boostMultiplier;
 
         const finalScore = Math.min(
-          ranked.score + (aiRanked?.score || 0) + weightedBoost,
+          ranked.score +
+            (aiRanked?.score || 0) +
+            smartPriceScore +
+            weightedBoost,
           99
         );
 
         const boostReasonParts = [];
         if (planBoost > 0) boostReasonParts.push(`plan boost +${planBoost}`);
         if (manualBoost > 0) boostReasonParts.push(`manual boost +${manualBoost}`);
+        if (priceRanked?.reason) boostReasonParts.push(priceRanked.reason);
 
         const boostReason = boostReasonParts.length
           ? ` • ${boostReasonParts.join(" • ")}`
@@ -236,9 +340,12 @@ export async function GET(req: Request) {
           score: finalScore,
           base_score: ranked.score,
           ai_score: aiRanked?.score || 0,
+          smart_price_score: smartPriceScore,
+          ai_price_deviation_percent: priceRanked?.deviation,
           plan_boost: planBoost,
           manual_boost: manualBoost,
           weighted_boost: weightedBoost,
+          price_boost: priceBoost,
           city: clean(row.city),
           locality: clean(row.locality),
           district: clean(row.district),
@@ -248,16 +355,24 @@ export async function GET(req: Request) {
       })
     );
 
-    const matches = scoredRows
+    const filtered = scoredRows
       .filter((row) => row.score >= 45)
       .sort((a, b) => {
         if ((b.weighted_boost || 0) !== (a.weighted_boost || 0)) {
           return (b.weighted_boost || 0) - (a.weighted_boost || 0);
         }
-
         return b.score - a.score;
-      })
-      .slice(0, 5);
+      });
+
+    // 🧠 HARD REVENUE CONTROL
+    const paid = filtered.filter((row) => (row.plan_boost || 0) > 0);
+    const free = filtered.filter((row) => (row.plan_boost || 0) === 0);
+
+    // 👉 LIMIT FREE VISIBILITY
+    const limitedFree = free.slice(0, 2);
+
+    // 👉 PRIORITIZE PAID + TOP FREE
+    const matches = [...paid, ...limitedFree].slice(0, 5);
 
     return NextResponse.json({
       matches,
