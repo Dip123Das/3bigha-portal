@@ -530,6 +530,42 @@ function AiPriceBadge({ row }: { row: PriceRow }) {
   );
 }
 
+function VisibilityStatusBadge({ row }: { row: PriceRow }) {
+  const plan = String(row.subscriptionPlan || "free");
+  const status = String(row.subscriptionStatus || "free");
+
+  const expiresAt = row.subscriptionExpiresAt
+    ? new Date(row.subscriptionExpiresAt).getTime()
+    : 0;
+
+  const active =
+    status === "active" &&
+    (!row.subscriptionExpiresAt ||
+      (Number.isFinite(expiresAt) && expiresAt > Date.now()));
+
+  if (active && (plan === "hub_vendor" || plan === "premium_vendor")) {
+    return (
+      <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-black text-red-800">
+        🔥 Top Visibility
+      </span>
+    );
+  }
+
+  if (active && plan === "basic_vendor") {
+    return (
+      <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-800">
+        👁️ Better Visibility
+      </span>
+    );
+  }
+
+  return (
+    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700">
+      👁️ Free Visibility
+    </span>
+  );
+}
+
 function SubscriptionBadge({ row }: { row: PriceRow }) {
   const plan = String(row.subscriptionPlan || "free");
   const status = String(row.subscriptionStatus || "free");
@@ -1601,6 +1637,7 @@ if (userData.user) {
                     </h3>
                     <SubscriptionBadge row={row} />
                     <AiPriceBadge row={row} />
+                    <VisibilityStatusBadge row={row} />
                   </div>
 
                   <div className="mt-2 text-sm font-bold text-slate-700">
@@ -1762,15 +1799,19 @@ if (userData.user) {
                               {ctaText}
                             </button>
                             {String(row.subscriptionStatus || "free") !== "active" && (
-                              <div className="mt-2 text-xs font-bold text-red-600">
-                                ⚠️ Free vendors get fewer enquiries. Upgrade to increase visibility.
+                              <div className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-black leading-5 text-red-700">
+                                ❌ You are NOT in top vendor matches. Buyers are choosing AI-optimized and premium vendors first.
+                                <br />
+                                ⚠️ Only top 2 free vendors are shown to buyers.
+                                <br />
+                                📉 You may be losing 3–5 potential enquiries daily.
                               </div>
                             )}
                             <button
-                              onClick={() => (window.location.href = "/dashboard/subscription")}
-                              className="mt-2 w-full rounded-xl bg-amber-500 px-4 py-2 text-sm font-black text-white hover:bg-amber-600"
+                              onClick={() => (window.location.href = "/dashboard/subscription?focus=boost")}
+                              className="mt-2 w-full rounded-xl bg-red-600 px-4 py-2 text-sm font-black text-white shadow-sm hover:bg-red-700"
                             >
-                              🚀 Get More Leads (Upgrade)
+                              🔥 Unlock Top Visibility
                             </button>
                           </div>
                         </>
