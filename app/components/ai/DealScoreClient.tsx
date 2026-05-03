@@ -7,14 +7,14 @@ type DealScoreMessage = {
   body?: string;
 };
 
-const fallbackDealScore = {
-  ok: true,
+const fallback = {
   score: 40,
   label: "Normal Lead",
-  insight: "AI is waiting for stronger deal signals like price, quantity, location, delivery time, or confirmation.",
-  actionLabel: "Copy follow-up message",
+  insight:
+    "Conversation started but important deal details like price, quantity, delivery and confirmation are missing.",
+  actionLabel: "Ask for details",
   actionMessage:
-    "Hello, can you please share your required quantity, delivery location, expected delivery time, and final budget?",
+    "Please share price, quantity, delivery location and expected delivery time.",
 };
 
 export default function DealScoreClient({
@@ -24,7 +24,7 @@ export default function DealScoreClient({
   conversationId: string;
   initialMessages: DealScoreMessage[];
 }) {
-  const [data, setData] = useState<any>(fallbackDealScore);
+  const [data, setData] = useState<any>(fallback);
 
   const messageKey = useMemo(() => {
     return (initialMessages || [])
@@ -37,34 +37,27 @@ export default function DealScoreClient({
 
     async function load() {
       try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 7000);
-
         const res = await fetch("/api/ai/deal-score", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           cache: "no-store",
-          signal: controller.signal,
           body: JSON.stringify({
             conversationId,
-            messages: Array.isArray(initialMessages) ? initialMessages : [],
+            messages: initialMessages || [],
           }),
         });
-
-        clearTimeout(timeout);
 
         const json = await res.json();
 
         if (!alive) return;
 
-        if (json?.ok) {
-          setData({
-            ...fallbackDealScore,
-            ...json,
-          });
-        }
+        // 🔥 ALWAYS SET DATA (even if API imperfect)
+        setData({
+          ...fallback,
+          ...(json || {}),
+        });
       } catch {
-        if (alive) setData(fallbackDealScore);
+        if (alive) setData(fallback);
       }
     }
 
