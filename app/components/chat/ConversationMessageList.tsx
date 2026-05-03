@@ -137,9 +137,17 @@ export default function ConversationMessageList(props: {
   const [aiDealStageLoading, setAiDealStageLoading] = useState(false);
   const [aiDealStageError, setAiDealStageError] = useState("");
 
-  const [aiDealScore, setAiDealScore] = useState<AiDealScore | null>(null);
-  const [aiDealScoreLoading, setAiDealScoreLoading] = useState(false);
-  const [aiDealScoreError, setAiDealScoreError] = useState("");
+  const defaultAiDealScore: AiDealScore = {
+    score: 40,
+    label: "Normal Lead",
+    insight:
+      "Conversation started but important deal details like price, quantity, delivery and confirmation are missing.",
+    actionLabel: "Ask for details",
+    actionMessage:
+      "Please share price, quantity, delivery location and expected delivery time.",
+  };
+
+  const [aiDealScore, setAiDealScore] = useState<AiDealScore>(defaultAiDealScore);
 
   useEffect(() => {
     let cancelled = false;
@@ -192,52 +200,39 @@ useEffect(() => {
   let cancelled = false;
 
   async function loadAiDealScore() {
-    if (recentDealMessages.length === 0) {
-      setAiDealScore(null);
-      return;
-    }
-
-    setAiDealScoreLoading(true);
-    setAiDealScoreError("");
-
     try {
       const res = await fetch("/api/ai/deal-score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: recentDealMessages }),
+        cache: "no-store",
+        body: JSON.stringify({ messages: recentDealMessages || [] }),
       });
 
       const data = await res.json().catch(() => null);
 
-      if (!res.ok || !data?.score) {
-        throw new Error(data?.error || "AI deal score not available.");
-      }
-
-      if (!cancelled) {
+      if (!cancelled && res.ok) {
         setAiDealScore({
-          score: Number(data.score || 50),
-          label: String(data.label || "Moderate"),
-          insight: String(data.insight || ""),
-          actionLabel: String(data.actionLabel || "Continue"),
-          actionMessage: String(data.actionMessage || ""),
+          score: Number(data?.score || defaultAiDealScore.score),
+          label: String(data?.label || defaultAiDealScore.label),
+          insight: String(data?.insight || defaultAiDealScore.insight),
+          actionLabel: String(data?.actionLabel || defaultAiDealScore.actionLabel),
+          actionMessage: String(data?.actionMessage || defaultAiDealScore.actionMessage),
         });
       }
-    } catch (error: any) {
+    } catch {
       if (!cancelled) {
-        setAiDealScore(null);
-        setAiDealScoreError(error?.message || "AI score not available.");
-      }
-    } finally {
-      if (!cancelled) {
-        setAiDealScoreLoading(false);
+        setAiDealScore(defaultAiDealScore);
       }
     }
   }
 
   void loadAiDealScore();
 
+  const timer = setInterval(loadAiDealScore, 5000);
+
   return () => {
     cancelled = true;
+    clearInterval(timer);
   };
 }, [recentDealMessages]);
 
@@ -933,40 +928,40 @@ useEffect(() => {
             🔥 AI deal strength
           </div>
 
-          {aiDealScoreLoading ? (
-            <div style={{ fontSize: 12 }}>Analyzing deal...</div>
-          ) : aiDealScore ? (
-            <div style={{ display: "grid", gap: 8 }}>
-              <div style={{ display: "flex", gap: 8 }}>
-                <span style={{ fontWeight: 900 }}>
-                  {aiDealScore.score}%
-                </span>
-                <span>{aiDealScore.label}</span>
-              </div>
-
-              <div style={{ fontSize: 12 }}>{aiDealScore.insight}</div>
-
-              <button
-                type="button"
-                onClick={() => onSendAiSuggestion?.(aiDealScore.actionMessage)}
-                style={{
-                  border: "none",
-                  background: "#dc2626",
-                  color: "#fff",
-                  borderRadius: 999,
-                  padding: "8px 12px",
-                  fontWeight: 900,
-                  cursor: "pointer",
-                }}
-              >
-                {aiDealScore.actionLabel}
-              </button>
+          <div style={{ display: "grid", gap: 8 }}>
+            <div style={{ display: "flex", gap: 8 }}>
+              <span style={{ fontWeight: 900 }}>
+                {aiDealScore.score || 40}%
+              </span>
+              <span>{aiDealScore.label || "Normal Lead"}</span>
             </div>
-          ) : (
+
             <div style={{ fontSize: 12 }}>
-              {aiDealScoreError || "AI will analyze deal soon."}
+              {aiDealScore.insight ||
+                "Conversation started but important deal details are missing."}
             </div>
-          )}
+
+            <button
+              type="button"
+              onClick={() =>
+                onSendAiSuggestion?.(
+                  aiDealScore.actionMessage ||
+                    "Please share price, quantity, delivery location and expected delivery time."
+                )
+              }
+              style={{
+                border: "none",
+                background: "#dc2626",
+                color: "#fff",
+                borderRadius: 999,
+                padding: "8px 12px",
+                fontWeight: 900,
+                cursor: "pointer",
+              }}
+            >
+              {aiDealScore.actionLabel || "Ask for details"}
+            </button>
+          </div>
         </div>
       ) : null}
         <div
