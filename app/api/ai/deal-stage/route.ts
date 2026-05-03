@@ -151,16 +151,14 @@ function normalizeDealStage(
   if (!value || typeof value !== "object") return heuristic;
 
   const row = value as Partial<DealStageResponse>;
-
   const confidence = Number(row.confidence);
-  const safeConfidence =
-    Number.isFinite(confidence) && confidence >= 0 && confidence <= 1
-      ? Math.max(confidence, heuristic.confidence)
-      : heuristic.confidence;
 
   return {
     stage: String(row.stage || heuristic.stage).slice(0, 40),
-    confidence: safeConfidence,
+    confidence:
+      Number.isFinite(confidence) && confidence >= 0 && confidence <= 1
+        ? Math.max(confidence, heuristic.confidence)
+        : heuristic.confidence,
     reason: String(row.reason || heuristic.reason).slice(0, 220),
     ctaLabel: String(row.ctaLabel || heuristic.ctaLabel).slice(0, 40),
     ctaMessage: String(row.ctaMessage || heuristic.ctaMessage).slice(0, 220),
@@ -170,6 +168,7 @@ function normalizeDealStage(
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
+
     const messages: DealStageMessage[] = Array.isArray(body?.messages)
       ? body.messages.slice(-12)
       : [];
@@ -197,7 +196,7 @@ export async function POST(req: Request) {
 
     const context = messages
       .map(
-        (m: DealStageMessage) =>
+        (m) =>
           `${String(m?.role || "user")}: ${String(m?.body || "").slice(0, 500)}`
       )
       .join("\n");
@@ -231,7 +230,6 @@ Rules:
 - Use ready_to_close only when price, quantity, delivery, confirmation and bill/trust details are mostly covered.
 - Do not mention AI.
 - Do not assume payment is completed.
-- Do not create false promises.
 - ctaMessage must help close the deal safely.
 - Keep ctaMessage under 180 characters.
 
