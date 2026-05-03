@@ -39,83 +39,83 @@ function heuristicDealScore(messages: DealScoreMessage[]) {
     .join("\n")
     .toLowerCase();
 
-  let score = 25;
+  const hasPrice =
+    text.includes("price") ||
+    text.includes("rate") ||
+    text.includes("₹") ||
+    text.includes("rs") ||
+    text.includes("rupee");
 
-  if (text.includes("price") || text.includes("rate") || text.includes("quote"))
-    score += 10;
-  if (text.includes("delivery") || text.includes("time") || text.includes("timeline"))
-    score += 10;
-  if (text.includes("final") || text.includes("last price") || text.includes("best price"))
-    score += 20;
-  if (text.includes("ok") || text.includes("okay") || text.includes("done"))
-    score += 15;
-  if (text.includes("confirm") || text.includes("confirmed") || text.includes("start"))
-    score += 20;
-  if (
-    text.includes("urgent") ||
-    text.includes("fast") ||
-    text.includes("faster") ||
-    text.includes("tomorrow")
-  )
-    score += 12;
-  if (
-    text.includes("payment") ||
-    text.includes("advance") ||
-    text.includes("upi") ||
-    text.includes("cash")
-  )
-    score += 12;
-  if (text.includes("call me") || text.includes("phone") || text.includes("whatsapp"))
-    score += 8;
+  const hasQuantity =
+    text.includes("quantity") ||
+    text.includes("qty") ||
+    text.includes("bag") ||
+    text.includes("cft") ||
+    text.includes("ton") ||
+    text.includes("piece");
 
-  score = Math.min(score, 100);
+  const hasDelivery =
+    text.includes("delivery") ||
+    text.includes("dispatch") ||
+    text.includes("tomorrow") ||
+    text.includes("today");
 
-  if (score >= 85) {
+  const hasConfirmation =
+    text.includes("confirm") ||
+    text.includes("confirmed") ||
+    text.includes("final") ||
+    text.includes("finalised") ||
+    text.includes("done") ||
+    text.includes("okay");
+
+  if (hasPrice && hasQuantity && hasDelivery && hasConfirmation) {
     return safeDealScore({
       source: "heuristic",
-      score,
+      score: 88,
       label: "Very Strong Deal",
       insight:
-        "Buyer and vendor show strong closing intent. Confirm final terms safely before proceeding.",
+        "Final terms are mostly discussed. Confirm safely before payment.",
       actionLabel: "Confirm Deal",
       actionMessage:
-        "Please confirm final price, delivery time, start date and bill/document details before proceeding.",
+        "Please confirm final price, quantity, delivery address, delivery time and bill details before proceeding.",
     });
   }
 
-  if (score >= 70) {
+  if (hasDelivery && hasConfirmation && (!hasPrice || !hasQuantity)) {
     return safeDealScore({
       source: "heuristic",
-      score,
-      label: "Strong Deal",
+      score: 68,
+      label: "Ready but Details Missing",
       insight:
-        "The discussion shows clear buying intent. Final confirmation is the next step.",
-      actionLabel: "Ask Confirmation",
+        "Dispatch and confirmation are discussed, but price or quantity is still missing.",
+      actionLabel: "Ask Missing Details",
       actionMessage:
-        "Please confirm the final price, delivery timeline and start date.",
+        "Please confirm final price, quantity, delivery address and bill details before we proceed.",
     });
   }
 
-  if (score >= 45) {
+  if (hasDelivery || hasConfirmation || hasPrice) {
     return safeDealScore({
       source: "heuristic",
-      score,
+      score: 50,
       label: "Moderate Deal",
       insight:
         "The conversation is active, but some final deal details are still missing.",
       actionLabel: "Ask Final Details",
       actionMessage:
-        "Please share final price, delivery time, availability and bill/document details.",
+        "Please share final price, quantity, delivery location and expected delivery time.",
     });
   }
 
   return safeDealScore({
     source: "heuristic",
-    score,
-    label: "Early Discussion",
-    insight: "The conversation has started but deal intent is still weak.",
-    actionLabel: "Ask Price",
-    actionMessage: "Please share your best final price and delivery timeline.",
+    score: 40,
+    label: "Normal Lead",
+    insight:
+      "Conversation started but important deal details like price, quantity, delivery and confirmation are missing.",
+    actionLabel: "Ask for details",
+    actionMessage:
+      "Please share price, quantity, delivery location and expected delivery time.",
   });
 }
 

@@ -62,17 +62,63 @@ function heuristicAlert(messages: AlertMessage[]): AlertResponse {
     .join("\n")
     .toLowerCase();
 
-  let score = 20;
+  const hasPrice =
+    text.includes("price") ||
+    text.includes("rate") ||
+    text.includes("₹") ||
+    text.includes("rs") ||
+    text.includes("rupee");
 
-  if (text.includes("final price") || text.includes("best price")) score += 20;
-  if (text.includes("confirm") || text.includes("confirmed")) score += 25;
-  if (text.includes("delivery") || text.includes("dispatch")) score += 15;
-  if (text.includes("today") || text.includes("tomorrow") || text.includes("urgent")) score += 20;
-  if (text.includes("quantity") || text.includes("qty") || /\d+/.test(text)) score += 10;
-  if (text.includes("payment") || text.includes("advance") || text.includes("bill")) score += 15;
-  if (text.includes("call me") || text.includes("whatsapp")) score += 8;
+  const hasQuantity =
+    text.includes("quantity") ||
+    text.includes("qty") ||
+    text.includes("bag") ||
+    text.includes("cft") ||
+    text.includes("ton") ||
+    text.includes("piece");
 
-  if (score >= 75) {
+  const hasDelivery =
+    text.includes("delivery") ||
+    text.includes("dispatch") ||
+    text.includes("tomorrow") ||
+    text.includes("today");
+
+  const hasConfirmation =
+    text.includes("confirm") ||
+    text.includes("confirmed") ||
+    text.includes("final") ||
+    text.includes("finalised") ||
+    text.includes("done") ||
+    text.includes("okay");
+
+  const hasPayment =
+    text.includes("payment") ||
+    text.includes("advance") ||
+    text.includes("bill");
+
+  if (hasDelivery && hasConfirmation && (!hasPrice || !hasQuantity)) {
+    return {
+      alert: true,
+      severity: "medium",
+      audience: "both",
+      priority: "free",
+      premiumEligible: true,
+      title: "Deal Moving Fast — Details Missing",
+      insight:
+        "Dispatch and confirmation signals are present, but price or quantity is still missing.",
+      buyerHint:
+        "Confirm final price, quantity, delivery address and bill details before payment.",
+      vendorHint:
+        "Reply with final price, quantity confirmation, delivery time and bill details.",
+      upgradeHint:
+        "Premium vendors can receive priority alerts when buyers move toward confirmation.",
+      actionLabel: "Ask Missing Details",
+      actionMessage:
+        "Please confirm final price, quantity, delivery address, delivery time and bill details before we proceed.",
+    };
+  }
+
+  if (hasPrice && hasQuantity && hasDelivery && hasConfirmation) {
     return {
       alert: true,
       severity: "high",
@@ -81,20 +127,20 @@ function heuristicAlert(messages: AlertMessage[]): AlertResponse {
       premiumEligible: true,
       title: "High Intent Buyer Detected",
       insight:
-        "This conversation shows strong closing signals. Respond quickly and confirm final terms safely.",
+        "This conversation has strong closing signals. Confirm final terms safely.",
       buyerHint:
-        "Buyer should confirm final price, quantity, address, delivery time and bill before payment.",
+        "Buyer should verify price, quantity, address, delivery time and bill before payment.",
       vendorHint:
-        "Vendor should respond immediately. This buyer may be close to conversion.",
+        "Vendor should respond immediately. This buyer may be ready to close.",
       upgradeHint:
-        "Premium vendors should receive instant priority alert for this type of buyer signal.",
+        "Premium vendors should receive instant priority alert for this buyer signal.",
       actionLabel: "Send Closing Message",
       actionMessage:
         "Please confirm final price, quantity, delivery address, delivery time and bill details so we can proceed safely.",
     };
   }
 
-  if (score >= 50) {
+  if (hasDelivery || hasConfirmation || hasPrice) {
     return {
       alert: true,
       severity: "medium",
@@ -103,11 +149,11 @@ function heuristicAlert(messages: AlertMessage[]): AlertResponse {
       premiumEligible: true,
       title: "Active Deal Opportunity",
       insight:
-        "This deal is moving forward but final details are still missing.",
+        "This deal is active, but final terms are not complete yet.",
       buyerHint:
-        "Buyer should collect missing final details before confirming the deal.",
+        "Ask for price, quantity, delivery address, delivery time and bill details.",
       vendorHint:
-        "Vendor should answer clearly to avoid losing this active lead.",
+        "Give clear final details quickly to avoid losing the lead.",
       upgradeHint:
         "Boosted vendors can use priority alerts to respond faster and close more deals.",
       actionLabel: "Ask Final Details",
