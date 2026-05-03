@@ -228,6 +228,7 @@ export default async function BuyerRfqChatPage({
           currentUserId={currentUserId}
           vendorName={vendorName}
           vendorPhone={vendorPhone}
+          vendorUserId={conv.vendor_user_id}
           initialMessages={(msgs ?? []) as any}
         />
       </div>

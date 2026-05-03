@@ -351,6 +351,7 @@ export default function VendorConversationChatBox(props: {
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
   const [windowFocused, setWindowFocused] = useState(true);
+  const [aiUpgradeAlert, setAiUpgradeAlert] = useState<any | null>(null);
 
   const listRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -372,6 +373,7 @@ export default function VendorConversationChatBox(props: {
   const didInitialScrollRef = useRef(false);
   const wasNearBottomRef = useRef(true);
   const previousCountRef = useRef(initialMessages?.length ?? 0);
+  const aiAlertCheckedMessageRef = useRef<string | null>(null);
 
   const ordered = useMemo(() => sortMessagesByCreatedAt(messages), [messages]);
   const canSend = text.trim().length > 0 && !loading && !uploading;
@@ -1292,6 +1294,106 @@ export default function VendorConversationChatBox(props: {
     };
   }, []);
 
+    useEffect(() => {
+    const latestIncoming = [...ordered]
+      .reverse()
+      .find((m) => {
+        const mine = String(m.sender_user_id ?? "") === String(currentUserId);
+        const isSystem = m.sender_role === "system" || m.message_type === "system";
+        const body = String(m.body ?? "").trim();
+
+        return !mine && !isSystem && body.length > 0;
+      });
+
+    if (!latestIncoming?.id) return;
+    if (aiAlertCheckedMessageRef.current === latestIncoming.id) return;
+
+    aiAlertCheckedMessageRef.current = latestIncoming.id;
+
+    async function checkVendorDealAlert() {
+      try {
+        const recentMessages = ordered.slice(-12).map((m) => ({
+          role:
+            String(m.sender_user_id ?? "") === String(currentUserId)
+              ? "vendor"
+              : "buyer",
+          content: String(m.body ?? ""),
+          created_at: m.created_at,
+        }));
+
+                const incomingBody = String(latestIncoming?.body ?? "");
+
+        const res = await fetch("/api/ai/vendor-alert", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            side: "vendor",
+            conversationId,
+            vendorUserId: currentUserId,
+            buyerName: counterpartName,
+            buyerMessage: incomingBody,
+            latestMessage: incomingBody,
+            messages: recentMessages,
+            contextType,
+            contextTitle,
+          }),
+        });
+
+        const json = await res.json().catch(() => null);
+
+        if (!res.ok || !json?.ok) return;
+
+        const monetization = json?.monetization || {};
+        const whatsapp = json?.whatsapp || {};
+        const isPremium = Boolean(monetization?.premium);
+        const shouldUpgrade =
+          !isPremium &&
+          (monetization?.upgradeRequired ||
+            json?.priority === "high" ||
+            json?.severity === "high" ||
+            json?.alert?.priority === "high" ||
+            json?.alert?.severity === "high");
+
+        if (shouldUpgrade) {
+          setAiUpgradeAlert({
+            title: json?.title || json?.alert?.title || "High-Intent Buyer Detected",
+            message:
+              json?.message ||
+              json?.alert?.message ||
+              "AI detected that this buyer may be close to a deal. Upgrade to unlock WhatsApp alerts and priority deal protection.",
+            cta: "Unlock Premium AI Alerts",
+          });
+          return;
+        }
+
+        if (isPremium && whatsapp?.attempted) {
+          setAiUpgradeAlert({
+            title: "Premium WhatsApp Alert Triggered",
+            message:
+              whatsapp?.ok === false
+                ? "AI detected a serious buyer, but WhatsApp delivery could not be confirmed. The in-app alert is still active."
+                : "AI detected a serious buyer and triggered your premium WhatsApp alert.",
+            cta: "View Premium Plan",
+            premium: true,
+          });
+        }
+      } catch {
+        // Never block chat if AI alert check fails.
+      }
+    }
+
+    void checkVendorDealAlert();
+  }, [
+    ordered,
+    currentUserId,
+    conversationId,
+    counterpartName,
+    contextType,
+    contextTitle,
+  ]);
+
   useEffect(() => {
     function onWindowClick() {
       closeActionMenu();
@@ -1406,6 +1508,87 @@ useEffect(() => {
           </a>
         ) : null}
       </div>
+
+            {aiUpgradeAlert ? (
+        <div
+          style={{
+            padding: 14,
+            borderBottom: "1px solid #fed7aa",
+            background: aiUpgradeAlert.premium
+              ? "linear-gradient(135deg, #ecfdf5, #ffffff)"
+              : "linear-gradient(135deg, #fffbeb, #ffffff)",
+          }}
+        >
+          <div
+            style={{
+              border: aiUpgradeAlert.premium
+                ? "1px solid #bbf7d0"
+                : "1px solid #f59e0b",
+              borderRadius: 16,
+              padding: 14,
+              boxShadow: "0 10px 24px rgba(15,23,42,0.08)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 950,
+                color: aiUpgradeAlert.premium ? "#065f46" : "#92400e",
+              }}
+            >
+              ⚡ {aiUpgradeAlert.title}
+            </div>
+
+            <div
+              style={{
+                marginTop: 6,
+                fontSize: 13,
+                color: "#475569",
+                fontWeight: 800,
+                lineHeight: 1.6,
+              }}
+            >
+              {aiUpgradeAlert.message}
+            </div>
+
+            <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.href = "/dashboard/subscription?focus=ai";
+                }}
+                style={{
+                  border: "none",
+                  borderRadius: 12,
+                  background: aiUpgradeAlert.premium ? "#059669" : "#f59e0b",
+                  color: "#fff",
+                  padding: "9px 12px",
+                  fontWeight: 950,
+                  cursor: "pointer",
+                }}
+              >
+                {aiUpgradeAlert.cta}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAiUpgradeAlert(null)}
+                style={{
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 12,
+                  background: "#fff",
+                  color: "#111827",
+                  padding: "9px 12px",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div style={{ position: "relative", background: "#f3f4f6" }}>
         <div

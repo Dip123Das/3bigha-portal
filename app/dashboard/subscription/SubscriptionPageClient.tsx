@@ -10,51 +10,143 @@ type SessionUser = {
   email?: string | null;
 };
 
-type PlanKey = "free" | "basic_vendor" | "premium_vendor" | "hub_vendor";
+type PlanKey =
+  | "free"
+  | "basic_vendor"
+  | "silver_vendor"
+  | "gold_vendor"
+  | "platinum_vendor"
+  | "premium_vendor"
+  | "hub_vendor";
+
+type DisplayPlanKey =
+  | "free"
+  | "basic_vendor"
+  | "silver_vendor"
+  | "gold_vendor"
+  | "platinum_vendor";
+
+function normalizePlanKey(plan: PlanKey): DisplayPlanKey {
+  if (plan === "premium_vendor") return "gold_vendor";
+  if (plan === "hub_vendor") return "platinum_vendor";
+  return plan;
+}
+
+const PLAN_META: Record<
+  DisplayPlanKey,
+  {
+    title: string;
+    price: string;
+    boost: string;
+    alertStrength: string;
+    whatsapp: string;
+    priorityLead: string;
+    visibility: string;
+    conversion: string;
+    multiplier: string;
+    leads: string;
+    trust: string;
+    badge: string;
+    storagePlan: PlanKey;
+  }
+> = {
+  free: {
+    title: "FREE",
+    price: "₹0 / month",
+    boost: "+0 AI Boost",
+    alertStrength: "UI alerts only",
+    whatsapp: "No WhatsApp alerts",
+    priorityLead: "Standard leads",
+    visibility: "Basic listing visibility",
+    conversion: "Low conversion advantage",
+    multiplier: "1x",
+    leads: "0–3",
+    trust: "⚪ STANDARD",
+    badge: "Starter",
+    storagePlan: "free",
+  },
+  basic_vendor: {
+    title: "BASIC",
+    price: "₹299 / month",
+    boost: "+3 AI Boost",
+    alertStrength: "Low AI alerts",
+    whatsapp: "Limited WhatsApp-ready alerts",
+    priorityLead: "Above free vendors",
+    visibility: "Basic boost visibility",
+    conversion: "Small conversion lift",
+    multiplier: "1.5x",
+    leads: "3–5",
+    trust: "🔵 BASIC BOOSTED",
+    badge: "Entry",
+    storagePlan: "basic_vendor",
+  },
+  silver_vendor: {
+    title: "SILVER",
+    price: "₹499 / month",
+    boost: "+5 AI Boost",
+    alertStrength: "Medium AI alerts",
+    whatsapp: "WhatsApp alert access",
+    priorityLead: "Priority RFQ visibility",
+    visibility: "Stronger buyer visibility",
+    conversion: "Good conversion advantage",
+    multiplier: "2x",
+    leads: "4–7",
+    trust: "🥈 AI BOOSTED",
+    badge: "Growth",
+    storagePlan: "silver_vendor",
+  },
+  gold_vendor: {
+    title: "GOLD",
+    price: "₹999 / month",
+    boost: "+10 AI Boost",
+    alertStrength: "Strong AI alerts",
+    whatsapp: "WhatsApp + priority alerts",
+    priorityLead: "High-priority lead access",
+    visibility: "Premium ranking advantage",
+    conversion: "Strong conversion advantage",
+    multiplier: "3x–4x",
+    leads: "8–12",
+    trust: "⭐ AI VERIFIED",
+    badge: "Popular",
+    storagePlan: "gold_vendor",
+  },
+  platinum_vendor: {
+    title: "PLATINUM",
+    price: "₹1999 / month",
+    boost: "+20 AI Boost",
+    alertStrength: "Maximum AI alerts",
+    whatsapp: "Fastest WhatsApp alerts",
+    priorityLead: "Top priority lead access",
+    visibility: "Maximum boost visibility",
+    conversion: "Highest conversion advantage",
+    multiplier: "5x",
+    leads: "12–20",
+    trust: "🔥 AI VERIFIED MAX",
+    badge: "Maximum",
+    storagePlan: "platinum_vendor",
+  },
+};
 
 function planAiBoostPower(plan: PlanKey) {
-  if (plan === "hub_vendor") return 20;
-  if (plan === "premium_vendor") return 10;
-  if (plan === "basic_vendor") return 5;
+  const p = normalizePlanKey(plan);
+  if (p === "platinum_vendor") return 20;
+  if (p === "gold_vendor") return 10;
+  if (p === "silver_vendor") return 5;
+  if (p === "basic_vendor") return 3;
   return 0;
 }
 
 function planAiTrustLevel(plan: PlanKey) {
-  if (plan === "hub_vendor") return "🔥 AI VERIFIED (MAX TRUST)";
-  if (plan === "premium_vendor") return "⭐ AI VERIFIED";
-  if (plan === "basic_vendor") return "🔵 AI BOOSTED";
-  return "⚪ STANDARD";
+  return PLAN_META[normalizePlanKey(plan)].trust;
 }
 
 function planLeadPrediction(plan: PlanKey) {
-  if (plan === "hub_vendor") {
-    return {
-      multiplier: "5x",
-      leads: "12–20",
-      label: "Maximum buyer visibility",
-    };
-  }
-
-  if (plan === "premium_vendor") {
-    return {
-      multiplier: "3x–4x",
-      leads: "8–12",
-      label: "Strong premium visibility",
-    };
-  }
-
-  if (plan === "basic_vendor") {
-    return {
-      multiplier: "2x",
-      leads: "4–7",
-      label: "Better than free visibility",
-    };
-  }
+  const meta = PLAN_META[normalizePlanKey(plan)];
 
   return {
-    multiplier: "1x",
-    leads: "0–3",
-    label: "Limited free visibility",
+    multiplier: meta.multiplier,
+    leads: meta.leads,
+    label: meta.visibility,
   };
 }
 
@@ -119,9 +211,17 @@ export default function SubscriptionPageClient() {
   // if listingId is missing, show a clear banner (do NOT break the page)
   const listingIdMissing = !listingId || String(listingId).trim().length < 6;
 
+  const activeDisplayPlan = normalizePlanKey(activePlan);
   const activePrediction = planLeadPrediction(activePlan);
-  const goldPrediction = planLeadPrediction("premium_vendor");
-  const platinumPrediction = planLeadPrediction("hub_vendor");
+  const goldPrediction = planLeadPrediction("gold_vendor");
+  const platinumPrediction = planLeadPrediction("platinum_vendor");
+  const displayPlans: DisplayPlanKey[] = [
+    "free",
+    "basic_vendor",
+    "silver_vendor",
+    "gold_vendor",
+    "platinum_vendor",
+  ];
 
   // 1) Read session robustly (no infinite loading)
   useEffect(() => {
@@ -201,6 +301,9 @@ export default function SubscriptionPageClient() {
         if (
           pk === "free" ||
           pk === "basic_vendor" ||
+          pk === "silver_vendor" ||
+          pk === "gold_vendor" ||
+          pk === "platinum_vendor" ||
           pk === "premium_vendor" ||
           pk === "hub_vendor"
         ) {
@@ -424,7 +527,7 @@ export default function SubscriptionPageClient() {
               ) : null}
               <div className="pill">
                 <b>Current plan:</b>{" "}
-                {activePlan.replaceAll("_", " ").toUpperCase()}{" "}
+                {PLAN_META[activeDisplayPlan].title}{" "}
                 {isActive ? "✅" : "⚠️"}
               </div>
               {expiresAt ? (
@@ -536,77 +639,115 @@ export default function SubscriptionPageClient() {
               <b>Payment Safe Mode:</b> Online payment is not active yet. Plan requests are recorded now, and Razorpay checkout will be enabled only after GST, current bank account, and legal setup are complete.
             </div>
 
+            <div className="comparisonBox">
+              <div className="comparisonHead">
+                <div>
+                  <div className="comparisonKicker">Vendor Premium Dashboard</div>
+                  <div className="comparisonTitle">
+                    Free shows alerts. Paid plans unlock WhatsApp + priority lead advantage.
+                  </div>
+                </div>
+              </div>
+
+              <div className="comparisonGrid">
+                {displayPlans.map((plan) => {
+                  const meta = PLAN_META[plan];
+                  const active = activeDisplayPlan === plan && isActive;
+
+                  return (
+                    <div
+                      className={`compareCol ${active ? "compareActive" : ""}`}
+                      key={plan}
+                    >
+                      <div className="comparePlan">{meta.title}</div>
+                      <div className="comparePrice">{meta.price}</div>
+                      <div className="compareBadge">{meta.badge}</div>
+
+                      <div className="compareRow">
+                        <b>AI Alert Strength</b>
+                        <span>{meta.alertStrength}</span>
+                      </div>
+                      <div className="compareRow">
+                        <b>WhatsApp Alerts</b>
+                        <span>{meta.whatsapp}</span>
+                      </div>
+                      <div className="compareRow">
+                        <b>Priority Lead Access</b>
+                        <span>{meta.priorityLead}</span>
+                      </div>
+                      <div className="compareRow">
+                        <b>Boost Visibility</b>
+                        <span>{meta.visibility}</span>
+                      </div>
+                      <div className="compareRow">
+                        <b>Conversion Advantage</b>
+                        <span>{meta.conversion}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="grid">
-              <PlanCard
-                title="FREE"
-                price="₹0 / month"
-                bullets={[
-                  "Basic listing access",
-                  "Standard visibility",
-                  "Best for trial and district-free onboarding",
-                ]}
-                active={activePlan === "free" && isActive}
-                cta={
-                  saving
-                    ? "Please wait…"
-                    : activePlan === "free" && isActive
-                    ? "Active"
-                    : "Activate FREE"
-                }
-                disabled={saving || (activePlan === "free" && isActive)}
-                onClick={() => activatePlan("free")}
-              />
+              {displayPlans.map((plan) => {
+                const meta = PLAN_META[plan];
+                const active = activeDisplayPlan === plan && isActive;
+                const isFree = plan === "free";
 
-              <PlanCard
-                title="SILVER AI BOOST"
-                price="₹499 / month"
-                boost="+5 AI Boost"
-                highlight={focus === "boost" ? "Recommended for missed leads" : "Starter revenue plan"}
-                recommended={focus === "boost"}
-                bullets={[
-                  "Better RFQ visibility than free vendors",
-                  "AI ranking advantage in buyer matching",
-                  "Suitable for small local sellers",
-                ]}
-                active={activePlan === "basic_vendor" && isActive}
-                cta={activePlan === "basic_vendor" && isActive ? "Active" : saving ? "Please wait…" : "Request Silver Activation"}
-                disabled={saving || (activePlan === "basic_vendor" && isActive)}
-                onClick={() => handlePayment("basic_vendor")}
-              />
-
-              <PlanCard
-                title="⭐ GOLD AI BOOST"
-                price="₹999 / month"
-                boost="+10 AI Boost"
-                highlight={focus === "ai" ? "Recommended for deal closing" : "Most popular"}
-                recommended={focus === "ai"}
-                bullets={[
-                  "Strong AI ranking advantage",
-                  "Premium Vendor badge in Price Today",
-                  "Higher chance of RFQ + buyer chat routing",
-                ]}
-                active={activePlan === "premium_vendor" && isActive}
-                cta={activePlan === "premium_vendor" && isActive ? "Active" : saving ? "Please wait…" : "Request Gold Activation"}
-                disabled={saving || (activePlan === "premium_vendor" && isActive)}
-                onClick={() => handlePayment("premium_vendor")}
-              />
-
-              <PlanCard
-                title="🔥 PLATINUM HUB BOOST"
-                price="₹1999 / month"
-                boost="+20 AI Boost"
-                highlight={focus === "premium" ? "Recommended for top visibility" : "Maximum visibility"}
-                recommended={focus === "premium"}
-                bullets={[
-                  "Highest AI vendor matching priority",
-                  "Best RFQ visibility across categories",
-                  "Ideal for large suppliers and multi-category vendors",
-                ]}
-                active={activePlan === "hub_vendor" && isActive}
-                cta={activePlan === "hub_vendor" && isActive ? "Active" : saving ? "Please wait…" : "Request Platinum Activation"}
-                disabled={saving || (activePlan === "hub_vendor" && isActive)}
-                onClick={() => handlePayment("hub_vendor")}
-              />
+                return (
+                  <PlanCard
+                    key={plan}
+                    title={meta.title}
+                    price={meta.price}
+                    boost={meta.boost}
+                    alertStrength={meta.alertStrength}
+                    whatsapp={meta.whatsapp}
+                    priorityLead={meta.priorityLead}
+                    visibility={meta.visibility}
+                    conversion={meta.conversion}
+                    highlight={
+                      plan === "gold_vendor"
+                        ? "Most popular"
+                        : plan === "platinum_vendor"
+                        ? "Maximum monetization"
+                        : plan === "silver_vendor"
+                        ? "Best starter upgrade"
+                        : plan === "basic_vendor"
+                        ? "Low-cost entry"
+                        : "UI alerts only"
+                    }
+                    recommended={
+                      (focus === "boost" && plan === "silver_vendor") ||
+                      (focus === "ai" && plan === "gold_vendor") ||
+                      (focus === "premium" && plan === "platinum_vendor")
+                    }
+                    bullets={[
+                      meta.alertStrength,
+                      meta.whatsapp,
+                      meta.priorityLead,
+                      meta.visibility,
+                      meta.conversion,
+                    ]}
+                    active={active}
+                    cta={
+                      active
+                        ? "Active"
+                        : saving
+                        ? "Please wait…"
+                        : isFree
+                        ? "Activate FREE"
+                        : `Request ${meta.title} Upgrade`
+                    }
+                    disabled={saving || active}
+                    onClick={() =>
+                      isFree
+                        ? activatePlan("free")
+                        : handlePayment(meta.storagePlan)
+                    }
+                  />
+                );
+              })}
             </div>
 
             <div className="footHint">
@@ -795,13 +936,93 @@ export default function SubscriptionPageClient() {
           color: #475569;
           font-weight: 800;
         }
+        .subPage .comparisonBox {
+          margin-top: 14px;
+          border: 1px solid #e5e7eb;
+          border-radius: 20px;
+          background: linear-gradient(135deg, #ffffff, #f8fafc);
+          padding: 16px;
+        }
+        .subPage .comparisonHead {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+        .subPage .comparisonKicker {
+          font-size: 12px;
+          font-weight: 950;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: #64748b;
+        }
+        .subPage .comparisonTitle {
+          margin-top: 5px;
+          font-size: 20px;
+          font-weight: 950;
+          color: #111827;
+        }
+        .subPage .comparisonGrid {
+          margin-top: 14px;
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 10px;
+        }
+        .subPage .compareCol {
+          border: 1px solid #e5e7eb;
+          border-radius: 16px;
+          background: #fff;
+          padding: 12px;
+        }
+        .subPage .compareActive {
+          border-color: #111827;
+          box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+        }
+        .subPage .comparePlan {
+          font-size: 15px;
+          font-weight: 950;
+          color: #111827;
+        }
+        .subPage .comparePrice {
+          margin-top: 4px;
+          font-size: 12px;
+          font-weight: 900;
+          color: #64748b;
+        }
+        .subPage .compareBadge {
+          margin-top: 8px;
+          display: inline-flex;
+          border: 1px solid #fde68a;
+          background: #fffbeb;
+          color: #92400e;
+          border-radius: 999px;
+          padding: 5px 9px;
+          font-size: 11px;
+          font-weight: 950;
+        }
+        .subPage .compareRow {
+          margin-top: 10px;
+          display: grid;
+          gap: 3px;
+          font-size: 12px;
+          line-height: 1.35;
+        }
+        .subPage .compareRow b {
+          color: #111827;
+        }
+        .subPage .compareRow span {
+          color: #475569;
+          font-weight: 750;
+        }
         .subPage .grid {
           margin-top: 14px;
           display: grid;
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(5, 1fr);
           gap: 12px;
         }
-        @media (max-width: 920px) {
+        @media (max-width: 1100px) {
+          .subPage .comparisonGrid,
           .subPage .grid {
             grid-template-columns: 1fr;
           }
@@ -908,6 +1129,11 @@ function PlanCard(props: {
   price: string;
   boost?: string;
   highlight?: string;
+  alertStrength: string;
+  whatsapp: string;
+  priorityLead: string;
+  visibility: string;
+  conversion: string;
   bullets: string[];
   active: boolean;
   recommended?: boolean;

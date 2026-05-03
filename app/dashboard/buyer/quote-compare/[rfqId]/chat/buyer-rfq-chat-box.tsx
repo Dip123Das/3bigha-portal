@@ -197,9 +197,10 @@ export default function BuyerRfqChatBox(props: {
   currentUserId: string;
   vendorName: string;
   vendorPhone?: string | null;
+  vendorUserId?: string | null;
   initialMessages: MsgRow[];
 }) {
-  const { rfqId, conversationId, currentUserId, initialMessages, vendorPhone } = props;
+  const { rfqId, conversationId, currentUserId, initialMessages, vendorPhone, vendorUserId } = props;
 
   const supabase = useMemo(() => getSupabaseBrowser(), []);
 
@@ -275,6 +276,41 @@ const [editingText, setEditingText] = useState("");
   useEffect(() => {
     orderedRef.current = ordered;
   }, [ordered]);
+
+  useEffect(() => {
+    if (!conversationId || ordered.length === 0) return;
+
+    const dealMessages = ordered
+      .filter((m) => {
+        const isSystem =
+          m.sender_role === "system" || m.message_type === "system";
+        const isDeleted = Boolean(m.meta?.deleted);
+        return !isSystem && !isDeleted;
+      })
+      .map((m) => ({
+        role: String(m.sender_role || "user"),
+        body: String(m.body || ""),
+      }))
+      .filter((m) => m.body.trim().length > 0);
+
+    if (dealMessages.length === 0) return;
+
+    const timer = window.setTimeout(() => {
+      fetch("/api/ai/vendor-alert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          side: "buyer",
+          vendorUserId: vendorUserId || "",
+          conversationId,
+          messages: dealMessages,
+        }),
+      }).catch(() => {});
+    }, 1200);
+
+    return () => window.clearTimeout(timer);
+  }, [ordered, conversationId, vendorUserId]);
   useEffect(() => {
   if (!ordered.length) return;
 

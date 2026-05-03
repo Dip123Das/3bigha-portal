@@ -151,6 +151,7 @@ export default function ConversationMessageList(props: {
   const [aiDealStage, setAiDealStage] = useState<AiDealStage | null>(null);
   const [aiDealStageLoading, setAiDealStageLoading] = useState(false);
   const [aiDealStageError, setAiDealStageError] = useState("");
+  const [urgencySeconds, setUrgencySeconds] = useState(30);
 
   const defaultAiDealScore: AiDealScore = {
     score: 40,
@@ -378,6 +379,54 @@ useEffect(() => {
     };
   }, [recentDealMessages]);
 
+    const latestIncomingMessage = useMemo(() => {
+    const incoming = ordered.filter((m) => {
+      const mine = String(m.sender_user_id ?? "") === String(currentUserId);
+      const isSystem = m.sender_role === "system" || m.message_type === "system";
+      return !mine && !isSystem && !m.meta?.deleted && String(m.body || "").trim();
+    });
+
+    return incoming.length > 0 ? incoming[incoming.length - 1] : null;
+  }, [ordered, currentUserId]);
+
+  const hasOwnReplyAfterLatestIncoming = useMemo(() => {
+    if (!latestIncomingMessage?.created_at) return false;
+
+    const incomingTime = new Date(latestIncomingMessage.created_at).getTime();
+
+    return ordered.some((m) => {
+      const mine = String(m.sender_user_id ?? "") === String(currentUserId);
+      if (!mine || !m.created_at || m.meta?.deleted) return false;
+
+      return new Date(m.created_at).getTime() > incomingTime;
+    });
+  }, [ordered, currentUserId, latestIncomingMessage]);
+
+  const highIntentDeal =
+    aiDealScore.score >= 70 ||
+    aiVendorAlert.severity === "high" ||
+    aiDealStage?.stage?.toLowerCase().includes("negotiation") ||
+    aiDealStage?.stage?.toLowerCase().includes("closing") ||
+    aiDealStage?.stage?.toLowerCase().includes("ready");
+
+  const showBuyerWaitingUrgency =
+    ordered.length > 0 &&
+    !!latestIncomingMessage &&
+    !hasOwnReplyAfterLatestIncoming &&
+    highIntentDeal;
+
+  useEffect(() => {
+    setUrgencySeconds(30);
+
+    if (!showBuyerWaitingUrgency) return;
+
+    const timer = window.setInterval(() => {
+      setUrgencySeconds((prev) => Math.max(0, prev - 1));
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [latestIncomingMessage?.id, showBuyerWaitingUrgency]);
+
   const useAiSuggestion = async (suggestion: string) => {
     const cleanSuggestion = String(suggestion || "").trim();
     if (!cleanSuggestion) return;
@@ -506,6 +555,80 @@ useEffect(() => {
           </button>
         </div>
       </div>
+
+            {showBuyerWaitingUrgency ? (
+        <div
+          style={{
+            margin: "0 0 12px 0",
+            border: "1px solid #fb7185",
+            background: "linear-gradient(90deg, #fff1f2, #ffffff)",
+            borderRadius: 18,
+            padding: "12px 14px",
+            boxShadow: "0 10px 24px rgba(190,18,60,0.10)",
+          }}
+        >
+          <div style={{ fontSize: 14, fontWeight: 950, color: "#be123c" }}>
+            ⏳ Buyer waiting for your reply
+          </div>
+
+          <div style={{ marginTop: 6, fontSize: 12, fontWeight: 800, color: "#475569" }}>
+            AI detected a high-intent buyer message. Fast replies can improve your closing chance.
+          </div>
+
+          <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <span
+              style={{
+                border: "1px solid #fecaca",
+                background: "#fff",
+                color: "#991b1b",
+                borderRadius: 999,
+                padding: "5px 10px",
+                fontSize: 12,
+                fontWeight: 950,
+              }}
+            >
+              ⏱ High-intent window: {urgencySeconds}s
+            </span>
+
+            <span
+              style={{
+                border: "1px solid #fed7aa",
+                background: "#fff7ed",
+                color: "#9a3412",
+                borderRadius: 999,
+                padding: "5px 10px",
+                fontSize: 12,
+                fontWeight: 950,
+              }}
+            >
+              Deal Score: {aiDealScore.score}%
+            </span>
+
+            <button
+              type="button"
+              onClick={() =>
+                useAiSuggestion(
+                  aiDealScore.actionMessage ||
+                    aiVendorAlert.actionMessage ||
+                    "I am checking this now and will share the best final price and delivery timeline shortly."
+                )
+              }
+              style={{
+                border: "none",
+                background: "#be123c",
+                color: "#fff",
+                borderRadius: 999,
+                padding: "7px 11px",
+                fontSize: 12,
+                fontWeight: 950,
+                cursor: "pointer",
+              }}
+            >
+              Reply Fast with AI
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {ordered.length === 0 ? (
         <div style={{ opacity: 0.7 }}>No messages yet.</div>

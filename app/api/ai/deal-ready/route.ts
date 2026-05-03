@@ -74,6 +74,41 @@ function heuristicDealReady(messages: DealReadyMessage[]) {
   };
 }
 
+function getConversionLock(plan: unknown, confidence: number, ready: boolean) {
+  const p: string = String(plan || "free").toLowerCase();
+
+  const premiumPlans: string[] = [
+    "silver_vendor",
+    "gold_vendor",
+    "platinum_vendor",
+    "premium_vendor",
+    "hub_vendor",
+  ];
+
+  const isPremium = premiumPlans.includes(p);
+  const isFreeOrBasic = p === "free" || p === "basic_vendor" || !isPremium;
+
+  if (!isFreeOrBasic || confidence < 65) {
+    return {
+      locked: false,
+      delayMs: 0,
+      label: "Premium Flow",
+      message: "No conversion lock required.",
+      upgradeRequired: false,
+    };
+  }
+
+  return {
+    locked: true,
+    delayMs: ready ? 5000 : 3000,
+    label: ready ? "Buyer Waiting" : "High-Intent Buyer",
+    message: ready
+      ? "This buyer looks ready. Premium vendors get faster alerts and stronger deal protection."
+      : "This buyer is showing strong interest. Upgrade to unlock faster AI alerts and priority follow-up.",
+    upgradeRequired: true,
+  };
+}
+
 function normalizeDealReady(value: unknown, heuristic = fallbackDealReady()) {
   if (!value || typeof value !== "object") return heuristic;
 
@@ -101,11 +136,20 @@ export async function POST(req: Request) {
       ? body.messages.slice(-12)
       : [];
 
+    const vendorPlan = body?.vendorPlan || body?.subscriptionPlan || "free";
+
     if (messages.length === 0) {
+      const fallback = fallbackDealReady();
+
       return NextResponse.json({
         ok: true,
         fallback: true,
-        ...fallbackDealReady(),
+        ...fallback,
+        conversionLock: getConversionLock(
+          vendorPlan,
+          fallback.confidence,
+          fallback.ready
+        ),
       });
     }
 
@@ -118,6 +162,11 @@ export async function POST(req: Request) {
         source: "heuristic",
         fallback: true,
         ...heuristic,
+        conversionLock: getConversionLock(
+          vendorPlan,
+          heuristic.confidence,
+          heuristic.ready
+        ),
       });
     }
 
@@ -180,10 +229,17 @@ ${context}
       parsed = null;
     }
 
+    const normalized = normalizeDealReady(parsed, heuristic);
+
     return NextResponse.json({
       ok: true,
       source: aiRes.ok && parsed ? "ai+heuristic" : "heuristic",
-      ...normalizeDealReady(parsed, heuristic),
+      ...normalized,
+      conversionLock: getConversionLock(
+        vendorPlan,
+        normalized.confidence,
+        normalized.ready
+      ),
     });
   } catch {
     return NextResponse.json(

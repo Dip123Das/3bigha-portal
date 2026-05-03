@@ -21,10 +21,11 @@ function isPremiumPlan(plan: unknown, status: unknown, boostPriority: unknown) {
   return (
     boost > 0 ||
     s === "active" ||
-    p === "silver" ||
-    p === "gold" ||
-    p === "platinum" ||
-    p === "premium" ||
+    p === "basic_vendor" ||
+    p === "silver_vendor" ||
+    p === "gold_vendor" ||
+    p === "platinum_vendor" ||
+    p === "premium_vendor" ||
     p === "hub_vendor"
   );
 }
@@ -274,6 +275,48 @@ async function createPremiumVendorAlertNotification({
   };
 }
 
+async function triggerPremiumWhatsAppAlert({
+  req,
+  monetization,
+}: {
+  req: Request;
+  monetization: any;
+}) {
+  if (!monetization?.premium || !monetization?.notificationId) {
+    return {
+      attempted: false,
+      reason: "Not premium or notification missing",
+    };
+  }
+
+  try {
+    const origin =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      new URL(req.url).origin;
+
+    const res = await fetch(`${origin}/api/vendor/whatsapp-alerts/send`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        notificationId: monetization.notificationId,
+      }),
+    });
+
+    return {
+      attempted: true,
+      ok: res.ok,
+    };
+  } catch (error) {
+    return {
+      attempted: true,
+      ok: false,
+      error: error instanceof Error ? error.message : "WhatsApp trigger failed",
+    };
+  }
+}
+
 function normalizeAlert(value: unknown, fallback: AlertResponse): AlertResponse {
   if (!value || typeof value !== "object") return fallback;
 
@@ -335,11 +378,17 @@ export async function POST(req: Request) {
               reason: "No vendorUserId or alert not premium eligible",
             };
 
+      const whatsapp = await triggerPremiumWhatsAppAlert({
+        req,
+        monetization,
+      });
+
       return NextResponse.json({
         ok: true,
         source: "heuristic",
         side,
         monetization,
+        whatsapp,
         ...fallback,
       });
     }
@@ -349,81 +398,89 @@ export async function POST(req: Request) {
       .join("\n");
 
     const prompt = `
-You are the AI deal alert engine of 3bigha.com.
+      You are the AI deal alert engine of 3bigha.com.
 
-Detect whether this buyer-vendor conversation needs an alert.
+      Detect whether this buyer-vendor conversation needs an alert.
 
-Return only valid JSON:
-{
-  "alert": true,
-  "severity": "high",
-  "audience": "both",
-  "title": "High Intent Buyer Detected",
-  "insight": "Short insight under 180 characters.",
-  "actionLabel": "Send Closing Message",
-  "actionMessage": "Short safe next message."
-}
+      Return only valid JSON:
+      {
+        "alert": true,
+        "severity": "high",
+        "audience": "both",
+        "title": "High Intent Buyer Detected",
+        "insight": "Short insight under 180 characters.",
+        "actionLabel": "Send Closing Message",
+        "actionMessage": "Short safe next message."
+      }
 
-Audience rules:
-- vendor: alert vendor when buyer is serious or waiting.
-- buyer: alert buyer when vendor is responsive or final details are missing.
-- both: use when both sides should act.
+      Audience rules:
+      - vendor: alert vendor when buyer is serious or waiting.
+      - buyer: alert buyer when vendor is responsive or final details are missing.
+      - both: use when both sides should act.
 
-Safety:
-- Do not assume payment is completed.
-- Do not mention AI.
-- Push confirmation of final terms before payment.
+      Safety:
+      - Do not assume payment is completed.
+      - Do not mention AI.
+      - Push confirmation of final terms before payment.
 
-Current side: ${side}
+      Current side: ${side}
 
-Chat:
-${context}
-`;
+      Chat:
+      ${context}
+      `;
 
-    const aiRes = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
-        input: [{ role: "user", content: prompt }],
-        temperature: 0.2,
-        max_output_tokens: 260,
-      }),
-    });
+          const aiRes = await fetch("https://api.openai.com/v1/responses", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
+              input: [{ role: "user", content: prompt }],
+              temperature: 0.2,
+              max_output_tokens: 260,
+            }),
+          });
 
-    const aiJson = await aiRes.json().catch(() => ({}));
-    const raw = extractText(aiJson).trim();
+          const aiJson = await aiRes.json().catch(() => ({}));
+          const raw = extractText(aiJson).trim();
 
-    let parsed: unknown = null;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      parsed = null;
-    }
+          let parsed: unknown = null;
+          try {
+            parsed = JSON.parse(raw);
+          } catch {
+            parsed = null;
+          }
 
-    const alert = normalizeAlert(parsed, fallback);
+          const alert = normalizeAlert(parsed, fallback);
 
-    const monetization =
-      alert.alert && alert.premiumEligible && vendorUserId
-        ? await createPremiumVendorAlertNotification({
-            vendorUserId,
-            alert,
-          })
-        : {
-            created: false,
-            reason: "No vendorUserId or alert not premium eligible",
-          };
+          let monetization: any = {
+        created: false,
+        reason: "Not eligible",
+      };
 
-    return NextResponse.json({
-      ok: true,
-      source: parsed ? "ai+heuristic" : "heuristic",
-      side,
-      monetization,
-      ...alert,
-    });
+      if (alert.alert && alert.premiumEligible && vendorUserId) {
+        monetization = await createPremiumVendorAlertNotification({
+          vendorUserId,
+          alert,
+        });
+
+        const whatsapp = await triggerPremiumWhatsAppAlert({
+          req,
+          monetization,
+        });
+
+        return NextResponse.json({
+          ok: true,
+          source: parsed ? "ai+heuristic" : "heuristic",
+          side,
+          monetization,
+          whatsapp,
+          ...alert,
+        });
+      }
+      
   } catch {
     return NextResponse.json({
       ok: true,

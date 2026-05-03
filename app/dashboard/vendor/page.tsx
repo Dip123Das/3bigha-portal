@@ -135,9 +135,10 @@ function capabilityLabel(cap: VendorCapabilityKey) {
 function getPlanBoostLabel(plan: string, boostPriority: number) {
   const p = String(plan || "free").toLowerCase();
 
-  if (p === "platinum") return "Platinum AI Boost";
-  if (p === "gold") return "Gold AI Boost";
-  if (p === "silver") return "Silver AI Boost";
+  if (p === "platinum_vendor" || p === "hub_vendor") return "Platinum AI Boost";
+  if (p === "gold_vendor" || p === "premium_vendor") return "Gold AI Boost";
+  if (p === "silver_vendor") return "Silver AI Boost";
+  if (p === "basic_vendor") return "Basic AI Boost";
   if (boostPriority > 0) return "Manual Boost Active";
 
   return "Free Visibility";
@@ -146,9 +147,10 @@ function getPlanBoostLabel(plan: string, boostPriority: number) {
 function getPlanBoostPower(plan: string, boostPriority: number) {
   const p = String(plan || "free").toLowerCase();
 
-  if (p === "platinum") return 20 + boostPriority;
-  if (p === "gold") return 10 + boostPriority;
-  if (p === "silver") return 5 + boostPriority;
+  if (p === "platinum_vendor" || p === "hub_vendor") return 20 + boostPriority;
+  if (p === "gold_vendor" || p === "premium_vendor") return 10 + boostPriority;
+  if (p === "silver_vendor") return 5 + boostPriority;
+  if (p === "basic_vendor") return 3 + boostPriority;
 
   return boostPriority;
 }
@@ -433,6 +435,25 @@ if (aiRecommendations.length === 0) {
     (missedLeads > 0 ||
       priceIntelligenceStats.overpricedCount > 0 ||
       priceIntelligenceStats.totalUpdates === 0);
+
+  const normalizedVendorPlan = String(vendorPlan || "free").toLowerCase();
+
+const vendorHasPremiumAlerts =
+  normalizedVendorPlan === "silver_vendor" ||
+  normalizedVendorPlan === "gold_vendor" ||
+  normalizedVendorPlan === "platinum_vendor" ||
+  normalizedVendorPlan === "premium_vendor" ||
+  normalizedVendorPlan === "hub_vendor";
+
+const aiDealUpgradeTrigger =
+  !vendorHasPremiumAlerts &&
+  (missedLeads > 0 ||
+    leadStats.newLeadCount > 0 ||
+    estimatedRank > 5 ||
+    growthVisibilityScore < 55);
+
+const aiDealUpgradeTarget =
+  growthVisibilityScore < 35 || estimatedRank > 8 ? "Gold" : "Silver";
 
   async function load() {
     setLoading(true);
@@ -1145,6 +1166,64 @@ if (aiRecommendations.length === 0) {
           title={dashboardTitle}
           subtitle="Manage your listings, profile, and business actions from one place."
         />
+
+                {aiDealUpgradeTrigger ? (
+          <div
+            style={{
+              marginBottom: 14,
+              borderRadius: 18,
+              padding: 16,
+              border: "1px solid #f59e0b",
+              background: "linear-gradient(135deg, #fffbeb, #ffffff)",
+              boxShadow: "0 14px 30px rgba(245,158,11,0.16)",
+            }}
+          >
+            <div style={{ fontSize: 18, fontWeight: 950, color: "#92400e" }}>
+              ⚡ AI Deal Upgrade Trigger
+            </div>
+
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 13,
+                color: "#475569",
+                fontWeight: 850,
+                lineHeight: 1.6,
+              }}
+            >
+              AI has detected that your current free/basic visibility may miss serious buyer opportunities.
+              Upgrade to <b>{aiDealUpgradeTarget}</b> to unlock stronger alerts, priority lead access,
+              and WhatsApp-ready deal notifications.
+            </div>
+
+            <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Badge>Current Rank: #{estimatedRank}</Badge>
+              <Badge>Visibility Score: {growthVisibilityScore}/100</Badge>
+              <Badge>Missed Leads: {missedLeads}</Badge>
+              <Badge>
+                WhatsApp Alerts: {vendorHasPremiumAlerts ? "Unlocked" : "Locked"}
+              </Badge>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/subscription?focus=ai")}
+              style={{
+                marginTop: 12,
+                background: "#f59e0b",
+                color: "#fff",
+                border: "none",
+                padding: "10px 14px",
+                borderRadius: 12,
+                fontWeight: 950,
+                cursor: "pointer",
+                boxShadow: "0 8px 18px rgba(245,158,11,0.26)",
+              }}
+            >
+              🔥 Unlock Premium AI Alerts
+            </button>
+          </div>
+        ) : null}
 
         {vendorBoostExpiresAt ? (
           <div
