@@ -129,7 +129,7 @@ export async function ensureConversation(
     return {
       conversationId: existingId,
       created: false,
-      chatUrl: `/dashboard/buyer/chat/${encodeURIComponent(existingId)}`,
+      chatUrl: `/dashboard/thread/${encodeURIComponent(existingId)}`,
     };
   }
 
@@ -185,6 +185,6 @@ export async function ensureConversation(
   return {
     conversationId,
     created: true,
-    chatUrl: `/dashboard/buyer/chat/${encodeURIComponent(conversationId)}`,
+    chatUrl: `/dashboard/thread/${encodeURIComponent(conversationId)}`,
   };
 }

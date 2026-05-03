@@ -563,7 +563,7 @@ return;
         sessionStorage.removeItem(DRAFT_KEY);
       } catch {}
 
-      if (out?.auto_chat_created && out?.autoChatUrl) {
+      if (out?.auto_chat_created && out?.autoConversationId) {
         const vendorName =
           typeof out?.autoChatVendorName === "string" && out.autoChatVendorName.trim()
             ? out.autoChatVendorName.trim()

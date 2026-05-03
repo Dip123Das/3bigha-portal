@@ -856,7 +856,7 @@ export default function BuyerRfqsPage() {
                 const openHref = `/dashboard/buyer/quote-compare/${encodeURIComponent(r.id)}`;
                 const chatHref = r.conversation_id
                   ? `/dashboard/thread/${encodeURIComponent(r.conversation_id)}`
-                  : `/dashboard/thread/${encodeURIComponent(r.id)}`;
+                  : `/dashboard/buyer/quote-compare/${encodeURIComponent(r.id)}`;
                 const printHref = `/dashboard/buyer/quote-compare/${encodeURIComponent(r.id)}/print`;
 
                 return (

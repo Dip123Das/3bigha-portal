@@ -346,13 +346,26 @@ export async function POST(req: Request) {
 
       // If we have no location at all, skip targeting (should not happen due to validation)
       if (ors.length > 0) {
-        const { data: vendors, error: vErr } = await supabaseAdmin
+        let { data: vendors, error: vErr } = await supabaseAdmin
           .from("business_profiles")
           .select("user_id,phone,boost_priority")
           .not("user_id", "is", null)
           .or(ors.join(","))
-          .order("boost_priority", { ascending: false }) // ⭐ BOOST CORE
-          .limit(50); // tighter pool = boost more valuable
+          .order("boost_priority", { ascending: false })
+          .limit(50);
+
+        // ✅ Fallback: if location match finds no vendor, use boosted/general vendor pool
+        if ((!vendors || vendors.length === 0) && !vErr) {
+          const fallback = await supabaseAdmin
+            .from("business_profiles")
+            .select("user_id,phone,boost_priority")
+            .not("user_id", "is", null)
+            .order("boost_priority", { ascending: false })
+            .limit(20);
+
+          vendors = fallback.data ?? [];
+          vErr = fallback.error;
+        }
 
         if (!vErr && vendors && vendors.length > 0) {
           // ⭐ BOOST SPLIT
@@ -444,11 +457,16 @@ ${title}
 
               // ✅ AUTO CHAT CONNECT: create unified chat with top matched vendor
               try {
-                const firstTarget = targetRows.find(
+                let firstTarget = targetRows.find(
                   (target: any) =>
                     String(target.vendor_user_id || "").trim() &&
                     (!isAuthed || String(target.vendor_user_id) !== user!.id)
                 );
+
+                // ✅ FINAL FALLBACK — GUARANTEE ONE TARGET
+                if (!firstTarget && targetRows.length > 0) {
+                  firstTarget = targetRows[0];
+                }
 
                 if (isAuthed && firstTarget?.vendor_user_id) {
                   const itemSummary = cleanItems
