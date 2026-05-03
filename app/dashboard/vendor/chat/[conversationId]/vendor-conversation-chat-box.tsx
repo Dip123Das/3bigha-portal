@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { clearInboxReminder } from "@/lib/inbox/clearInboxReminder";
 import ConversationMessageList from "@/app/components/chat/ConversationMessageList";
@@ -326,6 +327,8 @@ export default function VendorConversationChatBox(props: {
     initialUnreadCutoffAt,
   } = props;
 
+  const router = useRouter();
+  
   const supabase = useMemo(() => getSupabaseBrowser(), []);
 
   const [messages, setMessages] = useState<MsgRow[]>(initialMessages);
@@ -352,6 +355,8 @@ export default function VendorConversationChatBox(props: {
   const [editingText, setEditingText] = useState("");
   const [windowFocused, setWindowFocused] = useState(true);
   const [aiUpgradeAlert, setAiUpgradeAlert] = useState<any | null>(null);
+  const [vendorAiSuggestions, setVendorAiSuggestions] = useState<string[]>([]);
+  const [vendorAiLoading, setVendorAiLoading] = useState(false);
 
   const listRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -377,6 +382,49 @@ export default function VendorConversationChatBox(props: {
 
   const ordered = useMemo(() => sortMessagesByCreatedAt(messages), [messages]);
   const canSend = text.trim().length > 0 && !loading && !uploading;
+
+  const vendorAi = useMemo(() => {
+  const cleanMessages = ordered
+    .filter((m) => {
+      const isSystem = m.sender_role === "system" || m.message_type === "system";
+      const isDeleted = Boolean(m.meta?.deleted);
+      return !isSystem && !isDeleted;
+    })
+    .map((m) => String(m.body || "").toLowerCase())
+    .join(" ");
+
+  const hasBuyerReady =
+    /ready|confirm|proceed|final|ok|okay|dispatch|delivery|tomorrow|today|payment|invoice|bill/.test(
+      cleanMessages
+    );
+
+  const hasPrice = /₹|rs\.?|price|rate|amount|total|final/.test(cleanMessages);
+  const hasDelivery = /deliver|delivery|dispatch|tomorrow|today|time|date/.test(cleanMessages);
+  const hasInvoice = /invoice|bill|gst|tax/.test(cleanMessages);
+  const hasPayment = /payment|advance|cash|upi|bank|pay/.test(cleanMessages);
+
+  const heatScore =
+    20 +
+    (hasBuyerReady ? 25 : 0) +
+    (hasPrice ? 20 : 0) +
+    (hasDelivery ? 20 : 0) +
+    (hasInvoice ? 10 : 0) +
+    (hasPayment ? 5 : 0);
+
+  const missing: string[] = [];
+  if (!hasPrice) missing.push("final price");
+  if (!hasDelivery) missing.push("delivery time");
+  if (!hasInvoice) missing.push("invoice / GST bill");
+  if (!hasPayment) missing.push("payment terms");
+
+  const isHotBuyer = heatScore >= 65;
+
+  return {
+    heatScore: Math.min(heatScore, 100),
+    isHotBuyer,
+    missing,
+  };
+}, [ordered]);
 
   const presenceLabel = isCounterpartTyping
     ? "Typing..."
@@ -1151,6 +1199,59 @@ export default function VendorConversationChatBox(props: {
   }, []);
 
   useEffect(() => {
+  if (!conversationId || ordered.length === 0) return;
+
+  const recentMessages = ordered
+    .filter((m) => {
+      const isSystem = m.sender_role === "system" || m.message_type === "system";
+      const isDeleted = Boolean(m.meta?.deleted);
+      return !isSystem && !isDeleted && String(m.body || "").trim();
+    })
+    .slice(-8)
+    .map((m) => ({
+      role:
+        String(m.sender_user_id ?? "") === String(currentUserId)
+          ? "vendor"
+          : "buyer",
+      body: String(m.body || ""),
+    }));
+
+  if (recentMessages.length === 0) return;
+
+  const timer = window.setTimeout(async () => {
+    try {
+      setVendorAiLoading(true);
+
+      const res = await fetch("/api/ai/chat-reply-suggestions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+        body: JSON.stringify({
+          side: "vendor",
+          messages: recentMessages,
+        }),
+      });
+
+      const json = await res.json().catch(() => null);
+
+      if (res.ok && Array.isArray(json?.suggestions)) {
+        setVendorAiSuggestions(json.suggestions.slice(0, 4));
+      } else {
+        setVendorAiSuggestions([]);
+      }
+    } catch {
+      setVendorAiSuggestions([]);
+    } finally {
+      setVendorAiLoading(false);
+    }
+  }, 800);
+
+  return () => window.clearTimeout(timer);
+}, [ordered, conversationId, currentUserId]);
+
+  useEffect(() => {
     if (typeof document !== "undefined" && !documentTitleRef.current) {
       documentTitleRef.current = document.title;
     }
@@ -1731,6 +1832,188 @@ useEffect(() => {
         style={{ display: "none" }}
         src="/sounds/message-pop.mp3"
       />
+
+      <div
+        style={{
+          padding: 12,
+          borderTop: "1px solid #e5e7eb",
+          background: "#fff",
+        }}
+      >
+        <div
+          style={{
+            border: vendorAi.isHotBuyer ? "1px solid #facc15" : "1px solid #bfdbfe",
+            background: vendorAi.isHotBuyer
+              ? "linear-gradient(135deg, #fefce8, #ffffff)"
+              : "linear-gradient(135deg, #eff6ff, #ffffff)",
+            borderRadius: 16,
+            padding: 12,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 14,
+              fontWeight: 950,
+              color: vendorAi.isHotBuyer ? "#92400e" : "#1e3a8a",
+            }}
+          >
+            {vendorAi.isHotBuyer ? "🔥 Buyer looks ready to close" : "🤖 AI Vendor Assistant"}
+          </div>
+
+          <div style={{ marginTop: 6, fontSize: 13, color: "#334155", lineHeight: 1.45 }}>
+            <b>{vendorAi.heatScore}% heat score</b>
+            {vendorAi.missing.length ? (
+              <span> — Close faster by confirming: {vendorAi.missing.slice(0, 3).join(", ")}</span>
+            ) : (
+              <span> — Deal details look strong. Reply quickly to protect this lead.</span>
+            )}
+          </div>
+
+          {vendorAi.isHotBuyer ? (
+            <div
+              style={{
+                marginTop: 8,
+                padding: "8px 10px",
+                borderRadius: 10,
+                background: "#fff7ed",
+                border: "1px solid #fed7aa",
+                color: "#9a3412",
+                fontSize: 12,
+                fontWeight: 800,
+                lineHeight: 1.5,
+              }}
+            >
+              ⚡ Hot deal signal: respond fast, confirm final price, delivery, invoice and payment terms.
+            </div>
+          ) : null}
+
+          <div style={{ marginTop: 10 }}>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 900,
+                marginBottom: 6,
+                color: "#1d4ed8",
+              }}
+            >
+              ⚡ AI Reply Suggestions
+            </div>
+
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {vendorAiLoading ? (
+                <div style={{ fontSize: 12, opacity: 0.7 }}>Thinking...</div>
+              ) : vendorAiSuggestions.length > 0 ? (
+                vendorAiSuggestions.map((s, i) => (
+                  <button
+                    key={`${s}-${i}`}
+                    type="button"
+                    onClick={() => {
+                      setText(s);
+                      textareaRef.current?.focus();
+                    }}
+                    style={{
+                      padding: "7px 11px",
+                      borderRadius: 999,
+                      border: "1px solid #93c5fd",
+                      background: "#dbeafe",
+                      color: "#1d4ed8",
+                      fontSize: 12,
+                      fontWeight: 900,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setText(
+                      "Yes, I confirm the final price, delivery time, invoice and payment terms. You can proceed."
+                    );
+                    textareaRef.current?.focus();
+                  }}
+                  style={{
+                    padding: "7px 11px",
+                    borderRadius: 999,
+                    border: "1px solid #93c5fd",
+                    background: "#dbeafe",
+                    color: "#1d4ed8",
+                    fontSize: 12,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                  }}
+                >
+                  Confirm deal details
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setText("I can offer my best final price if you confirm today.");
+                  textareaRef.current?.focus();
+                }}
+                style={{
+                  padding: "7px 11px",
+                  borderRadius: 999,
+                  border: "1px solid #fed7aa",
+                  background: "#fff7ed",
+                  color: "#c2410c",
+                  fontSize: 12,
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                Best final price
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setText("Delivery will be arranged as discussed. Please confirm your full delivery address.");
+                  textareaRef.current?.focus();
+                }}
+                style={{
+                  padding: "7px 11px",
+                  borderRadius: 999,
+                  border: "1px solid #bbf7d0",
+                  background: "#ecfdf5",
+                  color: "#047857",
+                  fontSize: 12,
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                Confirm delivery
+                </button>
+                </div>
+
+                {vendorAi.isHotBuyer ? (
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/dashboard/subscription/boost")}
+                      style={{
+                        width: "100%",
+                        padding: "10px 14px",
+                        borderRadius: 12,
+                        border: "1px solid #facc15",
+                        background: "#f59e0b",
+                        color: "#fff",
+                        fontWeight: 950,
+                        cursor: "pointer",
+                      }}
+                    >
+                      ⭐ Boost to Win This Deal
+                    </button>
+                  </div>
+                ) : null}
+
+                </div>
+              </div>
+            </div>
 
       <ConversationComposer
         QUICK_REPLIES={QUICK_REPLIES}

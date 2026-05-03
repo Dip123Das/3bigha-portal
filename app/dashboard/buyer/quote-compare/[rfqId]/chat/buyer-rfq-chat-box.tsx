@@ -177,12 +177,23 @@ const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "👎"];
 const COMPOSER_EMOJIS = ["😀", "😂", "😍", "👍", "🙏", "❤️", "😮", "😢", "🎉", "🔥"];
 
 const QUICK_REPLIES = [
-  "Hello",
-  "Please share delivery time.",
-  "Please confirm dispatch date.",
-  "I will check and update you.",
-  "Please call me.",
-  "Thank you.",
+  "Please confirm final price including delivery.",
+  "Please share GST bill / invoice before dispatch.",
+  "Please confirm quantity, brand and delivery location.",
+  "Can you offer a better price if I confirm today?",
+  "Please share payment terms before I proceed.",
+  "Please confirm dispatch time and delivery charge.",
+];
+
+const BUYER_AI_ACTIONS = [
+  "Ask missing details",
+  "Negotiate better price",
+  "Ask bulk discount",
+  "Ask free delivery",
+  "Ask for invoice",
+  "Confirm delivery",
+  "Ask payment terms",
+  "Compare with other vendors",
 ];
 
 const CHAT_BUCKET = "rfq_chat_attachments";
@@ -220,6 +231,8 @@ export default function BuyerRfqChatBox(props: {
   const [didAutoScrollToUnread, setDidAutoScrollToUnread] = useState(false);
   const [isCounterpartTyping, setIsCounterpartTyping] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
   const [err, setErr] = useState("");
   const [failedTextRetry, setFailedTextRetry] = useState<{
     body: string;
@@ -264,6 +277,7 @@ const [editingText, setEditingText] = useState("");
   const presenceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const orderedRef = useRef<MsgRow[]>(initialMessages);
   const isNearBottomRef = useRef(true);
+  const lastHotDealAlertKeyRef = useRef("");
 
   const ordered = useMemo(() => {
     return [...messages].sort((a, b) => {
@@ -344,6 +358,55 @@ const [editingText, setEditingText] = useState("");
 
     return own?.id ?? null;
   }, [ordered, currentUserId]);
+
+  useEffect(() => {
+  if (!conversationId || ordered.length === 0) return;
+
+  const recentMessages = ordered
+    .filter((m) => {
+      const isSystem = m.sender_role === "system" || m.message_type === "system";
+      const isDeleted = Boolean(m.meta?.deleted);
+      return !isSystem && !isDeleted;
+    })
+    .slice(-8)
+    .map((m) => ({
+      role: m.sender_role === "buyer" ? "buyer" : "vendor",
+      body: String(m.body || ""),
+    }));
+
+  if (recentMessages.length === 0) return;
+
+  const timer = setTimeout(async () => {
+    try {
+      setAiLoading(true);
+
+      const res = await fetch("/api/ai/chat-reply-suggestions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          side: "buyer",
+          messages: recentMessages,
+        }),
+      });
+
+      const json = await res.json().catch(() => null);
+
+      if (res.ok && json?.suggestions?.length) {
+        setAiSuggestions(json.suggestions.slice(0, 4));
+      } else {
+        setAiSuggestions([]);
+      }
+    } catch {
+      setAiSuggestions([]);
+    } finally {
+      setAiLoading(false);
+    }
+  }, 800);
+
+  return () => clearTimeout(timer);
+}, [ordered, conversationId]);
 
   useEffect(() => {
   setMessages(initialMessages ?? []);
@@ -1572,6 +1635,214 @@ async function deleteMessageForEveryone(messageId: string) {
     );
   }
 
+    const buyerAi = useMemo(() => {
+    const cleanMessages = ordered
+      .filter((m) => {
+        const isSystem = m.sender_role === "system" || m.message_type === "system";
+        const isDeleted = Boolean(m.meta?.deleted);
+        return !isSystem && !isDeleted;
+      })
+      .map((m) => String(m.body || "").toLowerCase())
+      .join(" ");
+
+    const hasPrice = /₹|rs\.?|price|rate|amount|total|final/.test(cleanMessages);
+    const hasDelivery = /deliver|delivery|dispatch|tomorrow|today|time|date/.test(cleanMessages);
+    const hasQuantity = /qty|quantity|bag|bags|piece|pieces|kg|ton|cft|sqft|order/.test(cleanMessages);
+    const hasInvoice = /invoice|bill|gst|tax/.test(cleanMessages);
+    const hasPayment = /payment|advance|cash|upi|bank|pay/.test(cleanMessages);
+    const hasLocation = /location|address|site|delivery point|where/.test(cleanMessages);
+    const hasNegotiation =
+      /discount|less|reduce|better price|best price|final price|negotiate|offer/.test(cleanMessages);
+
+    const hasDeliveryCharge =
+      /delivery charge|transport|freight|loading|unloading|extra charge/.test(cleanMessages);
+
+    const score =
+      20 +
+      (hasPrice ? 18 : 0) +
+      (hasDelivery ? 18 : 0) +
+      (hasQuantity ? 14 : 0) +
+      (hasInvoice ? 10 : 0) +
+      (hasPayment ? 10 : 0) +
+      (hasLocation ? 10 : 0);
+
+    const negotiationTips: string[] = [];
+
+    if (hasPrice && !hasNegotiation) {
+      negotiationTips.push("Ask for a better final price before confirming.");
+    }
+
+    if (hasPrice && !hasDeliveryCharge) {
+      negotiationTips.push("Check whether delivery / transport charge is included.");
+    }
+
+    if (!hasInvoice) {
+      negotiationTips.push("Ask for GST bill / invoice to avoid dispute.");
+    }
+
+    if (!hasPayment) {
+      negotiationTips.push("Do not pay before payment terms are clear.");
+    }
+
+    const missing: string[] = [];
+    if (!hasPrice) missing.push("final price");
+    if (!hasQuantity) missing.push("quantity / brand");
+    if (!hasDelivery) missing.push("delivery time");
+    if (!hasLocation) missing.push("delivery location");
+    if (!hasInvoice) missing.push("invoice / bill");
+    if (!hasPayment) missing.push("payment terms");
+
+    const latestVendorMessage = [...ordered]
+      .reverse()
+      .find(
+        (m) =>
+          String(m.sender_user_id ?? "") !== String(currentUserId) &&
+          m.sender_role !== "system" &&
+          m.message_type !== "system" &&
+          !m.meta?.deleted &&
+          String(m.body || "").trim()
+      );
+
+    const latestVendorText = String(latestVendorMessage?.body || "").toLowerCase();
+
+    let suggestedReply = "Please confirm final price, quantity, delivery location, invoice and payment terms before I proceed.";
+
+    if (/deliver|dispatch|tomorrow|today|time/.test(latestVendorText)) {
+      suggestedReply = "Okay, please confirm final price including delivery charge, invoice availability and payment terms.";
+    } else if (/price|rate|₹|rs/.test(latestVendorText)) {
+      suggestedReply = "Thank you. Please confirm whether this is the final price including delivery and GST bill.";
+    } else if (/send me|confirm|okay/.test(latestVendorText)) {
+      suggestedReply = "Before confirming, please share final price, quantity, delivery location, invoice and payment terms.";
+    }
+
+    const stage =
+      score >= 80
+        ? "Ready to proceed"
+        : score >= 60
+        ? "Almost ready, details missing"
+        : score >= 40
+        ? "Negotiation stage"
+        : "Early discussion";
+
+    const isReadyToClose =
+      score >= 75 && missing.length <= 2;
+
+    return {
+      score: Math.min(score, 100),
+      stage,
+      missing,
+      suggestedReply,
+      negotiationTips,
+      isReadyToClose,
+    };
+  }, [ordered, currentUserId]);
+
+  useEffect(() => {
+    if (!conversationId || !buyerAi.isReadyToClose) return;
+
+    const recentMessages = ordered
+      .filter((m) => {
+        const isSystem = m.sender_role === "system" || m.message_type === "system";
+        const isDeleted = Boolean(m.meta?.deleted);
+        return !isSystem && !isDeleted && String(m.body || "").trim();
+      })
+      .slice(-6)
+      .map((m) => ({
+        role: m.sender_role === "buyer" ? "buyer" : "vendor",
+        body: String(m.body || ""),
+      }));
+
+    if (recentMessages.length === 0) return;
+
+    const alertKey = `${conversationId}-${buyerAi.score}-${buyerAi.missing.join("|")}-${recentMessages
+      .map((m) => m.body)
+      .join("|")}`;
+
+    if (lastHotDealAlertKeyRef.current === alertKey) return;
+    lastHotDealAlertKeyRef.current = alertKey;
+
+    const timer = window.setTimeout(() => {
+      fetch("/api/ai/vendor-alert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          side: "buyer",
+          trigger: "hot_deal_ready_to_close",
+          vendorUserId: vendorUserId || "",
+          conversationId,
+          rfqId,
+          buyerScore: buyerAi.score,
+          missing: buyerAi.missing,
+          monetization: {
+            type: "boost_opportunity",
+            priority: "high",
+            message: "Buyer is ready to close. Vendor should respond quickly.",
+          },
+          messages: recentMessages,
+        }),
+      }).catch(() => {});
+    }, 1200);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    buyerAi.isReadyToClose,
+    buyerAi.score,
+    buyerAi.missing,
+    conversationId,
+    rfqId,
+    vendorUserId,
+    ordered,
+  ]);
+
+  function applyBuyerAiAction(action: string) {
+    if (action === "Ask missing details") {
+      setText(
+        buyerAi.missing.length
+          ? `Please confirm ${buyerAi.missing.join(", ")} before I proceed.`
+          : "Please confirm all final deal details before I proceed."
+      );
+      return;
+    }
+
+    if (action === "Negotiate better price") {
+      setText("If I confirm today, please give your best final price. I am ready to proceed if the rate is suitable.");
+      return;
+    }
+
+    if (action === "Ask bulk discount") {
+      setText("For this quantity, can you offer a bulk discount or any better rate?");
+      return;
+    }
+
+    if (action === "Ask free delivery") {
+      setText("Can you include delivery / transport charge within the final price?");
+      return;
+    }
+
+    if (action === "Ask for invoice") {
+      setText("Please confirm whether you can provide GST bill / invoice before dispatch.");
+      return;
+    }
+
+    if (action === "Confirm delivery") {
+      setText("Please confirm exact dispatch time, delivery date and delivery charge.");
+      return;
+    }
+
+    if (action === "Ask payment terms") {
+      setText("Please share payment terms clearly before I proceed.");
+      return;
+    }
+
+    if (action === "Compare with other vendors") {
+      setText("I am comparing with other vendors. Please share your best final price and delivery terms.");
+      return;
+    }
+
+    setText(buyerAi.suggestedReply);
+  }
+
   const presenceLabel = isCounterpartTyping
     ? "Typing..."
     : counterpartOnline
@@ -2443,6 +2714,215 @@ style={{
       ) : null}
 
       <div style={{ padding: 12, borderTop: "1px solid #e5e7eb", background: "#fff" }}>
+        <div
+          style={{
+            marginBottom: 12,
+            border: "1px solid #bfdbfe",
+            background: "linear-gradient(135deg, #eff6ff, #f8fafc)",
+            borderRadius: 16,
+            padding: 12,
+          }}
+        >
+          <div style={{ fontSize: 14, fontWeight: 950, color: "#1e3a8a" }}>
+            🤖 AI Buyer Assistant
+          </div>
+
+          <div style={{ marginTop: 6, fontSize: 13, color: "#334155", lineHeight: 1.45 }}>
+            <b>{buyerAi.score}%</b> • {buyerAi.stage}
+            {buyerAi.missing.length ? (
+              <span> — Missing: {buyerAi.missing.slice(0, 4).join(", ")}</span>
+            ) : (
+              <span> — Major deal details look ready.</span>
+            )}
+          </div>
+
+          {buyerAi.missing.length > 0 ? (
+            <div
+              style={{
+                marginTop: 8,
+                padding: "8px 10px",
+                borderRadius: 10,
+                background: "#fff7ed",
+                border: "1px solid #fed7aa",
+                fontSize: 12,
+                color: "#9a3412",
+                lineHeight: 1.5,
+              }}
+            >
+              ⚠️ Missing critical details:
+              <div style={{ marginTop: 4 }}>
+                {buyerAi.missing.slice(0, 4).map((m) => (
+                  <div key={m}>• {m}</div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                marginTop: 8,
+                padding: "8px 10px",
+                borderRadius: 10,
+                background: "#ecfdf5",
+                border: "1px solid #bbf7d0",
+                fontSize: 12,
+                color: "#065f46",
+                lineHeight: 1.5,
+              }}
+            >
+              ✅ Deal looks safe. Major details are discussed.
+            </div>
+          )}
+
+                    {buyerAi.negotiationTips.length > 0 ? (
+            <div
+              style={{
+                marginTop: 10,
+                padding: "9px 10px",
+                borderRadius: 12,
+                background: "#fff7ed",
+                border: "1px solid #fed7aa",
+                color: "#9a3412",
+                fontSize: 12,
+                lineHeight: 1.5,
+              }}
+            >
+              <div style={{ fontWeight: 950, marginBottom: 4 }}>
+                🧠 AI Negotiation Tips
+              </div>
+              {buyerAi.negotiationTips.slice(0, 3).map((tip) => (
+                <div key={tip}>• {tip}</div>
+              ))}
+            </div>
+          ) : null}
+
+          <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ marginTop: 10 }}>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 900,
+              marginBottom: 6,
+              color: "#1d4ed8",
+            }}
+          >
+            ⚡ AI Suggestions
+          </div>
+
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {aiLoading ? (
+              <div style={{ fontSize: 12, opacity: 0.7 }}>
+                Thinking...
+              </div>
+            ) : aiSuggestions.length > 0 ? (
+              aiSuggestions.map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setText(s)}
+                  style={{
+                    padding: "7px 11px",
+                    borderRadius: 999,
+                    border: "1px solid #93c5fd",
+                    background: "#dbeafe",
+                    color: "#1d4ed8",
+                    fontSize: 12,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                  }}
+                >
+                  {s}
+                </button>
+              ))
+            ) : (
+              <button
+                type="button"
+                onClick={() => setText(aiSuggestions[0] || buyerAi.suggestedReply)}
+                style={{
+                  padding: "7px 11px",
+                  borderRadius: 999,
+                  border: "1px solid #93c5fd",
+                  background: "#dbeafe",
+                  color: "#1d4ed8",
+                  fontSize: 12,
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                ⚡ Smart Suggestion
+              </button>
+            )}
+          </div>
+        </div>
+            {BUYER_AI_ACTIONS.map((action) => (
+              <button
+                key={action}
+                type="button"
+                onClick={() => applyBuyerAiAction(action)}
+                style={{
+                  padding: "7px 11px",
+                  borderRadius: 999,
+                  border: "1px solid #d1d5db",
+                  background: "#fff",
+                  fontSize: 12,
+                  fontWeight: 850,
+                  cursor: "pointer",
+                }}
+              >
+                {action}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {buyerAi.isReadyToClose ? (
+          <div
+            style={{
+              marginBottom: 12,
+              border: "1px solid #facc15",
+              background: "#fefce8",
+              borderRadius: 14,
+              padding: 12,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 10,
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <div style={{ fontWeight: 950, color: "#92400e" }}>
+                🔥 This deal looks ready to close
+              </div>
+
+              <div style={{ fontSize: 12, color: "#78350f", marginTop: 4 }}>
+                {buyerAi.missing.length > 0
+                  ? `Before proceeding, confirm: ${buyerAi.missing.join(", ")}`
+                  : "All major deal details are discussed. You can proceed confidently."}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                setText(
+                  "I am ready to proceed. Please confirm final price, invoice and payment details."
+                )
+              }
+              style={{
+                padding: "9px 13px",
+                borderRadius: 12,
+                border: "1px solid #fde68a",
+                background: "#f59e0b",
+                color: "#fff",
+                fontWeight: 950,
+                cursor: "pointer",
+              }}
+            >
+              ✅ Confirm & Lock Deal
+            </button>
+          </div>
+        ) : null}
+
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
           {QUICK_REPLIES.map((q) => (
             <button
@@ -2870,18 +3350,19 @@ style={{
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button
               type="button"
-              onClick={() => sendMessage("Hello")}
+              onClick={() => setText(buyerAi.suggestedReply)}
               disabled={loading}
               style={{
                 padding: "10px 14px",
                 borderRadius: 12,
-                border: "1px solid #d1d5db",
-                background: "#fff",
+                border: "1px solid #fed7aa",
+                background: "#fff7ed",
+                color: "#c2410c",
                 fontWeight: 900,
                 cursor: loading ? "default" : "pointer",
               }}
             >
-              Quick Hello
+              ⚡ Auto AI Reply
             </button>
 
             <button
@@ -2898,11 +3379,13 @@ style={{
                 cursor: loading ? "default" : "pointer",
               }}
             >
-              {loading
-                ? "Sending..."
-                : selectedFiles.length > 0 || recordedAudioFile
-                ? "Send Message + Media"
-                : "Send Message"}
+            {loading
+              ? "Sending..."
+              : selectedFiles.length > 0 || recordedAudioFile
+              ? "Send Message + Media"
+              : aiSuggestions.length > 0
+              ? "Send / Use AI"
+              : "Send Message"}
             </button>
           </div>
         </div>
