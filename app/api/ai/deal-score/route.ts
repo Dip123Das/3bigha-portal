@@ -11,7 +11,8 @@ function fallbackDealScore() {
   return {
     score: 55,
     label: "Moderate Deal",
-    insight: "The discussion has started, but final price, quantity, delivery and confirmation are still needed.",
+    insight:
+      "The discussion has started, but final price, quantity, delivery and confirmation are still needed.",
     actionLabel: "Ask Final Details",
     actionMessage:
       "Please confirm the final price, quantity, delivery location, delivery time and bill/document availability.",
@@ -29,10 +30,66 @@ function extractText(payload: any): string {
   return parts?.join("\n") || "";
 }
 
-function normalizeDealScore(value: unknown) {
-  const fallback = fallbackDealScore();
+function heuristicDealScore(messages: DealScoreMessage[]) {
+  const text = messages
+    .map((m) => `${m?.role || "user"}: ${m?.body || ""}`)
+    .join("\n")
+    .toLowerCase();
 
-  if (!value || typeof value !== "object") return fallback;
+  let score = 25;
+
+  if (text.includes("price") || text.includes("rate") || text.includes("quote")) score += 10;
+  if (text.includes("delivery") || text.includes("time") || text.includes("timeline")) score += 10;
+  if (text.includes("final") || text.includes("last price") || text.includes("best price")) score += 20;
+  if (text.includes("ok") || text.includes("okay") || text.includes("done")) score += 20;
+  if (text.includes("confirm") || text.includes("confirmed") || text.includes("start")) score += 25;
+  if (text.includes("urgent") || text.includes("fast") || text.includes("faster") || text.includes("tomorrow")) score += 15;
+  if (text.includes("payment") || text.includes("advance") || text.includes("upi") || text.includes("cash")) score += 15;
+  if (text.includes("call me") || text.includes("phone") || text.includes("whatsapp")) score += 8;
+
+  score = Math.min(score, 100);
+
+  if (score >= 85) {
+    return {
+      score,
+      label: "Very Strong Deal",
+      insight: "Buyer and vendor show strong closing intent. Confirm final terms safely before proceeding.",
+      actionLabel: "Confirm Deal",
+      actionMessage: "Please confirm final price, delivery time, start date and bill/document details before proceeding.",
+    };
+  }
+
+  if (score >= 70) {
+    return {
+      score,
+      label: "Strong Deal",
+      insight: "The discussion shows clear buying intent. Final confirmation is the next step.",
+      actionLabel: "Ask Confirmation",
+      actionMessage: "Please confirm the final price, delivery timeline and start date.",
+    };
+  }
+
+  if (score >= 45) {
+    return {
+      score,
+      label: "Moderate Deal",
+      insight: "The conversation is active, but some final deal details are still missing.",
+      actionLabel: "Ask Final Details",
+      actionMessage: "Please share final price, delivery time, availability and bill/document details.",
+    };
+  }
+
+  return {
+    score,
+    label: "Early Discussion",
+    insight: "The conversation has started but deal intent is still weak.",
+    actionLabel: "Ask Price",
+    actionMessage: "Please share your best final price and delivery timeline.",
+  };
+}
+
+function normalizeDealScore(value: unknown, heuristic = fallbackDealScore()) {
+  if (!value || typeof value !== "object") return heuristic;
 
   const row = value as Partial<ReturnType<typeof fallbackDealScore>>;
   const score = Number(row.score);
@@ -40,12 +97,12 @@ function normalizeDealScore(value: unknown) {
   return {
     score:
       Number.isFinite(score) && score >= 0 && score <= 100
-        ? Math.round(score)
-        : fallback.score,
-    label: String(row.label || fallback.label).slice(0, 50),
-    insight: String(row.insight || fallback.insight).slice(0, 220),
-    actionLabel: String(row.actionLabel || fallback.actionLabel).slice(0, 50),
-    actionMessage: String(row.actionMessage || fallback.actionMessage).slice(0, 220),
+        ? Math.max(Math.round(score), heuristic.score)
+        : heuristic.score,
+    label: String(row.label || heuristic.label).slice(0, 50),
+    insight: String(row.insight || heuristic.insight).slice(0, 220),
+    actionLabel: String(row.actionLabel || heuristic.actionLabel).slice(0, 50),
+    actionMessage: String(row.actionMessage || heuristic.actionMessage).slice(0, 220),
   };
 }
 
@@ -54,7 +111,7 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     const messages: DealScoreMessage[] = Array.isArray(body?.messages)
-      ? body.messages.slice(-8)
+      ? body.messages.slice(-12)
       : [];
 
     if (messages.length === 0) {
@@ -65,13 +122,15 @@ export async function POST(req: Request) {
       });
     }
 
+    const heuristic = heuristicDealScore(messages);
     const apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json({
         ok: true,
+        source: "heuristic",
         fallback: true,
-        ...fallbackDealScore(),
+        ...heuristic,
       });
     }
 
@@ -102,7 +161,9 @@ Scoring guide:
 - 61-80 strong: price/details mostly discussed
 - 81-100 very strong: ready to close
 
-Rules:
+Important local signals:
+- Short words like ok, done, final, start, confirm, faster can indicate strong deal intent.
+- Do not reduce score just because messages are short.
 - Do not mention AI.
 - Do not assume payment is completed.
 - Do not create false promises.
@@ -127,7 +188,7 @@ ${context}
       }),
     });
 
-    const aiJson = await aiRes.json();
+    const aiJson = await aiRes.json().catch(() => ({}));
     const raw = extractText(aiJson).trim();
 
     let parsed: unknown = null;
@@ -140,8 +201,8 @@ ${context}
 
     return NextResponse.json({
       ok: true,
-      source: aiRes.ok ? "ai" : "fallback",
-      ...normalizeDealScore(parsed),
+      source: aiRes.ok && parsed ? "ai+heuristic" : "heuristic",
+      ...normalizeDealScore(parsed, heuristic),
     });
   } catch {
     return NextResponse.json(

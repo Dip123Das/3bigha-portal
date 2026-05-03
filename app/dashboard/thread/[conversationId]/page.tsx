@@ -6,6 +6,7 @@ import VendorRfqChatBox from "@/app/vendor/inbox-v2/[rfqId]/chat/vendor-rfq-chat
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import DealScoreClient from "@/app/components/ai/DealScoreClient";
 import BuyerConversationChatBox from "@/app/dashboard/buyer/chat/[conversationId]/buyer-conversation-chat-box";
 
 export const dynamic = "force-dynamic";
@@ -425,6 +426,14 @@ export default async function UniversalThreadPage({
           </div>
         </div>
       </div>
+
+      <DealScoreClient
+        conversationId={conversationId}
+        initialMessages={messages.map((m) => ({
+          role: String(m.sender_role || "user"),
+          body: String(m.body || ""),
+        }))}
+      />
 
       {isUnifiedLiveChat ? (
         <BuyerConversationChatBox
