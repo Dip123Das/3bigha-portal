@@ -15,26 +15,31 @@ export default function DealScoreClient({
 }) {
   const [data, setData] = useState<any>(null);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        if (!initialMessages || initialMessages.length === 0) return;
+ useEffect(() => {
+  let timer: any;
 
-        const res = await fetch("/api/ai/deal-score", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: initialMessages }),
-        });
+  async function load() {
+    try {
+      if (!initialMessages || initialMessages.length === 0) return;
 
-        const json = await res.json();
-        if (json?.ok) setData(json);
-      } catch (err) {
-        console.error("Deal score error:", err);
-      }
-    }
+      const res = await fetch("/api/ai/deal-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: initialMessages }),
+      });
 
-    load();
-  }, [JSON.stringify(initialMessages)]);
+      const json = await res.json();
+      if (json?.ok) setData(json);
+    } catch {}
+  }
+
+  load();
+
+  // 🔥 AUTO REFRESH every 5 seconds
+  timer = setInterval(load, 5000);
+
+  return () => clearInterval(timer);
+}, [JSON.stringify(initialMessages)]);
 
   if (!data) return null;
 
