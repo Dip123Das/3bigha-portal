@@ -572,11 +572,13 @@ return;
         showPopup(`RFQ submitted successfully.\nConnecting you to ${vendorName}...`);
 
         const safeChatUrl =
-          typeof out?.autoConversationId === "string" && out.autoConversationId.trim()
-            ? `/dashboard/thread/${encodeURIComponent(out.autoConversationId.trim())}`
-            : typeof out?.rfqId === "string" && out.rfqId.trim()
-              ? `/dashboard/buyer/quote-compare/${encodeURIComponent(out.rfqId.trim())}`
-              : "/dashboard/buyer/rfqs";
+          typeof out?.autoChatUrl === "string" && out.autoChatUrl.trim()
+            ? out.autoChatUrl.trim()
+            : typeof out?.autoConversationId === "string" && out.autoConversationId.trim()
+              ? `/dashboard/thread/${encodeURIComponent(out.autoConversationId.trim())}`
+              : typeof out?.rfqId === "string" && out.rfqId.trim()
+                ? `/dashboard/buyer/quote-compare/${encodeURIComponent(out.rfqId.trim())}`
+                : "/dashboard/buyer/rfqs";
 
         router.push(safeChatUrl);
       } else {
