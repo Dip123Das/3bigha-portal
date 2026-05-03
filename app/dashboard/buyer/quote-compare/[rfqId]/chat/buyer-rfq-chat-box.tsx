@@ -365,9 +365,6 @@ export default function BuyerRfqChatBox(props: {
   useEffect(() => {
   if (!conversationId || ordered.length === 0) return;
 
-  useEffect(() => {
-  if (!conversationId || ordered.length === 0) return;
-
   const recentMessages = ordered
     .filter((m) => {
       const isSystem = m.sender_role === "system" || m.message_type === "system";
@@ -410,6 +407,9 @@ export default function BuyerRfqChatBox(props: {
 
   return () => clearTimeout(timer);
 }, [ordered, conversationId]);
+
+  useEffect(() => {
+  if (!conversationId || ordered.length === 0) return;
 
   const recentMessages = ordered
     .filter((m) => {
