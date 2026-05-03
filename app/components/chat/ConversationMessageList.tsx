@@ -55,8 +55,13 @@ type AiVendorAlert = {
   alert: boolean;
   severity: "low" | "medium" | "high";
   audience: "buyer" | "vendor" | "both";
+  priority: "free" | "premium";
+  premiumEligible: boolean;
   title: string;
   insight: string;
+  buyerHint: string;
+  vendorHint: string;
+  upgradeHint: string;
   actionLabel: string;
   actionMessage: string;
 };
@@ -161,9 +166,17 @@ export default function ConversationMessageList(props: {
     alert: false,
     severity: "medium",
     audience: "both",
+    priority: "free",
+    premiumEligible: false,
     title: "Deal Activity Detected",
     insight:
       "Conversation is active. More price, quantity, delivery and confirmation details may be needed.",
+    buyerHint:
+      "Ask for final price, quantity, delivery location, delivery time and bill details before payment.",
+    vendorHint:
+      "Vendor should reply quickly with price, availability and delivery timeline.",
+    upgradeHint:
+      "Premium vendors can receive stronger priority alerts when buyers show closing intent.",
     actionLabel: "Ask Final Details",
     actionMessage:
       "Please confirm final price, quantity, delivery location, delivery time and bill/document availability.",
@@ -282,8 +295,15 @@ useEffect(() => {
             alert: Boolean(data?.alert ?? defaultAiVendorAlert.alert),
             severity: data?.severity || defaultAiVendorAlert.severity,
             audience: data?.audience || defaultAiVendorAlert.audience,
+            priority: data?.priority || defaultAiVendorAlert.priority,
+            premiumEligible: Boolean(
+              data?.premiumEligible ?? defaultAiVendorAlert.premiumEligible
+            ),
             title: String(data?.title || defaultAiVendorAlert.title),
             insight: String(data?.insight || defaultAiVendorAlert.insight),
+            buyerHint: String(data?.buyerHint || defaultAiVendorAlert.buyerHint),
+            vendorHint: String(data?.vendorHint || defaultAiVendorAlert.vendorHint),
+            upgradeHint: String(data?.upgradeHint || defaultAiVendorAlert.upgradeHint),
             actionLabel: String(data?.actionLabel || defaultAiVendorAlert.actionLabel),
             actionMessage: String(data?.actionMessage || defaultAiVendorAlert.actionMessage),
           });
@@ -988,11 +1008,11 @@ useEffect(() => {
           style={{
             marginTop: 14,
             border:
-              aiVendorAlert.severity === "high"
-                ? "1px solid #fb923c"
+              aiVendorAlert.priority === "premium"
+                ? "1px solid #f97316"
                 : "1px solid #fde68a",
             background:
-              aiVendorAlert.severity === "high"
+              aiVendorAlert.priority === "premium"
                 ? "linear-gradient(90deg, #fff7ed, #ffffff)"
                 : "linear-gradient(90deg, #fffbeb, #ffffff)",
             borderRadius: 18,
@@ -1003,15 +1023,64 @@ useEffect(() => {
             style={{
               fontSize: 13,
               fontWeight: 900,
-              color: aiVendorAlert.severity === "high" ? "#c2410c" : "#92400e",
+              color: aiVendorAlert.priority === "premium" ? "#c2410c" : "#92400e",
               marginBottom: 8,
             }}
           >
             🔔 {aiVendorAlert.title}
           </div>
 
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+            <span
+              style={{
+                border: "1px solid #fed7aa",
+                background: "#fff",
+                color: "#9a3412",
+                borderRadius: 999,
+                padding: "4px 8px",
+                fontSize: 11,
+                fontWeight: 900,
+              }}
+            >
+              {aiVendorAlert.priority === "premium"
+                ? "🔥 Premium Priority Signal"
+                : "Free Alert"}
+            </span>
+
+            {aiVendorAlert.premiumEligible ? (
+              <span
+                style={{
+                  border: "1px solid #c7d2fe",
+                  background: "#eef2ff",
+                  color: "#3730a3",
+                  borderRadius: 999,
+                  padding: "4px 8px",
+                  fontSize: 11,
+                  fontWeight: 900,
+                }}
+              >
+                Monetization Eligible
+              </span>
+            ) : null}
+          </div>
+
           <div style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>
             {aiVendorAlert.insight}
+          </div>
+
+          <div
+            style={{
+              marginTop: 8,
+              border: "1px dashed #fdba74",
+              background: "#fff",
+              borderRadius: 12,
+              padding: 10,
+              fontSize: 12,
+              fontWeight: 800,
+              color: "#7c2d12",
+            }}
+          >
+            🧠 Buyer AI: {aiVendorAlert.buyerHint}
           </div>
 
           <button
@@ -1020,7 +1089,7 @@ useEffect(() => {
             style={{
               marginTop: 10,
               border: "none",
-              background: aiVendorAlert.severity === "high" ? "#f97316" : "#f59e0b",
+              background: aiVendorAlert.priority === "premium" ? "#f97316" : "#f59e0b",
               color: "#fff",
               borderRadius: 999,
               padding: "8px 12px",

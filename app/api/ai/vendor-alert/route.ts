@@ -12,8 +12,13 @@ type AlertResponse = {
   alert: boolean;
   severity: "low" | "medium" | "high";
   audience: "buyer" | "vendor" | "both";
+  priority: "free" | "premium";
+  premiumEligible: boolean;
   title: string;
   insight: string;
+  buyerHint: string;
+  vendorHint: string;
+  upgradeHint: string;
   actionLabel: string;
   actionMessage: string;
 };
@@ -23,9 +28,17 @@ function fallbackAlert(): AlertResponse {
     alert: false,
     severity: "medium",
     audience: "both",
+    priority: "free",
+    premiumEligible: false,
     title: "Deal Activity Detected",
     insight:
       "Conversation is active. More price, quantity, delivery and confirmation details may be needed.",
+    buyerHint:
+      "Ask for final price, quantity, delivery location, delivery time and bill details before payment.",
+    vendorHint:
+      "Reply quickly with price, availability, delivery timeline and trust details.",
+    upgradeHint:
+      "Premium vendors can receive stronger priority alerts when buyers show closing intent.",
     actionLabel: "Ask Final Details",
     actionMessage:
       "Please confirm final price, quantity, delivery location, delivery time and bill/document availability.",
@@ -64,9 +77,17 @@ function heuristicAlert(messages: AlertMessage[]): AlertResponse {
       alert: true,
       severity: "high",
       audience: "both",
+      priority: "premium",
+      premiumEligible: true,
       title: "High Intent Buyer Detected",
       insight:
         "This conversation shows strong closing signals. Respond quickly and confirm final terms safely.",
+      buyerHint:
+        "Buyer should confirm final price, quantity, address, delivery time and bill before payment.",
+      vendorHint:
+        "Vendor should respond immediately. This buyer may be close to conversion.",
+      upgradeHint:
+        "Premium vendors should receive instant priority alert for this type of buyer signal.",
       actionLabel: "Send Closing Message",
       actionMessage:
         "Please confirm final price, quantity, delivery address, delivery time and bill details so we can proceed safely.",
@@ -78,9 +99,17 @@ function heuristicAlert(messages: AlertMessage[]): AlertResponse {
       alert: true,
       severity: "medium",
       audience: "both",
+      priority: "free",
+      premiumEligible: true,
       title: "Active Deal Opportunity",
       insight:
         "This deal is moving forward but final details are still missing.",
+      buyerHint:
+        "Buyer should collect missing final details before confirming the deal.",
+      vendorHint:
+        "Vendor should answer clearly to avoid losing this active lead.",
+      upgradeHint:
+        "Boosted vendors can use priority alerts to respond faster and close more deals.",
       actionLabel: "Ask Final Details",
       actionMessage:
         "Please confirm final price, quantity, delivery location and delivery timeline.",
@@ -104,12 +133,22 @@ function normalizeAlert(value: unknown, fallback: AlertResponse): AlertResponse 
       ? row.audience
       : fallback.audience;
 
+  const priority =
+    row.priority === "premium" || row.priority === "free"
+      ? row.priority
+      : fallback.priority;
+
   return {
     alert: Boolean(row.alert ?? fallback.alert),
     severity,
     audience,
+    priority,
+    premiumEligible: Boolean(row.premiumEligible ?? fallback.premiumEligible),
     title: String(row.title || fallback.title).slice(0, 70),
     insight: String(row.insight || fallback.insight).slice(0, 220),
+    buyerHint: String(row.buyerHint || fallback.buyerHint).slice(0, 220),
+    vendorHint: String(row.vendorHint || fallback.vendorHint).slice(0, 220),
+    upgradeHint: String(row.upgradeHint || fallback.upgradeHint).slice(0, 220),
     actionLabel: String(row.actionLabel || fallback.actionLabel).slice(0, 50),
     actionMessage: String(row.actionMessage || fallback.actionMessage).slice(0, 220),
   };
