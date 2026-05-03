@@ -7,6 +7,16 @@ type DealScoreMessage = {
   body?: string;
 };
 
+const fallbackDealScore = {
+  ok: true,
+  score: 40,
+  label: "Normal Lead",
+  insight: "AI is waiting for stronger deal signals like price, quantity, location, delivery time, or confirmation.",
+  actionLabel: "Copy follow-up message",
+  actionMessage:
+    "Hello, can you please share your required quantity, delivery location, expected delivery time, and final budget?",
+};
+
 export default function DealScoreClient({
   conversationId,
   initialMessages,
@@ -14,102 +24,58 @@ export default function DealScoreClient({
   conversationId: string;
   initialMessages: DealScoreMessage[];
 }) {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<any>(fallbackDealScore);
 
   const messageKey = useMemo(() => {
     return (initialMessages || [])
-      .map((m, index) => `${index}:${m.role || ""}:${m.body || ""}`)
+      .map((m, i) => `${i}:${m.role || ""}:${m.body || ""}`)
       .join("|");
   }, [initialMessages]);
 
   useEffect(() => {
     let alive = true;
-    let timer: ReturnType<typeof setInterval> | null = null;
 
     async function load() {
-      console.log("🔥 DealScore messages:", initialMessages);
       try {
-        setLoading(true);
-
-        const safeMessages = Array.isArray(initialMessages)
-          ? initialMessages
-          : [];
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 7000);
 
         const res = await fetch("/api/ai/deal-score", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           cache: "no-store",
+          signal: controller.signal,
           body: JSON.stringify({
             conversationId,
-            messages: safeMessages,
+            messages: Array.isArray(initialMessages) ? initialMessages : [],
           }),
         });
+
+        clearTimeout(timeout);
 
         const json = await res.json();
 
         if (!alive) return;
 
         if (json?.ok) {
-          setData(json);
-        } else {
           setData({
-            ok: true,
-            score: 0,
-            label: "Preparing",
-            insight: "AI is waiting for stronger deal signals in this chat.",
-            actionLabel: "Copy follow-up message",
-            actionMessage:
-              "Hello, can you please share your best price, availability, delivery timeline, and payment terms?",
+            ...fallbackDealScore,
+            ...json,
           });
         }
       } catch {
-        if (!alive) return;
-
-        setData({
-          ok: true,
-          score: 0,
-          label: "Offline",
-          insight: "AI Deal Score could not refresh right now.",
-          actionLabel: "Copy follow-up message",
-          actionMessage:
-            "Hello, can you please share your best price, availability, delivery timeline, and payment terms?",
-        });
-      } finally {
-        if (alive) setLoading(false);
+        if (alive) setData(fallbackDealScore);
       }
     }
 
     load();
-
-    timer = setInterval(load, 5000);
+    const timer = setInterval(load, 5000);
 
     return () => {
       alive = false;
-      if (timer) clearInterval(timer);
+      clearInterval(timer);
     };
-  }, [conversationId, messageKey, initialMessages.length]);
-
-  if (!data) {
-    return (
-      <div
-        style={{
-          border: "1px solid #fecaca",
-          background: "#fff1f2",
-          borderRadius: 16,
-          padding: 14,
-          marginBottom: 16,
-          fontWeight: 800,
-          color: "#991b1b",
-        }}
-      >
-        🔥 AI Deal Strength
-        <div style={{ marginTop: 6, fontSize: 13, opacity: 0.7 }}>
-          {loading ? "Analyzing conversation..." : "Preparing deal score..."}
-        </div>
-      </div>
-    );
-  }
+  }, [conversationId, messageKey]);
 
   return (
     <div
