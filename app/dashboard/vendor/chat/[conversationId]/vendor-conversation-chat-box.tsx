@@ -427,14 +427,20 @@ export default function VendorConversationChatBox(props: {
   };
 }, [ordered]);
 
-  function applyVendorAutoAiDraftIfEmpty() {
-    if (text.trim()) return;
-
-    const suggestion =
+  function getVendorAutoAiSuggestion() {
+    return (
       vendorAiSuggestions[0] ||
       (vendorAi.isHotBuyer
         ? "Yes, I confirm the final price, delivery time, invoice and payment terms. You can proceed."
-        : "Please tell me the quantity, delivery location and expected timeline so I can confirm the best price.");
+        : "Please tell me the quantity, delivery location and expected timeline so I can confirm the best price.")
+    );
+  }
+
+  function applyVendorAutoAiDraftIfEmpty() {
+    if (text.trim()) return;
+
+    const suggestion = getVendorAutoAiSuggestion();
+    if (!suggestion) return;
 
     const latestId = ordered[ordered.length - 1]?.id || "";
     const key = `${conversationId}-${latestId}-${suggestion}`;
@@ -443,6 +449,17 @@ export default function VendorConversationChatBox(props: {
 
     autoVendorAiDraftKeyRef.current = key;
     setText(suggestion);
+  }
+
+  function applyVendorAutoAiReplyNow() {
+    const suggestion = getVendorAutoAiSuggestion();
+    if (!suggestion) return;
+
+    setText(suggestion);
+
+    window.setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 0);
   }
 
   const presenceLabel = isCounterpartTyping
@@ -1919,6 +1936,30 @@ useEffect(() => {
             </div>
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={async () => {
+                  const suggestion = getVendorAutoAiSuggestion();
+                  if (!suggestion) return;
+
+                  setText(suggestion);
+                  await sendMessage(suggestion, null);
+                }}
+                disabled={loading || uploading || isRecording}
+                style={{
+                  padding: "7px 11px",
+                  borderRadius: 999,
+                  border: "1px solid #93c5fd",
+                  background: "#dbeafe",
+                  color: "#1d4ed8",
+                  fontSize: 12,
+                  fontWeight: 900,
+                  cursor: loading || uploading || isRecording ? "default" : "pointer",
+                }}
+              >
+                ⚡ Auto AI Reply
+              </button>
+
               {vendorAiLoading ? (
                 <div style={{ fontSize: 12, opacity: 0.7 }}>Thinking...</div>
               ) : vendorAiSuggestions.length > 0 ? (
@@ -1926,10 +1967,13 @@ useEffect(() => {
                   <button
                     key={`${s}-${i}`}
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
+                      if (!s) return;
+
                       setText(s);
-                      textareaRef.current?.focus();
+                      await sendMessage(s, null);
                     }}
+                    disabled={loading || uploading || isRecording}
                     style={{
                       padding: "7px 11px",
                       borderRadius: 999,
@@ -1938,7 +1982,7 @@ useEffect(() => {
                       color: "#1d4ed8",
                       fontSize: 12,
                       fontWeight: 900,
-                      cursor: "pointer",
+                      cursor: loading || uploading || isRecording ? "default" : "pointer",
                     }}
                   >
                     {s}
@@ -1947,12 +1991,14 @@ useEffect(() => {
               ) : (
                 <button
                   type="button"
-                  onClick={() => {
-                    setText(
-                      "Yes, I confirm the final price, delivery time, invoice and payment terms. You can proceed."
-                    );
-                    textareaRef.current?.focus();
+                  onClick={async () => {
+                    const suggestion = getVendorAutoAiSuggestion();
+                    if (!suggestion) return;
+
+                    setText(suggestion);
+                    await sendMessage(suggestion, null);
                   }}
+                  disabled={loading || uploading || isRecording}
                   style={{
                     padding: "7px 11px",
                     borderRadius: 999,
@@ -1961,39 +2007,51 @@ useEffect(() => {
                     color: "#1d4ed8",
                     fontSize: 12,
                     fontWeight: 900,
-                    cursor: "pointer",
+                    cursor: loading || uploading || isRecording ? "default" : "pointer",
                   }}
                 >
                   Confirm deal details
                 </button>
               )}
 
-              <button
-                type="button"
-                onClick={() => {
-                  setText("I can offer my best final price if you confirm today.");
-                  textareaRef.current?.focus();
-                }}
-                style={{
-                  padding: "7px 11px",
-                  borderRadius: 999,
-                  border: "1px solid #fed7aa",
-                  background: "#fff7ed",
-                  color: "#c2410c",
-                  fontSize: 12,
-                  fontWeight: 900,
-                  cursor: "pointer",
-                }}
-              >
-                Best final price
-              </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const suggestion =
+                      vendorAiSuggestions[0] ||
+                      (vendorAi.isHotBuyer
+                        ? "Yes, I confirm the final price, delivery time, invoice and payment terms. You can proceed."
+                        : "I can offer my best final price if you confirm today.");
+
+                    if (!suggestion) return;
+
+                    setText(suggestion);
+                    await sendMessage(suggestion, null);
+                  }}
+                  style={{
+                    padding: "7px 11px",
+                    borderRadius: 999,
+                    border: "1px solid #fed7aa",
+                    background: "#fff7ed",
+                    color: "#c2410c",
+                    fontSize: 12,
+                    fontWeight: 900,
+                    cursor: "pointer",
+                  }}
+                >
+                  ⚡ Auto AI Reply
+                </button>
 
               <button
                 type="button"
-                onClick={() => {
-                  setText("Delivery will be arranged as discussed. Please confirm your full delivery address.");
-                  textareaRef.current?.focus();
+                onClick={async () => {
+                  const suggestion =
+                    "Delivery will be arranged as discussed. Please confirm your full delivery address.";
+
+                  setText(suggestion);
+                  await sendMessage(suggestion, null);
                 }}
+                disabled={loading || uploading || isRecording}
                 style={{
                   padding: "7px 11px",
                   borderRadius: 999,
@@ -2002,37 +2060,38 @@ useEffect(() => {
                   color: "#047857",
                   fontSize: 12,
                   fontWeight: 900,
-                  cursor: "pointer",
+                  cursor: loading || uploading || isRecording ? "default" : "pointer",
                 }}
               >
                 Confirm delivery
-                </button>
-                </div>
-
-                {vendorAi.isHotBuyer ? (
-                  <div style={{ marginTop: 10 }}>
-                    <button
-                      type="button"
-                      onClick={() => router.push("/dashboard/subscription/boost")}
-                      style={{
-                        width: "100%",
-                        padding: "10px 14px",
-                        borderRadius: 12,
-                        border: "1px solid #facc15",
-                        background: "#f59e0b",
-                        color: "#fff",
-                        fontWeight: 950,
-                        cursor: "pointer",
-                      }}
-                    >
-                      ⭐ Boost to Win This Deal
-                    </button>
-                  </div>
-                ) : null}
-
-                </div>
-              </div>
+              </button>
             </div>
+
+            {vendorAi.isHotBuyer ? (
+              <div style={{ marginTop: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    router.push("/dashboard/subscription/boost");
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "10px 14px",
+                    borderRadius: 12,
+                    border: "1px solid #facc15",
+                    background: "#f59e0b",
+                    color: "#fff",
+                    fontWeight: 950,
+                    cursor: "pointer",
+                  }}
+                >
+                  ⭐ Boost to Win This Deal
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
 
       <div onFocusCapture={applyVendorAutoAiDraftIfEmpty}>
         <ConversationComposer
@@ -2054,7 +2113,16 @@ useEffect(() => {
         sendTypingStop={sendTypingStop}
         typingStopTimeoutRef={typingTimeoutRef}
         markConversationRead={markSeen}
-        sendMessage={sendMessage}
+        sendMessage={async (messageOverride?: string, replyOverride?: MsgRow | null) => {
+          const body = String(messageOverride ?? text ?? "").trim();
+
+          if (!body) {
+            applyVendorAutoAiReplyNow();
+            return;
+          }
+
+          await sendMessage(messageOverride, replyOverride);
+        }}
         loading={loading || uploading}
         fileInputRef={fileInputRef}
         onPickFiles={(files) => {
@@ -2079,7 +2147,10 @@ useEffect(() => {
         err={uploading ? "Uploading attachment..." : err}
         applyQuickReply={(value) => {
           setText(value);
-          textareaRef.current?.focus();
+
+          window.setTimeout(() => {
+            textareaRef.current?.focus();
+          }, 0);
         }}
       />
       </div>
