@@ -375,6 +375,20 @@ export default function BuyerConversationChatBox(props: {
   const previousCountRef = useRef(initialMessages?.length ?? 0);
 
   const ordered = useMemo(() => sortMessagesByCreatedAt(messages), [messages]);
+
+  const dealScoreMessages = useMemo(() => {
+    return ordered
+      .filter((m) => {
+        const isSystem = m.sender_role === "system" || m.message_type === "system";
+        const isDeleted = Boolean(m.meta?.deleted);
+        return !isSystem && !isDeleted;
+      })
+      .map((m) => ({
+        role: String(m.sender_role || "user"),
+        body: String(m.body || ""),
+      }));
+  }, [ordered]);
+
   const canSend = text.trim().length > 0 && !loading && !uploading;
 
     const presenceLabel = isCounterpartTyping
@@ -1357,23 +1371,6 @@ useEffect(() => {
   };
 }, [recordedAudioPreviewUrl]);
 
-<div style={{ marginBottom: 10 }}>
-  <button
-    onClick={closeDeal}
-    style={{
-      background: "#16a34a",
-      color: "white",
-      border: "none",
-      padding: "8px 12px",
-      borderRadius: 8,
-      fontWeight: 900,
-      cursor: "pointer",
-    }}
-  >
-    ✅ Mark Deal as Completed
-  </button>
-</div>
-
   return (
     <div
       style={{
@@ -1425,23 +1422,41 @@ useEffect(() => {
           </div>
         </div>
 
-        {counterpartPhone ? (
-          <a
-            href={`tel:${counterpartPhone}`}
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={closeDeal}
             style={{
-              textDecoration: "none",
-              fontWeight: 900,
-              border: "1px solid #d1d5db",
+              background: "#16a34a",
+              color: "white",
+              border: "none",
+              padding: "8px 12px",
               borderRadius: 999,
-              padding: "8px 14px",
-              color: "#111827",
-              background: "#fff",
+              fontWeight: 900,
+              cursor: "pointer",
             }}
           >
-            📞 Call
-          </a>
-        ) : null}
-      </div>
+            ✅ Mark Deal
+          </button>
+
+          {counterpartPhone ? (
+            <a
+              href={`tel:${counterpartPhone}`}
+              style={{
+                textDecoration: "none",
+                fontWeight: 900,
+                border: "1px solid #d1d5db",
+                borderRadius: 999,
+                padding: "8px 14px",
+                color: "#111827",
+                background: "#fff",
+              }}
+            >
+              📞 Call
+              </a>
+            ) : null}
+          </div>
+        </div>
 
       <div style={{ position: "relative", background: "#f3f4f6" }}>
         <div
@@ -1473,10 +1488,7 @@ useEffect(() => {
           <div style={{ marginBottom: 16 }}>
             <DealScoreClient
               conversationId={conversationId}
-              initialMessages={messages.map((m) => ({
-                role: String(m.sender_role || "user"),
-                body: String(m.body || ""),
-              }))}
+              initialMessages={dealScoreMessages}
             />
           </div>
 
