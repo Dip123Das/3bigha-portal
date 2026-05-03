@@ -328,7 +328,7 @@ export default function VendorConversationChatBox(props: {
   } = props;
 
   const router = useRouter();
-  
+
   const supabase = useMemo(() => getSupabaseBrowser(), []);
 
   const [messages, setMessages] = useState<MsgRow[]>(initialMessages);
@@ -379,6 +379,7 @@ export default function VendorConversationChatBox(props: {
   const wasNearBottomRef = useRef(true);
   const previousCountRef = useRef(initialMessages?.length ?? 0);
   const aiAlertCheckedMessageRef = useRef<string | null>(null);
+  const autoVendorAiDraftKeyRef = useRef("");
 
   const ordered = useMemo(() => sortMessagesByCreatedAt(messages), [messages]);
   const canSend = text.trim().length > 0 && !loading && !uploading;
@@ -425,6 +426,24 @@ export default function VendorConversationChatBox(props: {
     missing,
   };
 }, [ordered]);
+
+  function applyVendorAutoAiDraftIfEmpty() {
+    if (text.trim()) return;
+
+    const suggestion =
+      vendorAiSuggestions[0] ||
+      (vendorAi.isHotBuyer
+        ? "Yes, I confirm the final price, delivery time, invoice and payment terms. You can proceed."
+        : "Please tell me the quantity, delivery location and expected timeline so I can confirm the best price.");
+
+    const latestId = ordered[ordered.length - 1]?.id || "";
+    const key = `${conversationId}-${latestId}-${suggestion}`;
+
+    if (autoVendorAiDraftKeyRef.current === key) return;
+
+    autoVendorAiDraftKeyRef.current = key;
+    setText(suggestion);
+  }
 
   const presenceLabel = isCounterpartTyping
     ? "Typing..."
@@ -2015,7 +2034,8 @@ useEffect(() => {
               </div>
             </div>
 
-      <ConversationComposer
+      <div onFocusCapture={applyVendorAutoAiDraftIfEmpty}>
+        <ConversationComposer
         QUICK_REPLIES={QUICK_REPLIES}
         COMPOSER_EMOJIS={COMPOSER_EMOJIS}
         MAX_FILES={1}
@@ -2063,5 +2083,6 @@ useEffect(() => {
         }}
       />
       </div>
+    </div>
   );
 }

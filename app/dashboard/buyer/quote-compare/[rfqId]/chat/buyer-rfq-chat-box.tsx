@@ -277,6 +277,7 @@ const [editingText, setEditingText] = useState("");
   const presenceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const orderedRef = useRef<MsgRow[]>(initialMessages);
   const isNearBottomRef = useRef(true);
+  const autoAiDraftKeyRef = useRef("");
   const lastHotDealAlertKeyRef = useRef("");
 
   const ordered = useMemo(() => {
@@ -1843,6 +1844,21 @@ async function deleteMessageForEveryone(messageId: string) {
     setText(buyerAi.suggestedReply);
   }
 
+    function applyAutoAiDraftIfEmpty() {
+    if (text.trim()) return;
+
+    const suggestion = aiSuggestions[0] || buyerAi.suggestedReply;
+    if (!suggestion) return;
+
+    const latestId = ordered[ordered.length - 1]?.id || "";
+    const key = `${conversationId}-${latestId}-${suggestion}`;
+
+    if (autoAiDraftKeyRef.current === key) return;
+
+    autoAiDraftKeyRef.current = key;
+    setText(suggestion);
+  }
+
   const presenceLabel = isCounterpartTyping
     ? "Typing..."
     : counterpartOnline
@@ -3073,6 +3089,7 @@ style={{
           }}
           onFocus={() => {
             setShowEmojiBox(false);
+            applyAutoAiDraftIfEmpty();
             void markConversationRead();
             void touchMyPresence();
           }}
