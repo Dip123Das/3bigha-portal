@@ -18,6 +18,8 @@ export default function DealScoreClient({
   useEffect(() => {
     async function load() {
       try {
+        if (!initialMessages || initialMessages.length === 0) return;
+
         const res = await fetch("/api/ai/deal-score", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -26,11 +28,13 @@ export default function DealScoreClient({
 
         const json = await res.json();
         if (json?.ok) setData(json);
-      } catch {}
+      } catch (err) {
+        console.error("Deal score error:", err);
+      }
     }
 
     load();
-  }, [initialMessages]);
+  }, [JSON.stringify(initialMessages)]);
 
   if (!data) return null;
 
