@@ -1,7 +1,33 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) return null;
+
+  return createClient(supabaseUrl, serviceRoleKey);
+}
+
+function isPremiumPlan(plan: unknown, status: unknown, boostPriority: unknown) {
+  const p = String(plan || "free").toLowerCase();
+  const s = String(status || "free").toLowerCase();
+  const boost = Number(boostPriority || 0);
+
+  return (
+    boost > 0 ||
+    s === "active" ||
+    p === "silver" ||
+    p === "gold" ||
+    p === "platinum" ||
+    p === "premium" ||
+    p === "hub_vendor"
+  );
+}
 
 type AlertMessage = {
   role?: string;
@@ -165,6 +191,89 @@ function heuristicAlert(messages: AlertMessage[]): AlertResponse {
   return fallbackAlert();
 }
 
+async function createPremiumVendorAlertNotification({
+  vendorUserId,
+  alert,
+}: {
+  vendorUserId: string;
+  alert: AlertResponse;
+}) {
+  const supabase = getSupabaseAdmin();
+
+  if (!supabase || !vendorUserId || !alert.alert || !alert.premiumEligible) {
+    return {
+      created: false,
+      reason: "Not eligible or Supabase admin unavailable",
+    };
+  }
+
+  const { data: profile } = await supabase
+    .from("business_profiles")
+    .select("subscription_plan,subscription_status,boost_priority,boost_expires_at")
+    .eq("user_id", vendorUserId)
+    .maybeSingle();
+
+  const boostExpiresAt = profile?.boost_expires_at
+    ? new Date(String(profile.boost_expires_at))
+    : null;
+
+  const boostExpired = boostExpiresAt ? boostExpiresAt < new Date() : false;
+
+  const premium = isPremiumPlan(
+    profile?.subscription_plan,
+    profile?.subscription_status,
+    boostExpired ? 0 : profile?.boost_priority
+  );
+
+  if (!premium) {
+    return {
+      created: false,
+      premium: false,
+      reason: "Vendor is not premium or boosted",
+    };
+  }
+
+  const message = [
+    `🔥 ${alert.title}`,
+    "",
+    alert.vendorHint || alert.insight,
+    "",
+    "Reply quickly and confirm:",
+    "✔ Final price",
+    "✔ Quantity",
+    "✔ Delivery address/time",
+    "✔ Bill/document details",
+  ].join("\n");
+
+  const { data, error } = await supabase
+    .from("vendor_notifications")
+    .insert({
+      user_id: vendorUserId,
+      title: alert.title,
+      message,
+      type: "premium_buyer_alert",
+      priority: alert.priority,
+      is_read: false,
+      whatsapp_status: "pending",
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return {
+      created: false,
+      premium: true,
+      error: error.message,
+    };
+  }
+
+  return {
+    created: true,
+    premium: true,
+    notificationId: data?.id || null,
+  };
+}
+
 function normalizeAlert(value: unknown, fallback: AlertResponse): AlertResponse {
   if (!value || typeof value !== "object") return fallback;
 
@@ -204,6 +313,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
     const side = String(body?.side || "buyer").toLowerCase();
+    const vendorUserId = String(body?.vendorUserId || "");
 
     const messages: AlertMessage[] = Array.isArray(body?.messages)
       ? body.messages.slice(-12)
@@ -214,10 +324,22 @@ export async function POST(req: Request) {
     const apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey || messages.length === 0) {
+      const monetization =
+        fallback.alert && fallback.premiumEligible && vendorUserId
+          ? await createPremiumVendorAlertNotification({
+              vendorUserId,
+              alert: fallback,
+            })
+          : {
+              created: false,
+              reason: "No vendorUserId or alert not premium eligible",
+            };
+
       return NextResponse.json({
         ok: true,
         source: "heuristic",
         side,
+        monetization,
         ...fallback,
       });
     }
@@ -282,11 +404,25 @@ ${context}
       parsed = null;
     }
 
+    const alert = normalizeAlert(parsed, fallback);
+
+    const monetization =
+      alert.alert && alert.premiumEligible && vendorUserId
+        ? await createPremiumVendorAlertNotification({
+            vendorUserId,
+            alert,
+          })
+        : {
+            created: false,
+            reason: "No vendorUserId or alert not premium eligible",
+          };
+
     return NextResponse.json({
       ok: true,
       source: parsed ? "ai+heuristic" : "heuristic",
       side,
-      ...normalizeAlert(parsed, fallback),
+      monetization,
+      ...alert,
     });
   } catch {
     return NextResponse.json({
