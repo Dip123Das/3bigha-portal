@@ -6,6 +6,7 @@ import { clearInboxReminder } from "@/lib/inbox/clearInboxReminder";
 import ConversationMessageList from "@/app/components/chat/ConversationMessageList";
 import ConversationComposer from "@/app/components/chat/ConversationComposer";
 import ConversationActionMenu from "@/app/components/chat/ConversationActionMenu";
+import DealScoreClient from "@/components/ai/DealScoreClient";
 import ConversationDeleteConfirm from "@/app/components/chat/ConversationDeleteConfirm";
 import {
   fmtBubbleTime,
@@ -1468,6 +1469,17 @@ useEffect(() => {
             background: "#f3f4f6",
           }}
         >
+
+          <div style={{ marginBottom: 16 }}>
+            <DealScoreClient
+              conversationId={conversationId}
+              initialMessages={messages.map((m) => ({
+                role: String(m.sender_role || "user"),
+                body: String(m.body || ""),
+              }))}
+            />
+          </div>
+
           <ConversationMessageList
             ordered={ordered}
             currentUserId={currentUserId}

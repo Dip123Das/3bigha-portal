@@ -41,8 +41,7 @@ export default function DealScoreClient({
   return () => clearInterval(timer);
 }, [JSON.stringify(initialMessages)]);
 
-  if (!data) return null;
-
+  if (!data) {
   return (
     <div
       style={{
@@ -51,37 +50,57 @@ export default function DealScoreClient({
         borderRadius: 16,
         padding: 14,
         marginBottom: 16,
+        fontWeight: 800,
+        color: "#991b1b",
       }}
     >
-      <div style={{ fontWeight: 900, color: "#991b1b" }}>
-        🔥 AI Deal Strength
+      🔥 AI Deal Strength  
+      <div style={{ marginTop: 6, fontSize: 13, opacity: 0.7 }}>
+        Analyzing conversation...
       </div>
-
-      <div style={{ marginTop: 8, fontSize: 18, fontWeight: 900 }}>
-        {data.score}% {data.label}
-      </div>
-
-      <div style={{ marginTop: 6, fontSize: 13, color: "#7f1d1d" }}>
-        {data.insight}
-      </div>
-
-      <button
-        type="button"
-        onClick={() => navigator.clipboard.writeText(data.actionMessage || "")}
-        style={{
-          width: "100%",
-          marginTop: 12,
-          border: 0,
-          borderRadius: 999,
-          padding: "10px 14px",
-          background: "#dc2626",
-          color: "white",
-          fontWeight: 900,
-          cursor: "pointer",
-        }}
-      >
-        {data.actionLabel}
-      </button>
     </div>
   );
+}
+
+return (
+  <div
+    style={{
+      border: "1px solid #fecaca",
+      background: "#fff1f2",
+      borderRadius: 16,
+      padding: 14,
+      marginBottom: 16,
+    }}
+  >
+    <div style={{ fontWeight: 900, color: "#991b1b" }}>
+      🔥 AI Deal Strength
+    </div>
+
+    <div style={{ marginTop: 8, fontSize: 18, fontWeight: 900 }}>
+      {data.score}% {data.label}
+    </div>
+
+    <div style={{ marginTop: 6, fontSize: 13, color: "#7f1d1d" }}>
+      {data.insight}
+    </div>
+
+    <button
+      type="button"
+      onClick={() => navigator.clipboard.writeText(data.actionMessage || "")}
+      style={{
+        width: "100%",
+        marginTop: 12,
+        border: 0,
+        borderRadius: 999,
+        padding: "10px 14px",
+        background: "#dc2626",
+        color: "white",
+        fontWeight: 900,
+        cursor: "pointer",
+      }}
+    >
+      {data.actionLabel}
+    </button>
+  </div>
+);
 }

@@ -427,14 +427,6 @@ export default async function UniversalThreadPage({
         </div>
       </div>
 
-      <DealScoreClient
-        conversationId={conversationId}
-        initialMessages={messages.map((m) => ({
-          role: String(m.sender_role || "user"),
-          body: String(m.body || ""),
-        }))}
-      />
-
       {isUnifiedLiveChat ? (
         <BuyerConversationChatBox
           conversationId={conversationId}
