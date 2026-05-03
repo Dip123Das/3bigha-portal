@@ -87,7 +87,15 @@ function heuristicAlert(messages: AlertMessage[]): AlertResponse {
     };
   }
 
-  return fallbackAlert();
+  return {
+  alert: true,
+  severity: "high",
+  audience: "both",
+  title: "🔥 High Intent Buyer (Test)",
+  insight: "This is a forced alert to verify UI is rendering correctly.",
+  actionLabel: "Test Action",
+  actionMessage: "This is a test message.",
+};
 }
 
 function normalizeAlert(value: unknown, fallback: AlertResponse): AlertResponse {
