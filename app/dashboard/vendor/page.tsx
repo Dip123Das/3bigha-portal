@@ -208,6 +208,13 @@ const [funnelStats, setFunnelStats] = useState({
   repliedLeads: 0,
 });
 
+const [dealStats, setDealStats] = useState({
+  total: 0,
+  ready: 0,
+});
+
+const [leaderboardRows, setLeaderboardRows] = useState<any[]>([]);
+
 const [aiTips, setAiTips] = useState<string[]>([]);
 
 const [priceIntelligenceStats, setPriceIntelligenceStats] =
@@ -329,9 +336,20 @@ const boostScore = Math.min(
   getPlanBoostPower(vendorPlan, activeBoostPriority)
 );
 
+const dealSignalScore = Math.min(
+  25,
+  dealStats.ready * 5 // each ready deal boosts visibility
+);
+
 const growthVisibilityScore = Math.min(
   100,
-  Math.round(replySpeedScore + priceScore + trustScore + boostScore)
+  Math.round(
+    replySpeedScore +
+    priceScore +
+    trustScore +
+    boostScore +
+    dealSignalScore
+  )
 );
 
 const leaderboardStatus =
@@ -542,6 +560,43 @@ const aiDealUpgradeTarget =
     setVendorStatus(String(businessPlan?.subscription_status || "free"));
     setVendorBoostPriority(boostExpired ? 0 : Number(businessPlan?.boost_priority || 0));
     setVendorBoostExpiresAt(boostExpired ? null : boostExpiresAt);
+
+    try {
+      const dealStatsRes = await fetch(
+        `/api/ai/deal-conversion?vendorUserId=${encodeURIComponent(session.user.id)}`,
+        { cache: "no-store" }
+      );
+
+      const dealStatsJson = await dealStatsRes.json().catch(() => null);
+
+      if (dealStatsJson?.ok) {
+        setDealStats({
+          total: Number(dealStatsJson.total || 0),
+          ready: Number(dealStatsJson.ready || 0),
+        });
+      }
+    } catch {
+      setDealStats({
+        total: 0,
+        ready: 0,
+      });
+    }
+
+    try {
+      const leaderboardRes = await fetch("/api/vendor/leaderboard", {
+        cache: "no-store",
+      });
+
+      const leaderboardJson = await leaderboardRes.json().catch(() => null);
+
+      if (leaderboardJson?.ok && Array.isArray(leaderboardJson.rows)) {
+        setLeaderboardRows(leaderboardJson.rows.slice(0, 5));
+      } else {
+        setLeaderboardRows([]);
+      }
+    } catch {
+      setLeaderboardRows([]);
+    }
 
     const { data: priceRows } = await supabase
       .from("material_price_updates")
@@ -1242,6 +1297,147 @@ const aiDealUpgradeTarget =
             {getPlanBoostPower(vendorPlan, activeBoostPriority)}
           </div>
         ) : null}
+
+                <div
+          style={{
+            marginBottom: 14,
+            borderRadius: 18,
+            padding: 16,
+            border: "1px solid #c7d2fe",
+            background: "linear-gradient(135deg, #eef2ff, #ffffff)",
+            boxShadow: "0 10px 24px rgba(79,70,229,0.08)",
+          }}
+        >
+          <div style={{ fontSize: 18, fontWeight: 950, color: "#312e81" }}>
+            🏆 AI Vendor Leaderboard
+          </div>
+
+          <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 850, lineHeight: 1.5 }}>
+            Top vendors are ranked by AI deal signals, ready-to-close conversations, verification and boost strength.
+          </div>
+
+          <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+            {leaderboardRows.length > 0 ? (
+              leaderboardRows.map((row) => (
+                <div
+                  key={`${row.vendorUserId}-${row.rank}`}
+                  style={{
+                    border: "1px solid #e0e7ff",
+                    borderRadius: 14,
+                    padding: 12,
+                    background: "#fff",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 950, color: "#111827" }}>
+                      #{row.rank} {row.name}
+                    </div>
+                    <div style={{ marginTop: 4, fontSize: 12, color: "#475569", fontWeight: 800 }}>
+                      {row.locality || row.city || "Local market"} • {row.badge}
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <Badge>Score: {row.score}</Badge>
+                    <Badge>Ready: {row.readySignals}</Badge>
+                    <Badge>Total: {row.totalSignals}</Badge>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div style={{ fontSize: 13, color: "#64748b", fontWeight: 850 }}>
+                Leaderboard will appear after vendors generate AI deal signals.
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/subscription/boost")}
+            style={{
+              marginTop: 12,
+              background: "#4f46e5",
+              color: "#fff",
+              border: "none",
+              padding: "10px 14px",
+              borderRadius: 12,
+              fontWeight: 950,
+              cursor: "pointer",
+            }}
+          >
+            🚀 Improve My Leaderboard Rank
+          </button>
+        </div>
+
+        <div
+          style={{
+            marginBottom: 14,
+            borderRadius: 18,
+            padding: 16,
+            border: "1px solid #bbf7d0",
+            background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
+            boxShadow: "0 10px 24px rgba(16,185,129,0.08)",
+          }}
+        >
+          <div style={{ fontSize: 18, fontWeight: 950, color: "#065f46" }}>
+            📊 AI Deal Performance
+          </div>
+
+          <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 850, lineHeight: 1.5 }}>
+            AI tracks your deal readiness from buyer conversations. Strong deal signals help improve vendor growth insights.
+          </div>
+
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
+            <div style={{ border: "1px solid #dcfce7", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
+                Tracked Deal Events
+              </div>
+              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#065f46" }}>
+                {dealStats.total}
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #fed7aa", borderRadius: 14, padding: 12, background: "#fff7ed" }}>
+              <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>
+                Ready-to-Close Signals
+              </div>
+              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#c2410c" }}>
+                {dealStats.ready}
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #dbeafe", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 900 }}>
+                AI Closing Rate
+              </div>
+              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#1d4ed8" }}>
+                {dealStats.total > 0 ? `${Math.round((dealStats.ready / dealStats.total) * 100)}%` : "—"}
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/subscription?focus=ai")}
+            style={{
+              marginTop: 12,
+              background: "#059669",
+              color: "#fff",
+              border: "none",
+              padding: "10px 14px",
+              borderRadius: 12,
+              fontWeight: 950,
+              cursor: "pointer",
+            }}
+          >
+            ⚡ Improve AI Deal Closing
+          </button>
+        </div>
 
                 {aiTips.length > 0 ? (
           <div

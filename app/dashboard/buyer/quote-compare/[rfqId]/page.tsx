@@ -205,6 +205,32 @@ export default async function BuyerQuoteComparePage({
 
   const showAcceptedBanner = String(searchParams?.accepted ?? "") === "1";
 
+  const aiRecommendedVendor: any =
+    vendorsSorted.length > 0
+      ? [...vendorsSorted].sort((a: any, b: any) => {
+          const aScore =
+            Number(a.ready_deal_signals || 0) * 30 +
+            Number(a.win_probability || 0) * 40 +
+            Number(a.weighted_boost || 0);
+
+          const bScore =
+            Number(b.ready_deal_signals || 0) * 30 +
+            Number(b.win_probability || 0) * 40 +
+            Number(b.weighted_boost || 0);
+
+          if (bScore !== aScore) return bScore - aScore;
+
+          const ga = a.grand_total == null ? Number.POSITIVE_INFINITY : Number(a.grand_total);
+          const gb = b.grand_total == null ? Number.POSITIVE_INFINITY : Number(b.grand_total);
+
+          return ga - gb;
+        })[0]
+      : null;
+
+  const aiRecommendedVendorId = aiRecommendedVendor?.vendor_id
+    ? String(aiRecommendedVendor.vendor_id)
+    : null;
+
   const buyerPrintHref = `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}/print`;
 
   return (
@@ -278,6 +304,92 @@ export default async function BuyerQuoteComparePage({
           </div>
         </div>
       </div>
+
+            {aiRecommendedVendor ? (
+        <div
+          style={{
+            marginTop: 16,
+            padding: 16,
+            borderRadius: 16,
+            border: "1px solid #bfdbfe",
+            background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+            boxShadow: "0 10px 24px rgba(37,99,235,0.08)",
+          }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 950, color: "#1d4ed8" }}>
+            🧠 AI Recommended Vendor
+          </div>
+
+          <div style={{ marginTop: 6, fontSize: 20, fontWeight: 1000, color: "#0f172a" }}>
+            {aiRecommendedVendor.vendor_business_name ??
+              (aiRecommendedVendor.vendor_id
+                ? `Vendor ${String(aiRecommendedVendor.vendor_id).slice(0, 8)}…`
+                : "Vendor")}
+          </div>
+
+          <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <span style={pillStyle("ok")}>Best AI Fit</span>
+
+            {Number(aiRecommendedVendor.ready_deal_signals || 0) >= 3 ? (
+              <span style={pillStyle("ok")}>🔥 Top Closer</span>
+            ) : null}
+
+            {Number(aiRecommendedVendor.win_probability || 0) > 0.7 ? (
+              <span style={pillStyle("ok")}>⚡ High Win Probability</span>
+            ) : null}
+
+            {Number(aiRecommendedVendor.weighted_boost || 0) > 0 ? (
+              <span style={pillStyle("neutral")}>⭐ Premium Vendor</span>
+            ) : null}
+
+            <span style={pillStyle("neutral")}>
+              Total: {fmtMoney(aiRecommendedVendor.grand_total)}
+            </span>
+          </div>
+
+          <div style={{ marginTop: 8, fontSize: 13, color: "#475569", fontWeight: 800 }}>
+            Suggested based on deal signals, AI win probability, vendor reputation and quote strength.
+          </div>
+
+          <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Link
+              href={`/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}/chat?vendorId=${encodeURIComponent(
+                String(aiRecommendedVendor.vendor_id ?? "")
+              )}`}
+              style={{
+                ...actionBtnStyle("talk"),
+                background: "linear-gradient(180deg, #dcfce7 0%, #86efac 100%)",
+                border: "1px solid #22c55e",
+                fontWeight: 1000,
+              }}
+            >
+              💬 Talk to AI Recommended Vendor
+            </Link>
+
+            <form
+              action={`/api/buyer/rfq/${encodeURIComponent(rfqId)}/accept`}
+              method="post"
+              style={{ display: "inline-flex" }}
+            >
+              <input type="hidden" name="quote_id" value={String(aiRecommendedVendor.quote_id ?? "")} />
+              <button
+                type="submit"
+                style={{
+                  height: 38,
+                  padding: "0 14px",
+                  borderRadius: 999,
+                  border: "1px solid #60a5fa",
+                  background: "#eff6ff",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                ✅ Accept Recommended
+              </button>
+            </form>
+          </div>
+        </div>
+      ) : null}
 
       {selectedVendor ? (
         <div
@@ -369,6 +481,10 @@ export default async function BuyerQuoteComparePage({
                     (acceptedVendorId && String(acceptedVendorId) === String(v.vendor_id)) ||
                     (acceptedQuoteId && String(acceptedQuoteId) === String(v.quote_id));
 
+                  const isTopCloser = Number(v.ready_deal_signals || 0) >= 3;
+                  const isHighWin = Number(v.win_probability || 0) > 0.7;
+                  const isPremium = Number(v.weighted_boost || 0) > 0;
+
                   const isBestPrice = bestPriceVendorId && String(v.vendor_id) === String(bestPriceVendorId);
                   const isFastest = fastestVendorId && String(v.vendor_id) === String(fastestVendorId);
 
@@ -378,10 +494,26 @@ export default async function BuyerQuoteComparePage({
                   )}/chat?vendorId=${encodeURIComponent(String(v.vendor_id ?? ""))}`;
 
                   return (
-                    <tr key={v.vendor_id} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                    <tr
+                      key={v.vendor_id}
+                      style={{
+                        borderBottom: "1px solid #f3f4f6",
+                        background:
+                          aiRecommendedVendorId && String(v.vendor_id) === aiRecommendedVendorId
+                            ? "#eff6ff"
+                            : "transparent",
+                      }}
+                    >
                       <td style={{ padding: 10, fontWeight: 900 }}>
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                           <span>{name}</span>
+
+                          {isTopCloser ? <span style={pillStyle("ok")}>🔥 Top Closer</span> : null}
+                          {!isTopCloser && isHighWin ? <span style={pillStyle("ok")}>⚡ High Win</span> : null}
+                          {isPremium ? <span style={pillStyle("neutral")}>⭐ Premium</span> : null}
+                          {aiRecommendedVendorId && String(v.vendor_id) === aiRecommendedVendorId ? (
+                            <span style={pillStyle("ok")}>🧠 AI Recommended</span>
+                          ) : null}
                           {isAccepted ? <span style={pillStyle("ok")}>Accepted</span> : null}
                           {isBestPrice ? <span style={pillStyle("ok")}>Best price</span> : null}
                           {isFastest ? <span style={pillStyle("neutral")}>Fastest</span> : null}
@@ -473,6 +605,10 @@ export default async function BuyerQuoteComparePage({
                 (acceptedVendorId && String(acceptedVendorId) === String(v.vendor_id)) ||
                 (acceptedQuoteId && String(acceptedQuoteId) === String(v.quote_id));
 
+              const isTopCloser = Number(v.ready_deal_signals || 0) >= 3;
+              const isHighWin = Number(v.win_probability || 0) > 0.7;
+              const isPremium = Number(v.weighted_boost || 0) > 0;
+
               const talkHref = v.conversation_id
                 ? `/dashboard/thread/${encodeURIComponent(v.conversation_id)}`
                 : `/dashboard/thread/${encodeURIComponent(rfqId)}`;
@@ -502,7 +638,15 @@ export default async function BuyerQuoteComparePage({
                       <span style={pillStyle("neutral")}>{fmtDateTime(v.updated_at ?? v.created_at)}</span>
                     </div>
 
-                    <div style={{ marginTop: 8, fontWeight: 900 }}>{name}</div>
+                    <div style={{ marginTop: 8, fontWeight: 900 }}>
+                      {name}
+                    </div>
+
+                    <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {isTopCloser ? <span style={pillStyle("ok")}>🔥 Top Closer</span> : null}
+                      {!isTopCloser && isHighWin ? <span style={pillStyle("ok")}>⚡ High Win Probability</span> : null}
+                      {isPremium ? <span style={pillStyle("neutral")}>⭐ Premium Vendor</span> : null}
+                    </div>
                     <div style={{ marginTop: 4, fontSize: 13, opacity: 0.8 }}>{place ? `📍 ${place}` : null}</div>
                   </div>
 

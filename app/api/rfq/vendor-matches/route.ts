@@ -444,12 +444,45 @@ export async function GET(req: Request) {
 
     const rows = Array.isArray(data) ? data : [];
 
+    const vendorIds = rows
+      .map((row: any) => clean(row.user_id))
+      .filter(Boolean);
+
+    const { data: dealEventRows } =
+      vendorIds.length > 0
+        ? await admin
+            .from("ai_deal_events")
+            .select("vendor_user_id,ready")
+            .in("vendor_user_id", vendorIds)
+        : { data: [] };
+
+    const dealStatsByVendor = new Map<string, { total: number; ready: number }>();
+
+    (dealEventRows || []).forEach((event: any) => {
+      const vendorId = clean(event.vendor_user_id);
+      if (!vendorId) return;
+
+      const current = dealStatsByVendor.get(vendorId) || { total: 0, ready: 0 };
+
+      dealStatsByVendor.set(vendorId, {
+        total: current.total + 1,
+        ready: current.ready + (event.ready === true ? 1 : 0),
+      });
+    });
+
     const scoredRows = await Promise.all(
       rows.map(async (row: any) => {
         const input = { module, item, city, locality, pincode };
         const ranked = scoreVendor(row, input);
         const aiRanked = await aiVendorScore(row, input);
         const priceRanked = await getLatestPriceSignal(admin, row, input);
+
+        const dealStats = dealStatsByVendor.get(clean(row.user_id)) || {
+          total: 0,
+          ready: 0,
+        };
+
+        const dealSignalScore = Math.min(25, dealStats.ready * 5);
 
         const displayName =
           clean(row.business_name) ||
@@ -504,7 +537,8 @@ export async function GET(req: Request) {
             (aiRanked?.score || 0) +
             smartPriceScore +
             weightedBoost +
-            performanceBoost,
+            performanceBoost +
+            dealSignalScore,
           99
         );
 
@@ -538,6 +572,17 @@ export async function GET(req: Request) {
           manual_boost: manualBoost,
           weighted_boost: weightedBoost,
           price_boost: priceBoost,
+          deal_signal_score: dealSignalScore,
+          ready_deal_signals: dealStats.ready,
+          total_deal_signals: dealStats.total,
+          routing_priority:
+            dealStats.ready >= 3
+              ? "top_closer"
+              : winProbability > 0.7
+              ? "high_win_probability"
+              : weightedBoost > 0
+              ? "paid_priority"
+              : "standard",
           city: clean(row.city),
           locality: clean(row.locality),
           district: clean(row.district),
@@ -550,16 +595,21 @@ export async function GET(req: Request) {
     const filtered = scoredRows
       .filter((row) => row.score >= 45)
       .sort((a, b) => {
-      // 🔥 PRIORITY 1: Win Probability (AI Prediction)
+      // 🔥 PRIORITY 1: Proven ready-to-close deal signals
+      if ((b.ready_deal_signals || 0) !== (a.ready_deal_signals || 0)) {
+        return (b.ready_deal_signals || 0) - (a.ready_deal_signals || 0);
+      }
+
+      // 🔥 PRIORITY 2: Win Probability (AI Prediction)
       const pDiff = (b.win_probability || 0) - (a.win_probability || 0);
       if (Math.abs(pDiff) > 0.05) return pDiff;
 
-      // 🔥 PRIORITY 2: Boost (Revenue logic)
+      // 🔥 PRIORITY 3: Boost (Revenue logic)
       if ((b.weighted_boost || 0) !== (a.weighted_boost || 0)) {
         return (b.weighted_boost || 0) - (a.weighted_boost || 0);
       }
 
-      // 🔥 PRIORITY 3: Score fallback
+      // 🔥 PRIORITY 4: Score fallback
       return (b.score || 0) - (a.score || 0);
     });
 
@@ -574,15 +624,36 @@ export async function GET(req: Request) {
       return { ...v, is_top_recommended: false };
     });
 
-    // 🧠 HARD REVENUE CONTROL
-    const paid = filteredWithTop.filter((row) => (row.plan_boost || 0) > 0);
-    const free = filteredWithTop.filter((row) => (row.plan_boost || 0) === 0);
+    // 🧠 SMART LEAD DISTRIBUTION ENGINE
+    const topClosers = filteredWithTop.filter(
+      (row) => (row.ready_deal_signals || 0) >= 3
+    );
 
-    // 👉 LIMIT FREE VISIBILITY
-    const limitedFree = free.slice(0, 2);
+    const highWin = filteredWithTop.filter(
+      (row) =>
+        (row.ready_deal_signals || 0) < 3 &&
+        (row.win_probability || 0) > 0.7
+    );
 
-    // 👉 PRIORITIZE PAID + TOP FREE
-    const matches = [...paid, ...limitedFree].slice(0, 5);
+    const paid = filteredWithTop.filter(
+      (row) =>
+        (row.ready_deal_signals || 0) < 3 &&
+        (row.win_probability || 0) <= 0.7 &&
+        (row.plan_boost || 0) > 0
+    );
+
+    const free = filteredWithTop.filter(
+      (row) =>
+        (row.ready_deal_signals || 0) < 3 &&
+        (row.win_probability || 0) <= 0.7 &&
+        (row.plan_boost || 0) === 0
+    );
+
+    // 👉 LIMITED FREE VISIBILITY
+    const limitedFree = free.slice(0, 1);
+
+    // 👉 ROUTING ORDER: closers → high probability → paid → limited free
+    const matches = [...topClosers, ...highWin, ...paid, ...limitedFree].slice(0, 5);
 
     // 🔥 TRACK MATCH EXPOSURE
     if (matches.length > 0) {

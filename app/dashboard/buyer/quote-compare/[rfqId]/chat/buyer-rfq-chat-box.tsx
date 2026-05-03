@@ -232,6 +232,8 @@ export default function BuyerRfqChatBox(props: {
   const [isCounterpartTyping, setIsCounterpartTyping] = useState(false);
   const [loading, setLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [dealReady, setDealReady] = useState<any>(null);
+  const [dealReadyLoading, setDealReadyLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [err, setErr] = useState("");
   const [failedTextRetry, setFailedTextRetry] = useState<{
@@ -254,9 +256,10 @@ export default function BuyerRfqChatBox(props: {
   const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
   const [hoverReactionMessageId, setHoverReactionMessageId] = useState<string | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-const [editingText, setEditingText] = useState("");
+  const [editingText, setEditingText] = useState("");
 
   const endRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const unreadDividerRef = useRef<HTMLDivElement | null>(null);
   const scrollBoxRef = useRef<HTMLDivElement | null>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -277,7 +280,6 @@ const [editingText, setEditingText] = useState("");
   const presenceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const orderedRef = useRef<MsgRow[]>(initialMessages);
   const isNearBottomRef = useRef(true);
-  const autoAiDraftKeyRef = useRef("");
   const lastHotDealAlertKeyRef = useRef("");
 
   const ordered = useMemo(() => {
@@ -362,6 +364,52 @@ const [editingText, setEditingText] = useState("");
 
   useEffect(() => {
   if (!conversationId || ordered.length === 0) return;
+
+  useEffect(() => {
+  if (!conversationId || ordered.length === 0) return;
+
+  const recentMessages = ordered
+    .filter((m) => {
+      const isSystem = m.sender_role === "system" || m.message_type === "system";
+      const isDeleted = Boolean(m.meta?.deleted);
+      return !isSystem && !isDeleted;
+    })
+    .slice(-8)
+    .map((m) => ({
+      role: m.sender_role === "buyer" ? "buyer" : "vendor",
+      body: String(m.body || ""),
+    }));
+
+  if (recentMessages.length === 0) return;
+
+  const timer = setTimeout(async () => {
+    try {
+      setDealReadyLoading(true);
+
+      const res = await fetch("/api/ai/deal-ready", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: recentMessages,
+        }),
+      });
+
+      const json = await res.json().catch(() => null);
+
+      if (res.ok && json?.data) {
+        setDealReady(json.data);
+      }
+    } catch {
+      // silent
+    } finally {
+      setDealReadyLoading(false);
+    }
+  }, 900);
+
+  return () => clearTimeout(timer);
+}, [ordered, conversationId]);
 
   const recentMessages = ordered
     .filter((m) => {
@@ -1844,19 +1892,14 @@ async function deleteMessageForEveryone(messageId: string) {
     setText(buyerAi.suggestedReply);
   }
 
-    function applyAutoAiDraftIfEmpty() {
-    if (text.trim()) return;
+  function applyBuyerSuggestionToTextarea(suggestion?: string) {
+    const value = String(suggestion ?? "").trim();
+    if (!value) return;
 
-    const suggestion = aiSuggestions[0] || buyerAi.suggestedReply;
-    if (!suggestion) return;
-
-    const latestId = ordered[ordered.length - 1]?.id || "";
-    const key = `${conversationId}-${latestId}-${suggestion}`;
-
-    if (autoAiDraftKeyRef.current === key) return;
-
-    autoAiDraftKeyRef.current = key;
-    setText(suggestion);
+    setText(value);
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 0);
   }
 
   const presenceLabel = isCounterpartTyping
@@ -2743,6 +2786,58 @@ style={{
             🤖 AI Buyer Assistant
           </div>
 
+          {dealReady ? (
+            <div
+              style={{
+                marginTop: 8,
+                padding: "8px 10px",
+                borderRadius: 10,
+                background:
+                  dealReady.riskLevel === "high"
+                    ? "#fff1f2"
+                    : dealReady.riskLevel === "medium"
+                    ? "#fff7ed"
+                    : "#ecfdf5",
+                border:
+                  dealReady.riskLevel === "high"
+                    ? "1px solid #fecaca"
+                    : dealReady.riskLevel === "medium"
+                    ? "1px solid #fed7aa"
+                    : "1px solid #bbf7d0",
+                fontSize: 12,
+                lineHeight: 1.5,
+              }}
+            >
+              <b>{dealReady.stage}</b> • {dealReady.label}
+
+              {dealReady.missing?.length ? (
+                <div style={{ marginTop: 4 }}>
+                  Missing: {dealReady.missing.slice(0, 3).join(", ")}
+                </div>
+              ) : null}
+
+              <div style={{ marginTop: 4 }}>
+                {dealReady.insight}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setText(dealReady.actionMessage)}
+                style={{
+                  marginTop: 6,
+                  padding: "6px 10px",
+                  borderRadius: 8,
+                  border: "1px solid #d1d5db",
+                  background: "#fff",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                {dealReady.actionLabel}
+              </button>
+            </div>
+          ) : null}
+
           <div style={{ marginTop: 6, fontSize: 13, color: "#334155", lineHeight: 1.45 }}>
             <b>{buyerAi.score}%</b> • {buyerAi.stage}
             {buyerAi.missing.length ? (
@@ -2834,7 +2929,7 @@ style={{
                 <button
                   key={i}
                   type="button"
-                  onClick={() => setText(s)}
+                  onClick={() => applyBuyerSuggestionToTextarea(s)}
                   style={{
                     padding: "7px 11px",
                     borderRadius: 999,
@@ -2852,7 +2947,7 @@ style={{
             ) : (
               <button
                 type="button"
-                onClick={() => setText(aiSuggestions[0] || buyerAi.suggestedReply)}
+                onClick={() => applyBuyerSuggestionToTextarea(aiSuggestions[0] || buyerAi.suggestedReply)}
                 style={{
                   padding: "7px 11px",
                   borderRadius: 999,
@@ -3072,6 +3167,7 @@ style={{
         </div>
 
         <textarea
+          ref={textareaRef}
           value={text}
           onChange={(e) => {
             setText(e.target.value);
@@ -3089,7 +3185,6 @@ style={{
           }}
           onFocus={() => {
             setShowEmojiBox(false);
-            applyAutoAiDraftIfEmpty();
             void markConversationRead();
             void touchMyPresence();
           }}
@@ -3367,7 +3462,7 @@ style={{
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button
               type="button"
-              onClick={() => setText(buyerAi.suggestedReply)}
+              onClick={() => applyBuyerSuggestionToTextarea(buyerAi.suggestedReply)}
               disabled={loading}
               style={{
                 padding: "10px 14px",
@@ -3379,7 +3474,7 @@ style={{
                 cursor: loading ? "default" : "pointer",
               }}
             >
-              ⚡ Auto AI Reply
+              ⚡ Use AI Suggestion
             </button>
 
             <button
@@ -3400,8 +3495,6 @@ style={{
               ? "Sending..."
               : selectedFiles.length > 0 || recordedAudioFile
               ? "Send Message + Media"
-              : aiSuggestions.length > 0
-              ? "Send / Use AI"
               : "Send Message"}
             </button>
           </div>

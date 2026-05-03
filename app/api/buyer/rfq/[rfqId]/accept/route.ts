@@ -94,6 +94,8 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
     accepted_vendor_id: qt.vendor_id,
     accepted_quote_version: qt.version ?? null,
     accepted_at: nowIso,
+    ai_conversion_tracked: true,
+    ai_learning_signal: "vendor_selected",
   };
 
   // 🧠 Identify winner & losers
@@ -209,6 +211,28 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
     targetUpdateWarning = e?.message ?? "Could not update rfq_targets.";
   }
 
+    // 🧠 LEVEL 10 — AI CONVERSION FEEDBACK LOOP
+  const aiSelectedVendorUserId = String(acceptedVendorUserId ?? qt.vendor_id ?? "");
+
+  if (UUID_RE.test(aiSelectedVendorUserId)) {
+    await supabase.from("ai_deal_events").insert({
+      conversation_id: null,
+      vendor_user_id: aiSelectedVendorUserId,
+      stage: "quote_accepted",
+      ready: true,
+      created_at: nowIso,
+    });
+
+    await supabase.from("vendor_notifications").insert({
+      user_id: aiSelectedVendorUserId,
+      type: "ai_conversion_win",
+      title: "AI conversion signal recorded 🧠",
+      message:
+        "A buyer accepted your quote. This improves your future AI reputation and routing strength.",
+      is_read: false,
+    });
+  }
+
   // Conversation creation
   let conversationWarning: string | null = null;
   let conversationId: string | null = null;
@@ -259,7 +283,6 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
             rfq_id: rfqId,
             buyer_user_id: buyerUserId,
             vendor_user_id: vendorUserId,
-            is_closed: false,
           })
           .select("id")
           .single();

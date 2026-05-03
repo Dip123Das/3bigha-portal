@@ -11,12 +11,15 @@ function fallbackDealReady() {
   return {
     ready: false,
     confidence: 35,
+    stage: "Early discussion",
+    riskLevel: "medium",
     label: "Not Ready Yet",
+    missing: ["final price", "quantity", "delivery location", "delivery time", "invoice / bill", "payment terms"],
     insight:
       "Final price, quantity, delivery location and confirmation should be discussed before closing.",
     actionLabel: "Ask Final Details",
     actionMessage:
-      "Please confirm final price, quantity, delivery location, delivery time and bill/document availability.",
+      "Please confirm final price, quantity, delivery location, delivery time, invoice and payment terms.",
   };
 }
 
@@ -55,22 +58,37 @@ function heuristicDealReady(messages: DealReadyMessage[]) {
     return {
       ready: true,
       confidence,
+      stage: "Ready to close",
+      riskLevel: "low",
       label: "Deal Ready",
+      missing: [],
       insight: "This conversation has enough closing signals. Confirm final terms before payment.",
       actionLabel: "Confirm Deal Details",
       actionMessage:
-        "Please confirm final price, quantity, delivery address, delivery time and bill details before we proceed.",
+        "Please confirm final price, quantity, delivery address, delivery time, invoice and payment terms before we proceed.",
     };
   }
+
+  const missing: string[] = [];
+  if (!(text.includes("price") || text.includes("rate") || text.includes("quote") || text.includes("₹") || text.includes("rs"))) missing.push("final price");
+  if (!(text.includes("quantity") || text.includes("qty") || text.includes("bag") || text.includes("cft"))) missing.push("quantity");
+  if (!(text.includes("delivery") || text.includes("location") || text.includes("address"))) missing.push("delivery location / time");
+  if (!(text.includes("bill") || text.includes("invoice") || text.includes("gst"))) missing.push("invoice / bill");
+  if (!(text.includes("payment") || text.includes("advance") || text.includes("upi") || text.includes("cash"))) missing.push("payment terms");
 
   return {
     ready: false,
     confidence,
+    stage: confidence >= 60 ? "Almost ready" : confidence >= 40 ? "Negotiation stage" : "Early discussion",
+    riskLevel: missing.length >= 4 ? "high" : missing.length >= 2 ? "medium" : "low",
     label: "Deal Not Ready",
+    missing,
     insight: "The deal is active but still needs final confirmation before closing.",
     actionLabel: "Ask Final Details",
     actionMessage:
-      "Please confirm final price, quantity, delivery location, delivery time and bill/document availability.",
+      missing.length > 0
+        ? `Please confirm ${missing.slice(0, 4).join(", ")} before we proceed.`
+        : "Please confirm all final deal details before we proceed.",
   };
 }
 
@@ -121,7 +139,14 @@ function normalizeDealReady(value: unknown, heuristic = fallbackDealReady()) {
       Number.isFinite(confidence) && confidence >= 0 && confidence <= 100
         ? Math.max(Math.round(confidence), heuristic.confidence)
         : heuristic.confidence,
+    stage: String((row as any).stage || (heuristic as any).stage || "Early discussion").slice(0, 50),
+    riskLevel: String((row as any).riskLevel || (heuristic as any).riskLevel || "medium").slice(0, 20),
     label: String(row.label || heuristic.label).slice(0, 50),
+    missing: Array.isArray((row as any).missing)
+      ? (row as any).missing.slice(0, 6).map((x: any) => String(x).slice(0, 40))
+      : Array.isArray((heuristic as any).missing)
+      ? (heuristic as any).missing
+      : [],
     insight: String(row.insight || heuristic.insight).slice(0, 220),
     actionLabel: String(row.actionLabel || heuristic.actionLabel).slice(0, 50),
     actionMessage: String(row.actionMessage || heuristic.actionMessage).slice(0, 220),
@@ -186,7 +211,10 @@ Return only valid JSON:
 {
   "ready": true,
   "confidence": 82,
+  "stage": "Ready to close",
+  "riskLevel": "low",
   "label": "Deal Ready",
+  "missing": [],
   "insight": "Short explanation under 180 characters.",
   "actionLabel": "Confirm Deal Details",
   "actionMessage": "Short next message user can send."
@@ -197,6 +225,9 @@ Readiness guide:
 - ready=true only if the conversation has clear buying/selling intent and enough final terms are discussed.
 - Do not assume payment is completed.
 - Do not mention AI.
+- stage must be one of: Early discussion, Negotiation stage, Almost ready, Ready to close.
+- riskLevel must be one of: low, medium, high.
+- missing must list missing deal fields like final price, quantity, delivery, invoice, payment terms.
 - actionMessage must help close safely.
 - Keep actionMessage under 180 characters.
 

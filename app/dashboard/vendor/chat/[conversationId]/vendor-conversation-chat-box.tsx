@@ -357,6 +357,8 @@ export default function VendorConversationChatBox(props: {
   const [aiUpgradeAlert, setAiUpgradeAlert] = useState<any | null>(null);
   const [vendorAiSuggestions, setVendorAiSuggestions] = useState<string[]>([]);
   const [vendorAiLoading, setVendorAiLoading] = useState(false);
+  const [dealReady, setDealReady] = useState<any | null>(null);
+  const [dealReadyLoading, setDealReadyLoading] = useState(false);
 
   const listRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -379,6 +381,7 @@ export default function VendorConversationChatBox(props: {
   const wasNearBottomRef = useRef(true);
   const previousCountRef = useRef(initialMessages?.length ?? 0);
   const aiAlertCheckedMessageRef = useRef<string | null>(null);
+  const level3DealAlertKeyRef = useRef<string | null>(null);
   const autoVendorAiDraftKeyRef = useRef("");
 
   const ordered = useMemo(() => sortMessagesByCreatedAt(messages), [messages]);
@@ -427,6 +430,37 @@ export default function VendorConversationChatBox(props: {
   };
 }, [ordered]);
 
+  const level3VendorSignal = useMemo(() => {
+    const latestVisible = [...ordered]
+      .reverse()
+      .find((m) => {
+        const isSystem = m.sender_role === "system" || m.message_type === "system";
+        const isDeleted = Boolean(m.meta?.deleted);
+        return !isSystem && !isDeleted && String(m.body ?? "").trim();
+      });
+
+    const latestIsBuyer =
+      !!latestVisible &&
+      String(latestVisible.sender_user_id ?? "") !== String(currentUserId);
+
+    const stage = String(dealReady?.stage ?? "").toLowerCase();
+    const ready = Boolean(dealReady?.ready);
+    const almostReady = stage.includes("almost") || stage.includes("ready");
+
+    return {
+      latestIsBuyer,
+      urgent: latestIsBuyer && (ready || almostReady || vendorAi.isHotBuyer),
+      title: ready
+        ? "🔥 Buyer is ready to close"
+        : almostReady
+        ? "⚡ Buyer is almost ready"
+        : "⚡ Buyer is waiting",
+      message: ready
+        ? "Confirm final price, delivery, invoice and payment terms quickly to secure this deal."
+        : "Reply now with clear final terms before the buyer moves to another vendor.",
+    };
+  }, [ordered, currentUserId, dealReady, vendorAi.isHotBuyer]);
+
   function getVendorAutoAiSuggestion() {
     return (
       vendorAiSuggestions[0] ||
@@ -436,26 +470,11 @@ export default function VendorConversationChatBox(props: {
     );
   }
 
-  function applyVendorAutoAiDraftIfEmpty() {
-    if (text.trim()) return;
+  function applyVendorSuggestionToTextarea(suggestion?: string) {
+    const value = String(suggestion ?? "").trim();
+    if (!value) return;
 
-    const suggestion = getVendorAutoAiSuggestion();
-    if (!suggestion) return;
-
-    const latestId = ordered[ordered.length - 1]?.id || "";
-    const key = `${conversationId}-${latestId}-${suggestion}`;
-
-    if (autoVendorAiDraftKeyRef.current === key) return;
-
-    autoVendorAiDraftKeyRef.current = key;
-    setText(suggestion);
-  }
-
-  function applyVendorAutoAiReplyNow() {
-    const suggestion = getVendorAutoAiSuggestion();
-    if (!suggestion) return;
-
-    setText(suggestion);
+    setText(value);
 
     window.setTimeout(() => {
       textareaRef.current?.focus();
@@ -1176,6 +1195,20 @@ export default function VendorConversationChatBox(props: {
 
       void markSeen().catch(() => {});
       void loadReadState().catch(() => {});
+
+      void fetch("/api/ai/deal-conversion", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+        body: JSON.stringify({
+          conversationId,
+          vendorUserId: currentUserId,
+          stage: dealReady?.stage || "",
+          ready: Boolean(dealReady?.ready),
+        }),
+      }).catch(() => {});
     } catch (e: any) {
       setErr(e?.message ?? "Failed to send message.");
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
@@ -1257,35 +1290,115 @@ export default function VendorConversationChatBox(props: {
   const timer = window.setTimeout(async () => {
     try {
       setVendorAiLoading(true);
+      setDealReadyLoading(true);
 
-      const res = await fetch("/api/ai/chat-reply-suggestions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store",
-        body: JSON.stringify({
-          side: "vendor",
-          messages: recentMessages,
+      const [suggestionRes, dealRes] = await Promise.all([
+        fetch("/api/ai/chat-reply-suggestions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+          body: JSON.stringify({
+            side: "vendor",
+            messages: recentMessages,
+          }),
         }),
-      });
+        fetch("/api/ai/deal-ready", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+          body: JSON.stringify({
+            side: "vendor",
+            messages: recentMessages,
+          }),
+        }),
+      ]);
 
-      const json = await res.json().catch(() => null);
+      const suggestionJson = await suggestionRes.json().catch(() => null);
+      const dealJson = await dealRes.json().catch(() => null);
 
-      if (res.ok && Array.isArray(json?.suggestions)) {
-        setVendorAiSuggestions(json.suggestions.slice(0, 4));
+      if (suggestionRes.ok && Array.isArray(suggestionJson?.suggestions)) {
+        setVendorAiSuggestions(suggestionJson.suggestions.slice(0, 4));
       } else {
         setVendorAiSuggestions([]);
       }
+
+      if (dealRes.ok && dealJson?.data) {
+        setDealReady(dealJson.data);
+      } else {
+        setDealReady(null);
+      }
     } catch {
       setVendorAiSuggestions([]);
+      setDealReady(null);
     } finally {
       setVendorAiLoading(false);
+      setDealReadyLoading(false);
     }
   }, 800);
 
   return () => window.clearTimeout(timer);
 }, [ordered, conversationId, currentUserId]);
+
+  useEffect(() => {
+    if (!conversationId || !currentUserId || !level3VendorSignal.urgent) return;
+
+    const latestIncoming = [...ordered]
+      .reverse()
+      .find((m) => {
+        const mine = String(m.sender_user_id ?? "") === String(currentUserId);
+        const isSystem = m.sender_role === "system" || m.message_type === "system";
+        return !mine && !isSystem && String(m.body ?? "").trim();
+      });
+
+    if (!latestIncoming?.id) return;
+
+    const alertKey = `${conversationId}-${latestIncoming.id}-${dealReady?.stage || ""}-${dealReady?.ready ? "ready" : "active"}`;
+
+    if (level3DealAlertKeyRef.current === alertKey) return;
+    level3DealAlertKeyRef.current = alertKey;
+
+    fetch("/api/ai/vendor-alert", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+      body: JSON.stringify({
+        side: "vendor",
+        trigger: "level_3_deal_ready",
+        conversationId,
+        vendorUserId: currentUserId,
+        buyerName: counterpartName,
+        buyerMessage: String(latestIncoming.body ?? ""),
+        latestMessage: String(latestIncoming.body ?? ""),
+        priority: dealReady?.ready ? "high" : "medium",
+        dealReady,
+        contextType,
+        contextTitle,
+        messages: ordered.slice(-12).map((m) => ({
+          role:
+            String(m.sender_user_id ?? "") === String(currentUserId)
+              ? "vendor"
+              : "buyer",
+          content: String(m.body ?? ""),
+          created_at: m.created_at,
+        })),
+      }),
+    }).catch(() => {});
+  }, [
+    conversationId,
+    currentUserId,
+    counterpartName,
+    contextType,
+    contextTitle,
+    ordered,
+    dealReady,
+    level3VendorSignal.urgent,
+  ]);
 
   useEffect(() => {
     if (typeof document !== "undefined" && !documentTitleRef.current) {
@@ -1905,6 +2018,131 @@ useEffect(() => {
             )}
           </div>
 
+          {level3VendorSignal.urgent ? (
+            <div
+              style={{
+                marginTop: 8,
+                padding: "9px 10px",
+                borderRadius: 12,
+                background: "linear-gradient(135deg, #fff7ed, #ffffff)",
+                border: "1px solid #fdba74",
+                color: "#9a3412",
+                fontSize: 12,
+                lineHeight: 1.5,
+                fontWeight: 850,
+              }}
+            >
+              <div style={{ fontWeight: 950 }}>
+                {level3VendorSignal.title}
+              </div>
+
+              <div style={{ marginTop: 3 }}>
+                {level3VendorSignal.message}
+              </div>
+
+              {!aiUpgradeAlert?.premium ? (
+                <div style={{ marginTop: 6 }}>
+                  🔒 Premium required to get priority advantage on this deal
+                </div>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (!aiUpgradeAlert?.premium) {
+                    router.push("/dashboard/subscription?focus=ai");
+                    return;
+                  }
+
+                  applyVendorSuggestionToTextarea(
+                    dealReady?.actionMessage ||
+                      "Yes, I confirm the final price, delivery time, invoice and payment terms. You can proceed."
+                  );
+                }}
+                style={{
+                  marginTop: 7,
+                  padding: "7px 10px",
+                  borderRadius: 10,
+                  border: "1px solid #fed7aa",
+                  background: aiUpgradeAlert?.premium ? "#fff" : "#f59e0b",
+                  color: aiUpgradeAlert?.premium ? "#c2410c" : "#fff",
+                  fontWeight: 950,
+                  cursor: "pointer",
+                }}
+              >
+                {aiUpgradeAlert?.premium
+                  ? "⚡ Prepare closing reply"
+                  : "⭐ Unlock Premium"}
+              </button>
+            </div>
+          ) : null}
+
+          {dealReady ? (
+            <div
+              style={{
+                marginTop: 8,
+                padding: "8px 10px",
+                borderRadius: 10,
+                background:
+                  dealReady.riskLevel === "high"
+                    ? "#fff1f2"
+                    : dealReady.riskLevel === "medium"
+                    ? "#fff7ed"
+                    : "#ecfdf5",
+                border:
+                  dealReady.riskLevel === "high"
+                    ? "1px solid #fecaca"
+                    : dealReady.riskLevel === "medium"
+                    ? "1px solid #fed7aa"
+                    : "1px solid #bbf7d0",
+                fontSize: 12,
+                lineHeight: 1.5,
+                color:
+                  dealReady.riskLevel === "high"
+                    ? "#9f1239"
+                    : dealReady.riskLevel === "medium"
+                    ? "#9a3412"
+                    : "#065f46",
+              }}
+            >
+              <div style={{ fontWeight: 950 }}>
+                🧠 {dealReady.stage || "Deal intelligence"} • {dealReady.label || "Checking"}
+                {dealReadyLoading ? "..." : ""}
+              </div>
+
+              {Array.isArray(dealReady.missing) && dealReady.missing.length ? (
+                <div style={{ marginTop: 4 }}>
+                  Missing: {dealReady.missing.slice(0, 3).join(", ")}
+                </div>
+              ) : null}
+
+              {dealReady.insight ? (
+                <div style={{ marginTop: 4 }}>
+                  {dealReady.insight}
+                </div>
+              ) : null}
+
+              {dealReady.actionMessage ? (
+                <button
+                  type="button"
+                  onClick={() => applyVendorSuggestionToTextarea(dealReady.actionMessage)}
+                  disabled={loading || uploading || isRecording}
+                  style={{
+                    marginTop: 6,
+                    padding: "6px 10px",
+                    borderRadius: 8,
+                    border: "1px solid #d1d5db",
+                    background: "#fff",
+                    fontWeight: 900,
+                    cursor: loading || uploading || isRecording ? "default" : "pointer",
+                  }}
+                >
+                  {dealReady.actionLabel || "Use suggestion"}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
           {vendorAi.isHotBuyer ? (
             <div
               style={{
@@ -1936,30 +2174,6 @@ useEffect(() => {
             </div>
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button
-                type="button"
-                onClick={async () => {
-                  const suggestion = getVendorAutoAiSuggestion();
-                  if (!suggestion) return;
-
-                  setText(suggestion);
-                  await sendMessage(suggestion, null);
-                }}
-                disabled={loading || uploading || isRecording}
-                style={{
-                  padding: "7px 11px",
-                  borderRadius: 999,
-                  border: "1px solid #93c5fd",
-                  background: "#dbeafe",
-                  color: "#1d4ed8",
-                  fontSize: 12,
-                  fontWeight: 900,
-                  cursor: loading || uploading || isRecording ? "default" : "pointer",
-                }}
-              >
-                ⚡ Auto AI Reply
-              </button>
-
               {vendorAiLoading ? (
                 <div style={{ fontSize: 12, opacity: 0.7 }}>Thinking...</div>
               ) : vendorAiSuggestions.length > 0 ? (
@@ -1967,12 +2181,7 @@ useEffect(() => {
                   <button
                     key={`${s}-${i}`}
                     type="button"
-                    onClick={async () => {
-                      if (!s) return;
-
-                      setText(s);
-                      await sendMessage(s, null);
-                    }}
+                    onClick={() => applyVendorSuggestionToTextarea(s)}
                     disabled={loading || uploading || isRecording}
                     style={{
                       padding: "7px 11px",
@@ -1991,13 +2200,7 @@ useEffect(() => {
               ) : (
                 <button
                   type="button"
-                  onClick={async () => {
-                    const suggestion = getVendorAutoAiSuggestion();
-                    if (!suggestion) return;
-
-                    setText(suggestion);
-                    await sendMessage(suggestion, null);
-                  }}
+                  onClick={() => applyVendorSuggestionToTextarea(getVendorAutoAiSuggestion())}
                   disabled={loading || uploading || isRecording}
                   style={{
                     padding: "7px 11px",
@@ -2010,61 +2213,9 @@ useEffect(() => {
                     cursor: loading || uploading || isRecording ? "default" : "pointer",
                   }}
                 >
-                  Confirm deal details
+                  Suggest reply
                 </button>
               )}
-
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const suggestion =
-                      vendorAiSuggestions[0] ||
-                      (vendorAi.isHotBuyer
-                        ? "Yes, I confirm the final price, delivery time, invoice and payment terms. You can proceed."
-                        : "I can offer my best final price if you confirm today.");
-
-                    if (!suggestion) return;
-
-                    setText(suggestion);
-                    await sendMessage(suggestion, null);
-                  }}
-                  style={{
-                    padding: "7px 11px",
-                    borderRadius: 999,
-                    border: "1px solid #fed7aa",
-                    background: "#fff7ed",
-                    color: "#c2410c",
-                    fontSize: 12,
-                    fontWeight: 900,
-                    cursor: "pointer",
-                  }}
-                >
-                  ⚡ Auto AI Reply
-                </button>
-
-              <button
-                type="button"
-                onClick={async () => {
-                  const suggestion =
-                    "Delivery will be arranged as discussed. Please confirm your full delivery address.";
-
-                  setText(suggestion);
-                  await sendMessage(suggestion, null);
-                }}
-                disabled={loading || uploading || isRecording}
-                style={{
-                  padding: "7px 11px",
-                  borderRadius: 999,
-                  border: "1px solid #bbf7d0",
-                  background: "#ecfdf5",
-                  color: "#047857",
-                  fontSize: 12,
-                  fontWeight: 900,
-                  cursor: loading || uploading || isRecording ? "default" : "pointer",
-                }}
-              >
-                Confirm delivery
-              </button>
             </div>
 
             {vendorAi.isHotBuyer ? (
@@ -2093,7 +2244,7 @@ useEffect(() => {
         </div>
       </div>
 
-      <div onFocusCapture={applyVendorAutoAiDraftIfEmpty}>
+      <div>
         <ConversationComposer
         QUICK_REPLIES={QUICK_REPLIES}
         COMPOSER_EMOJIS={COMPOSER_EMOJIS}
@@ -2114,13 +2265,6 @@ useEffect(() => {
         typingStopTimeoutRef={typingTimeoutRef}
         markConversationRead={markSeen}
         sendMessage={async (messageOverride?: string, replyOverride?: MsgRow | null) => {
-          const body = String(messageOverride ?? text ?? "").trim();
-
-          if (!body) {
-            applyVendorAutoAiReplyNow();
-            return;
-          }
-
           await sendMessage(messageOverride, replyOverride);
         }}
         loading={loading || uploading}
