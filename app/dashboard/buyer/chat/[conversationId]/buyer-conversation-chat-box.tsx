@@ -6,7 +6,8 @@ import { clearInboxReminder } from "@/lib/inbox/clearInboxReminder";
 import ConversationMessageList from "@/app/components/chat/ConversationMessageList";
 import ConversationComposer from "@/app/components/chat/ConversationComposer";
 import ConversationActionMenu from "@/app/components/chat/ConversationActionMenu";
-import DealScoreClient from "@/components/ai/DealScoreClient";
+import DealScoreClient from "@/app/components/ai/DealScoreClient";
+import DealReadyClient from "@/app/components/ai/DealReadyClient";
 import ConversationDeleteConfirm from "@/app/components/chat/ConversationDeleteConfirm";
 import {
   fmtBubbleTime,
@@ -1487,6 +1488,11 @@ useEffect(() => {
 
           <div style={{ marginBottom: 16 }}>
             <DealScoreClient
+              conversationId={conversationId}
+              initialMessages={dealScoreMessages}
+            />
+
+            <DealReadyClient
               conversationId={conversationId}
               initialMessages={dealScoreMessages}
             />
