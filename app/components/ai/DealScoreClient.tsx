@@ -17,6 +17,51 @@ const fallback = {
     "Please share price, quantity, delivery location and expected delivery time.",
 };
 
+function normalizeMessages(rows: any[]): DealScoreMessage[] {
+  return (rows || [])
+    .filter((m) => {
+      const isSystem =
+        m?.sender_role === "system" ||
+        m?.role === "system" ||
+        m?.message_type === "system";
+      const isDeleted = Boolean(m?.meta?.deleted);
+      return !isSystem && !isDeleted;
+    })
+    .map((m) => ({
+      role: String(m?.sender_role || m?.role || "user"),
+      body: String(m?.body || m?.message || m?.content || ""),
+    }))
+    .filter((m) => m.body.trim().length > 0);
+}
+
+async function fetchLiveMessages(
+  conversationId: string
+): Promise<DealScoreMessage[]> {
+  try {
+    if (!conversationId) return [];
+
+    const res = await fetch(`/api/conversations/${conversationId}/messages`, {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    const json = await res.json().catch(() => null);
+
+    const rows =
+      Array.isArray(json?.messages)
+        ? json.messages
+        : Array.isArray(json?.rows)
+        ? json.rows
+        : Array.isArray(json)
+        ? json
+        : [];
+
+    return normalizeMessages(rows);
+  } catch {
+    return [];
+  }
+}
+
 export default function DealScoreClient({
   conversationId,
   initialMessages,
@@ -37,21 +82,27 @@ export default function DealScoreClient({
 
     async function load() {
       try {
+        const liveMessages = await fetchLiveMessages(conversationId);
+
+        const messagesToSend =
+          liveMessages.length > 0
+            ? liveMessages
+            : normalizeMessages(initialMessages || []);
+
         const res = await fetch("/api/ai/deal-score", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           cache: "no-store",
           body: JSON.stringify({
             conversationId,
-            messages: initialMessages || [],
+            messages: messagesToSend,
           }),
         });
 
-        const json = await res.json();
+        const json = await res.json().catch(() => null);
 
         if (!alive) return;
 
-        // 🔥 ALWAYS SET DATA (even if API imperfect)
         setData({
           ...fallback,
           ...(json || {}),
@@ -68,7 +119,7 @@ export default function DealScoreClient({
       alive = false;
       clearInterval(timer);
     };
-  }, [conversationId, messageKey]);
+  }, [conversationId, messageKey, initialMessages]);
 
   return (
     <div
