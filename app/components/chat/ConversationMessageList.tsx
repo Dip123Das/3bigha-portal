@@ -51,6 +51,16 @@ type AiDealScore = {
   actionMessage: string;
 };
 
+type AiVendorAlert = {
+  alert: boolean;
+  severity: "low" | "medium" | "high";
+  audience: "buyer" | "vendor" | "both";
+  title: string;
+  insight: string;
+  actionLabel: string;
+  actionMessage: string;
+};
+
 export default function ConversationMessageList(props: {
   ordered: MsgRow[];
   currentUserId: string;
@@ -147,7 +157,21 @@ export default function ConversationMessageList(props: {
       "Please share price, quantity, delivery location and expected delivery time.",
   };
 
+  const defaultAiVendorAlert: AiVendorAlert = {
+    alert: false,
+    severity: "medium",
+    audience: "both",
+    title: "Deal Activity Detected",
+    insight:
+      "Conversation is active. More price, quantity, delivery and confirmation details may be needed.",
+    actionLabel: "Ask Final Details",
+    actionMessage:
+      "Please confirm final price, quantity, delivery location, delivery time and bill/document availability.",
+  };
+
   const [aiDealScore, setAiDealScore] = useState<AiDealScore>(defaultAiDealScore);
+  const [aiVendorAlert, setAiVendorAlert] =
+    useState<AiVendorAlert>(defaultAiVendorAlert);
 
   useEffect(() => {
     let cancelled = false;
@@ -235,6 +259,51 @@ useEffect(() => {
     clearInterval(timer);
   };
 }, [recentDealMessages]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAiVendorAlert() {
+      try {
+        const res = await fetch("/api/ai/vendor-alert", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+          body: JSON.stringify({
+            side: "buyer",
+            messages: recentDealMessages || [],
+          }),
+        });
+
+        const data = await res.json().catch(() => null);
+
+        if (!cancelled && res.ok) {
+          setAiVendorAlert({
+            alert: Boolean(data?.alert ?? defaultAiVendorAlert.alert),
+            severity: data?.severity || defaultAiVendorAlert.severity,
+            audience: data?.audience || defaultAiVendorAlert.audience,
+            title: String(data?.title || defaultAiVendorAlert.title),
+            insight: String(data?.insight || defaultAiVendorAlert.insight),
+            actionLabel: String(data?.actionLabel || defaultAiVendorAlert.actionLabel),
+            actionMessage: String(data?.actionMessage || defaultAiVendorAlert.actionMessage),
+          });
+        }
+      } catch {
+        if (!cancelled) {
+          setAiVendorAlert(defaultAiVendorAlert);
+        }
+      }
+    }
+
+    void loadAiVendorAlert();
+
+    const timer = setInterval(loadAiVendorAlert, 5000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [recentDealMessages]);
 
   useEffect(() => {
     let cancelled = false;
@@ -913,6 +982,56 @@ useEffect(() => {
           );
         })
       )}
+
+      {ordered.length > 0 && aiVendorAlert.alert ? (
+        <div
+          style={{
+            marginTop: 14,
+            border:
+              aiVendorAlert.severity === "high"
+                ? "1px solid #fb923c"
+                : "1px solid #fde68a",
+            background:
+              aiVendorAlert.severity === "high"
+                ? "linear-gradient(90deg, #fff7ed, #ffffff)"
+                : "linear-gradient(90deg, #fffbeb, #ffffff)",
+            borderRadius: 18,
+            padding: "12px 14px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 900,
+              color: aiVendorAlert.severity === "high" ? "#c2410c" : "#92400e",
+              marginBottom: 8,
+            }}
+          >
+            🔔 {aiVendorAlert.title}
+          </div>
+
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>
+            {aiVendorAlert.insight}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => useAiSuggestion(aiVendorAlert.actionMessage)}
+            style={{
+              marginTop: 10,
+              border: "none",
+              background: aiVendorAlert.severity === "high" ? "#f97316" : "#f59e0b",
+              color: "#fff",
+              borderRadius: 999,
+              padding: "8px 12px",
+              fontWeight: 900,
+              cursor: "pointer",
+            }}
+          >
+            {aiVendorAlert.actionLabel}
+          </button>
+        </div>
+      ) : null}
 
       {ordered.length > 0 ? (
         <div
