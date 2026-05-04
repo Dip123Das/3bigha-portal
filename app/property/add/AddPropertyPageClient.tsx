@@ -24,7 +24,6 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Badge } from "@/components/ui/Badge";
 
 
-
 type Intent = "sell" | "rent" | "lease" | "pg";
 
 type PropertyType = "Land / Plot" | "House(s)";
@@ -1756,6 +1755,7 @@ const [dbAttrValues, setDbAttrValues] = useState<
   const [allInclusive, setAllInclusive] = useState<boolean | null>(null);
   const [priceNegotiable, setPriceNegotiable] = useState<boolean | null>(null);
   const [uspDescription, setUspDescription] = useState("");
+  const [aiSmartFillLoading, setAiSmartFillLoading] = useState(false);
 
   const [bestDealEnabled, setBestDealEnabled] = useState<boolean | null>(null);
   const [bestDealReason, setBestDealReason] = useState("");
@@ -2456,6 +2456,102 @@ setDbAttrValues(init);
     ];
     return parts.join(" ").replace(/\s+/g, " ").trim();
   }
+
+  async function generatePropertyDescriptionWithAI() {
+  if (aiSmartFillLoading) return;
+
+  setAiSmartFillLoading(true);
+  setSaveMsg("");
+
+  try {
+    const bullets = [
+      intent ? `Listing purpose: ${intent}` : "",
+      type ? `Property type: ${type}` : "",
+      subtype ? `Subcategory: ${subtype}` : "",
+      locality ? `Locality: ${locality}` : "",
+      city ? `City: ${city}` : "",
+      district ? `District: ${district}` : "",
+      expectedPrice ? `Expected price: ₹${expectedPrice}` : "",
+      pricePerUnit ? `Price per unit: ₹${pricePerUnit}` : "",
+      ownership ? `Ownership: ${ownership}` : "",
+      approvalAuthority ? `Approval authority: ${approvalAuthority}` : "",
+      allInclusive !== null ? `All inclusive price: ${allInclusive ? "Yes" : "No"}` : "",
+      priceNegotiable !== null ? `Price negotiable: ${priceNegotiable ? "Yes" : "No"}` : "",
+      type === "Land / Plot" && plotArea ? `Plot area: ${plotArea} ${plotAreaUnit}` : "",
+      type === "Land / Plot" && openSides ? `Open sides: ${openSides}` : "",
+      type === "Land / Plot" && possession ? `Possession: ${possession}` : "",
+      type === "House(s)" && manualUnitNo ? `Unit no: ${manualUnitNo}` : "",
+      addressPreview ? `Address: ${addressPreview}` : "",
+    ].filter(Boolean);
+
+    const res = await fetch("/api/ai/smart-fill", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+      credentials: "same-origin",
+      body: JSON.stringify({
+        module: "property",
+        action: uspDescription.trim() ? "refine" : "generate_description",
+        tone: "professional",
+        input: {
+          title: computeTitle(),
+          location: addressPreview || [locality, city, district, stateName].filter(Boolean).join(", "),
+          price: expectedPrice ? `₹${expectedPrice}` : "",
+          bullets,
+          existingText: uspDescription,
+          attributes: {
+            intent,
+            type,
+            subtype,
+            city,
+            district,
+            locality,
+            subLocality,
+            ownership,
+            approvalAuthority,
+            expectedPrice,
+            pricePerUnit,
+            allInclusive,
+            priceNegotiable,
+            plotArea,
+            plotAreaUnit,
+            openSides,
+            possession,
+            dynamicAttributes,
+          },
+        },
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data?.ok) {
+      throw new Error(data?.error || `AI Smart-Fill failed with status ${res.status}`);
+    }
+
+    const description = String(data?.result?.description || "").trim();
+
+    if (!description) {
+      throw new Error("AI did not return a description.");
+    }
+
+    setUspDescription(description);
+
+    const usps = Array.isArray(data?.result?.usps)
+      ? data.result.usps.map((x: unknown) => String(x || "").trim()).filter(Boolean)
+      : [];
+
+    if (usps.length > 0 && !bestDealReason.trim()) {
+      setBestDealReason(usps.slice(0, 2).join(" • "));
+    }
+
+    setSaveMsg("✅ AI description generated. Please verify all facts before publishing.");
+  } catch (e: any) {
+    setSaveMsg(`❌ AI Smart-Fill failed: ${e?.message || "Unknown error"}`);
+  } finally {
+    setAiSmartFillLoading(false);
+  }
+}
 
 function computeSlug() {
   // If editing an already saved listing, keep same slug
@@ -4790,7 +4886,39 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                 <ToggleRow label="All inclusive price?" value={allInclusive} onChange={setAllInclusive} />
                 <ToggleRow label="Price negotiable?" value={priceNegotiable} onChange={setPriceNegotiable} />
 
-                <FieldLabel title="USP / Description (optional)" hint="Write a short selling point / description." />
+                <div
+                  style={{
+                    marginTop: 12,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-end",
+                    gap: 10,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <FieldLabel title="USP / Description (optional)" hint="Write a short selling point / description." />
+
+                  <button
+                    type="button"
+                    onClick={generatePropertyDescriptionWithAI}
+                    disabled={aiSmartFillLoading || saving}
+                    style={{
+                      height: 36,
+                      padding: "0 12px",
+                      borderRadius: 12,
+                      border: "1px solid #e5e7eb",
+                      background: aiSmartFillLoading ? "#f3f4f6" : "white",
+                      color: "#111827",
+                      cursor: aiSmartFillLoading || saving ? "not-allowed" : "pointer",
+                      fontWeight: 900,
+                      fontSize: 13,
+                      opacity: aiSmartFillLoading || saving ? 0.7 : 1,
+                    }}
+                  >
+                    {aiSmartFillLoading ? "Generating..." : uspDescription.trim() ? "✨ Refine with AI" : "✨ Generate with AI"}
+                  </button>
+                </div>
+
                 <TextArea value={uspDescription} onChange={setUspDescription} placeholder="e.g., Near highway, ready to move..." />
 
                 {/* Labels */}
