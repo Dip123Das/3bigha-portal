@@ -2526,6 +2526,17 @@ setDbAttrValues(init);
     const data = await res.json();
 
     if (!res.ok || !data?.ok) {
+      if (res.status === 429) {
+        setSaveMsg("⚠️ AI quota exceeded. Please try again later or contact support.");
+        return;
+      }
+
+      if (data?.source === "fallback") {
+        setUspDescription(data.result?.description || "");
+        setSaveMsg("⚠️ AI service unavailable. Basic description generated.");
+        return;
+      }
+
       throw new Error(data?.error || `AI Smart-Fill failed with status ${res.status}`);
     }
 
