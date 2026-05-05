@@ -321,155 +321,84 @@ function Select(props: { value: string; onChange: (v: string) => void; options: 
       onChange={(e) => props.onChange(e.target.value)}
 
       style={{
-
         width: "100%",
-
         height: 44,
-
         borderRadius: 12,
-
         border: "1px solid #e5e7eb",
-
         padding: "0 14px",
-
         outline: "none",
-
         background: "white",
-
         fontSize: 14,
-
         marginTop: 8,
-
       }}
-
     >
-
       {props.options.map((o) => (
-
         <option key={o.value} value={o.value}>
-
           {o.label}
-
         </option>
-
       ))}
-
     </select>
 
   );
-
 }
 
-
-
 function ToggleRow(props: { label: string; value: boolean | null; onChange: (v: boolean) => void }) {
-
   const { label, value, onChange } = props;
-
   return (
 
     <div style={{ marginTop: 12 }}>
-
       <div style={{ fontWeight: 700, marginBottom: 8 }}>{label}</div>
-
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
 
         <button
-
           type="button"
-
           onClick={() => onChange(true)}
-
           style={{
-
             height: 40,
-
             padding: "0 12px",
-
             borderRadius: 12,
-
             border: "1px solid #e5e7eb",
-
             background: value === true ? "#111827" : "white",
-
             color: value === true ? "white" : "#111827",
-
             cursor: "pointer",
-
             fontWeight: 700,
-
           }}
-
         >
-
           Yes
-
         </button>
-
         <button
-
           type="button"
-
           onClick={() => onChange(false)}
-
           style={{
-
             height: 40,
-
             padding: "0 12px",
-
             borderRadius: 12,
-
             border: "1px solid #e5e7eb",
-
             background: value === false ? "#111827" : "white",
-
             color: value === false ? "white" : "#111827",
-
             cursor: "pointer",
-
             fontWeight: 700,
-
           }}
-
         >
-
           No
 
         </button>
-
       </div>
-
     </div>
-
   );
-
 }
-
-
 
 function formatINR(n: number) {
-
   if (!Number.isFinite(n)) return "—";
-
   try {
-
     return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
-
   } catch {
-
     return `₹${Math.round(n)}`;
-
   }
-
 }
 
-
-
 function unitLabel(u: AreaUnit) {
-
   return u === "Sq. mtr." ? "sq. mtr." : "sq. ft.";
-
 }
 
 
@@ -2559,6 +2488,157 @@ setDbAttrValues(init);
     setSaveMsg("✅ AI description generated. Please verify all facts before publishing.");
   } catch (e: any) {
     setSaveMsg(`❌ AI Smart-Fill failed: ${e?.message || "Unknown error"}`);
+  } finally {
+    setAiSmartFillLoading(false);
+  }
+}
+
+async function runFullPropertyAI() {
+  if (aiSmartFillLoading || saving) return;
+
+  setSaveMsg("🤖 AI is generating full listing...");
+
+  try {
+    await generatePropertyDescriptionWithAI();
+
+    setTimeout(async () => {
+      await runPropertyFieldAI("bestDealReason");
+      await runPropertyFieldAI("hotOfferText");
+      await runPropertyFieldAI("emiTerms");
+      await runPropertyFieldAI("amenities");
+
+      setSaveMsg("✅ Full AI listing generated. Please review before publishing.");
+    }, 300);
+  } catch (e: any) {
+    setSaveMsg(`❌ Full AI failed: ${e?.message || "Unknown error"}`);
+  }
+}
+
+async function runPropertyFieldAI(target: "bestDealReason" | "hotOfferText" | "emiTerms" | "amenities") {
+  if (aiSmartFillLoading) return;
+
+  setAiSmartFillLoading(true);
+  setSaveMsg("");
+
+  try {
+    const contextBullets = [
+      intent ? `Listing purpose: ${intent}` : "",
+      type ? `Property type: ${type}` : "",
+      subtype ? `Subcategory: ${subtype}` : "",
+      locality ? `Locality: ${locality}` : "",
+      city ? `City: ${city}` : "",
+      district ? `District: ${district}` : "",
+      expectedPrice ? `Expected price: ₹${expectedPrice}` : "",
+      pricePerUnit ? `Price per unit: ₹${pricePerUnit}` : "",
+      ownership ? `Ownership: ${ownership}` : "",
+      approvalAuthority ? `Approval authority: ${approvalAuthority}` : "",
+      plotArea ? `Plot area: ${plotArea} ${plotAreaUnit}` : "",
+      openSides ? `Open sides: ${openSides}` : "",
+      possession ? `Possession: ${possession}` : "",
+      boundaryWall !== null ? `Boundary wall: ${boundaryWall ? "Yes" : "No"}` : "",
+      anyConstruction !== null ? `Construction done: ${anyConstruction ? "Yes" : "No"}` : "",
+      addressPreview ? `Address: ${addressPreview}` : "",
+      uspDescription ? `Current description: ${uspDescription}` : "",
+    ].filter(Boolean);
+
+    const targetInstruction =
+      target === "bestDealReason"
+        ? "Write a short, truthful reason why this can be marked as Best Deal. Do not invent market facts."
+        : target === "hotOfferText"
+          ? "Write a short hot offer line. Do not claim discount unless provided."
+          : target === "emiTerms"
+            ? "Draft clear direct EMI terms for seller-to-buyer understanding. Keep it practical and safe."
+            : "Suggest only relevant amenities from the available amenities list. Return amenity names in suggestions.";
+
+    const res = await fetch("/api/ai/smart-fill", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+      credentials: "same-origin",
+      body: JSON.stringify({
+        module: "property",
+        action: "refine",
+        tone: "professional",
+        input: {
+          title: computeTitle(),
+          location: addressPreview || [locality, city, district, stateName].filter(Boolean).join(", "),
+          price: expectedPrice ? `₹${expectedPrice}` : "",
+          bullets: [
+            ...contextBullets,
+            targetInstruction,
+            target === "amenities"
+              ? `Available amenities: ${amenities.map((a) => a.name).join(", ")}`
+              : "",
+          ].filter(Boolean),
+          existingText:
+            target === "bestDealReason"
+              ? bestDealReason
+              : target === "hotOfferText"
+                ? hotOfferText
+                : target === "emiTerms"
+                  ? emiTerms
+                  : selectedAmenityIds
+                      .map((id) => amenities.find((a) => a.id === id)?.name || "")
+                      .filter(Boolean)
+                      .join(", "),
+        },
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data?.ok) {
+      if (res.status === 429) {
+        setSaveMsg("⚠️ AI quota exceeded. Please try again later.");
+        return;
+      }
+
+      throw new Error(data?.error || `AI failed with status ${res.status}`);
+    }
+
+    const description = String(data?.result?.description || "").trim();
+    const suggestions = Array.isArray(data?.result?.suggestions)
+      ? data.result.suggestions.map((x: unknown) => String(x || "").trim()).filter(Boolean)
+      : [];
+
+    if (target === "bestDealReason") {
+      setBestDealEnabled(true);
+      setBestDealReason(description || suggestions.slice(0, 2).join(" • "));
+      setSaveMsg("✅ AI filled Best Deal reason.");
+      return;
+    }
+
+    if (target === "hotOfferText") {
+      setHotOfferEnabled(true);
+      setHotOfferText(description || suggestions[0] || "");
+      setSaveMsg("✅ AI filled Hot Offer text.");
+      return;
+    }
+
+    if (target === "emiTerms") {
+      setDirectEmiEnabled(true);
+      setEmiTerms(description || suggestions.join("\n"));
+      setSaveMsg("✅ AI drafted EMI terms.");
+      return;
+    }
+
+    if (target === "amenities") {
+      const aiText = `${description} ${suggestions.join(" ")}`.toLowerCase();
+
+      const matchedIds = amenities
+        .filter((a) => aiText.includes(String(a.name || "").toLowerCase()))
+        .map((a) => a.id);
+
+      if (matchedIds.length > 0) {
+        setSelectedAmenityIds(Array.from(new Set(matchedIds)));
+        setShowAmenities(true);
+        setSaveMsg(`✅ AI selected ${matchedIds.length} relevant amenities. Please review before continuing.`);
+      } else {
+        setSaveMsg("⚠️ AI could not confidently match amenities. Please select manually.");
+      }
+    }
+  } catch (e: any) {
+    setSaveMsg(`❌ AI failed: ${e?.message || "Unknown error"}`);
   } finally {
     setAiSmartFillLoading(false);
   }
@@ -4758,6 +4838,14 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
 
         <ActionButton
           variant="secondary"
+          onClick={() => runPropertyFieldAI("amenities")}
+          disabled={saving || aiSmartFillLoading || amenitiesLoading || amenities.length === 0}
+        >
+          {aiSmartFillLoading ? "AI working..." : "✨ AI Select"}
+        </ActionButton>
+
+        <ActionButton
+          variant="secondary"
           onClick={() => setSelectedAmenityIds([])}
           disabled={saving || amenitiesLoading || amenities.length === 0}
         >
@@ -4812,6 +4900,26 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
             {step === 4 ? (
               <>
                 <div style={{ fontWeight: 800, marginBottom: 6 }}>Price & Features</div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+                  <button
+                    type="button"
+                    onClick={runFullPropertyAI}
+                    disabled={saving || aiSmartFillLoading}
+                    style={{
+                      padding: "10px 16px",
+                      borderRadius: 12,
+                      border: "1px solid #111827",
+                      background: "#111827",
+                      color: "white",
+                      fontWeight: 900,
+                      cursor: saving || aiSmartFillLoading ? "not-allowed" : "pointer",
+                      opacity: saving || aiSmartFillLoading ? 0.7 : 1,
+                    }}
+                  >
+                    {aiSmartFillLoading ? "AI working..." : "🚀 Auto Generate Full Listing"}
+                  </button>
+                </div>
 
                 <FieldLabel title="Ownership" required />
                 <Select
@@ -4940,7 +5048,25 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                   {bestDealEnabled === true ? (
                     <>
                       <FieldLabel title="Why Best Deal?" />
-                      <TextInput value={bestDealReason} onChange={setBestDealReason} placeholder="e.g., Lowest price in area" />
+                      <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr auto", alignItems: "end" }}>
+                <TextInput value={bestDealReason} onChange={setBestDealReason} placeholder="e.g., Lowest price in area" />
+                <button
+                  type="button"
+                  onClick={() => runPropertyFieldAI("bestDealReason")}
+                  disabled={saving || aiSmartFillLoading}
+                  style={{
+                    height: 44,
+                    padding: "0 12px",
+                    borderRadius: 12,
+                    border: "1px solid #e5e7eb",
+                    background: "white",
+                    cursor: saving || aiSmartFillLoading ? "not-allowed" : "pointer",
+                    fontWeight: 900,
+                  }}
+                >
+                  ✨ AI
+                </button>
+              </div>
                     </>
                   ) : null}
 
@@ -4948,7 +5074,25 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                   {hotOfferEnabled === true ? (
                     <>
                       <FieldLabel title="Hot Offer Text" />
-                      <TextInput value={hotOfferText} onChange={setHotOfferText} placeholder="e.g., Limited time discount" />
+                      <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr auto", alignItems: "end" }}>
+              <TextInput value={hotOfferText} onChange={setHotOfferText} placeholder="e.g., Limited time discount" />
+              <button
+                type="button"
+                onClick={() => runPropertyFieldAI("hotOfferText")}
+                disabled={saving || aiSmartFillLoading}
+                style={{
+                  height: 44,
+                  padding: "0 12px",
+                  borderRadius: 12,
+                  border: "1px solid #e5e7eb",
+                  background: "white",
+                  cursor: saving || aiSmartFillLoading ? "not-allowed" : "pointer",
+                  fontWeight: 900,
+                }}
+              >
+                ✨ AI
+              </button>
+            </div>
                     </>
                   ) : null}
 
@@ -5011,7 +5155,35 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
 
                       <ToggleRow label="Need guarantor?" value={emiNeedGuarantor} onChange={setEmiNeedGuarantor} />
 
-                      <FieldLabel title="EMI Terms (optional)" />
+                      <div
+                        style={{
+                          marginTop: 12,
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-end",
+                          gap: 10,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <FieldLabel title="EMI Terms (optional)" />
+                        <button
+                          type="button"
+                          onClick={() => runPropertyFieldAI("emiTerms")}
+                          disabled={saving || aiSmartFillLoading}
+                          style={{
+                            height: 36,
+                            padding: "0 12px",
+                            borderRadius: 12,
+                            border: "1px solid #e5e7eb",
+                            background: "white",
+                            cursor: saving || aiSmartFillLoading ? "not-allowed" : "pointer",
+                            fontWeight: 900,
+                          }}
+                        >
+                          ✨ Draft EMI Terms
+                        </button>
+                      </div>
+
                       <TextArea
                         value={emiTerms}
                         onChange={setEmiTerms}
