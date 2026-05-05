@@ -685,6 +685,14 @@ function getMarketExplanation(row: AggregatedPriceRow) {
   return `${item} price is indicative because more verified local sources are needed for stronger market intelligence.`;
 }
 
+function isHotBuyerRow(row: AggregatedPriceRow) {
+  return (
+    row.trend === "Up" ||
+    Number(row.changePercent || 0) >= 3 ||
+    Number(row.confidence || 0) >= 75
+  );
+}
+
 function getComparisonLabel(row: AggregatedPriceRow) {
   const confidence = Number(row.confidence || 0);
   const vendors = Number(row.vendorCount || 0);
@@ -727,6 +735,44 @@ function getComparisonLabel(row: AggregatedPriceRow) {
     detail: "Check brand/source, grade and vendor confirmation before final decision.",
     badge: "🔎 Compare",
   };
+}
+
+async function triggerMaterialLead(row: AggregatedPriceRow & { isHotBuyer?: boolean }) {
+  try {
+    const res = await fetch("/api/enquiries/create-and-chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        module: "materials",
+        priority: row.isHotBuyer || isHotBuyerRow(row) ? "high" : "normal",
+        aiSignal: row.isHotBuyer || isHotBuyerRow(row) ? "hot_buyer" : "normal_buyer",
+        title: `${row.item} requirement`,
+        message: `Hi, I am interested in buying ${row.item} in ${row.location || "this area"}.
+
+Market range: ₹${row.priceMin} – ₹${row.priceMax} per ${row.unit}.
+
+Please share:
+✔ Best final price
+✔ Delivery timeline
+✔ Available quantity
+✔ Payment terms
+
+I am ready to finalize soon.`,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data?.conversationId) {
+      window.location.href = `/dashboard/thread/${data.conversationId}`;
+    } else {
+      alert("Lead created. Please check your inbox.");
+    }
+  } catch (e) {
+    alert("Failed to send enquiry. Try again.");
+  }
 }
 
 function getBuySignal(row: AggregatedPriceRow) {
@@ -1313,10 +1359,18 @@ if (userData.user) {
   }, [groupedPriceRows, location]);
 
   const comparisonRows = useMemo(() => {
-    return groupedPriceRows.slice(0, 4).map((row) => ({
-      ...row,
-      comparison: getComparisonLabel(row),
-    }));
+    return groupedPriceRows.slice(0, 4).map((row) => {
+      const isHotBuyer =
+        row.trend === "Up" ||
+        Number(row.changePercent || 0) >= 3 ||
+        Number(row.confidence || 0) >= 75;
+
+      return {
+        ...row,
+        comparison: getComparisonLabel(row),
+        isHotBuyer,
+      };
+    });
   }, [groupedPriceRows]);
 
     useEffect(() => {
@@ -1883,6 +1937,28 @@ if (userData.user) {
                         {row.comparison.detail}
                       </div>
                     </div>
+
+                    {row.isHotBuyer ? (
+                      <div className="mt-3 rounded-2xl bg-red-50 p-3 text-xs font-bold text-red-700">
+                        ⚡ Prices are rising. Lock your deal before further increase.
+                      </div>
+                    ) : null}
+
+                    <div className="mt-4 flex gap-2">
+                      <button
+                        onClick={() => triggerMaterialLead(row)}
+                        className="flex-1 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700"
+                      >
+                        {row.isHotBuyer ? "🚀 Lock Price Now" : "🔥 Get Best Price Now"}
+                      </button>
+
+                      <Link
+                        href={`/materials?q=${encodeURIComponent(row.item)}`}
+                        className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-black text-slate-700 hover:bg-slate-100"
+                      >
+                        View Listings
+                      </Link>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -2113,6 +2189,14 @@ if (userData.user) {
                   </div>
 
                   <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-4">
+                      <button
+                        onClick={() => triggerMaterialLead(row)}
+                        className="w-full rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white hover:bg-red-700"
+                      >
+                        🚀 Get Best Deal Now
+                      </button>
+                    </div>
                     <TrendBadge trend={row.trend} changePercent={row.changePercent} />
                     <TrustBadge row={row} vendorCount={row.vendorCount} />
                     <SubscriptionBadge row={row} />

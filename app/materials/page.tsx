@@ -80,6 +80,25 @@ function moneyINR(v: any) {
   return `₹ ${num}`;
 }
 
+function priceTodayHref(title: string, pg?: PgRow) {
+  const materialName =
+    pg?.product_group_name ||
+    pg?.subcategory_name ||
+    pg?.category_name ||
+    title ||
+    "Material";
+
+  const params = new URLSearchParams();
+  params.set("category", "Materials");
+  params.set("q", materialName);
+
+  if (pg?.category_name) params.set("materialCategory", pg.category_name);
+  if (pg?.subcategory_name) params.set("subcategory", pg.subcategory_name);
+  if (pg?.product_group_name) params.set("productGroup", pg.product_group_name);
+
+  return `/price-today?${params.toString()}`;
+}
+
 function createAnonSupabase(): SupabaseClient | null {
   if (typeof window === "undefined") return null;
 
@@ -521,9 +540,15 @@ export default function MaterialsPage() {
                         </CardBody>
 
                         <CardFooter>
-                          <ActionButton href={`/materials/${encodeURIComponent(String(l.id))}`} variant="secondary">
-                            View details →
-                          </ActionButton>
+                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                            <ActionButton href={priceTodayHref(title, pg)} variant="primary">
+                              Compare Price →
+                            </ActionButton>
+
+                            <ActionButton href={`/materials/${encodeURIComponent(String(l.id))}`} variant="secondary">
+                              View details →
+                            </ActionButton>
+                          </div>
                         </CardFooter>
                       </Card>
                     );
