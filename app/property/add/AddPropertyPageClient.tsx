@@ -1711,6 +1711,8 @@ const [dbAttrValues, setDbAttrValues] = useState<
   const [investmentEnabled, setInvestmentEnabled] = useState<boolean | null>(null);
   const [investmentMin, setInvestmentMin] = useState("");
   const [investmentMax, setInvestmentMax] = useState("");
+  const [investmentMinPct, setInvestmentMinPct] = useState("10");
+  const [investmentMaxPct, setInvestmentMaxPct] = useState("100");
   const [investmentHoldingMonths, setInvestmentHoldingMonths] = useState("");
   const [investmentRiskLevel, setInvestmentRiskLevel] = useState<"low" | "medium" | "high">("medium");
 
@@ -2252,10 +2254,40 @@ setDbAttrValues(init);
     if (emi === null) return { error: "Cannot compute EMI." };
 
     return { total, dpPct, rate, months, downPayment, principal, emi };
-  }, [directEmiEnabled, emiTotalAmount, emiDownPaymentPct, emiInterestPct, emiMonths]);
+      }, [directEmiEnabled, emiTotalAmount, emiDownPaymentPct, emiInterestPct, emiMonths]);
 
-  const cleanedMedia = useMemo(() => safeUrlsFromList(mediaUrls), [mediaUrls]);
-  const canSubmit = Boolean(agree);
+      const investmentCalc = useMemo(() => {
+      const total = toNumberOrNull(expectedPrice);
+      const minPct = clamp(Number(investmentMinPct || "10"), 10, 100);
+      const maxPct = clamp(Number(investmentMaxPct || "100"), 10, 100);
+
+      if (!total || total <= 0) {
+        return { total: null, minPct, maxPct, minAmount: null, maxAmount: null };
+      }
+
+      return {
+        total,
+        minPct,
+        maxPct,
+        minAmount: Math.round((total * minPct) / 100),
+        maxAmount: Math.round((total * maxPct) / 100),
+      };
+    }, [expectedPrice, investmentMinPct, investmentMaxPct]);
+
+    useEffect(() => {
+      if (investmentEnabled !== true) return;
+
+      if (investmentCalc.minAmount != null) {
+        setInvestmentMin(String(investmentCalc.minAmount));
+      }
+
+      if (investmentCalc.maxAmount != null) {
+        setInvestmentMax(String(investmentCalc.maxAmount));
+      }
+    }, [investmentEnabled, investmentCalc.minAmount, investmentCalc.maxAmount]);
+
+    const cleanedMedia = useMemo(() => safeUrlsFromList(mediaUrls), [mediaUrls]);
+    const canSubmit = Boolean(agree);
 
   function computeAddressText() {
     return [plotNo, apartmentSociety, streetAddress, subLocality, locality, district, city, stateName, postalCode]
@@ -3643,8 +3675,8 @@ async function upsertPropertyInvestmentOpportunity(args: {
 }) {
   if (investmentEnabled !== true) return;
 
-  const minInvestment = toNumberOrNull(investmentMin);
-  const maxInvestment = toNumberOrNull(investmentMax);
+  const minInvestment = investmentCalc.minAmount;
+  const maxInvestment = investmentCalc.maxAmount;
   const holdingMonths = toNumberOrNull(investmentHoldingMonths);
 
   if (minInvestment === null || minInvestment <= 0) {
@@ -5241,21 +5273,53 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
 
                   {investmentEnabled === true ? (
                     <>
-                      <FieldLabel title="Min Investment (₹)" required />
-                      <TextInput
-                        value={investmentMin}
-                        onChange={(v) => setInvestmentMin(v.replace(/[^\d]/g, ""))}
-                        placeholder="e.g., 100000"
-                        inputMode="numeric"
-                      />
+              <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
+                <div>
+                  <FieldLabel title="Min Investment (%)" required hint="Minimum 10%, maximum 100% of Expected Price." />
+                  <TextInput
+                    value={investmentMinPct}
+                    onChange={(v) => {
+                      const raw = v.replace(/[^\d]/g, "");
+                      const n = raw ? clamp(Number(raw), 10, 100) : 10;
+                      setInvestmentMinPct(String(n));
+                    }}
+                    placeholder="e.g., 10"
+                    inputMode="numeric"
+                  />
 
-                      <FieldLabel title="Max Investment (₹)" required />
-                      <TextInput
-                        value={investmentMax}
-                        onChange={(v) => setInvestmentMax(v.replace(/[^\d]/g, ""))}
-                        placeholder="e.g., 500000"
-                        inputMode="numeric"
-                      />
+                  <div style={{ marginTop: 8, color: "#374151", fontWeight: 800, fontSize: 13 }}>
+                    Amount: {investmentCalc.minAmount != null ? formatINR(investmentCalc.minAmount) : "—"}
+                    {investmentCalc.minAmount != null ? (
+                      <div style={{ color: "#6b7280", fontWeight: 600, marginTop: 4 }}>
+                        ({numberToWordsIndian(investmentCalc.minAmount)} only)
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div>
+                  <FieldLabel title="Max Investment (%)" required hint="Maximum can be up to 100% of Expected Price." />
+                  <TextInput
+                    value={investmentMaxPct}
+                    onChange={(v) => {
+                      const raw = v.replace(/[^\d]/g, "");
+                      const n = raw ? clamp(Number(raw), 10, 100) : 100;
+                      setInvestmentMaxPct(String(n));
+                    }}
+                    placeholder="e.g., 100"
+                    inputMode="numeric"
+                  />
+
+                  <div style={{ marginTop: 8, color: "#374151", fontWeight: 800, fontSize: 13 }}>
+                    Amount: {investmentCalc.maxAmount != null ? formatINR(investmentCalc.maxAmount) : "—"}
+                    {investmentCalc.maxAmount != null ? (
+                      <div style={{ color: "#6b7280", fontWeight: 600, marginTop: 4 }}>
+                        ({numberToWordsIndian(investmentCalc.maxAmount)} only)
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
 
                       <FieldLabel title="Expected Holding (months)" />
                       <TextInput
