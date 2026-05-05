@@ -415,6 +415,7 @@ export default function AddServicesPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [provider, setProvider] = useState<ProviderRow | null>(null);
   const [myProviderServices, setMyProviderServices] = useState<MyProviderServiceRow[]>([]);
+  const [aiLoadingField, setAiLoadingField] = useState<null | "description" | "sla" | "refund">(null);
 
   // ---------- draft helpers ----------
   function setDraft(key: string, patch: Partial<ServiceDraft>) {
@@ -472,6 +473,111 @@ export default function AddServicesPage() {
     if (!serviceId) return null;
     return catalog.find((r) => r.service_id === serviceId) ?? null;
   }
+
+  async function generateServiceAI(target: "description" | "sla" | "refund", draft: ServiceDraft) {
+  if (aiLoadingField) return;
+
+  setAiLoadingField(target);
+  setErr(null);
+
+  try {
+    const serviceName =
+      draft.pickMode === "catalog"
+        ? findCatalogRow(draft.service_id)?.service_name || "Service"
+        : draft.other_service?.trim() || "Service";
+
+    const categoryName =
+      draft.pickMode === "catalog"
+        ? findCatalogRow(draft.service_id)?.category_name || ""
+        : draft.other_category?.trim() || "";
+
+    const subcategoryName =
+      draft.pickMode === "catalog"
+        ? findCatalogRow(draft.service_id)?.subcategory_name || ""
+        : draft.other_subcategory?.trim() || "";
+
+    const targetField =
+      target === "description" ? "scopeOfWork" : target === "sla" ? "sla" : "serviceRefundPolicy";
+
+    const requiredOutputStyle =
+      target === "description"
+        ? "Write a practical service description with clear scope of work, inclusions, exclusions, work process, and quality checks. Keep it useful for Indian service buyers."
+        : target === "sla"
+          ? "Write a short practical SLA / warranty / quality assurance note. Include response time, workmanship responsibility, support period, and verification reminder. Do not make fake guarantees."
+          : "Write a short refund and cancellation policy for a local service provider. Keep it fair, practical, and legally safe. Do not promise refunds unless conditions are stated.";
+
+    const res = await fetch("/api/ai/smart-fill", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+      credentials: "same-origin",
+      body: JSON.stringify({
+        module: "service",
+        action: "refine",
+        tone: "professional",
+        input: {
+          title: serviceName,
+          location: draft.location || draft.work_area || "",
+          price:
+            typeof draft.package_rate === "number"
+              ? `Package ₹${draft.package_rate}`
+              : typeof draft.daily_rate === "number"
+                ? `Daily ₹${draft.daily_rate}`
+                : typeof draft.hourly_rate === "number"
+                  ? `Hourly ₹${draft.hourly_rate}`
+                  : "",
+          bullets: [
+            `Service: ${serviceName}`,
+            categoryName ? `Category: ${categoryName}` : "",
+            subcategoryName ? `Subcategory: ${subcategoryName}` : "",
+            draft.skill_level ? `Skill level: ${draft.skill_level}` : "",
+            typeof draft.experience_years === "number" ? `Experience: ${draft.experience_years} years` : "",
+            draft.work_area ? `Work area: ${draft.work_area}` : "",
+            draft.location ? `Coverage: ${draft.location}` : "",
+            draft.material_supply ? `Material supply: ${draft.material_supply}` : "",
+            draft.tools_equipment ? `Tools/equipment: ${draft.tools_equipment}` : "",
+            draft.expected_start_time ? `Expected start: ${draft.expected_start_time}` : "",
+            draft.minimum_work_duration ? `Minimum work duration: ${draft.minimum_work_duration}` : "",
+          ].filter(Boolean),
+          existingText:
+            target === "description"
+              ? draft.description
+              : target === "sla"
+                ? draft.warranty || ""
+                : draft.refund_policy || "",
+          attributes: {
+            targetField,
+            requiredOutputStyle,
+          },
+        },
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data?.ok) {
+      throw new Error(data?.error || `AI failed with status ${res.status}`);
+    }
+
+    const output = String(data?.result?.description || "").trim();
+
+    if (!output) {
+      throw new Error("AI did not return content.");
+    }
+
+    if (target === "description") {
+      setDraft(draft.key, { description: output });
+    } else if (target === "sla") {
+      setDraft(draft.key, { warranty: output });
+    } else {
+      setDraft(draft.key, { refund_policy: output });
+    }
+  } catch (e: any) {
+    setErr(e?.message || "AI service failed.");
+  } finally {
+    setAiLoadingField(null);
+  }
+}
 
   function buildTitle(d: ServiceDraft) {
     const headline = d.headline?.trim();
@@ -1823,14 +1929,25 @@ function TurnkeyToggle() {
 
                         {/* Description */}
                         <div style={{ marginTop: 12 }}>
-                          <span style={styles.label}>Description</span>
-                          <textarea
-                            value={activeDraft.description}
-                            onChange={(e) => setDraft(activeDraft.key, { description: e.target.value })}
-                            rows={4}
-                            placeholder="Describe your work scope, brands, finishing quality, team size, etc."
-                            style={styles.textarea}
-                          />
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                          <span style={styles.label}>Description / Scope of Work</span>
+                          <button
+                            type="button"
+                            onClick={() => generateServiceAI("description", activeDraft)}
+                            disabled={aiLoadingField !== null || saving}
+                            style={styles.miniBtn(aiLoadingField === "description")}
+                          >
+                            {aiLoadingField === "description" ? "AI writing..." : "✨ Generate Scope"}
+                          </button>
+                        </div>
+
+                        <textarea
+                          value={activeDraft.description}
+                          onChange={(e) => setDraft(activeDraft.key, { description: e.target.value })}
+                          rows={5}
+                          placeholder="Describe your work scope, brands, finishing quality, team size, etc."
+                          style={styles.textarea}
+                        />
                         </div>
 
                         {/* Pricing & terms */}
@@ -1977,13 +2094,24 @@ function TurnkeyToggle() {
                             </div>
 
                             <div style={styles.field}>
-                              <span style={styles.label}>Work Warranty / Quality Assurance</span>
-                              <input
-                                value={activeDraft.warranty || ""}
-                                onChange={(e) => setDraft(activeDraft.key, { warranty: e.target.value })}
-                                placeholder='e.g. "6 months workmanship warranty"'
-                                style={styles.input}
-                              />
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                              <span style={styles.label}>Work Warranty / SLA / Quality Assurance</span>
+                              <button
+                                type="button"
+                                onClick={() => generateServiceAI("sla", activeDraft)}
+                                disabled={aiLoadingField !== null || saving}
+                                style={styles.miniBtn(aiLoadingField === "sla")}
+                              >
+                                {aiLoadingField === "sla" ? "AI..." : "✨ SLA"}
+                              </button>
+                            </div>
+
+                            <input
+                              value={activeDraft.warranty || ""}
+                              onChange={(e) => setDraft(activeDraft.key, { warranty: e.target.value })}
+                              placeholder='e.g. "6 months workmanship warranty"'
+                              style={styles.input}
+                            />
                             </div>
                           </div>
 
@@ -2100,13 +2228,24 @@ function TurnkeyToggle() {
                             </div>
 
                             <div style={styles.field}>
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
                               <span style={styles.label}>Refund / Cancellation Policy</span>
-                              <input
-                                value={activeDraft.refund_policy || ""}
-                                onChange={(e) => setDraft(activeDraft.key, { refund_policy: e.target.value })}
-                                placeholder="Write your policy (optional)"
-                                style={styles.input}
-                              />
+                              <button
+                                type="button"
+                                onClick={() => generateServiceAI("refund", activeDraft)}
+                                disabled={aiLoadingField !== null || saving}
+                                style={styles.miniBtn(aiLoadingField === "refund")}
+                              >
+                                {aiLoadingField === "refund" ? "AI..." : "✨ Policy"}
+                              </button>
+                            </div>
+
+                            <input
+                              value={activeDraft.refund_policy || ""}
+                              onChange={(e) => setDraft(activeDraft.key, { refund_policy: e.target.value })}
+                              placeholder="Write your policy (optional)"
+                              style={styles.input}
+                            />
                             </div>
                           </div>
                         </div>
