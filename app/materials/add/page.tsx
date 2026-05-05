@@ -829,8 +829,10 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
       const attributes_payload: Record<string, any> = {};
       for (const a of attrs) attributes_payload[a.id] = attrInput[a.id];
 
-      const photo_links = parseLinks(photoLinksText);
-      const video_links = parseLinks(videoLinksText);
+      const media_links = {
+        photos: parseLinks(photoLinksText),
+        videos: parseLinks(videoLinksText),
+      };
 
       const { error: insErr } = await supabase.from("material_listings").insert({
         user_id: user.id,
@@ -841,12 +843,12 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
         type_id: typeId || null,
         category_id: categoryId || null,
         subcategory_id: subcategoryId || null,
-        product_group_id: productGroupId,
+        product_group_id: productGroupId || null,
 
-        attributes: attributes_payload,
-
-        photo_links,
-        video_links,
+        attributes: {
+          ...attributes_payload,
+          media_links,
+        },
 
         status: "draft",
       });
