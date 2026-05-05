@@ -934,6 +934,7 @@ export default function PriceTodayClient() {
   const [canAddPrice, setCanAddPrice] = useState(false);
   const [prefillApplied, setPrefillApplied] = useState(false);
   const [prefillNotice, setPrefillNotice] = useState("");
+  const [selectedCompareKeys, setSelectedCompareKeys] = useState<string[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -1373,6 +1374,31 @@ if (userData.user) {
     });
   }, [groupedPriceRows]);
 
+    const multiCompareRows = useMemo(() => {
+    return groupedPriceRows.map((row) => ({
+      ...row,
+      compareKey: `${row.category}|${row.item}|${row.location || ""}|${row.unit}`,
+      comparison: getComparisonLabel(row),
+      isHotBuyer: isHotBuyerRow(row),
+    }));
+  }, [groupedPriceRows]);
+
+  const selectedCompareRows = useMemo(() => {
+    const selected = multiCompareRows.filter((row) =>
+      selectedCompareKeys.includes(row.compareKey)
+    );
+
+    return selected.length ? selected : multiCompareRows.slice(0, 3);
+  }, [multiCompareRows, selectedCompareKeys]);
+
+  function toggleCompareKey(key: string) {
+    setSelectedCompareKeys((prev) => {
+      if (prev.includes(key)) return prev.filter((x) => x !== key);
+      if (prev.length >= 4) return [prev[1], prev[2], prev[3], key].filter(Boolean);
+      return [...prev, key];
+    });
+  }
+
     useEffect(() => {
     if (!groupedPriceRows.length) return;
 
@@ -1515,6 +1541,10 @@ if (userData.user) {
         .map((row) => row.grade)
     );
   }, [priceRows, category, item, brand]);
+
+    useEffect(() => {
+    setSelectedCompareKeys([]);
+  }, [category, item, brand, grade, location]);
 
   const listingHref = selectedCategory?.href || "/search";
   const searchText = item === "All Items" ? category : item;
@@ -1929,6 +1959,18 @@ if (userData.user) {
                       <TrendBadge trend={row.trend} changePercent={row.changePercent} />
                       <TrustBadge row={row} vendorCount={row.vendorCount} />
                       <AiPriceBadge row={row} />
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          toggleCompareKey(`${row.category}|${row.item}|${row.location || ""}|${row.unit}`)
+                        }
+                        className="rounded-full bg-purple-700 px-3 py-1 text-xs font-black text-white hover:bg-purple-800"
+                      >
+                        {selectedCompareKeys.includes(`${row.category}|${row.item}|${row.location || ""}|${row.unit}`)
+                          ? "✓ Selected"
+                          : "+ Compare"}
+                      </button>
                     </div>
 
                     <div className="mt-3 rounded-2xl bg-purple-50 p-3 text-sm font-bold leading-6 text-purple-900">
@@ -1976,6 +2018,111 @@ if (userData.user) {
                   Select a {category === "Properties" ? "property" : category === "Services" ? "service" : "material"} item or location to compare available market signals.
                 </div>
               )}
+            </div>
+          </div>
+        ) : null}
+
+                {category === "Materials" || category === "Properties" || category === "Services" ? (
+          <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                  Multi-item comparison
+                </p>
+                <h2 className="mt-1 text-2xl font-black text-slate-950">
+                  Compare selected {category.toLowerCase()} side by side
+                </h2>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
+                  Select up to 4 items from the comparison cards above. If none are selected,
+                  the top 3 market signals are shown automatically.
+                </p>
+              </div>
+
+              {selectedCompareKeys.length ? (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCompareKeys([])}
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-black text-slate-700 hover:bg-slate-100"
+                >
+                  Clear Selection
+                </button>
+              ) : null}
+            </div>
+
+            <div className="mt-4 overflow-x-auto">
+              <div className="grid min-w-[760px] gap-3" style={{ gridTemplateColumns: `repeat(${Math.max(selectedCompareRows.length, 1)}, minmax(220px, 1fr))` }}>
+                {selectedCompareRows.length ? (
+                  selectedCompareRows.map((row) => (
+                    <div
+                      key={`multi-${row.compareKey}`}
+                      className="rounded-3xl border border-slate-200 bg-slate-50 p-4"
+                    >
+                      <div className="text-2xl">{getItemIcon(row.item, category)}</div>
+
+                      <div className="mt-2 text-lg font-black text-slate-950">
+                        {row.item}
+                      </div>
+
+                      <div className="mt-1 text-xs font-bold text-slate-500">
+                        {row.location || location || "Selected market"} • {row.unit}
+                      </div>
+
+                      <div className="mt-3 rounded-2xl bg-white p-3">
+                        <div className="text-xs font-black text-slate-500">
+                          Market Average
+                        </div>
+                        <div className="mt-1 text-xl font-black text-emerald-700">
+                          ₹{row.avgPrice}
+                        </div>
+                      </div>
+
+                      <div className="mt-2 rounded-2xl bg-white p-3">
+                        <div className="text-xs font-black text-slate-500">
+                          Range
+                        </div>
+                        <div className="mt-1 text-sm font-black text-slate-900">
+                          ₹{row.priceMin} – ₹{row.priceMax}
+                        </div>
+                      </div>
+
+                      <div className="mt-2 rounded-2xl bg-white p-3">
+                        <div className="text-xs font-black text-slate-500">
+                          Confidence / Sources
+                        </div>
+                        <div className="mt-1 text-sm font-black text-blue-700">
+                          {row.confidence}% • {row.vendorCount} source{row.vendorCount > 1 ? "s" : ""}
+                        </div>
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <TrendBadge trend={row.trend} changePercent={row.changePercent} />
+                        <AiPriceBadge row={row} />
+                      </div>
+
+                      <div className="mt-3 rounded-2xl bg-purple-50 p-3 text-xs font-bold leading-5 text-purple-900">
+                        <div className="font-black">{row.comparison.label}</div>
+                        <div className="mt-1">{row.comparison.detail}</div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => triggerPriceLead(row)}
+                        className="mt-3 w-full rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700"
+                      >
+                        {category === "Properties"
+                          ? "Talk to Owner"
+                          : category === "Services"
+                          ? "Hire / Enquire"
+                          : "Get Best Price"}
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm font-bold text-slate-600">
+                    No comparison data available yet.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ) : null}
