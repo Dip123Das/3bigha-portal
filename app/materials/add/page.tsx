@@ -835,7 +835,7 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
       };
 
       const { error: insErr } = await supabase.from("material_listings").insert({
-        user_id: user.id,
+        vendor_user_id: user.id,
         title: title.trim(),
         local_name: localName.trim() ? localName.trim() : null,
         description: description.trim() || null,
