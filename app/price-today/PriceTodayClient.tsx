@@ -1849,18 +1849,18 @@ if (userData.user) {
           </div>
         </div>
 
-        {category === "Materials" || category === "Properties" ? (
+        {category === "Materials" || category === "Properties" || category === "Services" ? (
           <div className="mt-6 rounded-3xl border border-purple-200 bg-purple-50 p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-wide text-purple-700">
-                  Smart {category === "Properties" ? "Property" : "Material"} Comparison Engine
+                  Smart {category === "Properties" ? "Property" : category === "Services" ? "Service" : "Material"} Comparison Engine
                 </p>
                 <h2 className="mt-1 text-2xl font-black text-slate-950">
-                  Compare {category === "Properties" ? "property" : "material"} options before buying
+                  Compare {category === "Properties" ? "property" : category === "Services" ? "service" : "material"} options before buying
                 </h2>
                 <p className="mt-2 text-sm font-semibold leading-6 text-slate-700">
-                  This compares available {category === "Properties" ? "property" : "material"} price signals using rate range, vendor count,
+                  This compares available {category === "Properties" ? "property" : category === "Services" ? "service" : "material"} price signals using rate range, vendor count,
                   confidence, trend and AI price quality.
                 </p>
               </div>
@@ -1869,7 +1869,7 @@ if (userData.user) {
                 href={`/search?q=${encodeURIComponent(searchText)}`}
                 className="rounded-2xl bg-purple-700 px-5 py-3 text-sm font-black text-white hover:bg-purple-800"
               >
-                Search {category === "Properties" ? "Properties" : "Materials"} →
+                Search {category} →
               </Link>
             </div>
 
@@ -1953,6 +1953,10 @@ if (userData.user) {
                           ? row.isHotBuyer
                             ? "🚀 Talk to Owner Now"
                             : "🔥 Check Property Deal"
+                          : category === "Services"
+                          ? row.isHotBuyer
+                            ? "🚀 Hire Service Now"
+                            : "🔥 Check Service Rate"
                           : row.isHotBuyer
                           ? "🚀 Lock Price Now"
                           : "🔥 Get Best Price Now"}
@@ -1969,7 +1973,7 @@ if (userData.user) {
                 ))
               ) : (
                 <div className="rounded-3xl bg-white p-5 text-sm font-bold text-slate-600 shadow-sm">
-                  Select a material item or location to compare available market signals.
+                  Select a {category === "Properties" ? "property" : category === "Services" ? "service" : "material"} item or location to compare available market signals.
                 </div>
               )}
             </div>

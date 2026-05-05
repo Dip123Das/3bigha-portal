@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/Badge";
 
 type EnquiryStatus = "new" | "contacted" | "closed" | "spam" | string;
 type SenderRole = "buyer" | "vendor" | string;
+type LeadScore = "hot" | "medium" | "low";
 
 type EnquiryRow = {
   id: string;
@@ -104,6 +105,13 @@ function StatusPill({ status }: { status: EnquiryStatus }) {
   return <Pill>{s}</Pill>;
 }
 
+function LeadScorePill({ score }: { score?: LeadScore }) {
+  if (score === "hot") return <Pill tone="warn">🔥 Hot Lead</Pill>;
+  if (score === "low") return <Pill>❄️ Low Intent</Pill>;
+  if (score === "medium") return <Pill tone="ok">🟡 Medium Intent</Pill>;
+  return <Pill>🤖 Scoring…</Pill>;
+}
+
 const STATUS_OPTIONS: EnquiryStatus[] = ["new", "contacted", "closed", "spam"];
 
 export default function VendorEnquiriesInboxPageClient() {
@@ -135,6 +143,7 @@ export default function VendorEnquiriesInboxPageClient() {
   const [replyBody, setReplyBody] = useState("");
 
   const [conversationMap, setConversationMap] = useState<Record<string, string>>({});
+  const [leadScores, setLeadScores] = useState<Record<string, LeadScore>>({});
 
   const isDev = process.env.NODE_ENV !== "production";
 
@@ -326,6 +335,49 @@ export default function VendorEnquiriesInboxPageClient() {
     loadThread(focusId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusId]);
+
+    useEffect(() => {
+    const rowsToScore = items.filter((item) => !leadScores[item.id]).slice(0, 10);
+
+    if (!rowsToScore.length) return;
+
+    let cancelled = false;
+
+    async function scoreRows() {
+      for (const item of rowsToScore) {
+        try {
+          const res = await fetch("/api/ai/lead-score", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: item.message }),
+          });
+
+          const json = await res.json().catch(() => null);
+          const score = String(json?.score || "medium").toLowerCase() as LeadScore;
+
+          if (!cancelled) {
+            setLeadScores((prev) => ({
+              ...prev,
+              [item.id]: score === "hot" || score === "low" ? score : "medium",
+            }));
+          }
+        } catch {
+          if (!cancelled) {
+            setLeadScores((prev) => ({
+              ...prev,
+              [item.id]: "medium",
+            }));
+          }
+        }
+      }
+    }
+
+    scoreRows();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [items, leadScores]);
 
   async function updateStatus(id: string, status: EnquiryStatus) {
     setUpdatingId(id);
@@ -583,6 +635,7 @@ export default function VendorEnquiriesInboxPageClient() {
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
                       <Pill>{titleCase(focused.subject_type)}</Pill>
                       <StatusPill status={focused.status} />
+                      <LeadScorePill score={leadScores[focused.id]} />
                       <Pill>{fmtDateTime(focused.created_at)}</Pill>
                       <Pill>id: {focused.id.slice(0, 8)}…</Pill>
                     </div>
@@ -826,6 +879,7 @@ export default function VendorEnquiriesInboxPageClient() {
                           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
                             <Pill>{titleCase(e.subject_type)}</Pill>
                             <StatusPill status={e.status} />
+                            <LeadScorePill score={leadScores[e.id]} />
                             <Pill>{fmtDateTime(e.created_at)}</Pill>
                             <Pill>id: {e.id.slice(0, 8)}…</Pill>
                           </div>
