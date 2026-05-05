@@ -693,6 +693,39 @@ function isHotBuyerRow(row: AggregatedPriceRow) {
   );
 }
 
+function getBestOptionKey(rows: AggregatedPriceRow[]) {
+  if (!rows.length) return null;
+
+  const scored = rows.map((row) => {
+    let score = 0;
+
+    // confidence weight
+    score += Number(row.confidence || 0) * 0.6;
+
+    // vendor strength
+    score += Number(row.vendorCount || 0) * 8;
+
+    // price advantage (lower is better)
+    const avg = Number(row.avgPrice || 0);
+    const min = Number(row.priceMin || 0);
+
+    if (avg > 0 && min > 0) {
+      const priceScore = (avg - min) / avg;
+      score += priceScore * 40;
+    }
+
+    // trend stability bonus
+    if (row.trend === "Stable") score += 10;
+    if (row.trend === "Down") score += 15;
+
+    return { key: makeGroupKey(row), score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  return scored[0]?.key || null;
+}
+
 function getComparisonLabel(row: AggregatedPriceRow) {
   const confidence = Number(row.confidence || 0);
   const vendors = Number(row.vendorCount || 0);
@@ -1247,32 +1280,59 @@ if (userData.user) {
       return;
     }
 
-    const materialOptions = itemsByCategory.Materials || [];
+    const requestedTypeRaw =
+      params.get("type") ||
+      params.get("categoryType") ||
+      stored?.type ||
+      stored?.source ||
+      "";
+
+    const requestedCategory: CategoryKey =
+      String(requestedTypeRaw).toLowerCase().includes("rental")
+        ? "Rentals"
+        : String(requestedTypeRaw).toLowerCase().includes("service")
+        ? "Services"
+        : String(requestedTypeRaw).toLowerCase().includes("propert")
+        ? "Properties"
+        : "Materials";
+
+    const categoryOptionsList = itemsByCategory[requestedCategory] || [];
     const requestedLower = cleanRequestedItem.toLowerCase();
 
-    const aliasMap: Record<string, string> = {
-      tmt: "Steel Rod",
-      rod: "Steel Rod",
-      sariya: "Steel Rod",
-      rebar: "Steel Rod",
-      opc: "Cement",
-      ppc: "Cement",
-      psc: "Cement",
-      balu: "Sand",
-      baalu: "Sand",
-      "river sand": "Sand",
-      "m sand": "Sand",
-      bricks: "Brick",
-      blocks: "Brick",
-    };
+    const aliasMap: Record<string, string> =
+      requestedCategory === "Materials"
+        ? {
+            tmt: "Steel Rod",
+            rod: "Steel Rod",
+            sariya: "Steel Rod",
+            rebar: "Steel Rod",
+            opc: "Cement",
+            ppc: "Cement",
+            psc: "Cement",
+            balu: "Sand",
+            baalu: "Sand",
+            "river sand": "Sand",
+            "m sand": "Sand",
+            bricks: "Brick",
+            blocks: "Brick",
+          }
+        : requestedCategory === "Rentals"
+        ? {
+            jcb: "JCB Rental",
+            excavator: "JCB Rental",
+            tractor: "Tractor Rental",
+            mixer: "Mixer Machine Rental",
+            "concrete mixer": "Mixer Machine Rental",
+          }
+        : {};
 
     const normalizedRequest = (aliasMap[requestedLower] || requestedLower).toLowerCase();
 
-    const exactMatch = materialOptions.find(
+    const exactMatch = categoryOptionsList.find(
       (option) => option.label.trim().toLowerCase() === normalizedRequest
     );
 
-    const smartMatch = materialOptions.find((option) => {
+    const smartMatch = categoryOptionsList.find((option) => {
       const optionLower = option.label.trim().toLowerCase();
       return (
         normalizedRequest.includes(optionLower) ||
@@ -1280,33 +1340,43 @@ if (userData.user) {
       );
     });
 
-    const selectedMaterial =
+    const selectedItem =
       exactMatch?.label || smartMatch?.label || cleanRequestedItem;
 
-    setCategory("Materials");
-    setItem(selectedMaterial);
+    setCategory(requestedCategory);
+    setItem(selectedItem);
     setBrand("All Brands");
     setGrade("All Grades");
 
     setItemsByCategory((prev) => {
-      const alreadyExists = prev.Materials.some(
+      const alreadyExists = prev[requestedCategory].some(
         (option) =>
-          option.label.trim().toLowerCase() === selectedMaterial.toLowerCase()
+          option.label.trim().toLowerCase() === selectedItem.toLowerCase()
       );
 
       if (alreadyExists) return prev;
 
       return {
         ...prev,
-        Materials: uniqueOptions([
-          { label: selectedMaterial, source: "Material AI Selection" },
-          ...prev.Materials,
+        [requestedCategory]: uniqueOptions([
+          {
+            label: selectedItem,
+            source:
+              requestedCategory === "Rentals"
+                ? "Rental AI Selection"
+                : requestedCategory === "Services"
+                ? "Service AI Selection"
+                : requestedCategory === "Properties"
+                ? "Property AI Selection"
+                : "Material AI Selection",
+          },
+          ...prev[requestedCategory],
         ]),
       };
     });
 
     setPrefillNotice(
-      `Auto-loaded from Materials AI: ${selectedMaterial}. You can now compare local price trends before publishing.`
+      `Auto-loaded from ${requestedCategory} AI: ${selectedItem}. You can now compare local price trends before decision.`
     );
 
     window.localStorage.removeItem("3bigha_price_today_prefill");
@@ -1354,6 +1424,10 @@ if (userData.user) {
         return Number(b.confidence || 0) - Number(a.confidence || 0);
       });
     }, [matchingRows]);
+
+    const bestOptionKey = useMemo(() => {
+      return getBestOptionKey(groupedPriceRows);
+    }, [groupedPriceRows]);
 
     const districtMarketSummary = useMemo(() => {
     return getDistrictMarketSummary(groupedPriceRows, location);
@@ -1879,18 +1953,18 @@ if (userData.user) {
           </div>
         </div>
 
-        {category === "Materials" || category === "Properties" || category === "Services" ? (
+        {category === "Materials" || category === "Properties" || category === "Services" || category === "Rentals" ? (
           <div className="mt-6 rounded-3xl border border-purple-200 bg-purple-50 p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-wide text-purple-700">
-                  Smart {category === "Properties" ? "Property" : category === "Services" ? "Service" : "Material"} Comparison Engine
+                  Smart {category === "Properties" ? "Property" : category === "Services" ? "Service" : category === "Rentals" ? "Rental" : "Material"} Comparison Engine
                 </p>
                 <h2 className="mt-1 text-2xl font-black text-slate-950">
-                  Compare {category === "Properties" ? "property" : category === "Services" ? "service" : "material"} options before buying
+                  Compare {category === "Properties" ? "property" : category === "Services" ? "service" : category === "Rentals" ? "rental" : "material"} options before decision
                 </h2>
                 <p className="mt-2 text-sm font-semibold leading-6 text-slate-700">
-                  This compares available {category === "Properties" ? "property" : category === "Services" ? "service" : "material"} price signals using rate range, vendor count,
+                  This compares available {category === "Properties" ? "property" : category === "Services" ? "service" : category === "Rentals" ? "rental" : "material"} price signals using rate range, vendor count,
                   confidence, trend and AI price quality.
                 </p>
               </div>
@@ -1999,6 +2073,10 @@ if (userData.user) {
                           ? row.isHotBuyer
                             ? "🚀 Hire Service Now"
                             : "🔥 Check Service Rate"
+                          : category === "Rentals"
+                          ? row.isHotBuyer
+                            ? "🚀 Rent Equipment Now"
+                            : "🔥 Check Rental Rate"
                           : row.isHotBuyer
                           ? "🚀 Lock Price Now"
                           : "🔥 Get Best Price Now"}
@@ -2015,14 +2093,14 @@ if (userData.user) {
                 ))
               ) : (
                 <div className="rounded-3xl bg-white p-5 text-sm font-bold text-slate-600 shadow-sm">
-                  Select a {category === "Properties" ? "property" : category === "Services" ? "service" : "material"} item or location to compare available market signals.
+                  Select a {category === "Properties" ? "property" : category === "Services" ? "service" : category === "Rentals" ? "rental" : "material"} item or location to compare available market signals.
                 </div>
               )}
             </div>
           </div>
         ) : null}
 
-                {category === "Materials" || category === "Properties" || category === "Services" ? (
+                {category === "Materials" || category === "Properties" || category === "Services" || category === "Rentals" ? (
           <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -2113,6 +2191,8 @@ if (userData.user) {
                           ? "Talk to Owner"
                           : category === "Services"
                           ? "Hire / Enquire"
+                          : category === "Rentals"
+                          ? "Rent / Enquire"
                           : "Get Best Price"}
                       </button>
                     </div>
@@ -2150,6 +2230,11 @@ if (userData.user) {
                   </div>
 
                   <div className="mt-1 flex flex-wrap items-center gap-2">
+                    {bestOptionKey === makeGroupKey(row) && (
+                      <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-800">
+                        🏆 Best Option (AI Selected)
+                      </span>
+                    )}
                     <h3 className="text-xl font-black text-slate-950">
                       {row.item}
                     </h3>
@@ -2159,6 +2244,12 @@ if (userData.user) {
                   </div>
 
                   <div className="mt-2 text-sm font-bold text-slate-700">
+                    {bestOptionKey === makeGroupKey(row) && (
+                      <div className="mb-2 rounded-xl bg-green-50 px-3 py-2 text-xs font-black text-green-700">
+                        🤖 AI Decision: This option has the best balance of price, confidence and vendor availability.
+                      </div>
+                    )}
+
                     <div className="text-sm text-slate-600">
                       Market Avg: <b>₹{row.avgPrice}</b> / {row.unit}
                     </div>

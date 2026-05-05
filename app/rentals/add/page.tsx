@@ -57,6 +57,39 @@ function safeJsonPhotosFromText(input: string): any[] {
   return urls.map((url) => ({ url }));
 }
 
+function compactText(parts: Array<string | null | undefined>) {
+  return parts.map((p) => String(p ?? "").trim()).filter(Boolean).join(", ");
+}
+
+function buildRentalSmartFill(input: {
+  categoryName: string;
+  subcategoryName: string;
+  equipmentName: string;
+  city: string;
+  locality: string;
+  pricingUnit: PricingUnit;
+  rate: string;
+}) {
+  const equipment = input.equipmentName || input.subcategoryName || input.categoryName || "Rental equipment";
+  const group = compactText([input.subcategoryName, input.categoryName]);
+  const place = compactText([input.locality, input.city]);
+
+  const title = `${equipment} on rent${place ? ` in ${place}` : ""}`;
+
+  const priceLine = input.rate.trim()
+    ? `Rental rate starts from ₹${input.rate.trim()} per ${input.pricingUnit}.`
+    : `Rental rate can be discussed based on duration, location and availability.`;
+
+  const description = [
+    `${equipment} available on rent${group ? ` under ${group}` : ""}${place ? ` at ${place}` : ""}.`,
+    priceLine,
+    `Suitable for construction, project, site work, shifting, maintenance or local rental requirements depending on the selected equipment.`,
+    `Please send an enquiry to confirm availability, operator requirement, transport charge, security deposit and final rental terms.`,
+  ].join(" ");
+
+  return { title, description };
+}
+
 export default function AddRentalPage() {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const router = useRouter();
@@ -355,6 +388,36 @@ export default function AddRentalPage() {
     return errors;
   }
 
+  function onSmartFillRentalDetails() {
+    const categoryName =
+      selectedCat && (selectedCat.is_system_others || selectedCat.slug === "others")
+        ? otherCategoryText
+        : selectedCat?.name ?? "";
+
+    const subcategoryName =
+      selectedSub && (selectedSub.is_system_others || selectedSub.slug === "others")
+        ? otherSubcategoryText
+        : selectedSub?.name ?? "";
+
+    const equipmentName =
+      selectedEq && (selectedEq.is_system_others || selectedEq.slug === "others")
+        ? otherEquipmentText
+        : selectedEq?.name ?? "";
+
+    const smart = buildRentalSmartFill({
+      categoryName,
+      subcategoryName,
+      equipmentName,
+      city,
+      locality,
+      pricingUnit,
+      rate,
+    });
+
+    if (!title.trim()) setTitle(smart.title);
+    setDescription(smart.description);
+  }
+
   async function insertDraft(): Promise<{ ok: true; id: string } | { ok: false; message: string }> {
     setSaveOk(null);
     setSaveErr(null);
@@ -388,7 +451,26 @@ export default function AddRentalPage() {
           : null,
 
       title: title.trim(),
-      description: description.trim() || null,
+      description:
+        description.trim() ||
+        buildRentalSmartFill({
+          categoryName:
+            selectedCat && (selectedCat.is_system_others || selectedCat.slug === "others")
+              ? otherCategoryText
+              : selectedCat?.name ?? "",
+          subcategoryName:
+            selectedSub && (selectedSub.is_system_others || selectedSub.slug === "others")
+              ? otherSubcategoryText
+              : selectedSub?.name ?? "",
+          equipmentName:
+            selectedEq && (selectedEq.is_system_others || selectedEq.slug === "others")
+              ? otherEquipmentText
+              : selectedEq?.name ?? "",
+          city,
+          locality,
+          pricingUnit,
+          rate,
+        }).description,
 
       pricing_unit: pricingUnit,
       rate: toNumberOrNull(rate),
@@ -658,6 +740,19 @@ export default function AddRentalPage() {
             </Section>
 
             <Section title="2) Listing details" open={openDetails} setOpen={setOpenDetails}>
+              <div className="aiBox">
+                <div>
+                  <div className="aiTitle">AI Smart-Fill for Rentals</div>
+                  <div className="aiText">
+                    Generates title and description based on selected rental equipment, category,
+                    location and rate.
+                  </div>
+                </div>
+                <button type="button" className="btn btnOutline" onClick={onSmartFillRentalDetails}>
+                  ✨ AI Smart-Fill
+                </button>
+              </div>
+
               <div className="grid2">
                 <div className="field">
                   <label className="label">Title *</label>
@@ -922,6 +1017,31 @@ function Style() {
 
       .rentalAdd .sectionBody {
         padding: 14px;
+      }
+
+      .rentalAdd .aiBox {
+        margin-bottom: 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 12px;
+        background: #f9fafb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .rentalAdd .aiTitle {
+        font-size: 13px;
+        font-weight: 900;
+        color: #111827;
+      }
+
+      .rentalAdd .aiText {
+        margin-top: 3px;
+        font-size: 12px;
+        color: #6b7280;
       }
 
       .rentalAdd .grid2 {

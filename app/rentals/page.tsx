@@ -102,6 +102,72 @@ function firstPhotoUrl(photos: any): string | null {
   return null;
 }
 
+function compactText(parts: Array<string | null | undefined>) {
+  return parts.map((p) => String(p ?? "").trim()).filter(Boolean).join(", ");
+}
+
+function openRentalPriceToday(input: {
+  equipmentName: string;
+  categoryName: string;
+  subcategoryName: string;
+  title: string;
+  city: string | null;
+  locality: string | null;
+}) {
+  const q =
+    input.equipmentName ||
+    input.subcategoryName ||
+    input.categoryName ||
+    input.title ||
+    "Rental";
+
+  try {
+    window.localStorage.setItem(
+      "3bigha_price_today_prefill",
+      JSON.stringify({
+        source: "rentals",
+        q,
+        category: input.categoryName,
+        subcategory: input.subcategoryName,
+        productGroup: input.equipmentName || q,
+        type: "Rentals",
+        title: input.title,
+        localName: compactText([input.locality, input.city]),
+        createdAt: new Date().toISOString(),
+      })
+    );
+  } catch {}
+
+  window.location.href = `/price-today?type=Rentals&q=${encodeURIComponent(q)}`;
+}
+
+function buildRentalAiDescription(input: {
+  title: string;
+  description: string | null;
+  equipmentName: string;
+  subcategoryName: string;
+  categoryName: string;
+  rate: number | null;
+  pricingUnit: string | null;
+  rateUnitLabel: string | null;
+  city: string | null;
+  locality: string | null;
+}) {
+  const equipment = input.equipmentName || input.title || "this rental equipment";
+  const group = compactText([input.subcategoryName, input.categoryName]);
+  const place = compactText([input.locality, input.city]);
+  const rateLine = input.rate != null ? fmtRate(input.rate, input.pricingUnit, input.rateUnitLabel).replace("Rate: ", "") : "";
+
+  return [
+    `AI Description: ${equipment} available on rent${group ? ` under ${group}` : ""}.`,
+    rateLine ? `Estimated rental rate is ${rateLine}.` : "",
+    place ? `Suitable for local requirements around ${place}.` : "",
+    `Send enquiry to confirm availability, final rent, deposit and delivery terms.`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 function createAnonSupabase(): SupabaseClient | null {
   if (typeof window === "undefined") return null;
 
@@ -556,7 +622,36 @@ export default function RentalsPublicPage() {
                   const cover = firstPhotoUrl(r.photos);
                   const title = (r.title ?? "").trim() || "Rental listing";
 
+                  const categoryName =
+                    r.other_category_text?.trim() ||
+                    (r.category_id ? taxonById.get(r.category_id)?.name ?? "" : "");
+
+                  const subcategoryName =
+                    r.other_subcategory_text?.trim() ||
+                    (r.subcategory_id ? taxonById.get(r.subcategory_id)?.name ?? "" : "");
+
+                  const equipmentName =
+                    r.other_equipment_text?.trim() ||
+                    (r.equipment_id ? taxonById.get(r.equipment_id)?.name ?? "" : "");
+
+                  const aiDescription = buildRentalAiDescription({
+                    title,
+                    description: r.description,
+                    equipmentName,
+                    subcategoryName,
+                    categoryName,
+                    rate: r.rate,
+                    pricingUnit: r.pricing_unit,
+                    rateUnitLabel: r.rate_unit_label,
+                    city: r.city,
+                    locality: r.locality,
+                  });
+
                   const priceText = r.rate != null ? fmtRate(r.rate, r.pricing_unit, r.rate_unit_label) : "";
+
+                  const hasRate = r.rate != null && Number(r.rate) > 0;
+                  const hasDeposit = r.security_deposit != null && Number(r.security_deposit) > 0;
+                  const isHotRentalLead = hasRate && Boolean(r.city || r.locality);
 
                   return (
                     <Card key={r.id}>
@@ -583,11 +678,7 @@ export default function RentalsPublicPage() {
                         </div>
 
                         <p style={{ margin: "10px 0 0", color: "#5b6472" }}>
-                          {r.description
-                            ? r.description.length > 140
-                              ? r.description.slice(0, 140) + "…"
-                              : r.description
-                            : "Details will be available on the rental page."}
+                          {aiDescription}
                         </p>
 
                         <div
@@ -606,6 +697,25 @@ export default function RentalsPublicPage() {
                           {r.security_deposit != null ? <span>Deposit: {money(r.security_deposit)}</span> : null}
                         </div>
 
+                        <div
+                          style={{
+                            marginTop: 12,
+                            border: "1px solid rgba(16,185,129,0.22)",
+                            background: "rgba(236,253,245,0.75)",
+                            borderRadius: 14,
+                            padding: 12,
+                          }}
+                        >
+                          <div style={{ fontSize: 12, fontWeight: 900, color: "#047857" }}>
+                            🧠 Rental AI Signal
+                          </div>
+                          <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#065f46", lineHeight: 1.5 }}>
+                            {isHotRentalLead
+                              ? "Hot rental lead: rate and location are available. Buyer can quickly confirm availability, operator, deposit and delivery."
+                              : "Compare rental rate, location and terms before sending enquiry."}
+                          </div>
+                        </div>
+
                         <div style={{ marginTop: 12 }}>
                           <SendEnquiryButton
                             module="rental"
@@ -620,9 +730,36 @@ export default function RentalsPublicPage() {
                       </CardBody>
 
                       <CardFooter>
-                        <ActionButton href={`/rentals/${r.id}`} variant="secondary">
-                          View details →
-                        </ActionButton>
+                        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                          <ActionButton href={`/rentals/${r.id}`} variant="secondary">
+                            View details →
+                          </ActionButton>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openRentalPriceToday({
+                                equipmentName,
+                                categoryName,
+                                subcategoryName,
+                                title,
+                                city: r.city,
+                                locality: r.locality,
+                              })
+                            }
+                            style={{
+                              border: "1px solid rgba(16,185,129,0.35)",
+                              background: "#ecfdf5",
+                              color: "#047857",
+                              borderRadius: 12,
+                              padding: "10px 12px",
+                              fontWeight: 900,
+                              cursor: "pointer",
+                            }}
+                          >
+                            📊 Compare Rent Today
+                          </button>
+                        </div>
                       </CardFooter>
                     </Card>
                   );

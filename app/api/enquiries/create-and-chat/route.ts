@@ -35,6 +35,30 @@ function contextTypeFromModule(module: string) {
   return "listing";
 }
 
+function buildRentalLeadMessage(input: {
+  item?: string;
+  location?: string;
+  priceText?: string | null;
+}) {
+  const item = String(input.item || "this equipment").trim();
+  const location = String(input.location || "this area").trim();
+  const price = input.priceText ? `Expected range: ${input.priceText}.` : "";
+
+  return `Hi, I want to rent ${item} in ${location}.
+
+${price}
+
+Please confirm:
+✔ Availability
+✔ Rental rate (final)
+✔ Operator included or not
+✔ Delivery / transport charges
+✔ Security deposit
+✔ Rental duration terms
+
+I am ready to proceed based on availability.`;
+}
+
 function listingIdFieldFromModule(module: string, refId: string) {
   const m = String(module ?? "").trim().toLowerCase();
   if (m === "property") return { propertyId: refId };
@@ -159,7 +183,15 @@ export async function POST(req: Request) {
     const vendorUserId = String(body?.vendorUserId ?? "").trim();
     const title = cleanText(body?.title);
     const priceText = cleanText(body?.priceText);
-    const message = String(body?.message ?? "").trim();
+    let message = String(body?.message ?? "").trim();
+
+    if (module === "rental" || module === "rentals") {
+      message = buildRentalLeadMessage({
+        item: body?.item || title || "equipment",
+        location: body?.location || "",
+        priceText,
+      });
+    }
 
     if (!module || !refId || !vendorUserId || !message) {
       return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
@@ -218,7 +250,11 @@ export async function POST(req: Request) {
       contextId: refId,
       buyerUserId: user.id,
       vendorUserId,
-      title: title ?? `${subjectType} enquiry`,
+      title:
+        title ??
+        (module === "rental" || module === "rentals"
+          ? `Rental enquiry for ${body?.item || "equipment"}`
+          : `${subjectType} enquiry`),
       contextSnapshot: {
         module,
         title,
