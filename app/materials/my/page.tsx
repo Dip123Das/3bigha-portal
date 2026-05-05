@@ -76,6 +76,40 @@ export default function MaterialsMyPage() {
 
   const [rows, setRows] = useState<Row[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [submittingId, setSubmittingId] = useState<string | null>(null);
+
+  async function submitForReview(listingId: string) {
+    setError(null);
+    setSubmittingId(listingId);
+
+    try {
+      const { data } = await supabase.auth.getSession();
+      const user = data.session?.user;
+
+      if (!user) {
+        router.replace(`/login?next=${encodeURIComponent("/materials/my")}`);
+        return;
+      }
+
+      const { error: updateErr } = await supabase
+        .from("material_listings")
+        .update({
+          status: "pending",
+          is_public: false,
+          published_at: null,
+        })
+        .eq("id", listingId)
+        .eq("vendor_user_id", user.id);
+
+      if (updateErr) throw updateErr;
+
+      await load(user.id);
+    } catch (e: any) {
+      setError(e?.message ?? "Submit for review failed");
+    } finally {
+      setSubmittingId(null);
+    }
+  }
 
   async function load(userId: string) {
     setLoading(true);
@@ -237,6 +271,25 @@ export default function MaterialsMyPage() {
                     <Link href={`/materials/${m.id}`} style={{ fontWeight: 700 }}>
                       View →
                     </Link>
+
+                    {m.status === "draft" || m.status === "rejected" ? (
+                      <button
+                        type="button"
+                        onClick={() => submitForReview(m.id)}
+                        disabled={submittingId === m.id}
+                        style={{
+                          border: "1px solid rgba(22,163,74,0.35)",
+                          background: submittingId === m.id ? "#dcfce7" : "#f0fdf4",
+                          color: "#166534",
+                          borderRadius: 999,
+                          padding: "6px 10px",
+                          fontWeight: 900,
+                          cursor: submittingId === m.id ? "not-allowed" : "pointer",
+                        }}
+                      >
+                        {submittingId === m.id ? "Submitting..." : "Submit for Review"}
+                      </button>
+                    ) : null}
 
                     {/* If you create an edit route later, add it here */}
                     {/* <Link href={`/materials/edit/${m.id}`} style={{ fontWeight: 700 }}>Edit →</Link> */}
