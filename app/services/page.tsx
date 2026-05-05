@@ -109,11 +109,32 @@ function slugify(v: unknown) {
     .replace(/^-|-$/g, "");
 }
 
-function fmtMoney(currency: string | null | undefined, amount: number | null | undefined) {
-  if (amount == null) return null;
-  const cur = (currency ?? "INR").toUpperCase();
-  const symbol = cur === "INR" ? "₹" : cur + " ";
-  return `${symbol}${amount}`;
+function fmtMoney(currency: string | null, v: number | null) {
+  if (v == null) return null;
+  const c = currency || "INR";
+  if (c === "INR") return `₹ ${v}`;
+  return `${c} ${v}`;
+}
+
+function servicePriceTodayHref(r: ServiceRow, name: string) {
+  const serviceName =
+    r.custom_service?.trim() ||
+    r.custom_subcategory?.trim() ||
+    r.custom_category?.trim() ||
+    r.segment?.trim() ||
+    name ||
+    "Service";
+
+  const params = new URLSearchParams();
+  params.set("category", "Services");
+  params.set("q", serviceName);
+
+  if (r.custom_category) params.set("serviceCategory", r.custom_category);
+  if (r.custom_subcategory) params.set("subcategory", r.custom_subcategory);
+  if (r.custom_service) params.set("service", r.custom_service);
+  if (r.city || r.district) params.set("location", r.city || r.district || "");
+
+  return `/price-today?${params.toString()}`;
 }
 
 function createAnonSupabase(): SupabaseClient | null {
@@ -509,12 +530,18 @@ export default function ServicesPage() {
                         </CardBody>
 
                         <CardFooter>
-                          <ActionButton
-                            href={`/services/${encodeURIComponent(String(r.provider_service_id))}`}
-                            variant="secondary"
-                          >
-                            View details →
-                          </ActionButton>
+                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                            <ActionButton href={servicePriceTodayHref(r, name)} variant="primary">
+                              Compare Rate →
+                            </ActionButton>
+
+                            <ActionButton
+                              href={`/services/${encodeURIComponent(String(r.provider_service_id))}`}
+                              variant="secondary"
+                            >
+                              View details →
+                            </ActionButton>
+                          </div>
                         </CardFooter>
                       </Card>
                     );
