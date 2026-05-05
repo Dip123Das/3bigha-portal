@@ -91,7 +91,25 @@ function fmt(iso: string | null | undefined) {
 
 function money(v: number | null | undefined) {
   if (typeof v !== "number") return "₹ —";
-  return `₹ ${v}`;
+  return `₹ ${v.toLocaleString("en-IN")}`;
+}
+
+function propertyPriceTodayHref(p: ListingRow, typeName: string, subtypeName: string, title: string) {
+  const itemName =
+    subtypeName ||
+    typeName ||
+    title ||
+    "Property";
+
+  const params = new URLSearchParams();
+  params.set("category", "Properties");
+  params.set("q", itemName);
+
+  if (typeName) params.set("propertyType", typeName);
+  if (subtypeName) params.set("propertySubtype", subtypeName);
+  if (p.city || p.state) params.set("location", p.city || p.state || "");
+
+  return `/price-today?${params.toString()}`;
 }
 
 function looksLikeMissingColumnError(message: string) {
@@ -625,6 +643,13 @@ export default function PropertyPublicListPage() {
                       </div>
 
                       <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        <Link
+                          href={propertyPriceTodayHref(p, typeName, subtypeName, title)}
+                          style={{ fontWeight: 900, color: "#2563eb" }}
+                        >
+                          Compare Price →
+                        </Link>
+
                         <Link href={`/property/${p.id}`} style={{ fontWeight: 900 }}>
                           View →
                         </Link>

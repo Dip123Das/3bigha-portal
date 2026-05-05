@@ -737,7 +737,7 @@ function getComparisonLabel(row: AggregatedPriceRow) {
   };
 }
 
-async function triggerMaterialLead(row: AggregatedPriceRow & { isHotBuyer?: boolean }) {
+async function triggerPriceLead(row: AggregatedPriceRow & { isHotBuyer?: boolean }) {
   try {
     const res = await fetch("/api/enquiries/create-and-chat", {
       method: "POST",
@@ -745,11 +745,11 @@ async function triggerMaterialLead(row: AggregatedPriceRow & { isHotBuyer?: bool
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        module: "materials",
+        module: row.category.toLowerCase(),
         priority: row.isHotBuyer || isHotBuyerRow(row) ? "high" : "normal",
         aiSignal: row.isHotBuyer || isHotBuyerRow(row) ? "hot_buyer" : "normal_buyer",
-        title: `${row.item} requirement`,
-        message: `Hi, I am interested in buying ${row.item} in ${row.location || "this area"}.
+        title: `${row.item} ${row.category === "Properties" ? "property enquiry" : "requirement"}`,
+        message: `Hi, I am interested in ${row.category === "Properties" ? "this property segment" : "buying"} ${row.item} in ${row.location || "this area"}.
 
 Market range: ₹${row.priceMin} – ₹${row.priceMax} per ${row.unit}.
 
@@ -1849,18 +1849,18 @@ if (userData.user) {
           </div>
         </div>
 
-        {category === "Materials" ? (
+        {category === "Materials" || category === "Properties" ? (
           <div className="mt-6 rounded-3xl border border-purple-200 bg-purple-50 p-5 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-wide text-purple-700">
-                  Smart Material Comparison Engine
+                  Smart {category === "Properties" ? "Property" : "Material"} Comparison Engine
                 </p>
                 <h2 className="mt-1 text-2xl font-black text-slate-950">
-                  Compare material options before buying
+                  Compare {category === "Properties" ? "property" : "material"} options before buying
                 </h2>
                 <p className="mt-2 text-sm font-semibold leading-6 text-slate-700">
-                  This compares available material price signals using rate range, vendor count,
+                  This compares available {category === "Properties" ? "property" : "material"} price signals using rate range, vendor count,
                   confidence, trend and AI price quality.
                 </p>
               </div>
@@ -1869,7 +1869,7 @@ if (userData.user) {
                 href={`/search?q=${encodeURIComponent(searchText)}`}
                 className="rounded-2xl bg-purple-700 px-5 py-3 text-sm font-black text-white hover:bg-purple-800"
               >
-                Search Materials →
+                Search {category === "Properties" ? "Properties" : "Materials"} →
               </Link>
             </div>
 
@@ -1883,7 +1883,7 @@ if (userData.user) {
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
                         <h3 className="text-lg font-black text-slate-950">
-                          {getItemIcon(row.item, "Materials")} {row.item}
+                          {getItemIcon(row.item, category)} {row.item}
                         </h3>
                         <p className="mt-1 text-xs font-bold text-slate-500">
                           {row.location || location || "Selected market"} • {row.unit}
@@ -1946,17 +1946,23 @@ if (userData.user) {
 
                     <div className="mt-4 flex gap-2">
                       <button
-                        onClick={() => triggerMaterialLead(row)}
+                        onClick={() => triggerPriceLead(row)}
                         className="flex-1 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-700"
                       >
-                        {row.isHotBuyer ? "🚀 Lock Price Now" : "🔥 Get Best Price Now"}
+                        {category === "Properties"
+                          ? row.isHotBuyer
+                            ? "🚀 Talk to Owner Now"
+                            : "🔥 Check Property Deal"
+                          : row.isHotBuyer
+                          ? "🚀 Lock Price Now"
+                          : "🔥 Get Best Price Now"}
                       </button>
 
                       <Link
-                        href={`/materials?q=${encodeURIComponent(row.item)}`}
+                        href={`${listingHref}?q=${encodeURIComponent(row.item)}`}
                         className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-black text-slate-700 hover:bg-slate-100"
                       >
-                        View Listings
+                        View {category} Listings
                       </Link>
                     </div>
                   </div>
@@ -2191,7 +2197,7 @@ if (userData.user) {
                   <div className="mt-3 flex flex-wrap gap-2">
                     <div className="mt-4">
                       <button
-                        onClick={() => triggerMaterialLead(row)}
+                        onClick={() => triggerPriceLead(row)}
                         className="w-full rounded-2xl bg-red-600 px-4 py-3 text-sm font-black text-white hover:bg-red-700"
                       >
                         🚀 Get Best Deal Now
