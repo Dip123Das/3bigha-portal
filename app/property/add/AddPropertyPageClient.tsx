@@ -2223,11 +2223,14 @@ setDbAttrValues(init);
   }, [type, plotArea, openSides, anyConstruction, possession, builtAttrDefs, dynamicAttributes, dbAttrDefs, dbAttrValues]);
 
   const canContinueStep4 = Boolean(
-    ownership &&
-      expectedPrice.trim() &&
-      !Number.isNaN(Number(expectedPrice)) &&
-      priceNegotiable !== null &&
-      (listingMode === "individual" || (selectedBuilderProjectId && selectedBuilderUnitId))
+    String(ownership).trim() !== "" &&
+      String(expectedPrice).trim() !== "" &&
+      Number.isFinite(Number(expectedPrice)) &&
+      Number(expectedPrice) > 0 &&
+      (
+        listingMode === "individual" ||
+        (listingMode === "builder_project" && String(selectedBuilderProjectId).trim() !== "")
+      )
   );
 
   const emiCalc = useMemo(() => {
@@ -5592,7 +5595,14 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                       border: "1px solid #e5e7eb",
                       background: "#111827",
                       color: "white",
-                      cursor: "pointer",
+                      cursor:
+                        saving ||
+                        (step === 1 && !canContinueStep1) ||
+                        (step === 2 && !canContinueStep2) ||
+                        (step === 3 && !canContinueStep3) ||
+                        (step === 4 && !canContinueStep4)
+                          ? "not-allowed"
+                          : "pointer",
                       fontWeight: 900,
                       opacity:
                         saving ||
@@ -5699,11 +5709,7 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                   : null}
                 {step === 2 && !canContinueStep2 ? "Step 2 needs: City + Locality." : null}
                 {step === 3 && !canContinueStep3 ? (type === "Land / Plot" ? "Step 3 needs: Plot Area + Open sides + Construction + Possession." : "Step 3 needs: Fill required built-property fields.") : null}
-                {step === 4 && !canContinueStep4
-                  ? listingMode === "builder_project"
-                    ? "Step 4 needs: Ownership + Expected Price + Price negotiable + Builder Unit."
-                    : "Step 4 needs: Ownership + Expected Price + Price negotiable."
-                  : null}
+                {step === 4 && !canContinueStep4 ? "Step 4 needs: Ownership + Expected Price." : null}
               </div>
             ) : null}
           </CardFooter>
