@@ -683,25 +683,36 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
       const res = await fetch("/api/ai/smart-fill", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        credentials: "same-origin",
         body: JSON.stringify({
           module: "materials",
-          target: sectionTitle,
-          field: "description",
-          prompt,
-          context: {
+          action: "generate_description",
+          tone: "professional",
+          input: {
             title: title.trim(),
             localName: localName.trim(),
-            group: selectedGroup.label,
-            type: typeLabel,
-            category: selectedCategory?.name ?? "",
-            subcategory: selectedSubcategory?.name ?? "",
-            productGroup: selectedProductGroup?.name ?? "",
-            attributes: attrs.map((a) => ({
-              name: a.name,
-              unit: a.unit,
-              input_type: a.input_type,
-              value: getAttrDisplayValue(a),
-            })),
+            sectionTitle,
+            prompt,
+            existingText: description,
+            attributes: {
+              group: selectedGroup.label,
+              type: typeLabel,
+              category: selectedCategory?.name ?? "",
+              subcategory: selectedSubcategory?.name ?? "",
+              productGroup:
+                selectedProductGroup?.name ||
+                selectedSubcategory?.name ||
+                selectedCategory?.name ||
+                "",
+              buyerType: aiBuyerType,
+              materialAttributes: attrs.map((a) => ({
+                name: a.name,
+                unit: a.unit,
+                input_type: a.input_type,
+                value: getAttrDisplayValue(a),
+              })),
+            },
           },
         }),
       });
@@ -713,10 +724,11 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
       }
 
       const generated =
+        data?.result?.description ||
+        data?.result?.text ||
         data?.text ||
         data?.description ||
         data?.content ||
-        data?.result ||
         data?.value ||
         data?.data?.text ||
         data?.data?.description ||
