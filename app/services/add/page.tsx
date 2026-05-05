@@ -368,6 +368,42 @@ const styles = {
   },
 };
 
+function getMissingColumnName(message: string): string | null {
+  const m1 = message.match(/Could not find the '([^']+)' column/i);
+  if (m1?.[1]) return m1[1];
+
+  const m2 = message.match(/column\s+"([^"]+)"\s+.*does not exist/i);
+  if (m2?.[1]) return m2[1];
+
+  const m3 = message.match(/column\s+([a-z0-9_]+\.[a-z0-9_]+)\s+does not exist/i);
+  if (m3?.[1]) return m3[1].split(".").pop() || m3[1];
+
+  return null;
+}
+
+async function insertProviderServiceSafe(supabase: any, payload: Record<string, any>) {
+  let attemptPayload = { ...payload };
+
+  for (let i = 0; i < 8; i++) {
+    const { error } = await supabase.from("provider_services").insert(attemptPayload);
+
+    if (!error) return;
+
+    const msg = String(error.message || "");
+    const missing = getMissingColumnName(msg);
+
+    if (!missing || !(missing in attemptPayload)) {
+      throw error;
+    }
+
+    const nextPayload = { ...attemptPayload };
+    delete nextPayload[missing];
+    attemptPayload = nextPayload;
+  }
+
+  throw new Error("Failed to save provider service after removing missing schema columns.");
+}
+
 function parseOptionalNumber(v: string): number | undefined {
   const t = v.trim();
   if (!t) return undefined;
@@ -500,8 +536,8 @@ export default function AddServicesPage() {
       target === "description" ? "scopeOfWork" : target === "sla" ? "sla" : "serviceRefundPolicy";
 
     const requiredOutputStyle =
-      target === "description"
-        ? "Write a practical service description with clear scope of work, inclusions, exclusions, work process, and quality checks. Keep it useful for Indian service buyers."
+  target === "description"
+    ? `Write a unique, service-specific scope of work for "${serviceName}". Include exact work items, inclusions, exclusions, tools/material responsibility, work process, quality checks, and buyer instructions. Do not write a generic description.`
         : target === "sla"
           ? "Write a short practical SLA / warranty / quality assurance note. Include response time, workmanship responsibility, support period, and verification reminder. Do not make fake guarantees."
           : "Write a short refund and cancellation policy for a local service provider. Keep it fair, practical, and legally safe. Do not promise refunds unless conditions are stated.";
@@ -516,7 +552,7 @@ export default function AddServicesPage() {
         action: "refine",
         tone: "professional",
         input: {
-          title: serviceName,
+          title: `${serviceName}${subcategoryName ? ` - ${subcategoryName}` : ""}${categoryName ? ` (${categoryName})` : ""}`,
           location: draft.location || draft.work_area || "",
           price:
             typeof draft.package_rate === "number"
@@ -527,9 +563,11 @@ export default function AddServicesPage() {
                   ? `Hourly ₹${draft.hourly_rate}`
                   : "",
           bullets: [
-            `Service: ${serviceName}`,
-            categoryName ? `Category: ${categoryName}` : "",
+            `IMPORTANT: Generate content ONLY for this exact service: ${serviceName}.`,
+            categoryName ? `Main category: ${categoryName}` : "",
             subcategoryName ? `Subcategory: ${subcategoryName}` : "",
+            `Do not write a generic service provider description.`,
+            `Do not reuse content from electrician/plumber/labour/architect unless that is the selected service.`,
             draft.skill_level ? `Skill level: ${draft.skill_level}` : "",
             typeof draft.experience_years === "number" ? `Experience: ${draft.experience_years} years` : "",
             draft.work_area ? `Work area: ${draft.work_area}` : "",
@@ -1049,10 +1087,11 @@ function TurnkeyToggle() {
           tags: d.tags?.trim() ? d.tags.trim() : null,
         };
 
-        const { error } = await supabase.from("provider_services").insert(payload);
-        if (error) {
+        try {
+          await insertProviderServiceSafe(supabase, payload);
+        } catch (error: any) {
           console.error(error);
-          setErr(error.message);
+          setErr(error.message || "Failed to save provider service.");
           throw error;
         }
       }
