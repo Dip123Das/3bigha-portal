@@ -65,6 +65,12 @@ export async function POST(req: Request) {
     const existingText = safeString(input?.existingText);
     const location = safeString(input?.location);
     const price = safeString(input?.price);
+
+    const attributes =
+      input?.attributes && typeof input.attributes === "object" ? input.attributes : {};
+
+    const targetField = safeString((attributes as any)?.targetField);
+    const requiredOutputStyle = safeString((attributes as any)?.requiredOutputStyle);
     const bullets: string[] = Array.isArray(input?.bullets)
         ? (input.bullets as unknown[])
             .map((x: unknown): string => safeString(x))
@@ -88,6 +94,8 @@ You are the AI Smart-Fill Assistant for 3bigha.com, an Indian real estate, mater
 Module: ${moduleName}
 Action: ${action}
 Tone: ${tone}
+Target Field: ${targetField || "general"}
+Required Output Style: ${requiredOutputStyle || "Use normal listing assistant output."}
 
 Input:
 Title: ${title || "Not provided"}
@@ -110,7 +118,7 @@ STRICT RULES:
 Return JSON in this exact shape:
 {
   "title": "improved title if useful, otherwise empty string",
-  "description": "professional listing text, around 180-300 words when action is generate_description or refine",
+  "description": "field-specific output. If Target Field is bestDealReason, write only a short best-deal reason. If hotOfferText, write only a short offer line. If emiTerms, write practical EMI terms only. If general, write professional listing text.",
   "usps": ["USP 1", "USP 2", "USP 3"],
   "suggestions": ["suggestion 1", "suggestion 2", "suggestion 3"],
   "moderation": {

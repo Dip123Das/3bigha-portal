@@ -2563,6 +2563,17 @@ async function runPropertyFieldAI(target: "bestDealReason" | "hotOfferText" | "e
           title: computeTitle(),
           location: addressPreview || [locality, city, district, stateName].filter(Boolean).join(", "),
           price: expectedPrice ? `₹${expectedPrice}` : "",
+          attributes: {
+            targetField: target,
+            requiredOutputStyle:
+              target === "bestDealReason"
+                ? "Return only 1 short best-deal reason, maximum 25 words."
+                : target === "hotOfferText"
+                  ? "Return only 1 short promotional offer line, maximum 18 words. Do not mention discount unless provided."
+                  : target === "emiTerms"
+                    ? "Return practical direct EMI terms in 4-6 short points. Do not write property marketing description."
+                    : "Return only matching amenity names from the available amenities list.",
+          },
           bullets: [
             ...contextBullets,
             targetInstruction,
