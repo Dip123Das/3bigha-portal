@@ -685,6 +685,50 @@ function getMarketExplanation(row: AggregatedPriceRow) {
   return `${item} price is indicative because more verified local sources are needed for stronger market intelligence.`;
 }
 
+function getComparisonLabel(row: AggregatedPriceRow) {
+  const confidence = Number(row.confidence || 0);
+  const vendors = Number(row.vendorCount || 0);
+  const change = Number(row.changePercent || 0);
+
+  if (confidence >= 80 && vendors >= 3 && row.trend === "Stable") {
+    return {
+      label: "Best balanced choice",
+      detail: "Good confidence, stable trend and multiple sources make this a safer buying option.",
+      badge: "🏆 Recommended",
+    };
+  }
+
+  if (row.trend === "Down" && vendors >= 2) {
+    return {
+      label: "Good negotiation opportunity",
+      detail: "Prices are softening, so buyers may negotiate better rates before final order.",
+      badge: "💰 Value Pick",
+    };
+  }
+
+  if (row.trend === "Up" && change >= 3) {
+    return {
+      label: "Buy with caution",
+      detail: "Prices are rising quickly. Confirm stock, final rate and delivery before booking.",
+      badge: "⚠️ Rising Fast",
+    };
+  }
+
+  if (confidence < 55 || vendors <= 1) {
+    return {
+      label: "Low data confidence",
+      detail: "More verified vendor prices are needed before making a strong buying decision.",
+      badge: "📊 Need More Data",
+    };
+  }
+
+  return {
+    label: "Compare before buying",
+    detail: "Check brand/source, grade and vendor confirmation before final decision.",
+    badge: "🔎 Compare",
+  };
+}
+
 function getBuySignal(row: AggregatedPriceRow) {
   if (row.vendorCount <= 1 || row.confidence < 55) {
     return {
@@ -1268,6 +1312,13 @@ if (userData.user) {
     return getDistrictMarketSummary(groupedPriceRows, location);
   }, [groupedPriceRows, location]);
 
+  const comparisonRows = useMemo(() => {
+    return groupedPriceRows.slice(0, 4).map((row) => ({
+      ...row,
+      comparison: getComparisonLabel(row),
+    }));
+  }, [groupedPriceRows]);
+
     useEffect(() => {
     if (!groupedPriceRows.length) return;
 
@@ -1743,6 +1794,105 @@ if (userData.user) {
           </div>
           </div>
         </div>
+
+        {category === "Materials" ? (
+          <div className="mt-6 rounded-3xl border border-purple-200 bg-purple-50 p-5 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wide text-purple-700">
+                  Smart Material Comparison Engine
+                </p>
+                <h2 className="mt-1 text-2xl font-black text-slate-950">
+                  Compare material options before buying
+                </h2>
+                <p className="mt-2 text-sm font-semibold leading-6 text-slate-700">
+                  This compares available material price signals using rate range, vendor count,
+                  confidence, trend and AI price quality.
+                </p>
+              </div>
+
+              <Link
+                href={`/search?q=${encodeURIComponent(searchText)}`}
+                className="rounded-2xl bg-purple-700 px-5 py-3 text-sm font-black text-white hover:bg-purple-800"
+              >
+                Search Materials →
+              </Link>
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {comparisonRows.length ? (
+                comparisonRows.map((row) => (
+                  <div
+                    key={`compare-${row.item}-${row.location}-${row.unit}`}
+                    className="rounded-3xl border border-purple-100 bg-white p-5 shadow-sm"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <h3 className="text-lg font-black text-slate-950">
+                          {getItemIcon(row.item, "Materials")} {row.item}
+                        </h3>
+                        <p className="mt-1 text-xs font-bold text-slate-500">
+                          {row.location || location || "Selected market"} • {row.unit}
+                        </p>
+                      </div>
+
+                      <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-black text-purple-800">
+                        {row.comparison.badge}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 grid gap-2 text-sm font-bold text-slate-700 sm:grid-cols-2">
+                      <div className="rounded-2xl bg-slate-50 p-3">
+                        Market Avg
+                        <div className="text-lg font-black text-emerald-700">
+                          ₹{row.avgPrice} / {row.unit}
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl bg-slate-50 p-3">
+                        Range
+                        <div className="text-lg font-black text-slate-950">
+                          ₹{row.priceMin} – ₹{row.priceMax}
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl bg-slate-50 p-3">
+                        Sources
+                        <div className="text-lg font-black text-blue-700">
+                          {row.vendorCount} vendor{row.vendorCount > 1 ? "s" : ""}
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl bg-slate-50 p-3">
+                        Confidence
+                        <div className="text-lg font-black text-orange-600">
+                          {row.confidence}%
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <TrendBadge trend={row.trend} changePercent={row.changePercent} />
+                      <TrustBadge row={row} vendorCount={row.vendorCount} />
+                      <AiPriceBadge row={row} />
+                    </div>
+
+                    <div className="mt-3 rounded-2xl bg-purple-50 p-3 text-sm font-bold leading-6 text-purple-900">
+                      <div className="font-black">{row.comparison.label}</div>
+                      <div className="mt-1 text-xs font-semibold text-purple-800">
+                        {row.comparison.detail}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-3xl bg-white p-5 text-sm font-bold text-slate-600 shadow-sm">
+                  Select a material item or location to compare available market signals.
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-6 rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
           <h2 className="text-xl font-black text-slate-950">
