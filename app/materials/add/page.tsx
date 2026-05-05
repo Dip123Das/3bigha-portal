@@ -152,6 +152,8 @@ export default function MaterialsAddPage() {
   const [loadingAttrs, setLoadingAttrs] = useState(false);
 
   const [saving, setSaving] = useState(false);
+  const [aiLoading, setAiLoading] = useState<string | null>(null);
+  const [aiBuyerType, setAiBuyerType] = useState<"home_owner" | "contractor" | "mason" | "vendor">("home_owner");
 
   // ✅ Load ALL taxons once
   useEffect(() => {
@@ -513,6 +515,279 @@ export default function MaterialsAddPage() {
 
   const canSubmit = !!productGroupId && title.trim().length > 0;
 
+  function getAttrDisplayValue(a: AttrRow) {
+    const raw = attrInput[a.id];
+
+    if (a.input_type === "multi_select") {
+      const ids = Array.isArray(raw) ? raw : [];
+      const opts = attrValues[a.id] ?? [];
+      return ids
+        .map((id) => opts.find((v) => v.id === id)?.value)
+        .filter(Boolean)
+        .join(", ");
+    }
+
+    if (a.input_type === "single_select") {
+      const opts = attrValues[a.id] ?? [];
+      return opts.find((v) => v.id === raw)?.value ?? "";
+    }
+
+    if (a.input_type === "boolean") {
+      return String(raw ?? "") === "true" ? "Yes" : "No";
+    }
+
+    return String(raw ?? "").trim();
+  }
+
+  function buildMaterialAiContext(target: string) {
+    const materialText = [
+      title,
+      localName,
+      selectedProductGroup?.name,
+      selectedSubcategory?.name,
+      selectedCategory?.name,
+      typeLabel,
+      selectedGroup.label,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    const detectedMaterial =
+      /cement|opc|ppc|psc|concrete|rmc/.test(materialText)
+        ? "cement / concrete"
+        : /steel|tmt|rod|bar|sariya|rebar|iron/.test(materialText)
+        ? "steel / TMT bar"
+        : /sand|balu|baalu|river sand|m sand|stone dust/.test(materialText)
+        ? "sand / aggregates"
+        : /brick|block|aac|fly ash|paver/.test(materialText)
+        ? "brick / block"
+        : /tile|tiles|marble|granite|flooring/.test(materialText)
+        ? "tiles / flooring"
+        : /paint|primer|putty|wall finish|distemper|emulsion/.test(materialText)
+        ? "paint / wall finishing"
+        : /pipe|pvc|cpvc|upvc|plumbing|fitting/.test(materialText)
+        ? "plumbing material"
+        : /wire|cable|switch|mcb|electrical|light|fan/.test(materialText)
+        ? "electrical material"
+        : /door|window|glass|aluminium|aluminum/.test(materialText)
+        ? "doors / windows / glass"
+        : /adhesive|chemical|sealant|waterproof/.test(materialText)
+        ? "chemicals / adhesives"
+        : /tool|machine|drill|cutter|safety|helmet/.test(materialText)
+        ? "tools / safety material"
+        : /appliance|chimney|hob|sink|kitchen/.test(materialText)
+        ? "kitchen / home appliance"
+        : "selected material";
+
+    const buyerTypeLabel =
+      aiBuyerType === "contractor"
+        ? "contractor / bulk buyer"
+        : aiBuyerType === "mason"
+        ? "mason / site worker"
+        : aiBuyerType === "vendor"
+        ? "reseller / vendor"
+        : "home owner / small buyer";
+
+    const attrLines = attrs
+      .map((a) => {
+        const value = getAttrDisplayValue(a);
+        if (!value) return "";
+        return `${a.name}${a.unit ? ` (${a.unit})` : ""}: ${value}`;
+      })
+      .filter(Boolean);
+
+    return `
+You are an expert construction-material listing assistant for 3bigha.com.
+
+Generate only this section: ${target}
+
+Detected material focus: ${detectedMaterial}
+Target buyer: ${buyerTypeLabel}
+
+STRICT QUALITY RULES:
+- Write material-specific content only. Never write generic marketplace text.
+- Use the selected Product Group, title, local name and attributes as the main source.
+- Mention practical site-use points that a buyer actually checks before purchase.
+- Do not claim BIS/ISI/lab-tested/warranty/brand guarantee unless entered by seller.
+- Do not create fake numbers, fake certificates, fake test reports or fake durability claims.
+- Keep language trustworthy, simple and marketplace-ready.
+- Output 4 to 6 short bullet points only.
+- Each bullet must be useful and different.
+- Avoid repeated phrases.
+
+MATERIAL-SPECIFIC WRITING RULES:
+- Cement / concrete: grade, setting, strength use, storage, freshness, plaster/RCC/PCC suitability.
+- Steel / TMT: grade, diameter, bendability, rust condition, structural use, weight/length awareness.
+- Sand / aggregate: source, grain size, cleanliness, silt/dust caution, plaster/concrete suitability.
+- Brick / block: size, strength, water absorption, edge finish, wall use, breakage handling.
+- Tiles / flooring: size, finish, slip resistance, installation area, shade/batch caution.
+- Paint / wall finishing: surface use, coverage awareness, interior/exterior suitability, preparation.
+- Plumbing: size, pressure use, fitting compatibility, leakage caution, installation guidance.
+- Electrical: rating, safety use, load suitability, installation by electrician.
+- Doors/windows/glass: material, thickness, frame use, weather exposure, installation.
+- Chemicals/adhesives: application area, curing/use guidance, surface preparation, storage caution.
+- Tools/safety: practical use, durability, handling, site safety.
+- Appliances/fittings: installation, utility, compatibility, buyer checking points.
+
+Selected path:
+Group: ${selectedGroup.label}
+Type: ${typeLabel || "Not selected"}
+Category: ${selectedCategory?.name ?? "Not selected"}
+Subcategory: ${selectedSubcategory?.name ?? "Not selected"}
+Product Group: ${selectedProductGroup?.name ?? "Not selected"}
+
+Listing title: ${title.trim() || "Not entered"}
+Local / Regional Name: ${localName.trim() || "Not entered"}
+
+Selected attributes:
+${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
+`.trim();
+  }
+
+  function upsertDescriptionSection(sectionTitle: string, sectionBody: string) {
+    const cleanBody = sectionBody.trim();
+    if (!cleanBody) return;
+
+    const current = description.trim();
+    const escapedTitle = sectionTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const sectionRegex = new RegExp(`\\n?\\n?${escapedTitle}\\n[\\s\\S]*?(?=\\n\\n[A-Z][A-Za-z &]+\\n|$)`, "m");
+
+    const nextSection = `${sectionTitle}\n${cleanBody}`;
+
+    if (sectionRegex.test(current)) {
+      setDescription(current.replace(sectionRegex, `\n\n${nextSection}`).trim());
+      return;
+    }
+
+    setDescription(current ? `${current}\n\n${nextSection}` : nextSection);
+  }
+
+  async function runMaterialAiFill(sectionTitle: string) {
+    setErrorMsg(null);
+
+    if (!productGroupId) {
+      setErrorMsg("Please select Product Group before using AI Smart-Fill.");
+      return;
+    }
+
+    setAiLoading(sectionTitle);
+    try {
+      const prompt = buildMaterialAiContext(sectionTitle);
+
+      const res = await fetch("/api/ai/smart-fill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          module: "materials",
+          target: sectionTitle,
+          field: "description",
+          prompt,
+          context: {
+            title: title.trim(),
+            localName: localName.trim(),
+            group: selectedGroup.label,
+            type: typeLabel,
+            category: selectedCategory?.name ?? "",
+            subcategory: selectedSubcategory?.name ?? "",
+            productGroup: selectedProductGroup?.name ?? "",
+            attributes: attrs.map((a) => ({
+              name: a.name,
+              unit: a.unit,
+              input_type: a.input_type,
+              value: getAttrDisplayValue(a),
+            })),
+          },
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw new Error(data?.error || data?.message || "AI Smart-Fill failed");
+      }
+
+      const generated =
+        data?.text ||
+        data?.description ||
+        data?.content ||
+        data?.result ||
+        data?.value ||
+        data?.data?.text ||
+        data?.data?.description ||
+        "";
+
+      if (!String(generated).trim()) {
+        throw new Error("AI Smart-Fill returned empty content.");
+      }
+
+      upsertDescriptionSection(sectionTitle, String(generated));
+    } catch (e: any) {
+      setErrorMsg(e?.message ?? "AI Smart-Fill failed");
+    } finally {
+      setAiLoading(null);
+    }
+  }
+
+  function getPriceTodayHref() {
+    const materialName =
+      selectedProductGroup?.name ||
+      selectedSubcategory?.name ||
+      selectedCategory?.name ||
+      title ||
+      localName ||
+      "";
+
+    const params = new URLSearchParams();
+
+    if (materialName.trim()) params.set("q", materialName.trim());
+    if (selectedCategory?.name) params.set("category", selectedCategory.name);
+    if (selectedSubcategory?.name) params.set("subcategory", selectedSubcategory.name);
+    if (selectedProductGroup?.name) params.set("productGroup", selectedProductGroup.name);
+
+    return `/price-today${params.toString() ? `?${params.toString()}` : ""}`;
+  }
+
+  function saveMaterialPriceTodayContext() {
+    if (typeof window === "undefined") return;
+
+    const materialName =
+      selectedProductGroup?.name ||
+      selectedSubcategory?.name ||
+      selectedCategory?.name ||
+      title ||
+      localName ||
+      "";
+
+    window.localStorage.setItem(
+      "3bigha_price_today_prefill",
+      JSON.stringify({
+        source: "materials_ai",
+        q: materialName.trim(),
+        category: selectedCategory?.name ?? "",
+        subcategory: selectedSubcategory?.name ?? "",
+        productGroup: selectedProductGroup?.name ?? "",
+        type: typeLabel ?? "",
+        title: title.trim(),
+        localName: localName.trim(),
+        createdAt: new Date().toISOString(),
+      })
+    );
+  }
+
+  async function runAllMaterialAiFill() {
+    const sections = [
+      "Technical Specifications",
+      "Durability & Weather Resistance",
+      "Usage Guidance",
+      "Buyer Trust Description",
+    ];
+
+    for (const sectionTitle of sections) {
+      await runMaterialAiFill(sectionTitle);
+    }
+  }
+
   async function onSaveDraft() {
     setErrorMsg(null);
 
@@ -543,7 +818,7 @@ export default function MaterialsAddPage() {
       const { error: insErr } = await supabase.from("material_listings").insert({
         user_id: user.id,
         title: title.trim(),
-        local_name: localName.trim() ? localName.trim() : null, // ✅ NEW
+        local_name: localName.trim() ? localName.trim() : null,
         description: description.trim() || null,
 
         type_id: typeId || null,
@@ -757,6 +1032,130 @@ export default function MaterialsAddPage() {
                   <div style={{ marginTop: 6, fontSize: 12, opacity: 0.72, lineHeight: 1.4 }}>
                     Helps buyers find the same material using local market terms. This does not need fixed values.
                   </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: 13, display: "block", marginBottom: 6 }}>AI Smart-Fill</label>
+
+                  <select
+                    value={aiBuyerType}
+                    onChange={(e) => setAiBuyerType(e.target.value as typeof aiBuyerType)}
+                    style={{
+                      width: "100%",
+                      padding: "9px 10px",
+                      borderRadius: 10,
+                      border: "1px solid #d9e7ff",
+                      marginBottom: 8,
+                      fontSize: 13,
+                    }}
+                  >
+                    <option value="home_owner">Target: Home Owner / Small Buyer</option>
+                    <option value="contractor">Target: Contractor / Bulk Buyer</option>
+                    <option value="mason">Target: Mason / Site Worker</option>
+                    <option value="vendor">Target: Reseller / Vendor</option>
+                  </select>
+
+                  <button
+                    type="button"
+                    disabled={!!aiLoading || !productGroupId}
+                    onClick={runAllMaterialAiFill}
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      borderRadius: 10,
+                      border: "1px solid #bbf7d0",
+                      background: !!aiLoading || !productGroupId ? "#f1f5f9" : "#f0fdf4",
+                      color: "#14532d",
+                      cursor: !!aiLoading || !productGroupId ? "not-allowed" : "pointer",
+                      fontSize: 13,
+                      fontWeight: 900,
+                      marginBottom: 8,
+                    }}
+                  >
+                    {aiLoading ? `Generating ${aiLoading}...` : "✨ Generate Complete Buyer-Ready Description"}
+                  </button>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    {[
+                      "Technical Specifications",
+                      "Durability & Weather Resistance",
+                      "Usage Guidance",
+                      "Buyer Trust Description",
+                    ].map((sectionTitle) => (
+                      <button
+                        key={sectionTitle}
+                        type="button"
+                        disabled={!!aiLoading || !productGroupId}
+                        onClick={() => runMaterialAiFill(sectionTitle)}
+                        style={{
+                          padding: "9px 10px",
+                          borderRadius: 10,
+                          border: "1px solid #d9e7ff",
+                          background: !!aiLoading || !productGroupId ? "#f1f5f9" : "#f8fbff",
+                          color: "#0f172a",
+                          cursor: !!aiLoading || !productGroupId ? "not-allowed" : "pointer",
+                          fontSize: 12,
+                          fontWeight: 800,
+                          textAlign: "left",
+                        }}
+                      >
+                        {aiLoading === sectionTitle ? "Generating..." : `✨ ${sectionTitle}`}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div style={{ marginTop: 6, fontSize: 12, opacity: 0.72, lineHeight: 1.4 }}>
+                    Level 10 AI uses Product Group, local name, attributes and buyer type to write material-specific content.
+                  </div>
+
+                  {selectedProductGroup?.name &&
+                  /cement|steel|tmt|rod|bar|sand|balu|brick|block|stone|aggregate|chips|rcc|concrete/i.test(
+                    selectedProductGroup.name
+                  ) ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        saveMaterialPriceTodayContext();
+                        router.push(getPriceTodayHref());
+                      }}
+                      style={{
+                        width: "100%",
+                        marginTop: 8,
+                        padding: 10,
+                        borderRadius: 10,
+                        background: "#fff7ed",
+                        border: "1px solid #fed7aa",
+                        fontSize: 12,
+                        fontWeight: 800,
+                        lineHeight: 1.45,
+                        textAlign: "left",
+                        cursor: "pointer",
+                        color: "#9a3412",
+                      }}
+                    >
+                      📊 Prices of this material may change frequently. Check today&apos;s local market trend before publishing →
+                    </button>
+                  ) : null}
+
+                  {productGroupId && title.trim().length > 5 && !description.trim() ? (
+                    <div
+                      onClick={runAllMaterialAiFill}
+                      style={{
+                        marginTop: 8,
+                        padding: 10,
+                        borderRadius: 10,
+                        background: "#eff6ff",
+                        border: "1px solid #bfdbfe",
+                        fontSize: 12,
+                        color: "#1d4ed8",
+                        fontWeight: 800,
+                        cursor: aiLoading ? "not-allowed" : "pointer",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      ✨ Generate smart material description using AI
+                    </div>
+                  ) : null}
                 </div>
 
                 <div>

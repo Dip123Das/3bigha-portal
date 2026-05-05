@@ -12,6 +12,18 @@ type ItemOption = {
   source: string;
 };
 
+type PriceTodayPrefill = {
+  source?: string;
+  q?: string;
+  category?: string;
+  subcategory?: string;
+  productGroup?: string;
+  type?: string;
+  title?: string;
+  localName?: string;
+  createdAt?: string;
+};
+
 type PriceRow = {
   id?: string;
   category: CategoryKey;
@@ -830,6 +842,8 @@ export default function PriceTodayClient() {
   const [aiExplanations, setAiExplanations] = useState<Record<string, string>>({});
   const [aiExplanationLoading, setAiExplanationLoading] = useState<Record<string, boolean>>({});
   const [canAddPrice, setCanAddPrice] = useState(false);
+  const [prefillApplied, setPrefillApplied] = useState(false);
+  const [prefillNotice, setPrefillNotice] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -1101,6 +1115,112 @@ if (userData.user) {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (loading || prefillApplied || typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+
+    let stored: PriceTodayPrefill | null = null;
+
+    try {
+      const raw = window.localStorage.getItem("3bigha_price_today_prefill");
+      stored = raw ? JSON.parse(raw) : null;
+    } catch {
+      stored = null;
+    }
+
+    const isFresh = stored?.createdAt
+      ? Date.now() - new Date(stored.createdAt).getTime() < 10 * 60 * 1000
+      : false;
+
+    if (!params.get("q") && !params.get("productGroup") && !isFresh) {
+      setPrefillApplied(true);
+      return;
+    }
+
+    const requestedItem =
+      params.get("productGroup") ||
+      params.get("q") ||
+      stored?.productGroup ||
+      stored?.q ||
+      stored?.subcategory ||
+      stored?.category ||
+      stored?.title ||
+      "";
+
+    const cleanRequestedItem = requestedItem.trim();
+
+    if (!cleanRequestedItem) {
+      setPrefillApplied(true);
+      return;
+    }
+
+    const materialOptions = itemsByCategory.Materials || [];
+    const requestedLower = cleanRequestedItem.toLowerCase();
+
+    const aliasMap: Record<string, string> = {
+      tmt: "Steel Rod",
+      rod: "Steel Rod",
+      sariya: "Steel Rod",
+      rebar: "Steel Rod",
+      opc: "Cement",
+      ppc: "Cement",
+      psc: "Cement",
+      balu: "Sand",
+      baalu: "Sand",
+      "river sand": "Sand",
+      "m sand": "Sand",
+      bricks: "Brick",
+      blocks: "Brick",
+    };
+
+    const normalizedRequest = (aliasMap[requestedLower] || requestedLower).toLowerCase();
+
+    const exactMatch = materialOptions.find(
+      (option) => option.label.trim().toLowerCase() === normalizedRequest
+    );
+
+    const smartMatch = materialOptions.find((option) => {
+      const optionLower = option.label.trim().toLowerCase();
+      return (
+        normalizedRequest.includes(optionLower) ||
+        optionLower.includes(normalizedRequest)
+      );
+    });
+
+    const selectedMaterial =
+      exactMatch?.label || smartMatch?.label || cleanRequestedItem;
+
+    setCategory("Materials");
+    setItem(selectedMaterial);
+    setBrand("All Brands");
+    setGrade("All Grades");
+
+    setItemsByCategory((prev) => {
+      const alreadyExists = prev.Materials.some(
+        (option) =>
+          option.label.trim().toLowerCase() === selectedMaterial.toLowerCase()
+      );
+
+      if (alreadyExists) return prev;
+
+      return {
+        ...prev,
+        Materials: uniqueOptions([
+          { label: selectedMaterial, source: "Material AI Selection" },
+          ...prev.Materials,
+        ]),
+      };
+    });
+
+    setPrefillNotice(
+      `Auto-loaded from Materials AI: ${selectedMaterial}. You can now compare local price trends before publishing.`
+    );
+
+    window.localStorage.removeItem("3bigha_price_today_prefill");
+    setPrefillApplied(true);
+  }, [loading, prefillApplied, itemsByCategory]);
 
   const selectedCategory = categoryOptions.find((cat) => cat.label === category);
 
@@ -1418,7 +1538,10 @@ if (userData.user) {
               </label>
               <input
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={(e) => {
+                  setLocation(e.target.value);
+                  setPrefillNotice("");
+                }}
                 list="price-today-locations"
                 placeholder="Type or select location"
                 className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800 outline-none focus:border-emerald-500"
@@ -1441,6 +1564,7 @@ if (userData.user) {
                   setItem("All Items");
                   setBrand("All Brands");
                   setGrade("All Grades");
+                  setPrefillNotice("");
                 }}
                 className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800 outline-none focus:border-emerald-500"
               >
@@ -1462,6 +1586,7 @@ if (userData.user) {
                   setItem(e.target.value);
                   setBrand("All Brands");
                   setGrade("All Grades");
+                  setPrefillNotice("");
                 }}
                 className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800 outline-none focus:border-emerald-500"
               >
@@ -1486,6 +1611,7 @@ if (userData.user) {
                 onChange={(e) => {
                   setBrand(e.target.value);
                   setGrade("All Grades");
+                  setPrefillNotice("");
                 }}
                 className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800 outline-none focus:border-emerald-500"
               >
@@ -1504,7 +1630,10 @@ if (userData.user) {
               </label>
               <select
                 value={grade}
-                onChange={(e) => setGrade(e.target.value)}
+                onChange={(e) => {
+                  setGrade(e.target.value);
+                  setPrefillNotice("");
+                }}
                 className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 font-bold text-slate-800 outline-none focus:border-emerald-500"
               >
                 <option>All Grades</option>
@@ -1538,6 +1667,12 @@ if (userData.user) {
               ? "Loading live portal categories and price data..."
               : "Category and exact item are connected with portal master/listing data where available. Price rows are connected with material_price_updates when available."}
           </p>
+
+          {prefillNotice ? (
+            <div className="mt-3 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-black text-orange-800">
+              ✨ {prefillNotice}
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-6 rounded-3xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
