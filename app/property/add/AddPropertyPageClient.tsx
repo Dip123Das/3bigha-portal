@@ -1711,8 +1711,9 @@ const [dbAttrValues, setDbAttrValues] = useState<
   const [investmentEnabled, setInvestmentEnabled] = useState<boolean | null>(null);
   const [investmentMin, setInvestmentMin] = useState("");
   const [investmentMax, setInvestmentMax] = useState("");
-  const [investmentMinPct, setInvestmentMinPct] = useState("10");
-  const [investmentMaxPct, setInvestmentMaxPct] = useState("100");
+
+  const [investmentMinPct, setInvestmentMinPct] = useState("");
+  const [investmentMaxPct, setInvestmentMaxPct] = useState("");
   const [investmentHoldingMonths, setInvestmentHoldingMonths] = useState("");
   const [investmentRiskLevel, setInvestmentRiskLevel] = useState<"low" | "medium" | "high">("medium");
 
@@ -2256,35 +2257,33 @@ setDbAttrValues(init);
     return { total, dpPct, rate, months, downPayment, principal, emi };
       }, [directEmiEnabled, emiTotalAmount, emiDownPaymentPct, emiInterestPct, emiMonths]);
 
-      const investmentCalc = useMemo(() => {
-      const total = toNumberOrNull(expectedPrice);
-      const minPct = clamp(Number(investmentMinPct || "10"), 10, 100);
-      const maxPct = clamp(Number(investmentMaxPct || "100"), 10, 100);
+  const investmentCalc = useMemo(() => {
+  const total = toNumberOrNull(expectedPrice);
 
-      if (!total || total <= 0) {
-        return { total: null, minPct, maxPct, minAmount: null, maxAmount: null };
-      }
+  if (!total || total <= 0) {
+    return { minAmount: null, maxAmount: null };
+  }
 
-      return {
-        total,
-        minPct,
-        maxPct,
-        minAmount: Math.round((total * minPct) / 100),
-        maxAmount: Math.round((total * maxPct) / 100),
-      };
-    }, [expectedPrice, investmentMinPct, investmentMaxPct]);
+  const minPct = Number(investmentMinPct || 0);
+  const maxPct = Number(investmentMaxPct || 0);
 
-    useEffect(() => {
-      if (investmentEnabled !== true) return;
+  return {
+    minAmount: minPct ? Math.round((total * minPct) / 100) : null,
+    maxAmount: maxPct ? Math.round((total * maxPct) / 100) : null,
+  };
+}, [expectedPrice, investmentMinPct, investmentMaxPct]);
 
-      if (investmentCalc.minAmount != null) {
-        setInvestmentMin(String(investmentCalc.minAmount));
-      }
+useEffect(() => {
+  if (investmentEnabled !== true) return;
 
-      if (investmentCalc.maxAmount != null) {
-        setInvestmentMax(String(investmentCalc.maxAmount));
-      }
-    }, [investmentEnabled, investmentCalc.minAmount, investmentCalc.maxAmount]);
+  if (investmentCalc.minAmount != null) {
+    setInvestmentMin(String(investmentCalc.minAmount));
+  }
+
+  if (investmentCalc.maxAmount != null) {
+    setInvestmentMax(String(investmentCalc.maxAmount));
+  }
+}, [investmentEnabled, investmentCalc.minAmount, investmentCalc.maxAmount]);
 
     const cleanedMedia = useMemo(() => safeUrlsFromList(mediaUrls), [mediaUrls]);
     const canSubmit = Boolean(agree);
@@ -5275,17 +5274,66 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                     <>
               <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
                 <div>
-                  <FieldLabel title="Min Investment (%)" required hint="Minimum 10%, maximum 100% of Expected Price." />
-                  <TextInput
-                    value={investmentMinPct}
-                    onChange={(v) => {
-                      const raw = v.replace(/[^\d]/g, "");
-                      const n = raw ? clamp(Number(raw), 10, 100) : 10;
-                      setInvestmentMinPct(String(n));
-                    }}
-                    placeholder="e.g., 10"
-                    inputMode="numeric"
-                  />
+              <div
+                style={{
+                  marginBottom: 10,
+                  padding: 10,
+                  borderRadius: 10,
+                  background: "#f1f5f9",
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#111827" }}>
+                  📜 Investment Policy
+                </div>
+
+                <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
+                  Investment terms, benefits, and investor protection are defined by the platform.
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.open("/investment-policy", "_blank");
+                  }}
+                  style={{
+                    marginTop: 8,
+                    padding: "6px 10px",
+                    borderRadius: 8,
+                    border: "1px solid #111827",
+                    background: "#111827",
+                    color: "white",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  View Investment Policy
+                </button>
+              </div>
+                  <FieldLabel title="Min Investment (₹)" required />
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 100px", gap: 8 }}>
+                    <TextInput
+                      value={investmentMin}
+                      onChange={(v) => setInvestmentMin(v.replace(/[^\d]/g, ""))}
+                      placeholder="e.g., 100000"
+                      inputMode="numeric"
+                    />
+
+                    <TextInput
+                      value={investmentMinPct}
+                      onChange={(v) => setInvestmentMinPct(v.replace(/[^\d]/g, ""))}
+                      placeholder="%"
+                      inputMode="numeric"
+                    />
+                  </div>
+
+                  {investmentMin ? (
+                    <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
+                      {numberToWordsIndian(Number(investmentMin))} only
+                    </div>
+                  ) : null}
 
                   <div style={{ marginTop: 8, color: "#374151", fontWeight: 800, fontSize: 13 }}>
                     Amount: {investmentCalc.minAmount != null ? formatINR(investmentCalc.minAmount) : "—"}
@@ -5298,17 +5346,29 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                 </div>
 
                 <div>
-                  <FieldLabel title="Max Investment (%)" required hint="Maximum can be up to 100% of Expected Price." />
-                  <TextInput
-                    value={investmentMaxPct}
-                    onChange={(v) => {
-                      const raw = v.replace(/[^\d]/g, "");
-                      const n = raw ? clamp(Number(raw), 10, 100) : 100;
-                      setInvestmentMaxPct(String(n));
-                    }}
-                    placeholder="e.g., 100"
-                    inputMode="numeric"
-                  />
+                  <FieldLabel title="Max Investment (₹)" required />
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 100px", gap: 8 }}>
+                    <TextInput
+                      value={investmentMax}
+                      onChange={(v) => setInvestmentMax(v.replace(/[^\d]/g, ""))}
+                      placeholder="e.g., 500000"
+                      inputMode="numeric"
+                    />
+
+                    <TextInput
+                      value={investmentMaxPct}
+                      onChange={(v) => setInvestmentMaxPct(v.replace(/[^\d]/g, ""))}
+                      placeholder="%"
+                      inputMode="numeric"
+                    />
+                  </div>
+
+                  {investmentMax ? (
+                    <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
+                      {numberToWordsIndian(Number(investmentMax))} only
+                    </div>
+                  ) : null}
 
                   <div style={{ marginTop: 8, color: "#374151", fontWeight: 800, fontSize: 13 }}>
                     Amount: {investmentCalc.maxAmount != null ? formatINR(investmentCalc.maxAmount) : "—"}
