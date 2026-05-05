@@ -17,14 +17,12 @@ type Status = "draft" | "pending" | "approved" | "rejected" | string;
 
 type Row = {
   id: string;
-  vendor_id: string;
+  vendor_user_id: string;
 
   title: string | null;
   description: string | null;
-
-  brand: string | null;
-  price: number | null;
-  unit: string | null;
+  local_name: string | null;
+  packaging_unit: string | null;
 
   status: Status;
   created_at: string;
@@ -85,12 +83,11 @@ export default function MaterialsMyPage() {
 
     const cols = [
       "id",
-      "vendor_id",
+      "vendor_user_id",
       "title",
       "description",
-      "brand",
-      "price",
-      "unit",
+      "local_name",
+      "packaging_unit",
       "status",
       "created_at",
       "updated_at",
@@ -100,7 +97,7 @@ export default function MaterialsMyPage() {
     const { data, error } = await supabase
       .from("material_listings")
       .select(cols)
-      .eq("vendor_id", userId)
+      .eq("vendor_user_id", userId)
       .order("updated_at", { ascending: false })
       .limit(100);
 
@@ -215,7 +212,7 @@ export default function MaterialsMyPage() {
         <Grid min={300} gap={12}>
           {rows.map((m) => {
             const title = (m.title ?? "").trim() || "Untitled material";
-            const priceLine = `${money(m.price)}${m.unit ? ` / ${m.unit}` : ""}`;
+            const priceLine = m.packaging_unit ? `Unit: ${m.packaging_unit}` : "Unit: —";
             const isApproved = m.status === "approved";
 
             return (
@@ -231,7 +228,7 @@ export default function MaterialsMyPage() {
                   <div style={{ fontWeight: 900, marginBottom: 6 }}>{title}</div>
 
                   <div style={{ opacity: 0.8 }}>
-                    {m.brand ? `Brand: ${m.brand}` : "Brand: —"} • {priceLine}
+                    {m.local_name ? `Local name: ${m.local_name}` : "Local name: —"} • {priceLine}
                   </div>
                 </CardBody>
 
