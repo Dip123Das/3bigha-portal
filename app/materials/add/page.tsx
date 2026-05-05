@@ -635,7 +635,12 @@ Group: ${selectedGroup.label}
 Type: ${typeLabel || "Not selected"}
 Category: ${selectedCategory?.name ?? "Not selected"}
 Subcategory: ${selectedSubcategory?.name ?? "Not selected"}
-Product Group: ${selectedProductGroup?.name ?? "Not selected"}
+Product Group: ${
+  selectedProductGroup?.name ||
+  selectedSubcategory?.name ||
+  selectedCategory?.name ||
+  "Not selected"
+}
 
 Listing title: ${title.trim() || "Not entered"}
 Local / Regional Name: ${localName.trim() || "Not entered"}
@@ -666,8 +671,8 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
   async function runMaterialAiFill(sectionTitle: string) {
     setErrorMsg(null);
 
-    if (!productGroupId) {
-      setErrorMsg("Please select Product Group before using AI Smart-Fill.");
+    if (!categoryId || !title.trim()) {
+      setErrorMsg("Please select Category and enter Title before using AI Smart-Fill.");
       return;
     }
 
@@ -1057,16 +1062,16 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
 
                   <button
                     type="button"
-                    disabled={!!aiLoading || !productGroupId}
+                    disabled={!!aiLoading || !categoryId || !title.trim()}
                     onClick={runAllMaterialAiFill}
                     style={{
                       width: "100%",
                       padding: "10px 12px",
                       borderRadius: 10,
                       border: "1px solid #bbf7d0",
-                      background: !!aiLoading || !productGroupId ? "#f1f5f9" : "#f0fdf4",
+                      background: !!aiLoading || !categoryId || !title.trim() ? "#f1f5f9" : "#f0fdf4",
                       color: "#14532d",
-                      cursor: !!aiLoading || !productGroupId ? "not-allowed" : "pointer",
+                      cursor: !!aiLoading || !categoryId || !title.trim() ? "not-allowed" : "pointer",
                       fontSize: 13,
                       fontWeight: 900,
                       marginBottom: 8,
@@ -1085,15 +1090,15 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
                       <button
                         key={sectionTitle}
                         type="button"
-                        disabled={!!aiLoading || !productGroupId}
+                        disabled={!!aiLoading || !categoryId || !title.trim()}
                         onClick={() => runMaterialAiFill(sectionTitle)}
                         style={{
                           padding: "9px 10px",
                           borderRadius: 10,
                           border: "1px solid #d9e7ff",
-                          background: !!aiLoading || !productGroupId ? "#f1f5f9" : "#f8fbff",
+                          background: !!aiLoading || !categoryId || !title.trim() ? "#f1f5f9" : "#f8fbff",
                           color: "#0f172a",
-                          cursor: !!aiLoading || !productGroupId ? "not-allowed" : "pointer",
+                          cursor: !!aiLoading || !categoryId || !title.trim() ? "not-allowed" : "pointer",
                           fontSize: 12,
                           fontWeight: 800,
                           textAlign: "left",
