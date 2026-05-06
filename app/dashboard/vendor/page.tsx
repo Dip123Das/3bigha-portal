@@ -271,6 +271,16 @@ const dealProgressPercent = Math.min(
   Math.round((successStats.dealsCompleted / 10) * 100)
 );
 
+const replyRate =
+  funnelStats.totalLeads > 0
+    ? Math.round((funnelStats.repliedLeads / funnelStats.totalLeads) * 100)
+    : 0;
+
+const closeRate =
+  funnelStats.totalLeads > 0
+    ? Math.round((successStats.dealsCompleted / funnelStats.totalLeads) * 100)
+    : 0;
+
 const successRateProgressPercent = Math.min(
   100,
   Math.round((successStats.successRate / 50) * 100)
@@ -345,12 +355,54 @@ const growthVisibilityScore = Math.min(
   100,
   Math.round(
     replySpeedScore +
-    priceScore +
-    trustScore +
-    boostScore +
-    dealSignalScore
+      priceScore +
+      trustScore +
+      boostScore +
+      dealSignalScore
   )
 );
+
+const aiDealLearningScore = Math.min(
+  100,
+  Math.round(
+    replyRate * 0.35 +
+      closeRate * 0.35 +
+      Math.min(100, dealStats.ready * 12) * 0.2 +
+      Math.min(100, growthVisibilityScore) * 0.1
+  )
+);
+
+const vendorResponseGrade =
+  replyRate >= 80
+    ? "Excellent"
+    : replyRate >= 55
+    ? "Good"
+    : replyRate >= 25
+    ? "Needs faster replies"
+    : "Critical";
+
+const aiConversionPrediction =
+  aiDealLearningScore >= 80
+    ? "High chance to convert serious buyers"
+    : aiDealLearningScore >= 55
+    ? "Moderate conversion strength"
+    : aiDealLearningScore >= 30
+    ? "Weak conversion signals"
+    : "High lead-loss risk";
+
+const aiNegotiationStyle =
+  closeRate >= 40
+    ? "Closing-focused"
+    : replyRate >= 60
+    ? "Responsive but needs stronger follow-up"
+    : "Needs faster first response";
+
+const aiVendorLearningAction =
+  replyRate < 50
+    ? "Reply to every buyer lead quickly to improve AI ranking and conversion."
+    : closeRate < 25
+    ? "Use AI suggestions in chat to push deals toward final price, delivery and bill confirmation."
+    : "Maintain quick replies and keep deal follow-ups active to protect your ranking.";
 
 const leaderboardStatus =
   growthVisibilityScore >= 80
@@ -1371,6 +1423,108 @@ const aiDealUpgradeTarget =
             }}
           >
             🚀 Improve My Leaderboard Rank
+          </button>
+        </div>
+
+        <div
+          style={{
+            marginBottom: 14,
+            borderRadius: 18,
+            padding: 16,
+            border: "1px solid #bfdbfe",
+            background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+            boxShadow: "0 10px 24px rgba(37,99,235,0.08)",
+          }}
+        >
+          <div style={{ fontSize: 18, fontWeight: 950, color: "#1e3a8a" }}>
+            🧠 AI Deal Analytics + Learning Loop
+          </div>
+
+          <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 850, lineHeight: 1.5 }}>
+            AI learns from your replies, deal signals, closing rate and visibility strength to predict conversion performance.
+          </div>
+
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
+            <div style={{ border: "1px solid #bfdbfe", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 900 }}>
+                Learning Score
+              </div>
+              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#1d4ed8" }}>
+                {aiDealLearningScore}/100
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #dcfce7", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#047857", fontWeight: 900 }}>
+                Reply Rate
+              </div>
+              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#047857" }}>
+                {replyRate}%
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #fed7aa", borderRadius: 14, padding: 12, background: "#fff7ed" }}>
+              <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>
+                Close Rate
+              </div>
+              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#c2410c" }}>
+                {closeRate}%
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #e0e7ff", borderRadius: 14, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#3730a3", fontWeight: 900 }}>
+                Response Grade
+              </div>
+              <div style={{ marginTop: 4, fontSize: 15, fontWeight: 950, color: "#111827" }}>
+                {vendorResponseGrade}
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginTop: 12,
+              borderRadius: 14,
+              border: "1px solid #bfdbfe",
+              background: "#ffffff",
+              padding: 12,
+            }}
+          >
+            <div style={{ fontSize: 14, fontWeight: 950, color: "#1e3a8a" }}>
+              🤖 AI Conversion Prediction
+            </div>
+
+            <div style={{ marginTop: 6, fontSize: 13, fontWeight: 850, color: "#1e40af", lineHeight: 1.5 }}>
+              {aiConversionPrediction}
+            </div>
+
+            <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <Badge>Style: {aiNegotiationStyle}</Badge>
+              <Badge>Ready Signals: {dealStats.ready}</Badge>
+              <Badge>Visibility: {growthVisibilityScore}/100</Badge>
+            </div>
+
+            <div style={{ marginTop: 8, fontSize: 13, fontWeight: 850, color: "#334155", lineHeight: 1.5 }}>
+              Next learning action: {aiVendorLearningAction}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/vendor/enquiries")}
+            style={{
+              marginTop: 12,
+              background: "#2563eb",
+              color: "#fff",
+              border: "none",
+              padding: "10px 14px",
+              borderRadius: 12,
+              fontWeight: 950,
+              cursor: "pointer",
+            }}
+          >
+            🧠 Open Leads and Improve Conversion
           </button>
         </div>
 
