@@ -328,6 +328,15 @@ export default function AdminSupportPage() {
                     <span>Updated: {fmtDate(ticket.updated_at)}</span>
                     <span>Resolved: {fmtDate(ticket.resolved_at)}</span>
                   </div>
+
+                  <div style={{ marginTop: 14 }}>
+                    <ActionButton
+                      href={`/admin/dashboard/support/${ticket.id}`}
+                      variant="primary"
+                    >
+                      Open Thread / Reply →
+                    </ActionButton>
+                  </div>
                 </CardBody>
               </Card>
             ))}

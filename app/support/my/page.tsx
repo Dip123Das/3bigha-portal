@@ -297,6 +297,15 @@ export default function MySupportTicketsPage() {
                     <span>Updated: {fmtDate(ticket.updated_at)}</span>
                     <span>Resolved: {fmtDate(ticket.resolved_at)}</span>
                   </div>
+
+                  <div style={{ marginTop: 14 }}>
+                    <ActionButton
+                      href={`/support/ticket/${ticket.id}`}
+                      variant="primary"
+                    >
+                      Open Conversation →
+                    </ActionButton>
+                  </div>
                 </CardBody>
               </Card>
             ))}
