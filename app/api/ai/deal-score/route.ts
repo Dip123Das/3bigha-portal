@@ -8,6 +8,10 @@ type DealScoreMessage = {
   body?: string;
 };
 
+type DealRiskLevel = "low" | "medium" | "high";
+
+type DealTemperature = "cold" | "warm" | "hot" | "closing";
+
 function safeDealScore(overrides: Partial<any> = {}) {
   return {
     ok: true,
@@ -18,6 +22,12 @@ function safeDealScore(overrides: Partial<any> = {}) {
     actionLabel: "Copy follow-up message",
     actionMessage:
       "Please share price, quantity, delivery location and timeline.",
+    dealTemperature: "cold",
+    closingProbability: 40,
+    hesitationDetected: false,
+    urgencyDetected: false,
+    leadLossRisk: "medium",
+    nextBestAction: "Ask for price, quantity, delivery location and timeline.",
     ...overrides,
   };
 }
@@ -31,6 +41,58 @@ function extractText(payload: any): string {
     ?.filter(Boolean);
 
   return parts?.join("\n") || "";
+}
+
+function detectDealSignals(messages: DealScoreMessage[]) {
+  const text = messages
+    .map((m) => `${m?.role || "user"}: ${m?.body || ""}`)
+    .join("\n")
+    .toLowerCase();
+
+  const hesitationDetected =
+    text.includes("later") ||
+    text.includes("costly") ||
+    text.includes("high price") ||
+    text.includes("too high") ||
+    text.includes("discount") ||
+    text.includes("compare") ||
+    text.includes("not sure") ||
+    text.includes("thinking");
+
+  const urgencyDetected =
+    text.includes("urgent") ||
+    text.includes("today") ||
+    text.includes("tomorrow") ||
+    text.includes("immediate") ||
+    text.includes("fast") ||
+    text.includes("asap");
+
+  const closingDetected =
+    text.includes("confirm") ||
+    text.includes("confirmed") ||
+    text.includes("final") ||
+    text.includes("done") ||
+    text.includes("proceed") ||
+    text.includes("book") ||
+    text.includes("invoice") ||
+    text.includes("bill");
+
+  let dealTemperature: DealTemperature = "cold";
+  if (closingDetected && urgencyDetected) dealTemperature = "closing";
+  else if (closingDetected) dealTemperature = "hot";
+  else if (urgencyDetected || hesitationDetected) dealTemperature = "warm";
+
+  let leadLossRisk: DealRiskLevel = "medium";
+  if (hesitationDetected && !closingDetected) leadLossRisk = "high";
+  if (closingDetected && !hesitationDetected) leadLossRisk = "low";
+
+  return {
+    hesitationDetected,
+    urgencyDetected,
+    closingDetected,
+    dealTemperature,
+    leadLossRisk,
+  };
 }
 
 function heuristicDealScore(messages: DealScoreMessage[]) {
@@ -68,6 +130,8 @@ function heuristicDealScore(messages: DealScoreMessage[]) {
     text.includes("done") ||
     text.includes("okay");
 
+  const signals = detectDealSignals(messages);
+
   if (hasPrice && hasQuantity && hasDelivery && hasConfirmation) {
     return safeDealScore({
       source: "heuristic",
@@ -78,6 +142,13 @@ function heuristicDealScore(messages: DealScoreMessage[]) {
       actionLabel: "Confirm Deal",
       actionMessage:
         "Please confirm final price, quantity, delivery address, delivery time and bill details before proceeding.",
+      dealTemperature: "closing",
+      closingProbability: 88,
+      hesitationDetected: signals.hesitationDetected,
+      urgencyDetected: signals.urgencyDetected,
+      leadLossRisk: "low",
+      nextBestAction:
+        "Confirm final price, quantity, delivery address, timeline and bill details.",
     });
   }
 
@@ -91,6 +162,13 @@ function heuristicDealScore(messages: DealScoreMessage[]) {
       actionLabel: "Ask Missing Details",
       actionMessage:
         "Please confirm final price, quantity, delivery address and bill details before we proceed.",
+      dealTemperature: signals.dealTemperature,
+      closingProbability: 68,
+      hesitationDetected: signals.hesitationDetected,
+      urgencyDetected: signals.urgencyDetected,
+      leadLossRisk: signals.leadLossRisk,
+      nextBestAction:
+        "Ask the missing price, quantity, address and bill details before closing.",
     });
   }
 
@@ -104,6 +182,13 @@ function heuristicDealScore(messages: DealScoreMessage[]) {
       actionLabel: "Ask Final Details",
       actionMessage:
         "Please share final price, quantity, delivery location and expected delivery time.",
+      dealTemperature: signals.dealTemperature,
+      closingProbability: signals.urgencyDetected ? 58 : 50,
+      hesitationDetected: signals.hesitationDetected,
+      urgencyDetected: signals.urgencyDetected,
+      leadLossRisk: signals.leadLossRisk,
+      nextBestAction:
+        "Clarify price, quantity, delivery location and timeline to prevent lead loss.",
     });
   }
 
@@ -116,6 +201,13 @@ function heuristicDealScore(messages: DealScoreMessage[]) {
     actionLabel: "Ask for details",
     actionMessage:
       "Please share price, quantity, delivery location and expected delivery time.",
+    dealTemperature: signals.dealTemperature,
+    closingProbability: 40,
+    hesitationDetected: signals.hesitationDetected,
+    urgencyDetected: signals.urgencyDetected,
+    leadLossRisk: signals.leadLossRisk,
+    nextBestAction:
+      "Start with basic deal details: price, quantity, location and delivery time.",
   });
 }
 
@@ -142,6 +234,30 @@ function normalizeDealScore(value: unknown, heuristic: any) {
       row.actionMessage ||
         heuristic.actionMessage ||
         "Please share price, quantity, delivery location and timeline."
+    ).slice(0, 220),
+    dealTemperature: String(
+      row.dealTemperature || heuristic.dealTemperature || "cold"
+    ).slice(0, 20),
+    closingProbability: Math.max(
+      0,
+      Math.min(
+        100,
+        Number(row.closingProbability || heuristic.closingProbability || score || 40)
+      )
+    ),
+    hesitationDetected: Boolean(
+      row.hesitationDetected ?? heuristic.hesitationDetected ?? false
+    ),
+    urgencyDetected: Boolean(
+      row.urgencyDetected ?? heuristic.urgencyDetected ?? false
+    ),
+    leadLossRisk: String(
+      row.leadLossRisk || heuristic.leadLossRisk || "medium"
+    ).slice(0, 20),
+    nextBestAction: String(
+      row.nextBestAction ||
+        heuristic.nextBestAction ||
+        "Ask for price, quantity, delivery location and timeline."
     ).slice(0, 220),
   });
 }
@@ -204,7 +320,13 @@ Return only valid JSON:
   "label": "Strong Deal",
   "insight": "Short explanation under 180 characters.",
   "actionLabel": "Close Deal",
-  "actionMessage": "Short next message user can send."
+  "actionMessage": "Short next message user can send.",
+  "dealTemperature": "cold | warm | hot | closing",
+  "closingProbability": 78,
+  "hesitationDetected": false,
+  "urgencyDetected": true,
+  "leadLossRisk": "low | medium | high",
+  "nextBestAction": "Short best next action."
 }
 
 Scoring guide:
@@ -221,6 +343,9 @@ Important local signals:
 - Do not create false promises.
 - actionMessage must help close safely.
 - Keep actionMessage under 180 characters.
+- Detect buyer hesitation, urgency, lead loss risk and deal temperature.
+- closingProbability must be 0 to 100.
+- nextBestAction must help prevent lead loss or move toward safe closing.
 
 Chat:
 ${context}
