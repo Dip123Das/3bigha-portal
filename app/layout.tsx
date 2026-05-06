@@ -127,9 +127,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <ActiveLink className="topNavLink" href="/blog">
                 Blog
               </ActiveLink>
-              <ActiveLink className="topNavLink" href="/blog">
-                Blog
-              </ActiveLink>
             </nav>
 
             <form className="topSearchQuick" action="/search" method="get">
