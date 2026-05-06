@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
@@ -100,10 +100,13 @@ export default function AdminSupportPage() {
   const [rows, setRows] = useState<SupportTicket[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [liveNotice, setLiveNotice] = useState<string | null>(null);
+  const [realtimeEnabled, setRealtimeEnabled] = useState(false);
+  const liveRefreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  async function loadTickets() {
-    setLoading(true);
-    setError(null);
+  async function loadTickets(silent = false) {
+    if (!silent) setLoading(true);
+    if (!silent) setError(null);
 
     try {
       const {
@@ -141,12 +144,60 @@ export default function AdminSupportPage() {
       setError("Failed to load support tickets.");
       setRows([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
   useEffect(() => {
+    let mounted = true;
+
+    function triggerLiveRefresh(message: string) {
+      if (!mounted) return;
+
+      setLiveNotice(message);
+
+      if (liveRefreshTimerRef.current) {
+        clearTimeout(liveRefreshTimerRef.current);
+      }
+
+      liveRefreshTimerRef.current = setTimeout(() => {
+        loadTickets(true);
+      }, 700);
+    }
+
     loadTickets();
+
+    const channel = supabase
+      .channel("admin-support-desk-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "support_tickets" },
+        () => {
+          triggerLiveRefresh("Live support ticket update received.");
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "support_ticket_messages" },
+        () => {
+          triggerLiveRefresh("New support message received.");
+        }
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          setRealtimeEnabled(true);
+        }
+      });
+
+    return () => {
+      mounted = false;
+
+      if (liveRefreshTimerRef.current) {
+        clearTimeout(liveRefreshTimerRef.current);
+      }
+
+      supabase.removeChannel(channel);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -170,7 +221,7 @@ export default function AdminSupportPage() {
 
           <button
             type="button"
-            onClick={loadTickets}
+            onClick={() => loadTickets()}
             style={{
               height: 40,
               padding: "0 14px",
@@ -204,6 +255,22 @@ export default function AdminSupportPage() {
             <option value="resolved">Resolved</option>
             <option value="closed">Closed</option>
           </select>
+        </div>
+
+                <div
+          style={{
+            marginBottom: 12,
+            display: "flex",
+            gap: 10,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <Badge>
+            {realtimeEnabled ? "🟢 Realtime Support Active" : "⚪ Realtime Connecting"}
+          </Badge>
+
+          {liveNotice ? <Badge>{liveNotice}</Badge> : null}
         </div>
 
         {error ? (
@@ -462,6 +529,7 @@ export default function AdminSupportPage() {
                       </div>
                     </div>
                   </div>
+
                     <span>User ID: {ticket.user_id}</span>
                     <span>Created: {fmtDate(ticket.created_at)}</span>
                     <span>Updated: {fmtDate(ticket.updated_at)}</span>
