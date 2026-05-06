@@ -808,6 +808,64 @@ I am ready to finalize soon.`,
   }
 }
 
+function getPricePredictionAI(row: AggregatedPriceRow) {
+  const category = row.category;
+  const confidence = Number(row.confidence || 0);
+  const vendors = Number(row.vendorCount || 0);
+  const change = Number(row.changePercent || 0);
+
+  const actionWord =
+    category === "Properties"
+      ? "Buy"
+      : category === "Rentals"
+      ? "Rent"
+      : category === "Services"
+      ? "Hire"
+      : "Buy";
+
+  if (confidence < 55 || vendors <= 1) {
+    return {
+      label: `⏳ Monitor before ${actionWord.toLowerCase()}`,
+      color: "amber",
+      window: "Wait 3–7 days",
+      reason: "Low market confidence. More verified price sources are needed before a strong decision.",
+    };
+  }
+
+  if (row.trend === "Up" || change >= 3) {
+    return {
+      label: `🔥 ${actionWord} now`,
+      color: "red",
+      window: "Act within 1–3 days",
+      reason:
+        category === "Rentals"
+          ? "Rental demand or rate pressure is rising. Confirm availability before rates increase."
+          : category === "Services"
+          ? "Service demand or pricing pressure is rising. Confirm provider availability early."
+          : "Price pressure is rising. Early action may avoid higher cost.",
+    };
+  }
+
+  if (row.trend === "Down" || change <= -3) {
+    return {
+      label: "💰 Negotiate / wait",
+      color: "green",
+      window: "Wait 3–7 days if not urgent",
+      reason:
+        category === "Properties"
+          ? "Market is softening. This may be a negotiation opportunity with owner or builder."
+          : "Rates are softening. Compare vendors and negotiate before final decision.",
+    };
+  }
+
+  return {
+    label: `✅ Safe to ${actionWord.toLowerCase()}`,
+    color: "blue",
+    window: "Proceed after confirmation",
+    reason: "Market is stable with acceptable confidence. Confirm final rate, terms and availability.",
+  };
+}
+
 function getBuySignal(row: AggregatedPriceRow) {
   if (row.vendorCount <= 1 || row.confidence < 55) {
     return {
@@ -2281,6 +2339,28 @@ if (userData.user) {
                         : "Not enough history"}
                     </div>
 
+                                        {(() => {
+                      const prediction = getPricePredictionAI(row);
+
+                      return (
+                        <div
+                          className={`mt-2 rounded-2xl px-3 py-2 text-xs font-black leading-5 ${
+                            prediction.color === "red"
+                              ? "bg-red-50 text-red-700"
+                              : prediction.color === "green"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : prediction.color === "blue"
+                              ? "bg-blue-50 text-blue-700"
+                              : "bg-amber-50 text-amber-700"
+                          }`}
+                        >
+                          <div>🔮 Price Prediction AI: {prediction.label}</div>
+                          <div className="mt-1">⏱️ {prediction.window}</div>
+                          <div className="mt-1 font-bold">{prediction.reason}</div>
+                        </div>
+                      );
+                    })()}
+
                     <div className="mt-2 rounded-2xl bg-blue-50 px-3 py-2 text-xs font-bold leading-5 text-blue-800">
                       <span className="flex items-center gap-1">
                         🤖 AI insight
@@ -2314,14 +2394,22 @@ if (userData.user) {
                       const isOpportunity =
                         row.trend === "Down" && row.vendorCount >= 2;
 
+                      const prediction = getPricePredictionAI(row);
+
                       const ctaText =
-                        isBestPrice
-                          ? "🏆 Grab Best Price Now"
-                          : signal.color === "red"
-                          ? "⚡ Book Now (Prices Rising)"
-                          : signal.color === "green"
-                          ? "🟢 Get Best Deals"
-                          : "🔎 Compare Vendors";
+                        prediction.color === "red"
+                          ? category === "Properties"
+                            ? "🔥 Buy / Talk Now"
+                            : category === "Rentals"
+                            ? "🔥 Rent Now"
+                            : category === "Services"
+                            ? "🔥 Hire Now"
+                            : "🔥 Buy Now"
+                          : prediction.color === "green"
+                          ? "💰 Negotiate Best Deal"
+                          : prediction.color === "blue"
+                          ? "✅ Proceed with Best Option"
+                          : "🔎 Compare Before Decision";
 
                       return (
                         <>

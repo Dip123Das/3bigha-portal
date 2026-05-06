@@ -112,6 +112,59 @@ type VendorMatchInput = {
   pincode: string;
 };
 
+function detectBuyerIntentAI(input: VendorMatchInput) {
+  let score = 0;
+  const reasons: string[] = [];
+
+  if (input.item) {
+    score += 20;
+    reasons.push("specific item selected");
+  }
+
+  if (input.pincode) {
+    score += 25;
+    reasons.push("pincode-level intent");
+  } else if (input.locality) {
+    score += 18;
+    reasons.push("locality-level intent");
+  } else if (input.city) {
+    score += 12;
+    reasons.push("city-level intent");
+  }
+
+  const module = clean(input.module).toLowerCase();
+
+  if (module.includes("materials")) {
+    score += 8;
+    reasons.push("purchase requirement");
+  }
+
+  if (module.includes("rentals")) {
+    score += 10;
+    reasons.push("rental availability intent");
+  }
+
+  if (module.includes("services")) {
+    score += 10;
+    reasons.push("service hiring intent");
+  }
+
+  if (module.includes("propert")) {
+    score += 12;
+    reasons.push("property decision intent");
+  }
+
+  const intent =
+    score >= 45 ? "hot_buyer" : score >= 25 ? "warm_buyer" : "browsing_buyer";
+
+  return {
+    intent,
+    score: Math.min(25, Math.round(score / 2)),
+    raw_score: score,
+    reason: reasons.length ? reasons.join(" • ") : "basic buyer browsing signal",
+  };
+}
+
 async function getLatestPriceSignal(admin: any, row: any, input: VendorMatchInput) {
   const userId = clean(row.user_id);
 
@@ -328,7 +381,9 @@ return {
 function computeReputationScore(row: any) {
   let rep = 50; // base neutral score
 
-  const m = row.vendor_performance_metrics;
+  const m = Array.isArray(row.vendor_performance_metrics)
+    ? row.vendor_performance_metrics[0]
+    : row.vendor_performance_metrics;
 
   if (m) {
     const totalMatches = Number(m.total_matches || 0);
@@ -422,6 +477,14 @@ export async function GET(req: Request) {
     const locality = clean(url.searchParams.get("locality"));
     const pincode = clean(url.searchParams.get("pincode"));
 
+    const buyerIntent = detectBuyerIntentAI({
+      module,
+      item,
+      city,
+      locality,
+      pincode,
+    });
+
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE, {
       auth: { persistSession: false },
     });
@@ -483,6 +546,7 @@ export async function GET(req: Request) {
         };
 
         const dealSignalScore = Math.min(25, dealStats.ready * 5);
+        const buyerIntentScore = buyerIntent.score;
 
         const displayName =
           clean(row.business_name) ||
@@ -538,7 +602,8 @@ export async function GET(req: Request) {
             smartPriceScore +
             weightedBoost +
             performanceBoost +
-            dealSignalScore,
+            dealSignalScore +
+            buyerIntentScore,
           99
         );
 
@@ -552,8 +617,8 @@ export async function GET(req: Request) {
           : "";
 
         const finalReason = aiRanked?.reason
-          ? `${ranked.reason} • AI match: ${aiRanked.reason}${boostReason}`
-          : `${ranked.reason}${boostReason}`;
+          ? `${ranked.reason} • AI match: ${aiRanked.reason}${boostReason} • Buyer intent: ${buyerIntent.reason}`
+          : `${ranked.reason}${boostReason} • Buyer intent: ${buyerIntent.reason}`;
 
         const winProbability = predictWinProbability(row, finalScore);
 
@@ -573,11 +638,16 @@ export async function GET(req: Request) {
           weighted_boost: weightedBoost,
           price_boost: priceBoost,
           deal_signal_score: dealSignalScore,
+          buyer_intent: buyerIntent.intent,
+          buyer_intent_score: buyerIntentScore,
+          buyer_intent_reason: buyerIntent.reason,
           ready_deal_signals: dealStats.ready,
           total_deal_signals: dealStats.total,
           routing_priority:
             dealStats.ready >= 3
               ? "top_closer"
+              : buyerIntent.intent === "hot_buyer" && winProbability > 0.6
+              ? "hot_buyer_best_match"
               : winProbability > 0.7
               ? "high_win_probability"
               : weightedBoost > 0
@@ -589,8 +659,8 @@ export async function GET(req: Request) {
           pincode: clean(row.pincode),
           source: "business_profiles",
         };
-      })
-    );
+        })
+      );
 
     const filtered = scoredRows
       .filter((row) => row.score >= 45)
