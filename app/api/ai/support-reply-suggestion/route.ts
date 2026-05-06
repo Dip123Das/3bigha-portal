@@ -44,6 +44,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
+    const mode = String(body?.mode || "user").trim();
+    const draftText = String(body?.draftText || "").trim();
+
     const ticket = body?.ticket || {};
     const messages: SupportMessage[] = Array.isArray(body?.messages)
       ? body.messages.slice(-10)
@@ -79,37 +82,85 @@ export async function POST(req: Request) {
       })
       .join("\n");
 
-    const prompt = `
-You are the written support admin assistant of 3bigha.com.
+    const latestUserDraft =
+      draftText ||
+      [...messages]
+        .reverse()
+        .find((m) => !m?.is_admin_message && String(m?.message_text || "").trim())
+        ?.message_text ||
+      "";
 
-Create one professional admin reply for this support ticket.
+    const adminDraft =
+      draftText ||
+      [...messages]
+        .reverse()
+        .find((m) => String(m?.message_text || "").trim())
+        ?.message_text ||
+      complaint;
 
-Rules:
-- Return only the reply text.
-- Do not mention AI.
-- Do not promise phone calls.
+    let prompt = "";
+
+    if (mode === "admin") {
+      prompt = `
+You are the official written support assistant of 3bigha.com.
+
+Your task:
+Generate a professional SUPPORT TEAM reply for the admin.
+
+IMPORTANT:
+- Write as 3bigha Support Team.
+- Be polite and practical.
 - Support must remain written only.
-- Be polite, clear and practical.
-- Do not invent facts, dates, refunds, approvals, payments, or legal conclusions.
-- Ask for missing details if required.
-- If issue seems urgent, say it will be reviewed with priority.
-- Keep under 180 words.
-- Write as 3bigha Support.
+- Do not promise calls.
+- Do not invent fake resolutions.
+- Ask for missing details if needed.
+- Keep response professional and concise.
+- Return ONLY the reply text.
 
 Ticket:
 Ticket No: ${ticket?.ticket_no || "not provided"}
 Category: ${ticket?.category || "general"}
 Priority: ${ticket?.priority || "normal"}
 Status: ${ticket?.status || "open"}
-User role: ${ticket?.user_role || "user"}
-User display ID: ${ticket?.user_display_id || "not provided"}
 
 Original complaint:
 ${complaint}
 
 Conversation history:
-${history || "No thread messages yet."}
+${history || "No previous replies."}
+
+Admin draft:
+${adminDraft}
 `;
+    } else {
+      prompt = `
+You are an AI writing assistant for 3bigha.com support conversations.
+
+Your job is ONLY to improve and professionally rewrite the USER'S OWN MESSAGE.
+
+IMPORTANT:
+- Do NOT write as 3bigha Support Team.
+- Do NOT pretend to be admin.
+- Do NOT answer the complaint.
+- Do NOT generate support resolutions.
+- ONLY improve the user's written message.
+- Keep same meaning and intention.
+- Make it clearer and more professional.
+- Keep it concise and natural.
+- Do not add imaginary details.
+- Keep communication written-only.
+- Return ONLY the improved message.
+
+User original draft:
+${latestUserDraft || complaint}
+
+Ticket category:
+${ticket?.category || "general"}
+
+Priority:
+${ticket?.priority || "normal"}
+`;
+    }
 
     const aiRes = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",

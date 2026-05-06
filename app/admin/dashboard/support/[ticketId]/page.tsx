@@ -73,6 +73,7 @@ export default function AdminSupportTicketThreadPage() {
 
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [aiReplyLoading, setAiReplyLoading] = useState(false);
   const [ticket, setTicket] = useState<SupportTicket | null>(null);
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [replyText, setReplyText] = useState("");
@@ -119,6 +120,45 @@ export default function AdminSupportTicketThreadPage() {
       setError("Failed to load support ticket.");
     } finally {
       setLoading(false);
+    }
+  }
+
+    async function generateAdminReplyWithAi() {
+    setError(null);
+
+    if (!ticket) {
+      setError("Ticket details are not loaded yet.");
+      return;
+    }
+
+    setAiReplyLoading(true);
+
+    try {
+      const res = await fetch("/api/ai/support-reply-suggestion", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mode: "admin",
+          ticket,
+          messages,
+          draftText: replyText,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json?.ok) {
+        setError(json?.error || "AI could not generate admin reply.");
+        return;
+      }
+
+      setReplyText(String(json.reply || ""));
+    } catch {
+      setError("AI admin reply generation failed.");
+    } finally {
+      setAiReplyLoading(false);
     }
   }
 
@@ -436,6 +476,25 @@ export default function AdminSupportTicketThreadPage() {
                     <option value="closed">Closed</option>
                   </select>
                 </label>
+
+                <button
+                  type="button"
+                  onClick={generateAdminReplyWithAi}
+                  disabled={aiReplyLoading}
+                  style={{
+                    marginTop: 10,
+                    background: "#7c3aed",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 12,
+                    padding: "10px 14px",
+                    fontWeight: 950,
+                    cursor: aiReplyLoading ? "default" : "pointer",
+                    opacity: aiReplyLoading ? 0.7 : 1,
+                  }}
+                >
+                  {aiReplyLoading ? "Generating..." : "✨ Generate Admin Reply with AI"}
+                </button>
 
                 <textarea
                   value={replyText}
