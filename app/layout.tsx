@@ -121,11 +121,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <ActiveLink className="topNavLink" href="/rentals">
                 Rentals
               </ActiveLink>
-              <ActiveLink className="topNavLink" href="/investment">
-                Investment
-              </ActiveLink>
               <ActiveLink className="topNavLink" href="/support/my">
                 Support
+              </ActiveLink>
+              <ActiveLink className="topNavLink" href="/blog">
+                Blog
               </ActiveLink>
               <ActiveLink className="topNavLink" href="/blog">
                 Blog
