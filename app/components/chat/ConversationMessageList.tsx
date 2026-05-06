@@ -41,6 +41,13 @@ type AiDealStage = {
   reason: string;
   ctaLabel: string;
   ctaMessage: string;
+  dealMomentum?: "low" | "medium" | "high";
+  followUpTiming?: "now" | "soon" | "later";
+  staleLeadRisk?: "low" | "medium" | "high";
+  buyerCoolingOff?: boolean;
+  vendorResponseNeeded?: boolean;
+  timelineScore?: number;
+  nextTimelineAction?: string;
 };
 
 type AiDealScore = {
@@ -49,6 +56,12 @@ type AiDealScore = {
   insight: string;
   actionLabel: string;
   actionMessage: string;
+  dealTemperature?: "cold" | "warm" | "hot" | "closing";
+  closingProbability?: number;
+  hesitationDetected?: boolean;
+  urgencyDetected?: boolean;
+  leadLossRisk?: "low" | "medium" | "high";
+  nextBestAction?: string;
 };
 
 type AiVendorAlert = {
@@ -64,6 +77,12 @@ type AiVendorAlert = {
   upgradeHint: string;
   actionLabel: string;
   actionMessage: string;
+  hesitationDetected?: boolean;
+  urgencyDetected?: boolean;
+  leadLossRisk?: "low" | "medium" | "high";
+  dealTemperature?: "cold" | "warm" | "hot" | "closing";
+  followUpNeeded?: boolean;
+  vendorNextAction?: string;
 };
 
 export default function ConversationMessageList(props: {
@@ -161,6 +180,13 @@ export default function ConversationMessageList(props: {
     actionLabel: "Ask for details",
     actionMessage:
       "Please share price, quantity, delivery location and expected delivery time.",
+    dealTemperature: "cold",
+    closingProbability: 40,
+    hesitationDetected: false,
+    urgencyDetected: false,
+    leadLossRisk: "medium",
+    nextBestAction:
+      "Ask for price, quantity, delivery location and expected delivery time.",
   };
 
   const defaultAiVendorAlert: AiVendorAlert = {
@@ -181,6 +207,13 @@ export default function ConversationMessageList(props: {
     actionLabel: "Ask Final Details",
     actionMessage:
       "Please confirm final price, quantity, delivery location, delivery time and bill/document availability.",
+    hesitationDetected: false,
+    urgencyDetected: false,
+    leadLossRisk: "medium",
+    dealTemperature: "cold",
+    followUpNeeded: false,
+    vendorNextAction:
+      "Reply quickly with final price, availability, delivery timeline and bill details.",
   };
 
   const [aiDealScore, setAiDealScore] = useState<AiDealScore>(defaultAiDealScore);
@@ -249,12 +282,26 @@ useEffect(() => {
       const data = await res.json().catch(() => null);
 
       if (!cancelled && res.ok) {
-        setAiDealScore({
+          setAiDealScore({
           score: Number(data?.score || defaultAiDealScore.score),
           label: String(data?.label || defaultAiDealScore.label),
           insight: String(data?.insight || defaultAiDealScore.insight),
           actionLabel: String(data?.actionLabel || defaultAiDealScore.actionLabel),
           actionMessage: String(data?.actionMessage || defaultAiDealScore.actionMessage),
+          dealTemperature: data?.dealTemperature || defaultAiDealScore.dealTemperature,
+          closingProbability: Number(
+            data?.closingProbability || defaultAiDealScore.closingProbability || 40
+          ),
+          hesitationDetected: Boolean(
+            data?.hesitationDetected ?? defaultAiDealScore.hesitationDetected
+          ),
+          urgencyDetected: Boolean(
+            data?.urgencyDetected ?? defaultAiDealScore.urgencyDetected
+          ),
+          leadLossRisk: data?.leadLossRisk || defaultAiDealScore.leadLossRisk,
+          nextBestAction: String(
+            data?.nextBestAction || defaultAiDealScore.nextBestAction || ""
+          ),
         });
       }
     } catch {
@@ -307,6 +354,21 @@ useEffect(() => {
             upgradeHint: String(data?.upgradeHint || defaultAiVendorAlert.upgradeHint),
             actionLabel: String(data?.actionLabel || defaultAiVendorAlert.actionLabel),
             actionMessage: String(data?.actionMessage || defaultAiVendorAlert.actionMessage),
+            hesitationDetected: Boolean(
+              data?.hesitationDetected ?? defaultAiVendorAlert.hesitationDetected
+            ),
+            urgencyDetected: Boolean(
+              data?.urgencyDetected ?? defaultAiVendorAlert.urgencyDetected
+            ),
+            leadLossRisk: data?.leadLossRisk || defaultAiVendorAlert.leadLossRisk,
+            dealTemperature:
+              data?.dealTemperature || defaultAiVendorAlert.dealTemperature,
+            followUpNeeded: Boolean(
+              data?.followUpNeeded ?? defaultAiVendorAlert.followUpNeeded
+            ),
+            vendorNextAction: String(
+              data?.vendorNextAction || defaultAiVendorAlert.vendorNextAction || ""
+            ),
           });
         }
       } catch {
@@ -358,6 +420,13 @@ useEffect(() => {
             reason: String(data.reason || ""),
             ctaLabel: String(data.ctaLabel || "Continue Deal"),
             ctaMessage: String(data.ctaMessage || "Please confirm the next step for this deal."),
+            dealMomentum: data.dealMomentum || "medium",
+            followUpTiming: data.followUpTiming || "soon",
+            staleLeadRisk: data.staleLeadRisk || "medium",
+            buyerCoolingOff: Boolean(data.buyerCoolingOff),
+            vendorResponseNeeded: Boolean(data.vendorResponseNeeded ?? true),
+            timelineScore: Number(data.timelineScore || 50),
+            nextTimelineAction: String(data.nextTimelineAction || ""),
           });
         }
       } catch (error: any) {
@@ -426,6 +495,33 @@ useEffect(() => {
 
     return () => window.clearInterval(timer);
   }, [latestIncomingMessage?.id, showBuyerWaitingUrgency]);
+
+  const liveDealHealth = Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round(
+        (Number(aiDealScore.closingProbability || aiDealScore.score || 40) +
+          Number(aiDealStage?.timelineScore || 50)) /
+          2
+      )
+    )
+  );
+
+  const liveDealHealthLabel =
+    liveDealHealth >= 80
+      ? "Very strong"
+      : liveDealHealth >= 65
+      ? "Strong"
+      : liveDealHealth >= 45
+      ? "Active"
+      : "Needs action";
+
+  const liveDealRiskLabel =
+    aiDealScore.leadLossRisk ||
+    aiVendorAlert.leadLossRisk ||
+    aiDealStage?.staleLeadRisk ||
+    "medium";
 
   const useAiSuggestion = async (suggestion: string) => {
     const cleanSuggestion = String(suggestion || "").trim();
@@ -626,6 +722,79 @@ useEffect(() => {
             >
               Reply Fast with AI
             </button>
+          </div>
+        </div>
+      ) : null}
+
+      {ordered.length > 0 ? (
+        <div
+          style={{
+            margin: "0 0 12px 0",
+            border: "1px solid #c7d2fe",
+            background: "linear-gradient(90deg, #eef2ff, #ffffff)",
+            borderRadius: 18,
+            padding: "12px 14px",
+          }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 950, color: "#3730a3" }}>
+            🧭 Live AI deal operating layer
+          </div>
+
+          <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <span style={{ fontSize: 12, fontWeight: 900, color: "#475569" }}>
+                Deal health: {liveDealHealthLabel}
+              </span>
+              <span style={{ fontSize: 12, fontWeight: 950, color: "#3730a3" }}>
+                {liveDealHealth}%
+              </span>
+            </div>
+
+            <div
+              style={{
+                height: 9,
+                borderRadius: 999,
+                background: "#e0e7ff",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${liveDealHealth}%`,
+                  height: "100%",
+                  borderRadius: 999,
+                  background:
+                    liveDealHealth >= 80
+                      ? "#16a34a"
+                      : liveDealHealth >= 65
+                      ? "#2563eb"
+                      : liveDealHealth >= 45
+                      ? "#f59e0b"
+                      : "#dc2626",
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <span style={{ border: "1px solid #ddd6fe", background: "#fff", borderRadius: 999, padding: "5px 9px", fontSize: 11, fontWeight: 900 }}>
+                🌡 Temperature: {aiDealScore.dealTemperature || aiVendorAlert.dealTemperature || "cold"}
+              </span>
+              <span style={{ border: "1px solid #ddd6fe", background: "#fff", borderRadius: 999, padding: "5px 9px", fontSize: 11, fontWeight: 900 }}>
+                ⚠ Lead risk: {liveDealRiskLabel}
+              </span>
+              <span style={{ border: "1px solid #ddd6fe", background: "#fff", borderRadius: 999, padding: "5px 9px", fontSize: 11, fontWeight: 900 }}>
+                ⏱ Follow-up: {aiDealStage?.followUpTiming || "soon"}
+              </span>
+              <span style={{ border: "1px solid #ddd6fe", background: "#fff", borderRadius: 999, padding: "5px 9px", fontSize: 11, fontWeight: 900 }}>
+                📈 Momentum: {aiDealStage?.dealMomentum || "medium"}
+              </span>
+            </div>
+
+            {(aiDealScore.nextBestAction || aiDealStage?.nextTimelineAction) ? (
+              <div style={{ fontSize: 12, fontWeight: 800, color: "#475569" }}>
+                Next action: {aiDealScore.nextBestAction || aiDealStage?.nextTimelineAction}
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}
