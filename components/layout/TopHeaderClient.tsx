@@ -13,7 +13,7 @@ const MAIN_NAV: NavItem[] = [
   { label: "Materials", href: "/materials", match: "/materials" },
   { label: "Services", href: "/services", match: "/services" },
   { label: "Rentals", href: "/rentals", match: "/rentals" },
-  { label: "Blog / News", href: "/blog", match: "/blog" },
+  { label: "Blog/News", href: "/blog", match: "/blog" },
 ];
 
 type SearchScope = "property" | "materials" | "services" | "rentals" | "blog";
@@ -147,7 +147,7 @@ export default function TopHeaderClient() {
             className="topSearchInput"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search city, locality, service, material, equipment…"
+            placeholder="Search property, materials, services..."
             onKeyDown={(e) => {
               if (e.key === "Enter") submitSearch();
             }}
@@ -315,6 +315,9 @@ export default function TopHeaderClient() {
               <Link className="topBtn topBtnGhost" href="/dashboard" title={email ?? ""}>
                 Dashboard
               </Link>
+              <Link className="topBtn topBtnGhost" href="/support/my">
+                Support
+              </Link>
               <button className="topBtn topBtnGhost" type="button" onClick={doLogout}>
                 Logout
               </button>
@@ -380,6 +383,9 @@ export default function TopHeaderClient() {
                 <Link className="topMobileLink" href="/dashboard">
                   Dashboard
                 </Link>
+                <Link className="topMobileLink" href="/support/my">
+                  Support
+                </Link>
                 <Link className="topMobileLink" href="/login">
                   Login
                 </Link>
@@ -398,6 +404,9 @@ export default function TopHeaderClient() {
             </Link>
             <Link className="topSubLink" href="/dashboard/vendor/enquiries">
               Vendor Inbox
+            </Link>
+            <Link className="topSubLink" href="/support/my">
+              Support
             </Link>
           </div>
         </div>

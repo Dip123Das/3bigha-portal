@@ -201,6 +201,13 @@ export default async function AdminDashboardPage() {
       badges: ["price today", "pending → verified/rejected"],
     },
     {
+      title: "Admin · Support Desk",
+      desc: "View user complaints, written support tickets, roles, priorities and issue status.",
+      href: "/admin/dashboard/support",
+      show: isMaster(role),
+      badges: ["support tickets", "written issues", "open → resolved"],
+    },
+    {
       title: "Admin · Vendor Control",
       desc: "Control vendor boost, ranking power, and marketplace visibility.",
       href: "/admin/dashboard/vendor-control",
