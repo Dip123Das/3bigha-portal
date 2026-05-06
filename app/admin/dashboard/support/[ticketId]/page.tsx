@@ -39,6 +39,14 @@ type SupportMessage = {
   created_at: string;
 };
 
+type AiTicketSummary = {
+  issue_summary: string;
+  likely_category: string;
+  urgency: string;
+  risk_flag: string;
+  suggested_next_action: string;
+};
+
 function fmtDate(value: string | null) {
   if (!value) return "—";
   try {
@@ -74,6 +82,8 @@ export default function AdminSupportTicketThreadPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [aiReplyLoading, setAiReplyLoading] = useState(false);
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
+  const [aiSummary, setAiSummary] = useState<AiTicketSummary | null>(null);
   const [ticket, setTicket] = useState<SupportTicket | null>(null);
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [replyText, setReplyText] = useState("");
@@ -120,6 +130,43 @@ export default function AdminSupportTicketThreadPage() {
       setError("Failed to load support ticket.");
     } finally {
       setLoading(false);
+    }
+  }
+
+    async function generateTicketSummaryWithAi() {
+    setError(null);
+
+    if (!ticket) {
+      setError("Ticket details are not loaded yet.");
+      return;
+    }
+
+    setAiSummaryLoading(true);
+
+    try {
+      const res = await fetch("/api/ai/support-ticket-summary", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ticket,
+          messages,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json?.ok) {
+        setError(json?.error || "AI could not generate ticket summary.");
+        return;
+      }
+
+      setAiSummary(json.summary || null);
+    } catch {
+      setError("AI ticket summary failed.");
+    } finally {
+      setAiSummaryLoading(false);
     }
   }
 
@@ -369,6 +416,103 @@ export default function AdminSupportTicketThreadPage() {
                   <span>Updated: {fmtDate(ticket.updated_at)}</span>
                   <span>Resolved: {fmtDate(ticket.resolved_at)}</span>
                 </div>
+              </CardBody>
+            </Card>
+
+            <Card style={{ marginTop: 14 }}>
+              <CardBody>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 18, fontWeight: 950 }}>
+                      🧠 AI Ticket Summary
+                    </div>
+                    <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
+                      Generate a compact support intelligence summary for admin review.
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={generateTicketSummaryWithAi}
+                    disabled={aiSummaryLoading}
+                    style={{
+                      background: "#0f172a",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 12,
+                      padding: "10px 14px",
+                      fontWeight: 950,
+                      cursor: aiSummaryLoading ? "default" : "pointer",
+                      opacity: aiSummaryLoading ? 0.7 : 1,
+                    }}
+                  >
+                    {aiSummaryLoading ? "Generating..." : "Generate AI Summary"}
+                  </button>
+                </div>
+
+                {aiSummary ? (
+                  <div
+                    style={{
+                      marginTop: 14,
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                      gap: 10,
+                    }}
+                  >
+                    <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 950, color: "#64748b" }}>
+                        Issue Summary
+                      </div>
+                      <div style={{ marginTop: 5, fontSize: 13, fontWeight: 850 }}>
+                        {aiSummary.issue_summary}
+                      </div>
+                    </div>
+
+                    <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 950, color: "#64748b" }}>
+                        Category
+                      </div>
+                      <div style={{ marginTop: 5, fontSize: 13, fontWeight: 850 }}>
+                        {titleCase(aiSummary.likely_category)}
+                      </div>
+                    </div>
+
+                    <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 950, color: "#64748b" }}>
+                        Urgency
+                      </div>
+                      <div style={{ marginTop: 5, fontSize: 13, fontWeight: 850 }}>
+                        {titleCase(aiSummary.urgency)}
+                      </div>
+                    </div>
+
+                    <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 950, color: "#64748b" }}>
+                        Risk Flag
+                      </div>
+                      <div style={{ marginTop: 5, fontSize: 13, fontWeight: 850 }}>
+                        {titleCase(aiSummary.risk_flag)}
+                      </div>
+                    </div>
+
+                    <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 950, color: "#64748b" }}>
+                        Suggested Next Action
+                      </div>
+                      <div style={{ marginTop: 5, fontSize: 13, fontWeight: 850 }}>
+                        {aiSummary.suggested_next_action}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </CardBody>
             </Card>
 
