@@ -14,6 +14,13 @@ type DealStageResponse = {
   reason: string;
   ctaLabel: string;
   ctaMessage: string;
+  dealMomentum?: "low" | "medium" | "high";
+  followUpTiming?: "now" | "soon" | "later";
+  staleLeadRisk?: "low" | "medium" | "high";
+  buyerCoolingOff?: boolean;
+  vendorResponseNeeded?: boolean;
+  timelineScore?: number;
+  nextTimelineAction?: string;
 };
 
 function extractText(payload: any): string {
@@ -36,6 +43,88 @@ function fallbackDealStage(): DealStageResponse {
     ctaLabel: "Ask Final Details",
     ctaMessage:
       "Please confirm final price, quantity, delivery location, delivery time and bill/document availability.",
+    dealMomentum: "medium",
+    followUpTiming: "soon",
+    staleLeadRisk: "medium",
+    buyerCoolingOff: false,
+    vendorResponseNeeded: true,
+    timelineScore: 50,
+    nextTimelineAction:
+      "Move the conversation toward price, quantity, delivery and document confirmation.",
+  };
+}
+
+function detectTimelineSignals(messages: DealStageMessage[]) {
+  const text = messages
+    .map((m) => `${m.role || "user"}: ${m.body || ""}`)
+    .join("\n")
+    .toLowerCase();
+
+  const messageCount = messages.length;
+
+  const hesitation =
+    text.includes("later") ||
+    text.includes("thinking") ||
+    text.includes("not sure") ||
+    text.includes("costly") ||
+    text.includes("too high") ||
+    text.includes("compare") ||
+    text.includes("discount");
+
+  const urgency =
+    text.includes("urgent") ||
+    text.includes("today") ||
+    text.includes("tomorrow") ||
+    text.includes("fast") ||
+    text.includes("immediate") ||
+    text.includes("asap");
+
+  const closing =
+    text.includes("confirm") ||
+    text.includes("confirmed") ||
+    text.includes("final") ||
+    text.includes("done") ||
+    text.includes("proceed") ||
+    text.includes("book") ||
+    text.includes("bill") ||
+    text.includes("invoice");
+
+  let dealMomentum: "low" | "medium" | "high" = "low";
+  if (closing || urgency) dealMomentum = "high";
+  else if (messageCount >= 3 || hesitation) dealMomentum = "medium";
+
+  let followUpTiming: "now" | "soon" | "later" = "later";
+  if (urgency || closing || hesitation) followUpTiming = "now";
+  else if (messageCount >= 3) followUpTiming = "soon";
+
+  let staleLeadRisk: "low" | "medium" | "high" = "medium";
+  if (hesitation && !closing) staleLeadRisk = "high";
+  if (closing || urgency) staleLeadRisk = "low";
+
+  const timelineScore = Math.max(
+    20,
+    Math.min(
+      95,
+      35 +
+        (messageCount >= 3 ? 10 : 0) +
+        (messageCount >= 6 ? 10 : 0) +
+        (urgency ? 18 : 0) +
+        (closing ? 22 : 0) -
+        (hesitation ? 10 : 0)
+    )
+  );
+
+  return {
+    dealMomentum,
+    followUpTiming,
+    staleLeadRisk,
+    buyerCoolingOff: hesitation && !closing,
+    vendorResponseNeeded: urgency || hesitation || closing,
+    timelineScore,
+    nextTimelineAction:
+      followUpTiming === "now"
+        ? "Send a clear follow-up now with final price, delivery, bill and confirmation details."
+        : "Keep the deal moving by asking for the next missing confirmation detail.",
   };
 }
 
@@ -81,6 +170,8 @@ function heuristicDealStage(messages: DealStageMessage[]): DealStageResponse {
     text.includes("payment") ||
     text.includes("advance");
 
+  const timeline = detectTimelineSignals(messages);
+
   if (hasPrice && hasQuantity && hasDelivery && hasConfirmation && hasTrust) {
     return {
       stage: "ready_to_close",
@@ -90,6 +181,14 @@ function heuristicDealStage(messages: DealStageMessage[]): DealStageResponse {
       ctaLabel: "Confirm Deal",
       ctaMessage:
         "Please confirm final price, quantity, delivery address, delivery time and bill details before payment.",
+      dealMomentum: "high",
+      followUpTiming: "now",
+      staleLeadRisk: "low",
+      buyerCoolingOff: timeline.buyerCoolingOff,
+      vendorResponseNeeded: true,
+      timelineScore: Math.max(90, timeline.timelineScore),
+      nextTimelineAction:
+        "Close safely by confirming final terms before any payment.",
     };
   }
 
@@ -102,6 +201,14 @@ function heuristicDealStage(messages: DealStageMessage[]): DealStageResponse {
       ctaLabel: "Ask Missing Details",
       ctaMessage:
         "Please confirm quantity, delivery address and bill details before we proceed.",
+      dealMomentum: timeline.dealMomentum,
+      followUpTiming: "now",
+      staleLeadRisk: timeline.staleLeadRisk,
+      buyerCoolingOff: timeline.buyerCoolingOff,
+      vendorResponseNeeded: true,
+      timelineScore: Math.max(78, timeline.timelineScore),
+      nextTimelineAction:
+        "Ask missing quantity, address and bill details before the buyer cools off.",
     };
   }
 
@@ -114,6 +221,14 @@ function heuristicDealStage(messages: DealStageMessage[]): DealStageResponse {
       ctaLabel: "Ask Missing Details",
       ctaMessage:
         "Please confirm final price, quantity, delivery address and bill details before we proceed.",
+      dealMomentum: timeline.dealMomentum,
+      followUpTiming: "now",
+      staleLeadRisk: timeline.staleLeadRisk,
+      buyerCoolingOff: timeline.buyerCoolingOff,
+      vendorResponseNeeded: true,
+      timelineScore: Math.max(74, timeline.timelineScore),
+      nextTimelineAction:
+        "Recover the lead by confirming price, quantity, address and bill details quickly.",
     };
   }
 
@@ -126,6 +241,14 @@ function heuristicDealStage(messages: DealStageMessage[]): DealStageResponse {
       ctaLabel: "Ask Delivery Time",
       ctaMessage:
         "Please confirm delivery date, delivery time and availability before we proceed.",
+      dealMomentum: timeline.dealMomentum,
+      followUpTiming: "now",
+      staleLeadRisk: timeline.staleLeadRisk,
+      buyerCoolingOff: timeline.buyerCoolingOff,
+      vendorResponseNeeded: true,
+      timelineScore: Math.max(72, timeline.timelineScore),
+      nextTimelineAction:
+        "Ask about delivery time and availability to keep the deal moving.",
     };
   }
 
@@ -138,6 +261,14 @@ function heuristicDealStage(messages: DealStageMessage[]): DealStageResponse {
       ctaLabel: "Ask Final Details",
       ctaMessage:
         "Please confirm final price, quantity, delivery location and delivery time.",
+      dealMomentum: timeline.dealMomentum,
+      followUpTiming: "now",
+      staleLeadRisk: timeline.staleLeadRisk,
+      buyerCoolingOff: timeline.buyerCoolingOff,
+      vendorResponseNeeded: true,
+      timelineScore: Math.max(72, timeline.timelineScore),
+      nextTimelineAction:
+        "Ask for final details to keep the deal moving.",
     };
   }
 
@@ -162,6 +293,39 @@ function normalizeDealStage(
     reason: String(row.reason || heuristic.reason).slice(0, 220),
     ctaLabel: String(row.ctaLabel || heuristic.ctaLabel).slice(0, 40),
     ctaMessage: String(row.ctaMessage || heuristic.ctaMessage).slice(0, 220),
+    dealMomentum:
+      row.dealMomentum === "low" ||
+      row.dealMomentum === "medium" ||
+      row.dealMomentum === "high"
+        ? row.dealMomentum
+        : heuristic.dealMomentum || "medium",
+    followUpTiming:
+      row.followUpTiming === "now" ||
+      row.followUpTiming === "soon" ||
+      row.followUpTiming === "later"
+        ? row.followUpTiming
+        : heuristic.followUpTiming || "soon",
+    staleLeadRisk:
+      row.staleLeadRisk === "low" ||
+      row.staleLeadRisk === "medium" ||
+      row.staleLeadRisk === "high"
+        ? row.staleLeadRisk
+        : heuristic.staleLeadRisk || "medium",
+    buyerCoolingOff: Boolean(
+      row.buyerCoolingOff ?? heuristic.buyerCoolingOff ?? false
+    ),
+    vendorResponseNeeded: Boolean(
+      row.vendorResponseNeeded ?? heuristic.vendorResponseNeeded ?? true
+    ),
+    timelineScore: Math.max(
+      0,
+      Math.min(100, Number(row.timelineScore || heuristic.timelineScore || 50))
+    ),
+    nextTimelineAction: String(
+      row.nextTimelineAction ||
+        heuristic.nextTimelineAction ||
+        "Move the deal forward with the next missing confirmation detail."
+    ).slice(0, 220),
   };
 }
 
@@ -222,7 +386,14 @@ Return only valid JSON with this exact shape:
   "confidence": 0.82,
   "reason": "Short explanation under 180 characters.",
   "ctaLabel": "Ask Missing Details",
-  "ctaMessage": "Short message the user can send next."
+  "ctaMessage": "Short message the user can send next.",
+  "dealMomentum": "low | medium | high",
+  "followUpTiming": "now | soon | later",
+  "staleLeadRisk": "low | medium | high",
+  "buyerCoolingOff": false,
+  "vendorResponseNeeded": true,
+  "timelineScore": 75,
+  "nextTimelineAction": "Short timeline action."
 }
 
 Rules:
@@ -232,6 +403,9 @@ Rules:
 - Do not assume payment is completed.
 - ctaMessage must help close the deal safely.
 - Keep ctaMessage under 180 characters.
+- Detect deal momentum, stale lead risk, buyer cooling-off and follow-up timing.
+- timelineScore must be 0 to 100.
+- nextTimelineAction must help move the conversation toward safe closing.
 
 Chat:
 ${context}
