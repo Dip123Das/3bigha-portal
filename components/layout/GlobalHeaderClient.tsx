@@ -195,7 +195,7 @@ export default function GlobalHeaderClient() {
         <div className="brandPro">
           <Link href="/" className="brandLink">
             <div className="brandName">3Bigha.com</div>
-            <div className="brandTagline">Real Estate &amp; Construction Ecosystem</div>
+            <div className="brandTagline">Real Estate Platform</div>
           </Link>
         </div>
 
@@ -216,6 +216,10 @@ export default function GlobalHeaderClient() {
           <Link className="topNavLink" data-match="/blog" href="/blog">
             Blog
           </Link>
+
+          <Link className="topNavLink" data-match="/support" href="/support/my">
+            Support
+          </Link>
         </nav>
 
         {/* Smart Search */}
@@ -230,14 +234,14 @@ export default function GlobalHeaderClient() {
             <option value="materials">Materials</option>
             <option value="services">Services</option>
             <option value="rentals">Rentals</option>
-            <option value="blog">Blog / News</option>
+            <option value="blog">Blog</option>
           </select>
 
           <input
             className="smartInput"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search property, materials, services..."
+            placeholder="Search..."
             aria-label="Search text"
           />
 
