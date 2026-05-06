@@ -214,7 +214,7 @@ export default function GlobalHeaderClient() {
             Rentals
           </Link>
           <Link className="topNavLink" data-match="/blog" href="/blog">
-            Blog / News
+            Blog
           </Link>
         </nav>
 
@@ -237,7 +237,7 @@ export default function GlobalHeaderClient() {
             className="smartInput"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search listings, materials, services, rentals, posts…"
+            placeholder="Search property, materials, services..."
             aria-label="Search text"
           />
 
@@ -307,6 +307,10 @@ export default function GlobalHeaderClient() {
             Dashboard
           </Link>
 
+          <Link className="btnGhost" href="/support/my">
+            Support
+          </Link>
+
           {/* This will become your mega “Post / List” menu later */}
           <Link className="btnPrimary" href="/dashboard">
             Post / List
@@ -329,6 +333,9 @@ export default function GlobalHeaderClient() {
             </Link>
             <Link className="subLink" href="/dashboard/vendor/enquiries">
               Vendor Inbox
+            </Link>
+            <Link className="subLink" href="/support/my">
+              Support
             </Link>
           </div>
         </div>
