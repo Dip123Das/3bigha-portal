@@ -117,7 +117,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const allowedStatus = ["open", "in_review", "resolved", "rejected"];
+    const allowedStatus = [
+      "open",
+      "in_review",
+      "waiting_user",
+      "escalated",
+      "resolved",
+      "closed",
+    ];
+
     const nextStatus = isAdmin && allowedStatus.includes(status) ? status : ticket.status;
 
     const updatePayload: any = {
@@ -136,7 +144,7 @@ export async function POST(req: Request) {
       if (nextStatus !== "resolved") {
         updatePayload.resolved_at = null;
       }
-    } else if (ticket.status === "resolved" || ticket.status === "rejected") {
+    } else if (ticket.status === "resolved" || ticket.status === "closed") {
       updatePayload.status = "open";
       updatePayload.resolved_at = null;
     }

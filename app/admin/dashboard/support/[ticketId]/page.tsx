@@ -57,8 +57,10 @@ function titleCase(value: string) {
 function statusColor(status: string) {
   const s = String(status || "").toLowerCase();
   if (s === "resolved") return "#059669";
+  if (s === "closed") return "#64748b";
   if (s === "in_review") return "#2563eb";
-  if (s === "rejected") return "#dc2626";
+  if (s === "waiting_user") return "#7c3aed";
+  if (s === "escalated") return "#dc2626";
   return "#f59e0b";
 }
 
@@ -428,8 +430,10 @@ export default function AdminSupportTicketThreadPage() {
                   >
                     <option value="open">Open</option>
                     <option value="in_review">In Review</option>
+                    <option value="waiting_user">Waiting for User</option>
+                    <option value="escalated">Escalated</option>
                     <option value="resolved">Resolved</option>
-                    <option value="rejected">Rejected</option>
+                    <option value="closed">Closed</option>
                   </select>
                 </label>
 

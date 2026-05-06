@@ -67,6 +67,7 @@ export default function SupportTicketThreadPage() {
 
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [aiReplyLoading, setAiReplyLoading] = useState(false);
   const [ticket, setTicket] = useState<SupportTicket | null>(null);
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [replyText, setReplyText] = useState("");
@@ -106,6 +107,52 @@ export default function SupportTicketThreadPage() {
       setError("Failed to load support ticket.");
     } finally {
       setLoading(false);
+    }
+  }
+
+    async function improveReplyWithAi() {
+    setError(null);
+
+    if (!ticket) {
+      setError("Ticket details are not loaded yet.");
+      return;
+    }
+
+    setAiReplyLoading(true);
+
+    try {
+      const res = await fetch("/api/ai/support-reply-suggestion", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ticket,
+          messages: [
+            ...messages,
+            replyText.trim()
+              ? {
+                  sender_role: "user",
+                  message_text: replyText.trim(),
+                  is_admin_message: false,
+                }
+              : null,
+          ].filter(Boolean),
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json?.ok) {
+        setError(json?.error || "AI could not improve the reply.");
+        return;
+      }
+
+      setReplyText(String(json.reply || ""));
+    } catch {
+      setError("AI reply improvement failed.");
+    } finally {
+      setAiReplyLoading(false);
     }
   }
 
@@ -378,6 +425,25 @@ export default function SupportTicketThreadPage() {
                 >
                   Keep all support communication written. No phone call is required.
                 </div>
+
+                <button
+                  type="button"
+                  onClick={improveReplyWithAi}
+                  disabled={aiReplyLoading}
+                  style={{
+                    marginTop: 10,
+                    background: "#7c3aed",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 12,
+                    padding: "10px 14px",
+                    fontWeight: 950,
+                    cursor: aiReplyLoading ? "default" : "pointer",
+                    opacity: aiReplyLoading ? 0.7 : 1,
+                  }}
+                >
+                  {aiReplyLoading ? "Improving..." : "✨ Improve Reply with AI"}
+                </button>
 
                 <textarea
                   value={replyText}
