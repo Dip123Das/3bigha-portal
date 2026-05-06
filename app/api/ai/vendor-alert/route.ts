@@ -48,6 +48,12 @@ type AlertResponse = {
   upgradeHint: string;
   actionLabel: string;
   actionMessage: string;
+  hesitationDetected?: boolean;
+  urgencyDetected?: boolean;
+  leadLossRisk?: "low" | "medium" | "high";
+  dealTemperature?: "cold" | "warm" | "hot" | "closing";
+  followUpNeeded?: boolean;
+  vendorNextAction?: string;
 };
 
 function fallbackAlert(): AlertResponse {
@@ -69,6 +75,13 @@ function fallbackAlert(): AlertResponse {
     actionLabel: "Ask Final Details",
     actionMessage:
       "Please confirm final price, quantity, delivery location, delivery time and bill/document availability.",
+    hesitationDetected: false,
+    urgencyDetected: false,
+    leadLossRisk: "medium",
+    dealTemperature: "cold",
+    followUpNeeded: false,
+    vendorNextAction:
+      "Reply with price, availability, delivery timeline and bill/document details.",
   };
 }
 
@@ -81,6 +94,61 @@ function extractText(payload: any): string {
     ?.filter(Boolean);
 
   return parts?.join("\n") || "";
+}
+
+function detectAlertSignals(messages: AlertMessage[]) {
+  const text = messages
+    .map((m) => `${m.role || "user"}: ${m.body || ""}`)
+    .join("\n")
+    .toLowerCase();
+
+  const hesitationDetected =
+    text.includes("later") ||
+    text.includes("costly") ||
+    text.includes("too high") ||
+    text.includes("high price") ||
+    text.includes("discount") ||
+    text.includes("compare") ||
+    text.includes("not sure") ||
+    text.includes("thinking");
+
+  const urgencyDetected =
+    text.includes("urgent") ||
+    text.includes("today") ||
+    text.includes("tomorrow") ||
+    text.includes("immediate") ||
+    text.includes("asap") ||
+    text.includes("fast");
+
+  const closingDetected =
+    text.includes("confirm") ||
+    text.includes("confirmed") ||
+    text.includes("final") ||
+    text.includes("done") ||
+    text.includes("proceed") ||
+    text.includes("book") ||
+    text.includes("invoice") ||
+    text.includes("bill");
+
+  let dealTemperature: "cold" | "warm" | "hot" | "closing" = "cold";
+
+  if (closingDetected && urgencyDetected) dealTemperature = "closing";
+  else if (closingDetected) dealTemperature = "hot";
+  else if (urgencyDetected || hesitationDetected) dealTemperature = "warm";
+
+  let leadLossRisk: "low" | "medium" | "high" = "medium";
+
+  if (hesitationDetected && !closingDetected) leadLossRisk = "high";
+  if (closingDetected && !hesitationDetected) leadLossRisk = "low";
+
+  return {
+    hesitationDetected,
+    urgencyDetected,
+    closingDetected,
+    dealTemperature,
+    leadLossRisk,
+    followUpNeeded: hesitationDetected || urgencyDetected || closingDetected,
+  };
 }
 
 function heuristicAlert(messages: AlertMessage[]): AlertResponse {
@@ -123,6 +191,8 @@ function heuristicAlert(messages: AlertMessage[]): AlertResponse {
     text.includes("advance") ||
     text.includes("bill");
 
+  const signals = detectAlertSignals(messages);
+
   if (hasDelivery && hasConfirmation && (!hasPrice || !hasQuantity)) {
     return {
       alert: true,
@@ -142,6 +212,13 @@ function heuristicAlert(messages: AlertMessage[]): AlertResponse {
       actionLabel: "Ask Missing Details",
       actionMessage:
         "Please confirm final price, quantity, delivery address, delivery time and bill details before we proceed.",
+      hesitationDetected: signals.hesitationDetected,
+      urgencyDetected: signals.urgencyDetected,
+      leadLossRisk: signals.leadLossRisk,
+      dealTemperature: signals.dealTemperature,
+      followUpNeeded: true,
+      vendorNextAction:
+        "Send final price, quantity, delivery timeline and bill details immediately.",
     };
   }
 
@@ -164,6 +241,13 @@ function heuristicAlert(messages: AlertMessage[]): AlertResponse {
       actionLabel: "Send Closing Message",
       actionMessage:
         "Please confirm final price, quantity, delivery address, delivery time and bill details so we can proceed safely.",
+      hesitationDetected: signals.hesitationDetected,
+      urgencyDetected: signals.urgencyDetected,
+      leadLossRisk: "low",
+      dealTemperature: "closing",
+      followUpNeeded: true,
+      vendorNextAction:
+        "Respond now with final confirmation and safe closing details.",
     };
   }
 
@@ -186,6 +270,13 @@ function heuristicAlert(messages: AlertMessage[]): AlertResponse {
       actionLabel: "Ask Final Details",
       actionMessage:
         "Please confirm final price, quantity, delivery location and delivery timeline.",
+      hesitationDetected: signals.hesitationDetected,
+      urgencyDetected: signals.urgencyDetected,
+      leadLossRisk: signals.leadLossRisk,
+      dealTemperature: signals.dealTemperature,
+      followUpNeeded: signals.followUpNeeded,
+      vendorNextAction:
+        "Reply quickly with clear final terms before the buyer loses interest.",
     };
   }
 
@@ -349,6 +440,33 @@ function normalizeAlert(value: unknown, fallback: AlertResponse): AlertResponse 
     upgradeHint: String(row.upgradeHint || fallback.upgradeHint).slice(0, 220),
     actionLabel: String(row.actionLabel || fallback.actionLabel).slice(0, 50),
     actionMessage: String(row.actionMessage || fallback.actionMessage).slice(0, 220),
+    hesitationDetected: Boolean(
+      row.hesitationDetected ?? fallback.hesitationDetected ?? false
+    ),
+    urgencyDetected: Boolean(
+      row.urgencyDetected ?? fallback.urgencyDetected ?? false
+    ),
+    leadLossRisk:
+      row.leadLossRisk === "low" ||
+      row.leadLossRisk === "medium" ||
+      row.leadLossRisk === "high"
+        ? row.leadLossRisk
+        : fallback.leadLossRisk || "medium",
+    dealTemperature:
+      row.dealTemperature === "cold" ||
+      row.dealTemperature === "warm" ||
+      row.dealTemperature === "hot" ||
+      row.dealTemperature === "closing"
+        ? row.dealTemperature
+        : fallback.dealTemperature || "cold",
+    followUpNeeded: Boolean(
+      row.followUpNeeded ?? fallback.followUpNeeded ?? false
+    ),
+    vendorNextAction: String(
+      row.vendorNextAction ||
+        fallback.vendorNextAction ||
+        "Reply quickly with final price, availability, delivery and bill details."
+    ).slice(0, 220),
   };
 }
 
@@ -410,7 +528,13 @@ export async function POST(req: Request) {
         "title": "High Intent Buyer Detected",
         "insight": "Short insight under 180 characters.",
         "actionLabel": "Send Closing Message",
-        "actionMessage": "Short safe next message."
+        "actionMessage": "Short safe next message.",
+        "hesitationDetected": false,
+        "urgencyDetected": true,
+        "leadLossRisk": "low",
+        "dealTemperature": "hot",
+        "followUpNeeded": true,
+        "vendorNextAction": "Short best action for vendor."
       }
 
       Audience rules:
@@ -422,6 +546,10 @@ export async function POST(req: Request) {
       - Do not assume payment is completed.
       - Do not mention AI.
       - Push confirmation of final terms before payment.
+      - Detect buyer hesitation, vendor urgency, lead loss risk and follow-up need.
+      - dealTemperature must be cold, warm, hot or closing.
+      - leadLossRisk must be low, medium or high.
+      - vendorNextAction must help the vendor prevent lead loss or close safely.
 
       Current side: ${side}
 
@@ -465,22 +593,21 @@ export async function POST(req: Request) {
           vendorUserId,
           alert,
         });
-
-        const whatsapp = await triggerPremiumWhatsAppAlert({
-          req,
-          monetization,
-        });
-
-        return NextResponse.json({
-          ok: true,
-          source: parsed ? "ai+heuristic" : "heuristic",
-          side,
-          monetization,
-          whatsapp,
-          ...alert,
-        });
       }
-      
+
+      const whatsapp = await triggerPremiumWhatsAppAlert({
+        req,
+        monetization,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        source: parsed ? "ai+heuristic" : "heuristic",
+        side,
+        monetization,
+        whatsapp,
+        ...alert,
+      });
   } catch {
     return NextResponse.json({
       ok: true,
