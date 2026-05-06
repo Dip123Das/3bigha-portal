@@ -102,34 +102,23 @@ export async function POST(req: Request) {
 
     if (mode === "admin") {
       prompt = `
-You are the official written support assistant of 3bigha.com.
+You are a STRICT message polishing assistant for 3bigha.com admin support replies.
 
-Your task:
-Generate a professional SUPPORT TEAM reply for the admin.
+Your ONLY job is to rewrite the ADMIN'S EXISTING DRAFT professionally WITHOUT changing its meaning.
 
-IMPORTANT:
-- Write as 3bigha Support Team.
-- Be polite and practical.
-- Support must remain written only.
-- Do not promise calls.
-- Do not invent fake resolutions.
-- Ask for missing details if needed.
-- Keep response professional and concise.
-- Return ONLY the reply text.
+VERY IMPORTANT RULES:
+- Do NOT create a new support answer.
+- Do NOT answer the complaint by yourself.
+- Do NOT invent resolutions.
+- Do NOT say the issue is fixed unless the admin draft says it is fixed.
+- Do NOT ask for missing details unless the admin draft asks for details.
+- Do NOT change the admin's intention.
+- ONLY polish grammar, tone, clarity and professionalism.
+- Keep the rewritten message close to the admin draft.
+- Keep support communication written only.
+- Return ONLY the rewritten message text.
 
-Ticket:
-Ticket No: ${ticket?.ticket_no || "not provided"}
-Category: ${ticket?.category || "general"}
-Priority: ${ticket?.priority || "normal"}
-Status: ${ticket?.status || "open"}
-
-Original complaint:
-${complaint}
-
-Conversation history:
-${history || "No previous replies."}
-
-Admin draft:
+Admin original draft:
 ${adminDraft}
 `;
     } else {
