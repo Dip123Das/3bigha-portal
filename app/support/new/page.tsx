@@ -9,6 +9,13 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { ActionButton } from "@/components/ui/ActionButton";
 
+type SupportGovernance = {
+  ai_issue_category: string;
+  ai_urgency: string;
+  ai_risk_flag: string;
+  escalation_level: number;
+};
+
 const categories = [
   { value: "general", label: "General Issue" },
   { value: "login", label: "Login / Account Issue" },
@@ -35,6 +42,7 @@ export default function NewSupportTicketPage() {
   const [priority, setPriority] = useState("normal");
   const [roughIssue, setRoughIssue] = useState("");
   const [draftIssue, setDraftIssue] = useState("");
+  const [governance, setGovernance] = useState<SupportGovernance | null>(null);
 
   const [userRole, setUserRole] = useState("user");
   const [userId, setUserId] = useState("");
@@ -111,6 +119,15 @@ export default function NewSupportTicketPage() {
       }
 
       setDraftIssue(String(json.draft || ""));
+
+      if (json.governance) {
+        setGovernance({
+          ai_issue_category: String(json.governance.ai_issue_category || category),
+          ai_urgency: String(json.governance.ai_urgency || priority),
+          ai_risk_flag: String(json.governance.ai_risk_flag || "none"),
+          escalation_level: Number(json.governance.escalation_level || 0),
+        });
+      }
     } catch {
       setError("AI support drafting failed.");
     } finally {
@@ -156,6 +173,7 @@ export default function NewSupportTicketPage() {
           priority,
           originalText: roughIssue,
           aiDraftedText: finalText,
+          governance,
         }),
       });
 
@@ -370,6 +388,29 @@ export default function NewSupportTicketPage() {
                   }}
                 />
               </label>
+
+              {governance ? (
+                <div
+                  style={{
+                    border: "1px solid #e5e7eb",
+                    background: "#f8fafc",
+                    borderRadius: 14,
+                    padding: 12,
+                    fontSize: 13,
+                    color: "#334155",
+                    fontWeight: 850,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  <div style={{ fontWeight: 950, marginBottom: 6 }}>
+                    AI Support Classification
+                  </div>
+                  <div>Issue Type: {governance.ai_issue_category}</div>
+                  <div>Urgency: {governance.ai_urgency}</div>
+                  <div>Risk Flag: {governance.ai_risk_flag}</div>
+                  <div>Escalation Level: L{governance.escalation_level}</div>
+                </div>
+              ) : null}
 
               <button
                 type="button"

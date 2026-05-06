@@ -17,6 +17,61 @@ function getSupabaseAdmin() {
   });
 }
 
+function looksLikeWaitingForUser(messageText: string) {
+  const text = String(messageText || "").toLowerCase();
+
+  return [
+    "send screenshot",
+    "share screenshot",
+    "provide screenshot",
+    "please send",
+    "please share",
+    "kindly send",
+    "kindly share",
+    "provide details",
+    "share details",
+    "send details",
+    "confirm",
+    "please confirm",
+    "kindly confirm",
+    "upload",
+    "attach",
+    "reply with",
+  ].some((phrase) => text.includes(phrase));
+}
+
+function normalizeStatus(status: string, fallback: string) {
+  const allowedStatus = [
+    "open",
+    "in_review",
+    "waiting_user",
+    "escalated",
+    "resolved",
+    "closed",
+  ];
+
+  return allowedStatus.includes(status) ? status : fallback;
+}
+
+function shouldEscalateFromText(messageText: string) {
+  const text = String(messageText || "").toLowerCase();
+
+  return [
+    "fraud",
+    "scam",
+    "cheat",
+    "cheated",
+    "fake",
+    "police",
+    "court",
+    "lawyer",
+    "legal notice",
+    "money taken",
+    "payment not received",
+    "refund not received",
+  ].some((phrase) => text.includes(phrase));
+}
+
 export async function POST(req: Request) {
   try {
     const supabase = getSupabaseAdmin();
@@ -47,7 +102,7 @@ export async function POST(req: Request) {
 
     const ticketId = String(body?.ticketId || "").trim();
     const messageText = String(body?.messageText || "").trim();
-    const status = String(body?.status || "").trim();
+    const requestedStatus = String(body?.status || "").trim();
 
     if (!ticketId) {
       return NextResponse.json(
@@ -117,36 +172,90 @@ export async function POST(req: Request) {
       );
     }
 
-    const allowedStatus = [
-      "open",
-      "in_review",
-      "waiting_user",
-      "escalated",
-      "resolved",
-      "closed",
-    ];
-
-    const nextStatus = isAdmin && allowedStatus.includes(status) ? status : ticket.status;
-
     const updatePayload: any = {
       updated_at: new Date().toISOString(),
     };
 
+    const currentStatus = String(ticket.status || "open");
+
     if (isAdmin) {
+      let nextStatus = normalizeStatus(requestedStatus, currentStatus);
+
+      const isWaitingRequest = looksLikeWaitingForUser(messageText);
+
+      if (
+        isWaitingRequest &&
+        nextStatus !== "resolved" &&
+        nextStatus !== "closed" &&
+        nextStatus !== "escalated"
+      ) {
+        nextStatus = "waiting_user";
+      }
+
+      if (shouldEscalateFromText(messageText) && nextStatus !== "resolved") {
+        nextStatus = "escalated";
+        updatePayload.escalation_level = Math.max(
+          Number(ticket.escalation_level || 0),
+          2
+        );
+      }
+
       updatePayload.admin_reply = messageText;
       updatePayload.admin_id = user.id;
       updatePayload.status = nextStatus;
+      updatePayload.waiting_for_user = nextStatus === "waiting_user";
 
-      if (nextStatus === "resolved") {
+      if (nextStatus === "resolved" || nextStatus === "closed") {
         updatePayload.resolved_at = new Date().toISOString();
+        updatePayload.waiting_for_user = false;
       }
 
-      if (nextStatus !== "resolved") {
+      if (nextStatus !== "resolved" && nextStatus !== "closed") {
         updatePayload.resolved_at = null;
       }
-    } else if (ticket.status === "resolved" || ticket.status === "closed") {
-      updatePayload.status = "open";
-      updatePayload.resolved_at = null;
+    } else {
+      updatePayload.waiting_for_user = false;
+
+      if (
+        currentStatus === "waiting_user" ||
+        currentStatus === "resolved" ||
+        currentStatus === "closed"
+      ) {
+        updatePayload.status = "open";
+        updatePayload.resolved_at = null;
+      }
+
+      if (shouldEscalateFromText(messageText)) {
+        updatePayload.status = "escalated";
+        updatePayload.escalation_level = Math.max(
+          Number(ticket.escalation_level || 0),
+          2
+        );
+
+        const lower = String(messageText || "").toLowerCase();
+
+        if (
+          lower.includes("police") ||
+          lower.includes("court") ||
+          lower.includes("lawyer") ||
+          lower.includes("legal notice")
+        ) {
+          updatePayload.ai_risk_flag = "legal_risk";
+        } else if (
+          lower.includes("payment") ||
+          lower.includes("refund") ||
+          lower.includes("money")
+        ) {
+          updatePayload.ai_risk_flag = "payment_risk";
+        } else if (
+          lower.includes("fraud") ||
+          lower.includes("scam") ||
+          lower.includes("cheat") ||
+          lower.includes("fake")
+        ) {
+          updatePayload.ai_risk_flag = "fraud_risk";
+        }
+      }
     }
 
     const { data: updatedTicket, error: updateErr } = await supabase

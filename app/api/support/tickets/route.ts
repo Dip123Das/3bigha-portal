@@ -19,6 +19,32 @@ function getSupabaseAdmin() {
   });
 }
 
+function getSlaDeadline(priority: string) {
+  const p = String(priority || "normal").toLowerCase();
+  const now = new Date();
+
+  if (p === "urgent" || p === "critical" || p === "high") {
+    now.setHours(now.getHours() + 2);
+    return now.toISOString();
+  }
+
+  if (p === "low") {
+    now.setHours(now.getHours() + 24);
+    return now.toISOString();
+  }
+
+  now.setHours(now.getHours() + 12);
+  return now.toISOString();
+}
+
+function normalizeUrgency(priority: string) {
+  const p = String(priority || "normal").toLowerCase();
+  if (p === "urgent" || p === "critical") return "critical";
+  if (p === "high") return "high";
+  if (p === "low") return "low";
+  return "normal";
+}
+
 function makeTicketNo() {
   const d = new Date();
   const y = d.getFullYear();
@@ -165,6 +191,25 @@ export async function POST(req: Request) {
     const category = normalizeCategory(body?.category);
     const priority = normalizePriority(body?.priority);
 
+    const governance = body?.governance || {};
+
+    const aiIssueCategory = normalizeCategory(
+      governance?.ai_issue_category || category
+    );
+
+    const aiUrgency = normalizePriority(
+      governance?.ai_urgency || priority
+    );
+
+    const aiRiskFlag = String(governance?.ai_risk_flag || "none")
+      .toLowerCase()
+      .trim();
+
+    const escalationLevelRaw = Number(governance?.escalation_level ?? 0);
+    const escalationLevel = Number.isFinite(escalationLevelRaw)
+      ? Math.max(0, Math.min(3, Math.round(escalationLevelRaw)))
+      : 0;
+
     if (!originalText || originalText.length < 3) {
       return NextResponse.json(
         { ok: false, error: "Please write your issue before submitting." },
@@ -209,6 +254,15 @@ export async function POST(req: Request) {
           ai_drafted_text: aiDraftedText,
           status: "open",
           priority,
+          admin_reply: null,
+          resolved_at: null,
+          assigned_to: null,
+          escalation_level: escalationLevel,
+          sla_deadline: getSlaDeadline(aiUrgency || priority),
+          waiting_for_user: false,
+          ai_risk_flag: aiRiskFlag || "none",
+          ai_issue_category: aiIssueCategory || category || "general",
+          ai_urgency: normalizeUrgency(aiUrgency || priority),
         })
         .select("*")
         .single();
