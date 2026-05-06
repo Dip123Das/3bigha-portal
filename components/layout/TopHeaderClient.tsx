@@ -13,7 +13,8 @@ const MAIN_NAV: NavItem[] = [
   { label: "Materials", href: "/materials", match: "/materials" },
   { label: "Services", href: "/services", match: "/services" },
   { label: "Rentals", href: "/rentals", match: "/rentals" },
-  { label: "Blog/News", href: "/blog", match: "/blog" },
+  { label: "Blog", href: "/blog", match: "/blog" },
+  { label: "Support", href: "/support/my", match: "/support" },
 ];
 
 type SearchScope = "property" | "materials" | "services" | "rentals" | "blog";
@@ -147,7 +148,7 @@ export default function TopHeaderClient() {
             className="topSearchInput"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search property, materials, services..."
+            placeholder="Search..."
             onKeyDown={(e) => {
               if (e.key === "Enter") submitSearch();
             }}
