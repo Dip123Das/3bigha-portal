@@ -23,6 +23,13 @@ type SupportTicket = {
   status: string;
   priority: string;
   admin_reply: string | null;
+  assigned_to: string | null;
+  escalation_level: number | null;
+  sla_deadline: string | null;
+  waiting_for_user: boolean | null;
+  ai_risk_flag: string | null;
+  ai_issue_category: string | null;
+  ai_urgency: string | null;
   created_at: string;
   updated_at: string;
   resolved_at: string | null;
@@ -51,6 +58,38 @@ function statusColor(status: string) {
   if (s === "waiting_user") return "#7c3aed";
   if (s === "escalated") return "#dc2626";
   return "#f59e0b";
+}
+
+function slaLabel(deadline: string | null) {
+  if (!deadline) return "SLA not set";
+
+  const end = new Date(deadline).getTime();
+  const now = Date.now();
+
+  if (Number.isNaN(end)) return "SLA invalid";
+
+  const diff = end - now;
+
+  if (diff <= 0) return "SLA breached";
+
+  const hours = Math.ceil(diff / (1000 * 60 * 60));
+
+  if (hours < 24) return `SLA due in ${hours}h`;
+
+  return `SLA due in ${Math.ceil(hours / 24)}d`;
+}
+
+function slaColor(deadline: string | null) {
+  if (!deadline) return "#64748b";
+
+  const end = new Date(deadline).getTime();
+  const now = Date.now();
+
+  if (Number.isNaN(end)) return "#64748b";
+  if (end <= now) return "#dc2626";
+  if (end - now <= 1000 * 60 * 60 * 2) return "#f59e0b";
+
+  return "#059669";
 }
 
 export default function AdminSupportPage() {
@@ -194,6 +233,8 @@ export default function AdminSupportPage() {
           <Badge>Resolved: {rows.filter((r) => r.status === "resolved").length}</Badge>
           <Badge>Closed: {rows.filter((r) => r.status === "closed").length}</Badge>
           <Badge>Urgent: {rows.filter((r) => r.priority === "urgent").length}</Badge>
+          <Badge>SLA Breached: {rows.filter((r) => r.sla_deadline && new Date(r.sla_deadline).getTime() <= Date.now()).length}</Badge>
+          <Badge>Risk: {rows.filter((r) => r.ai_risk_flag && r.ai_risk_flag !== "none").length}</Badge>
         </div>
 
         {loading ? (
@@ -249,6 +290,11 @@ export default function AdminSupportPage() {
                         <Badge>Priority: {titleCase(ticket.priority)}</Badge>
                         <Badge>{ticket.user_display_id || ticket.user_role || "User"}</Badge>
                         <Badge>{ticket.user_email || "No email"}</Badge>
+                        <Badge>Escalation: L{ticket.escalation_level ?? 0}</Badge>
+                        <Badge>{slaLabel(ticket.sla_deadline)}</Badge>
+                        {ticket.ai_risk_flag && ticket.ai_risk_flag !== "none" ? (
+                          <Badge>Risk: {titleCase(ticket.ai_risk_flag)}</Badge>
+                        ) : null}
                       </div>
                     </div>
 
@@ -330,6 +376,92 @@ export default function AdminSupportPage() {
                       fontWeight: 850,
                     }}
                   >
+                                      <div
+                    style={{
+                      marginTop: 12,
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                      gap: 10,
+                    }}
+                  >
+                    <div
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 12,
+                        padding: 10,
+                        background: "#f8fafc",
+                      }}
+                    >
+                      <div style={{ fontSize: 11, fontWeight: 950, color: "#64748b" }}>
+                        SLA Status
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 5,
+                          fontSize: 13,
+                          fontWeight: 950,
+                          color: slaColor(ticket.sla_deadline),
+                        }}
+                      >
+                        {slaLabel(ticket.sla_deadline)}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 12,
+                        padding: 10,
+                        background: "#f8fafc",
+                      }}
+                    >
+                      <div style={{ fontSize: 11, fontWeight: 950, color: "#64748b" }}>
+                        AI Issue Category
+                      </div>
+                      <div style={{ marginTop: 5, fontSize: 13, fontWeight: 950 }}>
+                        {titleCase(ticket.ai_issue_category || ticket.category || "general")}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 12,
+                        padding: 10,
+                        background: "#f8fafc",
+                      }}
+                    >
+                      <div style={{ fontSize: 11, fontWeight: 950, color: "#64748b" }}>
+                        AI Urgency
+                      </div>
+                      <div style={{ marginTop: 5, fontSize: 13, fontWeight: 950 }}>
+                        {titleCase(ticket.ai_urgency || ticket.priority || "normal")}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 12,
+                        padding: 10,
+                        background: ticket.ai_risk_flag && ticket.ai_risk_flag !== "none" ? "#fef2f2" : "#f8fafc",
+                      }}
+                    >
+                      <div style={{ fontSize: 11, fontWeight: 950, color: "#64748b" }}>
+                        AI Risk Flag
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 5,
+                          fontSize: 13,
+                          fontWeight: 950,
+                          color: ticket.ai_risk_flag && ticket.ai_risk_flag !== "none" ? "#dc2626" : "#334155",
+                        }}
+                      >
+                        {titleCase(ticket.ai_risk_flag || "none")}
+                      </div>
+                    </div>
+                  </div>
                     <span>User ID: {ticket.user_id}</span>
                     <span>Created: {fmtDate(ticket.created_at)}</span>
                     <span>Updated: {fmtDate(ticket.updated_at)}</span>
