@@ -125,7 +125,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 Investment
               </ActiveLink>
               <ActiveLink className="topNavLink" href="/blog">
-                Blog / News
+                Blog
+              </ActiveLink>
+              <ActiveLink className="topNavLink" href="/support/my">
+                Support
               </ActiveLink>
             </nav>
 
@@ -133,7 +136,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <input
                 className="topSearchInput"
                 name="q"
-                placeholder="Search property, materials, services..."
+                placeholder="Search..."
               />
               <button className="topSearchButton" type="submit">
                 Search
@@ -304,7 +307,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     Investment
                   </ActiveLink>
                   <ActiveLink className="topMobileLink" href="/blog">
-                    Blog / News
+                    Blog
+                  </ActiveLink>
+                  <ActiveLink className="topMobileLink" href="/support/my">
+                    Support
                   </ActiveLink>
                   <ActiveLink className="topMobileLink" href="/search">
                     Search
@@ -504,6 +510,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   variant="subLink"
                   title="Open vendor inbox with unread chat count"
                 />
+
+                <Link className="topSubLink" href="/support/my">
+                  Support
+                </Link>
               </div>
             </Container>
           </div>
