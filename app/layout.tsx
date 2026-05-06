@@ -124,11 +124,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <ActiveLink className="topNavLink" href="/investment">
                 Investment
               </ActiveLink>
-              <ActiveLink className="topNavLink" href="/blog">
-                Blog
-              </ActiveLink>
               <ActiveLink className="topNavLink" href="/support/my">
                 Support
+              </ActiveLink>
+              <ActiveLink className="topNavLink" href="/blog">
+                Blog
               </ActiveLink>
             </nav>
 
@@ -325,13 +325,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <ActiveLink className="topMobileLink" href="/dashboard/buyer/rfqs">
                     My RFQs / Compare Quotes
                   </ActiveLink>
-                  <GlobalUnreadBadge
-                    className="topMobileLink"
-                    href="/dashboard/inbox-v2"
-                    label="Unified Inbox"
-                    variant="subLink"
-                    title="Open unified inbox with unread chat count"
-                  />
+
+                <GlobalUnreadBadge
+                  className="topSubLink"
+                  href="/dashboard/inbox"
+                  label="Unified Inbox"
+                  variant="subLink"
+                  title="Open unified inbox with unread chat count"
+                />
 
                   <GlobalNotificationBell
                     className="topMobileLink"
