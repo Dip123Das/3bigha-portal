@@ -19,6 +19,27 @@ const MAIN_NAV: NavItem[] = [
 
 type SearchScope = "property" | "materials" | "services" | "rentals" | "blog";
 
+type SupportAlertState = {
+  total: number;
+  open: number;
+  waiting: number;
+  escalated: number;
+  risk: number;
+  slaBreached: number;
+  adminMode: boolean;
+};
+
+type NotificationRow = {
+  id: string;
+  type: string;
+  priority: string;
+  title: string;
+  message: string;
+  action_url: string | null;
+  is_read: boolean;
+  created_at: string;
+};
+
 function scopeToHref(scope: SearchScope, q: string) {
   const query = q.trim();
   if (!query) {
@@ -54,6 +75,20 @@ export default function TopHeaderClient() {
   const [authLoading, setAuthLoading] = useState(true);
   const [isAuthed, setIsAuthed] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notificationRows, setNotificationRows] = useState<NotificationRow[]>([]);
+  const [notificationUnread, setNotificationUnread] = useState(0);
+  const [notificationUrgent, setNotificationUrgent] = useState(0);
+
+    const [supportAlerts, setSupportAlerts] = useState<SupportAlertState>({
+    total: 0,
+    open: 0,
+    waiting: 0,
+    escalated: 0,
+    risk: 0,
+    slaBreached: 0,
+    adminMode: false,
+  });
 
   useEffect(() => {
     let alive = true;
@@ -72,6 +107,8 @@ export default function TopHeaderClient() {
         setIsAuthed(!!s);
         setEmail(s?.user?.email ?? null);
         setAuthLoading(false);
+        loadSupportAlerts(s?.access_token || null);
+        loadNotifications(s?.access_token || null);
       } catch {
         if (!alive) return;
         setIsAuthed(false);
@@ -84,6 +121,8 @@ export default function TopHeaderClient() {
       setIsAuthed(!!session);
       setEmail(session?.user?.email ?? null);
       setAuthLoading(false);
+      loadSupportAlerts(session?.access_token || null);
+      loadNotifications(session?.access_token || null);
     });
 
     return () => {
@@ -91,6 +130,140 @@ export default function TopHeaderClient() {
       sub.subscription.unsubscribe();
     };
   }, [supabase]);
+
+    useEffect(() => {
+    if (!isAuthed) return;
+
+    const timer = window.setInterval(async () => {
+      const { data } = await supabase.auth.getSession();
+      await loadSupportAlerts(data.session?.access_token || null);
+      await loadNotifications(data.session?.access_token || null);
+    }, 30000);
+
+    return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthed, supabase]);
+
+    async function loadSupportAlerts(accessToken?: string | null) {
+    if (!accessToken) {
+      setSupportAlerts({
+        total: 0,
+        open: 0,
+        waiting: 0,
+        escalated: 0,
+        risk: 0,
+        slaBreached: 0,
+        adminMode: false,
+      });
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/support/tickets", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        cache: "no-store",
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json?.ok) return;
+
+      const rows = Array.isArray(json.rows) ? json.rows : [];
+      const now = Date.now();
+
+      setSupportAlerts({
+        total: rows.length,
+        open: rows.filter((r: any) => r.status === "open").length,
+        waiting: rows.filter((r: any) => r.status === "waiting_user").length,
+        escalated: rows.filter((r: any) => r.status === "escalated").length,
+        risk: rows.filter((r: any) => r.ai_risk_flag && r.ai_risk_flag !== "none").length,
+        slaBreached: rows.filter(
+          (r: any) => r.sla_deadline && new Date(r.sla_deadline).getTime() <= now
+        ).length,
+        adminMode: !!json.isAdmin,
+      });
+    } catch {
+      // Silent: header alerts should never break navigation.
+    }
+  }
+
+    async function loadNotifications(accessToken?: string | null) {
+    if (!accessToken) {
+      setNotificationRows([]);
+      setNotificationUnread(0);
+      setNotificationUrgent(0);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/notifications", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        cache: "no-store",
+      });
+
+      const json = await res.json();
+
+      if (!res.ok || !json?.ok) return;
+
+      setNotificationRows(Array.isArray(json.rows) ? json.rows : []);
+      setNotificationUnread(Number(json.unread || 0));
+      setNotificationUrgent(Number(json.urgent || 0));
+    } catch {
+      // Silent: notification dropdown should never break header.
+    }
+  }
+
+  async function markNotificationRead(notificationId: string, actionUrl?: string | null) {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+
+      if (token) {
+        await fetch("/api/notifications/read", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ notificationId }),
+        });
+
+        await loadNotifications(token);
+      }
+    } catch {
+      // Silent.
+    }
+
+    setNotificationOpen(false);
+
+    if (actionUrl) {
+      router.push(actionUrl);
+    }
+  }
+
+  async function markAllNotificationsRead() {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+
+      if (!token) return;
+
+      await fetch("/api/notifications/read-all", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      await loadNotifications(token);
+    } catch {
+      // Silent.
+    }
+  }
 
   async function doLogout() {
     try {
@@ -313,11 +486,208 @@ export default function TopHeaderClient() {
             </span>
           ) : isAuthed ? (
             <>
+              <div style={{ position: "relative" }}>
+                <button
+                  className="topBtn topBtnGhost"
+                  type="button"
+                  onClick={() => setNotificationOpen((v) => !v)}
+                  title={
+                    notificationUnread > 0
+                      ? `${notificationUnread} unread notifications`
+                      : "Notifications"
+                  }
+                  style={{
+                    position: "relative",
+                    border: notificationUrgent > 0 ? "1px solid #dc2626" : undefined,
+                  }}
+                >
+                  🔔
+                  {notificationUnread > 0 ? (
+                    <span
+                      style={{
+                        marginLeft: 6,
+                        minWidth: 18,
+                        height: 18,
+                        borderRadius: 999,
+                        background: notificationUrgent > 0 ? "#dc2626" : "#2563eb",
+                        color: "#fff",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 11,
+                        fontWeight: 950,
+                        padding: "0 6px",
+                      }}
+                    >
+                      {notificationUnread}
+                    </span>
+                  ) : null}
+                </button>
+
+                {notificationOpen ? (
+                  <div
+                    style={{
+                      position: "absolute",
+                      right: 0,
+                      top: "calc(100% + 8px)",
+                      width: 340,
+                      maxWidth: "88vw",
+                      background: "#fff",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: 16,
+                      boxShadow: "0 18px 45px rgba(15,23,42,0.18)",
+                      zIndex: 80,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: 12,
+                        borderBottom: "1px solid #e5e7eb",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: 10,
+                        alignItems: "center",
+                      }}
+                    >
+                      <div style={{ fontWeight: 950, color: "#0f172a" }}>
+                        Notifications
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={markAllNotificationsRead}
+                        style={{
+                          border: "none",
+                          background: "transparent",
+                          color: "#2563eb",
+                          fontWeight: 900,
+                          cursor: "pointer",
+                          fontSize: 12,
+                        }}
+                      >
+                        Mark all read
+                      </button>
+                    </div>
+
+                    <div style={{ maxHeight: 360, overflowY: "auto" }}>
+                      {notificationRows.length === 0 ? (
+                        <div style={{ padding: 14, color: "#64748b", fontWeight: 850 }}>
+                          No notifications yet.
+                        </div>
+                      ) : (
+                        notificationRows.slice(0, 10).map((n) => (
+                          <button
+                            key={n.id}
+                            type="button"
+                            onClick={() => markNotificationRead(n.id, n.action_url)}
+                            style={{
+                              width: "100%",
+                              textAlign: "left",
+                              border: "none",
+                              borderBottom: "1px solid #f1f5f9",
+                              background: n.is_read ? "#fff" : "#eff6ff",
+                              padding: 12,
+                              cursor: "pointer",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                gap: 8,
+                                alignItems: "flex-start",
+                              }}
+                            >
+                              <div style={{ fontSize: 13, fontWeight: 950, color: "#0f172a" }}>
+                                {n.title}
+                              </div>
+                              {!n.is_read ? (
+                                <span
+                                  style={{
+                                    borderRadius: 999,
+                                    padding: "2px 7px",
+                                    fontSize: 10,
+                                    fontWeight: 950,
+                                    color: "#fff",
+                                    background:
+                                      ["high", "urgent", "critical"].includes(String(n.priority))
+                                        ? "#dc2626"
+                                        : "#2563eb",
+                                  }}
+                                >
+                                  {String(n.priority || "new").toUpperCase()}
+                                </span>
+                              ) : null}
+                            </div>
+
+                            <div
+                              style={{
+                                marginTop: 5,
+                                fontSize: 12,
+                                color: "#475569",
+                                fontWeight: 800,
+                                lineHeight: 1.45,
+                              }}
+                            >
+                              {n.message}
+                            </div>
+
+                            <div
+                              style={{
+                                marginTop: 5,
+                                fontSize: 11,
+                                color: "#94a3b8",
+                                fontWeight: 800,
+                              }}
+                            >
+                              {new Date(n.created_at).toLocaleString()}
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
               <Link className="topBtn topBtnGhost" href="/dashboard" title={email ?? ""}>
                 Dashboard
               </Link>
-              <Link className="topBtn topBtnGhost" href="/support/my">
+              <Link
+                className="topBtn topBtnGhost"
+                href={supportAlerts.adminMode ? "/admin/dashboard/support" : "/support/my"}
+                title={
+                  supportAlerts.adminMode
+                    ? `Open: ${supportAlerts.open}, Escalated: ${supportAlerts.escalated}, Risk: ${supportAlerts.risk}`
+                    : `Support tickets: ${supportAlerts.total}`
+                }
+              >
                 Support
+                {(supportAlerts.adminMode
+                  ? supportAlerts.open + supportAlerts.waiting + supportAlerts.escalated + supportAlerts.risk + supportAlerts.slaBreached
+                  : supportAlerts.open + supportAlerts.waiting) > 0 ? (
+                  <span
+                    style={{
+                      marginLeft: 6,
+                      minWidth: 18,
+                      height: 18,
+                      borderRadius: 999,
+                      background: supportAlerts.escalated || supportAlerts.risk || supportAlerts.slaBreached ? "#dc2626" : "#2563eb",
+                      color: "#fff",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 11,
+                      fontWeight: 950,
+                      padding: "0 6px",
+                    }}
+                  >
+                    {supportAlerts.adminMode
+                      ? supportAlerts.open + supportAlerts.waiting + supportAlerts.escalated + supportAlerts.risk + supportAlerts.slaBreached
+                      : supportAlerts.open + supportAlerts.waiting}
+                  </span>
+                ) : null}
               </Link>
               <button className="topBtn topBtnGhost" type="button" onClick={doLogout}>
                 Logout
@@ -384,6 +754,20 @@ export default function TopHeaderClient() {
                 <Link className="topMobileLink" href="/dashboard">
                   Dashboard
                 </Link>
+                <button
+                  type="button"
+                  className="topMobileLink"
+                  onClick={() => setNotificationOpen((v) => !v)}
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    textAlign: "left",
+                    cursor: "pointer",
+                    font: "inherit",
+                  }}
+                >
+                  Notifications{notificationUnread > 0 ? ` (${notificationUnread})` : ""}
+                </button>
                 <Link className="topMobileLink" href="/support/my">
                   Support
                 </Link>
@@ -406,8 +790,18 @@ export default function TopHeaderClient() {
             <Link className="topSubLink" href="/dashboard/vendor/enquiries">
               Vendor Inbox
             </Link>
-            <Link className="topSubLink" href="/support/my">
+            <Link
+              className="topSubLink"
+              href={supportAlerts.adminMode ? "/admin/dashboard/support" : "/support/my"}
+            >
               Support
+              {(supportAlerts.adminMode
+                ? supportAlerts.open + supportAlerts.waiting + supportAlerts.escalated + supportAlerts.risk + supportAlerts.slaBreached
+                : supportAlerts.open + supportAlerts.waiting) > 0
+                ? ` (${supportAlerts.adminMode
+                    ? supportAlerts.open + supportAlerts.waiting + supportAlerts.escalated + supportAlerts.risk + supportAlerts.slaBreached
+                    : supportAlerts.open + supportAlerts.waiting})`
+                : ""}
             </Link>
           </div>
         </div>

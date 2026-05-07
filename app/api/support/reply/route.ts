@@ -72,6 +72,38 @@ function shouldEscalateFromText(messageText: string) {
   ].some((phrase) => text.includes(phrase));
 }
 
+async function createNotification(
+  supabase: any,
+  payload: {
+    user_id: string;
+    type: string;
+    priority?: string;
+    title: string;
+    message: string;
+    action_url?: string;
+    source_type?: string;
+    source_id?: string;
+    data?: any;
+  }
+) {
+  const { error } = await supabase.from("notifications").insert({
+    user_id: payload.user_id,
+    type: payload.type,
+    priority: payload.priority || "normal",
+    title: payload.title,
+    message: payload.message,
+    action_url: payload.action_url || null,
+    source_type: payload.source_type || "support_ticket",
+    source_id: payload.source_id || null,
+    data: payload.data || {},
+    is_read: false,
+  });
+
+  if (error) {
+    console.error("Notification insert failed:", error.message);
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const supabase = getSupabaseAdmin();
@@ -177,6 +209,7 @@ export async function POST(req: Request) {
     };
 
     const currentStatus = String(ticket.status || "open");
+    let finalStatus = currentStatus;
 
     if (isAdmin) {
       let nextStatus = normalizeStatus(requestedStatus, currentStatus);
@@ -200,6 +233,8 @@ export async function POST(req: Request) {
         );
       }
 
+      finalStatus = nextStatus;
+
       updatePayload.admin_reply = messageText;
       updatePayload.admin_id = user.id;
       updatePayload.status = nextStatus;
@@ -221,11 +256,13 @@ export async function POST(req: Request) {
         currentStatus === "resolved" ||
         currentStatus === "closed"
       ) {
+        finalStatus = "open";
         updatePayload.status = "open";
         updatePayload.resolved_at = null;
       }
 
       if (shouldEscalateFromText(messageText)) {
+        finalStatus = "escalated";
         updatePayload.status = "escalated";
         updatePayload.escalation_level = Math.max(
           Number(ticket.escalation_level || 0),
@@ -269,6 +306,96 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { ok: false, error: updateErr.message },
         { status: 500 }
+      );
+    }
+
+    if (isAdmin) {
+      const notificationType =
+        finalStatus === "resolved"
+          ? "support_resolved"
+          : finalStatus === "closed"
+          ? "support_closed"
+          : finalStatus === "waiting_user"
+          ? "support_waiting_user"
+          : finalStatus === "escalated"
+          ? "support_escalated"
+          : "support_reply";
+
+      await createNotification(supabase, {
+        user_id: ticket.user_id,
+        type: notificationType,
+        priority:
+          finalStatus === "escalated"
+            ? "high"
+            : finalStatus === "resolved" || finalStatus === "closed"
+            ? "normal"
+            : "normal",
+        title:
+          finalStatus === "resolved"
+            ? "Support ticket resolved"
+            : finalStatus === "closed"
+            ? "Support ticket closed"
+            : finalStatus === "waiting_user"
+            ? "Support needs your response"
+            : finalStatus === "escalated"
+            ? "Support ticket escalated"
+            : "New support reply",
+        message:
+          finalStatus === "resolved"
+            ? `Your ticket ${ticket.ticket_no || ""} has been marked resolved.`
+            : finalStatus === "closed"
+            ? `Your ticket ${ticket.ticket_no || ""} has been closed.`
+            : finalStatus === "waiting_user"
+            ? `Support replied to ticket ${ticket.ticket_no || ""} and needs your response.`
+            : finalStatus === "escalated"
+            ? `Your ticket ${ticket.ticket_no || ""} has been escalated for priority review.`
+            : `Support replied to ticket ${ticket.ticket_no || ""}.`,
+        action_url: `/support/ticket/${ticketId}`,
+        source_type: "support_ticket",
+        source_id: ticketId,
+        data: {
+          ticket_no: ticket.ticket_no,
+          status: finalStatus,
+          is_admin_message: true,
+        },
+      });
+    } else {
+      const { data: admins } = await supabase
+        .from("profiles")
+        .select("id,role,requested_role")
+        .or(
+          "role.eq.master_admin,role.eq.admin,requested_role.eq.master_admin,requested_role.eq.admin"
+        );
+
+      const adminRows = Array.isArray(admins) ? admins : [];
+
+      await Promise.all(
+        adminRows
+          .filter((admin: any) => admin?.id)
+          .map((admin: any) =>
+            createNotification(supabase, {
+              user_id: admin.id,
+              type: finalStatus === "escalated" ? "support_escalated" : "support_user_reply",
+              priority: finalStatus === "escalated" ? "high" : "normal",
+              title:
+                finalStatus === "escalated"
+                  ? "Support ticket escalated"
+                  : "User replied to support ticket",
+              message:
+                finalStatus === "escalated"
+                  ? `Ticket ${ticket.ticket_no || ""} needs urgent admin review.`
+                  : `User replied to ticket ${ticket.ticket_no || ""}.`,
+              action_url: `/admin/dashboard/support/${ticketId}`,
+              source_type: "support_ticket",
+              source_id: ticketId,
+              data: {
+                ticket_no: ticket.ticket_no,
+                status: finalStatus,
+                user_id: ticket.user_id,
+                is_admin_message: false,
+              },
+            })
+          )
       );
     }
 

@@ -58,6 +58,85 @@ function statusColor(status: string) {
   return "#f59e0b";
 }
 
+function supportProgress(status: string) {
+  const s = String(status || "").toLowerCase();
+
+  if (s === "resolved" || s === "closed") return 100;
+  if (s === "escalated") return 75;
+  if (s === "waiting_user") return 55;
+  if (s === "in_review") return 35;
+  if (s === "open") return 10;
+
+  return 0;
+}
+
+function supportProgressLabel(status: string) {
+  const s = String(status || "").toLowerCase();
+
+  if (s === "resolved") return "Complaint resolved";
+  if (s === "closed") return "Complaint closed";
+  if (s === "escalated") return "Escalated for priority review";
+  if (s === "waiting_user") return "Waiting for user response";
+  if (s === "in_review") return "Under admin review";
+  if (s === "open") return "Complaint received";
+
+  return "Status pending";
+}
+
+function ProgressBar({ status }: { status: string }) {
+  const progress = supportProgress(status);
+  const color = statusColor(status);
+
+  return (
+    <div style={{ marginTop: 12 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 10,
+          fontSize: 12,
+          fontWeight: 950,
+          color: "#334155",
+        }}
+      >
+        <span>Complaint Progress</span>
+        <span>{progress}%</span>
+      </div>
+
+      <div
+        style={{
+          marginTop: 7,
+          height: 10,
+          borderRadius: 999,
+          background: "#e5e7eb",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${progress}%`,
+            height: "100%",
+            borderRadius: 999,
+            background: color,
+            transition: "width 0.35s ease",
+          }}
+        />
+      </div>
+
+      <div
+        style={{
+          marginTop: 6,
+          fontSize: 12,
+          fontWeight: 850,
+          color,
+        }}
+      >
+        {supportProgressLabel(status)}
+      </div>
+    </div>
+  );
+}
+
 export default function SupportTicketThreadPage() {
   const params = useParams();
   const router = useRouter();
@@ -310,6 +389,8 @@ export default function SupportTicketThreadPage() {
                     {titleCase(ticket.status)}
                   </div>
                 </div>
+
+                <ProgressBar status={ticket.status} />
 
                 <div
                   style={{

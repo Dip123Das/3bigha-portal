@@ -45,6 +45,38 @@ function normalizeUrgency(priority: string) {
   return "normal";
 }
 
+async function createNotification(
+  supabase: any,
+  payload: {
+    user_id: string;
+    type: string;
+    priority?: string;
+    title: string;
+    message: string;
+    action_url?: string;
+    source_type?: string;
+    source_id?: string;
+    data?: any;
+  }
+) {
+  const { error } = await supabase.from("notifications").insert({
+    user_id: payload.user_id,
+    type: payload.type,
+    priority: payload.priority || "normal",
+    title: payload.title,
+    message: payload.message,
+    action_url: payload.action_url || null,
+    source_type: payload.source_type || "support_ticket",
+    source_id: payload.source_id || null,
+    data: payload.data || {},
+    is_read: false,
+  });
+
+  if (error) {
+    console.error("Notification insert failed:", error.message);
+  }
+}
+
 function makeTicketNo() {
   const d = new Date();
   const y = d.getFullYear();
@@ -268,6 +300,58 @@ export async function POST(req: Request) {
         .single();
 
       if (!error && data) {
+        const { data: admins } = await supabase
+          .from("profiles")
+          .select("id,role,requested_role")
+          .or(
+            "role.eq.master_admin,role.eq.admin,requested_role.eq.master_admin,requested_role.eq.admin"
+          );
+
+        const adminRows = Array.isArray(admins) ? admins : [];
+
+        const isHighPriority =
+          ["high", "urgent", "critical"].includes(
+            String(data.priority || "").toLowerCase()
+          ) ||
+          ["high", "urgent", "critical"].includes(
+            String(data.ai_urgency || "").toLowerCase()
+          ) ||
+          Number(data.escalation_level || 0) > 0 ||
+          (data.ai_risk_flag && data.ai_risk_flag !== "none");
+
+        await Promise.all(
+          adminRows
+            .filter((admin: any) => admin?.id)
+            .map((admin: any) =>
+              createNotification(supabase, {
+                user_id: admin.id,
+                type: isHighPriority
+                  ? "support_new_priority"
+                  : "support_new_ticket",
+                priority: isHighPriority ? "high" : "normal",
+                title: isHighPriority
+                  ? "Priority support ticket received"
+                  : "New support ticket received",
+                message: `Ticket ${data.ticket_no || ticketNo || ""} was submitted by ${
+                  data.user_display_id || data.user_role || "a user"
+                }.`,
+                action_url: `/admin/dashboard/support/${data.id}`,
+                source_type: "support_ticket",
+                source_id: data.id,
+                data: {
+                  ticket_no: data.ticket_no || ticketNo,
+                  status: data.status,
+                  category: data.category,
+                  priority: data.priority,
+                  ai_issue_category: data.ai_issue_category,
+                  ai_urgency: data.ai_urgency,
+                  ai_risk_flag: data.ai_risk_flag,
+                  escalation_level: data.escalation_level,
+                },
+              })
+            )
+        );
+
         return NextResponse.json({
           ok: true,
           ticket: data,
