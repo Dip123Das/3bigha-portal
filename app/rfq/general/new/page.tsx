@@ -27,6 +27,20 @@ type AiVendorMatch = {
   source?: string;
 };
 
+type RfqIntelligenceResult = {
+  ok?: boolean;
+  source?: string;
+  rfqHealthScore?: number;
+  expectedVendorReplies?: string;
+  expectedClosureProbability?: number;
+  missingInformation?: string[];
+  urgencyAnalysis?: string;
+  budgetRealism?: string;
+  improvementSuggestions?: string[];
+  recommendedAction?: string;
+  aiSummary?: string;
+};
+
 /* ---------- Simple popup helper (NEW) ---------- */
 function showPopup(message: string, type: "success" | "error" = "success") {
   const bg = type === "success" ? "#16a34a" : "#dc2626";
@@ -162,6 +176,10 @@ function RfqGeneralNewPageInner() {
   const [aiAutoFillSummary, setAiAutoFillSummary] = useState("");
 
   const [aiVendorMatches, setAiVendorMatches] = useState<AiVendorMatch[]>([]);
+
+  const [rfqAiLoading, setRfqAiLoading] = useState(false);
+  const [rfqAi, setRfqAi] = useState<RfqIntelligenceResult | null>(null);
+  const [rfqAiError, setRfqAiError] = useState("");
 
   // ✅ Module box focus + flash
   const moduleBoxRef = useRef<HTMLDivElement | null>(null);
@@ -645,6 +663,71 @@ return;
     return () => window.clearTimeout(t);
   }, [module, primaryItem, city, locality, pincode]);
 
+  useEffect(() => {
+    const hasUsefulInput =
+      title.trim() ||
+      description.trim() ||
+      city.trim() ||
+      locality.trim() ||
+      pincode.trim() ||
+      items.some((x) => x.item_name.trim() || x.qty.trim() || x.unit.trim() || x.notes.trim());
+
+    if (!hasUsefulInput) {
+      setRfqAi(null);
+      setRfqAiError("");
+      return;
+    }
+
+    const t = window.setTimeout(async () => {
+      try {
+        setRfqAiLoading(true);
+        setRfqAiError("");
+
+        const res = await fetch("/api/ai/rfq-intelligence", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+          body: JSON.stringify({
+            module,
+            category: primaryItem || moduleLabel(module),
+            title,
+            description,
+            city,
+            locality,
+            pincode,
+            quantity: items
+              .map((x) => [x.item_name, x.qty, x.unit].filter(Boolean).join(" "))
+              .filter(Boolean)
+              .join(", "),
+            urgency: neededBy ? `Needed by ${neededBy}` : null,
+            items,
+          }),
+        });
+
+        const json = await res.json().catch(() => null);
+
+        if (!res.ok || !json) {
+          setRfqAi(null);
+          setRfqAiError(json?.error || "RFQ Intelligence failed.");
+          return;
+        }
+
+        setRfqAi(json);
+      } catch (e: any) {
+        setRfqAi(null);
+        setRfqAiError(e?.message || "RFQ Intelligence failed.");
+      } finally {
+        setRfqAiLoading(false);
+      }
+    }, 700);
+
+    return () => window.clearTimeout(t);
+  }, [module, title, description, city, locality, pincode, neededBy, items, primaryItem]);
+
+  const rfqHealthScore = Number(rfqAi?.rfqHealthScore || 0);
+  const rfqHealthTone =
+    rfqHealthScore >= 75 ? "#16a34a" : rfqHealthScore >= 50 ? "#d97706" : "#dc2626";
+
   const browseLink = `${browseHref(module)}?returnTo=${encodeURIComponent("/rfq/general/new")}&module=${encodeURIComponent(module)}`;
 
   return (
@@ -669,6 +752,143 @@ return;
         >
           🤖 AI auto-filled this RFQ from homepage command.
           {aiAutoFillSummary ? <div style={{ fontWeight: 700 }}>{aiAutoFillSummary}</div> : null}
+        </div>
+      ) : null}
+
+            {rfqAi || rfqAiLoading || rfqAiError ? (
+        <div
+          style={{
+            border: "1px solid rgba(124,58,237,0.28)",
+            background: "linear-gradient(135deg, rgba(124,58,237,0.08), #ffffff)",
+            borderRadius: 14,
+            padding: 14,
+            marginBottom: 12,
+            boxShadow: "0 10px 24px rgba(124,58,237,0.06)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontWeight: 1000, color: "#6d28d9" }}>
+                🧠 AI RFQ Creation Assistant
+              </div>
+              <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 700 }}>
+                Live quality check before submission.
+              </div>
+            </div>
+
+            <div
+              style={{
+                fontWeight: 1000,
+                color: "#fff",
+                background: rfqHealthTone,
+                borderRadius: 999,
+                padding: "7px 12px",
+                alignSelf: "center",
+              }}
+            >
+              {rfqAiLoading ? "Checking..." : `Health ${rfqAi?.rfqHealthScore ?? "—"}/100`}
+            </div>
+          </div>
+
+          {rfqAiError ? (
+            <div style={{ marginTop: 10, color: "#991b1b", fontWeight: 900 }}>
+              {rfqAiError}
+            </div>
+          ) : null}
+
+          {rfqAi ? (
+            <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <span
+                  style={{
+                    border: "1px solid #ddd6fe",
+                    background: "#f5f3ff",
+                    color: "#5b21b6",
+                    borderRadius: 999,
+                    padding: "5px 10px",
+                    fontSize: 12,
+                    fontWeight: 900,
+                  }}
+                >
+                  Expected replies: {rfqAi.expectedVendorReplies || "—"}
+                </span>
+
+                <span
+                  style={{
+                    border: "1px solid #bbf7d0",
+                    background: "#ecfdf5",
+                    color: "#065f46",
+                    borderRadius: 999,
+                    padding: "5px 10px",
+                    fontSize: 12,
+                    fontWeight: 900,
+                  }}
+                >
+                  Closure chance: {rfqAi.expectedClosureProbability ?? "—"}%
+                </span>
+
+                <span
+                  style={{
+                    border: "1px solid #e5e7eb",
+                    background: "#f8fafc",
+                    color: "#334155",
+                    borderRadius: 999,
+                    padding: "5px 10px",
+                    fontSize: 12,
+                    fontWeight: 900,
+                  }}
+                >
+                  Source: {rfqAi.source || "AI"}
+                </span>
+              </div>
+
+              <div style={{ color: "#334155", fontSize: 13, fontWeight: 800 }}>
+                {rfqAi.aiSummary}
+              </div>
+
+              {Array.isArray(rfqAi.missingInformation) && rfqAi.missingInformation.length > 0 ? (
+                <div
+                  style={{
+                    border: "1px solid #fed7aa",
+                    background: "#fff7ed",
+                    color: "#9a3412",
+                    borderRadius: 12,
+                    padding: 10,
+                    fontSize: 13,
+                    fontWeight: 800,
+                  }}
+                >
+                  <div style={{ fontWeight: 1000, marginBottom: 4 }}>⚠ Missing / weak details</div>
+                  {rfqAi.missingInformation.slice(0, 4).map((x, idx) => (
+                    <div key={idx}>• {x}</div>
+                  ))}
+                </div>
+              ) : null}
+
+              {Array.isArray(rfqAi.improvementSuggestions) && rfqAi.improvementSuggestions.length > 0 ? (
+                <div
+                  style={{
+                    border: "1px solid #bfdbfe",
+                    background: "#eff6ff",
+                    color: "#1e3a8a",
+                    borderRadius: 12,
+                    padding: 10,
+                    fontSize: 13,
+                    fontWeight: 800,
+                  }}
+                >
+                  <div style={{ fontWeight: 1000, marginBottom: 4 }}>💡 AI suggestions</div>
+                  {rfqAi.improvementSuggestions.slice(0, 4).map((x, idx) => (
+                    <div key={idx}>• {x}</div>
+                  ))}
+                </div>
+              ) : null}
+
+              <div style={{ color: "#111827", fontSize: 13, fontWeight: 900 }}>
+                Recommended action: {rfqAi.recommendedAction}
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
