@@ -333,9 +333,19 @@ export default function TopHeaderClient() {
           </button>
         </div>
 
+        <div
+          data-no-translate="true"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            flexShrink: 0,
+          }}
+        >
+          <LanguageSwitcher />
+        </div>
+
         {/* Right actions */}
         <div className="topActions">
-          <LanguageSwitcher />
 
           {/* Post/List mega menu */}
           <details className="postMenu">
