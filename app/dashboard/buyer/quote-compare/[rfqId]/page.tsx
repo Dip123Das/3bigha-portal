@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { fetchBuyerQuoteCompare } from "@/lib/rfq/buyer-quote-compare/server";
+import SmartDecisionBox from "./SmartDecisionBox";
 
 export const dynamic = "force-dynamic";
 
@@ -233,6 +234,55 @@ export default async function BuyerQuoteComparePage({
 
   const buyerPrintHref = `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}/print`;
 
+  const smartDecisionPayload = {
+    rfqId,
+    module,
+    category: subjectType,
+    city: rfq?.city ?? null,
+    locality: rfq?.locality ?? null,
+    district: rfq?.district ?? null,
+    pincode: rfq?.pincode ?? null,
+    buyerIntent: rfq?.description ?? rfq?.title ?? null,
+    urgency: (rfq?.meta as any)?.urgency ?? null,
+    budget: (rfq?.meta as any)?.budget ?? null,
+    items,
+    vendors: vendorsSorted.map((v: any) => ({
+      id: v.vendor_id,
+      vendorId: v.vendor_id,
+      vendor_id: v.vendor_id,
+      quote_id: v.quote_id,
+      name: v.vendor_business_name,
+      business_name: v.vendor_business_name,
+      vendor_business_name: v.vendor_business_name,
+      price: v.grand_total,
+      quoted_price: v.grand_total,
+      grand_total: v.grand_total,
+      subtotal: v.subtotal,
+      gst_amount: v.gst_amount,
+      city: v.vendor_city,
+      locality: v.vendor_locality,
+      delivery_days: v.delivery_days,
+      valid_till: v.valid_till,
+      ready_deal_signals: v.ready_deal_signals,
+      win_probability: v.win_probability,
+      weighted_boost: v.weighted_boost,
+      risk_score: v.risk_score,
+      ai_score: v.ai_score,
+      trust_score: v.trust_score,
+    })),
+    priceData: {
+      lowestQuote: priced[0]?.grand_total ?? null,
+      highestQuote: priced[priced.length - 1]?.grand_total ?? null,
+      averagePrice:
+        priced.length > 0
+          ? Math.round(
+              priced.reduce((sum: number, v: any) => sum + Number(v.grand_total || 0), 0) /
+                priced.length
+            )
+          : null,
+    },
+  };
+
   return (
     <main style={{ padding: 16, maxWidth: 1200, margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
@@ -305,7 +355,9 @@ export default async function BuyerQuoteComparePage({
         </div>
       </div>
 
-            {aiRecommendedVendor ? (
+      <SmartDecisionBox payload={smartDecisionPayload} />
+
+      {aiRecommendedVendor ? (
         <div
           style={{
             marginTop: 16,
