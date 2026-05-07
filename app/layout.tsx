@@ -15,6 +15,7 @@ import GlobalNotificationBell from "./_components/GlobalNotificationBell";
 import PresenceHeartbeat from "./_components/PresenceHeartbeat";
 import MobileMenuAutoClose from "./_components/MobileMenuAutoClose";
 import AutoTranslatePage from "@/components/language/AutoTranslatePage";
+import LanguageSwitcher from "@/components/language/LanguageSwitcher";
 
 export const metadata = createMetadata({
   title: "AI-Powered Property, Construction, Materials, Services, Rentals & Investment Marketplace",
@@ -132,6 +133,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 Search
               </button>
             </form>
+
+            <div data-no-translate="true" className="topLanguageSelector">
+              <LanguageSwitcher />
+            </div>
 
             <div className="topActions">
               <details className="postMenu">
@@ -275,6 +280,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </summary>
 
               <div className="topMobilePanel">
+                <div className="topMobileGroup" data-no-translate="true">
+                  <div className="topMobileTitle">Select Language</div>
+                  <LanguageSwitcher />
+                </div>
+
                 <div className="topMobileGroup">
                   <div className="topMobileTitle">Browse</div>
 

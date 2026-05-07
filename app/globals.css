@@ -257,3 +257,15 @@ a[class*="actionButton"],
 button[class*="actionButton"] {
   transition: all 0.25s ease;
 }
+
+.topLanguageSelector {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .topLanguageSelector {
+    display: none;
+  }
+}
