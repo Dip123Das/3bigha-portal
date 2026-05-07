@@ -10,6 +10,9 @@ import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody, CardFooter } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
+import { siteConfig } from "@/lib/seo/site";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 type BlogRow = {
@@ -214,8 +217,44 @@ export default function BlogPostPage() {
 
   const rt = estimateReadingTime([title, excerpt, content].join("\n\n"));
 
+  const canonicalUrl = `${siteConfig.url}/blog/${encodeURIComponent(post.slug || slug)}`;
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: title,
+    description:
+      excerpt ||
+      "Real estate, construction, materials, rentals and investment article from 3bigha.com.",
+    url: canonicalUrl,
+    datePublished: post.published_at || undefined,
+    author: {
+      "@type": "Organization",
+      name: "3bigha",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "3bigha",
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteConfig.url}/logo.png`,
+      },
+    },
+  };
+
   return (
     <main>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", url: siteConfig.url },
+            { name: "Blog", url: `${siteConfig.url}/blog` },
+            { name: title, url: canonicalUrl },
+          ]),
+          articleSchema,
+        ]}
+      />
+
       <Container>
         <SectionHeader title={title} subtitle={excerpt || ""} />
 

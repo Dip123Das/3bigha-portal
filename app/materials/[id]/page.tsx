@@ -11,6 +11,10 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
+import { createMetadata } from "@/lib/seo/metadata";
+import { siteConfig } from "@/lib/seo/site";
 
 type AnyRow = Record<string, any>;
 
@@ -78,7 +82,12 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   const id = decodeURIComponent(params.id || "");
 
   if (isBadId(id)) {
-    return { title: "Material not found • 3Bigha.com", description: "This material listing is not available." };
+    return createMetadata({
+      title: "Material Listing Not Found",
+      description: "This material listing is not available on 3bigha.com.",
+      path: `/materials/${encodeURIComponent(id)}`,
+      noIndex: true,
+    });
   }
 
   const supabase = getSupabaseServer();
@@ -92,16 +101,36 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   const row = (res.data ?? null) as AnyRow | null;
 
   if (!row) {
-    return { title: "Material not found • 3Bigha.com", description: "This material listing is not available." };
+    return createMetadata({
+      title: "Material Listing Not Found",
+      description: "This material listing could not be found on 3bigha.com.",
+      path: `/materials/${encodeURIComponent(id)}`,
+      noIndex: true,
+    });
   }
 
-  const title = safeText(row?.title) || safeText(row?.local_name) || "Material";
+  const title = safeText(row?.title) || safeText(row?.local_name) || "Building Material";
   const desc = safeText(row?.description);
 
-  return {
-    title: `${title} • 3Bigha.com`,
-    description: desc ? desc.slice(0, 160) : "Material listing on 3Bigha.com",
-  };
+  return createMetadata({
+    title,
+    description:
+      desc.slice(0, 155) ||
+      `Explore ${title} on 3bigha.com. Compare building material vendors, price, availability and quality.`,
+    path: `/materials/${encodeURIComponent(id)}`,
+    image: "/og-image-new.jpg",
+    keywords: [
+      title,
+      "building material",
+      "construction material",
+      "material supplier",
+      "cement",
+      "steel",
+      "sand",
+      "bricks",
+      "3bigha materials",
+    ],
+  });
 }
 
 export default async function MaterialPublicDetailPage({ params }: { params: { id: string } }) {
@@ -201,8 +230,49 @@ export default async function MaterialPublicDetailPage({ params }: { params: { i
 
   const priceLine = `${moneyINR(price)}${row.packaging_unit ? ` / ${String(row.packaging_unit)}` : uom ? ` / ${String(uom)}` : ""}`;
 
+  const canonicalUrl = `${siteConfig.url}/materials/${encodeURIComponent(id)}`;
+
+  const materialSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: title,
+    description:
+      safeText(row.description) ||
+      `Building material listing on 3bigha.com.`,
+    url: canonicalUrl,
+    category: "Building Materials",
+    sku: safeText(row.sku) || undefined,
+    brand: brand
+      ? {
+          "@type": "Brand",
+          name: String(brand),
+        }
+      : undefined,
+    offers:
+      price && Number.isFinite(Number(price))
+        ? {
+            "@type": "Offer",
+            priceCurrency: "INR",
+            price: Number(price),
+            availability: "https://schema.org/InStock",
+            url: canonicalUrl,
+          }
+        : undefined,
+  };
+
   return (
     <Container>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", url: siteConfig.url },
+            { name: "Materials", url: `${siteConfig.url}/materials` },
+            { name: title, url: canonicalUrl },
+          ]),
+          materialSchema,
+        ]}
+      />
+
       <SectionHeader title={title} subtitle="Material details" />
 
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12, alignItems: "center" }}>

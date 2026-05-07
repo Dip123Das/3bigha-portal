@@ -12,6 +12,9 @@ import { Card, CardBody, CardFooter } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
+import { siteConfig } from "@/lib/seo/site";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -225,8 +228,45 @@ export default function RentalPublicDetailPage() {
 
   const priceText = row ? fmtRate(row.rate, row.pricing_unit, row.rate_unit_label) : "";
 
+  const title = row?.title?.trim() || "Rental Details";
+  const canonicalUrl = `${siteConfig.url}/rentals/${encodeURIComponent(id)}`;
+
+  const rentalSchema = row
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: title,
+        description:
+          row.description?.trim() ||
+          "Rental listing for construction, equipment, tools or property needs on 3bigha.com.",
+        url: canonicalUrl,
+        category: "Rental",
+        offers:
+          row.rate !== null
+            ? {
+                "@type": "Offer",
+                priceCurrency: "INR",
+                price: Number(row.rate),
+                availability: "https://schema.org/InStock",
+                url: canonicalUrl,
+              }
+            : undefined,
+      }
+    : null;
+
   return (
     <Container>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", url: siteConfig.url },
+            { name: "Rentals", url: `${siteConfig.url}/rentals` },
+            { name: title, url: canonicalUrl },
+          ]),
+          ...(rentalSchema ? [rentalSchema] : []),
+        ]}
+      />
+
       <SectionHeader title="Rental Details" subtitle="Public listing details" />
 
       <div style={{ marginBottom: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>

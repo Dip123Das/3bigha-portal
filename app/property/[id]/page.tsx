@@ -11,6 +11,10 @@ import { EmptyState } from "@/components/ui/EmptyState";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
 import InvestmentApplyButton from "./InvestmentApplyButton";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
+import { createMetadata } from "@/lib/seo/metadata";
+import { siteConfig } from "@/lib/seo/site";
 
 type AnyRow = Record<string, any>;
 
@@ -87,6 +91,74 @@ function fmtMoney(v: any) {
 }
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const id = decodeURIComponent(params.id || "");
+
+  if (isBadId(id)) {
+    return createMetadata({
+      title: "Property Not Available",
+      description: "The requested property listing is not available on 3bigha.com.",
+      path: `/property/${encodeURIComponent(id)}`,
+      noIndex: true,
+    });
+  }
+
+  const supabase = getSupabaseServer();
+
+  const tables = ["property_listings_public", "property_listings"];
+
+  let row: AnyRow | null = null;
+
+  for (const t of tables) {
+    const res = await supabase.from(t).select("*").eq("id", id).maybeSingle();
+
+    if (!res.error && res.data) {
+      row = res.data;
+      break;
+    }
+  }
+
+  if (!row) {
+    return createMetadata({
+      title: "Property Not Found",
+      description: "This property listing could not be found on 3bigha.com.",
+      path: `/property/${encodeURIComponent(id)}`,
+      noIndex: true,
+    });
+  }
+
+  const title = safeText(row.title) || "Property Listing";
+
+  const location = [row.city, row.district, row.state]
+    .filter(Boolean)
+    .join(", ");
+
+  const description =
+    safeText(row.description) ||
+    `Explore this property listing${location ? ` in ${location}` : ""} on 3bigha.com. Compare, enquire and connect with the seller, owner, builder or vendor.`;
+
+  return createMetadata({
+    title: `${title}${location ? ` in ${location}` : ""}`,
+    description: description.slice(0, 155),
+    path: `/property/${encodeURIComponent(id)}`,
+    image: "/og-image-new.jpg",
+    keywords: [
+      title,
+      "property listing",
+      "real estate",
+      "land for sale",
+      "house for sale",
+      "property in India",
+      location,
+      "3bigha property",
+    ].filter(Boolean),
+  });
+}
 
 export default async function PropertyPublicDetailPage({
   params,
@@ -298,8 +370,47 @@ export default async function PropertyPublicDetailPage({
   const investmentRiskLevel =
     resolvedInvestmentOpportunity?.risk_level ?? null;
 
+  const canonicalUrl = `${siteConfig.url}/property/${encodeURIComponent(id)}`;
+
+  const propertyDetailSchema = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateListing",
+    name: title,
+    description:
+      safeText(row.description) ||
+      `Property listing${location ? ` in ${location}` : ""} on 3bigha.com.`,
+    url: canonicalUrl,
+    dateModified: row.updated_at || row.published_at || row.created_at || undefined,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: safeText(row.city) || undefined,
+      addressRegion: safeText(row.state) || undefined,
+      addressCountry: "IN",
+    },
+    offers:
+      row.price || row.expected_price
+        ? {
+            "@type": "Offer",
+            priceCurrency: "INR",
+            price: Number(row.price || row.expected_price || 0),
+            availability: "https://schema.org/InStock",
+            url: canonicalUrl,
+          }
+        : undefined,
+  };
+
   return (
     <Container>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", url: siteConfig.url },
+            { name: "Property", url: `${siteConfig.url}/property` },
+            { name: title, url: canonicalUrl },
+          ]),
+          propertyDetailSchema,
+        ]}
+      />
       <SectionHeader title={title} subtitle="Property details" />
 
       <div style={{ marginBottom: 12, display: "flex", gap: 10 }}>

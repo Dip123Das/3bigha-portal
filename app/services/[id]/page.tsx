@@ -12,6 +12,9 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
+import { siteConfig } from "@/lib/seo/site";
 
 type ServiceRow = {
   provider_service_id: string;
@@ -174,8 +177,55 @@ export default function ServiceDetailsPage({ params }: { params: { id: string } 
     return `${range}${row.pricing_kind ? ` / ${row.pricing_kind}` : ""}`;
   }, [row, minText, maxText]);
 
+  const canonicalUrl = `${siteConfig.url}/services/${encodeURIComponent(id)}`;
+
+  const serviceSchema = row
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        name,
+        description:
+          safeText(row.service_description) ||
+          "Construction and real estate service listing on 3bigha.com.",
+        url: canonicalUrl,
+        areaServed: location || "India",
+        provider: {
+          "@type": "Organization",
+          name: safeText(row.provider_name) || "3bigha Service Provider",
+          email: safeText(row.provider_email) || undefined,
+          telephone: safeText(row.provider_phone) || undefined,
+        },
+        offers:
+          row.min_price !== null || row.max_price !== null
+            ? {
+                "@type": "Offer",
+                priceCurrency: safeText(row.currency) || "INR",
+                price:
+                  row.min_price !== null
+                    ? row.min_price
+                    : row.max_price !== null
+                    ? row.max_price
+                    : undefined,
+                description: priceText || "Contact for quote",
+                url: canonicalUrl,
+              }
+            : undefined,
+      }
+    : null;
+
   return (
     <main>
+      <JsonLd
+        data={[
+          breadcrumbSchema([
+            { name: "Home", url: siteConfig.url },
+            { name: "Services", url: `${siteConfig.url}/services` },
+            { name, url: canonicalUrl },
+          ]),
+          ...(serviceSchema ? [serviceSchema] : []),
+        ]}
+      />
+
       <Container>
         <SectionHeader title={name} subtitle="Service details" />
 
