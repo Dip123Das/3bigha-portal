@@ -221,6 +221,13 @@ export default async function AdminDashboardPage() {
       show: isMaster(role),
       badges: ["boost control", "manual alerts", "AI marketplace control"],
     },
+    {
+      title: "Admin · SEO Control Center",
+      desc: "Manage sitemap, robots.txt, multilingual SEO, indexing and future AI SEO infrastructure.",
+      href: "/admin/dashboard/seo",
+      show: isMaster(role),
+      badges: ["sitemap", "robots.txt", "AI SEO", "regional SEO"],
+    },
   ].filter((c) => c.show);
 
   return (
