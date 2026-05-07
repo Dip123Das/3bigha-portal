@@ -9,6 +9,8 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody, CardFooter } from "@/components/ui/Card";
 import { Grid } from "@/components/ui/Grid";
 import { Badge } from "@/components/ui/Badge";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
 import { ActionButton } from "@/components/ui/ActionButton";
 
 type BlogPostListRow = {
@@ -242,6 +244,13 @@ export default function BlogIndexPage() {
 
   return (
     <Container>
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", url: "https://www.3bigha.com" },
+          { name: "Blog", url: "https://www.3bigha.com/blog" },
+        ])}
+      />
+
       <SectionHeader title="Blog" subtitle="Latest updates, guides, and announcements from 3bigha.com" />
 
       <Card>

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
 
 type CategoryKey = "Materials" | "Services" | "Rentals" | "Properties";
 type TrendValue = "Up" | "Down" | "Stable";
@@ -1729,6 +1731,13 @@ if (userData.user) {
 
   return (
     <main className="min-h-screen bg-[#f8faf7]">
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", url: "https://www.3bigha.com" },
+          { name: "Price Today", url: "https://www.3bigha.com/price-today" },
+        ])}
+      />
+
       <section className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-5">
           <Link

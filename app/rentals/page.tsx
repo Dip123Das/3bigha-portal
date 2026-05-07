@@ -15,6 +15,8 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
 
 type Row = {
   id: string;
@@ -508,6 +510,13 @@ export default function RentalsPublicPage() {
 
   return (
     <main>
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", url: "https://www.3bigha.com" },
+          { name: "Rentals", url: "https://www.3bigha.com/rentals" },
+        ])}
+      />
+
       <Container>
         <SectionHeader title="Rentals" subtitle="Browse equipment & services available on rent (public listings)." />
 

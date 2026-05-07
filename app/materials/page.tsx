@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
 
 type ListingRow = {
   id: string;
@@ -396,6 +398,13 @@ export default function MaterialsPage() {
 
   return (
     <main>
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", url: "https://www.3bigha.com" },
+          { name: "Materials", url: "https://www.3bigha.com/materials" },
+        ])}
+      />
+
       <Container>
         <SectionHeader title="Materials" subtitle="Browse building materials. Vendors can add listings after login." />
 

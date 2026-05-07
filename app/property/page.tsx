@@ -12,6 +12,8 @@ import { Grid } from "@/components/ui/Grid";
 import { Badge } from "@/components/ui/Badge";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
 
 type Status = "draft" | "pending" | "approved" | "published" | "blocked" | "rejected" | string;
 
@@ -510,6 +512,13 @@ export default function PropertyPublicListPage() {
 
   return (
     <Container>
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", url: "https://www.3bigha.com" },
+          { name: "Property", url: "https://www.3bigha.com/property" },
+        ])}
+      />
+
       <div style={{ display: "flex", gap: 14, alignItems: "flex-start", justifyContent: "space-between" }}>
         <div style={{ flex: 1 }}>
           <SectionHeader

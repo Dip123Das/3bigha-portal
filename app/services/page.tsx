@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
+import JsonLd from "@/components/seo/JsonLd";
+import { breadcrumbSchema } from "@/lib/seo/schema";
 
 type ServiceGroup = "Professional / Skilled" | "Legal";
 
@@ -378,6 +380,13 @@ export default function ServicesPage() {
 
   return (
     <main>
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Home", url: "https://www.3bigha.com" },
+          { name: "Services", url: "https://www.3bigha.com/services" },
+        ])}
+      />
+
       <Container>
         <SectionHeader
           title="Services"
