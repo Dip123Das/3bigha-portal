@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { fetchBuyerQuoteCompare } from "@/lib/rfq/buyer-quote-compare/server";
 import SmartDecisionBox from "./SmartDecisionBox";
+import MarketplaceAiDashboard from "./MarketplaceAiDashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -256,6 +257,8 @@ export default async function BuyerQuoteComparePage({
 
   const smartDecisionPayload = {
     rfqId,
+    rfq,
+    quote: aiRecommendedVendor || priced[0] || null,
     module,
     category: subjectType,
     city: rfq?.city ?? null,
@@ -374,6 +377,8 @@ export default async function BuyerQuoteComparePage({
           </div>
         </div>
       </div>
+
+      <MarketplaceAiDashboard payload={smartDecisionPayload} />
 
       <SmartDecisionBox payload={smartDecisionPayload} />
 
