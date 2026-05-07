@@ -1,7 +1,7 @@
 // app/layout.tsx
 import "./globals.css";
 import "./ui-kit.css";
-import type { Metadata } from "next";
+import { createMetadata } from "@/lib/seo/metadata";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,38 +15,29 @@ import GlobalNotificationBell from "./_components/GlobalNotificationBell";
 import PresenceHeartbeat from "./_components/PresenceHeartbeat";
 import MobileMenuAutoClose from "./_components/MobileMenuAutoClose";
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://www.3bigha.com"),
-  title: "3Bigha.com – Real Estate & Construction Ecosystem",
+export const metadata = createMetadata({
+  title: "AI-Powered Property, Construction, Materials, Services, Rentals & Investment Marketplace",
   description:
-    "Buy, sell and rent property, discover building materials, services, rentals and compare quotations on 3Bigha.com.",
-
-  openGraph: {
-    title: "3Bigha.com – Property, Materials, Services & Rentals",
-    description:
-      "A real estate and construction ecosystem to browse listings, submit requirements and receive competitive quotes.",
-    url: "https://www.3bigha.com",
-    siteName: "3Bigha.com",
-    locale: "en_IN",
-    type: "website",
-    images: [
-      {
-        url: "https://www.3bigha.com/og-image-new.jpg",
-        width: 1200,
-        height: 630,
-        alt: "3Bigha.com – Real Estate, Materials, Services, Rentals & Investment",
-      },
-    ],
-  },
-
-  twitter: {
-    card: "summary_large_image",
-    title: "3Bigha.com – Real Estate & Construction Ecosystem",
-    description:
-      "Browse property, materials, services and rentals. Submit requirements and get competitive quotes.",
-    images: ["https://www.3bigha.com/og-image-new.jpg"],
-  },
-};
+    "3bigha.com is an AI-powered marketplace and procurement operating system for real estate, building materials, construction services, rentals, RFQs, price prediction, vendor comparison and investment opportunities across India.",
+  path: "/",
+  image: "/og-image-new.jpg",
+  keywords: [
+    "3bigha",
+    "real estate marketplace India",
+    "property marketplace",
+    "land for sale",
+    "building materials",
+    "construction services",
+    "rental machinery",
+    "RFQ marketplace",
+    "AI procurement platform",
+    "vendor comparison",
+    "price prediction",
+    "investment opportunities",
+    "construction marketplace West Bengal",
+    "property in Cooch Behar",
+  ],
+});
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
