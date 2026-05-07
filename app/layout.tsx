@@ -14,6 +14,7 @@ import GlobalUnreadBadge from "./_components/GlobalUnreadBadge";
 import GlobalNotificationBell from "./_components/GlobalNotificationBell";
 import PresenceHeartbeat from "./_components/PresenceHeartbeat";
 import MobileMenuAutoClose from "./_components/MobileMenuAutoClose";
+import AutoTranslatePage from "@/components/language/AutoTranslatePage";
 
 export const metadata = createMetadata({
   title: "AI-Powered Property, Construction, Materials, Services, Rentals & Investment Marketplace",
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <PresenceHeartbeat currentPage="global" />
         <MobileMenuAutoClose />
+        <AutoTranslatePage />
 
         <header
           className="topHeader"
