@@ -56,6 +56,26 @@ function titleCase(s: string | null | undefined) {
   return t ? t.charAt(0).toUpperCase() + t.slice(1) : "—";
 }
 
+function getVendorAiSignals(v: any, bestPriceVendorId: string | null, fastestVendorId: string | null, aiRecommendedVendorId: string | null) {
+  const signals: Array<{ label: string; tone: "neutral" | "ok" | "warn" | "bad" }> = [];
+
+  const isTopCloser = Number(v.ready_deal_signals || 0) >= 3;
+  const isHighWin = Number(v.win_probability || 0) > 0.7;
+  const isPremium = Number(v.weighted_boost || 0) > 0;
+  const isAiRecommended = aiRecommendedVendorId && String(v.vendor_id) === aiRecommendedVendorId;
+  const isBestPrice = bestPriceVendorId && String(v.vendor_id) === String(bestPriceVendorId);
+  const isFastest = fastestVendorId && String(v.vendor_id) === String(fastestVendorId);
+
+  if (isAiRecommended) signals.push({ label: "🧠 AI Recommended", tone: "ok" });
+  if (isBestPrice) signals.push({ label: "📉 Best value", tone: "ok" });
+  if (isTopCloser) signals.push({ label: "🔥 Top Closer", tone: "ok" });
+  if (!isTopCloser && isHighWin) signals.push({ label: "⚡ High Win", tone: "ok" });
+  if (isPremium) signals.push({ label: "⭐ Premium", tone: "neutral" });
+  if (isFastest) signals.push({ label: "🚚 Fastest", tone: "neutral" });
+
+  return signals.slice(0, 5);
+}
+
 function actionBtnStyle(kind: "talk" | "normal" | "accept" = "normal"): React.CSSProperties {
   if (kind === "talk") {
     return {
@@ -560,15 +580,14 @@ export default async function BuyerQuoteComparePage({
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                           <span>{name}</span>
 
-                          {isTopCloser ? <span style={pillStyle("ok")}>🔥 Top Closer</span> : null}
-                          {!isTopCloser && isHighWin ? <span style={pillStyle("ok")}>⚡ High Win</span> : null}
-                          {isPremium ? <span style={pillStyle("neutral")}>⭐ Premium</span> : null}
-                          {aiRecommendedVendorId && String(v.vendor_id) === aiRecommendedVendorId ? (
-                            <span style={pillStyle("ok")}>🧠 AI Recommended</span>
-                          ) : null}
+                          {getVendorAiSignals(v, bestPriceVendorId, fastestVendorId, aiRecommendedVendorId).map(
+                            (signal, idx) => (
+                              <span key={idx} style={pillStyle(signal.tone)}>
+                                {signal.label}
+                              </span>
+                            )
+                          )}
                           {isAccepted ? <span style={pillStyle("ok")}>Accepted</span> : null}
-                          {isBestPrice ? <span style={pillStyle("ok")}>Best price</span> : null}
-                          {isFastest ? <span style={pillStyle("neutral")}>Fastest</span> : null}
                         </div>
                       </td>
                       <td style={{ padding: 10 }}>{fmtMoney(v.grand_total)}</td>
@@ -695,9 +714,13 @@ export default async function BuyerQuoteComparePage({
                     </div>
 
                     <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      {isTopCloser ? <span style={pillStyle("ok")}>🔥 Top Closer</span> : null}
-                      {!isTopCloser && isHighWin ? <span style={pillStyle("ok")}>⚡ High Win Probability</span> : null}
-                      {isPremium ? <span style={pillStyle("neutral")}>⭐ Premium Vendor</span> : null}
+                      {getVendorAiSignals(v, bestPriceVendorId, fastestVendorId, aiRecommendedVendorId).map(
+                        (signal, idx) => (
+                          <span key={idx} style={pillStyle(signal.tone)}>
+                            {signal.label}
+                          </span>
+                        )
+                      )}
                     </div>
                     <div style={{ marginTop: 4, fontSize: 13, opacity: 0.8 }}>{place ? `📍 ${place}` : null}</div>
                   </div>
