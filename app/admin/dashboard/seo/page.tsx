@@ -132,6 +132,78 @@ export default function AdminSeoPage() {
         style={{
           padding: 20,
           borderRadius: 20,
+          border: "1px solid rgba(245,158,11,0.25)",
+          background: "#fffbeb",
+          marginBottom: 24,
+        }}
+      >
+        <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 10 }}>
+          Google Search Console Action Plan
+        </h2>
+
+        <div style={{ display: "grid", gap: 10 }}>
+          {[
+            "Open Google Search Console and add https://www.3bigha.com as a domain/property.",
+            "Verify domain ownership through DNS or HTML verification.",
+            "Submit sitemap URL: https://www.3bigha.com/sitemap.xml",
+            "Inspect homepage URL and request indexing.",
+            "Inspect important pages: /property, /materials, /services, /rentals, /price-today, /blog.",
+            "After new listings or blogs are published, check indexing status weekly.",
+          ].map((item, index) => (
+            <div
+              key={item}
+              style={{
+                padding: 14,
+                borderRadius: 14,
+                background: "#fff",
+                border: "1px solid rgba(245,158,11,0.20)",
+                fontWeight: 800,
+                color: "#78350f",
+              }}
+            >
+              {index + 1}. {item}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 16 }}>
+          <Link
+            href="https://search.google.com/search-console"
+            target="_blank"
+            style={{
+              padding: "12px 16px",
+              borderRadius: 14,
+              background: "#f59e0b",
+              color: "#fff",
+              fontWeight: 900,
+              textDecoration: "none",
+            }}
+          >
+            Open Search Console →
+          </Link>
+
+          <Link
+            href="/sitemap.xml"
+            target="_blank"
+            style={{
+              padding: "12px 16px",
+              borderRadius: 14,
+              background: "#fff",
+              color: "#92400e",
+              fontWeight: 900,
+              textDecoration: "none",
+              border: "1px solid rgba(245,158,11,0.35)",
+            }}
+          >
+            View Live Sitemap →
+          </Link>
+        </div>
+      </section>
+
+      <section
+        style={{
+          padding: 20,
+          borderRadius: 20,
           border: "1px solid rgba(15,23,42,0.10)",
           background: "#fff",
         }}
