@@ -523,6 +523,137 @@ useEffect(() => {
     aiDealStage?.staleLeadRisk ||
     "medium";
 
+  const procurementCopilotSuggestions = useMemo(() => {
+    const suggestions: Array<{
+      title: string;
+      detail: string;
+      action: string;
+      tone: "blue" | "green" | "orange" | "red" | "purple";
+    }> = [];
+
+    const latestText = String(latestIncomingMessage?.body || "").toLowerCase();
+    const conversationText = recentDealMessages.map((m) => String(m.body || "")).join(" ").toLowerCase();
+
+    const mentionsPrice =
+      conversationText.includes("price") ||
+      conversationText.includes("rate") ||
+      conversationText.includes("quote") ||
+      conversationText.includes("₹") ||
+      conversationText.includes("rs");
+
+    const mentionsDelivery =
+      conversationText.includes("delivery") ||
+      conversationText.includes("transport") ||
+      conversationText.includes("site") ||
+      conversationText.includes("location");
+
+    const mentionsInvoice =
+      conversationText.includes("gst") ||
+      conversationText.includes("invoice") ||
+      conversationText.includes("bill");
+
+    const mentionsPayment =
+      conversationText.includes("payment") ||
+      conversationText.includes("advance") ||
+      conversationText.includes("upi") ||
+      conversationText.includes("cash");
+
+    if (!mentionsPrice) {
+      suggestions.push({
+        title: "💰 Confirm final price",
+        detail: "Final price is not clearly confirmed yet.",
+        action: "Please confirm your final price including all charges.",
+        tone: "blue",
+      });
+    }
+
+    if (!mentionsDelivery) {
+      suggestions.push({
+        title: "📦 Confirm delivery",
+        detail: "Delivery timeline or location needs clearer confirmation.",
+        action: "Please confirm delivery location, delivery date and transport charges.",
+        tone: "orange",
+      });
+    }
+
+    if (!mentionsInvoice) {
+      suggestions.push({
+        title: "🧾 Ask GST / invoice",
+        detail: "Invoice or GST terms are not clearly discussed.",
+        action: "Please confirm whether GST invoice or proper bill will be provided.",
+        tone: "purple",
+      });
+    }
+
+    if (!mentionsPayment) {
+      suggestions.push({
+        title: "🔐 Confirm payment safety",
+        detail: "Payment terms should be confirmed before closing.",
+        action: "Please confirm payment terms, advance amount if any, and final payment timing.",
+        tone: "green",
+      });
+    }
+
+    if (aiDealScore.hesitationDetected || aiVendorAlert.hesitationDetected) {
+      suggestions.push({
+        title: "⚠ Reduce hesitation",
+        detail: "AI detected hesitation. Clarify doubts before pushing for closure.",
+        action: "Please tell me if you have any doubt about price, delivery, quality or payment terms.",
+        tone: "red",
+      });
+    }
+
+    if (aiDealScore.urgencyDetected || aiVendorAlert.urgencyDetected || latestText.includes("urgent")) {
+      suggestions.push({
+        title: "🔥 Urgent deal",
+        detail: "AI detected urgency. Fast confirmation can improve conversion.",
+        action: "I understand this is urgent. Please confirm quantity and location so I can finalize quickly.",
+        tone: "red",
+      });
+    }
+
+    suggestions.push({
+      title: "🤝 Close safely",
+      detail: "Before closing, confirm all essential procurement terms.",
+      action:
+        aiDealStage?.ctaMessage ||
+        aiDealScore.actionMessage ||
+        aiVendorAlert.actionMessage ||
+        "Please confirm final price, quantity, delivery location, timeline, invoice and payment terms.",
+      tone: "green",
+    });
+
+    return suggestions.slice(0, 5);
+  }, [
+    latestIncomingMessage?.body,
+    recentDealMessages,
+    aiDealScore.hesitationDetected,
+    aiDealScore.urgencyDetected,
+    aiDealScore.actionMessage,
+    aiVendorAlert.hesitationDetected,
+    aiVendorAlert.urgencyDetected,
+    aiVendorAlert.actionMessage,
+    aiDealStage?.ctaMessage,
+  ]);
+
+  const copilotToneStyle = (
+    tone: "blue" | "green" | "orange" | "red" | "purple"
+  ): React.CSSProperties => {
+    if (tone === "green") {
+      return { border: "1px solid #bbf7d0", background: "#ecfdf5", color: "#065f46" };
+    }
+    if (tone === "orange") {
+      return { border: "1px solid #fed7aa", background: "#fff7ed", color: "#9a3412" };
+    }
+    if (tone === "red") {
+      return { border: "1px solid #fecaca", background: "#fff1f2", color: "#be123c" };
+    }
+    if (tone === "purple") {
+      return { border: "1px solid #ddd6fe", background: "#f5f3ff", color: "#5b21b6" };
+    }
+    return { border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1d4ed8" };
+  };
+
   const useAiSuggestion = async (suggestion: string) => {
     const cleanSuggestion = String(suggestion || "").trim();
     if (!cleanSuggestion) return;
@@ -795,6 +926,81 @@ useEffect(() => {
                 Next action: {aiDealScore.nextBestAction || aiDealStage?.nextTimelineAction}
               </div>
             ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {ordered.length > 0 ? (
+        <div
+          style={{
+            margin: "0 0 12px 0",
+            border: "1px solid #a7f3d0",
+            background: "linear-gradient(90deg, #ecfdf5, #ffffff)",
+            borderRadius: 18,
+            padding: "12px 14px",
+            boxShadow: "0 8px 20px rgba(16,185,129,0.08)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 950, color: "#047857" }}>
+                🧠 AI Procurement Copilot
+              </div>
+              <div style={{ marginTop: 4, fontSize: 12, fontWeight: 800, color: "#475569" }}>
+                AI checks price, delivery, GST, payment and closing safety from this chat.
+              </div>
+            </div>
+
+            <span
+              style={{
+                alignSelf: "center",
+                border: "1px solid #bbf7d0",
+                background: "#fff",
+                color: "#047857",
+                borderRadius: 999,
+                padding: "5px 10px",
+                fontSize: 12,
+                fontWeight: 950,
+              }}
+            >
+              Deal health: {liveDealHealth}%
+            </span>
+          </div>
+
+          <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+            {procurementCopilotSuggestions.map((item, idx) => (
+              <div
+                key={`${item.title}-${idx}`}
+                style={{
+                  ...copilotToneStyle(item.tone),
+                  borderRadius: 14,
+                  padding: 10,
+                  display: "grid",
+                  gap: 6,
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 1000 }}>{item.title}</div>
+                <div style={{ fontSize: 12, fontWeight: 800 }}>{item.detail}</div>
+
+                <button
+                  type="button"
+                  onClick={() => useAiSuggestion(item.action)}
+                  style={{
+                    justifySelf: "start",
+                    border: "1px solid rgba(15,23,42,0.12)",
+                    background: "#fff",
+                    color: "inherit",
+                    borderRadius: 999,
+                    padding: "6px 10px",
+                    fontSize: 12,
+                    fontWeight: 950,
+                    cursor: "pointer",
+                  }}
+                >
+                  Use AI action
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       ) : null}
