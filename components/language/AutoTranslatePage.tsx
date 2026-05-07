@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 
 import { i18nConfig, type Locale } from "@/lib/i18n/config";
 
+const LANGUAGE_STORAGE_KEY = "3bigha_preferred_locale";
+
 const SKIP_TAGS = new Set([
   "SCRIPT",
   "STYLE",
@@ -25,6 +27,13 @@ function getLocale(pathname: string): Locale {
   if (i18nConfig.locales.includes(first as Locale)) {
     return first as Locale;
   }
+
+  try {
+    const saved = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (i18nConfig.locales.includes(saved as Locale)) {
+      return saved as Locale;
+    }
+  } catch {}
 
   return i18nConfig.defaultLocale as Locale;
 }
@@ -48,15 +57,17 @@ export default function AutoTranslatePage() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const locale = getLocale(pathname);
+    let activeLocale = getLocale(pathname || "/");
 
-    if (locale === i18nConfig.defaultLocale) return;
+    if (activeLocale === i18nConfig.defaultLocale) return;
 
     let cancelled = false;
     let timer: number | null = null;
 
     async function translatePage() {
       if (cancelled) return;
+
+      const locale = activeLocale;
 
       const walker = document.createTreeWalker(
         document.body,
@@ -151,7 +162,18 @@ export default function AutoTranslatePage() {
       }, 500);
     }
 
+    function onLanguageChange(event: Event) {
+      const next = (event as CustomEvent<{ locale?: Locale }>)?.detail?.locale;
+
+      if (next && i18nConfig.locales.includes(next)) {
+        activeLocale = next;
+        scheduleTranslate();
+      }
+    }
+
     scheduleTranslate();
+
+    window.addEventListener("3bigha:language-change", onLanguageChange);
 
     const observer = new MutationObserver(() => {
       scheduleTranslate();
@@ -166,6 +188,7 @@ export default function AutoTranslatePage() {
     return () => {
       cancelled = true;
       observer.disconnect();
+      window.removeEventListener("3bigha:language-change", onLanguageChange);
 
       if (timer) {
         window.clearTimeout(timer);

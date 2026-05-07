@@ -2,119 +2,120 @@
 
 import { useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-
 import { i18nConfig, type Locale } from "@/lib/i18n/config";
+
+const LANGUAGE_STORAGE_KEY = "3bigha_preferred_locale";
+
+const LANGUAGE_LABELS: Record<string, string> = {
+  en: "English",
+  bn: "বাংলা",
+  hi: "हिन्दी",
+  as: "অসমীয়া",
+  or: "ଓଡ଼ିଆ",
+  ta: "தமிழ்",
+  te: "తెలుగు",
+  ml: "മലയാളം",
+  kn: "ಕನ್ನಡ",
+  mr: "मराठी",
+  gu: "ગુજરાતી",
+  pa: "ਪੰਜਾਬੀ",
+  ur: "اردو",
+};
+
+function getCurrentLocale(pathname: string): Locale {
+  const first = pathname.split("/").filter(Boolean)[0];
+
+  if (i18nConfig.locales.includes(first as Locale)) {
+    return first as Locale;
+  }
+
+  return i18nConfig.defaultLocale as Locale;
+}
+
+function buildLocalizedPath(pathname: string, locale: Locale) {
+  const parts = pathname.split("/").filter(Boolean);
+  const first = parts[0];
+
+  const hasLocalePrefix = i18nConfig.locales.includes(first as Locale);
+
+  const cleanParts = hasLocalePrefix ? parts.slice(1) : parts;
+
+  if (locale === i18nConfig.defaultLocale) {
+    return `/${cleanParts.join("/")}` || "/";
+  }
+
+  return `/${[locale, ...cleanParts].join("/")}`;
+}
 
 export default function LanguageSwitcher() {
   const router = useRouter();
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
 
-  const activeLocale = useMemo<Locale>(() => {
-    const first = pathname.split("/").filter(Boolean)[0];
+  const activeLocale = useMemo(() => getCurrentLocale(pathname || "/"), [pathname]);
+  const [selectedLocale, setSelectedLocale] = useState<Locale>(activeLocale);
 
-    if (i18nConfig.locales.includes(first as Locale)) {
-      return first as Locale;
-    }
+  function changeLanguage(nextLocale: Locale) {
+    setSelectedLocale(nextLocale);
 
-    return i18nConfig.defaultLocale as Locale;
-  }, [pathname]);
+    try {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLocale);
+      window.dispatchEvent(
+        new CustomEvent("3bigha:language-change", {
+          detail: { locale: nextLocale },
+        })
+      );
+    } catch {}
 
-  function switchLanguage(locale: Locale) {
-    const parts = pathname.split("/").filter(Boolean);
-    const first = parts[0];
-
-    const pathWithoutLocale = i18nConfig.locales.includes(first as Locale)
-      ? `/${parts.slice(1).join("/")}`
-      : pathname;
-
-    const cleanPath =
-      pathWithoutLocale === "/" || pathWithoutLocale === ""
-        ? ""
-        : pathWithoutLocale;
-
-    const nextPath =
-      locale === i18nConfig.defaultLocale
-        ? cleanPath || "/"
-        : `/${locale}${cleanPath}`;
-
-    document.cookie = `3bigha_locale=${locale}; path=/; max-age=${
-      60 * 60 * 24 * 365
-    }; samesite=lax`;
-
-    setOpen(false);
+    const nextPath = buildLocalizedPath(pathname || "/", nextLocale);
     router.push(nextPath);
+    router.refresh();
   }
 
   return (
-    <div style={{ position: "relative" }}>
-      <button
-        onClick={() => setOpen((v) => !v)}
+    <div data-no-translate="true" style={{ display: "inline-flex" }}>
+      <label
+        htmlFor="global-language-select"
         style={{
-          height: 40,
-          padding: "0 14px",
-          borderRadius: 12,
-          border: "1px solid rgba(15,23,42,0.12)",
-          background: "#fff",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          cursor: "pointer",
-          fontWeight: 700,
+          position: "absolute",
+          width: 1,
+          height: 1,
+          padding: 0,
+          margin: -1,
+          overflow: "hidden",
+          clip: "rect(0,0,0,0)",
+          whiteSpace: "nowrap",
+          border: 0,
         }}
       >
-        <span style={{ fontSize: 18 }}>🌐</span>
-        {
-          i18nConfig.localeLabels[
-            activeLocale as keyof typeof i18nConfig.localeLabels
-          ]
-        }
-      </button>
+        Select Language
+      </label>
 
-      {open ? (
-        <div
-          style={{
-            position: "absolute",
-            top: 48,
-            right: 0,
-            width: 240,
-            maxHeight: 420,
-            overflowY: "auto",
-            background: "#fff",
-            borderRadius: 16,
-            border: "1px solid rgba(15,23,42,0.08)",
-            boxShadow: "0 20px 40px rgba(0,0,0,0.12)",
-            padding: 10,
-            zIndex: 1000,
-          }}
-        >
-          {i18nConfig.locales.map((locale) => (
-            <button
-              key={locale}
-              onClick={() => switchLanguage(locale)}
-              style={{
-                width: "100%",
-                height: 42,
-                borderRadius: 10,
-                border: "none",
-                background:
-                  locale === activeLocale ? "rgba(37,99,235,0.08)" : "transparent",
-                color: locale === activeLocale ? "#1d4ed8" : "#0f172a",
-                textAlign: "left",
-                padding: "0 12px",
-                cursor: "pointer",
-                fontWeight: 700,
-              }}
-            >
-              {
-                i18nConfig.localeLabels[
-                  locale as keyof typeof i18nConfig.localeLabels
-                ]
-              }
-            </button>
-          ))}
-        </div>
-      ) : null}
+      <select
+        id="global-language-select"
+        value={selectedLocale}
+        onChange={(e) => changeLanguage(e.target.value as Locale)}
+        title="Select Language"
+        aria-label="Select Language"
+        style={{
+          height: 36,
+          borderRadius: 999,
+          border: "1px solid rgba(15,23,42,0.16)",
+          background: "#ffffff",
+          color: "#0f172a",
+          fontSize: 13,
+          fontWeight: 800,
+          padding: "0 12px",
+          cursor: "pointer",
+          maxWidth: 170,
+        }}
+      >
+        {i18nConfig.locales.map((locale) => (
+          <option key={locale} value={locale}>
+            {locale === activeLocale ? "✓ " : ""}
+            {LANGUAGE_LABELS[locale] || locale.toUpperCase()}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
