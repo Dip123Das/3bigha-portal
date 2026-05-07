@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import LanguageSwitcher from "@/components/language/LanguageSwitcher";
 
 type NavItem = { label: string; href: string; match: string };
 
@@ -334,6 +335,8 @@ export default function TopHeaderClient() {
 
         {/* Right actions */}
         <div className="topActions">
+          <LanguageSwitcher />
+
           {/* Post/List mega menu */}
           <details className="postMenu">
             <summary className="topBtn topBtnPrimary postMenuBtn">
@@ -738,6 +741,11 @@ export default function TopHeaderClient() {
                 <button className="topMobileBtn" type="button" onClick={submitSearch}>
                   Search
                 </button>
+              </div>
+
+              <div className="topMobileGroup">
+                <div className="topMobileTitle">Language</div>
+                <LanguageSwitcher />
               </div>
 
               <div className="topMobileGroup">
