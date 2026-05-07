@@ -1,13 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
-import React from "react";
-
-import { i18nConfig } from "@/lib/i18n/config";
+import { i18nConfig, type Locale } from "@/lib/i18n/config";
 
 export default function LanguageSwitcher() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
+
+  const activeLocale = useMemo<Locale>(() => {
+    const first = pathname.split("/").filter(Boolean)[0];
+
+    if (i18nConfig.locales.includes(first as Locale)) {
+      return first as Locale;
+    }
+
+    return i18nConfig.defaultLocale as Locale;
+  }, [pathname]);
+
+  function switchLanguage(locale: Locale) {
+    const parts = pathname.split("/").filter(Boolean);
+    const first = parts[0];
+
+    const pathWithoutLocale = i18nConfig.locales.includes(first as Locale)
+      ? `/${parts.slice(1).join("/")}`
+      : pathname;
+
+    const cleanPath =
+      pathWithoutLocale === "/" || pathWithoutLocale === ""
+        ? ""
+        : pathWithoutLocale;
+
+    const nextPath =
+      locale === i18nConfig.defaultLocale
+        ? cleanPath || "/"
+        : `/${locale}${cleanPath}`;
+
+    document.cookie = `3bigha_locale=${locale}; path=/; max-age=${
+      60 * 60 * 24 * 365
+    }; samesite=lax`;
+
+    setOpen(false);
+    router.push(nextPath);
+  }
 
   return (
     <div style={{ position: "relative" }}>
@@ -27,7 +64,11 @@ export default function LanguageSwitcher() {
         }}
       >
         <span style={{ fontSize: 18 }}>🌐</span>
-        Language
+        {
+          i18nConfig.localeLabels[
+            activeLocale as keyof typeof i18nConfig.localeLabels
+          ]
+        }
       </button>
 
       {open ? (
@@ -50,16 +91,19 @@ export default function LanguageSwitcher() {
           {i18nConfig.locales.map((locale) => (
             <button
               key={locale}
+              onClick={() => switchLanguage(locale)}
               style={{
                 width: "100%",
                 height: 42,
                 borderRadius: 10,
                 border: "none",
-                background: "transparent",
+                background:
+                  locale === activeLocale ? "rgba(37,99,235,0.08)" : "transparent",
+                color: locale === activeLocale ? "#1d4ed8" : "#0f172a",
                 textAlign: "left",
                 padding: "0 12px",
                 cursor: "pointer",
-                fontWeight: 600,
+                fontWeight: 700,
               }}
             >
               {
