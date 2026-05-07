@@ -7,6 +7,8 @@ import { Container } from "@/components/layout/Container";
 import { Card, CardBody } from "@/components/ui/Card";
 import { ActionButton } from "@/components/ui/ActionButton";
 import GlobalUnreadBadge from "./_components/GlobalUnreadBadge";
+import JsonLd from "@/components/seo/JsonLd";
+import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 
 const chipStyle: React.CSSProperties = {
   display: "inline-flex",
@@ -459,6 +461,7 @@ export default function HomePage() {
 
   return (
     <main>
+      <JsonLd data={[organizationSchema(), websiteSchema()]} />
       <Container style={{ maxWidth: "100%", padding: "0 24px" }}>
         <section
           className="homeHero"
