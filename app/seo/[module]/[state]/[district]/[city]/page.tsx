@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { siteConfig } from "@/lib/seo/site";
+import { getRegionalSeoContent } from "@/lib/seo/regional-content";
+import {
+  getRegionalDiscoveryItems,
+  getRegionalRfqUrl,
+  getRegionalSearchUrl,
+} from "@/lib/seo/regional-discovery";
 import {
   getGeoBySlugs,
   getNearbyGeoCities,
@@ -146,6 +152,8 @@ export default function RegionalSeoPage({ params }: PageProps) {
   const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}/${params.district}/${params.city}`;
 
   const bullets = seoBullets(module);
+  const regionalContent = getRegionalSeoContent(module, city, district, state);
+  const discoveryItems = getRegionalDiscoveryItems(module, city, district);
 
   const nearbyCities = getNearbyGeoCities(
     params.state,
@@ -185,6 +193,14 @@ export default function RegionalSeoPage({ params }: PageProps) {
       name: "3Bigha",
       url: siteConfig.url,
     },
+    mainEntity: regionalContent.faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
   };
 
   return (
@@ -314,6 +330,67 @@ export default function RegionalSeoPage({ params }: PageProps) {
         style={{
           maxWidth: 1180,
           margin: "0 auto",
+          padding: "0 16px 34px",
+        }}
+      >
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 24,
+            padding: 26,
+            boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+          }}
+        >
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 26 }}>
+            {title} marketplace overview in {city}
+          </h2>
+
+          <p
+            style={{
+              color: "#334155",
+              lineHeight: 1.8,
+              fontSize: 16,
+              fontWeight: 600,
+            }}
+          >
+            {regionalContent.intro}
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 16,
+              marginTop: 20,
+            }}
+          >
+            {regionalContent.sections.map((section) => (
+              <article
+                key={section.title}
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 18,
+                  padding: 18,
+                }}
+              >
+                <h3 style={{ margin: 0, color: "#0f172a", fontSize: 18 }}>
+                  {section.title}
+                </h3>
+                <p style={{ color: "#475569", lineHeight: 1.7, fontSize: 14 }}>
+                  {section.content}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        style={{
+          maxWidth: 1180,
+          margin: "0 auto",
           padding: "0 16px 56px",
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
@@ -391,6 +468,153 @@ export default function RegionalSeoPage({ params }: PageProps) {
               >
                 {moduleTitle(item.module)} in {city}
               </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+            <section
+        style={{
+          maxWidth: 1180,
+          margin: "0 auto",
+          padding: "0 16px 34px",
+        }}
+      >
+        <div
+          style={{
+            background: "linear-gradient(135deg, #f0fdf4, #ffffff)",
+            border: "1px solid #bbf7d0",
+            borderRadius: 24,
+            padding: 26,
+            boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+          }}
+        >
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 26 }}>
+            Popular local searches in {city}
+          </h2>
+
+          <p
+            style={{
+              color: "#475569",
+              lineHeight: 1.7,
+              fontSize: 15,
+              fontWeight: 600,
+            }}
+          >
+            Explore local demand, search intent and marketplace opportunities
+            around {city}, {district}.
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+              gap: 12,
+              marginTop: 20,
+            }}
+          >
+            {discoveryItems.map((item) => (
+              <div
+                key={item}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #dcfce7",
+                  borderRadius: 18,
+                  padding: 16,
+                }}
+              >
+                <h3
+                  style={{
+                    margin: 0,
+                    color: "#0f172a",
+                    fontSize: 16,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {item}
+                </h3>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    flexWrap: "wrap",
+                    marginTop: 14,
+                  }}
+                >
+                  <Link
+                    href={getRegionalSearchUrl(item, module)}
+                    style={{
+                      background: "#0f172a",
+                      color: "#ffffff",
+                      borderRadius: 999,
+                      padding: "9px 12px",
+                      fontSize: 13,
+                      fontWeight: 900,
+                    }}
+                  >
+                    Search
+                  </Link>
+
+                  <Link
+                    href={getRegionalRfqUrl(item, module)}
+                    style={{
+                      background: "#ffffff",
+                      color: "#166534",
+                      border: "1px solid #86efac",
+                      borderRadius: 999,
+                      padding: "9px 12px",
+                      fontSize: 13,
+                      fontWeight: 900,
+                    }}
+                  >
+                    Post RFQ
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        style={{
+          maxWidth: 1180,
+          margin: "0 auto",
+          padding: "0 16px 60px",
+        }}
+      >
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 24,
+            padding: 26,
+            boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+          }}
+        >
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 26 }}>
+            Frequently asked questions
+          </h2>
+
+          <div style={{ display: "grid", gap: 14, marginTop: 20 }}>
+            {regionalContent.faqs.map((faq) => (
+              <div
+                key={faq.question}
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 18,
+                  padding: 18,
+                }}
+              >
+                <h3 style={{ margin: 0, color: "#0f172a", fontSize: 17 }}>
+                  {faq.question}
+                </h3>
+                <p style={{ color: "#475569", lineHeight: 1.7, fontSize: 14 }}>
+                  {faq.answer}
+                </p>
+              </div>
             ))}
           </div>
         </div>
