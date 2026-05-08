@@ -202,6 +202,33 @@ export default async function SeoCategoryPage({ params }: PageProps) {
               AI market insights
             </h2>
 
+                    <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 12,
+                marginBottom: 22,
+              }}
+            >
+              <Link
+                href={`/vendor/discovery?q=${encodeURIComponent(
+                  category.label
+                )}&city=${encodeURIComponent(geo.city)}&district=${encodeURIComponent(
+                  geo.district
+                )}&category=${encodeURIComponent(category.label)}`}
+                style={{
+                  background: "#0f172a",
+                  color: "#ffffff",
+                  borderRadius: 999,
+                  padding: "12px 18px",
+                  textDecoration: "none",
+                  fontWeight: 950,
+                }}
+              >
+                🤖 AI recommended vendors
+              </Link>
+            </div>
+
             {aiContent.paragraphs.map((paragraph) => (
               <p key={paragraph} style={{ color: "#334155", lineHeight: 1.9, fontSize: 16 }}>
                 {paragraph}
