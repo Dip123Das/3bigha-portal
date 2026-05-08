@@ -10,6 +10,9 @@ import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { parseAiSearchIntent } from "@/lib/search/ai-search-intent";
+import { getAiSearchContent } from "@/lib/search/ai-search-content";
+import { getSearchKeywordClusters } from "@/lib/search/search-keyword-clusters";
 
 type SearchModule = "property" | "materials" | "services" | "rentals" | "blog";
 type ModFilter = "all" | SearchModule;
@@ -695,6 +698,26 @@ if (want.includes("rentals")) {
 
   const hasQuery = !!safeText(qFromUrl);
 
+  const localSearchIntent = useMemo(
+    () => parseAiSearchIntent(qFromUrl),
+    [qFromUrl]
+  );
+
+  const aiSearchContent = useMemo(
+    () => getAiSearchContent(localSearchIntent),
+    [localSearchIntent]
+  );
+
+  const searchKeywordClusters = useMemo(
+    () =>
+      getSearchKeywordClusters({
+        query: qFromUrl,
+        module: localSearchIntent.module,
+        area: localSearchIntent.areaHint || "your area",
+      }),
+    [qFromUrl, localSearchIntent]
+  );
+
   return (
     <Container>
       <SectionHeader title="Search" subtitle="Find anything across 3Bigha.com" />
@@ -917,6 +940,123 @@ if (want.includes("rentals")) {
           </div>
         </CardBody>
       </Card>
+
+      <div style={{ height: 12 }} />
+
+      {hasQuery ? (
+        <Card>
+          <CardBody>
+            <div style={{ display: "grid", gap: 14 }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  width: "fit-content",
+                  background: "#eff6ff",
+                  color: "#1d4ed8",
+                  border: "1px solid #bfdbfe",
+                  borderRadius: 999,
+                  padding: "7px 12px",
+                  fontSize: 12,
+                  fontWeight: 950,
+                  textTransform: "uppercase",
+                  letterSpacing: 0.4,
+                }}
+              >
+                AI Search Landing
+              </div>
+
+              <div>
+                <h2 style={{ margin: 0, color: "#0f172a", fontSize: 24 }}>
+                  {aiSearchContent.heading}
+                </h2>
+
+                <p style={{ marginTop: 8, color: "#475569", lineHeight: 1.7, fontWeight: 650 }}>
+                  {aiSearchContent.description}
+                </p>
+              </div>
+
+              <div style={{ display: "grid", gap: 10 }}>
+                {aiSearchContent.paragraphs.map((paragraph) => (
+                  <p
+                    key={paragraph}
+                    style={{
+                      margin: 0,
+                      color: "#334155",
+                      lineHeight: 1.8,
+                      fontSize: 15,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 10,
+                  marginTop: 6,
+                }}
+              >
+                {[
+                  ...searchKeywordClusters.related.slice(0, 8),
+                  ...searchKeywordClusters.price.slice(0, 4),
+                ].map((item) => (
+                  <Link
+                    key={item}
+                    href={`/search?q=${encodeURIComponent(item)}${
+                      localSearchIntent.module ? `&module=${localSearchIntent.module}` : ""
+                    }`}
+                    style={{
+                      background: "#f8fafc",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: 999,
+                      padding: "9px 13px",
+                      color: "#0f172a",
+                      textDecoration: "none",
+                      fontWeight: 850,
+                      fontSize: 13,
+                    }}
+                  >
+                    🔎 {item}
+                  </Link>
+                ))}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 10,
+                }}
+              >
+                {searchKeywordClusters.rfq.slice(0, 5).map((item) => (
+                  <Link
+                    key={item}
+                    href={`/rfq/general/new?q=${encodeURIComponent(item)}${
+                      localSearchIntent.module ? `&module=${localSearchIntent.module}` : ""
+                    }`}
+                    style={{
+                      background: "#f5f3ff",
+                      border: "1px solid #ddd6fe",
+                      borderRadius: 999,
+                      padding: "9px 13px",
+                      color: "#4c1d95",
+                      textDecoration: "none",
+                      fontWeight: 900,
+                      fontSize: 13,
+                    }}
+                  >
+                    📝 {item}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      ) : null}
 
       <div style={{ height: 12 }} />
 
