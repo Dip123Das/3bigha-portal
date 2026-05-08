@@ -128,3 +128,36 @@ export function getRelatedModuleSeoUrls(
       url: `/seo/${module}/${stateSlug}/${districtSlug}/${citySlug}`,
     }));
 }
+
+export function getDistrictSeoUrls() {
+  const districts = new Map<string, { state: string; district: string }>();
+
+  geoCities.forEach((geo) => {
+    districts.set(`${geo.stateSlug}/${geo.districtSlug}`, {
+      state: geo.stateSlug,
+      district: geo.districtSlug,
+    });
+  });
+
+  return seoModules.flatMap((module) =>
+    Array.from(districts.values()).map(
+      (item) => `/seo/${module}/${item.state}/${item.district}`
+    )
+  );
+}
+
+export function getStateSeoUrls() {
+  const states = Array.from(new Set(geoCities.map((geo) => geo.stateSlug)));
+
+  return seoModules.flatMap((module) =>
+    states.map((state) => `/seo/${module}/${state}`)
+  );
+}
+
+export function getAllSeoUrls() {
+  return [
+    ...getStateSeoUrls(),
+    ...getDistrictSeoUrls(),
+    ...getRegionalSeoUrls(),
+  ];
+}
