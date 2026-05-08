@@ -6,6 +6,7 @@ import { parseAiSearchIntent } from "@/lib/search/ai-search-intent";
 import { getAiSearchContent } from "@/lib/search/ai-search-content";
 import { getSearchKeywordClusters } from "@/lib/search/search-keyword-clusters";
 import { getLiveMarketSignals, getMarketInsights } from "@/lib/seo/live-market-signals";
+import { getSearchInternalGraph } from "@/lib/search/search-internal-graph";
 
 type PageProps = {
   params: {
@@ -75,6 +76,12 @@ export default function SearchSeoLandingPage({ params }: PageProps) {
   const rfqUrl = `/rfq/general/new?q=${encodeURIComponent(query)}${
     intent.module ? `&module=${intent.module}` : ""
   }`;
+
+const internalGraphLinks = getSearchInternalGraph({
+    query,
+    module: intent.module,
+    area,
+  });
 
   return (
     <main
@@ -303,6 +310,68 @@ export default function SearchSeoLandingPage({ params }: PageProps) {
           </div>
         </section>
       ) : null}
+
+            <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
+        <div
+          style={{
+            background: "linear-gradient(135deg,#f0fdf4,#ffffff)",
+            border: "1px solid #bbf7d0",
+            borderRadius: 26,
+            padding: 28,
+          }}
+        >
+          <h2 style={{ marginTop: 0, color: "#0f172a", fontSize: 30 }}>
+            Marketplace navigation for this search
+          </h2>
+
+          <p
+            style={{
+              marginTop: 0,
+              color: "#475569",
+              lineHeight: 1.8,
+              fontWeight: 600,
+            }}
+          >
+            Continue from this AI search into live results, RFQ submission,
+            price discovery and related marketplace workflows.
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+              gap: 14,
+              marginTop: 20,
+            }}
+          >
+            {internalGraphLinks.map((item) => (
+              <Link
+                key={`${item.href}-${item.label}`}
+                href={item.href}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #dcfce7",
+                  borderRadius: 18,
+                  padding: 18,
+                  textDecoration: "none",
+                  color: "#064e3b",
+                  fontWeight: 900,
+                  lineHeight: 1.5,
+                }}
+              >
+                {item.intent === "rfq"
+                  ? "📝 "
+                  : item.intent === "price"
+                    ? "₹ "
+                    : item.intent === "module"
+                      ? "🏪 "
+                      : "🔎 "}
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 60px" }}>
         <div
