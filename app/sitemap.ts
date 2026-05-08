@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/lib/seo/site";
+import { getRegionalSeoUrls } from "@/lib/geo/india-geo";
 
 type SitemapRow = {
   id?: string | null;
@@ -26,12 +27,7 @@ function safeId(value: unknown) {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  const regionalSeoRoutes = [
-    "/seo/property/west-bengal/cooch-behar/cooch-behar-town",
-    "/seo/materials/west-bengal/cooch-behar/cooch-behar-town",
-    "/seo/services/west-bengal/cooch-behar/cooch-behar-town",
-    "/seo/rentals/west-bengal/cooch-behar/cooch-behar-town",
-  ];
+  const regionalSeoRoutes = getRegionalSeoUrls();
 
   const staticRoutes = [
     "",

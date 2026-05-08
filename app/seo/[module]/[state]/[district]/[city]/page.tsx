@@ -2,12 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { siteConfig } from "@/lib/seo/site";
+import {
+  getGeoBySlugs,
+  getRegionalSeoPaths,
+  isSeoModule,
+  type SeoModule,
+} from "@/lib/geo/india-geo";
 
 export const dynamic = "force-static";
 
-const VALID_MODULES = ["property", "materials", "services", "rentals"] as const;
-
-type SeoModule = (typeof VALID_MODULES)[number];
+export function generateStaticParams() {
+  return getRegionalSeoPaths();
+}
 
 type PageProps = {
   params: {
@@ -23,10 +29,6 @@ function normalize(value: string) {
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase())
     .trim();
-}
-
-function isValidModule(value: string): value is SeoModule {
-  return VALID_MODULES.includes(value as SeoModule);
 }
 
 function moduleTitle(module: SeoModule) {
@@ -96,10 +98,12 @@ function seoBullets(module: SeoModule) {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const module = isValidModule(params.module) ? params.module : "property";
-  const state = normalize(params.state);
-  const district = normalize(params.district);
-  const city = normalize(params.city);
+  const module = isSeoModule(params.module) ? params.module : "property";
+  const geo = getGeoBySlugs(params.state, params.district, params.city);
+
+  const state = geo?.state || normalize(params.state);
+  const district = geo?.district || normalize(params.district);
+  const city = geo?.city || normalize(params.city);
 
   const title = `${moduleTitle(module)} in ${city}, ${district}, ${state} | 3Bigha`;
   const description = moduleDescription(module, city, district, state);
@@ -127,7 +131,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default function RegionalSeoPage({ params }: PageProps) {
-  const module = isValidModule(params.module) ? params.module : "property";
+  const module = isSeoModule(params.module) ? params.module : "property";
 
   const state = normalize(params.state);
   const district = normalize(params.district);
@@ -164,6 +168,8 @@ export default function RegionalSeoPage({ params }: PageProps) {
       url: siteConfig.url,
     },
   };
+
+  const geo = getGeoBySlugs(params.state, params.district, params.city);
 
   return (
     <main style={{ background: "#f8fafc", minHeight: "100vh" }}>
