@@ -17,6 +17,11 @@ import {
   getIntentSeoLinks,
 } from "@/lib/seo/internal-links";
 import { getAiMarketContent } from "@/lib/seo/ai-market-content";
+
+import {
+  getLiveMarketSignals,
+  getMarketInsights,
+} from "@/lib/seo/live-market-signals";
 import { buildSeoSchemaGraph } from "@/lib/seo/structured-data";
 
 type PageProps = {
@@ -88,6 +93,18 @@ export default function SeoCategoryPage({ params }: PageProps) {
   });
 
   const keywordGroups = getModuleKeywordGroups(module, geo.city);
+
+  const marketSignals =
+    getLiveMarketSignals({
+      module,
+      area: geo.city,
+    });
+
+  const marketInsights =
+    getMarketInsights({
+      module,
+      area: geo.city,
+    });
 
   const internalLinks = [
     ...getCrossModuleSeoLinks({
@@ -183,6 +200,157 @@ export default function SeoCategoryPage({ params }: PageProps) {
                 {paragraph}
               </p>
             ))}
+          </div>
+        </section>
+
+                <section
+          style={{
+            maxWidth: 1180,
+            margin: "0 auto",
+            padding: "0 16px 34px",
+          }}
+        >
+          <div
+            style={{
+              background:
+                "linear-gradient(135deg,#ecfeff,#ffffff)",
+              border: "1px solid #a5f3fc",
+              borderRadius: 26,
+              padding: 28,
+            }}
+          >
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                background: "#cffafe",
+                color: "#155e75",
+                borderRadius: 999,
+                padding: "8px 14px",
+                fontWeight: 900,
+                fontSize: 12,
+                letterSpacing: 0.4,
+                textTransform: "uppercase",
+              }}
+            >
+              Live Marketplace Signals
+            </div>
+
+            <h2
+              style={{
+                marginTop: 18,
+                marginBottom: 20,
+                color: "#0f172a",
+                fontSize: 32,
+              }}
+            >
+              Real-time market activity in {geo.city}
+            </h2>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit,minmax(220px,1fr))",
+                gap: 16,
+              }}
+            >
+              {marketSignals.map((signal) => (
+                <div
+                  key={signal.label}
+                  style={{
+                    background: "#ffffff",
+                    border: "1px solid #dbeafe",
+                    borderRadius: 22,
+                    padding: 22,
+                  }}
+                >
+                  <div
+                    style={{
+                      color: "#475569",
+                      fontSize: 14,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {signal.label}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 10,
+                      fontSize: 34,
+                      fontWeight: 900,
+                      color: "#0f172a",
+                    }}
+                  >
+                    {signal.value}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 10,
+                      color:
+                        signal.trend === "up"
+                          ? "#16a34a"
+                          : signal.trend === "down"
+                            ? "#dc2626"
+                            : "#475569",
+                      fontWeight: 800,
+                    }}
+                  >
+                    {signal.trend === "up"
+                      ? "▲ Trending Up"
+                      : signal.trend === "down"
+                        ? "▼ Trending Down"
+                        : "● Stable"}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit,minmax(260px,1fr))",
+                gap: 18,
+                marginTop: 28,
+              }}
+            >
+              {marketInsights.map((item) => (
+                <div
+                  key={item.title}
+                  style={{
+                    background: "#ffffff",
+                    border: "1px solid #dbeafe",
+                    borderRadius: 22,
+                    padding: 24,
+                  }}
+                >
+                  <h3
+                    style={{
+                      marginTop: 0,
+                      marginBottom: 12,
+                      color: "#0f172a",
+                      fontSize: 22,
+                    }}
+                  >
+                    {item.title}
+                  </h3>
+
+                  <p
+                    style={{
+                      margin: 0,
+                      color: "#475569",
+                      lineHeight: 1.8,
+                    }}
+                  >
+                    {item.description}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
