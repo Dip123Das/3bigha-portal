@@ -12,6 +12,7 @@ import {
   getCrossModuleSeoLinks,
   getIntentSeoLinks,
 } from "@/lib/seo/internal-links";
+import { getAiMarketContent } from "@/lib/seo/ai-market-content";
 import {
   geoCities,
   seoModules,
@@ -157,6 +158,14 @@ export default async function LocalitySeoPage({ params }: PageProps) {
   const keywordGroups = getSeoKeywordGroups(module, locality);
   const regionalKeywordGroups = getRegionalKeywordGroups(module, locality);
   const moduleKeywordGroups = getModuleKeywordGroups(module, locality);
+
+    const aiMarketContent = getAiMarketContent({
+    module,
+    area: locality,
+    city: geo.city,
+    district: geo.district,
+    state: geo.state,
+  });
 
   const internalSeoLinks = [
     ...getCrossModuleSeoLinks({
@@ -525,6 +534,70 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                   {item.subtitle}
                 </p>
               </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+            <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
+        <div
+          style={{
+            background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+            border: "1px solid #bfdbfe",
+            borderRadius: 26,
+            padding: 28,
+            boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
+          }}
+        >
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              background: "#dbeafe",
+              color: "#1e3a8a",
+              borderRadius: 999,
+              padding: "8px 14px",
+              fontWeight: 900,
+              fontSize: 12,
+              letterSpacing: 0.4,
+              textTransform: "uppercase",
+            }}
+          >
+            AI Regional Market Insights
+          </div>
+
+          <h2
+            style={{
+              marginTop: 18,
+              marginBottom: 18,
+              fontSize: 30,
+              lineHeight: 1.2,
+              color: "#0f172a",
+            }}
+          >
+            {aiMarketContent.heading}
+          </h2>
+
+          <div
+            style={{
+              display: "grid",
+              gap: 18,
+            }}
+          >
+            {aiMarketContent.paragraphs.map((paragraph) => (
+              <p
+                key={paragraph}
+                style={{
+                  margin: 0,
+                  color: "#334155",
+                  lineHeight: 1.9,
+                  fontSize: 16,
+                  fontWeight: 500,
+                }}
+              >
+                {paragraph}
+              </p>
             ))}
           </div>
         </div>
