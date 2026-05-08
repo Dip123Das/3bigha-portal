@@ -8,6 +8,7 @@ import {
   getRegionalRfqUrl,
   getRegionalSearchUrl,
 } from "@/lib/seo/regional-discovery";
+import { getRegionalMarketData } from "@/lib/seo/regional-market-data";
 import {
   getGeoBySlugs,
   getNearbyGeoCities,
@@ -53,7 +54,12 @@ function modulePath(module: SeoModule) {
   return "/rentals";
 }
 
-function moduleDescription(module: SeoModule, city: string, district: string, state: string) {
+function moduleDescription(
+  module: SeoModule,
+  city: string,
+  district: string,
+  state: string
+) {
   if (module === "property") {
     return `Find land, plots, flats, houses, commercial property, builder projects and real estate opportunities in ${city}, ${district}, ${state}. 3Bigha helps local buyers, sellers, builders and agents connect through an AI-assisted regional marketplace.`;
   }
@@ -140,7 +146,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default function RegionalSeoPage({ params }: PageProps) {
   const module = isSeoModule(params.module) ? params.module : "property";
-
   const geo = getGeoBySlugs(params.state, params.district, params.city);
 
   const state = geo?.state || normalize(params.state);
@@ -154,13 +159,9 @@ export default function RegionalSeoPage({ params }: PageProps) {
   const bullets = seoBullets(module);
   const regionalContent = getRegionalSeoContent(module, city, district, state);
   const discoveryItems = getRegionalDiscoveryItems(module, city, district);
+  const marketData = getRegionalMarketData(module, city, district);
 
-  const nearbyCities = getNearbyGeoCities(
-    params.state,
-    params.district,
-    params.city,
-    6
-  );
+  const nearbyCities = getNearbyGeoCities(params.state, params.district, params.city, 6);
 
   const relatedModuleLinks = getRelatedModuleSeoUrls(
     module,
@@ -326,13 +327,7 @@ export default function RegionalSeoPage({ params }: PageProps) {
         ))}
       </section>
 
-      <section
-        style={{
-          maxWidth: 1180,
-          margin: "0 auto",
-          padding: "0 16px 34px",
-        }}
-      >
+      <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
         <div
           style={{
             background: "#ffffff",
@@ -346,14 +341,7 @@ export default function RegionalSeoPage({ params }: PageProps) {
             {title} marketplace overview in {city}
           </h2>
 
-          <p
-            style={{
-              color: "#334155",
-              lineHeight: 1.8,
-              fontSize: 16,
-              fontWeight: 600,
-            }}
-          >
+          <p style={{ color: "#334155", lineHeight: 1.8, fontSize: 16, fontWeight: 600 }}>
             {regionalContent.intro}
           </p>
 
@@ -411,8 +399,7 @@ export default function RegionalSeoPage({ params }: PageProps) {
           </h2>
 
           <p style={{ color: "#64748b", lineHeight: 1.7, fontSize: 14 }}>
-            Explore nearby city and town pages for better local discovery around{" "}
-            {district}.
+            Explore nearby city and town pages for better local discovery around {district}.
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -473,13 +460,84 @@ export default function RegionalSeoPage({ params }: PageProps) {
         </div>
       </section>
 
-            <section
-        style={{
-          maxWidth: 1180,
-          margin: "0 auto",
-          padding: "0 16px 34px",
-        }}
-      >
+      <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
+        <div
+          style={{
+            background: "linear-gradient(135deg, #fff7ed, #ffffff)",
+            border: "1px solid #fed7aa",
+            borderRadius: 24,
+            padding: 26,
+            boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+          }}
+        >
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 26 }}>
+            Local marketplace activity in {city}
+          </h2>
+
+          <p style={{ color: "#475569", lineHeight: 1.7, fontSize: 15, fontWeight: 600 }}>
+            Explore estimated local demand signals, marketplace activity and active
+            opportunities around {city}, {district}.
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 12,
+              marginTop: 20,
+            }}
+          >
+            {marketData.stats.map((stat) => (
+              <div
+                key={stat.label}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #ffedd5",
+                  borderRadius: 18,
+                  padding: 16,
+                }}
+              >
+                <div style={{ color: "#9a3412", fontSize: 24, fontWeight: 950 }}>
+                  {stat.value}
+                </div>
+                <div style={{ color: "#475569", fontSize: 13, fontWeight: 800, marginTop: 4 }}>
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 12,
+              marginTop: 20,
+            }}
+          >
+            {marketData.listings.map((item) => (
+              <div
+                key={item.title}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #ffedd5",
+                  borderRadius: 18,
+                  padding: 16,
+                }}
+              >
+                <h3 style={{ margin: 0, color: "#0f172a", fontSize: 17 }}>
+                  {item.title}
+                </h3>
+                <p style={{ color: "#64748b", lineHeight: 1.6, fontSize: 14 }}>
+                  {item.subtitle}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
         <div
           style={{
             background: "linear-gradient(135deg, #f0fdf4, #ffffff)",
@@ -493,16 +551,9 @@ export default function RegionalSeoPage({ params }: PageProps) {
             Popular local searches in {city}
           </h2>
 
-          <p
-            style={{
-              color: "#475569",
-              lineHeight: 1.7,
-              fontSize: 15,
-              fontWeight: 600,
-            }}
-          >
-            Explore local demand, search intent and marketplace opportunities
-            around {city}, {district}.
+          <p style={{ color: "#475569", lineHeight: 1.7, fontSize: 15, fontWeight: 600 }}>
+            Explore local demand, search intent and marketplace opportunities around{" "}
+            {city}, {district}.
           </p>
 
           <div
@@ -523,25 +574,11 @@ export default function RegionalSeoPage({ params }: PageProps) {
                   padding: 16,
                 }}
               >
-                <h3
-                  style={{
-                    margin: 0,
-                    color: "#0f172a",
-                    fontSize: 16,
-                    lineHeight: 1.4,
-                  }}
-                >
+                <h3 style={{ margin: 0, color: "#0f172a", fontSize: 16, lineHeight: 1.4 }}>
                   {item}
                 </h3>
 
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 8,
-                    flexWrap: "wrap",
-                    marginTop: 14,
-                  }}
-                >
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
                   <Link
                     href={getRegionalSearchUrl(item, module)}
                     style={{
@@ -577,13 +614,7 @@ export default function RegionalSeoPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section
-        style={{
-          maxWidth: 1180,
-          margin: "0 auto",
-          padding: "0 16px 60px",
-        }}
-      >
+      <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 60px" }}>
         <div
           style={{
             background: "#ffffff",
