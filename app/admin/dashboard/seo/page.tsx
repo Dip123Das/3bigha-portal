@@ -5,21 +5,51 @@ export const dynamic = "force-dynamic";
 const seoTools = [
   {
     title: "robots.txt",
-    description:
-      "Controls what search engines can and cannot crawl on 3bigha.com.",
+    description: "Controls what search engines can and cannot crawl on 3bigha.com.",
     href: "/robots.txt",
   },
   {
     title: "sitemap.xml",
-    description:
-      "Lists public marketplace pages for Google and other search engines.",
+    description: "Lists public marketplace, state, district and city SEO pages.",
     href: "/sitemap.xml",
   },
   {
     title: "Google Search Console",
-    description:
-      "Submit sitemap, monitor indexing, search traffic, ranking keywords and crawl errors.",
+    description: "Submit sitemap, monitor indexing, search traffic, ranking keywords and crawl errors.",
     href: "https://search.google.com/search-console",
+  },
+];
+
+const completedFeatures = [
+  "Central SEO config active",
+  "Metadata helper ready",
+  "robots.txt active",
+  "sitemap.xml active",
+  "Multilingual config active",
+  "Global language switcher active",
+  "State SEO hubs active",
+  "District SEO hubs active",
+  "City SEO pages active",
+  "Live marketplace signals active",
+  "Regional internal linking active",
+  "FAQ schema active",
+];
+
+const seoExamples = [
+  {
+    title: "State SEO Hub",
+    href: "/seo/property/west-bengal",
+    path: "/seo/property/west-bengal",
+  },
+  {
+    title: "District SEO Hub",
+    href: "/seo/property/west-bengal/cooch-behar",
+    path: "/seo/property/west-bengal/cooch-behar",
+  },
+  {
+    title: "City SEO Page",
+    href: "/seo/property/west-bengal/cooch-behar/cooch-behar-town",
+    path: "/seo/property/west-bengal/cooch-behar/cooch-behar-town",
   },
 ];
 
@@ -29,11 +59,13 @@ const futureFeatures = [
   "Duplicate title detector",
   "Regional keyword suggestions",
   "Multilingual SEO monitoring",
-  "District-wise SEO page generator",
   "AI blog SEO optimizer",
   "OpenGraph preview",
   "Schema validator",
   "Broken SEO checker",
+  "AI search intent landing pages",
+  "AI price trend SEO pages",
+  "Pincode and locality SEO pages",
 ];
 
 export default function AdminSeoPage() {
@@ -44,8 +76,8 @@ export default function AdminSeoPage() {
           SEO Control Center
         </h1>
         <p style={{ color: "#64748b", fontSize: 15, lineHeight: 1.7 }}>
-          Manage technical SEO, sitemap, robots.txt, search indexing, regional
-          SEO planning and future AI-powered SEO growth for 3bigha.com.
+          Manage technical SEO, sitemap, robots.txt, search indexing, regional SEO
+          pages, AI marketplace discovery and future SEO growth for 3bigha.com.
         </p>
       </div>
 
@@ -88,13 +120,12 @@ export default function AdminSeoPage() {
           padding: 20,
           borderRadius: 20,
           border: "1px solid rgba(37,99,235,0.18)",
-          background:
-            "linear-gradient(135deg, rgba(37,99,235,0.08), rgba(16,185,129,0.08))",
+          background: "linear-gradient(135deg, rgba(37,99,235,0.08), rgba(16,185,129,0.08))",
           marginBottom: 24,
         }}
       >
         <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 10 }}>
-          Current SEO Foundation Status
+          Completed SEO Infrastructure
         </h2>
 
         <div
@@ -104,14 +135,7 @@ export default function AdminSeoPage() {
             gap: 12,
           }}
         >
-          {[
-            "Central SEO config active",
-            "Metadata helper ready",
-            "robots.txt active",
-            "sitemap.xml active",
-            "Multilingual config active",
-            "Global language switcher active",
-          ].map((item) => (
+          {completedFeatures.map((item) => (
             <div
               key={item}
               style={{
@@ -124,6 +148,46 @@ export default function AdminSeoPage() {
             >
               ✅ {item}
             </div>
+          ))}
+        </div>
+      </section>
+
+      <section
+        style={{
+          padding: 20,
+          borderRadius: 20,
+          border: "1px solid rgba(16,185,129,0.22)",
+          background: "#ecfdf5",
+          marginBottom: 24,
+        }}
+      >
+        <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 10 }}>
+          Live Regional SEO Hierarchy
+        </h2>
+
+        <p style={{ color: "#047857", fontWeight: 800, lineHeight: 1.7 }}>
+          3Bigha now supports State → District → City SEO pages with sitemap inclusion,
+          internal linking and live marketplace signals.
+        </p>
+
+        <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+          {seoExamples.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              target="_blank"
+              style={{
+                padding: 14,
+                borderRadius: 14,
+                background: "#fff",
+                border: "1px solid rgba(16,185,129,0.25)",
+                color: "#064e3b",
+                textDecoration: "none",
+                fontWeight: 900,
+              }}
+            >
+              {item.title}: {item.path}
+            </Link>
           ))}
         </div>
       </section>
@@ -147,8 +211,10 @@ export default function AdminSeoPage() {
             "Verify domain ownership through DNS or HTML verification.",
             "Submit sitemap URL: https://www.3bigha.com/sitemap.xml",
             "Inspect homepage URL and request indexing.",
-            "Inspect important pages: /property, /materials, /services, /rentals, /price-today, /blog.",
-            "After new listings or blogs are published, check indexing status weekly.",
+            "Inspect state SEO page: /seo/property/west-bengal.",
+            "Inspect district SEO page: /seo/property/west-bengal/cooch-behar.",
+            "Inspect city SEO page: /seo/property/west-bengal/cooch-behar/cooch-behar-town.",
+            "Check indexing status weekly after new SEO pages, listings or blogs are published.",
           ].map((item, index) => (
             <div
               key={item}
