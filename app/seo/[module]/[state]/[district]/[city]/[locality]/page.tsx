@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { siteConfig } from "@/lib/seo/site";
 import { getLiveMarketplaceData } from "@/lib/seo/live-marketplace";
+import { getSeoKeywordGroups } from "@/lib/seo/seo-keywords";
 import {
   geoCities,
   seoModules,
@@ -139,12 +140,14 @@ export default async function LocalitySeoPage({ params }: PageProps) {
 
   const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}/${params.district}/${params.city}/${params.locality}`;
 
-    const liveMarketplace = await getLiveMarketplaceData(
+  const liveMarketplace = await getLiveMarketplaceData(
     module,
     geo.city,
     geo.district,
     locality
   );
+
+  const keywordGroups = getSeoKeywordGroups(module, locality);
 
   const schema = {
     "@context": "https://schema.org",
@@ -469,6 +472,85 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                 <p style={{ color: "#64748b", lineHeight: 1.6, fontSize: 14 }}>
                   {item.subtitle}
                 </p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+            <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
+        <div
+          style={{
+            background: "linear-gradient(135deg, #eef2ff, #ffffff)",
+            border: "1px solid #c7d2fe",
+            borderRadius: 24,
+            padding: 26,
+            boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+          }}
+        >
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 26 }}>
+            High-intent searches in {locality}
+          </h2>
+
+          <p style={{ color: "#475569", lineHeight: 1.7, fontSize: 15, fontWeight: 600 }}>
+            Explore hyperlocal marketplace searches, vendor discovery, RFQ intent
+            and price-related searches around {locality}, {geo.city}.
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+              gap: 12,
+              marginTop: 20,
+            }}
+          >
+            {[...keywordGroups.search.slice(0, 6), ...keywordGroups.vendor.slice(0, 3)].map(
+              (item) => (
+                <Link
+                  key={item.keyword}
+                  href={`/search?module=${module}&q=${encodeURIComponent(item.keyword)}`}
+                  style={{
+                    background: "#ffffff",
+                    border: "1px solid #e0e7ff",
+                    borderRadius: 18,
+                    padding: 16,
+                    color: "#0f172a",
+                    textDecoration: "none",
+                    fontWeight: 900,
+                    lineHeight: 1.45,
+                  }}
+                >
+                  🔎 {item.keyword}
+                </Link>
+              )
+            )}
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+              gap: 12,
+              marginTop: 16,
+            }}
+          >
+            {keywordGroups.rfq.slice(0, 4).map((item) => (
+              <Link
+                key={item.keyword}
+                href={`/rfq/general/new?module=${module}&q=${encodeURIComponent(item.keyword)}`}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #ddd6fe",
+                  borderRadius: 18,
+                  padding: 16,
+                  color: "#4c1d95",
+                  textDecoration: "none",
+                  fontWeight: 900,
+                  lineHeight: 1.45,
+                }}
+              >
+                📝 {item.keyword}
               </Link>
             ))}
           </div>
