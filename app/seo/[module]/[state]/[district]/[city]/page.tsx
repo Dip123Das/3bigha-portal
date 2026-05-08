@@ -780,6 +780,23 @@ export default async function RegionalSeoPage({ params }: PageProps) {
                   >
                     Post RFQ
                   </Link>
+                                    <Link
+                    href={`/vendor/discovery?q=${encodeURIComponent(
+                      item
+                    )}&city=${encodeURIComponent(city)}&district=${encodeURIComponent(
+                      district
+                    )}`}
+                    style={{
+                      background: "#0f172a",
+                      color: "#ffffff",
+                      borderRadius: 999,
+                      padding: "9px 12px",
+                      fontSize: 13,
+                      fontWeight: 900,
+                    }}
+                  >
+                    AI Vendors
+                  </Link>
                 </div>
               </div>
             ))}
