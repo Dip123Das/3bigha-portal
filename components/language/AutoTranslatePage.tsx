@@ -57,17 +57,15 @@ export default function AutoTranslatePage() {
   const pathname = usePathname();
 
   useEffect(() => {
-    let activeLocale = getLocale(pathname || "/");
+    const locale = getLocale(pathname || "/");
 
-    if (activeLocale === i18nConfig.defaultLocale) return;
+    if (locale === i18nConfig.defaultLocale) return;
 
     let cancelled = false;
     let timer: number | null = null;
 
     async function translatePage() {
       if (cancelled) return;
-
-      const locale = activeLocale;
 
       const walker = document.createTreeWalker(
         document.body,
@@ -79,6 +77,9 @@ export default function AutoTranslatePage() {
             if (!parent) return NodeFilter.FILTER_REJECT;
             if (SKIP_TAGS.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
             if (parent.closest("[data-no-translate='true']")) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            if (parent.closest("[data-ai-translated='true']")) {
               return NodeFilter.FILTER_REJECT;
             }
 
@@ -99,14 +100,16 @@ export default function AutoTranslatePage() {
 
       while (walker.nextNode()) {
         const node = walker.currentNode as Text;
+        const parent = node.parentElement;
         const clean = (node.textContent || "").trim();
 
-        if (!clean || seen.has(clean)) continue;
+        if (!parent || !clean || seen.has(clean)) continue;
 
         const cached = window.localStorage.getItem(getCacheKey(locale, clean));
 
         if (cached) {
           node.textContent = (node.textContent || "").replace(clean, cached);
+          parent.setAttribute("data-ai-translated", "true");
           continue;
         }
 
@@ -130,6 +133,7 @@ export default function AutoTranslatePage() {
         });
 
         const json = await res.json();
+
         const translatedTexts: string[] = Array.isArray(json?.translatedTexts)
           ? json.translatedTexts
           : [];
@@ -137,8 +141,9 @@ export default function AutoTranslatePage() {
         translatedTexts.forEach((translated, index) => {
           const original = texts[index];
           const node = nodes[index];
+          const parent = node?.parentElement;
 
-          if (!original || !translated || !node) return;
+          if (!original || !translated || !node || !parent) return;
 
           window.localStorage.setItem(getCacheKey(locale, original), translated);
 
@@ -147,48 +152,20 @@ export default function AutoTranslatePage() {
               original,
               translated
             );
+            parent.setAttribute("data-ai-translated", "true");
           }
         });
       } catch {
-        // Keep English fallback.
+        // Keep original English fallback.
       }
     }
 
-    function scheduleTranslate() {
-      if (timer) window.clearTimeout(timer);
-
-      timer = window.setTimeout(() => {
-        translatePage();
-      }, 500);
-    }
-
-    function onLanguageChange(event: Event) {
-      const next = (event as CustomEvent<{ locale?: Locale }>)?.detail?.locale;
-
-      if (next && i18nConfig.locales.includes(next)) {
-        activeLocale = next;
-        scheduleTranslate();
-      }
-    }
-
-    scheduleTranslate();
-
-    window.addEventListener("3bigha:language-change", onLanguageChange);
-
-    const observer = new MutationObserver(() => {
-      scheduleTranslate();
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-    });
+    timer = window.setTimeout(() => {
+      translatePage();
+    }, 700);
 
     return () => {
       cancelled = true;
-      observer.disconnect();
-      window.removeEventListener("3bigha:language-change", onLanguageChange);
 
       if (timer) {
         window.clearTimeout(timer);
