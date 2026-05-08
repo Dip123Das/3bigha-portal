@@ -4,7 +4,9 @@ import Link from "next/link";
 import { siteConfig } from "@/lib/seo/site";
 import {
   getGeoBySlugs,
+  getNearbyGeoCities,
   getRegionalSeoPaths,
+  getRelatedModuleSeoUrls,
   isSeoModule,
   type SeoModule,
 } from "@/lib/geo/india-geo";
@@ -133,15 +135,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default function RegionalSeoPage({ params }: PageProps) {
   const module = isSeoModule(params.module) ? params.module : "property";
 
-  const state = normalize(params.state);
-  const district = normalize(params.district);
-  const city = normalize(params.city);
+  const geo = getGeoBySlugs(params.state, params.district, params.city);
+
+  const state = geo?.state || normalize(params.state);
+  const district = geo?.district || normalize(params.district);
+  const city = geo?.city || normalize(params.city);
 
   const title = moduleTitle(module);
   const description = moduleDescription(module, city, district, state);
   const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}/${params.district}/${params.city}`;
 
   const bullets = seoBullets(module);
+
+  const nearbyCities = getNearbyGeoCities(
+    params.state,
+    params.district,
+    params.city,
+    6
+  );
+
+  const relatedModuleLinks = getRelatedModuleSeoUrls(
+    module,
+    params.state,
+    params.district,
+    params.city
+  );
 
   const schema = {
     "@context": "https://schema.org",
@@ -168,8 +186,6 @@ export default function RegionalSeoPage({ params }: PageProps) {
       url: siteConfig.url,
     },
   };
-
-  const geo = getGeoBySlugs(params.state, params.district, params.city);
 
   return (
     <main style={{ background: "#f8fafc", minHeight: "100vh" }}>
@@ -292,6 +308,92 @@ export default function RegionalSeoPage({ params }: PageProps) {
             </p>
           </div>
         ))}
+      </section>
+
+      <section
+        style={{
+          maxWidth: 1180,
+          margin: "0 auto",
+          padding: "0 16px 56px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: 18,
+        }}
+      >
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 22,
+            padding: 22,
+            boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+          }}
+        >
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 22 }}>
+            Nearby {title} locations
+          </h2>
+
+          <p style={{ color: "#64748b", lineHeight: 1.7, fontSize: 14 }}>
+            Explore nearby city and town pages for better local discovery around{" "}
+            {district}.
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {nearbyCities.map((item) => (
+              <Link
+                key={item.citySlug}
+                href={`/seo/${module}/${item.stateSlug}/${item.districtSlug}/${item.citySlug}`}
+                style={{
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 14,
+                  padding: "12px 14px",
+                  color: "#0f172a",
+                  fontWeight: 900,
+                  background: "#f8fafc",
+                }}
+              >
+                {title} in {item.city}, {item.district}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 22,
+            padding: 22,
+            boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+          }}
+        >
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 22 }}>
+            Related marketplace pages
+          </h2>
+
+          <p style={{ color: "#64748b", lineHeight: 1.7, fontSize: 14 }}>
+            Compare related 3Bigha marketplace categories in {city}, {district}.
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {relatedModuleLinks.map((item) => (
+              <Link
+                key={item.module}
+                href={item.url}
+                style={{
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 14,
+                  padding: "12px 14px",
+                  color: "#0f172a",
+                  fontWeight: 900,
+                  background: "#f8fafc",
+                }}
+              >
+                {moduleTitle(item.module)} in {city}
+              </Link>
+            ))}
+          </div>
+        </div>
       </section>
     </main>
   );

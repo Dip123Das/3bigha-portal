@@ -92,3 +92,39 @@ export function getRegionalSeoUrls() {
       `/seo/${item.module}/${item.state}/${item.district}/${item.city}`
   );
 }
+
+export function getNearbyGeoCities(
+  stateSlug: string,
+  districtSlug: string,
+  citySlug: string,
+  limit = 5
+) {
+  const sameDistrict = geoCities.filter(
+    (item) =>
+      item.stateSlug === stateSlug &&
+      item.districtSlug === districtSlug &&
+      item.citySlug !== citySlug
+  );
+
+  const sameState = geoCities.filter(
+    (item) =>
+      item.stateSlug === stateSlug &&
+      item.districtSlug !== districtSlug
+  );
+
+  return [...sameDistrict, ...sameState].slice(0, limit);
+}
+
+export function getRelatedModuleSeoUrls(
+  currentModule: SeoModule,
+  stateSlug: string,
+  districtSlug: string,
+  citySlug: string
+) {
+  return seoModules
+    .filter((module) => module !== currentModule)
+    .map((module) => ({
+      module,
+      url: `/seo/${module}/${stateSlug}/${districtSlug}/${citySlug}`,
+    }));
+}
