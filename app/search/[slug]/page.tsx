@@ -174,6 +174,22 @@ const internalGraphLinks = getSearchInternalGraph({
           >
             📝 Post requirement
           </Link>
+
+          <Link
+            href={`/vendor/discovery?q=${encodeURIComponent(query)}&city=${encodeURIComponent(
+              area === "your area" ? "Cooch Behar" : area
+            )}`}
+            style={{
+              background: "#0f172a",
+              color: "#ffffff",
+              borderRadius: 999,
+              padding: "12px 18px",
+              textDecoration: "none",
+              fontWeight: 950,
+            }}
+          >
+            🤖 AI recommended vendors
+          </Link>
         </div>
       </section>
 
