@@ -9,6 +9,7 @@ import {
   getRegionalSearchUrl,
 } from "@/lib/seo/regional-discovery";
 import { getRegionalMarketData } from "@/lib/seo/regional-market-data";
+import { getLiveMarketplaceData } from "@/lib/seo/live-marketplace";
 import {
   getGeoBySlugs,
   getNearbyGeoCities,
@@ -144,7 +145,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default function RegionalSeoPage({ params }: PageProps) {
+export default async function RegionalSeoPage({ params }: PageProps) {
   const module = isSeoModule(params.module) ? params.module : "property";
   const geo = getGeoBySlugs(params.state, params.district, params.city);
 
@@ -160,6 +161,7 @@ export default function RegionalSeoPage({ params }: PageProps) {
   const regionalContent = getRegionalSeoContent(module, city, district, state);
   const discoveryItems = getRegionalDiscoveryItems(module, city, district);
   const marketData = getRegionalMarketData(module, city, district);
+  const liveMarketplace = await getLiveMarketplaceData(module, city, district);
 
   const nearbyCities = getNearbyGeoCities(params.state, params.district, params.city, 6);
 
@@ -454,6 +456,87 @@ export default function RegionalSeoPage({ params }: PageProps) {
                 }}
               >
                 {moduleTitle(item.module)} in {city}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+            <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
+        <div
+          style={{
+            background: "linear-gradient(135deg, #fefce8, #ffffff)",
+            border: "1px solid #fde68a",
+            borderRadius: 24,
+            padding: 26,
+            boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+          }}
+        >
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 26 }}>
+            Live marketplace signals in {city}
+          </h2>
+
+          <p style={{ color: "#475569", lineHeight: 1.7, fontSize: 15, fontWeight: 600 }}>
+            These signals help users discover live marketplace activity,
+            available listings and RFQ-ready opportunities around {city},{" "}
+            {district}.
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 12,
+              marginTop: 20,
+            }}
+          >
+            {liveMarketplace.stats.map((stat) => (
+              <div
+                key={stat.label}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #fef3c7",
+                  borderRadius: 18,
+                  padding: 16,
+                }}
+              >
+                <div style={{ color: "#92400e", fontSize: 22, fontWeight: 950 }}>
+                  {stat.value}
+                </div>
+                <div style={{ color: "#475569", fontSize: 13, fontWeight: 800, marginTop: 4 }}>
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 12,
+              marginTop: 20,
+            }}
+          >
+            {liveMarketplace.items.map((item) => (
+              <Link
+                key={`${item.href}-${item.title}`}
+                href={item.href}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #fef3c7",
+                  borderRadius: 18,
+                  padding: 16,
+                  color: "#0f172a",
+                  textDecoration: "none",
+                }}
+              >
+                <h3 style={{ margin: 0, color: "#0f172a", fontSize: 17 }}>
+                  {item.title}
+                </h3>
+                <p style={{ color: "#64748b", lineHeight: 1.6, fontSize: 14 }}>
+                  {item.subtitle}
+                </p>
               </Link>
             ))}
           </div>
