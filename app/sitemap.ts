@@ -26,6 +26,13 @@ function safeId(value: unknown) {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
+  const regionalSeoRoutes = [
+    "/seo/property/west-bengal/cooch-behar/cooch-behar-town",
+    "/seo/materials/west-bengal/cooch-behar/cooch-behar-town",
+    "/seo/services/west-bengal/cooch-behar/cooch-behar-town",
+    "/seo/rentals/west-bengal/cooch-behar/cooch-behar-town",
+  ];
+
   const staticRoutes = [
     "",
     "/property",
@@ -39,13 +46,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/privacy-policy",
     "/terms-and-conditions",
     "/refund-cancellation-policy",
+    ...regionalSeoRoutes,
   ];
 
   const staticPages: MetadataRoute.Sitemap = staticRoutes.map((path) => ({
     url: route(path),
     lastModified: now,
     changeFrequency: "daily",
-    priority: path === "" ? 1 : 0.8,
+    priority: path === "" ? 1 : path.startsWith("/seo/") ? 0.72 : 0.8,
   }));
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
