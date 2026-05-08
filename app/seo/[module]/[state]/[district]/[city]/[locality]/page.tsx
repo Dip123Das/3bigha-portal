@@ -9,6 +9,10 @@ import { getRegionalKeywordGroups } from "@/lib/seo/regional-keywords";
 import { getModuleKeywordGroups } from "@/lib/seo/module-keywords";
 import { buildSeoSchemaGraph } from "@/lib/seo/structured-data";
 import {
+  getCrossModuleSeoLinks,
+  getIntentSeoLinks,
+} from "@/lib/seo/internal-links";
+import {
   geoCities,
   seoModules,
   isSeoModule,
@@ -153,6 +157,21 @@ export default async function LocalitySeoPage({ params }: PageProps) {
   const keywordGroups = getSeoKeywordGroups(module, locality);
   const regionalKeywordGroups = getRegionalKeywordGroups(module, locality);
   const moduleKeywordGroups = getModuleKeywordGroups(module, locality);
+
+  const internalSeoLinks = [
+    ...getCrossModuleSeoLinks({
+      currentModule: module,
+      state: params.state,
+      district: params.district,
+      city: params.city,
+      locality: params.locality,
+      areaLabel: locality,
+    }),
+    ...getIntentSeoLinks({
+      module,
+      areaLabel: locality,
+    }),
+  ];
 
   const schemaGraph = buildSeoSchemaGraph({
     module,
@@ -599,6 +618,63 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                 }}
               >
                 📝 {item.keyword}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+            <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
+        <div
+          style={{
+            background: "linear-gradient(135deg, #f0fdf4, #ffffff)",
+            border: "1px solid #bbf7d0",
+            borderRadius: 24,
+            padding: 26,
+            boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+          }}
+        >
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 26 }}>
+            Related marketplace pages in {locality}
+          </h2>
+
+          <p style={{ color: "#475569", lineHeight: 1.7, fontSize: 15, fontWeight: 600 }}>
+            Explore connected property, materials, services, rentals, search
+            and RFQ pages around {locality}. This helps users move across the
+            complete 3Bigha marketplace workflow.
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+              gap: 12,
+              marginTop: 20,
+            }}
+          >
+            {internalSeoLinks.map((item) => (
+              <Link
+                key={`${item.href}-${item.label}`}
+                href={item.href}
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #dcfce7",
+                  borderRadius: 18,
+                  padding: 16,
+                  color: "#064e3b",
+                  textDecoration: "none",
+                  fontWeight: 900,
+                  lineHeight: 1.45,
+                }}
+              >
+                {item.intent === "rfq"
+                  ? "📝 "
+                  : item.intent === "search"
+                    ? "🔎 "
+                    : item.intent === "module"
+                      ? "🔗 "
+                      : "📍 "}
+                {item.label}
               </Link>
             ))}
           </div>
