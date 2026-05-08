@@ -22,6 +22,7 @@ import {
   getLiveMarketSignals,
   getMarketInsights,
 } from "@/lib/seo/live-market-signals";
+import { getLiveDbMarketData } from "@/lib/seo/live-db-market-data";
 import { buildSeoSchemaGraph } from "@/lib/seo/structured-data";
 
 type PageProps = {
@@ -54,7 +55,7 @@ export async function generateStaticParams() {
   );
 }
 
-export default function SeoCategoryPage({ params }: PageProps) {
+export default async function SeoCategoryPage({ params }: PageProps) {
   if (!isSeoModule(params.module)) {
     notFound();
   }
@@ -105,6 +106,12 @@ export default function SeoCategoryPage({ params }: PageProps) {
       module,
       area: geo.city,
     });
+
+  const liveDbMarketData = await getLiveDbMarketData({
+    module,
+    city: geo.city,
+    district: geo.district,
+  });
 
   const internalLinks = [
     ...getCrossModuleSeoLinks({
@@ -256,7 +263,29 @@ export default function SeoCategoryPage({ params }: PageProps) {
                 gap: 16,
               }}
             >
-              {marketSignals.map((signal) => (
+              {[
+                {
+                  label: "Live database listings",
+                  value: `${liveDbMarketData.listingCount}+`,
+                  trend: liveDbMarketData.source === "live" ? "up" : "stable",
+                },
+                {
+                  label: "Recently found items",
+                  value: `${liveDbMarketData.latestCount}+`,
+                  trend: liveDbMarketData.source === "live" ? "up" : "stable",
+                },
+                {
+                  label: "RFQ workflow",
+                  value: liveDbMarketData.rfqEnabled ? "Enabled" : "Pending",
+                  trend: "stable",
+                },
+                {
+                  label: "Data source",
+                  value: liveDbMarketData.source === "live" ? "Live DB" : "Fallback",
+                  trend: liveDbMarketData.source === "live" ? "up" : "stable",
+                },
+                ...marketSignals,
+              ].map((signal) => (
                 <div
                   key={signal.label}
                   style={{
