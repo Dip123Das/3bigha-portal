@@ -561,15 +561,38 @@ export default async function RegionalSeoPage({ params }: PageProps) {
             ))}
           </div>
 
+          <h3 style={{ margin: "24px 0 0", color: "#0f172a", fontSize: 20, fontWeight: 950 }}>
+            Related live marketplace listings
+          </h3>
+
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
               gap: 12,
-              marginTop: 20,
+              marginTop: 14,
             }}
           >
-            {liveMarketplace.items.map((item) => (
+            {(liveMarketplace.items.length
+              ? liveMarketplace.items
+              : [
+                  {
+                    title: `Search ${title.toLowerCase()} in ${city}`,
+                    subtitle: `Find available listings, vendors and marketplace options around ${city}.`,
+                    href: `/search?module=${module}&q=${encodeURIComponent(city)}`,
+                  },
+                  {
+                    title: `Post requirement in ${city}`,
+                    subtitle: "Submit your requirement and let local vendors respond through RFQ workflow.",
+                    href: `/rfq/general/new?module=${module}&q=${encodeURIComponent(city)}`,
+                  },
+                  {
+                    title: `Browse ${title.toLowerCase()} marketplace`,
+                    subtitle: `Explore verified ${title.toLowerCase()} opportunities on 3Bigha.`,
+                    href: modulePath(module),
+                  },
+                ]
+            ).map((item) => (
               <Link
                 key={`${item.href}-${item.title}`}
                 href={item.href}
@@ -582,9 +605,26 @@ export default async function RegionalSeoPage({ params }: PageProps) {
                   textDecoration: "none",
                 }}
               >
+                <div
+                  style={{
+                    display: "inline-flex",
+                    background: "#fffbeb",
+                    color: "#92400e",
+                    border: "1px solid #fde68a",
+                    borderRadius: 999,
+                    padding: "5px 9px",
+                    fontSize: 11,
+                    fontWeight: 950,
+                    marginBottom: 10,
+                  }}
+                >
+                  Recently active
+                </div>
+
                 <h3 style={{ margin: 0, color: "#0f172a", fontSize: 17 }}>
                   {item.title}
                 </h3>
+
                 <p style={{ color: "#64748b", lineHeight: 1.6, fontSize: 14 }}>
                   {item.subtitle}
                 </p>
