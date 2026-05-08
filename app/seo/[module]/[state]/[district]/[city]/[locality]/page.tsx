@@ -6,6 +6,7 @@ import { siteConfig } from "@/lib/seo/site";
 import { getLiveMarketplaceData } from "@/lib/seo/live-marketplace";
 import { getSeoKeywordGroups } from "@/lib/seo/seo-keywords";
 import { getRegionalKeywordGroups } from "@/lib/seo/regional-keywords";
+import { buildSeoSchemaGraph } from "@/lib/seo/structured-data";
 import {
   geoCities,
   seoModules,
@@ -151,24 +152,52 @@ export default async function LocalitySeoPage({ params }: PageProps) {
   const keywordGroups = getSeoKeywordGroups(module, locality);
   const regionalKeywordGroups = getRegionalKeywordGroups(module, locality);
 
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    name: `${title} in ${locality}`,
+  const schemaGraph = buildSeoSchemaGraph({
+    module,
     url: canonicalUrl,
-    description: `Local marketplace page for ${locality}, ${geo.city}.`,
-    areaServed: {
-      "@type": "Place",
-      name: locality,
+    geo: {
+      state: geo.state,
+      district: geo.district,
+      city: geo.city,
+      locality,
     },
-  };
+    breadcrumbs: [
+      { name: "Home", url: siteConfig.url },
+      {
+        name: title,
+        url: `${siteConfig.url}/seo/${module}/${params.state}`,
+      },
+      {
+        name: geo.district,
+        url: `${siteConfig.url}/seo/${module}/${params.state}/${params.district}`,
+      },
+      {
+        name: geo.city,
+        url: `${siteConfig.url}/seo/${module}/${params.state}/${params.district}/${params.city}`,
+      },
+      {
+        name: locality,
+        url: canonicalUrl,
+      },
+    ],
+    faqs: [
+      {
+        question: `How can I find ${title.toLowerCase()} in ${locality}?`,
+        answer: `You can browse ${title.toLowerCase()} listings, marketplace signals, local searches and RFQ options for ${locality} through 3Bigha.`,
+      },
+      {
+        question: `Can I post a requirement for ${title.toLowerCase()} in ${locality}?`,
+        answer: `Yes. You can submit a requirement on 3Bigha and connect with relevant local vendors, suppliers or service providers near ${locality}.`,
+      },
+    ],
+  });
 
   return (
     <main style={{ background: "#f8fafc", minHeight: "100vh" }}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(schema),
+          __html: JSON.stringify(schemaGraph),
         }}
       />
 
