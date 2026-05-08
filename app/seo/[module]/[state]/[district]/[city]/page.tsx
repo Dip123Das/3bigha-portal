@@ -11,6 +11,7 @@ import {
 import { getRegionalMarketData } from "@/lib/seo/regional-market-data";
 import { getLiveMarketplaceData } from "@/lib/seo/live-marketplace";
 import {
+  geoLocalities,
   getGeoBySlugs,
   getNearbyGeoCities,
   getRegionalSeoPaths,
@@ -171,6 +172,8 @@ export default async function RegionalSeoPage({ params }: PageProps) {
     params.district,
     params.city
   );
+
+    const localityLinks = geoLocalities[params.city] || [];
 
   const schema = {
     "@context": "https://schema.org",
@@ -461,6 +464,54 @@ export default async function RegionalSeoPage({ params }: PageProps) {
           </div>
         </div>
       </section>
+
+            {localityLinks.length > 0 ? (
+        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
+          <div
+            style={{
+              background: "linear-gradient(135deg, #ecfeff, #ffffff)",
+              border: "1px solid #a5f3fc",
+              borderRadius: 24,
+              padding: 26,
+              boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+            }}
+          >
+            <h2 style={{ margin: 0, color: "#0f172a", fontSize: 26 }}>
+              Explore {title} by locality in {city}
+            </h2>
+
+            <p style={{ color: "#475569", lineHeight: 1.7, fontSize: 15, fontWeight: 600 }}>
+              Browse hyperlocal marketplace pages around {city}, {district}.
+            </p>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: 12,
+                marginTop: 20,
+              }}
+            >
+              {localityLinks.map((locality) => (
+                <Link
+                  key={locality}
+                  href={`/seo/${module}/${params.state}/${params.district}/${params.city}/${locality}`}
+                  style={{
+                    background: "#ffffff",
+                    border: "1px solid #cffafe",
+                    borderRadius: 16,
+                    padding: 16,
+                    color: "#0f172a",
+                    fontWeight: 900,
+                  }}
+                >
+                  {title} in {locality.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
             <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
         <div
