@@ -29,21 +29,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const regionalSeoRoutes = getAllSeoUrls();
 
-  const staticRoutes = [
-    "",
-    "/property",
-    "/materials",
-    "/services",
-    "/rentals",
-    "/price-today",
-    "/blog",
-    "/about",
-    "/contact",
-    "/privacy-policy",
-    "/terms-and-conditions",
-    "/refund-cancellation-policy",
-    ...regionalSeoRoutes,
-  ];
+const staticRoutes = [
+  "",
+  "/property",
+  "/materials",
+  "/services",
+  "/rentals",
+  "/price-today",
+  "/blog",
+  "/vendor",
+  "/vendor/discovery",
+  "/search",
+  "/about",
+  "/contact",
+  "/privacy-policy",
+  "/terms-and-conditions",
+  "/refund-cancellation-policy",
+  ...regionalSeoRoutes,
+];
 
   const staticPages: MetadataRoute.Sitemap = staticRoutes.map((path) => ({
     url: route(path),
