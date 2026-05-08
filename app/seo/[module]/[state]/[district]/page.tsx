@@ -255,6 +255,22 @@ export default function DistrictSeoPage({ params }: PageProps) {
             >
               Post Requirement
             </Link>
+                        <Link
+              href={`/vendor/discovery?q=${encodeURIComponent(
+                title
+              )}&district=${encodeURIComponent(
+                district
+              )}&city=${encodeURIComponent(district)}`}
+              style={{
+                background: "#0f172a",
+                color: "#ffffff",
+                padding: "14px 22px",
+                borderRadius: 999,
+                fontWeight: 900,
+              }}
+            >
+              AI Recommended Vendors
+            </Link>
           </div>
         </div>
       </section>
