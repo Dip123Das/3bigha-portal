@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { siteConfig } from "@/lib/seo/site";
 import { getLiveMarketplaceData } from "@/lib/seo/live-marketplace";
 import { getSeoKeywordGroups } from "@/lib/seo/seo-keywords";
+import { getRegionalKeywordGroups } from "@/lib/seo/regional-keywords";
 import {
   geoCities,
   seoModules,
@@ -148,6 +149,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
   );
 
   const keywordGroups = getSeoKeywordGroups(module, locality);
+  const regionalKeywordGroups = getRegionalKeywordGroups(module, locality);
 
   const schema = {
     "@context": "https://schema.org",
@@ -505,7 +507,15 @@ export default async function LocalitySeoPage({ params }: PageProps) {
               marginTop: 20,
             }}
           >
-            {[...keywordGroups.search.slice(0, 6), ...keywordGroups.vendor.slice(0, 3)].map(
+            {[
+              ...keywordGroups.search.slice(0, 6),
+              ...keywordGroups.vendor.slice(0, 3),
+              ...regionalKeywordGroups.search.slice(0, 8),
+              ...regionalKeywordGroups.nearMe.slice(0, 6),
+              ...regionalKeywordGroups.supplier.slice(0, 6),
+              ...regionalKeywordGroups.dealer.slice(0, 6),
+              ...regionalKeywordGroups.price.slice(0, 6),
+            ].map(
               (item) => (
                 <Link
                   key={item.keyword}
@@ -535,7 +545,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
               marginTop: 16,
             }}
           >
-            {keywordGroups.rfq.slice(0, 4).map((item) => (
+            {[...keywordGroups.rfq.slice(0, 4), ...regionalKeywordGroups.rfq.slice(0, 8)].map((item) => (
               <Link
                 key={item.keyword}
                 href={`/rfq/general/new?module=${module}&q=${encodeURIComponent(item.keyword)}`}
