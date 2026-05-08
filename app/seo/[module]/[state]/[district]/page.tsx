@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { siteConfig } from "@/lib/seo/site";
+import { buildSeoSchemaGraph } from "@/lib/seo/structured-data";
 import {
   geoCities,
   seoModules,
@@ -136,37 +137,41 @@ export default function DistrictSeoPage({ params }: PageProps) {
 
   const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}/${params.district}`;
 
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    name: `${title} in ${district}, ${state}`,
-    description,
+  const schemaGraph = buildSeoSchemaGraph({
+    module,
     url: canonicalUrl,
-    isPartOf: {
-      "@type": "WebSite",
-      name: siteConfig.name,
-      url: siteConfig.url,
+    geo: {
+      state,
+      district,
     },
-    areaServed: {
-      "@type": "AdministrativeArea",
-      name: district,
-      containedInPlace: {
-        "@type": "State",
-        name: state,
+    breadcrumbs: [
+      { name: "Home", url: siteConfig.url },
+      {
+        name: title,
+        url: `${siteConfig.url}/seo/${module}/${params.state}`,
       },
-    },
-    provider: {
-      "@type": "Organization",
-      name: "3Bigha",
-      url: siteConfig.url,
-    },
-  };
+      {
+        name: district,
+        url: canonicalUrl,
+      },
+    ],
+    faqs: [
+      {
+        question: `How can I find ${title.toLowerCase()} in ${district}?`,
+        answer: `You can browse ${title.toLowerCase()} city pages, local marketplace links and RFQ options across ${district} on 3Bigha.`,
+      },
+      {
+        question: `Can I post a requirement for ${title.toLowerCase()} in ${district}?`,
+        answer: `Yes. You can submit your requirement on 3Bigha and connect with relevant vendors, suppliers or service providers across ${district}.`,
+      },
+    ],
+  });
 
   return (
     <main style={{ background: "#f8fafc", minHeight: "100vh" }}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
       />
 
       <section style={{ maxWidth: 1180, margin: "0 auto", padding: "42px 16px 18px" }}>
