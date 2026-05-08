@@ -1,0 +1,272 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import {
+  getGeoBySlugs,
+  isSeoModule,
+  seoModules,
+  type SeoModule,
+} from "@/lib/geo/india-geo";
+
+import { siteConfig } from "@/lib/seo/site";
+import { getSeoCategory, getSeoCategories } from "@/lib/seo/category-slugs";
+import { getCategorySeoContent } from "@/lib/seo/category-content";
+import { getModuleKeywordGroups } from "@/lib/seo/module-keywords";
+import {
+  getCrossModuleSeoLinks,
+  getIntentSeoLinks,
+} from "@/lib/seo/internal-links";
+import { getAiMarketContent } from "@/lib/seo/ai-market-content";
+import { buildSeoSchemaGraph } from "@/lib/seo/structured-data";
+
+type PageProps = {
+  params: {
+    module: string;
+    state: string;
+    district: string;
+    city: string;
+    category: string;
+  };
+};
+
+export async function generateStaticParams() {
+  const geoPaths = [
+    { state: "west-bengal", district: "cooch-behar", city: "cooch-behar-town" },
+    { state: "west-bengal", district: "cooch-behar", city: "khagrabari" },
+    { state: "west-bengal", district: "cooch-behar", city: "tufanganj" },
+  ];
+
+  return seoModules.flatMap((module) =>
+    geoPaths.flatMap((geo) =>
+      getSeoCategories(module).map((category) => ({
+        module,
+        state: geo.state,
+        district: geo.district,
+        city: geo.city,
+        category: category.slug,
+      }))
+    )
+  );
+}
+
+export default function SeoCategoryPage({ params }: PageProps) {
+  if (!isSeoModule(params.module)) {
+    notFound();
+  }
+
+  const module: SeoModule = params.module;
+
+  const geo = getGeoBySlugs(params.state, params.district, params.city);
+
+  if (!geo) {
+    notFound();
+  }
+
+  const category = getSeoCategory(module, params.category);
+
+  if (!category) {
+    notFound();
+  }
+
+  const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}/${params.district}/${params.city}/category/${params.category}`;
+
+  const content = getCategorySeoContent({
+    module,
+    category,
+    area: geo.city,
+    city: geo.city,
+    district: geo.district,
+    state: geo.state,
+  });
+
+  const aiContent = getAiMarketContent({
+    module,
+    area: geo.city,
+    city: geo.city,
+    district: geo.district,
+    state: geo.state,
+  });
+
+  const keywordGroups = getModuleKeywordGroups(module, geo.city);
+
+  const internalLinks = [
+    ...getCrossModuleSeoLinks({
+      currentModule: module,
+      state: params.state,
+      district: params.district,
+      city: params.city,
+      areaLabel: geo.city,
+    }),
+    ...getIntentSeoLinks({
+      module,
+      areaLabel: geo.city,
+    }),
+  ];
+
+  const relatedCategories = getSeoCategories(module)
+    .filter((item) => item.slug !== category.slug)
+    .slice(0, 12);
+
+  const schemaGraph = buildSeoSchemaGraph({
+    module,
+    url: canonicalUrl,
+    geo: {
+      state: geo.state,
+      district: geo.district,
+      city: geo.city,
+    },
+    breadcrumbs: [
+      { name: "Home", url: siteConfig.url },
+      { name: module, url: `${siteConfig.url}/seo/${module}/${params.state}` },
+      {
+        name: geo.district,
+        url: `${siteConfig.url}/seo/${module}/${params.state}/${params.district}`,
+      },
+      {
+        name: geo.city,
+        url: `${siteConfig.url}/seo/${module}/${params.state}/${params.district}/${params.city}`,
+      },
+      { name: category.label, url: canonicalUrl },
+    ],
+    faqs: content.faqs,
+  });
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
+      />
+
+      <main
+        style={{
+          background: "linear-gradient(180deg,#f8fafc 0%,#ffffff 100%)",
+          minHeight: "100vh",
+        }}
+      >
+        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "56px 16px 40px" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              background: "#dcfce7",
+              color: "#166534",
+              borderRadius: 999,
+              padding: "8px 14px",
+              fontWeight: 900,
+              fontSize: 12,
+              letterSpacing: 0.4,
+              textTransform: "uppercase",
+            }}
+          >
+            Category SEO Marketplace
+          </div>
+
+          <h1 style={{ fontSize: 44, lineHeight: 1.1, marginTop: 18, marginBottom: 18, color: "#0f172a" }}>
+            {content.heading}
+          </h1>
+
+          <p style={{ maxWidth: 900, color: "#475569", fontSize: 18, lineHeight: 1.8, margin: 0 }}>
+            {content.description}
+          </p>
+        </section>
+
+        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
+          <div style={{ background: "linear-gradient(135deg,#eff6ff,#ffffff)", border: "1px solid #bfdbfe", borderRadius: 26, padding: 28 }}>
+            <h2 style={{ marginTop: 0, color: "#0f172a", fontSize: 30 }}>
+              AI market insights
+            </h2>
+
+            {aiContent.paragraphs.map((paragraph) => (
+              <p key={paragraph} style={{ color: "#334155", lineHeight: 1.9, fontSize: 16 }}>
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </section>
+
+        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 26, padding: 28 }}>
+            <h2 style={{ marginTop: 0, color: "#0f172a", fontSize: 28 }}>
+              Popular searches in {geo.city}
+            </h2>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 22 }}>
+              {keywordGroups.search.slice(0, 28).map((item) => (
+                <div
+                  key={item.keyword}
+                  style={{
+                    background: "#f1f5f9",
+                    borderRadius: 999,
+                    padding: "10px 16px",
+                    fontWeight: 700,
+                    color: "#334155",
+                  }}
+                >
+                  {item.keyword}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 26, padding: 28 }}>
+            <h2 style={{ marginTop: 0, color: "#0f172a", fontSize: 28 }}>
+              Related categories
+            </h2>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14, marginTop: 22 }}>
+              {relatedCategories.map((item) => (
+                <Link
+                  key={item.slug}
+                  href={`/seo/${module}/${params.state}/${params.district}/${params.city}/category/${item.slug}`}
+                  style={{
+                    background: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: 20,
+                    padding: 18,
+                    textDecoration: "none",
+                    color: "#0f172a",
+                    fontWeight: 800,
+                  }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 60px" }}>
+          <div style={{ background: "linear-gradient(135deg,#f0fdf4,#ffffff)", border: "1px solid #bbf7d0", borderRadius: 26, padding: 28 }}>
+            <h2 style={{ marginTop: 0, color: "#0f172a", fontSize: 28 }}>
+              Explore marketplace workflow
+            </h2>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: 14, marginTop: 22 }}>
+              {internalLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  style={{
+                    background: "#ffffff",
+                    border: "1px solid #dcfce7",
+                    borderRadius: 18,
+                    padding: 18,
+                    textDecoration: "none",
+                    color: "#064e3b",
+                    fontWeight: 900,
+                  }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+    </>
+  );
+}
