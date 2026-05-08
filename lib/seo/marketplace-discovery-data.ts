@@ -63,5 +63,13 @@ export async function getMarketplaceDiscoveryVendors(): Promise<
 > {
   const vendors = await getVendorRecommendationCandidates("");
 
-  return vendors.length > 0 ? vendors : fallbackVendors;
+  const merged = [...vendors, ...fallbackVendors];
+
+  const unique = new Map<string, VendorRecommendationInput>();
+
+  merged.forEach((vendor) => {
+    unique.set(vendor.vendorId, vendor);
+  });
+
+  return Array.from(unique.values());
 }
