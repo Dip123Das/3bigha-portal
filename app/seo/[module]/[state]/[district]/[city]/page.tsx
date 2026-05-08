@@ -12,6 +12,7 @@ import { getRegionalMarketData } from "@/lib/seo/regional-market-data";
 import { getLiveMarketplaceData } from "@/lib/seo/live-marketplace";
 import { getSeoKeywordGroups } from "@/lib/seo/seo-keywords";
 import { getRegionalKeywordGroups } from "@/lib/seo/regional-keywords";
+import { buildSeoSchemaGraph } from "@/lib/seo/structured-data";
 import {
   geoLocalities,
   getGeoBySlugs,
@@ -179,45 +180,37 @@ export default async function RegionalSeoPage({ params }: PageProps) {
 
     const localityLinks = geoLocalities[params.city] || [];
 
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    name: `${title} in ${city}, ${district}, ${state}`,
-    description,
+  const schemaGraph = buildSeoSchemaGraph({
+    module,
     url: canonicalUrl,
-    isPartOf: {
-      "@type": "WebSite",
-      name: siteConfig.name,
-      url: siteConfig.url,
+    geo: {
+      state,
+      district,
+      city,
     },
-    areaServed: {
-      "@type": "AdministrativeArea",
-      name: district,
-      containedInPlace: {
-        "@type": "State",
-        name: state,
+    breadcrumbs: [
+      { name: "Home", url: siteConfig.url },
+      {
+        name: title,
+        url: `${siteConfig.url}/seo/${module}/${params.state}`,
       },
-    },
-    provider: {
-      "@type": "Organization",
-      name: "3Bigha",
-      url: siteConfig.url,
-    },
-    mainEntity: regionalContent.faqs.map((faq) => ({
-      "@type": "Question",
-      name: faq.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: faq.answer,
+      {
+        name: district,
+        url: `${siteConfig.url}/seo/${module}/${params.state}/${params.district}`,
       },
-    })),
-  };
+      {
+        name: city,
+        url: canonicalUrl,
+      },
+    ],
+    faqs: regionalContent.faqs,
+  });
 
   return (
     <main style={{ background: "#f8fafc", minHeight: "100vh" }}>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
       />
 
       <section style={{ maxWidth: 1180, margin: "0 auto", padding: "42px 16px 18px" }}>
