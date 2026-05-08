@@ -1,0 +1,465 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import { siteConfig } from "@/lib/seo/site";
+import {
+  geoCities,
+  seoModules,
+  isSeoModule,
+  type SeoModule,
+} from "@/lib/geo/india-geo";
+
+export const dynamic = "force-static";
+
+const localityMap: Record<string, string[]> = {
+  "cooch-behar-town": [
+    "khagrabari",
+    "dinhata-road",
+    "rail-ghumti",
+    "new-town",
+    "pilkhana",
+  ],
+  tufanganj: ["natabari", "balabhut", "andar-fullan"],
+  dinhata: ["gosanimari", "bhetaguri", "sahebganj"],
+};
+
+function normalize(value: string) {
+  return decodeURIComponent(value || "")
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
+
+function moduleTitle(module: SeoModule) {
+  if (module === "property") return "Property";
+  if (module === "materials") return "Building Materials";
+  if (module === "services") return "Construction Services";
+  return "Rental Services";
+}
+
+function modulePath(module: SeoModule) {
+  if (module === "property") return "/property";
+  if (module === "materials") return "/materials";
+  if (module === "services") return "/services";
+  return "/rentals";
+}
+
+export function generateStaticParams() {
+  return seoModules.flatMap((module) =>
+    geoCities.flatMap((geo) =>
+      (localityMap[geo.citySlug] || []).map((locality) => ({
+        module,
+        state: geo.stateSlug,
+        district: geo.districtSlug,
+        city: geo.citySlug,
+        locality,
+      }))
+    )
+  );
+}
+
+type PageProps = {
+  params: {
+    module: string;
+    state: string;
+    district: string;
+    city: string;
+    locality: string;
+  };
+};
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const module = isSeoModule(params.module)
+    ? params.module
+    : "property";
+
+  const geo = geoCities.find(
+    (item) =>
+      item.stateSlug === params.state &&
+      item.districtSlug === params.district &&
+      item.citySlug === params.city
+  );
+
+  if (!geo) {
+    return {};
+  }
+
+  const locality = normalize(params.locality);
+
+  const title = `${moduleTitle(module)} in ${locality}, ${geo.city} | 3Bigha`;
+
+  const description = `Explore ${moduleTitle(
+    module
+  ).toLowerCase()} opportunities in ${locality}, ${geo.city}, ${geo.district}, ${geo.state}. Discover local listings, vendors, RFQs and AI-assisted marketplace workflows on 3Bigha.`;
+
+  const path = `/seo/${module}/${params.state}/${params.district}/${params.city}/${params.locality}`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `${siteConfig.url}${path}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${siteConfig.url}${path}`,
+      siteName: siteConfig.name,
+      type: "website",
+    },
+  };
+}
+
+export default function LocalitySeoPage({ params }: PageProps) {
+  const module = isSeoModule(params.module)
+    ? params.module
+    : "property";
+
+  const geo = geoCities.find(
+    (item) =>
+      item.stateSlug === params.state &&
+      item.districtSlug === params.district &&
+      item.citySlug === params.city
+  );
+
+  if (!geo) {
+    notFound();
+  }
+
+  const locality = normalize(params.locality);
+  const title = moduleTitle(module);
+
+  const nearbyLocalities = (localityMap[geo.citySlug] || []).filter(
+    (item) => item !== params.locality
+  );
+
+  const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}/${params.district}/${params.city}/${params.locality}`;
+
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: `${title} in ${locality}`,
+    url: canonicalUrl,
+    description: `Local marketplace page for ${locality}, ${geo.city}.`,
+    areaServed: {
+      "@type": "Place",
+      name: locality,
+    },
+  };
+
+  return (
+    <main style={{ background: "#f8fafc", minHeight: "100vh" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(schema),
+        }}
+      />
+
+      <section
+        style={{
+          maxWidth: 1180,
+          margin: "0 auto",
+          padding: "40px 16px 20px",
+        }}
+      >
+        <div
+          style={{
+            background: "linear-gradient(135deg, #ffffff, #ecfeff)",
+            border: "1px solid #a5f3fc",
+            borderRadius: 28,
+            padding: 32,
+            boxShadow: "0 18px 45px rgba(15,23,42,0.08)",
+          }}
+        >
+          <div
+            style={{
+              display: "inline-flex",
+              background: "#cffafe",
+              color: "#155e75",
+              borderRadius: 999,
+              padding: "8px 14px",
+              fontWeight: 900,
+              fontSize: 13,
+              marginBottom: 16,
+            }}
+          >
+            Hyperlocal AI Marketplace
+          </div>
+
+          <h1
+            style={{
+              margin: 0,
+              fontSize: "clamp(34px, 6vw, 60px)",
+              lineHeight: 1.05,
+              letterSpacing: "-0.04em",
+              color: "#0f172a",
+            }}
+          >
+            {title} in {locality}
+          </h1>
+
+          <div
+            style={{
+              marginTop: 12,
+              color: "#475569",
+              fontSize: 18,
+              fontWeight: 800,
+            }}
+          >
+            {geo.city}, {geo.district}, {geo.state}
+          </div>
+
+          <p
+            style={{
+              marginTop: 22,
+              maxWidth: 900,
+              color: "#334155",
+              fontSize: 18,
+              lineHeight: 1.8,
+              fontWeight: 600,
+            }}
+          >
+            Discover local {title.toLowerCase()} opportunities, nearby vendors,
+            RFQs, builders, suppliers and marketplace activity in {locality},{" "}
+            {geo.city}. 3Bigha connects local discovery with AI-assisted
+            workflows and verified marketplace interactions.
+          </p>
+
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 14,
+              marginTop: 28,
+            }}
+          >
+            <Link
+              href={modulePath(module)}
+              style={{
+                background: "#0f172a",
+                color: "#ffffff",
+                padding: "14px 22px",
+                borderRadius: 999,
+                fontWeight: 900,
+              }}
+            >
+              Browse {title}
+            </Link>
+
+            <Link
+              href="/rfq/general/new"
+              style={{
+                background: "#ffffff",
+                border: "1px solid #cbd5e1",
+                color: "#0f172a",
+                padding: "14px 22px",
+                borderRadius: 999,
+                fontWeight: 900,
+              }}
+            >
+              Post Requirement
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section
+        style={{
+          maxWidth: 1180,
+          margin: "0 auto",
+          padding: "0 16px 34px",
+        }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: 14,
+          }}
+        >
+          {[
+            "Local discovery",
+            "Hyperlocal RFQ matching",
+            "Nearby vendors",
+            "AI-assisted search",
+            "Local buyer demand",
+            "Regional marketplace workflows",
+          ].map((item) => (
+            <div
+              key={item}
+              style={{
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                borderRadius: 18,
+                padding: 18,
+                boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 28,
+                  marginBottom: 10,
+                }}
+              >
+                📍
+              </div>
+
+              <h2
+                style={{
+                  margin: 0,
+                  color: "#0f172a",
+                  fontSize: 18,
+                }}
+              >
+                {item}
+              </h2>
+
+              <p
+                style={{
+                  color: "#64748b",
+                  lineHeight: 1.7,
+                  fontSize: 14,
+                }}
+              >
+                Marketplace workflows available around {locality},{" "}
+                {geo.city}.
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section
+        style={{
+          maxWidth: 1180,
+          margin: "0 auto",
+          padding: "0 16px 60px",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: 18,
+        }}
+      >
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 22,
+            padding: 22,
+            boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+          }}
+        >
+          <h2
+            style={{
+              margin: 0,
+              color: "#0f172a",
+              fontSize: 22,
+            }}
+          >
+            Nearby localities
+          </h2>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              marginTop: 14,
+            }}
+          >
+            {nearbyLocalities.map((item) => (
+              <Link
+                key={item}
+                href={`/seo/${module}/${params.state}/${params.district}/${params.city}/${item}`}
+                style={{
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 14,
+                  padding: "12px 14px",
+                  color: "#0f172a",
+                  fontWeight: 900,
+                  background: "#f8fafc",
+                }}
+              >
+                {title} in {normalize(item)}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 22,
+            padding: 22,
+            boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+          }}
+        >
+          <h2
+            style={{
+              margin: 0,
+              color: "#0f172a",
+              fontSize: 22,
+            }}
+          >
+            Explore regional pages
+          </h2>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              marginTop: 14,
+            }}
+          >
+            <Link
+              href={`/seo/${module}/${params.state}/${params.district}/${params.city}`}
+              style={{
+                border: "1px solid #e2e8f0",
+                borderRadius: 14,
+                padding: "12px 14px",
+                color: "#0f172a",
+                fontWeight: 900,
+                background: "#f8fafc",
+              }}
+            >
+              {title} in {geo.city}
+            </Link>
+
+            <Link
+              href={`/seo/${module}/${params.state}/${params.district}`}
+              style={{
+                border: "1px solid #e2e8f0",
+                borderRadius: 14,
+                padding: "12px 14px",
+                color: "#0f172a",
+                fontWeight: 900,
+                background: "#f8fafc",
+              }}
+            >
+              {title} in {geo.district}
+            </Link>
+
+            <Link
+              href={`/seo/${module}/${params.state}`}
+              style={{
+                border: "1px solid #e2e8f0",
+                borderRadius: 14,
+                padding: "12px 14px",
+                color: "#0f172a",
+                fontWeight: 900,
+                background: "#f8fafc",
+              }}
+            >
+              {title} in {geo.state}
+            </Link>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}

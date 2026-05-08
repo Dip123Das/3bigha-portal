@@ -159,5 +159,29 @@ export function getAllSeoUrls() {
     ...getStateSeoUrls(),
     ...getDistrictSeoUrls(),
     ...getRegionalSeoUrls(),
+    ...getLocalitySeoUrls(),
   ];
+}
+
+export const geoLocalities: Record<string, string[]> = {
+  "cooch-behar-town": [
+    "khagrabari",
+    "dinhata-road",
+    "rail-ghumti",
+    "new-town",
+    "pilkhana",
+  ],
+  tufanganj: ["natabari", "balabhut", "andar-fullan"],
+  dinhata: ["gosanimari", "bhetaguri", "sahebganj"],
+};
+
+export function getLocalitySeoUrls() {
+  return seoModules.flatMap((module) =>
+    geoCities.flatMap((geo) =>
+      (geoLocalities[geo.citySlug] || []).map(
+        (locality) =>
+          `/seo/${module}/${geo.stateSlug}/${geo.districtSlug}/${geo.citySlug}/${locality}`
+      )
+    )
+  );
 }
