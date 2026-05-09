@@ -5,6 +5,7 @@ import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import ProcurementCopilotBox from "@/app/components/ai/ProcurementCopilotBox";
 
 type RfqModule = "materials" | "services" | "rentals" | "properties";
 
@@ -1136,6 +1137,16 @@ return;
           {aiDrafting ? "AI drafting RFQ..." : "✨ Generate AI RFQ Draft"}
         </button>
       </div>
+
+      <ProcurementCopilotBox
+        defaultMessage={aiRequirement}
+        module={module}
+        city={city}
+        district=""
+        locality={locality}
+      />
+
+      <div style={{ height: 22 }} />
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
         {/* ✅ Module */}
