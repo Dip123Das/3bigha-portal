@@ -84,6 +84,8 @@ export async function GET(req: Request) {
       healthStatus,
       summary: {
         total,
+        criticalThreads: Number(towerSummary.critical || liveSummary.critical || 0),
+        criticalSignals: critical,
         critical,
         high,
         avgProbability,

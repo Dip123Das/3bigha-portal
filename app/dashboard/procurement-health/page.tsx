@@ -75,8 +75,8 @@ export default async function ProcurementHealthPage() {
         <Stat label="Total" value={summary.total ?? 0} />
         <Stat label="Active" value={summary.active ?? 0} />
         <Stat label="Closed" value={summary.closed ?? 0} />
-        <Stat label="Critical" value={summary.critical ?? 0} />
-        <Stat label="High Risk" value={summary.high ?? 0} />
+        <Stat label="Critical Threads" value={summary.criticalThreads ?? summary.critical ?? 0} />
+        <Stat label="Critical Signals" value={summary.criticalSignals ?? 0} />
       </div>
 
       <div className="rounded-[2rem] border border-blue-200 bg-blue-50 p-5">

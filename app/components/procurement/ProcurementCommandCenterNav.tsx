@@ -11,6 +11,18 @@ const ITEMS = [
     description: "Executive procurement intelligence",
   },
     {
+    href: "/dashboard/procurement-actions",
+    label: "AI Actions",
+    emoji: "🧩",
+    description: "Autonomous procurement action intelligence",
+  },
+    {
+    href: "/dashboard/procurement-execution",
+    label: "Execution AI",
+    emoji: "⚙️",
+    description: "Autonomous procurement execution intelligence",
+  },
+    {
     href: "/dashboard/procurement-health",
     label: "Health Score",
     emoji: "💚",
