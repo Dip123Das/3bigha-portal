@@ -111,6 +111,11 @@ type UnifiedInboxItem = {
   automationLabel?: string;
   automationTone?: "rose" | "amber" | "blue" | "emerald" | "slate" | "violet";
   automationPriority?: number;
+  procurementStage?: string;
+  closurePrediction?: "High" | "Medium" | "Low";
+  responsivenessSignal?: "Fast" | "Normal" | "Slow";
+  negotiationUrgency?: "Critical" | "High" | "Normal";
+  procurementScore?: number;
 };
 
 function parseMs(v?: string | null) {
@@ -355,6 +360,75 @@ function suggestedActionClass(action?: string) {
   if (action === "Follow up") {
     return "border-emerald-200 bg-emerald-50 text-emerald-700";
   }
+  return "border-slate-200 bg-slate-100 text-slate-700";
+}
+
+function computeProcurementInboxIntelligence(item: UnifiedInboxItem) {
+  const ageMs = Date.now() - parseMs(item.lastActivityAt);
+  const ageHours = ageMs / (1000 * 60 * 60);
+
+  const responsivenessSignal: UnifiedInboxItem["responsivenessSignal"] =
+    ageHours <= 6 ? "Fast" : ageHours <= 36 ? "Normal" : "Slow";
+
+  const negotiationUrgency: UnifiedInboxItem["negotiationUrgency"] =
+    item.unreadCount > 0 && ageHours <= 12
+      ? "Critical"
+      : item.unreadCount > 0 || ageHours > 48
+        ? "High"
+        : "Normal";
+
+  const procurementStage =
+    item.module === "rfq"
+      ? item.unreadCount > 0
+        ? "Vendor reply pending review"
+        : ageHours > 48
+          ? "Follow-up recommended"
+          : "RFQ monitoring"
+      : item.module === "investment"
+        ? item.unreadCount > 0
+          ? "Deal-room action needed"
+          : "Investment monitoring"
+        : item.unreadCount > 0
+          ? "Direct negotiation"
+          : "Conversation monitoring";
+
+  let procurementScore = 30;
+
+  if (item.module === "rfq") procurementScore += 25;
+  if (item.module === "investment") procurementScore += 20;
+  if (item.unreadCount > 0) procurementScore += 30;
+  if (ageHours <= 6) procurementScore += 15;
+  if (ageHours > 48) procurementScore += 12;
+  if (item.statusLabel.toLowerCase().includes("active")) procurementScore += 8;
+  if (item.stageLabel?.toLowerCase().includes("negotiation")) procurementScore += 10;
+
+  procurementScore = Math.max(1, Math.min(100, Math.round(procurementScore)));
+
+  const closurePrediction: UnifiedInboxItem["closurePrediction"] =
+    procurementScore >= 75
+      ? "High"
+      : procurementScore >= 45
+        ? "Medium"
+        : "Low";
+
+  return {
+    procurementStage,
+    closurePrediction,
+    responsivenessSignal,
+    negotiationUrgency,
+    procurementScore,
+  };
+}
+
+function procurementUrgencyClass(level?: UnifiedInboxItem["negotiationUrgency"]) {
+  if (level === "Critical") return "border-rose-200 bg-rose-50 text-rose-700";
+  if (level === "High") return "border-amber-200 bg-amber-50 text-amber-700";
+  return "border-emerald-200 bg-emerald-50 text-emerald-700";
+}
+
+function closurePredictionClass(level?: UnifiedInboxItem["closurePrediction"]) {
+  if (level === "High") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (level === "Medium") return "border-amber-200 bg-amber-50 text-amber-700";
   return "border-slate-200 bg-slate-100 text-slate-700";
 }
 
@@ -682,13 +756,29 @@ function RecentActivityStrip({
                 {item.counterpart}
               </div>
 
-              {item.stageLabel ? (
-                <div className="mt-2">
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {item.stageLabel ? (
                   <span className="inline-flex rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700">
                     {item.stageLabel}
                   </span>
-                </div>
-              ) : null}
+                ) : null}
+
+                {item.procurementScore != null ? (
+                  <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+                    AI {item.procurementScore}/100
+                  </span>
+                ) : null}
+
+                {item.negotiationUrgency ? (
+                  <span
+                    className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${procurementUrgencyClass(
+                      item.negotiationUrgency
+                    )}`}
+                  >
+                    {item.negotiationUrgency}
+                  </span>
+                ) : null}
+              </div>
 
               <div className="mt-3 text-xs text-slate-500">
                 {fmtDateTime(item.lastActivityAt)}
@@ -1290,6 +1380,7 @@ export default async function DashboardInboxV2Page({
       }
 
       const automation = computeAutomation(item);
+      const procurementAi = computeProcurementInboxIntelligence(item);
 
       return {
         ...item,
@@ -1299,6 +1390,11 @@ export default async function DashboardInboxV2Page({
         automationLabel: automation.automationLabel,
         automationTone: automation.automationTone,
         automationPriority: automation.automationPriority,
+        procurementStage: procurementAi.procurementStage,
+        closurePrediction: procurementAi.closurePrediction,
+        responsivenessSignal: procurementAi.responsivenessSignal,
+        negotiationUrgency: procurementAi.negotiationUrgency,
+        procurementScore: procurementAi.procurementScore,
       };
     })
     .sort((a, b) => b.priorityScore - a.priorityScore);
@@ -1453,6 +1549,40 @@ export default async function DashboardInboxV2Page({
     ).length,
   };
 
+    const procurementInboxStats = {
+    total: filteredItems.length,
+    rfq: grouped.rfq.length,
+    urgent: filteredItems.filter(
+      (item) =>
+        item.negotiationUrgency === "Critical" ||
+        item.negotiationUrgency === "High"
+    ).length,
+    highClosure: filteredItems.filter(
+      (item) => item.closurePrediction === "High"
+    ).length,
+    slowResponses: filteredItems.filter(
+      (item) => item.responsivenessSignal === "Slow"
+    ).length,
+    avgScore:
+      filteredItems.length > 0
+        ? Math.round(
+            filteredItems.reduce(
+              (sum, item) => sum + Number(item.procurementScore || 0),
+              0
+            ) / filteredItems.length
+          )
+        : 0,
+  };
+
+  const procurementNextAction =
+    procurementInboxStats.urgent > 0
+      ? "Prioritize urgent unread or stale procurement threads first."
+      : procurementInboxStats.highClosure > 0
+        ? "Focus on high-closure conversations and move them toward final confirmation."
+        : procurementInboxStats.slowResponses > 0
+          ? "Follow up with slow-response vendors or counterparties."
+          : "Monitor conversations and create new procurement opportunities when needed.";
+
   const isFiltered =
     Boolean(String(params.q ?? "").trim()) ||
     moduleFilter !== "all" ||
@@ -1549,6 +1679,80 @@ export default async function DashboardInboxV2Page({
                 ) : null}
               </div>
             )}
+          </div>
+        </div>
+      </div>
+
+            <div className="overflow-hidden rounded-[2rem] border border-blue-200 bg-gradient-to-r from-blue-50 via-white to-violet-50 shadow-sm">
+        <div className="px-5 py-6 lg:px-8">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="inline-flex rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">
+                AI Procurement Inbox Intelligence
+              </div>
+
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">
+                Unified Negotiation & Execution Command Layer
+              </h2>
+
+              <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-600">
+                AI reads RFQ, direct, and investment conversations to identify urgency,
+                responsiveness, procurement stage, closure probability, and the next best action.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm font-bold text-blue-700 shadow-sm">
+              Execution Score {procurementInboxStats.avgScore}/100
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            {[
+              ["Total Active Threads", procurementInboxStats.total, "📨"],
+              ["RFQ Threads", procurementInboxStats.rfq, "📦"],
+              ["Urgent Actions", procurementInboxStats.urgent, "🚨"],
+              ["High Closure", procurementInboxStats.highClosure, "✅"],
+              ["Slow Responses", procurementInboxStats.slowResponses, "⏳"],
+            ].map(([label, value, icon]) => (
+              <div
+                key={String(label)}
+                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+              >
+                <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                  {icon} {label}
+                </div>
+                <div className="mt-2 text-2xl font-black text-slate-950">
+                  {value}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+            🎯 AI next best action: {procurementNextAction}
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              href={buildInboxHref(params, { module: "rfq" })}
+              className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition hover:opacity-90"
+            >
+              View RFQ Negotiations
+            </Link>
+
+            <Link
+              href={buildInboxHref(params, { unread: "1" })}
+              className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 transition hover:opacity-90"
+            >
+              View Unread Actions
+            </Link>
+
+            <Link
+              href="/rfq/general/new"
+              className="inline-flex rounded-full border border-slate-900 bg-slate-900 px-3 py-1.5 text-xs font-bold text-white transition hover:opacity-90"
+            >
+              + New AI Procurement RFQ
+            </Link>
           </div>
         </div>
       </div>
@@ -1916,11 +2120,29 @@ export default async function DashboardInboxV2Page({
                   {fmtDateTime(item.lastActivityAt)}
                 </div>
 
-                {typeof item.automationPriority === "number" ? (
-                  <div className="mt-2 text-xs font-semibold text-slate-400">
-                    Automation score: {item.automationPriority}
-                  </div>
-                ) : null}
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {typeof item.automationPriority === "number" ? (
+                    <span className="inline-flex rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                      Automation {item.automationPriority}
+                    </span>
+                  ) : null}
+
+                  {typeof item.procurementScore === "number" ? (
+                    <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+                      AI {item.procurementScore}/100
+                    </span>
+                  ) : null}
+
+                  {item.closurePrediction ? (
+                    <span
+                      className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${closurePredictionClass(
+                        item.closurePrediction
+                      )}`}
+                    >
+                      Closure {item.closurePrediction}
+                    </span>
+                  ) : null}
+                </div>
 
                 <div className="mt-2 text-xs font-semibold text-slate-400">
                   Open →
@@ -2077,7 +2299,7 @@ export default async function DashboardInboxV2Page({
         <ThreadSection
           anchorId="rfq-section"
           title="RFQ"
-          description="Vendor-side RFQ conversations routed into your existing RFQ inbox and quote workflow."
+          description="RFQ procurement conversations with AI urgency, responsiveness, follow-up and closure signals."
           items={grouped.rfq}
           emptyMessage="No RFQ threads match the current filters."
           sortLabel={sortFilter === "unread" ? "Unread First" : "Latest First"}
@@ -2091,7 +2313,7 @@ export default async function DashboardInboxV2Page({
         <ThreadSection
           anchorId="direct-section"
           title="Direct"
-          description="Buyer-vendor listing conversations for materials, property, rentals, and services."
+          description="Buyer-vendor direct negotiations with AI reply, follow-up and execution intelligence."
           items={grouped.direct}
           emptyMessage="No direct buyer-vendor conversations match the current filters."
           sortLabel={sortFilter === "unread" ? "Unread First" : "Latest First"}
