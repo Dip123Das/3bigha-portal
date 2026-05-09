@@ -69,6 +69,85 @@ type ProfileRow = {
   phone: string | null;
 };
 
+type NegotiationIntelligence = {
+  dealScore: number;
+  closurePrediction: "High" | "Medium" | "Low";
+  urgency: "Critical" | "High" | "Normal";
+  stage: string;
+  risk: string;
+  nextAction: string;
+  paymentSignal: string;
+  commitmentSignal: string;
+  leverage: string;
+};
+
+function getNegotiationIntelligence(args: {
+  messages: MessageRow[];
+  isClosed: boolean;
+  isBuyer: boolean;
+  contextType?: string | null;
+}) {
+  const text = args.messages.map((m) => String(m.body || "")).join(" ").toLowerCase();
+  const last = args.messages[args.messages.length - 1] || null;
+  const lastAgeHours = last?.created_at
+    ? (Date.now() - new Date(last.created_at).getTime()) / (1000 * 60 * 60)
+    : 999;
+
+  const hasPrice = /₹|rs\.?|price|rate|total|quote|amount|cost/.test(text);
+  const hasDelivery = /delivery|deliver|timeline|days|tomorrow|today|date/.test(text);
+  const hasPayment = /payment|advance|upi|cash|bank|gst|invoice/.test(text);
+  const hasCommitment = /confirm|final|ok|done|accept|agree|book/.test(text);
+  const hasRisk = /delay|later|problem|issue|not possible|unavailable|cancel/.test(text);
+
+  let dealScore = 25;
+  if (args.messages.length >= 2) dealScore += 15;
+  if (hasPrice) dealScore += 18;
+  if (hasDelivery) dealScore += 15;
+  if (hasPayment) dealScore += 12;
+  if (hasCommitment) dealScore += 20;
+  if (hasRisk) dealScore -= 18;
+  if (lastAgeHours > 48) dealScore -= 8;
+  if (args.isClosed) dealScore = 100;
+
+  dealScore = Math.max(1, Math.min(100, Math.round(dealScore)));
+
+  return {
+    dealScore,
+    closurePrediction: args.isClosed || dealScore >= 75 ? "High" : dealScore >= 45 ? "Medium" : "Low",
+    urgency: lastAgeHours > 72 ? "High" : hasCommitment && !args.isClosed ? "Critical" : "Normal",
+    stage: args.isClosed
+      ? "Deal closed"
+      : hasCommitment
+        ? "Final confirmation stage"
+        : hasPrice && hasDelivery
+          ? "Negotiation stage"
+          : args.messages.length > 0
+            ? "Discovery conversation"
+            : "Not started",
+    risk: hasRisk
+      ? "Risk signal detected. Confirm availability, timeline and terms before closing."
+      : lastAgeHours > 72
+        ? "Conversation is stale. Follow-up recommended."
+        : "No major risk detected from visible messages.",
+    nextAction: args.isClosed
+      ? "Review closed deal and keep record."
+      : hasCommitment
+        ? "Confirm final price, delivery/work date, payment terms and close the deal."
+        : hasPrice
+          ? "Ask for final delivery timeline, GST/invoice and payment terms."
+          : "Ask counterpart to confirm price, scope, availability and timeline.",
+    paymentSignal: hasPayment
+      ? "Payment/GST/invoice terms discussed."
+      : "Payment terms not clearly discussed yet.",
+    commitmentSignal: hasCommitment
+      ? "Commitment words detected in conversation."
+      : "No clear commitment detected yet.",
+    leverage: args.isBuyer
+      ? "Use competing quotes, delivery timeline and hidden charges as negotiation leverage."
+      : "Use availability, trust, faster delivery and clear terms as closing leverage.",
+  } as NegotiationIntelligence;
+}
+
 function titleCase(v?: string | null) {
   const s = String(v ?? "").replace(/_/g, " ").trim();
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : "—";
@@ -333,6 +412,13 @@ export default async function UniversalThreadPage({
       ? String((conv as any).rfq_id || conv.context_id || "").trim()
       : "";
 
+  const negotiationAi = getNegotiationIntelligence({
+    messages,
+    isClosed,
+    isBuyer,
+    contextType: conv.context_type,
+  });
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -418,12 +504,108 @@ export default async function UniversalThreadPage({
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 sm:min-w-[210px]">
-            <div className="font-bold text-slate-900">Deal safety tip</div>
+             <div className="font-bold text-slate-900">AI deal safety tip</div>
             <div className="mt-1 text-xs leading-5">
-              Discuss item, quantity, location and final price clearly before
-              closing the deal.
+              Before closing, confirm final price, delivery/work timeline,
+              GST/invoice, payment terms and hidden charges in chat.
             </div>
           </div>
+        </div>
+      </div>
+
+            <div className="rounded-3xl border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-violet-50 p-5 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="inline-flex rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-blue-700">
+              AI Negotiation & Deal Execution Intelligence
+            </div>
+
+            <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">
+              Procurement Execution Assistant
+            </h2>
+
+            <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
+              AI reads this thread to detect deal stage, closure probability, payment terms,
+              commitment signals, negotiation risk and the next best action.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm font-black text-blue-700 shadow-sm">
+            Deal Score {negotiationAi.dealScore}/100
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-4">
+          {[
+            ["Closure", negotiationAi.closurePrediction, "✅"],
+            ["Urgency", negotiationAi.urgency, "🚨"],
+            ["Stage", negotiationAi.stage, "📍"],
+            ["Messages", messages.length, "💬"],
+          ].map(([label, value, icon]) => (
+            <div key={String(label)} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+                {icon} {label}
+              </div>
+              <div className="mt-2 text-lg font-black text-slate-950">
+                {value}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="font-black text-emerald-800">🎯 AI Next Best Action</div>
+            <div className="mt-2 text-sm font-semibold leading-6 text-emerald-900">
+              {negotiationAi.nextAction}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <div className="font-black text-amber-800">🤝 Negotiation Leverage</div>
+            <div className="mt-2 text-sm font-semibold leading-6 text-amber-900">
+              {negotiationAi.leverage}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-violet-200 bg-violet-50 p-4">
+            <div className="font-black text-violet-800">💳 Payment-Term Intelligence</div>
+            <div className="mt-2 text-sm font-semibold leading-6 text-violet-900">
+              {negotiationAi.paymentSignal}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+            <div className="font-black text-rose-800">⚠ Risk & Commitment Signal</div>
+            <div className="mt-2 text-sm font-semibold leading-6 text-rose-900">
+              {negotiationAi.commitmentSignal} {negotiationAi.risk}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {rfqId ? (
+            <Link
+              href={`/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}`}
+              className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-black text-blue-700 transition hover:opacity-90"
+            >
+              Open Quote Comparison
+            </Link>
+          ) : null}
+
+          <Link
+            href="/dashboard/inbox-v2"
+            className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 transition hover:bg-slate-50"
+          >
+            Back to AI Inbox
+          </Link>
+
+          <Link
+            href="/rfq/general/new"
+            className="inline-flex rounded-full border border-slate-900 bg-slate-900 px-3 py-1.5 text-xs font-black text-white transition hover:opacity-90"
+          >
+            + New AI RFQ
+          </Link>
         </div>
       </div>
 
