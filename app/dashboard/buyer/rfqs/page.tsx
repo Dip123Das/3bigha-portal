@@ -179,6 +179,135 @@ function Pill({
   return <span className={cls}>{children}</span>;
 }
 
+type AiRfqLifecycleStage =
+  | "Drafting"
+  | "Waiting for vendors"
+  | "Compare quotes"
+  | "Negotiate"
+  | "Ready to close"
+  | "Closed";
+
+type AiRfqCommandInsight = {
+  priorityScore: number;
+  priorityLabel: "Critical" | "High" | "Medium" | "Low";
+  stage: AiRfqLifecycleStage;
+  stageTone: "neutral" | "warn" | "ok";
+  nextAction: string;
+  nextActionHref: string;
+  alertText: string;
+  followUpText: string;
+  successPrediction: "High" | "Medium" | "Low";
+};
+
+function daysUntil(iso: string | null | undefined) {
+  if (!iso) return null;
+  const target = new Date(iso).getTime();
+  if (!Number.isFinite(target)) return null;
+  return Math.ceil((target - Date.now()) / (1000 * 60 * 60 * 24));
+}
+
+function getAiRfqCommandInsight(args: {
+  rfq: RfqRow;
+  vendorCount: number;
+  bestTotal: number | null;
+  selected: SelectedVendorSummary | null;
+  unreadChatCount: number;
+  lastMessageAt: string | null;
+}) {
+  const { rfq, vendorCount, bestTotal, selected, unreadChatCount, lastMessageAt } = args;
+
+  const status = String(rfq.status || "").toLowerCase();
+  const dueDays = daysUntil(rfq.needed_by);
+  const hasFreshChat =
+    !!lastMessageAt && Date.now() - new Date(lastMessageAt).getTime() <= 1000 * 60 * 60 * 12;
+
+  let priorityScore = 20;
+
+  if (status === "open") priorityScore += 15;
+  if (vendorCount > 0) priorityScore += 20;
+  if (bestTotal != null) priorityScore += 12;
+  if (unreadChatCount > 0) priorityScore += 25;
+  if (hasFreshChat) priorityScore += 8;
+  if (dueDays != null && dueDays <= 2) priorityScore += 25;
+  else if (dueDays != null && dueDays <= 7) priorityScore += 15;
+  if (selected) priorityScore -= 35;
+  if (status === "closed") priorityScore -= 45;
+
+  priorityScore = Math.max(1, Math.min(100, Math.round(priorityScore)));
+
+  const priorityLabel: AiRfqCommandInsight["priorityLabel"] =
+    priorityScore >= 80 ? "Critical" : priorityScore >= 60 ? "High" : priorityScore >= 35 ? "Medium" : "Low";
+
+  const stage: AiRfqLifecycleStage =
+    status === "closed" || selected
+      ? "Closed"
+      : unreadChatCount > 0
+        ? "Negotiate"
+        : vendorCount >= 2
+          ? "Compare quotes"
+          : vendorCount === 1
+            ? "Ready to close"
+            : "Waiting for vendors";
+
+  const stageTone: AiRfqCommandInsight["stageTone"] =
+    stage === "Closed" ? "ok" : priorityLabel === "Critical" || priorityLabel === "High" ? "warn" : "neutral";
+
+  const nextAction =
+    stage === "Closed"
+      ? "Review selected vendor and download quote."
+      : unreadChatCount > 0
+        ? "Open vendor chat and reply."
+        : vendorCount >= 2
+          ? "Compare quotes and choose best value."
+          : vendorCount === 1
+            ? "Negotiate final price, delivery and payment terms."
+            : "Follow up or wait for vendor quotes.";
+
+  const nextActionHref =
+    stage === "Closed" || vendorCount > 0
+      ? `/dashboard/buyer/quote-compare/${encodeURIComponent(rfq.id)}`
+      : "/rfq/general/new";
+
+  const alertText =
+    dueDays != null && dueDays <= 0
+      ? "Deadline reached or overdue. Immediate follow-up recommended."
+      : dueDays != null && dueDays <= 2
+        ? "Very urgent requirement. Prioritize vendor response."
+        : unreadChatCount > 0
+          ? `${unreadChatCount} unread vendor message(s).`
+          : vendorCount === 0
+            ? "No vendor quote yet."
+            : "RFQ is progressing.";
+
+  const followUpText =
+    unreadChatCount > 0
+      ? "Reply to vendor and confirm price, timeline, GST/invoice and payment terms."
+      : vendorCount === 0
+        ? "Use vendor discovery or improve RFQ details to attract faster quotes."
+        : vendorCount === 1
+          ? "Ask at least one more vendor or negotiate with current vendor."
+          : "Use AI comparison to shortlist best value vendor.";
+
+  const successPrediction: AiRfqCommandInsight["successPrediction"] =
+    selected || status === "closed" || (vendorCount >= 2 && bestTotal != null)
+      ? "High"
+      : vendorCount >= 1 || unreadChatCount > 0
+        ? "Medium"
+        : "Low";
+
+  return {
+    priorityScore,
+    priorityLabel,
+    stage,
+    stageTone,
+    nextAction,
+    nextActionHref,
+    alertText,
+    followUpText,
+    successPrediction,
+  };
+}
+
 export default function BuyerRfqsPage() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -196,6 +325,7 @@ export default function BuyerRfqsPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterModule, setFilterModule] = useState<string>("all");
   const [q, setQ] = useState<string>("");
+  const [aiFocusFilter, setAiFocusFilter] = useState<"all" | "urgent" | "needs_reply" | "compare" | "closed">("all");
 
   const [vendorCountByRfq, setVendorCountByRfq] = useState<Record<string, number>>({});
   const [latestQuoteAtByRfq, setLatestQuoteAtByRfq] = useState<Record<string, string | null>>({});
@@ -208,22 +338,92 @@ export default function BuyerRfqsPage() {
   const userIdRef = useRef<string | null>(null);
   const rfqIdsRef = useRef<string[]>([]);
   const displayRows = useMemo(() => {
-  return [...rows].sort((a, b) => {
-    const aUnread = unreadCountByRfq[a.id] ?? 0;
-    const bUnread = unreadCountByRfq[b.id] ?? 0;
+    const needle = q.trim().toLowerCase();
 
-    if (bUnread !== aUnread) return bUnread - aUnread;
+    return [...rows]
+      .filter((r) => {
+        if (!needle) return true;
 
-    const aLast = lastMessageAtByRfq[a.id]
-      ? new Date(lastMessageAtByRfq[a.id] as string).getTime()
-      : 0;
-    const bLast = lastMessageAtByRfq[b.id]
-      ? new Date(lastMessageAtByRfq[b.id] as string).getTime()
-      : 0;
+        const hay = [
+          r.public_id ?? "",
+          r.title ?? "",
+          r.module ?? "",
+          r.status ?? "",
+          r.locality ?? "",
+          r.city ?? "",
+          r.district ?? "",
+          r.pincode ?? "",
+        ]
+          .join(" ")
+          .toLowerCase();
 
-    return bLast - aLast;
-  });
-}, [rows, unreadCountByRfq, lastMessageAtByRfq]);
+        return hay.includes(needle);
+      })
+      .filter((r) => {
+        if (aiFocusFilter === "all") return true;
+
+        const insight = getAiRfqCommandInsight({
+          rfq: r,
+          vendorCount: vendorCountByRfq[r.id] ?? 0,
+          bestTotal: bestTotalByRfq[r.id] ?? null,
+          selected: selectedVendorByRfq[r.id] ?? null,
+          unreadChatCount: unreadCountByRfq[r.id] ?? 0,
+          lastMessageAt: lastMessageAtByRfq[r.id] ?? null,
+        });
+
+        if (aiFocusFilter === "urgent") return insight.priorityLabel === "Critical" || insight.priorityLabel === "High";
+        if (aiFocusFilter === "needs_reply") return (unreadCountByRfq[r.id] ?? 0) > 0;
+        if (aiFocusFilter === "compare") return (vendorCountByRfq[r.id] ?? 0) >= 2 && !selectedVendorByRfq[r.id];
+        if (aiFocusFilter === "closed") return insight.stage === "Closed";
+        return true;
+      })
+      .sort((a, b) => {
+        const aInsight = getAiRfqCommandInsight({
+          rfq: a,
+          vendorCount: vendorCountByRfq[a.id] ?? 0,
+          bestTotal: bestTotalByRfq[a.id] ?? null,
+          selected: selectedVendorByRfq[a.id] ?? null,
+          unreadChatCount: unreadCountByRfq[a.id] ?? 0,
+          lastMessageAt: lastMessageAtByRfq[a.id] ?? null,
+        });
+
+        const bInsight = getAiRfqCommandInsight({
+          rfq: b,
+          vendorCount: vendorCountByRfq[b.id] ?? 0,
+          bestTotal: bestTotalByRfq[b.id] ?? null,
+          selected: selectedVendorByRfq[b.id] ?? null,
+          unreadChatCount: unreadCountByRfq[b.id] ?? 0,
+          lastMessageAt: lastMessageAtByRfq[b.id] ?? null,
+        });
+
+        if (bInsight.priorityScore !== aInsight.priorityScore) {
+          return bInsight.priorityScore - aInsight.priorityScore;
+        }
+
+        const aUnread = unreadCountByRfq[a.id] ?? 0;
+        const bUnread = unreadCountByRfq[b.id] ?? 0;
+
+        if (bUnread !== aUnread) return bUnread - aUnread;
+
+        const aLast = lastMessageAtByRfq[a.id]
+          ? new Date(lastMessageAtByRfq[a.id] as string).getTime()
+          : 0;
+        const bLast = lastMessageAtByRfq[b.id]
+          ? new Date(lastMessageAtByRfq[b.id] as string).getTime()
+          : 0;
+
+        return bLast - aLast;
+      });
+  }, [
+    rows,
+    q,
+    aiFocusFilter,
+    unreadCountByRfq,
+    lastMessageAtByRfq,
+    vendorCountByRfq,
+    bestTotalByRfq,
+    selectedVendorByRfq,
+  ]);
 
   async function getSessionOrRedirect() {
     return requireBrowserSession({
@@ -687,6 +887,56 @@ export default function BuyerRfqsPage() {
     };
   }, [supabase, userId]);
 
+    const commandCenterStats = useMemo(() => {
+    const insights = rows.map((r) =>
+      getAiRfqCommandInsight({
+        rfq: r,
+        vendorCount: vendorCountByRfq[r.id] ?? 0,
+        bestTotal: bestTotalByRfq[r.id] ?? null,
+        selected: selectedVendorByRfq[r.id] ?? null,
+        unreadChatCount: unreadCountByRfq[r.id] ?? 0,
+        lastMessageAt: lastMessageAtByRfq[r.id] ?? null,
+      })
+    );
+
+    const urgent = insights.filter((x) => x.priorityLabel === "Critical" || x.priorityLabel === "High").length;
+    const needsReply = rows.filter((r) => (unreadCountByRfq[r.id] ?? 0) > 0).length;
+    const compareReady = rows.filter((r) => (vendorCountByRfq[r.id] ?? 0) >= 2 && !selectedVendorByRfq[r.id]).length;
+    const closed = insights.filter((x) => x.stage === "Closed").length;
+
+    const avgScore =
+      insights.length > 0
+        ? Math.round(insights.reduce((sum, x) => sum + x.priorityScore, 0) / insights.length)
+        : 0;
+
+    return {
+      urgent,
+      needsReply,
+      compareReady,
+      closed,
+      avgScore,
+      total: rows.length,
+      visible: displayRows.length,
+    };
+  }, [
+    rows,
+    displayRows.length,
+    vendorCountByRfq,
+    bestTotalByRfq,
+    selectedVendorByRfq,
+    unreadCountByRfq,
+    lastMessageAtByRfq,
+  ]);
+
+  const commandCenterFocus =
+    commandCenterStats.needsReply > 0
+      ? "Reply to vendor chats first."
+      : commandCenterStats.compareReady > 0
+        ? "Compare multi-vendor RFQs and shortlist best value."
+        : commandCenterStats.urgent > 0
+          ? "Prioritize urgent RFQs and follow up with vendors."
+          : "Create new AI RFQs or monitor existing procurement activity.";
+
   if (loading) {
     return (
       <main>
@@ -722,6 +972,126 @@ export default function BuyerRfqsPage() {
           title="My RFQs"
           subtitle="See requirements you submitted and compare vendor quotes."
         />
+
+                <div
+          style={{
+            border: "1px solid rgba(37,99,235,0.25)",
+            background: "linear-gradient(135deg, rgba(37,99,235,0.08), #ffffff)",
+            borderRadius: 18,
+            padding: 16,
+            marginBottom: 16,
+            boxShadow: "0 14px 30px rgba(37,99,235,0.08)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 22, fontWeight: 1000, color: "#1e3a8a" }}>
+                🧠 AI Procurement Command Center
+              </div>
+              <div style={{ marginTop: 4, color: "#475569", fontSize: 14, fontWeight: 800 }}>
+                AI prioritizes RFQs by urgency, vendor response, quote readiness, chat activity and closure stage.
+              </div>
+            </div>
+
+            <div
+              style={{
+                background:
+                  commandCenterStats.avgScore >= 70
+                    ? "#fee2e2"
+                    : commandCenterStats.avgScore >= 40
+                      ? "#fef3c7"
+                      : "#dcfce7",
+                color:
+                  commandCenterStats.avgScore >= 70
+                    ? "#991b1b"
+                    : commandCenterStats.avgScore >= 40
+                      ? "#92400e"
+                      : "#166534",
+                borderRadius: 999,
+                padding: "9px 14px",
+                fontWeight: 1000,
+                alignSelf: "center",
+                border: "1px solid rgba(15,23,42,0.08)",
+              }}
+            >
+              AI Priority Load {commandCenterStats.avgScore}/100
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
+            {[
+              ["Total RFQs", commandCenterStats.total, "📄"],
+              ["Urgent", commandCenterStats.urgent, "🚨"],
+              ["Needs Reply", commandCenterStats.needsReply, "💬"],
+              ["Compare Ready", commandCenterStats.compareReady, "⚖️"],
+              ["Closed", commandCenterStats.closed, "✅"],
+            ].map(([label, value, icon]) => (
+              <div
+                key={label}
+                style={{
+                  border: "1px solid #e2e8f0",
+                  background: "#ffffff",
+                  borderRadius: 14,
+                  padding: 12,
+                }}
+              >
+                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
+                  {icon} {label}
+                </div>
+                <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000, fontSize: 22 }}>
+                  {value}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            style={{
+              marginTop: 12,
+              border: "1px solid #bfdbfe",
+              background: "#eff6ff",
+              color: "#1e3a8a",
+              borderRadius: 12,
+              padding: 10,
+              fontSize: 13,
+              fontWeight: 900,
+            }}
+          >
+            🎯 AI next best action: {commandCenterFocus}
+          </div>
+
+          <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              ["all", "All RFQs"],
+              ["urgent", "Urgent"],
+              ["needs_reply", "Needs Reply"],
+              ["compare", "Compare Ready"],
+              ["closed", "Closed"],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setAiFocusFilter(key as any)}
+                style={{
+                  height: 36,
+                  padding: "0 12px",
+                  borderRadius: 999,
+                  border: aiFocusFilter === key ? "1px solid #2563eb" : "1px solid #e2e8f0",
+                  background: aiFocusFilter === key ? "#dbeafe" : "#ffffff",
+                  color: aiFocusFilter === key ? "#1e40af" : "#334155",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+
+            <ActionButton href="/rfq/general/new" variant="primary">
+              + New AI RFQ
+            </ActionButton>
+          </div>
+        </div>
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
           <ActionButton href="/dashboard" variant="secondary">
@@ -813,7 +1183,7 @@ export default function BuyerRfqsPage() {
                 />
               </div>
 
-              <div style={{ display: "flex", alignItems: "flex-end" }}>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 8 }}>
                 <button
                   type="button"
                   onClick={() => loadList()}
@@ -828,6 +1198,27 @@ export default function BuyerRfqsPage() {
                   }}
                 >
                   Apply
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterStatus("all");
+                    setFilterModule("all");
+                    setQ("");
+                    setAiFocusFilter("all");
+                  }}
+                  style={{
+                    height: 40,
+                    padding: "0 14px",
+                    borderRadius: 12,
+                    border: "1px solid rgba(0,0,0,0.12)",
+                    background: "white",
+                    fontWeight: 900,
+                    cursor: "pointer",
+                  }}
+                >
+                  Reset
                 </button>
               </div>
             </div>
@@ -858,6 +1249,14 @@ export default function BuyerRfqsPage() {
                   ? `/dashboard/thread/${encodeURIComponent(r.conversation_id)}`
                   : `/dashboard/buyer/quote-compare/${encodeURIComponent(r.id)}`;
                 const printHref = `/dashboard/buyer/quote-compare/${encodeURIComponent(r.id)}/print`;
+                const aiInsight = getAiRfqCommandInsight({
+                  rfq: r,
+                  vendorCount,
+                  bestTotal: best,
+                  selected,
+                  unreadChatCount,
+                  lastMessageAt,
+                });
 
                 return (
                   <Card
@@ -891,6 +1290,14 @@ export default function BuyerRfqsPage() {
   <div style={{ fontWeight: 900, fontSize: 16 }}>
     {r.title?.trim() ? r.title : `RFQ #${r.public_id ?? r.id.slice(0, 8)}`}
   </div>
+
+  <Pill tone={aiInsight.stageTone}>
+    AI Priority: {aiInsight.priorityLabel} ({aiInsight.priorityScore}/100)
+  </Pill>
+
+  <Pill tone={aiInsight.stageTone}>
+    {aiInsight.stage}
+  </Pill>
 
   {unreadChatCount > 0 ? (
     <span
@@ -940,6 +1347,52 @@ export default function BuyerRfqsPage() {
                             </Pill>
                             {latestAt ? <Pill>Latest quote: {fmtDate(latestAt)}</Pill> : <Pill>Latest quote: —</Pill>}
                             {best != null ? <Pill tone="ok">Best total: {fmtMoney(best)}</Pill> : <Pill>Best total: —</Pill>}
+                          </div>
+
+                                                    <div
+                            style={{
+                              marginTop: 12,
+                              padding: 12,
+                              borderRadius: 12,
+                              border:
+                                aiInsight.priorityLabel === "Critical" || aiInsight.priorityLabel === "High"
+                                  ? "1px solid #fde68a"
+                                  : "1px solid #e2e8f0",
+                              background:
+                                aiInsight.priorityLabel === "Critical" || aiInsight.priorityLabel === "High"
+                                  ? "#fffbeb"
+                                  : "#f8fafc",
+                            }}
+                          >
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                              <div style={{ minWidth: 260, flex: 1 }}>
+                                <div style={{ fontSize: 12, fontWeight: 1000, color: "#334155", marginBottom: 5 }}>
+                                  AI RFQ STATUS INTELLIGENCE
+                                </div>
+
+                                <div style={{ color: "#0f172a", fontWeight: 900 }}>
+                                  {aiInsight.nextAction}
+                                </div>
+
+                                <div style={{ marginTop: 6, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
+                                  {aiInsight.alertText}
+                                </div>
+
+                                <div style={{ marginTop: 6, color: "#475569", fontSize: 13, fontWeight: 800 }}>
+                                  Follow-up: {aiInsight.followUpText}
+                                </div>
+                              </div>
+
+                              <div style={{ minWidth: 180, display: "grid", gap: 6, alignContent: "start" }}>
+                                <Pill tone={aiInsight.successPrediction === "High" ? "ok" : aiInsight.successPrediction === "Medium" ? "warn" : "neutral"}>
+                                  Success: {aiInsight.successPrediction}
+                                </Pill>
+
+                                <ActionButton href={aiInsight.nextActionHref} variant="secondary">
+                                  Do Next →
+                                </ActionButton>
+                              </div>
+                            </div>
                           </div>
 
                           {lastMessagePreview ? (
@@ -1254,7 +1707,7 @@ export default function BuyerRfqsPage() {
                           RFQ ID: {r.id.slice(0, 8)}… • RFQ No: {r.public_id ?? "—"}
                         </span>
                         <span style={{ marginLeft: "auto", color: "#5b6472", fontSize: 13 }}>
-                          Tip: “Open” takes you to the RFQ result page. “Compare Quotes” logic remains preserved there.
+                          AI sorts this list by priority, unread vendor activity, quote readiness and procurement urgency.
                         </span>
                       </div>
                     </CardFooter>
