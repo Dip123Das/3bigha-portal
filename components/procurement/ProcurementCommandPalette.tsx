@@ -96,9 +96,17 @@ export default function ProcurementCommandPalette() {
       <button
         aria-label="Open AI Procurement Command Center"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+        className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 lg:inline-flex"
       >
         ⌘ Procurement AI
+      </button>
+
+      <button
+        aria-label="Open AI Procurement Command Center"
+        onClick={() => setOpen(true)}
+        className="fixed bottom-5 right-5 z-[9998] inline-flex h-14 w-14 items-center justify-center rounded-full border border-indigo-200 bg-slate-950 text-xl font-black text-white shadow-2xl shadow-slate-900/30 lg:hidden"
+      >
+        AI
       </button>
 
       {open ? (
