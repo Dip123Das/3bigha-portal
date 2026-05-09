@@ -79,6 +79,11 @@ type NegotiationIntelligence = {
   paymentSignal: string;
   commitmentSignal: string;
   leverage: string;
+  autonomousAction: string;
+  autonomousReason: string;
+  workflowRisk: "High" | "Medium" | "Low";
+  supplierSignal: "Strong" | "Moderate" | "Weak";
+  milestone: string;
 };
 
 function getNegotiationIntelligence(args: {
@@ -110,6 +115,41 @@ function getNegotiationIntelligence(args: {
   if (args.isClosed) dealScore = 100;
 
   dealScore = Math.max(1, Math.min(100, Math.round(dealScore)));
+
+  const workflowRisk: NegotiationIntelligence["workflowRisk"] =
+    hasRisk || lastAgeHours > 72 ? "High" : lastAgeHours > 36 ? "Medium" : "Low";
+
+  const supplierSignal: NegotiationIntelligence["supplierSignal"] =
+    dealScore >= 75 ? "Strong" : dealScore >= 45 ? "Moderate" : "Weak";
+
+  const autonomousAction =
+    args.isClosed
+      ? "Archive learning and keep this deal as execution record."
+      : hasCommitment
+        ? "Confirm final terms and close the procurement milestone."
+        : hasPrice && hasDelivery
+          ? "Request payment/GST terms and final confirmation."
+          : lastAgeHours > 48
+            ? "Send follow-up to revive this negotiation."
+            : "Continue gathering price, scope, timeline and availability.";
+
+  const autonomousReason =
+    workflowRisk === "High"
+      ? "Thread has risk/staleness signals that may block deal execution."
+      : workflowRisk === "Medium"
+        ? "Thread is aging; keeping it warm can protect conversion."
+        : "Thread is active enough for normal procurement execution.";
+
+  const milestone =
+    args.isClosed
+      ? "Closed"
+      : hasCommitment
+        ? "Final confirmation"
+        : hasPrice && hasDelivery
+          ? "Terms clarification"
+          : hasPrice
+            ? "Timeline/payment collection"
+            : "Discovery";
 
   return {
     dealScore,
@@ -145,7 +185,24 @@ function getNegotiationIntelligence(args: {
     leverage: args.isBuyer
       ? "Use competing quotes, delivery timeline and hidden charges as negotiation leverage."
       : "Use availability, trust, faster delivery and clear terms as closing leverage.",
+    autonomousAction,
+    autonomousReason,
+    workflowRisk,
+    supplierSignal,
+    milestone,
   } as NegotiationIntelligence;
+}
+
+function workflowRiskClass(level: NegotiationIntelligence["workflowRisk"]) {
+  if (level === "High") return "border-rose-200 bg-rose-50 text-rose-700";
+  if (level === "Medium") return "border-amber-200 bg-amber-50 text-amber-700";
+  return "border-emerald-200 bg-emerald-50 text-emerald-700";
+}
+
+function supplierSignalClass(level: NegotiationIntelligence["supplierSignal"]) {
+  if (level === "Strong") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (level === "Moderate") return "border-blue-200 bg-blue-50 text-blue-700";
+  return "border-slate-200 bg-slate-100 text-slate-700";
 }
 
 function titleCase(v?: string | null) {
@@ -606,6 +663,95 @@ export default async function UniversalThreadPage({
           >
             + New AI RFQ
           </Link>
+        </div>
+      </div>
+
+            <div className="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 p-5 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="inline-flex rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-emerald-700">
+              Autonomous Procurement OS
+            </div>
+
+            <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">
+              AI Workflow Agent for This Thread
+            </h2>
+
+            <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
+              The agent converts this conversation into execution actions: follow-up,
+              supplier shortlisting, milestone movement, risk control and deal closure.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm font-black text-emerald-700 shadow-sm">
+            Milestone: {negotiationAi.milestone}
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              🚦 Workflow Risk
+            </div>
+            <div
+              className={`mt-2 inline-flex rounded-full border px-3 py-1 text-sm font-black ${workflowRiskClass(
+                negotiationAi.workflowRisk
+              )}`}
+            >
+              {negotiationAi.workflowRisk}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              🏆 Supplier Signal
+            </div>
+            <div
+              className={`mt-2 inline-flex rounded-full border px-3 py-1 text-sm font-black ${supplierSignalClass(
+                negotiationAi.supplierSignal
+              )}`}
+            >
+              {negotiationAi.supplierSignal}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              📍 Milestone
+            </div>
+            <div className="mt-2 text-sm font-black text-slate-950">
+              {negotiationAi.milestone}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              🤖 Agent Mode
+            </div>
+            <div className="mt-2 text-sm font-black text-slate-950">
+              {isClosed ? "Record" : "Active execution"}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="font-black text-emerald-800">
+              🤖 Autonomous Action
+            </div>
+            <div className="mt-2 text-sm font-semibold leading-6 text-emerald-900">
+              {negotiationAi.autonomousAction}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4">
+            <div className="font-black text-cyan-800">
+              🧠 Why This Action
+            </div>
+            <div className="mt-2 text-sm font-semibold leading-6 text-cyan-900">
+              {negotiationAi.autonomousReason}
+            </div>
+          </div>
         </div>
       </div>
 

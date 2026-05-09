@@ -116,6 +116,10 @@ type UnifiedInboxItem = {
   responsivenessSignal?: "Fast" | "Normal" | "Slow";
   negotiationUrgency?: "Critical" | "High" | "Normal";
   procurementScore?: number;
+  autonomousAction?: string;
+  autonomousReason?: string;
+  supplierSignal?: "Strong" | "Moderate" | "Weak";
+  workflowRisk?: "High" | "Medium" | "Low";
 };
 
 function parseMs(v?: string | null) {
@@ -429,6 +433,68 @@ function procurementUrgencyClass(level?: UnifiedInboxItem["negotiationUrgency"])
 function closurePredictionClass(level?: UnifiedInboxItem["closurePrediction"]) {
   if (level === "High") return "border-emerald-200 bg-emerald-50 text-emerald-700";
   if (level === "Medium") return "border-amber-200 bg-amber-50 text-amber-700";
+  return "border-slate-200 bg-slate-100 text-slate-700";
+}
+
+function computeAutonomousProcurementOs(item: UnifiedInboxItem) {
+  const ageHours = (Date.now() - parseMs(item.lastActivityAt)) / (1000 * 60 * 60);
+  const score = Number(item.procurementScore || item.priorityScore || 0);
+
+  const supplierSignal: UnifiedInboxItem["supplierSignal"] =
+    item.module === "rfq" && score >= 70
+      ? "Strong"
+      : score >= 50
+      ? "Moderate"
+      : "Weak";
+
+  const workflowRisk: UnifiedInboxItem["workflowRisk"] =
+    item.unreadCount > 0 || ageHours > 72
+      ? "High"
+      : ageHours > 36
+      ? "Medium"
+      : "Low";
+
+  const autonomousAction =
+    item.module === "rfq"
+      ? item.unreadCount > 0
+        ? "Review vendor reply and compare quote."
+        : ageHours > 48
+        ? "Send RFQ follow-up or request final price."
+        : "Monitor quote movement."
+      : item.module === "investment"
+      ? ageHours > 48
+        ? "Review deal room and push next milestone."
+        : "Monitor investment discussion."
+      : item.unreadCount > 0
+      ? "Reply to direct enquiry."
+      : ageHours > 48
+      ? "Send direct follow-up."
+      : "Monitor conversation.";
+
+  const autonomousReason =
+    workflowRisk === "High"
+      ? "Thread is unread or stale and may block procurement execution."
+      : workflowRisk === "Medium"
+      ? "Thread is aging and should be kept warm."
+      : "Thread is currently stable.";
+
+  return {
+    autonomousAction,
+    autonomousReason,
+    supplierSignal,
+    workflowRisk,
+  };
+}
+
+function workflowRiskClass(level?: UnifiedInboxItem["workflowRisk"]) {
+  if (level === "High") return "border-rose-200 bg-rose-50 text-rose-700";
+  if (level === "Medium") return "border-amber-200 bg-amber-50 text-amber-700";
+  return "border-emerald-200 bg-emerald-50 text-emerald-700";
+}
+
+function supplierSignalClass(level?: UnifiedInboxItem["supplierSignal"]) {
+  if (level === "Strong") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (level === "Moderate") return "border-blue-200 bg-blue-50 text-blue-700";
   return "border-slate-200 bg-slate-100 text-slate-700";
 }
 
@@ -776,6 +842,25 @@ function RecentActivityStrip({
                     )}`}
                   >
                     {item.negotiationUrgency}
+                  </span>
+                ) : null}
+                                {item.workflowRisk ? (
+                  <span
+                    className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${workflowRiskClass(
+                      item.workflowRisk
+                    )}`}
+                  >
+                    Risk {item.workflowRisk}
+                  </span>
+                ) : null}
+
+                {item.supplierSignal ? (
+                  <span
+                    className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${supplierSignalClass(
+                      item.supplierSignal
+                    )}`}
+                  >
+                    Supplier {item.supplierSignal}
                   </span>
                 ) : null}
               </div>
@@ -1381,6 +1466,10 @@ export default async function DashboardInboxV2Page({
 
       const automation = computeAutomation(item);
       const procurementAi = computeProcurementInboxIntelligence(item);
+      const autonomousOs = computeAutonomousProcurementOs({
+        ...item,
+        procurementScore: procurementAi.procurementScore,
+      });
 
       return {
         ...item,
@@ -1395,6 +1484,10 @@ export default async function DashboardInboxV2Page({
         responsivenessSignal: procurementAi.responsivenessSignal,
         negotiationUrgency: procurementAi.negotiationUrgency,
         procurementScore: procurementAi.procurementScore,
+        autonomousAction: autonomousOs.autonomousAction,
+        autonomousReason: autonomousOs.autonomousReason,
+        supplierSignal: autonomousOs.supplierSignal,
+        workflowRisk: autonomousOs.workflowRisk,
       };
     })
     .sort((a, b) => b.priorityScore - a.priorityScore);
@@ -1573,6 +1666,27 @@ export default async function DashboardInboxV2Page({
           )
         : 0,
   };
+
+    const autonomousOsStats = {
+    highRisk: filteredItems.filter((item) => item.workflowRisk === "High").length,
+    mediumRisk: filteredItems.filter((item) => item.workflowRisk === "Medium").length,
+    strongSupplier: filteredItems.filter((item) => item.supplierSignal === "Strong").length,
+    followups: filteredItems.filter((item) =>
+      String(item.autonomousAction || "").toLowerCase().includes("follow")
+    ).length,
+    replies: filteredItems.filter((item) =>
+      String(item.autonomousAction || "").toLowerCase().includes("reply")
+    ).length,
+  };
+
+  const autonomousOsAction =
+    autonomousOsStats.highRisk > 0
+      ? "Start with high-risk stale/unread threads and push them to reply, quote, or milestone."
+      : autonomousOsStats.strongSupplier > 0
+      ? "Shortlist strong supplier threads and move them toward final decision."
+      : autonomousOsStats.followups > 0
+      ? "Send follow-ups to warm aging procurement conversations."
+      : "Monitor stable threads and create new RFQs when demand appears.";
 
   const procurementNextAction =
     procurementInboxStats.urgent > 0
@@ -1753,6 +1867,57 @@ export default async function DashboardInboxV2Page({
             >
               + New AI Procurement RFQ
             </Link>
+          </div>
+        </div>
+      </div>
+
+            <div className="overflow-hidden rounded-[2rem] border border-emerald-200 bg-gradient-to-r from-emerald-50 via-white to-cyan-50 shadow-sm">
+        <div className="px-5 py-6 lg:px-8">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="inline-flex rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                Autonomous Procurement Operating System
+              </div>
+
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">
+                AI Workflow Agent for Follow-up, Supplier Shortlisting & Execution
+              </h2>
+
+              <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-600">
+                This layer converts inbox intelligence into autonomous procurement actions:
+                reply, follow-up, shortlist supplier, review quote, or push milestone.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm font-bold text-emerald-700 shadow-sm">
+              OS Risk {autonomousOsStats.highRisk} High
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            {[
+              ["High Risk", autonomousOsStats.highRisk, "🚨"],
+              ["Medium Risk", autonomousOsStats.mediumRisk, "⚠️"],
+              ["Strong Suppliers", autonomousOsStats.strongSupplier, "🏆"],
+              ["Follow-ups", autonomousOsStats.followups, "📨"],
+              ["Replies", autonomousOsStats.replies, "💬"],
+            ].map(([label, value, icon]) => (
+              <div
+                key={String(label)}
+                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+              >
+                <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                  {icon} {label}
+                </div>
+                <div className="mt-2 text-2xl font-black text-slate-950">
+                  {value}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+            🤖 Autonomous OS action: {autonomousOsAction}
           </div>
         </div>
       </div>
@@ -2143,6 +2308,18 @@ export default async function DashboardInboxV2Page({
                     </span>
                   ) : null}
                 </div>
+
+                {item.autonomousAction ? (
+                  <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-2 text-xs font-bold leading-5 text-emerald-800">
+                    🤖 {item.autonomousAction}
+                  </div>
+                ) : null}
+
+                {item.autonomousReason ? (
+                  <div className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">
+                    {item.autonomousReason}
+                  </div>
+                ) : null}
 
                 <div className="mt-2 text-xs font-semibold text-slate-400">
                   Open →

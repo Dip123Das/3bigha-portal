@@ -78,6 +78,125 @@ function getVendorAiSignals(v: any, bestPriceVendorId: string | null, fastestVen
   return signals.slice(0, 5);
 }
 
+type AiVendorComparisonCard = {
+  vendorId: string;
+  quoteId: string | null;
+  name: string;
+  total: number | null;
+  deliveryDays: number | null;
+  aiScore: number;
+  priceScore: number;
+  deliveryScore: number;
+  trustScore: number;
+  riskScore: number;
+  valueLabel: "Best Overall" | "Lowest Price" | "Fastest Delivery" | "Most Trusted" | "Backup Option";
+  decision: string;
+  negotiationTip: string;
+  riskNote: string;
+};
+
+type AiProcurementDecisionSummary = {
+  bestOverall?: AiVendorComparisonCard;
+  lowestPrice?: AiVendorComparisonCard;
+  fastestDelivery?: AiVendorComparisonCard;
+  mostTrusted?: AiVendorComparisonCard;
+  averagePrice: number | null;
+  priceSpread: number | null;
+  overpricedCount: number;
+  negotiationLeverage: string;
+  buyerAction: string;
+};
+
+type AutonomousProcurementOsDecision = {
+  osScore: number;
+  workflowRisk: "High" | "Medium" | "Low";
+  supplierSignal: "Strong" | "Moderate" | "Weak";
+  autonomousAction: string;
+  autonomousReason: string;
+  milestone: string;
+  shortlistVendor: string;
+};
+
+function buildAutonomousProcurementOsDecision(args: {
+  rfq: any;
+  vendors: any[];
+  best?: AiVendorComparisonCard;
+  priceSpread: number | null;
+  overpricedCount: number;
+}) {
+  const status = String(args.rfq?.status || "").toLowerCase();
+  const vendorCount = args.vendors.length;
+  const bestScore = Number(args.best?.aiScore || 0);
+  const isClosed = status === "closed";
+
+  const osScore = Math.max(
+    1,
+    Math.min(
+      100,
+      Math.round(
+        bestScore * 0.55 +
+          Math.min(100, vendorCount * 18) * 0.25 +
+          (args.priceSpread != null && args.priceSpread >= 15 ? 12 : 6) -
+          args.overpricedCount * 4
+      )
+    )
+  );
+
+  const workflowRisk: AutonomousProcurementOsDecision["workflowRisk"] =
+    isClosed
+      ? "Low"
+      : vendorCount === 0 || !args.best
+        ? "High"
+        : args.priceSpread != null && args.priceSpread >= 25
+          ? "Medium"
+          : "Low";
+
+  const supplierSignal: AutonomousProcurementOsDecision["supplierSignal"] =
+    bestScore >= 78 ? "Strong" : bestScore >= 58 ? "Moderate" : "Weak";
+
+  const milestone =
+    isClosed
+      ? "Closed"
+      : vendorCount === 0
+        ? "Waiting for quotes"
+        : bestScore >= 78
+          ? "Shortlist & negotiate"
+          : "Compare more vendors";
+
+  const autonomousAction =
+    isClosed
+      ? "Archive this RFQ as completed and use it as procurement learning data."
+      : vendorCount === 0
+        ? "Trigger follow-up to vendors or expand supplier discovery."
+        : bestScore >= 78 && args.best
+          ? `Shortlist ${args.best.name}, negotiate final delivery/payment terms, then accept.`
+          : "Compare at least 2–3 vendors before accepting any quote.";
+
+  const autonomousReason =
+    workflowRisk === "High"
+      ? "This RFQ has low vendor response or missing quote data, which can block procurement execution."
+      : workflowRisk === "Medium"
+        ? "There is meaningful price/risk variation, so negotiation should happen before acceptance."
+        : "RFQ has enough signals for controlled execution.";
+
+  return {
+    osScore,
+    workflowRisk,
+    supplierSignal,
+    autonomousAction,
+    autonomousReason,
+    milestone,
+    shortlistVendor: args.best?.name || "—",
+  } as AutonomousProcurementOsDecision;
+}
+
+function osToneStyle(level: "High" | "Medium" | "Low" | "Strong" | "Moderate" | "Weak"): React.CSSProperties {
+  if (level === "High") return pillStyle("bad");
+  if (level === "Medium" || level === "Moderate") return pillStyle("warn");
+  if (level === "Strong" || level === "Low") return pillStyle("ok");
+  return pillStyle("neutral");
+}
+
 function actionBtnStyle(kind: "talk" | "normal" | "accept" = "normal"): React.CSSProperties {
   if (kind === "talk") {
     return {
@@ -254,6 +373,172 @@ export default async function BuyerQuoteComparePage({
     ? String(aiRecommendedVendor.vendor_id)
     : null;
 
+    const aiVendorComparisonCards: AiVendorComparisonCard[] = vendorsSorted.map((v: any) => {
+    const total = v.grand_total == null || !Number.isFinite(Number(v.grand_total)) ? null : Number(v.grand_total);
+    const deliveryDays =
+      v.delivery_days == null || !Number.isFinite(Number(v.delivery_days)) ? null : Number(v.delivery_days);
+
+    const lowestPrice = priced[0]?.grand_total != null ? Number(priced[0].grand_total) : null;
+    const fastestDays = byDelivery[0]?.delivery_days != null ? Number(byDelivery[0].delivery_days) : null;
+
+    const priceScore =
+      total != null && lowestPrice != null && lowestPrice > 0
+        ? Math.max(20, Math.min(100, Math.round((lowestPrice / total) * 100)))
+        : 55;
+
+    const deliveryScore =
+      deliveryDays != null && fastestDays != null && fastestDays > 0
+        ? Math.max(20, Math.min(100, Math.round((fastestDays / deliveryDays) * 100)))
+        : 55;
+
+    const trustScore = Math.max(
+      35,
+      Math.min(
+        100,
+        Math.round(
+          Number(v.trust_score || 0) ||
+            Number(v.ai_score || 0) ||
+            Number(v.win_probability || 0) * 100 ||
+            55
+        )
+      )
+    );
+
+    const riskScore = Math.max(
+      0,
+      Math.min(100, Math.round(Number(v.risk_score || 0)))
+    );
+
+    const signalScore =
+      Number(v.ready_deal_signals || 0) * 8 +
+      Number(v.win_probability || 0) * 28 +
+      Number(v.weighted_boost || 0) * 0.4;
+
+    const aiScore = Math.max(
+      1,
+      Math.min(
+        100,
+        Math.round(priceScore * 0.32 + deliveryScore * 0.22 + trustScore * 0.30 + signalScore - riskScore * 0.12)
+      )
+    );
+
+    const isLowest = bestPriceVendorId && String(v.vendor_id) === String(bestPriceVendorId);
+    const isFastest = fastestVendorId && String(v.vendor_id) === String(fastestVendorId);
+    const isRecommended = aiRecommendedVendorId && String(v.vendor_id) === String(aiRecommendedVendorId);
+
+    const valueLabel: AiVendorComparisonCard["valueLabel"] =
+      isRecommended
+        ? "Best Overall"
+        : isLowest
+          ? "Lowest Price"
+          : isFastest
+            ? "Fastest Delivery"
+            : trustScore >= 75
+              ? "Most Trusted"
+              : "Backup Option";
+
+    const decision =
+      aiScore >= 78
+        ? "Strong shortlist candidate. Good balance of price, delivery and trust."
+        : aiScore >= 58
+          ? "Usable comparison option. Negotiate before final decision."
+          : "Keep as backup unless stronger vendors do not respond.";
+
+    const negotiationTip =
+      total != null && priced.length > 1 && total > Number(priced[0]?.grand_total || total)
+        ? `Use the lowest quote ${fmtMoney(priced[0]?.grand_total)} as negotiation leverage.`
+        : deliveryDays != null && fastestDays != null && deliveryDays > fastestDays
+          ? `Ask vendor to reduce delivery time closer to ${fastestDays} days.`
+          : "Ask vendor to confirm final price, delivery charges, GST invoice and payment terms.";
+
+    const riskNote =
+      riskScore >= 60
+        ? "High caution: verify vendor details, price terms and delivery commitment before accepting."
+        : riskScore >= 30
+          ? "Moderate caution: confirm hidden charges and final delivery terms."
+          : "Low visible risk based on available quote signals.";
+
+    return {
+      vendorId: String(v.vendor_id ?? ""),
+      quoteId: v.quote_id ? String(v.quote_id) : null,
+      name:
+        v.vendor_business_name ??
+        (v.vendor_id ? `Vendor ${String(v.vendor_id).slice(0, 8)}…` : "Vendor"),
+      total,
+      deliveryDays,
+      aiScore,
+      priceScore,
+      deliveryScore,
+      trustScore,
+      riskScore,
+      valueLabel,
+      decision,
+      negotiationTip,
+      riskNote,
+    };
+  });
+
+  const aiComparisonSorted = [...aiVendorComparisonCards].sort((a, b) => b.aiScore - a.aiScore);
+
+  const lowestPriceCard =
+    aiVendorComparisonCards.find((x) => bestPriceVendorId && x.vendorId === String(bestPriceVendorId)) ??
+    aiComparisonSorted[0];
+
+  const fastestDeliveryCard =
+    aiVendorComparisonCards.find((x) => fastestVendorId && x.vendorId === String(fastestVendorId)) ??
+    aiComparisonSorted[0];
+
+  const mostTrustedCard =
+    [...aiVendorComparisonCards].sort((a, b) => b.trustScore - a.trustScore)[0];
+
+  const averagePrice =
+    priced.length > 0
+      ? Math.round(priced.reduce((sum: number, v: any) => sum + Number(v.grand_total || 0), 0) / priced.length)
+      : null;
+
+  const lowestPrice = priced[0]?.grand_total != null ? Number(priced[0].grand_total) : null;
+  const highestPrice = priced[priced.length - 1]?.grand_total != null ? Number(priced[priced.length - 1].grand_total) : null;
+
+  const priceSpread =
+    lowestPrice != null && highestPrice != null && lowestPrice > 0
+      ? Math.round(((highestPrice - lowestPrice) / lowestPrice) * 100)
+      : null;
+
+  const overpricedCount =
+    averagePrice != null
+      ? priced.filter((v: any) => Number(v.grand_total || 0) > averagePrice * 1.15).length
+      : 0;
+
+  const aiProcurementDecision: AiProcurementDecisionSummary = {
+    bestOverall: aiComparisonSorted[0],
+    lowestPrice: lowestPriceCard,
+    fastestDelivery: fastestDeliveryCard,
+    mostTrusted: mostTrustedCard,
+    averagePrice,
+    priceSpread,
+    overpricedCount,
+    negotiationLeverage:
+      priceSpread != null && priceSpread >= 20
+        ? `There is a ${priceSpread}% gap between lowest and highest quote. Use this gap for negotiation.`
+        : priceSpread != null
+          ? `Price gap is ${priceSpread}%, so compare delivery, trust and hidden charges before deciding.`
+          : "Need more priced quotes to calculate strong negotiation leverage.",
+    buyerAction:
+      aiComparisonSorted.length === 0
+        ? "Wait for vendor responses or follow up with matched vendors."
+        : aiComparisonSorted[0].aiScore >= 78
+          ? `Shortlist ${aiComparisonSorted[0].name} and negotiate final delivery/payment terms.`
+          : "Compare at least 2–3 vendors before accepting.",
+  };
+
+  const autonomousOsDecision = buildAutonomousProcurementOsDecision({
+    rfq,
+    vendors: vendorsSorted,
+    best: aiProcurementDecision.bestOverall,
+    priceSpread: aiProcurementDecision.priceSpread,
+    overpricedCount: aiProcurementDecision.overpricedCount,
+  });
+
   const buyerPrintHref = `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}/print`;
 
   const smartDecisionPayload = {
@@ -384,6 +669,336 @@ export default async function BuyerQuoteComparePage({
       <PricePredictionToggle payload={smartDecisionPayload} />
 
       <SmartDecisionBox payload={smartDecisionPayload} />
+            <div
+        style={{
+          marginTop: 16,
+          padding: 16,
+          borderRadius: 18,
+          border: "1px solid rgba(16,185,129,0.28)",
+          background: "linear-gradient(135deg, rgba(16,185,129,0.10), #ffffff)",
+          boxShadow: "0 14px 30px rgba(16,185,129,0.08)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 1000, color: "#047857" }}>
+              🤖 Autonomous Procurement OS
+            </div>
+            <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
+              AI converts this quote comparison into execution: shortlist supplier, negotiate terms, follow up, or accept safely.
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: "#dcfce7",
+              color: "#166534",
+              border: "1px solid #bbf7d0",
+              borderRadius: 999,
+              padding: "8px 12px",
+              fontWeight: 1000,
+              alignSelf: "center",
+            }}
+          >
+            OS Score {autonomousOsDecision.osScore}/100
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
+          {[
+            ["Workflow Risk", autonomousOsDecision.workflowRisk, "🚦"],
+            ["Supplier Signal", autonomousOsDecision.supplierSignal, "🏆"],
+            ["Milestone", autonomousOsDecision.milestone, "📍"],
+            ["Shortlist", autonomousOsDecision.shortlistVendor, "✅"],
+          ].map(([label, value, icon]) => (
+            <div
+              key={label}
+              style={{
+                border: "1px solid #e2e8f0",
+                background: "#ffffff",
+                borderRadius: 14,
+                padding: 12,
+              }}
+            >
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
+                {icon} {label}
+              </div>
+              <div style={{ marginTop: 6 }}>
+                <span
+                  style={
+                    label === "Workflow Risk" || label === "Supplier Signal"
+                      ? osToneStyle(value as any)
+                      : { fontWeight: 1000, color: "#0f172a" }
+                  }
+                >
+                  {value}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
+          <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
+            <div style={{ color: "#166534", fontWeight: 1000, marginBottom: 4 }}>
+              🤖 Autonomous Action
+            </div>
+            <div style={{ color: "#14532d", fontSize: 13, fontWeight: 850, lineHeight: 1.5 }}>
+              {autonomousOsDecision.autonomousAction}
+            </div>
+          </div>
+
+          <div style={{ border: "1px solid #a5f3fc", background: "#ecfeff", borderRadius: 12, padding: 10 }}>
+            <div style={{ color: "#0e7490", fontWeight: 1000, marginBottom: 4 }}>
+              🧠 Why This Action
+            </div>
+            <div style={{ color: "#155e75", fontSize: 13, fontWeight: 850, lineHeight: 1.5 }}>
+              {autonomousOsDecision.autonomousReason}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {aiProcurementDecision.bestOverall?.vendorId ? (
+            <Link
+              href={`/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}/chat?vendorId=${encodeURIComponent(
+                aiProcurementDecision.bestOverall.vendorId
+              )}`}
+              style={actionBtnStyle("talk")}
+            >
+              💬 Execute with Shortlisted Vendor
+            </Link>
+          ) : null}
+
+          <Link href="/dashboard/inbox-v2?module=rfq" style={actionBtnStyle("normal")}>
+            Open RFQ Execution Inbox
+          </Link>
+
+          <Link href="/dashboard/buyer/rfqs" style={actionBtnStyle("normal")}>
+            Back to RFQ Command Center
+          </Link>
+        </div>
+      </div>
+
+            {aiComparisonSorted.length > 0 ? (
+        <div
+          style={{
+            marginTop: 16,
+            padding: 16,
+            borderRadius: 18,
+            border: "1px solid rgba(37,99,235,0.25)",
+            background: "linear-gradient(135deg, rgba(37,99,235,0.08), #ffffff)",
+            boxShadow: "0 14px 30px rgba(37,99,235,0.08)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 20, fontWeight: 1000, color: "#1e3a8a" }}>
+                🧠 AI Multi-Vendor Comparison Workspace
+              </div>
+              <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
+                AI compares price, delivery, trust, risk, negotiation leverage and best-value decision.
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: "#dbeafe",
+                color: "#1e40af",
+                border: "1px solid #bfdbfe",
+                borderRadius: 999,
+                padding: "8px 12px",
+                fontWeight: 1000,
+                alignSelf: "center",
+              }}
+            >
+              Best Overall: {aiProcurementDecision.bestOverall?.name ?? "—"}
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
+            {[
+              ["Best Overall", aiProcurementDecision.bestOverall?.name ?? "—", "🧠"],
+              ["Lowest Price", aiProcurementDecision.lowestPrice?.name ?? "—", "📉"],
+              ["Fastest Delivery", aiProcurementDecision.fastestDelivery?.name ?? "—", "🚚"],
+              ["Most Trusted", aiProcurementDecision.mostTrusted?.name ?? "—", "🛡️"],
+            ].map(([label, value, icon]) => (
+              <div
+                key={label}
+                style={{
+                  border: "1px solid #e2e8f0",
+                  background: "#ffffff",
+                  borderRadius: 14,
+                  padding: 12,
+                }}
+              >
+                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
+                  {icon} {label}
+                </div>
+                <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000 }}>
+                  {value}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginTop: 12 }}>
+            <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
+              <div style={{ fontSize: 12, color: "#166534", fontWeight: 1000 }}>Average Price</div>
+              <div style={{ marginTop: 4, fontWeight: 1000, color: "#14532d" }}>
+                {fmtMoney(aiProcurementDecision.averagePrice)}
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #fde68a", background: "#fffbeb", borderRadius: 12, padding: 10 }}>
+              <div style={{ fontSize: 12, color: "#92400e", fontWeight: 1000 }}>Price Spread</div>
+              <div style={{ marginTop: 4, fontWeight: 1000, color: "#78350f" }}>
+                {aiProcurementDecision.priceSpread != null ? `${aiProcurementDecision.priceSpread}%` : "—"}
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #fecaca", background: "#fef2f2", borderRadius: 12, padding: 10 }}>
+              <div style={{ fontSize: 12, color: "#991b1b", fontWeight: 1000 }}>Overpriced Vendors</div>
+              <div style={{ marginTop: 4, fontWeight: 1000, color: "#7f1d1d" }}>
+                {aiProcurementDecision.overpricedCount}
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginTop: 12,
+              border: "1px solid #bfdbfe",
+              background: "#eff6ff",
+              color: "#1e3a8a",
+              borderRadius: 12,
+              padding: 10,
+              fontSize: 13,
+              fontWeight: 900,
+            }}
+          >
+            💡 Negotiation leverage: {aiProcurementDecision.negotiationLeverage}
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              border: "1px solid #bbf7d0",
+              background: "#f0fdf4",
+              color: "#14532d",
+              borderRadius: 12,
+              padding: 10,
+              fontSize: 13,
+              fontWeight: 900,
+            }}
+          >
+            ✅ AI buyer action: {aiProcurementDecision.buyerAction}
+          </div>
+
+          <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+            {aiComparisonSorted.map((card) => {
+              const scoreTone =
+                card.aiScore >= 78 ? "ok" : card.aiScore >= 58 ? "warn" : "bad";
+
+              const chatHref = `/dashboard/buyer/quote-compare/${encodeURIComponent(
+                rfqId
+              )}/chat?vendorId=${encodeURIComponent(card.vendorId)}`;
+
+              return (
+                <div
+                  key={card.vendorId}
+                  style={{
+                    border:
+                      aiProcurementDecision.bestOverall?.vendorId === card.vendorId
+                        ? "2px solid #2563eb"
+                        : "1px solid rgba(15,23,42,0.10)",
+                    background: "#ffffff",
+                    borderRadius: 14,
+                    padding: 12,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                        <div style={{ fontWeight: 1000, color: "#0f172a", fontSize: 16 }}>
+                          {card.name}
+                        </div>
+                        <span style={pillStyle(scoreTone)}>AI Score {card.aiScore}/100</span>
+                        <span style={pillStyle("neutral")}>{card.valueLabel}</span>
+                      </div>
+
+                      <div style={{ marginTop: 6, color: "#475569", fontSize: 13, fontWeight: 800 }}>
+                        {card.decision}
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>Quote Total</div>
+                      <div style={{ fontWeight: 1000, color: "#0f172a", fontSize: 18 }}>
+                        {fmtMoney(card.total)}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>
+                        Delivery: {card.deliveryDays != null ? `${card.deliveryDays} days` : "—"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8, marginTop: 10 }}>
+                    {[
+                      ["Price", card.priceScore],
+                      ["Delivery", card.deliveryScore],
+                      ["Trust", card.trustScore],
+                      ["Risk", card.riskScore],
+                    ].map(([label, value]) => (
+                      <div
+                        key={label}
+                        style={{
+                          border: "1px solid #e2e8f0",
+                          background: "#f8fafc",
+                          borderRadius: 10,
+                          padding: 8,
+                        }}
+                      >
+                        <div style={{ fontSize: 11, color: "#64748b", fontWeight: 900 }}>{label}</div>
+                        <div style={{ fontWeight: 1000, color: "#0f172a" }}>{value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10 }}>
+                    <div style={{ border: "1px solid #fde68a", background: "#fffbeb", color: "#78350f", borderRadius: 10, padding: 9, fontSize: 13, fontWeight: 800 }}>
+                      🤝 {card.negotiationTip}
+                    </div>
+
+                    <div style={{ border: "1px solid #fecaca", background: "#fef2f2", color: "#7f1d1d", borderRadius: 10, padding: 9, fontSize: 13, fontWeight: 800 }}>
+                      ⚠ {card.riskNote}
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <Link href={chatHref} style={actionBtnStyle("talk")}>
+                      💬 Negotiate with AI Context
+                    </Link>
+
+                    {card.quoteId && String(rfq?.status ?? "") !== "closed" ? (
+                      <form
+                        action={`/api/buyer/rfq/${encodeURIComponent(rfqId)}/accept`}
+                        method="post"
+                        style={{ display: "inline-flex" }}
+                      >
+                        <input type="hidden" name="quote_id" value={card.quoteId} />
+                        <button type="submit" style={actionBtnStyle("accept")}>
+                          Accept This Quote
+                        </button>
+                      </form>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       {aiRecommendedVendor ? (
         <div
@@ -545,6 +1160,7 @@ export default async function BuyerQuoteComparePage({
               <thead>
                 <tr style={{ borderBottom: "1px solid #e5e7eb", background: "#fafafa" }}>
                   <th style={{ textAlign: "left", padding: 10 }}>Vendor</th>
+                  <th style={{ textAlign: "left", padding: 10 }}>AI Decision</th>
                   <th style={{ textAlign: "left", padding: 10 }}>Price</th>
                   <th style={{ textAlign: "left", padding: 10 }}>Delivery</th>
                   <th style={{ textAlign: "left", padding: 10 }}>Action</th>
@@ -597,6 +1213,23 @@ export default async function BuyerQuoteComparePage({
                           )}
                           {isAccepted ? <span style={pillStyle("ok")}>Accepted</span> : null}
                         </div>
+                      </td>
+                      <td style={{ padding: 10 }}>
+                        {(() => {
+                          const card = aiVendorComparisonCards.find((x) => x.vendorId === String(v.vendor_id));
+                          if (!card) return <span style={{ opacity: 0.6 }}>—</span>;
+
+                          const tone = card.aiScore >= 78 ? "ok" : card.aiScore >= 58 ? "warn" : "bad";
+
+                          return (
+                            <div style={{ display: "grid", gap: 5 }}>
+                              <span style={pillStyle(tone)}>AI {card.aiScore}/100</span>
+                              <span style={{ fontSize: 12, color: "#475569", fontWeight: 800 }}>
+                                {card.valueLabel}
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td style={{ padding: 10 }}>{fmtMoney(v.grand_total)}</td>
                       <td style={{ padding: 10 }}>{v.delivery_days != null ? `${v.delivery_days} days` : "—"}</td>
