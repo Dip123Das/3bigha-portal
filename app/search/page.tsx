@@ -782,24 +782,26 @@ if (want.includes("rentals")) {
                 Search
               </button>
 
-              <button
-                type="button"
-                onClick={() => applyAiSearchIntent()}
-                disabled={aiBusy}
+              <Link
+                href={`/vendor/discovery?q=${encodeURIComponent(
+                  safeText(qInput) || "marketplace requirement"
+                )}${modInput !== "all" ? `&module=${encodeURIComponent(modInput)}` : ""}`}
                 style={{
                   height: 44,
                   borderRadius: 12,
-                  border: "1px solid #dbeafe",
-                  background: aiBusy ? "#eff6ff" : "#2563eb",
-                  color: aiBusy ? "#1d4ed8" : "white",
+                  border: "1px solid #bbf7d0",
+                  background: "#16a34a",
+                  color: "white",
                   fontWeight: 950,
                   padding: "0 16px",
-                  cursor: aiBusy ? "not-allowed" : "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  textDecoration: "none",
                 }}
-                title="AI understands natural language and applies the best filters"
+                title="Open AI procurement assistant with vendor recommendations"
               >
-                {aiBusy ? "AI reading…" : "✨ Smart AI Search"}
-              </button>
+                🤖 AI Procurement Assistant
+              </Link>
 
               <button
                 type="button"
