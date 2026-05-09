@@ -307,6 +307,89 @@ function toDisplayRole(role?: string | null) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function getBuyerAgentIntelligence(messages: MsgRow[]) {
+  const visibleMessages = messages.filter((m) => {
+    const isSystem = m.sender_role === "system" || m.message_type === "system";
+    const isDeleted = Boolean(m.meta?.deleted);
+    return !isSystem && !isDeleted;
+  });
+
+  const text = visibleMessages.map((m) => String(m.body || "")).join(" ").toLowerCase();
+  const last = visibleMessages[visibleMessages.length - 1] || null;
+  const lastAgeHours = last?.created_at
+    ? (Date.now() - new Date(last.created_at).getTime()) / (1000 * 60 * 60)
+    : 999;
+
+  const hasPrice = /₹|rs\.?|price|rate|quote|total|amount|cost/.test(text);
+  const hasTimeline = /delivery|deliver|timeline|date|today|tomorrow|days|schedule/.test(text);
+  const hasPayment = /payment|advance|upi|cash|bank|gst|invoice|bill/.test(text);
+  const hasCommitment = /confirm|final|ok|done|accept|agree|book|ready/.test(text);
+  const hasRisk = /delay|later|problem|issue|not possible|unavailable|cancel/.test(text);
+
+  let agentScore = 25;
+  if (visibleMessages.length >= 2) agentScore += 15;
+  if (hasPrice) agentScore += 18;
+  if (hasTimeline) agentScore += 15;
+  if (hasPayment) agentScore += 12;
+  if (hasCommitment) agentScore += 18;
+  if (hasRisk) agentScore -= 18;
+  if (lastAgeHours > 48) agentScore -= 8;
+
+  agentScore = Math.max(1, Math.min(100, Math.round(agentScore)));
+
+  const lifecycleStage =
+    hasCommitment
+      ? "Final confirmation"
+      : hasPrice && hasTimeline
+      ? "Terms negotiation"
+      : hasPrice
+      ? "Timeline/payment collection"
+      : visibleMessages.length > 0
+      ? "Discovery"
+      : "Not started";
+
+  const workflowRisk =
+    hasRisk || lastAgeHours > 72 ? "High" : lastAgeHours > 36 ? "Medium" : "Low";
+
+  const supplierReliability =
+    agentScore >= 75 ? "Strong" : agentScore >= 45 ? "Moderate" : "Weak";
+
+  const autonomousAction =
+    hasCommitment
+      ? "Confirm final price, delivery/work timeline, GST/invoice and payment terms before marking the deal."
+      : hasPrice && hasTimeline
+      ? "Ask for payment/GST terms and final confirmation."
+      : hasPrice
+      ? "Ask vendor to confirm delivery/work timeline and availability."
+      : lastAgeHours > 48
+      ? "Send a follow-up to revive this negotiation."
+      : "Ask vendor to confirm price, availability, timeline and hidden charges.";
+
+  const escalationSignal =
+    workflowRisk === "High"
+      ? "Escalation recommended if vendor does not reply soon."
+      : workflowRisk === "Medium"
+      ? "Keep this thread warm with a short follow-up."
+      : "No immediate escalation needed.";
+
+  const suggestedReply =
+    hasCommitment
+      ? "Please confirm the final price, delivery/work date, GST/invoice and payment terms so we can close this."
+      : hasPrice
+      ? "Please confirm delivery timeline, availability, GST/invoice and payment terms."
+      : "Please share final price, availability, delivery/work timeline and payment terms.";
+
+  return {
+    agentScore,
+    lifecycleStage,
+    workflowRisk,
+    supplierReliability,
+    autonomousAction,
+    escalationSignal,
+    suggestedReply,
+  };
+}
+
 export default function BuyerConversationChatBox(props: {
   conversationId: string;
   currentUserId: string;
@@ -388,6 +471,10 @@ export default function BuyerConversationChatBox(props: {
         role: String(m.sender_role || "user"),
         body: String(m.body || ""),
       }));
+  }, [ordered]);
+
+  const buyerAgent = useMemo(() => {
+    return getBuyerAgentIntelligence(ordered);
   }, [ordered]);
 
   const canSend = text.trim().length > 0 && !loading && !uploading;
@@ -1496,6 +1583,99 @@ useEffect(() => {
               conversationId={conversationId}
               initialMessages={dealScoreMessages}
             />
+
+            <div
+              style={{
+                marginTop: 12,
+                border: "1px solid #bbf7d0",
+                background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
+                borderRadius: 16,
+                padding: 12,
+                boxShadow: "0 10px 24px rgba(16,185,129,0.08)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 950, color: "#065f46" }}>
+                    🤖 Autonomous Buyer Procurement Agent
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 12, color: "#475569", fontWeight: 800 }}>
+                    AI tracks supplier reliability, payment/timeline commitment, escalation risk and next action.
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    borderRadius: 999,
+                    border: "1px solid #bbf7d0",
+                    background: "#fff",
+                    color: "#047857",
+                    padding: "7px 11px",
+                    fontSize: 12,
+                    fontWeight: 950,
+                    alignSelf: "center",
+                  }}
+                >
+                  Agent Score {buyerAgent.agentScore}/100
+                </div>
+              </div>
+
+              <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(145px, 1fr))", gap: 8 }}>
+                {[
+                  ["Lifecycle", buyerAgent.lifecycleStage, "📍"],
+                  ["Risk", buyerAgent.workflowRisk, "🚦"],
+                  ["Supplier", buyerAgent.supplierReliability, "🏆"],
+                  ["Escalation", buyerAgent.workflowRisk === "High" ? "Needed" : "Monitor", "⚡"],
+                ].map(([label, value, icon]) => (
+                  <div key={label} style={{ border: "1px solid #d1fae5", background: "#fff", borderRadius: 12, padding: 10 }}>
+                    <div style={{ fontSize: 11, color: "#64748b", fontWeight: 900 }}>
+                      {icon} {label}
+                    </div>
+                    <div style={{ marginTop: 4, fontSize: 13, color: "#0f172a", fontWeight: 950 }}>
+                      {value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
+                  <div style={{ color: "#166534", fontWeight: 950, fontSize: 13 }}>
+                    🎯 Agent Next Action
+                  </div>
+                  <div style={{ marginTop: 5, color: "#14532d", fontSize: 12, fontWeight: 800, lineHeight: 1.5 }}>
+                    {buyerAgent.autonomousAction}
+                  </div>
+                </div>
+
+                <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
+                  <div style={{ color: "#1e3a8a", fontWeight: 950, fontSize: 13 }}>
+                    ⚡ Escalation Signal
+                  </div>
+                  <div style={{ marginTop: 5, color: "#1e40af", fontSize: 12, fontWeight: 800, lineHeight: 1.5 }}>
+                    {buyerAgent.escalationSignal}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setText(buyerAgent.suggestedReply)}
+                style={{
+                  marginTop: 10,
+                  border: "none",
+                  borderRadius: 12,
+                  background: "#059669",
+                  color: "#fff",
+                  padding: "9px 12px",
+                  fontSize: 12,
+                  fontWeight: 950,
+                  cursor: "pointer",
+                }}
+              >
+                ✍️ Use Agent Suggested Reply
+              </button>
+            </div>
           </div>
 
           <ConversationMessageList
