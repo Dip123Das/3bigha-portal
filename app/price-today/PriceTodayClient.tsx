@@ -917,6 +917,53 @@ function getBuySignal(row: AggregatedPriceRow) {
   };
 }
 
+function getPredictiveProcurementSummary(rows: AggregatedPriceRow[], category: CategoryKey) {
+  if (!rows.length) {
+    return {
+      score: 20,
+      signal: "Low data",
+      action: "Collect more local price signals before decision.",
+      budgetRisk: "Unknown",
+      demand: "Not enough data",
+      recommendation: "Search listings or create an AI RFQ to get live vendor quotes.",
+    };
+  }
+
+  const avgConfidence = Math.round(rows.reduce((sum, row) => sum + row.confidence, 0) / rows.length);
+  const avgChange = rows.reduce((sum, row) => sum + (row.changePercent || 0), 0) / rows.length;
+  const rising = rows.filter((row) => row.trend === "Up").length;
+  const falling = rows.filter((row) => row.trend === "Down").length;
+  const vendors = rows.reduce((sum, row) => sum + row.vendorCount, 0);
+
+  let score = 45 + avgConfidence * 0.35 + vendors * 2 + avgChange * 4;
+  score = Math.max(1, Math.min(100, Math.round(score)));
+
+  const isRising = rising > falling || avgChange >= 2;
+  const isFalling = falling > rising || avgChange <= -2;
+
+  return {
+    score,
+    signal: isRising ? "Rising market" : isFalling ? "Negotiation market" : "Stable market",
+    action: isRising
+      ? category === "Properties"
+        ? "Talk to owner/builder early before price rises further."
+        : "Buy/rent/hire soon or lock vendor quote early."
+      : isFalling
+        ? "Negotiate with multiple vendors before final decision."
+        : "Proceed after comparing vendor availability, trust and final terms.",
+    budgetRisk: isRising ? "High" : isFalling ? "Low to Medium" : "Medium",
+    demand: isRising ? "Demand pressure increasing" : isFalling ? "Demand or rate pressure softening" : "Balanced demand",
+    recommendation:
+      category === "Materials"
+        ? "Create a procurement RFQ and compare at least 2–3 supplier quotes."
+        : category === "Rentals"
+          ? "Confirm equipment availability, operator, diesel and hourly/daily rate."
+          : category === "Services"
+            ? "Confirm labour/material scope, timeline and payment milestone."
+            : "Compare location, legal clarity, price trend and seller urgency.",
+  };
+}
+
 function getDistrictMarketSummary(rows: AggregatedPriceRow[], location: string) {
   if (!rows.length) {
     return {
@@ -1493,6 +1540,10 @@ if (userData.user) {
     return getDistrictMarketSummary(groupedPriceRows, location);
   }, [groupedPriceRows, location]);
 
+  const predictiveProcurement = useMemo(() => {
+    return getPredictiveProcurementSummary(groupedPriceRows, category);
+  }, [groupedPriceRows, category]);
+
   const comparisonRows = useMemo(() => {
     return groupedPriceRows.slice(0, 4).map((row) => {
       const isHotBuyer =
@@ -2017,6 +2068,83 @@ if (userData.user) {
               {districtMarketSummary.confidenceLabel}
             </div>
           </div>
+          </div>
+        </div>
+
+                <div className="mt-6 rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-emerald-50 p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wide text-indigo-700">
+                AI Predictive Procurement Intelligence
+              </p>
+              <h2 className="mt-1 text-2xl font-black text-slate-950">
+                Buy, wait or negotiate decision engine
+              </h2>
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-700">
+                AI reads price movement, confidence, vendor count and category signals to guide procurement timing and budget risk.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-indigo-200 bg-white px-4 py-3 text-sm font-black text-indigo-700 shadow-sm">
+              Procurement Score {predictiveProcurement.score}/100
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-4">
+            {[
+              ["Market Signal", predictiveProcurement.signal, "📊"],
+              ["Budget Risk", predictiveProcurement.budgetRisk, "💰"],
+              ["Demand", predictiveProcurement.demand, "📈"],
+              ["Category", category, "🧭"],
+            ].map(([label, value, icon]) => (
+              <div key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="text-xs font-black uppercase tracking-wide text-slate-500">
+                  {icon} {label}
+                </div>
+                <div className="mt-2 text-sm font-black text-slate-950">
+                  {value}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+              <div className="font-black text-emerald-800">🎯 AI Action</div>
+              <div className="mt-2 text-sm font-bold leading-6 text-emerald-900">
+                {predictiveProcurement.action}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+              <div className="font-black text-blue-800">🧠 Procurement Recommendation</div>
+              <div className="mt-2 text-sm font-bold leading-6 text-blue-900">
+                {predictiveProcurement.recommendation}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href={`/rfq/general/new?module=${encodeURIComponent(category.toLowerCase())}&q=${encodeURIComponent(searchText)}`}
+              className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-900"
+            >
+              Create AI Procurement RFQ →
+            </Link>
+
+            <Link
+              href={`/search?q=${encodeURIComponent(searchText)}`}
+              className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-800 hover:bg-slate-50"
+            >
+              Search Vendors/Listings →
+            </Link>
+
+            <Link
+              href="/dashboard/buyer/rfqs"
+              className="rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-3 text-sm font-black text-indigo-700 hover:bg-indigo-100"
+            >
+              Open RFQ Command Center →
+            </Link>
           </div>
         </div>
 
