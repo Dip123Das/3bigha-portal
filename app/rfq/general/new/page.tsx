@@ -42,6 +42,23 @@ type RfqIntelligenceResult = {
   aiSummary?: string;
 };
 
+type ProcurementMemoryItem = {
+  id: string;
+  module: RfqModule;
+  title: string;
+  summary: string;
+  city?: string;
+  locality?: string;
+  pincode?: string;
+  createdAt: string;
+};
+
+type LiveProcurementSuggestion = {
+  label: string;
+  value: string;
+  action: "description" | "item" | "location" | "timeline" | "budget";
+};
+
 /* ---------- Simple popup helper (NEW) ---------- */
 function showPopup(message: string, type: "success" | "error" = "success") {
   const bg = type === "success" ? "#16a34a" : "#dc2626";
@@ -144,6 +161,7 @@ function scrollToWithOffset(el: HTMLElement, offsetPx: number) {
 }
 
 const DRAFT_KEY = "rfq_general_new_draft_v1";
+const PROCUREMENT_MEMORY_KEY = "rfq_procurement_conversation_memory_v1";
 
 function RfqGeneralNewPageInner() {
   const router = useRouter();
@@ -184,6 +202,11 @@ function RfqGeneralNewPageInner() {
   const [rfqAiLoading, setRfqAiLoading] = useState(false);
   const [rfqAi, setRfqAi] = useState<RfqIntelligenceResult | null>(null);
   const [rfqAiError, setRfqAiError] = useState("");
+
+  const [procurementMemory, setProcurementMemory] = useState<ProcurementMemoryItem[]>([]);
+  const [liveSuggestions, setLiveSuggestions] = useState<LiveProcurementSuggestion[]>([]);
+  const [estimatedBudget, setEstimatedBudget] = useState("");
+  const [negotiationCoach, setNegotiationCoach] = useState("");
 
   // ✅ Module box focus + flash
   const moduleBoxRef = useRef<HTMLDivElement | null>(null);
@@ -241,6 +264,181 @@ function RfqGeneralNewPageInner() {
       restoredOnceRef.current = true;
     }
   }, []);
+
+  // ✅ Load persistent procurement memory
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PROCUREMENT_MEMORY_KEY);
+      const rows = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(rows)) {
+        setProcurementMemory(rows.slice(0, 8));
+      }
+    } catch {
+      setProcurementMemory([]);
+    }
+  }, []);
+
+  // ✅ Live procurement suggestions while typing
+  useEffect(() => {
+    const text = `${aiRequirement} ${title} ${description} ${items
+      .map((x) => `${x.item_name} ${x.qty} ${x.unit} ${x.notes}`)
+      .join(" ")}`.toLowerCase();
+
+    const next: LiveProcurementSuggestion[] = [];
+
+    if (text.trim().length > 8 && !description.trim()) {
+      next.push({
+        label: "Add clear requirement description",
+        value: aiRequirement || title,
+        action: "description",
+      });
+    }
+
+    if (text.includes("cement") && !items.some((x) => x.item_name.toLowerCase().includes("cement"))) {
+      next.push({
+        label: "Add cement as RFQ item",
+        value: "Cement",
+        action: "item",
+      });
+    }
+
+    if ((text.includes("rod") || text.includes("steel")) && !items.some((x) => x.item_name.toLowerCase().includes("steel"))) {
+      next.push({
+        label: "Add steel/rod as RFQ item",
+        value: "Steel rod",
+        action: "item",
+      });
+    }
+
+    if ((text.includes("jcb") || text.includes("excavator")) && module !== "rentals") {
+      next.push({
+        label: "Switch module to Rentals",
+        value: "rentals",
+        action: "location",
+      });
+    }
+
+    if ((text.includes("electric") || text.includes("plumbing") || text.includes("labour")) && module !== "services") {
+      next.push({
+        label: "Switch module to Services",
+        value: "services",
+        action: "location",
+      });
+    }
+
+    if (!neededBy && text.trim().length > 15) {
+      next.push({
+        label: "Add delivery/work timeline",
+        value: "Please mention expected delivery or work completion date.",
+        action: "timeline",
+      });
+    }
+
+    if (!city.trim() || !locality.trim() || !pincode.trim()) {
+      next.push({
+        label: "Complete location for better vendor matching",
+        value: "City, locality and pincode improve nearby vendor discovery.",
+        action: "location",
+      });
+    }
+
+    const itemCount = items.filter((x) => x.item_name.trim()).length;
+    const qtyTotal = items.reduce((sum, x) => sum + (Number(x.qty) || 0), 0);
+
+    if (itemCount > 0 || qtyTotal > 0) {
+      const rough = qtyTotal > 0 ? `Approx budget depends on live vendor quote. Quantity detected: ${qtyTotal}.` : "Approx budget will improve after quantity is added.";
+      setEstimatedBudget(rough);
+    } else {
+      setEstimatedBudget("");
+    }
+
+    if (text.trim().length > 20) {
+      setNegotiationCoach(
+        "Ask vendors to confirm final price, delivery timeline, GST/invoice terms, warranty/service support and payment milestone before closing."
+      );
+    } else {
+      setNegotiationCoach("");
+    }
+
+    setLiveSuggestions(next.slice(0, 6));
+  }, [aiRequirement, title, description, items, module, city, locality, pincode, neededBy]);
+
+  function applyLiveSuggestion(s: LiveProcurementSuggestion) {
+    if (s.action === "description") {
+      setDescription((prev) => {
+        const base = prev.trim();
+        if (!base) return s.value;
+        if (base.includes(s.value)) return base;
+        return `${base}\n${s.value}`;
+      });
+      return;
+    }
+
+    if (s.action === "item") {
+      addItemNames([s.value]);
+      setShowInlineModule(true);
+      return;
+    }
+
+    if (s.action === "timeline") {
+      setDescription((prev) => {
+        const base = prev.trim();
+        const line = "Expected timeline: please quote fastest possible delivery/work completion.";
+        if (base.includes(line)) return base;
+        return base ? `${base}\n${line}` : line;
+      });
+      return;
+    }
+
+    if (s.action === "location") {
+      if (s.value === "rentals" || s.value === "services" || s.value === "materials" || s.value === "properties") {
+        setModule(s.value as RfqModule);
+      } else {
+        showPopup(s.value, "success");
+      }
+      return;
+    }
+  }
+
+  function saveProcurementMemory() {
+    const cleanTitle = title.trim() || aiRequirement.trim().slice(0, 80) || "Procurement RFQ";
+    const summary =
+      description.trim() ||
+      aiRequirement.trim() ||
+      items.map((x) => [x.item_name, x.qty, x.unit].filter(Boolean).join(" ")).filter(Boolean).join(", ");
+
+    const row: ProcurementMemoryItem = {
+      id: `${Date.now()}`,
+      module,
+      title: cleanTitle,
+      summary: summary.slice(0, 240),
+      city: city.trim() || undefined,
+      locality: locality.trim() || undefined,
+      pincode: pincode.trim() || undefined,
+      createdAt: new Date().toISOString(),
+    };
+
+    const next = [row, ...procurementMemory].slice(0, 8);
+    setProcurementMemory(next);
+
+    try {
+      localStorage.setItem(PROCUREMENT_MEMORY_KEY, JSON.stringify(next));
+    } catch {}
+
+    showPopup("Procurement memory saved.", "success");
+  }
+
+  function applyMemoryToRfq(row: ProcurementMemoryItem) {
+    setModule(row.module);
+    setTitle(row.title);
+    setDescription(row.summary);
+    if (row.city) setCity(row.city);
+    if (row.locality) setLocality(row.locality);
+    if (row.pincode) setPincode(row.pincode);
+    setAiAutoFillApplied(true);
+    setAiAutoFillSummary("Previous procurement memory applied.");
+    showPopup("Previous procurement memory applied.", "success");
+  }
 
   // ✅ Save draft whenever form state changes (debounced)
   const saveTimerRef = useRef<number | null>(null);
@@ -1145,6 +1343,142 @@ return;
         district=""
         locality={locality}
       />
+
+      <div
+        style={{
+          border: "1px solid rgba(14,165,233,0.28)",
+          background: "linear-gradient(135deg, rgba(14,165,233,0.08), #ffffff)",
+          borderRadius: 18,
+          padding: 16,
+          marginTop: 14,
+          marginBottom: 18,
+        }}
+      >
+        <div style={{ fontSize: 18, fontWeight: 1000, color: "#075985", marginBottom: 6 }}>
+          🧠 AI Progressive RFQ Builder
+        </div>
+
+        <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginBottom: 12 }}>
+          Live suggestions, procurement memory, negotiation guidance and rough budget signals.
+        </div>
+
+        {liveSuggestions.length > 0 ? (
+          <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
+            {liveSuggestions.map((s, idx) => (
+              <div
+                key={`${s.label}-${idx}`}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  border: "1px solid rgba(2,132,199,0.18)",
+                  background: "#f0f9ff",
+                  borderRadius: 12,
+                  padding: 10,
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 900, color: "#0f172a" }}>{s.label}</div>
+                  <div style={{ fontSize: 12, color: "#475569", marginTop: 3 }}>{s.value}</div>
+                </div>
+
+                <button
+                  type="button"
+                  className="topBtn topBtnGhost"
+                  onClick={() => applyLiveSuggestion(s)}
+                >
+                  Apply
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ color: "#64748b", fontSize: 13, marginBottom: 12 }}>
+            Start typing your requirement to get live AI procurement suggestions.
+          </div>
+        )}
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div
+            style={{
+              border: "1px solid rgba(22,163,74,0.22)",
+              background: "#f0fdf4",
+              borderRadius: 12,
+              padding: 10,
+            }}
+          >
+            <div style={{ fontWeight: 1000, color: "#166534", marginBottom: 4 }}>
+              💰 AI Budget Guidance
+            </div>
+            <div style={{ fontSize: 13, color: "#14532d", fontWeight: 700 }}>
+              {estimatedBudget || "Add item and quantity to get rough procurement budget guidance."}
+            </div>
+          </div>
+
+          <div
+            style={{
+              border: "1px solid rgba(217,119,6,0.22)",
+              background: "#fffbeb",
+              borderRadius: 12,
+              padding: 10,
+            }}
+          >
+            <div style={{ fontWeight: 1000, color: "#92400e", marginBottom: 4 }}>
+              🤝 AI Negotiation Coach
+            </div>
+            <div style={{ fontSize: 13, color: "#78350f", fontWeight: 700 }}>
+              {negotiationCoach || "After vendor replies, compare price, timeline and payment terms before closing."}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button type="button" className="topBtn topBtnPrimary" onClick={saveProcurementMemory}>
+            Save Procurement Memory
+          </button>
+        </div>
+
+        {procurementMemory.length > 0 ? (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
+              Previous Procurement Memory
+            </div>
+
+            <div style={{ display: "grid", gap: 8 }}>
+              {procurementMemory.slice(0, 3).map((row) => (
+                <div
+                  key={row.id}
+                  style={{
+                    border: "1px solid rgba(15,23,42,0.10)",
+                    background: "#ffffff",
+                    borderRadius: 12,
+                    padding: 10,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 900 }}>{row.title}</div>
+                    <div style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>
+                      {moduleLabel(row.module)}
+                      {[row.locality, row.city, row.pincode].filter(Boolean).length > 0
+                        ? ` • ${[row.locality, row.city, row.pincode].filter(Boolean).join(", ")}`
+                        : ""}
+                    </div>
+                  </div>
+
+                  <button type="button" className="topBtn topBtnGhost" onClick={() => applyMemoryToRfq(row)}>
+                    Reuse
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
 
       <div style={{ height: 22 }} />
 
