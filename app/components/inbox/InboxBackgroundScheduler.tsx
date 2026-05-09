@@ -7,37 +7,59 @@ type ReminderEntry = {
   dueAt: number;
 };
 
-function getDueReminderState() {
+type ProcurementSchedulerEntry = {
+  threadId: string;
+  action: string;
+  priority: "Critical" | "High" | "Medium" | "Low";
+  dueAt: number;
+  reason: string;
+  createdAt: number;
+};
+
+function readJson<T>(key: string, fallback: T): T {
   try {
-    const raw = localStorage.getItem("inbox_reminders");
-    if (!raw) {
-      return {
-        dueCount: 0,
-        dueThreadIds: [] as string[],
-      };
-    }
-
-    const parsed = JSON.parse(raw) as Record<string, ReminderEntry>;
-    const now = Date.now();
-
-    const dueThreadIds = Object.entries(parsed)
-      .filter(([, item]) => now >= item.dueAt)
-      .map(([threadId]) => threadId);
-
-    return {
-      dueCount: dueThreadIds.length,
-      dueThreadIds,
-    };
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
   } catch {
-    return {
-      dueCount: 0,
-      dueThreadIds: [] as string[],
-    };
+    return fallback;
   }
 }
 
-function getDueReminderCount() {
-  return getDueReminderState().dueCount;
+function getDueReminderState() {
+  const parsed = readJson<Record<string, ReminderEntry>>("inbox_reminders", {});
+  const now = Date.now();
+
+  const dueThreadIds = Object.entries(parsed)
+    .filter(([, item]) => now >= item.dueAt)
+    .map(([threadId]) => threadId);
+
+  return {
+    dueCount: dueThreadIds.length,
+    dueThreadIds,
+  };
+}
+
+function getProcurementSchedulerState() {
+  const queue = readJson<Record<string, ProcurementSchedulerEntry>>(
+    "procurement_scheduler_queue",
+    {}
+  );
+
+  const now = Date.now();
+  const entries = Object.values(queue);
+
+  const dueActions = entries.filter((item) => now >= item.dueAt);
+  const critical = entries.filter((item) => item.priority === "Critical").length;
+  const high = entries.filter((item) => item.priority === "High").length;
+
+  return {
+    queue,
+    total: entries.length,
+    dueCount: dueActions.length,
+    critical,
+    high,
+    dueThreadIds: dueActions.map((item) => item.threadId),
+  };
 }
 
 export default function InboxBackgroundScheduler() {
@@ -46,6 +68,7 @@ export default function InboxBackgroundScheduler() {
 
     function publishDueCount() {
       const { dueCount, dueThreadIds } = getDueReminderState();
+      const procurement = getProcurementSchedulerState();
 
       window.dispatchEvent(
         new CustomEvent("inbox-reminders-updated", {
@@ -63,9 +86,20 @@ export default function InboxBackgroundScheduler() {
         })
       );
 
+      window.dispatchEvent(
+        new CustomEvent("procurement-scheduler-updated", {
+          detail: {
+            ...procurement,
+            now: Date.now(),
+          },
+        })
+      );
+
+      const totalDue = dueCount + procurement.dueCount;
+
       document.title =
-        dueCount > 0
-          ? `(${dueCount}) Reminders Due • ${originalTitle}`
+        totalDue > 0
+          ? `(${totalDue}) Actions Due • ${originalTitle}`
           : originalTitle;
     }
 
@@ -75,22 +109,23 @@ export default function InboxBackgroundScheduler() {
       publishDueCount();
     }, 60 * 1000);
 
-    const onStorage = () => publishDueCount();
-    const onReminderMutation = () => publishDueCount();
+    const onMutation = () => publishDueCount();
 
-    window.addEventListener("storage", onStorage);
-    window.addEventListener("focus", onStorage);
-    window.addEventListener("inbox-reminder-set", onReminderMutation);
-    window.addEventListener("inbox-reminder-cleared", onReminderMutation);
-    window.addEventListener("inbox-reminders-mutated", onReminderMutation);
+    window.addEventListener("storage", onMutation);
+    window.addEventListener("focus", onMutation);
+    window.addEventListener("inbox-reminder-set", onMutation);
+    window.addEventListener("inbox-reminder-cleared", onMutation);
+    window.addEventListener("inbox-reminders-mutated", onMutation);
+    window.addEventListener("procurement-scheduler-mutated", onMutation);
 
     return () => {
       window.clearInterval(interval);
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener("focus", onStorage);
-      window.removeEventListener("inbox-reminder-set", onReminderMutation);
-      window.removeEventListener("inbox-reminder-cleared", onReminderMutation);
-      window.removeEventListener("inbox-reminders-mutated", onReminderMutation);
+      window.removeEventListener("storage", onMutation);
+      window.removeEventListener("focus", onMutation);
+      window.removeEventListener("inbox-reminder-set", onMutation);
+      window.removeEventListener("inbox-reminder-cleared", onMutation);
+      window.removeEventListener("inbox-reminders-mutated", onMutation);
+      window.removeEventListener("procurement-scheduler-mutated", onMutation);
       document.title = originalTitle;
     };
   }, []);

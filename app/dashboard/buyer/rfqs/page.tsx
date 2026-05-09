@@ -1630,74 +1630,74 @@ export default function BuyerRfqsPage() {
                         </div>
 
                         <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 8, minWidth: 190 }}>
-  {selected || unreadChatCount > 0 || !!lastMessagePreview ? (
-    <Link
-        href={chatHref}
-        onClick={() => handleOpenChat(r.id)}
-        style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 40,
-        padding: "0 14px",
-        borderRadius: 12,
-        border: unreadChatCount > 0 ? "1px solid #fecaca" : "1px solid rgba(0,0,0,0.12)",
-        background: unreadChatCount > 0 ? "#fff1f2" : "#fff",
-        fontWeight: 900,
-        textDecoration: "none",
-        color: unreadChatCount > 0 ? "#b91c1c" : "#111827",
-        gap: 8,
-      }}
-    >
-      💬 {unreadChatCount > 0 ? "Open chat" : "Chat"}
-      {unreadChatCount > 0 ? (
-        <span
-          style={{
-            display: "inline-flex",
-            minWidth: 20,
-            height: 20,
-            padding: "0 6px",
-            borderRadius: 999,
-            alignItems: "center",
-            justifyContent: "center",
-            background: "#dc2626",
-            color: "white",
-            fontSize: 11,
-            fontWeight: 900,
-          }}
-        >
-          {unreadChatCount}
-        </span>
-      ) : null}
-    </Link>
-  ) : null}
+                          {selected || unreadChatCount > 0 || !!lastMessagePreview ? (
+                            <Link
+                                href={chatHref}
+                                onClick={() => handleOpenChat(r.id)}
+                                style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                minHeight: 40,
+                                padding: "0 14px",
+                                borderRadius: 12,
+                                border: unreadChatCount > 0 ? "1px solid #fecaca" : "1px solid rgba(0,0,0,0.12)",
+                                background: unreadChatCount > 0 ? "#fff1f2" : "#fff",
+                                fontWeight: 900,
+                                textDecoration: "none",
+                                color: unreadChatCount > 0 ? "#b91c1c" : "#111827",
+                                gap: 8,
+                              }}
+                            >
+                              💬 {unreadChatCount > 0 ? "Open chat" : "Chat"}
+                              {unreadChatCount > 0 ? (
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    minWidth: 20,
+                                    height: 20,
+                                    padding: "0 6px",
+                                    borderRadius: 999,
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    background: "#dc2626",
+                                    color: "white",
+                                    fontSize: 11,
+                                    fontWeight: 900,
+                                  }}
+                                >
+                                  {unreadChatCount}
+                                </span>
+                              ) : null}
+                            </Link>
+                          ) : null}
 
-  <ActionButton
-    href={openHref}
-    variant="secondary"
-  >
-    {selected ? "Open →" : "Compare Quotes →"}
-  </ActionButton>
+                          <ActionButton
+                            href={openHref}
+                            variant="secondary"
+                          >
+                            {selected ? "Open →" : "Compare Quotes →"}
+                          </ActionButton>
 
-  <Link
-    href={openHref}
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      minHeight: 36,
-      padding: "0 12px",
-      borderRadius: 10,
-      border: "1px solid rgba(0,0,0,0.12)",
-      background: "white",
-      fontWeight: 800,
-      textDecoration: "none",
-      color: "inherit",
-    }}
-  >
-    {selected ? "Open RFQ" : "Open compare"}
-  </Link>
-</div>
+                          <Link
+                            href={openHref}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              minHeight: 36,
+                              padding: "0 12px",
+                              borderRadius: 10,
+                              border: "1px solid rgba(0,0,0,0.12)",
+                              background: "white",
+                              fontWeight: 800,
+                              textDecoration: "none",
+                              color: "inherit",
+                            }}
+                          >
+                            {selected ? "Open RFQ" : "Open compare"}
+                          </Link>
+                        </div>
                       </div>
                     </CardBody>
 

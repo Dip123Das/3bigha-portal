@@ -3,7 +3,7 @@
 import Link from "next/link";
 import BuyerRfqChatBox from "@/app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box";
 import VendorRfqChatBox from "@/app/vendor/inbox-v2/[rfqId]/chat/vendor-rfq-chat-box";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import DealScoreClient from "@/app/components/ai/DealScoreClient";
@@ -84,6 +84,34 @@ type NegotiationIntelligence = {
   workflowRisk: "High" | "Medium" | "Low";
   supplierSignal: "Strong" | "Moderate" | "Weak";
   milestone: string;
+};
+
+type ProcurementTimelineAi = {
+  timelineScore?: number;
+  slaStatus?: string;
+  nextMilestone?: string;
+  deliveryPrediction?: string;
+  paymentReminder?: string;
+  followUpWindow?: string;
+  vendorResponseTimer?: string;
+  deliveryRisk?: "High" | "Medium" | "Low";
+  paymentRisk?: "High" | "Medium" | "Low";
+  timelineEvents?: { label: string; status: string }[];
+  recommendedTimelineAction?: string;
+};
+
+type ProcurementAutoActionAi = {
+  actionScore?: number;
+  autoActionType?: string;
+  priority?: "Critical" | "High" | "Medium" | "Low";
+  shouldAutoNotify?: boolean;
+  schedulerDecision?: string;
+  notificationTitle?: string;
+  notificationBody?: string;
+  suggestedMessage?: string;
+  executionReason?: string;
+  workflowTags?: string[];
+  nextRunWindow?: string;
 };
 
 function getNegotiationIntelligence(args: {
@@ -203,6 +231,95 @@ function supplierSignalClass(level: NegotiationIntelligence["supplierSignal"]) {
   if (level === "Strong") return "border-emerald-200 bg-emerald-50 text-emerald-700";
   if (level === "Moderate") return "border-blue-200 bg-blue-50 text-blue-700";
   return "border-slate-200 bg-slate-100 text-slate-700";
+}
+
+function riskToneClass(level?: string) {
+  if (level === "High" || level === "Critical") {
+    return "border-rose-200 bg-rose-50 text-rose-700";
+  }
+  if (level === "Medium" || level === "At risk") {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+  return "border-emerald-200 bg-emerald-50 text-emerald-700";
+}
+
+function safeJsonParse<T>(text: string, fallback: T): T {
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+async function getAppOrigin() {
+  const h = await headers();
+  const host = h.get("host") || process.env.NEXT_PUBLIC_SITE_URL || "";
+  const proto = h.get("x-forwarded-proto") || "https";
+
+  if (String(host).startsWith("http")) return String(host).replace(/\/$/, "");
+  return `${proto}://${host}`;
+}
+
+async function loadProcurementThreadAi(args: {
+  conversationId: string;
+  conversation: ConversationRow;
+  messages: MessageRow[];
+  isBuyer: boolean;
+  unreadCount: number;
+  negotiationAi: NegotiationIntelligence;
+}) {
+  const origin = await getAppOrigin();
+
+  const payload = {
+    conversationId: args.conversationId,
+    module: args.conversation.context_type || "thread",
+    contextType: args.conversation.context_type,
+    side: args.isBuyer ? "buyer" : "vendor",
+    lastActivityAt:
+      args.messages[args.messages.length - 1]?.created_at ||
+      args.conversation.updated_at ||
+      args.conversation.created_at,
+    unreadCount: args.unreadCount,
+    procurementScore: args.negotiationAi.dealScore,
+    timelineScore: args.negotiationAi.dealScore,
+    messages: args.messages.map((m) => ({
+      role: m.sender_role || "user",
+      body: m.body || "",
+      created_at: m.created_at,
+    })),
+  };
+
+  try {
+    const [timelineRes, autoActionRes] = await Promise.all([
+      fetch(`${origin}/api/ai/procurement-timeline`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify(payload),
+      }),
+      fetch(`${origin}/api/ai/procurement-auto-action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify(payload),
+      }),
+    ]);
+
+    const [timelineText, autoActionText] = await Promise.all([
+      timelineRes.text(),
+      autoActionRes.text(),
+    ]);
+
+    return {
+      timeline: safeJsonParse<ProcurementTimelineAi>(timelineText, {}),
+      autoAction: safeJsonParse<ProcurementAutoActionAi>(autoActionText, {}),
+    };
+  } catch {
+    return {
+      timeline: {} as ProcurementTimelineAi,
+      autoAction: {} as ProcurementAutoActionAi,
+    };
+  }
 }
 
 function titleCase(v?: string | null) {
@@ -474,6 +591,23 @@ export default async function UniversalThreadPage({
     isClosed,
     isBuyer,
     contextType: conv.context_type,
+  });
+
+  const unreadCount = messages.filter((m) => {
+    const senderUserId = String(m.sender_user_id || "").trim();
+    const createdAtMs = m.created_at ? new Date(m.created_at).getTime() : 0;
+    const lastReadMs = lastReadAt ? new Date(lastReadAt).getTime() : 0;
+
+    return senderUserId && senderUserId !== userId && createdAtMs > lastReadMs;
+  }).length;
+
+  const procurementAi = await loadProcurementThreadAi({
+    conversationId,
+    conversation: conv,
+    messages,
+    isBuyer,
+    unreadCount,
+    negotiationAi,
   });
 
   return (
@@ -753,6 +887,158 @@ export default async function UniversalThreadPage({
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50 p-5 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="inline-flex rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-amber-700">
+              AI Procurement Timeline & Auto-Action Engine
+            </div>
+
+            <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">
+              SLA, Delivery, Payment & Scheduler Intelligence
+            </h2>
+
+            <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
+              This layer reads the thread and predicts delivery risk, payment reminder need,
+              follow-up window, SLA status and the next autonomous procurement action.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-2xl border border-amber-200 bg-white px-4 py-3 text-sm font-black text-amber-700 shadow-sm">
+              Timeline {procurementAi.timeline.timelineScore ?? negotiationAi.dealScore}/100
+            </span>
+
+            <span className="rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm font-black text-emerald-700 shadow-sm">
+              Action {procurementAi.autoAction.actionScore ?? negotiationAi.dealScore}/100
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              📅 SLA Status
+            </div>
+            <div
+              className={`mt-2 inline-flex rounded-full border px-3 py-1 text-sm font-black ${riskToneClass(
+                procurementAi.timeline.slaStatus
+              )}`}
+            >
+              {procurementAi.timeline.slaStatus || "Monitoring"}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              🚚 Delivery Risk
+            </div>
+            <div
+              className={`mt-2 inline-flex rounded-full border px-3 py-1 text-sm font-black ${riskToneClass(
+                procurementAi.timeline.deliveryRisk
+              )}`}
+            >
+              {procurementAi.timeline.deliveryRisk || "Medium"}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              💳 Payment Risk
+            </div>
+            <div
+              className={`mt-2 inline-flex rounded-full border px-3 py-1 text-sm font-black ${riskToneClass(
+                procurementAi.timeline.paymentRisk
+              )}`}
+            >
+              {procurementAi.timeline.paymentRisk || "Medium"}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+              🤖 Auto Priority
+            </div>
+            <div
+              className={`mt-2 inline-flex rounded-full border px-3 py-1 text-sm font-black ${riskToneClass(
+                procurementAi.autoAction.priority
+              )}`}
+            >
+              {procurementAi.autoAction.priority || "Low"}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+            <div className="font-black text-blue-800">📍 Next Timeline Milestone</div>
+            <div className="mt-2 text-sm font-semibold leading-6 text-blue-900">
+              {procurementAi.timeline.nextMilestone || negotiationAi.milestone}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="font-black text-emerald-800">🎯 Recommended Timeline Action</div>
+            <div className="mt-2 text-sm font-semibold leading-6 text-emerald-900">
+              {procurementAi.timeline.recommendedTimelineAction || negotiationAi.nextAction}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-violet-200 bg-violet-50 p-4">
+            <div className="font-black text-violet-800">💳 Payment Reminder AI</div>
+            <div className="mt-2 text-sm font-semibold leading-6 text-violet-900">
+              {procurementAi.timeline.paymentReminder || negotiationAi.paymentSignal}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+            <div className="font-black text-rose-800">🚚 Delivery Prediction</div>
+            <div className="mt-2 text-sm font-semibold leading-6 text-rose-900">
+              {procurementAi.timeline.deliveryPrediction || "Delivery timeline needs confirmation."}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="font-black text-slate-900">⚙ Scheduler & Auto-Action Decision</div>
+          <div className="mt-2 text-sm font-semibold leading-6 text-slate-700">
+            {procurementAi.autoAction.schedulerDecision || "Continue monitoring this procurement thread."}
+          </div>
+
+          {procurementAi.autoAction.suggestedMessage ? (
+            <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold leading-6 text-slate-700">
+              Suggested message: {procurementAi.autoAction.suggestedMessage}
+            </div>
+          ) : null}
+        </div>
+
+        {Array.isArray(procurementAi.timeline.timelineEvents) &&
+        procurementAi.timeline.timelineEvents.length > 0 ? (
+          <div className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-5">
+            {procurementAi.timeline.timelineEvents.slice(0, 5).map((event, index) => (
+              <div
+                key={`${event.label}-${index}`}
+                className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"
+              >
+                <div className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+                  Step {index + 1}
+                </div>
+                <div className="mt-2 text-sm font-black text-slate-900">
+                  {event.label}
+                </div>
+                <div
+                  className={`mt-2 inline-flex rounded-full border px-2.5 py-1 text-[11px] font-black ${riskToneClass(
+                    event.status === "done" ? "Low" : "Medium"
+                  )}`}
+                >
+                  {event.status}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {isUnifiedLiveChat ? (

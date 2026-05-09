@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/rfq-followups",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/procurement-execution",
+      "schedule": "*/30 * * * *"
     }
   ]
 }
