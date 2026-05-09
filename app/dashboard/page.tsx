@@ -18,6 +18,19 @@ type AnalyticsStats = {
   latestRole: string;
 };
 
+type ProcurementRecommendation = {
+  ok?: boolean;
+  source?: string;
+  recommendationScore?: number;
+  demandSignal?: string;
+  budgetRisk?: string;
+  supplierPrediction?: string;
+  recurringProcurementHint?: string;
+  conversionInsight?: string;
+  nextAction?: string;
+  cards?: { title: string; detail: string }[];
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -31,6 +44,9 @@ export default function DashboardPage() {
     priceSignals: 0,
     latestRole: "user",
   });
+
+  const [procurementRecommendation, setProcurementRecommendation] =
+    useState<ProcurementRecommendation | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -134,6 +150,42 @@ export default function DashboardPage() {
           setMessage(`AI analytics ready. Your default workspace is ${target}.`);
         } else {
           setMessage("AI procurement analytics ready.");
+        }
+
+        try {
+          const rfqCount =
+            rfqRes.status === "fulfilled" ? Number(rfqRes.value.count || 0) : 0;
+          const conversationCount =
+            conversationRes.status === "fulfilled" ? Number(conversationRes.value.count || 0) : 0;
+          const unreadCount =
+            unreadVendorAlertRes.status === "fulfilled"
+              ? Number(unreadVendorAlertRes.value.count || 0)
+              : 0;
+          const priceSignalCount =
+            priceRes.status === "fulfilled" ? Number(priceRes.value.count || 0) : 0;
+
+          const recRes = await fetch("/api/ai/procurement-recommendations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              side: "platform",
+              rfqCount,
+              activeRfqs: rfqCount,
+              vendorCount: Math.max(1, conversationCount),
+              unreadCount,
+              priceTrend: priceSignalCount > 5 ? "stable" : "unknown",
+              momentumScore: Math.min(100, 35 + rfqCount * 6 + conversationCount * 8 + priceSignalCount * 2),
+              budgetRisk: unreadCount > 0 ? "high" : "medium",
+            }),
+          });
+
+          const recJson = await recRes.json().catch(() => null);
+
+          if (recJson?.ok) {
+            setProcurementRecommendation(recJson);
+          }
+        } catch {
+          setProcurementRecommendation(null);
         }
 
         setLoading(false);
@@ -241,6 +293,104 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+                {procurementRecommendation ? (
+          <div
+            style={{
+              marginTop: 14,
+              border: "1px solid rgba(124,58,237,0.25)",
+              background: "linear-gradient(135deg, rgba(124,58,237,0.08), #ffffff)",
+              borderRadius: 16,
+              padding: 14,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontWeight: 1000, color: "#5b21b6", fontSize: 18 }}>
+                  🔮 AI Recommendation & Forecasting Engine
+                </div>
+                <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
+                  Platform-wide supplier prediction, demand signal, budget risk and conversion insight.
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: "#ede9fe",
+                  color: "#5b21b6",
+                  borderRadius: 999,
+                  padding: "8px 12px",
+                  fontWeight: 1000,
+                  alignSelf: "center",
+                }}
+              >
+                Score {procurementRecommendation.recommendationScore ?? "—"}/100
+              </div>
+            </div>
+
+            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+              {[
+                ["Demand", procurementRecommendation.demandSignal || "—", "📈"],
+                ["Budget Risk", procurementRecommendation.budgetRisk || "—", "💰"],
+                ["Source", procurementRecommendation.source || "heuristic", "🧠"],
+              ].map(([label, value, icon]) => (
+                <div
+                  key={label}
+                  style={{
+                    border: "1px solid #e2e8f0",
+                    background: "#ffffff",
+                    borderRadius: 12,
+                    padding: 10,
+                  }}
+                >
+                  <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
+                    {icon} {label}
+                  </div>
+                  <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000 }}>
+                    {value}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
+                <div style={{ color: "#1e3a8a", fontWeight: 1000 }}>Best Supplier Prediction</div>
+                <div style={{ marginTop: 5, color: "#1e40af", fontSize: 13, fontWeight: 800 }}>
+                  {procurementRecommendation.supplierPrediction || "More RFQ/vendor data needed."}
+                </div>
+              </div>
+
+              <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
+                <div style={{ color: "#166534", fontWeight: 1000 }}>AI Next Best Action</div>
+                <div style={{ marginTop: 5, color: "#14532d", fontSize: 13, fontWeight: 800 }}>
+                  {procurementRecommendation.nextAction || "Create RFQs and monitor procurement signals."}
+                </div>
+              </div>
+            </div>
+
+            {procurementRecommendation.cards?.length ? (
+              <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
+                {procurementRecommendation.cards.map((card) => (
+                  <div
+                    key={card.title}
+                    style={{
+                      border: "1px solid rgba(15,23,42,0.08)",
+                      background: "#ffffff",
+                      borderRadius: 12,
+                      padding: 10,
+                    }}
+                  >
+                    <div style={{ fontWeight: 1000, color: "#0f172a" }}>{card.title}</div>
+                    <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
+                      {card.detail}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Link href="/dashboard/buyer" className="topBtn topBtnPrimary">

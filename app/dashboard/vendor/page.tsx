@@ -33,6 +33,19 @@ type PriceIntelligenceStats = {
   averageDeviation: number | null;
 };
 
+type ProcurementRecommendation = {
+  ok?: boolean;
+  source?: string;
+  recommendationScore?: number;
+  demandSignal?: string;
+  budgetRisk?: string;
+  supplierPrediction?: string;
+  recurringProcurementHint?: string;
+  conversionInsight?: string;
+  nextAction?: string;
+  cards?: { title: string; detail: string }[];
+};
+
 type EnquiryRow = {
   id: string;
   buyer_user_id: string;
@@ -216,6 +229,8 @@ const [dealStats, setDealStats] = useState({
 const [leaderboardRows, setLeaderboardRows] = useState<any[]>([]);
 
 const [aiTips, setAiTips] = useState<string[]>([]);
+const [procurementRecommendation, setProcurementRecommendation] =
+  useState<ProcurementRecommendation | null>(null);
 
 const [priceIntelligenceStats, setPriceIntelligenceStats] =
   useState<PriceIntelligenceStats>({
@@ -759,6 +774,41 @@ const aiDealUpgradeTarget =
       trustScore,
       boostScore,
     });
+
+    try {
+      const recRes = await fetch("/api/ai/procurement-recommendations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          side: "vendor",
+          rfqCount: leadStats.leadsLast30Days || recentEnquiries.length || 0,
+          activeRfqs: leadStats.newLeadCount || 0,
+          vendorCount: 1,
+          unreadCount: notificationCount || 0,
+          priceTrend:
+            priceIntelligenceStats.overpricedCount > 0
+              ? "up"
+              : priceIntelligenceStats.aiOptimizedCount > 0
+              ? "stable"
+              : "unknown",
+          momentumScore: growthVisibilityScore,
+          budgetRisk:
+            priceIntelligenceStats.overpricedCount > 0 || estimatedRank > 5
+              ? "high"
+              : "medium",
+        }),
+      });
+
+      const recJson = await recRes.json().catch(() => null);
+
+      if (recJson?.ok) {
+        setProcurementRecommendation(recJson);
+      }
+    } catch {
+      setProcurementRecommendation(null);
+    }
 
     setEnquiriesLoading(false);
     setLoading(false);
@@ -1329,6 +1379,102 @@ const aiDealUpgradeTarget =
             >
               🔥 Unlock Premium AI Alerts
             </button>
+          </div>
+        ) : null}
+
+                {procurementRecommendation ? (
+          <div
+            style={{
+              marginBottom: 14,
+              borderRadius: 18,
+              padding: 16,
+              border: "1px solid #c4b5fd",
+              background: "linear-gradient(135deg, #f5f3ff, #ffffff)",
+              boxShadow: "0 12px 28px rgba(124,58,237,0.10)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 950, color: "#5b21b6" }}>
+                  🔮 AI Vendor Recommendation & Forecasting
+                </div>
+
+                <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 850, lineHeight: 1.5 }}>
+                  AI predicts your supplier opportunity, demand signal, conversion strength and next best action.
+                </div>
+              </div>
+
+              <Badge>
+                Score {procurementRecommendation.recommendationScore ?? "—"}/100
+              </Badge>
+            </div>
+
+            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
+              <div style={{ border: "1px solid #ddd6fe", borderRadius: 14, padding: 12, background: "#fff" }}>
+                <div style={{ fontSize: 12, color: "#6d28d9", fontWeight: 900 }}>Demand Signal</div>
+                <div style={{ marginTop: 4, fontSize: 14, fontWeight: 950, color: "#111827" }}>
+                  {procurementRecommendation.demandSignal || "—"}
+                </div>
+              </div>
+
+              <div style={{ border: "1px solid #fed7aa", borderRadius: 14, padding: 12, background: "#fff7ed" }}>
+                <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>Budget Risk</div>
+                <div style={{ marginTop: 4, fontSize: 14, fontWeight: 950, color: "#7c2d12" }}>
+                  {procurementRecommendation.budgetRisk || "—"}
+                </div>
+              </div>
+
+              <div style={{ border: "1px solid #bfdbfe", borderRadius: 14, padding: 12, background: "#eff6ff" }}>
+                <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 900 }}>AI Source</div>
+                <div style={{ marginTop: 4, fontSize: 14, fontWeight: 950, color: "#1e3a8a" }}>
+                  {procurementRecommendation.source || "heuristic"}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 10 }}>
+              <div style={{ border: "1px solid #bbf7d0", borderRadius: 14, padding: 12, background: "#f0fdf4" }}>
+                <div style={{ fontSize: 14, color: "#166534", fontWeight: 950 }}>🎯 AI Next Best Action</div>
+                <div style={{ marginTop: 6, fontSize: 13, fontWeight: 850, color: "#14532d", lineHeight: 1.5 }}>
+                  {procurementRecommendation.nextAction || "Maintain fast replies and keep pricing updated."}
+                </div>
+              </div>
+
+              <div style={{ border: "1px solid #bfdbfe", borderRadius: 14, padding: 12, background: "#eff6ff" }}>
+                <div style={{ fontSize: 14, color: "#1e3a8a", fontWeight: 950 }}>🏆 Supplier Prediction</div>
+                <div style={{ marginTop: 6, fontSize: 13, fontWeight: 850, color: "#1e40af", lineHeight: 1.5 }}>
+                  {procurementRecommendation.supplierPrediction || "More vendor performance data needed."}
+                </div>
+              </div>
+
+              <div style={{ border: "1px solid #e9d5ff", borderRadius: 14, padding: 12, background: "#faf5ff" }}>
+                <div style={{ fontSize: 14, color: "#581c87", fontWeight: 950 }}>📈 Conversion Insight</div>
+                <div style={{ marginTop: 6, fontSize: 13, fontWeight: 850, color: "#5b21b6", lineHeight: 1.5 }}>
+                  {procurementRecommendation.conversionInsight || "More reply and closure data needed."}
+                </div>
+              </div>
+            </div>
+
+            {procurementRecommendation.cards?.length ? (
+              <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
+                {procurementRecommendation.cards.map((card) => (
+                  <div
+                    key={card.title}
+                    style={{
+                      border: "1px solid rgba(15,23,42,0.08)",
+                      borderRadius: 12,
+                      padding: 10,
+                      background: "#fff",
+                    }}
+                  >
+                    <div style={{ fontWeight: 950, color: "#0f172a" }}>{card.title}</div>
+                    <div style={{ marginTop: 4, fontSize: 13, fontWeight: 800, color: "#475569", lineHeight: 1.5 }}>
+                      {card.detail}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
