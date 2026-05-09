@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
+import ProcurementKnowledgeGraphBlock from "@/app/components/ai/ProcurementKnowledgeGraphBlock";
+import { buildProcurementKnowledgeGraph } from "@/lib/seo/procurement-knowledge-graph";
 import InvestmentApplyButton from "./InvestmentApplyButton";
 import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/seo/schema";
@@ -584,6 +586,17 @@ export default async function PropertyPublicDetailPage({
             >
               AI Recommended Vendors →
             </Link>
+
+            <ProcurementKnowledgeGraphBlock
+              graph={buildProcurementKnowledgeGraph({
+                title,
+                module: "property",
+                category: row.property_type || row.category || "Property",
+                city: row.city || "Cooch Behar",
+                district: row.district || "Cooch Behar",
+                locality: row.locality || "Khagrabari",
+              })}
+            />
 
             {resolvedInvestmentOpportunity?.id ? (
               <div style={{ marginTop: 10 }}>

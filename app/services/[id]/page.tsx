@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
+import ProcurementKnowledgeGraphBlock from "@/app/components/ai/ProcurementKnowledgeGraphBlock";
+import { buildProcurementKnowledgeGraph } from "@/lib/seo/procurement-knowledge-graph";
 import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/seo/schema";
 import { siteConfig } from "@/lib/seo/site";
@@ -346,6 +348,17 @@ export default function ServiceDetailsPage({ params }: { params: { id: string } 
               >
                 AI Recommended Vendors →
               </Link>
+
+              <ProcurementKnowledgeGraphBlock
+                graph={buildProcurementKnowledgeGraph({
+                  title: name,
+                  module: "services",
+                  category: row.provider_kind || "Service Provider",
+                  city: row.city || "Cooch Behar",
+                  district: row.district || "Cooch Behar",
+                  locality: "Khagrabari",
+                })}
+              />
 
             </CardBody>
           </Card>

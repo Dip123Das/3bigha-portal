@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
+import ProcurementKnowledgeGraphBlock from "@/app/components/ai/ProcurementKnowledgeGraphBlock";
+import { buildProcurementKnowledgeGraph } from "@/lib/seo/procurement-knowledge-graph";
 import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/seo/schema";
 import { createMetadata } from "@/lib/seo/metadata";
@@ -400,6 +402,17 @@ export default async function MaterialPublicDetailPage({ params }: { params: { i
               >
                 AI Recommended Vendors →
               </Link>
+
+              <ProcurementKnowledgeGraphBlock
+                graph={buildProcurementKnowledgeGraph({
+                  title,
+                  module: "materials",
+                  category: row.category || "Building Materials",
+                  city: row.city || "Cooch Behar",
+                  district: row.district || "Cooch Behar",
+                  locality: row.locality || "Khagrabari",
+                })}
+              />
 
             </CardBody>
           </Card>

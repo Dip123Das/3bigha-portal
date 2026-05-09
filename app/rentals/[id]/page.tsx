@@ -12,6 +12,8 @@ import { Card, CardBody, CardFooter } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
+import ProcurementKnowledgeGraphBlock from "@/app/components/ai/ProcurementKnowledgeGraphBlock";
+import { buildProcurementKnowledgeGraph } from "@/lib/seo/procurement-knowledge-graph";
 import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/seo/schema";
 import { siteConfig } from "@/lib/seo/site";
@@ -353,6 +355,17 @@ export default function RentalPublicDetailPage() {
           >
             AI Recommended Vendors →
           </Link>
+
+          <ProcurementKnowledgeGraphBlock
+            graph={buildProcurementKnowledgeGraph({
+              title: row.title || "Rental",
+              module: "rentals",
+              category: "Rental Service",
+              city: row.city || "Cooch Behar",
+              district: row.district || "Cooch Behar",
+              locality: row.locality || "Khagrabari",
+            })}
+          />
 
         </CardBody>
       </Card>
