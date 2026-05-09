@@ -1,0 +1,177 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+
+type CopilotResponse = {
+  ok?: boolean;
+  question?: string;
+  intent?: string;
+  answer?: string;
+  recommendations?: {
+    nextBestAction?: string;
+    forecast?: string;
+  };
+  topRiskItems?: any[];
+  topClosureItems?: any[];
+  error?: string;
+};
+
+const EXAMPLES = [
+  "What needs urgent attention today?",
+  "Which RFQs are likely to close?",
+  "Which vendors or suppliers look reliable?",
+  "Show me procurement risks.",
+  "Forecast next week procurement pipeline.",
+];
+
+export default function ProcurementCopilotClient() {
+  const [question, setQuestion] = useState(EXAMPLES[0]);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<CopilotResponse | null>(null);
+
+  async function askCopilot(q?: string) {
+    const finalQuestion = String(q || question || "").trim();
+    if (!finalQuestion) return;
+
+    setQuestion(finalQuestion);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/ai/procurement-copilot-command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({ question: finalQuestion }),
+      });
+
+      const json = await res.json();
+      setData(json);
+    } catch {
+      setData({
+        ok: false,
+        error: "Copilot failed to respond.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+        <label className="text-sm font-black text-slate-900">
+          Ask procurement question
+        </label>
+
+        <div className="mt-3 flex flex-col gap-3 md:flex-row">
+          <input
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            className="min-h-[48px] flex-1 rounded-2xl border border-slate-300 px-4 text-sm font-medium outline-none focus:border-blue-500"
+            placeholder="Ask: What needs attention today?"
+          />
+
+          <button
+            type="button"
+            onClick={() => askCopilot()}
+            disabled={loading}
+            className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white disabled:opacity-60"
+          >
+            {loading ? "Thinking..." : "Ask Copilot"}
+          </button>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {EXAMPLES.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => askCopilot(item)}
+              className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 transition hover:opacity-90"
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {data ? (
+        <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+          {data.ok ? (
+            <>
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full border border-slate-900 bg-slate-900 px-3 py-1 text-xs font-black text-white">
+                  Intent: {data.intent || "summary"}
+                </span>
+              </div>
+
+              <div className="mt-4 rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
+                <div className="text-sm font-black text-emerald-800">
+                  Copilot Answer
+                </div>
+                <div className="mt-2 text-sm font-semibold leading-6 text-emerald-950">
+                  {data.answer}
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div className="rounded-3xl border border-blue-200 bg-blue-50 p-5">
+                  <div className="text-sm font-black text-blue-800">
+                    Next Best Action
+                  </div>
+                  <div className="mt-2 text-sm font-semibold leading-6 text-blue-950">
+                    {data.recommendations?.nextBestAction || "Open inbox and review active procurement threads."}
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-violet-200 bg-violet-50 p-5">
+                  <div className="text-sm font-black text-violet-800">
+                    Forecast
+                  </div>
+                  <div className="mt-2 text-sm font-semibold leading-6 text-violet-950">
+                    {data.recommendations?.forecast || "Forecast unavailable."}
+                  </div>
+                </div>
+              </div>
+
+              <ResultList title="Top Risk Items" items={data.topRiskItems || []} />
+              <ResultList title="Top Closure Items" items={data.topClosureItems || []} />
+            </>
+          ) : (
+            <div className="rounded-3xl border border-rose-200 bg-rose-50 p-5 text-sm font-bold text-rose-700">
+              {data.error || "Copilot failed."}
+            </div>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ResultList({ title, items }: { title: string; items: any[] }) {
+  if (!items.length) return null;
+
+  return (
+    <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-4">
+      <div className="text-sm font-black text-slate-900">{title}</div>
+
+      <div className="mt-3 space-y-2">
+        {items.map((item) => (
+          <Link
+            key={item.id}
+            href={item.href || "/dashboard/inbox-v2"}
+            className="block rounded-2xl border border-slate-200 bg-white p-3 transition hover:bg-slate-50"
+          >
+            <div className="text-sm font-black text-slate-950">
+              {item.title || "Procurement thread"}
+            </div>
+            <div className="mt-1 text-xs font-medium text-slate-500">
+              {item.module || item.risk || item.projectedStatus || "Procurement intelligence"}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}

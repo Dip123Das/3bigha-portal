@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ProcurementCommandCenterNav from "@/app/components/procurement/ProcurementCommandCenterNav";
 import { headers } from "next/headers";
 
 export const runtime = "nodejs";
@@ -91,6 +92,8 @@ export default async function ProcurementControlTowerPage() {
           </Link>
         </div>
       </div>
+
+      <ProcurementCommandCenterNav />
 
       {!data?.ok ? (
         <div className="rounded-3xl border border-rose-200 bg-rose-50 p-5 text-sm font-bold text-rose-700">
