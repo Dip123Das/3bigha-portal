@@ -68,6 +68,18 @@ type LiveProcurementSuggestion = {
   action: "description" | "item" | "location" | "timeline" | "budget";
 };
 
+type ProcurementReadinessInsight = {
+  readinessScore: number;
+  completionPercent: number;
+  complexityLevel: "Low" | "Medium" | "High";
+  urgencyLevel: "Normal" | "Urgent" | "Critical";
+  deliveryRisk: "Low" | "Medium" | "High";
+  timelineEstimate: string;
+  expectedVendorResponse: string;
+  missingFields: string[];
+  nextMilestone: string;
+};
+
 /* ---------- Simple popup helper (NEW) ---------- */
 function showPopup(message: string, type: "success" | "error" = "success") {
   const bg = type === "success" ? "#16a34a" : "#dc2626";
@@ -1085,6 +1097,100 @@ return;
 
   const bestSupplier = supplierRecommendationCards[0];
 
+  const procurementInsight = useMemo<ProcurementReadinessInsight>(() => {
+    const filledItems = items.filter((x) => x.item_name.trim()).length;
+    const hasQty = items.some((x) => x.qty.trim());
+    const hasUnit = items.some((x) => x.unit.trim());
+    const hasLocation = Boolean(city.trim() && locality.trim() && pincode.trim());
+    const hasContact = Boolean(contactPhone.trim() || contactEmail.trim());
+    const hasTimeline = Boolean(neededBy);
+    const hasDescription = description.trim().length >= 20;
+    const hasVendorMatches = supplierRecommendationCards.length > 0;
+
+    const checks = [
+      Boolean(title.trim()),
+      hasDescription,
+      filledItems > 0 || files.length > 0,
+      hasQty,
+      hasUnit,
+      hasLocation,
+      hasContact,
+      hasTimeline,
+      hasVendorMatches,
+    ];
+
+    const completionPercent = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+    const readinessScore = Math.round((completionPercent + Math.min(100, rfqHealthScore || 0)) / 2);
+
+    const totalQty = items.reduce((sum, x) => sum + (Number(x.qty) || 0), 0);
+    const complexityLevel =
+      filledItems >= 4 || files.length >= 2 || totalQty >= 500 ? "High" : filledItems >= 2 || totalQty >= 100 ? "Medium" : "Low";
+
+    const today = new Date();
+    const needed = neededBy ? new Date(neededBy) : null;
+    const daysLeft = needed ? Math.ceil((needed.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : null;
+
+    const urgencyLevel = daysLeft != null && daysLeft <= 2 ? "Critical" : daysLeft != null && daysLeft <= 7 ? "Urgent" : "Normal";
+
+    const deliveryRisk =
+      !hasLocation || urgencyLevel === "Critical" || readinessScore < 45
+        ? "High"
+        : urgencyLevel === "Urgent" || readinessScore < 70
+          ? "Medium"
+          : "Low";
+
+    const missingFields = [
+      !title.trim() ? "RFQ title" : "",
+      !hasDescription ? "Clear description/specification" : "",
+      filledItems === 0 && files.length === 0 ? "At least one item/work or uploaded list" : "",
+      !hasQty ? "Quantity" : "",
+      !hasUnit ? "Unit" : "",
+      !hasLocation ? "City, locality and pincode" : "",
+      !hasTimeline ? "Expected delivery/work date" : "",
+      !hasContact ? "Phone or email" : "",
+    ].filter(Boolean);
+
+    return {
+      readinessScore,
+      completionPercent,
+      complexityLevel,
+      urgencyLevel,
+      deliveryRisk,
+      timelineEstimate:
+        urgencyLevel === "Critical"
+          ? "Immediate vendor response required. Same-day or next-day coordination may be needed."
+          : urgencyLevel === "Urgent"
+            ? "Expected procurement cycle: 2–7 days depending on vendor availability."
+            : "Expected procurement cycle: 7–15 days for quote comparison, negotiation and confirmation.",
+      expectedVendorResponse:
+        readinessScore >= 75
+          ? "High chance of quick vendor response."
+          : readinessScore >= 50
+            ? "Moderate response expected. Add missing details for better quotes."
+            : "Low response quality expected until key details are completed.",
+      missingFields,
+      nextMilestone:
+        missingFields.length > 0
+          ? `Complete: ${missingFields[0]}`
+          : hasVendorMatches
+            ? "Submit RFQ and compare vendor replies."
+            : "Submit RFQ to activate vendor discovery.",
+    };
+  }, [
+    items,
+    files.length,
+    city,
+    locality,
+    pincode,
+    contactPhone,
+    contactEmail,
+    neededBy,
+    description,
+    title,
+    supplierRecommendationCards.length,
+    rfqHealthScore,
+  ]);
+
   const browseLink = `${browseHref(module)}?returnTo=${encodeURIComponent("/rfq/general/new")}&module=${encodeURIComponent(module)}`;
 
   return (
@@ -1400,6 +1506,103 @@ return;
           </div>
         </div>
       ) : null}
+
+      <div
+        style={{
+          border: "1px solid rgba(79,70,229,0.28)",
+          background: "linear-gradient(135deg, rgba(79,70,229,0.08), #ffffff)",
+          borderRadius: 18,
+          padding: 16,
+          marginBottom: 14,
+          boxShadow: "0 14px 30px rgba(79,70,229,0.07)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 1000, color: "#3730a3" }}>
+              📈 AI Procurement Readiness Engine
+            </div>
+            <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 4 }}>
+              Completion meter, timeline intelligence, urgency prediction and delivery risk analysis.
+            </div>
+          </div>
+
+          <div
+            style={{
+              background:
+                procurementInsight.readinessScore >= 75
+                  ? "#dcfce7"
+                  : procurementInsight.readinessScore >= 50
+                    ? "#fef3c7"
+                    : "#fee2e2",
+              color:
+                procurementInsight.readinessScore >= 75
+                  ? "#166534"
+                  : procurementInsight.readinessScore >= 50
+                    ? "#92400e"
+                    : "#991b1b",
+              borderRadius: 999,
+              padding: "8px 13px",
+              fontWeight: 1000,
+              alignSelf: "center",
+            }}
+          >
+            Readiness {procurementInsight.readinessScore}/100
+          </div>
+        </div>
+
+        <div style={{ marginTop: 12, background: "#e5e7eb", height: 10, borderRadius: 999, overflow: "hidden" }}>
+          <div
+            style={{
+              width: `${procurementInsight.completionPercent}%`,
+              height: "100%",
+              background:
+                procurementInsight.completionPercent >= 75
+                  ? "#16a34a"
+                  : procurementInsight.completionPercent >= 50
+                    ? "#d97706"
+                    : "#dc2626",
+            }}
+          />
+        </div>
+
+        <div style={{ marginTop: 6, fontSize: 12, color: "#64748b", fontWeight: 800 }}>
+          RFQ completion: {procurementInsight.completionPercent}%
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8, marginTop: 12 }}>
+          {[
+            ["Complexity", procurementInsight.complexityLevel],
+            ["Urgency", procurementInsight.urgencyLevel],
+            ["Delivery risk", procurementInsight.deliveryRisk],
+            ["Vendor response", procurementInsight.expectedVendorResponse],
+          ].map(([label, value]) => (
+            <div key={label} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: 10 }}>
+              <div style={{ fontSize: 11, color: "#64748b", fontWeight: 900 }}>{label}</div>
+              <div style={{ color: "#0f172a", fontWeight: 1000, marginTop: 4 }}>{value}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
+          <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1e3a8a", borderRadius: 12, padding: 10, fontSize: 13, fontWeight: 800 }}>
+            ⏱ Timeline estimate: {procurementInsight.timelineEstimate}
+          </div>
+
+          <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", color: "#14532d", borderRadius: 12, padding: 10, fontSize: 13, fontWeight: 800 }}>
+            ✅ Next milestone: {procurementInsight.nextMilestone}
+          </div>
+        </div>
+
+        {procurementInsight.missingFields.length > 0 ? (
+          <div style={{ marginTop: 12, border: "1px solid #fed7aa", background: "#fff7ed", color: "#9a3412", borderRadius: 12, padding: 10, fontSize: 13, fontWeight: 800 }}>
+            <div style={{ fontWeight: 1000, marginBottom: 5 }}>Smart missing-fields detector</div>
+            {procurementInsight.missingFields.slice(0, 5).map((x, idx) => (
+              <div key={idx}>• {x}</div>
+            ))}
+          </div>
+        ) : null}
+      </div>
 
       {err ? (
         <div
