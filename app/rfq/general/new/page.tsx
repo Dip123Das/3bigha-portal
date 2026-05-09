@@ -150,6 +150,9 @@ function RfqGeneralNewPageInner() {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
 
   const [loading, setLoading] = useState(false);
+
+  const [aiRequirement, setAiRequirement] = useState("");
+  const [aiDrafting, setAiDrafting] = useState(false);
   const [err, setErr] = useState<string>("");
 
   // ✅ Unified module selector
@@ -463,6 +466,120 @@ function RfqGeneralNewPageInner() {
     router.replace(`/rfq/general/new?${clean.toString()}`);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sp]);
+
+    async function generateAiRfqDraft() {
+    try {
+      if (!aiRequirement.trim()) {
+        showPopup("Please describe your requirement.", "error");
+        return;
+      }
+
+      setAiDrafting(true);
+
+      const res = await fetch("/api/ai/rfq-generator", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: aiRequirement,
+        }),
+      });
+
+      const json = await res.json();
+      const rfq =
+        json?.rfq ||
+        (Array.isArray(json?.items)
+          ? {
+              title: aiRequirement.slice(0, 80),
+              intent: aiRequirement,
+              category: "General Procurement",
+              items: json.items,
+            }
+          : null);
+
+      if (!rfq) {
+        showPopup("AI could not generate RFQ.", "error");
+        return;
+      }
+
+      if (rfq.title) setTitle(rfq.title);
+      if (rfq.intent) {
+        setDescription(rfq.intent);
+
+        if (!title || title.trim().length < 5) {
+          setTitle(rfq.intent.slice(0, 80));
+        }
+      }
+
+      if (Array.isArray(rfq.items) && rfq.items.length > 0) {
+        setItems(
+          rfq.items.map((item: any) => ({
+            item_name: String(item.item || ""),
+            qty: item.qty != null ? String(item.qty) : "",
+            unit: String(item.unit || ""),
+            notes: "",
+          }))
+        );
+      }
+
+      setAiAutoFillApplied(true);
+
+      setAiAutoFillSummary(
+        rfq.intent ||
+          `AI detected procurement requirement for ${
+            rfq.category || "marketplace procurement"
+          }.`
+      );
+
+      setShowInlineModule(true);
+
+      if (rfq.category) {
+        const normalized = String(rfq.category).toLowerCase();
+
+        if (
+          normalized.includes("material") ||
+          normalized.includes("cement") ||
+          normalized.includes("steel")
+        ) {
+          setModule("materials");
+        } else if (
+          normalized.includes("service") ||
+          normalized.includes("electrical") ||
+          normalized.includes("plumbing")
+        ) {
+          setModule("services");
+        } else if (
+          normalized.includes("rental")
+        ) {
+          setModule("rentals");
+        } else if (
+          normalized.includes("property") ||
+          normalized.includes("construction")
+        ) {
+          // Keep current module because this RFQ page does not support property/general module.
+        }
+      }
+
+      showPopup("AI RFQ draft generated successfully.", "success");
+      const searchText =
+        rfq.title ||
+        rfq.intent ||
+        aiRequirement;
+
+      const discoveryUrl =
+        `/vendor/discovery?q=${encodeURIComponent(searchText)}`;
+
+      setTimeout(() => {
+        window.open(discoveryUrl, "_blank");
+      }, 1200);
+    } catch (error) {
+      console.error(error);
+      showPopup("AI RFQ drafting failed.", "error");
+    } finally {
+      setAiDrafting(false);
+    }
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -967,6 +1084,58 @@ return;
           {err}
         </div>
       ) : null}
+
+            <div
+        style={{
+          border: "1px solid #dbeafe",
+          background: "#eff6ff",
+          borderRadius: 18,
+          padding: 18,
+          marginBottom: 22,
+        }}
+      >
+        <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 8 }}>
+          🤖 AI Procurement Assistant
+        </div>
+
+        <div style={{ fontSize: 14, color: "#334155", marginBottom: 14 }}>
+          Describe your requirement naturally and AI will draft the RFQ automatically.
+        </div>
+
+        <textarea
+          value={aiRequirement}
+          onChange={(e) => setAiRequirement(e.target.value)}
+          placeholder="Example: Need 500 bags cement for house construction in Cooch Behar with delivery within 7 days"
+          rows={4}
+          style={{
+            width: "100%",
+            border: "1px solid #bfdbfe",
+            borderRadius: 12,
+            padding: 12,
+            fontSize: 15,
+            resize: "vertical",
+            background: "white",
+          }}
+        />
+
+        <button
+          type="button"
+          onClick={generateAiRfqDraft}
+          disabled={aiDrafting}
+          style={{
+            marginTop: 14,
+            border: 0,
+            borderRadius: 12,
+            background: aiDrafting ? "#93c5fd" : "#2563eb",
+            color: "white",
+            padding: "12px 18px",
+            fontWeight: 900,
+            cursor: aiDrafting ? "not-allowed" : "pointer",
+          }}
+        >
+          {aiDrafting ? "AI drafting RFQ..." : "✨ Generate AI RFQ Draft"}
+        </button>
+      </div>
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
         {/* ✅ Module */}
