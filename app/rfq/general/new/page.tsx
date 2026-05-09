@@ -28,6 +28,15 @@ type AiVendorMatch = {
   source?: string;
 };
 
+type SupplierRecommendationCard = AiVendorMatch & {
+  rank: number;
+  deliveryConfidence: "High" | "Medium" | "Low";
+  pricingConfidence: "High" | "Medium" | "Low";
+  negotiationReadiness: "Ready" | "Needs RFQ details";
+  aiStrength: string;
+  shortlistReason: string;
+};
+
 type RfqIntelligenceResult = {
   ok?: boolean;
   source?: string;
@@ -1044,6 +1053,38 @@ return;
   const rfqHealthTone =
     rfqHealthScore >= 75 ? "#16a34a" : rfqHealthScore >= 50 ? "#d97706" : "#dc2626";
 
+  const supplierRecommendationCards = useMemo<SupplierRecommendationCard[]>(() => {
+    return aiVendorMatches.slice(0, 5).map((v, idx) => {
+      const score = Number(v.score || 0);
+      const hasNearbyLocation = Boolean(v.locality || v.city || v.pincode);
+      const hasStrongRfq = rfqHealthScore >= 70;
+
+      return {
+        ...v,
+        rank: idx + 1,
+        deliveryConfidence: score >= 80 && hasNearbyLocation ? "High" : score >= 60 ? "Medium" : "Low",
+        pricingConfidence: score >= 75 && hasStrongRfq ? "High" : score >= 55 ? "Medium" : "Low",
+        negotiationReadiness: hasStrongRfq ? "Ready" : "Needs RFQ details",
+        aiStrength:
+          idx === 0
+            ? "Best overall match"
+            : score >= 75
+              ? "Strong local supplier"
+              : score >= 55
+                ? "Useful backup option"
+                : "Needs manual verification",
+        shortlistReason:
+          score >= 80
+            ? "AI recommends shortlisting this supplier first based on location, relevance and match quality."
+            : score >= 60
+              ? "AI recommends keeping this supplier as a comparison option."
+              : "AI suggests checking this supplier only after stronger matches respond.",
+      };
+    });
+  }, [aiVendorMatches, rfqHealthScore]);
+
+  const bestSupplier = supplierRecommendationCards[0];
+
   const browseLink = `${browseHref(module)}?returnTo=${encodeURIComponent("/rfq/general/new")}&module=${encodeURIComponent(module)}`;
 
   return (
@@ -1208,63 +1249,154 @@ return;
         </div>
       ) : null}
 
-      {aiVendorMatches.length > 0 ? (
+      {supplierRecommendationCards.length > 0 ? (
         <div
           style={{
-            border: "1px solid rgba(59,130,246,0.28)",
-            background: "rgba(59,130,246,0.06)",
-            borderRadius: 12,
-            padding: 12,
-            marginBottom: 12,
+            border: "1px solid rgba(37,99,235,0.30)",
+            background: "linear-gradient(135deg, rgba(37,99,235,0.08), #ffffff)",
+            borderRadius: 18,
+            padding: 16,
+            marginBottom: 14,
+            boxShadow: "0 14px 30px rgba(37,99,235,0.08)",
           }}
         >
-          <div style={{ fontWeight: 900, color: "#1e3a8a", marginBottom: 8 }}>
-            🤖 AI Vendor Matching Preview
-          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
+            <div>
+              <div style={{ fontWeight: 1000, color: "#1e3a8a", fontSize: 18 }}>
+                🏆 AI Supplier Recommendation Cards
+              </div>
+              <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 4 }}>
+                AI compares nearby suppliers before RFQ submission using match score, location, RFQ quality and negotiation readiness.
+              </div>
+            </div>
 
-          <div style={{ display: "grid", gap: 8 }}>
-            {aiVendorMatches.map((v, idx) => (
+            {bestSupplier ? (
               <div
-                key={`${v.name}-${idx}`}
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 10,
-                  flexWrap: "wrap",
-                  background: "#ffffff",
-                  border: "1px solid rgba(15,23,42,0.08)",
-                  borderRadius: 10,
-                  padding: 10,
+                  background: "#dbeafe",
+                  color: "#1e40af",
+                  border: "1px solid #bfdbfe",
+                  borderRadius: 999,
+                  padding: "8px 12px",
+                  fontWeight: 1000,
+                  alignSelf: "center",
                 }}
               >
-                <div>
-                  <div style={{ fontWeight: 900, color: "#0f172a" }}>{v.name}</div>
-                  <div style={{ color: "#475569", fontSize: 13 }}>{v.reason}</div>
-                  {[v.locality, v.city, v.district, v.pincode].filter(Boolean).length > 0 ? (
-                    <div style={{ color: "#64748b", fontSize: 12, marginTop: 3 }}>
-                      {[v.locality, v.city, v.district, v.pincode].filter(Boolean).join(", ")}
+                Best match: {bestSupplier.name}
+              </div>
+            ) : null}
+          </div>
+
+          <div style={{ display: "grid", gap: 10 }}>
+            {supplierRecommendationCards.map((v) => (
+              <div
+                key={`${v.name}-${v.rank}`}
+                style={{
+                  background: "#ffffff",
+                  border: v.rank === 1 ? "2px solid #2563eb" : "1px solid rgba(15,23,42,0.10)",
+                  borderRadius: 14,
+                  padding: 12,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                      <span
+                        style={{
+                          background: v.rank === 1 ? "#2563eb" : "#e2e8f0",
+                          color: v.rank === 1 ? "#ffffff" : "#334155",
+                          borderRadius: 999,
+                          padding: "4px 9px",
+                          fontWeight: 1000,
+                          fontSize: 12,
+                        }}
+                      >
+                        Rank #{v.rank}
+                      </span>
+
+                      <div style={{ fontWeight: 1000, color: "#0f172a" }}>{v.name}</div>
                     </div>
-                  ) : null}
+
+                    <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 6 }}>
+                      {v.reason}
+                    </div>
+
+                    {[v.locality, v.city, v.district, v.pincode].filter(Boolean).length > 0 ? (
+                      <div style={{ color: "#64748b", fontSize: 12, marginTop: 4, fontWeight: 700 }}>
+                        📍 {[v.locality, v.city, v.district, v.pincode].filter(Boolean).join(", ")}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div
+                    style={{
+                      fontWeight: 1000,
+                      color: "#166534",
+                      background: "#dcfce7",
+                      borderRadius: 999,
+                      padding: "7px 11px",
+                      alignSelf: "center",
+                    }}
+                  >
+                    {v.score}% match
+                  </div>
                 </div>
 
                 <div
                   style={{
-                    fontWeight: 900,
-                    color: "#166534",
-                    background: "#dcfce7",
-                    borderRadius: 999,
-                    padding: "6px 10px",
-                    alignSelf: "center",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    gap: 8,
+                    marginTop: 10,
                   }}
                 >
-                  {v.score}% match
+                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: 8 }}>
+                    <div style={{ fontSize: 11, color: "#64748b", fontWeight: 900 }}>Delivery confidence</div>
+                    <div style={{ fontWeight: 1000, color: "#0f172a" }}>{v.deliveryConfidence}</div>
+                  </div>
+
+                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: 8 }}>
+                    <div style={{ fontSize: 11, color: "#64748b", fontWeight: 900 }}>Pricing confidence</div>
+                    <div style={{ fontWeight: 1000, color: "#0f172a" }}>{v.pricingConfidence}</div>
+                  </div>
+
+                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: 8 }}>
+                    <div style={{ fontSize: 11, color: "#64748b", fontWeight: 900 }}>Negotiation</div>
+                    <div style={{ fontWeight: 1000, color: "#0f172a" }}>{v.negotiationReadiness}</div>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 10,
+                    border: "1px solid #bbf7d0",
+                    background: "#f0fdf4",
+                    color: "#14532d",
+                    borderRadius: 10,
+                    padding: 9,
+                    fontSize: 13,
+                    fontWeight: 800,
+                  }}
+                >
+                  <b>{v.aiStrength}:</b> {v.shortlistReason}
                 </div>
               </div>
             ))}
           </div>
 
-          <div style={{ marginTop: 8, color: "#64748b", fontSize: 13 }}>
-            After submission, 3Bigha will try to connect you directly with the best matched vendor through unified chat.
+          <div
+            style={{
+              marginTop: 12,
+              border: "1px solid #fde68a",
+              background: "#fffbeb",
+              color: "#78350f",
+              borderRadius: 12,
+              padding: 10,
+              fontSize: 13,
+              fontWeight: 800,
+            }}
+          >
+            📊 Supplier Comparison Engine: Submit this RFQ to open full vendor comparison with quote price, delivery timeline, chat readiness and AI deal score.
           </div>
         </div>
       ) : null}
