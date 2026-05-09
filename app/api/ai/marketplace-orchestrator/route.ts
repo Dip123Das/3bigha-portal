@@ -19,6 +19,8 @@ export async function POST(req: Request) {
       pricePrediction: options.pricePrediction,
       rfqIntelligence: options.rfqIntelligence,
       quoteRisk: options.quoteRisk,
+      vendorDiscovery: options.vendorDiscovery,
+      procurementGraph: options.procurementGraph,
     });
 
     return NextResponse.json(result);

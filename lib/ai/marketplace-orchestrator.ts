@@ -1,4 +1,9 @@
-export type MarketplaceModule =
+import {
+  buildMarketplaceDiscovery,
+  filterVendorsForDiscovery,
+} from "@/lib/seo/marketplace-discovery-engine";
+import { getMarketplaceDiscoveryVendors } from "@/lib/seo/marketplace-discovery-data";
+import { buildProcurementKnowledgeGraph } from "@/lib/seo/procurement-knowledge-graph";export type MarketplaceModule =
   | "property"
   | "materials"
   | "services"
@@ -46,6 +51,8 @@ export type MarketplaceAiResult = {
     pricePrediction?: any;
     rfqIntelligence?: any;
     quoteRisk?: any;
+    vendorDiscovery?: any;
+    procurementGraph?: any;
   };
   summary: {
     decisionLabel: string;
@@ -229,6 +236,8 @@ export async function runMarketplaceAiOrchestrator(
     pricePrediction?: boolean;
     rfqIntelligence?: boolean;
     quoteRisk?: boolean;
+    vendorDiscovery?: boolean;
+    procurementGraph?: boolean;
   }
 ): Promise<MarketplaceAiResult> {
   const shouldRun = {
@@ -236,6 +245,8 @@ export async function runMarketplaceAiOrchestrator(
     pricePrediction: options?.pricePrediction ?? Boolean(ctx.priceData),
     rfqIntelligence: options?.rfqIntelligence ?? Boolean(ctx.rfq || ctx.rfqId),
     quoteRisk: options?.quoteRisk ?? Boolean(ctx.quote || ctx.quoteId),
+    vendorDiscovery: options?.vendorDiscovery ?? true,
+    procurementGraph: options?.procurementGraph ?? true,
   };
 
   const [smartDecision, pricePrediction, rfqIntelligence, quoteRisk] =
@@ -254,11 +265,54 @@ export async function runMarketplaceAiOrchestrator(
         : undefined,
     ]);
 
+  const discoveryVendors = shouldRun.vendorDiscovery
+    ? await getMarketplaceDiscoveryVendors()
+    : [];
+
+  const discoveryQuery =
+    ctx.buyerIntent ||
+    ctx.rfq?.title ||
+    ctx.rfq?.description ||
+    ctx.category ||
+    ctx.module ||
+    "marketplace vendors";
+
+  const filteredDiscoveryVendors = shouldRun.vendorDiscovery
+    ? filterVendorsForDiscovery(discoveryVendors, discoveryQuery)
+    : [];
+
+  const vendorDiscovery = shouldRun.vendorDiscovery
+    ? buildMarketplaceDiscovery({
+        query: String(discoveryQuery),
+        city: ctx.city || null,
+        district: ctx.district || null,
+        locality: ctx.locality || null,
+        category: ctx.category || null,
+        vendors:
+          filteredDiscoveryVendors.length > 0
+            ? filteredDiscoveryVendors
+            : discoveryVendors,
+      })
+    : undefined;
+
+  const procurementGraph = shouldRun.procurementGraph
+    ? buildProcurementKnowledgeGraph({
+        title: String(discoveryQuery),
+        module: String(ctx.module || "marketplace"),
+        category: ctx.category || null,
+        city: ctx.city || null,
+        district: ctx.district || null,
+        locality: ctx.locality || null,
+      })
+    : undefined;
+
   const intelligence = {
     smartDecision,
     pricePrediction,
     rfqIntelligence,
     quoteRisk,
+    vendorDiscovery,
+    procurementGraph,
   };
 
   return {
