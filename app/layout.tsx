@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Container } from "@/components/layout/Container";
+import ProcurementCommandPalette from "@/components/procurement/ProcurementCommandPalette";
 
 // confirmed existing files
 import AuthButtons from "./_components/AuthButtons";
@@ -121,6 +122,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <ActiveLink className="topNavLink" href="/blog">
                 Blog
               </ActiveLink>
+              <ActiveLink className="topNavLink" href="/dashboard/procurement-health">
+                AI Procurement OS
+              </ActiveLink>
+              <ProcurementCommandPalette />
             </nav>
 
             <form className="topSearchQuick" action="/search" method="get">
@@ -311,6 +316,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   </ActiveLink>
                   <ActiveLink className="topMobileLink" href="/support/my">
                     Support
+                  </ActiveLink>
+                  <ActiveLink className="topMobileLink" href="/dashboard/procurement-health">
+                    AI Procurement OS
                   </ActiveLink>
                   <ActiveLink className="topMobileLink" href="/search">
                     Search
@@ -511,6 +519,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   variant="subLink"
                   title="Open vendor inbox with unread chat count"
                 />
+
+                <Link className="topSubLink" href="/dashboard/procurement-health">
+                  AI Procurement OS
+                </Link>
 
                 <Link className="topSubLink" href="/support/my">
                   Support
