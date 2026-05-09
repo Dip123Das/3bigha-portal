@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/procurement-execution",
-      "schedule": "*/30 * * * *"
+      "schedule": "0 10 * * *"
     }
   ]
 }
