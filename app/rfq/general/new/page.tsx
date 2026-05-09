@@ -92,6 +92,28 @@ type SmartScopeInsight = {
   procurementStrategy: string;
 };
 
+type StructuredRfqBlock = {
+  scope: string;
+  deliverables: string[];
+  technicalRequirements: string[];
+  commercialTerms: string[];
+  vendorExpectations: string[];
+  timeline: string;
+};
+
+type ProcurementReasoningItem = {
+  title: string;
+  detail: string;
+  tone: "blue" | "green" | "amber" | "red" | "purple";
+};
+
+type ProcurementRecommendationCard = {
+  title: string;
+  detail: string;
+  actionText: string;
+  applyText: string;
+};
+
 /* ---------- Simple popup helper (NEW) ---------- */
 function showPopup(message: string, type: "success" | "error" = "success") {
   const bg = type === "success" ? "#16a34a" : "#dc2626";
@@ -249,6 +271,15 @@ function RfqGeneralNewPageInner() {
 
   const [autocompleteLoading, setAutocompleteLoading] =
     useState(false);
+
+  const [structuredRfq, setStructuredRfq] =
+    useState<StructuredRfqBlock | null>(null);
+
+  const [procurementReasoning, setProcurementReasoning] =
+    useState<ProcurementReasoningItem[]>([]);
+
+  const [procurementRecommendations, setProcurementRecommendations] =
+    useState<ProcurementRecommendationCard[]>([]);
 
   // ✅ Module box focus + flash
   const moduleBoxRef = useRef<HTMLDivElement | null>(null);
@@ -1358,6 +1389,231 @@ return;
     rfqHealthScore,
   ]);
 
+    useEffect(() => {
+    const filledItems = items.filter((x) => x.item_name.trim());
+    const itemNames = filledItems.map((x) => x.item_name.trim()).filter(Boolean);
+    const qtyLine = filledItems
+      .map((x) => [x.item_name, x.qty, x.unit].filter(Boolean).join(" "))
+      .filter(Boolean)
+      .join(", ");
+
+    const combinedText = [
+      aiRequirement,
+      title,
+      description,
+      itemNames.join(", "),
+      qtyLine,
+      city,
+      locality,
+      pincode,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    if (combinedText.trim().length < 25) {
+      setStructuredRfq(null);
+      setProcurementReasoning([]);
+      setProcurementRecommendations([]);
+      return;
+    }
+
+    const technicalRequirements: string[] = [];
+    const commercialTerms: string[] = [];
+    const vendorExpectations: string[] = [];
+    const deliverables: string[] = [];
+
+    if (combinedText.includes("cement")) {
+      technicalRequirements.push("Confirm cement type/grade such as OPC/PPC and brand availability.");
+      deliverables.push("Cement supply with loading/unloading and delivery confirmation.");
+    }
+
+    if (combinedText.includes("steel") || combinedText.includes("rod") || combinedText.includes("tmt")) {
+      technicalRequirements.push("Confirm TMT/steel grade, diameter, weight basis and brand.");
+      deliverables.push("Steel/TMT supply with verified weight and invoice.");
+    }
+
+    if (combinedText.includes("sand")) {
+      technicalRequirements.push("Confirm sand type, source, vehicle load size and moisture condition.");
+      deliverables.push("Sand delivery at buyer location.");
+    }
+
+    if (combinedText.includes("brick")) {
+      technicalRequirements.push("Confirm brick type, size, quality and delivery vehicle capacity.");
+      deliverables.push("Brick supply with quantity verification.");
+    }
+
+    if (combinedText.includes("jcb") || combinedText.includes("excavator")) {
+      technicalRequirements.push("Confirm machine type, operator, diesel inclusion, hourly/daily rate and working hours.");
+      deliverables.push("Rental equipment deployment with operator and site timing confirmation.");
+    }
+
+    if (combinedText.includes("electrical") || combinedText.includes("wiring")) {
+      technicalRequirements.push("Confirm wire brand, load requirement, switch/socket scope and labour inclusion.");
+      deliverables.push("Electrical work execution with material/labour scope clarity.");
+    }
+
+    if (combinedText.includes("plumbing")) {
+      technicalRequirements.push("Confirm pipe brand, fitting points, labour scope and leakage responsibility.");
+      deliverables.push("Plumbing work execution with point-wise quotation.");
+    }
+
+    if (combinedText.includes("labour")) {
+      technicalRequirements.push("Confirm labour count, daily rate, scope boundary and supervision responsibility.");
+      deliverables.push("Labour deployment as per agreed work scope.");
+    }
+
+    if (neededBy) {
+      commercialTerms.push(`Expected delivery/work completion date: ${neededBy}.`);
+    } else {
+      commercialTerms.push("Vendor must confirm fastest possible delivery/work completion timeline.");
+    }
+
+    commercialTerms.push("Vendor must mention final price, GST/invoice status and payment terms.");
+    commercialTerms.push("Vendor must clearly mention delivery, loading/unloading or site execution charges.");
+
+    vendorExpectations.push("Quote should include final price and hidden charges, if any.");
+    vendorExpectations.push("Vendor should confirm availability before accepting the RFQ.");
+    vendorExpectations.push("Vendor should reply in chat with delivery/work timeline and payment terms.");
+
+    const fallbackScope =
+      title.trim() ||
+      description.trim() ||
+      aiRequirement.trim() ||
+      `Procurement requirement for ${moduleLabel(module)}`;
+
+    const structured: StructuredRfqBlock = {
+      scope: fallbackScope,
+      deliverables:
+        deliverables.length > 0
+          ? deliverables
+          : ["Supply/service execution as per buyer requirement and vendor confirmation."],
+      technicalRequirements:
+        technicalRequirements.length > 0
+          ? technicalRequirements
+          : ["Vendor should confirm exact specification, quantity, unit and availability."],
+      commercialTerms,
+      vendorExpectations,
+      timeline:
+        procurementInsight.urgencyLevel === "Critical"
+          ? "Critical timeline: same-day/next-day vendor coordination required."
+          : procurementInsight.urgencyLevel === "Urgent"
+            ? "Urgent timeline: complete vendor confirmation within 2–7 days."
+            : "Normal timeline: complete quote comparison, negotiation and confirmation within 7–15 days.",
+    };
+
+    setStructuredRfq(structured);
+
+    const reasoning: ProcurementReasoningItem[] = [
+      {
+        title: "Scope clarity",
+        detail:
+          description.trim().length >= 40
+            ? "The RFQ has a usable description, so vendors can understand the requirement faster."
+            : "The RFQ needs a stronger description so vendors can quote accurately.",
+        tone: description.trim().length >= 40 ? "green" : "amber",
+      },
+      {
+        title: "Vendor matching",
+        detail:
+          supplierRecommendationCards.length > 0
+            ? `${supplierRecommendationCards.length} supplier match(es) are available for comparison.`
+            : "Supplier matching will improve after item and location details are stronger.",
+        tone: supplierRecommendationCards.length > 0 ? "blue" : "amber",
+      },
+      {
+        title: "Delivery risk",
+        detail: `AI delivery risk is ${procurementInsight.deliveryRisk}. ${procurementInsight.timelineEstimate}`,
+        tone:
+          procurementInsight.deliveryRisk === "Low"
+            ? "green"
+            : procurementInsight.deliveryRisk === "Medium"
+              ? "amber"
+              : "red",
+      },
+      {
+        title: "Commercial readiness",
+        detail:
+          contactPhone.trim() || contactEmail.trim()
+            ? "Buyer contact is available, so vendors can respond or coordinate after RFQ submission."
+            : "Phone or email is missing. Public RFQ submission needs buyer contact.",
+        tone: contactPhone.trim() || contactEmail.trim() ? "green" : "red",
+      },
+    ];
+
+    setProcurementReasoning(reasoning);
+
+    const recs: ProcurementRecommendationCard[] = [
+      {
+        title: "Convert into professional RFQ format",
+        detail: "AI can add scope, deliverables, technical requirements, commercial terms and vendor expectations into the description.",
+        actionText: "Apply structured RFQ",
+        applyText: [
+          `Scope: ${structured.scope}`,
+          "",
+          "Deliverables:",
+          ...structured.deliverables.map((x) => `• ${x}`),
+          "",
+          "Technical Requirements:",
+          ...structured.technicalRequirements.map((x) => `• ${x}`),
+          "",
+          "Commercial Terms:",
+          ...structured.commercialTerms.map((x) => `• ${x}`),
+          "",
+          "Vendor Expectations:",
+          ...structured.vendorExpectations.map((x) => `• ${x}`),
+          "",
+          `Timeline: ${structured.timeline}`,
+        ].join("\n"),
+      },
+      {
+        title: "Add negotiation-ready vendor instruction",
+        detail: "This helps vendors reply with comparable price, delivery and payment information.",
+        actionText: "Add vendor instruction",
+        applyText:
+          "Vendor instruction: Please quote final price, GST/invoice status, delivery or site charges, availability, payment terms and earliest delivery/work completion date.",
+      },
+      {
+        title: "Add alternate procurement strategy",
+        detail:
+          procurementInsight.complexityLevel === "High"
+            ? "AI recommends collecting multiple vendor quotes before final confirmation."
+            : "AI recommends fast local vendor confirmation with clear price and timeline.",
+        actionText: "Add strategy note",
+        applyText:
+          procurementInsight.complexityLevel === "High"
+            ? "Procurement strategy: Please compare at least 3 vendor quotes based on price, delivery timeline, quality/brand, GST billing and payment terms before final selection."
+            : "Procurement strategy: Prefer nearby vendors who can confirm availability, final price and delivery/work timeline quickly.",
+      },
+    ];
+
+    setProcurementRecommendations(recs);
+  }, [
+    aiRequirement,
+    title,
+    description,
+    items,
+    city,
+    locality,
+    pincode,
+    neededBy,
+    module,
+    procurementInsight,
+    supplierRecommendationCards.length,
+    contactPhone,
+    contactEmail,
+  ]);
+
+  function applyTextToDescription(text: string) {
+    setDescription((prev) => {
+      const base = prev.trim();
+      if (base.includes(text.trim())) return base;
+      return base ? `${base}\n\n${text}` : text;
+    });
+
+    showPopup("AI procurement block added to description.", "success");
+  }
+
   const browseLink = `${browseHref(module)}?returnTo=${encodeURIComponent("/rfq/general/new")}&module=${encodeURIComponent(module)}`;
 
   return (
@@ -1771,6 +2027,214 @@ return;
         ) : null}
       </div>
 
+            {(structuredRfq || procurementReasoning.length > 0 || procurementRecommendations.length > 0) ? (
+        <div
+          style={{
+            border: "1px solid rgba(124,58,237,0.28)",
+            background: "linear-gradient(135deg, rgba(124,58,237,0.08), #ffffff)",
+            borderRadius: 18,
+            padding: 16,
+            marginBottom: 14,
+            boxShadow: "0 14px 30px rgba(124,58,237,0.07)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 1000, color: "#5b21b6" }}>
+                🧩 AI Copilot → Structured RFQ Conversion
+              </div>
+              <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 4 }}>
+                AI converts your conversation and form inputs into professional procurement blocks.
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: "#ede9fe",
+                color: "#5b21b6",
+                border: "1px solid #ddd6fe",
+                borderRadius: 999,
+                padding: "8px 12px",
+                fontWeight: 1000,
+                alignSelf: "center",
+              }}
+            >
+              Enterprise RFQ Mode
+            </div>
+          </div>
+
+          {structuredRfq ? (
+            <div style={{ display: "grid", gap: 10 }}>
+              <div
+                style={{
+                  border: "1px solid #ddd6fe",
+                  background: "#faf5ff",
+                  borderRadius: 12,
+                  padding: 10,
+                }}
+              >
+                <div style={{ fontWeight: 1000, color: "#581c87", marginBottom: 5 }}>
+                  Scope
+                </div>
+                <div style={{ color: "#334155", fontSize: 13, fontWeight: 800 }}>
+                  {structuredRfq.scope}
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
+                  <div style={{ fontWeight: 1000, color: "#1e3a8a", marginBottom: 5 }}>
+                    Deliverables
+                  </div>
+                  {structuredRfq.deliverables.slice(0, 4).map((x, idx) => (
+                    <div key={idx} style={{ fontSize: 13, color: "#1e40af", fontWeight: 800 }}>
+                      • {x}
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
+                  <div style={{ fontWeight: 1000, color: "#166534", marginBottom: 5 }}>
+                    Technical Requirements
+                  </div>
+                  {structuredRfq.technicalRequirements.slice(0, 4).map((x, idx) => (
+                    <div key={idx} style={{ fontSize: 13, color: "#14532d", fontWeight: 800 }}>
+                      • {x}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div style={{ border: "1px solid #fde68a", background: "#fffbeb", borderRadius: 12, padding: 10 }}>
+                  <div style={{ fontWeight: 1000, color: "#92400e", marginBottom: 5 }}>
+                    Commercial Terms
+                  </div>
+                  {structuredRfq.commercialTerms.slice(0, 4).map((x, idx) => (
+                    <div key={idx} style={{ fontSize: 13, color: "#78350f", fontWeight: 800 }}>
+                      • {x}
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ border: "1px solid #c7d2fe", background: "#eef2ff", borderRadius: 12, padding: 10 }}>
+                  <div style={{ fontWeight: 1000, color: "#3730a3", marginBottom: 5 }}>
+                    Vendor Expectations
+                  </div>
+                  {structuredRfq.vendorExpectations.slice(0, 4).map((x, idx) => (
+                    <div key={idx} style={{ fontSize: 13, color: "#312e81", fontWeight: 800 }}>
+                      • {x}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  border: "1px solid #e9d5ff",
+                  background: "#faf5ff",
+                  borderRadius: 12,
+                  padding: 10,
+                  color: "#581c87",
+                  fontSize: 13,
+                  fontWeight: 900,
+                }}
+              >
+                Timeline: {structuredRfq.timeline}
+              </div>
+            </div>
+          ) : null}
+
+          {procurementReasoning.length > 0 ? (
+            <div style={{ marginTop: 14 }}>
+              <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
+                🧠 Procurement Reasoning Stream
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
+                {procurementReasoning.map((r, idx) => {
+                  const bg =
+                    r.tone === "green"
+                      ? "#f0fdf4"
+                      : r.tone === "amber"
+                        ? "#fffbeb"
+                        : r.tone === "red"
+                          ? "#fef2f2"
+                          : r.tone === "purple"
+                            ? "#faf5ff"
+                            : "#eff6ff";
+
+                  const color =
+                    r.tone === "green"
+                      ? "#166534"
+                      : r.tone === "amber"
+                        ? "#92400e"
+                        : r.tone === "red"
+                          ? "#991b1b"
+                          : r.tone === "purple"
+                            ? "#5b21b6"
+                            : "#1e3a8a";
+
+                  return (
+                    <div key={`${r.title}-${idx}`} style={{ border: "1px solid rgba(15,23,42,0.10)", background: bg, borderRadius: 12, padding: 10 }}>
+                      <div style={{ color, fontWeight: 1000, marginBottom: 4 }}>
+                        {r.title}
+                      </div>
+                      <div style={{ color: "#334155", fontSize: 13, fontWeight: 800 }}>
+                        {r.detail}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
+          {procurementRecommendations.length > 0 ? (
+            <div style={{ marginTop: 14 }}>
+              <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
+                🎯 AI Procurement Recommendation Cards
+              </div>
+
+              <div style={{ display: "grid", gap: 8 }}>
+                {procurementRecommendations.map((r, idx) => (
+                  <div
+                    key={`${r.title}-${idx}`}
+                    style={{
+                      border: "1px solid rgba(15,23,42,0.10)",
+                      background: "#ffffff",
+                      borderRadius: 12,
+                      padding: 10,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div style={{ maxWidth: 760 }}>
+                      <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                        {r.title}
+                      </div>
+                      <div style={{ color: "#475569", fontSize: 13, fontWeight: 800, marginTop: 4 }}>
+                        {r.detail}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="topBtn topBtnPrimary"
+                      onClick={() => applyTextToDescription(r.applyText)}
+                    >
+                      {r.actionText}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       {err ? (
         <div
           style={{
@@ -1801,6 +2265,11 @@ return;
 
         <div style={{ fontSize: 14, color: "#334155", marginBottom: 14 }}>
           Describe your requirement naturally and AI will draft the RFQ automatically.
+          {autocompleteLoading ? (
+            <span style={{ marginLeft: 8, color: "#2563eb", fontWeight: 900 }}>
+              AI reading...
+            </span>
+          ) : null}
         </div>
 
         <textarea
