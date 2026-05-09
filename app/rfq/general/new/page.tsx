@@ -80,6 +80,18 @@ type ProcurementReadinessInsight = {
   nextMilestone: string;
 };
 
+type AiAutocompleteSuggestion = {
+  completion: string;
+  confidence: number;
+};
+
+type SmartScopeInsight = {
+  technicalKeywords: string[];
+  commercialTerms: string[];
+  riskFlags: string[];
+  procurementStrategy: string;
+};
+
 /* ---------- Simple popup helper (NEW) ---------- */
 function showPopup(message: string, type: "success" | "error" = "success") {
   const bg = type === "success" ? "#16a34a" : "#dc2626";
@@ -229,6 +241,15 @@ function RfqGeneralNewPageInner() {
   const [estimatedBudget, setEstimatedBudget] = useState("");
   const [negotiationCoach, setNegotiationCoach] = useState("");
 
+  const [aiAutocomplete, setAiAutocomplete] =
+    useState<AiAutocompleteSuggestion | null>(null);
+
+  const [scopeInsight, setScopeInsight] =
+    useState<SmartScopeInsight | null>(null);
+
+  const [autocompleteLoading, setAutocompleteLoading] =
+    useState(false);
+
   // ✅ Module box focus + flash
   const moduleBoxRef = useRef<HTMLDivElement | null>(null);
   const [flashModuleBox, setFlashModuleBox] = useState(false);
@@ -298,6 +319,152 @@ function RfqGeneralNewPageInner() {
       setProcurementMemory([]);
     }
   }, []);
+
+  useEffect(() => {
+  const combined = `
+${aiRequirement}
+${title}
+${description}
+${items
+  .map((x) => `${x.item_name} ${x.qty} ${x.unit} ${x.notes}`)
+  .join(" ")}
+`
+    .trim()
+    .toLowerCase();
+
+  if (combined.length < 20) {
+    setAiAutocomplete(null);
+    setScopeInsight(null);
+    return;
+  }
+
+  const timer = window.setTimeout(async () => {
+    try {
+      setAutocompleteLoading(true);
+
+      const technicalKeywords: string[] = [];
+      const commercialTerms: string[] = [];
+      const riskFlags: string[] = [];
+
+      const technicalMap = [
+        "cement",
+        "tmt",
+        "rod",
+        "steel",
+        "plumbing",
+        "electrical",
+        "tile",
+        "paint",
+        "excavator",
+        "jcb",
+        "labour",
+        "wiring",
+        "concrete",
+        "sand",
+        "brick",
+      ];
+
+      technicalMap.forEach((k) => {
+        if (combined.includes(k)) {
+          technicalKeywords.push(k);
+        }
+      });
+
+      if (
+        combined.includes("urgent") ||
+        combined.includes("immediate")
+      ) {
+        commercialTerms.push("Urgent procurement");
+      }
+
+      if (
+        combined.includes("gst") ||
+        combined.includes("invoice")
+      ) {
+        commercialTerms.push("GST billing required");
+      }
+
+      if (
+        combined.includes("delivery")
+      ) {
+        commercialTerms.push("Delivery commitment");
+      }
+
+      if (!pincode.trim()) {
+        riskFlags.push("Pincode missing");
+      }
+
+      if (
+        !neededBy &&
+        combined.length > 60
+      ) {
+        riskFlags.push("Timeline missing");
+      }
+
+      if (
+        items.filter((x) => x.item_name.trim()).length === 0
+      ) {
+        riskFlags.push("No structured items added");
+      }
+
+      let completion = "";
+
+      if (
+        technicalKeywords.includes("cement")
+      ) {
+        completion =
+          "Please quote OPC/PPC grade, delivery timeline, unloading charges and GST invoice availability.";
+      } else if (
+        technicalKeywords.includes("jcb")
+      ) {
+        completion =
+          "Please mention machine capacity, operator availability, diesel inclusion and working hours.";
+      } else if (
+        technicalKeywords.includes("electrical")
+      ) {
+        completion =
+          "Please confirm wiring brand, load requirement, labour scope and completion timeline.";
+      } else if (
+        technicalKeywords.includes("plumbing")
+      ) {
+        completion =
+          "Please specify pipe brand, bathroom/kitchen points and fitting scope.";
+      } else {
+        completion =
+          "Please confirm final delivery timeline, warranty/support and payment terms.";
+      }
+
+      setAiAutocomplete({
+        completion,
+        confidence:
+          combined.length > 120 ? 92 : 76,
+      });
+
+      setScopeInsight({
+        technicalKeywords,
+        commercialTerms,
+        riskFlags,
+        procurementStrategy:
+          technicalKeywords.length >= 3
+            ? "AI recommends multi-vendor comparison procurement strategy."
+            : "AI recommends local fast-response vendor strategy.",
+      });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAutocompleteLoading(false);
+    }
+  }, 700);
+
+  return () => window.clearTimeout(timer);
+}, [
+  aiRequirement,
+  title,
+  description,
+  items,
+  pincode,
+  neededBy,
+]);
 
   // ✅ Live procurement suggestions while typing
   useEffect(() => {
@@ -1873,6 +2040,80 @@ return;
 
         <label>
           <div style={{ fontWeight: 700 }}>Description (write clearly)</div>
+          {aiAutocomplete ? (
+            <div
+              style={{
+                marginBottom: 10,
+                border: "1px solid rgba(14,165,233,0.22)",
+                background: "#f0f9ff",
+                borderRadius: 12,
+                padding: 10,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontWeight: 1000,
+                      color: "#075985",
+                    }}
+                  >
+                    ✨ AI Live Procurement Suggestion
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 5,
+                      color: "#0f172a",
+                      fontWeight: 700,
+                      fontSize: 13,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {aiAutocomplete.completion}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="topBtn topBtnGhost"
+                  onClick={() => {
+                    setDescription((prev) => {
+                      if (
+                        prev.includes(aiAutocomplete.completion)
+                      ) {
+                        return prev;
+                      }
+
+                      return prev.trim()
+                        ? `${prev}\n${aiAutocomplete.completion}`
+                        : aiAutocomplete.completion;
+                    });
+                  }}
+                >
+                  Apply
+                </button>
+              </div>
+
+              <div
+                style={{
+                  marginTop: 8,
+                  fontSize: 12,
+                  color: "#0369a1",
+                  fontWeight: 900,
+                }}
+              >
+                Confidence: {aiAutocomplete.confidence}%
+              </div>
+            </div>
+          ) : null}
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -1893,6 +2134,145 @@ return;
           <div style={{ marginTop: 8, opacity: 0.75, fontSize: 13 }}>
             Tip: Use “Browse” above to quickly add category hints or items. (Hint → Description, Item → Typed items)
           </div>
+          {scopeInsight ? (
+            <div
+              style={{
+                marginTop: 14,
+                border: "1px solid rgba(79,70,229,0.18)",
+                background: "#f5f3ff",
+                borderRadius: 12,
+                padding: 12,
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 1000,
+                  color: "#5b21b6",
+                  marginBottom: 10,
+                }}
+              >
+                🧠 AI Scope Extraction Engine
+              </div>
+
+              {scopeInsight.technicalKeywords.length > 0 ? (
+                <div style={{ marginBottom: 10 }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 900,
+                      color: "#64748b",
+                      marginBottom: 5,
+                    }}
+                  >
+                    Technical keywords
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 6,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {scopeInsight.technicalKeywords.map((k) => (
+                      <span
+                        key={k}
+                        style={{
+                          background: "#ede9fe",
+                          color: "#5b21b6",
+                          borderRadius: 999,
+                          padding: "5px 10px",
+                          fontSize: 12,
+                          fontWeight: 900,
+                        }}
+                      >
+                        {k}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {scopeInsight.commercialTerms.length > 0 ? (
+                <div style={{ marginBottom: 10 }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 900,
+                      color: "#64748b",
+                      marginBottom: 5,
+                    }}
+                  >
+                    Commercial terms
+                  </div>
+
+                  {scopeInsight.commercialTerms.map((k) => (
+                    <div
+                      key={k}
+                      style={{
+                        color: "#334155",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        marginBottom: 3,
+                      }}
+                    >
+                      • {k}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {scopeInsight.riskFlags.length > 0 ? (
+                <div
+                  style={{
+                    border: "1px solid #fecaca",
+                    background: "#fef2f2",
+                    borderRadius: 10,
+                    padding: 10,
+                    marginBottom: 10,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 1000,
+                      color: "#991b1b",
+                      marginBottom: 5,
+                    }}
+                  >
+                    ⚠ AI detected risks
+                  </div>
+
+                  {scopeInsight.riskFlags.map((k) => (
+                    <div
+                      key={k}
+                      style={{
+                        color: "#7f1d1d",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        marginBottom: 3,
+                      }}
+                    >
+                      • {k}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              <div
+                style={{
+                  border: "1px solid #bfdbfe",
+                  background: "#eff6ff",
+                  borderRadius: 10,
+                  padding: 10,
+                  color: "#1e3a8a",
+                  fontSize: 13,
+                  fontWeight: 800,
+                }}
+              >
+                📊 {scopeInsight.procurementStrategy}
+              </div>
+            </div>
+          ) : null}
         </label>
 
         {/* Location */}
