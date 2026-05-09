@@ -33,19 +33,45 @@ function normalize(value?: string | null) {
     .trim();
 }
 
-function includesIntent(items: string[] | undefined, intent?: string | null) {
-  const cleanIntent = normalize(intent);
+function tokenSet(value?: string | null) {
+  return normalize(value)
+    .split(/[^a-z0-9]+/g)
+    .filter((token) => token.length >= 3);
+}
 
-  if (!cleanIntent) return false;
+function fuzzyIntentMatch(items: string[] | undefined, intent?: string | null) {
+  const cleanIntent = normalize(intent);
+  const intentTokens = tokenSet(cleanIntent);
+
+  if (!cleanIntent || intentTokens.length === 0) return false;
 
   return (items || []).some((item) => {
     const cleanItem = normalize(item);
+    const itemTokens = tokenSet(cleanItem);
+
+    if (!cleanItem || itemTokens.length === 0) return false;
 
     return (
       cleanIntent.includes(cleanItem) ||
-      cleanItem.includes(cleanIntent)
+      cleanItem.includes(cleanIntent) ||
+      itemTokens.some((token) => intentTokens.includes(token))
     );
   });
+}
+
+function locationMatchScore(
+  vendorValue?: string | null,
+  buyerValue?: string | null,
+  exactScore = 10
+) {
+  const vendor = normalize(vendorValue);
+  const buyer = normalize(buyerValue);
+
+  if (!vendor || !buyer) return 0;
+  if (vendor === buyer) return exactScore;
+  if (vendor.includes(buyer) || buyer.includes(vendor)) return Math.round(exactScore * 0.7);
+
+  return 0;
 }
 
 export function calculateVendorRecommendationScore(
@@ -53,53 +79,46 @@ export function calculateVendorRecommendationScore(
 ): VendorRecommendationResult {
   const matchSignals: string[] = [];
 
-  const localityMatch =
-    normalize(input.locality) &&
-    normalize(input.locality) === normalize(input.buyerLocality);
+  const localityScore = locationMatchScore(input.locality, input.buyerLocality, 20);
+  const cityScore = locationMatchScore(input.city, input.buyerCity, 15);
+  const districtScore = locationMatchScore(input.district, input.buyerDistrict, 10);
 
-  const cityMatch =
-    normalize(input.city) &&
-    normalize(input.city) === normalize(input.buyerCity);
-
-  const districtMatch =
-    normalize(input.district) &&
-    normalize(input.district) === normalize(input.buyerDistrict);
-
-  const serviceMatch = includesIntent(input.services, input.searchIntent);
-  const materialMatch = includesIntent(input.materials, input.searchIntent);
-  const categoryMatch =
-    normalize(input.category) &&
-    normalize(input.searchIntent).includes(normalize(input.category));
+  const serviceMatch = fuzzyIntentMatch(input.services, input.searchIntent);
+  const materialMatch = fuzzyIntentMatch(input.materials, input.searchIntent);
+  const categoryMatch = fuzzyIntentMatch(
+    input.category ? [input.category] : [],
+    input.searchIntent
+  );
 
   let score = 0;
 
-  if (localityMatch) {
-    score += 20;
-    matchSignals.push("Same locality");
+  if (localityScore > 0) {
+    score += localityScore;
+    matchSignals.push("Locality relevance");
   }
 
-  if (cityMatch) {
-    score += 15;
-    matchSignals.push("Same city");
+  if (cityScore > 0) {
+    score += cityScore;
+    matchSignals.push("City relevance");
   }
 
-  if (districtMatch) {
-    score += 10;
-    matchSignals.push("Same district");
+  if (districtScore > 0) {
+    score += districtScore;
+    matchSignals.push("District relevance");
   }
 
   if (serviceMatch) {
-    score += 18;
+    score += 20;
     matchSignals.push("Service intent match");
   }
 
   if (materialMatch) {
-    score += 18;
+    score += 22;
     matchSignals.push("Material intent match");
   }
 
   if (categoryMatch) {
-    score += 12;
+    score += 14;
     matchSignals.push("Category intent match");
   }
 

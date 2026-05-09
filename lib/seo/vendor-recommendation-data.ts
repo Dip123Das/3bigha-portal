@@ -24,6 +24,56 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function inferExpertise(row: any) {
+  const text = [
+    row.business_name,
+    row.business_type,
+    row.category,
+    row.description,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  if (text.includes("cement")) {
+    return {
+      category: "Construction Materials",
+      services: ["Cement Supply", "Building Material Delivery"],
+      materials: ["Cement", "Sand", "Bricks"],
+    };
+  }
+
+  if (text.includes("steel") || text.includes("tmt")) {
+    return {
+      category: "Construction Materials",
+      services: ["Steel Supply", "Construction Delivery"],
+      materials: ["TMT Steel", "Steel", "Cement"],
+    };
+  }
+
+  if (text.includes("electric")) {
+    return {
+      category: "Electrical Services",
+      services: ["Electrical Work", "Wiring", "Repair"],
+      materials: ["Wires", "Switches", "Electrical Fittings"],
+    };
+  }
+
+  if (text.includes("plumb")) {
+    return {
+      category: "Plumbing Services",
+      services: ["Plumbing Work", "Pipe Fitting", "Repair"],
+      materials: ["Pipes", "Bathroom Fittings", "Plumbing Materials"],
+    };
+  }
+
+  return {
+    category: "Marketplace Vendor",
+    services: ["Marketplace Service"],
+    materials: ["Marketplace Supply"],
+  };
+}
+
 export async function getVendorRecommendationCandidates(
   currentVendorId: string
 ): Promise<VendorRecommendationInput[]> {
@@ -38,6 +88,9 @@ export async function getVendorRecommendationCandidates(
       id,
       user_id,
       business_name,
+      business_type,
+      description,
+      category,
       city,
       district,
       state,
@@ -48,7 +101,7 @@ export async function getVendorRecommendationCandidates(
       approval_status
     `
     )
-    .limit(30);
+    .limit(50);
 
   if (error || !data) return [];
 
@@ -67,6 +120,8 @@ export async function getVendorRecommendationCandidates(
         row.approval_status === "approved" ||
         row.subscription_status === "active";
 
+      const expertise = inferExpertise(row);
+
       return {
         vendorId,
         businessName: row.business_name || "3Bigha Vendor",
@@ -75,12 +130,12 @@ export async function getVendorRecommendationCandidates(
         district: row.district || null,
         state: row.state || null,
         locality: row.locality || null,
-        category: "Marketplace Vendor",
-        services: ["Marketplace Service"],
-        materials: ["Marketplace Supply"],
-        reputationScore: isVerified ? 65 : 50,
-        leaderboardScore: isVerified ? 68 : 50,
-        authorityScore: isVerified ? 70 : 55,
+        category: expertise.category,
+        services: expertise.services,
+        materials: expertise.materials,
+        reputationScore: isVerified ? 68 : 52,
+        leaderboardScore: isVerified ? 70 : 52,
+        authorityScore: isVerified ? 72 : 56,
         conversionRate: 0,
         isVerified,
         boostActive: boostExpiresAt > Date.now(),
