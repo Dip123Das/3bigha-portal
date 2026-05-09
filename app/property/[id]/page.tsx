@@ -575,6 +575,16 @@ export default async function PropertyPublicDetailPage({
               nextUrl={`/property/${encodeURIComponent(id)}`}
             />
 
+            <Link
+              href={`/vendor/discovery?q=${encodeURIComponent(
+                title || "property dealer"
+              )}`}
+              className="topBtn topBtnGhost"
+              style={{ textDecoration: "none", marginTop: 10 }}
+            >
+              AI Recommended Vendors →
+            </Link>
+
             {resolvedInvestmentOpportunity?.id ? (
               <div style={{ marginTop: 10 }}>
                 <InvestmentApplyButton

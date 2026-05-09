@@ -15,6 +15,7 @@ import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
 import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/seo/schema";
 import { siteConfig } from "@/lib/seo/site";
+import { Link } from "lucide-react";
 
 type ServiceRow = {
   provider_service_id: string;
@@ -335,6 +336,16 @@ export default function ServiceDetailsPage({ params }: { params: { id: string } 
                 vendorUserId={row.provider_id ?? null}
                 nextUrl={`/services/${encodeURIComponent(String(id))}`}
               />
+
+              <Link
+                href={`/vendor/discovery?q=${encodeURIComponent(
+                  name || "service provider"
+                )}`}
+                className="topBtn topBtnGhost"
+                style={{ textDecoration: "none", marginTop: 10 }}
+              >
+                AI Recommended Vendors →
+              </Link>
 
             </CardBody>
           </Card>

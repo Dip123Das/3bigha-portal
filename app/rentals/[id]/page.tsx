@@ -344,6 +344,16 @@ export default function RentalPublicDetailPage() {
             nextUrl={`/rentals/${encodeURIComponent(String(id))}`}
           />
 
+          <Link
+            href={`/vendor/discovery?q=${encodeURIComponent(
+              row.title || "rental vendor"
+            )}`}
+            className="topBtn topBtnGhost"
+            style={{ textDecoration: "none", marginTop: 10 }}
+          >
+            AI Recommended Vendors →
+          </Link>
+
         </CardBody>
       </Card>
         </div>

@@ -391,6 +391,16 @@ export default async function MaterialPublicDetailPage({ params }: { params: { i
                 nextUrl={`/materials/${encodeURIComponent(id)}`}
               />
 
+              <Link
+                href={`/vendor/discovery?q=${encodeURIComponent(
+                  title || "building material supplier"
+                )}`}
+                className="topBtn topBtnGhost"
+                style={{ textDecoration: "none", marginTop: 10 }}
+              >
+                AI Recommended Vendors →
+              </Link>
+
             </CardBody>
           </Card>
 
