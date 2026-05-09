@@ -31,6 +31,22 @@ type ProcurementRecommendation = {
   cards?: { title: string; detail: string }[];
 };
 
+type ProcurementMemoryGraph = {
+  ok?: boolean;
+  source?: string;
+  memoryScore?: number;
+  memoryType?: string;
+  buyerBehavior?: string;
+  vendorReliability?: string;
+  negotiationMemory?: string;
+  lifecycleMemory?: string;
+  supplierReputationSignal?: string;
+  anomalySignal?: string;
+  learningSummary?: string;
+  graphNodes?: { type: string; label: string }[];
+  nextLearningAction?: string;
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -47,6 +63,9 @@ export default function DashboardPage() {
 
   const [procurementRecommendation, setProcurementRecommendation] =
     useState<ProcurementRecommendation | null>(null);
+
+  const [procurementMemory, setProcurementMemory] =
+    useState<ProcurementMemoryGraph | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -184,8 +203,31 @@ export default function DashboardPage() {
           if (recJson?.ok) {
             setProcurementRecommendation(recJson);
           }
+
+          const memoryRes = await fetch("/api/ai/procurement-memory", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              side: "platform",
+              rfqCount,
+              vendorCount: Math.max(1, conversationCount),
+              closedDeals: 0,
+              unreadCount,
+              avgResponseHours: unreadCount > 0 ? 48 : 18,
+              repeatCategoryCount: rfqCount >= 3 ? 2 : 0,
+              priceVariance: priceSignalCount > 5 ? 10 : 25,
+              messages: [],
+            }),
+          });
+
+          const memoryJson = await memoryRes.json().catch(() => null);
+
+          if (memoryJson?.ok) {
+            setProcurementMemory(memoryJson);
+          }
         } catch {
           setProcurementRecommendation(null);
+          setProcurementMemory(null);
         }
 
         setLoading(false);
@@ -391,7 +433,106 @@ export default function DashboardPage() {
             ) : null}
           </div>
         ) : null}
+        
+                {procurementMemory ? (
+          <div
+            style={{
+              marginTop: 14,
+              border: "1px solid rgba(16,185,129,0.25)",
+              background: "linear-gradient(135deg, rgba(16,185,129,0.08), #ffffff)",
+              borderRadius: 16,
+              padding: 14,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontWeight: 1000, color: "#047857", fontSize: 18 }}>
+                  🧬 AI Procurement Memory & Learning Graph
+                </div>
+                <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
+                  Platform memory connects RFQs, suppliers, conversations, pricing, closure and anomaly signals.
+                </div>
+              </div>
 
+              <div
+                style={{
+                  background: "#dcfce7",
+                  color: "#166534",
+                  borderRadius: 999,
+                  padding: "8px 12px",
+                  fontWeight: 1000,
+                  alignSelf: "center",
+                }}
+              >
+                Memory Score {procurementMemory.memoryScore ?? "—"}/100
+              </div>
+            </div>
+
+            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+              {[
+                ["Buyer Behavior", procurementMemory.buyerBehavior || "—", "🧑‍💼"],
+                ["Vendor Reliability", procurementMemory.vendorReliability || "—", "🏆"],
+                ["Anomaly", procurementMemory.anomalySignal || "—", "⚠️"],
+              ].map(([label, value, icon]) => (
+                <div
+                  key={label}
+                  style={{
+                    border: "1px solid #e2e8f0",
+                    background: "#ffffff",
+                    borderRadius: 12,
+                    padding: 10,
+                  }}
+                >
+                  <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
+                    {icon} {label}
+                  </div>
+                  <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000 }}>
+                    {value}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
+                <div style={{ color: "#166534", fontWeight: 1000 }}>Learning Summary</div>
+                <div style={{ marginTop: 5, color: "#14532d", fontSize: 13, fontWeight: 800 }}>
+                  {procurementMemory.learningSummary || "Learning graph is collecting procurement signals."}
+                </div>
+              </div>
+
+              <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
+                <div style={{ color: "#1e3a8a", fontWeight: 1000 }}>Next Learning Action</div>
+                <div style={{ marginTop: 5, color: "#1e40af", fontSize: 13, fontWeight: 800 }}>
+                  {procurementMemory.nextLearningAction || "Continue collecting RFQ, chat and closure signals."}
+                </div>
+              </div>
+            </div>
+
+            {procurementMemory.graphNodes?.length ? (
+              <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
+                {procurementMemory.graphNodes.map((node) => (
+                  <div
+                    key={`${node.type}-${node.label}`}
+                    style={{
+                      border: "1px solid rgba(15,23,42,0.08)",
+                      background: "#ffffff",
+                      borderRadius: 12,
+                      padding: 10,
+                    }}
+                  >
+                    <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                      {node.type.replaceAll("_", " ").toUpperCase()}
+                    </div>
+                    <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
+                      {node.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
           <Link href="/dashboard/buyer" className="topBtn topBtnPrimary">
             Buyer Intelligence →

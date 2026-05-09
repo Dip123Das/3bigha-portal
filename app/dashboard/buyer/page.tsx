@@ -72,6 +72,22 @@ type BuyerProcurementRecommendation = {
   cards?: { title: string; detail: string }[];
 };
 
+type BuyerProcurementMemoryGraph = {
+  ok?: boolean;
+  source?: string;
+  memoryScore?: number;
+  memoryType?: string;
+  buyerBehavior?: string;
+  vendorReliability?: string;
+  negotiationMemory?: string;
+  lifecycleMemory?: string;
+  supplierReputationSignal?: string;
+  anomalySignal?: string;
+  learningSummary?: string;
+  graphNodes?: { type: string; label: string }[];
+  nextLearningAction?: string;
+};
+
 export default function BuyerDashboardPage() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -91,6 +107,9 @@ export default function BuyerDashboardPage() {
 
   const [procurementRecommendation, setProcurementRecommendation] =
     useState<BuyerProcurementRecommendation | null>(null);
+
+  const [procurementMemory, setProcurementMemory] =
+    useState<BuyerProcurementMemoryGraph | null>(null);
 
   async function load() {
     setLoading(true);
@@ -140,7 +159,11 @@ export default function BuyerDashboardPage() {
 
       const closedRfqs = rows.filter((x) => String(x.status || "").toLowerCase() === "closed").length;
 
-      const activeRfqs = rows.filter((x) => String(x.status || "").toLowerCase() !== "closed").length;
+      const activeRfqs =
+  rows.filter((x) => String(x.status || "").toLowerCase() !== "closed").length;
+
+const closedDeals =
+  rows.filter((x) => String(x.status || "").toLowerCase() === "closed").length;
 
       setProcurementStats({
         totalRfqs: rows.length,
@@ -172,8 +195,33 @@ export default function BuyerDashboardPage() {
         if (recJson?.ok) {
           setProcurementRecommendation(recJson);
         }
+
+        const memoryRes = await fetch("/api/ai/procurement-memory", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            side: "buyer",
+            rfqCount: rows.length,
+            vendorCount: rows.length,
+            closedDeals,
+            unreadCount: urgentRfqs,
+            avgResponseHours: urgentRfqs > 0 ? 48 : 18,
+            repeatCategoryCount: memoryCount > 0 || rows.length >= 3 ? 2 : 0,
+            priceVariance: urgentRfqs > 0 ? 25 : 10,
+            messages: rows.slice(0, 5).map((row) => ({
+              body: `${row.title || ""} ${row.module || ""} ${row.status || ""}`,
+            })),
+          }),
+        });
+
+        const memoryJson = await memoryRes.json().catch(() => null);
+
+        if (memoryJson?.ok) {
+          setProcurementMemory(memoryJson);
+        }
       } catch {
         setProcurementRecommendation(null);
+        setProcurementMemory(null);
       }
     } catch {
       // Dashboard intelligence should never block dashboard loading.
@@ -488,6 +536,107 @@ export default function BuyerDashboardPage() {
             </ActionButton>
           </div>
         </div>
+
+                {procurementMemory ? (
+          <div
+            style={{
+              border: "1px solid rgba(16,185,129,0.25)",
+              background: "linear-gradient(135deg, rgba(16,185,129,0.08), #ffffff)",
+              borderRadius: 18,
+              padding: 16,
+              marginBottom: 16,
+              boxShadow: "0 14px 30px rgba(16,185,129,0.08)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: 22, fontWeight: 1000, color: "#047857" }}>
+                  🧬 Buyer Procurement Memory Graph
+                </div>
+                <div style={{ marginTop: 4, color: "#475569", fontSize: 14, fontWeight: 800 }}>
+                  AI learns buyer behavior, repeat procurement pattern, vendor reliability and negotiation history.
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: "#dcfce7",
+                  color: "#166534",
+                  borderRadius: 999,
+                  padding: "9px 14px",
+                  fontWeight: 1000,
+                  alignSelf: "center",
+                }}
+              >
+                Memory Score {procurementMemory.memoryScore ?? "—"}/100
+              </div>
+            </div>
+
+            <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+              {[
+                ["Buyer Behavior", procurementMemory.buyerBehavior || "—", "🧑‍💼"],
+                ["Vendor Reliability", procurementMemory.vendorReliability || "—", "🏆"],
+                ["Anomaly", procurementMemory.anomalySignal || "—", "⚠️"],
+              ].map(([label, value, icon]) => (
+                <div
+                  key={label}
+                  style={{
+                    border: "1px solid #e2e8f0",
+                    background: "#ffffff",
+                    borderRadius: 14,
+                    padding: 12,
+                  }}
+                >
+                  <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
+                    {icon} {label}
+                  </div>
+                  <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000 }}>
+                    {value}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
+                <div style={{ color: "#166534", fontWeight: 1000 }}>Negotiation Memory</div>
+                <div style={{ marginTop: 5, color: "#14532d", fontSize: 13, fontWeight: 800 }}>
+                  {procurementMemory.negotiationMemory || "Negotiation memory is collecting procurement signals."}
+                </div>
+              </div>
+
+              <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
+                <div style={{ color: "#1e3a8a", fontWeight: 1000 }}>Next Learning Action</div>
+                <div style={{ marginTop: 5, color: "#1e40af", fontSize: 13, fontWeight: 800 }}>
+                  {procurementMemory.nextLearningAction || "Continue collecting RFQ, quote and closure data."}
+                </div>
+              </div>
+            </div>
+
+            {procurementMemory.graphNodes?.length ? (
+              <div style={{ marginTop: 14, display: "grid", gap: 8 }}>
+                {procurementMemory.graphNodes.map((node) => (
+                  <div
+                    key={`${node.type}-${node.label}`}
+                    style={{
+                      border: "1px solid rgba(15,23,42,0.10)",
+                      background: "#ffffff",
+                      borderRadius: 12,
+                      padding: 10,
+                    }}
+                  >
+                    <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                      {node.type.replaceAll("_", " ").toUpperCase()}
+                    </div>
+                    <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
+                      {node.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
                 {procurementRecommendation ? (
           <div

@@ -46,6 +46,22 @@ type ProcurementRecommendation = {
   cards?: { title: string; detail: string }[];
 };
 
+type VendorProcurementMemoryGraph = {
+  ok?: boolean;
+  source?: string;
+  memoryScore?: number;
+  memoryType?: string;
+  buyerBehavior?: string;
+  vendorReliability?: string;
+  negotiationMemory?: string;
+  lifecycleMemory?: string;
+  supplierReputationSignal?: string;
+  anomalySignal?: string;
+  learningSummary?: string;
+  graphNodes?: { type: string; label: string }[];
+  nextLearningAction?: string;
+};
+
 type EnquiryRow = {
   id: string;
   buyer_user_id: string;
@@ -231,6 +247,9 @@ const [leaderboardRows, setLeaderboardRows] = useState<any[]>([]);
 const [aiTips, setAiTips] = useState<string[]>([]);
 const [procurementRecommendation, setProcurementRecommendation] =
   useState<ProcurementRecommendation | null>(null);
+
+const [procurementMemory, setProcurementMemory] =
+  useState<VendorProcurementMemoryGraph | null>(null);
 
 const [priceIntelligenceStats, setPriceIntelligenceStats] =
   useState<PriceIntelligenceStats>({
@@ -806,8 +825,40 @@ const aiDealUpgradeTarget =
       if (recJson?.ok) {
         setProcurementRecommendation(recJson);
       }
+
+      const memoryRes = await fetch("/api/ai/procurement-memory", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          side: "vendor",
+          rfqCount: leadStats.leadsLast30Days || recentEnquiries.length || 0,
+          vendorCount: 1,
+          closedDeals: successStats.dealsCompleted || 0,
+          unreadCount: notificationCount || 0,
+          avgResponseHours: replyRate >= 80 ? 6 : replyRate >= 50 ? 18 : 48,
+          repeatCategoryCount: dealStats.total >= 3 ? 2 : 0,
+          priceVariance:
+            priceIntelligenceStats.averageDeviation !== null
+              ? priceIntelligenceStats.averageDeviation
+              : priceIntelligenceStats.overpricedCount > 0
+              ? 25
+              : 10,
+          messages: recentEnquiries.slice(0, 5).map((row: any) => ({
+            body: `${row.rfq_no || ""} ${row.module || ""} ${row.message || ""} ${row.status || ""}`,
+          })),
+        }),
+      });
+
+      const memoryJson = await memoryRes.json().catch(() => null);
+
+      if (memoryJson?.ok) {
+        setProcurementMemory(memoryJson);
+      }
     } catch {
       setProcurementRecommendation(null);
+      setProcurementMemory(null);
     }
 
     setEnquiriesLoading(false);
@@ -1379,6 +1430,104 @@ const aiDealUpgradeTarget =
             >
               🔥 Unlock Premium AI Alerts
             </button>
+          </div>
+        ) : null}
+
+                {procurementMemory ? (
+          <div
+            style={{
+              marginBottom: 14,
+              borderRadius: 18,
+              padding: 16,
+              border: "1px solid #86efac",
+              background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
+              boxShadow: "0 12px 28px rgba(16,185,129,0.10)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 950, color: "#047857" }}>
+                  🧬 Vendor Procurement Memory & Learning Graph
+                </div>
+
+                <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 850, lineHeight: 1.5 }}>
+                  AI learns from your lead replies, deal closures, price accuracy, buyer response and supplier reliability.
+                </div>
+              </div>
+
+              <Badge>
+                Memory {procurementMemory.memoryScore ?? "—"}/100
+              </Badge>
+            </div>
+
+            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
+              <div style={{ border: "1px solid #bbf7d0", borderRadius: 14, padding: 12, background: "#fff" }}>
+                <div style={{ fontSize: 12, color: "#047857", fontWeight: 900 }}>Buyer Behavior</div>
+                <div style={{ marginTop: 4, fontSize: 14, fontWeight: 950, color: "#111827" }}>
+                  {procurementMemory.buyerBehavior || "—"}
+                </div>
+              </div>
+
+              <div style={{ border: "1px solid #bfdbfe", borderRadius: 14, padding: 12, background: "#eff6ff" }}>
+                <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 900 }}>Vendor Reliability</div>
+                <div style={{ marginTop: 4, fontSize: 14, fontWeight: 950, color: "#1e3a8a" }}>
+                  {procurementMemory.vendorReliability || "—"}
+                </div>
+              </div>
+
+              <div style={{ border: "1px solid #fed7aa", borderRadius: 14, padding: 12, background: "#fff7ed" }}>
+                <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>Anomaly Signal</div>
+                <div style={{ marginTop: 4, fontSize: 14, fontWeight: 950, color: "#7c2d12" }}>
+                  {procurementMemory.anomalySignal || "—"}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 10 }}>
+              <div style={{ border: "1px solid #bbf7d0", borderRadius: 14, padding: 12, background: "#f0fdf4" }}>
+                <div style={{ fontSize: 14, color: "#166534", fontWeight: 950 }}>Negotiation Memory</div>
+                <div style={{ marginTop: 6, fontSize: 13, fontWeight: 850, color: "#14532d", lineHeight: 1.5 }}>
+                  {procurementMemory.negotiationMemory || "Negotiation memory is collecting lead signals."}
+                </div>
+              </div>
+
+              <div style={{ border: "1px solid #bfdbfe", borderRadius: 14, padding: 12, background: "#eff6ff" }}>
+                <div style={{ fontSize: 14, color: "#1e3a8a", fontWeight: 950 }}>Next Learning Action</div>
+                <div style={{ marginTop: 6, fontSize: 13, fontWeight: 850, color: "#1e40af", lineHeight: 1.5 }}>
+                  {procurementMemory.nextLearningAction || "Continue collecting buyer, quote, reply and closure signals."}
+                </div>
+              </div>
+
+              <div style={{ border: "1px solid #e9d5ff", borderRadius: 14, padding: 12, background: "#faf5ff" }}>
+                <div style={{ fontSize: 14, color: "#581c87", fontWeight: 950 }}>Supplier Reputation Signal</div>
+                <div style={{ marginTop: 6, fontSize: 13, fontWeight: 850, color: "#5b21b6", lineHeight: 1.5 }}>
+                  {procurementMemory.supplierReputationSignal || "More supplier performance data needed."}
+                </div>
+              </div>
+            </div>
+
+            {procurementMemory.graphNodes?.length ? (
+              <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
+                {procurementMemory.graphNodes.map((node) => (
+                  <div
+                    key={`${node.type}-${node.label}`}
+                    style={{
+                      border: "1px solid rgba(15,23,42,0.08)",
+                      borderRadius: 12,
+                      padding: 10,
+                      background: "#fff",
+                    }}
+                  >
+                    <div style={{ fontWeight: 950, color: "#0f172a" }}>
+                      {node.type.replaceAll("_", " ").toUpperCase()}
+                    </div>
+                    <div style={{ marginTop: 4, fontSize: 13, fontWeight: 800, color: "#475569", lineHeight: 1.5 }}>
+                      {node.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
