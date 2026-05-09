@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const COMMANDS = [
+const STATIC_COMMANDS = [
   {
     keywords: ["critical", "stale", "risk", "anomaly"],
     title: "Critical Procurement Workflows",
@@ -48,15 +48,17 @@ const COMMANDS = [
   },
 ];
 
-function searchCommands(query: string) {
+function filterCommands(query: string, list: any[]) {
   const q = query.toLowerCase().trim();
 
   if (!q) {
-    return COMMANDS.slice(0, 6);
+    return list;
   }
 
-  return COMMANDS.filter((cmd) =>
-    cmd.keywords.some((k) => q.includes(k))
+  return list.filter((cmd) =>
+    (cmd.keywords || []).some((k: string) =>
+      q.includes(k)
+    )
   );
 }
 
@@ -66,7 +68,60 @@ export async function POST(req: Request) {
 
     const query = String(body?.query || "");
 
-    const results = searchCommands(query);
+    const origin = new URL(req.url).origin;
+
+    let healthData: any = null;
+
+    try {
+      const res = await fetch(
+        `${origin}/api/ai/procurement-health-score`,
+        {
+          cache: "no-store",
+        }
+      );
+
+      healthData = await res.json();
+    } catch {
+      // ignore
+    }
+
+    const summary = healthData?.summary || {};
+
+    const dynamicCommands = [
+      {
+        keywords: ["urgent", "critical", "threads"],
+        title: `Open ${summary.criticalThreads || 0} Critical Procurement Threads`,
+        description: `Critical signals: ${summary.criticalSignals || 0}`,
+        href: "/dashboard/procurement-anomaly",
+        category: "Operations",
+        status:
+          Number(summary.criticalThreads || 0) > 0
+            ? "critical"
+            : "healthy",
+      },
+      {
+        keywords: ["health", "score"],
+        title: `Procurement Health Score: ${healthData?.healthScore || 0}/100`,
+        description:
+          healthData?.healthStatus ||
+          "Unknown procurement condition",
+        href: "/dashboard/procurement-health",
+        category: "Executive",
+        status:
+          Number(healthData?.healthScore || 0) >= 70
+            ? "healthy"
+            : Number(healthData?.healthScore || 0) >= 45
+            ? "warning"
+            : "critical",
+      },
+    ];
+
+    const all = [
+      ...dynamicCommands,
+      ...STATIC_COMMANDS,
+    ];
+
+    const results = filterCommands(query, all);
 
     return NextResponse.json({
       ok: true,
@@ -77,7 +132,9 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         ok: false,
-        error: err?.message || "Command palette failed.",
+        error:
+          err?.message ||
+          "Procurement command palette failed.",
       },
       { status: 500 }
     );
