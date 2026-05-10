@@ -89,27 +89,39 @@ export async function POST(req: Request) {
 
     const now = new Date().toISOString();
 
-    const messagePayload: Record<string, any> = {
-      conversation_id: conversationId,
-      body: message,
-      message_type: "ai_autonomous_action",
-      meta: {
-        source: "procurement_autonomous_execution",
-        actionType,
-        target,
-        priority,
-        confidence,
-        senderSide,
-        rfqId: rfqId || conversation?.rfq_id || null,
-        taskId: taskId || null,
-        actorUserId: actorUserId || null,
-        executedAt: now,
-      },
-    };
+    const aiRole =
+  senderSide === "buyer"
+    ? "buyer"
+    : senderSide === "vendor"
+      ? "vendor"
+      : "vendor";
 
-    if (actorUserId) {
-      messagePayload.sender_id = actorUserId;
-    }
+const fallbackSenderId =
+  actorUserId ||
+  conversation?.vendor_user_id ||
+  conversation?.buyer_user_id ||
+  null;
+
+const messagePayload: Record<string, any> = {
+  conversation_id: conversationId,
+  sender_user_id: fallbackSenderId,
+  sender_role: aiRole,
+  body: message,
+  message_type: "text",
+  meta: {
+    source: "procurement_autonomous_execution",
+    autonomous: true,
+    actionType,
+    target,
+    priority,
+    confidence,
+    senderSide,
+    rfqId: rfqId || conversation?.rfq_id || null,
+    taskId: taskId || null,
+    actorUserId: actorUserId || null,
+    executedAt: now,
+  },
+};
 
     const { data: insertedMessage, error: msgError } = await supabase
       .from("conversation_messages")
