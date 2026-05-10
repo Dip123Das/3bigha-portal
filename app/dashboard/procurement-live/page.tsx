@@ -1,149 +1,249 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { headers } from "next/headers";
 import ProcurementCommandCenterNav from "@/app/components/procurement/ProcurementCommandCenterNav";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+type LiveEvent = {
+  id: string;
+  title: string;
+  description?: string;
+  module?: string;
+  eventType?: string;
+  priority?: "critical" | "high" | "medium" | "low";
+  tone?: "critical" | "high" | "medium" | "active" | "closed";
+  score?: number;
+  signal?: string;
+  action?: string;
+  href?: string;
+  updated_at?: string;
+  createdAt?: string;
+};
 
-async function getOrigin() {
-  const h = await headers();
-  const host = h.get("host") || "";
-  const proto = h.get("x-forwarded-proto") || "https";
-  return host.startsWith("http") ? host : `${proto}://${host}`;
+function toneClass(tone?: string) {
+  if (tone === "critical") return "border-rose-200 bg-rose-50 text-rose-800";
+  if (tone === "high") return "border-amber-200 bg-amber-50 text-amber-800";
+  if (tone === "medium") return "border-blue-200 bg-blue-50 text-blue-800";
+  if (tone === "closed") return "border-slate-200 bg-slate-100 text-slate-700";
+  return "border-emerald-200 bg-emerald-50 text-emerald-800";
 }
 
-async function loadLiveEvents() {
+function fmt(v?: string) {
+  if (!v) return "—";
   try {
-    const origin = await getOrigin();
-    const res = await fetch(`${origin}/api/ai/procurement-live-events`, {
-      cache: "no-store",
-    });
-    return await res.json();
+    return new Intl.DateTimeFormat("en-IN", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(v));
   } catch {
-    return { ok: false };
+    return v;
   }
 }
 
-function toneClass(tone?: string) {
-  if (tone === "critical") return "border-rose-200 bg-rose-50 text-rose-700";
-  if (tone === "high") return "border-amber-200 bg-amber-50 text-amber-700";
-  if (tone === "medium") return "border-blue-200 bg-blue-50 text-blue-700";
-  if (tone === "closed") return "border-slate-200 bg-slate-100 text-slate-600";
-  return "border-emerald-200 bg-emerald-50 text-emerald-700";
-}
+export default function ProcurementLivePage() {
+  const [data, setData] = useState<any>(null);
+  const [filter, setFilter] = useState("all");
 
-function StatCard({ label, value }: { label: string; value: number }) {
+  useEffect(() => {
+    fetch("/api/ai/procurement-live-events")
+      .then((r) => r.json())
+      .then(setData)
+      .catch(() => setData({ ok: false }));
+  }, []);
+
+  const events: LiveEvent[] = Array.isArray(data?.events) ? data.events : [];
+
+  const filteredEvents = useMemo(() => {
+    if (filter === "all") return events;
+
+    return events.filter(
+      (event) =>
+        event.tone === filter ||
+        event.priority === filter ||
+        event.module === filter ||
+        event.eventType === filter
+    );
+  }, [events, filter]);
+
+  const summary = data?.summary || {};
+
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
-        {label}
+    <main className="min-h-screen bg-[#f6f7fb] p-6">
+      <div className="mx-auto max-w-7xl">
+        <div className="overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-cyan-950 to-emerald-950 p-10 text-white shadow-2xl">
+          <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
+            Live Procurement Event Feed
+          </div>
+
+          <h1 className="mt-6 text-5xl font-black">
+            AI Procurement Live Situation Feed
+          </h1>
+
+          <p className="mt-4 max-w-3xl text-base font-medium text-slate-200">
+            Live RFQ, chat, memory, listing-view, recommendation-click and
+            procurement-risk signals flowing into one operational command stream.
+          </p>
+
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 px-6 py-4 text-sm font-bold text-slate-100">
+            {data?.executiveSignal || "Loading live procurement intelligence..."}
+          </div>
+
+          {data?.feedHealth ? (
+            <div className="mt-3 rounded-2xl border border-emerald-300/20 bg-emerald-400/10 px-6 py-4 text-sm font-bold text-emerald-100">
+              Feed Health: {data.feedHealth}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="mt-8">
+          <ProcurementCommandCenterNav />
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-4 xl:grid-cols-8">
+          <Stat label="Total" value={summary.total || 0} />
+          <Stat label="Critical" value={summary.critical || 0} />
+          <Stat label="High" value={summary.high || 0} />
+          <Stat label="Medium" value={summary.medium || 0} />
+          <Stat label="Active" value={summary.active || 0} />
+          <Stat label="Memory" value={summary.memory || 0} />
+          <Stat label="RFQ" value={summary.rfq || 0} />
+          <Stat label="Chat" value={summary.chat || 0} />
+        </div>
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          {[
+            ["all", "All"],
+            ["critical", "Critical"],
+            ["high", "High"],
+            ["medium", "Medium"],
+            ["active", "Active"],
+            ["rfq", "RFQ"],
+            ["chat", "Chat"],
+          ].map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setFilter(key)}
+              className={`rounded-full px-5 py-3 text-sm font-black transition ${
+                filter === key
+                  ? "bg-slate-950 text-white"
+                  : "border border-slate-300 bg-white text-slate-800"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+
+          <Link
+            href="/dashboard/procurement-mission-control"
+            className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+          >
+            Mission Control
+          </Link>
+
+          <Link
+            href="/dashboard/procurement-autonomous-tasks"
+            className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+          >
+            Autonomous Tasks
+          </Link>
+        </div>
+
+        <div className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-2xl font-black text-slate-950">
+                Live Event Stream
+              </h2>
+              <p className="mt-1 text-sm font-semibold text-slate-500">
+                Showing {filteredEvents.length} of {events.length} procurement signals.
+              </p>
+            </div>
+
+            <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-600">
+              Auto-refresh on page reload
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-4">
+            {filteredEvents.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-sm font-bold text-slate-500">
+                No live procurement events found for this filter.
+              </div>
+            ) : (
+              filteredEvents.map((event) => (
+                <Link
+                  key={`${event.id}-${event.eventType}`}
+                  href={event.href || "/dashboard/procurement-live"}
+                  className="block rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 transition hover:border-slate-300 hover:bg-white"
+                >
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div>
+                      <div className="flex flex-wrap gap-2">
+                        <span
+                          className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${toneClass(
+                            event.tone
+                          )}`}
+                        >
+                          {(event.tone || event.priority || "active").toUpperCase()}
+                        </span>
+
+                        <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">
+                          {event.module || "procurement"}
+                        </span>
+
+                        <span className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-slate-700">
+                          {String(event.eventType || "event").replace(/_/g, " ")}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 text-lg font-black text-slate-950">
+                        {event.title}
+                      </div>
+
+                      <div className="mt-1 text-sm font-semibold leading-6 text-slate-600">
+                        {event.description || event.signal || "Procurement event detected."}
+                      </div>
+
+                      {event.action ? (
+                        <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-800">
+                          🤖 Next action: {event.action}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="min-w-[120px] text-left md:text-right">
+                      <div className="text-3xl font-black text-slate-950">
+                        {event.score || 0}
+                      </div>
+                      <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                        AI Score
+                      </div>
+                      <div className="mt-3 text-xs font-bold text-slate-500">
+                        {fmt(event.updated_at || event.createdAt)}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
       </div>
-      <div className="mt-2 text-3xl font-black text-slate-950">{value}</div>
-    </div>
+    </main>
   );
 }
 
-export default async function ProcurementLivePage() {
-  const data = await loadLiveEvents();
-  const summary = data?.summary || {};
-  const events = Array.isArray(data?.events) ? data.events : [];
-
+function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
-      <div className="rounded-[2rem] border border-slate-200 bg-gradient-to-r from-slate-950 via-cyan-950 to-blue-950 p-6 text-white shadow-sm">
-        <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-cyan-100">
-          Real-Time Procurement Operations
-        </div>
-
-        <h1 className="mt-4 text-3xl font-black">
-          Live AI Procurement Event Stream
-        </h1>
-
-        <p className="mt-3 max-w-4xl text-sm font-medium leading-6 text-slate-200">
-          Live procurement signals, SLA-risk events, inactivity alerts, workflow
-          nudges, and execution priorities across active conversations.
-        </p>
-
-        <div className="mt-4 rounded-2xl border border-white/10 bg-white/10 p-4 text-sm font-bold text-cyan-50">
-          {data?.executiveSignal || "Live event intelligence unavailable."}
-        </div>
+    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+        {label}
       </div>
 
-      <ProcurementCommandCenterNav />
-
-      {!data?.ok ? (
-        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-5 text-sm font-bold text-rose-700">
-          Live procurement events could not load.
-        </div>
-      ) : null}
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
-        <StatCard label="Total Events" value={summary.total ?? 0} />
-        <StatCard label="Active" value={summary.active ?? 0} />
-        <StatCard label="Nudges" value={summary.medium ?? 0} />
-        <StatCard label="High" value={summary.high ?? 0} />
-        <StatCard label="Critical" value={summary.critical ?? 0} />
-        <StatCard label="Closed" value={summary.closed ?? 0} />
-      </div>
-
-      <div className="rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
-          <h2 className="text-lg font-black text-slate-950">
-            Live Procurement Signals
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            Latest operational signals ranked from recent activity to stale risk.
-          </p>
-        </div>
-
-        {events.length === 0 ? (
-          <div className="p-6 text-sm text-slate-500">
-            No live procurement events found.
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {events.map((event: any) => (
-              <Link
-                key={event.id}
-                href={event.href}
-                className="block p-5 transition hover:bg-slate-50"
-              >
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <div className="text-sm font-black text-slate-950">
-                      {event.title}
-                    </div>
-                    <div className="mt-1 text-xs font-medium text-slate-500">
-                      {event.module} • {event.ageHours}h since last activity
-                    </div>
-                    <div className="mt-2 text-sm font-semibold text-slate-700">
-                      {event.signal}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <span
-                      className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${toneClass(
-                        event.tone
-                      )}`}
-                    >
-                      {event.tone}
-                    </span>
-
-                    <span className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-bold text-slate-700">
-                      {event.action}
-                    </span>
-
-                    <span className="inline-flex rounded-full border border-slate-900 bg-slate-900 px-3 py-1 text-xs font-bold text-white">
-                      Open →
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
+      <div className="mt-2 text-3xl font-black text-slate-950">{value}</div>
     </div>
   );
 }
