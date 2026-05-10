@@ -1,6 +1,7 @@
 import Link from "next/link";
 import ProcurementCommandCenterNav from "@/app/components/procurement/ProcurementCommandCenterNav";
 import { headers } from "next/headers";
+import ProcurementHeatmapIntelligence from "@/app/components/procurement/ProcurementHeatmapIntelligence";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,12 +54,53 @@ function StatCard({
   );
 }
 
+function Metric({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+        {label}
+      </div>
+
+      <div className="mt-2 text-2xl font-black text-slate-950">
+        {value}
+      </div>
+    </div>
+  );
+}
+
 export default async function ProcurementAnalyticsPage() {
   const data = await loadForecast();
 
   const summary = data?.summary || {};
   const forecast = data?.forecast || {};
   const rows = Array.isArray(data?.rows) ? data.rows : [];
+
+  let shortageData: any = null;
+
+  try {
+    const origin = await getOrigin();
+
+    const shortageRes = await fetch(
+      `${origin}/api/ai/procurement-shortage-forecast`,
+      {
+        cache: "no-store",
+      }
+    );
+
+    shortageData = await shortageRes.json();
+  } catch {
+    shortageData = { ok: false };
+  }
+
+  const shortageRows = Array.isArray(shortageData?.rows)
+    ? shortageData.rows
+    : [];
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
@@ -101,6 +143,11 @@ export default async function ProcurementAnalyticsPage() {
         </div>
       ) : null}
 
+      <ProcurementHeatmapIntelligence
+        liveEvents={rows}
+        timelineSteps={shortageRows}
+      />
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <StatCard label="Total Threads" value={summary.totalThreads ?? 0} />
         <StatCard
@@ -130,6 +177,68 @@ export default async function ProcurementAnalyticsPage() {
           <div className="mt-2 text-sm font-semibold leading-6 text-violet-950">
             {forecast.nextWeekForecast || "No next-week forecast available."}
           </div>
+        </div>
+      </div>
+
+            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-black text-slate-950">
+              AI Procurement Shortage Forecast
+            </h2>
+
+            <p className="mt-1 text-sm font-semibold text-slate-500">
+              Predictive shortage, supplier exhaustion and negotiation inflation intelligence.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm font-black text-rose-700">
+            Critical: {shortageData?.summary?.critical || 0}
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          {shortageRows.map((item: any) => (
+            <div
+              key={item.id}
+              className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-black text-rose-700">
+                  {item.risk}
+                </span>
+
+                <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">
+                  {item.affectedZone}
+                </span>
+              </div>
+
+              <div className="mt-4 text-xl font-black text-slate-950">
+                {item.category}
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                <Metric
+                  label="Shortage"
+                  value={item.shortageRisk}
+                />
+
+                <Metric
+                  label="Supplier Stress"
+                  value={item.supplierStress}
+                />
+
+                <Metric
+                  label="Negotiation"
+                  value={item.negotiationInflation}
+                />
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
+                {item.recommendation}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

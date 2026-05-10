@@ -107,6 +107,14 @@ export default async function ProcurementHealthPage() {
         >
           Open Crisis Center
         </a>
+
+        <a
+          href="/dashboard/procurement-analytics"
+          className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+        >
+          Open Shortage Forecast
+        </a>
+
       </div>
 
       <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">

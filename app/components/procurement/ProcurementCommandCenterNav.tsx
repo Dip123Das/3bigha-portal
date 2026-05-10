@@ -66,9 +66,9 @@ const ITEMS = [
   },
   {
     href: "/dashboard/procurement-analytics",
-    label: "Forecast Analytics",
+    label: "Shortage Forecast",
     emoji: "📈",
-    description: "Predictive procurement forecasting",
+    description: "Predictive shortage and supplier stress forecasting",
   },
   {
     href: "/dashboard/procurement-copilot",
