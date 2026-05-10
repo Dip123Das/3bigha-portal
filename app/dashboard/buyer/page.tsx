@@ -13,7 +13,10 @@ import { Badge } from "@/components/ui/Badge";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { Grid } from "@/components/ui/Grid";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { normalizeBehaviorMemory } from "@/lib/ai/normalize-memory";
+import {
+  normalizeBehaviorMemory,
+  normalizeMemoryList,
+} from "@/lib/ai/normalize-memory";
 
 import {
   buildUserIntelligence,
@@ -282,6 +285,27 @@ const closedDeals =
 
   const buyerIntelligenceSummary =
     explainUserRecommendation(buyerIntelligence);
+
+  const normalizedBuyerPreferredModules = normalizeMemoryList(
+    buyerIntelligence.preferredModules
+  );
+
+  const normalizedBuyerPreferredLocations = normalizeMemoryList(
+    buyerIntelligence.preferredLocations
+  );
+
+  const normalizedBuyerPreferredCategories = normalizeMemoryList(
+    buyerIntelligence.preferredCategories
+  );
+
+  const normalizedBuyerPreferredTypes = normalizeMemoryList(
+    buyerIntelligence.preferredTypes
+  );
+
+  const normalizedBuyerIntelligenceSummary =
+    normalizedBuyerPreferredCategories[0] === "Learning"
+      ? `User often explores ${normalizedBuyerPreferredModules[0] || "marketplace activity"}. Intent level: ${buyerIntelligence.intentLabel.toUpperCase()} (${buyerIntelligence.intentScore}/100).`
+      : buyerIntelligenceSummary;
 
   const behaviorMemory = buildBehaviorMemory(
   procurementStats.recentRfqs.map((rfq) => ({
@@ -790,9 +814,9 @@ const closedDeals =
                     Dominant module:
                     {" "}
                     {behaviorSignals.module || "Learning"} •
-                    Category:
+                   Category:
                     {" "}
-                    {behaviorSignals.category || "Learning"} •
+                    {normalizedBehaviorMemory.hotCategories[0] || "Learning"} •
                     Location:
                     {" "}
                     {behaviorSignals.location || "Learning"}
@@ -832,10 +856,10 @@ const closedDeals =
 
           <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10 }}>
             {[
-              ["Preferred Modules", buyerIntelligence.preferredModules.join(", ") || "Learning", "🧩"],
-              ["Preferred Locations", buyerIntelligence.preferredLocations.join(", ") || "Learning", "📍"],
-              ["Preferred Categories", buyerIntelligence.preferredCategories.join(", ") || "Learning", "🏷️"],
-              ["Preferred Types", buyerIntelligence.preferredTypes.join(", ") || "Learning", "⚙️"],
+              ["Preferred Modules", normalizedBuyerPreferredModules.join(", ") || "Learning", "🧩"],
+              ["Preferred Locations", normalizedBuyerPreferredLocations.join(", ") || "Learning", "📍"],
+              ["Preferred Categories", normalizedBuyerPreferredCategories.join(", ") || "Learning", "🏷️"],
+              ["Preferred Types", normalizedBuyerPreferredTypes.join(", ") || "Learning", "⚙️"],
             ].map(([label, value, icon]) => (
               <div
                 key={label}
@@ -875,7 +899,7 @@ const closedDeals =
             </div>
 
             <div style={{ marginTop: 6, color: "#0369a1", fontSize: 13, fontWeight: 800, lineHeight: 1.6 }}>
-              {buyerIntelligenceSummary}
+              {normalizedBuyerIntelligenceSummary}
             </div>
           </div>
         </div>
