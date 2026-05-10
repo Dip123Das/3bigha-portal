@@ -104,6 +104,11 @@ const ITEMS = [
     href: "/dashboard/procurement-task-execution-log",
     icon: "📜",
   },
+  {
+    label: "Real Execute",
+    href: "/dashboard/procurement-real-execution",
+    icon: "🚀",
+  },
 ];
 
 export default function ProcurementCommandCenterNav() {

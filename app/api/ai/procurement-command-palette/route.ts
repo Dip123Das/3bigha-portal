@@ -176,6 +176,14 @@ const STATIC_COMMANDS = [
     category: "Audit",
     status: "healthy",
   },
+  {
+    keywords: ["real", "execute", "inject", "chat"],
+    title: "Real AI Execution Bridge",
+    description: "Open real autonomous execution bridge",
+    href: "/dashboard/procurement-real-execution",
+    category: "Execution",
+    status: "critical",
+  },
 ];
 
 function filterCommands(query: string, list: any[]) {

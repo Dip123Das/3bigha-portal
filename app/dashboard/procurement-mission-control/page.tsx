@@ -68,7 +68,7 @@ export default async function ProcurementMissionControlPage() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-13">
         <Stat label="Health" value={`${mission.healthScore ?? 0}/100`} />
         <Stat label="Crisis" value={mission.crisisLevel || "unknown"} />
         <Stat label="Threat" value={mission.operationalThreat ?? 0} />
@@ -107,6 +107,7 @@ export default async function ProcurementMissionControlPage() {
         <Shortcut href="/dashboard/procurement-closure-agent" icon="✅" title="Closure AI" />
         <Shortcut href="/dashboard/procurement-autonomous-tasks" icon="🛠️" title="Auto Tasks" />
         <Shortcut href="/dashboard/procurement-task-execution-log" icon="📜" title="Task Log" />
+        <Shortcut href="/dashboard/procurement-real-execution" icon="🚀" title="Real Execute" />
       </div>
     </div>
   );

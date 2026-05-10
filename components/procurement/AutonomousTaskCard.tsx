@@ -4,6 +4,7 @@ import { useState } from "react";
 
 type Props = {
   item: {
+    id?: string;
     title: string;
     workflow: string;
     type: string;
@@ -13,6 +14,10 @@ type Props = {
     reason: string;
     confidence: number;
     status: string;
+    conversationId?: string;
+    conversation_id?: string;
+    rfqId?: string;
+    rfq_id?: string;
   };
 };
 
@@ -39,7 +44,10 @@ export default function AutonomousTaskCard({ item }: Props) {
   const [result, setResult] = useState<string>("");
   const [executionMode, setExecutionMode] = useState<string>("");
   const [executedAt, setExecutedAt] = useState<string>("");
-    const [logStatus, setLogStatus] = useState<string>("");
+  const [logStatus, setLogStatus] = useState<string>("");
+
+  const conversationId = item.conversationId || item.conversation_id || "";
+  const rfqId = item.rfqId || item.rfq_id || "";
 
   async function executeAiAction() {
     try {
@@ -48,6 +56,8 @@ export default function AutonomousTaskCard({ item }: Props) {
       setExecutionMode("");
       setExecutedAt("");
       setLogStatus("");
+
+      const generatedMessage = result || item.suggestedMessage || "";
 
       const res = await fetch("/api/ai/autonomous-execution", {
         method: "POST",
@@ -65,36 +75,66 @@ export default function AutonomousTaskCard({ item }: Props) {
 
       const json = await res.json();
 
-      if (json?.ok) {
-        setResult(json.generatedMessage || "AI action generated.");
-        setExecutionMode(json.executionMode || "approval-required");
-        setExecutedAt(json.createdAt || new Date().toISOString());
+      const finalMessage =
+        json?.generatedMessage || generatedMessage || "AI action generated.";
 
-        const logRes = await fetch("/api/ai/procurement-task-execution-log", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            task: item.title,
-            action: json.generatedMessage || "AI action generated.",
-            status: "generated",
-            priority: item.priority,
-            mode: json.executionMode || "approval-required",
-            confidence: item.confidence,
-          }),
-        });
-
-        const logJson = await logRes.json();
-
-        setLogStatus(
-          logJson?.ok
-            ? "Execution logged successfully."
-            : "Execution generated but log was not saved."
-        );
-      } else {
+      if (!json?.ok) {
         setResult(json?.error || "AI execution failed.");
+        return;
       }
+
+      setResult(finalMessage);
+      setExecutionMode(json.executionMode || "approval-required");
+      setExecutedAt(json.createdAt || new Date().toISOString());
+
+      const executeRes = await fetch("/api/ai/execute-task", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          conversationId,
+          rfqId,
+          taskId: item.id || item.title,
+          message: finalMessage,
+          actionType: mapAction(item.type),
+          target: item.target,
+          priority: item.priority,
+          confidence: item.confidence,
+          senderSide: "ai",
+        }),
+      });
+
+      const executeJson = await executeRes.json();
+
+      const logRes = await fetch("/api/ai/procurement-task-execution-log", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          task: item.title,
+          action: finalMessage,
+          status: executeJson?.mode === "executed" ? "executed" : "generated",
+          priority: item.priority,
+          mode: executeJson?.mode || json.executionMode || "preview",
+          confidence: item.confidence,
+          conversationId: conversationId || null,
+          rfqId: rfqId || null,
+        }),
+      });
+
+      const logJson = await logRes.json();
+
+      setExecutionMode(executeJson?.mode || json.executionMode || "preview");
+
+      setLogStatus(
+        executeJson?.mode === "executed"
+          ? "Execution injected into live conversation and logged."
+          : logJson?.ok
+            ? "Execution generated and logged. Chat injection pending real conversationId."
+            : executeJson?.error || "Execution generated but log was not saved."
+      );
     } catch {
       setResult("AI execution failed.");
     } finally {
@@ -120,13 +160,21 @@ export default function AutonomousTaskCard({ item }: Props) {
     <div className="rounded-[2rem] border border-slate-200 bg-white p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-xl font-black text-slate-950">
-            {item.title}
-          </div>
+          <div className="text-xl font-black text-slate-950">{item.title}</div>
 
           <div className="mt-2 text-sm font-semibold text-slate-500">
             {item.workflow} • {item.type} • target: {item.target}
           </div>
+
+          {conversationId ? (
+            <div className="mt-2 text-xs font-black text-emerald-700">
+              Live conversation linked
+            </div>
+          ) : (
+            <div className="mt-2 text-xs font-black text-amber-700">
+              No conversationId yet — preview/log mode only
+            </div>
+          )}
         </div>
 
         <div className="rounded-full bg-slate-950 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-white">
@@ -165,29 +213,17 @@ export default function AutonomousTaskCard({ item }: Props) {
               <div className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">
                 Mode
               </div>
-          <div className="mt-1 text-sm font-black text-emerald-950">
-            {executionMode || "manual-copy"}
-          </div>
-        </div>
-
-        {logStatus ? (
-          <div className="md:col-span-3">
-            <div className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">
-              Execution Log
+              <div className="mt-1 text-sm font-black text-emerald-950">
+                {executionMode || "manual-copy"}
+              </div>
             </div>
-
-            <div className="mt-1 text-sm font-black text-emerald-950">
-              {logStatus}
-            </div>
-          </div>
-        ) : null}
 
             <div>
               <div className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">
                 Status
               </div>
               <div className="mt-1 text-sm font-black text-emerald-950">
-                Generated
+                {executionMode === "executed" ? "Injected" : "Generated"}
               </div>
             </div>
 
@@ -199,6 +235,26 @@ export default function AutonomousTaskCard({ item }: Props) {
                 {executedAt ? formatTime(executedAt) : "Just now"}
               </div>
             </div>
+
+            {logStatus ? (
+              <div className="md:col-span-3">
+                <div className="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">
+                  Execution Log
+                </div>
+
+                <div className="mt-1 text-sm font-black text-emerald-950">
+                  {logStatus}
+                </div>
+
+                {logStatus.includes("pending real conversationId") ? (
+                  <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs font-bold leading-5 text-amber-800">
+                    Real chat injection is ready. Next step: make
+                    /api/ai/procurement-autonomous-tasks return conversationId
+                    from unified inbox / RFQ conversation.
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}
