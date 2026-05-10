@@ -2,24 +2,43 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ProcurementCommandCenterNav from "@/app/components/procurement/ProcurementCommandCenterNav";
+import LiveProcurementRefreshBadge from "@/app/components/procurement/LiveProcurementRefreshBadge";
+import ProcurementLiveTicker from "@/app/components/procurement/ProcurementLiveTicker";
 
 export default function ProcurementBriefingPage() {
   const [live, setLive] = useState<any>(null);
   const [timeline, setTimeline] = useState<any>(null);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/ai/procurement-live-events").then((r) => r.json()),
-      fetch("/api/ai/procurement-timeline").then((r) => r.json()),
-    ])
-      .then(([liveData, timelineData]) => {
-        setLive(liveData);
-        setTimeline(timelineData);
-      })
-      .catch(() => {
-        setLive({ ok: false });
-        setTimeline({ ok: false });
-      });
+    let mounted = true;
+
+    const load = () => {
+      Promise.all([
+        fetch("/api/ai/procurement-live-events").then((r) => r.json()),
+        fetch("/api/ai/procurement-timeline").then((r) => r.json()),
+      ])
+        .then(([liveData, timelineData]) => {
+          if (!mounted) return;
+
+          setLive(liveData);
+          setTimeline(timelineData);
+        })
+        .catch(() => {
+          if (!mounted) return;
+
+          setLive({ ok: false });
+          setTimeline({ ok: false });
+        });
+    };
+
+    load();
+
+    const timer = window.setInterval(load, 30000);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(timer);
+    };
   }, []);
 
   const liveEvents = Array.isArray(live?.events) ? live.events : [];
@@ -72,6 +91,14 @@ export default function ProcurementBriefingPage() {
 
         <div className="mt-8">
           <ProcurementCommandCenterNav />
+        </div>
+
+        <div className="mt-6">
+          <LiveProcurementRefreshBadge label="Executive briefing auto-refresh" />
+        </div>
+
+        <div className="mt-6">
+          <ProcurementLiveTicker />
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-5">

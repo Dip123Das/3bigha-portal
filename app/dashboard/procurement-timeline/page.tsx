@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ProcurementCommandCenterNav from "@/app/components/procurement/ProcurementCommandCenterNav";
+import LiveProcurementRefreshBadge from "@/app/components/procurement/LiveProcurementRefreshBadge";
+import ProcurementLiveTicker from "@/app/components/procurement/ProcurementLiveTicker";
 
 type Step = {
   id: string;
@@ -50,10 +52,27 @@ export default function ProcurementTimelinePage() {
   const [stage, setStage] = useState("all");
 
   useEffect(() => {
-    fetch("/api/ai/procurement-timeline")
-      .then((r) => r.json())
-      .then(setData)
-      .catch(() => setData({ ok: false }));
+    let mounted = true;
+
+    const load = () => {
+      fetch("/api/ai/procurement-timeline")
+        .then((r) => r.json())
+        .then((json) => {
+          if (mounted) setData(json);
+        })
+        .catch(() => {
+          if (mounted) setData({ ok: false });
+        });
+    };
+
+    load();
+
+    const timer = window.setInterval(load, 30000);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(timer);
+    };
   }, []);
 
   const steps: Step[] = Array.isArray(data?.steps) ? data.steps : [];
@@ -90,6 +109,10 @@ export default function ProcurementTimelinePage() {
 
         <div className="mt-8">
           <ProcurementCommandCenterNav />
+        </div>
+
+        <div className="mt-6">
+          <ProcurementLiveTicker />
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-4 xl:grid-cols-8">
@@ -140,9 +163,7 @@ export default function ProcurementTimelinePage() {
               </p>
             </div>
 
-            <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-600">
-              Source: {data?.source || "ai_memory_events"}
-            </div>
+            <LiveProcurementRefreshBadge label="Timeline auto-refresh" />
           </div>
 
           <div className="mt-8 space-y-5 border-l-4 border-slate-200 pl-6">

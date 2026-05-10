@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ProcurementCommandCenterNav from "@/app/components/procurement/ProcurementCommandCenterNav";
+import LiveProcurementRefreshBadge from "@/app/components/procurement/LiveProcurementRefreshBadge";
+import ProcurementLiveTicker from "@/app/components/procurement/ProcurementLiveTicker";
 
 type LiveEvent = {
   id: string;
@@ -47,10 +49,27 @@ export default function ProcurementLivePage() {
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    fetch("/api/ai/procurement-live-events")
-      .then((r) => r.json())
-      .then(setData)
-      .catch(() => setData({ ok: false }));
+    let mounted = true;
+
+    const load = () => {
+      fetch("/api/ai/procurement-live-events")
+        .then((r) => r.json())
+        .then((json) => {
+          if (mounted) setData(json);
+        })
+        .catch(() => {
+          if (mounted) setData({ ok: false });
+        });
+    };
+
+    load();
+
+    const timer = window.setInterval(load, 30000);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(timer);
+    };
   }, []);
 
   const events: LiveEvent[] = Array.isArray(data?.events) ? data.events : [];
@@ -99,6 +118,10 @@ export default function ProcurementLivePage() {
 
         <div className="mt-8">
           <ProcurementCommandCenterNav />
+        </div>
+
+        <div className="mt-6">
+          <ProcurementLiveTicker />
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-4 xl:grid-cols-8">
@@ -162,9 +185,7 @@ export default function ProcurementLivePage() {
               </p>
             </div>
 
-            <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-600">
-              Auto-refresh on page reload
-            </div>
+            <LiveProcurementRefreshBadge label="Live feed auto-refresh" />
           </div>
 
           <div className="mt-6 space-y-4">
