@@ -26,6 +26,8 @@ import {
 import { buildRelatedContent } from "@/lib/seo/related-content";
 import { buildRelatedListings } from "@/lib/seo/related-listings";
 import { buildRecommendations } from "@/lib/ai/recommendation-engine";
+import MemoryEventTracker from "@/app/components/ai/MemoryEventTracker";
+import MemoryLink from "@/app/components/ai/MemoryLink";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -463,9 +465,19 @@ const aiRecommendations = buildRecommendations({
 
     <div style={{ display: "grid", gap: 12 }}>
       {aiRecommendations.map((item) => (
-        <Link
+        <MemoryLink
           key={item.id}
           href={item.href}
+          module="rentals"
+          entityId={item.id}
+          entityTitle={item.title}
+          category="Rental"
+          type={item.type}
+          city={item.city}
+          district={item.district}
+          locality={item.locality}
+          source="rental_ai_recommendations"
+          score={item.score}
           style={{
             display: "block",
             padding: 14,
@@ -521,7 +533,7 @@ const aiRecommendations = buildRecommendations({
               .filter(Boolean)
               .join(", ")}
           </div>
-        </Link>
+        </MemoryLink>
       ))}
     </div>
   </div>
@@ -540,6 +552,24 @@ const aiRecommendations = buildRecommendations({
 
           faqSchema,
         ]}
+      />
+
+      <MemoryEventTracker
+        eventType="listing_view"
+        module="rentals"
+        entityId={id}
+        entityTitle={title}
+        category="Rental"
+        type={row?.pricing_unit || "Rental Service"}
+        city={row?.city || ""}
+        district={row?.district || ""}
+        locality={row?.locality || ""}
+        metadata={{
+        source: "rental_detail_page",
+        price:
+          row?.rate ||
+          null,
+      }}
       />
 
       <SectionHeader title="Rental Details" subtitle="Public listing details" />

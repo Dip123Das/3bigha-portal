@@ -26,6 +26,9 @@ import {
 import { buildRelatedContent } from "@/lib/seo/related-content";
 import { buildRelatedListings } from "@/lib/seo/related-listings";
 import { buildRecommendations } from "@/lib/ai/recommendation-engine";
+import MemoryEventTracker from "@/app/components/ai/MemoryEventTracker";
+import MemoryLink from "@/app/components/ai/MemoryLink";
+
 
 type AnyRow = Record<string, any>;
 
@@ -387,6 +390,41 @@ const aiRecommendations = buildRecommendations({
         ]}
       />
 
+      <MemoryEventTracker
+          eventType="listing_view"
+          module="materials"
+          entityId={id}
+          entityTitle={title}
+          category={
+            row?.category ||
+            row?.subcategory ||
+            "Material"
+          }
+          type={
+            row?.product_type ||
+            row?.material_type ||
+            "Building Material"
+          }
+          city={row?.city || ""}
+          district={row?.district || ""}
+          locality={row?.locality || ""}
+          metadata={{
+            source: "material_detail_page",
+
+            min_price:
+              row?.min_price ||
+              null,
+
+            max_price:
+              row?.max_price ||
+              null,
+
+            unit:
+              row?.unit ||
+              null,
+          }}
+        />
+
       <SectionHeader title={title} subtitle="Material details" />
 
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12, alignItems: "center" }}>
@@ -664,9 +702,13 @@ const aiRecommendations = buildRecommendations({
                     }}
                   >
                     {relatedListings.map((item: any) => (
-                      <Link
+                      <MemoryLink
                         key={item.id}
                         href={item.href}
+                        module="materials"
+                        entityId={item.id}
+                        entityTitle={item.title}
+                        source="material_similar_materials_nearby"
                         style={{
                           display: "block",
                           padding: 14,
@@ -697,7 +739,7 @@ const aiRecommendations = buildRecommendations({
                             .filter(Boolean)
                             .join(" • ")}
                         </div>
-                      </Link>
+                      </MemoryLink>
                     ))}
                   </div>
                 </div>
@@ -730,9 +772,19 @@ const aiRecommendations = buildRecommendations({
                     }}
                   >
                     {aiRecommendations.map((item: any) => (
-                      <Link
+                      <MemoryLink
                         key={item.id}
                         href={item.href}
+                        module="materials"
+                        entityId={item.id}
+                        entityTitle={item.title}
+                        category={item.category}
+                        type={item.type}
+                        city={item.city}
+                        district={item.district}
+                        locality={item.locality}
+                        source="material_ai_recommendations"
+                        score={item.score}
                         style={{
                           display: "block",
                           padding: 14,
@@ -792,7 +844,7 @@ const aiRecommendations = buildRecommendations({
                             .filter(Boolean)
                             .join(", ")}
                         </div>
-                      </Link>
+                      </MemoryLink>
                     ))}
                   </div>
                 </div>

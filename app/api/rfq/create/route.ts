@@ -5,6 +5,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { ensureConversation } from "@/lib/conversations/ensureConversation";
 import type { ConversationContextType } from "@/types/conversation";
+import { trackMemoryEvent } from "@/lib/ai/memory-events";
 
 type AttachmentPayload = {
   bucket: string;
@@ -329,6 +330,31 @@ export async function POST(req: Request) {
     if (cleanItems.length > 0) {
       const { error: itemsErr } = await supabaseAdmin.from("rfq_items").insert(cleanItems);
       if (itemsErr) return jsonError(itemsErr.message || "Items insert failed.", 500);
+    }
+
+    try {
+      await trackMemoryEvent({
+        userId: isAuthed ? user!.id : null,
+        eventType: "rfq_created",
+        module,
+        entityId: rfqId,
+        entityTitle: title,
+        category: cleanItems?.[0]?.title || title || module,
+        type: item_type,
+        city,
+        district: district || null,
+        locality,
+        metadata: {
+          source: "api_rfq_create",
+          pincode,
+          needed_by,
+          item_count: cleanItems.length,
+          has_attachments: attachments.length > 0,
+        },
+        score: 25,
+      });
+    } catch {
+      // memory tracking must never block RFQ creation
     }
 
     // 2.5) ✅ NEW: Create vendor targets (so Vendor Inbox table shows newest RFQs)

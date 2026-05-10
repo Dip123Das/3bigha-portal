@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/Badge";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { Grid } from "@/components/ui/Grid";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { normalizeBehaviorMemory } from "@/lib/ai/normalize-memory";
 
 import {
   buildUserIntelligence,
@@ -298,6 +299,9 @@ const closedDeals =
     createdAt: rfq.created_at || "",
   }))
 );
+
+  const normalizedBehaviorMemory =
+  normalizeBehaviorMemory(behaviorMemory);
 
   const behaviorSignals = mergeBehaviorSignals(
     behaviorMemory,
@@ -686,28 +690,28 @@ const closedDeals =
                   {[
                     [
                       "Hot Modules",
-                      behaviorMemory.hotModules.join(", ") ||
+                      normalizedBehaviorMemory.hotModules.join(", ") ||
                         "Learning",
                       "🧩",
                     ],
 
                     [
                       "Hot Categories",
-                      behaviorMemory.hotCategories.join(", ") ||
+                      normalizedBehaviorMemory.hotCategories.join(", ") ||
                         "Learning",
                       "🏷️",
                     ],
 
                     [
                       "Hot Locations",
-                      behaviorMemory.hotLocations.join(", ") ||
+                      normalizedBehaviorMemory.hotLocations.join(", ") ||
                         "Learning",
                       "📍",
                     ],
 
                     [
                       "Hot Actions",
-                      behaviorMemory.hotActions.join(", ") ||
+                      normalizedBehaviorMemory.hotActions.join(", ") ||
                         "Learning",
                       "⚡",
                     ],

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import { trackMemoryEvent } from "@/lib/ai/memory-events";
 
 export const dynamic = "force-dynamic";
 
@@ -487,6 +488,30 @@ export async function POST(req: Request, { params }: RouteContext) {
         updated_at: nowIso,
       })
       .eq("id", conversationId);
+
+    try {
+      await trackMemoryEvent({
+        userId: user.id,
+        eventType: "chat_message",
+        module: "chat",
+        entityId: conversationId,
+        entityTitle: "Conversation message",
+        category:
+          actualRole ||
+          "chat",
+        type: messageType,
+        metadata: {
+          source: "api_conversation_message",
+          message_id: insertedMessage?.id || null,
+          sender_role: actualRole,
+          has_body: Boolean(trimmedMessageBody),
+          message_type: messageType,
+        },
+        score: 20,
+      });
+    } catch {
+      // memory tracking must never block chat messages
+    }
 
     return NextResponse.json(insertedMessage);
   } catch (error: any) {

@@ -26,6 +26,7 @@ import {
 import { buildRelatedContent } from "@/lib/seo/related-content";
 import { buildRelatedListings } from "@/lib/seo/related-listings";
 import { buildRecommendations } from "@/lib/ai/recommendation-engine";
+import MemoryEventTracker from "@/app/components/ai/MemoryEventTracker";
 
 import { Link } from "lucide-react";
 
@@ -536,6 +537,38 @@ const aiRecommendations = buildRecommendations({
 
           faqSchema,
         ]}
+      />
+
+      <MemoryEventTracker
+        eventType="listing_view"
+        module="services"
+        entityId={id}
+        entityTitle={name}
+        category={
+          row?.custom_category ||
+          row?.custom_subcategory ||
+          "Service"
+        }
+        type={
+          row?.custom_service ||
+          row?.provider_kind ||
+          "Service Provider"
+        }
+        city={row?.city || ""}
+        district={row?.district || ""}
+        locality=""
+        metadata={{
+        source: "service_detail_page",
+        pricing_kind:
+          row?.pricing_kind ||
+          null,
+        min_price:
+          row?.min_price ||
+          null,
+        max_price:
+          row?.max_price ||
+          null,
+      }}
       />
 
       <Container>

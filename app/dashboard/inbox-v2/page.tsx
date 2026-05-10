@@ -17,6 +17,7 @@ import InboxPrioritySummaryStrip from "@/app/components/inbox/InboxPrioritySumma
 import SectionSummaryChips from "@/app/components/inbox/SectionSummaryChips";
 import ThreadSectionLiveList from "@/app/components/inbox/ThreadSectionLiveList";
 import ThreadDueReminderState from "@/app/components/inbox/ThreadDueReminderState";
+import { normalizeBehaviorMemory } from "@/lib/ai/normalize-memory";
 
 import {
   buildBehaviorMemory,
@@ -1726,6 +1727,9 @@ export default async function DashboardInboxV2Page({
     }))
   );
 
+    const normalizedInboxBehaviorMemory =
+    normalizeBehaviorMemory(inboxBehaviorMemory);
+
   const inboxBehaviorSignals = mergeBehaviorSignals(
     inboxBehaviorMemory,
     {
@@ -1982,17 +1986,17 @@ export default async function DashboardInboxV2Page({
 
               <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
                 Dominant Module:{" "}
-                {inboxBehaviorSignals.module || "Learning"}
+                {normalizedInboxBehaviorMemory.hotModules[0] || "Learning"}
               </span>
 
               <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
                 Dominant Category:{" "}
-                {inboxBehaviorSignals.category || "Learning"}
+                {normalizedInboxBehaviorMemory.hotCategories[0] || "Learning"}
               </span>
 
               <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
                 Preferred Location:{" "}
-                {inboxBehaviorSignals.location || "Learning"}
+                {normalizedInboxBehaviorMemory.hotLocations[0] || "Learning"}
               </span>
             </div>
           </div>

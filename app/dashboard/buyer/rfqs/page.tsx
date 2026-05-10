@@ -12,6 +12,7 @@ import { Card, CardBody, CardFooter } from "@/components/ui/Card";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Badge } from "@/components/ui/Badge";
+import { normalizeBehaviorMemory } from "@/lib/ai/normalize-memory";
 
 import {
   buildBehaviorMemory,
@@ -966,6 +967,9 @@ export default function BuyerRfqsPage() {
     }))
   );
 
+    const normalizedRfqBehaviorMemory =
+    normalizeBehaviorMemory(rfqBehaviorMemory);
+
   const rfqBehaviorSignals = mergeBehaviorSignals(rfqBehaviorMemory, {
     module: filterModule !== "all" ? filterModule : "rfq",
     category: q || "",
@@ -1138,15 +1142,15 @@ export default function BuyerRfqsPage() {
               </Pill>
 
               <Pill>
-                Dominant Module: {rfqBehaviorSignals.module || "Learning"}
+                Dominant Module: {normalizedRfqBehaviorMemory.hotModules[0] || "Learning"}
               </Pill>
 
               <Pill>
-                Hot Category: {rfqBehaviorSignals.category || "Learning"}
+                Hot Category: {normalizedRfqBehaviorMemory.hotCategories[0] || "Learning"}
               </Pill>
 
               <Pill>
-                Hot Location: {rfqBehaviorSignals.location || "Learning"}
+                Hot Location: {normalizedRfqBehaviorMemory.hotLocations[0] || "Learning"}
               </Pill>
             </div>
           </div>

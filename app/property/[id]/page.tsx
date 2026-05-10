@@ -27,6 +27,8 @@ import { buildRelatedContent } from "@/lib/seo/related-content";
 import { buildRelatedListings } from "@/lib/seo/related-listings";
 
 import { buildRecommendations } from "@/lib/ai/recommendation-engine";
+import MemoryEventTracker from "@/app/components/ai/MemoryEventTracker";
+import MemoryLink from "@/app/components/ai/MemoryLink";
 
 type AnyRow = Record<string, any>;
 
@@ -604,19 +606,29 @@ const aiRecommendations = buildRecommendations({
       }}
     >
       {aiRecommendations.map((item) => (
-        <Link
-          key={item.id}
-          href={item.href}
-          style={{
-            display: "block",
-            padding: 14,
-            borderRadius: 14,
-            background: "#f8fafc",
-            border: "1px solid #e5e7eb",
-            textDecoration: "none",
-            color: "inherit",
-          }}
-        >
+        <MemoryLink
+            key={item.id}
+            href={item.href}
+            module="property"
+            entityId={item.id}
+            entityTitle={item.title}
+            category={item.category}
+            type={item.type}
+            city={item.city}
+            district={item.district}
+            locality={item.locality}
+            source="property_ai_recommended_opportunities"
+            score={item.score}
+            style={{
+              display: "block",
+              padding: 14,
+              borderRadius: 14,
+              background: "#f8fafc",
+              border: "1px solid #e5e7eb",
+              textDecoration: "none",
+              color: "inherit",
+            }}
+          >
           <div
             style={{
               display: "flex",
@@ -666,7 +678,7 @@ const aiRecommendations = buildRecommendations({
               .filter(Boolean)
               .join(", ")}
           </div>
-        </Link>
+        </MemoryLink>
       ))}
     </div>
   </div>
@@ -680,19 +692,23 @@ const aiRecommendations = buildRecommendations({
       }}
     >
       {relatedListings.map((item) => (
-        <Link
-          key={item.id}
-          href={item.href}
-          style={{
-            display: "block",
-            padding: 14,
-            borderRadius: 14,
-            background: "#f8fafc",
-            border: "1px solid #e5e7eb",
-            textDecoration: "none",
-            color: "inherit",
-          }}
-        >
+        <MemoryLink
+            key={item.id}
+            href={item.href}
+            module="property"
+            entityId={item.id}
+            entityTitle={item.title}
+            source="property_similar_properties_nearby"
+            style={{
+              display: "block",
+              padding: 14,
+              borderRadius: 14,
+              background: "#f8fafc",
+              border: "1px solid #e5e7eb",
+              textDecoration: "none",
+              color: "inherit",
+            }}
+          >
           <div
             style={{
               fontWeight: 900,
@@ -711,7 +727,7 @@ const aiRecommendations = buildRecommendations({
           >
             {[item.location, item.priceText].filter(Boolean).join(" • ")}
           </div>
-        </Link>
+        </MemoryLink>
       ))}
     </div>
   </div>
@@ -731,6 +747,28 @@ const aiRecommendations = buildRecommendations({
 
           faqSchema,
         ]}
+      />
+      <MemoryEventTracker
+        eventType="listing_view"
+        module="property"
+        entityId={id}
+        entityTitle={title}
+        category={
+          safeText(row.property_type) ||
+          safeText(row.category) ||
+          "Property"
+        }
+        type={safeText(row.listing_type)}
+        city={safeText(row.city)}
+        district={safeText(row.district)}
+        locality={safeText(row.locality)}
+        metadata={{
+          source: "property_detail_page",
+          price:
+            row.price ||
+            row.expected_price ||
+            null,
+        }}
       />
       <SectionHeader title={title} subtitle="Property details" />
 
