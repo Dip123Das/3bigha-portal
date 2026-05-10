@@ -18,6 +18,16 @@ import { breadcrumbSchema } from "@/lib/seo/schema";
 import { createMetadata } from "@/lib/seo/metadata";
 import { siteConfig } from "@/lib/seo/site";
 
+import {
+  buildAiSeoContent,
+  buildFaqSchema,
+} from "@/lib/seo/ai-search-content";
+
+import { buildRelatedContent } from "@/lib/seo/related-content";
+import { buildRelatedListings } from "@/lib/seo/related-listings";
+
+import { buildRecommendations } from "@/lib/ai/recommendation-engine";
+
 type AnyRow = Record<string, any>;
 
 type InvestmentPlanInfo = {
@@ -146,17 +156,61 @@ export async function generateMetadata({
 
   return createMetadata({
     title: `${title}${location ? ` in ${location}` : ""}`,
-    description: description.slice(0, 155),
+
+    description:
+      description.slice(0, 155) ||
+      `Explore ${title}${location ? ` in ${location}` : ""} on 3bigha.com.`,
+
     path: `/property/${encodeURIComponent(id)}`,
-    image: "/og-image-new.jpg",
+
+    image:
+      safeText(row.cover_image) ||
+      safeText(row.image_url) ||
+      "/og-image-new.jpg",
+
+    city: safeText(row.city),
+    district: safeText(row.district),
+    locality: safeText(row.locality),
+
+    category:
+      safeText(row.property_type) ||
+      safeText(row.category) ||
+      "Property",
+
+    type: safeText(row.listing_type),
+
+    publishedTime:
+      row.published_at ||
+      row.created_at ||
+      undefined,
+
+    modifiedTime:
+      row.updated_at ||
+      undefined,
+
     keywords: [
       title,
+
+      safeText(row.property_type),
+      safeText(row.category),
+      safeText(row.listing_type),
+
       "property listing",
       "real estate",
       "land for sale",
       "house for sale",
-      "property in India",
+      "commercial property",
+      "property investment",
+
+      safeText(row.city),
+      safeText(row.locality),
+      safeText(row.district),
+
       location,
+
+      `${safeText(row.property_type || "property")} in ${safeText(row.city)}`,
+      `${safeText(row.property_type || "property")} in ${safeText(row.locality || row.city)}`,
+
       "3bigha property",
     ].filter(Boolean),
   });
@@ -374,6 +428,110 @@ export default async function PropertyPublicDetailPage({
 
   const canonicalUrl = `${siteConfig.url}/property/${encodeURIComponent(id)}`;
 
+  const aiSeo = buildAiSeoContent({
+  module: "property",
+
+  title,
+
+  category:
+    safeText(row.property_type) ||
+    safeText(row.category),
+
+  type: safeText(row.listing_type),
+
+  city: safeText(row.city),
+  district: safeText(row.district),
+  locality: safeText(row.locality),
+
+  price:
+    row.price ||
+    row.expected_price ||
+    null,
+
+  listingType:
+    safeText(row.listing_type),
+});
+
+const faqSchema = buildFaqSchema(aiSeo.faq);
+
+const relatedContent = buildRelatedContent({
+  module: "property",
+
+  title,
+
+  category:
+    safeText(row.property_type) ||
+    safeText(row.category) ||
+    "Property",
+
+  type: safeText(row.listing_type),
+
+  city: safeText(row.city),
+  district: safeText(row.district),
+  locality: safeText(row.locality),
+});
+
+const relatedRes = await supabase
+  .from("property_listings_public")
+  .select(
+    "id,title,city,district,locality,property_type,category,listing_type,price,expected_price,updated_at,created_at"
+  )
+  .neq("id", id)
+  .or(
+    [
+      `city.eq.${safeText(row.city)}`,
+      `district.eq.${safeText(row.district)}`,
+      `locality.eq.${safeText(row.locality)}`,
+      `property_type.eq.${safeText(row.property_type)}`,
+      `category.eq.${safeText(row.category)}`,
+    ]
+      .filter((x) => !x.endsWith(".eq."))
+      .join(",")
+  )
+  .limit(12);
+
+const relatedListings = buildRelatedListings({
+  module: "property",
+  currentId: id,
+  rows: relatedRes.data || [],
+  city: safeText(row.city),
+  district: safeText(row.district),
+  locality: safeText(row.locality),
+  category:
+    safeText(row.property_type) ||
+    safeText(row.category) ||
+    "Property",
+});
+
+const aiRecommendations = buildRecommendations({
+  module: "property",
+
+  currentId: id,
+
+  rows: relatedRes.data || [],
+
+  city: safeText(row.city),
+  district: safeText(row.district),
+  locality: safeText(row.locality),
+
+  category:
+    safeText(row.property_type) ||
+    safeText(row.category) ||
+    "Property",
+
+  type: safeText(row.listing_type),
+
+  minPrice:
+    Number(row.price || row.expected_price || 0) * 0.7,
+
+  maxPrice:
+    Number(row.price || row.expected_price || 0) * 1.3,
+
+  userIntent:
+    safeText(row.property_type) ||
+    "property discovery",
+});
+
   const propertyDetailSchema = {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
@@ -401,6 +559,164 @@ export default async function PropertyPublicDetailPage({
         : undefined,
   };
 
+  {relatedListings.length ? (
+  <div
+    style={{
+      marginTop: 24,
+      padding: 18,
+      borderRadius: 16,
+      background: "#fff",
+      border: "1px solid #e5e7eb",
+    }}
+  >
+    <div
+      style={{
+        fontWeight: 900,
+        fontSize: 18,
+        marginBottom: 14,
+      }}
+    >
+      Similar Properties Nearby
+      {aiRecommendations.length ? (
+  <div
+    style={{
+      marginTop: 24,
+      padding: 18,
+      borderRadius: 16,
+      background: "#fff",
+      border: "1px solid #e5e7eb",
+    }}
+  >
+    <div
+      style={{
+        fontWeight: 900,
+        fontSize: 18,
+        marginBottom: 14,
+      }}
+    >
+      AI Recommended Opportunities
+    </div>
+
+    <div
+      style={{
+        display: "grid",
+        gap: 12,
+      }}
+    >
+      {aiRecommendations.map((item) => (
+        <Link
+          key={item.id}
+          href={item.href}
+          style={{
+            display: "block",
+            padding: 14,
+            borderRadius: 14,
+            background: "#f8fafc",
+            border: "1px solid #e5e7eb",
+            textDecoration: "none",
+            color: "inherit",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 12,
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 900,
+              }}
+            >
+              {item.title}
+            </div>
+
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                color: "#2563eb",
+              }}
+            >
+              AI Score {item.score}
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginTop: 6,
+              fontSize: 13,
+              opacity: 0.8,
+              lineHeight: 1.5,
+            }}
+          >
+            {item.reason}
+          </div>
+
+          <div
+            style={{
+              marginTop: 6,
+              fontSize: 12,
+              opacity: 0.7,
+            }}
+          >
+            {[item.locality, item.city, item.district]
+              .filter(Boolean)
+              .join(", ")}
+          </div>
+        </Link>
+      ))}
+    </div>
+  </div>
+) : null}
+    </div>
+
+    <div
+      style={{
+        display: "grid",
+        gap: 12,
+      }}
+    >
+      {relatedListings.map((item) => (
+        <Link
+          key={item.id}
+          href={item.href}
+          style={{
+            display: "block",
+            padding: 14,
+            borderRadius: 14,
+            background: "#f8fafc",
+            border: "1px solid #e5e7eb",
+            textDecoration: "none",
+            color: "inherit",
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 900,
+              marginBottom: 4,
+            }}
+          >
+            {item.title}
+          </div>
+
+          <div
+            style={{
+              fontSize: 13,
+              opacity: 0.75,
+              lineHeight: 1.5,
+            }}
+          >
+            {[item.location, item.priceText].filter(Boolean).join(" • ")}
+          </div>
+        </Link>
+      ))}
+    </div>
+  </div>
+) : null}
+
   return (
     <Container>
       <JsonLd
@@ -410,7 +726,10 @@ export default async function PropertyPublicDetailPage({
             { name: "Property", url: `${siteConfig.url}/property` },
             { name: title, url: canonicalUrl },
           ]),
+
           propertyDetailSchema,
+
+          faqSchema,
         ]}
       />
       <SectionHeader title={title} subtitle="Property details" />
@@ -427,10 +746,118 @@ export default async function PropertyPublicDetailPage({
         <Card>
           <CardBody>
             {row.description ? (
-              <div style={{ whiteSpace: "pre-wrap" }}>{row.description}</div>
+              <div style={{ whiteSpace: "pre-wrap" }}>
+                {row.description}
+              </div>
             ) : (
-              <div style={{ opacity: 0.7 }}>No description provided.</div>
+              <div style={{ opacity: 0.7 }}>
+                No description provided.
+              </div>
             )}
+
+            <div
+              style={{
+                marginTop: 24,
+                padding: 18,
+                borderRadius: 16,
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 900,
+                  fontSize: 18,
+                  marginBottom: 10,
+                }}
+              >
+                AI Locality & Investment Insight
+              </div>
+
+              <div
+                style={{
+                  whiteSpace: "pre-wrap",
+                  lineHeight: 1.7,
+                  marginBottom: 16,
+                }}
+              >
+                {aiSeo.summary}
+              </div>
+
+              <div
+                style={{
+                  whiteSpace: "pre-wrap",
+                  lineHeight: 1.7,
+                  marginBottom: 16,
+                }}
+              >
+                {aiSeo.investmentInsight}
+              </div>
+
+              <div
+                style={{
+                  whiteSpace: "pre-wrap",
+                  lineHeight: 1.7,
+                }}
+              >
+                {aiSeo.demandInsight}
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: 24,
+                padding: 18,
+                borderRadius: 16,
+                background: "#fff",
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 900,
+                  fontSize: 18,
+                  marginBottom: 14,
+                }}
+              >
+                Frequently Asked Questions
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gap: 14,
+                }}
+              >
+                {aiSeo.faq.map((item, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      paddingBottom: 12,
+                      borderBottom: "1px solid #f1f5f9",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: 800,
+                        marginBottom: 6,
+                      }}
+                    >
+                      {item.question}
+                    </div>
+
+                    <div
+                      style={{
+                        opacity: 0.85,
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {item.answer}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </CardBody>
         </Card>
 
@@ -547,6 +974,67 @@ export default async function PropertyPublicDetailPage({
                     <div style={{ fontWeight: 800 }}>
                       {safeText(investmentRiskLevel) || "—"}
                     </div>
+                  </div>
+                </div>
+                <div
+                  style={{
+                    marginTop: 24,
+                    padding: 18,
+                    borderRadius: 16,
+                    background: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 900,
+                      fontSize: 18,
+                      marginBottom: 14,
+                    }}
+                  >
+                    Related Property Discovery
+                  </div>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: 12,
+                    }}
+                  >
+                    {relatedContent.map((item, index) => (
+                      <Link
+                        key={index}
+                        href={item.href}
+                        style={{
+                          display: "block",
+                          padding: 14,
+                          borderRadius: 14,
+                          background: "#fff",
+                          border: "1px solid #e5e7eb",
+                          textDecoration: "none",
+                          color: "inherit",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontWeight: 900,
+                            marginBottom: 4,
+                          }}
+                        >
+                          {item.label}
+                        </div>
+
+                        <div
+                          style={{
+                            fontSize: 13,
+                            opacity: 0.75,
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {item.description}
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                 </div>
 

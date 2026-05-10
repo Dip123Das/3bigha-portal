@@ -13,6 +13,11 @@ import { ActionButton } from "@/components/ui/ActionButton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Badge } from "@/components/ui/Badge";
 
+import {
+  buildBehaviorMemory,
+  mergeBehaviorSignals,
+} from "@/lib/ai/behavior-memory";
+
 type RfqMeta = {
   accepted_quote_id?: string | null;
   accepted_vendor_id?: string | null;
@@ -937,6 +942,36 @@ export default function BuyerRfqsPage() {
           ? "Prioritize urgent RFQs and follow up with vendors."
           : "Create new AI RFQs or monitor existing procurement activity.";
 
+    const rfqBehaviorMemory = buildBehaviorMemory(
+    rows.map((r) => ({
+      module: r.module || "rfq",
+
+      action:
+        String(r.status || "").toLowerCase() === "closed"
+          ? "shortlist"
+          : (unreadCountByRfq[r.id] ?? 0) > 0
+            ? "chat"
+            : (vendorCountByRfq[r.id] ?? 0) >= 2
+              ? "compare"
+              : "rfq",
+
+      entityId: r.id,
+      entityTitle: r.title || "",
+      category: r.title || "",
+      type: r.status || "",
+      city: r.city || "",
+      district: r.district || "",
+      locality: r.locality || "",
+      createdAt: r.created_at,
+    }))
+  );
+
+  const rfqBehaviorSignals = mergeBehaviorSignals(rfqBehaviorMemory, {
+    module: filterModule !== "all" ? filterModule : "rfq",
+    category: q || "",
+    city: "",
+  });
+
   if (loading) {
     return (
       <main>
@@ -1058,6 +1093,62 @@ export default function BuyerRfqsPage() {
             }}
           >
             🎯 AI next best action: {commandCenterFocus}
+          </div>
+
+                    <div
+            style={{
+              marginTop: 12,
+              border: "1px solid #ddd6fe",
+              background: "#faf5ff",
+              borderRadius: 12,
+              padding: 12,
+            }}
+          >
+            <div
+              style={{
+                color: "#6b21a8",
+                fontWeight: 1000,
+                marginBottom: 6,
+              }}
+            >
+              🧠 RFQ Behavior Memory
+            </div>
+
+            <div
+              style={{
+                color: "#581c87",
+                fontSize: 13,
+                fontWeight: 800,
+                lineHeight: 1.6,
+              }}
+            >
+              {rfqBehaviorMemory.summary}
+            </div>
+
+            <div
+              style={{
+                marginTop: 8,
+                display: "flex",
+                gap: 8,
+                flexWrap: "wrap",
+              }}
+            >
+              <Pill>
+                Memory Score: {rfqBehaviorMemory.estimatedIntentScore}/100
+              </Pill>
+
+              <Pill>
+                Dominant Module: {rfqBehaviorSignals.module || "Learning"}
+              </Pill>
+
+              <Pill>
+                Hot Category: {rfqBehaviorSignals.category || "Learning"}
+              </Pill>
+
+              <Pill>
+                Hot Location: {rfqBehaviorSignals.location || "Learning"}
+              </Pill>
+            </div>
           </div>
 
           <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>

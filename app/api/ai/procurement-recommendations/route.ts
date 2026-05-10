@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
+import {
+  buildBehaviorMemory,
+  mergeBehaviorSignals,
+} from "@/lib/ai/behavior-memory";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -107,9 +112,77 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const fallback = heuristicRecommendation(body);
+    const recommendationBehaviorMemory = buildBehaviorMemory([
+      {
+        module: body?.module || "procurement",
+
+        action:
+          Number(body?.unreadCount || 0) > 0
+            ? "chat"
+            : Number(body?.vendorCount || 0) >= 2
+              ? "compare"
+              : Number(body?.rfqCount || 0) > 0
+                ? "rfq"
+                : "view",
+
+        entityId:
+          body?.rfqId ||
+          body?.conversationId ||
+          "",
+
+        entityTitle:
+          body?.title ||
+          body?.requirement ||
+          "Procurement recommendation",
+
+        category:
+          body?.category ||
+          body?.module ||
+          "procurement",
+
+        type:
+          body?.side ||
+          "recommendation",
+
+        city:
+          body?.city ||
+          "",
+
+        district:
+          body?.district ||
+          "",
+
+        locality:
+          body?.locality ||
+          "",
+
+        price:
+          body?.budget ||
+          body?.bestTotal ||
+          null,
+
+        createdAt:
+          new Date().toISOString(),
+      },
+    ]);
+
+    const adaptiveSignals = mergeBehaviorSignals(
+      recommendationBehaviorMemory,
+      {
+        module: body?.module || "procurement",
+        category: body?.category || body?.module || "supplier recommendation",
+        city: body?.city || "",
+        district: body?.district || "",
+        locality: body?.locality || "",
+      }
+    );
 
     if (!client) {
-      return NextResponse.json(fallback);
+      return NextResponse.json({
+        ...fallback,
+        adaptiveSignals,
+        recommendationBehaviorMemory,
+      });
     }
 
     const prompt = `
@@ -133,6 +206,16 @@ Return ONLY valid JSON with this structure:
 
 Context:
 ${JSON.stringify(body, null, 2)}
+
+Adaptive behavior memory:
+${JSON.stringify(
+  {
+    adaptiveSignals,
+    recommendationBehaviorMemory,
+  },
+  null,
+  2
+)}
 
 Rules:
 - Be practical for Indian local marketplace procurement.
@@ -164,8 +247,30 @@ Rules:
       ...parsed,
       ok: true,
       source: "openai",
+      adaptiveSignals,
+      recommendationBehaviorMemory,
     });
   } catch (e: any) {
-    return NextResponse.json(heuristicRecommendation({}));
+    const fallback = heuristicRecommendation({});
+
+return NextResponse.json({
+  ...fallback,
+  adaptiveSignals: {
+    module: "procurement",
+    category: "supplier recommendation",
+    location: "",
+    intentScore: 0,
+    summary: "Fallback recommendation generated without behavioral context.",
+  },
+  recommendationBehaviorMemory: {
+    totalEvents: 0,
+    hotModules: [],
+    hotCategories: [],
+    hotLocations: [],
+    hotActions: [],
+    estimatedIntentScore: 0,
+    summary: "No behavior memory available.",
+  },
+});
   }
 }

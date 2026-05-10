@@ -17,6 +17,11 @@ import InboxPrioritySummaryStrip from "@/app/components/inbox/InboxPrioritySumma
 import SectionSummaryChips from "@/app/components/inbox/SectionSummaryChips";
 import ThreadSectionLiveList from "@/app/components/inbox/ThreadSectionLiveList";
 import ThreadDueReminderState from "@/app/components/inbox/ThreadDueReminderState";
+
+import {
+  buildBehaviorMemory,
+  mergeBehaviorSignals,
+} from "@/lib/ai/behavior-memory";
 export const dynamic = "force-dynamic";
 
 type SearchParams = {
@@ -1688,6 +1693,48 @@ export default async function DashboardInboxV2Page({
       ? "Send follow-ups to warm aging procurement conversations."
       : "Monitor stable threads and create new RFQs when demand appears.";
 
+  const inboxBehaviorMemory = buildBehaviorMemory(
+    filteredItems.map((item) => ({
+      module: item.module,
+
+      action:
+        item.unreadCount > 0
+          ? "chat"
+          : item.module === "rfq"
+            ? "compare"
+            : item.module === "investment"
+              ? "view"
+              : "chat",
+
+      entityId: item.id,
+
+      entityTitle: item.title,
+
+      category:
+        item.stageLabel ||
+        item.statusLabel ||
+        "",
+
+      type: item.module,
+
+      city: "",
+      district: "",
+      locality: "",
+
+      createdAt:
+        item.lastActivityAt || undefined,
+    }))
+  );
+
+  const inboxBehaviorSignals = mergeBehaviorSignals(
+    inboxBehaviorMemory,
+    {
+      module: moduleFilter !== "all" ? moduleFilter : "",
+      category: q || "",
+      city: "",
+    }
+  );
+
   const procurementNextAction =
     procurementInboxStats.urgent > 0
       ? "Prioritize urgent unread or stale procurement threads first."
@@ -1918,6 +1965,36 @@ export default async function DashboardInboxV2Page({
 
           <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
             🤖 Autonomous OS action: {autonomousOsAction}
+          </div>
+                    <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-4">
+            <div className="text-sm font-black text-violet-800">
+              🧠 AI Inbox Behavior Memory
+            </div>
+
+            <div className="mt-2 text-sm font-semibold leading-6 text-violet-900">
+              {inboxBehaviorMemory.summary}
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="inline-flex rounded-full border border-violet-200 bg-white px-3 py-1 text-xs font-bold text-violet-700">
+                Intent Score {inboxBehaviorMemory.estimatedIntentScore}/100
+              </span>
+
+              <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                Dominant Module:{" "}
+                {inboxBehaviorSignals.module || "Learning"}
+              </span>
+
+              <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+                Dominant Category:{" "}
+                {inboxBehaviorSignals.category || "Learning"}
+              </span>
+
+              <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+                Preferred Location:{" "}
+                {inboxBehaviorSignals.location || "Learning"}
+              </span>
+            </div>
           </div>
         </div>
       </div>

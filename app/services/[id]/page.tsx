@@ -17,6 +17,16 @@ import { buildProcurementKnowledgeGraph } from "@/lib/seo/procurement-knowledge-
 import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/seo/schema";
 import { siteConfig } from "@/lib/seo/site";
+
+import {
+  buildAiSeoContent,
+  buildFaqSchema,
+} from "@/lib/seo/ai-search-content";
+
+import { buildRelatedContent } from "@/lib/seo/related-content";
+import { buildRelatedListings } from "@/lib/seo/related-listings";
+import { buildRecommendations } from "@/lib/ai/recommendation-engine";
+
 import { Link } from "lucide-react";
 
 type ServiceRow = {
@@ -182,6 +192,106 @@ export default function ServiceDetailsPage({ params }: { params: { id: string } 
 
   const canonicalUrl = `${siteConfig.url}/services/${encodeURIComponent(id)}`;
 
+  const aiSeo = buildAiSeoContent({
+    module: "services",
+
+    title: name,
+
+    category:
+      row?.custom_category ||
+      row?.custom_subcategory ||
+      "Service",
+
+    type:
+      row?.custom_service ||
+      row?.provider_kind ||
+      "Service Provider",
+
+    city: row?.city || "",
+    district: row?.district || "",
+    locality: "",
+
+    price:
+      row?.min_price ||
+      row?.max_price ||
+      null,
+
+    listingType:
+      row?.pricing_kind ||
+      "Service",
+  });
+
+  const faqSchema = buildFaqSchema(aiSeo.faq);
+
+  const relatedContent = buildRelatedContent({
+  module: "services",
+
+  title: name,
+
+  category:
+    row?.custom_category ||
+    row?.custom_subcategory ||
+    "Service",
+
+  type:
+    row?.custom_service ||
+    row?.provider_kind ||
+    "Service Provider",
+
+  city: row?.city || "",
+  district: row?.district || "",
+  locality: "",
+});
+
+const relatedRows: any[] = [];
+
+const relatedListings = buildRelatedListings({
+  module: "services",
+  currentId: id,
+  rows: relatedRows,
+  city: row?.city || "",
+  district: row?.district || "",
+  locality: "",
+  category:
+    row?.custom_category ||
+    row?.custom_subcategory ||
+    "Service",
+});
+
+const aiRecommendations = buildRecommendations({
+  module: "services",
+
+  currentId: id,
+
+  rows: relatedRows,
+
+  city: row?.city || "",
+  district: row?.district || "",
+  locality: "",
+
+  category:
+    row?.custom_category ||
+    row?.custom_subcategory ||
+    "Service",
+
+  type:
+    row?.custom_service ||
+    row?.provider_kind ||
+    "Service Provider",
+
+  minPrice:
+    row?.min_price
+      ? Number(row.min_price) * 0.7
+      : null,
+
+  maxPrice:
+    row?.max_price
+      ? Number(row.max_price) * 1.3
+      : null,
+
+  userIntent: "service discovery",
+});
+
   const serviceSchema = row
     ? {
         "@context": "https://schema.org",
@@ -216,6 +326,203 @@ export default function ServiceDetailsPage({ params }: { params: { id: string } 
       }
     : null;
 
+    <div
+  style={{
+    marginTop: 24,
+    padding: 18,
+    borderRadius: 16,
+    background: "#f8fafc",
+    border: "1px solid #e2e8f0",
+  }}
+>
+  <div
+    style={{
+      fontWeight: 900,
+      fontSize: 18,
+      marginBottom: 14,
+    }}
+  >
+    Related Rental Discovery
+  </div>
+
+  <div
+    style={{
+      display: "grid",
+      gap: 12,
+    }}
+  >
+    {relatedContent.map((item, index) => (
+      <Link
+        key={index}
+        href={item.href}
+        style={{
+          display: "block",
+          padding: 14,
+          borderRadius: 14,
+          background: "#fff",
+          border: "1px solid #e5e7eb",
+          textDecoration: "none",
+          color: "inherit",
+        }}
+      >
+        <div style={{ fontWeight: 900, marginBottom: 4 }}>
+          {item.label}
+        </div>
+
+        <div
+          style={{
+            fontSize: 13,
+            opacity: 0.75,
+            lineHeight: 1.5,
+          }}
+        >
+          {item.description}
+        </div>
+      </Link>
+    ))}
+  </div>
+</div>
+
+{relatedListings.length ? (
+  <div
+    style={{
+      marginTop: 24,
+      padding: 18,
+      borderRadius: 16,
+      background: "#fff",
+      border: "1px solid #e5e7eb",
+    }}
+  >
+    <div
+      style={{
+        fontWeight: 900,
+        fontSize: 18,
+        marginBottom: 14,
+      }}
+    >
+      Similar Rentals Nearby
+    </div>
+
+    <div style={{ display: "grid", gap: 12 }}>
+      {relatedListings.map((item) => (
+        <Link
+          key={item.id}
+          href={item.href}
+          style={{
+            display: "block",
+            padding: 14,
+            borderRadius: 14,
+            background: "#f8fafc",
+            border: "1px solid #e5e7eb",
+            textDecoration: "none",
+            color: "inherit",
+          }}
+        >
+          <div style={{ fontWeight: 900, marginBottom: 4 }}>
+            {item.title}
+          </div>
+
+          <div
+            style={{
+              fontSize: 13,
+              opacity: 0.75,
+              lineHeight: 1.5,
+            }}
+          >
+            {[item.location, item.priceText].filter(Boolean).join(" • ")}
+          </div>
+        </Link>
+      ))}
+    </div>
+  </div>
+) : null}
+
+{aiRecommendations.length ? (
+  <div
+    style={{
+      marginTop: 24,
+      padding: 18,
+      borderRadius: 16,
+      background: "#fff",
+      border: "1px solid #e5e7eb",
+    }}
+  >
+    <div
+      style={{
+        fontWeight: 900,
+        fontSize: 18,
+        marginBottom: 14,
+      }}
+    >
+      AI Recommended Rental Opportunities
+    </div>
+
+    <div style={{ display: "grid", gap: 12 }}>
+      {aiRecommendations.map((item) => (
+        <Link
+          key={item.id}
+          href={item.href}
+          style={{
+            display: "block",
+            padding: 14,
+            borderRadius: 14,
+            background: "#f8fafc",
+            border: "1px solid #e5e7eb",
+            textDecoration: "none",
+            color: "inherit",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 12,
+              alignItems: "center",
+            }}
+          >
+            <div style={{ fontWeight: 900 }}>
+              {item.title}
+            </div>
+
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                color: "#2563eb",
+              }}
+            >
+              AI Score {item.score}
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginTop: 6,
+              fontSize: 13,
+              opacity: 0.8,
+              lineHeight: 1.5,
+            }}
+          >
+            {item.reason}
+          </div>
+
+          <div
+            style={{
+              marginTop: 6,
+              fontSize: 12,
+              opacity: 0.7,
+            }}
+          >
+            {[item.locality, item.city, item.district]
+              .filter(Boolean)
+              .join(", ")}
+          </div>
+        </Link>
+      ))}
+    </div>
+  </div>
+) : null}
+
   return (
     <main>
       <JsonLd
@@ -226,6 +533,8 @@ export default function ServiceDetailsPage({ params }: { params: { id: string } 
             { name, url: canonicalUrl },
           ]),
           ...(serviceSchema ? [serviceSchema] : []),
+
+          faqSchema,
         ]}
       />
 
@@ -278,8 +587,119 @@ export default function ServiceDetailsPage({ params }: { params: { id: string } 
                     </div>
                   </div>
 
-                  <div style={{ marginTop: 14, lineHeight: 1.65, opacity: 0.92, whiteSpace: "pre-wrap" }}>
+                  <div
+                    style={{
+                      marginTop: 14,
+                      lineHeight: 1.65,
+                      opacity: 0.92,
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
                     {safeText(row.service_description) || "No description provided."}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 24,
+                      padding: 18,
+                      borderRadius: 16,
+                      background: "#f8fafc",
+                      border: "1px solid #e2e8f0",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: 900,
+                        fontSize: 18,
+                        marginBottom: 12,
+                      }}
+                    >
+                      AI Service Market Insight
+                    </div>
+
+                    <div
+                      style={{
+                        whiteSpace: "pre-wrap",
+                        lineHeight: 1.7,
+                        marginBottom: 16,
+                      }}
+                    >
+                      {aiSeo.summary}
+                    </div>
+
+                    <div
+                      style={{
+                        whiteSpace: "pre-wrap",
+                        lineHeight: 1.7,
+                        marginBottom: 16,
+                      }}
+                    >
+                      {aiSeo.investmentInsight}
+                    </div>
+
+                    <div
+                      style={{
+                        whiteSpace: "pre-wrap",
+                        lineHeight: 1.7,
+                      }}
+                    >
+                      {aiSeo.demandInsight}
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 24,
+                      padding: 18,
+                      borderRadius: 16,
+                      background: "#fff",
+                      border: "1px solid #e5e7eb",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: 900,
+                        fontSize: 18,
+                        marginBottom: 14,
+                      }}
+                    >
+                      Frequently Asked Questions
+                    </div>
+
+                    <div
+                      style={{
+                        display: "grid",
+                        gap: 14,
+                      }}
+                    >
+                      {aiSeo.faq.map((item, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            paddingBottom: 12,
+                            borderBottom: "1px solid #f1f5f9",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontWeight: 800,
+                              marginBottom: 6,
+                            }}
+                          >
+                            {item.question}
+                          </div>
+
+                          <div
+                            style={{
+                              opacity: 0.85,
+                              lineHeight: 1.6,
+                            }}
+                          >
+                            {item.answer}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   <div

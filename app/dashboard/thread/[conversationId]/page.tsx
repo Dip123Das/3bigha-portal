@@ -9,6 +9,11 @@ import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import DealScoreClient from "@/app/components/ai/DealScoreClient";
 import BuyerConversationChatBox from "@/app/dashboard/buyer/chat/[conversationId]/buyer-conversation-chat-box";
 
+import {
+  buildBehaviorMemory,
+  mergeBehaviorSignals,
+} from "@/lib/ai/behavior-memory";
+
 export const dynamic = "force-dynamic";
 
 const UUID_RE =
@@ -610,6 +615,56 @@ export default async function UniversalThreadPage({
     negotiationAi,
   });
 
+    const threadBehaviorMemory = buildBehaviorMemory(
+    messages.map((m) => ({
+      module:
+        String(conv.context_type || "").trim().toLowerCase() === "rfq"
+          ? "rfq"
+          : String(conv.context_type || "").trim() || "direct",
+
+      action:
+        String(m.sender_user_id || "") === userId
+          ? "chat"
+          : "view",
+
+      entityId: m.id,
+      entityTitle:
+        conv.title ||
+        counterpartName ||
+        "Conversation thread",
+
+      category:
+        negotiationAi.stage ||
+        titleCase(conv.context_type),
+
+      type:
+        m.message_type ||
+        "message",
+
+      city: "",
+      district: "",
+      locality: "",
+
+      createdAt:
+        m.created_at || undefined,
+    }))
+  );
+
+  const threadBehaviorSignals = mergeBehaviorSignals(
+    threadBehaviorMemory,
+    {
+      module:
+        String(conv.context_type || "").trim().toLowerCase() === "rfq"
+          ? "rfq"
+          : String(conv.context_type || "").trim() || "direct",
+
+      category:
+        negotiationAi.stage,
+
+      city: "",
+    }
+  );
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -885,6 +940,33 @@ export default async function UniversalThreadPage({
             <div className="mt-2 text-sm font-semibold leading-6 text-cyan-900">
               {negotiationAi.autonomousReason}
             </div>
+          </div>
+        </div>
+                <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 p-4">
+          <div className="font-black text-violet-800">
+            🧠 Thread Behavior Memory
+          </div>
+
+          <div className="mt-2 text-sm font-semibold leading-6 text-violet-900">
+            {threadBehaviorMemory.summary}
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="inline-flex rounded-full border border-violet-200 bg-white px-3 py-1 text-xs font-black text-violet-700">
+              Memory Score {threadBehaviorMemory.estimatedIntentScore}/100
+            </span>
+
+            <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">
+              Module: {threadBehaviorSignals.module || "Learning"}
+            </span>
+
+            <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">
+              Stage: {threadBehaviorSignals.category || "Learning"}
+            </span>
+
+            <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+              Messages: {threadBehaviorMemory.totalEvents}
+            </span>
           </div>
         </div>
       </div>

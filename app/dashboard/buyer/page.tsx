@@ -14,6 +14,16 @@ import { ActionButton } from "@/components/ui/ActionButton";
 import { Grid } from "@/components/ui/Grid";
 import { EmptyState } from "@/components/ui/EmptyState";
 
+import {
+  buildUserIntelligence,
+  explainUserRecommendation,
+} from "@/lib/ai/user-intelligence";
+
+import {
+  buildBehaviorMemory,
+  mergeBehaviorSignals,
+} from "@/lib/ai/behavior-memory";
+
 function Pill({
   children,
   tone = "neutral",
@@ -258,6 +268,50 @@ const closedDeals =
       : procurementHealthScore >= 45
         ? "Medium"
         : "Needs RFQ activity";
+
+  const buyerIntelligence = buildUserIntelligence(
+    procurementStats.recentRfqs.map((rfq) => ({
+      module: rfq.module || "general",
+      action: "rfq",
+      category: rfq.title || "",
+      type: rfq.status || "",
+      createdAt: rfq.created_at || "",
+    }))
+  );
+
+  const buyerIntelligenceSummary =
+    explainUserRecommendation(buyerIntelligence);
+
+  const behaviorMemory = buildBehaviorMemory(
+  procurementStats.recentRfqs.map((rfq) => ({
+    module: rfq.module || "general",
+
+    action:
+      rfq.status === "closed"
+        ? "shortlist"
+        : "rfq",
+
+    category: rfq.title || "",
+
+    type: rfq.status || "",
+
+    createdAt: rfq.created_at || "",
+  }))
+);
+
+  const behaviorSignals = mergeBehaviorSignals(
+    behaviorMemory,
+    {
+      module:
+        buyerIntelligence.preferredModules[0],
+
+      category:
+        buyerIntelligence.preferredCategories[0],
+
+      city:
+        buyerIntelligence.preferredLocations[0],
+    }
+  );
 
   const buyerAiInsights: BuyerAiInsight[] = [
     {
@@ -537,7 +591,292 @@ const closedDeals =
           </div>
         </div>
 
-                {procurementMemory ? (
+        <div
+          style={{
+            border: "1px solid rgba(14,165,233,0.25)",
+            background: "linear-gradient(135deg, rgba(14,165,233,0.08), #ffffff)",
+            borderRadius: 18,
+            padding: 16,
+            marginBottom: 16,
+            boxShadow: "0 14px 30px rgba(14,165,233,0.08)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 22, fontWeight: 1000, color: "#075985" }}>
+                🧠 AI Buyer Intelligence Profile
+              </div>
+
+              <div
+                style={{
+                  border: "1px solid rgba(168,85,247,0.2)",
+                  background:
+                    "linear-gradient(135deg, rgba(168,85,247,0.08), #ffffff)",
+                  borderRadius: 18,
+                  padding: 16,
+                  marginBottom: 16,
+                  boxShadow: "0 14px 30px rgba(168,85,247,0.08)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontSize: 22,
+                        fontWeight: 1000,
+                        color: "#6b21a8",
+                      }}
+                    >
+                      🧠 Behavioral Memory Engine
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 4,
+                        color: "#6b7280",
+                        fontSize: 14,
+                        fontWeight: 700,
+                      }}
+                    >
+                      AI learning from RFQ behavior, procurement activity and discovery patterns.
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      background:
+                        behaviorMemory.estimatedIntentScore >= 75
+                          ? "#dcfce7"
+                          : behaviorMemory.estimatedIntentScore >= 40
+                            ? "#fef3c7"
+                            : "#f8fafc",
+
+                      color:
+                        behaviorMemory.estimatedIntentScore >= 75
+                          ? "#166534"
+                          : behaviorMemory.estimatedIntentScore >= 40
+                            ? "#92400e"
+                            : "#334155",
+
+                      borderRadius: 999,
+                      padding: "9px 14px",
+                      fontWeight: 1000,
+                    }}
+                  >
+                    Memory Score {behaviorMemory.estimatedIntentScore}/100
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 14,
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(4, minmax(0, 1fr))",
+                    gap: 10,
+                  }}
+                >
+                  {[
+                    [
+                      "Hot Modules",
+                      behaviorMemory.hotModules.join(", ") ||
+                        "Learning",
+                      "🧩",
+                    ],
+
+                    [
+                      "Hot Categories",
+                      behaviorMemory.hotCategories.join(", ") ||
+                        "Learning",
+                      "🏷️",
+                    ],
+
+                    [
+                      "Hot Locations",
+                      behaviorMemory.hotLocations.join(", ") ||
+                        "Learning",
+                      "📍",
+                    ],
+
+                    [
+                      "Hot Actions",
+                      behaviorMemory.hotActions.join(", ") ||
+                        "Learning",
+                      "⚡",
+                    ],
+                  ].map(([label, value, icon]) => (
+                    <div
+                      key={label}
+                      style={{
+                        border: "1px solid #ede9fe",
+                        background: "#fff",
+                        borderRadius: 14,
+                        padding: 12,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: "#7c3aed",
+                          fontWeight: 900,
+                        }}
+                      >
+                        {icon} {label}
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop: 5,
+                          color: "#0f172a",
+                          fontWeight: 900,
+                          fontSize: 13,
+                        }}
+                      >
+                        {value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 12,
+                    border: "1px solid #ddd6fe",
+                    background: "#faf5ff",
+                    borderRadius: 12,
+                    padding: 12,
+                  }}
+                >
+                  <div
+                    style={{
+                      color: "#6b21a8",
+                      fontWeight: 1000,
+                      marginBottom: 4,
+                    }}
+                  >
+                    Adaptive Learning Summary
+                  </div>
+
+                  <div
+                    style={{
+                      color: "#581c87",
+                      fontSize: 13,
+                      fontWeight: 800,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {behaviorMemory.summary}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 6,
+                      color: "#7e22ce",
+                      fontSize: 13,
+                      fontWeight: 800,
+                    }}
+                  >
+                    Dominant module:
+                    {" "}
+                    {behaviorSignals.module || "Learning"} •
+                    Category:
+                    {" "}
+                    {behaviorSignals.category || "Learning"} •
+                    Location:
+                    {" "}
+                    {behaviorSignals.location || "Learning"}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 4, color: "#475569", fontSize: 14, fontWeight: 800 }}>
+                Behavioral understanding from RFQs, procurement activity and buyer intent signals.
+              </div>
+            </div>
+
+            <div
+              style={{
+                background:
+                  buyerIntelligence.intentLabel === "hot"
+                    ? "#dcfce7"
+                    : buyerIntelligence.intentLabel === "warm"
+                      ? "#fef3c7"
+                      : "#f8fafc",
+                color:
+                  buyerIntelligence.intentLabel === "hot"
+                    ? "#166534"
+                    : buyerIntelligence.intentLabel === "warm"
+                      ? "#92400e"
+                      : "#334155",
+                borderRadius: 999,
+                padding: "9px 14px",
+                fontWeight: 1000,
+                alignSelf: "center",
+                border: "1px solid rgba(15,23,42,0.08)",
+              }}
+            >
+              Intent {buyerIntelligence.intentLabel.toUpperCase()} • {buyerIntelligence.intentScore}/100
+            </div>
+          </div>
+
+          <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10 }}>
+            {[
+              ["Preferred Modules", buyerIntelligence.preferredModules.join(", ") || "Learning", "🧩"],
+              ["Preferred Locations", buyerIntelligence.preferredLocations.join(", ") || "Learning", "📍"],
+              ["Preferred Categories", buyerIntelligence.preferredCategories.join(", ") || "Learning", "🏷️"],
+              ["Preferred Types", buyerIntelligence.preferredTypes.join(", ") || "Learning", "⚙️"],
+            ].map(([label, value, icon]) => (
+              <div
+                key={label}
+                style={{
+                  border: "1px solid #e2e8f0",
+                  background: "#ffffff",
+                  borderRadius: 14,
+                  padding: 12,
+                }}
+              >
+                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
+                  {icon} {label}
+                </div>
+
+                <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000, fontSize: 13 }}>
+                  {value}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div
+            style={{
+              marginTop: 12,
+              border: "1px solid #bae6fd",
+              background: "#f0f9ff",
+              borderRadius: 12,
+              padding: 12,
+            }}
+          >
+            <div style={{ color: "#075985", fontWeight: 1000, marginBottom: 4 }}>
+              AI Behavioral Summary
+            </div>
+
+            <div style={{ color: "#0c4a6e", fontSize: 13, fontWeight: 800, lineHeight: 1.6 }}>
+              {buyerIntelligence.summary}
+            </div>
+
+            <div style={{ marginTop: 6, color: "#0369a1", fontSize: 13, fontWeight: 800, lineHeight: 1.6 }}>
+              {buyerIntelligenceSummary}
+            </div>
+          </div>
+        </div>
+
+        {procurementMemory ? (
           <div
             style={{
               border: "1px solid rgba(16,185,129,0.25)",
