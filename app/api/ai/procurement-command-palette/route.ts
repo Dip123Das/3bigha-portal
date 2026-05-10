@@ -100,6 +100,58 @@ const STATIC_COMMANDS = [
     category: "Executive",
     status: "critical",
   },
+  {
+    keywords: ["followup", "recovery", "sla", "agent"],
+    title: "AI Procurement Follow-up Agent",
+    description:
+      "Open autonomous workflow recovery AI",
+    href: "/dashboard/procurement-followup-agent",
+  },
+  {
+    keywords: ["inbox", "messages", "actions", "threads"],
+    title: "AI Procurement Inbox Actions",
+    description:
+      "Open autonomous inbox execution intelligence",
+    href: "/dashboard/procurement-inbox-actions",
+    category: "Execution",
+    status: "warning",
+  },
+  {
+    keywords: [
+      "negotiation",
+      "pricing",
+      "supplier",
+      "closure",
+    ],
+    title: "AI Procurement Negotiation Agent",
+    description:
+      "Open autonomous negotiation intelligence",
+    href: "/dashboard/procurement-negotiation-agent",
+    category: "Negotiation",
+    status: "warning",
+  },
+  {
+    keywords: [
+      "supplier",
+      "vendor",
+      "reliability",
+      "trust",
+    ],
+    title: "AI Supplier Reliability Engine",
+    description:
+      "Open procurement supplier intelligence",
+    href: "/dashboard/procurement-supplier-reliability",
+    category: "Supplier",
+    status: "warning",
+  },
+  {
+    keywords: ["memory", "history", "continuity", "relationship"],
+    title: "AI Procurement Memory System",
+    description: "Open procurement memory intelligence",
+    href: "/dashboard/procurement-memory-intelligence",
+    category: "Memory",
+    status: "healthy",
+  },
 ];
 
 function filterCommands(query: string, list: any[]) {

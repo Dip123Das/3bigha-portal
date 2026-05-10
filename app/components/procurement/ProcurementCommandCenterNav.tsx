@@ -64,6 +64,39 @@ const ITEMS = [
     emoji: "📬",
     description: "Unified procurement execution inbox",
   },
+  {
+    label: "Follow-up AI",
+    href: "/dashboard/procurement-followup-agent",
+    icon: "🤖",
+  },
+  {
+    label: "Inbox AI",
+    href: "/dashboard/procurement-inbox-actions",
+    icon: "📥",
+  },
+  {
+    label: "Negotiation AI",
+    href: "/dashboard/procurement-negotiation-agent",
+    icon: "🤝",
+  },
+  {
+    label: "Supplier AI",
+    href: "/dashboard/procurement-supplier-reliability",
+    icon: "🏭",
+  },
+  {
+    label: "Memory AI",
+    href: "/dashboard/procurement-memory-intelligence",
+    icon: "🧠",
+  },
+  {
+    keywords: ["closure", "conversion", "deal", "final"],
+    title: "AI Procurement Closure Agent",
+    description: "Open procurement closure prediction intelligence",
+    href: "/dashboard/procurement-closure-agent",
+    category: "Prediction",
+    status: "warning",
+  },
 ];
 
 export default function ProcurementCommandCenterNav() {

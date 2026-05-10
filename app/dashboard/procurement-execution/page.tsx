@@ -141,6 +141,13 @@ export default async function ProcurementExecutionPage() {
         </a>
 
         <a
+          href="/dashboard/procurement-followup-agent"
+          className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+        >
+          Open Follow-up AI
+        </a>
+
+        <a
           href="/dashboard/procurement-situation-room"
           className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
         >

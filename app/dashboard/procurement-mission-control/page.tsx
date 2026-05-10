@@ -68,7 +68,7 @@ export default async function ProcurementMissionControlPage() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-10">
         <Stat label="Health" value={`${mission.healthScore ?? 0}/100`} />
         <Stat label="Crisis" value={mission.crisisLevel || "unknown"} />
         <Stat label="Threat" value={mission.operationalThreat ?? 0} />
@@ -94,11 +94,17 @@ export default async function ProcurementMissionControlPage() {
         <Panel title="Emergency Directives" items={directives} tone="rose" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
         <Shortcut href="/dashboard/procurement-crisis-center" icon="🚨" title="Crisis Center" />
         <Shortcut href="/dashboard/procurement-war-room" icon="🏛️" title="War Room" />
         <Shortcut href="/dashboard/procurement-situation-room" icon="📡" title="Situation Room" />
         <Shortcut href="/dashboard/procurement-actions" icon="⚡" title="AI Actions" />
+        <Shortcut href="/dashboard/procurement-followup-agent" icon="🤖" title="Follow-up AI" />
+        <Shortcut href="/dashboard/procurement-inbox-actions" icon="📥" title="Inbox AI" />
+        <Shortcut href="/dashboard/procurement-negotiation-agent" icon="🤝" title="Negotiation AI" />
+        <Shortcut href="/dashboard/procurement-supplier-reliability" icon="🏭" title="Supplier AI" />
+        <Shortcut href="/dashboard/procurement-memory-intelligence" icon="🧠" title="Memory AI" />
+                <Shortcut href="/dashboard/procurement-closure-agent" icon="✅" title="Closure AI" />
       </div>
     </div>
   );
