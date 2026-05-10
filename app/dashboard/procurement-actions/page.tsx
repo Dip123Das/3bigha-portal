@@ -81,6 +81,29 @@ export default async function ProcurementActionsPage() {
         </div>
       ) : null}
 
+            <div className="flex flex-wrap gap-3">
+        <a
+          href="/dashboard/procurement-mission-control"
+          className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
+        >
+          Open Mission Control
+        </a>
+
+        <a
+          href="/dashboard/procurement-execution"
+          className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+        >
+          Open Execution AI
+        </a>
+
+        <a
+          href="/dashboard/procurement-crisis-center"
+          className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+        >
+          Open Crisis Center
+        </a>
+      </div>
+
       <div className="space-y-4">
         {actions.map((item: any, idx: number) => (
           <div

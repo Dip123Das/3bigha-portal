@@ -125,6 +125,29 @@ export default async function ProcurementExecutionPage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap gap-3">
+        <a
+          href="/dashboard/procurement-mission-control"
+          className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
+        >
+          Open Mission Control
+        </a>
+
+        <a
+          href="/dashboard/procurement-actions"
+          className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+        >
+          Open AI Actions
+        </a>
+
+        <a
+          href="/dashboard/procurement-situation-room"
+          className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+        >
+          Open Situation Room
+        </a>
+      </div>
+
       <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
         <div className="text-lg font-black text-slate-950">
           Autonomous Execution Plan

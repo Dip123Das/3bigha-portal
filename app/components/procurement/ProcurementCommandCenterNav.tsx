@@ -11,6 +11,12 @@ const ITEMS = [
     description: "Executive procurement intelligence",
   },
     {
+    href: "/dashboard/procurement-mission-control",
+    label: "Mission Control",
+    emoji: "🛰️",
+    description: "Unified executive procurement command center",
+  },
+    {
     href: "/dashboard/procurement-actions",
     label: "AI Actions",
     emoji: "🧩",

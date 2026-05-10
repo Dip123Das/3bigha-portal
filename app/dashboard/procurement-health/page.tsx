@@ -86,6 +86,29 @@ export default async function ProcurementHealthPage() {
         </div>
       </div>
 
+            <div className="flex flex-wrap gap-3">
+        <a
+          href="/dashboard/procurement-mission-control"
+          className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
+        >
+          Open Mission Control
+        </a>
+
+        <a
+          href="/dashboard/procurement-war-room"
+          className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+        >
+          Open War Room
+        </a>
+
+        <a
+          href="/dashboard/procurement-crisis-center"
+          className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+        >
+          Open Crisis Center
+        </a>
+      </div>
+
       <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
         <div className="text-lg font-black text-slate-950">Weak Points</div>
 

@@ -153,7 +153,18 @@ export default function ProcurementCommandPalette() {
                 Quick Operational Actions
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+              <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-5">
+                <Link
+                  href="/dashboard/procurement-mission-control"
+                  onClick={() => setOpen(false)}
+                  className="rounded-2xl border border-slate-300 bg-slate-950 p-3 text-left text-white transition hover:opacity-90"
+                >
+                  <div className="text-lg">🛰️</div>
+
+                  <div className="mt-2 text-xs font-black">
+                    Mission Control
+                  </div>
+                </Link>
                 <Link
                   href="/dashboard/procurement-anomaly"
                   onClick={() => setOpen(false)}
