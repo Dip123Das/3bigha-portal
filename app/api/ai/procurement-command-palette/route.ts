@@ -152,6 +152,30 @@ const STATIC_COMMANDS = [
     category: "Memory",
     status: "healthy",
   },
+  {
+    keywords: ["closure", "conversion", "deal", "final"],
+    title: "AI Procurement Closure Agent",
+    description: "Open procurement closure prediction intelligence",
+    href: "/dashboard/procurement-closure-agent",
+    category: "Prediction",
+    status: "warning",
+  },
+  {
+    keywords: ["task", "tasks", "autonomous", "execute", "execution"],
+    title: "AI Autonomous Procurement Tasks",
+    description: "Open AI-generated executable procurement actions",
+    href: "/dashboard/procurement-autonomous-tasks",
+    category: "Execution",
+    status: "critical",
+  },
+  {
+    keywords: ["log", "audit", "history", "execution"],
+    title: "AI Task Execution Log",
+    description: "Open autonomous procurement execution audit log",
+    href: "/dashboard/procurement-task-execution-log",
+    category: "Audit",
+    status: "healthy",
+  },
 ];
 
 function filterCommands(query: string, list: any[]) {

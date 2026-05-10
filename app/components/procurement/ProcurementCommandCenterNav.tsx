@@ -90,12 +90,19 @@ const ITEMS = [
     icon: "🧠",
   },
   {
-    keywords: ["closure", "conversion", "deal", "final"],
-    title: "AI Procurement Closure Agent",
-    description: "Open procurement closure prediction intelligence",
+    label: "Closure AI",
     href: "/dashboard/procurement-closure-agent",
-    category: "Prediction",
-    status: "warning",
+    icon: "✅",
+  },
+    {
+    label: "Auto Tasks",
+    href: "/dashboard/procurement-autonomous-tasks",
+    icon: "🛠️",
+  },
+    {
+    label: "Task Log",
+    href: "/dashboard/procurement-task-execution-log",
+    icon: "📜",
   },
 ];
 
