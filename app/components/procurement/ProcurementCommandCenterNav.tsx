@@ -29,6 +29,12 @@ const ITEMS = [
     description: "AI procurement executive summary",
   },
   {
+    href: "/dashboard/procurement-heatmap",
+    label: "Heatmap AI",
+    emoji: "🔥",
+    description: "Procurement category, zone and risk heatmap",
+  },
+  {
     href: "/dashboard/procurement-control-tower",
     label: "Control Tower",
     emoji: "🧠",

@@ -5,6 +5,7 @@ import Link from "next/link";
 import ProcurementCommandCenterNav from "@/app/components/procurement/ProcurementCommandCenterNav";
 import LiveProcurementRefreshBadge from "@/app/components/procurement/LiveProcurementRefreshBadge";
 import ProcurementLiveTicker from "@/app/components/procurement/ProcurementLiveTicker";
+import ProcurementHeatmapIntelligence from "@/app/components/procurement/ProcurementHeatmapIntelligence";
 
 export default function ProcurementSituationRoomPage() {
   const [live, setLive] = useState<any>(null);
@@ -98,6 +99,12 @@ export default function ProcurementSituationRoomPage() {
         <div className="mt-6">
           <ProcurementLiveTicker />
         </div>
+        <div className="mt-8">
+          <ProcurementHeatmapIntelligence
+            liveEvents={liveEvents}
+            timelineSteps={timelineSteps}
+          />
+        </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-4">
           <Stat label="Live Events" value={live?.summary?.total || 0} />
@@ -167,6 +174,7 @@ export default function ProcurementSituationRoomPage() {
           <div className="mt-5 grid gap-4 md:grid-cols-4">
             <Command href="/dashboard/procurement-live" title="Open Live Feed" />
             <Command href="/dashboard/procurement-timeline" title="Open Timeline" />
+            <Command href="/dashboard/procurement-heatmap" title="Open Heatmap AI" />
             <Command href="/dashboard/procurement-autonomous-tasks" title="Autonomous Tasks" />
             <Command href="/dashboard/procurement-mission-control" title="Mission Control" />
           </div>

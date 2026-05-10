@@ -5,6 +5,7 @@ import Link from "next/link";
 import ProcurementCommandCenterNav from "@/app/components/procurement/ProcurementCommandCenterNav";
 import LiveProcurementRefreshBadge from "@/app/components/procurement/LiveProcurementRefreshBadge";
 import ProcurementLiveTicker from "@/app/components/procurement/ProcurementLiveTicker";
+import ProcurementHeatmapIntelligence from "@/app/components/procurement/ProcurementHeatmapIntelligence";
 
 type LiveEvent = {
   id: string;
@@ -122,6 +123,13 @@ export default function ProcurementLivePage() {
 
         <div className="mt-6">
           <ProcurementLiveTicker />
+        </div>
+
+        <div className="mt-8">
+          <ProcurementHeatmapIntelligence
+            liveEvents={events}
+            timelineSteps={[]}
+          />
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-4 xl:grid-cols-8">

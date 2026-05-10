@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import ProcurementCommandCenterNav from "@/app/components/procurement/ProcurementCommandCenterNav";
 import LiveProcurementRefreshBadge from "@/app/components/procurement/LiveProcurementRefreshBadge";
 import ProcurementLiveTicker from "@/app/components/procurement/ProcurementLiveTicker";
+import ProcurementHeatmapIntelligence from "@/app/components/procurement/ProcurementHeatmapIntelligence";
 
 export default function ProcurementBriefingPage() {
   const [live, setLive] = useState<any>(null);
@@ -99,6 +100,13 @@ export default function ProcurementBriefingPage() {
 
         <div className="mt-6">
           <ProcurementLiveTicker />
+        </div>
+
+        <div className="mt-8">
+          <ProcurementHeatmapIntelligence
+            liveEvents={liveEvents}
+            timelineSteps={timelineSteps}
+          />
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-5">

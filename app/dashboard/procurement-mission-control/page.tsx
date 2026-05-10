@@ -98,6 +98,7 @@ export default async function ProcurementMissionControlPage() {
         <Shortcut href="/dashboard/procurement-crisis-center" icon="🚨" title="Crisis Center" />
         <Shortcut href="/dashboard/procurement-war-room" icon="🏛️" title="War Room" />
         <Shortcut href="/dashboard/procurement-situation-room" icon="📡" title="Situation Room" />
+        <Shortcut href="/dashboard/procurement-heatmap" icon="🔥" title="Heatmap AI" />
         <Shortcut href="/dashboard/procurement-actions" icon="⚡" title="AI Actions" />
         <Shortcut href="/dashboard/procurement-followup-agent" icon="🤖" title="Follow-up AI" />
         <Shortcut href="/dashboard/procurement-inbox-actions" icon="📥" title="Inbox AI" />
