@@ -28,6 +28,23 @@ import {
   mergeBehaviorSignals,
 } from "@/lib/ai/behavior-memory";
 
+function readableRfqTitle(r: BuyerRfqMini) {
+  const rawTitle = String(r.title || "").trim();
+  const moduleName = String(r.module || "Procurement").trim();
+
+  const looksLikeId =
+    /^[A-Za-z0-9_-]{14,}$/.test(rawTitle) &&
+    !rawTitle.includes(" ");
+
+  if (!rawTitle || looksLikeId) {
+    return `${moduleName.charAt(0).toUpperCase()}${moduleName
+      .slice(1)
+      .toLowerCase()} Requirement`;
+  }
+
+  return rawTitle;
+}
+
 function Pill({
   children,
   tone = "neutral",
@@ -589,7 +606,7 @@ const closedDeals =
                   >
                     <div>
                       <div style={{ fontWeight: 900, color: "#0f172a" }}>
-                        {r.title || "Untitled RFQ"}
+                        {readableRfqTitle(r)}
                       </div>
                       <div style={{ marginTop: 3, color: "#64748b", fontSize: 12, fontWeight: 800 }}>
                         {(r.module || "general").toUpperCase()} • Status: {r.status || "open"}
