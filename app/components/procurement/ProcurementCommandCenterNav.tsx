@@ -5,30 +5,54 @@ import { usePathname } from "next/navigation";
 
 const ITEMS = [
   {
+    href: "/dashboard/procurement-situation-room",
+    label: "Situation Room",
+    emoji: "🚨",
+    description: "Unified live procurement command center",
+  },
+  {
+    href: "/dashboard/procurement-live",
+    label: "Live Stream",
+    emoji: "⚡",
+    description: "Real-time procurement event signals",
+  },
+  {
+    href: "/dashboard/procurement-timeline",
+    label: "Timeline Replay",
+    emoji: "🕒",
+    description: "Chronological procurement event replay",
+  },
+  {
+    href: "/dashboard/procurement-briefing",
+    label: "Executive Briefing",
+    emoji: "📋",
+    description: "AI procurement executive summary",
+  },
+  {
     href: "/dashboard/procurement-control-tower",
     label: "Control Tower",
     emoji: "🧠",
     description: "Executive procurement intelligence",
   },
-    {
+  {
     href: "/dashboard/procurement-mission-control",
     label: "Mission Control",
     emoji: "🛰️",
     description: "Unified executive procurement command center",
   },
-    {
+  {
     href: "/dashboard/procurement-actions",
     label: "AI Actions",
     emoji: "🧩",
     description: "Autonomous procurement action intelligence",
   },
-    {
+  {
     href: "/dashboard/procurement-execution",
     label: "Execution AI",
     emoji: "⚙️",
     description: "Autonomous procurement execution intelligence",
   },
-    {
+  {
     href: "/dashboard/procurement-health",
     label: "Health Score",
     emoji: "💚",
@@ -47,12 +71,6 @@ const ITEMS = [
     description: "Ask procurement intelligence questions",
   },
   {
-    href: "/dashboard/procurement-live",
-    label: "Live Stream",
-    emoji: "⚡",
-    description: "Real-time procurement event signals",
-  },
-  {
     href: "/dashboard/procurement-anomaly",
     label: "Anomaly Engine",
     emoji: "🚨",
@@ -65,49 +83,58 @@ const ITEMS = [
     description: "Unified procurement execution inbox",
   },
   {
-    label: "Follow-up AI",
     href: "/dashboard/procurement-followup-agent",
-    icon: "🤖",
+    label: "Follow-up AI",
+    emoji: "🤖",
+    description: "AI follow-up recommendations",
   },
   {
-    label: "Inbox AI",
     href: "/dashboard/procurement-inbox-actions",
-    icon: "📥",
+    label: "Inbox AI",
+    emoji: "📥",
+    description: "AI inbox action intelligence",
   },
   {
-    label: "Negotiation AI",
     href: "/dashboard/procurement-negotiation-agent",
-    icon: "🤝",
+    label: "Negotiation AI",
+    emoji: "🤝",
+    description: "AI negotiation guidance",
   },
   {
-    label: "Supplier AI",
     href: "/dashboard/procurement-supplier-reliability",
-    icon: "🏭",
+    label: "Supplier AI",
+    emoji: "🏭",
+    description: "Supplier reliability intelligence",
   },
   {
-    label: "Memory AI",
     href: "/dashboard/procurement-memory-intelligence",
-    icon: "🧠",
+    label: "Memory AI",
+    emoji: "🧠",
+    description: "Procurement memory intelligence",
   },
   {
-    label: "Closure AI",
     href: "/dashboard/procurement-closure-agent",
-    icon: "✅",
-  },
-    {
-    label: "Auto Tasks",
-    href: "/dashboard/procurement-autonomous-tasks",
-    icon: "🛠️",
-  },
-    {
-    label: "Task Log",
-    href: "/dashboard/procurement-task-execution-log",
-    icon: "📜",
+    label: "Closure AI",
+    emoji: "✅",
+    description: "AI closure readiness intelligence",
   },
   {
-    label: "Real Execute",
+    href: "/dashboard/procurement-autonomous-tasks",
+    label: "Auto Tasks",
+    emoji: "🛠️",
+    description: "Autonomous procurement task queue",
+  },
+  {
+    href: "/dashboard/procurement-task-execution-log",
+    label: "Task Log",
+    emoji: "📜",
+    description: "AI execution history log",
+  },
+  {
     href: "/dashboard/procurement-real-execution",
-    icon: "🚀",
+    label: "Real Execute",
+    emoji: "🚀",
+    description: "Real autonomous execution console",
   },
 ];
 
@@ -133,9 +160,7 @@ export default function ProcurementCommandCenterNav() {
               <div className="flex items-start gap-3">
                 <div
                   className={`flex h-12 w-12 items-center justify-center rounded-2xl text-2xl ${
-                    active
-                      ? "bg-white/10"
-                      : "bg-white border border-slate-200"
+                    active ? "bg-white/10" : "border border-slate-200 bg-white"
                   }`}
                 >
                   {item.emoji}
