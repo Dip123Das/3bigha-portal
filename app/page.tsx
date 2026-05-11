@@ -602,15 +602,16 @@ export default function HomePage() {
         .marketHeroInner {
           width: min(100%, 1240px);
           margin: 0 auto;
-          padding: 28px 20px 34px;
+          padding: 28px 20px 42px;
         }
 
         .marketHeroContent {
           width: 100%;
+          max-width: 920px;
+          margin: 0 auto;
           display: grid;
-          grid-template-columns: minmax(0, 1fr) 440px;
-          justify-content: space-between;
-          gap: 48px;
+          grid-template-columns: 1fr;
+          gap: 18px;
           align-items: start;
           position: relative;
           z-index: 1;
@@ -669,14 +670,14 @@ export default function HomePage() {
         }
 
         .searchPanel {
-          margin-top: -12px;
+          margin-top: 0;
           background: #ffffff;
           border: 1px solid rgba(15, 23, 42, 0.10);
           border-radius: 20px;
           padding: 16px;
           box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
           width: 100%;
-          max-width: 460px;
+          max-width: 920px;
           min-width: 0;
           position: relative;
           z-index: 2;
@@ -816,7 +817,7 @@ export default function HomePage() {
         }
 
         .quickActionSection {
-          margin-top: 14px;
+          margin-top: 24px;
         }
 
         .quickActionSection {
