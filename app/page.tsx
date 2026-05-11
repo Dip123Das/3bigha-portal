@@ -620,8 +620,8 @@ export default function HomePage() {
 
         .heroTextBlock {
           width: 100%;
-          max-width: 620px;
-          padding-top: 8px;
+          max-width: 1180px;
+          padding-top: 0;
         }
 
         .heroTrustRow {
