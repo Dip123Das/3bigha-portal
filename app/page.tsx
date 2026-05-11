@@ -446,6 +446,21 @@ export default function HomePage() {
                 <span>🛠️ Services</span>
                 <span>🚜 Rentals</span>
               </div>
+
+              <div className="aiPowerRow">
+                <span>🤖 AI Smart Search</span>
+                <span>📍 Local Market Discovery</span>
+                <span>⚡ Instant RFQ Assist</span>
+                <span>📊 Local Price Prediction</span>
+                <span>🎯 Nearby Vendor Match</span>
+              </div>
+
+              <div className="aiPowerRow">
+                <span>🤖 AI Smart Search</span>
+                <span>⚡ Instant RFQ Assist</span>
+                <span>📊 Price Prediction</span>
+                <span>🎯 Smart Vendor Match</span>
+              </div>
             </div>
           </div>
         </div>
@@ -513,6 +528,28 @@ export default function HomePage() {
             ) : null}
           </div>
         </div>
+      </section>
+
+      <section className="aiPortalStrip">
+        <div>
+          <strong>AI-powered marketplace engine</strong>
+          <p>
+            3bigha helps users search, compare, submit requirements, predict prices and match with vendors faster.
+          </p>
+        </div>
+
+        <a href="/rfq/general/new">Start with AI →</a>
+      </section>
+
+      <section className="aiPortalStrip">
+        <div>
+          <strong>AI-powered local marketplace engine</strong>
+          <p>
+            Search every local market, compare nearby prices, submit requirements and connect with local property owners, suppliers, service providers and rental vendors.
+          </p>
+        </div>
+
+        <a href="/rfq/general/new">Start with AI →</a>
       </section>
 
       <section className="quickActionSection">
@@ -629,6 +666,25 @@ export default function HomePage() {
           display: flex;
           flex-wrap: wrap;
           gap: 10px;
+        }
+
+        .aiPowerRow {
+          margin-top: 12px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+
+        .aiPowerRow span {
+          display: inline-flex;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #eef6ff, #ffffff);
+          border: 1px solid rgba(11, 87, 208, 0.14);
+          padding: 8px 12px;
+          color: #0b57d0;
+          font-size: 13px;
+          font-weight: 950;
+          box-shadow: 0 8px 20px rgba(11, 87, 208, 0.06);
         }
 
         .heroTrustRow span {
@@ -819,6 +875,41 @@ export default function HomePage() {
         .homeSearchInner {
           max-width: 1180px;
           margin: 0 auto;
+        }
+
+        .aiPortalStrip {
+          width: min(100%, 1180px);
+          margin: 14px auto 0;
+          padding: 16px;
+          border-radius: 18px;
+          background: linear-gradient(135deg, #0b57d0, #0f172a);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+        }
+
+        .aiPortalStrip strong {
+          font-size: 18px;
+          font-weight: 950;
+        }
+
+        .aiPortalStrip p {
+          margin: 4px 0 0;
+          color: rgba(255, 255, 255, 0.82);
+          font-size: 13px;
+        }
+
+        .aiPortalStrip a {
+          border-radius: 999px;
+          background: #ffffff;
+          color: #0b57d0;
+          text-decoration: none;
+          padding: 10px 14px;
+          font-weight: 950;
+          white-space: nowrap;
         }
 
         .quickActionSection,
@@ -1151,6 +1242,28 @@ export default function HomePage() {
 
           .marketBadge {
             font-size: 12px;
+          }
+
+          .aiPowerRow {
+            gap: 8px;
+          }
+
+          .aiPowerRow span {
+            font-size: 12px;
+            padding: 7px 10px;
+          }
+
+          .aiPortalStrip {
+            margin-top: 10px;
+            padding: 14px 10px;
+            border-radius: 14px;
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .aiPortalStrip a {
+            width: 100%;
+            text-align: center;
           }
 
           h1 {
