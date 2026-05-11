@@ -697,7 +697,7 @@ export default function HomePage() {
         <a href="/dashboard/inbox">💬<span>Inbox</span></a>
       </nav>
 
-      <div className="floatingAiCopilot">
+      <a href="/search" className="floatingAiCopilot" aria-label="Open 3bigha AI Smart Search">
         <div className="floatingAiHeader">
           <div className="floatingAiOrb"></div>
 
@@ -720,7 +720,7 @@ export default function HomePage() {
         <div className="floatingAiFooter">
           Ask AI about property, materials, services, rentals and investments.
         </div>
-      </div>
+      </a>
 
       <style jsx>{`
         .homePage {
@@ -1315,6 +1315,7 @@ export default function HomePage() {
           padding: 16px;
           box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
           backdrop-filter: blur(18px);
+          text-decoration: none;
         }
 
         .floatingAiHeader {
