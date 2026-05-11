@@ -29,6 +29,13 @@ type AISuggestion = {
   confidence: string;
 };
 
+type LiveDiscoverySignal = {
+  title: string;
+  value: string;
+  note: string;
+  href: string;
+};
+
 function moneyINR(value: any) {
   const num = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(num) || num <= 0) return "";
@@ -226,6 +233,8 @@ export default function HomePage() {
   const [aiCopilotOpen, setAiCopilotOpen] = useState(false);
   const [voiceListening, setVoiceListening] = useState(false);
   const [userMode, setUserMode] = useState(userModes[0]);
+  const [liveFeedSignals, setLiveFeedSignals] = useState<LiveDiscoverySignal[]>(localFeedSignals);
+  const [liveMarketSummary, setLiveMarketSummary] = useState("AI-powered local marketplace signals are ready.");
   const voiceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeModule = useMemo(
@@ -298,6 +307,76 @@ export default function HomePage() {
       if (voiceTimeoutRef.current) clearTimeout(voiceTimeoutRef.current);
       };
     }, []);
+
+  useEffect(() => {
+    let alive = true;
+
+    async function loadLiveDiscovery() {
+      try {
+        const params = new URLSearchParams();
+        params.set("q", query.trim() || activeModule.placeholder);
+        if (locationText) params.set("city", locationText);
+
+        const res = await fetch(`/api/ai/marketplace-discovery?${params.toString()}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const data = await res.json().catch(() => null);
+        const discovery = data?.discovery || null;
+
+        if (!alive || !discovery) return;
+
+        const vendors = Array.isArray(discovery?.vendors) ? discovery.vendors : [];
+        const categories = Array.isArray(discovery?.categories) ? discovery.categories : [];
+
+        const nextSignals: LiveDiscoverySignal[] = [
+          {
+            title: "Live vendor discovery",
+            value: vendors.length > 0 ? `${vendors.length} vendor signals` : "Vendor network ready",
+            note: discovery?.headline || "AI marketplace discovery is active",
+            href: "/vendor/discovery",
+          },
+          {
+            title: "Top local category",
+            value: categories?.[0]?.name || activeModule.label,
+            note: "Based on current marketplace discovery intelligence",
+            href: "/search",
+          },
+          {
+            title: "Nearby opportunity",
+            value: locationText || "Local market",
+            note: "District-aware marketplace routing enabled",
+            href: "/search",
+          },
+          {
+            title: "AI next action",
+            value: "Search → RFQ → Vendor",
+            note: "Workflow-ready homepage intelligence",
+            href: "/rfq/general/new",
+          },
+        ];
+
+        setLiveFeedSignals(nextSignals);
+        setLiveMarketSummary(
+          discovery?.summary ||
+            discovery?.headline ||
+            "Live marketplace discovery intelligence is active."
+        );
+      } catch {
+        if (alive) {
+          setLiveFeedSignals(localFeedSignals);
+          setLiveMarketSummary("AI-powered local marketplace signals are ready.");
+        }
+      }
+    }
+
+    loadLiveDiscovery();
+
+    return () => {
+      alive = false;
+    };
+  }, [activeModule.label, activeModule.placeholder, locationText, query]);
 
   useEffect(() => {
     let alive = true;
@@ -432,26 +511,107 @@ export default function HomePage() {
   }, []);
 
   function startVoiceSearch() {
+    const browserWindow = window as any;
+    const SpeechRecognition =
+      browserWindow.SpeechRecognition || browserWindow.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setAiSuggestion({
+        title: "Voice search not supported",
+        message:
+          "Your browser does not support voice recognition yet. You can still type in Bengali, Hindi or English.",
+        actionLabel: "Type Requirement",
+        href: "/rfq/general/new",
+        confidence: "Text AI ready",
+      });
+      return;
+    }
+
     setVoiceListening(true);
 
-    if (voiceTimeoutRef.current) clearTimeout(voiceTimeoutRef.current);
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-IN";
+    recognition.continuous = false;
+    recognition.interimResults = false;
 
-    voiceTimeoutRef.current = setTimeout(() => {
+    recognition.onresult = (event: any) => {
+      const transcript = event?.results?.[0]?.[0]?.transcript || "";
+      const cleanTranscript = String(transcript).trim();
+
+      if (cleanTranscript) {
+        setQuery(cleanTranscript);
+        setAiSuggestion({
+          title: "Voice command captured",
+          message:
+            "3bigha AI heard your requirement. Now run AI Guide to route it to search, RFQ, price or vendor workflow.",
+          actionLabel: "Run AI Guide",
+          href: `/search?q=${encodeURIComponent(cleanTranscript)}`,
+          confidence: "Voice captured",
+        });
+      }
+
+      setVoiceListening(false);
+    };
+
+    recognition.onerror = () => {
       setVoiceListening(false);
       setAiSuggestion({
-        title: "Voice AI search ready",
+        title: "Voice capture failed",
         message:
-          "Voice architecture is ready for Bengali, Hindi and local marketplace search. Type your requirement now or continue with AI Guide.",
-        actionLabel: "Open RFQ Assistant",
+          "Please try again or type your requirement directly in the AI command bar.",
+        actionLabel: "Type Requirement",
         href: "/rfq/general/new",
-        confidence: "Voice-ready mode",
+        confidence: "Fallback ready",
       });
-    }, 1200);
+    };
+
+    recognition.onend = () => {
+      setVoiceListening(false);
+    };
+
+    recognition.start();
   }
 
-    function runAISmartGuide() {
+  function buildIntentHref(intent: any, fallbackQuery: string) {
+    const cleanQuery = encodeURIComponent(intent?.query || fallbackQuery);
+    const module = intent?.module || scope;
+    const max = intent?.max ? `&max=${encodeURIComponent(intent.max)}` : "";
+    const near = intent?.near ? "&near=1" : "";
+
+    if (module === "property") {
+      return `/search?module=property&q=${cleanQuery}${max}${near}`;
+    }
+
+    if (module === "materials") {
+      if (/\d+/.test(fallbackQuery)) {
+        return `/rfq/general/new?query=${cleanQuery}`;
+      }
+
+      return `/search?module=materials&q=${cleanQuery}${near}`;
+    }
+
+    if (module === "services") {
+      return `/search?module=services&q=${cleanQuery}${near}`;
+    }
+
+    if (module === "rentals") {
+      return `/search?module=rentals&q=${cleanQuery}${near}`;
+    }
+
+    if (module === "blog") {
+      return `/blog?q=${cleanQuery}`;
+    }
+
+    return `/search?q=${cleanQuery}${near}`;
+  }
+
+  async function runAISmartGuide() {
     const originalQuery = query.trim();
     const clean = originalQuery.toLowerCase();
+
+    if (originalQuery) {
+      setLiveMarketSummary(`AI is checking live marketplace signals for: ${originalQuery}`);
+    }
 
     if (!clean) {
       setAiSuggestion({
@@ -465,18 +625,50 @@ export default function HomePage() {
       return;
     }
 
-    fetch("/api/ai/search-intent", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query: originalQuery,
-        module: scope,
-        location: locationText,
-        source: "homepage",
-      }),
-    }).catch(() => null);
+    let aiIntent: any = null;
+
+    try {
+      const intentRes = await fetch("/api/ai/search-intent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query: originalQuery,
+          module: scope,
+          location: locationText,
+          source: "homepage",
+        }),
+      });
+
+      if (intentRes.ok) {
+        aiIntent = await intentRes.json();
+      }
+    } catch {
+      aiIntent = null;
+    }
+
+    if (aiIntent?.ok && aiIntent?.module) {
+      setAiSuggestion({
+        title: "AI understood your marketplace intent",
+        message:
+          aiIntent.explanation ||
+          "3bigha AI detected the best workflow for your requirement.",
+        actionLabel:
+          aiIntent.module === "materials" && /\d+/.test(originalQuery)
+            ? "Create RFQ"
+            : aiIntent.module === "property"
+              ? "Search Property"
+              : aiIntent.module === "services"
+                ? "Find Services"
+                : aiIntent.module === "rentals"
+                  ? "Find Rentals"
+                  : "Search Now",
+        href: buildIntentHref(aiIntent, originalQuery),
+        confidence: `${Math.round(Number(aiIntent.confidence || 0.75) * 100)}% AI confidence`,
+      });
+      return;
+    }
 
     const hasNumber = /\d+/.test(clean);
     const isMaterial =
@@ -1052,14 +1244,14 @@ export default function HomePage() {
           <div>
             <h2>Personalized Local Feed</h2>
             <p>
-              AI-powered local demand, vendor and price signals for your nearby marketplace.
+              {liveMarketSummary}
             </p>
           </div>
           <a href="/search">Explore local market →</a>
         </div>
 
         <div className="personalizedFeedGrid">
-          {localFeedSignals.map((signal) => (
+          {liveFeedSignals.map((signal) => (
             <a key={signal.title} href={signal.href} className="personalizedFeedCard">
               <span>{signal.title}</span>
               <strong>{signal.value}</strong>

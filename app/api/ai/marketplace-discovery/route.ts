@@ -49,7 +49,12 @@ export async function GET(req: Request) {
     return NextResponse.json({
       ok: true,
       method: "GET",
-      discovery,
+      discovery: {
+        ...discovery,
+        summary:
+          discovery?.summary ||
+          "3bigha AI is reading vendor, category and local marketplace signals.",
+      },
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -79,7 +84,12 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ok: true,
       method: "POST",
-      discovery,
+      discovery: {
+        ...discovery,
+        summary:
+          discovery?.summary ||
+          "3bigha AI is reading vendor, category and local marketplace signals.",
+      },
     });
   } catch (error: any) {
     return NextResponse.json(

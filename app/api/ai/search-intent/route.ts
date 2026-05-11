@@ -46,23 +46,23 @@ function fallbackIntent(query: string) {
 
   let module: SearchModule = "all";
 
-  if (/(land|plot|flat|house|property|katha|bigha|sq\.?ft|apartment|builder)/i.test(q)) {
+  if (/(land|plot|flat|house|property|katha|bigha|sq\.?ft|apartment|builder|জমি|প্লট|বাড়ি|ফ্ল্যাট|জায়গা|जमीन|प्लॉट|घर|फ्लैट)/i.test(q)) {
     module = "property";
-  } else if (/(cement|steel|sand|brick|rod|tiles|paint|plumbing material|electrical material|material)/i.test(q)) {
+  } else if (/(cement|steel|sand|brick|rod|tiles|paint|plumbing material|electrical material|material|সিমেন্ট|স্টিল|রড|বালি|ইট|টাইলস|পেইন্ট|सीमेंट|स्टील|रेत|ईंट|सरिया|टाइल्स|पेंट)/i.test(q)) {
     module = "materials";
-  } else if (/(mason|plumber|electrician|contractor|labour|labor|service|turnkey|interior|painter)/i.test(q)) {
+  } else if (/(mason|plumber|electrician|contractor|labour|labor|service|turnkey|interior|painter|মিস্ত্রি|প্লাম্বার|ইলেকট্রিশিয়ান|কন্ট্রাক্টর|শ্রমিক|प्लंबर|इलेक्ट्रीशियन|मिस्त्री|ठेकेदार|मजदूर)/i.test(q)) {
     module = "services";
-  } else if (/(jcb|machine|rental|rent equipment|equipment rent|generator|scaffolding)/i.test(q)) {
+  } else if (/(jcb|machine|rental|rent equipment|equipment rent|generator|scaffolding|ভাড়া|মেশিন|জেসিবি|জেনারেটর|किराया|मशीन|जेसीबी|जनरेटर)/i.test(q)) {
     module = "rentals";
-  } else if (/(blog|article|guide|news|learn)/i.test(q)) {
+  } else if (/(blog|article|guide|news|learn|খবর|আর্টিকেল|গাইড|समाचार|लेख|गाइड)/i.test(q)) {
     module = "blog";
   }
 
   let intent: PropertyIntent = "all";
-  if (/(pg|paying guest)/i.test(q)) intent = "pg";
-  else if (/(lease|leased)/i.test(q)) intent = "lease";
-  else if (/(rent|rental|to let|monthly)/i.test(q)) intent = "rent";
-  else if (/(buy|sale|sell|purchase|plot|land|flat|house)/i.test(q)) intent = "sell";
+  if (/(pg|paying guest|পিজি|पीजी)/i.test(q)) intent = "pg";
+  else if (/(lease|leased|লিজ|लीज)/i.test(q)) intent = "lease";
+  else if (/(rent|rental|to let|monthly|ভাড়া|ভাড়া|किराया|रेंट)/i.test(q)) intent = "rent";
+  else if (/(buy|sale|sell|purchase|plot|land|flat|house|কিনতে|বিক্রি|জমি|প্লট|खरीद|बेचना|जमीन|प्लॉट)/i.test(q)) intent = "sell";
 
   const max = parseLooseAmount(lower);
 
@@ -151,10 +151,11 @@ Rules:
 - Keep query short and useful for database keyword search.
 - Detect price limits like "under 10 lakh" as max = "1000000".
 - Detect "near me", "nearby", "around me" as near = true.
-- If query is about land, plot, flat, house, builder project: module property.
-- If query is about cement, steel, sand, bricks, tiles, paint, plumbing or electrical goods: module materials.
-- If query is about mason, plumber, electrician, labour, contractor, turnkey, repair: module services.
-- If query is about JCB, equipment, machine, generator, scaffolding on rent: module rentals.
+- Detect English, Bengali and Hindi marketplace phrases.
+- If query is about land, plot, flat, house, builder project, জমি, প্লট, বাড়ি, जमीन, प्लॉट: module property.
+- If query is about cement, steel, sand, bricks, tiles, paint, plumbing/electrical goods, সিমেন্ট, রড, বালি, ইট, सीमेंट, सरिया, रेत: module materials.
+- If query is about mason, plumber, electrician, labour, contractor, turnkey, repair, মিস্ত্রি, প্লাম্বার, ইলেকট্রিশিয়ান, प्लंबर, मिस्त्री: module services.
+- If query is about JCB, equipment, machine, generator, scaffolding on rent, ভাড়া মেশিন, किराये की मशीन, जेसीबी: module rentals.
 - If unsure, use module all.
 - Return JSON only.
 
