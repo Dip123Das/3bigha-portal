@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ProcurementCommandCenterNav from "@/app/components/procurement/ProcurementCommandCenterNav";
 
 type Crisis = {
   level: string;
@@ -34,6 +35,8 @@ export default function ProcurementCrisisCenterPage() {
     string[]
   >([]);
 
+    const [escalations, setEscalations] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -54,6 +57,22 @@ export default function ProcurementCrisisCenterPage() {
               : []
           );
         }
+
+        try {
+          const escalationRes = await fetch(
+            "/api/ai/procurement-crisis-escalation"
+          );
+
+          const escalationJson = await escalationRes.json();
+
+          if (escalationJson?.ok) {
+            setEscalations(
+              Array.isArray(escalationJson.escalations)
+                ? escalationJson.escalations
+                : []
+            );
+          }
+        } catch {}
       } finally {
         setLoading(false);
       }
@@ -76,6 +95,10 @@ export default function ProcurementCrisisCenterPage() {
         <div className="text-xs font-black uppercase tracking-[0.14em] text-rose-200">
           Enterprise Procurement Crisis Center
         </div>
+
+      <div className="mt-8">
+        <ProcurementCommandCenterNav />
+      </div>
 
         <h1 className="mt-3 text-5xl font-black">
           AI Operational Threat Intelligence
@@ -143,6 +166,85 @@ export default function ProcurementCrisisCenterPage() {
               <div className="mt-4 text-5xl font-black text-blue-700">
                 {crisis.criticalSignals}
               </div>
+            </div>
+          </div>
+
+                    <div className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-black text-slate-950">
+                  Autonomous Crisis Escalation Engine
+                </h2>
+
+                <p className="mt-1 text-sm font-semibold text-slate-500">
+                  AI-managed procurement emergency states and escalation countdowns.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm font-black text-rose-700">
+                Live Escalations: {escalations.length}
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              {escalations.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${
+                        item.score >= 80
+                          ? "border-rose-200 bg-rose-50 text-rose-700"
+                          : item.score >= 60
+                          ? "border-amber-200 bg-amber-50 text-amber-700"
+                          : "border-blue-200 bg-blue-50 text-blue-700"
+                      }`}
+                    >
+                      {item.level}
+                    </span>
+
+                    <span className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-slate-700">
+                      Countdown: {item.countdown}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 text-2xl font-black text-slate-950">
+                    {item.hotspot}
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-4">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                        Crisis Score
+                      </div>
+
+                      <div className="mt-2 text-3xl font-black text-slate-950">
+                        {item.score}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                        Emergency State
+                      </div>
+
+                      <div className="mt-2 text-lg font-black text-slate-950">
+                        {item.level}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-800">
+                    {item.directive}
+                  </div>
+
+                  <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
+                    🤖 {item.autonomousAction}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

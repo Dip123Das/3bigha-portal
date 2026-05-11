@@ -135,6 +135,20 @@ export default function ProcurementWarRoomPage() {
                 Open unified executive HQ
               </div>
             </Link>
+                        <Link
+              href="/dashboard/procurement-crisis-center"
+              className="rounded-3xl border border-rose-300 bg-rose-100 p-6 transition hover:scale-[1.02]"
+            >
+              <div className="text-3xl">🔥</div>
+
+              <div className="mt-4 text-lg font-black text-rose-700">
+                Crisis Escalation
+              </div>
+
+              <div className="mt-2 text-sm font-semibold text-rose-600">
+                Open autonomous crisis escalation engine
+              </div>
+            </Link>
             <Link
               href="/dashboard/procurement-anomaly"
               className="rounded-3xl border border-rose-200 bg-rose-50 p-6 transition hover:scale-[1.02]"
