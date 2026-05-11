@@ -431,13 +431,22 @@ export default function HomePage() {
       <section className="marketHero">
         <div className="marketHeroInner">
           <div className="marketHeroContent">
-            <div className="marketBadge">Verified local marketplace</div>
+            <div className="heroTextBlock">
+              <div className="marketBadge">Verified local marketplace</div>
 
-            <h1>Find Property, Materials, Services & Rentals</h1>
+              <h1>Find Property, Materials, Services & Rentals</h1>
 
-            <p>
-              Search listings, submit requirements, compare prices and connect with local providers.
-            </p>
+              <p>
+                Search listings, submit requirements, compare prices and connect with local providers.
+              </p>
+
+              <div className="heroTrustRow">
+                <span>🏠 Property</span>
+                <span>🧱 Materials</span>
+                <span>🛠️ Services</span>
+                <span>🚜 Rentals</span>
+              </div>
+            </div>
 
             <div className="searchPanel">
               <div className="moduleTabs">
@@ -492,10 +501,7 @@ export default function HomePage() {
                     <span>{aiSuggestion.confidence}</span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => router.push(aiSuggestion.href)}
-                  >
+                  <button type="button" onClick={() => router.push(aiSuggestion.href)}>
                     {aiSuggestion.actionLabel} →
                   </button>
                 </div>
@@ -601,9 +607,35 @@ export default function HomePage() {
 
         .marketHeroContent {
           width: 100%;
-          max-width: 980px;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(360px, 520px);
+          gap: 28px;
+          align-items: center;
           position: relative;
           z-index: 1;
+        }
+
+        .heroTextBlock {
+          max-width: 620px;
+        }
+
+        .heroTrustRow {
+          margin-top: 16px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+
+        .heroTrustRow span {
+          display: inline-flex;
+          border-radius: 999px;
+          background: #ffffff;
+          border: 1px solid rgba(15, 23, 42, 0.10);
+          padding: 8px 12px;
+          color: #0f172a;
+          font-size: 13px;
+          font-weight: 900;
+          box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
         }
 
         .marketBadge {
@@ -634,13 +666,12 @@ export default function HomePage() {
         }
 
         .searchPanel {
-          margin-top: 16px;
           background: #ffffff;
           border: 1px solid rgba(15, 23, 42, 0.10);
-          border-radius: 18px;
-          padding: 14px;
-          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.10);
-          width: min(100%, 760px);
+          border-radius: 20px;
+          padding: 16px;
+          box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+          width: 100%;
           position: relative;
           z-index: 2;
         }
@@ -1012,6 +1043,15 @@ export default function HomePage() {
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
 
+          .marketHeroContent {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+
+          .heroTextBlock {
+            max-width: 100%;
+          }
+
           .marketplaceGrid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
@@ -1026,6 +1066,20 @@ export default function HomePage() {
             width: 100%;
             overflow-x: hidden;
           }
+
+          .marketHeroContent {
+            grid-template-columns: 1fr;
+          }
+
+          .heroTrustRow {
+            gap: 8px;
+          }
+
+          .heroTrustRow span {
+            font-size: 12px;
+            padding: 7px 10px;
+          }
+
           .marketHeroInner {
             padding: 16px 10px 14px;
           }
