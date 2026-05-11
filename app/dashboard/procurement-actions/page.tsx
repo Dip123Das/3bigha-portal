@@ -51,6 +51,29 @@ export default async function ProcurementActionsPage() {
     ? data.actions
     : [];
 
+  let decisionData: any = null;
+
+  try {
+    const origin = await getOrigin();
+
+    const decisionRes = await fetch(
+      `${origin}/api/ai/procurement-autonomous-decisions`,
+      {
+        cache: "no-store",
+      }
+    );
+
+    decisionData = await decisionRes.json();
+  } catch {
+    decisionData = { ok: false };
+  }
+
+  const decisions = Array.isArray(
+    decisionData?.decisions
+  )
+    ? decisionData.decisions
+    : [];
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
       <div className="rounded-[2rem] border border-slate-200 bg-gradient-to-r from-slate-950 via-indigo-950 to-violet-950 p-6 text-white shadow-sm">
@@ -80,6 +103,91 @@ export default async function ProcurementActionsPage() {
           Procurement action engine unavailable.
         </div>
       ) : null}
+
+            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-2xl font-black text-slate-950">
+              AI Autonomous Decision Layer
+            </h2>
+
+            <p className="mt-1 text-sm font-semibold text-slate-500">
+              Autonomous procurement decision intelligence and executive action orchestration.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-3 text-sm font-black text-indigo-700">
+            Decisions: {decisions.length}
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          {decisions.map((item: any) => (
+            <div
+              key={item.title}
+              className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5"
+            >
+              <div className="flex flex-wrap gap-2">
+                <span
+                  className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${
+                    item.urgency === "Critical"
+                      ? "border-rose-200 bg-rose-50 text-rose-700"
+                      : item.urgency === "High"
+                      ? "border-amber-200 bg-amber-50 text-amber-700"
+                      : "border-blue-200 bg-blue-50 text-blue-700"
+                  }`}
+                >
+                  {item.urgency}
+                </span>
+
+                <span className="inline-flex rounded-full border border-slate-900 bg-slate-900 px-3 py-1 text-xs font-black text-white">
+                  {item.decision}
+                </span>
+              </div>
+
+              <div className="mt-4 text-2xl font-black text-slate-950">
+                {item.title}
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-4">
+                <div className="text-xs font-black uppercase tracking-[0.14em] text-blue-700">
+                  AI Explanation
+                </div>
+
+                <div className="mt-2 text-sm font-semibold leading-6 text-blue-950">
+                  {item.explanation}
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-sm font-black text-slate-700">
+                  <span>Decision Confidence</span>
+                  <span>{item.confidence}%</span>
+                </div>
+
+                <div className="mt-2 h-3 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className={`h-full rounded-full ${
+                      item.confidence >= 85
+                        ? "bg-emerald-500"
+                        : item.confidence >= 70
+                        ? "bg-amber-500"
+                        : "bg-blue-500"
+                    }`}
+                    style={{
+                      width: `${item.confidence}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm font-bold text-violet-800">
+                🤖 {item.aiAction}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
             <div className="flex flex-wrap gap-3">
         <a

@@ -7,6 +7,8 @@ type Props = {
     status: string;
     priority: string;
     time: string;
+    mode?: string;
+    confidence?: number;
   };
 };
 
@@ -35,8 +37,40 @@ export default function TaskExecutionLogCard({ item }: Props) {
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-600">
-        {new Date(item.time).toLocaleString()}
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl bg-slate-50 p-4">
+          <div className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">
+            Time
+          </div>
+
+          <div className="mt-2 text-sm font-black text-slate-950">
+            {new Date(item.time).toLocaleString()}
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-slate-50 p-4">
+          <div className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">
+            Mode
+          </div>
+
+          <div className="mt-2 text-sm font-black text-slate-950">
+            {item.mode || "preview"}
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-slate-50 p-4">
+          <div className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">
+            Confidence
+          </div>
+
+          <div className="mt-2 text-sm font-black text-slate-950">
+            {item.confidence || 0}%
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-bold text-indigo-800">
+        AI procurement execution audit trail active.
       </div>
     </div>
   );

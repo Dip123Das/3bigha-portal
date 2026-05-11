@@ -6,11 +6,21 @@ import AutonomousTaskCard from "@/components/procurement/AutonomousTaskCard";
 
 export default function ProcurementAutonomousTasksPage() {
   const [data, setData] = useState<any>(null);
+    
+  const [recovery, setRecovery] =
+    useState<any>(null);
 
   useEffect(() => {
-    fetch("/api/ai/procurement-autonomous-tasks")
-      .then((r) => r.json())
-      .then(setData);
+    Promise.all([
+      fetch("/api/ai/procurement-autonomous-tasks")
+        .then((r) => r.json()),
+
+      fetch("/api/ai/procurement-recovery-agent")
+        .then((r) => r.json()),
+    ]).then(([taskData, recoveryData]) => {
+      setData(taskData);
+      setRecovery(recoveryData);
+    });
   }, []);
 
   const summary = data?.summary || {};
@@ -41,11 +51,16 @@ export default function ProcurementAutonomousTasksPage() {
           <ProcurementCommandCenterNav />
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-4">
+        <div className="mt-8 grid gap-4 md:grid-cols-5">
           <Stat label="Total Tasks" value={summary.total || 0} />
           <Stat label="Critical" value={summary.critical || 0} />
           <Stat label="High" value={summary.high || 0} />
           <Stat label="Ready" value={summary.ready || 0} />
+
+          <Stat
+            label="Recovery Agent"
+            value={recovery?.summary?.total || 0}
+          />
         </div>
 
                 <div className="mt-8 rounded-[2rem] border border-rose-200 bg-rose-50 p-6 shadow-sm">
@@ -60,6 +75,99 @@ export default function ProcurementAutonomousTasksPage() {
           <div className="mt-4 text-sm font-semibold leading-6 text-rose-800">
             Supplier silence, overload pressure and procurement continuity risks
             are now connected to autonomous execution workflows.
+          </div>
+        </div>
+
+                <div className="mt-8 rounded-[2rem] border border-indigo-200 bg-indigo-50 p-6 shadow-sm">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="text-sm font-black uppercase tracking-[0.14em] text-indigo-700">
+                Procurement Recovery Agent
+              </div>
+
+              <div className="mt-2 text-3xl font-black text-indigo-950">
+                AI Recovery Agent is actively supervising procurement continuity.
+              </div>
+
+              <div className="mt-4 text-sm font-semibold leading-6 text-indigo-900">
+                Autonomous recovery supervision is now monitoring stale conversations,
+                supplier silence and procurement degradation risk.
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white bg-white px-5 py-4 text-sm font-black text-indigo-700">
+              Recovery Threads:{" "}
+              {recovery?.summary?.total || 0}
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            {(recovery?.recovery || [])
+              .slice(0, 6)
+              .map((item: any) => (
+                <div
+                  key={item.id}
+                  className="rounded-[1.5rem] border border-white bg-white p-5"
+                >
+                  <div className="flex flex-wrap gap-2">
+                    <span
+                      className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${
+                        item.severity ===
+                        "critical"
+                          ? "border-rose-200 bg-rose-50 text-rose-700"
+                          : item.severity ===
+                            "high"
+                            ? "border-amber-200 bg-amber-50 text-amber-700"
+                            : "border-blue-200 bg-blue-50 text-blue-700"
+                      }`}
+                    >
+                      {item.severity}
+                    </span>
+
+                    <span className="inline-flex rounded-full border border-slate-900 bg-slate-900 px-3 py-1 text-xs font-black text-white">
+                      {item.actionType}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 text-xl font-black text-slate-950">
+                    {item.title}
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+                      AI Recommendation
+                    </div>
+
+                    <div className="mt-2 text-sm font-semibold leading-6 text-slate-900">
+                      {item.recommendation}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between text-sm font-black text-slate-700">
+                    <span>Recovery Confidence</span>
+                    <span>{item.confidence}%</span>
+                  </div>
+
+                  <div className="mt-2 h-3 overflow-hidden rounded-full bg-slate-200">
+                    <div
+                      className={`h-full rounded-full ${
+                        item.confidence >= 90
+                          ? "bg-rose-500"
+                          : item.confidence >= 75
+                          ? "bg-amber-500"
+                          : "bg-blue-500"
+                      }`}
+                      style={{
+                        width: `${item.confidence}%`,
+                      }}
+                    />
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm font-bold text-violet-800">
+                    🤖 {item.actionLabel}
+                  </div>
+                </div>
+              ))}
           </div>
         </div>
 
@@ -84,6 +192,14 @@ export default function ProcurementAutonomousTasksPage() {
           >
             Open Inbox AI
           </a>
+
+          <a
+            href="/dashboard/procurement-task-execution-log"
+            className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+          >
+            Open Execution Audit
+          </a>
+
         </div>
 
         <div className="mt-8 space-y-6">

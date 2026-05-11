@@ -45,6 +45,11 @@ export default function AutonomousTaskCard({ item }: Props) {
   const [executionMode, setExecutionMode] = useState<string>("");
   const [executedAt, setExecutedAt] = useState<string>("");
   const [logStatus, setLogStatus] = useState<string>("");
+    
+  const [safetyMode, setSafetyMode] =
+    useState<"preview" | "approved" | "executed">(
+      "preview"
+    );
 
   const conversationId = item.conversationId || item.conversation_id || "";
   const rfqId = item.rfqId || item.rfq_id || "";
@@ -127,6 +132,12 @@ export default function AutonomousTaskCard({ item }: Props) {
       const logJson = await logRes.json();
 
       setExecutionMode(executeJson?.mode || json.executionMode || "preview");
+           
+      setSafetyMode(
+        executeJson?.mode === "executed"
+          ? "executed"
+          : "approved"
+      );
 
       setLogStatus(
         executeJson?.mode === "executed"
@@ -148,6 +159,7 @@ export default function AutonomousTaskCard({ item }: Props) {
     try {
       await navigator.clipboard?.writeText(message);
       setResult(message);
+      setSafetyMode("preview");
       if (!executedAt) {
         setExecutedAt(new Date().toISOString());
       }
@@ -259,6 +271,37 @@ export default function AutonomousTaskCard({ item }: Props) {
         </div>
       ) : null}
 
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+              Execution Governance
+            </div>
+
+            <div className="mt-2 text-lg font-black text-slate-950">
+              Autonomous Procurement Safety Layer
+            </div>
+          </div>
+
+          <div
+            className={`rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.14em] ${
+              safetyMode === "executed"
+                ? "bg-emerald-500 text-white"
+                : safetyMode === "approved"
+                  ? "bg-amber-500 text-white"
+                  : "bg-slate-900 text-white"
+            }`}
+          >
+            {safetyMode}
+          </div>
+        </div>
+
+        <div className="mt-4 text-sm font-semibold leading-6 text-slate-600">
+          AI procurement execution is running under controlled governance mode.
+          Autonomous actions are visible, reviewable and execution-tracked.
+        </div>
+      </div>
+
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
@@ -293,6 +336,7 @@ export default function AutonomousTaskCard({ item }: Props) {
             onClick={() => {
               setResult(result || item.suggestedMessage);
               setExecutionMode("approved");
+              setSafetyMode("approved");
               setExecutedAt(new Date().toISOString());
             }}
             className="rounded-full border border-slate-300 bg-slate-50 px-5 py-3 text-sm font-black text-slate-800"

@@ -5,6 +5,12 @@ import { usePathname } from "next/navigation";
 
 const ITEMS = [
   {
+    href: "/dashboard/procurement-os",
+    label: "Procurement OS",
+    emoji: "🧭",
+    description: "Master command index for all AI procurement modules",
+  },
+  {
     href: "/dashboard/procurement-situation-room",
     label: "Situation Room",
     emoji: "🚨",

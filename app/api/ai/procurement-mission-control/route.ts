@@ -16,12 +16,23 @@ export async function GET(req: Request) {
   try {
     const origin = new URL(req.url).origin;
 
-    const [health, crisis, briefing, execution, live] = await Promise.all([
+    const [
+      health,
+      crisis,
+      briefing,
+      execution,
+      live,
+      telemetry,
+    ] = await Promise.all([
       safeJson(`${origin}/api/ai/procurement-health-score`),
       safeJson(`${origin}/api/ai/procurement-crisis-center`),
       safeJson(`${origin}/api/ai/procurement-daily-briefing`),
       safeJson(`${origin}/api/ai/procurement-execution-engine`),
       safeJson(`${origin}/api/ai/procurement-live-events`),
+
+      safeJson(
+        `${origin}/api/ai/procurement-telemetry`
+      ),
     ]);
 
     const healthScore = Number(health?.healthScore || 0);
@@ -50,6 +61,15 @@ export async function GET(req: Request) {
         criticalThreads,
         criticalSignals,
         liveEvents: live?.summary?.total || 0,
+
+        operationalLoad:
+          telemetry?.telemetry?.operationalLoad || 0,
+
+        recoveryPressure:
+          telemetry?.telemetry?.recoveryPressure || 0,
+
+        staleConversations:
+          telemetry?.telemetry?.staleConversations || 0,
       },
       executiveSummary:
         criticalThreads > 0
