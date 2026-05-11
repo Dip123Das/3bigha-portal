@@ -560,11 +560,42 @@ export default function HomePage() {
         <div>
           <strong>AI-powered local marketplace engine</strong>
           <p>
-            Search every local market, compare nearby prices, submit requirements and connect with local property owners, suppliers, service providers and rental vendors.
+            Search local markets, compare nearby prices, submit RFQs, predict demand and connect with property owners, suppliers, service providers, rental vendors and investors.
           </p>
         </div>
 
         <a href="/rfq/general/new">Start with AI →</a>
+      </section>
+
+      <section className="aiRecommendationSection">
+        <div className="sectionTitleRow">
+          <div>
+            <h2>AI Recommended Near You</h2>
+            <p>Smart recommendations based on local market activity, pricing trends and buyer demand.</p>
+          </div>
+
+          <a href="/search">Explore Smart Discovery →</a>
+        </div>
+
+        <div className="aiRecommendationGrid">
+          <a href="/property" className="aiRecommendationCard">
+            <div className="aiRecommendationTag">🔥 Trending Property</div>
+            <strong>High-demand residential plots in nearby local markets</strong>
+            <span>AI detected rising buyer activity around developing residential zones.</span>
+          </a>
+
+          <a href="/materials" className="aiRecommendationCard">
+            <div className="aiRecommendationTag">📈 Price Intelligence</div>
+            <strong>Cement and aggregate demand increasing this week</strong>
+            <span>Marketplace activity shows growing procurement movement from local suppliers.</span>
+          </a>
+
+          <a href="/services" className="aiRecommendationCard">
+            <div className="aiRecommendationTag">⚡ Vendor Match</div>
+            <strong>Construction and legal services actively responding</strong>
+            <span>AI-assisted RFQ routing is helping buyers receive faster quotations.</span>
+          </a>
+        </div>
       </section>
 
       <section className="quickActionSection">
@@ -585,6 +616,45 @@ export default function HomePage() {
           <span>Cement, steel, sand, brick, land and per sq.ft. market indication.</span>
         </div>
         <a href="/price-today">Check Rates →</a>
+      </section>
+
+            <section className="aiRecommendationSection">
+        <div className="sectionTitleRow">
+          <div>
+            <h2>AI Recommended Near You</h2>
+            <p>
+              Smart recommendations based on local market activity, pricing trends and buyer demand.
+            </p>
+          </div>
+
+          <a href="/search">Explore Smart Discovery →</a>
+        </div>
+
+        <div className="aiRecommendationGrid">
+          <a href="/property" className="aiRecommendationCard">
+            <div className="aiRecommendationTag">🔥 Trending Property</div>
+            <strong>High-demand residential plots in nearby local markets</strong>
+            <span>
+              AI detected rising buyer activity around developing residential zones.
+            </span>
+          </a>
+
+          <a href="/materials" className="aiRecommendationCard">
+            <div className="aiRecommendationTag">📈 Price Intelligence</div>
+            <strong>Cement and aggregate demand increasing this week</strong>
+            <span>
+              Marketplace activity shows growing procurement movement from local suppliers.
+            </span>
+          </a>
+
+          <a href="/services" className="aiRecommendationCard">
+            <div className="aiRecommendationTag">⚡ Vendor Match</div>
+            <strong>Construction and legal services actively responding</strong>
+            <span>
+              AI-assisted RFQ routing is helping buyers receive faster quotations.
+            </span>
+          </a>
+        </div>
       </section>
 
       <section className="liveMarketplaceSection">
@@ -1077,6 +1147,104 @@ export default function HomePage() {
           font-size: 13px;
         }
 
+        .aiRecommendationSection {
+          width: min(100%, 1180px);
+          margin: 18px auto 0;
+          padding: 0 16px;
+        }
+
+        .aiRecommendationGrid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 14px;
+        }
+
+        .aiRecommendationCard {
+          background: linear-gradient(180deg, #ffffff, #f8fbff);
+          border: 1px solid rgba(11, 87, 208, 0.12);
+          border-radius: 18px;
+          padding: 18px;
+          text-decoration: none;
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        .aiRecommendationTag {
+          display: inline-flex;
+          border-radius: 999px;
+          background: rgba(11, 87, 208, 0.08);
+          color: #0b57d0;
+          padding: 6px 10px;
+          font-size: 11px;
+          font-weight: 950;
+          margin-bottom: 12px;
+        }
+
+        .aiRecommendationCard strong {
+          display: block;
+          color: #0f172a;
+          font-size: 18px;
+          line-height: 1.35;
+          font-weight: 950;
+        }
+
+        .aiRecommendationCard span {
+          display: block;
+          margin-top: 10px;
+          color: #64748b;
+          font-size: 13px;
+          line-height: 1.6;
+          font-weight: 700;
+        }
+
+        .aiRecommendationSection {
+          width: min(100%, 1180px);
+          margin: 18px auto 0;
+          padding: 0 16px;
+        }
+
+        .aiRecommendationGrid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 14px;
+        }
+
+        .aiRecommendationCard {
+          background: linear-gradient(180deg, #ffffff, #f8fbff);
+          border: 1px solid rgba(11, 87, 208, 0.12);
+          border-radius: 18px;
+          padding: 18px;
+          text-decoration: none;
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        .aiRecommendationTag {
+          display: inline-flex;
+          border-radius: 999px;
+          background: rgba(11, 87, 208, 0.08);
+          color: #0b57d0;
+          padding: 6px 10px;
+          font-size: 11px;
+          font-weight: 950;
+          margin-bottom: 12px;
+        }
+
+        .aiRecommendationCard strong {
+          display: block;
+          color: #0f172a;
+          font-size: 18px;
+          line-height: 1.35;
+          font-weight: 950;
+        }
+
+        .aiRecommendationCard span {
+          display: block;
+          margin-top: 10px;
+          color: #64748b;
+          font-size: 13px;
+          line-height: 1.6;
+          font-weight: 700;
+        }
+
         .liveMarketplaceSection {
           width: min(100%, 1180px);
           margin: 18px auto 0;
@@ -1223,6 +1391,10 @@ export default function HomePage() {
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
 
+          .aiRecommendationGrid {
+            grid-template-columns: 1fr;
+          }
+
           .marketHeroContent {
             grid-template-columns: 1fr;
             gap: 18px;
@@ -1235,6 +1407,10 @@ export default function HomePage() {
 
           .marketplaceGrid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .aiRecommendationGrid {
+            grid-template-columns: 1fr;
           }
 
           .categorySection {
@@ -1281,10 +1457,40 @@ export default function HomePage() {
             padding: 13px;
           }
 
-          .liveMarketplaceSection {
+          .aiRecommendationSection {
+            margin-top: 10px;
+            padding-left: 10px;
+            padding-right: 10px;
+          }
+
+          .aiRecommendationCard {
+            border-radius: 14px;
+            padding: 14px;
+          }
+
+          .aiRecommendationCard strong {
+            font-size: 16px;
+          }
+
+          .liveMarketplaceSection,
+          .aiRecommendationSection {
             margin-top: 12px;
             padding-left: 10px;
             padding-right: 10px;
+          }
+
+          .aiRecommendationGrid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+
+          .aiRecommendationCard {
+            border-radius: 14px;
+            padding: 14px;
+          }
+
+          .aiRecommendationCard strong {
+            font-size: 16px;
           }
 
           .sectionTitleRow {
