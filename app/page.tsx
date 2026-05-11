@@ -3,10 +3,46 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
 import JsonLd from "@/components/seo/JsonLd";
 import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
 
 type SearchScope = "property" | "materials" | "services" | "rentals" | "investment";
+
+type MarketplaceItem = {
+  id: string;
+  module: "Property" | "Material" | "Service" | "Rental";
+  title: string;
+  subtitle: string;
+  meta: string;
+  price: string;
+  href: string;
+  badge: string;
+  image?: string | null;
+};
+
+function moneyINR(value: any) {
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num) || num <= 0) return "";
+  return `₹ ${num.toLocaleString("en-IN")}`;
+}
+
+function firstPhotoUrl(photos: any): string | null {
+  if (!photos) return null;
+  if (Array.isArray(photos)) {
+    const first = photos[0];
+    if (typeof first === "string") return first;
+    if (first && typeof first === "object") return first.url || first.src || null;
+  }
+  if (typeof photos === "object") return photos.url || photos.src || null;
+  return null;
+}
+
+function clipText(value: any, max = 90) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  return text.length > max ? `${text.slice(0, max).trim()}…` : text;
+}
 
 const modules: { key: SearchScope; label: string; placeholder: string }[] = [
   {
@@ -57,6 +93,8 @@ export default function HomePage() {
   const [scope, setScope] = useState<SearchScope>("property");
   const [query, setQuery] = useState("");
   const [locationText, setLocationText] = useState("");
+  const [featuredItems, setFeaturedItems] = useState<MarketplaceItem[]>([]);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
 
   const activeModule = useMemo(
     () => modules.find((m) => m.key === scope) || modules[0],
@@ -86,6 +124,138 @@ export default function HomePage() {
         // Location is optional.
       }
     });
+  }, []);
+
+    useEffect(() => {
+    let alive = true;
+
+    async function loadFeaturedMarketplace() {
+      setFeaturedLoading(true);
+
+      try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        if (!supabaseUrl || !supabaseKey) {
+          if (alive) setFeaturedLoading(false);
+          return;
+        }
+
+        const supabase = createClient(supabaseUrl, supabaseKey, {
+          auth: { persistSession: false },
+        });
+
+        const propertyReq = fetch("/api/property/public-listings?page=0&pageSize=4", {
+          method: "GET",
+          cache: "no-store",
+        })
+          .then((r) => r.json())
+          .catch(() => ({ data: [] }));
+
+        const materialsReq = supabase
+          .from("material_listings")
+          .select("id,title,local_name,description,packaging_unit,attributes,created_at,published_at,is_active,is_public,status")
+          .eq("is_active", true)
+          .or("is_public.eq.true,published_at.not.is.null,status.ilike.published,status.ilike.active")
+          .order("created_at", { ascending: false })
+          .limit(4);
+
+        const servicesReq = supabase
+          .from("v_service_listings")
+          .select("provider_service_id,provider_name,custom_category,custom_service,service_description,city,district,state,min_price,max_price,currency,service_is_active,provider_service_created_at")
+          .eq("service_is_active", true)
+          .order("provider_service_created_at", { ascending: false })
+          .limit(4);
+
+        const rentalsReq = supabase
+          .from("rental_listings_public")
+          .select("id,title,description,rate,pricing_unit,rate_unit_label,city,district,state,locality,photos,is_active,updated_at")
+          .eq("is_active", true)
+          .order("updated_at", { ascending: false })
+          .limit(4);
+
+        const [propertyRes, materialsRes, servicesRes, rentalsRes] = await Promise.all([
+          propertyReq,
+          materialsReq,
+          servicesReq,
+          rentalsReq,
+        ]);
+
+        if (!alive) return;
+
+        const propertyItems: MarketplaceItem[] = ((propertyRes?.data || []) as any[]).map((p) => ({
+          id: String(p.id),
+          module: "Property",
+          title: p.title || "Property listing",
+          subtitle: [p.city, p.state].filter(Boolean).join(", ") || "Location available on details",
+          meta: p.listing_intent || "Property",
+          price: moneyINR(p.expected_price || p.price) || "Price on request",
+          href: `/property/${encodeURIComponent(String(p.slug || p.id))}`,
+          badge: "Featured Property",
+          image: firstPhotoUrl(p.photos),
+        }));
+
+        const materialItems: MarketplaceItem[] = ((materialsRes.data || []) as any[]).map((m) => {
+          const price = m.attributes?.price || m.attributes?.unit_price || m.attributes?.rate || m.attributes?.mrp;
+
+          return {
+            id: String(m.id),
+            module: "Material",
+            title: m.title || m.local_name || "Material listing",
+            subtitle: clipText(m.description, 75) || "Building material available for enquiry",
+            meta: m.packaging_unit ? `Unit: ${m.packaging_unit}` : "Material",
+            price: moneyINR(price) || "Ask price",
+            href: `/materials/${encodeURIComponent(String(m.id))}`,
+            badge: "Latest Material",
+            image: null,
+          };
+        });
+
+        const serviceItems: MarketplaceItem[] = ((servicesRes.data || []) as any[]).map((s) => ({
+          id: String(s.provider_service_id),
+          module: "Service",
+          title: s.custom_service || "Professional service",
+          subtitle: s.provider_name || clipText(s.service_description, 75) || "Service provider",
+          meta: [s.city, s.district, s.state].filter(Boolean).join(", ") || s.custom_category || "Service",
+          price:
+            s.min_price || s.max_price
+              ? `${moneyINR(s.min_price) || "₹ —"}${s.max_price ? ` - ${moneyINR(s.max_price)}` : ""}`
+              : "Quote on request",
+          href: `/services`,
+          badge: s.custom_category || "Top Service",
+          image: null,
+        }));
+
+        const rentalItems: MarketplaceItem[] = ((rentalsRes.data || []) as any[]).map((r) => ({
+          id: String(r.id),
+          module: "Rental",
+          title: r.title || "Rental equipment",
+          subtitle: [r.locality, r.city, r.district].filter(Boolean).join(", ") || clipText(r.description, 75),
+          meta: r.rate_unit_label || r.pricing_unit || "Rental",
+          price: r.rate ? `${moneyINR(r.rate)}${r.rate_unit_label ? `/${r.rate_unit_label}` : ""}` : "Rate on request",
+          href: `/rentals/${encodeURIComponent(String(r.id))}`,
+          badge: "Trending Rental",
+          image: firstPhotoUrl(r.photos),
+        }));
+
+        setFeaturedItems([
+          ...propertyItems,
+          ...materialItems,
+          ...serviceItems,
+          ...rentalItems,
+        ].slice(0, 12));
+      } catch {
+        if (alive) setFeaturedItems([]);
+      } finally {
+        if (alive) setFeaturedLoading(false);
+      }
+    }
+
+    loadFeaturedMarketplace();
+
+    return () => {
+      alive = false;
+    };
   }, []);
 
   function runSearch() {
@@ -178,6 +348,51 @@ export default function HomePage() {
         <a href="/price-today">Check Rates →</a>
       </section>
 
+      <section className="liveMarketplaceSection">
+        <div className="sectionTitleRow">
+          <div>
+            <h2>Live Marketplace</h2>
+            <p>Latest property, materials, services and rentals from 3Bigha.</p>
+          </div>
+          <a href="/search">View all →</a>
+        </div>
+
+        {featuredLoading ? (
+          <div className="marketplaceLoading">Loading live marketplace…</div>
+        ) : featuredItems.length === 0 ? (
+          <div className="marketplaceLoading">No live listings found yet.</div>
+        ) : (
+          <div className="marketplaceGrid">
+            {featuredItems.map((item) => (
+              <a key={`${item.module}-${item.id}`} href={item.href} className="marketplaceCard">
+                <div className="marketplaceImage">
+                  {item.image ? (
+                    <img src={item.image} alt={item.title} />
+                  ) : (
+                    <span>{item.module === "Property" ? "🏠" : item.module === "Material" ? "🧱" : item.module === "Service" ? "🛠️" : "🚜"}</span>
+                  )}
+                </div>
+
+                <div className="marketplaceBody">
+                  <div className="marketplaceTop">
+                    <span>{item.badge}</span>
+                    <strong>{item.module}</strong>
+                  </div>
+
+                  <h3>{item.title}</h3>
+                  <p>{item.subtitle}</p>
+
+                  <div className="marketplaceMeta">
+                    <span>{item.meta}</span>
+                    <b>{item.price}</b>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+      </section>
+
       <section className="categorySection">
         {categories.map((item) => (
           <a key={item.title} href={item.href} className="categoryCard">
@@ -204,7 +419,7 @@ export default function HomePage() {
         .marketHeroInner {
           max-width: 1180px;
           margin: 0 auto;
-          padding: 34px 16px 26px;
+          padding: 22px 16px 18px;
         }
 
         .marketHeroContent {
@@ -239,7 +454,7 @@ export default function HomePage() {
         }
 
         .searchPanel {
-          margin-top: 22px;
+          margin-top: 18px;
           background: #ffffff;
           border: 1px solid rgba(15, 23, 42, 0.10);
           border-radius: 18px;
@@ -419,8 +634,142 @@ export default function HomePage() {
           font-size: 13px;
         }
 
+                .liveMarketplaceSection {
+          max-width: 1180px;
+          margin: 18px auto 0;
+          padding: 0 16px;
+        }
+
+        .sectionTitleRow {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 14px;
+          margin-bottom: 12px;
+        }
+
+        .sectionTitleRow h2 {
+          margin: 0;
+          color: #0f172a;
+          font-size: 24px;
+          font-weight: 950;
+          letter-spacing: -0.03em;
+        }
+
+        .sectionTitleRow p {
+          margin: 4px 0 0;
+          color: #64748b;
+          font-size: 14px;
+        }
+
+        .sectionTitleRow a {
+          color: #0b57d0;
+          text-decoration: none;
+          font-weight: 950;
+          white-space: nowrap;
+        }
+
+        .marketplaceGrid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 14px;
+        }
+
+        .marketplaceCard {
+          background: #ffffff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 18px;
+          overflow: hidden;
+          color: inherit;
+          text-decoration: none;
+          box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        }
+
+        .marketplaceImage {
+          height: 120px;
+          background: linear-gradient(135deg, #eff6ff, #f8fafc);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #0b57d0;
+          font-size: 34px;
+          font-weight: 950;
+        }
+
+        .marketplaceImage img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        .marketplaceBody {
+          padding: 13px;
+        }
+
+        .marketplaceTop {
+          display: flex;
+          justify-content: space-between;
+          gap: 8px;
+          align-items: center;
+          font-size: 11px;
+          font-weight: 950;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+
+        .marketplaceTop span {
+          color: #0b57d0;
+        }
+
+        .marketplaceBody h3 {
+          margin: 8px 0 0;
+          color: #0f172a;
+          font-size: 16px;
+          line-height: 1.3;
+          font-weight: 950;
+        }
+
+        .marketplaceBody p {
+          margin: 6px 0 0;
+          color: #64748b;
+          font-size: 13px;
+          line-height: 1.45;
+          min-height: 38px;
+        }
+
+        .marketplaceMeta {
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          font-size: 12px;
+          color: #64748b;
+        }
+
+        .marketplaceMeta b {
+          color: #dc2626;
+          font-size: 13px;
+          white-space: nowrap;
+        }
+
+        .marketplaceLoading {
+          background: #ffffff;
+          border: 1px dashed rgba(15, 23, 42, 0.18);
+          border-radius: 16px;
+          padding: 18px;
+          color: #64748b;
+          font-weight: 800;
+        }
+
         @media (max-width: 980px) {
           .quickActionSection {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .marketplaceGrid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
 
@@ -432,6 +781,35 @@ export default function HomePage() {
         @media (max-width: 640px) {
           .marketHeroInner {
             padding: 18px 0 14px;
+          }
+
+          .liveMarketplaceSection {
+            margin-top: 12px;
+            padding-left: 10px;
+            padding-right: 10px;
+          }
+
+          .sectionTitleRow {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 6px;
+          }
+
+          .sectionTitleRow h2 {
+            font-size: 21px;
+          }
+
+          .marketplaceGrid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+
+          .marketplaceImage {
+            height: 138px;
+          }
+
+          .marketplaceCard {
+            border-radius: 14px;
           }
 
           .marketHeroContent {
