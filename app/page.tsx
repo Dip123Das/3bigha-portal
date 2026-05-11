@@ -268,7 +268,8 @@ export default function HomePage() {
   }, []);
 
     function runAISmartGuide() {
-    const clean = query.trim().toLowerCase();
+    const originalQuery = query.trim();
+    const clean = originalQuery.toLowerCase();
 
     if (!clean) {
       setAiSuggestion({
@@ -281,6 +282,19 @@ export default function HomePage() {
       });
       return;
     }
+
+    fetch("/api/ai/search-intent", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: originalQuery,
+        module: scope,
+        location: locationText,
+        source: "homepage",
+      }),
+    }).catch(() => null);
 
     const hasNumber = /\d+/.test(clean);
     const isMaterial =
@@ -580,12 +594,13 @@ export default function HomePage() {
         }
 
         .marketHeroInner {
-          max-width: 1180px;
+          width: min(100%, 1180px);
           margin: 0 auto;
           padding: 22px 16px 18px;
         }
 
         .marketHeroContent {
+          width: 100%;
           max-width: 980px;
           position: relative;
           z-index: 1;
@@ -625,7 +640,7 @@ export default function HomePage() {
           border-radius: 18px;
           padding: 14px;
           box-shadow: 0 14px 34px rgba(15, 23, 42, 0.10);
-          max-width: 760px;
+          width: min(100%, 760px);
           position: relative;
           z-index: 2;
         }
@@ -754,7 +769,7 @@ export default function HomePage() {
 
         .quickActionSection,
         .categorySection {
-          max-width: 1180px;
+          width: min(100%, 1180px);
           margin: 18px auto 0;
           padding: 0 16px;
           display: grid;
@@ -807,7 +822,7 @@ export default function HomePage() {
         }
 
         .priceStrip {
-          max-width: 1180px;
+          width: min(100%, 1180px);
           margin: 16px auto 0;
           padding: 16px;
           border-radius: 18px;
@@ -859,8 +874,8 @@ export default function HomePage() {
           font-size: 13px;
         }
 
-                .liveMarketplaceSection {
-          max-width: 1180px;
+        .liveMarketplaceSection {
+          width: min(100%, 1180px);
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -897,10 +912,13 @@ export default function HomePage() {
         .marketplaceGrid {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 14px;
+          gap: 16px;
+          align-items: stretch;
         }
 
         .marketplaceCard {
+          min-width: 0;
+          height: 100%;
           background: #ffffff;
           border: 1px solid rgba(15, 23, 42, 0.08);
           border-radius: 18px;
@@ -1004,8 +1022,12 @@ export default function HomePage() {
         }
 
         @media (max-width: 640px) {
+          .homePage {
+            width: 100%;
+            overflow-x: hidden;
+          }
           .marketHeroInner {
-            padding: 18px 0 14px;
+            padding: 16px 10px 14px;
           }
 
           .liveMarketplaceSection {
@@ -1038,7 +1060,7 @@ export default function HomePage() {
           }
 
           .marketHeroContent {
-            padding: 0 10px;
+            padding: 0;
           }
 
           .marketHero {
@@ -1084,6 +1106,7 @@ export default function HomePage() {
           .quickActionSection,
           .categorySection,
           .priceStrip {
+            width: 100%;
             margin-top: 10px;
             padding-left: 10px;
             padding-right: 10px;
