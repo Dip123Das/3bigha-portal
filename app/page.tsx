@@ -449,15 +449,7 @@ export default function HomePage() {
               </div>
 
               <div className="aiPowerRow">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setScope("property");
-                    runAISmartGuide();
-                  }}
-                >
-                  🤖 AI Smart Search
-                </button>
+                <a href="/search">🤖 AI Smart Search</a>
                 <a href="/search">📍 Local Market Discovery</a>
                 <a href="/rfq/general/new">⚡ Instant RFQ Assist</a>
                 <a href="/price-today">📊 Local Price Prediction</a>
@@ -532,15 +524,36 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="aiPortalStrip">
-        <div>
-          <strong>AI-powered marketplace engine</strong>
-          <p>
-            3bigha helps users search, compare, submit requirements, predict prices and match with vendors faster.
-          </p>
+      <section className="aiMarketPulseSection">
+        <div className="sectionTitleRow">
+          <div>
+            <h2>AI Local Market Intelligence</h2>
+            <p>Smart tools for price, vendor, RFQ and local market discovery.</p>
+          </div>
+          <a href="/search">Explore AI Search →</a>
         </div>
 
-        <a href="/rfq/general/new">Start with AI →</a>
+        <div className="aiMarketPulseGrid">
+          <a href="/search" className="aiMarketPulseCard">
+            <strong>🤖 AI Smart Search</strong>
+            <span>Search property, materials, services, rentals and investment opportunities from one place.</span>
+          </a>
+
+          <a href="/price-today" className="aiMarketPulseCard">
+            <strong>📊 Local Price Prediction</strong>
+            <span>Check local rate movement for land, construction materials and marketplace pricing.</span>
+          </a>
+
+          <a href="/rfq/general/new" className="aiMarketPulseCard">
+            <strong>⚡ Instant RFQ Assist</strong>
+            <span>Describe your requirement and let 3bigha route it toward suitable vendors.</span>
+          </a>
+
+          <a href="/vendor/discovery" className="aiMarketPulseCard">
+            <strong>🎯 Nearby Vendor Match</strong>
+            <span>Find relevant local suppliers, service providers and rental vendors faster.</span>
+          </a>
+        </div>
       </section>
 
       <section className="aiPortalStrip">
@@ -885,6 +898,43 @@ export default function HomePage() {
           margin: 0 auto;
         }
 
+        .aiMarketPulseSection {
+          width: min(100%, 1180px);
+          margin: 16px auto 0;
+          padding: 0 16px;
+        }
+
+        .aiMarketPulseGrid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 14px;
+        }
+
+        .aiMarketPulseCard {
+          background: #ffffff;
+          border: 1px solid rgba(11, 87, 208, 0.14);
+          border-radius: 18px;
+          padding: 16px;
+          text-decoration: none;
+          box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+        }
+
+        .aiMarketPulseCard strong {
+          display: block;
+          color: #0f172a;
+          font-size: 15px;
+          font-weight: 950;
+        }
+
+        .aiMarketPulseCard span {
+          display: block;
+          margin-top: 7px;
+          color: #64748b;
+          font-size: 13px;
+          line-height: 1.45;
+          font-weight: 700;
+        }
+
         .aiPortalStrip {
           width: min(100%, 1180px);
           margin: 14px auto 0;
@@ -1169,6 +1219,10 @@ export default function HomePage() {
             max-width: 100%;
           }
 
+          .aiMarketPulseGrid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
           .marketHeroContent {
             grid-template-columns: 1fr;
             gap: 18px;
@@ -1209,6 +1263,22 @@ export default function HomePage() {
 
           .marketHeroInner {
             padding: 18px 10px 26px;
+          }
+
+          .aiMarketPulseSection {
+            margin-top: 10px;
+            padding-left: 10px;
+            padding-right: 10px;
+          }
+
+          .aiMarketPulseGrid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+
+          .aiMarketPulseCard {
+            border-radius: 14px;
+            padding: 13px;
           }
 
           .liveMarketplaceSection {
