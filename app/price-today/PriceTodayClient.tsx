@@ -2071,7 +2071,10 @@ if (userData.user) {
           </div>
         </div>
 
-                <div className="mt-6 rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-emerald-50 p-5 shadow-sm">
+        <div
+          id="prediction"
+          className="mt-6 scroll-mt-24 rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-emerald-50 p-5 shadow-sm"
+        >
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-wide text-indigo-700">

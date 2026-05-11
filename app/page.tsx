@@ -446,13 +446,16 @@ export default function HomePage() {
                 <a href="/services">🛠️ Services</a>
                 <a href="/rentals">🚜 Rentals</a>
                 <a href="/investment/opportunities">💼 Investment</a>
+                <a href="/price-today#prediction" className="priceTodayHeroChip">
+                  📊 Price Today
+                </a>
               </div>
 
               <div className="aiPowerRow">
                 <a href="/search">🤖 AI Smart Search</a>
                 <a href="/search">📍 Local Market Discovery</a>
                 <a href="/rfq/general/new">⚡ Instant RFQ Assist</a>
-                <a href="/price-today">📊 Local Price Prediction</a>
+                <a href="/price-today#prediction">📊 Local Price Prediction</a>
                 <a href="/vendor/discovery">🎯 Nearby Vendor Match</a>
               </div>
             </div>
@@ -539,7 +542,7 @@ export default function HomePage() {
             <span>Search property, materials, services, rentals and investment opportunities from one place.</span>
           </a>
 
-          <a href="/price-today" className="aiMarketPulseCard">
+          <a href="/price-today#prediction" className="aiMarketPulseCard">
             <strong>📊 Local Price Prediction</strong>
             <span>Check local rate movement for land, construction materials and marketplace pricing.</span>
           </a>
@@ -615,7 +618,19 @@ export default function HomePage() {
           <strong>Price Today</strong>
           <span>Cement, steel, sand, brick, land and per sq.ft. market indication.</span>
         </div>
-        <a href="/price-today">Check Rates →</a>
+        <a href="/price-today#prediction">Check Prediction →</a>
+      </section>
+
+            <section className="marketPulseSection">
+        <div className="marketPulseCard">
+          <strong>Live Local Market Pulse</strong>
+          <div className="marketPulseItems">
+            <a href="/price-today">📈 Cement demand rising</a>
+            <a href="/property">🏠 Land search active</a>
+            <a href="/rentals">🚜 Rentals moving fast</a>
+            <a href="/rfq/general/new">⚡ Vendors responding</a>
+          </div>
+        </div>
       </section>
 
       <section className="liveMarketplaceSection">
@@ -673,6 +688,13 @@ export default function HomePage() {
           </a>
         ))}
       </section>
+
+      <div className="floatingAiCopilot">
+        <strong>AI Copilot</strong>
+        <a href="/search">Smart Search</a>
+        <a href="/rfq/general/new">Draft RFQ</a>
+        <a href="/price-today">Check Price</a>
+      </div>
 
       <style jsx>{`
         .homePage {
@@ -749,6 +771,13 @@ export default function HomePage() {
           font-weight: 900;
           box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
           text-decoration: none;
+        }
+
+        .heroTrustRow a.priceTodayHeroChip {
+          background: linear-gradient(135deg, #fff7ed, #ffedd5);
+          border-color: rgba(234, 88, 12, 0.22);
+          color: #c2410c;
+          box-shadow: 0 10px 24px rgba(234, 88, 12, 0.12);
         }
 
         .marketBadge {
@@ -1206,6 +1235,80 @@ export default function HomePage() {
           font-weight: 700;
         }
 
+        .marketPulseSection {
+          width: min(100%, 1180px);
+          margin: 18px auto 0;
+          padding: 0 16px;
+        }
+
+        .marketPulseCard {
+          border-radius: 18px;
+          background: linear-gradient(135deg, #fff7ed, #eef6ff);
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          padding: 15px 16px;
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+        }
+
+        .marketPulseCard strong {
+          color: #0f172a;
+          font-size: 16px;
+          font-weight: 950;
+          white-space: nowrap;
+        }
+
+        .marketPulseItems {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          justify-content: flex-end;
+        }
+
+        .marketPulseItems a {
+          border-radius: 999px;
+          background: #ffffff;
+          color: #0b57d0;
+          text-decoration: none;
+          padding: 7px 10px;
+          font-size: 12px;
+          font-weight: 950;
+        }
+
+        .floatingAiCopilot {
+          position: fixed;
+          right: 18px;
+          bottom: 18px;
+          z-index: 60;
+          width: 170px;
+          border-radius: 18px;
+          background: #0f172a;
+          color: #ffffff;
+          padding: 12px;
+          box-shadow: 0 18px 46px rgba(15, 23, 42, 0.22);
+        }
+
+        .floatingAiCopilot strong {
+          display: block;
+          font-size: 13px;
+          font-weight: 950;
+          margin-bottom: 8px;
+        }
+
+        .floatingAiCopilot a {
+          display: block;
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.10);
+          color: #ffffff;
+          text-decoration: none;
+          padding: 8px 9px;
+          font-size: 12px;
+          font-weight: 900;
+          margin-top: 6px;
+        }
+
         .liveMarketplaceSection {
           width: min(100%, 1180px);
           margin: 18px auto 0;
@@ -1588,6 +1691,28 @@ export default function HomePage() {
           .priceStrip a {
             width: 100%;
             text-align: center;
+          }
+
+          .marketPulseSection {
+            margin-top: 12px;
+            padding-left: 10px;
+            padding-right: 10px;
+          }
+
+          .marketPulseCard {
+            border-radius: 14px;
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .marketPulseItems {
+            justify-content: flex-start;
+          }
+
+          .floatingAiCopilot {
+            right: 10px;
+            bottom: 10px;
+            width: 150px;
           }
         }
       `}</style>
