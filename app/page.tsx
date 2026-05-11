@@ -319,8 +319,14 @@ export default function HomePage() {
               </div>
 
               <div className="searchMeta">
-                <span>{locationText ? `📍 Near ${locationText}` : "📍 Search by location or requirement"}</span>
+                <span>
+                  {locationText
+                    ? `📍 Near ${locationText}`
+                    : "📍 Search by location or requirement"}
+                </span>
+
                 <a href="/rfq/general/new">Submit Requirement</a>
+
                 <a href="/property/add">Post Property</a>
               </div>
             </div>
