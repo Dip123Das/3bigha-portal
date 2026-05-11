@@ -31,6 +31,21 @@ export default function ProcurementRealExecutionPage() {
           <ProcurementCommandCenterNav />
         </div>
 
+                <div className="mt-8 rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+          <div className="text-sm font-black uppercase tracking-[0.14em] text-emerald-700">
+            AI Recovery Execution Readiness
+          </div>
+
+          <div className="mt-3 text-2xl font-black text-emerald-950">
+            Procurement recovery execution bridge is ready for autonomous stabilization workflows.
+          </div>
+
+          <div className="mt-4 text-sm font-semibold leading-6 text-emerald-900">
+            Crisis escalation, supplier recovery, emergency rerouting and AI operational stabilization
+            are now connected into real execution readiness orchestration.
+          </div>
+        </div>
+
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           <Card
             title="Execution API"

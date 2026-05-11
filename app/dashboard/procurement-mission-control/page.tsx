@@ -39,6 +39,29 @@ export default async function ProcurementMissionControlPage() {
     ? data.emergencyDirectives
     : [];
 
+  let recoveryData: any = null;
+
+  try {
+    const origin = await getOrigin();
+
+    const recoveryRes = await fetch(
+      `${origin}/api/ai/procurement-recovery-command-center`,
+      {
+        cache: "no-store",
+      }
+    );
+
+    recoveryData = await recoveryRes.json();
+  } catch {
+    recoveryData = { ok: false };
+  }
+
+  const recoveryItems = Array.isArray(
+    recoveryData?.recovery
+  )
+    ? recoveryData.recovery
+    : [];
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
       <div className="rounded-[2rem] border border-slate-200 bg-gradient-to-r from-slate-950 via-indigo-950 to-rose-950 p-7 text-white shadow-sm">
@@ -94,6 +117,89 @@ export default async function ProcurementMissionControlPage() {
         <Panel title="Emergency Directives" items={directives} tone="rose" />
       </div>
 
+            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-2xl font-black text-slate-950">
+              AI Procurement Recovery Command Center
+            </h2>
+
+            <p className="mt-1 text-sm font-semibold text-slate-500">
+              Unified recovery orchestration, stabilization intelligence and operational readiness monitoring.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-black text-emerald-700">
+              Readiness: {recoveryData?.readinessScore || 0}
+            </div>
+
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-black text-blue-700">
+              Stabilization: {recoveryData?.stabilizationScore || 0}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-violet-200 bg-violet-50 px-5 py-4 text-sm font-bold text-violet-800">
+          {recoveryData?.operationalRecovery}
+        </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          {recoveryItems.map((item: any) => (
+            <div
+              key={item.title}
+              className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5"
+            >
+              <div className="flex flex-wrap gap-2">
+                <span
+                  className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${
+                    item.severity === "Critical"
+                      ? "border-rose-200 bg-rose-50 text-rose-700"
+                      : item.severity === "High"
+                      ? "border-amber-200 bg-amber-50 text-amber-700"
+                      : item.severity === "Medium"
+                      ? "border-blue-200 bg-blue-50 text-blue-700"
+                      : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  }`}
+                >
+                  {item.severity}
+                </span>
+              </div>
+
+              <div className="mt-4 text-2xl font-black text-slate-950">
+                {item.title}
+              </div>
+
+              <div className="mt-5">
+                <div className="flex items-center justify-between text-sm font-black text-slate-700">
+                  <span>Recovery Probability</span>
+                  <span>{item.probability}%</span>
+                </div>
+
+                <div className="mt-2 h-3 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className={`h-full rounded-full ${
+                      item.probability >= 80
+                        ? "bg-emerald-500"
+                        : item.probability >= 60
+                        ? "bg-amber-500"
+                        : "bg-rose-500"
+                    }`}
+                    style={{
+                      width: `${item.probability}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
+                🤖 {item.action}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
         <Shortcut href="/dashboard/procurement-crisis-center" icon="🚨" title="Crisis Center" />
         <Shortcut href="/dashboard/procurement-war-room" icon="🏛️" title="War Room" />
@@ -109,6 +215,7 @@ export default async function ProcurementMissionControlPage() {
         <Shortcut href="/dashboard/procurement-autonomous-tasks" icon="🛠️" title="Auto Tasks" />
         <Shortcut href="/dashboard/procurement-task-execution-log" icon="📜" title="Task Log" />
         <Shortcut href="/dashboard/procurement-real-execution" icon="🚀" title="Real Execute" />
+        <Shortcut href="/dashboard/procurement-crisis-center" icon="🛡️" title="Recovery Command" />
       </div>
     </div>
   );
