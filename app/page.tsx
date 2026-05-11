@@ -449,7 +449,15 @@ export default function HomePage() {
               </div>
 
               <div className="aiPowerRow">
-                <button type="button" onClick={() => setScope("property")}>🤖 AI Smart Search</button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setScope("property");
+                    runAISmartGuide();
+                  }}
+                >
+                  🤖 AI Smart Search
+                </button>
                 <a href="/search">📍 Local Market Discovery</a>
                 <a href="/rfq/general/new">⚡ Instant RFQ Assist</a>
                 <a href="/price-today">📊 Local Price Prediction</a>
