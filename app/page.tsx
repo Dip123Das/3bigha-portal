@@ -1777,19 +1777,6 @@ export default function HomePage() {
           }
 
           .mobileAiBottomNav {
-            display: none;
-          }
-
-          .floatingAiCopilot {
-            right: 10px;
-            bottom: 10px;
-            width: calc(100vw - 20px);
-            max-width: 320px;
-            border-radius: 18px;
-            padding: 14px;
-          }
-
-                    .mobileAiBottomNav {
             position: fixed;
             left: 10px;
             right: 10px;
@@ -1825,11 +1812,37 @@ export default function HomePage() {
           }
 
           .floatingAiCopilot {
+            right: 12px;
+            bottom: 92px;
+            width: 64px;
+            height: 64px;
+            border-radius: 999px;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #0f172a, #1d4ed8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.28);
+          }
+
+          .floatingAiHeader {
+            justify-content: center;
+          }
+
+          .floatingAiHeader div:not(.floatingAiOrb),
+          .floatingAiActions,
+          .floatingAiFooter {
             display: none;
           }
 
+          .floatingAiOrb {
+            width: 18px;
+            height: 18px;
+          }
+
           .homePage {
-            padding-bottom: 84px;
+            padding-bottom: 96px;
           }
         }
       `}</style>
