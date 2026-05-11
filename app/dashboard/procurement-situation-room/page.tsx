@@ -6,10 +6,16 @@ import ProcurementCommandCenterNav from "@/app/components/procurement/Procuremen
 import LiveProcurementRefreshBadge from "@/app/components/procurement/LiveProcurementRefreshBadge";
 import ProcurementLiveTicker from "@/app/components/procurement/ProcurementLiveTicker";
 import ProcurementHeatmapIntelligence from "@/app/components/procurement/ProcurementHeatmapIntelligence";
+import { createClient } from "@supabase/supabase-js";
 
 export default function ProcurementSituationRoomPage() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
   const [live, setLive] = useState<any>(null);
   const [timeline, setTimeline] = useState<any>(null);
+  const [telemetry, setTelemetry] = useState<any>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -18,12 +24,14 @@ export default function ProcurementSituationRoomPage() {
       Promise.all([
         fetch("/api/ai/procurement-live-events").then((r) => r.json()),
         fetch("/api/ai/procurement-timeline").then((r) => r.json()),
+        fetch("/api/ai/procurement-telemetry").then((r) => r.json()),
       ])
-        .then(([liveData, timelineData]) => {
+        .then(([liveData, timelineData, telemetryData]) => {
           if (!mounted) return;
 
           setLive(liveData);
           setTimeline(timelineData);
+          setTelemetry(telemetryData);
         })
         .catch(() => {
           if (!mounted) return;
@@ -35,11 +43,39 @@ export default function ProcurementSituationRoomPage() {
 
     load();
 
+        const realtime = supabase
+      .channel("procurement-situation-room")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "conversation_messages",
+        },
+        () => {
+          load();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ai_memory_events",
+        },
+        () => {
+          load();
+        }
+      )
+      .subscribe();
+
     const timer = window.setInterval(load, 30000);
 
     return () => {
       mounted = false;
       window.clearInterval(timer);
+
+      supabase.removeChannel(realtime);
     };
   }, []);
 
@@ -86,6 +122,11 @@ export default function ProcurementSituationRoomPage() {
           <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 px-6 py-4 text-sm font-bold text-slate-100">
             {executiveSummary}
           </div>
+
+          <div className="mt-3 rounded-2xl border border-rose-300/20 bg-rose-400/10 px-6 py-4 text-sm font-bold text-rose-100">
+            Realtime procurement command telemetry connected to live workflow events.
+          </div>
+
         </div>
 
         <div className="mt-8">
@@ -106,11 +147,31 @@ export default function ProcurementSituationRoomPage() {
           />
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-4">
+        <div className="mt-8 grid gap-4 md:grid-cols-4 xl:grid-cols-8">
           <Stat label="Live Events" value={live?.summary?.total || 0} />
           <Stat label="Critical" value={live?.summary?.critical || 0} />
           <Stat label="Timeline Steps" value={timeline?.summary?.total || 0} />
           <Stat label="Memory Signals" value={live?.summary?.memory || 0} />
+
+          <Stat
+            label="Operational Load"
+            value={telemetry?.telemetry?.operationalLoad || 0}
+          />
+
+          <Stat
+            label="Recovery Pressure"
+            value={telemetry?.telemetry?.recoveryPressure || 0}
+          />
+
+          <Stat
+            label="24h Messages"
+            value={telemetry?.telemetry?.messages24h || 0}
+          />
+
+          <Stat
+            label="RFQ Signals"
+            value={telemetry?.telemetry?.rfqSignals24h || 0}
+          />
         </div>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">

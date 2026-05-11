@@ -98,6 +98,21 @@ export default async function ProcurementMissionControlPage() {
         <Stat label="Critical Threads" value={mission.criticalThreads ?? 0} />
         <Stat label="Critical Signals" value={mission.criticalSignals ?? 0} />
         <Stat label="Live Events" value={mission.liveEvents ?? 0} />
+
+        <Stat
+          label="Operational Load"
+          value={mission.operationalLoad ?? 0}
+        />
+
+        <Stat
+          label="Recovery Pressure"
+          value={mission.recoveryPressure ?? 0}
+        />
+
+        <Stat
+          label="Stale Threads"
+          value={mission.staleConversations ?? 0}
+        />
       </div>
 
       <div className={`rounded-[2rem] border p-6 ${statusClass(mission.crisisLevel)}`}>
@@ -202,6 +217,7 @@ export default async function ProcurementMissionControlPage() {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
         <Shortcut href="/dashboard/procurement-crisis-center" icon="🚨" title="Crisis Center" />
+        <Shortcut href="/dashboard/procurement-os" icon="🧭" title="Procurement OS" />
         <Shortcut href="/dashboard/procurement-war-room" icon="🏛️" title="War Room" />
         <Shortcut href="/dashboard/procurement-situation-room" icon="📡" title="Situation Room" />
         <Shortcut href="/dashboard/procurement-heatmap" icon="🔥" title="Heatmap AI" />

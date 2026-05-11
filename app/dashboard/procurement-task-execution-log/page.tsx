@@ -7,11 +7,21 @@ import TaskExecutionLogCard from "@/components/procurement/TaskExecutionLogCard"
 export default function ProcurementTaskExecutionLogPage() {
   const [data, setData] = useState<any>(null);
 
-  useEffect(() => {
-    fetch("/api/ai/procurement-task-execution-log")
-      .then((r) => r.json())
-      .then(setData);
-  }, []);
+    const [readiness, setReadiness] =
+    useState<any>(null);
+
+    useEffect(() => {
+      Promise.all([
+        fetch("/api/ai/procurement-task-execution-log")
+          .then((r) => r.json()),
+
+        fetch("/api/ai/procurement-execution-readiness")
+          .then((r) => r.json()),
+      ]).then(([logData, readinessData]) => {
+        setData(logData);
+        setReadiness(readinessData);
+      });
+    }, []);
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] p-6">
@@ -39,6 +49,40 @@ export default function ProcurementTaskExecutionLogPage() {
           <ProcurementCommandCenterNav />
         </div>
 
+                <div className="mt-8 grid gap-4 md:grid-cols-4">
+          <ExecutionMetric
+            label="AI Executions"
+            value={
+              readiness?.readiness
+                ?.autonomousExecutions || 0
+            }
+          />
+
+          <ExecutionMetric
+            label="Execution Pressure"
+            value={
+              readiness?.readiness
+                ?.executionPressure || 0
+            }
+          />
+
+          <ExecutionMetric
+            label="Readiness"
+            value={
+              readiness?.readiness
+                ?.readinessScore || 0
+            }
+          />
+
+          <ExecutionMetric
+            label="Stabilization"
+            value={
+              readiness?.readiness
+                ?.stabilizationReadiness || 0
+            }
+          />
+        </div>
+
         <div className="mt-8 flex flex-wrap gap-3">
           <a
             href="/dashboard/procurement-autonomous-tasks"
@@ -62,5 +106,25 @@ export default function ProcurementTaskExecutionLogPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+function ExecutionMetric({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) {
+  return (
+    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+        {label}
+      </div>
+
+      <div className="mt-2 text-3xl font-black text-slate-950">
+        {value}
+      </div>
+    </div>
   );
 }

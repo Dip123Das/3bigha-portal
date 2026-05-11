@@ -6,6 +6,7 @@ import ProcurementCommandCenterNav from "@/app/components/procurement/Procuremen
 import LiveProcurementRefreshBadge from "@/app/components/procurement/LiveProcurementRefreshBadge";
 import ProcurementLiveTicker from "@/app/components/procurement/ProcurementLiveTicker";
 import ProcurementHeatmapIntelligence from "@/app/components/procurement/ProcurementHeatmapIntelligence";
+import { createClient } from "@supabase/supabase-js";
 
 type LiveEvent = {
   id: string;
@@ -46,17 +47,27 @@ function fmt(v?: string) {
 }
 
 export default function ProcurementLivePage() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
   const [data, setData] = useState<any>(null);
+  const [telemetry, setTelemetry] = useState<any>(null);
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     let mounted = true;
 
     const load = () => {
-      fetch("/api/ai/procurement-live-events")
-        .then((r) => r.json())
-        .then((json) => {
-          if (mounted) setData(json);
+      Promise.all([
+        fetch("/api/ai/procurement-live-events").then((r) => r.json()),
+        fetch("/api/ai/procurement-telemetry").then((r) => r.json()),
+      ])
+        .then(([liveJson, telemetryJson]) => {
+          if (!mounted) return;
+
+          setData(liveJson);
+          setTelemetry(telemetryJson);
         })
         .catch(() => {
           if (mounted) setData({ ok: false });
@@ -65,11 +76,39 @@ export default function ProcurementLivePage() {
 
     load();
 
+        const realtime = supabase
+      .channel("procurement-live-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "conversation_messages",
+        },
+        () => {
+          load();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ai_memory_events",
+        },
+        () => {
+          load();
+        }
+      )
+      .subscribe();
+
     const timer = window.setInterval(load, 30000);
 
     return () => {
       mounted = false;
       window.clearInterval(timer);
+
+      supabase.removeChannel(realtime);
     };
   }, []);
 
@@ -110,6 +149,10 @@ export default function ProcurementLivePage() {
             {data?.executiveSignal || "Loading live procurement intelligence..."}
           </div>
 
+          <div className="mt-3 rounded-2xl border border-cyan-300/20 bg-cyan-400/10 px-6 py-4 text-sm font-bold text-cyan-100">
+            Realtime AI procurement telemetry stream connected to Supabase event infrastructure.
+          </div>
+
           {data?.feedHealth ? (
             <div className="mt-3 rounded-2xl border border-emerald-300/20 bg-emerald-400/10 px-6 py-4 text-sm font-bold text-emerald-100">
               Feed Health: {data.feedHealth}
@@ -132,7 +175,7 @@ export default function ProcurementLivePage() {
           />
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-4 xl:grid-cols-8">
+        <div className="mt-8 grid gap-4 md:grid-cols-4 xl:grid-cols-12">
           <Stat label="Total" value={summary.total || 0} />
           <Stat label="Critical" value={summary.critical || 0} />
           <Stat label="High" value={summary.high || 0} />
@@ -141,6 +184,26 @@ export default function ProcurementLivePage() {
           <Stat label="Memory" value={summary.memory || 0} />
           <Stat label="RFQ" value={summary.rfq || 0} />
           <Stat label="Chat" value={summary.chat || 0} />
+
+          <Stat
+            label="Load"
+            value={telemetry?.telemetry?.operationalLoad || 0}
+          />
+
+          <Stat
+            label="Recovery"
+            value={telemetry?.telemetry?.recoveryPressure || 0}
+          />
+
+          <Stat
+            label="Stale"
+            value={telemetry?.telemetry?.staleConversations || 0}
+          />
+
+          <Stat
+            label="24h Msg"
+            value={telemetry?.telemetry?.messages24h || 0}
+          />
         </div>
 
         <div className="mt-8 flex flex-wrap gap-3">
