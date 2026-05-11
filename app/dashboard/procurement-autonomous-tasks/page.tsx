@@ -48,6 +48,21 @@ export default function ProcurementAutonomousTasksPage() {
           <Stat label="Ready" value={summary.ready || 0} />
         </div>
 
+                <div className="mt-8 rounded-[2rem] border border-rose-200 bg-rose-50 p-6 shadow-sm">
+          <div className="text-sm font-black uppercase tracking-[0.14em] text-rose-700">
+            Autonomous Supplier Collapse Monitoring
+          </div>
+
+          <div className="mt-3 text-2xl font-black text-rose-900">
+            AI is actively generating emergency procurement recovery and supplier rerouting tasks.
+          </div>
+
+          <div className="mt-4 text-sm font-semibold leading-6 text-rose-800">
+            Supplier silence, overload pressure and procurement continuity risks
+            are now connected to autonomous execution workflows.
+          </div>
+        </div>
+
         <div className="mt-8 flex flex-wrap gap-3">
           <a
             href="/dashboard/procurement-mission-control"
