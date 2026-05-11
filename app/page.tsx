@@ -621,7 +621,7 @@ export default function HomePage() {
         <a href="/price-today#prediction">Check Prediction →</a>
       </section>
 
-            <section className="marketPulseSection">
+      <section className="marketPulseSection">
         <div className="marketPulseCard">
           <strong>Live Local Market Pulse</strong>
           <div className="marketPulseItems">
@@ -689,11 +689,37 @@ export default function HomePage() {
         ))}
       </section>
 
+      <nav className="mobileAiBottomNav" aria-label="Mobile AI navigation">
+        <a href="/">🏠<span>Home</span></a>
+        <a href="/search">🔍<span>Search</span></a>
+        <a href="/rfq/general/new">⚡<span>RFQ</span></a>
+        <a href="/price-today#prediction">📊<span>Price</span></a>
+        <a href="/dashboard/inbox">💬<span>Inbox</span></a>
+      </nav>
+
       <div className="floatingAiCopilot">
-        <strong>AI Copilot</strong>
-        <a href="/search">Smart Search</a>
-        <a href="/rfq/general/new">Draft RFQ</a>
-        <a href="/price-today">Check Price</a>
+        <div className="floatingAiHeader">
+          <div className="floatingAiOrb"></div>
+
+          <div>
+            <strong>3bigha AI</strong>
+            <span>Local market intelligence assistant</span>
+          </div>
+        </div>
+
+        <div className="floatingAiActions">
+          <a href="/search">🔍 AI Smart Search</a>
+
+          <a href="/rfq/general/new">⚡ Draft RFQ</a>
+
+          <a href="/price-today#prediction">📊 Price Prediction</a>
+
+          <a href="/vendor/discovery">🎯 Find Vendors</a>
+        </div>
+
+        <div className="floatingAiFooter">
+          Ask AI about property, materials, services, rentals and investments.
+        </div>
       </div>
 
       <style jsx>{`
@@ -1282,31 +1308,72 @@ export default function HomePage() {
           right: 18px;
           bottom: 18px;
           z-index: 60;
-          width: 170px;
-          border-radius: 18px;
-          background: #0f172a;
+          width: 260px;
+          border-radius: 24px;
+          background: linear-gradient(180deg, #0f172a, #172554);
           color: #ffffff;
-          padding: 12px;
-          box-shadow: 0 18px 46px rgba(15, 23, 42, 0.22);
+          padding: 16px;
+          box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+          backdrop-filter: blur(18px);
         }
 
-        .floatingAiCopilot strong {
+        .floatingAiHeader {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .floatingAiOrb {
+          width: 14px;
+          height: 14px;
+          border-radius: 999px;
+          background: #22c55e;
+          box-shadow: 0 0 18px #22c55e;
+          flex-shrink: 0;
+        }
+
+        .floatingAiHeader strong {
           display: block;
-          font-size: 13px;
+          font-size: 15px;
           font-weight: 950;
-          margin-bottom: 8px;
+          line-height: 1;
         }
 
-        .floatingAiCopilot a {
+        .floatingAiHeader span {
           display: block;
-          border-radius: 10px;
-          background: rgba(255, 255, 255, 0.10);
+          margin-top: 4px;
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        .floatingAiActions {
+          margin-top: 14px;
+          display: grid;
+          gap: 8px;
+        }
+
+        .floatingAiActions a {
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.08);
           color: #ffffff;
           text-decoration: none;
-          padding: 8px 9px;
-          font-size: 12px;
+          padding: 10px 12px;
+          font-size: 13px;
           font-weight: 900;
-          margin-top: 6px;
+          transition: background 140ms ease;
+        }
+
+        .floatingAiActions a:hover {
+          background: rgba(255, 255, 255, 0.16);
+        }
+
+        .floatingAiFooter {
+          margin-top: 14px;
+          color: rgba(255, 255, 255, 0.72);
+          font-size: 11px;
+          line-height: 1.5;
+          font-weight: 700;
         }
 
         .liveMarketplaceSection {
@@ -1709,10 +1776,60 @@ export default function HomePage() {
             justify-content: flex-start;
           }
 
+          .mobileAiBottomNav {
+            display: none;
+          }
+
           .floatingAiCopilot {
             right: 10px;
             bottom: 10px;
-            width: 150px;
+            width: calc(100vw - 20px);
+            max-width: 320px;
+            border-radius: 18px;
+            padding: 14px;
+          }
+
+                    .mobileAiBottomNav {
+            position: fixed;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            z-index: 70;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 6px;
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.94);
+            padding: 8px;
+            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.18);
+            backdrop-filter: blur(16px);
+          }
+
+          .mobileAiBottomNav a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            border-radius: 12px;
+            color: #0f172a;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 950;
+            padding: 6px 4px;
+          }
+
+          .mobileAiBottomNav span {
+            font-size: 10px;
+            font-weight: 950;
+          }
+
+          .floatingAiCopilot {
+            display: none;
+          }
+
+          .homePage {
+            padding-bottom: 84px;
           }
         }
       `}</style>
