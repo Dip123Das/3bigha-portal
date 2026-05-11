@@ -104,6 +104,7 @@ export default function HomePage() {
   const [featuredItems, setFeaturedItems] = useState<MarketplaceItem[]>([]);
   const [featuredLoading, setFeaturedLoading] = useState(true);
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
+  const [aiCopilotOpen, setAiCopilotOpen] = useState(false);
 
   const activeModule = useMemo(
     () => modules.find((m) => m.key === scope) || modules[0],
@@ -697,7 +698,19 @@ export default function HomePage() {
         <a href="/dashboard/inbox">💬<span>Inbox</span></a>
       </nav>
 
-      <a href="/search" className="floatingAiCopilot" aria-label="Open 3bigha AI Smart Search">
+      <div
+        className={aiCopilotOpen ? "floatingAiCopilot isOpen" : "floatingAiCopilot"}
+        role="button"
+        tabIndex={0}
+        aria-label="Open 3bigha AI assistant"
+        onClick={() => setAiCopilotOpen((value) => !value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setAiCopilotOpen((value) => !value);
+          }
+        }}
+      >
         <div className="floatingAiHeader">
           <div className="floatingAiOrb"></div>
 
@@ -720,7 +733,7 @@ export default function HomePage() {
         <div className="floatingAiFooter">
           Ask AI about property, materials, services, rentals and investments.
         </div>
-      </a>
+      </div>
 
       <style jsx>{`
         .homePage {
@@ -1825,16 +1838,42 @@ export default function HomePage() {
             align-items: center;
             justify-content: center;
             box-shadow: 0 18px 44px rgba(15, 23, 42, 0.28);
+            cursor: pointer;
           }
 
-          .floatingAiHeader {
+          .floatingAiCopilot.isOpen {
+            width: calc(100vw - 24px);
+            max-width: 340px;
+            height: auto;
+            border-radius: 22px;
+            padding: 14px;
+            display: block;
+          }
+
+          .floatingAiCopilot .floatingAiHeader {
             justify-content: center;
           }
 
-          .floatingAiHeader div:not(.floatingAiOrb),
-          .floatingAiActions,
-          .floatingAiFooter {
+          .floatingAiCopilot.isOpen .floatingAiHeader {
+            justify-content: flex-start;
+          }
+
+          .floatingAiCopilot .floatingAiHeader div:not(.floatingAiOrb),
+          .floatingAiCopilot .floatingAiActions,
+          .floatingAiCopilot .floatingAiFooter {
             display: none;
+          }
+
+          .floatingAiCopilot.isOpen .floatingAiHeader div:not(.floatingAiOrb) {
+            display: block;
+          }
+
+          .floatingAiCopilot.isOpen .floatingAiActions {
+            display: grid;
+          }
+
+          .floatingAiCopilot.isOpen .floatingAiFooter {
+            display: block;
           }
 
           .floatingAiOrb {
