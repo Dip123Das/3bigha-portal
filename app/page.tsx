@@ -611,7 +611,7 @@ export default function HomePage() {
 
         .marketHeroContent {
           width: 100%;
-          max-width: 920px;
+          max-width: 1180px;
           margin: 0 auto;
           display: block;
           position: relative;
@@ -678,7 +678,7 @@ export default function HomePage() {
           padding: 14px;
           box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
           width: 100%;
-          max-width: 920px;
+          max-width: 1180px;
           min-width: 0;
           position: relative;
           z-index: 1;
@@ -817,7 +817,7 @@ export default function HomePage() {
         }
 
         .homeSearchInner {
-          max-width: 920px;
+          max-width: 1180px;
           margin: 0 auto;
         }
 
