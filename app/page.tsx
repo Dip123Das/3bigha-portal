@@ -441,25 +441,19 @@ export default function HomePage() {
               </p>
 
               <div className="heroTrustRow">
-                <span>🏠 Property</span>
-                <span>🧱 Materials</span>
-                <span>🛠️ Services</span>
-                <span>🚜 Rentals</span>
+                <a href="/property">🏠 Property</a>
+                <a href="/materials">🧱 Materials</a>
+                <a href="/services">🛠️ Services</a>
+                <a href="/rentals">🚜 Rentals</a>
+                <a href="/investment/opportunities">💼 Investment</a>
               </div>
 
               <div className="aiPowerRow">
-                <span>🤖 AI Smart Search</span>
-                <span>📍 Local Market Discovery</span>
-                <span>⚡ Instant RFQ Assist</span>
-                <span>📊 Local Price Prediction</span>
-                <span>🎯 Nearby Vendor Match</span>
-              </div>
-
-              <div className="aiPowerRow">
-                <span>🤖 AI Smart Search</span>
-                <span>⚡ Instant RFQ Assist</span>
-                <span>📊 Price Prediction</span>
-                <span>🎯 Smart Vendor Match</span>
+                <button type="button" onClick={() => setScope("property")}>🤖 AI Smart Search</button>
+                <a href="/search">📍 Local Market Discovery</a>
+                <a href="/rfq/general/new">⚡ Instant RFQ Assist</a>
+                <a href="/price-today">📊 Local Price Prediction</a>
+                <a href="/vendor/discovery">🎯 Nearby Vendor Match</a>
               </div>
             </div>
           </div>
@@ -675,8 +669,10 @@ export default function HomePage() {
           gap: 10px;
         }
 
-        .aiPowerRow span {
+        .aiPowerRow a,
+        .aiPowerRow button {
           display: inline-flex;
+          align-items: center;
           border-radius: 999px;
           background: linear-gradient(135deg, #eef6ff, #ffffff);
           border: 1px solid rgba(11, 87, 208, 0.14);
@@ -685,9 +681,12 @@ export default function HomePage() {
           font-size: 13px;
           font-weight: 950;
           box-shadow: 0 8px 20px rgba(11, 87, 208, 0.06);
+          text-decoration: none;
+          cursor: pointer;
+          font-family: inherit;
         }
 
-        .heroTrustRow span {
+        .heroTrustRow a {
           display: inline-flex;
           border-radius: 999px;
           background: #ffffff;
@@ -697,6 +696,7 @@ export default function HomePage() {
           font-size: 13px;
           font-weight: 900;
           box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+          text-decoration: none;
         }
 
         .marketBadge {
@@ -1194,7 +1194,7 @@ export default function HomePage() {
             gap: 8px;
           }
 
-          .heroTrustRow span {
+          .heroTrustRow a {
             font-size: 12px;
             padding: 7px 10px;
           }
@@ -1248,7 +1248,8 @@ export default function HomePage() {
             gap: 8px;
           }
 
-          .aiPowerRow span {
+          .aiPowerRow a,
+          .aiPowerRow button {
             font-size: 12px;
             padding: 7px 10px;
           }
