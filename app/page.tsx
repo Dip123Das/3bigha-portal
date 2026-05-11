@@ -430,6 +430,8 @@ export default function HomePage() {
 
         .marketHeroContent {
           max-width: 980px;
+          position: relative;
+          z-index: 1;
         }
 
         .marketBadge {
@@ -460,12 +462,15 @@ export default function HomePage() {
         }
 
         .searchPanel {
-          margin-top: 18px;
+          margin-top: 16px;
           background: #ffffff;
           border: 1px solid rgba(15, 23, 42, 0.10);
           border-radius: 18px;
           padding: 14px;
-          box-shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.10);
+          max-width: 760px;
+          position: relative;
+          z-index: 2;
         }
 
         .moduleTabs {
@@ -540,10 +545,14 @@ export default function HomePage() {
         .quickActionSection,
         .categorySection {
           max-width: 1180px;
-          margin: 16px auto 0;
+          margin: 18px auto 0;
           padding: 0 16px;
           display: grid;
           gap: 14px;
+        }
+
+        .quickActionSection {
+          margin-top: 22px;
         }
 
         .quickActionSection {
