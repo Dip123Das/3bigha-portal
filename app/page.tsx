@@ -618,50 +618,11 @@ export default function HomePage() {
         <a href="/price-today">Check Rates →</a>
       </section>
 
-            <section className="aiRecommendationSection">
-        <div className="sectionTitleRow">
-          <div>
-            <h2>AI Recommended Near You</h2>
-            <p>
-              Smart recommendations based on local market activity, pricing trends and buyer demand.
-            </p>
-          </div>
-
-          <a href="/search">Explore Smart Discovery →</a>
-        </div>
-
-        <div className="aiRecommendationGrid">
-          <a href="/property" className="aiRecommendationCard">
-            <div className="aiRecommendationTag">🔥 Trending Property</div>
-            <strong>High-demand residential plots in nearby local markets</strong>
-            <span>
-              AI detected rising buyer activity around developing residential zones.
-            </span>
-          </a>
-
-          <a href="/materials" className="aiRecommendationCard">
-            <div className="aiRecommendationTag">📈 Price Intelligence</div>
-            <strong>Cement and aggregate demand increasing this week</strong>
-            <span>
-              Marketplace activity shows growing procurement movement from local suppliers.
-            </span>
-          </a>
-
-          <a href="/services" className="aiRecommendationCard">
-            <div className="aiRecommendationTag">⚡ Vendor Match</div>
-            <strong>Construction and legal services actively responding</strong>
-            <span>
-              AI-assisted RFQ routing is helping buyers receive faster quotations.
-            </span>
-          </a>
-        </div>
-      </section>
-
       <section className="liveMarketplaceSection">
         <div className="sectionTitleRow">
           <div>
-            <h2>Live Marketplace</h2>
-            <p>Latest property, materials, services and rentals from 3Bigha.</p>
+            <h2>AI Live Marketplace Feed</h2>
+            <p>Fresh local listings, prices and opportunities surfaced from the 3bigha marketplace.</p>
           </div>
           <a href="/search">View all →</a>
         </div>
@@ -1008,15 +969,15 @@ export default function HomePage() {
         .aiPortalStrip {
           width: min(100%, 1180px);
           margin: 14px auto 0;
-          padding: 16px;
-          border-radius: 18px;
-          background: linear-gradient(135deg, #0b57d0, #0f172a);
+          padding: 14px 16px;
+          border-radius: 16px;
+          background: linear-gradient(135deg, #1847a3, #0f172a);
           color: #ffffff;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 16px;
-          box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.10);
         }
 
         .aiPortalStrip strong {
@@ -1282,8 +1243,8 @@ export default function HomePage() {
 
         .marketplaceGrid {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 16px;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 18px;
           align-items: stretch;
         }
 
@@ -1292,21 +1253,27 @@ export default function HomePage() {
           height: 100%;
           background: #ffffff;
           border: 1px solid rgba(15, 23, 42, 0.08);
-          border-radius: 18px;
+          border-radius: 22px;
           overflow: hidden;
           color: inherit;
           text-decoration: none;
-          box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+          transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .marketplaceCard:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 20px 44px rgba(15, 23, 42, 0.12);
         }
 
         .marketplaceImage {
-          height: 120px;
+          height: 180px;
           background: linear-gradient(135deg, #eff6ff, #f8fafc);
           display: flex;
           align-items: center;
           justify-content: center;
           color: #0b57d0;
-          font-size: 34px;
+          font-size: 44px;
           font-weight: 950;
         }
 
@@ -1318,7 +1285,7 @@ export default function HomePage() {
         }
 
         .marketplaceBody {
-          padding: 13px;
+          padding: 16px;
         }
 
         .marketplaceTop {
@@ -1335,37 +1302,44 @@ export default function HomePage() {
 
         .marketplaceTop span {
           color: #0b57d0;
+          background: #eef6ff;
+          border-radius: 999px;
+          padding: 5px 8px;
+        }
+
+        .marketplaceTop strong {
+          color: #0f172a;
         }
 
         .marketplaceBody h3 {
-          margin: 8px 0 0;
+          margin: 12px 0 0;
           color: #0f172a;
-          font-size: 16px;
+          font-size: 18px;
           line-height: 1.3;
           font-weight: 950;
         }
 
         .marketplaceBody p {
-          margin: 6px 0 0;
+          margin: 7px 0 0;
           color: #64748b;
           font-size: 13px;
-          line-height: 1.45;
-          min-height: 38px;
+          line-height: 1.5;
+          min-height: 40px;
         }
 
         .marketplaceMeta {
-          margin-top: 10px;
+          margin-top: 14px;
           display: flex;
-          align-items: center;
+          align-items: flex-end;
           justify-content: space-between;
-          gap: 8px;
+          gap: 10px;
           font-size: 12px;
           color: #64748b;
         }
 
         .marketplaceMeta b {
           color: #dc2626;
-          font-size: 13px;
+          font-size: 16px;
           white-space: nowrap;
         }
 
@@ -1509,7 +1483,7 @@ export default function HomePage() {
           }
 
           .marketplaceImage {
-            height: 138px;
+            height: 170px;
           }
 
           .marketplaceCard {
