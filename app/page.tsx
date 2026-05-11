@@ -447,66 +447,70 @@ export default function HomePage() {
                 <span>🚜 Rentals</span>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="searchPanel">
-              <div className="moduleTabs">
-                {modules.map((m) => (
-                  <button
-                    key={m.key}
-                    type="button"
-                    onClick={() => setScope(m.key)}
-                    className={scope === m.key ? "moduleTab active" : "moduleTab"}
-                  >
-                    {m.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="searchRow">
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") runSearch();
-                  }}
-                  placeholder={activeModule.placeholder}
-                />
-
-                <button type="button" onClick={runSearch}>
-                  Search
+      <section className="homeSearchSection">
+        <div className="homeSearchInner">
+          <div className="searchPanel">
+            <div className="moduleTabs">
+              {modules.map((m) => (
+                <button
+                  key={m.key}
+                  type="button"
+                  onClick={() => setScope(m.key)}
+                  className={scope === m.key ? "moduleTab active" : "moduleTab"}
+                >
+                  {m.label}
                 </button>
-              </div>
-
-              <div className="searchMeta">
-                <span>
-                  {locationText
-                    ? `📍 Near ${locationText}`
-                    : "📍 Search by location or requirement"}
-                </span>
-
-                <a href="/rfq/general/new">Submit Requirement</a>
-
-                <a href="/property/add">Post Property</a>
-
-                <button type="button" className="aiGuideButton" onClick={runAISmartGuide}>
-                  ✨ AI Guide
-                </button>
-              </div>
-
-              {aiSuggestion ? (
-                <div className="aiGuideCard">
-                  <div>
-                    <strong>{aiSuggestion.title}</strong>
-                    <p>{aiSuggestion.message}</p>
-                    <span>{aiSuggestion.confidence}</span>
-                  </div>
-
-                  <button type="button" onClick={() => router.push(aiSuggestion.href)}>
-                    {aiSuggestion.actionLabel} →
-                  </button>
-                </div>
-              ) : null}
+              ))}
             </div>
+
+            <div className="searchRow">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") runSearch();
+                }}
+                placeholder={activeModule.placeholder}
+              />
+
+              <button type="button" onClick={runSearch}>
+                Search
+              </button>
+            </div>
+
+            <div className="searchMeta">
+              <span>
+                {locationText
+                  ? `📍 Near ${locationText}`
+                  : "📍 Search by location or requirement"}
+              </span>
+
+              <a href="/rfq/general/new">Submit Requirement</a>
+
+              <a href="/property/add">Post Property</a>
+
+              <button type="button" className="aiGuideButton" onClick={runAISmartGuide}>
+                ✨ AI Guide
+              </button>
+            </div>
+
+            {aiSuggestion ? (
+              <div className="aiGuideCard">
+                <div>
+                  <strong>{aiSuggestion.title}</strong>
+                  <p>{aiSuggestion.message}</p>
+                  <span>{aiSuggestion.confidence}</span>
+                </div>
+
+                <button type="button" onClick={() => router.push(aiSuggestion.href)}>
+                  {aiSuggestion.actionLabel} →
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
@@ -609,10 +613,7 @@ export default function HomePage() {
           width: 100%;
           max-width: 920px;
           margin: 0 auto;
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 18px;
-          align-items: start;
+          display: block;
           position: relative;
           z-index: 1;
         }
@@ -670,7 +671,7 @@ export default function HomePage() {
         }
 
         .searchPanel {
-          margin-top: 4px;
+          margin-top: 0;
           background: #ffffff;
           border: 1px solid rgba(15, 23, 42, 0.10);
           border-radius: 18px;
@@ -805,6 +806,19 @@ export default function HomePage() {
           font-weight: 950;
           cursor: pointer;
           white-space: nowrap;
+        }
+
+        .homeSearchSection {
+          width: min(100%, 1180px);
+          margin: 16px auto 0;
+          padding: 0 16px;
+          position: relative;
+          z-index: 1;
+        }
+
+        .homeSearchInner {
+          max-width: 920px;
+          margin: 0 auto;
         }
 
         .quickActionSection,
