@@ -602,16 +602,16 @@ export default function HomePage() {
         .marketHeroInner {
           width: min(100%, 1240px);
           margin: 0 auto;
-          padding: 30px 20px 56px;
+          padding: 28px 20px 34px;
         }
 
         .marketHeroContent {
           width: 100%;
           display: grid;
-          grid-template-columns: minmax(0, 620px) minmax(360px, 460px);
+          grid-template-columns: minmax(0, 1fr) 440px;
           justify-content: space-between;
-          gap: 24px;
-          align-items: center;
+          gap: 48px;
+          align-items: start;
           position: relative;
           z-index: 1;
         }
@@ -669,7 +669,7 @@ export default function HomePage() {
         }
 
         .searchPanel {
-          margin-top: 0;
+          margin-top: -12px;
           background: #ffffff;
           border: 1px solid rgba(15, 23, 42, 0.10);
           border-radius: 20px;
@@ -816,7 +816,7 @@ export default function HomePage() {
         }
 
         .quickActionSection {
-          margin-top: 24px;
+          margin-top: 14px;
         }
 
         .quickActionSection {
@@ -1057,10 +1057,16 @@ export default function HomePage() {
 
           .marketHeroContent {
             grid-template-columns: 1fr;
-            gap: 16px;
+            gap: 18px;
           }
 
           .heroTextBlock {
+            width: 100%;
+            max-width: 100%;
+          }
+
+          .searchPanel {
+            margin-top: 0;
             max-width: 100%;
           }
 
