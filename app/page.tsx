@@ -21,6 +21,14 @@ type MarketplaceItem = {
   image?: string | null;
 };
 
+type AISuggestion = {
+  title: string;
+  message: string;
+  actionLabel: string;
+  href: string;
+  confidence: string;
+};
+
 function moneyINR(value: any) {
   const num = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(num) || num <= 0) return "";
@@ -95,6 +103,7 @@ export default function HomePage() {
   const [locationText, setLocationText] = useState("");
   const [featuredItems, setFeaturedItems] = useState<MarketplaceItem[]>([]);
   const [featuredLoading, setFeaturedLoading] = useState(true);
+  const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
 
   const activeModule = useMemo(
     () => modules.find((m) => m.key === scope) || modules[0],
@@ -258,6 +267,133 @@ export default function HomePage() {
     };
   }, []);
 
+    function runAISmartGuide() {
+    const clean = query.trim().toLowerCase();
+
+    if (!clean) {
+      setAiSuggestion({
+        title: "AI needs your requirement",
+        message:
+          "Type what you need first. Example: land in Cooch Behar, 500 cement bags, electrician near me, excavator rental.",
+        actionLabel: "Start Requirement",
+        href: "/rfq/general/new",
+        confidence: "Waiting for input",
+      });
+      return;
+    }
+
+    const hasNumber = /\d+/.test(clean);
+    const isMaterial =
+      clean.includes("cement") ||
+      clean.includes("steel") ||
+      clean.includes("sand") ||
+      clean.includes("brick") ||
+      clean.includes("aggregate") ||
+      clean.includes("rod") ||
+      clean.includes("paint") ||
+      clean.includes("tiles");
+
+    const isPrice =
+      clean.includes("price") ||
+      clean.includes("rate") ||
+      clean.includes("cost");
+
+    const isProperty =
+      clean.includes("land") ||
+      clean.includes("plot") ||
+      clean.includes("flat") ||
+      clean.includes("house") ||
+      clean.includes("property") ||
+      clean.includes("katha") ||
+      clean.includes("bigha");
+
+    const isRental =
+      clean.includes("rent") ||
+      clean.includes("rental") ||
+      clean.includes("machine") ||
+      clean.includes("excavator") ||
+      clean.includes("equipment") ||
+      clean.includes("shuttering");
+
+    const isService =
+      clean.includes("service") ||
+      clean.includes("mason") ||
+      clean.includes("plumber") ||
+      clean.includes("electrician") ||
+      clean.includes("engineer") ||
+      clean.includes("contractor") ||
+      clean.includes("labour");
+
+    if (isPrice) {
+      setAiSuggestion({
+        title: "AI suggests Price Today",
+        message:
+          "Your search looks price-focused. Check current market indication before contacting vendors.",
+        actionLabel: "Check Price Today",
+        href: `/price-today?q=${encodeURIComponent(query.trim())}`,
+        confidence: "High confidence",
+      });
+      return;
+    }
+
+    if (isMaterial && hasNumber) {
+      setAiSuggestion({
+        title: "AI suggests RFQ submission",
+        message:
+          "This looks like a purchase requirement with quantity. Submit an RFQ so nearby vendors can quote.",
+        actionLabel: "Create RFQ",
+        href: `/rfq/general/new?query=${encodeURIComponent(query.trim())}`,
+        confidence: "High confidence",
+      });
+      return;
+    }
+
+    if (isProperty) {
+      setAiSuggestion({
+        title: "AI suggests Property Search",
+        message:
+          "This looks like a property need. Search live property listings and compare location, price and type.",
+        actionLabel: "Search Property",
+        href: `/search?module=property&q=${encodeURIComponent(query.trim())}`,
+        confidence: "High confidence",
+      });
+      return;
+    }
+
+    if (isRental) {
+      setAiSuggestion({
+        title: "AI suggests Rental Search",
+        message:
+          "This looks like an equipment or rental need. Search available rentals near your location.",
+        actionLabel: "Find Rentals",
+        href: `/search?module=rentals&q=${encodeURIComponent(query.trim())}`,
+        confidence: "Good confidence",
+      });
+      return;
+    }
+
+    if (isService) {
+      setAiSuggestion({
+        title: "AI suggests Service Provider Search",
+        message:
+          "This looks like a service requirement. Find verified local professionals and providers.",
+        actionLabel: "Find Services",
+        href: `/search?module=services&q=${encodeURIComponent(query.trim())}`,
+        confidence: "Good confidence",
+      });
+      return;
+    }
+
+    setAiSuggestion({
+      title: "AI suggests Smart Search",
+      message:
+        "AI will search across the selected marketplace category and show the most relevant results.",
+      actionLabel: "Search Now",
+      href: `/search?module=${scope}&q=${encodeURIComponent(query.trim())}`,
+      confidence: "Standard confidence",
+    });
+  }
+
   function runSearch() {
     const clean = query.trim();
 
@@ -328,7 +464,28 @@ export default function HomePage() {
                 <a href="/rfq/general/new">Submit Requirement</a>
 
                 <a href="/property/add">Post Property</a>
+
+                <button type="button" className="aiGuideButton" onClick={runAISmartGuide}>
+                  ✨ AI Guide
+                </button>
               </div>
+
+              {aiSuggestion ? (
+                <div className="aiGuideCard">
+                  <div>
+                    <strong>{aiSuggestion.title}</strong>
+                    <p>{aiSuggestion.message}</p>
+                    <span>{aiSuggestion.confidence}</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => router.push(aiSuggestion.href)}
+                  >
+                    {aiSuggestion.actionLabel} →
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -540,6 +697,59 @@ export default function HomePage() {
         .searchMeta a {
           color: #0b57d0;
           text-decoration: none;
+        }
+
+                .aiGuideButton {
+          border: none;
+          background: #eef6ff;
+          color: #0b57d0;
+          font-weight: 950;
+          cursor: pointer;
+          padding: 0;
+        }
+
+        .aiGuideCard {
+          margin-top: 12px;
+          border-radius: 14px;
+          border: 1px solid rgba(11, 87, 208, 0.16);
+          background: linear-gradient(135deg, #f8fbff, #eef6ff);
+          padding: 12px;
+          display: flex;
+          justify-content: space-between;
+          gap: 14px;
+          align-items: center;
+        }
+
+        .aiGuideCard strong {
+          color: #0f172a;
+          font-size: 15px;
+          font-weight: 950;
+        }
+
+        .aiGuideCard p {
+          margin: 4px 0 0;
+          color: #475569;
+          font-size: 13px;
+          line-height: 1.45;
+        }
+
+        .aiGuideCard span {
+          display: inline-flex;
+          margin-top: 6px;
+          color: #0b57d0;
+          font-size: 12px;
+          font-weight: 900;
+        }
+
+        .aiGuideCard button {
+          border: none;
+          border-radius: 12px;
+          background: #0b57d0;
+          color: #ffffff;
+          padding: 10px 14px;
+          font-weight: 950;
+          cursor: pointer;
+          white-space: nowrap;
         }
 
         .quickActionSection,
@@ -860,6 +1070,15 @@ export default function HomePage() {
 
           .searchRow button {
             height: 46px;
+          }
+
+          .aiGuideCard {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .aiGuideCard button {
+            width: 100%;
           }
 
           .quickActionSection,
