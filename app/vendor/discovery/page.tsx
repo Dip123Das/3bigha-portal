@@ -19,6 +19,27 @@ type SearchParams = {
   module?: string;
 };
 
+function vendorTrustLabel(score: number) {
+  if (score >= 85) return "AI Trusted";
+  if (score >= 70) return "Strong Match";
+  if (score >= 55) return "Good Fit";
+  return "Discovery Match";
+}
+
+function responseProbability(score: number) {
+  if (score >= 85) return "High response probability";
+  if (score >= 70) return "Good response probability";
+  if (score >= 55) return "Moderate response probability";
+  return "Standard response probability";
+}
+
+function procurementFit(score: number) {
+  if (score >= 85) return "Excellent procurement fit";
+  if (score >= 70) return "Strong procurement fit";
+  if (score >= 55) return "Useful procurement fit";
+  return "Basic procurement fit";
+}
+
 export default async function VendorDiscoveryPage({
   searchParams,
 }: {
@@ -50,6 +71,12 @@ export default async function VendorDiscoveryPage({
     district: searchParams.district || null,
     locality: searchParams.locality || null,
   });
+
+  const rankedVendors = [...discovery.recommendedVendors].sort(
+    (a, b) => (b.recommendationScore || 0) - (a.recommendationScore || 0)
+  );
+
+  const topVendor = rankedVendors[0] || null;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
@@ -99,11 +126,40 @@ export default async function VendorDiscoveryPage({
             </div>
           </div>
 
-          <div className="rounded-xl border p-4">
-            <div className="text-sm text-gray-500">AI Decision</div>
+          <div className="rounded-xl border bg-slate-950 p-4 text-white">
+            <div className="text-sm text-blue-200">AI Decision</div>
             <div className="mt-1 font-semibold">
-              Compare top trusted vendors
+              {topVendor
+                ? `${vendorTrustLabel(topVendor.recommendationScore)}: ${topVendor.businessName}`
+                : "Compare top trusted vendors"}
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-8 rounded-2xl border bg-gradient-to-r from-slate-950 to-blue-800 p-6 text-white">
+        <div className="text-xs font-black uppercase tracking-wide text-blue-200">
+          AI Vendor Discovery Intelligence
+        </div>
+
+        <h2 className="mt-2 text-2xl font-bold">
+          Rank vendors by trust, response probability and procurement fit.
+        </h2>
+
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="rounded-xl bg-white/10 p-4">
+            <div className="text-sm text-blue-100">Trust Engine</div>
+            <div className="mt-1 text-lg font-bold">AI Verified Matching</div>
+          </div>
+
+          <div className="rounded-xl bg-white/10 p-4">
+            <div className="text-sm text-blue-100">Response Signal</div>
+            <div className="mt-1 text-lg font-bold">Fast Vendor Priority</div>
+          </div>
+
+          <div className="rounded-xl bg-white/10 p-4">
+            <div className="text-sm text-blue-100">Procurement Fit</div>
+            <div className="mt-1 text-lg font-bold">RFQ-ready Discovery</div>
           </div>
         </div>
       </section>
@@ -147,35 +203,70 @@ export default async function VendorDiscoveryPage({
       </section>
 
       <section className="mt-8 grid gap-5 md:grid-cols-3">
-        {discovery.recommendedVendors.map((vendor) => (
-          <Link
-            key={vendor.vendorId}
-            href={`/vendor/${vendor.slug}`}
-            className="rounded-2xl border p-5 transition hover:bg-gray-50"
-          >
-            <div className="text-lg font-semibold">
-              {vendor.businessName}
-            </div>
+        {rankedVendors.map((vendor, index) => {
+          const score = vendor.recommendationScore || 0;
 
-            <div className="mt-1 text-sm text-gray-500">
-              {[vendor.locality, vendor.city, vendor.district]
-                .filter(Boolean)
-                .join(", ")}
-            </div>
+          return (
+            <div
+              key={vendor.vendorId}
+              className="rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-xs font-black uppercase tracking-wide text-blue-700">
+                    {index === 0 ? "🏆 Top AI Recommended" : "🤖 AI Ranked Vendor"}
+                  </div>
 
-            <div className="mt-4 text-sm text-gray-500">
-              Recommendation Score
-            </div>
+                  <div className="mt-2 text-lg font-bold text-slate-950">
+                    {vendor.businessName}
+                  </div>
+                </div>
 
-            <div className="mt-1 text-3xl font-bold">
-              {vendor.recommendationScore}/100
-            </div>
+                <div className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">
+                  {score}/100
+                </div>
+              </div>
 
-            <p className="mt-3 text-sm text-gray-600">
-              {vendor.recommendationReason}
-            </p>
-          </Link>
-        ))}
+              <div className="mt-2 text-sm text-gray-500">
+                {[vendor.locality, vendor.city, vendor.district]
+                  .filter(Boolean)
+                  .join(", ") || "Location available on profile"}
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
+                  ✅ {vendorTrustLabel(score)}
+                </span>
+                <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-black text-orange-700">
+                  ⚡ {responseProbability(score)}
+                </span>
+                <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-black text-purple-700">
+                  🎯 {procurementFit(score)}
+                </span>
+              </div>
+
+              <p className="mt-4 text-sm leading-6 text-gray-600">
+                {vendor.recommendationReason}
+              </p>
+
+              <div className="mt-5 grid gap-2">
+                <Link
+                  href={`/vendor/${vendor.slug}`}
+                  className="rounded-xl bg-blue-700 px-4 py-3 text-center text-sm font-black text-white no-underline"
+                >
+                  View Vendor →
+                </Link>
+
+                <Link
+                  href={`/rfq/general/new?query=${encodeURIComponent(query)}&vendor=${encodeURIComponent(vendor.vendorId)}`}
+                  className="rounded-xl border px-4 py-3 text-center text-sm font-black text-slate-900 no-underline"
+                >
+                  Start RFQ with this vendor
+                </Link>
+              </div>
+            </div>
+          );
+        })}
       </section>
     </main>
   );

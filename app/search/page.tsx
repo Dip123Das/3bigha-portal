@@ -48,6 +48,14 @@ type ResultRow = {
   _lng?: number | null;
 };
 
+type AiRecommendation = {
+  title: string;
+  text: string;
+  href: string;
+  badge: string;
+  icon: string;
+};
+
 function safeText(x: any) {
   return String(x ?? "").trim();
 }
@@ -68,6 +76,59 @@ function moduleLabel(m: SearchModule) {
   if (m === "services") return "Services";
   if (m === "rentals") return "Rentals";
   return "Blog";
+}
+
+function moduleEmoji(m: SearchModule) {
+  if (m === "property") return "🏠";
+  if (m === "materials") return "🧱";
+  if (m === "services") return "🛠️";
+  if (m === "rentals") return "🚜";
+  return "📰";
+}
+
+function moduleTrustLabel(m: SearchModule) {
+  if (m === "property") return "AI location match";
+  if (m === "materials") return "Procurement ready";
+  if (m === "services") return "Provider match";
+  if (m === "rentals") return "Availability signal";
+  return "Knowledge result";
+}
+
+function resultActionHref(r: ResultRow, q: string) {
+  if (r.module === "materials") return `/rfq/general/new?query=${encodeURIComponent(q || r.title)}`;
+  if (r.module === "services") return `/vendor/discovery?q=${encodeURIComponent(q || r.title)}&module=services`;
+  if (r.module === "rentals") return `/rentals?search=${encodeURIComponent(q || r.title)}`;
+  if (r.module === "property") return `/search?module=property&q=${encodeURIComponent(q || r.title)}`;
+  return r.href;
+}
+
+function fallbackRecommendations(q: string, module: ModFilter): AiRecommendation[] {
+  const clean = encodeURIComponent(q || "marketplace requirement");
+  const moduleLabelText = module === "all" ? "marketplace" : module;
+
+  return [
+    {
+      title: "Create a smart RFQ",
+      text: "Convert this search into a requirement and get vendor responses.",
+      href: `/rfq/general/new?query=${clean}`,
+      badge: "Procurement action",
+      icon: "⚡",
+    },
+    {
+      title: "Find matching vendors",
+      text: `Discover nearby vendors related to this ${moduleLabelText} search.`,
+      href: `/vendor/discovery?q=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`,
+      badge: "Vendor discovery",
+      icon: "🎯",
+    },
+    {
+      title: "Check price movement",
+      text: "Use Price Today before buying, selling or negotiating.",
+      href: `/price-today?q=${clean}`,
+      badge: "Price intelligence",
+      icon: "📊",
+    },
+  ];
 }
 
 function parseNum(v: string | null) {
@@ -165,6 +226,9 @@ function SearchPageInner() {
   const [err, setErr] = useState<string | null>(null);
   const [rows, setRows] = useState<ResultRow[]>([]);
   const [note, setNote] = useState<string | null>(null);
+  const [lastAiIntent, setLastAiIntent] = useState<AiSearchIntent | null>(null);
+  const [aiRecommendations, setAiRecommendations] = useState<AiRecommendation[]>([]);
+  const [recommendationSummary, setRecommendationSummary] = useState("");
   const aiAutoAppliedRef = useRef<string>("");
 
   // Sync inputs with URL changes
@@ -373,6 +437,7 @@ function SearchPageInner() {
       setMaxInput(nextMax);
       setNearOn(nextNear);
 
+      setLastAiIntent(data);
       setNote(data.explanation || "Smart AI Search applied better filters.");
 
       pushUrl({
@@ -696,6 +761,83 @@ if (want.includes("rentals")) {
     };
   }, [qFromUrl, modFromUrl, supabase, sp, nearFromUrl, latFromUrl, lngFromUrl, kmFromUrl]);
 
+  useEffect(() => {
+    let alive = true;
+
+    async function loadRecommendations() {
+      const q = safeText(qFromUrl);
+
+      if (!q) {
+        setAiRecommendations([]);
+        setRecommendationSummary("");
+        return;
+      }
+
+      setAiRecommendations(fallbackRecommendations(q, modFromUrl));
+
+      try {
+        const params = new URLSearchParams();
+        params.set("q", q);
+        if (modFromUrl !== "all") params.set("category", modFromUrl);
+
+        const res = await fetch(`/api/ai/marketplace-discovery?${params.toString()}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const data = await res.json().catch(() => null);
+        const discovery = data?.discovery || null;
+
+        if (!alive || !discovery) return;
+
+        const vendors = Array.isArray(discovery?.vendors) ? discovery.vendors : [];
+        const categories = Array.isArray(discovery?.categories) ? discovery.categories : [];
+
+        const next: AiRecommendation[] = [
+          {
+            title: vendors.length > 0 ? `${vendors.length} vendor signals found` : "Vendor network ready",
+            text:
+              discovery?.summary ||
+              "3bigha AI found marketplace discovery signals related to your search.",
+            href: `/vendor/discovery?q=${encodeURIComponent(q)}${modFromUrl !== "all" ? `&module=${encodeURIComponent(modFromUrl)}` : ""}`,
+            badge: "Live discovery",
+            icon: "🎯",
+          },
+          {
+            title: categories?.[0]?.name || "Related marketplace category",
+            text: "Continue discovery with category-aware AI recommendations.",
+            href: `/search?q=${encodeURIComponent(q)}${modFromUrl !== "all" ? `&module=${encodeURIComponent(modFromUrl)}` : ""}`,
+            badge: "Related opportunity",
+            icon: "🧠",
+          },
+          {
+            title: "Turn search into RFQ",
+            text: "If this is a buying or service requirement, send it to vendors as an RFQ.",
+            href: `/rfq/general/new?query=${encodeURIComponent(q)}`,
+            badge: "Next best action",
+            icon: "⚡",
+          },
+        ];
+
+        setAiRecommendations(next);
+        setRecommendationSummary(
+          discovery?.summary ||
+            "AI recommendation engine connected search, vendors, categories and RFQ actions."
+        );
+      } catch {
+        if (!alive) return;
+        setAiRecommendations(fallbackRecommendations(q, modFromUrl));
+        setRecommendationSummary("AI recommendation fallback is active.");
+      }
+    }
+
+    loadRecommendations();
+
+    return () => {
+      alive = false;
+    };
+  }, [qFromUrl, modFromUrl]);
+
   const hasQuery = !!safeText(qFromUrl);
 
   const localSearchIntent = useMemo(
@@ -945,6 +1087,148 @@ if (want.includes("rentals")) {
 
       <div style={{ height: 12 }} />
 
+      {hasQuery && lastAiIntent ? (
+        <>
+          <Card>
+            <CardBody>
+              <div
+                style={{
+                  display: "grid",
+                  gap: 12,
+                  background: "linear-gradient(135deg, #0f172a, #1d4ed8)",
+                  color: "#ffffff",
+                  borderRadius: 18,
+                  padding: 16,
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 950, color: "#bfdbfe" }}>
+                  AI Search Decision Engine
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ fontSize: 22, fontWeight: 950 }}>
+                      {moduleEmoji((lastAiIntent.module === "all" ? "property" : lastAiIntent.module) as SearchModule)}{" "}
+                      {lastAiIntent.module === "all" ? "All Marketplace" : moduleLabel(lastAiIntent.module as SearchModule)}
+                    </div>
+                    <div style={{ marginTop: 6, color: "rgba(255,255,255,0.78)", fontWeight: 750 }}>
+                      {lastAiIntent.explanation || "AI selected the best search workflow for this query."}
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                    <span style={{ borderRadius: 999, background: "rgba(255,255,255,0.12)", padding: "8px 10px", fontWeight: 950 }}>
+                      {Math.round(Number(lastAiIntent.confidence || 0.75) * 100)}% confidence
+                    </span>
+                    {lastAiIntent.near ? (
+                      <span style={{ borderRadius: 999, background: "rgba(34,197,94,0.20)", padding: "8px 10px", fontWeight: 950 }}>
+                        📍 Near me
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <Link href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`} className="topBtn" style={{ textDecoration: "none" }}>
+                    ⚡ Create RFQ
+                  </Link>
+                  <Link href={`/price-today?q=${encodeURIComponent(qFromUrl)}`} className="topBtn topBtnGhost" style={{ textDecoration: "none", background: "rgba(255,255,255,0.12)", color: "#ffffff" }}>
+                    📊 Check Price
+                  </Link>
+                  <Link href={`/vendor/discovery?q=${encodeURIComponent(qFromUrl)}`} className="topBtn topBtnGhost" style={{ textDecoration: "none", background: "rgba(255,255,255,0.12)", color: "#ffffff" }}>
+                    🎯 Find Vendors
+                  </Link>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
+      {hasQuery && aiRecommendations.length > 0 ? (
+        <>
+          <Card>
+            <CardBody>
+              <div style={{ display: "grid", gap: 14 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 950, color: "#0b57d0" }}>
+                      AI Marketplace Recommendation Engine
+                    </div>
+                    <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#0f172a" }}>
+                      Recommended next steps for this search
+                    </div>
+                    <div style={{ marginTop: 4, color: "#64748b", fontWeight: 750 }}>
+                      {recommendationSummary || "AI is connecting search intent with RFQ, vendor and price workflows."}
+                    </div>
+                  </div>
+
+                  <Link
+                    href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`}
+                    className="topBtn"
+                    style={{ textDecoration: "none", alignSelf: "flex-start" }}
+                  >
+                    ⚡ Start RFQ
+                  </Link>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                    gap: 12,
+                  }}
+                >
+                  {aiRecommendations.map((item) => (
+                    <Link
+                      key={`${item.badge}-${item.title}`}
+                      href={item.href}
+                      style={{
+                        border: "1px solid #e2e8f0",
+                        borderRadius: 16,
+                        padding: 14,
+                        background: "linear-gradient(180deg, #ffffff, #f8fbff)",
+                        textDecoration: "none",
+                        color: "inherit",
+                        boxShadow: "0 10px 24px rgba(15,23,42,0.05)",
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                        <span style={{ fontSize: 24 }}>{item.icon}</span>
+                        <span
+                          style={{
+                            borderRadius: 999,
+                            background: "#eef6ff",
+                            color: "#0b57d0",
+                            padding: "5px 8px",
+                            fontSize: 11,
+                            fontWeight: 950,
+                            height: "fit-content",
+                          }}
+                        >
+                          {item.badge}
+                        </span>
+                      </div>
+
+                      <div style={{ marginTop: 10, fontSize: 15, fontWeight: 950, color: "#0f172a" }}>
+                        {item.title}
+                      </div>
+                      <div style={{ marginTop: 6, color: "#64748b", fontSize: 13, lineHeight: 1.5, fontWeight: 750 }}>
+                        {item.text}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
       {hasQuery ? (
         <Card>
           <CardBody>
@@ -1078,20 +1362,77 @@ if (want.includes("rentals")) {
             {rows.map((r) => (
               <Card key={`${r.module}:${r.id}`}>
                 <CardBody>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-                    <div>
-                      <div style={{ fontWeight: 950, fontSize: 16 }}>{r.title}</div>
-                      {r.subtitle ? <div style={{ opacity: 0.8, fontWeight: 750 }}>{r.subtitle}</div> : null}
-                      {r.meta ? (
-                        <div style={{ marginTop: 6, opacity: 0.75, fontWeight: 850, fontSize: 12 }}>{r.meta}</div>
-                      ) : null}
+                  <div style={{ display: "grid", gap: 12 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                          <span style={{ fontSize: 20 }}>{moduleEmoji(r.module)}</span>
+                          <span
+                            style={{
+                              borderRadius: 999,
+                              background: "#eef6ff",
+                              color: "#0b57d0",
+                              padding: "5px 8px",
+                              fontSize: 11,
+                              fontWeight: 950,
+                            }}
+                          >
+                            {moduleLabel(r.module)}
+                          </span>
+                          <span
+                            style={{
+                              borderRadius: 999,
+                              background: "#ecfdf5",
+                              color: "#047857",
+                              padding: "5px 8px",
+                              fontSize: 11,
+                              fontWeight: 950,
+                            }}
+                          >
+                            ✅ {moduleTrustLabel(r.module)}
+                          </span>
+                        </div>
+
+                        <div style={{ marginTop: 8, fontWeight: 950, fontSize: 17, color: "#0f172a" }}>{r.title}</div>
+                        {r.subtitle ? <div style={{ marginTop: 4, opacity: 0.8, fontWeight: 750 }}>{r.subtitle}</div> : null}
+                        {r.meta ? (
+                          <div style={{ marginTop: 6, opacity: 0.75, fontWeight: 850, fontSize: 12 }}>{r.meta}</div>
+                        ) : null}
+                      </div>
+
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <Link href={r.href} className="topBtn topBtnGhost" style={{ textDecoration: "none" }}>
+                          View →
+                        </Link>
+                        <Link
+                          href={resultActionHref(r, qFromUrl)}
+                          className="topBtn"
+                          style={{
+                            textDecoration: "none",
+                            background: r.module === "materials" ? "#7c3aed" : "#0b57d0",
+                          }}
+                        >
+                          {r.module === "materials"
+                            ? "Create RFQ"
+                            : r.module === "services"
+                              ? "Find Vendors"
+                              : r.module === "rentals"
+                                ? "Check Rental"
+                                : "Smart Action"}
+                        </Link>
+                      </div>
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ fontWeight: 900, opacity: 0.75 }}>{moduleLabel(r.module)}</div>
-                      <Link href={r.href} className="topBtn topBtnGhost" style={{ textDecoration: "none" }}>
-                        View →
-                      </Link>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ borderRadius: 999, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 9px", fontSize: 12, fontWeight: 900 }}>
+                        🤖 AI matched
+                      </span>
+                      <span style={{ borderRadius: 999, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 9px", fontSize: 12, fontWeight: 900 }}>
+                        📍 Local discovery
+                      </span>
+                      <span style={{ borderRadius: 999, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 9px", fontSize: 12, fontWeight: 900 }}>
+                        ⚡ Workflow ready
+                      </span>
                     </div>
                   </div>
                 </CardBody>

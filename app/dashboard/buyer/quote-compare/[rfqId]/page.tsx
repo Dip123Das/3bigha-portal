@@ -117,6 +117,14 @@ type AutonomousProcurementOsDecision = {
   shortlistVendor: string;
 };
 
+type BuyerDecisionCard = {
+  title: string;
+  value: string;
+  detail: string;
+  tone: "ok" | "warn" | "bad" | "neutral";
+  icon: string;
+};
+
 function buildAutonomousProcurementOsDecision(args: {
   rfq: any;
   vendors: any[];
@@ -195,6 +203,38 @@ function osToneStyle(level: "High" | "Medium" | "Low" | "Strong" | "Moderate" | 
   if (level === "Medium" || level === "Moderate") return pillStyle("warn");
   if (level === "Strong" || level === "Low") return pillStyle("ok");
   return pillStyle("neutral");
+}
+
+function decisionCardStyle(tone: BuyerDecisionCard["tone"]): React.CSSProperties {
+  if (tone === "ok") {
+    return {
+      border: "1px solid #bbf7d0",
+      background: "linear-gradient(180deg, #f0fdf4, #ffffff)",
+      color: "#14532d",
+    };
+  }
+
+  if (tone === "warn") {
+    return {
+      border: "1px solid #fde68a",
+      background: "linear-gradient(180deg, #fffbeb, #ffffff)",
+      color: "#78350f",
+    };
+  }
+
+  if (tone === "bad") {
+    return {
+      border: "1px solid #fecaca",
+      background: "linear-gradient(180deg, #fef2f2, #ffffff)",
+      color: "#7f1d1d",
+    };
+  }
+
+  return {
+    border: "1px solid #e2e8f0",
+    background: "linear-gradient(180deg, #f8fafc, #ffffff)",
+    color: "#0f172a",
+  };
 }
 
 function actionBtnStyle(kind: "talk" | "normal" | "accept" = "normal"): React.CSSProperties {
@@ -539,6 +579,67 @@ export default async function BuyerQuoteComparePage({
     overpricedCount: aiProcurementDecision.overpricedCount,
   });
 
+  const buyerDecisionConfidence =
+    aiProcurementDecision.bestOverall?.aiScore != null
+      ? Math.max(
+          1,
+          Math.min(
+            100,
+            Math.round(
+              aiProcurementDecision.bestOverall.aiScore * 0.72 +
+                autonomousOsDecision.osScore * 0.28 -
+                (autonomousOsDecision.workflowRisk === "High" ? 10 : autonomousOsDecision.workflowRisk === "Medium" ? 4 : 0)
+            )
+          )
+        )
+      : 0;
+
+  const buyerDecisionCards: BuyerDecisionCard[] = [
+    {
+      title: "Decision Confidence",
+      value: buyerDecisionConfidence ? `${buyerDecisionConfidence}/100` : "Waiting",
+      detail:
+        buyerDecisionConfidence >= 80
+          ? "AI indicates this RFQ has enough vendor signals for a confident buyer decision."
+          : buyerDecisionConfidence >= 55
+            ? "AI recommends negotiation and comparison before accepting."
+            : "AI recommends waiting for more quotes or stronger vendor signals.",
+      tone: buyerDecisionConfidence >= 80 ? "ok" : buyerDecisionConfidence >= 55 ? "warn" : "bad",
+      icon: "🧠",
+    },
+    {
+      title: "Best Buyer Action",
+      value: aiProcurementDecision.bestOverall?.name || "No shortlist yet",
+      detail: aiProcurementDecision.buyerAction,
+      tone: Number(aiProcurementDecision.bestOverall?.aiScore || 0) >= 78 ? "ok" : "warn",
+      icon: "✅",
+    },
+    {
+      title: "Negotiation Leverage",
+      value: aiProcurementDecision.priceSpread != null ? `${aiProcurementDecision.priceSpread}% spread` : "Limited",
+      detail: aiProcurementDecision.negotiationLeverage,
+      tone:
+        aiProcurementDecision.priceSpread != null && aiProcurementDecision.priceSpread >= 20
+          ? "ok"
+          : aiProcurementDecision.priceSpread != null
+            ? "warn"
+            : "neutral",
+      icon: "🤝",
+    },
+    {
+      title: "Execution Risk",
+      value: autonomousOsDecision.workflowRisk,
+      detail: autonomousOsDecision.autonomousReason,
+      tone:
+        autonomousOsDecision.workflowRisk === "Low"
+          ? "ok"
+          : autonomousOsDecision.workflowRisk === "Medium"
+            ? "warn"
+            : "bad",
+      icon: "🚦",
+    },
+  ];
+
   const buyerPrintHref = `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}/print`;
 
   const smartDecisionPayload = {
@@ -669,6 +770,92 @@ export default async function BuyerQuoteComparePage({
       <PricePredictionToggle payload={smartDecisionPayload} />
 
       <SmartDecisionBox payload={smartDecisionPayload} />
+
+      {buyerDecisionCards.length > 0 ? (
+        <div
+          style={{
+            marginTop: 16,
+            padding: 16,
+            borderRadius: 20,
+            border: "1px solid rgba(15,23,42,0.12)",
+            background: "linear-gradient(135deg, #0f172a, #1d4ed8)",
+            color: "#ffffff",
+            boxShadow: "0 18px 44px rgba(15,23,42,0.18)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 1000, color: "#bfdbfe", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                AI Buyer Final Decision Intelligence
+              </div>
+              <div style={{ marginTop: 6, fontSize: 22, fontWeight: 1000 }}>
+                Decide the safest vendor, not only the cheapest quote.
+              </div>
+              <div style={{ marginTop: 5, color: "rgba(255,255,255,0.76)", fontSize: 13, fontWeight: 800 }}>
+                AI combines price, trust, delivery, risk, quote spread and procurement readiness into a buyer decision layer.
+              </div>
+            </div>
+
+            <div
+              style={{
+                alignSelf: "center",
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.12)",
+                border: "1px solid rgba(255,255,255,0.16)",
+                padding: "9px 13px",
+                fontWeight: 1000,
+              }}
+            >
+              Confidence {buyerDecisionConfidence || "—"}/100
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
+            {buyerDecisionCards.map((card) => (
+              <div
+                key={card.title}
+                style={{
+                  ...decisionCardStyle(card.tone),
+                  borderRadius: 14,
+                  padding: 12,
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 1000, opacity: 0.86 }}>
+                  {card.icon} {card.title}
+                </div>
+                <div style={{ marginTop: 6, fontSize: 16, fontWeight: 1000 }}>
+                  {card.value}
+                </div>
+                <div style={{ marginTop: 6, fontSize: 12, lineHeight: 1.45, fontWeight: 800, color: "#475569" }}>
+                  {card.detail}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {aiProcurementDecision.bestOverall?.vendorId ? (
+              <Link
+                href={`/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}/chat?vendorId=${encodeURIComponent(
+                  aiProcurementDecision.bestOverall.vendorId
+                )}`}
+                style={actionBtnStyle("talk")}
+              >
+                💬 Negotiate with Best Vendor
+              </Link>
+            ) : null}
+
+            <Link href={buyerPrintHref} style={actionBtnStyle("normal")}>
+              🖨️ Print Comparison
+            </Link>
+
+            <Link href="/dashboard/inbox-v2?module=rfq" style={actionBtnStyle("normal")}>
+              Continue in Inbox
+            </Link>
+          </div>
+        </div>
+      ) : null}
+
             <div
         style={{
           marginTop: 16,
