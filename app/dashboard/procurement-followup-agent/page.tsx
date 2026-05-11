@@ -86,6 +86,21 @@ export default function ProcurementFollowupAgentPage() {
           </div>
         </div>
 
+                <div className="mt-8 rounded-[2rem] border border-blue-200 bg-blue-50 p-6 shadow-sm">
+          <div className="text-sm font-black uppercase tracking-[0.14em] text-blue-700">
+            Autonomous Procurement Recovery Routing
+          </div>
+
+          <div className="mt-3 text-2xl font-black text-blue-950">
+            AI is now generating backup supplier follow-up and emergency recovery workflows.
+          </div>
+
+          <div className="mt-4 text-sm font-semibold leading-6 text-blue-900">
+            Supplier silence, overload escalation and procurement continuity
+            recovery are now integrated into AI follow-up orchestration.
+          </div>
+        </div>
+
         <div className="mt-8 space-y-6">
           {(data?.workflows || []).map((workflow: any) => (
             <ProcurementFollowupAgentCard

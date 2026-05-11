@@ -65,6 +65,21 @@ export default function ProcurementNegotiationAgentPage() {
           </a>
         </div>
 
+                <div className="mt-8 rounded-[2rem] border border-violet-200 bg-violet-50 p-6 shadow-sm">
+          <div className="text-sm font-black uppercase tracking-[0.14em] text-violet-700">
+            Emergency Negotiation Fallback Intelligence
+          </div>
+
+          <div className="mt-3 text-2xl font-black text-violet-950">
+            AI fallback negotiation and backup supplier leverage analysis is active.
+          </div>
+
+          <div className="mt-4 text-sm font-semibold leading-6 text-violet-900">
+            Procurement negotiation continuity now includes alternate supplier
+            fallback recommendations and emergency procurement recovery logic.
+          </div>
+        </div>
+
         <div className="mt-8 space-y-6">
           {(data?.negotiations || []).map((item: any) => (
             <NegotiationInsightCard
