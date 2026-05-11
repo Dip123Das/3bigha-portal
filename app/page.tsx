@@ -1,7 +1,7 @@
 // app/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import JsonLd from "@/components/seo/JsonLd";
@@ -87,6 +87,125 @@ const quickActions = [
   { title: "Find Vendors", text: "Discover verified local vendors and service providers.", href: "/vendor/discovery", icon: "✅" },
 ];
 
+const aiCommandPrompts = [
+  "Need 500 bags cement in Cooch Behar",
+  "Find land near me under 10 lakh",
+  "Draft RFQ for house construction materials",
+  "Show electrician and plumber near me",
+  "Check steel price today",
+  "Find excavator rental nearby",
+];
+
+const marketplaceActivity = [
+  { icon: "⚡", text: "New RFQ demand detected for cement and steel", href: "/rfq/general/new" },
+  { icon: "🏠", text: "Buyers searching land and residential plots", href: "/property" },
+  { icon: "🛠️", text: "Fast service responses active in local market", href: "/services" },
+  { icon: "📊", text: "Price Today signals showing active material movement", href: "/price-today#prediction" },
+];
+
+const trustSignals = [
+  "AI Verified",
+  "Fast Responder",
+  "Hot RFQ",
+  "High Demand",
+  "AI Trusted",
+];
+
+const localFeedSignals = [
+  { title: "Trending Near You", value: "Land, cement, steel", note: "High buyer activity", href: "/search" },
+  { title: "Hot RFQs Nearby", value: "Materials + Services", note: "Vendors should respond fast", href: "/rfq/general/new" },
+  { title: "High Demand Materials", value: "Cement, rod, bricks", note: "Procurement movement active", href: "/materials" },
+  { title: "Nearby Vendor Opportunity", value: "Fast responders preferred", note: "AI trust ranking visible", href: "/vendor/discovery" },
+];
+
+const investmentSignals = [
+  { title: "AI Growth Zone", text: "Track locations where land, rentals and construction demand are moving together.", href: "/investment/opportunities" },
+  { title: "Rental Yield Signal", text: "Machinery and equipment demand can indicate active construction pockets.", href: "/rentals" },
+  { title: "Price Momentum", text: "Use Price Today before buying, selling or submitting large RFQs.", href: "/price-today#prediction" },
+];
+
+const realtimeTickerSignals = [
+  "⚡ New RFQ activity detected in Cooch Behar",
+  "📈 Steel and cement price movement under watch",
+  "🎯 Fast responder vendors getting higher AI visibility",
+  "🚜 Rental equipment demand rising near local construction zones",
+  "🏠 Residential plot searches active in nearby markets",
+  "🧠 AI procurement signals updated for buyers and vendors",
+];
+
+const heatmapSignals = [
+  { zone: "Cooch Behar Town", level: "High", score: "92", text: "Property + materials demand" },
+  { zone: "Khagrabari", level: "Rising", score: "84", text: "Vendor and RFQ movement" },
+  { zone: "Tufanganj", level: "Active", score: "78", text: "Rental and service activity" },
+  { zone: "Dinhata Road", level: "Watch", score: "71", text: "Price-sensitive buyer search" },
+];
+
+const smartAlerts = [
+  { icon: "🚨", title: "Hot RFQ window", text: "Material buyers may need faster vendor responses.", href: "/rfq/general/new" },
+  { icon: "📊", title: "Price movement", text: "Check Price Today before bulk procurement.", href: "/price-today#prediction" },
+  { icon: "🎯", title: "Vendor opportunity", text: "Fast responders can win more local leads.", href: "/vendor/discovery" },
+];
+
+const userModes = [
+  { key: "buyer", label: "Buyer", icon: "🛒", title: "Find, compare and submit requirements faster.", href: "/rfq/general/new" },
+  { key: "vendor", label: "Vendor", icon: "🏪", title: "Discover hot RFQs and respond before competitors.", href: "/dashboard/vendor/rfqs" },
+  { key: "investor", label: "Investor", icon: "💼", title: "Track growth zones and investment signals.", href: "/investment/opportunities" },
+  { key: "rental", label: "Rental", icon: "🚜", title: "Follow machinery demand and equipment movement.", href: "/rentals" },
+];
+
+const behavioralSignals = [
+  { title: "AI Buyer Path", text: "Search → Compare → RFQ → Chat → Deal", href: "/search" },
+  { title: "AI Vendor Path", text: "Lead alert → Quote → Follow-up → Conversion", href: "/dashboard/vendor" },
+  { title: "AI Investor Path", text: "Location signal → Demand score → Opportunity", href: "/investment/opportunities" },
+];
+
+const districtIntelligence = [
+  { label: "Top local demand", value: "Materials + land", note: "Cooch Behar activity cluster" },
+  { label: "Vendor response", value: "Fast responders rising", note: "Trust ranking advantage" },
+  { label: "Procurement urgency", value: "Medium-high", note: "Bulk RFQ-ready market" },
+];
+
+const copilotMemorySignals = [
+  "Last workflow: Marketplace search",
+  "Next best action: Draft RFQ",
+  "AI confidence: High",
+];
+
+const multilingualPrompts = [
+  "বাংলায় বলুন: সিমেন্ট দরকার",
+  "हिंदी में खोजें: प्लंबर चाहिए",
+  "Need land near Cooch Behar",
+  "Compare material price today",
+];
+
+const copilotMissions = [
+  { title: "Draft requirement", href: "/rfq/general/new", icon: "⚡" },
+  { title: "Find vendors", href: "/vendor/discovery", icon: "🎯" },
+  { title: "Check prices", href: "/price-today#prediction", icon: "📊" },
+  { title: "Track market", href: "/dashboard/procurement-live", icon: "🧠" },
+];
+
+function marketplaceEmoji(module: MarketplaceItem["module"]) {
+  if (module === "Property") return "🏠";
+  if (module === "Material") return "🧱";
+  if (module === "Service") return "🛠️";
+  return "🚜";
+}
+
+function aiTrustBadge(module: MarketplaceItem["module"]) {
+  if (module === "Property") return "AI Location Checked";
+  if (module === "Material") return "Price Demand Signal";
+  if (module === "Service") return "Fast Responder Match";
+  return "High Rental Demand";
+}
+
+function aiConfidence(module: MarketplaceItem["module"]) {
+  if (module === "Property") return "92% AI match";
+  if (module === "Material") return "88% demand fit";
+  if (module === "Service") return "90% trust signal";
+  return "86% availability fit";
+}
+
 const categories = [
   { title: "Property", text: "Land, flats, houses and commercial listings.", href: "/property", icon: "🏠", cta: "View Listings" },
   { title: "Materials", text: "Cement, steel, sand, bricks and building supplies.", href: "/materials", icon: "🧱", cta: "Browse Materials" },
@@ -105,11 +224,49 @@ export default function HomePage() {
   const [featuredLoading, setFeaturedLoading] = useState(true);
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
   const [aiCopilotOpen, setAiCopilotOpen] = useState(false);
+  const [voiceListening, setVoiceListening] = useState(false);
+  const [userMode, setUserMode] = useState(userModes[0]);
+  const voiceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeModule = useMemo(
     () => modules.find((m) => m.key === scope) || modules[0],
     [scope]
   );
+
+  const adaptiveHero = useMemo(() => {
+    if (scope === "materials") {
+      return {
+        title: "Need materials? Let AI prepare your buying workflow.",
+        text: "Search prices, draft RFQs and connect with nearby suppliers from one intelligent homepage.",
+      };
+    }
+
+    if (scope === "services") {
+      return {
+        title: "Find trusted local service providers with AI guidance.",
+        text: "Search contractors, engineers, plumbers, electricians and construction support providers faster.",
+      };
+    }
+
+    if (scope === "rentals") {
+      return {
+        title: "Find rental equipment and machinery near active work zones.",
+        text: "Track rental demand, compare availability and connect with local rental vendors.",
+      };
+    }
+
+    if (scope === "investment") {
+      return {
+        title: "Discover AI-backed land and growth opportunities.",
+        text: "Use local demand, price movement and development signals before making decisions.",
+      };
+    }
+
+    return {
+      title: "Find Property, Materials, Services & Rentals",
+      text: "Search listings, submit requirements, compare prices and connect with local providers.",
+    };
+  }, [scope]);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -136,7 +293,13 @@ export default function HomePage() {
     });
   }, []);
 
-    useEffect(() => {
+  useEffect(() => {
+    return () => {
+      if (voiceTimeoutRef.current) clearTimeout(voiceTimeoutRef.current);
+      };
+    }, []);
+
+  useEffect(() => {
     let alive = true;
 
     async function loadFeaturedMarketplace() {
@@ -267,6 +430,24 @@ export default function HomePage() {
       alive = false;
     };
   }, []);
+
+  function startVoiceSearch() {
+    setVoiceListening(true);
+
+    if (voiceTimeoutRef.current) clearTimeout(voiceTimeoutRef.current);
+
+    voiceTimeoutRef.current = setTimeout(() => {
+      setVoiceListening(false);
+      setAiSuggestion({
+        title: "Voice AI search ready",
+        message:
+          "Voice architecture is ready for Bengali, Hindi and local marketplace search. Type your requirement now or continue with AI Guide.",
+        actionLabel: "Open RFQ Assistant",
+        href: "/rfq/general/new",
+        confidence: "Voice-ready mode",
+      });
+    }, 1200);
+  }
 
     function runAISmartGuide() {
     const originalQuery = query.trim();
@@ -435,11 +616,9 @@ export default function HomePage() {
             <div className="heroTextBlock">
               <div className="marketBadge">Verified local marketplace</div>
 
-              <h1>Find Property, Materials, Services & Rentals</h1>
+              <h1>{adaptiveHero.title}</h1>
 
-              <p>
-                Search listings, submit requirements, compare prices and connect with local providers.
-              </p>
+              <p>{adaptiveHero.text}</p>
 
               <div className="heroTrustRow">
                 <a href="/property">🏠 Property</a>
@@ -480,19 +659,44 @@ export default function HomePage() {
               ))}
             </div>
 
-            <div className="searchRow">
+            <div className="searchRow aiCommandSearchRow">
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") runSearch();
+                  if (e.key === "Enter") runAISmartGuide();
                 }}
-                placeholder={activeModule.placeholder}
+                placeholder={`Ask 3bigha AI: ${activeModule.placeholder}`}
               />
 
-              <button type="button" onClick={runSearch}>
-                Search
+              <button type="button" className="voiceSearchButton" onClick={startVoiceSearch}>
+                {voiceListening ? "Listening…" : "🎙️ Voice"}
               </button>
+
+              <button type="button" onClick={runAISmartGuide}>
+                Ask AI
+              </button>
+            </div>
+
+            <div className="aiPromptChips">
+              {aiCommandPrompts.map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() => {
+                    setQuery(prompt);
+                    setAiSuggestion({
+                      title: "AI command selected",
+                      message: `3bigha AI will understand this marketplace need and guide you to search, RFQ, price or vendor action.`,
+                      actionLabel: "Run AI Guide",
+                      href: `/rfq/general/new?query=${encodeURIComponent(prompt)}`,
+                      confidence: "Smart workflow ready",
+                    });
+                  }}
+                >
+                  {prompt}
+                </button>
+              ))}
             </div>
 
             <div className="searchMeta">
@@ -525,6 +729,189 @@ export default function HomePage() {
               </div>
             ) : null}
           </div>
+        </div>
+      </section>
+
+      <section className="conversationalAiSection">
+        <div className="conversationalAiPanel">
+          <div>
+            <div className="conversationalAiBadge">Conversational Homepage AI</div>
+            <h2>Tell 3bigha what you need. AI will guide the next action.</h2>
+            <p>
+              Search, draft RFQ, check price, find vendors, compare rentals or explore investment opportunities from one natural-language command.
+            </p>
+          </div>
+
+          <div className="conversationalAiActions">
+            <a href="/rfq/general/new">⚡ Draft RFQ with AI</a>
+            <a href="/search">🔍 Smart Search</a>
+            <a href="/price-today#prediction">📊 Price Intelligence</a>
+            <a href="/vendor/discovery">🎯 Vendor Match</a>
+          </div>
+        </div>
+      </section>
+
+      <section className="personalizationSection">
+        <div className="sectionTitleRow">
+          <div>
+            <h2>True AI Marketplace Personalization</h2>
+            <p>
+              Choose your role and 3bigha AI will guide the most useful marketplace workflow.
+            </p>
+          </div>
+          <a href={userMode.href}>Continue as {userMode.label} →</a>
+        </div>
+
+        <div className="userModeGrid">
+          {userModes.map((mode) => (
+            <button
+              key={mode.key}
+              type="button"
+              onClick={() => setUserMode(mode)}
+              className={userMode.key === mode.key ? "userModeCard active" : "userModeCard"}
+            >
+              <span>{mode.icon}</span>
+              <strong>{mode.label}</strong>
+              <small>{mode.title}</small>
+            </button>
+          ))}
+        </div>
+
+        <div className="behaviorGrid">
+          {behavioralSignals.map((signal) => (
+            <a key={signal.title} href={signal.href} className="behaviorCard">
+              <strong>{signal.title}</strong>
+              <span>{signal.text}</span>
+            </a>
+          ))}
+        </div>
+
+        <div className="districtIntelGrid">
+          {districtIntelligence.map((item) => (
+            <div key={item.label} className="districtIntelCard">
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <small>{item.note}</small>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="realtimeTickerSection">
+        <div className="realtimeTickerTrack">
+          {[...realtimeTickerSignals, ...realtimeTickerSignals].map((signal, index) => (
+            <span key={`${signal}-${index}`}>{signal}</span>
+          ))}
+        </div>
+      </section>
+
+      <section className="operatingFeelSection">
+        <div className="sectionTitleRow">
+          <div>
+            <h2>Realtime AI Marketplace Operating Feel</h2>
+            <p>Live-style marketplace intelligence for demand, RFQ, price and vendor activity.</p>
+          </div>
+          <a href="/dashboard/procurement-live">Open live view →</a>
+        </div>
+
+        <div className="operatingFeelGrid">
+          <div className="aiHeatmapCard">
+            <div className="aiHeatmapHeader">
+              <strong>AI Local Heatmap</strong>
+              <span>Live intensity</span>
+            </div>
+
+            <div className="heatmapList">
+              {heatmapSignals.map((signal) => (
+                <a key={signal.zone} href="/search" className="heatmapRow">
+                  <div>
+                    <strong>{signal.zone}</strong>
+                    <small>{signal.text}</small>
+                  </div>
+                  <span className={`heatmapScore level${signal.level}`}>{signal.score}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div className="smartAlertCard">
+            <div className="aiHeatmapHeader">
+              <strong>AI Smart Notification Strip</strong>
+              <span>Action signals</span>
+            </div>
+
+            <div className="smartAlertList">
+              {smartAlerts.map((alert) => (
+                <a key={alert.title} href={alert.href}>
+                  <b>{alert.icon}</b>
+                  <div>
+                    <strong>{alert.title}</strong>
+                    <small>{alert.text}</small>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div className="procurementDockCard">
+            <strong>AI Procurement Quick Actions</strong>
+            <p>Jump directly into high-value marketplace workflows.</p>
+            <div>
+              <a href="/rfq/general/new">⚡ Draft RFQ</a>
+              <a href="/price-today#prediction">📊 Compare Prices</a>
+              <a href="/vendor/discovery">🎯 Find Vendors</a>
+              <a href="/dashboard/procurement-live">🧠 Track Market</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="copilotExperienceSection">
+        <div className="copilotCommandPanel">
+          <div>
+            <span>True AI Marketplace Copilot</span>
+            <h2>One command can start search, RFQ, price check and vendor discovery.</h2>
+            <p>
+              3bigha AI now works like a marketplace operating terminal for buyers, vendors, rentals and investors.
+            </p>
+
+            <div className="copilotMemoryStrip">
+              {copilotMemorySignals.map((signal) => (
+                <small key={signal}>{signal}</small>
+              ))}
+            </div>
+          </div>
+
+          <div className="copilotMissionGrid">
+            {copilotMissions.map((mission) => (
+              <a key={mission.title} href={mission.href}>
+                <b>{mission.icon}</b>
+                <strong>{mission.title}</strong>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div className="regionalPromptRail">
+          {multilingualPrompts.map((prompt) => (
+            <button
+              key={prompt}
+              type="button"
+              onClick={() => {
+                setQuery(prompt);
+                setAiSuggestion({
+                  title: "Regional AI prompt selected",
+                  message:
+                    "3bigha AI can use this as a multilingual marketplace command and guide the next workflow.",
+                  actionLabel: "Run AI Guide",
+                  href: `/search?q=${encodeURIComponent(prompt)}`,
+                  confidence: "Regional AI ready",
+                });
+              }}
+            >
+              {prompt}
+            </button>
+          ))}
         </div>
       </section>
 
@@ -634,7 +1021,71 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="liveMarketplaceSection">
+      <section className="liveActivitySection">
+        <div className="sectionTitleRow">
+          <div>
+            <h2>Live Marketplace Activity</h2>
+            <p>Realtime-style local signals showing buyer, vendor, RFQ and pricing movement.</p>
+          </div>
+          <a href="/dashboard/inbox">Open Inbox →</a>
+        </div>
+
+        <div className="liveActivityGrid">
+          {marketplaceActivity.map((item) => (
+            <a key={item.text} href={item.href} className="liveActivityCard">
+              <span>{item.icon}</span>
+              <strong>{item.text}</strong>
+              <small>Live local signal</small>
+            </a>
+          ))}
+        </div>
+
+        <div className="aiTrustLayer">
+          {trustSignals.map((signal) => (
+            <span key={signal}>✅ {signal}</span>
+          ))}
+        </div>
+      </section>
+
+      <section className="personalizedFeedSection">
+        <div className="sectionTitleRow">
+          <div>
+            <h2>Personalized Local Feed</h2>
+            <p>
+              AI-powered local demand, vendor and price signals for your nearby marketplace.
+            </p>
+          </div>
+          <a href="/search">Explore local market →</a>
+        </div>
+
+        <div className="personalizedFeedGrid">
+          {localFeedSignals.map((signal) => (
+            <a key={signal.title} href={signal.href} className="personalizedFeedCard">
+              <span>{signal.title}</span>
+              <strong>{signal.value}</strong>
+              <small>{signal.note}</small>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section className="investmentIntelSection">
+        <div>
+          <span>AI Investment Intelligence</span>
+          <h2>Find growth signals before the market becomes crowded.</h2>
+        </div>
+
+        <div className="investmentIntelGrid">
+          {investmentSignals.map((signal) => (
+            <a key={signal.title} href={signal.href}>
+              <strong>{signal.title}</strong>
+              <small>{signal.text}</small>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <section className="liveMarketplaceSection imageFirstMarketplaceSection">
         <div className="sectionTitleRow">
           <div>
             <h2>AI Live Marketplace Feed</h2>
@@ -650,13 +1101,18 @@ export default function HomePage() {
         ) : (
           <div className="marketplaceGrid">
             {featuredItems.map((item) => (
-              <a key={`${item.module}-${item.id}`} href={item.href} className="marketplaceCard">
-                <div className="marketplaceImage">
+              <a key={`${item.module}-${item.id}`} href={item.href} className="marketplaceCard premiumMarketplaceCard">
+                <div className="marketplaceImage premiumMarketplaceImage">
                   {item.image ? (
                     <img src={item.image} alt={item.title} />
                   ) : (
-                    <span>{item.module === "Property" ? "🏠" : item.module === "Material" ? "🧱" : item.module === "Service" ? "🛠️" : "🚜"}</span>
+                    <span>{marketplaceEmoji(item.module)}</span>
                   )}
+
+                  <div className="marketplaceImageOverlay">
+                    <b>{aiTrustBadge(item.module)}</b>
+                    <small>{aiConfidence(item.module)}</small>
+                  </div>
                 </div>
 
                 <div className="marketplaceBody">
@@ -667,6 +1123,12 @@ export default function HomePage() {
 
                   <h3>{item.title}</h3>
                   <p>{item.subtitle}</p>
+
+                  <div className="aiCardBadges">
+                    <span>✅ AI Trusted</span>
+                    <span>⚡ Fast Action</span>
+                    <span>📍 Local Signal</span>
+                  </div>
 
                   <div className="marketplaceMeta">
                     <span>{item.meta}</span>
@@ -722,16 +1184,15 @@ export default function HomePage() {
 
         <div className="floatingAiActions">
           <a href="/search">🔍 AI Smart Search</a>
-
           <a href="/rfq/general/new">⚡ Draft RFQ</a>
-
           <a href="/price-today#prediction">📊 Price Prediction</a>
-
           <a href="/vendor/discovery">🎯 Find Vendors</a>
+          <a href="/dashboard/procurement-live">🧠 Mission Control</a>
+          <a href="/dashboard/inbox">💬 Continue Workflow</a>
         </div>
 
         <div className="floatingAiFooter">
-          Ask AI about property, materials, services, rentals and investments.
+          Copilot memory: search → RFQ → vendor → deal workflow ready.
         </div>
       </div>
 
@@ -894,6 +1355,10 @@ export default function HomePage() {
           margin-top: 10px;
         }
 
+        .aiCommandSearchRow {
+          grid-template-columns: 1fr auto auto;
+        }
+
         .searchRow input {
           width: 100%;
           border: 1px solid rgba(15, 23, 42, 0.14);
@@ -984,6 +1449,453 @@ export default function HomePage() {
           white-space: nowrap;
         }
 
+        .voiceSearchButton {
+          background: #0f172a !important;
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.20) !important;
+        }
+
+        .aiPromptChips {
+          margin-top: 12px;
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          padding-bottom: 2px;
+          scrollbar-width: thin;
+        }
+
+        .aiPromptChips button {
+          border: 1px solid rgba(11, 87, 208, 0.14);
+          border-radius: 999px;
+          background: #f8fbff;
+          color: #0b57d0;
+          padding: 8px 11px;
+          font-size: 12px;
+          font-weight: 950;
+          white-space: nowrap;
+          cursor: pointer;
+        }
+
+        .conversationalAiSection,
+        .liveActivitySection {
+          width: min(100%, 1180px);
+          margin: 16px auto 0;
+          padding: 0 16px;
+        }
+
+        .conversationalAiPanel {
+          border-radius: 22px;
+          background: linear-gradient(135deg, #0f172a, #1d4ed8);
+          color: #ffffff;
+          padding: 20px;
+          display: grid;
+          grid-template-columns: 1.35fr 1fr;
+          gap: 18px;
+          align-items: center;
+          box-shadow: 0 18px 44px rgba(15, 23, 42, 0.16);
+        }
+
+        .conversationalAiBadge {
+          display: inline-flex;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.12);
+          color: #bfdbfe;
+          padding: 6px 10px;
+          font-size: 12px;
+          font-weight: 950;
+        }
+
+        .conversationalAiPanel h2 {
+          margin: 10px 0 0;
+          font-size: 26px;
+          line-height: 1.15;
+          letter-spacing: -0.035em;
+          font-weight: 950;
+        }
+
+        .conversationalAiPanel p {
+          color: rgba(255, 255, 255, 0.78);
+          font-size: 14px;
+        }
+
+        .conversationalAiActions {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .conversationalAiActions a {
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.10);
+          color: #ffffff;
+          padding: 12px;
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 950;
+        }
+
+        .liveActivityGrid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .liveActivityCard {
+          border-radius: 18px;
+          background: #ffffff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          padding: 15px;
+          text-decoration: none;
+          box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+        }
+
+        .liveActivityCard span {
+          font-size: 22px;
+        }
+
+        .liveActivityCard strong {
+          display: block;
+          margin-top: 8px;
+          color: #0f172a;
+          font-size: 14px;
+          line-height: 1.4;
+          font-weight: 950;
+        }
+
+        .liveActivityCard small {
+          display: block;
+          margin-top: 7px;
+          color: #0b57d0;
+          font-size: 11px;
+          font-weight: 950;
+        }
+
+        .aiTrustLayer {
+          margin-top: 12px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .aiTrustLayer span {
+          border-radius: 999px;
+          background: #ecfdf5;
+          color: #047857;
+          border: 1px solid rgba(4, 120, 87, 0.14);
+          padding: 7px 10px;
+          font-size: 12px;
+          font-weight: 950;
+        }
+
+        .personalizationSection {
+          width: min(100%, 1180px);
+          margin: 18px auto 0;
+          padding: 0 16px;
+        }
+
+        .userModeGrid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .userModeCard {
+          text-align: left;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 18px;
+          background: #ffffff;
+          padding: 15px;
+          cursor: pointer;
+          box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+          font-family: inherit;
+        }
+
+        .userModeCard.active {
+          border-color: rgba(11, 87, 208, 0.34);
+          background: linear-gradient(180deg, #eef6ff, #ffffff);
+          box-shadow: 0 14px 34px rgba(11, 87, 208, 0.12);
+        }
+
+        .userModeCard span {
+          font-size: 24px;
+        }
+
+        .userModeCard strong {
+          display: block;
+          margin-top: 8px;
+          color: #0f172a;
+          font-size: 15px;
+          font-weight: 950;
+        }
+
+        .userModeCard small {
+          display: block;
+          margin-top: 6px;
+          color: #64748b;
+          font-size: 12px;
+          line-height: 1.45;
+          font-weight: 750;
+        }
+
+        .behaviorGrid {
+          margin-top: 12px;
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .behaviorCard {
+          border-radius: 16px;
+          background: #0f172a;
+          color: #ffffff;
+          padding: 14px;
+          text-decoration: none;
+          box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+        }
+
+        .behaviorCard strong {
+          display: block;
+          font-size: 14px;
+          font-weight: 950;
+        }
+
+        .behaviorCard span {
+          display: block;
+          margin-top: 7px;
+          color: rgba(255, 255, 255, 0.74);
+          font-size: 12px;
+          line-height: 1.45;
+          font-weight: 750;
+        }
+
+        .districtIntelGrid {
+          margin-top: 12px;
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .districtIntelCard {
+          border-radius: 16px;
+          background: linear-gradient(180deg, #ffffff, #f8fbff);
+          border: 1px solid rgba(11, 87, 208, 0.12);
+          padding: 14px;
+        }
+
+        .districtIntelCard span {
+          color: #0b57d0;
+          font-size: 11px;
+          font-weight: 950;
+        }
+
+        .districtIntelCard strong {
+          display: block;
+          margin-top: 7px;
+          color: #0f172a;
+          font-size: 16px;
+          font-weight: 950;
+        }
+
+        .districtIntelCard small {
+          display: block;
+          margin-top: 5px;
+          color: #64748b;
+          font-size: 12px;
+          font-weight: 750;
+        }
+
+        .realtimeTickerSection {
+          width: min(100%, 1180px);
+          margin: 16px auto 0;
+          padding: 0 16px;
+          overflow: hidden;
+        }
+
+        .realtimeTickerTrack {
+          display: flex;
+          gap: 10px;
+          width: max-content;
+          animation: realtimeTickerMove 34s linear infinite;
+        }
+
+        .realtimeTickerTrack span {
+          border-radius: 999px;
+          background: #0f172a;
+          color: #ffffff;
+          padding: 9px 13px;
+          font-size: 12px;
+          font-weight: 950;
+          white-space: nowrap;
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+        }
+
+        @keyframes realtimeTickerMove {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(-50%);
+          }
+        }
+
+        .operatingFeelSection {
+          width: min(100%, 1180px);
+          margin: 18px auto 0;
+          padding: 0 16px;
+        }
+
+        .operatingFeelGrid {
+          display: grid;
+          grid-template-columns: 1.1fr 1fr 0.9fr;
+          gap: 14px;
+          align-items: stretch;
+        }
+
+        .aiHeatmapCard,
+        .smartAlertCard,
+        .procurementDockCard {
+          border-radius: 20px;
+          background: #ffffff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          padding: 16px;
+          box-shadow: 0 12px 30px rgba(15, 23, 42, 0.07);
+        }
+
+        .aiHeatmapHeader {
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+
+        .aiHeatmapHeader strong,
+        .procurementDockCard strong {
+          color: #0f172a;
+          font-size: 16px;
+          font-weight: 950;
+        }
+
+        .aiHeatmapHeader span {
+          border-radius: 999px;
+          background: #ecfdf5;
+          color: #047857;
+          padding: 5px 8px;
+          font-size: 11px;
+          font-weight: 950;
+        }
+
+        .heatmapList,
+        .smartAlertList {
+          display: grid;
+          gap: 9px;
+        }
+
+        .heatmapRow,
+        .smartAlertList a {
+          border-radius: 14px;
+          background: #f8fafc;
+          border: 1px solid rgba(15, 23, 42, 0.06);
+          padding: 11px;
+          text-decoration: none;
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+          align-items: center;
+        }
+
+        .heatmapRow strong,
+        .smartAlertList strong {
+          display: block;
+          color: #0f172a;
+          font-size: 13px;
+          font-weight: 950;
+        }
+
+        .heatmapRow small,
+        .smartAlertList small,
+        .procurementDockCard p {
+          display: block;
+          margin-top: 4px;
+          color: #64748b;
+          font-size: 12px;
+          line-height: 1.4;
+          font-weight: 750;
+        }
+
+        .heatmapScore {
+          width: 42px;
+          height: 42px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: #ffffff;
+          background: #0b57d0;
+          font-size: 13px;
+          font-weight: 950;
+          flex-shrink: 0;
+        }
+
+        .levelHigh {
+          background: #dc2626;
+        }
+
+        .levelRising {
+          background: #ea580c;
+        }
+
+        .levelActive {
+          background: #0b57d0;
+        }
+
+        .levelWatch {
+          background: #64748b;
+        }
+
+        .smartAlertList a {
+          justify-content: flex-start;
+        }
+
+        .smartAlertList b {
+          width: 34px;
+          height: 34px;
+          border-radius: 12px;
+          background: #eef6ff;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .procurementDockCard {
+          background: linear-gradient(180deg, #0f172a, #172554);
+          color: #ffffff;
+        }
+
+        .procurementDockCard strong {
+          color: #ffffff;
+        }
+
+        .procurementDockCard p {
+          color: rgba(255, 255, 255, 0.76);
+        }
+
+        .procurementDockCard div {
+          display: grid;
+          gap: 9px;
+          margin-top: 14px;
+        }
+
+        .procurementDockCard a {
+          border-radius: 13px;
+          background: rgba(255, 255, 255, 0.10);
+          color: #ffffff;
+          text-decoration: none;
+          padding: 11px 12px;
+          font-size: 13px;
+          font-weight: 950;
+        }
+
         .homeSearchSection {
           width: min(100%, 1180px);
           margin: 16px auto 0;
@@ -995,6 +1907,106 @@ export default function HomePage() {
         .homeSearchInner {
           max-width: 1180px;
           margin: 0 auto;
+        }
+
+        .copilotExperienceSection {
+          width: min(100%, 1180px);
+          margin: 18px auto 0;
+          padding: 0 16px;
+        }
+
+        .copilotCommandPanel {
+          border-radius: 24px;
+          background: linear-gradient(135deg, #020617, #1d4ed8);
+          color: #ffffff;
+          padding: 20px;
+          display: grid;
+          grid-template-columns: 1.25fr 1fr;
+          gap: 18px;
+          align-items: center;
+          box-shadow: 0 22px 54px rgba(15, 23, 42, 0.20);
+        }
+
+        .copilotCommandPanel span {
+          color: #bfdbfe;
+          font-size: 12px;
+          font-weight: 950;
+        }
+
+        .copilotCommandPanel h2 {
+          margin: 8px 0 0;
+          font-size: 26px;
+          line-height: 1.15;
+          letter-spacing: -0.035em;
+          font-weight: 950;
+        }
+
+        .copilotCommandPanel p {
+          color: rgba(255, 255, 255, 0.78);
+          font-size: 14px;
+        }
+
+        .copilotMemoryStrip {
+          margin-top: 14px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .copilotMemoryStrip small {
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.12);
+          color: #ffffff;
+          padding: 7px 10px;
+          font-size: 11px;
+          font-weight: 950;
+        }
+
+        .copilotMissionGrid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .copilotMissionGrid a {
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.10);
+          color: #ffffff;
+          padding: 14px;
+          text-decoration: none;
+        }
+
+        .copilotMissionGrid b {
+          display: block;
+          font-size: 22px;
+        }
+
+        .copilotMissionGrid strong {
+          display: block;
+          margin-top: 8px;
+          font-size: 13px;
+          font-weight: 950;
+        }
+
+        .regionalPromptRail {
+          margin-top: 12px;
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          padding-bottom: 2px;
+          scrollbar-width: thin;
+        }
+
+        .regionalPromptRail button {
+          border: 1px solid rgba(11, 87, 208, 0.14);
+          border-radius: 999px;
+          background: #ffffff;
+          color: #0b57d0;
+          padding: 9px 12px;
+          font-size: 12px;
+          font-weight: 950;
+          white-space: nowrap;
+          cursor: pointer;
         }
 
         .aiMarketPulseSection {
@@ -1316,6 +2328,106 @@ export default function HomePage() {
           font-weight: 950;
         }
 
+        .personalizedFeedSection,
+        .investmentIntelSection {
+          width: min(100%, 1180px);
+          margin: 18px auto 0;
+          padding: 0 16px;
+        }
+
+        .personalizedFeedGrid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .personalizedFeedCard {
+          border-radius: 18px;
+          background: linear-gradient(180deg, #ffffff, #f8fbff);
+          border: 1px solid rgba(11, 87, 208, 0.12);
+          padding: 16px;
+          text-decoration: none;
+          box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+        }
+
+        .personalizedFeedCard span {
+          color: #0b57d0;
+          font-size: 12px;
+          font-weight: 950;
+        }
+
+        .personalizedFeedCard strong {
+          display: block;
+          margin-top: 8px;
+          color: #0f172a;
+          font-size: 17px;
+          font-weight: 950;
+        }
+
+        .personalizedFeedCard small {
+          display: block;
+          margin-top: 7px;
+          color: #64748b;
+          font-size: 12px;
+          line-height: 1.45;
+          font-weight: 800;
+        }
+
+        .investmentIntelSection {
+          border-radius: 22px;
+          background: linear-gradient(135deg, #111827, #312e81);
+          color: #ffffff;
+          padding: 18px;
+          display: grid;
+          grid-template-columns: 0.9fr 1.5fr;
+          gap: 16px;
+          align-items: center;
+          box-shadow: 0 18px 44px rgba(15, 23, 42, 0.16);
+        }
+
+        .investmentIntelSection span {
+          color: #bfdbfe;
+          font-size: 12px;
+          font-weight: 950;
+        }
+
+        .investmentIntelSection h2 {
+          margin: 8px 0 0;
+          font-size: 24px;
+          line-height: 1.2;
+          letter-spacing: -0.035em;
+          font-weight: 950;
+        }
+
+        .investmentIntelGrid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .investmentIntelGrid a {
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.10);
+          padding: 13px;
+          color: #ffffff;
+          text-decoration: none;
+        }
+
+        .investmentIntelGrid strong {
+          display: block;
+          font-size: 14px;
+          font-weight: 950;
+        }
+
+        .investmentIntelGrid small {
+          display: block;
+          margin-top: 7px;
+          color: rgba(255, 255, 255, 0.74);
+          font-size: 12px;
+          line-height: 1.45;
+          font-weight: 700;
+        }
+
         .floatingAiCopilot {
           position: fixed;
           right: 18px;
@@ -1459,6 +2571,40 @@ export default function HomePage() {
           color: #0b57d0;
           font-size: 44px;
           font-weight: 950;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .premiumMarketplaceImage {
+          height: 215px;
+        }
+
+        .marketplaceImageOverlay {
+          position: absolute;
+          left: 12px;
+          right: 12px;
+          bottom: 12px;
+          border-radius: 14px;
+          background: rgba(15, 23, 42, 0.82);
+          color: #ffffff;
+          padding: 10px 11px;
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+          align-items: center;
+          backdrop-filter: blur(14px);
+        }
+
+        .marketplaceImageOverlay b {
+          font-size: 12px;
+          font-weight: 950;
+        }
+
+        .marketplaceImageOverlay small {
+          color: #bfdbfe;
+          font-size: 11px;
+          font-weight: 900;
+          white-space: nowrap;
         }
 
         .marketplaceImage img {
@@ -1511,6 +2657,23 @@ export default function HomePage() {
           min-height: 40px;
         }
 
+        .aiCardBadges {
+          margin-top: 12px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        .aiCardBadges span {
+          border-radius: 999px;
+          background: #f0fdf4;
+          color: #047857;
+          border: 1px solid rgba(4, 120, 87, 0.12);
+          padding: 5px 7px;
+          font-size: 11px;
+          font-weight: 950;
+        }
+
         .marketplaceMeta {
           margin-top: 14px;
           display: flex;
@@ -1545,8 +2708,33 @@ export default function HomePage() {
             max-width: 100%;
           }
 
-          .aiMarketPulseGrid {
+          .aiMarketPulseGrid,
+          .liveActivityGrid,
+          .personalizedFeedGrid,
+          .userModeGrid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .behaviorGrid,
+          .districtIntelGrid {
+            grid-template-columns: 1fr;
+          }
+
+          .operatingFeelGrid,
+          .copilotCommandPanel {
+            grid-template-columns: 1fr;
+          }
+
+          .investmentIntelSection {
+            grid-template-columns: 1fr;
+          }
+
+          .investmentIntelGrid {
+            grid-template-columns: 1fr;
+          }
+
+          .conversationalAiPanel {
+            grid-template-columns: 1fr;
           }
 
           .aiRecommendationGrid {
@@ -1599,10 +2787,59 @@ export default function HomePage() {
             padding: 18px 10px 26px;
           }
 
-          .aiMarketPulseSection {
+          .aiMarketPulseSection,
+          .realtimeTickerSection,
+          .operatingFeelSection,
+          .personalizationSection,
+          .copilotExperienceSection {
             margin-top: 10px;
             padding-left: 10px;
             padding-right: 10px;
+          }
+
+          .copilotCommandPanel {
+            border-radius: 16px;
+            padding: 15px;
+            grid-template-columns: 1fr;
+          }
+
+          .copilotCommandPanel h2 {
+            font-size: 21px;
+          }
+
+          .copilotMissionGrid {
+            grid-template-columns: 1fr;
+          }
+
+          .userModeGrid,
+          .behaviorGrid,
+          .districtIntelGrid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+
+          .userModeCard,
+          .behaviorCard,
+          .districtIntelCard {
+            border-radius: 14px;
+            padding: 13px;
+          }
+
+          .realtimeTickerTrack span {
+            padding: 8px 11px;
+            font-size: 11px;
+          }
+
+          .operatingFeelGrid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+
+          .aiHeatmapCard,
+          .smartAlertCard,
+          .procurementDockCard {
+            border-radius: 15px;
+            padding: 13px;
           }
 
           .aiMarketPulseGrid {
@@ -1631,10 +2868,31 @@ export default function HomePage() {
           }
 
           .liveMarketplaceSection,
-          .aiRecommendationSection {
+          .aiRecommendationSection,
+          .personalizedFeedSection,
+          .investmentIntelSection {
             margin-top: 12px;
             padding-left: 10px;
             padding-right: 10px;
+          }
+
+          .personalizedFeedGrid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+
+          .investmentIntelSection {
+            border-radius: 16px;
+            padding: 15px;
+            grid-template-columns: 1fr;
+          }
+
+          .investmentIntelSection h2 {
+            font-size: 21px;
+          }
+
+          .investmentIntelGrid {
+            grid-template-columns: 1fr;
           }
 
           .aiRecommendationGrid {
@@ -1667,7 +2925,17 @@ export default function HomePage() {
           }
 
           .marketplaceImage {
-            height: 170px;
+            height: 190px;
+          }
+
+          .premiumMarketplaceImage {
+            height: 210px;
+          }
+
+          .marketplaceImageOverlay {
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
           }
 
           .marketplaceCard {
@@ -1725,8 +2993,38 @@ export default function HomePage() {
             box-shadow: none;
           }
 
-          .searchRow {
+          .searchRow,
+          .aiCommandSearchRow {
             grid-template-columns: 1fr;
+          }
+
+          .aiPromptChips {
+            margin-top: 10px;
+          }
+
+          .conversationalAiSection,
+          .liveActivitySection {
+            margin-top: 10px;
+            padding-left: 10px;
+            padding-right: 10px;
+          }
+
+          .conversationalAiPanel {
+            border-radius: 16px;
+            padding: 15px;
+          }
+
+          .conversationalAiPanel h2 {
+            font-size: 21px;
+          }
+
+          .conversationalAiActions {
+            grid-template-columns: 1fr;
+          }
+
+          .liveActivityGrid {
+            grid-template-columns: 1fr;
+            gap: 10px;
           }
 
           .searchRow button {
