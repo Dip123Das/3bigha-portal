@@ -600,23 +600,26 @@ export default function HomePage() {
         }
 
         .marketHeroInner {
-          width: min(100%, 1180px);
+          width: min(100%, 1240px);
           margin: 0 auto;
-          padding: 22px 16px 18px;
+          padding: 30px 20px 56px;
         }
 
         .marketHeroContent {
           width: 100%;
           display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(420px, 540px);
-          gap: 32px;
-          align-items: start;
+          grid-template-columns: minmax(0, 620px) minmax(360px, 460px);
+          justify-content: space-between;
+          gap: 24px;
+          align-items: center;
           position: relative;
           z-index: 1;
         }
 
         .heroTextBlock {
+          width: 100%;
           max-width: 620px;
+          padding-top: 8px;
         }
 
         .heroTrustRow {
@@ -666,13 +669,14 @@ export default function HomePage() {
         }
 
         .searchPanel {
-          margin-top: 24px;
+          margin-top: 0;
           background: #ffffff;
           border: 1px solid rgba(15, 23, 42, 0.10);
           border-radius: 20px;
           padding: 16px;
           box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
           width: 100%;
+          max-width: 460px;
           min-width: 0;
           position: relative;
           z-index: 2;
@@ -812,7 +816,7 @@ export default function HomePage() {
         }
 
         .quickActionSection {
-          margin-top: 22px;
+          margin-top: 24px;
         }
 
         .quickActionSection {
@@ -1048,6 +1052,7 @@ export default function HomePage() {
           }
           .searchPanel {
             margin-top: 0;
+            max-width: 100%;
           }
 
           .marketHeroContent {
@@ -1088,7 +1093,7 @@ export default function HomePage() {
           }
 
           .marketHeroInner {
-            padding: 16px 10px 14px;
+            padding: 18px 10px 26px;
           }
 
           .liveMarketplaceSection {
