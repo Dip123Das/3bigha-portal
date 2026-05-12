@@ -2048,11 +2048,10 @@ export default function HomePage() {
           min-width: 0;
           margin-top: 12px;
           display: flex;
+          flex-wrap: wrap;
           gap: 8px;
-          overflow-x: auto;
-          overflow-y: hidden;
-          padding-bottom: 6px;
-          scrollbar-width: thin;
+          overflow: visible;
+          padding-bottom: 2px;
         }
 
         .regionalPromptExamples button {
@@ -2064,7 +2063,9 @@ export default function HomePage() {
           font-size: 12px;
           font-weight: 850;
           cursor: pointer;
-          white-space: nowrap;
+          white-space: normal;
+          line-height: 1.35;
+          max-width: 260px;
         }
 
         .regionalAiVisual {
