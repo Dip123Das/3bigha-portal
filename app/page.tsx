@@ -232,6 +232,7 @@ export default function HomePage() {
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
   const [aiCopilotOpen, setAiCopilotOpen] = useState(false);
   const [aiActionsOpen, setAiActionsOpen] = useState(false);
+  const [regionalExamplesOpen, setRegionalExamplesOpen] = useState(false);
   const [voiceListening, setVoiceListening] = useState(false);
   const [userMode, setUserMode] = useState(userModes[0]);
   const [liveFeedSignals, setLiveFeedSignals] = useState<LiveDiscoverySignal[]>(localFeedSignals);
@@ -930,6 +931,20 @@ export default function HomePage() {
               3bigha AI understands Bengali, Hindi and mixed local language marketplace searches.
             </p>
 
+            <div className="regionalPromptHeader">
+              <button
+                type="button"
+                className="regionalToggleBtn"
+                onClick={() =>
+                  setRegionalExamplesOpen((value) => !value)
+                }
+              >
+                {regionalExamplesOpen
+                  ? "See less ▲"
+                  : "See more examples ▼"}
+              </button>
+            </div>
+
             <div className="regionalPromptExamples">
               {[
                 "আমার ৫০০ ব্যাগ সিমেন্ট লাগবে",
@@ -946,31 +961,37 @@ export default function HomePage() {
                 "मुझे बिजली का काम करने वाला चाहिए",
                 "मुझे ईंट और बालू चाहिए",
                 "मुझे मकान बनाने का खर्च जानना है",
-              ].map((example) => (
-                <button
-                  key={example}
-                  type="button"
-                  onClick={() => {
-                    setQuery(example);
-                    setAiSuggestion({
-                      title: "Regional AI Search Ready",
-                      message:
-                        "Your selected local-language search is ready in the search box.",
-                      actionLabel: "Run AI Guide",
-                      href: `/search?q=${encodeURIComponent(example)}`,
-                      confidence: "Multilingual AI active",
-                    });
+              ]
+                .slice(0, regionalExamplesOpen ? 14 : 6)
+                .map((example) => (
+                  <button
+                    key={example}
+                    type="button"
+                    onClick={() => {
+                      setQuery(example);
 
-                    window.scrollTo({ top: 220, behavior: "smooth" });
+                      setAiSuggestion({
+                        title: "Regional AI Search Ready",
+                        message:
+                          "Your selected local-language search is ready in the search box.",
+                        actionLabel: "Run AI Guide",
+                        href: `/search?q=${encodeURIComponent(example)}`,
+                        confidence: "Multilingual AI active",
+                      });
 
-                    setTimeout(() => {
-                      searchInputRef.current?.focus();
-                    }, 250);
-                  }}
-                >
-                  {example}
-                </button>
-              ))}
+                      window.scrollTo({
+                        top: 220,
+                        behavior: "smooth",
+                      });
+
+                      setTimeout(() => {
+                        searchInputRef.current?.focus();
+                      }, 250);
+                    }}
+                  >
+                    {example}
+                  </button>
+                ))}
             </div>
           </div>
 
@@ -2042,11 +2063,27 @@ export default function HomePage() {
           line-height: 1.45;
         }
 
+        .regionalPromptHeader {
+          display: flex;
+          justify-content: flex-end;
+          margin-top: 10px;
+        }
+
+        .regionalToggleBtn {
+          border: none;
+          background: transparent;
+          color: #0b57d0;
+          font-size: 12px;
+          font-weight: 950;
+          cursor: pointer;
+          padding: 0;
+        }
+
         .regionalPromptExamples {
           width: 100%;
           max-width: 100%;
           min-width: 0;
-          margin-top: 12px;
+          margin-top: 10px;
           display: flex;
           flex-wrap: wrap;
           gap: 8px;
