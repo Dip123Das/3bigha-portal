@@ -1990,124 +1990,128 @@ export default function HomePage() {
 
         .regionalAiSection {
           width: min(100%, 1180px);
-          margin: 14px auto 0;
+          margin: 12px auto 0;
           padding: 0 16px;
         }
 
         .regionalAiCard {
-          border-radius: 22px;
-          background: linear-gradient(135deg, #0f172a, #1d4ed8);
-          color: #ffffff;
-          padding: 20px;
+          border-radius: 18px;
+          background: #ffffff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          color: #0f172a;
+          padding: 15px;
           display: grid;
-          grid-template-columns: 1.3fr 0.7fr;
-          gap: 18px;
-          align-items: center;
-          box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
+          grid-template-columns: 1fr;
+          gap: 12px;
+          box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
         }
 
         .regionalAiContent span {
           display: inline-flex;
           border-radius: 999px;
-          background: rgba(255,255,255,0.12);
-          padding: 6px 10px;
-          font-size: 12px;
+          background: #eef6ff;
+          border: 1px solid rgba(11, 87, 208, 0.10);
+          padding: 5px 9px;
+          font-size: 11px;
           font-weight: 950;
-          color: #bfdbfe;
+          color: #0b57d0;
         }
 
         .regionalAiContent h2 {
-          margin: 10px 0 0;
-          font-size: 28px;
-          line-height: 1.15;
+          margin: 8px 0 0;
+          font-size: 21px;
+          line-height: 1.2;
           font-weight: 950;
-          letter-spacing: -0.04em;
+          letter-spacing: -0.03em;
+          color: #0f172a;
         }
 
         .regionalAiContent p {
-          margin-top: 8px;
-          color: rgba(255,255,255,0.78);
-          font-size: 14px;
+          margin-top: 5px;
+          color: #64748b;
+          font-size: 13px;
+          line-height: 1.45;
         }
 
         .regionalPromptExamples {
-          margin-top: 16px;
+          margin-top: 12px;
           display: flex;
-          gap: 10px;
+          gap: 8px;
           overflow-x: auto;
           padding-bottom: 4px;
           scrollbar-width: thin;
         }
 
         .regionalPromptExamples button {
-          border: 1px solid rgba(255,255,255,0.14);
+          border: 1px solid rgba(11, 87, 208, 0.10);
           border-radius: 999px;
-          background: rgba(255,255,255,0.10);
-          color: #ffffff;
-          padding: 9px 12px;
+          background: #f8fbff;
+          color: #0f172a;
+          padding: 7px 10px;
           font-size: 12px;
-          font-weight: 900;
+          font-weight: 850;
           cursor: pointer;
-          backdrop-filter: blur(12px);
+          white-space: nowrap;
         }
 
         .regionalAiVisual {
           display: flex;
-          flex-direction: column;
-          gap: 12px;
+          flex-wrap: wrap;
+          gap: 8px;
           align-items: center;
-          justify-content: center;
         }
 
         .regionalAiVisual div {
-          border-radius: 14px;
-          background: rgba(255,255,255,0.12);
-          padding: 12px 18px;
-          font-size: 20px;
+          border-radius: 999px;
+          background: #f8fafc;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          padding: 6px 10px;
+          font-size: 12px;
           font-weight: 950;
-          width: 100%;
-          text-align: center;
-          backdrop-filter: blur(12px);
+          color: #0b57d0;
         }
 
         .regionalAiVisual small {
-          color: rgba(255,255,255,0.72);
+          color: #64748b;
           font-size: 12px;
-          font-weight: 800;
-          text-align: center;
+          font-weight: 750;
         }
 
         .aiMarketplaceToggle {
           width: 100%;
-          border: 0;
+          border: 1px solid rgba(11, 87, 208, 0.10);
           border-radius: 18px;
-          background: linear-gradient(135deg, #0f172a, #1d4ed8);
-          color: #ffffff;
-          padding: 16px;
+          background: linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+          color: #0f172a;
+          padding: 15px;
           display: flex;
           justify-content: space-between;
           gap: 14px;
           align-items: center;
           cursor: pointer;
           text-align: left;
-          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+          box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
         }
 
         .aiMarketplaceToggle h2 {
           margin: 0;
-          font-size: 24px;
+          font-size: 22px;
           font-weight: 950;
+          color: #0f172a;
         }
 
         .aiMarketplaceToggle p {
           margin: 4px 0 0;
-          color: rgba(255, 255, 255, 0.78);
-          font-size: 14px;
+          color: #64748b;
+          font-size: 13px;
+          line-height: 1.45;
         }
 
         .aiMarketplaceToggle span {
           font-weight: 950;
           white-space: nowrap;
+          color: #0b57d0;
+          font-size: 13px;
         }
 
         .aiRunningActions {
@@ -2124,15 +2128,15 @@ export default function HomePage() {
 
         .aiRunningTrack a {
           border-radius: 999px;
-          background: #ffffff;
-          border: 1px solid rgba(11, 87, 208, 0.14);
+          background: #f8fbff;
+          border: 1px solid rgba(11, 87, 208, 0.10);
           color: #0b57d0;
           text-decoration: none;
-          padding: 10px 14px;
-          font-size: 13px;
-          font-weight: 950;
+          padding: 8px 12px;
+          font-size: 12px;
+          font-weight: 900;
           white-space: nowrap;
-          box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+          box-shadow: none;
         }
 
         .aiMarketPulseGrid {
@@ -2143,11 +2147,12 @@ export default function HomePage() {
 
         .aiMarketPulseCard {
           background: #ffffff;
-          border: 1px solid rgba(11, 87, 208, 0.14);
-          border-radius: 18px;
-          padding: 16px;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 16px;
+          padding: 14px;
           text-decoration: none;
-          box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+          box-shadow: 0 6px 16px rgba(15, 23, 42, 0.04);
+          transition: all 0.16s ease;
         }
 
         .aiMarketPulseCard strong {
@@ -2155,6 +2160,12 @@ export default function HomePage() {
           color: #0f172a;
           font-size: 15px;
           font-weight: 950;
+        }
+
+        .aiMarketPulseCard:hover {
+          transform: translateY(-2px);
+          border-color: rgba(11, 87, 208, 0.18);
+          box-shadow: 0 10px 22px rgba(11, 87, 208, 0.08);
         }
 
         .aiMarketPulseCard span {
