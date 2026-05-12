@@ -237,6 +237,7 @@ export default function HomePage() {
   const [liveFeedSignals, setLiveFeedSignals] = useState<LiveDiscoverySignal[]>(localFeedSignals);
   const [liveMarketSummary, setLiveMarketSummary] = useState("AI-powered local marketplace signals are ready.");
   const voiceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const activeModule = useMemo(
     () => modules.find((m) => m.key === scope) || modules[0],
@@ -846,6 +847,7 @@ export default function HomePage() {
 
             <div className="searchRow aiCommandSearchRow">
               <input
+                ref={searchInputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -953,11 +955,17 @@ export default function HomePage() {
                     setAiSuggestion({
                       title: "Regional AI Search Ready",
                       message:
-                        "3bigha AI understood your local language marketplace request.",
+                        "Your selected local-language search is ready in the search box.",
                       actionLabel: "Run AI Guide",
                       href: `/search?q=${encodeURIComponent(example)}`,
                       confidence: "Multilingual AI active",
                     });
+
+                    window.scrollTo({ top: 220, behavior: "smooth" });
+
+                    setTimeout(() => {
+                      searchInputRef.current?.focus();
+                    }, 250);
                   }}
                 >
                   {example}
@@ -1992,6 +2000,7 @@ export default function HomePage() {
           width: min(100%, 1180px);
           margin: 12px auto 0;
           padding: 0 16px;
+          overflow: hidden;
         }
 
         .regionalAiCard {
@@ -2034,11 +2043,15 @@ export default function HomePage() {
         }
 
         .regionalPromptExamples {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
           margin-top: 12px;
           display: flex;
           gap: 8px;
           overflow-x: auto;
-          padding-bottom: 4px;
+          overflow-y: hidden;
+          padding-bottom: 6px;
           scrollbar-width: thin;
         }
 
