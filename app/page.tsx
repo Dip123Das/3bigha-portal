@@ -231,6 +231,7 @@ export default function HomePage() {
   const [featuredLoading, setFeaturedLoading] = useState(true);
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
   const [aiCopilotOpen, setAiCopilotOpen] = useState(false);
+  const [aiActionsOpen, setAiActionsOpen] = useState(false);
   const [voiceListening, setVoiceListening] = useState(false);
   const [userMode, setUserMode] = useState(userModes[0]);
   const [liveFeedSignals, setLiveFeedSignals] = useState<LiveDiscoverySignal[]>(localFeedSignals);
@@ -822,14 +823,6 @@ export default function HomePage() {
                   📊 Price Today
                 </a>
               </div>
-
-              <div className="aiPowerRow">
-                <a href="/search">🤖 AI Smart Search</a>
-                <a href="/search">📍 Local Market Discovery</a>
-                <a href="/rfq/general/new">⚡ Instant RFQ Assist</a>
-                <a href="/price-today#prediction">📊 Local Price Prediction</a>
-                <a href="/vendor/discovery">🎯 Nearby Vendor Match</a>
-              </div>
             </div>
           </div>
         </div>
@@ -925,35 +918,61 @@ export default function HomePage() {
       </section>
 
             <section className="aiMarketPulseSection">
-        <div className="sectionTitleRow">
+        <button
+          type="button"
+          className="aiMarketplaceToggle"
+          onClick={() => setAiActionsOpen((value) => !value)}
+        >
           <div>
             <h2>AI Marketplace Actions</h2>
-            <p>One clear action centre for search, RFQ, price prediction, vendors and investment signals.</p>
+            <p>Click to open all AI tools. Running buttons stop after opening.</p>
           </div>
-          <a href="/search">Open AI Search →</a>
-        </div>
+          <span>{aiActionsOpen ? "Close AI Actions ↑" : "Open AI Actions ↓"}</span>
+        </button>
 
-        <div className="aiMarketPulseGrid">
-          <a href="/search" className="aiMarketPulseCard">
-            <strong>🤖 AI Smart Search</strong>
-            <span>Search property, materials, services, rentals and investment opportunities from one place.</span>
-          </a>
+        {!aiActionsOpen ? (
+          <div className="aiRunningActions">
+            <div className="aiRunningTrack">
+              {[...copilotMissions, ...copilotMissions].map((item, index) => (
+                <a key={`${item.title}-${index}`} href={item.href}>
+                  {item.icon} {item.title}
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="aiMarketPulseGrid">
+            <a href="/search" className="aiMarketPulseCard">
+              <strong>🤖 AI Smart Search</strong>
+              <span>Search property, materials, services, rentals and investment opportunities from one place.</span>
+            </a>
 
-          <a href="/rfq/general/new" className="aiMarketPulseCard">
-            <strong>⚡ Submit Requirement / RFQ</strong>
-            <span>Describe your requirement and let AI route it to suitable local vendors.</span>
-          </a>
+            <a href="/rfq/general/new" className="aiMarketPulseCard">
+              <strong>⚡ Submit Requirement / RFQ</strong>
+              <span>Describe your requirement and let AI route it to suitable local vendors.</span>
+            </a>
 
-          <a href="/price-today#prediction" className="aiMarketPulseCard">
-            <strong>📊 Price Prediction</strong>
-            <span>Check local market indication before buying land, materials or services.</span>
-          </a>
+            <a href="/price-today#prediction" className="aiMarketPulseCard">
+              <strong>📊 Price Prediction</strong>
+              <span>Check local market indication before buying land, materials or services.</span>
+            </a>
 
-          <a href="/vendor/discovery" className="aiMarketPulseCard">
-            <strong>🎯 Find Vendors</strong>
-            <span>Discover verified suppliers, service providers and rental vendors near you.</span>
-          </a>
-        </div>
+            <a href="/vendor/discovery" className="aiMarketPulseCard">
+              <strong>🎯 Find Vendors</strong>
+              <span>Discover verified suppliers, service providers and rental vendors near you.</span>
+            </a>
+
+            <a href="/dashboard/procurement-live" className="aiMarketPulseCard">
+              <strong>🧠 AI Procurement OS</strong>
+              <span>Track live marketplace activity, RFQ signals and procurement intelligence.</span>
+            </a>
+
+            <a href="/investment/opportunities" className="aiMarketPulseCard">
+              <strong>💼 AI Investment Signals</strong>
+              <span>Explore growth zones, demand signals and investment opportunities.</span>
+            </a>
+          </div>
+        )}
       </section>
 
       <section className="personalizationSection">
@@ -1909,6 +1928,64 @@ export default function HomePage() {
           width: min(100%, 1180px);
           margin: 16px auto 0;
           padding: 0 16px;
+        }
+
+                .aiMarketplaceToggle {
+          width: 100%;
+          border: 0;
+          border-radius: 18px;
+          background: linear-gradient(135deg, #0f172a, #1d4ed8);
+          color: #ffffff;
+          padding: 16px;
+          display: flex;
+          justify-content: space-between;
+          gap: 14px;
+          align-items: center;
+          cursor: pointer;
+          text-align: left;
+          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+        }
+
+        .aiMarketplaceToggle h2 {
+          margin: 0;
+          font-size: 24px;
+          font-weight: 950;
+        }
+
+        .aiMarketplaceToggle p {
+          margin: 4px 0 0;
+          color: rgba(255, 255, 255, 0.78);
+          font-size: 14px;
+        }
+
+        .aiMarketplaceToggle span {
+          font-weight: 950;
+          white-space: nowrap;
+        }
+
+        .aiRunningActions {
+          margin-top: 12px;
+          overflow: hidden;
+        }
+
+        .aiRunningTrack {
+          display: flex;
+          gap: 10px;
+          width: max-content;
+          animation: realtimeTickerMove 28s linear infinite;
+        }
+
+        .aiRunningTrack a {
+          border-radius: 999px;
+          background: #ffffff;
+          border: 1px solid rgba(11, 87, 208, 0.14);
+          color: #0b57d0;
+          text-decoration: none;
+          padding: 10px 14px;
+          font-size: 13px;
+          font-weight: 950;
+          white-space: nowrap;
+          box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
         }
 
         .aiMarketPulseGrid {
