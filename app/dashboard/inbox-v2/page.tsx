@@ -97,6 +97,14 @@ type RfqConversationRow = {
   is_closed?: boolean | null;
 };
 
+type InboxCockpitAction = {
+  title: string;
+  detail: string;
+  href: string;
+  badge: string;
+  tone: "rose" | "amber" | "blue" | "emerald" | "violet" | "slate";
+};
+
 type UnifiedInboxItem = {
   id: string;
   module: "investment" | "rfq" | "direct";
@@ -544,6 +552,15 @@ function computeAutomation(item: UnifiedInboxItem) {
     automationTone: "emerald" as const,
     automationPriority: 10,
   };
+}
+
+function cockpitToneClass(tone: InboxCockpitAction["tone"]) {
+  if (tone === "rose") return "border-rose-200 bg-rose-50 text-rose-700";
+  if (tone === "amber") return "border-amber-200 bg-amber-50 text-amber-700";
+  if (tone === "blue") return "border-blue-200 bg-blue-50 text-blue-700";
+  if (tone === "emerald") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (tone === "violet") return "border-violet-200 bg-violet-50 text-violet-700";
+  return "border-slate-200 bg-slate-100 text-slate-700";
 }
 
 function automationToneClass(
@@ -1748,6 +1765,54 @@ export default async function DashboardInboxV2Page({
           ? "Follow up with slow-response vendors or counterparties."
           : "Monitor conversations and create new procurement opportunities when needed.";
 
+  const inboxCockpitActions: InboxCockpitAction[] = [
+    latestUnreadItem
+      ? {
+          title: "Open latest unread",
+          detail: `${titleCase(latestUnreadItem.module)} • ${latestUnreadItem.counterpart}`,
+          href: latestUnreadItem.href,
+          badge: "Unread priority",
+          tone: "rose",
+        }
+      : {
+          title: "No unread blocker",
+          detail: "Current filtered inbox has no unread thread.",
+          href: "/dashboard/inbox-v2",
+          badge: "Stable",
+          tone: "emerald",
+        },
+    automationQueue[0]
+      ? {
+          title: automationQueue[0].automationLabel || "Open automation task",
+          detail: automationQueue[0].autonomousAction || automationQueue[0].title,
+          href: automationQueue[0].href,
+          badge: "AI action",
+          tone: automationQueue[0].automationTone || "blue",
+        }
+      : {
+          title: "Create new RFQ",
+          detail: "Start a fresh procurement workflow from the inbox cockpit.",
+          href: "/rfq/general/new",
+          badge: "New workflow",
+          tone: "blue",
+        },
+    autonomousOsStats.highRisk > 0
+      ? {
+          title: "Resolve high-risk threads",
+          detail: `${autonomousOsStats.highRisk} workflow risk item(s) need attention.`,
+          href: buildInboxHref(params, { sort: "unread" }),
+          badge: "Risk control",
+          tone: "amber",
+        }
+      : {
+          title: "Monitor stable workflow",
+          detail: autonomousOsAction,
+          href: "/dashboard/procurement-live",
+          badge: "OS stable",
+          tone: "emerald",
+        },
+  ];
+
   const isFiltered =
     Boolean(String(params.q ?? "").trim()) ||
     moduleFilter !== "all" ||
@@ -1999,6 +2064,56 @@ export default async function DashboardInboxV2Page({
                 {normalizedInboxBehaviorMemory.hotLocations[0] || "Learning"}
               </span>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-r from-slate-950 via-blue-950 to-violet-900 text-white shadow-sm">
+        <div className="px-5 py-6 lg:px-8">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-100">
+                Unified AI Action Cockpit
+              </div>
+
+              <h2 className="mt-3 text-2xl font-black tracking-tight">
+                One inbox command layer for RFQ, vendor, buyer and investment actions.
+              </h2>
+
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-white/70">
+                AI converts inbox activity into prioritized next steps: unread response, quote review, follow-up, supplier shortlisting and procurement execution.
+              </p>
+            </div>
+
+            <Link
+              href="/dashboard/procurement-live"
+              className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-black text-white transition hover:bg-white/15"
+            >
+              Open Procurement Live →
+            </Link>
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+            {inboxCockpitActions.map((action) => (
+              <Link
+                key={action.title}
+                href={action.href}
+                className="rounded-2xl border border-white/15 bg-white/10 p-4 text-white transition hover:bg-white/15"
+              >
+                <span
+                  className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${cockpitToneClass(
+                    action.tone
+                  )}`}
+                >
+                  {action.badge}
+                </span>
+
+                <div className="mt-3 text-lg font-black">{action.title}</div>
+                <div className="mt-2 text-sm font-semibold leading-6 text-white/70">
+                  {action.detail}
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </div>
