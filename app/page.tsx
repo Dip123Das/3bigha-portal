@@ -917,7 +917,65 @@ export default function HomePage() {
         </div>
       </section>
 
-            <section className="aiMarketPulseSection">
+      <section className="regionalAiSection">
+        <div className="regionalAiCard">
+          <div className="regionalAiContent">
+            <span>🌐 Multilingual Local Marketplace AI</span>
+
+            <h2>Search naturally in your own language.</h2>
+
+            <p>
+              3bigha AI understands Bengali, Hindi and mixed local language marketplace searches.
+            </p>
+
+            <div className="regionalPromptExamples">
+              {[
+                "আমার ৫০০ ব্যাগ সিমেন্ট লাগবে",
+                "কোচবিহারে ২ কাঠা জমি চাই",
+                "আমার বাড়ি করার জন্য রাজমিস্ত্রি দরকার",
+                "আজকের রডের দাম কত?",
+                "একটা জেসিবি ভাড়া চাই",
+                "আমার বিদ্যুতের কাজের লোক দরকার",
+                "আমার বালি আর ইটের দরকার",
+                "মुझे घर बनाने के लिए मिस्त्री चाहिए",
+                "मुझे कूचबिहार में जमीन खरीदनी है",
+                "आज सीमेंट का रेट क्या है?",
+                "मुझे ट्रैक्टर किराये पर चाहिए",
+                "मुझे बिजली का काम करने वाला चाहिए",
+                "मुझे ईंट और बालू चाहिए",
+                "मुझे मकान बनाने का खर्च जानना है",
+              ].map((example) => (
+                <button
+                  key={example}
+                  type="button"
+                  onClick={() => {
+                    setQuery(example);
+                    setAiSuggestion({
+                      title: "Regional AI Search Ready",
+                      message:
+                        "3bigha AI understood your local language marketplace request.",
+                      actionLabel: "Run AI Guide",
+                      href: `/search?q=${encodeURIComponent(example)}`,
+                      confidence: "Multilingual AI active",
+                    });
+                  }}
+                >
+                  {example}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="regionalAiVisual">
+            <div>বাংলা</div>
+            <div>हिन्दी</div>
+            <div>English</div>
+            <small>AI understands local buying language.</small>
+          </div>
+        </div>
+      </section>
+
+      <section className="aiMarketPulseSection">
         <button
           type="button"
           className="aiMarketplaceToggle"
@@ -1930,7 +1988,96 @@ export default function HomePage() {
           padding: 0 16px;
         }
 
-                .aiMarketplaceToggle {
+        .regionalAiSection {
+          width: min(100%, 1180px);
+          margin: 14px auto 0;
+          padding: 0 16px;
+        }
+
+        .regionalAiCard {
+          border-radius: 22px;
+          background: linear-gradient(135deg, #0f172a, #1d4ed8);
+          color: #ffffff;
+          padding: 20px;
+          display: grid;
+          grid-template-columns: 1.3fr 0.7fr;
+          gap: 18px;
+          align-items: center;
+          box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
+        }
+
+        .regionalAiContent span {
+          display: inline-flex;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.12);
+          padding: 6px 10px;
+          font-size: 12px;
+          font-weight: 950;
+          color: #bfdbfe;
+        }
+
+        .regionalAiContent h2 {
+          margin: 10px 0 0;
+          font-size: 28px;
+          line-height: 1.15;
+          font-weight: 950;
+          letter-spacing: -0.04em;
+        }
+
+        .regionalAiContent p {
+          margin-top: 8px;
+          color: rgba(255,255,255,0.78);
+          font-size: 14px;
+        }
+
+        .regionalPromptExamples {
+          margin-top: 16px;
+          display: flex;
+          gap: 10px;
+          overflow-x: auto;
+          padding-bottom: 4px;
+          scrollbar-width: thin;
+        }
+
+        .regionalPromptExamples button {
+          border: 1px solid rgba(255,255,255,0.14);
+          border-radius: 999px;
+          background: rgba(255,255,255,0.10);
+          color: #ffffff;
+          padding: 9px 12px;
+          font-size: 12px;
+          font-weight: 900;
+          cursor: pointer;
+          backdrop-filter: blur(12px);
+        }
+
+        .regionalAiVisual {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .regionalAiVisual div {
+          border-radius: 14px;
+          background: rgba(255,255,255,0.12);
+          padding: 12px 18px;
+          font-size: 20px;
+          font-weight: 950;
+          width: 100%;
+          text-align: center;
+          backdrop-filter: blur(12px);
+        }
+
+        .regionalAiVisual small {
+          color: rgba(255,255,255,0.72);
+          font-size: 12px;
+          font-weight: 800;
+          text-align: center;
+        }
+
+        .aiMarketplaceToggle {
           width: 100%;
           border: 0;
           border-radius: 18px;
@@ -2741,6 +2888,20 @@ export default function HomePage() {
           .homePage {
             width: 100%;
             overflow-x: hidden;
+          }
+
+          .regionalAiCard {
+            grid-template-columns: 1fr;
+            border-radius: 16px;
+            padding: 15px;
+          }
+
+          .regionalAiContent h2 {
+            font-size: 22px;
+          }
+
+          .regionalAiVisual {
+            margin-top: 6px;
           }
 
           .marketHeroContent {
