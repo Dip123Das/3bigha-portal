@@ -924,32 +924,43 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="conversationalAiSection">
-        <div className="conversationalAiPanel">
+            <section className="aiMarketPulseSection">
+        <div className="sectionTitleRow">
           <div>
-            <div className="conversationalAiBadge">Conversational Homepage AI</div>
-            <h2>Tell 3bigha what you need. AI will guide the next action.</h2>
-            <p>
-              Search, draft RFQ, check price, find vendors, compare rentals or explore investment opportunities from one natural-language command.
-            </p>
+            <h2>AI Marketplace Actions</h2>
+            <p>One clear action centre for search, RFQ, price prediction, vendors and investment signals.</p>
           </div>
+          <a href="/search">Open AI Search →</a>
+        </div>
 
-          <div className="conversationalAiActions">
-            <a href="/rfq/general/new">⚡ Draft RFQ with AI</a>
-            <a href="/search">🔍 Smart Search</a>
-            <a href="/price-today#prediction">📊 Price Intelligence</a>
-            <a href="/vendor/discovery">🎯 Vendor Match</a>
-          </div>
+        <div className="aiMarketPulseGrid">
+          <a href="/search" className="aiMarketPulseCard">
+            <strong>🤖 AI Smart Search</strong>
+            <span>Search property, materials, services, rentals and investment opportunities from one place.</span>
+          </a>
+
+          <a href="/rfq/general/new" className="aiMarketPulseCard">
+            <strong>⚡ Submit Requirement / RFQ</strong>
+            <span>Describe your requirement and let AI route it to suitable local vendors.</span>
+          </a>
+
+          <a href="/price-today#prediction" className="aiMarketPulseCard">
+            <strong>📊 Price Prediction</strong>
+            <span>Check local market indication before buying land, materials or services.</span>
+          </a>
+
+          <a href="/vendor/discovery" className="aiMarketPulseCard">
+            <strong>🎯 Find Vendors</strong>
+            <span>Discover verified suppliers, service providers and rental vendors near you.</span>
+          </a>
         </div>
       </section>
 
       <section className="personalizationSection">
         <div className="sectionTitleRow">
           <div>
-            <h2>True AI Marketplace Personalization</h2>
-            <p>
-              Choose your role and 3bigha AI will guide the most useful marketplace workflow.
-            </p>
+            <h2>Choose Your Marketplace Role</h2>
+            <p>AI will guide the right workflow without repeating the same options.</p>
           </div>
           <a href={userMode.href}>Continue as {userMode.label} →</a>
         </div>
@@ -966,313 +977,6 @@ export default function HomePage() {
               <strong>{mode.label}</strong>
               <small>{mode.title}</small>
             </button>
-          ))}
-        </div>
-
-        <div className="behaviorGrid">
-          {behavioralSignals.map((signal) => (
-            <a key={signal.title} href={signal.href} className="behaviorCard">
-              <strong>{signal.title}</strong>
-              <span>{signal.text}</span>
-            </a>
-          ))}
-        </div>
-
-        <div className="districtIntelGrid">
-          {districtIntelligence.map((item) => (
-            <div key={item.label} className="districtIntelCard">
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-              <small>{item.note}</small>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="realtimeTickerSection">
-        <div className="realtimeTickerTrack">
-          {[...realtimeTickerSignals, ...realtimeTickerSignals].map((signal, index) => (
-            <span key={`${signal}-${index}`}>{signal}</span>
-          ))}
-        </div>
-      </section>
-
-      <section className="operatingFeelSection">
-        <div className="sectionTitleRow">
-          <div>
-            <h2>Realtime AI Marketplace Operating Feel</h2>
-            <p>Live-style marketplace intelligence for demand, RFQ, price and vendor activity.</p>
-          </div>
-          <a href="/dashboard/procurement-live">Open live view →</a>
-        </div>
-
-        <div className="operatingFeelGrid">
-          <div className="aiHeatmapCard">
-            <div className="aiHeatmapHeader">
-              <strong>AI Local Heatmap</strong>
-              <span>Live intensity</span>
-            </div>
-
-            <div className="heatmapList">
-              {heatmapSignals.map((signal) => (
-                <a key={signal.zone} href="/search" className="heatmapRow">
-                  <div>
-                    <strong>{signal.zone}</strong>
-                    <small>{signal.text}</small>
-                  </div>
-                  <span className={`heatmapScore level${signal.level}`}>{signal.score}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-
-          <div className="smartAlertCard">
-            <div className="aiHeatmapHeader">
-              <strong>AI Smart Notification Strip</strong>
-              <span>Action signals</span>
-            </div>
-
-            <div className="smartAlertList">
-              {smartAlerts.map((alert) => (
-                <a key={alert.title} href={alert.href}>
-                  <b>{alert.icon}</b>
-                  <div>
-                    <strong>{alert.title}</strong>
-                    <small>{alert.text}</small>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
-
-          <div className="procurementDockCard">
-            <strong>AI Procurement Quick Actions</strong>
-            <p>Jump directly into high-value marketplace workflows.</p>
-            <div>
-              <a href="/rfq/general/new">⚡ Draft RFQ</a>
-              <a href="/price-today#prediction">📊 Compare Prices</a>
-              <a href="/vendor/discovery">🎯 Find Vendors</a>
-              <a href="/dashboard/procurement-live">🧠 Track Market</a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="copilotExperienceSection">
-        <div className="copilotCommandPanel">
-          <div>
-            <span>True AI Marketplace Copilot</span>
-            <h2>One command can start search, RFQ, price check and vendor discovery.</h2>
-            <p>
-              3bigha AI now works like a marketplace operating terminal for buyers, vendors, rentals and investors.
-            </p>
-
-            <div className="copilotMemoryStrip">
-              {copilotMemorySignals.map((signal) => (
-                <small key={signal}>{signal}</small>
-              ))}
-            </div>
-          </div>
-
-          <div className="copilotMissionGrid">
-            {copilotMissions.map((mission) => (
-              <a key={mission.title} href={mission.href}>
-                <b>{mission.icon}</b>
-                <strong>{mission.title}</strong>
-              </a>
-            ))}
-          </div>
-        </div>
-
-        <div className="regionalPromptRail">
-          {multilingualPrompts.map((prompt) => (
-            <button
-              key={prompt}
-              type="button"
-              onClick={() => {
-                setQuery(prompt);
-                setAiSuggestion({
-                  title: "Regional AI prompt selected",
-                  message:
-                    "3bigha AI can use this as a multilingual marketplace command and guide the next workflow.",
-                  actionLabel: "Run AI Guide",
-                  href: `/search?q=${encodeURIComponent(prompt)}`,
-                  confidence: "Regional AI ready",
-                });
-              }}
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="aiMarketPulseSection">
-        <div className="sectionTitleRow">
-          <div>
-            <h2>AI Local Market Intelligence</h2>
-            <p>Smart tools for price, vendor, RFQ and local market discovery.</p>
-          </div>
-          <a href="/search">Explore AI Search →</a>
-        </div>
-
-        <div className="aiMarketPulseGrid">
-          <a href="/search" className="aiMarketPulseCard">
-            <strong>🤖 AI Smart Search</strong>
-            <span>Search property, materials, services, rentals and investment opportunities from one place.</span>
-          </a>
-
-          <a href="/price-today#prediction" className="aiMarketPulseCard">
-            <strong>📊 Local Price Prediction</strong>
-            <span>Check local rate movement for land, construction materials and marketplace pricing.</span>
-          </a>
-
-          <a href="/rfq/general/new" className="aiMarketPulseCard">
-            <strong>⚡ Instant RFQ Assist</strong>
-            <span>Describe your requirement and let 3bigha route it toward suitable vendors.</span>
-          </a>
-
-          <a href="/vendor/discovery" className="aiMarketPulseCard">
-            <strong>🎯 Nearby Vendor Match</strong>
-            <span>Find relevant local suppliers, service providers and rental vendors faster.</span>
-          </a>
-        </div>
-      </section>
-
-      <section className="aiPortalStrip">
-        <div>
-          <strong>AI-powered local marketplace engine</strong>
-          <p>
-            Search local markets, compare nearby prices, submit RFQs, predict demand and connect with property owners, suppliers, service providers, rental vendors and investors.
-          </p>
-        </div>
-
-        <a href="/rfq/general/new">Start with AI →</a>
-      </section>
-
-      <section className="aiRecommendationSection">
-        <div className="sectionTitleRow">
-          <div>
-            <h2>AI Recommended Near You</h2>
-            <p>Smart recommendations based on local market activity, pricing trends and buyer demand.</p>
-          </div>
-
-          <a href="/search">Explore Smart Discovery →</a>
-        </div>
-
-        <div className="aiRecommendationGrid">
-          <a href="/property" className="aiRecommendationCard">
-            <div className="aiRecommendationTag">🔥 Trending Property</div>
-            <strong>High-demand residential plots in nearby local markets</strong>
-            <span>AI detected rising buyer activity around developing residential zones.</span>
-          </a>
-
-          <a href="/materials" className="aiRecommendationCard">
-            <div className="aiRecommendationTag">📈 Price Intelligence</div>
-            <strong>Cement and aggregate demand increasing this week</strong>
-            <span>Marketplace activity shows growing procurement movement from local suppliers.</span>
-          </a>
-
-          <a href="/services" className="aiRecommendationCard">
-            <div className="aiRecommendationTag">⚡ Vendor Match</div>
-            <strong>Construction and legal services actively responding</strong>
-            <span>AI-assisted RFQ routing is helping buyers receive faster quotations.</span>
-          </a>
-        </div>
-      </section>
-
-      <section className="quickActionSection">
-        {quickActions.map((item) => (
-          <a key={item.title} href={item.href} className="quickActionCard">
-            <div className="quickIcon">{item.icon}</div>
-            <div>
-              <h3>{item.title}</h3>
-              <p>{item.text}</p>
-            </div>
-          </a>
-        ))}
-      </section>
-
-      <section className="priceStrip">
-        <div>
-          <strong>Price Today</strong>
-          <span>Cement, steel, sand, brick, land and per sq.ft. market indication.</span>
-        </div>
-        <a href="/price-today#prediction">Check Prediction →</a>
-      </section>
-
-      <section className="marketPulseSection">
-        <div className="marketPulseCard">
-          <strong>Live Local Market Pulse</strong>
-          <div className="marketPulseItems">
-            <a href="/price-today">📈 Cement demand rising</a>
-            <a href="/property">🏠 Land search active</a>
-            <a href="/rentals">🚜 Rentals moving fast</a>
-            <a href="/rfq/general/new">⚡ Vendors responding</a>
-          </div>
-        </div>
-      </section>
-
-      <section className="liveActivitySection">
-        <div className="sectionTitleRow">
-          <div>
-            <h2>Live Marketplace Activity</h2>
-            <p>Realtime-style local signals showing buyer, vendor, RFQ and pricing movement.</p>
-          </div>
-          <a href="/dashboard/inbox">Open Inbox →</a>
-        </div>
-
-        <div className="liveActivityGrid">
-          {marketplaceActivity.map((item) => (
-            <a key={item.text} href={item.href} className="liveActivityCard">
-              <span>{item.icon}</span>
-              <strong>{item.text}</strong>
-              <small>Live local signal</small>
-            </a>
-          ))}
-        </div>
-
-        <div className="aiTrustLayer">
-          {trustSignals.map((signal) => (
-            <span key={signal}>✅ {signal}</span>
-          ))}
-        </div>
-      </section>
-
-      <section className="personalizedFeedSection">
-        <div className="sectionTitleRow">
-          <div>
-            <h2>Personalized Local Feed</h2>
-            <p>
-              {liveMarketSummary}
-            </p>
-          </div>
-          <a href="/search">Explore local market →</a>
-        </div>
-
-        <div className="personalizedFeedGrid">
-          {liveFeedSignals.map((signal) => (
-            <a key={signal.title} href={signal.href} className="personalizedFeedCard">
-              <span>{signal.title}</span>
-              <strong>{signal.value}</strong>
-              <small>{signal.note}</small>
-            </a>
-          ))}
-        </div>
-      </section>
-
-      <section className="investmentIntelSection">
-        <div>
-          <span>AI Investment Intelligence</span>
-          <h2>Find growth signals before the market becomes crowded.</h2>
-        </div>
-
-        <div className="investmentIntelGrid">
-          {investmentSignals.map((signal) => (
-            <a key={signal.title} href={signal.href}>
-              <strong>{signal.title}</strong>
-              <small>{signal.text}</small>
-            </a>
           ))}
         </div>
       </section>
