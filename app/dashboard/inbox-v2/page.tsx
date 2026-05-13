@@ -1825,12 +1825,10 @@ export default async function DashboardInboxV2Page({
       <InboxAutoFocus targetId={firstUnreadSection} />
       <FloatingUnreadButton href={latestUnreadItem?.href ?? null} />
       <ActiveSectionTracker />
-      <InboxRealtimeWrapper />
+      {/* Realtime wrapper disabled here to prevent repeated inbox reload/flicker. */}
       <InboxBackgroundScheduler />
       <InboxReminderBanner />
-      <div className="mt-4">
-        <InboxPrioritySummaryStrip items={filteredItems} />
-      </div>
+      {/* Priority AI strip moved below the real inbox workspace later. */}
       <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-blue-50 shadow-sm">
         <div className="flex flex-col gap-5 px-5 py-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
@@ -1913,7 +1911,13 @@ export default async function DashboardInboxV2Page({
         </div>
       </div>
 
-            <div className="overflow-hidden rounded-[2rem] border border-blue-200 bg-gradient-to-r from-blue-50 via-white to-violet-50 shadow-sm">
+      <details className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+        <summary className="cursor-pointer px-5 py-4 text-sm font-black text-slate-900">
+          🤖 AI Assistance — pricing, follow-up, procurement and workflow intelligence
+        </summary>
+
+        <div className="space-y-4 px-4 pb-4">
+          <div className="overflow-hidden rounded-[2rem] border border-blue-200 bg-gradient-to-r from-blue-50 via-white to-violet-50 shadow-sm">
         <div className="px-5 py-6 lg:px-8">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
@@ -2117,6 +2121,9 @@ export default async function DashboardInboxV2Page({
           </div>
         </div>
       </div>
+
+        </div>
+      </details>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -2402,6 +2409,15 @@ export default async function DashboardInboxV2Page({
         items={recentItems}
         latestUnreadItem={latestUnreadItem}
       />
+
+      <details className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
+        <summary className="cursor-pointer px-5 py-4 text-sm font-black text-slate-900">
+          🧠 Smart Inbox Summary
+        </summary>
+        <div className="px-5 pb-5">
+          <InboxPrioritySummaryStrip items={filteredItems} />
+        </div>
+      </details>
 
             <div className="flex flex-wrap gap-2">
         <span className="inline-flex rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700">

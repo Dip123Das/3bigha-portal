@@ -1313,11 +1313,12 @@ const aiDealUpgradeTarget =
             </div>
           </div>
         ) : null}
+          {rankToast ? (
           <div
             style={{
               position: "fixed",
               right: 18,
-              top: 18,
+              top: 110,
               zIndex: 9999,
               maxWidth: 360,
               borderRadius: 18,
@@ -1369,6 +1370,7 @@ const aiDealUpgradeTarget =
               </button>
             </div>
           </div>
+          ) : null}
 
         <SectionHeader
           title={dashboardTitle}
@@ -1482,7 +1484,486 @@ const aiDealUpgradeTarget =
           </div>
         </div>
 
-        <details
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+          <ActionButton href="/dashboard/vendor" variant="secondary">
+            ← Vendor Hub
+          </ActionButton>
+
+          <button
+            type="button"
+            onClick={() => load()}
+            style={{
+              height: 40,
+              padding: "0 14px",
+              borderRadius: 12,
+              border: "1px solid rgba(0,0,0,0.12)",
+              background: "white",
+              fontWeight: 800,
+              cursor: "pointer",
+            }}
+          >
+            Refresh
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard/vendor/notifications")}
+            style={{
+              height: 40,
+              padding: "0 14px",
+              borderRadius: 12,
+              border: unreadNotificationCount > 0 ? "1px solid #f59e0b" : "1px solid rgba(0,0,0,0.12)",
+              background: unreadNotificationCount > 0 ? "#fffbeb" : "white",
+              fontWeight: 950,
+              cursor: "pointer",
+            }}
+          >
+            🔔 Notifications {unreadNotificationCount > 0 ? `(${unreadNotificationCount})` : ""}
+          </button>
+
+          <div
+            style={{
+              marginLeft: "auto",
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <Badge>{email ?? "—"}</Badge>
+
+            {vendorHasFullAccess ? (
+              <Pill tone="ok">Full Hub Access</Pill>
+            ) : uniqueVendorCapabilities.length > 0 ? (
+              <Pill>
+                {uniqueVendorCapabilities.length} Capability
+                {uniqueVendorCapabilities.length > 1 ? "ies" : "y"}
+              </Pill>
+            ) : null}
+
+            {vendorComplete === true ? (
+              <Pill tone="ok">Registration Complete</Pill>
+            ) : (
+              <Pill tone="warn">Incomplete</Pill>
+            )}
+
+            <Pill tone={vendorPerformanceTone as "neutral" | "warn" | "ok"}>
+              🛡️ {vendorPerformanceLevel}
+            </Pill>
+
+            {vendorPct !== null ? <Pill>{vendorPct}%</Pill> : null}
+          </div>
+        </div>
+
+        <Card>
+          <CardBody>
+            <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>
+              Your Access
+            </div>
+            <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
+              These are the business capabilities currently enabled for your vendor account.
+            </div>
+
+            <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {uniqueVendorCapabilities.length === 0 ? (
+                <Pill tone="warn">No capabilities enabled</Pill>
+              ) : (
+                uniqueVendorCapabilities.map((cap) => (
+                  <Pill key={cap} tone={vendorHasFullAccess ? "ok" : "neutral"}>
+                    {capabilityLabel(cap)}
+                  </Pill>
+                ))
+              )}
+
+              {vendorHasFullAccess && uniqueVendorCapabilities.length === 7 ? (
+                <Pill tone="ok">3Bigha Full Real Estate Hub</Pill>
+              ) : null}
+            </div>
+          </CardBody>
+        </Card>
+
+        <div style={{ height: 12 }} />
+
+        {vendorComplete === false ? (
+          <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <div className="font-extrabold text-amber-900">
+              Complete your Business Profile to unlock publishing & full vendor features.
+            </div>
+            <div className="mt-1 text-sm text-amber-900/80">
+              You can save drafts, but publishing and some actions remain gated until
+              registration is complete.
+            </div>
+            <div className="mt-3 flex flex-wrap gap-10">
+              <ActionButton href="/onboarding/business" variant="primary">
+                Complete Business Profile →
+              </ActionButton>
+              <Link href="/property/my" className="font-extrabold underline">
+                Continue managing listings
+              </Link>
+            </div>
+          </div>
+        ) : null}
+
+        <div style={{ marginBottom: 12 }}>
+          <Card>
+            <CardBody>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  gap: 12,
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>
+                    Recent Enquiries
+                  </div>
+                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
+                    Latest buyer enquiries sent to your business. (Last 5)
+                  </div>
+                </div>
+
+                {enquiriesLoading ? <Pill>Loading…</Pill> : <Pill>{recentEnquiries.length}</Pill>}
+              </div>
+
+              {enquiriesErr ? (
+                <div style={{ marginTop: 10, color: "crimson", fontWeight: 800 }}>
+                  {enquiriesErr}
+                </div>
+              ) : null}
+
+              {!enquiriesLoading && !enquiriesErr && recentEnquiries.length === 0 ? (
+                <div style={{ marginTop: 10, color: "#5b6472", fontSize: 13 }}>
+                  No enquiries yet. Once buyers start contacting you, they will appear here.
+                </div>
+              ) : null}
+
+              {!enquiriesLoading && recentEnquiries.length > 0 ? (
+                <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+                  {recentEnquiries.map((e) => (
+                    <div
+                      key={e.id}
+                      style={{
+                        border: "1px solid rgba(0,0,0,0.08)",
+                        borderRadius: 14,
+                        padding: 12,
+                        background: "white",
+                        display: "flex",
+                        gap: 12,
+                        alignItems: "flex-start",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+                          <Pill>{titleCase(e.subject_type)}</Pill>
+                          <StatusPill status={e.status} />
+                          <Pill>{fmtDateTime(e.created_at)}</Pill>
+                        </div>
+
+                        <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 4 }}>
+                          From: {e.buyer_name?.trim() ? e.buyer_name : "Buyer"}
+                        </div>
+
+                        <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
+                          {clip(e.message, 120)}
+                        </div>
+
+                        <div style={{ marginTop: 8, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                          {e.buyer_phone ? <Pill>{e.buyer_phone}</Pill> : null}
+                          {e.buyer_email ? <Pill>{e.buyer_email}</Pill> : null}
+                        </div>
+                      </div>
+
+                      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                        <ActionButton href={`/dashboard/vendor/enquiries?focus=${encodeURIComponent(e.id)}`} variant="secondary">
+                          View
+                        </ActionButton>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </CardBody>
+
+            <CardFooter>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
+                <ActionButton href="/dashboard/vendor/enquiries" variant="primary">
+                  Open Enquiries Inbox →
+                </ActionButton>
+                <span style={{ color: "#5b6472", fontSize: 13, alignSelf: "center" }}>
+                  Manage status + reply threads from the inbox.
+                </span>
+              </div>
+            </CardFooter>
+          </Card>
+        </div>
+
+        {uniqueVendorCapabilities.length === 0 ? (
+          <div
+            style={{
+              marginBottom: 12,
+              border: "1px solid #fecaca",
+              background: "#fff1f2",
+              color: "#881337",
+              borderRadius: 14,
+              padding: 12,
+              fontWeight: 700,
+            }}
+          >
+            No vendor business capabilities are enabled for this account yet. Please contact admin or upgrade your subscription.
+          </div>
+        ) : null}
+
+        <Card>
+          <CardBody>
+            <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Quick Actions</div>
+            <div style={{ color: "#5b6472", fontSize: 13 }}>
+              Jump into your most common tasks.
+            </div>
+
+            <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {uniqueVendorCapabilities.includes("property_owner") ? (
+                <ActionButton href="/property/add" variant="primary">
+                  Post Property
+                </ActionButton>
+              ) : null}
+
+              {uniqueVendorCapabilities.includes("property_builder") ? (
+                <ActionButton href="/property/builder/projects/add" variant="secondary">
+                  Add Builder Project
+                </ActionButton>
+              ) : null}
+
+              {uniqueVendorCapabilities.includes("materials") ? (
+                <ActionButton href="/materials/add" variant="secondary">
+                  Add Material
+                </ActionButton>
+              ) : null}
+
+              {uniqueVendorCapabilities.includes("services") ? (
+                <ActionButton href="/services/add" variant="secondary">
+                  Add Service
+                </ActionButton>
+              ) : null}
+
+              {uniqueVendorCapabilities.includes("rentals") ? (
+                <ActionButton href="/rentals/add" variant="secondary">
+                  Add Rental
+                </ActionButton>
+              ) : null}
+
+              {uniqueVendorCapabilities.includes("blog_author") ? (
+                <ActionButton href="/blog/new" variant="secondary">
+                  Write Blog Post
+                </ActionButton>
+              ) : null}
+
+            {uniqueVendorCapabilities.includes("investor") ? (
+              <ActionButton href="/dashboard/investor" variant="secondary">
+                Investment Dashboard
+              </ActionButton>
+            ) : null}
+
+            <div>
+              <ActionButton href="/onboarding/business" variant="secondary">
+                Business Profile
+              </ActionButton>
+            </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        <div style={{ marginTop: 12 }}>
+          <Grid min={280} gap={12}>
+            {uniqueVendorCapabilities.includes("property_owner") ? (
+              <Card>
+                <CardBody>
+                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Properties</div>
+                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
+                    Manage your property listings (draft/pending/approved/rejected) and edits.
+                  </div>
+
+                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <Pill>My listings</Pill>
+                    <Pill>Statuses</Pill>
+                    <Pill>Edits</Pill>
+                  </div>
+                </CardBody>
+                <CardFooter>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
+                    <ActionButton href="/property/my" variant="primary">
+                      Open →
+                    </ActionButton>
+                    <Link href="/property/my" style={{ fontWeight: 800, alignSelf: "center" }}>
+                      /property/my
+                    </Link>
+                  </div>
+                </CardFooter>
+              </Card>
+            ) : null}
+
+            {uniqueVendorCapabilities.includes("property_builder") ? (
+              <Card>
+                <CardBody>
+                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Builder Projects</div>
+                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
+                    Manage builder projects, units, inventory and related listing flows.
+                  </div>
+
+                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <Pill>Projects</Pill>
+                    <Pill>Units</Pill>
+                    <Pill>Inventory</Pill>
+                  </div>
+                </CardBody>
+                <CardFooter>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
+                    <ActionButton href="/property/builder/projects" variant="primary">
+                      Open →
+                    </ActionButton>
+                    <Link href="/property/builder/projects" style={{ fontWeight: 800, alignSelf: "center" }}>
+                      /property/builder/projects
+                    </Link>
+                  </div>
+                </CardFooter>
+              </Card>
+            ) : null}
+
+            {uniqueVendorCapabilities.includes("materials") ? (
+              <Card>
+                <CardBody>
+                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Materials</div>
+                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
+                    Manage your material listings and keep your catalog up to date.
+                  </div>
+                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <Pill>My products</Pill>
+                    <Pill>Drafts</Pill>
+                    <Pill>Live</Pill>
+                  </div>
+                </CardBody>
+                <CardFooter>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
+                    <ActionButton href="/materials/my" variant="primary">
+                      Open →
+                    </ActionButton>
+                    <Link href="/materials/my" style={{ fontWeight: 800, alignSelf: "center" }}>
+                      /materials/my
+                    </Link>
+                  </div>
+                </CardFooter>
+              </Card>
+            ) : null}
+
+            {uniqueVendorCapabilities.includes("services") ? (
+              <Card>
+                <CardBody>
+                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Services</div>
+                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
+                    Manage service listings, pricing, and provider info.
+                  </div>
+                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <Pill>My services</Pill>
+                    <Pill>Pricing</Pill>
+                    <Pill>Status</Pill>
+                  </div>
+                </CardBody>
+                <CardFooter>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
+                    <ActionButton href="/services/my" variant="primary">
+                      Open →
+                    </ActionButton>
+                    <Link href="/services/my" style={{ fontWeight: 800, alignSelf: "center" }}>
+                      /services/my
+                    </Link>
+                  </div>
+                </CardFooter>
+              </Card>
+            ) : null}
+
+            {uniqueVendorCapabilities.includes("rentals") ? (
+              <Card>
+                <CardBody>
+                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Rentals</div>
+                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
+                    Manage rental listings and availability.
+                  </div>
+                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <Pill>My rentals</Pill>
+                    <Pill>Rates</Pill>
+                    <Pill>Status</Pill>
+                  </div>
+                </CardBody>
+                <CardFooter>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
+                    <ActionButton href="/rentals/my" variant="primary">
+                      Open →
+                    </ActionButton>
+                    <Link href="/rentals/my" style={{ fontWeight: 800, alignSelf: "center" }}>
+                      /rentals/my
+                    </Link>
+                  </div>
+                </CardFooter>
+              </Card>
+            ) : null}
+
+            {uniqueVendorCapabilities.includes("blog_author") ? (
+              <Card>
+                <CardBody>
+                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Blog / News</div>
+                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
+                    Write category-first posts. Drafts are always allowed; publish may be gated.
+                  </div>
+                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <Pill>My posts</Pill>
+                    <Pill>Drafts</Pill>
+                    {vendorComplete === false ? <Pill tone="warn">Publish locked</Pill> : <Pill tone="ok">Publish enabled</Pill>}
+                  </div>
+                </CardBody>
+                <CardFooter>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
+                    <ActionButton href="/blog/my" variant="primary">
+                      Open →
+                    </ActionButton>
+                    <Link href="/blog/my" style={{ fontWeight: 800, alignSelf: "center" }}>
+                      /blog/my
+                    </Link>
+                  </div>
+                </CardFooter>
+              </Card>
+            ) : null}
+
+            {uniqueVendorCapabilities.includes("investor") ? (
+              <Card>
+                <CardBody>
+                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Investment</div>
+                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
+                    Manage your investment opportunities, applications, and deal rooms.
+                  </div>
+                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <Pill>Opportunities</Pill>
+                    <Pill>Applications</Pill>
+                    <Pill>Deal Rooms</Pill>
+                  </div>
+                </CardBody>
+                <CardFooter>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
+                    <ActionButton href="/dashboard/investor" variant="primary">
+                      Open →
+                    </ActionButton>
+                    <Link href="/dashboard/investor" style={{ fontWeight: 800, alignSelf: "center" }}>
+                      /dashboard/investor
+                    </Link>
+                  </div>
+                </CardFooter>
+              </Card>
+            ) : null}
+          </Grid>
+        </div>
+
+                <details
           style={{
             marginBottom: 16,
             borderRadius: 18,
@@ -2616,487 +3097,9 @@ const aiDealUpgradeTarget =
           >
             {successCtaLabel}
           </button>
-        </div>
-
-        </div>
+          </div>
+          </div>
         </details>
-
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-          <ActionButton href="/dashboard/vendor" variant="secondary">
-            ← Vendor Hub
-          </ActionButton>
-
-          <button
-            type="button"
-            onClick={() => load()}
-            style={{
-              height: 40,
-              padding: "0 14px",
-              borderRadius: 12,
-              border: "1px solid rgba(0,0,0,0.12)",
-              background: "white",
-              fontWeight: 800,
-              cursor: "pointer",
-            }}
-          >
-            Refresh
-          </button>
-
-          <button
-            type="button"
-            onClick={() => router.push("/dashboard/vendor/notifications")}
-            style={{
-              height: 40,
-              padding: "0 14px",
-              borderRadius: 12,
-              border: unreadNotificationCount > 0 ? "1px solid #f59e0b" : "1px solid rgba(0,0,0,0.12)",
-              background: unreadNotificationCount > 0 ? "#fffbeb" : "white",
-              fontWeight: 950,
-              cursor: "pointer",
-            }}
-          >
-            🔔 Notifications {unreadNotificationCount > 0 ? `(${unreadNotificationCount})` : ""}
-          </button>
-
-          <div
-            style={{
-              marginLeft: "auto",
-              display: "flex",
-              gap: 8,
-              flexWrap: "wrap",
-              alignItems: "center",
-            }}
-          >
-            <Badge>{email ?? "—"}</Badge>
-
-            {vendorHasFullAccess ? (
-              <Pill tone="ok">Full Hub Access</Pill>
-            ) : uniqueVendorCapabilities.length > 0 ? (
-              <Pill>
-                {uniqueVendorCapabilities.length} Capability
-                {uniqueVendorCapabilities.length > 1 ? "ies" : "y"}
-              </Pill>
-            ) : null}
-
-            {vendorComplete === true ? (
-              <Pill tone="ok">Registration Complete</Pill>
-            ) : (
-              <Pill tone="warn">Incomplete</Pill>
-            )}
-
-            <Pill tone={vendorPerformanceTone as "neutral" | "warn" | "ok"}>
-              🛡️ {vendorPerformanceLevel}
-            </Pill>
-
-            {vendorPct !== null ? <Pill>{vendorPct}%</Pill> : null}
-          </div>
-        </div>
-
-        <Card>
-          <CardBody>
-            <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>
-              Your Access
-            </div>
-            <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
-              These are the business capabilities currently enabled for your vendor account.
-            </div>
-
-            <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {uniqueVendorCapabilities.length === 0 ? (
-                <Pill tone="warn">No capabilities enabled</Pill>
-              ) : (
-                uniqueVendorCapabilities.map((cap) => (
-                  <Pill key={cap} tone={vendorHasFullAccess ? "ok" : "neutral"}>
-                    {capabilityLabel(cap)}
-                  </Pill>
-                ))
-              )}
-
-              {vendorHasFullAccess && uniqueVendorCapabilities.length === 7 ? (
-                <Pill tone="ok">3Bigha Full Real Estate Hub</Pill>
-              ) : null}
-            </div>
-          </CardBody>
-        </Card>
-
-        <div style={{ height: 12 }} />
-
-        {vendorComplete === false ? (
-          <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-            <div className="font-extrabold text-amber-900">
-              Complete your Business Profile to unlock publishing & full vendor features.
-            </div>
-            <div className="mt-1 text-sm text-amber-900/80">
-              You can save drafts, but publishing and some actions remain gated until
-              registration is complete.
-            </div>
-            <div className="mt-3 flex flex-wrap gap-10">
-              <ActionButton href="/onboarding/business" variant="primary">
-                Complete Business Profile →
-              </ActionButton>
-              <Link href="/property/my" className="font-extrabold underline">
-                Continue managing listings
-              </Link>
-            </div>
-          </div>
-        ) : null}
-
-        <div style={{ marginBottom: 12 }}>
-          <Card>
-            <CardBody>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  justifyContent: "space-between",
-                  gap: 12,
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>
-                    Recent Enquiries
-                  </div>
-                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
-                    Latest buyer enquiries sent to your business. (Last 5)
-                  </div>
-                </div>
-
-                {enquiriesLoading ? <Pill>Loading…</Pill> : <Pill>{recentEnquiries.length}</Pill>}
-              </div>
-
-              {enquiriesErr ? (
-                <div style={{ marginTop: 10, color: "crimson", fontWeight: 800 }}>
-                  {enquiriesErr}
-                </div>
-              ) : null}
-
-              {!enquiriesLoading && !enquiriesErr && recentEnquiries.length === 0 ? (
-                <div style={{ marginTop: 10, color: "#5b6472", fontSize: 13 }}>
-                  No enquiries yet. Once buyers start contacting you, they will appear here.
-                </div>
-              ) : null}
-
-              {!enquiriesLoading && recentEnquiries.length > 0 ? (
-                <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-                  {recentEnquiries.map((e) => (
-                    <div
-                      key={e.id}
-                      style={{
-                        border: "1px solid rgba(0,0,0,0.08)",
-                        borderRadius: 14,
-                        padding: 12,
-                        background: "white",
-                        display: "flex",
-                        gap: 12,
-                        alignItems: "flex-start",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-                          <Pill>{titleCase(e.subject_type)}</Pill>
-                          <StatusPill status={e.status} />
-                          <Pill>{fmtDateTime(e.created_at)}</Pill>
-                        </div>
-
-                        <div style={{ fontWeight: 900, fontSize: 13, marginBottom: 4 }}>
-                          From: {e.buyer_name?.trim() ? e.buyer_name : "Buyer"}
-                        </div>
-
-                        <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
-                          {clip(e.message, 120)}
-                        </div>
-
-                        <div style={{ marginTop: 8, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                          {e.buyer_phone ? <Pill>{e.buyer_phone}</Pill> : null}
-                          {e.buyer_email ? <Pill>{e.buyer_email}</Pill> : null}
-                        </div>
-                      </div>
-
-                      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 8 }}>
-                        <ActionButton href={`/dashboard/vendor/enquiries?focus=${encodeURIComponent(e.id)}`} variant="secondary">
-                          View
-                        </ActionButton>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-            </CardBody>
-
-            <CardFooter>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
-                <ActionButton href="/dashboard/vendor/enquiries" variant="primary">
-                  Open Enquiries Inbox →
-                </ActionButton>
-                <span style={{ color: "#5b6472", fontSize: 13, alignSelf: "center" }}>
-                  Manage status + reply threads from the inbox.
-                </span>
-              </div>
-            </CardFooter>
-          </Card>
-        </div>
-
-        {uniqueVendorCapabilities.length === 0 ? (
-          <div
-            style={{
-              marginBottom: 12,
-              border: "1px solid #fecaca",
-              background: "#fff1f2",
-              color: "#881337",
-              borderRadius: 14,
-              padding: 12,
-              fontWeight: 700,
-            }}
-          >
-            No vendor business capabilities are enabled for this account yet. Please contact admin or upgrade your subscription.
-          </div>
-        ) : null}
-
-        <Card>
-          <CardBody>
-            <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Quick Actions</div>
-            <div style={{ color: "#5b6472", fontSize: 13 }}>
-              Jump into your most common tasks.
-            </div>
-
-            <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-              {uniqueVendorCapabilities.includes("property_owner") ? (
-                <ActionButton href="/property/add" variant="primary">
-                  Post Property
-                </ActionButton>
-              ) : null}
-
-              {uniqueVendorCapabilities.includes("property_builder") ? (
-                <ActionButton href="/property/builder/projects/add" variant="secondary">
-                  Add Builder Project
-                </ActionButton>
-              ) : null}
-
-              {uniqueVendorCapabilities.includes("materials") ? (
-                <ActionButton href="/materials/add" variant="secondary">
-                  Add Material
-                </ActionButton>
-              ) : null}
-
-              {uniqueVendorCapabilities.includes("services") ? (
-                <ActionButton href="/services/add" variant="secondary">
-                  Add Service
-                </ActionButton>
-              ) : null}
-
-              {uniqueVendorCapabilities.includes("rentals") ? (
-                <ActionButton href="/rentals/add" variant="secondary">
-                  Add Rental
-                </ActionButton>
-              ) : null}
-
-              {uniqueVendorCapabilities.includes("blog_author") ? (
-                <ActionButton href="/blog/new" variant="secondary">
-                  Write Blog Post
-                </ActionButton>
-              ) : null}
-
-              {uniqueVendorCapabilities.includes("investor") ? (
-              <ActionButton href="/dashboard/investor" variant="secondary">
-                Investment Dashboard
-              </ActionButton>
-            ) : null}
-
-            <ActionButton href="/onboarding/business" variant="secondary">
-              Business Profile
-            </ActionButton>
-            </div>
-          </CardBody>
-        </Card>
-
-        <div style={{ marginTop: 12 }}>
-          <Grid min={280} gap={12}>
-            {uniqueVendorCapabilities.includes("property_owner") ? (
-              <Card>
-                <CardBody>
-                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Properties</div>
-                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
-                    Manage your property listings (draft/pending/approved/rejected) and edits.
-                  </div>
-
-                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <Pill>My listings</Pill>
-                    <Pill>Statuses</Pill>
-                    <Pill>Edits</Pill>
-                  </div>
-                </CardBody>
-                <CardFooter>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
-                    <ActionButton href="/property/my" variant="primary">
-                      Open →
-                    </ActionButton>
-                    <Link href="/property/my" style={{ fontWeight: 800, alignSelf: "center" }}>
-                      /property/my
-                    </Link>
-                  </div>
-                </CardFooter>
-              </Card>
-            ) : null}
-
-            {uniqueVendorCapabilities.includes("property_builder") ? (
-              <Card>
-                <CardBody>
-                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Builder Projects</div>
-                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
-                    Manage builder projects, units, inventory and related listing flows.
-                  </div>
-
-                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <Pill>Projects</Pill>
-                    <Pill>Units</Pill>
-                    <Pill>Inventory</Pill>
-                  </div>
-                </CardBody>
-                <CardFooter>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
-                    <ActionButton href="/property/builder/projects" variant="primary">
-                      Open →
-                    </ActionButton>
-                    <Link href="/property/builder/projects" style={{ fontWeight: 800, alignSelf: "center" }}>
-                      /property/builder/projects
-                    </Link>
-                  </div>
-                </CardFooter>
-              </Card>
-            ) : null}
-
-            {uniqueVendorCapabilities.includes("materials") ? (
-              <Card>
-                <CardBody>
-                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Materials</div>
-                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
-                    Manage your material listings and keep your catalog up to date.
-                  </div>
-                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <Pill>My products</Pill>
-                    <Pill>Drafts</Pill>
-                    <Pill>Live</Pill>
-                  </div>
-                </CardBody>
-                <CardFooter>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
-                    <ActionButton href="/materials/my" variant="primary">
-                      Open →
-                    </ActionButton>
-                    <Link href="/materials/my" style={{ fontWeight: 800, alignSelf: "center" }}>
-                      /materials/my
-                    </Link>
-                  </div>
-                </CardFooter>
-              </Card>
-            ) : null}
-
-            {uniqueVendorCapabilities.includes("services") ? (
-              <Card>
-                <CardBody>
-                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Services</div>
-                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
-                    Manage service listings, pricing, and provider info.
-                  </div>
-                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <Pill>My services</Pill>
-                    <Pill>Pricing</Pill>
-                    <Pill>Status</Pill>
-                  </div>
-                </CardBody>
-                <CardFooter>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
-                    <ActionButton href="/services/my" variant="primary">
-                      Open →
-                    </ActionButton>
-                    <Link href="/services/my" style={{ fontWeight: 800, alignSelf: "center" }}>
-                      /services/my
-                    </Link>
-                  </div>
-                </CardFooter>
-              </Card>
-            ) : null}
-
-            {uniqueVendorCapabilities.includes("rentals") ? (
-              <Card>
-                <CardBody>
-                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Rentals</div>
-                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
-                    Manage rental listings and availability.
-                  </div>
-                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <Pill>My rentals</Pill>
-                    <Pill>Rates</Pill>
-                    <Pill>Status</Pill>
-                  </div>
-                </CardBody>
-                <CardFooter>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
-                    <ActionButton href="/rentals/my" variant="primary">
-                      Open →
-                    </ActionButton>
-                    <Link href="/rentals/my" style={{ fontWeight: 800, alignSelf: "center" }}>
-                      /rentals/my
-                    </Link>
-                  </div>
-                </CardFooter>
-              </Card>
-            ) : null}
-
-            {uniqueVendorCapabilities.includes("blog_author") ? (
-              <Card>
-                <CardBody>
-                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Blog / News</div>
-                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
-                    Write category-first posts. Drafts are always allowed; publish may be gated.
-                  </div>
-                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <Pill>My posts</Pill>
-                    <Pill>Drafts</Pill>
-                    {vendorComplete === false ? <Pill tone="warn">Publish locked</Pill> : <Pill tone="ok">Publish enabled</Pill>}
-                  </div>
-                </CardBody>
-                <CardFooter>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
-                    <ActionButton href="/blog/my" variant="primary">
-                      Open →
-                    </ActionButton>
-                    <Link href="/blog/my" style={{ fontWeight: 800, alignSelf: "center" }}>
-                      /blog/my
-                    </Link>
-                  </div>
-                </CardFooter>
-              </Card>
-            ) : null}
-
-            {uniqueVendorCapabilities.includes("investor") ? (
-              <Card>
-                <CardBody>
-                  <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Investment</div>
-                  <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
-                    Manage your investment opportunities, applications, and deal rooms.
-                  </div>
-                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <Pill>Opportunities</Pill>
-                    <Pill>Applications</Pill>
-                    <Pill>Deal Rooms</Pill>
-                  </div>
-                </CardBody>
-                <CardFooter>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
-                    <ActionButton href="/dashboard/investor" variant="primary">
-                      Open →
-                    </ActionButton>
-                    <Link href="/dashboard/investor" style={{ fontWeight: 800, alignSelf: "center" }}>
-                      /dashboard/investor
-                    </Link>
-                  </div>
-                </CardFooter>
-              </Card>
-            ) : null}
-          </Grid>
-        </div>
 
         <div style={{ marginTop: 16, opacity: 0.75, fontSize: 13 }}>
           Next after inbox: we can add notifications + buyer enquiry form from listing pages.
