@@ -110,15 +110,39 @@ export default function AuthButtons() {
         const role = String(profile?.role ?? "").trim().toLowerCase();
 
         // Master admin is a system-level role.
-        // It must never be forced into user role registration/onboarding.
         if (role === "master_admin") {
           return;
         }
 
         if (isBusinessRole(role)) {
+          const businessProfileRes = await supabase
+            .from("business_profiles")
+            .select(
+              "nature_of_business,is_complete,registration_complete,business_profile_complete"
+            )
+            .eq("user_id", userId)
+            .maybeSingle();
+
+          const businessProfile = businessProfileRes.data as any;
+
+          const hasVendorCapabilities =
+            Array.isArray(businessProfile?.nature_of_business) &&
+            businessProfile.nature_of_business.length > 0;
+
+          const progressiveVendorReady =
+            hasVendorCapabilities ||
+            businessProfile?.is_complete === true ||
+            businessProfile?.registration_complete === true ||
+            businessProfile?.business_profile_complete === true;
+
+          if (progressiveVendorReady) {
+            return;
+          }
+
           const qs = new URLSearchParams();
-          qs.set("returnTo", currentPath || "/dashboard");
+          qs.set("returnTo", currentPath || "/dashboard/vendor");
           if (role) qs.set("role", role);
+
           router.replace(`/onboarding/business?${qs.toString()}`);
           return;
         }

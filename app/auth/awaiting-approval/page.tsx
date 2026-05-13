@@ -43,13 +43,32 @@ export default function AwaitingApprovalPage() {
           return;
         }
 
-        if (!profile.is_profile_complete) {
+        const businessProfileRes = await supabase
+          .from("business_profiles")
+          .select(
+            "nature_of_business,is_complete,registration_complete,business_profile_complete"
+          )
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        const businessProfile = businessProfileRes.data as any;
+
+        const hasVendorCapabilities =
+          Array.isArray(businessProfile?.nature_of_business) &&
+          businessProfile.nature_of_business.length > 0;
+
+        const progressiveVendorReady =
+          hasVendorCapabilities ||
+          businessProfile?.is_complete === true ||
+          businessProfile?.registration_complete === true ||
+          businessProfile?.business_profile_complete === true;
+
+        if (!progressiveVendorReady) {
           router.replace("/onboarding/business");
           return;
         }
 
-        // If everything is fine → go to dashboard
-        router.replace("/dashboard");
+        router.replace("/dashboard/vendor");
       } catch (e) {
         console.error("AWAITING_APPROVAL_REDIRECT_FAIL", e);
         if (!alive) return;
