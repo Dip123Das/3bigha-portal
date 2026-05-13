@@ -909,114 +909,6 @@ const closedDeals =
             ) : null}
           </div>
         ) : null}
-
-                <details
-          style={{
-            marginBottom: 18,
-            borderRadius: 18,
-            overflow: "hidden",
-            border: "1px solid #e5e7eb",
-            background: "#ffffff",
-          }}
-        >
-          <summary
-            style={{
-              padding: 14,
-              cursor: "pointer",
-              fontWeight: 1000,
-              fontSize: 13,
-              color: "#334155",
-              background: "#f8fafc",
-            }}
-          >
-            🧠 Buyer AI Assistant — smart procurement insights
-          </summary>
-
-          <div
-            style={{
-              padding: 14,
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
-              gap: 10,
-            }}
-          >
-            <div
-              style={{
-                border: "1px solid #e2e8f0",
-                borderRadius: 14,
-                padding: 14,
-                background: "#ffffff",
-              }}
-            >
-              <div style={{ fontWeight: 1000, color: "#0f172a" }}>
-                Procurement Memory
-              </div>
-
-              <div
-                style={{
-                  marginTop: 6,
-                  fontSize: 13,
-                  color: "#475569",
-                  fontWeight: 700,
-                  lineHeight: 1.5,
-                }}
-              >
-                AI tracks vendor replies, RFQ activity and buying behavior patterns.
-              </div>
-            </div>
-
-            <div
-              style={{
-                border: "1px solid #e2e8f0",
-                borderRadius: 14,
-                padding: 14,
-                background: "#ffffff",
-              }}
-            >
-              <div style={{ fontWeight: 1000, color: "#0f172a" }}>
-                Smart Recommendation
-              </div>
-
-              <div
-                style={{
-                  marginTop: 6,
-                  fontSize: 13,
-                  color: "#475569",
-                  fontWeight: 700,
-                  lineHeight: 1.5,
-                }}
-              >
-                AI suggests vendor follow-up, negotiation and quote comparison actions.
-              </div>
-            </div>
-
-            <div
-              style={{
-                border: "1px solid #e2e8f0",
-                borderRadius: 14,
-                padding: 14,
-                background: "#ffffff",
-              }}
-            >
-              <div style={{ fontWeight: 1000, color: "#0f172a" }}>
-                Buyer Intelligence
-              </div>
-
-              <div
-                style={{
-                  marginTop: 6,
-                  fontSize: 13,
-                  color: "#475569",
-                  fontWeight: 700,
-                  lineHeight: 1.5,
-                }}
-              >
-                Procurement AI learns recurring RFQ patterns and vendor responsiveness.
-              </div>
-            </div>
-          </div>
-        </details>
-
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
           <ActionButton href="/dashboard" variant="secondary">
             ← All Dashboards
@@ -1319,7 +1211,8 @@ const closedDeals =
         <div style={{ marginTop: 16, opacity: 0.75, fontSize: 13 }}>
           Buyer dashboard now connects procurement creation, RFQ comparison, vendor chat, inbox, marketplace discovery and AI procurement intelligence.
         </div>
-      </Container>
+
+</Container>
     </main>
   );
 }
