@@ -866,7 +866,21 @@ const aiDealUpgradeTarget =
     }
 
         useEffect(() => {
-      load();
+      const loadingSafetyTimer = window.setTimeout(() => {
+        setLoading(false);
+        setEnquiriesLoading(false);
+      }, 12000);
+
+      void load()
+        .catch((error) => {
+          console.error("Vendor dashboard load failed:", error);
+          setErr(error?.message || "Vendor dashboard failed to load.");
+          setEnquiriesLoading(false);
+          setLoading(false);
+        })
+        .finally(() => {
+          window.clearTimeout(loadingSafetyTimer);
+        });
 
       fetch("/api/ai/vendor-coach", {
         method: "POST",
@@ -908,6 +922,7 @@ const aiDealUpgradeTarget =
       }, 30000);
 
       return () => {
+        window.clearTimeout(loadingSafetyTimer);
         window.clearInterval(notificationTimer);
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
