@@ -26,34 +26,36 @@ function shortEmail(email?: string | null) {
   return `${shortName}@${domain}`;
 }
 
-function prettyRole(profile?: ProfileLite | null) {
-  const display = String(profile?.role_display_label ?? "").trim();
-  if (display) return display;
-
-  const reason = String(profile?.portal_use_reason ?? "").trim().toLowerCase();
+function prettyRole(profile?: ProfileLite | null): string {
   const r = String(profile?.role ?? "").trim().toLowerCase();
 
   if (r === "master_admin") return "Master Admin";
   if (r === "blog_admin") return "Blog Admin";
-  if (r === "blogger") return "Blogger / Author";
-  if (r === "buyer") return "Buyer";
-  if (r === "builder") return "Builder / Developer";
-  if (r === "hub_vendor") return "Vendor Hub";
 
-  if (r === "vendor") {
-    if (reason === "sell_materials") return "Materials Vendor";
-    if (reason === "offer_services") return "Service Vendor";
-    if (reason === "provide_rentals") return "Rental Vendor";
-    if (reason === "list_property_for_sale") return "Property Vendor / Seller";
-    if (reason === "invest_in_opportunities") return "Investor";
-    if (reason === "publish_blog_or_news") return "Blogger / Author";
-    if (reason === "operate_multiple_businesses") return "Vendor Hub";
-    return "Vendor";
+  return "My Dashboard";
+}
+
+function dashboardHrefFor(profile?: ProfileLite | null): string {
+  const r = String(profile?.role ?? "").trim().toLowerCase();
+  const reason = String(profile?.portal_use_reason ?? "").trim().toLowerCase();
+
+  if (r === "master_admin") return "/admin/dashboard";
+  if (r === "blog_admin") return "/admin/blog";
+
+  if (
+    r === "vendor" ||
+    r === "builder" ||
+    r === "hub_vendor" ||
+    profile?.is_vendor === true
+  ) {
+    if (reason === "invest_in_opportunities") return "/dashboard/investor";
+    return "/dashboard/vendor";
   }
 
-  if (profile?.is_vendor === true) return "Vendor";
+  if (r === "blogger") return "/blog/my";
+  if (r === "buyer") return "/dashboard/buyer";
 
-  return "";
+  return "/dashboard/buyer";
 }
 
 function isBusinessRole(role?: string | null) {
@@ -68,11 +70,13 @@ export default function AuthButtons() {
 
   const [session, setSession] = useState<SessionLite>(null);
   const [roleLabel, setRoleLabel] = useState<string>("");
+  const [dashboardHref, setDashboardHref] = useState<string>("/dashboard");
   const [loading, setLoading] = useState(true);
 
   async function loadProfileAndGuard(userId: string | null | undefined) {
     if (!userId) {
       setRoleLabel("");
+      setDashboardHref("/dashboard");
       return;
     }
 
@@ -93,6 +97,7 @@ export default function AuthButtons() {
       const profile = ((roleRes as any)?.data ?? null) as ProfileLite | null;
 
       setRoleLabel(prettyRole(profile));
+      setDashboardHref(dashboardHrefFor(profile));
 
       const onboardingReady =
         profile?.onboarding_version === 2 &&
@@ -127,6 +132,7 @@ export default function AuthButtons() {
       }
     } catch {
       setRoleLabel("");
+      setDashboardHref("/dashboard");
     }
   }
 
@@ -176,10 +182,12 @@ export default function AuthButtons() {
 
       setSession(null);
       setRoleLabel("");
+      setDashboardHref("/dashboard");
       setLoading(false);
     } catch {
       setSession(null);
       setRoleLabel("");
+      setDashboardHref("/dashboard");
       setLoading(false);
     }
   }
@@ -209,6 +217,7 @@ export default function AuthButtons() {
       } else {
         setSession(null);
         setRoleLabel("");
+        setDashboardHref("/dashboard");
         setLoading(false);
       }
 
@@ -240,6 +249,7 @@ export default function AuthButtons() {
     try {
       setSession(null);
       setRoleLabel("");
+      setDashboardHref("/dashboard");
       setLoading(false);
       await supabase.auth.signOut();
     } finally {
@@ -288,7 +298,8 @@ export default function AuthButtons() {
       </span>
 
       {roleLabel ? (
-        <span
+        <Link
+          href={dashboardHref}
           style={{
             fontSize: 12,
             fontWeight: 900,
@@ -298,10 +309,11 @@ export default function AuthButtons() {
             borderRadius: 999,
             border: "1px solid #bfdbfe",
             whiteSpace: "nowrap",
+            textDecoration: "none",
           }}
         >
           {roleLabel}
-        </span>
+        </Link>
       ) : null}
 
       <button
