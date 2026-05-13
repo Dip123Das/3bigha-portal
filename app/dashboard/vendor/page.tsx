@@ -1372,8 +1372,132 @@ const aiDealUpgradeTarget =
 
         <SectionHeader
           title={dashboardTitle}
-          subtitle="Manage your listings, profile, and business actions from one place."
+          subtitle="Your digital business assistant for local commerce."
         />
+
+        <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 22,
+            padding: 18,
+            border: "1px solid #dbeafe",
+            background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+            boxShadow: "0 16px 36px rgba(37,99,235,0.10)",
+          }}
+        >
+          <div style={{ fontSize: 22, fontWeight: 950, color: "#0f172a" }}>
+            Your Vendor Work Center
+          </div>
+
+          <div style={{ marginTop: 6, fontSize: 14, color: "#475569", fontWeight: 800, lineHeight: 1.6 }}>
+            Manage buyer enquiries, listings, quotations, messages and business growth from here.
+            AI works like power steering — it helps you reply faster, price better and win more leads.
+          </div>
+
+          <div
+            style={{
+              marginTop: 14,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+              gap: 10,
+            }}
+          >
+            <div style={{ border: "1px solid #bfdbfe", borderRadius: 16, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 900 }}>New Leads</div>
+              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#0f172a" }}>
+                {leadStats.newLeadCount}
+              </div>
+              <div style={{ marginTop: 4, fontSize: 12, color: "#64748b", fontWeight: 800 }}>
+                AI helps identify serious buyers.
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #bbf7d0", borderRadius: 16, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#047857", fontWeight: 900 }}>Unread Alerts</div>
+              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#0f172a" }}>
+                {unreadNotificationCount}
+              </div>
+              <div style={{ marginTop: 4, fontSize: 12, color: "#64748b", fontWeight: 800 }}>
+                AI reminds you about important actions.
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #fed7aa", borderRadius: 16, padding: 12, background: "#fff7ed" }}>
+              <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>Reply Rate</div>
+              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#0f172a" }}>
+                {replyRate}%
+              </div>
+              <div style={{ marginTop: 4, fontSize: 12, color: "#7c2d12", fontWeight: 800 }}>
+                Faster replies improve conversion.
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #e0e7ff", borderRadius: 16, padding: 12, background: "#fff" }}>
+              <div style={{ fontSize: 12, color: "#4338ca", fontWeight: 900 }}>Visibility</div>
+              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#0f172a" }}>
+                {growthVisibilityScore}/100
+              </div>
+              <div style={{ marginTop: 4, fontSize: 12, color: "#64748b", fontWeight: 800 }}>
+                AI helps improve buyer discovery.
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <ActionButton href="/dashboard/vendor/enquiries" variant="primary">
+              Open Buyer Enquiries →
+            </ActionButton>
+
+            <ActionButton href="/dashboard/inbox-v2" variant="secondary">
+              Open Messages
+            </ActionButton>
+
+            {uniqueVendorCapabilities.includes("property_owner") ? (
+              <ActionButton href="/property/my" variant="secondary">
+                Properties
+              </ActionButton>
+            ) : null}
+
+            {uniqueVendorCapabilities.includes("materials") ? (
+              <ActionButton href="/materials/my" variant="secondary">
+                Materials
+              </ActionButton>
+            ) : null}
+
+            {uniqueVendorCapabilities.includes("services") ? (
+              <ActionButton href="/services/my" variant="secondary">
+                Services
+              </ActionButton>
+            ) : null}
+
+            {uniqueVendorCapabilities.includes("rentals") ? (
+              <ActionButton href="/rentals/my" variant="secondary">
+                Rentals
+              </ActionButton>
+            ) : null}
+
+            <ActionButton href="/onboarding/business" variant="secondary">
+              Business Profile
+            </ActionButton>
+          </div>
+        </div>
+
+        <div
+          style={{
+            marginBottom: 14,
+            padding: 12,
+            borderRadius: 16,
+            border: "1px solid #e5e7eb",
+            background: "#ffffff",
+            fontSize: 13,
+            fontWeight: 850,
+            color: "#475569",
+            lineHeight: 1.6,
+          }}
+        >
+          <b style={{ color: "#0f172a" }}>AI Assistance:</b> The sections below are not separate complicated systems.
+          They are helpers for your daily business — better pricing, faster replies, stronger visibility and more buyer leads.
+        </div>
 
                 {aiDealUpgradeTrigger ? (
           <div
