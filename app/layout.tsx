@@ -2,6 +2,7 @@
 import "./globals.css";
 import "./ui-kit.css";
 import { createMetadata } from "@/lib/seo/metadata";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -19,32 +20,71 @@ import AutoTranslatePage from "@/components/language/AutoTranslatePage";
 import LanguageSwitcher from "@/components/language/LanguageSwitcher";
 
 export const metadata = createMetadata({
-  title: "AI-Powered Property, Construction, Materials, Services, Rentals & Investment Marketplace",
+  title:
+    "3bigha.com | AI-Powered Property, Construction, RFQ, Materials & Vendor Marketplace India",
+
   description:
-    "3bigha.com is an AI-powered marketplace and procurement operating system for real estate, building materials, construction services, rentals, RFQs, price prediction, vendor comparison and investment opportunities across India.",
+    "3bigha.com is India's AI-powered real estate, construction, RFQ, materials, rentals and vendor marketplace platform. Search property, compare vendors, submit procurement RFQs, discover local services and track AI-powered price intelligence across regional marketplaces.",
+
   path: "/",
+
   image: "/og-image-new.jpg",
+
   keywords: [
     "3bigha",
-    "real estate marketplace India",
+    "3 bigha",
+    "3bigha.com",
+
     "property marketplace",
-    "land for sale",
-    "building materials",
-    "construction services",
-    "rental machinery",
+    "real estate marketplace India",
+    "construction marketplace",
+    "materials marketplace",
     "RFQ marketplace",
+    "vendor marketplace",
+
+    "AI marketplace",
     "AI procurement platform",
-    "vendor comparison",
-    "price prediction",
-    "investment opportunities",
-    "construction marketplace West Bengal",
-    "property in Cooch Behar",
+    "AI RFQ system",
+
+    "building materials marketplace",
+    "construction services",
+    "rental services",
+
+    "property listing India",
+    "construction vendors India",
+
+    "West Bengal construction marketplace",
+    "Cooch Behar property",
   ],
 });
 
+export const viewport = {
+  themeColor: "#0b57d0",
+};
+
+export const icons: Metadata["icons"] = {
+  icon: [
+    { url: "/favicon.ico" },
+    { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+  ],
+
+  apple: [
+    {
+      url: "/apple-touch-icon.png",
+      sizes: "180x180",
+      type: "image/png",
+    },
+  ],
+
+  shortcut: ["/favicon.ico"],
+};
+
+export const manifest = "/site.webmanifest";
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en-IN">
       <body>
         <PresenceHeartbeat currentPage="global" />
         <MobileMenuAutoClose />
@@ -85,7 +125,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <div className="siteLogoFull">
                   <Image
                     src="/logo.png"
-                    alt="3Bigha.com logo"
+                    alt="3bigha.com AI-powered property construction materials and vendor marketplace logo"
                     width={360}
                     height={120}
                     style={{
@@ -536,6 +576,22 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
 
+        <div
+          style={{
+            position: "absolute",
+            width: 1,
+            height: 1,
+            overflow: "hidden",
+            clipPath: "inset(50%)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          3bigha.com is an AI-powered property marketplace, construction marketplace,
+          RFQ procurement platform, materials marketplace, rental marketplace and
+          vendor discovery platform serving India with regional language support,
+          AI procurement workflows, vendor comparison and local marketplace search.
+        </div>
+
         <main style={{ marginTop: 8 }}>
           <Container className="pageBody">{children}</Container>
         </main>
@@ -556,6 +612,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 fontSize: 13,
               }}
             >
+              <Link href="/property">Property Marketplace</Link>
+              <Link href="/materials">Materials Marketplace</Link>
+              <Link href="/services">Construction Services</Link>
+              <Link href="/rentals">Rental Marketplace</Link>
+              <Link href="/rfq/general/new">Submit RFQ</Link>
               <Link href="/about">About Us</Link>
               <Link href="/contact">Contact Us</Link>
               <Link href="/privacy-policy">Privacy Policy</Link>

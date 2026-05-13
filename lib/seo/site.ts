@@ -1,8 +1,9 @@
 export const siteConfig = {
   name: "3bigha",
-  title: "3bigha.com | AI-Powered Property, Materials, Services & Rentals Marketplace",
+  title:
+  "3bigha.com | AI-Powered Property, Construction, RFQ, Materials & Vendor Marketplace India",
   description:
-    "3bigha.com is an AI-powered procurement and marketplace operating system for property, building materials, services, rentals, RFQs, vendor comparison, price intelligence, and regional marketplace workflows.",
+  "3bigha.com is India's AI-powered real estate, construction, RFQ, materials, rentals and vendor marketplace platform. Search property, compare vendors, submit procurement RFQs, discover local services and track AI-powered price intelligence across regional marketplaces.",
 
   domain: "3bigha.com",
   url: "https://www.3bigha.com",
@@ -61,20 +62,37 @@ export const siteConfig = {
   },
 
   keywords: [
-    "3bigha",
-    "property marketplace",
-    "building materials marketplace",
-    "construction services",
-    "rental services",
-    "RFQ platform",
-    "AI marketplace",
-    "AI procurement",
-    "vendor comparison",
-    "price prediction",
-    "real estate marketplace India",
-    "Cooch Behar property",
-    "West Bengal construction marketplace",
-  ],
+  "3bigha",
+  "3 bigha",
+  "3bigha.com",
+
+  "property marketplace",
+  "real estate marketplace India",
+  "construction marketplace",
+  "materials marketplace",
+  "RFQ marketplace",
+  "vendor marketplace",
+
+  "AI marketplace",
+  "AI procurement platform",
+  "AI RFQ system",
+
+  "building materials marketplace",
+  "construction services",
+  "rental services",
+  "vendor comparison",
+  "price prediction",
+
+  "property listing India",
+  "land for sale India",
+  "construction vendors India",
+
+  "Cooch Behar property",
+  "West Bengal construction marketplace",
+
+  "local business marketplace",
+  "regional procurement platform",
+],
 
   social: {
     facebook: "",
