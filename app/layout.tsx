@@ -263,10 +263,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
               <GlobalUnreadBadge
                 className="topBtn topBtnGhost"
-                href="/dashboard"
-                label="My Dashboard"
+                href="/dashboard/vendor"
+                label="Vendor Hub"
                 variant="topBtn"
-                title="Open dashboard with unread chat count"
+                title="Open vendor hub dashboard with unread chat count"
               />
 
               <GlobalNotificationBell
@@ -376,8 +376,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     variant="subLink"
                     title="Open vendor inbox with unread chat count"
                   />
-                  <ActiveLink className="topMobileLink" href="/vendor">
-                    My Dashboard
+                  <ActiveLink className="topMobileLink" href="/dashboard/vendor">
+                    Vendor Hub Dashboard
                   </ActiveLink>
                   <Link className="topMobileLink" href="/login">
                     Login / Account
@@ -431,7 +431,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       />
 
                       <Link className="rfqToggleSecondary" href="/dashboard/buyer">
-                        🧾 My Home →
+                        🧾 Buyer Dashboard →
+                      </Link>
+
+                      <Link className="rfqToggleSecondary" href="/dashboard/vendor">
+                        🏪 Vendor Hub Dashboard →
                       </Link>
                     </div>
                   </div>

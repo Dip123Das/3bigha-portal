@@ -76,6 +76,7 @@ export default function TopHeaderClient() {
   const [authLoading, setAuthLoading] = useState(true);
   const [isAuthed, setIsAuthed] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
+  const [dashboardHref, setDashboardHref] = useState("/dashboard");
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationRows, setNotificationRows] = useState<NotificationRow[]>([]);
   const [notificationUnread, setNotificationUnread] = useState(0);
@@ -90,6 +91,25 @@ export default function TopHeaderClient() {
     slaBreached: 0,
     adminMode: false,
   });
+
+  async function resolveDashboardHrefForUser(userId?: string | null) {
+    if (!userId) {
+      setDashboardHref("/dashboard");
+      return;
+    }
+
+    try {
+      const { data } = await supabase
+        .from("business_profiles")
+        .select("id,user_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      setDashboardHref(data ? "/dashboard/vendor" : "/dashboard");
+    } catch {
+      setDashboardHref("/dashboard");
+    }
+  }
 
   useEffect(() => {
     let alive = true;
@@ -108,6 +128,7 @@ export default function TopHeaderClient() {
         setIsAuthed(!!s);
         setEmail(s?.user?.email ?? null);
         setAuthLoading(false);
+        await resolveDashboardHrefForUser(s?.user?.id || null);
         loadSupportAlerts(s?.access_token || null);
         loadNotifications(s?.access_token || null);
       } catch {
@@ -122,6 +143,7 @@ export default function TopHeaderClient() {
       setIsAuthed(!!session);
       setEmail(session?.user?.email ?? null);
       setAuthLoading(false);
+      void resolveDashboardHrefForUser(session?.user?.id || null);
       loadSupportAlerts(session?.access_token || null);
       loadNotifications(session?.access_token || null);
     });
@@ -664,7 +686,7 @@ export default function TopHeaderClient() {
                 ) : null}
               </div>
 
-              <Link className="topBtn topBtnGhost" href="/dashboard" title={email ?? ""}>
+              <Link className="topBtn topBtnGhost" href={dashboardHref} title={email ?? ""}>
                 Dashboard
               </Link>
               <Link
@@ -769,7 +791,7 @@ export default function TopHeaderClient() {
 
               <div className="topMobileGroup">
                 <div className="topMobileTitle">Account</div>
-                <Link className="topMobileLink" href="/dashboard">
+                <Link className="topMobileLink" href={dashboardHref}>
                   Dashboard
                 </Link>
                 <button

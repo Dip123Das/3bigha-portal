@@ -1016,7 +1016,7 @@ const aiDealUpgradeTarget =
             </div>
 
             <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <ActionButton href="/dashboard" variant="secondary">
+              <ActionButton href="/dashboard/vendor" variant="secondary">
                 ← Back to Dashboard
               </ActionButton>
 
@@ -1482,22 +1482,45 @@ const aiDealUpgradeTarget =
           </div>
         </div>
 
-        <div
+        <details
           style={{
-            marginBottom: 14,
-            padding: 12,
-            borderRadius: 16,
+            marginBottom: 16,
+            borderRadius: 18,
             border: "1px solid #e5e7eb",
             background: "#ffffff",
-            fontSize: 13,
-            fontWeight: 850,
-            color: "#475569",
-            lineHeight: 1.6,
+            overflow: "hidden",
           }}
         >
-          <b style={{ color: "#0f172a" }}>AI Assistance:</b> The sections below are not separate complicated systems.
-          They are helpers for your daily business — better pricing, faster replies, stronger visibility and more buyer leads.
-        </div>
+          <summary
+            style={{
+              padding: 14,
+              cursor: "pointer",
+              fontSize: 15,
+              fontWeight: 950,
+              color: "#0f172a",
+              background: "linear-gradient(135deg, #f8fafc, #ffffff)",
+            }}
+          >
+            🤖 Business Growth Assistant — AI help for pricing, replies, visibility and lead conversion
+          </summary>
+
+          <div style={{ padding: 14 }}>
+            <div
+              style={{
+                marginBottom: 14,
+                padding: 12,
+                borderRadius: 16,
+                border: "1px solid #e5e7eb",
+                background: "#ffffff",
+                fontSize: 13,
+                fontWeight: 850,
+                color: "#475569",
+                lineHeight: 1.6,
+              }}
+            >
+              <b style={{ color: "#0f172a" }}>AI Assistance:</b> These are helpers for your daily business —
+              better pricing, faster replies, stronger visibility and more buyer leads.
+            </div>
 
                 {aiDealUpgradeTrigger ? (
           <div
@@ -2595,9 +2618,12 @@ const aiDealUpgradeTarget =
           </button>
         </div>
 
+        </div>
+        </details>
+
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-          <ActionButton href="/dashboard" variant="secondary">
-            ← All Dashboards
+          <ActionButton href="/dashboard/vendor" variant="secondary">
+            ← Vendor Hub
           </ActionButton>
 
           <button
