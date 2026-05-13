@@ -245,10 +245,33 @@ export default function PostLoginPageClient() {
         if (role !== "master_admin" && !onboardingReady) {
           if (isBusinessRole(role)) {
             const qs = new URLSearchParams();
-            qs.set("returnTo", next || "/dashboard");
+            qs.set("returnTo", next || "/dashboard/vendor");
             if (role) qs.set("role", role);
 
-            hardRedirect(`/onboarding/business?${qs.toString()}`);
+            const businessProfileRes = await supabase
+              .from("business_profiles")
+              .select("nature_of_business,is_complete,registration_complete,business_profile_complete")
+              .eq("user_id", user.id)
+              .maybeSingle();
+
+            const businessProfile = businessProfileRes.data as any;
+
+            const hasVendorCapabilities =
+              Array.isArray(businessProfile?.nature_of_business) &&
+              businessProfile.nature_of_business.length > 0;
+
+            const progressiveVendorReady =
+              hasVendorCapabilities ||
+              businessProfile?.is_complete === true ||
+              businessProfile?.registration_complete === true ||
+              businessProfile?.business_profile_complete === true;
+
+            if (!progressiveVendorReady) {
+              hardRedirect(`/onboarding/business?${qs.toString()}`);
+              return;
+            }
+
+            hardRedirect(next || "/dashboard/vendor");
             return;
           }
 
@@ -277,11 +300,8 @@ export default function PostLoginPageClient() {
               .toLowerCase() === "verified";
 
           if (!locationVerified) {
-            hardRedirect(
-              `/onboarding/business?returnTo=${encodeURIComponent(
-                next || "/dashboard"
-              )}`
-            );
+            // Progressive onboarding: allow vendor dashboard entry after business capability selection.
+            hardRedirect(next || "/dashboard/vendor");
             return;
           }
 

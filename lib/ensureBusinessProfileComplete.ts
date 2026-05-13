@@ -56,12 +56,23 @@ export async function ensureBusinessProfileComplete(returnTo: string): Promise<G
   // 2) Fallback: old flag
   const { data: bp, error: bpErr } = await supabase
     .from("business_profiles")
-    .select("is_complete")
+    .select("is_complete,nature_of_business")
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (bpErr || !bp?.is_complete) {
-    return { ok: false, redirectTo: `/onboarding/business?next=${encodeURIComponent(safeReturnTo)}` };
+  const hasVendorCapabilities =
+    Array.isArray((bp as any)?.nature_of_business) &&
+    ((bp as any)?.nature_of_business as string[]).length > 0;
+
+  const progressiveAccessAllowed =
+    bp?.is_complete === true ||
+    hasVendorCapabilities;
+
+  if (bpErr || !progressiveAccessAllowed) {
+    return {
+      ok: false,
+      redirectTo: `/onboarding/business?next=${encodeURIComponent(safeReturnTo)}`,
+    };
   }
 
   return { ok: true, redirectTo: "" };
