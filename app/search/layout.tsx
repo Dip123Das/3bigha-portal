@@ -4,7 +4,14 @@ import type { ReactNode } from "react";
 export const metadata: Metadata = {
   robots: {
     index: false,
-    follow: true,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+      nosnippet: true,
+    },
   },
 
   alternates: {

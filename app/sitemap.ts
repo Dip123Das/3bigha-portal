@@ -31,6 +31,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
 const staticRoutes = [
   "",
+  "/ai-search-guide",
+
+  "/seo/property/west-bengal/cooch-behar/cooch-behar",
+  "/seo/materials/west-bengal/cooch-behar/cooch-behar",
+  "/seo/services/west-bengal/cooch-behar/cooch-behar",
+  "/seo/rentals/west-bengal/cooch-behar/cooch-behar",
+
+  "/search/cement-price-cooch-behar",
+  "/search/building-materials-west-bengal",
+  "/search/land-for-sale-cooch-behar",
+
   "/property",
   "/materials",
   "/services",

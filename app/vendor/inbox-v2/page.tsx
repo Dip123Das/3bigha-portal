@@ -6,6 +6,20 @@ import VendorInboxV2Client from "./VendorInboxV2Client";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+      nosnippet: true,
+    },
+  },
+};
+
 type Quoted = "" | "quoted" | "unquoted" | "revised" | "accepted";
 type Sort =
   | "newest"

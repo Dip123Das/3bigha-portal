@@ -1,37 +1,38 @@
 import type { MetadataRoute } from "next";
-import { siteConfig } from "@/lib/seo/site";
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
-
+        allow: [
+          "/",
+          "/property/",
+          "/materials/",
+          "/services/",
+          "/rentals/",
+          "/blog/",
+          "/seo/",
+          "/search",
+        ],
         disallow: [
           "/admin/",
           "/dashboard/",
           "/api/",
-          "/login/",
-          "/register/",
-          "/forgot-password/",
-          "/reset-password/",
+          "/login",
           "/thread/",
-          "/vendor/inbox-v2/",
-          "/vendor/dashboard/",
-          "/dashboard/inbox",
-          "/dashboard/inbox-v2",
-          "/search?",
+          "/buyer/",
+          "/vendor/",
+          "/rfq/",
+          "/subscription/",
+          "/checkout/",
+          "/payment/",
         ],
       },
     ],
-
-    host: "https://www.3bigha.com",
-
     sitemap: [
-      `${siteConfig.url}/sitemap.xml`,
-      `${siteConfig.url}/seo-sitemap.xml`,
-      `${siteConfig.url}/seo-sitemap-categories.xml`,
+      "https://www.3bigha.com/sitemap.xml",
+      "https://www.3bigha.com/seo-sitemap.xml",
     ],
   };
 }

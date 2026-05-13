@@ -1,12 +1,7 @@
-// app/login/page.tsx
 import type { Metadata } from "next";
-
-import LoginClient from "./LoginClient";
-
-export const dynamic = "force-dynamic";
+import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
-  title: "Login | 3Bigha",
   robots: {
     index: false,
     follow: false,
@@ -20,6 +15,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
-  return <LoginClient />;
+export default function SupportLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  return <>{children}</>;
 }

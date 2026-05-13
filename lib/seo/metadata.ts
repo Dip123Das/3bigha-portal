@@ -36,8 +36,12 @@ function languageAlternates(path: string) {
 }
 
 export function createMetadata(input: SeoInput = {}): Metadata {
-  const title = input.title
-    ? `${input.title} | ${siteConfig.name}`
+  const cleanInputTitle = input.title?.trim();
+
+  const title = cleanInputTitle
+    ? cleanInputTitle.includes("3bigha") || cleanInputTitle.includes("3Bigha")
+      ? cleanInputTitle
+      : `${cleanInputTitle} | 3Bigha`
     : siteConfig.title;
 
   const geoParts = [
@@ -73,7 +77,7 @@ export function createMetadata(input: SeoInput = {}): Metadata {
 
   ...geoKeywords,
 
-  title,
+  cleanInputTitle || "",
 
   input.category || "",
   input.type || "",
