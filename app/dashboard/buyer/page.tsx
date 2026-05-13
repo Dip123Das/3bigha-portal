@@ -1246,6 +1246,76 @@ const closedDeals =
           </Card>
         </Grid>
 
+        <details
+          style={{
+            marginTop: 18,
+            marginBottom: 18,
+            borderRadius: 18,
+            overflow: "hidden",
+            border: "1px solid #e5e7eb",
+            background: "#ffffff",
+          }}
+        >
+          <summary
+            style={{
+              padding: 14,
+              cursor: "pointer",
+              fontWeight: 1000,
+              fontSize: 13,
+              color: "#334155",
+              background: "#f8fafc",
+            }}
+          >
+            🧠 Buyer AI Assistant — click to open quote guidance, vendor follow-up and procurement intelligence
+          </summary>
+
+          <div
+            style={{
+              padding: 16,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+              gap: 12,
+            }}
+          >
+            {buyerAiInsights.map((x) => (
+              <div
+                key={x.title}
+                style={{
+                  border: "1px solid rgba(15,23,42,0.08)",
+                  borderRadius: 14,
+                  padding: 14,
+                  background: x.tone === "warn" ? "#fffbeb" : "#ffffff",
+                }}
+              >
+                <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                  {x.title}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 6,
+                    fontSize: 13,
+                    lineHeight: 1.5,
+                    color: "#475569",
+                    fontWeight: 700,
+                  }}
+                >
+                  {x.detail}
+                </div>
+
+                <div style={{ marginTop: 10 }}>
+                  <ActionButton
+                    href={x.href}
+                    variant={x.tone === "warn" ? "primary" : "secondary"}
+                  >
+                    {x.cta} →
+                  </ActionButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        </details>
+
         <div style={{ marginTop: 16, opacity: 0.75, fontSize: 13 }}>
           Buyer dashboard now connects procurement creation, RFQ comparison, vendor chat, inbox, marketplace discovery and AI procurement intelligence.
         </div>
