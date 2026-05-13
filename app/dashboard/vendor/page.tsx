@@ -907,13 +907,8 @@ const aiDealUpgradeTarget =
         } catch {}
       }, 30000);
 
-      const refreshTimer = window.setInterval(() => {
-        load();
-      }, 60000);
-
       return () => {
         window.clearInterval(notificationTimer);
-        window.clearInterval(refreshTimer);
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -1484,6 +1479,93 @@ const aiDealUpgradeTarget =
           </div>
         </div>
 
+        <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 22,
+            padding: 16,
+            border: "1px solid #bbf7d0",
+            background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
+            boxShadow: "0 14px 34px rgba(16,185,129,0.10)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 20, fontWeight: 950, color: "#064e3b" }}>
+                Today’s Business Pulse
+              </div>
+              <div style={{ marginTop: 4, fontSize: 13, color: "#475569", fontWeight: 800 }}>
+                Live work items that need your attention now.
+              </div>
+            </div>
+
+            <Pill tone={missedLeads > 0 || unreadNotificationCount > 0 ? "warn" : "ok"}>
+              {missedLeads > 0 || unreadNotificationCount > 0 ? "Action needed" : "Stable today"}
+            </Pill>
+          </div>
+
+          <div
+            style={{
+              marginTop: 14,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 10,
+            }}
+          >
+            <div style={{ border: "1px solid #bbf7d0", borderRadius: 16, padding: 12, background: "#ffffff" }}>
+              <div style={{ fontSize: 12, fontWeight: 950, color: "#047857" }}>Buyer enquiries</div>
+              <div style={{ marginTop: 4, fontSize: 26, fontWeight: 950, color: "#0f172a" }}>
+                {recentEnquiries.length}
+              </div>
+              <div style={{ marginTop: 4, fontSize: 12, color: "#64748b", fontWeight: 800 }}>
+                Latest enquiries waiting in your business inbox.
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #fed7aa", borderRadius: 16, padding: 12, background: "#fff7ed" }}>
+              <div style={{ fontSize: 12, fontWeight: 950, color: "#9a3412" }}>Missed follow-ups</div>
+              <div style={{ marginTop: 4, fontSize: 26, fontWeight: 950, color: "#0f172a" }}>
+                {missedLeads}
+              </div>
+              <div style={{ marginTop: 4, fontSize: 12, color: "#7c2d12", fontWeight: 800 }}>
+                Reply faster to improve lead conversion.
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #bfdbfe", borderRadius: 16, padding: 12, background: "#eff6ff" }}>
+              <div style={{ fontSize: 12, fontWeight: 950, color: "#1d4ed8" }}>Deal signals</div>
+              <div style={{ marginTop: 4, fontSize: 26, fontWeight: 950, color: "#0f172a" }}>
+                {dealStats.ready}
+              </div>
+              <div style={{ marginTop: 4, fontSize: 12, color: "#1e40af", fontWeight: 800 }}>
+                Conversations showing ready-to-close activity.
+              </div>
+            </div>
+
+            <div style={{ border: "1px solid #e0e7ff", borderRadius: 16, padding: 12, background: "#ffffff" }}>
+              <div style={{ fontSize: 12, fontWeight: 950, color: "#4338ca" }}>Growth level</div>
+              <div style={{ marginTop: 4, fontSize: 16, fontWeight: 950, color: "#0f172a" }}>
+                {vendorPerformanceLevel}
+              </div>
+              <div style={{ marginTop: 4, fontSize: 12, color: "#64748b", fontWeight: 800 }}>
+                Based on replies, deals and activity.
+              </div>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <ActionButton href="/dashboard/vendor/enquiries" variant="primary">
+              Reply to Buyers Now →
+            </ActionButton>
+            <ActionButton href="/dashboard/inbox-v2" variant="secondary">
+              Open Live Inbox
+            </ActionButton>
+            <ActionButton href="/dashboard/subscription/boost" variant="secondary">
+              Improve Visibility
+            </ActionButton>
+          </div>
+        </div>
+
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
           <ActionButton href="/dashboard/vendor" variant="secondary">
             ← Vendor Hub
@@ -1555,11 +1637,29 @@ const aiDealUpgradeTarget =
           </div>
         </div>
 
-        <Card>
-          <CardBody>
-            <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>
-              Your Access
-            </div>
+        <details
+          style={{
+            marginBottom: 12,
+            borderRadius: 16,
+            border: "1px solid #e5e7eb",
+            background: "#ffffff",
+            overflow: "hidden",
+          }}
+        >
+          <summary
+            style={{
+              padding: 12,
+              cursor: "pointer",
+              fontSize: 13,
+              fontWeight: 950,
+              color: "#334155",
+              background: "#f8fafc",
+            }}
+          >
+            Account access & enabled business categories
+          </summary>
+
+          <div style={{ padding: 12 }}>
             <div style={{ color: "#5b6472", fontSize: 13, lineHeight: 1.5 }}>
               These are the business capabilities currently enabled for your vendor account.
             </div>
@@ -1579,8 +1679,8 @@ const aiDealUpgradeTarget =
                 <Pill tone="ok">3Bigha Full Real Estate Hub</Pill>
               ) : null}
             </div>
-          </CardBody>
-        </Card>
+          </div>
+        </details>
 
         <div style={{ height: 12 }} />
 
