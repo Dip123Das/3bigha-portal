@@ -453,446 +453,108 @@ const closedDeals =
 
                 <div
           style={{
-            border: "1px solid rgba(37,99,235,0.25)",
-            background: "linear-gradient(135deg, rgba(37,99,235,0.08), #ffffff)",
-            borderRadius: 18,
-            padding: 16,
-            marginBottom: 16,
-            boxShadow: "0 14px 30px rgba(37,99,235,0.08)",
+            border: "1px solid #dbeafe",
+            background: "#f8fbff",
+            borderRadius: 24,
+            padding: 24,
+            marginBottom: 18,
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <div>
-              <div style={{ fontSize: 22, fontWeight: 1000, color: "#1e3a8a" }}>
-                🧠 AI Procurement Dashboard Intelligence
-              </div>
-              <div style={{ marginTop: 4, color: "#475569", fontSize: 14, fontWeight: 800 }}>
-                AI summary of your RFQs, vendor conversations, procurement memory and next best actions.
-              </div>
-            </div>
-
-            <div
-              style={{
-                background:
-                  procurementHealthTone === "ok"
-                    ? "#dcfce7"
-                    : procurementHealthTone === "warn"
-                      ? "#fef3c7"
-                      : "#f8fafc",
-                color:
-                  procurementHealthTone === "ok"
-                    ? "#166534"
-                    : procurementHealthTone === "warn"
-                      ? "#92400e"
-                      : "#334155",
-                borderRadius: 999,
-                padding: "9px 14px",
-                fontWeight: 1000,
-                alignSelf: "center",
-                border: "1px solid rgba(15,23,42,0.08)",
-              }}
-            >
-              Procurement Health {procurementHealthScore}/100
-            </div>
+          <div
+            style={{
+              fontSize: 30,
+              fontWeight: 1000,
+              color: "#0f172a",
+              marginBottom: 6,
+            }}
+          >
+            Your Buyer Work Center
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
+          <div
+            style={{
+              color: "#475569",
+              fontWeight: 700,
+              fontSize: 14,
+              marginBottom: 22,
+            }}
+          >
+            Manage requirements, compare quotations, continue vendor conversations and complete procurement decisions from one operational workspace.
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+              gap: 14,
+              marginBottom: 20,
+            }}
+          >
             {[
-              ["Total RFQs", procurementStats.totalRfqs, "📄"],
-              ["Active RFQs", procurementStats.activeRfqs, "⚡"],
-              ["Closed RFQs", procurementStats.closedRfqs, "✅"],
-              ["Urgent", procurementStats.urgentRfqs, "⏱️"],
-              ["Memory", procurementStats.memoryCount, "🧠"],
-            ].map(([label, value, icon]) => (
+              [
+                "Total RFQs",
+                procurementStats.totalRfqs,
+                "#ffffff",
+                "All submitted requirements",
+              ],
+              [
+                "Active RFQs",
+                procurementStats.activeRfqs,
+                "#eff6ff",
+                "Needs review or negotiation",
+              ],
+              [
+                "Closed Deals",
+                procurementStats.closedRfqs,
+                "#f0fdf4",
+                "Completed procurement",
+              ],
+              [
+                "Urgent Actions",
+                procurementStats.urgentRfqs,
+                "#fffbeb",
+                "Requires immediate attention",
+              ],
+            ].map(([label, value, bg, note]) => (
               <div
-                key={label}
+                key={String(label)}
                 style={{
-                  border: "1px solid #e2e8f0",
-                  background: "#ffffff",
-                  borderRadius: 14,
-                  padding: 12,
-                }}
-              >
-                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
-                  {icon} {label}
-                </div>
-                <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000, fontSize: 22 }}>
-                  {value}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
-            <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
-              <div style={{ color: "#166534", fontWeight: 1000, marginBottom: 4 }}>
-                RFQ Success Prediction
-              </div>
-              <div style={{ color: "#14532d", fontSize: 13, fontWeight: 800 }}>
-                {rfqSuccessPrediction}. Improve by using structured RFQ, vendor comparison, and negotiation chat.
-              </div>
-            </div>
-
-            <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
-              <div style={{ color: "#1e3a8a", fontWeight: 1000, marginBottom: 4 }}>
-                AI Procurement Focus
-              </div>
-              <div style={{ color: "#1e40af", fontSize: 13, fontWeight: 800 }}>
-                {procurementStats.activeRfqs > 0
-                  ? "Compare active RFQs, follow up with vendors, and close the best-value quote."
-                  : "Create a new AI RFQ or continue marketplace discovery."}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ marginTop: 14 }}>
-            <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
-              🎯 AI Next Best Actions
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
-              {buyerAiInsights.map((x) => (
-                <div
-                  key={x.title}
-                  style={{
-                    border: "1px solid rgba(15,23,42,0.10)",
-                    background:
-                      x.tone === "ok"
-                        ? "#f0fdf4"
-                        : x.tone === "warn"
-                          ? "#fffbeb"
-                          : "#ffffff",
-                    borderRadius: 14,
-                    padding: 12,
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-                    <div style={{ maxWidth: 680 }}>
-                      <div style={{ color: "#0f172a", fontWeight: 1000 }}>{x.title}</div>
-                      <div style={{ marginTop: 5, color: "#475569", fontSize: 13, fontWeight: 800, lineHeight: 1.5 }}>
-                        {x.detail}
-                      </div>
-                    </div>
-
-                    <ActionButton href={x.href} variant={x.tone === "warn" ? "primary" : "secondary"}>
-                      {x.cta} →
-                    </ActionButton>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {procurementStats.recentRfqs.length > 0 ? (
-            <div style={{ marginTop: 14 }}>
-              <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
-                🕒 Recent Procurement Activity
-              </div>
-
-              <div style={{ display: "grid", gap: 8 }}>
-                {procurementStats.recentRfqs.map((r) => (
-                  <div
-                    key={r.id}
-                    style={{
-                      border: "1px solid rgba(15,23,42,0.08)",
-                      background: "#ffffff",
-                      borderRadius: 12,
-                      padding: 10,
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: 10,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 900, color: "#0f172a" }}>
-                        {readableRfqTitle(r)}
-                      </div>
-                      <div style={{ marginTop: 3, color: "#64748b", fontSize: 12, fontWeight: 800 }}>
-                        {(r.module || "general").toUpperCase()} • Status: {r.status || "open"}
-                        {r.needed_by ? ` • Needed by: ${r.needed_by}` : ""}
-                      </div>
-                    </div>
-
-                    <ActionButton href={`/dashboard/buyer/quote-compare/${encodeURIComponent(r.id)}`} variant="secondary">
-                      Compare →
-                    </ActionButton>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <ActionButton href="/rfq/general/new" variant="primary">
-              + New AI Procurement RFQ
-            </ActionButton>
-            <ActionButton href="/dashboard/buyer/rfqs" variant="secondary">
-              View RFQs
-            </ActionButton>
-            <ActionButton href="/dashboard/inbox" variant="secondary">
-              Vendor Inbox
-            </ActionButton>
-          </div>
-        </div>
-
-        <div
-          style={{
-            border: "1px solid rgba(14,165,233,0.25)",
-            background: "linear-gradient(135deg, rgba(14,165,233,0.08), #ffffff)",
-            borderRadius: 18,
-            padding: 16,
-            marginBottom: 16,
-            boxShadow: "0 14px 30px rgba(14,165,233,0.08)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <div>
-              <div style={{ fontSize: 22, fontWeight: 1000, color: "#075985" }}>
-                🧠 AI Buyer Intelligence Profile
-              </div>
-
-              <div
-                style={{
-                  border: "1px solid rgba(168,85,247,0.2)",
-                  background:
-                    "linear-gradient(135deg, rgba(168,85,247,0.08), #ffffff)",
+                  background: String(bg),
+                  border: "1px solid rgba(15,23,42,0.06)",
                   borderRadius: 18,
                   padding: 16,
-                  marginBottom: 16,
-                  boxShadow: "0 14px 30px rgba(168,85,247,0.08)",
                 }}
               >
                 <div
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    flexWrap: "wrap",
+                    fontSize: 12,
+                    fontWeight: 900,
+                    color: "#64748b",
                   }}
                 >
-                  <div>
-                    <div
-                      style={{
-                        fontSize: 22,
-                        fontWeight: 1000,
-                        color: "#6b21a8",
-                      }}
-                    >
-                      🧠 Behavioral Memory Engine
-                    </div>
-
-                    <div
-                      style={{
-                        marginTop: 4,
-                        color: "#6b7280",
-                        fontSize: 14,
-                        fontWeight: 700,
-                      }}
-                    >
-                      AI learning from RFQ behavior, procurement activity and discovery patterns.
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      background:
-                        behaviorMemory.estimatedIntentScore >= 75
-                          ? "#dcfce7"
-                          : behaviorMemory.estimatedIntentScore >= 40
-                            ? "#fef3c7"
-                            : "#f8fafc",
-
-                      color:
-                        behaviorMemory.estimatedIntentScore >= 75
-                          ? "#166534"
-                          : behaviorMemory.estimatedIntentScore >= 40
-                            ? "#92400e"
-                            : "#334155",
-
-                      borderRadius: 999,
-                      padding: "9px 14px",
-                      fontWeight: 1000,
-                    }}
-                  >
-                    Memory Score {behaviorMemory.estimatedIntentScore}/100
-                  </div>
+                  {label}
                 </div>
 
                 <div
                   style={{
-                    marginTop: 14,
-                    display: "grid",
-                    gridTemplateColumns:
-                      "repeat(4, minmax(0, 1fr))",
-                    gap: 10,
+                    marginTop: 6,
+                    fontSize: 34,
+                    fontWeight: 1000,
+                    color: "#0f172a",
                   }}
                 >
-                  {[
-                    [
-                      "Hot Modules",
-                      normalizedBehaviorMemory.hotModules.join(", ") ||
-                        "Learning",
-                      "🧩",
-                    ],
-
-                    [
-                      "Hot Categories",
-                      normalizedBehaviorMemory.hotCategories.join(", ") ||
-                        "Learning",
-                      "🏷️",
-                    ],
-
-                    [
-                      "Hot Locations",
-                      normalizedBehaviorMemory.hotLocations.join(", ") ||
-                        "Learning",
-                      "📍",
-                    ],
-
-                    [
-                      "Hot Actions",
-                      normalizedBehaviorMemory.hotActions.join(", ") ||
-                        "Learning",
-                      "⚡",
-                    ],
-                  ].map(([label, value, icon]) => (
-                    <div
-                      key={label}
-                      style={{
-                        border: "1px solid #ede9fe",
-                        background: "#fff",
-                        borderRadius: 14,
-                        padding: 12,
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: "#7c3aed",
-                          fontWeight: 900,
-                        }}
-                      >
-                        {icon} {label}
-                      </div>
-
-                      <div
-                        style={{
-                          marginTop: 5,
-                          color: "#0f172a",
-                          fontWeight: 900,
-                          fontSize: 13,
-                        }}
-                      >
-                        {value}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div
-                  style={{
-                    marginTop: 12,
-                    border: "1px solid #ddd6fe",
-                    background: "#faf5ff",
-                    borderRadius: 12,
-                    padding: 12,
-                  }}
-                >
-                  <div
-                    style={{
-                      color: "#6b21a8",
-                      fontWeight: 1000,
-                      marginBottom: 4,
-                    }}
-                  >
-                    Adaptive Learning Summary
-                  </div>
-
-                  <div
-                    style={{
-                      color: "#581c87",
-                      fontSize: 13,
-                      fontWeight: 800,
-                      lineHeight: 1.6,
-                    }}
-                  >
-                    {behaviorMemory.summary}
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 6,
-                      color: "#7e22ce",
-                      fontSize: 13,
-                      fontWeight: 800,
-                    }}
-                  >
-                    Dominant module:
-                    {" "}
-                    {behaviorSignals.module || "Learning"} •
-                   Category:
-                    {" "}
-                    {normalizedBehaviorMemory.hotCategories[0] || "Learning"} •
-                    Location:
-                    {" "}
-                    {behaviorSignals.location || "Learning"}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ marginTop: 4, color: "#475569", fontSize: 14, fontWeight: 800 }}>
-                Behavioral understanding from RFQs, procurement activity and buyer intent signals.
-              </div>
-            </div>
-
-            <div
-              style={{
-                background:
-                  buyerIntelligence.intentLabel === "hot"
-                    ? "#dcfce7"
-                    : buyerIntelligence.intentLabel === "warm"
-                      ? "#fef3c7"
-                      : "#f8fafc",
-                color:
-                  buyerIntelligence.intentLabel === "hot"
-                    ? "#166534"
-                    : buyerIntelligence.intentLabel === "warm"
-                      ? "#92400e"
-                      : "#334155",
-                borderRadius: 999,
-                padding: "9px 14px",
-                fontWeight: 1000,
-                alignSelf: "center",
-                border: "1px solid rgba(15,23,42,0.08)",
-              }}
-            >
-              Intent {buyerIntelligence.intentLabel.toUpperCase()} • {buyerIntelligence.intentScore}/100
-            </div>
-          </div>
-
-          <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10 }}>
-            {[
-              ["Preferred Modules", normalizedBuyerPreferredModules.join(", ") || "Learning", "🧩"],
-              ["Preferred Locations", normalizedBuyerPreferredLocations.join(", ") || "Learning", "📍"],
-              ["Preferred Categories", normalizedBuyerPreferredCategories.join(", ") || "Learning", "🏷️"],
-              ["Preferred Types", normalizedBuyerPreferredTypes.join(", ") || "Learning", "⚙️"],
-            ].map(([label, value, icon]) => (
-              <div
-                key={label}
-                style={{
-                  border: "1px solid #e2e8f0",
-                  background: "#ffffff",
-                  borderRadius: 14,
-                  padding: 12,
-                }}
-              >
-                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
-                  {icon} {label}
-                </div>
-
-                <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000, fontSize: 13 }}>
                   {value}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 6,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "#64748b",
+                  }}
+                >
+                  {note}
                 </div>
               </div>
             ))}
@@ -900,26 +562,314 @@ const closedDeals =
 
           <div
             style={{
-              marginTop: 12,
-              border: "1px solid #bae6fd",
-              background: "#f0f9ff",
-              borderRadius: 12,
-              padding: 12,
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
             }}
           >
-            <div style={{ color: "#075985", fontWeight: 1000, marginBottom: 4 }}>
-              AI Behavioral Summary
+            <ActionButton href="/rfq/general/new" variant="primary">
+              Submit Requirement →
+            </ActionButton>
+
+            <ActionButton href="/dashboard/buyer/rfqs" variant="secondary">
+              Compare Quotes
+            </ActionButton>
+
+            <ActionButton href="/dashboard/inbox-v2" variant="secondary">
+              Unified Inbox
+            </ActionButton>
+
+            <ActionButton href="/dashboard/buyer/inbox" variant="secondary">
+              Buyer Inbox
+            </ActionButton>
+          </div>
+        </div>
+
+        <div
+          style={{
+            border: "1px solid #bbf7d0",
+            background: "linear-gradient(135deg,#ecfdf5,#ffffff)",
+            borderRadius: 24,
+            padding: 18,
+            marginBottom: 18,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 22,
+              fontWeight: 1000,
+              color: "#064e3b",
+            }}
+          >
+            Today’s Buying Pulse
+          </div>
+
+          <div
+            style={{
+              marginTop: 4,
+              color: "#475569",
+              fontWeight: 700,
+              fontSize: 13,
+            }}
+          >
+            Important procurement activity requiring your attention today.
+          </div>
+
+          <div
+            style={{
+              marginTop: 16,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                border: "1px solid #bbf7d0",
+                borderRadius: 16,
+                padding: 14,
+                background: "#ffffff",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 900,
+                  color: "#047857",
+                }}
+              >
+                Active Requirements
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 28,
+                  fontWeight: 1000,
+                  color: "#0f172a",
+                }}
+              >
+                {procurementStats.activeRfqs}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: "#64748b",
+                }}
+              >
+                RFQs currently waiting for decisions.
+              </div>
             </div>
 
-            <div style={{ color: "#0c4a6e", fontSize: 13, fontWeight: 800, lineHeight: 1.6 }}>
-              {buyerIntelligence.summary}
+            <div
+              style={{
+                border: "1px solid #fed7aa",
+                borderRadius: 16,
+                padding: 14,
+                background: "#fff7ed",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 900,
+                  color: "#9a3412",
+                }}
+              >
+                Urgent Follow-up
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 28,
+                  fontWeight: 1000,
+                  color: "#0f172a",
+                }}
+              >
+                {procurementStats.urgentRfqs}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: "#7c2d12",
+                }}
+              >
+                Compare quotations or contact vendors.
+              </div>
             </div>
 
-            <div style={{ marginTop: 6, color: "#0369a1", fontSize: 13, fontWeight: 800, lineHeight: 1.6 }}>
-              {normalizedBuyerIntelligenceSummary}
+            <div
+              style={{
+                border: "1px solid #bfdbfe",
+                borderRadius: 16,
+                padding: 14,
+                background: "#eff6ff",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 900,
+                  color: "#1d4ed8",
+                }}
+              >
+                Recent RFQs
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 28,
+                  fontWeight: 1000,
+                  color: "#0f172a",
+                }}
+              >
+                {procurementStats.recentRfqs.length}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: "#1e40af",
+                }}
+              >
+                Latest procurement activity from your account.
+              </div>
+            </div>
+
+            <div
+              style={{
+                border: "1px solid #e0e7ff",
+                borderRadius: 16,
+                padding: 14,
+                background: "#ffffff",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 900,
+                  color: "#4338ca",
+                }}
+              >
+                Procurement Memory
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 28,
+                  fontWeight: 1000,
+                  color: "#0f172a",
+                }}
+              >
+                {procurementStats.memoryCount}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: "#64748b",
+                }}
+              >
+                Saved learning and RFQ behavior insights.
+              </div>
             </div>
           </div>
         </div>
+
+        <details
+          style={{
+            marginBottom: 18,
+            borderRadius: 18,
+            overflow: "hidden",
+            border: "1px solid #e5e7eb",
+            background: "#ffffff",
+          }}
+        >
+          <summary
+            style={{
+              padding: 14,
+              cursor: "pointer",
+              fontWeight: 1000,
+              fontSize: 13,
+              color: "#334155",
+              background: "#f8fafc",
+            }}
+          >
+            🧠 Buyer AI Assistant — procurement intelligence and recommendations
+          </summary>
+
+          <div style={{ padding: 14 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+                gap: 10,
+              }}
+            >
+              {buyerAiInsights.map((x) => (
+                <div
+                  key={x.title}
+                  style={{
+                    border: "1px solid rgba(15,23,42,0.08)",
+                    borderRadius: 14,
+                    padding: 12,
+                    background:
+                      x.tone === "warn"
+                        ? "#fffbeb"
+                        : "#ffffff",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 1000,
+                      color: "#0f172a",
+                    }}
+                  >
+                    {x.title}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 5,
+                      fontSize: 13,
+                      lineHeight: 1.5,
+                      color: "#475569",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {x.detail}
+                  </div>
+
+                  <div style={{ marginTop: 10 }}>
+                    <ActionButton
+                      href={x.href}
+                      variant={
+                        x.tone === "warn"
+                          ? "primary"
+                          : "secondary"
+                      }
+                    >
+                      {x.cta} →
+                    </ActionButton>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </details>
 
         {procurementMemory ? (
           <div
