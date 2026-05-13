@@ -5,7 +5,12 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import JsonLd from "@/components/seo/JsonLd";
-import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
+import {
+  aiMarketplaceSchema,
+  marketplaceFaqSchema,
+  organizationSchema,
+  websiteSchema,
+} from "@/lib/seo/schema";
 
 type SearchScope = "property" | "materials" | "services" | "rentals" | "investment";
 
@@ -803,7 +808,14 @@ export default function HomePage() {
 
 return (
     <main className="homePage">
-      <JsonLd data={[organizationSchema(), websiteSchema()]} />
+      <JsonLd
+        data={[
+          organizationSchema(),
+          websiteSchema(),
+          aiMarketplaceSchema(),
+          marketplaceFaqSchema(),
+        ]}
+      />
 
       <section className="homepageSeoIntro" aria-label="3bigha marketplace overview">
         <div className="homepageSeoIntroInner">
@@ -847,6 +859,8 @@ return (
               <p>{adaptiveHero.text}</p>
 
               <div className="heroTrustRow">
+                <a href="/llms.txt">LLM Discovery</a>
+                <a href="/ai-search-guide">AI Search Guide</a>
                 <a href="/property">🏠 Property</a>
                 <a href="/materials">🧱 Materials</a>
                 <a href="/services">🛠️ Services</a>

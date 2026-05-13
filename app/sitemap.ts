@@ -40,6 +40,8 @@ const staticRoutes = [
   "/vendor",
   "/vendor/discovery",
   "/search",
+  "/ai-search-guide",
+  "/llms.txt",
   "/about",
   "/contact",
   "/privacy-policy",
@@ -51,8 +53,22 @@ const staticRoutes = [
   const staticPages: MetadataRoute.Sitemap = staticRoutes.map((path) => ({
     url: route(path),
     lastModified: now,
-    changeFrequency: "daily",
-    priority: path === "" ? 1 : path.startsWith("/seo/") ? 0.72 : 0.8,
+    changeFrequency:
+    path === ""
+      ? "hourly"
+      : path.startsWith("/search/")
+      ? "daily"
+      : path.startsWith("/seo/")
+      ? "daily"
+      : "weekly",
+    priority:
+      path === ""
+        ? 1
+        : path.startsWith("/seo/")
+        ? 0.88
+        : path.startsWith("/search/")
+        ? 0.84
+        : 0.8,
   }));
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

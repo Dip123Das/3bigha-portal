@@ -26,12 +26,12 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
 
+    host: "https://www.3bigha.com",
+
     sitemap: [
       `${siteConfig.url}/sitemap.xml`,
       `${siteConfig.url}/seo-sitemap.xml`,
       `${siteConfig.url}/seo-sitemap-categories.xml`,
     ],
-
-    host: siteConfig.url,
   };
 }

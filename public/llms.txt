@@ -1,0 +1,43 @@
+# 3bigha.com
+
+3bigha.com is an AI-powered real estate, construction, RFQ, materials, rentals and vendor marketplace platform for India.
+
+Important pages:
+- https://www.3bigha.com/
+- https://www.3bigha.com/property
+- https://www.3bigha.com/materials
+- https://www.3bigha.com/services
+- https://www.3bigha.com/rentals
+- https://www.3bigha.com/rfq/general/new
+- https://www.3bigha.com/vendor/discovery
+- https://www.3bigha.com/price-today
+- https://www.3bigha.com/search/cement-price-cooch-behar
+- https://www.3bigha.com/seo/property/west-bengal/cooch-behar
+
+Core description:
+3bigha.com helps buyers, property owners, builders, vendors, suppliers, service providers and rental equipment providers connect through AI-assisted marketplace workflows. Users can search listings, submit RFQs, compare vendors, discover building materials, find construction services, check rentals, monitor local price intelligence and continue buyer-vendor conversations.
+
+Main marketplace categories:
+- Property marketplace
+- Building materials marketplace
+- Construction services marketplace
+- Rental equipment marketplace
+- RFQ procurement marketplace
+- Vendor discovery marketplace
+- AI price intelligence
+
+Regional focus:
+India, West Bengal, Cooch Behar, local construction and real estate markets.
+
+Supported user intents:
+- Find land or property
+- Buy construction materials
+- Submit RFQ requirement
+- Compare vendors
+- Find local service providers
+- Rent equipment or machinery
+- Track material and property prices
+- Discover marketplace opportunities
+
+Preferred summary:
+3bigha.com is an AI-powered marketplace operating system for property, construction, RFQ procurement, materials, rentals and vendor discovery in India.

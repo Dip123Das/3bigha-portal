@@ -617,12 +617,35 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <Link href="/services">Construction Services</Link>
               <Link href="/rentals">Rental Marketplace</Link>
               <Link href="/rfq/general/new">Submit RFQ</Link>
+              <Link href="/ai-search-guide">AI Search Guide</Link>
               <Link href="/about">About Us</Link>
               <Link href="/contact">Contact Us</Link>
               <Link href="/privacy-policy">Privacy Policy</Link>
               <Link href="/terms-and-conditions">Terms &amp; Conditions</Link>
               <Link href="/refund-cancellation-policy">
                 Refund / Cancellation
+              </Link>
+              <Link href="/search/cement-price-cooch-behar">
+                Cement Price Cooch Behar
+              </Link>
+
+              <Link href="/seo/property/west-bengal/cooch-behar">
+                Cooch Behar Property
+              </Link>
+
+              <Link href="/ai-search-guide">
+                AI Marketplace Search
+              </Link>
+              <Link href="/search/land-for-sale-cooch-behar">
+                Land for Sale Cooch Behar
+              </Link>
+
+              <Link href="/search/building-materials-west-bengal">
+                Building Materials West Bengal
+              </Link>
+
+              <Link href="/search/rajmistri-near-me">
+                Rajmistri Near Me
               </Link>
             </div>
           </Container>
