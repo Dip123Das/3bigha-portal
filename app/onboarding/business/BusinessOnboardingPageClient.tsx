@@ -321,7 +321,9 @@ export default function BusinessOnboardingPageClient() {
   const router = useRouter();
   const sp = useSearchParams();
 
-  const returnTo = sp.get("returnTo") || "/dashboard";
+  const rawReturnTo = sp.get("returnTo") || "/dashboard/vendor";
+  const returnTo =
+    rawReturnTo === "/dashboard" ? "/dashboard/vendor" : rawReturnTo;
   const roleFromQuery = (sp.get("role") || "").trim().toLowerCase();
 
   const [loading, setLoading] = useState(true);
@@ -1004,7 +1006,7 @@ export default function BusinessOnboardingPageClient() {
 
     setMsg("✅ Registration Complete. Redirecting...");
     await fetchCompleteness(userId);
-    router.push(returnTo);
+    router.replace(returnTo);
     router.refresh();
   }
 
@@ -1103,7 +1105,7 @@ export default function BusinessOnboardingPageClient() {
 
               <button
                 type="button"
-                onClick={() => router.push(returnTo)}
+                onClick={() => router.replace(returnTo)}
                 style={{
                   padding: "12px 18px",
                   fontWeight: 800,
@@ -1534,7 +1536,7 @@ export default function BusinessOnboardingPageClient() {
             Save & Go to Review
           </button>
 
-          <button type="button" onClick={() => router.push(returnTo)} style={{ padding: 10 }}>
+          <button type="button" onClick={() => router.replace(returnTo)} style={{ padding: 10 }}>
             Back
           </button>
         </div>

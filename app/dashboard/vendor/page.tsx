@@ -587,10 +587,44 @@ const aiDealUpgradeTarget =
       session.user.email ?? null
     );
 
-    const v = access.isVendor || access.isHubVendor;
+    const { data: profileAccess } = await supabase
+      .from("business_profiles")
+      .select("nature_of_business,business_profile_complete,is_complete,registration_complete")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+
+    const profileNature = Array.isArray((profileAccess as any)?.nature_of_business)
+      ? ((profileAccess as any).nature_of_business as string[])
+      : [];
+
+    const profileCapabilities = profileNature
+      .map((item) => {
+        if (item === "property") return "property_owner";
+        if (item === "builder") return "property_builder";
+        if (item === "materials") return "materials";
+        if (item === "services") return "services";
+        if (item === "rentals") return "rentals";
+        if (item === "blog") return "blog_author";
+        if (item === "investor") return "investor";
+        return null;
+      })
+      .filter(Boolean) as VendorCapabilityKey[];
+
+    const mergedCapabilities = Array.from(
+      new Set([...access.vendorCapabilities, ...profileCapabilities])
+    );
+
+    const v =
+      access.isVendor ||
+      access.isHubVendor ||
+      mergedCapabilities.length > 0 ||
+      (profileAccess as any)?.business_profile_complete === true ||
+      (profileAccess as any)?.is_complete === true ||
+      (profileAccess as any)?.registration_complete === true;
+
     setIsVendor(v);
-    setVendorCapabilities(access.vendorCapabilities);
-    setVendorHasFullAccess(access.vendorHasFullAccess);
+    setVendorCapabilities(mergedCapabilities);
+    setVendorHasFullAccess(access.vendorHasFullAccess || mergedCapabilities.length >= 4);
 
     if (!v) {
       setVendorComplete(null);
