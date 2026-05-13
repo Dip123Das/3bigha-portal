@@ -115,35 +115,8 @@ export default function AuthButtons() {
         }
 
         if (isBusinessRole(role)) {
-          const businessProfileRes = await supabase
-            .from("business_profiles")
-            .select(
-              "nature_of_business,is_complete,registration_complete,business_profile_complete"
-            )
-            .eq("user_id", userId)
-            .maybeSingle();
-
-          const businessProfile = businessProfileRes.data as any;
-
-          const hasVendorCapabilities =
-            Array.isArray(businessProfile?.nature_of_business) &&
-            businessProfile.nature_of_business.length > 0;
-
-          const progressiveVendorReady =
-            hasVendorCapabilities ||
-            businessProfile?.is_complete === true ||
-            businessProfile?.registration_complete === true ||
-            businessProfile?.business_profile_complete === true;
-
-          if (progressiveVendorReady) {
-            return;
-          }
-
-          const qs = new URLSearchParams();
-          qs.set("returnTo", currentPath || "/dashboard/vendor");
-          if (role) qs.set("role", role);
-
-          router.replace(`/onboarding/business?${qs.toString()}`);
+          // Header must not force business users back to onboarding.
+          // Vendor onboarding is progressive; dashboard pages handle their own gates.
           return;
         }
 
