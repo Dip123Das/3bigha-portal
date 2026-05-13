@@ -789,189 +789,6 @@ const closedDeals =
           </div>
         </div>
 
-        <details
-          style={{
-            marginBottom: 18,
-            borderRadius: 18,
-            overflow: "hidden",
-            border: "1px solid #e5e7eb",
-            background: "#ffffff",
-          }}
-        >
-          <summary
-            style={{
-              padding: 14,
-              cursor: "pointer",
-              fontWeight: 1000,
-              fontSize: 13,
-              color: "#334155",
-              background: "#f8fafc",
-            }}
-          >
-            🧠 Buyer AI Assistant — procurement intelligence and recommendations
-          </summary>
-
-          <div style={{ padding: 14 }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
-                gap: 10,
-              }}
-            >
-              {buyerAiInsights.map((x) => (
-                <div
-                  key={x.title}
-                  style={{
-                    border: "1px solid rgba(15,23,42,0.08)",
-                    borderRadius: 14,
-                    padding: 12,
-                    background:
-                      x.tone === "warn"
-                        ? "#fffbeb"
-                        : "#ffffff",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontWeight: 1000,
-                      color: "#0f172a",
-                    }}
-                  >
-                    {x.title}
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 5,
-                      fontSize: 13,
-                      lineHeight: 1.5,
-                      color: "#475569",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {x.detail}
-                  </div>
-
-                  <div style={{ marginTop: 10 }}>
-                    <ActionButton
-                      href={x.href}
-                      variant={
-                        x.tone === "warn"
-                          ? "primary"
-                          : "secondary"
-                      }
-                    >
-                      {x.cta} →
-                    </ActionButton>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </details>
-
-        {procurementMemory ? (
-          <div
-            style={{
-              border: "1px solid rgba(16,185,129,0.25)",
-              background: "linear-gradient(135deg, rgba(16,185,129,0.08), #ffffff)",
-              borderRadius: 18,
-              padding: 16,
-              marginBottom: 16,
-              boxShadow: "0 14px 30px rgba(16,185,129,0.08)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-              <div>
-                <div style={{ fontSize: 22, fontWeight: 1000, color: "#047857" }}>
-                  🧬 Buyer Procurement Memory Graph
-                </div>
-                <div style={{ marginTop: 4, color: "#475569", fontSize: 14, fontWeight: 800 }}>
-                  AI learns buyer behavior, repeat procurement pattern, vendor reliability and negotiation history.
-                </div>
-              </div>
-
-              <div
-                style={{
-                  background: "#dcfce7",
-                  color: "#166534",
-                  borderRadius: 999,
-                  padding: "9px 14px",
-                  fontWeight: 1000,
-                  alignSelf: "center",
-                }}
-              >
-                Memory Score {procurementMemory.memoryScore ?? "—"}/100
-              </div>
-            </div>
-
-            <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
-              {[
-                ["Buyer Behavior", procurementMemory.buyerBehavior || "—", "🧑‍💼"],
-                ["Vendor Reliability", procurementMemory.vendorReliability || "—", "🏆"],
-                ["Anomaly", procurementMemory.anomalySignal || "—", "⚠️"],
-              ].map(([label, value, icon]) => (
-                <div
-                  key={label}
-                  style={{
-                    border: "1px solid #e2e8f0",
-                    background: "#ffffff",
-                    borderRadius: 14,
-                    padding: 12,
-                  }}
-                >
-                  <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
-                    {icon} {label}
-                  </div>
-                  <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000 }}>
-                    {value}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
-                <div style={{ color: "#166534", fontWeight: 1000 }}>Negotiation Memory</div>
-                <div style={{ marginTop: 5, color: "#14532d", fontSize: 13, fontWeight: 800 }}>
-                  {procurementMemory.negotiationMemory || "Negotiation memory is collecting procurement signals."}
-                </div>
-              </div>
-
-              <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
-                <div style={{ color: "#1e3a8a", fontWeight: 1000 }}>Next Learning Action</div>
-                <div style={{ marginTop: 5, color: "#1e40af", fontSize: 13, fontWeight: 800 }}>
-                  {procurementMemory.nextLearningAction || "Continue collecting RFQ, quote and closure data."}
-                </div>
-              </div>
-            </div>
-
-            {procurementMemory.graphNodes?.length ? (
-              <div style={{ marginTop: 14, display: "grid", gap: 8 }}>
-                {procurementMemory.graphNodes.map((node) => (
-                  <div
-                    key={`${node.type}-${node.label}`}
-                    style={{
-                      border: "1px solid rgba(15,23,42,0.10)",
-                      background: "#ffffff",
-                      borderRadius: 12,
-                      padding: 10,
-                    }}
-                  >
-                    <div style={{ fontWeight: 1000, color: "#0f172a" }}>
-                      {node.type.replaceAll("_", " ").toUpperCase()}
-                    </div>
-                    <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
-                      {node.label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
                 {procurementRecommendation ? (
           <div
             style={{
@@ -1092,6 +909,113 @@ const closedDeals =
             ) : null}
           </div>
         ) : null}
+
+                <details
+          style={{
+            marginBottom: 18,
+            borderRadius: 18,
+            overflow: "hidden",
+            border: "1px solid #e5e7eb",
+            background: "#ffffff",
+          }}
+        >
+          <summary
+            style={{
+              padding: 14,
+              cursor: "pointer",
+              fontWeight: 1000,
+              fontSize: 13,
+              color: "#334155",
+              background: "#f8fafc",
+            }}
+          >
+            🧠 Buyer AI Assistant — smart procurement insights
+          </summary>
+
+          <div
+            style={{
+              padding: 14,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+              gap: 10,
+            }}
+          >
+            <div
+              style={{
+                border: "1px solid #e2e8f0",
+                borderRadius: 14,
+                padding: 14,
+                background: "#ffffff",
+              }}
+            >
+              <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                Procurement Memory
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 13,
+                  color: "#475569",
+                  fontWeight: 700,
+                  lineHeight: 1.5,
+                }}
+              >
+                AI tracks vendor replies, RFQ activity and buying behavior patterns.
+              </div>
+            </div>
+
+            <div
+              style={{
+                border: "1px solid #e2e8f0",
+                borderRadius: 14,
+                padding: 14,
+                background: "#ffffff",
+              }}
+            >
+              <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                Smart Recommendation
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 13,
+                  color: "#475569",
+                  fontWeight: 700,
+                  lineHeight: 1.5,
+                }}
+              >
+                AI suggests vendor follow-up, negotiation and quote comparison actions.
+              </div>
+            </div>
+
+            <div
+              style={{
+                border: "1px solid #e2e8f0",
+                borderRadius: 14,
+                padding: 14,
+                background: "#ffffff",
+              }}
+            >
+              <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                Buyer Intelligence
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 13,
+                  color: "#475569",
+                  fontWeight: 700,
+                  lineHeight: 1.5,
+                }}
+              >
+                Procurement AI learns recurring RFQ patterns and vendor responsiveness.
+              </div>
+            </div>
+          </div>
+        </details>
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
           <ActionButton href="/dashboard" variant="secondary">
