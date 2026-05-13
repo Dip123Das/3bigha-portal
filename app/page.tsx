@@ -801,9 +801,40 @@ export default function HomePage() {
     router.push(`/search?module=${scope}&q=${encodeURIComponent(clean)}`);
   }
 
-  return (
+return (
     <main className="homePage">
       <JsonLd data={[organizationSchema(), websiteSchema()]} />
+
+      <section className="homepageSeoIntro" aria-label="3bigha marketplace overview">
+        <div className="homepageSeoIntroInner">
+          <span>3bigha.com Marketplace OS</span>
+
+          <h2>
+            AI-powered property, construction, RFQ, materials, rentals and vendor marketplace in India
+          </h2>
+
+          <p>
+            3bigha.com helps buyers, property owners, builders, vendors, suppliers,
+            service providers and rental equipment providers connect through one
+            intelligent marketplace. Users can search property listings, submit RFQs,
+            compare vendors, discover building materials, find construction services,
+            check rental machinery, track price intelligence and continue marketplace
+            conversations from one platform.
+          </p>
+
+          <div className="homepageSeoLinks">
+            <a href="/property">Property marketplace</a>
+            <a href="/materials">Building materials marketplace</a>
+            <a href="/services">Construction services marketplace</a>
+            <a href="/rentals">Rental equipment marketplace</a>
+            <a href="/rfq/general/new">Submit RFQ requirement</a>
+            <a href="/vendor/discovery">Find verified vendors</a>
+            <a href="/price-today">AI price intelligence</a>
+            <a href="/search/cement-price-cooch-behar">Cement price Cooch Behar</a>
+            <a href="/seo/property/west-bengal/cooch-behar">Cooch Behar property marketplace</a>
+          </div>
+        </div>
+      </section>
 
       <section className="marketHero">
         <div className="marketHeroInner">
@@ -1203,6 +1234,64 @@ export default function HomePage() {
           background: #f8fafc;
           min-height: 100vh;
           padding-bottom: 40px;
+        }
+
+        .homepageSeoIntro {
+          background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+          border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+        }
+
+        .homepageSeoIntroInner {
+          width: min(100%, 1180px);
+          margin: 0 auto;
+          padding: 18px 16px 12px;
+        }
+
+        .homepageSeoIntro span {
+          display: inline-flex;
+          border-radius: 999px;
+          background: #eef6ff;
+          color: #0b57d0;
+          border: 1px solid rgba(11, 87, 208, 0.12);
+          padding: 6px 10px;
+          font-size: 12px;
+          font-weight: 950;
+        }
+
+        .homepageSeoIntro h2 {
+          margin: 10px 0 0;
+          color: #0f172a;
+          font-size: clamp(22px, 3vw, 34px);
+          line-height: 1.15;
+          letter-spacing: -0.035em;
+          font-weight: 950;
+        }
+
+        .homepageSeoIntro p {
+          max-width: 980px;
+          margin: 10px 0 0;
+          color: #475569;
+          font-size: 15px;
+          line-height: 1.7;
+          font-weight: 650;
+        }
+
+        .homepageSeoLinks {
+          margin-top: 12px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .homepageSeoLinks a {
+          border-radius: 999px;
+          background: #ffffff;
+          border: 1px solid rgba(15, 23, 42, 0.10);
+          color: #0f172a;
+          padding: 8px 11px;
+          font-size: 12px;
+          font-weight: 900;
+          text-decoration: none;
         }
 
         .marketHero {
@@ -2947,6 +3036,23 @@ export default function HomePage() {
         }
 
         @media (max-width: 640px) {
+        .homepageSeoIntroInner {
+            padding: 14px 10px 10px;
+          }
+
+          .homepageSeoIntro h2 {
+            font-size: 22px;
+          }
+
+          .homepageSeoIntro p {
+            font-size: 13px;
+            line-height: 1.6;
+          }
+
+          .homepageSeoLinks {
+            max-height: 86px;
+            overflow: hidden;
+          }
           .homePage {
             width: 100%;
             overflow-x: hidden;
