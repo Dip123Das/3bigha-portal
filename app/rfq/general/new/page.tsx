@@ -298,6 +298,7 @@ function RfqGeneralNewPageInner() {
   const [quickNeed, setQuickNeed] = useState("");
   const [quickLocation, setQuickLocation] = useState("");
   const [quickQty, setQuickQty] = useState("");
+  const [voiceListening, setVoiceListening] = useState(false);
 
   const [structuredRfq, setStructuredRfq] =
     useState<StructuredRfqBlock | null>(null);
@@ -1684,6 +1685,41 @@ return;
     showPopup("AI procurement block added to description.", "success");
   }
 
+    function startQuickVoiceInput() {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      showPopup("Voice input is not supported in this browser.", "error");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "bn-IN";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setVoiceListening(true);
+
+    recognition.onresult = (event: any) => {
+      const spoken = event?.results?.[0]?.[0]?.transcript || "";
+      if (spoken) {
+        setQuickNeed(spoken);
+        setAiRequirement(spoken);
+        showPopup("Voice requirement captured.", "success");
+      }
+    };
+
+    recognition.onerror = () => {
+      showPopup("Voice input failed. Please try again or type manually.", "error");
+    };
+
+    recognition.onend = () => setVoiceListening(false);
+
+    recognition.start();
+  }
+
     function applyQuickRfq() {
     const need = quickNeed.trim();
     const location = quickLocation.trim();
@@ -2277,6 +2313,151 @@ return;
         </div>
       ) : null}
 
+            <div style={{ height: 22 }} />
+
+            <div
+        style={{
+          border: "1px solid rgba(37,99,235,0.18)",
+          background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+          borderRadius: 18,
+          padding: 16,
+          marginBottom: 16,
+          boxShadow: "0 14px 34px rgba(37,99,235,0.08)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 1000, color: "#1e3a8a" }}>
+              ⚡ Quick RFQ Mode
+            </div>
+            <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 700 }}>
+              Type like WhatsApp. AI will prepare the full requirement form automatically.
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: "#dbeafe",
+              color: "#1d4ed8",
+              border: "1px solid #bfdbfe",
+              borderRadius: 999,
+              padding: "8px 12px",
+              fontWeight: 1000,
+              alignSelf: "center",
+              fontSize: 12,
+            }}
+          >
+            Beginner friendly
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              typeof window !== "undefined" && window.innerWidth < 768
+                ? "1fr"
+                : "1.5fr 1fr 1fr auto",
+            gap: 10,
+            marginTop: 14,
+            alignItems: "end",
+          }}
+        >
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 900, marginBottom: 5 }}>
+              What do you need?
+            </label>
+            <input
+              value={quickNeed}
+              onChange={(e) => setQuickNeed(e.target.value)}
+              placeholder="Example: 500 bags cement / electrician / JCB rent"
+              style={{
+                width: "100%",
+                border: "1px solid #cbd5e1",
+                borderRadius: 12,
+                padding: "10px 12px",
+                fontWeight: 700,
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 900, marginBottom: 5 }}>
+              Location
+            </label>
+            <input
+              value={quickLocation}
+              onChange={(e) => setQuickLocation(e.target.value)}
+              placeholder="Cooch Behar / Khagrabari"
+              style={{
+                width: "100%",
+                border: "1px solid #cbd5e1",
+                borderRadius: 12,
+                padding: "10px 12px",
+                fontWeight: 700,
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 900, marginBottom: 5 }}>
+              Approx quantity
+            </label>
+            <input
+              value={quickQty}
+              onChange={(e) => setQuickQty(e.target.value)}
+              placeholder="500 bags / 2 days"
+              style={{
+                width: "100%",
+                border: "1px solid #cbd5e1",
+                borderRadius: 12,
+                padding: "10px 12px",
+                fontWeight: 700,
+              }}
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={startQuickVoiceInput}
+            style={{
+              border: "1px solid #bfdbfe",
+              borderRadius: 12,
+              background: voiceListening ? "#dbeafe" : "#ffffff",
+              color: "#1d4ed8",
+              padding: "11px 14px",
+              fontWeight: 1000,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {voiceListening ? "Listening..." : "🎙 Voice"}
+          </button>
+
+          <button
+            type="button"
+            onClick={applyQuickRfq}
+            style={{
+              border: 0,
+              borderRadius: 12,
+              background: "#2563eb",
+              color: "#ffffff",
+              padding: "11px 14px",
+              fontWeight: 1000,
+              cursor: "pointer",
+              boxShadow: "0 10px 22px rgba(37,99,235,0.22)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Prepare RFQ
+          </button>
+        </div>
+
+        <div style={{ marginTop: 10, color: "#64748b", fontSize: 12, fontWeight: 700 }}>
+          Examples: “Need 500 bags cement in Cooch Behar”, “JCB rent for 2 days”, “Electrician for house wiring”.
+        </div>
+      </div>
+
       <div
         style={{
           border: "1px solid rgba(79,70,229,0.28)",
@@ -2397,7 +2578,10 @@ return;
           ))}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns:
+          typeof window !== "undefined" && window.innerWidth < 768
+            ? "1fr"
+            : "1fr 1fr", gap: 10, marginTop: 12 }}>
           <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", color: "#1e3a8a", borderRadius: 12, padding: 10, fontSize: 13, fontWeight: 800 }}>
             ⏱ Timeline estimate: {procurementInsight.timelineEstimate}
           </div>
@@ -2483,7 +2667,10 @@ return;
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns:
+                typeof window !== "undefined" && window.innerWidth < 768
+                  ? "1fr"
+                  : "1fr 1fr", gap: 10 }}>
                 <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
                   <div style={{ fontWeight: 1000, color: "#1e3a8a", marginBottom: 5 }}>
                     Deliverables
@@ -2507,7 +2694,10 @@ return;
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns:
+                typeof window !== "undefined" && window.innerWidth < 768
+                  ? "1fr"
+                  : "1fr 1fr", gap: 10 }}>
                 <div style={{ border: "1px solid #fde68a", background: "#fffbeb", borderRadius: 12, padding: 10 }}>
                   <div style={{ fontWeight: 1000, color: "#92400e", marginBottom: 5 }}>
                     Commercial Terms
@@ -2793,7 +2983,10 @@ return;
         ) : null}
 
         {showProgressiveBuilder ? (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns:
+          typeof window !== "undefined" && window.innerWidth < 768
+            ? "1fr"
+            : "1fr 1fr", gap: 10 }}>
           <div
             style={{
               border: "1px solid rgba(22,163,74,0.22)",
@@ -2875,131 +3068,6 @@ return;
             </div>
           </div>
         ) : null}
-      </div>
-
-      <div style={{ height: 22 }} />
-
-            <div
-        style={{
-          border: "1px solid rgba(37,99,235,0.18)",
-          background: "linear-gradient(135deg, #eff6ff, #ffffff)",
-          borderRadius: 18,
-          padding: 16,
-          marginBottom: 16,
-          boxShadow: "0 14px 34px rgba(37,99,235,0.08)",
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 1000, color: "#1e3a8a" }}>
-              ⚡ Quick RFQ Mode
-            </div>
-            <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 700 }}>
-              Type like WhatsApp. AI will prepare the full requirement form automatically.
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: "#dbeafe",
-              color: "#1d4ed8",
-              border: "1px solid #bfdbfe",
-              borderRadius: 999,
-              padding: "8px 12px",
-              fontWeight: 1000,
-              alignSelf: "center",
-              fontSize: 12,
-            }}
-          >
-            Beginner friendly
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.5fr 1fr 1fr auto",
-            gap: 10,
-            marginTop: 14,
-            alignItems: "end",
-          }}
-        >
-          <div>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 900, marginBottom: 5 }}>
-              What do you need?
-            </label>
-            <input
-              value={quickNeed}
-              onChange={(e) => setQuickNeed(e.target.value)}
-              placeholder="Example: 500 bags cement / electrician / JCB rent"
-              style={{
-                width: "100%",
-                border: "1px solid #cbd5e1",
-                borderRadius: 12,
-                padding: "10px 12px",
-                fontWeight: 700,
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 900, marginBottom: 5 }}>
-              Location
-            </label>
-            <input
-              value={quickLocation}
-              onChange={(e) => setQuickLocation(e.target.value)}
-              placeholder="Cooch Behar / Khagrabari"
-              style={{
-                width: "100%",
-                border: "1px solid #cbd5e1",
-                borderRadius: 12,
-                padding: "10px 12px",
-                fontWeight: 700,
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 900, marginBottom: 5 }}>
-              Approx quantity
-            </label>
-            <input
-              value={quickQty}
-              onChange={(e) => setQuickQty(e.target.value)}
-              placeholder="500 bags / 2 days"
-              style={{
-                width: "100%",
-                border: "1px solid #cbd5e1",
-                borderRadius: 12,
-                padding: "10px 12px",
-                fontWeight: 700,
-              }}
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={applyQuickRfq}
-            style={{
-              border: 0,
-              borderRadius: 12,
-              background: "#2563eb",
-              color: "#ffffff",
-              padding: "11px 14px",
-              fontWeight: 1000,
-              cursor: "pointer",
-              boxShadow: "0 10px 22px rgba(37,99,235,0.22)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Prepare RFQ
-          </button>
-        </div>
-
-        <div style={{ marginTop: 10, color: "#64748b", fontSize: 12, fontWeight: 700 }}>
-          Examples: “Need 500 bags cement in Cooch Behar”, “JCB rent for 2 days”, “Electrician for house wiring”.
-        </div>
       </div>
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
@@ -3307,7 +3375,10 @@ return;
             Enter City, Locality, Pincode so nearby vendors can quote.
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns:
+            typeof window !== "undefined" && window.innerWidth < 768
+              ? "1fr"
+              : "1fr 1fr", gap: 12 }}>
             <label>
               <div style={{ fontWeight: 700 }}>City *</div>
               <input className="searchInput" value={city} onChange={(e) => setCity(e.target.value)} />
@@ -3422,7 +3493,10 @@ return;
                 key={idx}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "2fr 1fr 1fr 2fr auto",
+                  gridTemplateColumns:
+                    typeof window !== "undefined" && window.innerWidth < 768
+                      ? "1fr"
+                      : "2fr 1fr 1fr 2fr auto",
                   gap: 8,
                 }}
               >
@@ -3481,7 +3555,40 @@ return;
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <div
+          style={{
+            position:
+              typeof window !== "undefined" && window.innerWidth < 768
+                ? "fixed"
+                : "relative",
+            left: 0,
+            right: 0,
+            bottom:
+              typeof window !== "undefined" && window.innerWidth < 768
+                ? 0
+                : "auto",
+            zIndex: 50,
+            background:
+              typeof window !== "undefined" && window.innerWidth < 768
+                ? "#ffffff"
+                : "transparent",
+            borderTop:
+              typeof window !== "undefined" && window.innerWidth < 768
+                ? "1px solid #e2e8f0"
+                : "none",
+            padding:
+              typeof window !== "undefined" && window.innerWidth < 768
+                ? "12px"
+                : "0px",
+            display: "flex",
+            gap: 10,
+            flexWrap: "wrap",
+            boxShadow:
+              typeof window !== "undefined" && window.innerWidth < 768
+                ? "0 -10px 30px rgba(15,23,42,0.08)"
+                : "none",
+          }}
+        >
           <button className="topBtn topBtnPrimary" type="submit" disabled={loading}>
             {loading ? "Submitting..." : "Submit RFQ →"}
           </button>
@@ -3494,6 +3601,15 @@ return;
             Home
           </Link>
         </div>
+      <div
+        style={{
+          height:
+            typeof window !== "undefined" && window.innerWidth < 768
+              ? 90
+              : 0,
+        }}
+      />
+
       </form>
     </div>
   );

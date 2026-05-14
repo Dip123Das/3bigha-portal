@@ -993,6 +993,20 @@ return (
               </button>
             </div>
 
+            <div className="aiCommandStream">
+              {[
+                "🟢 3 buyers searching for cement near Cooch Behar",
+                "⚡ Vendor responded to an RFQ in 12 minutes",
+                "🏗 Property enquiry increased in Khagrabari",
+                "🚜 Rental demand rising today",
+                "💬 New supplier activity detected nearby",
+              ].map((pulse, idx) => (
+                <div key={idx} className="aiCommandPulse">
+                  {pulse}
+                </div>
+              ))}
+            </div>
+
             {aiSuggestion ? (
               <div className="aiGuideCard">
                 <div>
@@ -1558,6 +1572,46 @@ return (
           font-size: 13px;
           font-weight: 800;
           color: #64748b;
+        }
+
+        .aiCommandStream {
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          padding: 4px 0 2px;
+          margin-top: 10px;
+          scrollbar-width: none;
+        }
+
+        .aiCommandStream::-webkit-scrollbar {
+          display: none;
+        }
+
+        .aiCommandPulse {
+          flex: 0 0 auto;
+          border: 1px solid rgba(37,99,235,0.14);
+          background: linear-gradient(135deg, #ffffff, #eff6ff);
+          color: #1e3a8a;
+          border-radius: 999px;
+          padding: 7px 11px;
+          font-size: 12px;
+          font-weight: 900;
+          box-shadow: 0 8px 18px rgba(37,99,235,0.06);
+          animation: aiPulseMove 6s ease-in-out infinite;
+        }
+
+        @keyframes aiPulseMove {
+          0% {
+            transform: translateY(0);
+          }
+
+          50% {
+            transform: translateY(-1px);
+          }
+
+          100% {
+            transform: translateY(0);
+          }
         }
 
         .searchMeta a {
