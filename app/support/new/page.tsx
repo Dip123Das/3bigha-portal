@@ -4,6 +4,8 @@ import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
+import type { UploadedMediaAsset } from "@/lib/media/media-config";
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody } from "@/components/ui/Card";
@@ -42,6 +44,7 @@ export default function NewSupportTicketPage() {
   const [priority, setPriority] = useState("normal");
   const [roughIssue, setRoughIssue] = useState("");
   const [draftIssue, setDraftIssue] = useState("");
+  const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
   const [governance, setGovernance] = useState<SupportGovernance | null>(null);
 
   const [userRole, setUserRole] = useState("user");
@@ -138,7 +141,13 @@ export default function NewSupportTicketPage() {
   async function submitTicket() {
     setError(null);
 
-    const finalText = draftIssue.trim() || roughIssue.trim();
+    const evidenceText = mediaAssets.length
+      ? `\n\nUploaded evidence:\n${mediaAssets
+          .map((asset, index) => `${index + 1}. ${asset.kind}: ${asset.url}`)
+          .join("\n")}`
+      : "";
+
+    const finalText = `${draftIssue.trim() || roughIssue.trim()}${evidenceText}`;
 
     if (!roughIssue.trim()) {
       setError("Please write your issue before submitting.");
@@ -388,6 +397,18 @@ export default function NewSupportTicketPage() {
                   }}
                 />
               </label>
+
+              <UniversalMediaUploader
+                module="support"
+                value={mediaAssets}
+                onChange={setMediaAssets}
+                label="Upload screenshots / photos / videos / PDF"
+                helperText="Attach screenshots, error photos, short issue videos, payment proof, listing screenshots or PDF documents."
+                allowImages
+                allowVideos
+                allowDocuments
+                maxFiles={8}
+              />
 
               {governance ? (
                 <div

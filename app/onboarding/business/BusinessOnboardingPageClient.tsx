@@ -4,6 +4,9 @@ import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
+import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import { validateGstin } from "@/lib/vendor-verification/gstin";
 
 async function ensureSessionOrRedirect(
   supabase: any,
@@ -71,6 +74,29 @@ type BusinessProfile = {
   is_complete: boolean;
   completion_score: number;
   missing_fields: string[];
+  business_media_json?: UploadedMediaAsset[] | null;
+  vendor_document_verification_json?: VendorDocumentVerification | null;
+};
+
+type VendorDocumentVerification = {
+  status: string;
+  confidence: number;
+  gstinValidation?: {
+    valid: boolean;
+    normalized: string;
+    errors: string[];
+  };
+  documentType?: string;
+  extractedGstin?: string;
+  extractedTradeLicenseNo?: string;
+  extractedBusinessName?: string;
+  extractedAddress?: string;
+  gstinMatchedInDocument?: boolean;
+  tradeLicenseMatchedInDocument?: boolean;
+  businessNameMatched?: boolean;
+  addressMatched?: boolean;
+  summary?: string;
+  warnings?: string[];
 };
 
 type VendorCompletenessRow = {
@@ -339,9 +365,13 @@ export default function BusinessOnboardingPageClient() {
 
   const [vc, setVc] = useState<VendorCompletenessRow | null>(null);
   const [vcLoading, setVcLoading] = useState(false);
+  const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
+  const [documentVerifyLoading, setDocumentVerifyLoading] = useState(false);
+  const [documentVerification, setDocumentVerification] = useState<VendorDocumentVerification | null>(null);
 
   const nature = safeArr(bp.nature_of_business);
   const hasBlog = nature.includes("blog");
+  const gstinFormatCheck = validateGstin(String(bp.gstin || ""));
 
   async function fetchCompleteness(uid: string) {
     setVcLoading(true);
@@ -497,6 +527,30 @@ export default function BusinessOnboardingPageClient() {
               ? "vendor"
               : null);
 
+          const restoredMedia: UploadedMediaAsset[] = Array.isArray((data as any).business_media_json)
+            ? (data as any).business_media_json
+                .map((x: any, idx: number): UploadedMediaAsset => {
+                  const rawKind = String(x?.kind || "").toLowerCase();
+                  const kind: UploadedMediaAsset["kind"] =
+                    rawKind === "video" ? "video" : rawKind === "document" ? "document" : "image";
+
+                  return {
+                    id: String(x?.id || `${Date.now()}_${idx}`),
+                    url: String(x?.url || x?.public_url || ""),
+                    bucket: String(x?.bucket || "vendor-media"),
+                    path: String(x?.path || x?.object_path || ""),
+                    name: String(x?.name || x?.file_name || `Business media ${idx + 1}`),
+                    size: Number(x?.size || x?.file_size || 0),
+                    mimeType: String(x?.mimeType || x?.mime_type || ""),
+                    kind,
+                  };
+                })
+                .filter((x: UploadedMediaAsset) => Boolean(x.url))
+            : [];
+
+          setMediaAssets(restoredMedia);
+          setDocumentVerification((data as any).vendor_document_verification_json ?? null);
+
           setBp({
             ...data,
             business_type: seededBusinessType,
@@ -534,6 +588,70 @@ export default function BusinessOnboardingPageClient() {
 
   function setField<K extends keyof BusinessProfile>(key: K, value: any) {
     setBp((p) => ({ ...p, [key]: value }));
+  }
+
+  async function runVendorDocumentVerification() {
+    const gstin = String(bp.gstin || "").trim();
+    const tradeLicenseNo = String(bp.trade_license_no || "").trim();
+
+    if (!gstin && !tradeLicenseNo) {
+      setMsg("Please enter GSTIN or Trade License No before AI document check.");
+      return;
+    }
+
+    if (!mediaAssets.length) {
+      setMsg("Please upload GST certificate or Trade License document/photo first.");
+      return;
+    }
+
+    setDocumentVerifyLoading(true);
+    setMsg("AI is checking GSTIN / Trade License against uploaded document...");
+
+    try {
+      const res = await fetch("/api/ai/vendor-document-verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+        body: JSON.stringify({
+          gstin,
+          tradeLicenseNo,
+          businessName: bp.business_name || "",
+          businessAddress: [
+            bp.address_line1,
+            bp.address_line2,
+            bp.landmark,
+            bp.city,
+            bp.district,
+            bp.state,
+            bp.pincode,
+          ]
+            .filter(Boolean)
+            .join(", "),
+          mediaAssets,
+        }),
+      });
+
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok || !json?.ok) {
+        throw new Error(json?.error || "AI document verification failed.");
+      }
+
+      const verification = json.verification as VendorDocumentVerification;
+      setDocumentVerification(verification);
+      setBp((p) => ({
+        ...p,
+        vendor_document_verification_json: verification,
+      }));
+
+      setMsg("✅ AI-assisted document tally completed. Please review the result below.");
+    } catch (e: any) {
+      setMsg(e?.message || "AI document verification failed.");
+    } finally {
+      setDocumentVerifyLoading(false);
+    }
   }
 
   const localCompletion = computeCompletion(bp);
@@ -623,19 +741,55 @@ export default function BusinessOnboardingPageClient() {
       is_complete: isComplete,
       completion_score: score,
       missing_fields: missing,
+      business_media_json: mediaAssets.map((asset) => ({
+        id: asset.id,
+        url: asset.url,
+        bucket: asset.bucket,
+        path: asset.path,
+        name: asset.name,
+        size: asset.size,
+        mimeType: asset.mimeType,
+        kind: asset.kind,
+      })),
+      vendor_document_verification_json: documentVerification,
     };
 
     Object.keys(payload).forEach((k) => {
       if (payload[k] === undefined) delete payload[k];
     });
 
-    const { error } = await supabase
-      .from("business_profiles")
-      .update(payload)
-      .eq("user_id", userId);
+    let attemptPayload: Record<string, any> = { ...payload };
+    let saveError: any = null;
 
-    if (error) {
-      setMsg(error.message);
+    for (let i = 0; i < 6; i++) {
+      const { error } = await supabase
+        .from("business_profiles")
+        .update(attemptPayload)
+        .eq("user_id", userId);
+
+      if (!error) {
+        saveError = null;
+        break;
+      }
+
+      saveError = error;
+
+      const msg = String(error.message || "");
+      const missing =
+        msg.match(/could not find the '([^']+)' column/i)?.[1] ||
+        msg.match(/column\s+"([^"]+)"\s+.*does not exist/i)?.[1] ||
+        msg.match(/column\s+([a-z0-9_]+\.[a-z0-9_]+)\s+does not exist/i)?.[1]?.split(".").pop() ||
+        null;
+
+      if (!missing || !(missing in attemptPayload)) break;
+
+      const nextPayload = { ...attemptPayload };
+      delete nextPayload[missing];
+      attemptPayload = nextPayload;
+    }
+
+    if (saveError) {
+      setMsg(saveError.message);
       return { ok: false };
     }
 
@@ -1205,8 +1359,29 @@ export default function BusinessOnboardingPageClient() {
                 <input
                   value={bp.gstin ?? ""}
                   onChange={(e) => setField("gstin", e.target.value.toUpperCase())}
+                  maxLength={15}
+                  placeholder="15-character GSTIN"
                   style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
                 />
+                {bp.gstin ? (
+                  <div
+                    style={{
+                      padding: "0 10px 10px",
+                      fontSize: 12,
+                      color: gstinFormatCheck.valid ? "#047857" : "#b91c1c",
+                      fontWeight: 800,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {gstinFormatCheck.valid ? (
+                      <>✅ GSTIN format valid: {gstinFormatCheck.normalized}</>
+                    ) : (
+                      <>
+                        ⚠️ {gstinFormatCheck.errors.slice(0, 2).join(" ")}
+                      </>
+                    )}
+                  </div>
+                ) : null}
               </Field>
               <Field label="PAN (optional)">
                 <input
@@ -1252,6 +1427,125 @@ export default function BusinessOnboardingPageClient() {
               For all business activities on 3bigha, at least one proof is required:
               <b> GSTIN or Trade License No</b>.
               Pure blog-only profiles may complete without business proof.
+            </div>
+
+            <UniversalMediaUploader
+              module="vendor"
+              value={mediaAssets}
+              onChange={setMediaAssets}
+              label="Business proof / shop photos / certificates"
+              helperText="Upload shop photos, office photos, GST certificate, trade license, visiting card, completed work photos, or business proof documents."
+              allowImages
+              allowVideos
+              allowDocuments
+              maxFiles={10}
+            />
+
+            <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>
+              These uploads help verification and trust. If your database does not yet have
+              <b> business_media_json</b>, the form will still save safely and we can add the column later.
+            </div>
+
+            <div
+              style={{
+                border: "1px solid #e5e7eb",
+                borderRadius: 12,
+                padding: 12,
+                background: "#fff",
+                display: "grid",
+                gap: 10,
+              }}
+            >
+              <div style={{ fontWeight: 900 }}>
+                🤖 AI-assisted GST / Trade License document tally
+              </div>
+
+              <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.5 }}>
+                AI will compare typed GSTIN / Trade License No with uploaded certificate or license.
+                This is not official government verification; admin/manual review may still be required.
+              </div>
+
+              <button
+                type="button"
+                onClick={runVendorDocumentVerification}
+                disabled={documentVerifyLoading || saving}
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  border: "1px solid #111827",
+                  background: documentVerifyLoading ? "#f1f5f9" : "#111827",
+                  color: documentVerifyLoading ? "#64748b" : "#fff",
+                  fontWeight: 900,
+                  cursor: documentVerifyLoading || saving ? "not-allowed" : "pointer",
+                }}
+              >
+                {documentVerifyLoading ? "AI checking document..." : "AI Check GST / Trade License Document"}
+              </button>
+
+              {documentVerification ? (
+                <div
+                  style={{
+                    borderRadius: 12,
+                    padding: 12,
+                    border:
+                      documentVerification.status === "verified_by_ai"
+                        ? "1px solid #bbf7d0"
+                        : documentVerification.status === "format_invalid" ||
+                          documentVerification.status === "format_valid_document_mismatch"
+                        ? "1px solid #fecaca"
+                        : "1px solid #fed7aa",
+                    background:
+                      documentVerification.status === "verified_by_ai"
+                        ? "#f0fdf4"
+                        : documentVerification.status === "format_invalid" ||
+                          documentVerification.status === "format_valid_document_mismatch"
+                        ? "#fff1f2"
+                        : "#fff7ed",
+                    color:
+                      documentVerification.status === "verified_by_ai"
+                        ? "#166534"
+                        : documentVerification.status === "format_invalid" ||
+                          documentVerification.status === "format_valid_document_mismatch"
+                        ? "#9f1239"
+                        : "#9a3412",
+                    fontSize: 13,
+                    lineHeight: 1.6,
+                    fontWeight: 800,
+                  }}
+                >
+                  <div style={{ fontWeight: 950 }}>
+                    Status: {documentVerification.status.replace(/_/g, " ")} • Confidence:{" "}
+                    {documentVerification.confidence ?? 0}%
+                  </div>
+
+                  <div style={{ marginTop: 6 }}>
+                    GSTIN format: {documentVerification.gstinValidation?.valid ? "✅ Valid" : "⚠️ Not valid / not provided"}
+                  </div>
+
+                  <div>
+                    GSTIN matched in document: {documentVerification.gstinMatchedInDocument ? "✅ Yes" : "⚠️ No"}
+                  </div>
+
+                  <div>
+                    Trade License matched in document:{" "}
+                    {documentVerification.tradeLicenseMatchedInDocument ? "✅ Yes" : "⚠️ No"}
+                  </div>
+
+                  <div>
+                    Business name match: {documentVerification.businessNameMatched ? "✅ Likely" : "⚠️ Needs review"}
+                  </div>
+
+                  {documentVerification.summary ? (
+                    <div style={{ marginTop: 6 }}>{documentVerification.summary}</div>
+                  ) : null}
+
+                  {Array.isArray(documentVerification.warnings) && documentVerification.warnings.length ? (
+                    <div style={{ marginTop: 6 }}>
+                      Warnings: {documentVerification.warnings.slice(0, 3).join(" ")}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </div>
         </section>

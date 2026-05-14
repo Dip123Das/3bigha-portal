@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
+import type { UploadedMediaAsset } from "@/lib/media/media-config";
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody } from "@/components/ui/Card";
@@ -150,6 +152,7 @@ export default function SupportTicketThreadPage() {
   const [ticket, setTicket] = useState<SupportTicket | null>(null);
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [replyText, setReplyText] = useState("");
+  const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   async function loadThread() {
@@ -238,10 +241,18 @@ export default function SupportTicketThreadPage() {
   async function sendReply() {
     setError(null);
 
-    if (!replyText.trim()) {
-      setError("Please write a reply before sending.");
+    if (!replyText.trim() && mediaAssets.length === 0) {
+      setError("Please write a reply or upload evidence before sending.");
       return;
     }
+
+    const evidenceText = mediaAssets.length
+      ? `\n\nUploaded evidence:\n${mediaAssets
+          .map((asset, index) => `${index + 1}. ${asset.kind}: ${asset.url}`)
+          .join("\n")}`
+      : "";
+
+    const finalMessageText = `${replyText.trim() || "Uploaded support evidence."}${evidenceText}`;
 
     setSending(true);
 
@@ -263,7 +274,7 @@ export default function SupportTicketThreadPage() {
         },
         body: JSON.stringify({
           ticketId,
-          messageText: replyText,
+          messageText: finalMessageText,
         }),
       });
 
@@ -275,6 +286,7 @@ export default function SupportTicketThreadPage() {
       }
 
       setReplyText("");
+      setMediaAssets([]);
       await loadThread();
     } catch {
       setError("Failed to send reply.");
@@ -525,6 +537,18 @@ export default function SupportTicketThreadPage() {
                 >
                   {aiReplyLoading ? "Improving..." : "✨ Improve Reply with AI"}
                 </button>
+
+                <UniversalMediaUploader
+                  module="support"
+                  value={mediaAssets}
+                  onChange={setMediaAssets}
+                  label="Attach screenshots / photos / videos / PDF"
+                  helperText="Upload screenshots, payment proof, listing issue photos, short videos, or PDF documents for this support conversation."
+                  allowImages
+                  allowVideos
+                  allowDocuments
+                  maxFiles={8}
+                />
 
                 <textarea
                   value={replyText}

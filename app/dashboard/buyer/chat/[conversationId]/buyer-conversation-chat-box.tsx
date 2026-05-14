@@ -30,10 +30,27 @@ const COMPOSER_EMOJIS = ["😀", "😂", "😍", "👍", "🙏", "❤️", "😮
 const QUICK_REPLIES = [
   "Hello",
   "Please share more details.",
-  "I am interested in this listing.",
+  "This is available.",
   "Please call me.",
   "Thank you.",
 ];
+
+const CHAT_MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
+
+function validateChatAttachment(file: File) {
+  const type = String(file.type || "").toLowerCase();
+
+  const allowed =
+    type.startsWith("image/") ||
+    type.startsWith("video/") ||
+    type.startsWith("audio/") ||
+    type === "application/pdf";
+
+  if (!allowed) return "Only images, videos, audio and PDF files are allowed.";
+  if (file.size > CHAT_MAX_ATTACHMENT_SIZE) return "Attachment is too large. Please keep it under 25 MB.";
+
+  return "";
+}
 
 function isSameDay(a?: string | null, b?: string | null) {
   if (!a || !b) return false;
@@ -1004,6 +1021,13 @@ export default function BuyerConversationChatBox(props: {
   async function sendAttachmentMessage(file: File) {
     if (!file || uploading || loading) return;
 
+    const validationError = validateChatAttachment(file);
+    if (validationError) {
+      setErr(validationError);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     setUploading(true);
     setErr("");
 
@@ -1027,15 +1051,19 @@ export default function BuyerConversationChatBox(props: {
       const uploadMessageType = String(uploadJson?.message_type ?? "").toLowerCase();
 
       const messageType: "image" | "file" | "audio" =
-        uploadMessageType === "image"
+        uploadMessageType === "image" || String(file.type || "").startsWith("video/")
           ? "image"
           : uploadMessageType === "audio"
           ? "audio"
           : "file";
 
+      const uploadedKind = String(uploadJson?.kind ?? "").toLowerCase();
+
       const attachmentKind =
-        String(uploadJson?.kind ?? "").toLowerCase() === "audio"
+        uploadedKind === "audio"
           ? "audio"
+          : uploadedKind === "video" || String(file.type || "").startsWith("video/")
+          ? "video"
           : messageType === "image"
           ? "image"
           : messageType === "audio"

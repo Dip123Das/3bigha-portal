@@ -5,6 +5,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
+import type { UploadedMediaAsset } from "@/lib/media/media-config";
 
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
@@ -167,9 +169,8 @@ export default function BuilderAddProjectPage() {
   const [launchDate, setLaunchDate] = useState("");
   const [possessionDate, setPossessionDate] = useState("");
 
-  // ✅ media inputs
-  const [aerialPhotos, setAerialPhotos] = useState<File[]>([]);
-  const [aerialVideo, setAerialVideo] = useState<File | null>(null);
+  // ✅ project media inputs
+  const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
 
   // ✅ amenities master + selected
   const [amenities, setAmenities] = useState<AmenityRow[]>([]);
@@ -426,49 +427,19 @@ export default function BuilderAddProjectPage() {
     );
   }
 
-  async function uploadProjectMedia(projectId: string) {
-    const BUCKET = "builder_project_media";
+  async function saveProjectMediaRows(projectId: string) {
+    if (!mediaAssets.length) return;
 
-    async function insertMediaRow(storagePath: string, kind: "image" | "video") {
-      const ins = await supabase.from("builder_project_media").insert({
-        project_id: projectId,
-        media_url: storagePath,
-        media_kind: kind,
-        sort_order: 0,
-        caption: null,
-      });
-      if (ins.error) throw ins.error;
-    }
+    const rows = mediaAssets.map((asset, index) => ({
+      project_id: projectId,
+      media_url: asset.url,
+      media_kind: asset.kind === "video" ? "video" : "image",
+      sort_order: index,
+      caption: asset.name || null,
+    }));
 
-    // photos
-    for (const f of aerialPhotos) {
-      const ext = (f.name.split(".").pop() || "jpg").toLowerCase();
-      const path = `${projectId}/${crypto.randomUUID()}.${ext}`;
-
-      const up = await supabase.storage.from(BUCKET).upload(path, f, {
-        cacheControl: "3600",
-        upsert: false,
-        contentType: f.type || undefined,
-      });
-
-      if (up.error) throw up.error;
-      await insertMediaRow(path, "image");
-    }
-
-    // video
-    if (aerialVideo) {
-      const ext = (aerialVideo.name.split(".").pop() || "mp4").toLowerCase();
-      const path = `${projectId}/${crypto.randomUUID()}.${ext}`;
-
-      const up = await supabase.storage.from(BUCKET).upload(path, aerialVideo, {
-        cacheControl: "3600",
-        upsert: false,
-        contentType: aerialVideo.type || undefined,
-      });
-
-      if (up.error) throw up.error;
-      await insertMediaRow(path, "video");
-    }
+    const ins = await supabase.from("builder_project_media").insert(rows);
+    if (ins.error) throw ins.error;
   }
 
   async function saveProjectAmenities(projectId: string, amenityIds: string[]) {
@@ -514,8 +485,8 @@ export default function BuilderAddProjectPage() {
         : "";
 
     const mediaText =
-      (aerialPhotos?.length || 0) > 0 || !!aerialVideo
-        ? `Aerial media: ${(aerialPhotos?.length || 0)} photo(s)${aerialVideo ? " + 1 video" : ""}. `
+      mediaAssets.length > 0
+        ? `Project media: ${mediaAssets.filter((x) => x.kind === "image").length} photo(s) + ${mediaAssets.filter((x) => x.kind === "video").length} video(s). `
         : "";
 
     const launchText = launchDate ? `Launch: ${launchDate}. ` : "";
@@ -647,16 +618,16 @@ export default function BuilderAddProjectPage() {
             flashError(`Project created, but amenities save failed — ${friendlyDbError(e)}`);
           }
 
-          // upload media (optional)
+          // save media rows (files already uploaded by UniversalMediaUploader)
           try {
-            if (aerialPhotos.length > 0 || aerialVideo) {
-              await uploadProjectMedia(projectId);
-              flashSuccess("Project created + media uploaded.");
+            if (mediaAssets.length > 0) {
+              await saveProjectMediaRows(projectId);
+              flashSuccess("Project created + media attached.");
             } else {
               flashSuccess(`Project created: ${insRes.data.name}`);
             }
           } catch (e: any) {
-            flashError(`Project created but media upload failed — ${friendlyDbError(e)}`);
+            flashError(`Project created but media save failed — ${friendlyDbError(e)}`);
           }
 
           router.push(`/property/builder/projects?created=${encodeURIComponent(projectId)}`);
@@ -975,32 +946,19 @@ export default function BuilderAddProjectPage() {
             </div>
 
             <div style={{ height: 18 }} />
-            <div style={{ fontWeight: 900, marginBottom: 10 }}>Aerial media (Photo/Video)</div>
+            <div style={{ fontWeight: 900, marginBottom: 10 }}>Project media / gallery</div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div>
-                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Aerial photos (multiple)</div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  disabled={saving}
-                  onChange={(e) => setAerialPhotos(Array.from(e.target.files ?? []))}
-                />
-                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>Recommended: 5–20 high quality photos.</div>
-              </div>
-
-              <div>
-                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Aerial video (single)</div>
-                <input
-                  type="file"
-                  accept="video/*"
-                  disabled={saving}
-                  onChange={(e) => setAerialVideo((e.target.files?.[0] ?? null) as File | null)}
-                />
-                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>Recommended: 30–120 seconds overview.</div>
-              </div>
-            </div>
+            <UniversalMediaUploader
+              module="project"
+              value={mediaAssets}
+              onChange={setMediaAssets}
+              label="Project photos / videos / brochure"
+              helperText="Upload project gallery photos, construction progress images, aerial views, entrance photos, site videos, floorplan images, brochure PDFs or approval documents."
+              allowImages
+              allowVideos
+              allowDocuments
+              maxFiles={20}
+            />
 
             <div style={{ height: 18 }} />
             <div style={{ fontWeight: 900, marginBottom: 10 }}>Location & address</div>

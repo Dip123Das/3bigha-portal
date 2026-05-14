@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import ProcurementCopilotBox from "@/app/components/ai/ProcurementCopilotBox";
+import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
+import type { UploadedMediaAsset } from "@/lib/media/media-config";
 
 type RfqModule = "materials" | "services" | "rentals" | "properties";
 
@@ -255,7 +257,7 @@ function RfqGeneralNewPageInner() {
   const [contactWhatsapp, setContactWhatsapp] = useState("");
 
   const [items, setItems] = useState<ItemRow[]>([{ item_name: "", qty: "", unit: "", notes: "" }]);
-  const [files, setFiles] = useState<File[]>([]); // ⚠ cannot persist in sessionStorage
+  const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
 
   const [aiAutoFillApplied, setAiAutoFillApplied] = useState(false);
   const [aiAutoFillSummary, setAiAutoFillSummary] = useState("");
@@ -1047,7 +1049,7 @@ return;
     }
 
     const hasTyped = items.some((x) => x.item_name.trim() !== "");
-    const hasFiles = files.length > 0;
+    const hasFiles = mediaAssets.length > 0;
     if (!hasTyped && !hasFiles) {
       const msg = "Please add at least one item OR upload a handwritten/PDF list.";
 setErr(msg);
@@ -1067,39 +1069,16 @@ return;
 
     setLoading(true);
     try {
-      // 1) Upload attachments
-      const uploadedAttachments: Array<{
-        bucket: string;
-        object_path: string;
-        file_name: string;
-        mime_type: string | null;
-        file_size: number | null;
-      }> = [];
-
-      if (files.length > 0) {
-        const tempFolder = `public-${Date.now()}`;
-
-        for (const f of files) {
-          const safeName = f.name.replace(/[^\w.\-() ]+/g, "_");
-          const objectPath = `${tempFolder}/${Date.now()}_${safeName}`;
-
-          const up = await supabase.storage.from("rfq_attachments").upload(objectPath, f, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: f.type || undefined,
-          });
-
-          if (up.error) throw up.error;
-
-          uploadedAttachments.push({
-            bucket: "rfq_attachments",
-            object_path: objectPath,
-            file_name: f.name,
-            mime_type: f.type || null,
-            file_size: f.size || null,
-          });
-        }
-      }
+      // 1) Attachments are already uploaded by UniversalMediaUploader
+      const uploadedAttachments = mediaAssets.map((asset) => ({
+        bucket: asset.bucket,
+        object_path: asset.path,
+        file_name: asset.name,
+        mime_type: asset.mimeType || null,
+        file_size: asset.size || null,
+        public_url: asset.url,
+        media_kind: asset.kind,
+      }));
 
       // 2) Typed items payload
       const typed = items
@@ -1338,7 +1317,7 @@ return;
 
     const hasItems =
       items.some((x) => x.item_name.trim()) ||
-      files.length > 0;
+      mediaAssets.length > 0;
 
     const hasContact =
       contactPhone.trim() ||
@@ -1361,7 +1340,7 @@ return;
     locality,
     pincode,
     items,
-    files,
+    mediaAssets,
     contactPhone,
     contactEmail,
   ]);
@@ -1379,7 +1358,7 @@ return;
     const checks = [
       Boolean(title.trim()),
       hasDescription,
-      filledItems > 0 || files.length > 0,
+      filledItems > 0 || mediaAssets.length > 0,
       hasQty,
       hasUnit,
       hasLocation,
@@ -1393,7 +1372,7 @@ return;
 
     const totalQty = items.reduce((sum, x) => sum + (Number(x.qty) || 0), 0);
     const complexityLevel =
-      filledItems >= 4 || files.length >= 2 || totalQty >= 500 ? "High" : filledItems >= 2 || totalQty >= 100 ? "Medium" : "Low";
+      filledItems >= 4 || mediaAssets.length >= 2 || totalQty >= 500 ? "High" : filledItems >= 2 || totalQty >= 100 ? "Medium" : "Low";
 
     const today = new Date();
     const needed = neededBy ? new Date(neededBy) : null;
@@ -1411,7 +1390,7 @@ return;
     const missingFields = [
       !title.trim() ? "RFQ title" : "",
       !hasDescription ? "Clear description/specification" : "",
-      filledItems === 0 && files.length === 0 ? "At least one item/work or uploaded list" : "",
+      filledItems === 0 && mediaAssets.length === 0 ? "At least one item/work or uploaded list" : "",
       !hasQty ? "Quantity" : "",
       !hasUnit ? "Unit" : "",
       !hasLocation ? "City, locality and pincode" : "",
@@ -1447,7 +1426,7 @@ return;
     };
   }, [
     items,
-    files.length,
+    mediaAssets.length,
     city,
     locality,
     pincode,
@@ -3529,11 +3508,17 @@ return;
         </div>
 
         {/* Upload */}
-        <div style={{ border: "1px solid rgba(0,0,0,0.12)", borderRadius: 12, padding: 12 }}>
-          <div style={{ fontWeight: 900, marginBottom: 8 }}>Upload handwritten list / PDF / images (optional)</div>
-          <input type="file" multiple accept=".pdf,image/*" onChange={(e) => setFiles(e.target.files ? Array.from(e.target.files) : [])} />
-          <div style={{ opacity: 0.75, marginTop: 6 }}>Tip: take a clear photo of the handwritten list.</div>
-        </div>
+        <UniversalMediaUploader
+          module="rfq"
+          value={mediaAssets}
+          onChange={setMediaAssets}
+          label="Upload photos, videos or PDF list"
+          helperText="Take a photo of handwritten lists, upload site photos, record short videos, or attach a PDF requirement."
+          allowImages
+          allowVideos
+          allowDocuments
+          maxFiles={10}
+        />
 
         {/* Contact */}
         <div style={{ border: "1px solid rgba(0,0,0,0.12)", borderRadius: 12, padding: 12 }}>

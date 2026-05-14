@@ -4,6 +4,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
+import type { UploadedMediaAsset } from "@/lib/media/media-config";
 
 type Kind = "type" | "category" | "subcategory" | "product_group";
 
@@ -135,6 +137,7 @@ export default function MaterialsAddPage() {
   const [description, setDescription] = useState("");
   const [photoLinksText, setPhotoLinksText] = useState("");
   const [videoLinksText, setVideoLinksText] = useState("");
+  const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
 
   // Data
   const [allTaxons, setAllTaxons] = useState<TaxonRow[]>([]);
@@ -829,9 +832,27 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
       const attributes_payload: Record<string, any> = {};
       for (const a of attrs) attributes_payload[a.id] = attrInput[a.id];
 
+      const uploadedPhotos = mediaAssets
+        .filter((asset) => asset.kind === "image")
+        .map((asset) => asset.url);
+
+      const uploadedVideos = mediaAssets
+        .filter((asset) => asset.kind === "video")
+        .map((asset) => asset.url);
+
       const media_links = {
-        photos: parseLinks(photoLinksText),
-        videos: parseLinks(videoLinksText),
+        photos: Array.from(new Set([...uploadedPhotos, ...parseLinks(photoLinksText)])),
+        videos: Array.from(new Set([...uploadedVideos, ...parseLinks(videoLinksText)])),
+        media_assets: mediaAssets.map((asset) => ({
+          id: asset.id,
+          url: asset.url,
+          bucket: asset.bucket,
+          path: asset.path,
+          name: asset.name,
+          size: asset.size,
+          mimeType: asset.mimeType,
+          kind: asset.kind,
+        })),
       };
 
       const { error: insErr } = await supabase.from("material_listings").insert({
@@ -1194,45 +1215,59 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
                   />
                 </div>
 
-                <div>
-                  <label style={{ fontSize: 13, display: "block", marginBottom: 6 }}>Photo links (public URL)</label>
-                  <textarea
-                    value={photoLinksText}
-                    onChange={(e) => setPhotoLinksText(e.target.value)}
-                    placeholder={`Paste image URLs here.\nOne link per line OR separate by comma.\nExample:\nhttps://.../photo1.jpg\nhttps://.../photo2.png`}
-                    rows={4}
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      borderRadius: 10,
-                      border: "1px solid #ddd",
-                      resize: "vertical",
-                    }}
-                  />
-                  <div style={{ fontSize: 12, opacity: 0.75, marginTop: 6, lineHeight: 1.4 }}>
-                    Note: Upload photos to Drive/Dropbox/website → set sharing to <b>Anyone with the link</b> → paste here.
-                  </div>
-                </div>
+                <UniversalMediaUploader
+                  module="materials"
+                  value={mediaAssets}
+                  onChange={setMediaAssets}
+                  label="Material photos / videos"
+                  helperText="Take product photos, upload clear images, or record a short video showing stock, quality, size, packaging or site delivery."
+                  allowImages
+                  allowVideos
+                  allowDocuments={false}
+                  maxFiles={12}
+                />
 
-                <div>
-                  <label style={{ fontSize: 13, display: "block", marginBottom: 6 }}>Video links (public URL)</label>
-                  <textarea
-                    value={videoLinksText}
-                    onChange={(e) => setVideoLinksText(e.target.value)}
-                    placeholder={`Paste video URLs here.\nOne link per line OR separate by comma.\nExample:\nhttps://youtu.be/xxxxx\nhttps://drive.google.com/...`}
-                    rows={3}
-                    style={{
-                      width: "100%",
-                      padding: "10px 12px",
-                      borderRadius: 10,
-                      border: "1px solid #ddd",
-                      resize: "vertical",
-                    }}
-                  />
-                  <div style={{ fontSize: 12, opacity: 0.75, marginTop: 6, lineHeight: 1.4 }}>
-                    Note: Upload to YouTube (unlisted OK) / Drive → set public link → paste here.
+                <details style={{ marginTop: 10 }}>
+                  <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 900, color: "#374151" }}>
+                    Advanced: paste existing photo/video URLs
+                  </summary>
+
+                  <div style={{ display: "grid", gap: 10, marginTop: 10 }}>
+                    <div>
+                      <label style={{ fontSize: 13, display: "block", marginBottom: 6 }}>Photo links (public URL)</label>
+                      <textarea
+                        value={photoLinksText}
+                        onChange={(e) => setPhotoLinksText(e.target.value)}
+                        placeholder={`Optional. Paste image URLs here.\nOne link per line OR separate by comma.`}
+                        rows={3}
+                        style={{
+                          width: "100%",
+                          padding: "10px 12px",
+                          borderRadius: 10,
+                          border: "1px solid #ddd",
+                          resize: "vertical",
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: 13, display: "block", marginBottom: 6 }}>Video links (public URL)</label>
+                      <textarea
+                        value={videoLinksText}
+                        onChange={(e) => setVideoLinksText(e.target.value)}
+                        placeholder={`Optional. Paste video URLs here.\nOne link per line OR separate by comma.`}
+                        rows={3}
+                        style={{
+                          width: "100%",
+                          padding: "10px 12px",
+                          borderRadius: 10,
+                          border: "1px solid #ddd",
+                          resize: "vertical",
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
+                </details>
               </div>
 
               <hr style={{ border: 0, borderTop: "1px solid #eee", margin: "12px 0" }} />

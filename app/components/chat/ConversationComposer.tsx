@@ -626,6 +626,7 @@ export default function ConversationComposer(props: {
           ref={fileInputRef}
           type="file"
           multiple
+          accept="image/*,video/*,application/pdf"
           onChange={(e) => onPickFiles(e.target.files)}
           style={{ display: "none" }}
         />
@@ -643,7 +644,7 @@ export default function ConversationComposer(props: {
             cursor: loading || isRecording ? "default" : "pointer",
           }}
         >
-          📎 Attach File / Image
+          📎 Attach Photo / Video / PDF
         </button>
 
         <button
@@ -689,7 +690,7 @@ export default function ConversationComposer(props: {
         ) : null}
 
         <div style={{ fontSize: 12, opacity: 0.7 }}>
-          Max {MAX_FILES} files, 10 MB each
+          Max {MAX_FILES} files. Use photos, short videos or PDF quotations.
         </div>
       </div>
 
@@ -990,7 +991,7 @@ export default function ConversationComposer(props: {
             {loading
               ? "Sending..."
               : selectedFiles.length > 0 || recordedAudioFile
-              ? "Send Message + Media"
+              ? "Send Message + Attachments"
               : "Send Message"}
           </button>
         </div>

@@ -9,6 +9,8 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
+import type { UploadedMediaAsset } from "@/lib/media/media-config";
 
 
 import { Container } from "@/components/layout/Container";
@@ -1338,8 +1340,38 @@ if (loc) {
 
       // ✅ Media restore
       const media = ((row as any).media_json ?? null) as any;
-      if (Array.isArray(media) && media.length) setMediaUrls(media.map((x) => String(x)));
-      else setMediaUrls([""]);
+
+      if (Array.isArray(media) && media.length) {
+        if (typeof media[0] === "string") {
+          setMediaUrls(media.map((x) => String(x)));
+          setMediaAssets([]);
+        } else {
+          const restoredAssets: UploadedMediaAsset[] = media
+            .map((x: any, idx: number): UploadedMediaAsset => {
+              const rawKind = String(x?.kind || "").toLowerCase();
+              const kind: UploadedMediaAsset["kind"] =
+                rawKind === "video" ? "video" : rawKind === "document" ? "document" : "image";
+
+              return {
+                id: String(x?.id || `${Date.now()}_${idx}`),
+                url: String(x?.url || x?.public_url || ""),
+                bucket: String(x?.bucket || "listing-media"),
+                path: String(x?.path || x?.object_path || ""),
+                name: String(x?.name || x?.file_name || `Property media ${idx + 1}`),
+                size: Number(x?.size || x?.file_size || 0),
+                mimeType: String(x?.mimeType || x?.mime_type || ""),
+                kind,
+              };
+            })
+            .filter((x) => Boolean(x.url));
+
+          setMediaAssets(restoredAssets);
+          setMediaUrls([""]);
+        }
+      } else {
+        setMediaAssets([]);
+        setMediaUrls([""]);
+      }
       if (rowIsBuilder && row.id) {
       try {
         await loadExistingBuilderInventoryLink(String(row.id));
@@ -1719,6 +1751,7 @@ const [dbAttrValues, setDbAttrValues] = useState<
 
   // STEP 5
   const [mediaUrls, setMediaUrls] = useState<string[]>([""]);
+  const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
   // Manual Unit No. (Individual listing: single property)
   const [manualUnitNo, setManualUnitNo] = useState("");
   const [agree, setAgree] = useState(false);
@@ -2288,7 +2321,11 @@ useEffect(() => {
   }
 }, [investmentEnabled, investmentCalc.minAmount, investmentCalc.maxAmount]);
 
-    const cleanedMedia = useMemo(() => safeUrlsFromList(mediaUrls), [mediaUrls]);
+    const cleanedMedia = useMemo(() => {
+      const uploadedUrls = mediaAssets.map((asset) => asset.url).filter(Boolean);
+      const pastedUrls = safeUrlsFromList(mediaUrls);
+      return Array.from(new Set([...uploadedUrls, ...pastedUrls]));
+    }, [mediaAssets, mediaUrls]);
     const canSubmit = Boolean(agree);
 
   function computeAddressText() {
@@ -2378,7 +2415,18 @@ useEffect(() => {
       },
     },
 
-    media: cleanedMedia,
+    media: mediaAssets.length
+      ? mediaAssets.map((asset) => ({
+          id: asset.id,
+          url: asset.url,
+          bucket: asset.bucket,
+          path: asset.path,
+          name: asset.name,
+          size: asset.size,
+          mimeType: asset.mimeType,
+          kind: asset.kind,
+        }))
+      : cleanedMedia,
 
     
   };
@@ -5413,76 +5461,100 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
               <>
                 <div style={{ fontWeight: 800, marginBottom: 6 }}>Media & Submit</div>
 
-                <FieldLabel
-                  title="Photos / Videos URLs"
-                  hint="Paste direct URLs (http/https). First URL becomes cover image. You can add multiple."
+                <UniversalMediaUploader
+                  module="property"
+                  value={mediaAssets}
+                  onChange={setMediaAssets}
+                  label="Property photos / videos"
+                  helperText="Take clear property photos, upload images, or record a short video. First uploaded media becomes cover image."
+                  allowImages
+                  allowVideos
+                  allowDocuments={false}
+                  maxFiles={15}
                 />
 
-                <div style={{ display: "grid", gap: 10, marginTop: 8 }}>
-                  {mediaUrls.map((u, idx) => (
-                    <div key={idx} style={{ display: "grid", gap: 10, gridTemplateColumns: "1fr auto" }}>
-                      <input
-                        value={u}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          setMediaUrls((prev) => prev.map((x, i) => (i === idx ? v : x)));
-                        }}
-                        placeholder="https://..."
-                        style={{
-                          width: "100%",
-                          height: 44,
-                          borderRadius: 12,
-                          border: "1px solid #e5e7eb",
-                          padding: "0 14px",
-                          outline: "none",
-                          background: "white",
-                          fontSize: 14,
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setMediaUrls((prev) => prev.filter((_, i) => i !== idx))}
-                        style={{
-                          height: 44,
-                          padding: "0 12px",
-                          borderRadius: 12,
-                          border: "1px solid #e5e7eb",
-                          background: "white",
-                          cursor: "pointer",
-                          fontWeight: 900,
-                        }}
-                        disabled={mediaUrls.length <= 1}
-                        title={mediaUrls.length <= 1 ? "At least one row remains" : "Remove"}
-                      >
-                        ✕
-                      </button>
+                <details style={{ marginTop: 14 }}>
+                  <summary style={{ cursor: "pointer", fontWeight: 900, color: "#374151" }}>
+                    Advanced: paste existing image/video URLs
+                  </summary>
+
+                  <div style={{ marginTop: 12 }}>
+                    <FieldLabel
+                      title="Photos / Videos URLs"
+                      hint="Optional. Paste direct URLs only if media is already uploaded elsewhere."
+                    />
+
+                    <div style={{ display: "grid", gap: 10, marginTop: 8 }}>
+                      {mediaUrls.map((u, idx) => (
+                        <div key={idx} style={{ display: "grid", gap: 10, gridTemplateColumns: "1fr auto" }}>
+                          <input
+                            value={u}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setMediaUrls((prev) => prev.map((x, i) => (i === idx ? v : x)));
+                            }}
+                            placeholder="https://..."
+                            style={{
+                              width: "100%",
+                              height: 44,
+                              borderRadius: 12,
+                              border: "1px solid #e5e7eb",
+                              padding: "0 14px",
+                              outline: "none",
+                              background: "white",
+                              fontSize: 14,
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setMediaUrls((prev) => prev.filter((_, i) => i !== idx))}
+                            style={{
+                              height: 44,
+                              padding: "0 12px",
+                              borderRadius: 12,
+                              border: "1px solid #e5e7eb",
+                              background: "white",
+                              cursor: "pointer",
+                              fontWeight: 900,
+                            }}
+                            disabled={mediaUrls.length <= 1}
+                            title={mediaUrls.length <= 1 ? "At least one row remains" : "Remove"}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+
+                      <div style={{ display: "flex", justifyContent: "flex-start" }}>
+                        <button
+                          type="button"
+                          onClick={() => setMediaUrls((prev) => [...prev, ""])}
+                          style={{
+                            height: 40,
+                            padding: "0 12px",
+                            borderRadius: 12,
+                            border: "1px solid #e5e7eb",
+                            background: "white",
+                            cursor: "pointer",
+                            fontWeight: 900,
+                          }}
+                        >
+                          + Add another URL
+                        </button>
+                      </div>
                     </div>
-                  ))}
-
-                  <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                    <button
-                      type="button"
-                      onClick={() => setMediaUrls((prev) => [...prev, ""])}
-                      style={{
-                        height: 40,
-                        padding: "0 12px",
-                        borderRadius: 12,
-                        border: "1px solid #e5e7eb",
-                        background: "white",
-                        cursor: "pointer",
-                        fontWeight: 900,
-                      }}
-                    >
-                      + Add another URL
-                    </button>
                   </div>
+                </details>
 
-                  {cleanedMedia.length ? (
-                    <div style={{ color: "#065f46", fontWeight: 800 }}>✅ {cleanedMedia.length} valid URL(s) will be saved.</div>
-                  ) : (
-                    <div style={{ color: "#6b7280" }}>No valid URLs yet (must start with http/https).</div>
-                  )}
-                </div>
+                {cleanedMedia.length ? (
+                  <div style={{ marginTop: 10, color: "#065f46", fontWeight: 800 }}>
+                    ✅ {cleanedMedia.length} media item(s) will be saved.
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 10, color: "#6b7280" }}>
+                    No media added yet. Add photos or videos to improve buyer trust.
+                  </div>
+                )}
 
                 <div style={{ marginTop: 18, padding: 12, border: "1px solid #e5e7eb", borderRadius: 12, background: "#fafafa" }}>
                   <div style={{ fontWeight: 900, marginBottom: 8 }}>Review Summary</div>

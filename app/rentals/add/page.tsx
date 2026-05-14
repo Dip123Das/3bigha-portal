@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { ensureBusinessProfileComplete } from "@/lib/ensureBusinessProfileComplete";
+import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
+import type { UploadedMediaAsset } from "@/lib/media/media-config";
 
 type Cat = {
   id: string;
@@ -131,6 +133,7 @@ export default function AddRentalPage() {
   const [pincode, setPincode] = useState("");
 
   const [photosText, setPhotosText] = useState("");
+  const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
 
   // UX
   const [saving, setSaving] = useState(false);
@@ -484,7 +487,18 @@ export default function AddRentalPage() {
       locality: locality.trim() || null,
       pincode: pincode.trim() || null,
 
-      photos: safeJsonPhotosFromText(photosText),
+      photos: [
+        ...mediaAssets.map((asset) => ({
+          url: asset.url,
+          kind: asset.kind,
+          bucket: asset.bucket,
+          path: asset.path,
+          name: asset.name,
+          size: asset.size,
+          mimeType: asset.mimeType,
+        })),
+        ...safeJsonPhotosFromText(photosText),
+      ],
 
       status: "draft",
       is_active: true,
@@ -529,6 +543,7 @@ export default function AddRentalPage() {
     setRate("");
     setSecurityDeposit("");
     setPhotosText("");
+    setMediaAssets([]);
 
     // FINAL STAGE: subscription page
     const returnTo = "/rentals/my";
@@ -870,17 +885,35 @@ export default function AddRentalPage() {
               </div>
             </Section>
 
-            <Section title="5) Photos (optional)" open={openPhotos} setOpen={setOpenPhotos}>
-              <div className="field">
-                <label className="label">Photo URLs</label>
-                <textarea
-                  className="input textarea"
-                  value={photosText}
-                  onChange={(e) => setPhotosText(e.target.value)}
-                  placeholder={`Paste image URLs (http/https). Separate by comma or new lines.\nExample:\nhttps://...jpg\nhttps://...png`}
-                />
-                <div className="hint">We will add proper upload later. For now: URLs only.</div>
-              </div>
+            <Section title="5) Photos / Videos (optional)" open={openPhotos} setOpen={setOpenPhotos}>
+              <UniversalMediaUploader
+                module="rentals"
+                value={mediaAssets}
+                onChange={setMediaAssets}
+                label="Rental item photos / videos"
+                helperText="Take equipment, room, vehicle, machine, property or site photos. You can also record a short video showing condition and availability."
+                allowImages
+                allowVideos
+                allowDocuments={false}
+                maxFiles={12}
+              />
+
+              <details style={{ marginTop: 12 }}>
+                <summary style={{ cursor: "pointer", fontWeight: 900, color: "#374151" }}>
+                  Advanced: paste existing photo URLs
+                </summary>
+
+                <div className="field" style={{ marginTop: 10 }}>
+                  <label className="label">Photo URLs</label>
+                  <textarea
+                    className="input textarea"
+                    value={photosText}
+                    onChange={(e) => setPhotosText(e.target.value)}
+                    placeholder={`Optional. Paste image URLs (http/https). Separate by comma or new lines.\nExample:\nhttps://...jpg\nhttps://...png`}
+                  />
+                  <div className="hint">Direct upload is recommended. URL paste is kept only for old/existing media.</div>
+                </div>
+              </details>
             </Section>
 
             <div className="footerBar">

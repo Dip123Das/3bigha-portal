@@ -4,6 +4,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
+import type { UploadedMediaAsset } from "@/lib/media/media-config";
 
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
@@ -103,8 +105,9 @@ type ServiceDraft = {
   payment_stage: PaymentStage;
   refund_policy?: string;
 
-  // uploads notes (not storing files here yet)
+  // direct media uploads
   uploads_note?: string;
+  media_assets: UploadedMediaAsset[];
 };
 
 type ProviderRow = {
@@ -216,6 +219,7 @@ const DEFAULT_SERVICE_DRAFT = (): ServiceDraft => ({
   refund_policy: "",
 
   uploads_note: "",
+  media_assets: [],
 });
 
 function rateLabel(type: RateType) {
@@ -725,8 +729,16 @@ export default function AddServicesPage() {
     // tags
     if (d.tags?.trim()) parts.push(`Tags: ${d.tags.trim()}`);
 
-    // uploads note (not files)
+    // uploads / media
     if (d.uploads_note?.trim()) parts.push(`Uploads note: ${d.uploads_note.trim()}`);
+
+    if (Array.isArray(d.media_assets) && d.media_assets.length) {
+      const mediaLines = d.media_assets
+        .map((asset, index) => `${index + 1}. ${asset.kind}: ${asset.url}`)
+        .join("\n");
+
+      parts.push(`Uploaded media:\n${mediaLines}`);
+    }
 
     return parts.join("\n\n").trim() || null;
   }
@@ -2302,14 +2314,27 @@ function TurnkeyToggle() {
                           </div>
 
                           <div style={styles.field}>
-                            <span style={styles.label}>Uploads note (files will be added later)</span>
+                            <span style={styles.label}>Uploads note</span>
                             <input
                               value={activeDraft.uploads_note || ""}
                               onChange={(e) => setDraft(activeDraft.key, { uploads_note: e.target.value })}
-                              placeholder="e.g. ID proof, work photos, certificates"
+                              placeholder="e.g. work photos, certificates, before/after images"
                               style={styles.input}
                             />
                           </div>
+                        <div style={{ marginTop: 12 }}>
+                          <UniversalMediaUploader
+                            module="services"
+                            value={activeDraft.media_assets || []}
+                            onChange={(assets) => setDraft(activeDraft.key, { media_assets: assets })}
+                            label="Service work photos / videos"
+                            helperText="Upload work photos, before/after images, certificates, team photos, tools, or a short work-site video."
+                            allowImages
+                            allowVideos
+                            allowDocuments={false}
+                            maxFiles={10}
+                          />
+                        </div>
                         </div>
 
                         {/* Primary rate (kept for DB mapping) */}
