@@ -211,6 +211,22 @@ function aiTrustBadge(module: MarketplaceItem["module"]) {
   return "High Rental Demand";
 }
 
+function aiCardSignals(module: MarketplaceItem["module"]) {
+  if (module === "Property") {
+    return ["🔥 High enquiry zone", "📈 Price attention rising", "📍 Local buyer interest"];
+  }
+
+  if (module === "Material") {
+    return ["📦 Fast supply signal", "⚡ Demand rising today", "🚚 Delivery likely nearby"];
+  }
+
+  if (module === "Service") {
+    return ["🟢 Provider active", "🏆 Trust signal strong", "⚡ Fast responder"];
+  }
+
+  return ["🚜 Rental demand active", "⏱ Quick availability check", "📍 Local rental interest"];
+}
+
 function aiConfidence(module: MarketplaceItem["module"]) {
   if (module === "Property") return "92% AI match";
   if (module === "Material") return "88% demand fit";
@@ -1382,15 +1398,19 @@ return (
                   <h3>{item.title}</h3>
                   <p>{item.subtitle}</p>
 
-                  <div className="aiCardBadges">
-                    <span>✅ AI Trusted</span>
-                    <span>⚡ Fast Action</span>
-                    <span>📍 Local Signal</span>
+                  <div className="aiCardSignals">
+                    {aiCardSignals(item.module).map((signal) => (
+                      <span key={signal}>{signal}</span>
+                    ))}
                   </div>
 
                   <div className="marketplaceMeta">
                     <span>{item.meta}</span>
                     <b>{item.price}</b>
+                  </div>
+
+                  <div className="marketplaceCardAction">
+                    View details →
                   </div>
                 </div>
               </a>
@@ -3436,6 +3456,37 @@ return (
           padding: 5px 7px;
           font-size: 11px;
           font-weight: 950;
+        }
+
+        .aiCardSignals {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          margin: 10px 0;
+        }
+
+        .aiCardSignals span {
+          border-radius: 999px;
+          padding: 5px 8px;
+          background: #ecfdf5;
+          color: #047857;
+          font-size: 11px;
+          font-weight: 900;
+          border: 1px solid rgba(16,185,129,0.18);
+        }
+
+        .marketplaceCardAction {
+          margin-top: 10px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
+          padding: 8px 12px;
+          background: #2563eb;
+          color: #ffffff;
+          font-size: 12px;
+          font-weight: 1000;
+          box-shadow: 0 10px 20px rgba(37,99,235,0.18);
         }
 
         .marketplaceMeta {
