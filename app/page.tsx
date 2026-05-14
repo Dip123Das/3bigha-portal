@@ -235,6 +235,54 @@ export default function HomePage() {
   const [featuredItems, setFeaturedItems] = useState<MarketplaceItem[]>([]);
   const [featuredLoading, setFeaturedLoading] = useState(true);
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
+  const liveSearchSuggestions = useMemo(() => {
+  const q = query.trim().toLowerCase();
+
+  if (q.length < 2) return [];
+
+  if (q.includes("cement") || q.includes("সিমেন্ট")) {
+    return [
+      "500 bags cement RFQ",
+      "cement suppliers near Cooch Behar",
+      "today cement price",
+      "bulk cement delivery nearby",
+    ];
+  }
+
+  if (q.includes("electric") || q.includes("wiring") || q.includes("বিদ্যুৎ")) {
+    return [
+      "house wiring electrician",
+      "electrical contractor near me",
+      "commercial electrical work RFQ",
+      "urgent electrician nearby",
+    ];
+  }
+
+  if (q.includes("jcb") || q.includes("excavator")) {
+    return [
+      "JCB rent for 2 days",
+      "excavator rental near me",
+      "earth filling machine rental",
+      "JCB with operator nearby",
+    ];
+  }
+
+  if (q.includes("land") || q.includes("plot") || q.includes("জমি")) {
+    return [
+      "2 katha land in Cooch Behar",
+      "residential plot near Khagrabari",
+      "commercial land enquiry",
+      "land under budget near me",
+    ];
+  }
+
+  return [
+    `${query} near me`,
+    `${query} price today`,
+    `${query} vendor RFQ`,
+    `${query} suppliers in Cooch Behar`,
+  ];
+}, [query]);
   const [aiCopilotOpen, setAiCopilotOpen] = useState(false);
   const [aiActionsOpen, setAiActionsOpen] = useState(false);
   const [regionalExamplesOpen, setRegionalExamplesOpen] = useState(false);
@@ -956,6 +1004,30 @@ return (
               </button>
             </div>
 
+            {liveSearchSuggestions.length > 0 ? (
+              <div className="liveSearchSuggestions">
+                {liveSearchSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => {
+                      setQuery(suggestion);
+                      setAiSuggestion({
+                        title: "AI search suggestion selected",
+                        message:
+                          "3bigha AI can turn this into search, RFQ, vendor discovery or price intelligence.",
+                        actionLabel: "Continue",
+                        href: `/rfq/general/new?query=${encodeURIComponent(suggestion)}`,
+                        confidence: "Suggested from your search intent",
+                      });
+                    }}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
             <div className="aiPromptChips">
               {aiCommandPrompts.map((prompt) => (
                 <button
@@ -1675,6 +1747,29 @@ return (
         .voiceSearchButton {
           background: #0f172a !important;
           box-shadow: 0 10px 24px rgba(15, 23, 42, 0.20) !important;
+        }
+
+        .liveSearchSuggestions {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-top: 10px;
+        }
+
+        .liveSearchSuggestions button {
+          border: 1px solid rgba(37,99,235,0.14);
+          background: #ffffff;
+          color: #1e3a8a;
+          border-radius: 999px;
+          padding: 7px 11px;
+          font-size: 12px;
+          font-weight: 900;
+          cursor: pointer;
+          box-shadow: 0 8px 18px rgba(37,99,235,0.05);
+        }
+
+        .liveSearchSuggestions button:hover {
+          background: #eff6ff;
         }
 
         .aiPromptChips {
