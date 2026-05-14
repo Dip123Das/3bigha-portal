@@ -295,6 +295,10 @@ function RfqGeneralNewPageInner() {
   const [showProgressiveBuilder, setShowProgressiveBuilder] =
     useState(false);
 
+  const [quickNeed, setQuickNeed] = useState("");
+  const [quickLocation, setQuickLocation] = useState("");
+  const [quickQty, setQuickQty] = useState("");
+
   const [structuredRfq, setStructuredRfq] =
     useState<StructuredRfqBlock | null>(null);
 
@@ -1680,6 +1684,94 @@ return;
     showPopup("AI procurement block added to description.", "success");
   }
 
+    function applyQuickRfq() {
+    const need = quickNeed.trim();
+    const location = quickLocation.trim();
+    const qty = quickQty.trim();
+
+    if (!need) {
+      showPopup("Please tell us what you need first.", "error");
+      return;
+    }
+
+    const lower = need.toLowerCase();
+
+    if (
+      lower.includes("jcb") ||
+      lower.includes("excavator") ||
+      lower.includes("machine rent") ||
+      lower.includes("rent")
+    ) {
+      setModule("rentals");
+    } else if (
+      lower.includes("mistri") ||
+      lower.includes("mason") ||
+      lower.includes("labour") ||
+      lower.includes("electric") ||
+      lower.includes("plumber") ||
+      lower.includes("service")
+    ) {
+      setModule("services");
+    } else if (
+      lower.includes("land") ||
+      lower.includes("plot") ||
+      lower.includes("flat") ||
+      lower.includes("house") ||
+      lower.includes("property")
+    ) {
+      setModule("properties");
+    } else {
+      setModule("materials");
+    }
+
+    const titleText = qty ? `${need} - ${qty}` : need;
+
+    setTitle(titleText.slice(0, 90));
+    setAiRequirement([need, qty, location].filter(Boolean).join(" | "));
+    setDescription(
+      [
+        `Requirement: ${need}`,
+        qty ? `Approx quantity: ${qty}` : "",
+        location ? `Preferred location: ${location}` : "",
+        "Please quote price, availability, delivery/work timeline, GST/invoice terms and payment terms.",
+      ]
+        .filter(Boolean)
+        .join("\n")
+    );
+
+    if (location) {
+      setCity((prev) => prev || location);
+      setLocality((prev) => prev || location);
+    }
+
+    if (qty) {
+      setItems([
+        {
+          item_name: need,
+          qty,
+          unit: "",
+          notes: location ? `Location: ${location}` : "",
+        },
+      ]);
+    } else {
+      setItems([
+        {
+          item_name: need,
+          qty: "",
+          unit: "",
+          notes: location ? `Location: ${location}` : "",
+        },
+      ]);
+    }
+
+    setShowInlineModule(true);
+    setAiAutoFillApplied(true);
+    setAiAutoFillSummary("Quick RFQ mode prepared the draft requirement.");
+    setShowProgressiveBuilder(true);
+
+    showPopup("Quick RFQ draft prepared. Please review and submit.", "success");
+  }
+
   const browseLink = `${browseHref(module)}?returnTo=${encodeURIComponent("/rfq/general/new")}&module=${encodeURIComponent(module)}`;
 
   return (
@@ -2786,6 +2878,129 @@ return;
       </div>
 
       <div style={{ height: 22 }} />
+
+            <div
+        style={{
+          border: "1px solid rgba(37,99,235,0.18)",
+          background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+          borderRadius: 18,
+          padding: 16,
+          marginBottom: 16,
+          boxShadow: "0 14px 34px rgba(37,99,235,0.08)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 1000, color: "#1e3a8a" }}>
+              ⚡ Quick RFQ Mode
+            </div>
+            <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 700 }}>
+              Type like WhatsApp. AI will prepare the full requirement form automatically.
+            </div>
+          </div>
+
+          <div
+            style={{
+              background: "#dbeafe",
+              color: "#1d4ed8",
+              border: "1px solid #bfdbfe",
+              borderRadius: 999,
+              padding: "8px 12px",
+              fontWeight: 1000,
+              alignSelf: "center",
+              fontSize: 12,
+            }}
+          >
+            Beginner friendly
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.5fr 1fr 1fr auto",
+            gap: 10,
+            marginTop: 14,
+            alignItems: "end",
+          }}
+        >
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 900, marginBottom: 5 }}>
+              What do you need?
+            </label>
+            <input
+              value={quickNeed}
+              onChange={(e) => setQuickNeed(e.target.value)}
+              placeholder="Example: 500 bags cement / electrician / JCB rent"
+              style={{
+                width: "100%",
+                border: "1px solid #cbd5e1",
+                borderRadius: 12,
+                padding: "10px 12px",
+                fontWeight: 700,
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 900, marginBottom: 5 }}>
+              Location
+            </label>
+            <input
+              value={quickLocation}
+              onChange={(e) => setQuickLocation(e.target.value)}
+              placeholder="Cooch Behar / Khagrabari"
+              style={{
+                width: "100%",
+                border: "1px solid #cbd5e1",
+                borderRadius: 12,
+                padding: "10px 12px",
+                fontWeight: 700,
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 900, marginBottom: 5 }}>
+              Approx quantity
+            </label>
+            <input
+              value={quickQty}
+              onChange={(e) => setQuickQty(e.target.value)}
+              placeholder="500 bags / 2 days"
+              style={{
+                width: "100%",
+                border: "1px solid #cbd5e1",
+                borderRadius: 12,
+                padding: "10px 12px",
+                fontWeight: 700,
+              }}
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={applyQuickRfq}
+            style={{
+              border: 0,
+              borderRadius: 12,
+              background: "#2563eb",
+              color: "#ffffff",
+              padding: "11px 14px",
+              fontWeight: 1000,
+              cursor: "pointer",
+              boxShadow: "0 10px 22px rgba(37,99,235,0.22)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Prepare RFQ
+          </button>
+        </div>
+
+        <div style={{ marginTop: 10, color: "#64748b", fontSize: 12, fontWeight: 700 }}>
+          Examples: “Need 500 bags cement in Cooch Behar”, “JCB rent for 2 days”, “Electrician for house wiring”.
+        </div>
+      </div>
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
         {/* ✅ Module */}
