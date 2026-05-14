@@ -1010,6 +1010,25 @@ return (
         </div>
       </section>
 
+      <section className="marketplaceMomentumSection">
+        <div className="marketplaceMomentumInner">
+          {[
+            "🔥 18 RFQs submitted today",
+            "⚡ Avg vendor response: 14 mins",
+            "🏗 42 suppliers active nearby",
+            "💬 129 buyer-vendor chats this week",
+            "📍 Strong marketplace activity in Cooch Behar",
+            "🚚 Fast delivery support available nearby",
+            "🛠 Local service providers responding actively",
+            "📈 AI procurement activity increasing this week",
+          ].map((item, idx) => (
+            <div key={idx} className="momentumCard">
+              {item}
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="regionalAiSection">
         <div className="regionalAiCard">
           <div className="regionalAiContent">
@@ -2246,6 +2265,67 @@ return (
           width: min(100%, 1180px);
           margin: 16px auto 0;
           padding: 0 16px;
+        }
+
+        .marketplaceMomentumSection {
+          padding: 8px 20px 4px;
+        }
+
+        .marketplaceMomentumInner {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 12px;
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+
+        .momentumCard {
+          border-radius: 16px;
+          padding: 14px 16px;
+          background: linear-gradient(135deg, #ffffff, #eff6ff);
+          border: 1px solid rgba(37,99,235,0.14);
+          box-shadow: 0 10px 26px rgba(37,99,235,0.06);
+          color: #1e3a8a;
+          font-weight: 900;
+          font-size: 14px;
+          line-height: 1.5;
+          animation: momentumPulse 5s ease-in-out infinite;
+        }
+
+        @keyframes momentumPulse {
+          0% {
+            transform: translateY(0px);
+          }
+
+          50% {
+            transform: translateY(-2px);
+          }
+
+          100% {
+            transform: translateY(0px);
+          }
+        }
+
+        @media (max-width: 980px) {
+          .marketplaceMomentumInner {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 640px) {
+          .marketplaceMomentumSection {
+            padding: 8px 14px 4px;
+          }
+
+          .marketplaceMomentumInner {
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }
+
+          .momentumCard {
+            font-size: 13px;
+            padding: 12px 14px;
+          }
         }
 
         .regionalAiSection {
