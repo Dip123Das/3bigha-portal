@@ -1361,7 +1361,7 @@ return;
     contactEmail,
   ]);
 
-  const procurementInsight = useMemo<ProcurementReadinessInsight>(() => {
+    const procurementInsight = useMemo<ProcurementReadinessInsight>(() => {
     const filledItems = items.filter((x) => x.item_name.trim()).length;
     const hasQty = items.some((x) => x.qty.trim());
     const hasUnit = items.some((x) => x.unit.trim());
@@ -2357,11 +2357,23 @@ return;
                 alignSelf: "center",
               }}
             >
-              Enterprise RFQ Mode
+              <button
+                type="button"
+                onClick={() => setShowStructuredRfq((prev) => !prev)}
+                style={{
+                  border: 0,
+                  background: "transparent",
+                  color: "#5b21b6",
+                  fontWeight: 1000,
+                  cursor: "pointer",
+                }}
+              >
+                {showStructuredRfq ? "Hide Details −" : "Show Details +"}
+              </button>
             </div>
           </div>
 
-          {structuredRfq ? (
+          {showStructuredRfq && structuredRfq ? (
             <div style={{ display: "grid", gap: 10 }}>
               <div
                 style={{
@@ -2443,7 +2455,7 @@ return;
             </div>
           ) : null}
 
-          {procurementReasoning.length > 0 ? (
+          {showStructuredRfq && procurementReasoning.length > 0 ? (
             <div style={{ marginTop: 14 }}>
               <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
                 🧠 Procurement Reasoning Stream
@@ -2488,7 +2500,7 @@ return;
             </div>
           ) : null}
 
-          {procurementRecommendations.length > 0 ? (
+          {showStructuredRfq && procurementRecommendations.length > 0 ? (
             <div style={{ marginTop: 14 }}>
               <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
                 🎯 AI Procurement Recommendation Cards
@@ -2623,51 +2635,72 @@ return;
           marginBottom: 18,
         }}
       >
-        <div style={{ fontSize: 18, fontWeight: 1000, color: "#075985", marginBottom: 6 }}>
-          🧠 AI Progressive RFQ Builder
-        </div>
+        <button
+          type="button"
+          onClick={() => setShowProgressiveBuilder((prev) => !prev)}
+          style={{
+            width: "100%",
+            border: 0,
+            background: "transparent",
+            padding: 0,
+            cursor: "pointer",
+            textAlign: "left",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ fontSize: 18, fontWeight: 1000, color: "#075985", marginBottom: 6 }}>
+              🧠 AI Progressive RFQ Builder
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 1000, color: "#075985" }}>
+              {showProgressiveBuilder ? "−" : "+"}
+            </div>
+          </div>
+        </button>
 
         <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginBottom: 12 }}>
           Live suggestions, procurement memory, negotiation guidance and rough budget signals.
         </div>
 
-        {liveSuggestions.length > 0 ? (
-          <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
-            {liveSuggestions.map((s, idx) => (
-              <div
-                key={`${s.label}-${idx}`}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 10,
-                  flexWrap: "wrap",
-                  border: "1px solid rgba(2,132,199,0.18)",
-                  background: "#f0f9ff",
-                  borderRadius: 12,
-                  padding: 10,
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 900, color: "#0f172a" }}>{s.label}</div>
-                  <div style={{ fontSize: 12, color: "#475569", marginTop: 3 }}>{s.value}</div>
-                </div>
-
-                <button
-                  type="button"
-                  className="topBtn topBtnGhost"
-                  onClick={() => applyLiveSuggestion(s)}
+        {showProgressiveBuilder ? (
+          liveSuggestions.length > 0 ? (
+            <div style={{ display: "grid", gap: 8, marginBottom: 12 }}>
+              {liveSuggestions.map((s, idx) => (
+                <div
+                  key={`${s.label}-${idx}`}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    flexWrap: "wrap",
+                    border: "1px solid rgba(2,132,199,0.18)",
+                    background: "#f0f9ff",
+                    borderRadius: 12,
+                    padding: 10,
+                  }}
                 >
-                  Apply
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ color: "#64748b", fontSize: 13, marginBottom: 12 }}>
-            Start typing your requirement to get live AI procurement suggestions.
-          </div>
-        )}
+                  <div>
+                    <div style={{ fontWeight: 900, color: "#0f172a" }}>{s.label}</div>
+                    <div style={{ fontSize: 12, color: "#475569", marginTop: 3 }}>{s.value}</div>
+                  </div>
 
+                  <button
+                    type="button"
+                    className="topBtn topBtnGhost"
+                    onClick={() => applyLiveSuggestion(s)}
+                  >
+                    Apply
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ color: "#64748b", fontSize: 13, marginBottom: 12 }}>
+              Start typing your requirement to get live AI procurement suggestions.
+            </div>
+          )
+        ) : null}
+
+        {showProgressiveBuilder ? (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           <div
             style={{
@@ -2701,14 +2734,17 @@ return;
             </div>
           </div>
         </div>
+        ) : null}
 
+        {showProgressiveBuilder ? (
         <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button type="button" className="topBtn topBtnPrimary" onClick={saveProcurementMemory}>
             Save Procurement Memory
           </button>
         </div>
+        ) : null}
 
-        {procurementMemory.length > 0 ? (
+        {showProgressiveBuilder && procurementMemory.length > 0 ? (
           <div style={{ marginTop: 14 }}>
             <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
               Previous Procurement Memory
