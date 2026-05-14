@@ -985,14 +985,25 @@ return (
             </div>
 
             <div className="searchRow aiCommandSearchRow">
-              <input
-                ref={searchInputRef}
+              <textarea
+                ref={searchInputRef as any}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") runAISmartGuide();
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    runAISmartGuide();
+                  }
                 }}
-                placeholder={`Ask 3bigha AI: ${activeModule.placeholder}`}
+                rows={3}
+                placeholder={`Describe your requirement naturally...\n\nExample:\nNeed 500 bags cement in Cooch Behar within 7 days\nNeed electrician for full house wiring\nNeed JCB tomorrow for earth filling`}
+                style={{
+                  minHeight: 92,
+                  resize: "vertical",
+                  lineHeight: 1.6,
+                  paddingTop: 14,
+                  fontSize: 15,
+                }}
               />
 
               <button type="button" className="voiceSearchButton" onClick={startVoiceSearch}>
@@ -1002,6 +1013,38 @@ return (
               <button type="button" onClick={runAISmartGuide}>
                 Ask AI
               </button>
+            </div>
+
+            <div className="aiCommandHelper">
+              Conversational AI commerce assistant — type naturally in English, Bengali or Hindi.
+            </div>
+
+            <div className="localAiQuickChips">
+              {[
+                "আমার ৫০০ ব্যাগ সিমেন্ট লাগবে",
+                "मुझे घर बनाने के लिए मिस्त्री चाहिए",
+                "কোচবিহারে জমি চাই",
+                "JCB rent tomorrow",
+                "Electrician for house wiring",
+              ].map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => {
+                    setQuery(chip);
+                    setAiSuggestion({
+                      title: "Local language AI command ready",
+                      message:
+                        "3bigha AI will understand this requirement and guide you to RFQ, vendors, price or search.",
+                      actionLabel: "Continue with AI",
+                      href: `/rfq/general/new?query=${encodeURIComponent(chip)}`,
+                      confidence: "Regional AI ready",
+                    });
+                  }}
+                >
+                  {chip}
+                </button>
+              ))}
             </div>
 
             {liveSearchSuggestions.length > 0 ? (
@@ -1047,6 +1090,24 @@ return (
                   {prompt}
                 </button>
               ))}
+            </div>
+
+            <div className="aiConfidenceStrip">
+              <div className="confidenceCard">
+                ⚡ Avg vendor response: 14 mins
+              </div>
+
+              <div className="confidenceCard">
+                🏗 42 suppliers active nearby
+              </div>
+
+              <div className="confidenceCard">
+                📈 High RFQ response probability
+              </div>
+
+              <div className="confidenceCard">
+                💬 Marketplace highly active today
+              </div>
             </div>
 
             <div className="searchMeta">
@@ -1610,6 +1671,14 @@ return (
           margin-top: 10px;
         }
 
+        .aiCommandHelper {
+          margin-bottom: 8px;
+          color: #475569;
+          font-size: 13px;
+          font-weight: 700;
+          line-height: 1.5;
+        }
+
         .aiCommandSearchRow {
           grid-template-columns: 1fr auto auto;
         }
@@ -1634,6 +1703,36 @@ return (
           font-weight: 950;
           cursor: pointer;
           box-shadow: 0 10px 24px rgba(11, 87, 208, 0.25);
+        }
+
+        .aiConfidenceStrip {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 10px;
+          margin-top: 12px;
+        }
+
+        .confidenceCard {
+          border-radius: 14px;
+          padding: 10px 12px;
+          background: linear-gradient(135deg, #ffffff, #f8fafc);
+          border: 1px solid rgba(37,99,235,0.10);
+          color: #1e3a8a;
+          font-size: 12px;
+          font-weight: 900;
+          box-shadow: 0 10px 22px rgba(15,23,42,0.05);
+        }
+
+        @media (max-width: 900px) {
+          .aiConfidenceStrip {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 640px) {
+          .aiConfidenceStrip {
+            grid-template-columns: 1fr;
+          }
         }
 
         .searchMeta {
@@ -1747,6 +1846,29 @@ return (
         .voiceSearchButton {
           background: #0f172a !important;
           box-shadow: 0 10px 24px rgba(15, 23, 42, 0.20) !important;
+        }
+
+        .localAiQuickChips {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-top: 10px;
+        }
+
+        .localAiQuickChips button {
+          border: 1px solid rgba(15,23,42,0.10);
+          background: #f8fafc;
+          color: #0f172a;
+          border-radius: 999px;
+          padding: 7px 11px;
+          font-size: 12px;
+          font-weight: 900;
+          cursor: pointer;
+        }
+
+        .localAiQuickChips button:hover {
+          background: #eff6ff;
+          color: #1d4ed8;
         }
 
         .liveSearchSuggestions {
