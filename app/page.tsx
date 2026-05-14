@@ -875,6 +875,51 @@ return (
         </div>
       </section>
 
+      <section className="universalBuyerActionStrip">
+        <div className="universalBuyerActionInner">
+          <div className="universalBuyerContent">
+            <span>⚡ Fast Marketplace Actions</span>
+
+            <h2>Tell 3bigha what you need.</h2>
+
+            <p>
+              Property, materials, services, rentals, contractors and RFQs —
+              start your requirement in one click.
+            </p>
+          </div>
+
+          <div className="universalBuyerActions">
+            <a href="/search?module=property">
+              🏠
+              <span>Need Property</span>
+            </a>
+
+            <a href="/search?module=materials">
+              🧱
+              <span>Need Materials</span>
+            </a>
+
+            <a href="/search?module=services">
+              🛠️
+              <span>Need Service</span>
+            </a>
+
+            <a href="/search?module=rentals">
+              🚜
+              <span>Need Rental</span>
+            </a>
+
+            <a
+              href="/rfq/general/new"
+              className="primaryBuyerAction"
+            >
+              ⚡
+              <span>Tell AI Requirement</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
       <section className="homeSearchSection">
         <div className="homeSearchInner">
           <div className="searchPanel">
@@ -2001,6 +2046,89 @@ return (
           font-weight: 950;
         }
 
+        .universalBuyerActionStrip {
+          width: min(100%, 1180px);
+          margin: 14px auto 0;
+          padding: 0 16px;
+        }
+
+        .universalBuyerActionInner {
+          border-radius: 24px;
+          background: linear-gradient(135deg, #0f172a, #1e3a8a);
+          padding: 22px;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 20px;
+          align-items: center;
+          box-shadow: 0 22px 54px rgba(15, 23, 42, 0.16);
+        }
+
+        .universalBuyerContent span {
+          display: inline-flex;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.12);
+          color: #bfdbfe;
+          padding: 6px 10px;
+          font-size: 12px;
+          font-weight: 950;
+        }
+
+        .universalBuyerContent h2 {
+          margin: 10px 0 0;
+          color: #ffffff;
+          font-size: clamp(24px, 3vw, 36px);
+          line-height: 1.1;
+          letter-spacing: -0.04em;
+          font-weight: 950;
+        }
+
+        .universalBuyerContent p {
+          margin-top: 8px;
+          color: rgba(255,255,255,0.76);
+          font-size: 14px;
+          line-height: 1.6;
+          max-width: 620px;
+        }
+
+        .universalBuyerActions {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          gap: 10px;
+        }
+
+        .universalBuyerActions a {
+          min-width: 150px;
+          border-radius: 18px;
+          background: rgba(255,255,255,0.10);
+          border: 1px solid rgba(255,255,255,0.10);
+          color: #ffffff;
+          text-decoration: none;
+          padding: 14px 16px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 14px;
+          font-weight: 950;
+          transition: all 0.16s ease;
+          backdrop-filter: blur(10px);
+        }
+
+        .universalBuyerActions a:hover {
+          transform: translateY(-2px);
+          background: rgba(255,255,255,0.16);
+        }
+
+        .universalBuyerActions a span {
+          line-height: 1.2;
+        }
+
+        .primaryBuyerAction {
+          background: linear-gradient(135deg, #f97316, #ea580c) !important;
+          border-color: rgba(255,255,255,0.16) !important;
+          box-shadow: 0 14px 32px rgba(249, 115, 22, 0.26);
+        }
+
         .homeSearchSection {
           width: min(100%, 1180px);
           margin: 16px auto 0;
@@ -3070,6 +3198,45 @@ return (
           .homePage {
             width: 100%;
             overflow-x: hidden;
+          }
+
+          .universalBuyerActionStrip {
+            margin-top: 10px;
+            padding-left: 10px;
+            padding-right: 10px;
+          }
+
+          .universalBuyerActionInner {
+            grid-template-columns: 1fr;
+            border-radius: 18px;
+            padding: 16px;
+            gap: 16px;
+          }
+
+          .universalBuyerContent h2 {
+            font-size: 24px;
+          }
+
+          .universalBuyerContent p {
+            font-size: 13px;
+          }
+
+          .universalBuyerActions {
+            justify-content: stretch;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+          }
+
+          .universalBuyerActions a {
+            min-width: 0;
+            border-radius: 14px;
+            padding: 13px;
+            font-size: 13px;
+          }
+
+          .primaryBuyerAction {
+            grid-column: span 2;
           }
 
           .regionalAiCard {
