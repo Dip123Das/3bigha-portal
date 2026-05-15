@@ -1498,10 +1498,6 @@ AI Live Marketplace Feed</h2>
       >
         <div className="floatingAiHeader">
           <div className="floatingAiOrb"></div>
-            <div>
-              <strong>3Bigha AI</strong>
-              <span>Ask AI • RFQ • Vendors • Prices</span>
-            </div>
 
           <div>
             <strong>3bigha AI</strong>
@@ -1544,7 +1540,7 @@ AI Live Marketplace Feed</h2>
 
         .homepageSeoIntro span {
           display: inline-flex;
-          border-radius: 28px;
+          border-radius: 999px;
           background: #eef6ff;
           color: #0b57d0;
           border: 1px solid rgba(11, 87, 208, 0.12);
@@ -1579,7 +1575,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .homepageSeoLinks a {
-          border-radius: 28px;
+          border-radius: 999px;
           background: #ffffff;
           border: 1px solid rgba(15, 23, 42, 0.10);
           color: #0f172a;
@@ -1633,7 +1629,7 @@ AI Live Marketplace Feed</h2>
         .aiPowerRow button {
           display: inline-flex;
           align-items: center;
-          border-radius: 28px;
+          border-radius: 999px;
           background: linear-gradient(135deg, #eef6ff, #ffffff);
           border: 1px solid rgba(11, 87, 208, 0.14);
           padding: 8px 12px;
@@ -1648,7 +1644,7 @@ AI Live Marketplace Feed</h2>
 
         .heroTrustRow a {
           display: inline-flex;
-          border-radius: 28px;
+          border-radius: 999px;
           background: #ffffff;
           border: 1px solid rgba(15, 23, 42, 0.10);
           padding: 8px 12px;
@@ -1669,7 +1665,7 @@ AI Live Marketplace Feed</h2>
         .marketBadge {
           display: inline-flex;
           padding: 7px 12px;
-          border-radius: 28px;
+          border-radius: 999px;
           background: #e8f1ff;
           color: #0b57d0;
           font-size: 13px;
@@ -1720,7 +1716,7 @@ AI Live Marketplace Feed</h2>
           border: 1px solid rgba(15, 23, 42, 0.12);
           background: #f8fafc;
           color: #0f172a;
-          border-radius: 28px;
+          border-radius: 999px;
           padding: 9px 13px;
           font-size: 13px;
           font-weight: 900;
@@ -1833,7 +1829,7 @@ AI Live Marketplace Feed</h2>
           border: 1px solid rgba(37,99,235,0.14);
           background: linear-gradient(135deg, #ffffff, #eff6ff);
           color: #1e3a8a;
-          border-radius: 28px;
+          border-radius: 999px;
           padding: 7px 11px;
           font-size: 12px;
           font-weight: 900;
@@ -1866,7 +1862,7 @@ AI Live Marketplace Feed</h2>
           color: #0b57d0;
           font-weight: 950;
           cursor: pointer;
-          padding: 14px 18px;
+          padding: 0;
         }
 
         .aiGuideCard {
@@ -1929,7 +1925,7 @@ AI Live Marketplace Feed</h2>
           border: 1px solid rgba(15,23,42,0.10);
           background: #f8fafc;
           color: #0f172a;
-          border-radius: 28px;
+          border-radius: 999px;
           padding: 7px 11px;
           font-size: 12px;
           font-weight: 900;
@@ -1952,7 +1948,7 @@ AI Live Marketplace Feed</h2>
           border: 1px solid rgba(37,99,235,0.14);
           background: #ffffff;
           color: #1e3a8a;
-          border-radius: 28px;
+          border-radius: 999px;
           padding: 7px 11px;
           font-size: 12px;
           font-weight: 900;
@@ -1975,7 +1971,7 @@ AI Live Marketplace Feed</h2>
 
         .aiPromptChips button {
           border: 1px solid rgba(11, 87, 208, 0.14);
-          border-radius: 28px;
+          border-radius: 999px;
           background: #f8fbff;
           color: #0b57d0;
           padding: 8px 11px;
@@ -2006,7 +2002,7 @@ AI Live Marketplace Feed</h2>
 
         .conversationalAiBadge {
           display: inline-flex;
-          border-radius: 28px;
+          border-radius: 999px;
           background: rgba(255, 255, 255, 0.12);
           color: #bfdbfe;
           padding: 6px 10px;
@@ -2087,7 +2083,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .aiTrustLayer span {
-          border-radius: 28px;
+          border-radius: 999px;
           background: #ecfdf5;
           color: #047857;
           border: 1px solid rgba(4, 120, 87, 0.14);
@@ -2228,7 +2224,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .realtimeTickerTrack span {
-          border-radius: 28px;
+          border-radius: 999px;
           background: #0f172a;
           color: #ffffff;
           padding: 9px 13px;
@@ -2286,7 +2282,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .aiHeatmapHeader span {
-          border-radius: 28px;
+          border-radius: 999px;
           background: #ecfdf5;
           color: #047857;
           padding: 5px 8px;
@@ -2335,7 +2331,7 @@ AI Live Marketplace Feed</h2>
         .heatmapScore {
           width: 42px;
           height: 42px;
-          border-radius: 28px;
+          border-radius: 999px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -2425,7 +2421,7 @@ AI Live Marketplace Feed</h2>
 
         .universalBuyerContent span {
           display: inline-flex;
-          border-radius: 28px;
+          border-radius: 999px;
           background: rgba(255,255,255,0.12);
           color: #bfdbfe;
           padding: 6px 10px;
@@ -2547,7 +2543,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .copilotMemoryStrip small {
-          border-radius: 28px;
+          border-radius: 999px;
           background: rgba(255, 255, 255, 0.12);
           color: #ffffff;
           padding: 7px 10px;
@@ -2592,7 +2588,7 @@ AI Live Marketplace Feed</h2>
 
         .regionalPromptRail button {
           border: 1px solid rgba(11, 87, 208, 0.14);
-          border-radius: 28px;
+          border-radius: 999px;
           background: #ffffff;
           color: #0b57d0;
           padding: 9px 12px;
@@ -2690,7 +2686,7 @@ AI Live Marketplace Feed</h2>
 
         .regionalAiContent span {
           display: inline-flex;
-          border-radius: 28px;
+          border-radius: 999px;
           background: #eef6ff;
           border: 1px solid rgba(11, 87, 208, 0.10);
           padding: 5px 9px;
@@ -2728,7 +2724,7 @@ AI Live Marketplace Feed</h2>
           font-size: 12px;
           font-weight: 950;
           cursor: pointer;
-          padding: 14px 18px;
+          padding: 0;
         }
 
         .regionalPromptExamples {
@@ -2745,7 +2741,7 @@ AI Live Marketplace Feed</h2>
 
         .regionalPromptExamples button {
           border: 1px solid rgba(11, 87, 208, 0.10);
-          border-radius: 28px;
+          border-radius: 999px;
           background: #f8fbff;
           color: #0f172a;
           padding: 7px 10px;
@@ -2765,7 +2761,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .regionalAiVisual div {
-          border-radius: 28px;
+          border-radius: 999px;
           background: #f8fafc;
           border: 1px solid rgba(15, 23, 42, 0.08);
           padding: 6px 10px;
@@ -2830,7 +2826,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .aiRunningTrack a {
-          border-radius: 28px;
+          border-radius: 999px;
           background: #f8fbff;
           border: 1px solid rgba(11, 87, 208, 0.10);
           color: #0b57d0;
@@ -2906,7 +2902,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .aiPortalStrip a {
-          border-radius: 28px;
+          border-radius: 999px;
           background: #ffffff;
           color: #0b57d0;
           text-decoration: none;
@@ -3045,7 +3041,7 @@ AI Live Marketplace Feed</h2>
 
         .aiRecommendationTag {
           display: inline-flex;
-          border-radius: 28px;
+          border-radius: 999px;
           background: rgba(11, 87, 208, 0.08);
           color: #0b57d0;
           padding: 6px 10px;
@@ -3094,7 +3090,7 @@ AI Live Marketplace Feed</h2>
 
         .aiRecommendationTag {
           display: inline-flex;
-          border-radius: 28px;
+          border-radius: 999px;
           background: rgba(11, 87, 208, 0.08);
           color: #0b57d0;
           padding: 6px 10px;
@@ -3153,7 +3149,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .marketPulseItems a {
-          border-radius: 28px;
+          border-radius: 999px;
           background: #ffffff;
           color: #0b57d0;
           text-decoration: none;
@@ -3267,12 +3263,12 @@ AI Live Marketplace Feed</h2>
           right: 18px;
           bottom: 18px;
           z-index: 60;
-          width: 230px;
-          height: auto;
-          border-radius: 28px;
+          width: 64px;
+          height: 64px;
+          border-radius: 999px;
           background: linear-gradient(135deg, #0f172a, #1d4ed8);
           color: #ffffff;
-          padding: 14px 18px;
+          padding: 0;
           box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
           backdrop-filter: blur(18px);
           text-decoration: none;
@@ -3326,7 +3322,7 @@ AI Live Marketplace Feed</h2>
         .floatingAiOrb {
           width: 14px;
           height: 14px;
-          border-radius: 28px;
+          border-radius: 999px;
           background: #22c55e;
           box-shadow: 0 0 18px #22c55e;
           flex-shrink: 0;
@@ -3507,7 +3503,7 @@ AI Live Marketplace Feed</h2>
         .marketplaceTop span {
           color: #0b57d0;
           background: #eef6ff;
-          border-radius: 28px;
+          border-radius: 999px;
           padding: 5px 8px;
         }
 
@@ -3539,7 +3535,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .aiCardBadges span {
-          border-radius: 28px;
+          border-radius: 999px;
           background: #f0fdf4;
           color: #047857;
           border: 1px solid rgba(4, 120, 87, 0.12);
@@ -3556,7 +3552,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .aiCardSignals span {
-          border-radius: 28px;
+          border-radius: 999px;
           padding: 5px 8px;
           background: #ecfdf5;
           color: #047857;
@@ -3570,7 +3566,7 @@ AI Live Marketplace Feed</h2>
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          border-radius: 28px;
+          border-radius: 999px;
           padding: 8px 12px;
           background: #2563eb;
           color: #ffffff;
@@ -3918,7 +3914,7 @@ AI Live Marketplace Feed</h2>
           }
 
           .marketHeroContent {
-            padding: 14px 18px;
+            padding: 0;
           }
 
           .marketHero {
@@ -4101,10 +4097,10 @@ AI Live Marketplace Feed</h2>
           .floatingAiCopilot {
             right: 12px;
             bottom: 92px;
-            width: 230px;
-            height: auto;
-            border-radius: 28px;
-            padding: 14px 18px;
+            width: 64px;
+            height: 64px;
+            border-radius: 999px;
+            padding: 0;
             overflow: hidden;
             background: linear-gradient(135deg, #0f172a, #1d4ed8);
             display: flex;
