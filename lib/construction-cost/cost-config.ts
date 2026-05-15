@@ -7,15 +7,7 @@ export type ConstructionCostComponent =
   | "contractorMargin"
   | "miscellaneous";
 
-export type ConstructionRegionKey =
-  | "default"
-  | "west_bengal"
-  | "cooch_behar"
-  | "kolkata"
-  | "north_bengal"
-  | "assam"
-  | "bihar"
-  | "odisha";
+export type ConstructionRegionKey = string;
 
 export type ConstructionCostSplit = Record<ConstructionCostComponent, number>;
 
@@ -96,17 +88,16 @@ export const GRADE_COST_SPLITS: Record<
   },
 };
 
-export const REGIONAL_COST_MULTIPLIERS: Record<ConstructionRegionKey, number> =
-  {
-    default: 1,
-    west_bengal: 1,
-    cooch_behar: 0.94,
-    north_bengal: 0.96,
-    kolkata: 1.16,
-    assam: 1.04,
-    bihar: 0.98,
-    odisha: 1.02,
-  };
+export const REGIONAL_COST_MULTIPLIERS: Record<string, number> = {
+  default: 1,
+  west_bengal: 1,
+  cooch_behar: 0.94,
+  north_bengal: 0.96,
+  kolkata: 1.16,
+  assam: 1.04,
+  bihar: 0.98,
+  odisha: 1.02,
+};
 
 export const FLOOR_COST_MULTIPLIERS: Record<number, number> = {
   1: 1,
@@ -123,7 +114,7 @@ export const DEFAULT_COST_ENGINE_ASSUMPTIONS = {
   defaultRegion: "default" satisfies ConstructionRegionKey,
   minimumBuiltUpArea: 100,
   maximumBuiltUpArea: 100000,
-  minimumFloorCount: 1,
+  minimumFloorCount: -3,
   maximumFloorCount: 20,
   boqReady: true,
 };

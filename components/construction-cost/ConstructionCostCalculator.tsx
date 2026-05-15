@@ -11,6 +11,12 @@ import TimelineEstimatePreview from "@/components/construction-cost/TimelineEsti
 import ProcurementPhaseScheduler from "@/components/construction-cost/ProcurementPhaseScheduler";
 import ConstructionAutoRfqPanel from "@/components/construction-cost/ConstructionAutoRfqPanel";
 import SaveConstructionProjectButton from "@/components/construction-cost/SaveConstructionProjectButton";
+import {
+  INDIA_STATE_OPTIONS,
+  getDefaultCityForState,
+  getIndiaStateOption,
+  normalizeManualLocation,
+} from "@/lib/construction-cost/india-location-data";
 
 type Props = {
   defaultRegion?: ConstructionRegionKey;
@@ -23,7 +29,11 @@ export default function ConstructionCostCalculator({
 }: Props) {
   const [builtUpAreaSqFt, setBuiltUpAreaSqFt] = useState(1000);
   const [floorCount, setFloorCount] = useState(0);
-  const [selectedLocation, setSelectedLocation] = useState(defaultRegion);
+  const [selectedState, setSelectedState] = useState("west_bengal");
+  const [selectedCity, setSelectedCity] = useState(
+    defaultRegion === "default" ? "cooch_behar" : defaultRegion,
+  );
+  const [manualDistrictCity, setManualDistrictCity] = useState("");
   const [grade, setGrade] = useState<ConstructionGrade>("standard");
 
   const [roomCount, setRoomCount] = useState(3);
@@ -37,7 +47,10 @@ export default function ConstructionCostCalculator({
         builtUpAreaSqFt,
         floorCount,
         grade,
-        region: selectedLocation,
+        region:
+          selectedCity === "other"
+            ? normalizeManualLocation(manualDistrictCity) || selectedState
+            : selectedCity,
         roomCount,
         bathroomCount,
         kitchenCount,
@@ -47,7 +60,9 @@ export default function ConstructionCostCalculator({
       builtUpAreaSqFt,
       floorCount,
       grade,
-      selectedLocation,
+      selectedCity,
+      selectedState,
+      manualDistrictCity,
       roomCount,
       bathroomCount,
       kitchenCount,
@@ -72,28 +87,62 @@ export default function ConstructionCostCalculator({
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <label className="block">
           <span className="text-xs font-black uppercase text-slate-500">
-            Location
+            State / Union Territory
           </span>
           <select
-            value={selectedLocation}
-            onChange={(event) =>
-              setSelectedLocation(event.target.value as ConstructionRegionKey)
-            }
+            value={selectedState}
+            onChange={(event) => {
+              const nextState = event.target.value;
+              setSelectedState(nextState);
+              setSelectedCity(getDefaultCityForState(nextState) as ConstructionRegionKey);
+              setManualDistrictCity("");
+            }}
             className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500"
           >
-            <option value="default">General India</option>
-            <option value="cooch_behar">Cooch Behar, West Bengal</option>
-            <option value="kolkata">Kolkata, West Bengal</option>
-            <option value="siliguri">Siliguri, West Bengal</option>
-            <option value="gujarat">Gujarat</option>
-            <option value="ahmedabad">Ahmedabad, Gujarat</option>
-            <option value="delhi_ncr">Delhi NCR</option>
-            <option value="mumbai">Mumbai</option>
-            <option value="bangalore">Bangalore</option>
-            <option value="hyderabad">Hyderabad</option>
-            <option value="chennai">Chennai</option>
+            {INDIA_STATE_OPTIONS.map((state) => (
+              <option key={state.value} value={state.value}>
+                {state.label}
+              </option>
+            ))}
           </select>
         </label>
+
+        <label className="block">
+          <span className="text-xs font-black uppercase text-slate-500">
+            District / City
+          </span>
+          <select
+            value={selectedCity}
+            onChange={(event) => {
+              setSelectedCity(event.target.value as ConstructionRegionKey);
+              if (event.target.value !== "other") {
+                setManualDistrictCity("");
+              }
+            }}
+            className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500"
+          >
+            {getIndiaStateOption(selectedState).cities.map((city) => (
+              <option key={city.value} value={city.value}>
+                {city.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {selectedCity === "other" && (
+          <label className="block">
+            <span className="text-xs font-black uppercase text-slate-500">
+              Type District / City
+            </span>
+            <input
+              type="text"
+              value={manualDistrictCity}
+              onChange={(event) => setManualDistrictCity(event.target.value)}
+              placeholder="Example: Jalgaon, Morbi, Bankura, etc."
+              className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500"
+            />
+          </label>
+        )}
         <label className="block">
           <span className="text-xs font-black uppercase text-slate-500">
             Built-up Area
