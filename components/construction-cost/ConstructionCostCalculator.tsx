@@ -37,8 +37,21 @@ export default function ConstructionCostCalculator({
         floorCount,
         grade,
         region: defaultRegion,
+        roomCount,
+        bathroomCount,
+        kitchenCount,
+        hasInteriorWork,
       }),
-    [builtUpAreaSqFt, floorCount, grade, defaultRegion],
+    [
+      builtUpAreaSqFt,
+      floorCount,
+      grade,
+      defaultRegion,
+      roomCount,
+      bathroomCount,
+      kitchenCount,
+      hasInteriorWork,
+    ],
   );
 
   return (
@@ -208,6 +221,33 @@ export default function ConstructionCostCalculator({
           <p className="mt-2 text-base font-black text-slate-950">
             {formatIndianCurrency(estimate.estimatedMinTotal)} -{" "}
             {formatIndianCurrency(estimate.estimatedMaxTotal)}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-3 rounded-3xl border border-blue-100 bg-blue-50 p-5 sm:grid-cols-4">
+        <div>
+          <p className="text-xs font-black uppercase text-blue-700">Room factor</p>
+          <p className="mt-1 text-lg font-black text-blue-950">
+            x{estimate.roomComplexityMultiplier.toFixed(3)}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs font-black uppercase text-blue-700">Bath/Kitchen factor</p>
+          <p className="mt-1 text-lg font-black text-blue-950">
+            x{estimate.wetAreaMultiplier.toFixed(3)}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs font-black uppercase text-blue-700">Interior factor</p>
+          <p className="mt-1 text-lg font-black text-blue-950">
+            x{estimate.interiorMultiplier.toFixed(3)}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs font-black uppercase text-blue-700">Total planning inputs</p>
+          <p className="mt-1 text-sm font-black text-blue-950">
+            {roomCount} rooms · {bathroomCount} baths · {kitchenCount} kitchen
           </p>
         </div>
       </div>

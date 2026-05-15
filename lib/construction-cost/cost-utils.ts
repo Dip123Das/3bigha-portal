@@ -18,6 +18,10 @@ export type ConstructionCostInput = {
   grade?: ConstructionGrade;
   region?: ConstructionRegionKey;
   customRatePerSqFt?: number;
+  roomCount?: number;
+  bathroomCount?: number;
+  kitchenCount?: number;
+  hasInteriorWork?: boolean;
 };
 
 export type ConstructionCostBreakupItem = {
@@ -32,6 +36,10 @@ export type ConstructionCostEstimate = {
   region: ConstructionRegionKey;
   builtUpAreaSqFt: number;
   floorCount: number;
+  roomCount: number;
+  bathroomCount: number;
+  kitchenCount: number;
+  hasInteriorWork: boolean;
   ratePerSqFt: number;
   minRatePerSqFt: number;
   maxRatePerSqFt: number;
@@ -41,6 +49,9 @@ export type ConstructionCostEstimate = {
   regionalMultiplier: number;
   floorMultiplier: number;
   gradeMultiplier: number;
+  roomComplexityMultiplier: number;
+  wetAreaMultiplier: number;
+  interiorMultiplier: number;
   split: ConstructionCostSplit;
   breakup: ConstructionCostBreakupItem[];
   assumptions: {
@@ -92,16 +103,6 @@ export function getRegionalMultiplier(region?: string | null): number {
   return REGIONAL_COST_MULTIPLIERS[key] ?? REGIONAL_COST_MULTIPLIERS.default;
 }
 
-export function getFloorMultiplier(floorCount?: number): number {
-  const safeFloorCount = sanitizeFloorCount(floorCount);
-
-  if (safeFloorCount in FLOOR_COST_MULTIPLIERS) {
-    return FLOOR_COST_MULTIPLIERS[safeFloorCount];
-  }
-
-  return 1.22 + Math.max(0, safeFloorCount - 5) * 0.035;
-}
-
 export function sanitizeBuiltUpArea(area: number): number {
   if (!Number.isFinite(area)) {
     return DEFAULT_COST_ENGINE_ASSUMPTIONS.minimumBuiltUpArea;
@@ -127,6 +128,44 @@ export function sanitizeFloorCount(floorCount?: number): number {
   );
 }
 
+export function sanitizeCount(value: number | undefined, fallback: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) return fallback;
+
+  return Math.min(Math.max(Math.round(value ?? fallback), min), max);
+}
+
+export function getFloorMultiplier(floorCount?: number): number {
+  const safeFloorCount = sanitizeFloorCount(floorCount);
+
+  if (safeFloorCount in FLOOR_COST_MULTIPLIERS) {
+    return FLOOR_COST_MULTIPLIERS[safeFloorCount];
+  }
+
+  return 1.22 + Math.max(0, safeFloorCount - 5) * 0.035;
+}
+
+export function getRoomComplexityMultiplier(roomCount?: number): number {
+  const safeRoomCount = sanitizeCount(roomCount, 3, 1, 12);
+
+  if (safeRoomCount <= 3) return 1;
+
+  return 1 + (safeRoomCount - 3) * 0.018;
+}
+
+export function getWetAreaMultiplier(bathroomCount?: number, kitchenCount?: number): number {
+  const safeBathroomCount = sanitizeCount(bathroomCount, 2, 1, 10);
+  const safeKitchenCount = sanitizeCount(kitchenCount, 1, 1, 5);
+
+  const extraBathrooms = Math.max(0, safeBathroomCount - 2);
+  const extraKitchens = Math.max(0, safeKitchenCount - 1);
+
+  return 1 + extraBathrooms * 0.035 + extraKitchens * 0.045;
+}
+
+export function getInteriorMultiplier(hasInteriorWork?: boolean): number {
+  return hasInteriorWork ? 1.08 : 1;
+}
+
 export function roundCurrency(value: number): number {
   return Math.round(value);
 }
@@ -138,6 +177,9 @@ export function calculateRatePerSqFt(input: ConstructionCostInput): {
   regionalMultiplier: number;
   floorMultiplier: number;
   gradeMultiplier: number;
+  roomComplexityMultiplier: number;
+  wetAreaMultiplier: number;
+  interiorMultiplier: number;
 } {
   const grade = normalizeConstructionGrade(input.grade);
   const region = normalizeConstructionRegion(input.region);
@@ -147,13 +189,21 @@ export function calculateRatePerSqFt(input: ConstructionCostInput): {
   const regionalMultiplier = getRegionalMultiplier(region);
   const floorMultiplier = getFloorMultiplier(input.floorCount);
   const gradeMultiplier = gradeMultiplierConfig.aiBoqComplexityMultiplier;
+  const roomComplexityMultiplier = getRoomComplexityMultiplier(input.roomCount);
+  const wetAreaMultiplier = getWetAreaMultiplier(input.bathroomCount, input.kitchenCount);
+  const interiorMultiplier = getInteriorMultiplier(input.hasInteriorWork);
 
   const baseRate =
     typeof input.customRatePerSqFt === "number" && input.customRatePerSqFt > 0
       ? input.customRatePerSqFt
       : gradeConfig.baseRatePerSqFt;
 
-  const multiplier = regionalMultiplier * floorMultiplier;
+  const multiplier =
+    regionalMultiplier *
+    floorMultiplier *
+    roomComplexityMultiplier *
+    wetAreaMultiplier *
+    interiorMultiplier;
 
   return {
     ratePerSqFt: roundCurrency(baseRate * multiplier),
@@ -162,6 +212,9 @@ export function calculateRatePerSqFt(input: ConstructionCostInput): {
     regionalMultiplier,
     floorMultiplier,
     gradeMultiplier,
+    roomComplexityMultiplier,
+    wetAreaMultiplier,
+    interiorMultiplier,
   };
 }
 
@@ -190,6 +243,10 @@ export function estimateConstructionCost(
   const region = normalizeConstructionRegion(input.region);
   const builtUpAreaSqFt = sanitizeBuiltUpArea(input.builtUpAreaSqFt);
   const floorCount = sanitizeFloorCount(input.floorCount);
+  const roomCount = sanitizeCount(input.roomCount, 3, 1, 12);
+  const bathroomCount = sanitizeCount(input.bathroomCount, 2, 1, 10);
+  const kitchenCount = sanitizeCount(input.kitchenCount, 1, 1, 5);
+  const hasInteriorWork = Boolean(input.hasInteriorWork);
 
   const {
     ratePerSqFt,
@@ -198,11 +255,18 @@ export function estimateConstructionCost(
     regionalMultiplier,
     floorMultiplier,
     gradeMultiplier,
+    roomComplexityMultiplier,
+    wetAreaMultiplier,
+    interiorMultiplier,
   } = calculateRatePerSqFt({
     ...input,
     grade,
     region,
     floorCount,
+    roomCount,
+    bathroomCount,
+    kitchenCount,
+    hasInteriorWork,
   });
 
   const estimatedTotal = roundCurrency(builtUpAreaSqFt * ratePerSqFt);
@@ -217,6 +281,10 @@ export function estimateConstructionCost(
     region,
     builtUpAreaSqFt,
     floorCount,
+    roomCount,
+    bathroomCount,
+    kitchenCount,
+    hasInteriorWork,
     ratePerSqFt,
     minRatePerSqFt,
     maxRatePerSqFt,
@@ -226,6 +294,9 @@ export function estimateConstructionCost(
     regionalMultiplier,
     floorMultiplier,
     gradeMultiplier,
+    roomComplexityMultiplier,
+    wetAreaMultiplier,
+    interiorMultiplier,
     split,
     breakup,
     assumptions: {
@@ -233,7 +304,7 @@ export function estimateConstructionCost(
       unit: DEFAULT_COST_ENGINE_ASSUMPTIONS.unit,
       boqReady: DEFAULT_COST_ENGINE_ASSUMPTIONS.boqReady,
       note:
-        "This is an indicative construction cost estimate. Final quotation may vary based on soil condition, foundation design, material brand, labour availability, transport, MEP scope and finishing level.",
+        "This is an indicative construction cost estimate. Final quotation may vary based on soil condition, foundation design, material brand, labour availability, transport, MEP scope, room layout, number of bathrooms/kitchens and finishing level.",
     },
   };
 }
@@ -249,7 +320,7 @@ export function formatIndianCurrency(value: number): string {
 export function getConstructionEstimateSummary(
   estimate: ConstructionCostEstimate,
 ): string {
-  return `${estimate.builtUpAreaSqFt} sq.ft ${estimate.grade} construction in ${estimate.region} is estimated around ${formatIndianCurrency(
+  return `${estimate.builtUpAreaSqFt} sq.ft ${estimate.grade} construction in ${estimate.region} with ${estimate.roomCount} room(s), ${estimate.bathroomCount} bathroom(s) and ${estimate.kitchenCount} kitchen(s) is estimated around ${formatIndianCurrency(
     estimate.estimatedTotal,
   )}, approximately ${formatIndianCurrency(
     estimate.ratePerSqFt,
