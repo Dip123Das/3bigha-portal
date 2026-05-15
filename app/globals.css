@@ -712,3 +712,39 @@ button[class*="actionButton"] {
     padding-left: 0 !important;
   }
 }
+
+/* FINAL SIDEBAR HEIGHT FIX - show all public menus, no role-based Vendor Hub */
+@media (min-width: 981px) {
+  .portalSideNav {
+    top: 220px !important;
+    bottom: 16px !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .sideNavPanel {
+    height: calc(100vh - 240px) !important;
+    max-height: calc(100vh - 240px) !important;
+    overflow-y: auto !important;
+    scrollbar-width: thin !important;
+  }
+
+  .sideNavItem {
+    padding-top: 11px !important;
+    padding-bottom: 11px !important;
+  }
+
+  .sideNavPreview {
+    display: block !important;
+    opacity: 0 !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    transition: all 0.18s ease !important;
+  }
+
+  .sideNavItem:hover .sideNavPreview {
+    opacity: 1 !important;
+    max-height: 42px !important;
+    margin-top: 2px !important;
+  }
+}
