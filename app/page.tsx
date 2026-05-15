@@ -1367,7 +1367,47 @@ return (
       <section className="liveMarketplaceSection imageFirstMarketplaceSection">
         <div className="sectionTitleRow">
           <div>
-            <h2>AI Live Marketplace Feed</h2>
+            <h2>
+          <section className="mx-auto mt-8 max-w-5xl rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-orange-50 p-6 shadow-sm">
+            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-blue-700">
+                  New AI Construction Tool
+                </div>
+                <h2 className="mt-3 text-2xl font-black text-slate-950">
+                  AI Construction Cost Calculator
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                  Estimate house construction cost, material quantity, BOQ, timeline, procurement phases and AI project planning for Cooch Behar and nearby areas.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-slate-700">
+                  <span className="rounded-full bg-white px-3 py-2 shadow-sm">Cost Estimate</span>
+                  <span className="rounded-full bg-white px-3 py-2 shadow-sm">Material Quantity</span>
+                  <span className="rounded-full bg-white px-3 py-2 shadow-sm">BOQ Generator</span>
+                  <span className="rounded-full bg-white px-3 py-2 shadow-sm">Timeline Planner</span>
+                  <span className="rounded-full bg-white px-3 py-2 shadow-sm">AI Construction OS</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row md:flex-col">
+                <a
+                  href="/construction-cost"
+                  className="rounded-2xl bg-blue-600 px-5 py-3 text-center text-sm font-black text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700"
+                >
+                  Open Cost Calculator
+                </a>
+                <a
+                  href="/dashboard/construction-projects"
+                  className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-center text-sm font-black text-slate-900 transition hover:bg-slate-50"
+                >
+                  My Construction Projects
+                </a>
+              </div>
+            </div>
+          </section>
+
+
+AI Live Marketplace Feed</h2>
             <p>Fresh local listings, prices and opportunities surfaced from the 3bigha marketplace.</p>
           </div>
           <a href="/search">View all →</a>
