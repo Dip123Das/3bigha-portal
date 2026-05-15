@@ -27,7 +27,7 @@ const GRADES: ConstructionGrade[] = ["economy", "standard", "premium"];
 export default function ConstructionCostCalculator({
   defaultRegion = "default",
 }: Props) {
-  const [builtUpAreaSqFt, setBuiltUpAreaSqFt] = useState(1000);
+  const [builtUpAreaInput, setBuiltUpAreaInput] = useState("1000");
   const [floorCount, setFloorCount] = useState(0);
   const [selectedState, setSelectedState] = useState("west_bengal");
   const [selectedCity, setSelectedCity] = useState(
@@ -40,6 +40,8 @@ export default function ConstructionCostCalculator({
   const [bathroomCount, setBathroomCount] = useState(2);
   const [kitchenCount, setKitchenCount] = useState(1);
   const [hasInteriorWork, setHasInteriorWork] = useState(false);
+
+  const builtUpAreaSqFt = Math.max(100, Number(builtUpAreaInput || 0));
 
   const estimate = useMemo(
     () =>
@@ -150,10 +152,8 @@ export default function ConstructionCostCalculator({
           <input
             type="number"
             min={100}
-            value={builtUpAreaSqFt}
-            onChange={(event) =>
-              setBuiltUpAreaSqFt(Number(event.target.value || 100))
-            }
+            value={builtUpAreaInput}
+            onChange={(event) => setBuiltUpAreaInput(event.target.value)}
             className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500"
           />
         </label>
