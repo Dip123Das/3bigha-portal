@@ -22,7 +22,8 @@ export default function ConstructionCostCalculator({
   defaultRegion = "default",
 }: Props) {
   const [builtUpAreaSqFt, setBuiltUpAreaSqFt] = useState(1000);
-  const [floorCount, setFloorCount] = useState(1);
+  const [floorCount, setFloorCount] = useState(0);
+  const [selectedLocation, setSelectedLocation] = useState(defaultRegion);
   const [grade, setGrade] = useState<ConstructionGrade>("standard");
 
   const [roomCount, setRoomCount] = useState(3);
@@ -36,7 +37,7 @@ export default function ConstructionCostCalculator({
         builtUpAreaSqFt,
         floorCount,
         grade,
-        region: defaultRegion,
+        region: selectedLocation,
         roomCount,
         bathroomCount,
         kitchenCount,
@@ -46,7 +47,7 @@ export default function ConstructionCostCalculator({
       builtUpAreaSqFt,
       floorCount,
       grade,
-      defaultRegion,
+      selectedLocation,
       roomCount,
       bathroomCount,
       kitchenCount,
@@ -71,6 +72,30 @@ export default function ConstructionCostCalculator({
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <label className="block">
           <span className="text-xs font-black uppercase text-slate-500">
+            Location
+          </span>
+          <select
+            value={selectedLocation}
+            onChange={(event) =>
+              setSelectedLocation(event.target.value as ConstructionRegionKey)
+            }
+            className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500"
+          >
+            <option value="default">General India</option>
+            <option value="cooch_behar">Cooch Behar, West Bengal</option>
+            <option value="kolkata">Kolkata, West Bengal</option>
+            <option value="siliguri">Siliguri, West Bengal</option>
+            <option value="gujarat">Gujarat</option>
+            <option value="ahmedabad">Ahmedabad, Gujarat</option>
+            <option value="delhi_ncr">Delhi NCR</option>
+            <option value="mumbai">Mumbai</option>
+            <option value="bangalore">Bangalore</option>
+            <option value="hyderabad">Hyderabad</option>
+            <option value="chennai">Chennai</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="text-xs font-black uppercase text-slate-500">
             Built-up Area
           </span>
           <input
@@ -86,18 +111,21 @@ export default function ConstructionCostCalculator({
 
         <label className="block">
           <span className="text-xs font-black uppercase text-slate-500">
-            Floors
+            Floor Structure
           </span>
           <select
             value={floorCount}
             onChange={(event) => setFloorCount(Number(event.target.value))}
             className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500"
           >
-            {[1, 2, 3, 4, 5].map((floor) => (
-              <option key={floor} value={floor}>
-                {floor} Floor{floor > 1 ? "s" : ""}
-              </option>
-            ))}
+            <option value={-2}>B2 + B1 + Ground</option>
+            <option value={-1}>B1 + Ground</option>
+            <option value={0}>Ground Floor Only</option>
+            <option value={1}>G + 1</option>
+            <option value={2}>G + 2</option>
+            <option value={3}>G + 3</option>
+            <option value={4}>G + 4</option>
+            <option value={5}>G + 5</option>
           </select>
         </label>
 
@@ -225,7 +253,7 @@ export default function ConstructionCostCalculator({
         </div>
       </div>
 
-      <div className="mt-6 grid gap-3 rounded-3xl border border-blue-100 bg-blue-50 p-5 sm:grid-cols-4">
+      <div className="mt-6 grid gap-3 rounded-3xl border border-blue-100 bg-blue-50 p-5 sm:grid-cols-5">
         <div>
           <p className="text-xs font-black uppercase text-blue-700">Room factor</p>
           <p className="mt-1 text-lg font-black text-blue-950">
@@ -242,6 +270,12 @@ export default function ConstructionCostCalculator({
           <p className="text-xs font-black uppercase text-blue-700">Interior factor</p>
           <p className="mt-1 text-lg font-black text-blue-950">
             x{estimate.interiorMultiplier.toFixed(3)}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs font-black uppercase text-blue-700">Earthwork factor</p>
+          <p className="mt-1 text-lg font-black text-blue-950">
+            x{estimate.earthworkMultiplier.toFixed(3)}
           </p>
         </div>
         <div>
