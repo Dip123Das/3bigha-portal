@@ -610,7 +610,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 { href: "/construction-cost", icon: "🏗️", label: "Construction Cost", hint: "AI calculator, BOQ and timeline" },
                 { href: "/rfq/general/new", icon: "⚡", label: "Submit Requirement", hint: "Create RFQ and get vendor quotes" },
                 { href: "/dashboard/inbox-v2", icon: "💬", label: "Inbox", hint: "All buyer-vendor conversations" },
-                { href: "/dashboard/vendor", icon: "🏪", label: "Vendor Hub", hint: "Vendor dashboard and RFQs" },
                 { href: "/dashboard/procurement-health", icon: "🧠", label: "AI Procurement OS", hint: "AI procurement intelligence" },
                 { href: "/price-today", icon: "📊", label: "Price Today", hint: "Local price intelligence" },
                 { href: "/blog", icon: "📰", label: "Blog", hint: "News, guides and updates" },
