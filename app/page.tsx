@@ -3263,14 +3263,54 @@ AI Live Marketplace Feed</h2>
           right: 18px;
           bottom: 18px;
           z-index: 60;
-          width: 260px;
-          border-radius: 24px;
-          background: linear-gradient(180deg, #0f172a, #172554);
+          width: 64px;
+          height: 64px;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #0f172a, #1d4ed8);
           color: #ffffff;
-          padding: 16px;
+          padding: 0;
           box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
           backdrop-filter: blur(18px);
           text-decoration: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+
+        .floatingAiCopilot.isOpen {
+          width: 280px;
+          height: auto;
+          border-radius: 24px;
+          padding: 16px;
+          display: block;
+        }
+
+        .floatingAiCopilot .floatingAiHeader {
+          justify-content: center;
+        }
+
+        .floatingAiCopilot.isOpen .floatingAiHeader {
+          justify-content: flex-start;
+        }
+
+        .floatingAiCopilot .floatingAiHeader div:not(.floatingAiOrb),
+        .floatingAiCopilot .floatingAiActions,
+        .floatingAiCopilot .floatingAiFooter {
+          display: none;
+        }
+
+        .floatingAiCopilot.isOpen .floatingAiHeader div:not(.floatingAiOrb) {
+          display: block;
+        }
+
+        .floatingAiCopilot.isOpen .floatingAiActions {
+          display: grid;
+        }
+
+        .floatingAiCopilot.isOpen .floatingAiFooter {
+          display: block;
         }
 
         .floatingAiHeader {
