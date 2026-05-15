@@ -1316,6 +1316,11 @@ return (
               <span>Check local market indication before buying land, materials or services.</span>
             </a>
 
+            <a href="/construction-cost/west-bengal/cooch-behar" className="aiMarketPulseCard">
+              <strong>🏗 Free Construction Calculator</strong>
+              <span>Calculate future house construction budget, per sq.ft rate, floors, grade and cost breakup.</span>
+            </a>
+
             <a href="/vendor/discovery" className="aiMarketPulseCard">
               <strong>🎯 Find Vendors</strong>
               <span>Discover verified suppliers, service providers and rental vendors near you.</span>
@@ -1464,6 +1469,7 @@ return (
           <a href="/search">🔍 AI Smart Search</a>
           <a href="/rfq/general/new">⚡ Draft RFQ</a>
           <a href="/price-today#prediction">📊 Price Prediction</a>
+          <a href="/construction-cost/west-bengal/cooch-behar">🏗 Construction Calculator</a>
           <a href="/vendor/discovery">🎯 Find Vendors</a>
           <a href="/dashboard/procurement-live">🧠 Mission Control</a>
           <a href="/dashboard/inbox">💬 Continue Workflow</a>

@@ -12,6 +12,11 @@ import { Grid } from "@/components/ui/Grid";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ActionButton } from "@/components/ui/ActionButton";
+import {
+  estimateConstructionCost,
+  formatIndianCurrency,
+} from "@/lib/construction-cost/cost-utils";
+import type { ConstructionGrade } from "@/lib/construction-cost/cost-config";
 
 type WizardStep = 1 | 2 | 3;
 
@@ -172,6 +177,149 @@ function defaultMilestones(): PaymentMilestone[] {
   ];
 }
 
+type ScopeSection = {
+  title: string;
+  items: string[];
+};
+
+function getTurnkeyGradeText(t?: TurnkeyTemplateRow | null) {
+  const grade = String(t?.grade || t?.template_code || "").toUpperCase();
+  const subgrade = String(t?.public_label || "").toLowerCase();
+
+  if (subgrade.includes("premium") || grade.includes("PREMIUM") || String(t?.template_code || "").endsWith("3")) {
+    return "premium";
+  }
+
+  if (subgrade.includes("standard") || grade.includes("STANDARD") || String(t?.template_code || "").endsWith("2")) {
+    return "standard";
+  }
+
+  return "economy";
+}
+
+function getDefaultTurnkeyScope(t?: TurnkeyTemplateRow | null): ScopeSection[] {
+  const grade = getTurnkeyGradeText(t);
+
+  const tmt =
+    grade === "premium"
+      ? "Reputed branded TMT Fe500D/Fe550D as per structural design and market availability."
+      : grade === "standard"
+      ? "Branded TMT Fe500/Fe500D as per structural design."
+      : "ISI/local non-branded TMT Fe500 subject to buyer approval and structural requirement.";
+
+  const cement =
+    grade === "premium"
+      ? "Premium OPC 53 / PPC cement from reputed brands as per work stage requirement."
+      : grade === "standard"
+      ? "Branded OPC 43/53 or PPC cement as per work requirement."
+      : "Standard OPC/PPC cement, normally 43 grade or equivalent, subject to availability.";
+
+  const brick =
+    grade === "premium"
+      ? "Premium first-class brick / AAC block / fly-ash block as mutually finalized."
+      : grade === "standard"
+      ? "First-class machine-made brick / good quality fly-ash brick / AAC block as finalized."
+      : "Standard first-class brick or locally available good quality brick.";
+
+  return [
+    {
+      title: "Structural & RCC Work",
+      items: [
+        "Foundation, column, beam, lintel, roof slab and staircase RCC as per approved structural design.",
+        tmt,
+        cement,
+        "Stone chips, sand and shuttering quality to be suitable for residential construction.",
+      ],
+    },
+    {
+      title: "Brick / Block Masonry",
+      items: [
+        brick,
+        "External and internal wall thickness as per drawing and package specification.",
+        "Mortar mix to follow practical site requirement and engineering guidance.",
+      ],
+    },
+    {
+      title: "Plastering & Finishing Base",
+      items: [
+        "Internal and external plaster with proper line, level and curing.",
+        "Wall putty / primer / finishing layer depends on package grade and final inclusion.",
+      ],
+    },
+    {
+      title: "Flooring",
+      items: [
+        grade === "premium"
+          ? "Premium vitrified tiles / equivalent flooring range as finalized."
+          : grade === "standard"
+          ? "Standard vitrified tiles / ceramic tiles within agreed range."
+          : "Basic ceramic / vitrified flooring within economy range.",
+        "Skirting and bathroom floor/wall tiles as per agreed package.",
+      ],
+    },
+    {
+      title: "Electrical Work",
+      items: [
+        grade === "premium"
+          ? "Concealed wiring with reputed branded wires, modular switches and DB protection."
+          : grade === "standard"
+          ? "Concealed wiring with branded wires and standard modular switches."
+          : "Basic concealed wiring with standard quality wires and switches.",
+        "Point quantity, inverter/AC/geyser points and earthing must be clarified before rate finalization.",
+      ],
+    },
+    {
+      title: "Plumbing & Sanitary",
+      items: [
+        grade === "premium"
+          ? "Branded CPVC/UPVC plumbing lines with premium sanitary fittings as finalized."
+          : grade === "standard"
+          ? "Branded/standard CPVC/UPVC plumbing lines and sanitary fittings."
+          : "Standard plumbing lines and basic sanitary fittings.",
+        "Water tank, pump, septic tank, soak pit and drainage scope must be clearly confirmed.",
+      ],
+    },
+    {
+      title: "Doors, Windows & Grill",
+      items: [
+        grade === "premium"
+          ? "Premium flush doors / laminated doors / aluminium or UPVC windows as per package."
+          : grade === "standard"
+          ? "Standard flush doors and aluminium/steel windows as per package."
+          : "Basic flush doors and standard windows as agreed.",
+        "Main gate, boundary, safety grill and extra fabrication are included only if specifically written.",
+      ],
+    },
+    {
+      title: "Painting & Waterproofing",
+      items: [
+        grade === "premium"
+          ? "Premium interior/exterior paint system with primer and putty as applicable."
+          : grade === "standard"
+          ? "Standard interior/exterior paint with primer."
+          : "Basic paint finish as per economy package.",
+        "Roof waterproofing, toilet waterproofing and damp treatment must be separately mentioned if included.",
+      ],
+    },
+    {
+      title: "Common Exclusions Unless Written",
+      items: [
+        "Land cost, mutation, conversion, plan sanction fees, architect/engineer fees and government charges.",
+        "Deep piling, soil testing, boundary wall, gate, extra height, premium elevation, modular kitchen and furniture.",
+        "Electrical meter, transformer, water connection, borewell, pump, septic tank, soak pit or drainage unless included.",
+        "Rate may change due to soil condition, road access, material price rise, floor height, design change or remote site logistics.",
+      ],
+    },
+  ];
+}
+
+function getTemplateScopeText(t?: TurnkeyTemplateRow | null) {
+  return [t?.scope_of_work, t?.full_scope, t?.material_specification]
+    .map((x) => String(x || "").trim())
+    .filter(Boolean)
+    .join("\n\n");
+}
+
 function makeDraftFromTemplate(t: TurnkeyTemplateRow): VendorTurnkeyDraft {
   return {
     key: uid(),
@@ -209,6 +357,7 @@ export default function AddTurnkeyPage() {
   const [templates, setTemplates] = useState<TurnkeyTemplateRow[]>([]);
   const [drafts, setDrafts] = useState<VendorTurnkeyDraft[]>([]);
   const [activeKey, setActiveKey] = useState<string>("");
+  const [openScopeCode, setOpenScopeCode] = useState<string>("");
 
   async function ensureProviderId(): Promise<string | null> {
     const { data: pid, error } = await supabase.rpc("upsert_service_provider_for_me");
@@ -312,7 +461,32 @@ setActiveKey(ds[0]?.key ?? "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const [turnkeyPreviewAreaSqFt, setTurnkeyPreviewAreaSqFt] = useState(1000);
+  const [turnkeyPreviewFloorCount, setTurnkeyPreviewFloorCount] = useState(1);
+  const [turnkeyPreviewGrade, setTurnkeyPreviewGrade] =
+    useState<ConstructionGrade>("standard");
+
   const activeDraft = useMemo(() => drafts.find((d) => d.key === activeKey) ?? drafts[0] ?? null, [drafts, activeKey]);
+
+  const turnkeyCostPreview = useMemo(
+    () =>
+      estimateConstructionCost({
+        builtUpAreaSqFt: turnkeyPreviewAreaSqFt,
+        floorCount: turnkeyPreviewFloorCount,
+        grade: turnkeyPreviewGrade,
+        region: "cooch_behar",
+        customRatePerSqFt:
+          typeof activeDraft?.vendor_rate_per_sqft === "number"
+            ? activeDraft.vendor_rate_per_sqft
+            : undefined,
+      }),
+    [
+      activeDraft?.vendor_rate_per_sqft,
+      turnkeyPreviewAreaSqFt,
+      turnkeyPreviewFloorCount,
+      turnkeyPreviewGrade,
+    ],
+  );
 
   function setDraft(key: string, patch: Partial<VendorTurnkeyDraft>) {
     setDrafts((prev) => prev.map((d) => (d.key === key ? { ...d, ...patch } : d)));
@@ -581,6 +755,82 @@ setActiveKey(ds[0]?.key ?? "");
                                 </div>
                               ) : null}
 
+                              <div style={{ marginTop: 10 }}>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setOpenScopeCode((prev) => (prev === t.template_code ? "" : t.template_code))
+                                  }
+                                  style={{
+                                    ...styles.miniBtn(openScopeCode === t.template_code),
+                                    width: "100%",
+                                    textAlign: "left",
+                                    background: openScopeCode === t.template_code ? "#eff6ff" : "#fff",
+                                  }}
+                                >
+                                  {openScopeCode === t.template_code ? "Hide Scope of Work ↑" : "View Scope of Work ↓"}
+                                </button>
+                              </div>
+
+                              {openScopeCode === t.template_code ? (
+                                <div
+                                  style={{
+                                    marginTop: 10,
+                                    border: "1px solid #bfdbfe",
+                                    background: "#eff6ff",
+                                    borderRadius: 14,
+                                    padding: 12,
+                                  }}
+                                >
+                                  <div style={{ fontWeight: 950, color: "#1e3a8a", marginBottom: 8 }}>
+                                    Detailed Scope for Rate Calculation
+                                  </div>
+
+                                  {getTemplateScopeText(t) ? (
+                                    <div
+                                      style={{
+                                        whiteSpace: "pre-wrap",
+                                        fontSize: 12,
+                                        lineHeight: 1.55,
+                                        color: "#1f2937",
+                                        marginBottom: 10,
+                                      }}
+                                    >
+                                      {getTemplateScopeText(t)}
+                                    </div>
+                                  ) : null}
+
+                                  <div style={{ display: "grid", gap: 8 }}>
+                                    {getDefaultTurnkeyScope(t).map((section) => (
+                                      <div
+                                        key={section.title}
+                                        style={{
+                                          border: "1px solid #dbeafe",
+                                          background: "#fff",
+                                          borderRadius: 12,
+                                          padding: 10,
+                                        }}
+                                      >
+                                        <div style={{ fontWeight: 950, color: "#0f172a", fontSize: 13 }}>
+                                          {section.title}
+                                        </div>
+                                        <div
+                                          style={{
+                                            marginTop: 5,
+                                            whiteSpace: "pre-wrap",
+                                            color: "#475569",
+                                            fontSize: 12,
+                                            lineHeight: 1.55,
+                                          }}
+                                        >
+                                          {section.items.map((x) => `• ${x}`).join("\n")}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : null}
+
                               {t.full_scope || t.material_specification || t.scope_of_work ? (
                                 <div style={{ marginTop: 10, ...styles.box }}>
                                   <div style={{ fontWeight: 900, marginBottom: 6, fontSize: 13 }}>Template details</div>
@@ -651,6 +901,108 @@ setActiveKey(ds[0]?.key ?? "");
                     <div style={{ fontWeight: 900, fontSize: 16 }}>Step 2: Pricing & Terms</div>
                     <div style={{ color: "#5b6472", fontSize: 13 }}>
                       Choose an enabled package and fill your details. (Selection is done in Step 1.)
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 12,
+                        border: "1px solid rgba(22,163,74,0.24)",
+                        background: "linear-gradient(135deg, rgba(22,163,74,0.08), #ffffff)",
+                        borderRadius: 16,
+                        padding: 14,
+                      }}
+                    >
+                      <div style={{ fontWeight: 950, color: "#166534", fontSize: 16 }}>
+                        🏗 AI Turnkey Cost Preview
+                      </div>
+
+                      <div style={{ marginTop: 4, color: "#475569", fontSize: 12, fontWeight: 700 }}>
+                        Helps contractor understand approximate project value before entering per sq.ft rate.
+                      </div>
+
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                          gap: 10,
+                          marginTop: 12,
+                        }}
+                      >
+                        <label>
+                          <div style={styles.label}>Built-up area sq.ft</div>
+                          <input
+                            type="number"
+                            value={turnkeyPreviewAreaSqFt}
+                            onChange={(e) => setTurnkeyPreviewAreaSqFt(Number(e.target.value || 1000))}
+                            style={styles.input}
+                          />
+                        </label>
+
+                        <label>
+                          <div style={styles.label}>Floors</div>
+                          <select
+                            value={turnkeyPreviewFloorCount}
+                            onChange={(e) => setTurnkeyPreviewFloorCount(Number(e.target.value))}
+                            style={styles.input}
+                          >
+                            {[1, 2, 3, 4, 5].map((floor) => (
+                              <option key={floor} value={floor}>
+                                {floor} Floor{floor > 1 ? "s" : ""}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <label>
+                          <div style={styles.label}>Grade</div>
+                          <select
+                            value={turnkeyPreviewGrade}
+                            onChange={(e) => setTurnkeyPreviewGrade(e.target.value as ConstructionGrade)}
+                            style={styles.input}
+                          >
+                            <option value="economy">Economy</option>
+                            <option value="standard">Standard</option>
+                            <option value="premium">Premium</option>
+                          </select>
+                        </label>
+                      </div>
+
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                          gap: 10,
+                          marginTop: 12,
+                        }}
+                      >
+                        <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
+                          <div style={{ fontSize: 12, color: "#166534", fontWeight: 900 }}>
+                            Estimated Total
+                          </div>
+                          <div style={{ marginTop: 4, color: "#14532d", fontWeight: 1000, fontSize: 18 }}>
+                            {formatIndianCurrency(turnkeyCostPreview.estimatedTotal)}
+                          </div>
+                        </div>
+
+                        <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
+                          <div style={{ fontSize: 12, color: "#1e40af", fontWeight: 900 }}>
+                            Current Rate / Sq.ft
+                          </div>
+                          <div style={{ marginTop: 4, color: "#1e3a8a", fontWeight: 1000, fontSize: 18 }}>
+                            {formatIndianCurrency(turnkeyCostPreview.ratePerSqFt)}
+                          </div>
+                        </div>
+
+                        <div style={{ border: "1px solid #fde68a", background: "#fffbeb", borderRadius: 12, padding: 10 }}>
+                          <div style={{ fontSize: 12, color: "#92400e", fontWeight: 900 }}>
+                            Market Range
+                          </div>
+                          <div style={{ marginTop: 4, color: "#78350f", fontWeight: 1000, fontSize: 13 }}>
+                            {formatIndianCurrency(turnkeyCostPreview.estimatedMinTotal)} -{" "}
+                            {formatIndianCurrency(turnkeyCostPreview.estimatedMaxTotal)}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -730,6 +1082,104 @@ setActiveKey(ds[0]?.key ?? "");
                             Enabled
                           </label>
                         </div>
+
+                        {(() => {
+                          const activeTemplate = templates.find((x) => x.template_code === activeDraft.template_code);
+                          return (
+                            <div
+                              style={{
+                                marginTop: 12,
+                                border: "1px solid #fed7aa",
+                                background: "#fff7ed",
+                                borderRadius: 16,
+                                padding: 12,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  gap: 10,
+                                  flexWrap: "wrap",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <div>
+                                  <div style={{ fontWeight: 950, color: "#9a3412" }}>
+                                    Scope of Work before quoting per sqft
+                                  </div>
+                                  <div style={{ marginTop: 4, fontSize: 12, color: "#7c2d12", lineHeight: 1.5 }}>
+                                    Contractor should check material grade, TMT, cement, brick/block, electrical,
+                                    plumbing and exclusions before entering rate.
+                                  </div>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setOpenScopeCode((prev) =>
+                                      prev === activeDraft.template_code ? "" : activeDraft.template_code
+                                    )
+                                  }
+                                  style={{
+                                    ...styles.miniBtn(openScopeCode === activeDraft.template_code),
+                                    background: "#fff",
+                                  }}
+                                >
+                                  {openScopeCode === activeDraft.template_code ? "Hide Scope" : "View Scope of Work"}
+                                </button>
+                              </div>
+
+                              {openScopeCode === activeDraft.template_code ? (
+                                <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+                                  {getTemplateScopeText(activeTemplate) ? (
+                                    <div
+                                      style={{
+                                        border: "1px solid #fed7aa",
+                                        background: "#fff",
+                                        borderRadius: 12,
+                                        padding: 10,
+                                        whiteSpace: "pre-wrap",
+                                        color: "#334155",
+                                        fontSize: 12,
+                                        lineHeight: 1.55,
+                                      }}
+                                    >
+                                      {getTemplateScopeText(activeTemplate)}
+                                    </div>
+                                  ) : null}
+
+                                  {getDefaultTurnkeyScope(activeTemplate).map((section) => (
+                                    <div
+                                      key={section.title}
+                                      style={{
+                                        border: "1px solid #fed7aa",
+                                        background: "#fff",
+                                        borderRadius: 12,
+                                        padding: 10,
+                                      }}
+                                    >
+                                      <div style={{ fontWeight: 950, color: "#0f172a", fontSize: 13 }}>
+                                        {section.title}
+                                      </div>
+                                      <div
+                                        style={{
+                                          marginTop: 5,
+                                          whiteSpace: "pre-wrap",
+                                          color: "#475569",
+                                          fontSize: 12,
+                                          lineHeight: 1.55,
+                                        }}
+                                      >
+                                        {section.items.map((x) => `• ${x}`).join("\n")}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })()}
 
                         <div style={{ marginTop: 12, ...styles.box }}>
                           <div style={{ fontWeight: 900, marginBottom: 8 }}>Pricing</div>

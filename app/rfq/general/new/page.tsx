@@ -8,6 +8,11 @@ import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import ProcurementCopilotBox from "@/app/components/ai/ProcurementCopilotBox";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import {
+  estimateConstructionCost,
+  formatIndianCurrency,
+} from "@/lib/construction-cost/cost-utils";
+import type { ConstructionGrade } from "@/lib/construction-cost/cost-config";
 
 type RfqModule = "materials" | "services" | "rentals" | "properties";
 
@@ -272,6 +277,12 @@ function RfqGeneralNewPageInner() {
   const [liveSuggestions, setLiveSuggestions] = useState<LiveProcurementSuggestion[]>([]);
   const [estimatedBudget, setEstimatedBudget] = useState("");
   const [negotiationCoach, setNegotiationCoach] = useState("");
+
+  const [showConstructionBudget, setShowConstructionBudget] = useState(false);
+  const [constructionAreaSqFt, setConstructionAreaSqFt] = useState(1000);
+  const [constructionFloorCount, setConstructionFloorCount] = useState(1);
+  const [constructionGrade, setConstructionGrade] =
+    useState<ConstructionGrade>("standard");
 
   const [aiAutocomplete, setAiAutocomplete] =
     useState<AiAutocompleteSuggestion | null>(null);
@@ -1787,6 +1798,17 @@ return;
     showPopup("Quick RFQ draft prepared. Please review and submit.", "success");
   }
 
+  const constructionBudgetEstimate = useMemo(
+    () =>
+      estimateConstructionCost({
+        builtUpAreaSqFt: constructionAreaSqFt,
+        floorCount: constructionFloorCount,
+        grade: constructionGrade,
+        region: city.toLowerCase().includes("cooch") ? "cooch_behar" : "default",
+      }),
+    [constructionAreaSqFt, constructionFloorCount, constructionGrade, city],
+  );
+
   const browseLink = `${browseHref(module)}?returnTo=${encodeURIComponent("/rfq/general/new")}&module=${encodeURIComponent(module)}`;
 
   return (
@@ -2885,6 +2907,185 @@ return;
         district=""
         locality={locality}
       />
+
+      <div
+        style={{
+          border: "1px solid rgba(22,163,74,0.28)",
+          background: "linear-gradient(135deg, rgba(22,163,74,0.08), #ffffff)",
+          borderRadius: 18,
+          padding: 16,
+          marginTop: 14,
+          marginBottom: 18,
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setShowConstructionBudget((prev) => !prev)}
+          style={{
+            width: "100%",
+            border: 0,
+            background: "transparent",
+            padding: 0,
+            cursor: "pointer",
+            textAlign: "left",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 1000, color: "#166534" }}>
+                🏗 AI Construction Budget Prediction
+              </div>
+              <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 4 }}>
+                Estimate house construction budget before submitting RFQ.
+              </div>
+            </div>
+
+            <div style={{ fontSize: 22, fontWeight: 1000, color: "#166534" }}>
+              {showConstructionBudget ? "−" : "+"}
+            </div>
+          </div>
+        </button>
+
+        {showConstructionBudget ? (
+          <div style={{ marginTop: 14 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  typeof window !== "undefined" && window.innerWidth < 768
+                    ? "1fr"
+                    : "repeat(3, minmax(0, 1fr))",
+                gap: 10,
+              }}
+            >
+              <label>
+                <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 5 }}>
+                  Built-up area sq.ft
+                </div>
+                <input
+                  type="number"
+                  value={constructionAreaSqFt}
+                  onChange={(e) => setConstructionAreaSqFt(Number(e.target.value || 1000))}
+                  style={{
+                    width: "100%",
+                    border: "1px solid #cbd5e1",
+                    borderRadius: 12,
+                    padding: "10px 12px",
+                    fontWeight: 700,
+                  }}
+                />
+              </label>
+
+              <label>
+                <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 5 }}>
+                  Floors
+                </div>
+                <select
+                  value={constructionFloorCount}
+                  onChange={(e) => setConstructionFloorCount(Number(e.target.value))}
+                  style={{
+                    width: "100%",
+                    border: "1px solid #cbd5e1",
+                    borderRadius: 12,
+                    padding: "10px 12px",
+                    fontWeight: 700,
+                  }}
+                >
+                  {[1, 2, 3, 4, 5].map((floor) => (
+                    <option key={floor} value={floor}>
+                      {floor} Floor{floor > 1 ? "s" : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                <div style={{ fontSize: 12, fontWeight: 900, marginBottom: 5 }}>
+                  Grade
+                </div>
+                <select
+                  value={constructionGrade}
+                  onChange={(e) => setConstructionGrade(e.target.value as ConstructionGrade)}
+                  style={{
+                    width: "100%",
+                    border: "1px solid #cbd5e1",
+                    borderRadius: 12,
+                    padding: "10px 12px",
+                    fontWeight: 700,
+                  }}
+                >
+                  <option value="economy">Economy</option>
+                  <option value="standard">Standard</option>
+                  <option value="premium">Premium</option>
+                </select>
+              </label>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  typeof window !== "undefined" && window.innerWidth < 768
+                    ? "1fr"
+                    : "repeat(3, minmax(0, 1fr))",
+                gap: 10,
+                marginTop: 12,
+              }}
+            >
+              <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 12, padding: 12 }}>
+                <div style={{ fontSize: 12, color: "#166534", fontWeight: 900 }}>
+                  Estimated Budget
+                </div>
+                <div style={{ marginTop: 4, color: "#14532d", fontSize: 20, fontWeight: 1000 }}>
+                  {formatIndianCurrency(constructionBudgetEstimate.estimatedTotal)}
+                </div>
+              </div>
+
+              <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: 12 }}>
+                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
+                  Rate Per Sq.ft
+                </div>
+                <div style={{ marginTop: 4, color: "#0f172a", fontSize: 20, fontWeight: 1000 }}>
+                  {formatIndianCurrency(constructionBudgetEstimate.ratePerSqFt)}
+                </div>
+              </div>
+
+              <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: 12, padding: 12 }}>
+                <div style={{ fontSize: 12, color: "#92400e", fontWeight: 900 }}>
+                  Expected Range
+                </div>
+                <div style={{ marginTop: 4, color: "#78350f", fontSize: 14, fontWeight: 1000 }}>
+                  {formatIndianCurrency(constructionBudgetEstimate.estimatedMinTotal)} -{" "}
+                  {formatIndianCurrency(constructionBudgetEstimate.estimatedMaxTotal)}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="topBtn topBtnPrimary"
+              style={{ marginTop: 12 }}
+              onClick={() => {
+                const block = [
+                  "AI Construction Budget Estimate:",
+                  `Built-up area: ${constructionAreaSqFt} sq.ft`,
+                  `Floors: ${constructionFloorCount}`,
+                  `Grade: ${constructionGrade}`,
+                  `Estimated budget: ${formatIndianCurrency(constructionBudgetEstimate.estimatedTotal)}`,
+                  `Estimated rate: ${formatIndianCurrency(constructionBudgetEstimate.ratePerSqFt)} per sq.ft`,
+                  `Expected range: ${formatIndianCurrency(constructionBudgetEstimate.estimatedMinTotal)} - ${formatIndianCurrency(constructionBudgetEstimate.estimatedMaxTotal)}`,
+                ].join("\n");
+
+                setDescription((prev) => (prev.trim() ? `${prev}\n\n${block}` : block));
+                setModule("services");
+                showPopup("Construction budget estimate added to RFQ description.", "success");
+              }}
+            >
+              Add Estimate to RFQ
+            </button>
+          </div>
+        ) : null}
+      </div>
 
       <div
         style={{
