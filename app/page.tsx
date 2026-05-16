@@ -944,7 +944,7 @@ return (
           <div className="universalBuyerContent">
             <span>⚡ Fast Marketplace Actions</span>
 
-            <h2>Tell 3bigha what you need.</h2>
+            <h2>Search Property, Materials, Services, Rentals & Vendors</h2>
 
             <p>
               Property, materials, services, rentals, contractors and RFQs —
@@ -1408,7 +1408,7 @@ return (
 
 
 AI Live Marketplace Feed</h2>
-            <p>Fresh local listings, prices and opportunities surfaced from the 3bigha marketplace.</p>
+            <p>Fresh local listings, prices and opportunities surfaced from the 3Bigha marketplace.</p>
           </div>
           <a href="/search">View all →</a>
         </div>

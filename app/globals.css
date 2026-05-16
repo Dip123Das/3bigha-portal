@@ -1291,3 +1291,29 @@ button[class*="actionButton"] {
     max-width: none !important;
   }
 }
+
+/* SEARCH-FIRST HOMEPAGE UPGRADE */
+@media (min-width: 981px) {
+  .pageBody textarea,
+  .pageBody input[type="text"],
+  .pageBody input[type="search"] {
+    font-size: 17px !important;
+  }
+
+  .pageBody textarea {
+    min-height: 72px !important;
+    font-weight: 600 !important;
+    border: 2px solid rgba(37, 99, 235, 0.14) !important;
+    box-shadow: 0 10px 35px rgba(37, 99, 235, 0.10) !important;
+  }
+
+  .pageBody button,
+  .pageBody a {
+    scroll-margin-top: 120px;
+  }
+
+  .pageBody button:has(+ span),
+  .pageBody button[type="submit"] {
+    font-weight: 800 !important;
+  }
+}
