@@ -841,6 +841,96 @@ button[class*="actionButton"] {
   color: #0b57d0;
 }
 
+/* CLEAN DESKTOP MEGA NAV */
+
+.desktopMegaNav {
+  position: sticky;
+  top: 0;
+  z-index: 120;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.desktopMegaNavInner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  position: relative;
+}
+
+.megaMenuItem {
+  position: relative;
+}
+
+.megaMenuButton {
+  border: none;
+  background: transparent;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #0f172a;
+  transition: all 0.2s ease;
+}
+
+.megaMenuButton:hover {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.megaMenuPanel {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  min-width: 760px;
+  display: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  padding: 28px;
+  background: #ffffff;
+  border-radius: 22px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.18);
+}
+
+.megaMenuItem:hover .megaMenuPanel {
+  display: grid;
+}
+
+.megaMenuTitle {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 14px;
+}
+
+.megaMenuGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.megaMenuGroup a {
+  color: #0f172a;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.megaMenuGroup a:hover {
+  color: #2563eb;
+  transform: translateX(4px);
+}
+
+@media (max-width: 980px) {
+  .desktopMegaNav {
+    display: none;
+  }
+}
+
 @media (max-width: 980px) {
   .desktopMegaNav {
     display: none;

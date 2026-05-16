@@ -582,46 +582,190 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {
                 label: "Property",
                 groups: [
-                  { title: "Popular", links: [["Buy Property", "/property"], ["Post Property", "/property/add"], ["Builder Projects", "/property/builder/projects"]] },
-                  { title: "Property Types", links: [["Land / Plot", "/property"], ["Flat / House", "/property"], ["Commercial", "/property"]] },
-                  { title: "Tools", links: [["Price Today", "/price-today"], ["AI Search", "/search"], ["Submit Requirement", "/rfq/general/new"]] },
+                  {
+                    title: "Buy & Sell",
+                    links: [
+                      ["Buy Property", "/property"],
+                      ["Post Property", "/property/add"],
+                      ["Builder Projects", "/property/builder/projects"],
+                      ["Land / Plot", "/property"],
+                      ["Flat / House", "/property"],
+                      ["Commercial", "/property"],
+                    ],
+                  },
+                  {
+                    title: "Investment",
+                    links: [
+                      ["Investment Opportunities", "/investment"],
+                      ["Price Today", "/price-today"],
+                      ["AI Search", "/search"],
+                      ["Submit Requirement", "/rfq/general/new"],
+                    ],
+                  },
                 ],
               },
+
               {
                 label: "Materials",
                 groups: [
-                  { title: "Materials", links: [["Cement", "/materials"], ["Steel / Rod", "/materials"], ["Sand / Bricks", "/materials"]] },
-                  { title: "Buying", links: [["Submit Material RFQ", "/rfq/general/new"], ["Compare Vendors", "/vendor/discovery"], ["Price Intelligence", "/price-today"]] },
+                  {
+                    title: "Building Materials",
+                    links: [
+                      ["Cement", "/materials"],
+                      ["Steel / Rod", "/materials"],
+                      ["Sand", "/materials"],
+                      ["Bricks", "/materials"],
+                      ["Aggregates", "/materials"],
+                      ["Tiles", "/materials"],
+                      ["Paint", "/materials"],
+                      ["Plumbing", "/materials"],
+                    ],
+                  },
+                  {
+                    title: "Marketplace",
+                    links: [
+                      ["Compare Vendors", "/vendor/discovery"],
+                      ["Submit Material RFQ", "/rfq/general/new"],
+                      ["Price Intelligence", "/price-today"],
+                      ["Local Suppliers", "/materials"],
+                    ],
+                  },
                 ],
               },
+
               {
                 label: "Services",
                 groups: [
-                  { title: "Construction Services", links: [["Mason", "/services"], ["Electrician", "/services"], ["Plumber", "/services"], ["Contractor", "/services"]] },
-                  { title: "Professional", links: [["Legal Services", "/services"], ["Engineer", "/services"], ["Documentation", "/services"]] },
+                  {
+                    title: "Construction Services",
+                    links: [
+                      ["Mason", "/services"],
+                      ["Electrician", "/services"],
+                      ["Plumber", "/services"],
+                      ["Contractor", "/services"],
+                      ["Architect", "/services"],
+                      ["Engineer", "/services"],
+                      ["Interior", "/services"],
+                    ],
+                  },
+                  {
+                    title: "Professional Services",
+                    links: [
+                      ["Legal Services", "/services"],
+                      ["Documentation", "/services"],
+                      ["Property Valuation", "/services"],
+                      ["Survey Services", "/services"],
+                    ],
+                  },
                 ],
               },
+
               {
                 label: "Rentals",
                 groups: [
-                  { title: "Equipment", links: [["JCB / Excavator", "/rentals"], ["Tools", "/rentals"], ["Shuttering", "/rentals"]] },
-                  { title: "Workflow", links: [["Find Rental", "/rentals"], ["Submit Requirement", "/rfq/general/new"]] },
+                  {
+                    title: "Machines & Equipment",
+                    links: [
+                      ["JCB / Excavator", "/rentals"],
+                      ["Concrete Mixer", "/rentals"],
+                      ["Tools", "/rentals"],
+                      ["Shuttering", "/rentals"],
+                      ["Scaffolding", "/rentals"],
+                      ["Truck / Transport", "/rentals"],
+                    ],
+                  },
+                  {
+                    title: "Rental Workflow",
+                    links: [
+                      ["Find Rental", "/rentals"],
+                      ["Rental Requirement", "/rfq/general/new"],
+                      ["Rental Vendors", "/rentals"],
+                    ],
+                  },
                 ],
               },
+
+              {
+                label: "Construction",
+                groups: [
+                  {
+                    title: "AI Construction Tools",
+                    links: [
+                      ["Construction Cost", "/construction-cost"],
+                      ["BOQ Generator", "/construction-cost"],
+                      ["Material Estimator", "/construction-cost"],
+                      ["Timeline Planner", "/construction-cost"],
+                    ],
+                  },
+                  {
+                    title: "Execution",
+                    links: [
+                      ["Turnkey Construction", "/services"],
+                      ["Construction RFQ", "/rfq/general/new"],
+                      ["Find Contractors", "/services"],
+                    ],
+                  },
+                ],
+              },
+
               {
                 label: "AI Tools",
                 groups: [
-                  { title: "AI Workflows", links: [["AI Search Guide", "/search"], ["AI Procurement OS", "/dashboard/procurement-health"], ["Construction Cost", "/construction-cost"]] },
-                  { title: "Business", links: [["Price Today", "/price-today"], ["Unified Inbox", "/dashboard/inbox-v2"], ["Support", "/support/my"]] },
+                  {
+                    title: "AI Workflows",
+                    links: [
+                      ["AI Search Guide", "/search"],
+                      ["AI Procurement OS", "/dashboard/procurement-health"],
+                      ["Unified Inbox", "/dashboard/inbox-v2"],
+                      ["Price Today", "/price-today"],
+                    ],
+                  },
+                  {
+                    title: "Automation",
+                    links: [
+                      ["Vendor Discovery", "/vendor/discovery"],
+                      ["Market Intelligence", "/price-today"],
+                      ["AI RFQ Assistant", "/rfq/general/new"],
+                      ["AI Support", "/support/my"],
+                    ],
+                  },
+                ],
+              },
+
+              {
+                label: "Blog / News",
+                groups: [
+                  {
+                    title: "News & Guides",
+                    links: [
+                      ["Latest Blogs", "/blog"],
+                      ["Construction Guides", "/blog"],
+                      ["Property News", "/blog"],
+                      ["Material Price News", "/blog"],
+                      ["Rental Market Updates", "/blog"],
+                    ],
+                  },
+                  {
+                    title: "Knowledge",
+                    links: [
+                      ["AI Marketplace Guide", "/ai-search-guide"],
+                      ["Local Market Trends", "/blog"],
+                      ["Investment Insights", "/blog"],
+                    ],
+                  },
                 ],
               },
             ].map((menu) => (
-              <details className="megaMenuItem" key={menu.label}>
-                <summary>{menu.label}</summary>
+              <div className="megaMenuItem" key={menu.label}>
+                <button className="megaMenuButton" type="button">
+                  {menu.label}
+                </button>
+
                 <div className="megaMenuPanel">
                   {menu.groups.map((group) => (
                     <div className="megaMenuGroup" key={group.title}>
                       <div className="megaMenuTitle">{group.title}</div>
+
                       {group.links.map(([label, href]) => (
                         <Link key={href + label} href={href}>
                           {label}
@@ -630,7 +774,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     </div>
                   ))}
                 </div>
-              </details>
+              </div>
             ))}
           </Container>
         </nav>
