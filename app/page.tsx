@@ -310,7 +310,7 @@ export default function HomePage() {
 
       <section className="contentSection">
         <div className="sectionHead"><div><h2>Browse by Category</h2><p>Explore all popular categories</p></div><a href="/search">View all categories →</a></div>
-        <div className="categoryGrid">
+        <div className={`categoryGrid premiumCategoryGrid ${mobileExpandedSections.categories ? "isMobileExpanded" : ""}`}>
           {categoryCards.map((item) => (
             <a href={item.href} className="categoryCard" key={item.title}>
               <div className="categoryIcon">{item.icon}</div>
@@ -321,10 +321,13 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+        <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("categories")}>
+          {mobileExpandedSections.categories ? "Show Less" : "See More Categories"}
+        </button>
 
       <section className="contentSection">
         <div className="sectionHead"><div><h2>Featured Listings</h2><p>Fresh opportunities from our marketplace</p></div><a href="/search">View all listings →</a></div>
-        <div className="listingGrid">
+        <div className={`listingGrid premiumListingsGrid ${mobileExpandedSections.featured ? "isMobileExpanded" : ""}`}>
           {featuredItems.map((item) => (
             <a href={item.href} className="listingCard" key={`${item.module}-${item.id}`}>
               <div className="listingImage">
@@ -341,10 +344,13 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+        <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("featured")}>
+          {mobileExpandedSections.featured ? "Show Less" : "See More Listings"}
+        </button>
 
       <section className="contentSection">
         <div className="sectionHead"><div><h2>Popular Tools & Calculators</h2><p>Make smart decisions with our AI tools</p></div></div>
-        <div className="toolsGrid">
+        <div className={`toolsGrid premiumToolsGrid ${mobileExpandedSections.tools ? "isMobileExpanded" : ""}`}>
           {tools.map((tool) => (
             <a href={tool.href} className="toolCard" key={tool.title}>
               <b>▣</b><div><h3>{tool.title}</h3><p>{tool.text}</p><span>{tool.action} →</span></div>
@@ -352,6 +358,9 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+        <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("tools")}>
+          {mobileExpandedSections.tools ? "Show Less" : "See More Tools"}
+        </button>
 
       <section className="rfqBanner">
         <div>
@@ -365,36 +374,45 @@ export default function HomePage() {
 
       <section className="contentSection">
         <div className="sectionHead"><div><h2>Today's Market Prices</h2><p>Live price updates from local markets</p></div><a href="/price-today">View all prices →</a></div>
-        <div className="priceGrid">
+        <div className={`priceGrid premiumPriceGrid ${mobileExpandedSections.prices ? "isMobileExpanded" : ""}`}>
           {marketPrices.map(([name, price, change]) => (
             <a href="/price-today" className="priceCard" key={name}><span>{name}</span><strong>{price}</strong><small>{change}</small></a>
           ))}
         </div>
       </section>
+        <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("prices")}>
+          {mobileExpandedSections.prices ? "Show Less" : "See More Prices"}
+        </button>
 
       <section className="splitSection">
         <div className="panelCard">
           <div className="sectionHead compact"><div><h2>Latest from Blog / News</h2><p>Stay updated with market insights</p></div><a href="/blog">View all blogs →</a></div>
-          <div className="blogList">
+          <div className={`blogList premiumBlogList ${mobileExpandedSections.blog ? "isMobileExpanded" : ""}`}>
             {blogItems.map((post, index) => <a href="/blog" key={post.title}><span>{index + 1}</span><div><strong>{post.title}</strong><small>{post.meta}</small></div></a>)}
           </div>
         </div>
 
         <div className="panelCard">
           <div className="sectionHead compact"><div><h2>Investment Opportunities</h2><p>High return investment options</p></div><a href="/investment/opportunities">View all →</a></div>
-          <div className="investmentGrid">
+          <div className={`investmentGrid premiumInvestmentGrid ${mobileExpandedSections.investment ? "isMobileExpanded" : ""}`}>
             <a href="/investment/opportunities"><div>🌿</div><strong>Green Valley Township</strong><span>₹15 Lakh Onwards</span><small>ROI: 18-22%</small></a>
             <a href="/investment/opportunities"><div>🏢</div><strong>Royal Enclave Project</strong><span>₹22 Lakh Onwards</span><small>ROI: 20-25%</small></a>
           </div>
         </div>
       </section>
+          <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("investment")}>
+            {mobileExpandedSections.investment ? "Show Less" : "See More Investments"}
+          </button>
 
       <section className="contentSection trustSection">
         <div><h2>Why 3Bigha Marketplace?</h2><p>Trusted by thousands of buyers and sellers</p></div>
-        <div className="trustGrid">
+        <div className={`trustGrid premiumTrustGrid ${mobileExpandedSections.trust ? "isMobileExpanded" : ""}`}>
           {["100% Verified", "Secure Payments", "Best Prices", "24/7 Support"].map((item) => <div key={item}><b>✓</b><strong>{item}</strong><span>We are here to help</span></div>)}
         </div>
       </section>
+        <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("trust")}>
+          {mobileExpandedSections.trust ? "Show Less" : "See More Benefits"}
+        </button>
 
       <section className="startBanner">
         <div><h2>Ready to get started?</h2><p>Join thousands of users who trust 3Bigha Marketplace</p></div>
