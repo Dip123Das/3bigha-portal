@@ -100,6 +100,7 @@ export default function HomePage() {
   const router = useRouter();
   const [scope, setScope] = useState<SearchScope>("property");
   const [query, setQuery] = useState("");
+  const [voiceListening, setVoiceListening] = useState(false);
   const [mobileExpandedSections, setMobileExpandedSections] = useState<Record<string, boolean>>({});
 
   function toggleMobileSection(section: string) {
@@ -223,10 +224,122 @@ export default function HomePage() {
     }
 
     loadFeaturedMarketplace();
+  
+  useEffect(() => {
+    const compactMobileSections = () => {
+      if (window.innerWidth > 640) return;
+
+      const headings = [
+        "Browse by Category",
+        "Featured Listings",
+        "Popular Tools",
+        "Today",
+        "Latest from Blog",
+        "Investment Opportunities",
+        "Why 3Bigha Marketplace",
+      ];
+
+      headings.forEach((headingText) => {
+        const heading = Array.from(document.querySelectorAll("h2, h3")).find((el) =>
+          (el.textContent || "").includes(headingText)
+        ) as HTMLElement | undefined;
+
+        if (!heading) return;
+
+        const section = heading.closest("section") as HTMLElement | null;
+        if (!section || section.dataset.mobileCompactReady === "true") return;
+
+        const cards = Array.from(
+          section.querySelectorAll("a, article, .card, [class*='Card']")
+        ).filter((el) => {
+          const item = el as HTMLElement;
+          return item.offsetParent !== null && !item.closest("button");
+        }) as HTMLElement[];
+
+        if (cards.length <= 3) return;
+
+        section.dataset.mobileCompactReady = "true";
+        section.classList.add("mobileCompactSection");
+
+        cards.forEach((card, index) => {
+          if (index >= 3) card.classList.add("mobileCompactHiddenItem");
+        });
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "mobileCompactSeeMoreBtn";
+        button.textContent = "See More";
+
+        button.addEventListener("click", () => {
+          const expanded = section.classList.toggle("mobileCompactExpanded");
+
+          cards.forEach((card, index) => {
+            if (index >= 3) {
+              card.classList.toggle("mobileCompactHiddenItem", !expanded);
+            }
+          });
+
+          button.textContent = expanded ? "Show Less" : "See More";
+        });
+
+        section.appendChild(button);
+      });
+    };
+
+    compactMobileSections();
+    window.addEventListener("resize", compactMobileSections);
+
     return () => {
+      window.removeEventListener("resize", compactMobileSections);
+    };
+  }, []);
+
+
+  return () => {
       alive = false;
     };
   }, []);
+
+
+  function startVoiceSearch() {
+    const browserWindow = window as any;
+    const SpeechRecognition =
+      browserWindow.SpeechRecognition || browserWindow.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert("Voice search is not supported in this browser. Please type your requirement.");
+      return;
+    }
+
+    setVoiceListening(true);
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-IN";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onresult = (event: any) => {
+      const transcript = event?.results?.[0]?.[0]?.transcript || "";
+      const cleanText = String(transcript).trim();
+
+      if (cleanText) {
+        setQuery(cleanText);
+      }
+
+      setVoiceListening(false);
+    };
+
+    recognition.onerror = () => {
+      setVoiceListening(false);
+      alert("Voice search failed. Please try again or type your requirement.");
+    };
+
+    recognition.onend = () => {
+      setVoiceListening(false);
+    };
+
+    recognition.start();
+  }
 
   function runSearch() {
     const clean = query.trim();
@@ -286,6 +399,9 @@ export default function HomePage() {
 
             <div className="searchActions">
               <button type="button" className="primaryAction" onClick={runSearch}>🔍 Search Marketplace</button>
+              <button type="button" className="voiceAction" onClick={startVoiceSearch}>
+                {voiceListening ? "Listening..." : "🎙 Voice Search"}
+              </button>
               <button type="button" className="secondaryAction" onClick={submitRequirement}>⚡ Submit Requirement</button>
             </div>
           </div>
@@ -398,7 +514,7 @@ export default function HomePage() {
 
       <section className="startBanner">
         <div><h2>Ready to get started?</h2><p>Join thousands of users who trust 3Bigha Marketplace</p></div>
-        <div><a href="/signup">Create Account</a><a href="/rfq/general/new">Post Your First Requirement</a></div>
+        <div><a href="/login">Create Account</a><a href="/rfq/general/new">Post Your First Requirement</a></div>
       </section>
 
       <footer className="homeFooter">
@@ -473,6 +589,55 @@ export default function HomePage() {
             font-weight: 1000;
             cursor: pointer;
             box-shadow: 0 10px 22px rgba(37, 99, 235, 0.08);
+          }
+        }
+
+
+        .voiceAction {
+          border: 1px solid rgba(37, 99, 235, 0.16);
+          background: linear-gradient(180deg, #ffffff, #eff6ff);
+          color: #1d4ed8;
+          border-radius: 14px;
+          padding: 14px 16px;
+          font-size: 14px;
+          font-weight: 1000;
+          cursor: pointer;
+          box-shadow: 0 10px 22px rgba(37, 99, 235, 0.08);
+        }
+
+        .voiceAction:hover {
+          background: #eaf2ff;
+        }
+
+
+        .mobileCompactSeeMoreBtn {
+          display: none;
+        }
+
+        @media (max-width: 640px) {
+          .mobileCompactHiddenItem {
+            display: none !important;
+          }
+
+          .mobileCompactSeeMoreBtn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 12px;
+            border: 1px solid rgba(37, 99, 235, 0.16);
+            border-radius: 14px;
+            background: linear-gradient(180deg, #ffffff, #eff6ff);
+            color: #1d4ed8;
+            padding: 12px 14px;
+            font-size: 13px;
+            font-weight: 1000;
+            cursor: pointer;
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.08);
+          }
+
+          .mobileCompactExpanded .mobileCompactSeeMoreBtn {
+            background: #ffffff;
           }
         }
 
