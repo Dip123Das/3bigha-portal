@@ -580,7 +580,32 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Container className="desktopMegaNavInner">
             {[
               {
+                label: "Home",
+                href: "/",
+                groups: [
+                  {
+                    title: "3Bigha Home",
+                    links: [
+                      ["Go to Homepage", "/"],
+                      ["Search Marketplace", "/search"],
+                      ["Submit Requirement", "/rfq/general/new"],
+                      ["Price Today", "/price-today"],
+                    ],
+                  },
+                  {
+                    title: "Quick Access",
+                    links: [
+                      ["Property", "/property"],
+                      ["Materials", "/materials"],
+                      ["Services", "/services"],
+                      ["Rentals", "/rentals"],
+                    ],
+                  },
+                ],
+              },
+              {
                 label: "Property",
+                href: "/property",
                 groups: [
                   {
                     title: "Buy & Sell",
@@ -607,6 +632,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
               {
                 label: "Materials",
+                href: "/materials",
                 groups: [
                   {
                     title: "Building Materials",
@@ -635,6 +661,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
               {
                 label: "Services",
+                href: "/services",
                 groups: [
                   {
                     title: "Construction Services",
@@ -662,6 +689,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
               {
                 label: "Rentals",
+                href: "/rentals",
                 groups: [
                   {
                     title: "Machines & Equipment",
@@ -687,6 +715,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
               {
                 label: "Construction",
+                href: "/construction-cost",
                 groups: [
                   {
                     title: "AI Construction Tools",
@@ -710,6 +739,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
               {
                 label: "AI Tools",
+                href: "/ai-search-guide",
                 groups: [
                   {
                     title: "AI Workflows",
@@ -734,6 +764,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
               {
                 label: "Blog / News",
+                href: "/blog",
                 groups: [
                   {
                     title: "News & Guides",
