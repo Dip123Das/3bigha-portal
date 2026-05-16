@@ -1197,3 +1197,47 @@ button[class*="actionButton"] {
     width: 100% !important;
   }
 }
+
+/* FINAL HOMEPAGE FULL WIDTH OVERRIDE */
+@media (min-width: 981px) {
+  body:has(.homePage),
+  main,
+  main > .container,
+  .pageBody,
+  .homePage,
+  .homePageRoot,
+  .homeShell,
+  .homeSection,
+  .homeContent,
+  .heroSection,
+  .marketplaceHero,
+  .homePage section,
+  .homePage > div,
+  .homePage article {
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  .pageBody {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  .homePage [style*="max-width"],
+  .homePage [style*="maxWidth"],
+  .pageBody [style*="max-width"],
+  .pageBody [style*="maxWidth"] {
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  .homePage [style*="grid-template-columns"],
+  .pageBody [style*="grid-template-columns"] {
+    width: 100% !important;
+  }
+
+  .homePage .card,
+  .pageBody .card {
+    width: 100% !important;
+  }
+}
