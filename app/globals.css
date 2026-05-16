@@ -1165,3 +1165,35 @@ button[class*="actionButton"] {
     width: 100%;
   }
 }
+
+/* FINAL HOME FULL-WIDTH FIX */
+@media (min-width: 981px) {
+  main,
+  main .container,
+  main .pageBody {
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  main .pageBody {
+    padding-left: 32px !important;
+    padding-right: 32px !important;
+  }
+
+  main .pageBody [style*="max-width"],
+  main .pageBody [style*="maxWidth"] {
+    max-width: calc(100vw - 64px) !important;
+    width: 100% !important;
+  }
+
+  main .pageBody [style*="margin: 0 auto"],
+  main .pageBody [style*="margin:0 auto"] {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  main .pageBody section,
+  main .pageBody > div {
+    width: 100% !important;
+  }
+}
