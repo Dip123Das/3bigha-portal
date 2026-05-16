@@ -1121,3 +1121,47 @@ button[class*="actionButton"] {
     font-size: 14px !important;
   }
 }
+
+/* FINAL FIX: clickable main mega links + full-width portal layout */
+@media (min-width: 981px) {
+  .megaMenuButton {
+    position: relative !important;
+    z-index: 10020 !important;
+    pointer-events: auto !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+  }
+
+  .megaMenuPanel {
+    pointer-events: auto !important;
+  }
+
+  .megaMenuItem:hover .megaMenuPanel {
+    display: grid !important;
+  }
+
+  .container,
+  .topHeaderInner,
+  .desktopMegaNavInner,
+  .pageBody,
+  .footerInner {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .pageBody {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  main > .container {
+    max-width: 100% !important;
+  }
+}
+
+/* Keep readable max width for inner homepage working blocks if they have their own cards */
+@media (min-width: 1280px) {
+  .pageBody > * {
+    width: 100%;
+  }
+}

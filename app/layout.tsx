@@ -582,7 +582,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {
                 label: "Home",
                 href: "/",
-                groups: [
+groups: [
                   {
                     title: "3Bigha Home",
                     links: [
@@ -606,7 +606,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {
                 label: "Property",
                 href: "/property",
-                groups: [
+groups: [
                   {
                     title: "Buy & Sell",
                     links: [
@@ -633,7 +633,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {
                 label: "Materials",
                 href: "/materials",
-                groups: [
+groups: [
                   {
                     title: "Building Materials",
                     links: [
@@ -662,7 +662,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {
                 label: "Services",
                 href: "/services",
-                groups: [
+groups: [
                   {
                     title: "Construction Services",
                     links: [
@@ -690,7 +690,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {
                 label: "Rentals",
                 href: "/rentals",
-                groups: [
+groups: [
                   {
                     title: "Machines & Equipment",
                     links: [
@@ -716,7 +716,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {
                 label: "Construction",
                 href: "/construction-cost",
-                groups: [
+groups: [
                   {
                     title: "AI Construction Tools",
                     links: [
@@ -740,7 +740,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {
                 label: "AI Tools",
                 href: "/ai-search-guide",
-                groups: [
+groups: [
                   {
                     title: "AI Workflows",
                     links: [
@@ -765,7 +765,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               {
                 label: "Blog / News",
                 href: "/blog",
-                groups: [
+groups: [
                   {
                     title: "News & Guides",
                     links: [
@@ -788,9 +788,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               },
             ].map((menu) => (
               <div className="megaMenuItem" key={menu.label}>
-                <button className="megaMenuButton" type="button">
-                  {menu.label}
-                </button>
+                <Link className="megaMenuButton" href={menu.href || "/"}>{menu.label}</Link>
 
                 <div className="megaMenuPanel">
                   {menu.groups.map((group) => (
