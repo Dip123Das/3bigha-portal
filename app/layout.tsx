@@ -576,6 +576,66 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
 
+        <nav className="desktopMegaNav" aria-label="Marketplace mega navigation">
+          <Container className="desktopMegaNavInner">
+            {[
+              {
+                label: "Property",
+                groups: [
+                  { title: "Popular", links: [["Buy Property", "/property"], ["Post Property", "/property/add"], ["Builder Projects", "/property/builder/projects"]] },
+                  { title: "Property Types", links: [["Land / Plot", "/property"], ["Flat / House", "/property"], ["Commercial", "/property"]] },
+                  { title: "Tools", links: [["Price Today", "/price-today"], ["AI Search", "/search"], ["Submit Requirement", "/rfq/general/new"]] },
+                ],
+              },
+              {
+                label: "Materials",
+                groups: [
+                  { title: "Materials", links: [["Cement", "/materials"], ["Steel / Rod", "/materials"], ["Sand / Bricks", "/materials"]] },
+                  { title: "Buying", links: [["Submit Material RFQ", "/rfq/general/new"], ["Compare Vendors", "/vendor/discovery"], ["Price Intelligence", "/price-today"]] },
+                ],
+              },
+              {
+                label: "Services",
+                groups: [
+                  { title: "Construction Services", links: [["Mason", "/services"], ["Electrician", "/services"], ["Plumber", "/services"], ["Contractor", "/services"]] },
+                  { title: "Professional", links: [["Legal Services", "/services"], ["Engineer", "/services"], ["Documentation", "/services"]] },
+                ],
+              },
+              {
+                label: "Rentals",
+                groups: [
+                  { title: "Equipment", links: [["JCB / Excavator", "/rentals"], ["Tools", "/rentals"], ["Shuttering", "/rentals"]] },
+                  { title: "Workflow", links: [["Find Rental", "/rentals"], ["Submit Requirement", "/rfq/general/new"]] },
+                ],
+              },
+              {
+                label: "AI Tools",
+                groups: [
+                  { title: "AI Workflows", links: [["AI Search Guide", "/search"], ["AI Procurement OS", "/dashboard/procurement-health"], ["Construction Cost", "/construction-cost"]] },
+                  { title: "Business", links: [["Price Today", "/price-today"], ["Unified Inbox", "/dashboard/inbox-v2"], ["Support", "/support/my"]] },
+                ],
+              },
+            ].map((menu) => (
+              <details className="megaMenuItem" key={menu.label}>
+                <summary>{menu.label}</summary>
+                <div className="megaMenuPanel">
+                  {menu.groups.map((group) => (
+                    <div className="megaMenuGroup" key={group.title}>
+                      <div className="megaMenuTitle">{group.title}</div>
+                      {group.links.map(([label, href]) => (
+                        <Link key={href + label} href={href}>
+                          {label}
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </details>
+            ))}
+          </Container>
+        </nav>
+
+
         <div
           style={{
             position: "absolute",
@@ -591,39 +651,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           vendor discovery platform serving India with regional language support,
           AI procurement workflows, vendor comparison and local marketplace search.
         </div>
-
-
-        <aside className="portalSideNav" aria-label="3bigha sidebar navigation">
-          <details className="sideNavDetails" open>
-            <summary className="sideNavToggle">
-              <span className="sideNavIcon">☰</span>
-              <span className="sideNavText">Menu</span>
-            </summary>
-
-            <div className="sideNavPanel">
-              {[
-                { href: "/", icon: "🏠", label: "Home", hint: "Main marketplace home" },
-                { href: "/property", icon: "🏡", label: "Property", hint: "Land, flats, house and plots" },
-                { href: "/materials", icon: "🧱", label: "Materials", hint: "Cement, steel, sand and bricks" },
-                { href: "/services", icon: "🛠️", label: "Services", hint: "Mason, plumber, electrician, contractor" },
-                { href: "/rentals", icon: "🚜", label: "Rentals", hint: "JCB, machinery, tools and equipment" },
-                { href: "/construction-cost", icon: "🏗️", label: "Construction Cost", hint: "AI calculator, BOQ and timeline" },
-                { href: "/rfq/general/new", icon: "⚡", label: "Submit Requirement", hint: "Create RFQ and get vendor quotes" },
-                { href: "/dashboard/inbox-v2", icon: "💬", label: "Inbox", hint: "All buyer-vendor conversations" },
-                { href: "/dashboard/procurement-health", icon: "🧠", label: "AI Procurement OS", hint: "AI procurement intelligence" },
-                { href: "/price-today", icon: "📊", label: "Price Today", hint: "Local price intelligence" },
-                { href: "/blog", icon: "📰", label: "Blog", hint: "News, guides and updates" },
-                { href: "/support/my", icon: "🆘", label: "Support", hint: "Help and support tickets" },
-              ].map((item) => (
-                <Link key={item.href} href={item.href} className="sideNavItem">
-                  <span className="sideNavItemIcon">{item.icon}</span>
-                  <span className="sideNavItemLabel">{item.label}</span>
-                  <span className="sideNavPreview">{item.hint}</span>
-                </Link>
-              ))}
-            </div>
-          </details>
-        </aside>
 
         <main style={{ marginTop: 8 }}>
           <Container className="pageBody">{children}</Container>
