@@ -323,7 +323,9 @@ const result = useMemo(() => {
                   </Pie>
 
                   <Tooltip
-                    formatter={(value: number) => formatINR(value)}
+                    formatter={(value) =>
+                      formatINR(typeof value === "number" ? value : Number(value || 0))
+                    }
                   />
                 </PieChart>
               </ResponsiveContainer>
