@@ -1511,3 +1511,1609 @@ button[class*="actionButton"] {
     letter-spacing: -0.03em;
   }
 }
+
+/* REAL FINAL HOMEPAGE CLEANUP */
+
+/* Stop the floating AI from becoming a huge blue bar */
+.floatingAiCopilot {
+  width: 300px !important;
+  max-width: 300px !important;
+  right: 22px !important;
+  bottom: 22px !important;
+  border-radius: 26px !important;
+  overflow: hidden !important;
+}
+
+.floatingAiCopilot:not(.isOpen) {
+  width: 84px !important;
+  height: 46px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+}
+
+@media (min-width: 981px) {
+  /* Make the hero search area compact and not poster-like */
+  .pageBody section,
+  .pageBody article,
+  .pageBody > div {
+    margin-top: 14px !important;
+    margin-bottom: 14px !important;
+  }
+
+  /* Construction calculator must become a real full-width section */
+  .pageBody a[href="/construction-cost"],
+  .pageBody a[href*="construction-cost"],
+  .pageBody a[href*="construction-projects"] {
+    width: auto !important;
+  }
+
+  .pageBody [class*="Construction"],
+  .pageBody [class*="construction"] {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  /* Directly force the construction calculator card area to full width */
+  .pageBody div:has(a[href="/construction-cost"]) {
+    width: 100% !important;
+    max-width: none !important;
+    background: linear-gradient(135deg, #ffffff, #eff6ff) !important;
+    border: 1px solid rgba(37, 99, 235, 0.14) !important;
+    color: #0f172a !important;
+  }
+
+  .pageBody div:has(a[href="/construction-cost"]) * {
+    color: #0f172a !important;
+    text-shadow: none !important;
+  }
+
+  /* Premium separate modules */
+  .pageBody > div,
+  .pageBody section {
+    border-radius: 24px !important;
+  }
+
+  /* Marketplace feed should not become endless */
+  .homeFeedSeeMoreWrap {
+    display: flex !important;
+    justify-content: center !important;
+    margin: 22px 0 !important;
+  }
+
+  .homeFeedSeeMoreBtn {
+    border: 0 !important;
+    border-radius: 999px !important;
+    padding: 14px 28px !important;
+    background: linear-gradient(135deg, #0f172a, #2563eb) !important;
+    color: #ffffff !important;
+    font-size: 15px !important;
+    font-weight: 900 !important;
+    cursor: pointer !important;
+    box-shadow: 0 18px 42px rgba(37,99,235,0.25) !important;
+  }
+
+  /* Make feed cards tighter */
+  .pageBody [class*="Card"],
+  .pageBody [class*="card"] {
+    min-height: auto !important;
+  }
+}
+
+/* COMPACT HOMEPAGE + SEE MORE CLEANUP */
+@media (min-width: 981px) {
+  .pageBody {
+    gap: 10px !important;
+  }
+
+  .pageBody section,
+  .pageBody article,
+  .pageBody > div {
+    margin-top: 8px !important;
+    margin-bottom: 10px !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .pageBody [class*="grid"],
+  .pageBody [class*="Grid"] {
+    gap: 12px !important;
+  }
+
+  .pageBody [class*="card"],
+  .pageBody [class*="Card"] {
+    padding: 12px !important;
+    margin: 0 !important;
+  }
+
+  .homepageCollapsedBlock {
+    position: relative !important;
+    max-height: 245px !important;
+    overflow: hidden !important;
+  }
+
+  .homepageCollapsedBlock::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 54px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), #ffffff);
+    pointer-events: none;
+  }
+
+  .homepageCollapsedBlock.isExpanded {
+    max-height: none !important;
+  }
+
+  .homepageCollapsedBlock.isExpanded::after {
+    display: none;
+  }
+
+  .homepageSeeMoreBtn {
+    display: block;
+    margin: -2px auto 14px;
+    border: 0;
+    border-radius: 999px;
+    padding: 10px 22px;
+    background: linear-gradient(135deg, #0f172a, #2563eb);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 14px 34px rgba(37,99,235,0.22);
+  }
+
+  .homepageSeeMoreBtn:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Make Construction Cost compact and readable */
+  .pageBody div:has(a[href="/construction-cost"]) {
+    padding: 16px !important;
+    min-height: auto !important;
+  }
+
+  /* Keep first hero/search area open */
+  .pageBody > div:first-child,
+  .pageBody section:first-child {
+    max-height: none !important;
+  }
+}
+
+/* Move section See More button inside top-right corner */
+@media (min-width: 981px) {
+  .homepageCollapsedBlock {
+    position: relative !important;
+  }
+
+  .homepageCollapsedBlock > .homepageSeeMoreBtn {
+    position: absolute !important;
+    top: 18px !important;
+    right: 22px !important;
+    z-index: 20 !important;
+    margin: 0 !important;
+    padding: 9px 18px !important;
+    font-size: 13px !important;
+    box-shadow: 0 10px 26px rgba(37,99,235,0.18) !important;
+  }
+
+  .homepageCollapsedBlock.isExpanded > .homepageSeeMoreBtn {
+    position: sticky !important;
+    float: right !important;
+    top: 120px !important;
+    margin: 0 0 12px 12px !important;
+  }
+}
+
+/* MARKETPLACE HOMEPAGE REDESIGN */
+@media (min-width: 981px) {
+  .constructionShowcaseSection {
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .constructionShowcaseCard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 24px;
+    align-items: center;
+    width: 100%;
+    padding: 28px;
+    border-radius: 28px;
+    background:
+      radial-gradient(circle at top right, rgba(249,115,22,0.18), transparent 30%),
+      linear-gradient(135deg, #0f172a, #1d4ed8);
+    color: white;
+    box-shadow: 0 28px 70px rgba(37,99,235,0.22);
+  }
+
+  .constructionShowcaseCard span {
+    color: #bfdbfe;
+    font-weight: 900;
+  }
+
+  .constructionShowcaseCard h2 {
+    margin: 10px 0 0;
+    color: white;
+    font-size: 32px;
+    font-weight: 950;
+  }
+
+  .constructionShowcaseCard p {
+    color: #dbeafe;
+    max-width: 820px;
+  }
+
+  .constructionFeaturePills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .constructionFeaturePills span {
+    border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+    color: white;
+    padding: 9px 13px;
+  }
+
+  .constructionShowcaseActions {
+    display: grid;
+    gap: 12px;
+  }
+
+  .constructionShowcaseActions a {
+    border-radius: 16px;
+    padding: 14px 18px;
+    text-align: center;
+    font-weight: 950;
+    text-decoration: none;
+    background: white;
+    color: #0f172a;
+  }
+
+  .constructionShowcaseActions a:first-child {
+    background: #f97316;
+    color: white;
+  }
+
+  .marketplaceGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .premiumMarketplaceCard {
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .premiumMarketplaceCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 60px rgba(15,23,42,0.16) !important;
+  }
+
+  .homeFeedSeeMoreWrap {
+    display: flex !important;
+    justify-content: center !important;
+    margin: 18px 0 4px !important;
+  }
+
+  .homeFeedSeeMoreBtn {
+    border: 0 !important;
+    border-radius: 999px !important;
+    padding: 13px 28px !important;
+    background: linear-gradient(135deg, #0f172a, #2563eb) !important;
+    color: white !important;
+    font-weight: 950 !important;
+    cursor: pointer !important;
+  }
+}
+
+/* NEW 3BIGHA AI MARKETPLACE HOMEPAGE */
+.newMarketplaceHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.55fr);
+  gap: 24px;
+  padding: 32px;
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at top right, rgba(249,115,22,0.20), transparent 28%),
+    linear-gradient(135deg, #0f172a, #1e3a8a);
+  color: white;
+  box-shadow: 0 30px 80px rgba(15,23,42,0.22);
+}
+
+.newHeroBadge,
+.newSectionHeader span,
+.newConstructionBanner span,
+.newLanguageSection span {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(255,255,255,0.14);
+  color: #bfdbfe;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.newMarketplaceHero h1 {
+  max-width: 980px;
+  margin: 16px 0 0;
+  font-size: clamp(34px, 4.5vw, 64px);
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+  color: white;
+  font-weight: 950;
+}
+
+.newMarketplaceHero p {
+  max-width: 900px;
+  color: #dbeafe;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.newHeroSearch {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 24px;
+  background: white;
+  box-shadow: 0 22px 60px rgba(0,0,0,0.18);
+}
+
+.newHeroSearch textarea {
+  min-height: 70px;
+  border: 0;
+  resize: none;
+  outline: none;
+  padding: 18px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.newHeroSearch button,
+.newConstructionBanner a:first-child,
+.newListingBody button,
+.newSeeMoreWrap button {
+  border: 0;
+  border-radius: 18px;
+  padding: 0 24px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: white;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.newHeroQuickTags {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.newHeroQuickTags a {
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  text-decoration: none;
+  font-weight: 850;
+}
+
+.newHeroRight {
+  display: grid;
+  gap: 14px;
+}
+
+.newHeroMetric {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.14);
+}
+
+.newHeroMetric strong,
+.newHeroMetric span {
+  display: block;
+  color: white;
+}
+
+.newHeroMetric span {
+  margin-top: 6px;
+  color: #dbeafe;
+}
+
+.newMarketplaceCategories,
+.newSignalStrip,
+.newToolGrid,
+.newListingGrid,
+.newLanguageChips {
+  display: grid;
+  gap: 16px;
+}
+
+.newMarketplaceCategories {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin-top: 22px;
+}
+
+.newCategoryTile,
+.newToolCard,
+.newListingCard,
+.newLanguageSection,
+.newMarketplaceTools,
+.newLiveMarketplace {
+  border-radius: 26px;
+  background: white;
+  border: 1px solid rgba(15,23,42,0.08);
+  box-shadow: 0 18px 50px rgba(15,23,42,0.07);
+}
+
+.newCategoryTile {
+  padding: 18px;
+  text-decoration: none;
+  color: #0f172a;
+}
+
+.newCategoryTile div {
+  font-size: 26px;
+}
+
+.newCategoryTile strong,
+.newCategoryTile span {
+  display: block;
+}
+
+.newCategoryTile span {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.newSignalStrip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 18px;
+}
+
+.newSignalStrip div {
+  border-radius: 18px;
+  background: linear-gradient(135deg, #eff6ff, #ffffff);
+  padding: 14px 16px;
+  font-weight: 900;
+  color: #1e3a8a;
+}
+
+.newMarketplaceTools,
+.newLiveMarketplace,
+.newLanguageSection {
+  margin-top: 22px;
+  padding: 24px;
+}
+
+.newSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.newSectionHeader h2,
+.newConstructionBanner h2,
+.newLanguageSection h2 {
+  margin: 8px 0 0;
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 950;
+  letter-spacing: -0.04em;
+}
+
+.newSectionHeader a {
+  font-weight: 950;
+  color: #0b57d0;
+  text-decoration: none;
+}
+
+.newToolGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.newToolCard {
+  padding: 20px;
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.newToolCard span {
+  display: block;
+  margin-top: 8px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.newConstructionBanner {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  align-items: center;
+  gap: 24px;
+  padding: 28px;
+  border-radius: 30px;
+  background: linear-gradient(135deg, #fff7ed, #eff6ff);
+  border: 1px solid rgba(249,115,22,0.18);
+}
+
+.newConstructionBanner div:last-child {
+  display: grid;
+  gap: 12px;
+}
+
+.newConstructionBanner a {
+  border-radius: 16px;
+  padding: 14px 18px;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 950;
+}
+
+.newConstructionBanner a:last-child {
+  background: white;
+  color: #0f172a;
+  border: 1px solid rgba(15,23,42,0.08);
+}
+
+.newListingGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.newListingCard {
+  overflow: hidden;
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.newListingImage {
+  position: relative;
+  height: 190px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #eff6ff, #f8fafc);
+}
+
+.newListingImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.newListingImage span {
+  font-size: 42px;
+}
+
+.newListingImage b {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  border-radius: 999px;
+  background: #0f172a;
+  color: white;
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
+.newListingBody {
+  padding: 18px;
+}
+
+.newListingBody small {
+  color: #0b57d0;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.newListingBody h3 {
+  margin: 8px 0 0;
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.newListingBody p {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.newListingMeta {
+  display: flex;
+  justify-content: space-between;
+  margin: 16px 0;
+  gap: 10px;
+}
+
+.newListingMeta strong {
+  color: #dc2626;
+}
+
+.newListingBody button {
+  width: 100%;
+  padding: 13px 16px;
+  background: #2563eb;
+}
+
+.newSeeMoreWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.newSeeMoreWrap button {
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #0f172a, #2563eb);
+}
+
+.newLanguageSection {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 22px;
+  align-items: center;
+}
+
+.newLanguageChips {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.newLanguageChips button {
+  border: 1px solid rgba(15,23,42,0.08);
+  background: #f8fafc;
+  border-radius: 18px;
+  padding: 13px 15px;
+  text-align: left;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .newMarketplaceHero,
+  .newConstructionBanner,
+  .newLanguageSection {
+    grid-template-columns: 1fr;
+  }
+
+  .newMarketplaceCategories,
+  .newToolGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .newSignalStrip,
+  .newListingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .newHeroSearch {
+    grid-template-columns: 1fr;
+  }
+
+  .newHeroSearch button {
+    min-height: 54px;
+  }
+}
+
+/* FRESH AI MARKETPLACE HOME - hard override */
+.aiMarketHome {
+  width: 100%;
+  max-width: none;
+  display: grid;
+  gap: 22px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(37,99,235,0.06), transparent 28%),
+    linear-gradient(180deg, #f8fafc 0%, #ffffff 48%, #f8fafc 100%);
+}
+
+.aiMarketHeroFresh {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) 360px;
+  gap: 24px;
+  padding: 36px;
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at top right, rgba(249,115,22,0.20), transparent 30%),
+    linear-gradient(135deg, #0f172a 0%, #1e3a8a 56%, #2563eb 100%);
+  color: #ffffff;
+  box-shadow: 0 32px 90px rgba(15,23,42,0.25);
+}
+
+.aiMarketEyebrow,
+.aiMarketSectionHeaderFresh span,
+.aiConstructionFresh span,
+.aiLanguageFresh span {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(255,255,255,0.14);
+  color: #bfdbfe;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.aiMarketHeroFresh h1 {
+  margin: 16px 0 0;
+  max-width: 1050px;
+  color: #ffffff;
+  font-size: clamp(38px, 5vw, 72px);
+  line-height: 0.96;
+  letter-spacing: -0.07em;
+  font-weight: 950;
+}
+
+.aiMarketHeroFresh p {
+  max-width: 880px;
+  color: #dbeafe;
+  font-size: 18px;
+  line-height: 1.55;
+  font-weight: 650;
+}
+
+.aiMarketSearchBox {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 26px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.22);
+}
+
+.aiMarketSearchBox textarea {
+  min-height: 92px;
+  border: 0;
+  outline: 0;
+  resize: none;
+  padding: 18px;
+  color: #0f172a;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.aiMarketSearchActions {
+  display: grid;
+  gap: 10px;
+}
+
+.aiMarketSearchActions button,
+.aiConstructionFresh a:first-child,
+.aiMarketListingBodyFresh button,
+.aiMarketSeeMoreFresh button {
+  border: 0;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: white;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.aiMarketSearchActions button:last-child {
+  background: linear-gradient(135deg, #0f172a, #2563eb);
+}
+
+.aiMarketQuickPills {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.aiMarketQuickPills a {
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.12);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 850;
+}
+
+.aiMarketHeroPanel {
+  display: grid;
+  gap: 14px;
+}
+
+.aiMarketHeroPanel div {
+  border-radius: 24px;
+  padding: 20px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.16);
+}
+
+.aiMarketHeroPanel strong,
+.aiMarketHeroPanel span {
+  display: block;
+  color: white;
+}
+
+.aiMarketHeroPanel span {
+  margin-top: 8px;
+  color: #dbeafe;
+}
+
+.aiMarketCategoryGridFresh {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.aiMarketCategoryFresh,
+.aiMarketToolsFresh,
+.aiConstructionFresh,
+.aiLiveMarketFresh,
+.aiLanguageFresh,
+.aiMarketListingFresh,
+.aiMarketToolGridFresh a {
+  border-radius: 28px;
+  background: #ffffff;
+  border: 1px solid rgba(15,23,42,0.08);
+  box-shadow: 0 18px 55px rgba(15,23,42,0.07);
+}
+
+.aiMarketCategoryFresh {
+  padding: 20px;
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.aiMarketCategoryFresh div {
+  font-size: 30px;
+}
+
+.aiMarketCategoryFresh strong,
+.aiMarketCategoryFresh span {
+  display: block;
+}
+
+.aiMarketCategoryFresh span {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.aiMarketSignalFresh {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.aiMarketSignalFresh div {
+  border-radius: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #eff6ff, #ffffff);
+  color: #1e3a8a;
+  font-weight: 950;
+  box-shadow: 0 12px 32px rgba(37,99,235,0.08);
+}
+
+.aiMarketToolsFresh,
+.aiLiveMarketFresh,
+.aiLanguageFresh {
+  padding: 26px;
+}
+
+.aiMarketSectionHeaderFresh {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.aiMarketSectionHeaderFresh h2,
+.aiConstructionFresh h2,
+.aiLanguageFresh h2 {
+  margin: 8px 0 0;
+  color: #0f172a;
+  font-size: 30px;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+  font-weight: 950;
+}
+
+.aiMarketSectionHeaderFresh a {
+  color: #0b57d0;
+  font-weight: 950;
+  text-decoration: none;
+}
+
+.aiMarketToolGridFresh {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.aiMarketToolGridFresh a {
+  padding: 22px;
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.aiMarketToolGridFresh span {
+  display: block;
+  margin-top: 8px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.aiConstructionFresh {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: center;
+  padding: 30px;
+  background:
+    radial-gradient(circle at right, rgba(249,115,22,0.20), transparent 28%),
+    linear-gradient(135deg, #fff7ed, #eff6ff);
+}
+
+.aiConstructionFresh p,
+.aiLanguageFresh p {
+  color: #64748b;
+  font-size: 16px;
+}
+
+.aiConstructionFresh div:last-child {
+  display: grid;
+  gap: 12px;
+}
+
+.aiConstructionFresh a {
+  border-radius: 18px;
+  padding: 15px 20px;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 950;
+}
+
+.aiConstructionFresh a:last-child {
+  background: white;
+  color: #0f172a;
+  border: 1px solid rgba(15,23,42,0.08);
+}
+
+.aiMarketListingGridFresh {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.aiMarketListingFresh {
+  overflow: hidden;
+  color: #0f172a;
+  text-decoration: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.aiMarketListingFresh:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 26px 70px rgba(15,23,42,0.16);
+}
+
+.aiMarketListingImageFresh {
+  position: relative;
+  height: 190px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #eff6ff, #f8fafc);
+}
+
+.aiMarketListingImageFresh img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.aiMarketListingImageFresh span {
+  font-size: 44px;
+}
+
+.aiMarketListingImageFresh b {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: #0f172a;
+  color: white;
+  font-size: 12px;
+}
+
+.aiMarketListingBodyFresh {
+  padding: 18px;
+}
+
+.aiMarketListingBodyFresh small {
+  color: #0b57d0;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.aiMarketListingBodyFresh h3 {
+  margin: 8px 0 0;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.aiMarketListingBodyFresh p {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.aiMarketListingBodyFresh div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.aiMarketListingBodyFresh strong {
+  color: #dc2626;
+}
+
+.aiMarketListingBodyFresh button {
+  width: 100%;
+  padding: 13px 16px;
+  background: linear-gradient(135deg, #2563eb, #0b57d0);
+}
+
+.aiMarketSeeMoreFresh {
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.aiMarketSeeMoreFresh button {
+  padding: 14px 30px;
+  background: linear-gradient(135deg, #0f172a, #2563eb);
+}
+
+.aiLanguageFresh {
+  display: grid;
+  grid-template-columns: 430px 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.aiLanguageFresh > div:last-child {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.aiLanguageFresh button {
+  border: 1px solid rgba(15,23,42,0.08);
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  text-align: left;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .aiMarketHeroFresh,
+  .aiConstructionFresh,
+  .aiLanguageFresh {
+    grid-template-columns: 1fr;
+  }
+
+  .aiMarketCategoryGridFresh,
+  .aiMarketToolGridFresh {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .aiMarketSignalFresh,
+  .aiMarketListingGridFresh {
+    grid-template-columns: 1fr;
+  }
+
+  .aiMarketSearchBox {
+    grid-template-columns: 1fr;
+  }
+
+  .aiMarketSearchActions button {
+    min-height: 54px;
+  }
+}
+
+/* REAL MARKETPLACE HOMEPAGE RESET */
+.homePage {
+  background:
+    radial-gradient(circle at top left, rgba(37,99,235,0.08), transparent 26%),
+    linear-gradient(180deg, #f8fafc 0%, #ffffff 45%, #f8fafc 100%) !important;
+}
+
+.homePage > section:not(.marketplaceAppHero):not(.marketplaceActionGrid):not(.marketplaceDealStrip):not(.marketplaceWorkflowGrid):not(.marketplaceConstructionBanner):not(.marketplaceLiveSection):not(.marketplaceLanguageBand) {
+  display: none !important;
+}
+
+.marketplaceAppHero,
+.marketplaceActionGrid,
+.marketplaceDealStrip,
+.marketplaceWorkflowGrid,
+.marketplaceConstructionBanner,
+.marketplaceLiveSection,
+.marketplaceLanguageBand {
+  width: 100%;
+  max-width: none;
+  margin: 22px 0;
+}
+
+.marketplaceAppHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) 360px;
+  gap: 24px;
+  padding: 36px;
+  border-radius: 34px;
+  background:
+    radial-gradient(circle at top right, rgba(249,115,22,0.22), transparent 30%),
+    linear-gradient(135deg, #0f172a 0%, #1e3a8a 58%, #2563eb 100%);
+  color: white;
+  box-shadow: 0 34px 90px rgba(15,23,42,0.25);
+}
+
+.marketplaceHeroBadge,
+.marketplaceWorkflowLarge span,
+.marketplaceConstructionBanner span,
+.marketplaceSectionHead span,
+.marketplaceLanguageBand span {
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgba(255,255,255,0.14);
+  color: #bfdbfe;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.marketplaceHeroMain h1 {
+  max-width: 1080px;
+  margin: 16px 0 0;
+  color: white;
+  font-size: clamp(38px, 5vw, 72px);
+  line-height: 0.96;
+  letter-spacing: -0.07em;
+  font-weight: 950;
+}
+
+.marketplaceHeroMain p {
+  max-width: 900px;
+  color: #dbeafe;
+  font-size: 18px;
+  line-height: 1.55;
+  font-weight: 650;
+}
+
+.marketplaceSearchDock {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 26px;
+  background: white;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.22);
+}
+
+.marketplaceSearchDock textarea {
+  min-height: 92px;
+  border: 0;
+  outline: 0;
+  resize: none;
+  padding: 18px;
+  color: #0f172a;
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.marketplaceSearchButtons {
+  display: grid;
+  gap: 10px;
+}
+
+.marketplaceSearchButtons button,
+.marketplaceConstructionBanner a:first-child,
+.marketplaceListingTile button,
+.marketplaceSeeMore button {
+  border: 0;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: white;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.marketplaceSearchButtons button:last-child {
+  background: linear-gradient(135deg, #0f172a, #2563eb);
+}
+
+.marketplaceHeroShortcuts {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.marketplaceHeroShortcuts a {
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  text-decoration: none;
+  font-weight: 850;
+}
+
+.marketplaceHeroSide {
+  display: grid;
+  gap: 14px;
+}
+
+.marketplaceHeroSide div {
+  border-radius: 24px;
+  padding: 20px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.16);
+}
+
+.marketplaceHeroSide span {
+  font-size: 24px;
+}
+
+.marketplaceHeroSide strong,
+.marketplaceHeroSide small {
+  display: block;
+  color: white;
+}
+
+.marketplaceHeroSide small {
+  margin-top: 8px;
+  color: #dbeafe;
+  line-height: 1.45;
+}
+
+.marketplaceActionGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.marketplaceActionCard,
+.marketplaceWorkflowLarge,
+.marketplaceMiniTools a,
+.marketplaceLiveSection,
+.marketplaceLanguageBand,
+.marketplaceListingTile {
+  border-radius: 28px;
+  background: white;
+  border: 1px solid rgba(15,23,42,0.08);
+  box-shadow: 0 18px 55px rgba(15,23,42,0.07);
+}
+
+.marketplaceActionCard {
+  padding: 20px;
+  color: #0f172a;
+  text-decoration: none;
+  min-height: 168px;
+}
+
+.marketplaceActionCard span {
+  font-size: 30px;
+}
+
+.marketplaceActionCard strong,
+.marketplaceActionCard small {
+  display: block;
+}
+
+.marketplaceActionCard strong {
+  margin-top: 12px;
+  font-size: 17px;
+  font-weight: 950;
+}
+
+.marketplaceActionCard small {
+  margin-top: 8px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.marketplaceDealStrip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.marketplaceDealStrip div {
+  border-radius: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #eff6ff, #ffffff);
+  color: #1e3a8a;
+  font-weight: 950;
+  box-shadow: 0 12px 32px rgba(37,99,235,0.08);
+}
+
+.marketplaceWorkflowGrid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 18px;
+}
+
+.marketplaceWorkflowLarge {
+  padding: 28px;
+  background:
+    radial-gradient(circle at right, rgba(37,99,235,0.10), transparent 30%),
+    #ffffff;
+}
+
+.marketplaceWorkflowLarge h2,
+.marketplaceConstructionBanner h2,
+.marketplaceSectionHead h2,
+.marketplaceLanguageBand h2 {
+  margin: 10px 0 0;
+  color: #0f172a;
+  font-size: 32px;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+  font-weight: 950;
+}
+
+.marketplaceWorkflowLarge p,
+.marketplaceConstructionBanner p,
+.marketplaceLanguageBand p {
+  color: #64748b;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.marketplaceWorkflowLarge div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.marketplaceWorkflowLarge a {
+  border-radius: 16px;
+  padding: 13px 18px;
+  background: #2563eb;
+  color: white;
+  text-decoration: none;
+  font-weight: 950;
+}
+
+.marketplaceWorkflowLarge a:last-child {
+  background: #0f172a;
+}
+
+.marketplaceMiniTools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 14px;
+}
+
+.marketplaceMiniTools a {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #0f172a;
+  text-decoration: none;
+  font-weight: 950;
+  text-align: center;
+}
+
+.marketplaceConstructionBanner {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 320px;
+  gap: 24px;
+  align-items: center;
+  padding: 30px;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at right, rgba(249,115,22,0.20), transparent 28%),
+    linear-gradient(135deg, #fff7ed, #eff6ff);
+  border: 1px solid rgba(249,115,22,0.18);
+}
+
+.marketplaceConstructionBanner div:last-child {
+  display: grid;
+  gap: 12px;
+}
+
+.marketplaceConstructionBanner a {
+  border-radius: 18px;
+  padding: 15px 20px;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 950;
+}
+
+.marketplaceConstructionBanner a:last-child {
+  background: white;
+  color: #0f172a;
+  border: 1px solid rgba(15,23,42,0.08);
+}
+
+.marketplaceLiveSection,
+.marketplaceLanguageBand {
+  padding: 26px;
+}
+
+.marketplaceSectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.marketplaceSectionHead a {
+  color: #0b57d0;
+  font-weight: 950;
+  text-decoration: none;
+}
+
+.marketplaceListingBoard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 18px;
+}
+
+.marketplaceListingTile {
+  overflow: hidden;
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.listingTileImage {
+  position: relative;
+  height: 190px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #eff6ff, #f8fafc);
+}
+
+.listingTileImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.listingTileImage span {
+  font-size: 44px;
+}
+
+.listingTileImage b {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: #0f172a;
+  color: white;
+  font-size: 12px;
+}
+
+.listingTileBody {
+  padding: 18px;
+}
+
+.listingTileBody small {
+  color: #0b57d0;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.listingTileBody h3 {
+  margin: 8px 0 0;
+  color: #0f172a;
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.listingTileBody p {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.listingTileMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.listingTileMeta strong {
+  color: #dc2626;
+}
+
+.listingTileBody button {
+  width: 100%;
+  padding: 13px 16px;
+  background: linear-gradient(135deg, #2563eb, #0b57d0);
+}
+
+.marketplaceSeeMore {
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.marketplaceSeeMore button {
+  padding: 14px 30px;
+  background: linear-gradient(135deg, #0f172a, #2563eb);
+}
+
+.marketplaceLanguageBand {
+  display: grid;
+  grid-template-columns: 430px 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.marketplaceLanguageBand > div:last-child {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 12px;
+}
+
+.marketplaceLanguageBand button {
+  border: 1px solid rgba(15,23,42,0.08);
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  text-align: left;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .marketplaceAppHero,
+  .marketplaceWorkflowGrid,
+  .marketplaceConstructionBanner,
+  .marketplaceLanguageBand {
+    grid-template-columns: 1fr;
+  }
+
+  .marketplaceActionGrid,
+  .marketplaceMiniTools {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .marketplaceDealStrip,
+  .marketplaceListingBoard {
+    grid-template-columns: 1fr;
+  }
+
+  .marketplaceSearchDock {
+    grid-template-columns: 1fr;
+  }
+
+  .marketplaceSearchButtons button {
+    min-height: 54px;
+  }
+}
