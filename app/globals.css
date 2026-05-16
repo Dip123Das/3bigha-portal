@@ -1738,3 +1738,22 @@ button[class*="actionButton"] {
     cursor: pointer !important;
   }
 }
+
+/* FINAL MOBILE DETAILS DROPDOWN FIX */
+@media (max-width: 980px) {
+  .megaMenuItem .megaMenuPanel {
+    display: none !important;
+  }
+
+  .megaMenuItem[open] .megaMenuPanel {
+    display: grid !important;
+  }
+
+  .megaMenuItem > summary {
+    list-style: none !important;
+  }
+
+  .megaMenuItem > summary::-webkit-details-marker {
+    display: none !important;
+  }
+}

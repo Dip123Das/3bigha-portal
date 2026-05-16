@@ -787,8 +787,8 @@ groups: [
                 ],
               },
             ].map((menu) => (
-              <div className="megaMenuItem" key={menu.label}>
-                <Link className="megaMenuButton" href={menu.href || "/"}>{menu.label}</Link>
+              <details className="megaMenuItem" key={menu.label}>
+                <summary className="megaMenuButton">{menu.label}</summary>
 
                 <div className="megaMenuPanel">
                   {menu.groups.map((group) => (
@@ -803,7 +803,7 @@ groups: [
                     </div>
                   ))}
                 </div>
-              </div>
+              </details>
             ))}
           </Container>
         </nav>
