@@ -1621,3 +1621,116 @@ button[class*="actionButton"] {
     font-size: 14px !important;
   }
 }
+
+/* MOBILE HOMEPAGE HEIGHT COMPACT FIX */
+@media (max-width: 640px) {
+
+  /* ===== RFQ / POST REQUIREMENT BANNER ===== */
+
+  .rfqBanner,
+  .startBanner,
+  .heroRequirementBanner,
+  .postRequirementBanner {
+    padding: 14px !important;
+    min-height: auto !important;
+  }
+
+  .rfqBanner h2,
+  .startBanner h2,
+  .heroRequirementBanner h2,
+  .postRequirementBanner h2 {
+    font-size: 20px !important;
+    line-height: 1.2 !important;
+    margin-bottom: 8px !important;
+  }
+
+  .rfqBanner p,
+  .startBanner p,
+  .heroRequirementBanner p,
+  .postRequirementBanner p {
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+    margin-bottom: 10px !important;
+  }
+
+  /* ===== STATS CARDS ===== */
+
+  .statsGrid,
+  .marketStatsGrid {
+    gap: 10px !important;
+  }
+
+  .statsGrid > *,
+  .marketStatsGrid > * {
+    min-height: 84px !important;
+    padding: 12px !important;
+    border-radius: 18px !important;
+  }
+
+  .statsGrid h3,
+  .marketStatsGrid h3 {
+    font-size: 15px !important;
+    margin-bottom: 2px !important;
+  }
+
+  .statsGrid p,
+  .marketStatsGrid p {
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+  }
+
+  /* ===== AI BUTTON ===== */
+
+  .floatingAiCopilot {
+    bottom: 76px !important;
+    right: 14px !important;
+    transform: scale(0.92);
+  }
+
+  /* ===== SECTION SPACING ===== */
+
+  .pageBody section {
+    margin-bottom: 12px !important;
+  }
+}
+
+/* FINAL MOBILE STATS SPACE FIX */
+@media (max-width: 640px) {
+  .homePage .statsRail {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    padding: 8px 12px !important;
+    margin: 0 0 12px !important;
+  }
+
+  .homePage .statCard {
+    min-height: 74px !important;
+    padding: 10px !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .homePage .statCard span {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    font-size: 16px !important;
+  }
+
+  .homePage .statCard strong {
+    font-size: 20px !important;
+    line-height: 1.05 !important;
+  }
+
+  .homePage .statCard small {
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+  }
+
+  .homePage .contentSection {
+    margin-top: 10px !important;
+  }
+}
