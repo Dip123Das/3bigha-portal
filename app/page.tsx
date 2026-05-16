@@ -1537,7 +1537,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .homepageSeoIntroInner {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 0 auto;
           padding: 18px 16px 12px;
         }
@@ -1563,7 +1563,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .homepageSeoIntro p {
-          max-width: 980px;
+          max-width: none;
           margin: 10px 0 0;
           color: #475569;
           font-size: 15px;
@@ -1595,14 +1595,14 @@ AI Live Marketplace Feed</h2>
         }
 
         .marketHeroInner {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 0 auto;
           padding: 24px 16px 24px;
         }
 
         .marketHeroContent {
           width: 100%;
-          max-width: 1180px;
+          max-width: none;
           margin: 0 auto;
           display: block;
           position: relative;
@@ -1611,7 +1611,7 @@ AI Live Marketplace Feed</h2>
 
         .heroTextBlock {
           width: 100%;
-          max-width: 1180px;
+          max-width: none;
           padding-top: 0;
         }
 
@@ -1701,7 +1701,7 @@ AI Live Marketplace Feed</h2>
           padding: 14px;
           box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
           width: 100%;
-          max-width: 1180px;
+          max-width: none;
           min-width: 0;
           position: relative;
           z-index: 1;
@@ -1987,7 +1987,7 @@ AI Live Marketplace Feed</h2>
 
         .conversationalAiSection,
         .liveActivitySection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 16px auto 0;
           padding: 0 16px;
         }
@@ -2097,7 +2097,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .personalizationSection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -2214,7 +2214,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .realtimeTickerSection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 16px auto 0;
           padding: 0 16px;
           overflow: hidden;
@@ -2248,7 +2248,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .operatingFeelSection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -2407,7 +2407,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .universalBuyerActionStrip {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 14px auto 0;
           padding: 0 16px;
         }
@@ -2490,7 +2490,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .homeSearchSection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 16px auto 0;
           padding: 0 16px;
           position: relative;
@@ -2498,12 +2498,12 @@ AI Live Marketplace Feed</h2>
         }
 
         .homeSearchInner {
-          max-width: 1180px;
+          max-width: none;
           margin: 0 auto;
         }
 
         .copilotExperienceSection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -2603,7 +2603,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .aiMarketPulseSection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 16px auto 0;
           padding: 0 16px;
         }
@@ -2616,7 +2616,7 @@ AI Live Marketplace Feed</h2>
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 12px;
-          max-width: 1400px;
+          max-width: none;
           margin: 0 auto;
         }
 
@@ -2670,7 +2670,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .regionalAiSection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 12px auto 0;
           padding: 0 16px;
           overflow: hidden;
@@ -2881,7 +2881,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .aiPortalStrip {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 14px auto 0;
           padding: 14px 16px;
           border-radius: 16px;
@@ -2917,7 +2917,7 @@ AI Live Marketplace Feed</h2>
 
         .quickActionSection,
         .categorySection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 18px auto 0;
           padding: 0 16px;
           display: grid;
@@ -2970,7 +2970,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .priceStrip {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 16px auto 0;
           padding: 16px;
           border-radius: 18px;
@@ -3023,7 +3023,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .aiRecommendationSection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -3072,7 +3072,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .aiRecommendationSection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -3121,7 +3121,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .marketPulseSection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -3164,7 +3164,7 @@ AI Live Marketplace Feed</h2>
 
         .personalizedFeedSection,
         .investmentIntelSection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -3377,7 +3377,7 @@ AI Live Marketplace Feed</h2>
         }
 
         .liveMarketplaceSection {
-          width: min(100%, 1180px);
+          width: 100%;
           margin: 18px auto 0;
           padding: 0 16px;
         }
