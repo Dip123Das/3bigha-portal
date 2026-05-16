@@ -1706,3 +1706,35 @@ button[class*="actionButton"] {
     margin-bottom: 12px !important;
   }
 }
+
+/* FINAL MOBILE DROPDOWN TAP BEHAVIOR
+   Tap menu once = open
+   Tap same menu again = close
+   No outside blank-space tap needed
+*/
+@media (max-width: 980px) {
+  .megaMenuItem .megaMenuPanel {
+    display: none !important;
+  }
+
+  .megaMenuItem[open] .megaMenuPanel {
+    display: grid !important;
+  }
+
+  .megaMenuItem:hover .megaMenuPanel,
+  .megaMenuItem:focus-within .megaMenuPanel {
+    display: none !important;
+  }
+
+  .megaMenuItem[open]:hover .megaMenuPanel,
+  .megaMenuItem[open]:focus-within .megaMenuPanel {
+    display: grid !important;
+  }
+
+  .megaMenuItem > summary,
+  .megaMenuButton {
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation !important;
+    cursor: pointer !important;
+  }
+}
