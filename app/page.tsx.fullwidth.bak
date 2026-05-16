@@ -302,7 +302,6 @@ export default function HomePage() {
   const [aiCopilotOpen, setAiCopilotOpen] = useState(false);
   const [aiActionsOpen, setAiActionsOpen] = useState(false);
   const [regionalExamplesOpen, setRegionalExamplesOpen] = useState(false);
-  const [homeFeedExpanded, setHomeFeedExpanded] = useState(false);
   const [voiceListening, setVoiceListening] = useState(false);
   const [userMode, setUserMode] = useState(userModes[0]);
   const [liveFeedSignals, setLiveFeedSignals] = useState<LiveDiscoverySignal[]>(localFeedSignals);
@@ -945,7 +944,7 @@ return (
           <div className="universalBuyerContent">
             <span>⚡ Fast Marketplace Actions</span>
 
-            <h2>Search Property, Materials, Services, Rentals & Vendors</h2>
+            <h2>Tell 3bigha what you need.</h2>
 
             <p>
               Property, materials, services, rentals, contractors and RFQs —
@@ -1284,7 +1283,7 @@ return (
           onClick={() => setAiActionsOpen((value) => !value)}
         >
           <div>
-            <h2>Marketplace AI Tools</h2>
+            <h2>AI Marketplace Actions</h2>
             <p>Click to open all AI tools. Running buttons stop after opening.</p>
           </div>
           <span>{aiActionsOpen ? "Close AI Actions ↑" : "Open AI Actions ↓"}</span>
@@ -1379,7 +1378,7 @@ return (
                   AI Construction Cost Calculator
                 </h2>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                  Estimate construction cost, material quantity, BOQ, timeline and procurement planning with AI-powered guidance.
+                  Estimate house construction cost, material quantity, BOQ, timeline, procurement phases and AI project planning for Cooch Behar and nearby areas.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-slate-700">
                   <span className="rounded-full bg-white px-3 py-2 shadow-sm">Cost Estimate</span>
@@ -1408,8 +1407,8 @@ return (
           </section>
 
 
-Trending Marketplace Opportunities</h2>
-            <p>Fresh local listings, prices and opportunities surfaced from the 3Bigha marketplace.</p>
+AI Live Marketplace Feed</h2>
+            <p>Fresh local listings, prices and opportunities surfaced from the 3bigha marketplace.</p>
           </div>
           <a href="/search">View all →</a>
         </div>
@@ -1420,7 +1419,7 @@ Trending Marketplace Opportunities</h2>
           <div className="marketplaceLoading">No live listings found yet.</div>
         ) : (
           <div className="marketplaceGrid">
-            {(homeFeedExpanded ? featuredItems : featuredItems.slice(0, 6)).map((item) => (
+            {featuredItems.map((item) => (
               <a key={`${item.module}-${item.id}`} href={item.href} className="marketplaceCard premiumMarketplaceCard">
                 <div className="marketplaceImage premiumMarketplaceImage">
                   {item.image ? (
@@ -1538,7 +1537,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .homepageSeoIntroInner {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 0 auto;
           padding: 18px 16px 12px;
         }
@@ -1564,7 +1563,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .homepageSeoIntro p {
-          max-width: none;
+          max-width: 980px;
           margin: 10px 0 0;
           color: #475569;
           font-size: 15px;
@@ -1596,14 +1595,14 @@ Trending Marketplace Opportunities</h2>
         }
 
         .marketHeroInner {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 0 auto;
           padding: 24px 16px 24px;
         }
 
         .marketHeroContent {
           width: 100%;
-          max-width: none;
+          max-width: 1180px;
           margin: 0 auto;
           display: block;
           position: relative;
@@ -1612,7 +1611,7 @@ Trending Marketplace Opportunities</h2>
 
         .heroTextBlock {
           width: 100%;
-          max-width: none;
+          max-width: 1180px;
           padding-top: 0;
         }
 
@@ -1702,7 +1701,7 @@ Trending Marketplace Opportunities</h2>
           padding: 14px;
           box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
           width: 100%;
-          max-width: none;
+          max-width: 1180px;
           min-width: 0;
           position: relative;
           z-index: 1;
@@ -1988,7 +1987,7 @@ Trending Marketplace Opportunities</h2>
 
         .conversationalAiSection,
         .liveActivitySection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 16px auto 0;
           padding: 0 16px;
         }
@@ -2098,7 +2097,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .personalizationSection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -2215,7 +2214,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .realtimeTickerSection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 16px auto 0;
           padding: 0 16px;
           overflow: hidden;
@@ -2249,7 +2248,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .operatingFeelSection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -2408,7 +2407,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .universalBuyerActionStrip {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 14px auto 0;
           padding: 0 16px;
         }
@@ -2491,7 +2490,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .homeSearchSection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 16px auto 0;
           padding: 0 16px;
           position: relative;
@@ -2499,12 +2498,12 @@ Trending Marketplace Opportunities</h2>
         }
 
         .homeSearchInner {
-          max-width: none;
+          max-width: 1180px;
           margin: 0 auto;
         }
 
         .copilotExperienceSection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -2604,7 +2603,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .aiMarketPulseSection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 16px auto 0;
           padding: 0 16px;
         }
@@ -2617,7 +2616,7 @@ Trending Marketplace Opportunities</h2>
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 12px;
-          max-width: none;
+          max-width: 1400px;
           margin: 0 auto;
         }
 
@@ -2671,7 +2670,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .regionalAiSection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 12px auto 0;
           padding: 0 16px;
           overflow: hidden;
@@ -2882,7 +2881,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .aiPortalStrip {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 14px auto 0;
           padding: 14px 16px;
           border-radius: 16px;
@@ -2918,7 +2917,7 @@ Trending Marketplace Opportunities</h2>
 
         .quickActionSection,
         .categorySection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 18px auto 0;
           padding: 0 16px;
           display: grid;
@@ -2971,7 +2970,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .priceStrip {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 16px auto 0;
           padding: 16px;
           border-radius: 18px;
@@ -3024,7 +3023,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .aiRecommendationSection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -3073,7 +3072,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .aiRecommendationSection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -3122,7 +3121,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .marketPulseSection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -3165,7 +3164,7 @@ Trending Marketplace Opportunities</h2>
 
         .personalizedFeedSection,
         .investmentIntelSection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 18px auto 0;
           padding: 0 16px;
         }
@@ -3378,7 +3377,7 @@ Trending Marketplace Opportunities</h2>
         }
 
         .liveMarketplaceSection {
-          width: 100%;
+          width: min(100%, 1180px);
           margin: 18px auto 0;
           padding: 0 16px;
         }
