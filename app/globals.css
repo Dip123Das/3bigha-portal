@@ -1768,9 +1768,9 @@ button[class*="actionButton"] {
   }
 }
 
-/* MOBILE MEGA MENU TAP-TO-CLOSE FIX */
+/* MOBILE MEGA MENU TAP OPEN / TAP SAME MENU CLOSE */
 @media (max-width: 980px) {
-  .megaMenuItem:focus-within .megaMenuPanel {
+  .megaMenuItem .megaMenuPanel {
     display: none !important;
   }
 
@@ -1778,8 +1778,8 @@ button[class*="actionButton"] {
     display: grid !important;
   }
 
-  .megaMenuItem > summary,
-  .megaMenuButton {
+  .megaMenuItem > summary {
+    cursor: pointer !important;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
