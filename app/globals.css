@@ -846,3 +846,35 @@ button[class*="actionButton"] {
     display: none;
   }
 }
+
+/* FIX MEGA MENU: open on hover, never stuck after click */
+@media (min-width: 981px) {
+  .megaMenuItem .megaMenuPanel {
+    display: none !important;
+  }
+
+  .megaMenuItem:hover .megaMenuPanel {
+    display: grid !important;
+  }
+
+  .megaMenuItem[open]:not(:hover) .megaMenuPanel {
+    display: none !important;
+  }
+
+  .megaMenuItem > summary {
+    user-select: none !important;
+  }
+
+  .desktopMegaNav {
+    overflow: visible !important;
+  }
+
+  .desktopMegaNavInner {
+    overflow: visible !important;
+  }
+
+  .megaMenuPanel {
+    top: 160px !important;
+    z-index: 9999 !important;
+  }
+}
