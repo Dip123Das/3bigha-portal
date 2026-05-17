@@ -14,6 +14,17 @@ import { Badge } from "@/components/ui/Badge";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { Grid } from "@/components/ui/Grid";
 import { EmptyState } from "@/components/ui/EmptyState";
+import {
+  ErpActionCard,
+  ErpActionGrid,
+  ErpActivityFeed,
+  ErpAlertList,
+  ErpKpiCard,
+  ErpKpiGrid,
+  ErpPanel,
+} from "@/components/vendor-erp/VendorErpWidgets";
+import { VendorErpNav } from "@/components/vendor-erp/VendorErpNav";
+import { VendorErpWorkspace } from "@/components/vendor-erp/VendorErpWorkspace";
 
 type CompletenessRow = {
   user_id?: string;
@@ -1421,6 +1432,502 @@ const aiDealUpgradeTarget =
           subtitle="Your digital business assistant for local commerce."
         />
 
+        <VendorErpNav />
+
+        <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 22,
+            padding: 18,
+            border: "1px solid #bfdbfe",
+            background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+            boxShadow: "0 14px 34px rgba(37,99,235,0.10)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: 22,
+                  fontWeight: 950,
+                  color: "#0f172a",
+                }}
+              >
+                🚀 Today’s Business Focus
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                  color: "#475569",
+                  fontWeight: 800,
+                  maxWidth: 720,
+                }}
+              >
+                AI is monitoring buyer activity, follow-ups, pricing strength,
+                reply speed, stock readiness and visibility rank to help you
+                win more business today.
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                flexWrap: "wrap",
+              }}
+            >
+              <ActionButton
+                href="/dashboard/vendor/enquiries"
+                variant="primary"
+              >
+                ⚡ Respond to Buyers
+              </ActionButton>
+
+              <ActionButton
+                href="/dashboard/inbox-v2"
+                variant="secondary"
+              >
+                💬 Open Inbox
+              </ActionButton>
+
+              <ActionButton
+                href="/dashboard/vendor/inventory"
+                variant="secondary"
+              >
+                📦 Inventory OS
+              </ActionButton>
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginTop: 16,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                borderRadius: 16,
+                padding: 14,
+                background: "#ffffff",
+                border: "1px solid #dbeafe",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 900,
+                  color: "#1d4ed8",
+                }}
+              >
+                PRIORITY
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 18,
+                  fontWeight: 950,
+                  color: "#0f172a",
+                }}
+              >
+                {missedLeads > 0
+                  ? `${missedLeads} Follow-ups Pending`
+                  : "No Urgent Follow-ups"}
+              </div>
+            </div>
+
+            <div
+              style={{
+                borderRadius: 16,
+                padding: 14,
+                background: "#ffffff",
+                border: "1px solid #dcfce7",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 900,
+                  color: "#047857",
+                }}
+              >
+                AI VISIBILITY
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 18,
+                  fontWeight: 950,
+                  color: "#0f172a",
+                }}
+              >
+                Rank #{estimatedRank}
+              </div>
+            </div>
+
+            <div
+              style={{
+                borderRadius: 16,
+                padding: 14,
+                background: "#ffffff",
+                border: "1px solid #ede9fe",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 900,
+                  color: "#7c3aed",
+                }}
+              >
+                DEAL READINESS
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 18,
+                  fontWeight: 950,
+                  color: "#0f172a",
+                }}
+              >
+                {dealStats.ready} Ready Deals
+              </div>
+            </div>
+
+            <div
+              style={{
+                borderRadius: 16,
+                padding: 14,
+                background: "#ffffff",
+                border: "1px solid #fed7aa",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 900,
+                  color: "#c2410c",
+                }}
+              >
+                AI PREDICTION
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 16,
+                  fontWeight: 950,
+                  color: "#0f172a",
+                }}
+              >
+                {aiConversionPrediction}
+              </div>
+            </div>
+          </div>
+        </div>
+
+                <ErpPanel
+          title="Realtime Vendor Command Center"
+          subtitle="Live operating view for buyer leads, follow-ups, AI ranking, deal readiness and urgent vendor actions."
+          tone="green"
+        >
+          <ErpKpiGrid>
+            <ErpKpiCard
+              label="Urgent Actions"
+              value={missedLeads + unreadNotificationCount}
+              helper="Follow-ups + unread alerts"
+              tone={missedLeads + unreadNotificationCount > 0 ? "red" : "green"}
+            />
+
+            <ErpKpiCard
+              label="Live RFQ Leads"
+              value={leadStats.newLeadCount}
+              helper="New buyer opportunities"
+              tone="blue"
+            />
+
+            <ErpKpiCard
+              label="Deal Pipeline"
+              value={`${dealStats.ready}/${dealStats.total}`}
+              helper="Ready deals / tracked signals"
+              tone="violet"
+            />
+
+            <ErpKpiCard
+              label="AI Learning"
+              value={`${aiDealLearningScore}/100`}
+              helper={vendorResponseGrade}
+              tone={aiDealLearningScore >= 55 ? "green" : "orange"}
+            />
+          </ErpKpiGrid>
+
+          <ErpAlertList
+            alerts={[
+              {
+                label:
+                  missedLeads > 0
+                    ? `${missedLeads} buyer leads may need follow-up now.`
+                    : "Buyer follow-up queue is stable.",
+                tone: missedLeads > 0 ? "orange" : "green",
+              },
+              {
+                label:
+                  dealStats.ready > 0
+                    ? `${dealStats.ready} conversations are showing ready-to-close signals.`
+                    : "No ready-to-close deal signal detected yet.",
+                tone: dealStats.ready > 0 ? "violet" : "blue",
+              },
+              {
+                label:
+                  growthVisibilityScore < 55
+                    ? "AI visibility score is below strong vendor zone."
+                    : "AI visibility score is in an active vendor zone.",
+                tone: growthVisibilityScore < 55 ? "red" : "green",
+              },
+            ]}
+          />
+
+          <ErpActionGrid>
+            <ErpActionCard
+              title="Open Buyer Enquiries"
+              description="Reply to new buyer leads and recover missed follow-ups."
+              href="/dashboard/vendor/enquiries"
+              tone="blue"
+            />
+
+            <ErpActionCard
+              title="Open Live Inbox"
+              description="Continue conversations and improve reply rate."
+              href="/dashboard/inbox-v2"
+              tone="green"
+            />
+
+            <ErpActionCard
+              title="Boost Visibility"
+              description="Improve rank and buyer discovery strength."
+              href="/dashboard/subscription/boost"
+              tone="orange"
+            />
+
+            <ErpActionCard
+              title="AI ERP Supervisor"
+              description="Review inventory, billing, dispatch and ERP risks."
+              href="/dashboard/vendor/inventory-intelligence"
+              tone="violet"
+            />
+          </ErpActionGrid>
+        </ErpPanel>
+
+        <VendorErpWorkspace
+          rightRail={
+            <>
+              <ErpPanel
+                title="AI Right Rail"
+                subtitle="Important vendor actions, risks and growth signals stay visible while you work."
+                tone="violet"
+              >
+                <ErpAlertList
+                  alerts={[
+                    {
+                      label:
+                        missedLeads > 0
+                          ? `${missedLeads} buyer follow-ups need attention.`
+                          : "No missed follow-up pressure detected.",
+                      tone: missedLeads > 0 ? "orange" : "green",
+                    },
+                    {
+                      label: `Current vendor visibility rank is #${estimatedRank}.`,
+                      tone: estimatedRank <= 5 ? "green" : "red",
+                    },
+                    {
+                      label: `AI prediction: ${aiConversionPrediction}.`,
+                      tone: aiDealLearningScore >= 55 ? "green" : "orange",
+                    },
+                  ]}
+                />
+              </ErpPanel>
+
+              <ErpPanel
+                title="Quick ERP Actions"
+                subtitle="Fast access to daily vendor operations."
+                tone="blue"
+              >
+                <ErpActionGrid>
+                  <ErpActionCard
+                    title="Inventory"
+                    description="Open stock and ERP operating hub."
+                    href="/dashboard/vendor/inventory"
+                    tone="green"
+                  />
+                  <ErpActionCard
+                    title="Billing"
+                    description="Create bills and deduct stock."
+                    href="/dashboard/vendor/billing"
+                    tone="orange"
+                  />
+                  <ErpActionCard
+                    title="Dispatch"
+                    description="Create delivery workflow."
+                    href="/dashboard/vendor/dispatch"
+                    tone="blue"
+                  />
+                </ErpActionGrid>
+              </ErpPanel>
+            </>
+          }
+        >
+        <ErpPanel
+          title="Vendor ERP Mission Control"
+          subtitle="Unified business command center for leads, visibility, inventory, billing, fleet, dispatch and AI growth signals."
+          tone="blue"
+        >
+          <ErpKpiGrid>
+            <ErpKpiCard
+              label="New Leads"
+              value={leadStats.newLeadCount}
+              helper="Buyer opportunities waiting"
+              tone="blue"
+            />
+
+            <ErpKpiCard
+              label="Reply Rate"
+              value={`${replyRate}%`}
+              helper="Faster replies improve ranking"
+              tone={replyRate >= 60 ? "green" : "orange"}
+            />
+
+            <ErpKpiCard
+              label="Visibility Score"
+              value={`${growthVisibilityScore}/100`}
+              helper={leaderboardStatus}
+              tone={growthVisibilityScore >= 55 ? "green" : "orange"}
+            />
+
+            <ErpKpiCard
+              label="Ready Deals"
+              value={dealStats.ready}
+              helper="Ready-to-close buyer signals"
+              tone="violet"
+            />
+
+            <ErpKpiCard
+              label="Unread Alerts"
+              value={unreadNotificationCount}
+              helper="Operational notifications"
+              tone={unreadNotificationCount > 0 ? "red" : "green"}
+            />
+
+            <ErpKpiCard
+              label="Vendor Rank"
+              value={`#${estimatedRank}`}
+              helper={rankLabel}
+              tone={estimatedRank <= 5 ? "green" : "red"}
+            />
+          </ErpKpiGrid>
+
+          <ErpActionGrid>
+            <ErpActionCard
+              title="Inventory OS"
+              description="Open inventory, stock health, billing, fleet and dispatch controls."
+              href="/dashboard/vendor/inventory"
+              tone="green"
+            />
+
+            <ErpActionCard
+              title="Create Bill"
+              description="Generate invoice and connect stock deduction workflow."
+              href="/dashboard/vendor/billing"
+              tone="orange"
+            />
+
+            <ErpActionCard
+              title="Create Dispatch"
+              description="Move orders into delivery and tracking workflow."
+              href="/dashboard/vendor/dispatch"
+              tone="blue"
+            />
+
+            <ErpActionCard
+              title="Fleet Control"
+              description="Manage vehicle assignment and delivery capacity."
+              href="/dashboard/vendor/fleet"
+              tone="violet"
+            />
+
+            <ErpActionCard
+              title="AI ERP Supervisor"
+              description="Review AI risks, alerts and business recommendations."
+              href="/dashboard/vendor/inventory-intelligence"
+              tone="blue"
+            />
+          </ErpActionGrid>
+
+          <ErpAlertList
+            alerts={[
+              {
+                label:
+                  missedLeads > 0
+                    ? `${missedLeads} buyer follow-ups may need attention.`
+                    : "No missed buyer follow-up pressure detected.",
+                tone: missedLeads > 0 ? "orange" : "green",
+              },
+              {
+                label:
+                  unreadNotificationCount > 0
+                    ? `${unreadNotificationCount} unread vendor alerts are pending.`
+                    : "Notification center is clear.",
+                tone: unreadNotificationCount > 0 ? "red" : "green",
+              },
+              {
+                label: `AI conversion prediction: ${aiConversionPrediction}.`,
+                tone: aiDealLearningScore >= 55 ? "green" : "orange",
+              },
+            ]}
+          />
+
+          <ErpActivityFeed
+            title="Unified Vendor Mission Timeline"
+            items={[
+              {
+                label: "Vendor ERP health calculated.",
+                meta: `Visibility ${growthVisibilityScore}/100 • Rank #${estimatedRank}`,
+                tone: growthVisibilityScore >= 55 ? "green" : "orange",
+              },
+              {
+                label: "Buyer enquiry pipeline reviewed.",
+                meta: `${leadStats.newLeadCount} new leads • ${replyRate}% reply rate`,
+                tone: leadStats.newLeadCount > 0 ? "blue" : "slate",
+              },
+              {
+                label: "AI deal readiness scanned.",
+                meta: `${dealStats.ready} ready deals from ${dealStats.total} tracked events`,
+                tone: dealStats.ready > 0 ? "violet" : "slate",
+              },
+              {
+                label: "Procurement and ERP actions synchronized.",
+                meta: "Inventory, billing, fleet, dispatch and AI supervisor connected",
+                tone: "green",
+              },
+            ]}
+          />
+        </ErpPanel>
+
         <div
           style={{
             marginBottom: 16,
@@ -1558,6 +2065,295 @@ const aiDealUpgradeTarget =
               {missedLeads > 0 || unreadNotificationCount > 0 ? "Action needed" : "Stable today"}
             </Pill>
           </div>
+
+                  <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 22,
+            padding: 18,
+            border: "1px solid #ddd6fe",
+            background: "linear-gradient(135deg, #f5f3ff, #ffffff)",
+            boxShadow: "0 18px 40px rgba(124,58,237,0.10)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 22, fontWeight: 950, color: "#4c1d95" }}>
+                📈 Vendor CRM Pipeline
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 13,
+                  color: "#475569",
+                  fontWeight: 850,
+                  lineHeight: 1.6,
+                }}
+              >
+                AI continuously tracks buyer journey, follow-up pressure,
+                deal probability and conversion readiness.
+              </div>
+            </div>
+
+            <Pill tone={dealStats.ready > 0 ? "ok" : "warn"}>
+              {dealStats.ready > 0
+                ? `${dealStats.ready} deals warming up`
+                : "Pipeline needs activation"}
+            </Pill>
+          </div>
+
+          <div
+            style={{
+              marginTop: 16,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: 10,
+            }}
+          >
+            <div
+              style={{
+                border: "1px solid #c7d2fe",
+                borderRadius: 16,
+                padding: 12,
+                background: "#fff",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "#4338ca",
+                  fontWeight: 950,
+                }}
+              >
+                New Buyer Leads
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 28,
+                  fontWeight: 950,
+                  color: "#0f172a",
+                }}
+              >
+                {leadStats.newLeadCount}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  color: "#64748b",
+                  fontWeight: 800,
+                }}
+              >
+                Buyers recently entered your CRM pipeline.
+              </div>
+            </div>
+
+            <div
+              style={{
+                border: "1px solid #fed7aa",
+                borderRadius: 16,
+                padding: 12,
+                background: "#fff7ed",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "#9a3412",
+                  fontWeight: 950,
+                }}
+              >
+                Follow-up Risk
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 28,
+                  fontWeight: 950,
+                  color: "#0f172a",
+                }}
+              >
+                {missedLeads}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  color: "#7c2d12",
+                  fontWeight: 800,
+                }}
+              >
+                Potential buyers may go to competitors.
+              </div>
+            </div>
+
+            <div
+              style={{
+                border: "1px solid #bbf7d0",
+                borderRadius: 16,
+                padding: 12,
+                background: "#fff",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "#047857",
+                  fontWeight: 950,
+                }}
+              >
+                Deal Probability
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 28,
+                  fontWeight: 950,
+                  color: "#0f172a",
+                }}
+              >
+                {aiDealLearningScore}%
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  color: "#065f46",
+                  fontWeight: 800,
+                }}
+              >
+                AI prediction from reply + close behaviour.
+              </div>
+            </div>
+
+            <div
+              style={{
+                border: "1px solid #bfdbfe",
+                borderRadius: 16,
+                padding: 12,
+                background: "#eff6ff",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "#1d4ed8",
+                  fontWeight: 950,
+                }}
+              >
+                AI Pipeline Health
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 20,
+                  fontWeight: 950,
+                  color: "#0f172a",
+                }}
+              >
+                {growthVisibilityScore >= 70
+                  ? "Excellent"
+                  : growthVisibilityScore >= 45
+                  ? "Moderate"
+                  : "Weak"}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  color: "#1e40af",
+                  fontWeight: 800,
+                }}
+              >
+                Based on AI visibility + engagement signals.
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginTop: 16,
+              borderRadius: 16,
+              border: "1px solid #ddd6fe",
+              background: "#ffffff",
+              padding: 14,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 15,
+                fontWeight: 950,
+                color: "#4c1d95",
+              }}
+            >
+              🤖 AI CRM Recommendation
+            </div>
+
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 13,
+                color: "#475569",
+                fontWeight: 850,
+                lineHeight: 1.6,
+              }}
+            >
+              {missedLeads > 3
+                ? "Your CRM pipeline is leaking buyers due to delayed follow-ups. Open inbox and respond quickly."
+                : dealStats.ready > 0
+                ? "Some buyers are showing strong deal intent. Push negotiation toward billing and dispatch."
+                : "Continue improving buyer engagement and visibility to strengthen deal conversion."}
+            </div>
+
+            <div
+              style={{
+                marginTop: 12,
+                display: "flex",
+                gap: 10,
+                flexWrap: "wrap",
+              }}
+            >
+              <ActionButton
+                href="/dashboard/inbox-v2"
+                variant="primary"
+              >
+                Open CRM Inbox →
+              </ActionButton>
+
+              <ActionButton
+                href="/dashboard/vendor/enquiries"
+                variant="secondary"
+              >
+                Review Buyer Leads
+              </ActionButton>
+
+              <ActionButton
+                href="/dashboard/vendor/inventory-intelligence"
+                variant="secondary"
+              >
+                AI ERP Intelligence
+              </ActionButton>
+            </div>
+          </div>
+        </div>
 
           <div
             style={{
@@ -3265,6 +4061,7 @@ const aiDealUpgradeTarget =
         <div style={{ marginTop: 16, opacity: 0.75, fontSize: 13 }}>
           Next after inbox: we can add notifications + buyer enquiry form from listing pages.
         </div>
+        </VendorErpWorkspace>
       </Container>
     </main>
   );

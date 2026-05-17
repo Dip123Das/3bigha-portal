@@ -10,6 +10,16 @@ import { Card, CardBody } from "@/components/ui/Card";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import {
+  ErpActionCard,
+  ErpActionGrid,
+  ErpActivityFeed,
+  ErpAlertList,
+  ErpKpiCard,
+  ErpKpiGrid,
+  ErpPanel,
+} from "@/components/vendor-erp/VendorErpWidgets";
+import { VendorErpNav } from "@/components/vendor-erp/VendorErpNav";
 
 type VehicleRow = {
   id: string;
@@ -178,6 +188,8 @@ export default function VendorFleetPage() {
           subtitle="Manage truck, lorry, dumper and tractor details for delivery and dispatch."
         />
 
+        <VendorErpNav />
+
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
           <ActionButton href="/dashboard/vendor" variant="secondary">
             ← Vendor Dashboard
@@ -202,32 +214,92 @@ export default function VendorFleetPage() {
           </button>
         </div>
 
-        <div
-          style={{
-            marginBottom: 16,
-            borderRadius: 22,
-            padding: 16,
-            border: "1px solid #bae6fd",
-            background: "linear-gradient(135deg, #f0f9ff, #ffffff)",
-          }}
+        <ErpPanel
+          title="Fleet Operating Center"
+          subtitle="This connects sand, brick, stone and aggregate orders with assigned vehicles, drivers, load capacity and future live tracking."
+          tone="blue"
         >
-          <div style={{ fontSize: 20, fontWeight: 950, color: "#075985" }}>
-            Fleet Operating Center
-          </div>
+          <ErpKpiGrid>
+            <ErpKpiCard label="Total Vehicles" value={stats.total} helper="Registered delivery assets" tone="blue" />
+            <ErpKpiCard label="Available" value={stats.available} helper="Ready for new dispatch" tone="green" />
+            <ErpKpiCard label="Assigned" value={stats.assigned} helper="Linked with delivery work" tone="orange" />
+            <ErpKpiCard label="In Transit" value={stats.inTransit} helper="Currently on route" tone="violet" />
+            <ErpKpiCard label="Maintenance" value={stats.maintenance} helper="Not ready for dispatch" tone="red" />
+          </ErpKpiGrid>
+        </ErpPanel>
 
-          <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 800 }}>
-            This will connect sand, brick, stone and aggregate orders with assigned vehicles,
-            drivers, load capacity and future live tracking.
-          </div>
+                <ErpPanel
+          title="Fleet ERP Operations"
+          subtitle="Vehicle assignment, dispatch linkage and delivery operations."
+          tone="blue"
+        >
+          <ErpActionGrid>
+            <ErpActionCard
+              title="Add Vehicle"
+              description="Register new trucks, pickups and delivery vehicles."
+              href="/dashboard/vendor/fleet"
+              tone="green"
+            />
 
-          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10 }}>
-            <Stat label="Total Vehicles" value={stats.total} />
-            <Stat label="Available" value={stats.available} />
-            <Stat label="Assigned" value={stats.assigned} />
-            <Stat label="In Transit" value={stats.inTransit} />
-            <Stat label="Maintenance" value={stats.maintenance} />
-          </div>
-        </div>
+            <ErpActionCard
+              title="Create Dispatch"
+              description="Assign fleet for material delivery."
+              href="/dashboard/vendor/dispatch"
+              tone="blue"
+            />
+
+            <ErpActionCard
+              title="Inventory Movement"
+              description="Connect fleet with inventory stock movement."
+              href="/dashboard/vendor/inventory"
+              tone="orange"
+            />
+
+            <ErpActionCard
+              title="AI Fleet Monitoring"
+              description="Review operational risk and delivery efficiency."
+              href="/dashboard/vendor/inventory-intelligence"
+              tone="violet"
+            />
+          </ErpActionGrid>
+
+          <ErpAlertList
+            alerts={[
+              {
+                label: `${stats.inTransit} vehicles are currently in active delivery routes.`,
+                tone: "blue",
+              },
+              {
+                label: `${stats.maintenance} vehicles require maintenance attention.`,
+                tone: "red",
+              },
+              {
+                label: `${stats.available} vehicles are immediately available for dispatch assignment.`,
+                tone: "green",
+              },
+            ]}
+          />
+                  <ErpActivityFeed
+            title="Fleet Activity Timeline"
+            items={[
+              {
+                label: "Fleet availability reviewed.",
+                meta: `${stats.available} vehicles ready`,
+                tone: "green",
+              },
+              {
+                label: "Active delivery routes monitored.",
+                meta: `${stats.inTransit} vehicles in transit`,
+                tone: "blue",
+              },
+              {
+                label: "Maintenance risk checked.",
+                meta: `${stats.maintenance} vehicles require attention`,
+                tone: "red",
+              },
+            ]}
+          />
+        </ErpPanel>
 
         <Card>
           <CardBody>

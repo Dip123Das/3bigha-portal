@@ -8,6 +8,8 @@ import { Card, CardBody } from "@/components/ui/Card";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ErpKpiCard, ErpKpiGrid, ErpPanel } from "@/components/vendor-erp/VendorErpWidgets";
+import { VendorErpNav } from "@/components/vendor-erp/VendorErpNav";
 
 type Intelligence = {
   ok?: boolean;
@@ -77,6 +79,8 @@ export default function InventoryIntelligencePage() {
           subtitle="Low stock alerts, fast-moving products, dead stock detection and reorder suggestions."
         />
 
+        <VendorErpNav />
+
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
           <ActionButton href="/dashboard/vendor" variant="secondary">
             ← Vendor Dashboard
@@ -111,30 +115,22 @@ export default function InventoryIntelligencePage() {
           </button>
         </div>
 
-        <div
-          style={{
-            marginBottom: 16,
-            borderRadius: 22,
-            padding: 16,
-            border: "1px solid #c4b5fd",
-            background: "linear-gradient(135deg, #f5f3ff, #ffffff)",
-            boxShadow: "0 16px 38px rgba(124,58,237,0.10)",
-          }}
+        <ErpPanel
+          title="AI ERP Supervisor"
+          subtitle="AI reviews material stock, billing records, stock movement, dispatches and vehicle data to recommend business actions."
+          tone="violet"
         >
-          <div style={{ fontSize: 20, fontWeight: 950, color: "#5b21b6" }}>
-            Inventory Intelligence Engine
-          </div>
-
-          <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 800, lineHeight: 1.6 }}>
-            AI reviews your material stock, billing records, stock movement, dispatches and vehicle data to recommend business actions.
-          </div>
+          <ErpKpiGrid>
+            <ErpKpiCard label="Risk Level" value={data?.riskLevel || "Auto"} helper="Operational risk signal" tone="violet" />
+            <ErpKpiCard label="Low Stock" value={lowStock.length} helper="Reorder attention" tone="red" />
+            <ErpKpiCard label="Fast Moving" value={fastMoving.length} helper="Demand signal" tone="green" />
+            <ErpKpiCard label="Dead Stock" value={deadStock.length} helper="Slow inventory" tone="orange" />
+            <ErpKpiCard label="Reorder Suggestions" value={reorderSuggestions.length} helper="AI action items" tone="blue" />
+          </ErpKpiGrid>
 
           <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
             <Badge>Source: {data?.source || "—"}</Badge>
             <Badge>Risk: {data?.riskLevel || "auto"}</Badge>
-            <Badge>Low Stock: {lowStock.length}</Badge>
-            <Badge>Fast Moving: {fastMoving.length}</Badge>
-            <Badge>Dead Stock: {deadStock.length}</Badge>
           </div>
 
           {data?.ai_error ? (
@@ -142,7 +138,7 @@ export default function InventoryIntelligencePage() {
               AI fallback used: {data.ai_error}
             </div>
           ) : null}
-        </div>
+        </ErpPanel>
 
         {loading ? (
           <EmptyState message="Loading AI inventory intelligence…" />

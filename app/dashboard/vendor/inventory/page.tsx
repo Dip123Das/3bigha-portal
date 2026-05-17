@@ -11,6 +11,16 @@ import { Card, CardBody, CardFooter } from "@/components/ui/Card";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import {
+  ErpActionCard,
+  ErpActionGrid,
+  ErpActivityFeed,
+  ErpAlertList,
+  ErpKpiCard,
+  ErpKpiGrid,
+  ErpPanel,
+} from "@/components/vendor-erp/VendorErpWidgets";
+import { VendorErpNav } from "@/components/vendor-erp/VendorErpNav";
 
 type MaterialListingRow = {
   id: string;
@@ -176,6 +186,8 @@ export default function VendorInventoryPage() {
           subtitle="Manage stock, billing, fleet, dispatch and AI inventory intelligence from one place."
         />
 
+        <VendorErpNav />
+
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
           <ActionButton href="/dashboard/vendor" variant="secondary">
             ← Vendor Dashboard
@@ -258,56 +270,100 @@ export default function VendorInventoryPage() {
           </div>
         </div>
 
-        <div
-          style={{
-            marginBottom: 16,
-            borderRadius: 22,
-            padding: 16,
-            border: "1px solid #bbf7d0",
-            background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
-          }}
+        <ErpPanel
+          title="Stock Control Center"
+          subtitle="Materials added from the normal vendor material form now become inventory items. Shop owners can search by SKU, barcode, godown, room, rack or vehicle number."
+          tone="green"
         >
-          <div style={{ fontSize: 20, fontWeight: 950, color: "#064e3b" }}>
-            Stock Control Center
-          </div>
+          <ErpKpiGrid>
+            <ErpKpiCard label="Inventory Items" value={stats.totalItems} helper="Active stock records" tone="green" />
+            <ErpKpiCard label="Total Stock" value={stats.totalStock} helper="Available quantity" tone="blue" />
+            <ErpKpiCard label="Stock Value" value={money(stats.stockValue)} helper="Approximate sale value" tone="violet" />
+            <ErpKpiCard label="Low Stock" value={stats.lowStock} helper="Needs reorder check" tone="orange" />
+            <ErpKpiCard label="Out of Stock" value={stats.outOfStock} helper="Urgent restocking needed" tone="red" />
+            <ErpKpiCard label="Vehicle Linked" value={stats.vehicleLinked} helper="Ready for dispatch planning" tone="slate" />
+          </ErpKpiGrid>
+        </ErpPanel>
 
-          <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 800, lineHeight: 1.6 }}>
-            Materials added from the normal vendor material form now become inventory items.
-            Shop owners can search by SKU, barcode, godown, room, rack or vehicle number.
-          </div>
+                <ErpPanel
+          title="Inventory Operational Actions"
+          subtitle="Quick ERP workflows for inventory movement, billing, dispatch and AI stock planning."
+          tone="blue"
+        >
+          <ErpActionGrid>
+            <ErpActionCard
+              title="Add Inventory"
+              description="Create new inventory records and stock entries."
+              href="/dashboard/vendor/inventory"
+              tone="green"
+            />
 
-          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
-            <div style={{ border: "1px solid #bbf7d0", borderRadius: 16, padding: 12, background: "#fff" }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "#047857" }}>Inventory Items</div>
-              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950 }}>{stats.totalItems}</div>
-            </div>
+            <ErpActionCard
+              title="Generate Bill"
+              description="Create billing directly from available inventory."
+              href="/dashboard/vendor/billing"
+              tone="orange"
+            />
 
-            <div style={{ border: "1px solid #dbeafe", borderRadius: 16, padding: 12, background: "#fff" }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "#1d4ed8" }}>Total Stock</div>
-              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950 }}>{stats.totalStock}</div>
-            </div>
+            <ErpActionCard
+              title="Assign Dispatch"
+              description="Move stock into delivery and logistics workflows."
+              href="/dashboard/vendor/dispatch"
+              tone="blue"
+            />
 
-            <div style={{ border: "1px solid #e0e7ff", borderRadius: 16, padding: 12, background: "#fff" }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "#4338ca" }}>Stock Value</div>
-              <div style={{ marginTop: 4, fontSize: 24, fontWeight: 950 }}>{money(stats.stockValue)}</div>
-            </div>
+            <ErpActionCard
+              title="Link Vehicle"
+              description="Assign inventory movement with transport vehicles."
+              href="/dashboard/vendor/fleet"
+              tone="violet"
+            />
 
-            <div style={{ border: "1px solid #fed7aa", borderRadius: 16, padding: 12, background: "#fff7ed" }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "#9a3412" }}>Low Stock</div>
-              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950 }}>{stats.lowStock}</div>
-            </div>
+            <ErpActionCard
+              title="AI Stock Intelligence"
+              description="Review reorder risk, dead stock and AI ERP analysis."
+              href="/dashboard/vendor/inventory-intelligence"
+              tone="blue"
+            />
+          </ErpActionGrid>
 
-            <div style={{ border: "1px solid #fecaca", borderRadius: 16, padding: 12, background: "#fef2f2" }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "#991b1b" }}>Out of Stock</div>
-              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950 }}>{stats.outOfStock}</div>
-            </div>
-
-            <div style={{ border: "1px solid #bae6fd", borderRadius: 16, padding: 12, background: "#f0f9ff" }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "#0369a1" }}>Vehicle Linked</div>
-              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950 }}>{stats.vehicleLinked}</div>
-            </div>
-          </div>
-        </div>
+          <ErpAlertList
+            alerts={[
+              {
+                label: `${stats.lowStock} inventory items are running low and may require reorder.`,
+                tone: "orange",
+              },
+              {
+                label: `${stats.outOfStock} inventory items are completely out of stock.`,
+                tone: "red",
+              },
+              {
+                label: `${stats.vehicleLinked} stock items are already connected with fleet operations.`,
+                tone: "green",
+              },
+            ]}
+          />
+                  <ErpActivityFeed
+            title="Inventory Activity Timeline"
+            items={[
+              {
+                label: "Inventory health checked by ERP analytics.",
+                meta: `${stats.totalItems} items scanned`,
+                tone: "blue",
+              },
+              {
+                label: "Low stock monitoring is active.",
+                meta: `${stats.lowStock} reorder signals found`,
+                tone: "orange",
+              },
+              {
+                label: "Fleet-linked inventory is ready for dispatch planning.",
+                meta: `${stats.vehicleLinked} stock records linked`,
+                tone: "green",
+              },
+            ]}
+          />
+        </ErpPanel>
 
         <Card>
           <CardBody>

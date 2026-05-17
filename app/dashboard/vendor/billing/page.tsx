@@ -10,6 +10,16 @@ import { Card, CardBody } from "@/components/ui/Card";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import {
+  ErpActionCard,
+  ErpActionGrid,
+  ErpActivityFeed,
+  ErpAlertList,
+  ErpKpiCard,
+  ErpKpiGrid,
+  ErpPanel,
+} from "@/components/vendor-erp/VendorErpWidgets";
+import { VendorErpNav } from "@/components/vendor-erp/VendorErpNav";
 
 type MaterialRow = {
   id: string;
@@ -268,6 +278,22 @@ export default function VendorBillingPage() {
     if (!rate) setRate(selectedInventory.selling_price || "");
   }, [selectedInventory, unit, rate]);
 
+  const billingStats = useMemo(() => {
+    const totalBilling = bills.reduce((sum, bill) => sum + asNumber(bill.total_amount), 0);
+    const paidBilling = bills
+      .filter((bill) => bill.payment_status === "paid")
+      .reduce((sum, bill) => sum + asNumber(bill.total_amount), 0);
+    const pendingBilling = Math.max(0, totalBilling - paidBilling);
+
+    return {
+      totalBills: bills.length,
+      totalBilling,
+      paidBilling,
+      pendingBilling,
+      unpaidBills: bills.filter((bill) => bill.payment_status !== "paid").length,
+    };
+  }, [bills]);
+
   return (
     <main>
       <Container>
@@ -275,6 +301,8 @@ export default function VendorBillingPage() {
           title="Billing Center"
           subtitle="Create offline/online bills and automatically deduct stock from inventory."
         />
+
+        <VendorErpNav />
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
           <ActionButton href="/dashboard/vendor" variant="secondary">
@@ -288,22 +316,92 @@ export default function VendorBillingPage() {
           </ActionButton>
         </div>
 
-        <div
-          style={{
-            marginBottom: 16,
-            borderRadius: 22,
-            padding: 16,
-            border: "1px solid #fed7aa",
-            background: "linear-gradient(135deg, #fff7ed, #ffffff)",
-          }}
+        <ErpPanel
+          title="Billing + Stock Deduction Engine"
+          subtitle="When a vendor creates a bill, stock is reduced automatically and a stock movement log is created."
+          tone="orange"
         >
-          <div style={{ fontSize: 20, fontWeight: 950, color: "#9a3412" }}>
-            Billing + Stock Deduction Engine
-          </div>
-          <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 800 }}>
-            When a vendor creates a bill, stock is reduced automatically and a stock movement log is created.
-          </div>
-        </div>
+          <ErpKpiGrid>
+            <ErpKpiCard label="Total Bills" value={billingStats.totalBills} helper="Recent billing records" tone="orange" />
+            <ErpKpiCard label="Total Billing" value={money(billingStats.totalBilling)} helper="Gross bill value" tone="violet" />
+            <ErpKpiCard label="Paid Amount" value={money(billingStats.paidBilling)} helper="Collected billing value" tone="green" />
+            <ErpKpiCard label="Pending Amount" value={money(billingStats.pendingBilling)} helper="Collection follow-up needed" tone="red" />
+            <ErpKpiCard label="Unpaid Bills" value={billingStats.unpaidBills} helper="Outstanding invoices" tone="slate" />
+          </ErpKpiGrid>
+        </ErpPanel>
+
+                <ErpPanel
+          title="Billing Workflow Actions"
+          subtitle="Vendor ERP billing automation, collections and invoice operations."
+          tone="orange"
+        >
+          <ErpActionGrid>
+            <ErpActionCard
+              title="Create Invoice"
+              description="Generate new billing from inventory items."
+              href="/dashboard/vendor/billing"
+              tone="orange"
+            />
+
+            <ErpActionCard
+              title="Dispatch Linked Billing"
+              description="Connect invoice with dispatch and delivery."
+              href="/dashboard/vendor/dispatch"
+              tone="blue"
+            />
+
+            <ErpActionCard
+              title="Fleet Delivery Billing"
+              description="Track billing with transport movement."
+              href="/dashboard/vendor/fleet"
+              tone="violet"
+            />
+
+            <ErpActionCard
+              title="AI Billing Intelligence"
+              description="Analyze unpaid invoices and cashflow risk."
+              href="/dashboard/vendor/inventory-intelligence"
+              tone="green"
+            />
+          </ErpActionGrid>
+
+          <ErpAlertList
+            alerts={[
+              {
+                label: `${billingStats.unpaidBills} invoices remain unpaid and require collection follow-up.`,
+                tone: "red",
+              },
+              {
+                label: `Pending collection value is ${money(billingStats.pendingBilling)}.`,
+                tone: "orange",
+              },
+              {
+                label: `Billing engine is synchronized with inventory deduction workflows.`,
+                tone: "green",
+              },
+            ]}
+          />
+          <ErpActivityFeed
+            title="Billing Activity Timeline"
+            items={[
+              {
+                label: "Billing analytics reviewed invoice records.",
+                meta: `${billingStats.totalBills} bills scanned`,
+                tone: "blue",
+              },
+              {
+                label: "Pending collection watch is active.",
+                meta: `${money(billingStats.pendingBilling)} pending`,
+                tone: "orange",
+              },
+              {
+                label: "Paid billing value calculated.",
+                meta: `${money(billingStats.paidBilling)} collected`,
+                tone: "green",
+              },
+            ]}
+          />
+        </ErpPanel>
 
         <Card>
           <CardBody>

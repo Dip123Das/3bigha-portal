@@ -10,6 +10,16 @@ import { Card, CardBody } from "@/components/ui/Card";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import {
+  ErpActionCard,
+  ErpActionGrid,
+  ErpActivityFeed,
+  ErpAlertList,
+  ErpKpiCard,
+  ErpKpiGrid,
+  ErpPanel,
+} from "@/components/vendor-erp/VendorErpWidgets";
+import { VendorErpNav } from "@/components/vendor-erp/VendorErpNav";
 
 type VehicleRow = {
   id: string;
@@ -243,6 +253,16 @@ export default function VendorDispatchPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const dispatchStats = useMemo(() => {
+    return {
+      total: dispatches.length,
+      pending: dispatches.filter((d) => ["pending", "assigned", "loaded"].includes(d.dispatch_status)).length,
+      inTransit: dispatches.filter((d) => d.dispatch_status === "in_transit").length,
+      delivered: dispatches.filter((d) => d.dispatch_status === "delivered").length,
+      failed: dispatches.filter((d) => ["failed", "cancelled"].includes(d.dispatch_status)).length,
+    };
+  }, [dispatches]);
+
   return (
     <main>
       <Container>
@@ -250,6 +270,8 @@ export default function VendorDispatchPage() {
           title="Dispatch Center"
           subtitle="Assign vehicles, manage deliveries and track dispatch operations."
         />
+
+        <VendorErpNav />
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
           <ActionButton href="/dashboard/vendor" variant="secondary">
@@ -265,23 +287,92 @@ export default function VendorDispatchPage() {
           </ActionButton>
         </div>
 
-        <div
-          style={{
-            marginBottom: 16,
-            borderRadius: 22,
-            padding: 16,
-            border: "1px solid #c7d2fe",
-            background: "linear-gradient(135deg, #eef2ff, #ffffff)",
-          }}
+        <ErpPanel
+          title="Delivery & Dispatch Operating Center"
+          subtitle="Connect inventory materials with assigned vehicles, buyers and delivery workflows."
+          tone="blue"
         >
-          <div style={{ fontSize: 20, fontWeight: 950, color: "#3730a3" }}>
-            Delivery & Dispatch Operating Center
-          </div>
+          <ErpKpiGrid>
+            <ErpKpiCard label="Total Dispatches" value={dispatchStats.total} helper="All delivery records" tone="blue" />
+            <ErpKpiCard label="Pending" value={dispatchStats.pending} helper="Needs operational action" tone="orange" />
+            <ErpKpiCard label="In Transit" value={dispatchStats.inTransit} helper="Currently moving" tone="violet" />
+            <ErpKpiCard label="Delivered" value={dispatchStats.delivered} helper="Completed deliveries" tone="green" />
+            <ErpKpiCard label="Failed / Cancelled" value={dispatchStats.failed} helper="Needs review" tone="red" />
+          </ErpKpiGrid>
+        </ErpPanel>
 
-          <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 800 }}>
-            Connect inventory materials with assigned vehicles, buyers and delivery workflows.
-          </div>
-        </div>
+                <ErpPanel
+          title="Dispatch Workflow Actions"
+          subtitle="Delivery execution, buyer tracking and logistics operations."
+          tone="blue"
+        >
+          <ErpActionGrid>
+            <ErpActionCard
+              title="Create Dispatch"
+              description="Generate new delivery operations."
+              href="/dashboard/vendor/dispatch"
+              tone="blue"
+            />
+
+            <ErpActionCard
+              title="Assign Vehicle"
+              description="Link transport vehicle with dispatch route."
+              href="/dashboard/vendor/fleet"
+              tone="green"
+            />
+
+            <ErpActionCard
+              title="Inventory Source"
+              description="Pull dispatch items directly from inventory."
+              href="/dashboard/vendor/inventory"
+              tone="orange"
+            />
+
+            <ErpActionCard
+              title="AI Dispatch Intelligence"
+              description="Analyze delay risk and operational bottlenecks."
+              href="/dashboard/vendor/inventory-intelligence"
+              tone="violet"
+            />
+          </ErpActionGrid>
+
+          <ErpAlertList
+            alerts={[
+              {
+                label: `${dispatchStats.pending} dispatches still require operational processing.`,
+                tone: "orange",
+              },
+              {
+                label: `${dispatchStats.failed} dispatches failed or were cancelled.`,
+                tone: "red",
+              },
+              {
+                label: `${dispatchStats.delivered} dispatches have already been completed successfully.`,
+                tone: "green",
+              },
+            ]}
+          />
+                  <ErpActivityFeed
+            title="Dispatch Activity Timeline"
+            items={[
+              {
+                label: "Dispatch queue scanned.",
+                meta: `${dispatchStats.pending} pending operations`,
+                tone: "orange",
+              },
+              {
+                label: "Active delivery status reviewed.",
+                meta: `${dispatchStats.inTransit} deliveries in transit`,
+                tone: "blue",
+              },
+              {
+                label: "Completed delivery count updated.",
+                meta: `${dispatchStats.delivered} deliveries completed`,
+                tone: "green",
+              },
+            ]}
+          />
+        </ErpPanel>
 
         <Card>
           <CardBody>
