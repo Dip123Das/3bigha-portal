@@ -307,6 +307,52 @@ export default function HomePage() {
         ))}
       </section>
 
+      <section className="aiLiveOpsStrip">
+        <div className="aiLiveOpsHead">
+          <div>
+            <span>🤖 Live AI Operations</span>
+            <h2>3Bigha is working in the background for buyers, vendors and suppliers.</h2>
+          </div>
+          <a href="/dashboard/vendor/inventory">Open Vendor OS →</a>
+        </div>
+
+        <div className="aiLiveOpsGrid">
+          {[
+            ["📦", "8", "Low stock alerts", "Cement, TMT and electrical items need attention"],
+            ["🚚", "32", "Deliveries tracked", "Fleet and dispatch workflows are ready"],
+            ["🧾", "54", "Bills processed", "Online + offline billing with stock deduction"],
+            ["📈", "12%", "Demand movement", "Sand and brick demand rising in local markets"],
+            ["🧠", "418", "AI decisions", "Procurement, pricing and vendor routing signals"],
+          ].map(([icon, value, label, text]) => (
+            <div className="aiLiveOpsCard" key={label}>
+              <span>{icon}</span>
+              <strong>{value}</strong>
+              <b>{label}</b>
+              <small>{text}</small>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="aiBusinessCommand">
+        <div className="aiBusinessCopy">
+          <span>AI Business Command Center</span>
+          <h2>Inventory, billing, fleet and dispatch — now connected with marketplace intelligence.</h2>
+          <p>
+            Vendors can manage stock, create bills, assign vehicles, track dispatches and use AI signals
+            to understand demand, pricing and operational risks.
+          </p>
+        </div>
+
+        <div className="aiBusinessActions">
+          <a href="/dashboard/vendor/inventory">📦 Inventory</a>
+          <a href="/dashboard/vendor/billing">🧾 Billing</a>
+          <a href="/dashboard/vendor/fleet">🚚 Fleet</a>
+          <a href="/dashboard/vendor/dispatch">📍 Dispatch</a>
+          <a href="/materials/add?inventory=1">➕ Add Stock</a>
+        </div>
+      </section>
+
       <section className="contentSection">
         <div className="sectionHead">
           <div>

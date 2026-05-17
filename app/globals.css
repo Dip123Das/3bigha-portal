@@ -1953,3 +1953,171 @@ button[class*="actionButton"] {
     display: none !important;
   }
 }
+
+/* AI LIVE OPERATIONS STRIP */
+.aiLiveOpsStrip {
+  border-radius: 28px;
+  border: 1px solid rgba(37, 99, 235, 0.12);
+  background:
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 30%),
+    linear-gradient(135deg, #ffffff, #f8fafc);
+  padding: 22px;
+  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.08);
+}
+
+.aiLiveOpsHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.aiLiveOpsHead span,
+.aiBusinessCopy span {
+  display: inline-flex;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 1000;
+}
+
+.aiLiveOpsHead h2,
+.aiBusinessCopy h2 {
+  margin: 10px 0 0;
+  color: #0f172a;
+  font-size: clamp(22px, 3vw, 38px);
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+}
+
+.aiLiveOpsHead a {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 11px 16px;
+  font-size: 13px;
+  font-weight: 1000;
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.18);
+}
+
+.aiLiveOpsGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.aiLiveOpsCard {
+  border-radius: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 16px;
+  display: grid;
+  gap: 6px;
+  min-height: 142px;
+}
+
+.aiLiveOpsCard span {
+  font-size: 22px;
+}
+
+.aiLiveOpsCard strong {
+  font-size: 30px;
+  line-height: 1;
+  color: #0f172a;
+  font-weight: 1000;
+}
+
+.aiLiveOpsCard b {
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 1000;
+}
+
+.aiLiveOpsCard small {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 800;
+}
+
+/* AI BUSINESS COMMAND CENTER */
+.aiBusinessCommand {
+  border-radius: 28px;
+  border: 1px solid rgba(16, 185, 129, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(16, 185, 129, 0.14), transparent 28%),
+    linear-gradient(135deg, #ecfdf5, #ffffff);
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 22px;
+  align-items: center;
+  box-shadow: 0 20px 55px rgba(16, 185, 129, 0.08);
+}
+
+.aiBusinessCopy p {
+  margin: 12px 0 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.65;
+  font-weight: 800;
+}
+
+.aiBusinessActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.aiBusinessActions a {
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+  padding: 16px;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 1000;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+
+.aiBusinessActions a:hover {
+  transform: translateY(-2px);
+  color: #047857;
+}
+
+@media (max-width: 980px) {
+  .aiLiveOpsStrip,
+  .aiBusinessCommand {
+    border-radius: 22px;
+    padding: 16px;
+  }
+
+  .aiLiveOpsHead {
+    display: grid;
+  }
+
+  .aiLiveOpsHead a {
+    width: 100%;
+    text-align: center;
+  }
+
+  .aiLiveOpsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .aiLiveOpsCard {
+    min-height: auto;
+  }
+
+  .aiBusinessCommand {
+    grid-template-columns: 1fr;
+  }
+
+  .aiBusinessActions {
+    grid-template-columns: 1fr;
+  }
+}
