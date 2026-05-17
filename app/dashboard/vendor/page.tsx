@@ -1510,24 +1510,8 @@ const aiDealUpgradeTarget =
                   Materials
                 </ActionButton>
 
-                <ActionButton href="/materials/add?inventory=1" variant="secondary">
-                  Add Inventory Item
-                </ActionButton>
-
                 <ActionButton href="/dashboard/vendor/inventory" variant="secondary">
-                  Inventory
-                </ActionButton>
-
-                <ActionButton href="/dashboard/vendor/billing" variant="secondary">
-                  Billing
-                </ActionButton>
-
-                <ActionButton href="/dashboard/vendor/fleet" variant="secondary">
-                  Fleet
-                </ActionButton>
-
-                <ActionButton href="/dashboard/vendor/dispatch" variant="secondary">
-                  Dispatch
+                  Inventory OS
                 </ActionButton>
               </>
             ) : null}
@@ -1914,19 +1898,7 @@ const aiDealUpgradeTarget =
                   </ActionButton>
 
                   <ActionButton href="/dashboard/vendor/inventory" variant="secondary">
-                    Inventory
-                  </ActionButton>
-
-                  <ActionButton href="/dashboard/vendor/billing" variant="secondary">
-                    Billing
-                  </ActionButton>
-
-                  <ActionButton href="/dashboard/vendor/fleet" variant="secondary">
-                    Fleet
-                  </ActionButton>
-
-                  <ActionButton href="/dashboard/vendor/dispatch" variant="secondary">
-                    Dispatch
+                    Inventory OS
                   </ActionButton>
                 </>
               ) : null}
