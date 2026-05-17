@@ -1906,3 +1906,50 @@ button[class*="actionButton"] {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* FINAL DESKTOP MEGA MENU HOVER BRIDGE + INSIDE SCREEN FIX */
+@media (min-width: 981px) {
+  .desktopMegaNav,
+  .desktopMegaNavInner {
+    overflow: visible !important;
+  }
+
+  .megaMenuItem {
+    position: relative !important;
+    padding-bottom: 12px !important;
+    margin-bottom: -12px !important;
+  }
+
+  .megaMenuItem .megaMenuPanel {
+    display: none !important;
+  }
+
+  .megaMenuItem:hover .megaMenuPanel {
+    display: grid !important;
+    position: absolute !important;
+    top: calc(100% - 1px) !important;
+    left: 0 !important;
+    right: auto !important;
+    transform: none !important;
+    width: min(760px, calc(100vw - 32px)) !important;
+    min-width: 0 !important;
+    max-width: calc(100vw - 32px) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 22px !important;
+    padding: 24px !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(15,23,42,0.10) !important;
+    border-radius: 0 0 24px 24px !important;
+    box-shadow: 0 24px 70px rgba(15,23,42,0.18) !important;
+    z-index: 10050 !important;
+  }
+
+  .megaMenuItem:nth-last-child(-n+3) .megaMenuPanel {
+    left: auto !important;
+    right: 0 !important;
+  }
+
+  .megaMenuItem[open]:not(:hover) .megaMenuPanel {
+    display: none !important;
+  }
+}
