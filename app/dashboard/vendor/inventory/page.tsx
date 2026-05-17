@@ -172,8 +172,8 @@ export default function VendorInventoryPage() {
     <main>
       <Container>
         <SectionHeader
-          title="Vendor Inventory"
-          subtitle="Inventory foundation linked with your existing material listings."
+          title="Inventory Operating Hub"
+          subtitle="Manage stock, billing, fleet, dispatch and AI inventory intelligence from one place."
         />
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
@@ -211,12 +211,64 @@ export default function VendorInventoryPage() {
             marginBottom: 16,
             borderRadius: 22,
             padding: 16,
+            border: "1px solid #c7d2fe",
+            background: "linear-gradient(135deg, #eef2ff, #ffffff)",
+          }}
+        >
+          <div style={{ fontSize: 20, fontWeight: 950, color: "#3730a3" }}>
+            Inventory Operating System
+          </div>
+
+          <div style={{ marginTop: 6, color: "#475569", fontSize: 13, fontWeight: 800, lineHeight: 1.6 }}>
+            Inventory is the main control room. From here vendors can manage stock, add inventory, create bills, download PDF invoices, assign fleet, create dispatch and use AI inventory intelligence.
+          </div>
+
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
+            <ActionButton href="/dashboard/vendor/inventory" variant="primary">
+              📦 Inventory Items
+            </ActionButton>
+
+            <ActionButton href="/materials/add?inventory=1" variant="secondary">
+              ➕ Add Inventory
+            </ActionButton>
+
+            <ActionButton href="/dashboard/vendor/billing" variant="secondary">
+              🧾 Billing
+            </ActionButton>
+
+            <ActionButton href="/dashboard/vendor/fleet" variant="secondary">
+              🚚 Fleet
+            </ActionButton>
+
+            <ActionButton href="/dashboard/vendor/dispatch" variant="secondary">
+              📍 Dispatch
+            </ActionButton>
+
+            <ActionButton href="/dashboard/vendor/inventory-intelligence" variant="secondary">
+              🤖 AI Inventory Intelligence
+            </ActionButton>
+
+            <ActionButton href="/dashboard/vendor/inventory" variant="secondary">
+              📊 Stock Movement
+            </ActionButton>
+
+            <ActionButton href="/dashboard/vendor/billing" variant="secondary">
+              📄 PDF Invoice / Challan
+            </ActionButton>
+          </div>
+        </div>
+
+        <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 22,
+            padding: 16,
             border: "1px solid #bbf7d0",
             background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
           }}
         >
           <div style={{ fontSize: 20, fontWeight: 950, color: "#064e3b" }}>
-            Inventory Operating Center
+            Stock Control Center
           </div>
 
           <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 800, lineHeight: 1.6 }}>
