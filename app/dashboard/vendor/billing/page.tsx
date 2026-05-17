@@ -441,8 +441,27 @@ export default function VendorBillingPage() {
                             </div>
                           </div>
 
-                          <div style={{ fontSize: 18, fontWeight: 950, color: "#ea580c" }}>
-                            {money(asNumber(bill.total_amount))}
+                          <div style={{ display: "grid", gap: 8, justifyItems: "flex-end" }}>
+                            <div style={{ fontSize: 18, fontWeight: 950, color: "#ea580c" }}>
+                              {money(asNumber(bill.total_amount))}
+                            </div>
+
+                            <a
+                              href={`/api/vendor/billing/${encodeURIComponent(bill.bill_no)}/pdf`}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                borderRadius: 12,
+                                background: "#0f172a",
+                                color: "#ffffff",
+                                padding: "8px 11px",
+                                fontSize: 12,
+                                fontWeight: 950,
+                                textDecoration: "none",
+                              }}
+                            >
+                              View / Download PDF
+                            </a>
                           </div>
                         </div>
                       </div>
