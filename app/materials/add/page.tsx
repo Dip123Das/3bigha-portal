@@ -139,6 +139,22 @@ export default function MaterialsAddPage() {
   const [videoLinksText, setVideoLinksText] = useState("");
   const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
 
+  // Inventory foundation
+  const [inventoryEnabled, setInventoryEnabled] = useState(true);
+  const [skuCode, setSkuCode] = useState("");
+  const [barcode, setBarcode] = useState("");
+  const [openingStock, setOpeningStock] = useState("");
+  const [stockUnit, setStockUnit] = useState("");
+  const [purchasePrice, setPurchasePrice] = useState("");
+  const [sellingPrice, setSellingPrice] = useState("");
+  const [reorderLevel, setReorderLevel] = useState("");
+  const [godownNo, setGodownNo] = useState("");
+  const [roomNo, setRoomNo] = useState("");
+  const [rackNo, setRackNo] = useState("");
+  const [vehicleType, setVehicleType] = useState("");
+  const [vehicleNumber, setVehicleNumber] = useState("");
+  const [loadCapacity, setLoadCapacity] = useState("");
+
   // Data
   const [allTaxons, setAllTaxons] = useState<TaxonRow[]>([]);
   const [loadingTaxons, setLoadingTaxons] = useState(true);
@@ -869,6 +885,25 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
         attributes: {
           ...attributes_payload,
           media_links,
+          inventory: {
+            enabled: inventoryEnabled,
+            sku_code: skuCode.trim() || null,
+            barcode: barcode.trim() || null,
+            opening_stock: openingStock.trim() || null,
+            current_stock: openingStock.trim() || null,
+            stock_unit: stockUnit.trim() || null,
+            purchase_price: purchasePrice.trim() || null,
+            selling_price: sellingPrice.trim() || null,
+            reorder_level: reorderLevel.trim() || null,
+            godown_no: godownNo.trim() || null,
+            room_no: roomNo.trim() || null,
+            rack_no: rackNo.trim() || null,
+            vehicle_type: vehicleType.trim() || null,
+            vehicle_number: vehicleNumber.trim() || null,
+            load_capacity: loadCapacity.trim() || null,
+            inventory_source: "material_add_form",
+            created_at: new Date().toISOString(),
+          },
         },
 
         status: "draft",
@@ -1072,6 +1107,46 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
                   <div style={{ marginTop: 6, fontSize: 12, opacity: 0.72, lineHeight: 1.4 }}>
                     Helps buyers find the same material using local market terms. This does not need fixed values.
                   </div>
+                </div>
+
+                <div
+                  style={{
+                    border: "1px solid #bbf7d0",
+                    background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
+                    borderRadius: 14,
+                    padding: 12,
+                  }}
+                >
+                  <label style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 900 }}>
+                    <input
+                      type="checkbox"
+                      checked={inventoryEnabled}
+                      onChange={(e) => setInventoryEnabled(e.target.checked)}
+                    />
+                    Link this material with shop / godown inventory
+                  </label>
+
+                  <div style={{ marginTop: 8, fontSize: 12, color: "#047857", fontWeight: 800, lineHeight: 1.5 }}>
+                    This will help vendors manage online stock, offline billing, godown location, rack search and future inventory reports.
+                  </div>
+
+                  {inventoryEnabled ? (
+                    <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
+                      <input value={skuCode} onChange={(e) => setSkuCode(e.target.value)} placeholder="SKU Code" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                      <input value={barcode} onChange={(e) => setBarcode(e.target.value)} placeholder="Barcode / Item Code" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                      <input value={openingStock} onChange={(e) => setOpeningStock(e.target.value)} placeholder="Opening Stock" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                      <input value={stockUnit} onChange={(e) => setStockUnit(e.target.value)} placeholder="Unit: bag / pcs / cft / kg" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                      <input value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} placeholder="Purchase Price" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                      <input value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} placeholder="Selling Price" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                      <input value={reorderLevel} onChange={(e) => setReorderLevel(e.target.value)} placeholder="Low Stock Alert Level" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                      <input value={godownNo} onChange={(e) => setGodownNo(e.target.value)} placeholder="Godown No." style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                      <input value={roomNo} onChange={(e) => setRoomNo(e.target.value)} placeholder="Room No." style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                      <input value={rackNo} onChange={(e) => setRackNo(e.target.value)} placeholder="Rack No." style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                      <input value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} placeholder="Vehicle Type: truck / tractor / dumper" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                      <input value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value)} placeholder="Vehicle No." style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                      <input value={loadCapacity} onChange={(e) => setLoadCapacity(e.target.value)} placeholder="Load Capacity: 300 cft / 10 ton" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                    </div>
+                  ) : null}
                 </div>
 
                 <div>

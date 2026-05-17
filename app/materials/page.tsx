@@ -76,6 +76,12 @@ function getAttr(obj: any, keys: string[]): any {
   return null;
 }
 
+function getInventory(l: ListingRow) {
+  return l.attributes?.inventory && typeof l.attributes.inventory === "object"
+    ? l.attributes.inventory
+    : null;
+}
+
 function moneyINR(v: any) {
   const num = typeof v === "number" ? v : v != null && String(v).trim() !== "" ? Number(v) : NaN;
   if (!Number.isFinite(num)) return "₹ —";
@@ -498,6 +504,7 @@ export default function MaterialsPage() {
 
                     const brand = getAttr(l.attributes, ["brand", "brand_name", "make"]);
                     const price = getAttr(l.attributes, ["price", "unit_price", "mrp", "rate"]);
+                    const inventory = getInventory(l);
 
                     const title = l.title?.trim() || l.local_name?.trim() || pg?.product_group_name || "Material";
                     const badge = pg?.category_name || pg?.type_name || "Material";
@@ -533,6 +540,13 @@ export default function MaterialsPage() {
                             {pg?.subcategory_name ? <span>Subcategory: {pg.subcategory_name}</span> : null}
                             {brand ? <span>Brand: {String(brand)}</span> : null}
                             {priceText ? <span>Price: {priceText}</span> : null}
+                            {inventory?.current_stock ? (
+                              <span>
+                                Stock: {inventory.current_stock} {inventory.stock_unit || ""}
+                              </span>
+                            ) : null}
+                            {inventory?.rack_no ? <span>Rack: {inventory.rack_no}</span> : null}
+                            {inventory?.vehicle_number ? <span>Vehicle: {inventory.vehicle_number}</span> : null}
                           </div>
 
                           <div style={{ marginTop: 12 }}>

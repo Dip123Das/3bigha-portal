@@ -1505,9 +1505,31 @@ const aiDealUpgradeTarget =
             ) : null}
 
             {uniqueVendorCapabilities.includes("materials") ? (
-              <ActionButton href="/materials/my" variant="secondary">
-                Materials
-              </ActionButton>
+              <>
+                <ActionButton href="/materials/my" variant="secondary">
+                  Materials
+                </ActionButton>
+
+                <ActionButton href="/materials/add?inventory=1" variant="secondary">
+                  Add Inventory Item
+                </ActionButton>
+
+                <ActionButton href="/dashboard/vendor/inventory" variant="secondary">
+                  Inventory
+                </ActionButton>
+
+                <ActionButton href="/dashboard/vendor/billing" variant="secondary">
+                  Billing
+                </ActionButton>
+
+                <ActionButton href="/dashboard/vendor/fleet" variant="secondary">
+                  Fleet
+                </ActionButton>
+
+                <ActionButton href="/dashboard/vendor/dispatch" variant="secondary">
+                  Dispatch
+                </ActionButton>
+              </>
             ) : null}
 
             {uniqueVendorCapabilities.includes("services") ? (
@@ -1886,9 +1908,27 @@ const aiDealUpgradeTarget =
               ) : null}
 
               {uniqueVendorCapabilities.includes("materials") ? (
-                <ActionButton href="/materials/add" variant="secondary">
-                  Add Material
-                </ActionButton>
+                <>
+                  <ActionButton href="/materials/add" variant="secondary">
+                    Add Material
+                  </ActionButton>
+
+                  <ActionButton href="/dashboard/vendor/inventory" variant="secondary">
+                    Inventory
+                  </ActionButton>
+
+                  <ActionButton href="/dashboard/vendor/billing" variant="secondary">
+                    Billing
+                  </ActionButton>
+
+                  <ActionButton href="/dashboard/vendor/fleet" variant="secondary">
+                    Fleet
+                  </ActionButton>
+
+                  <ActionButton href="/dashboard/vendor/dispatch" variant="secondary">
+                    Dispatch
+                  </ActionButton>
+                </>
               ) : null}
 
               {uniqueVendorCapabilities.includes("services") ? (

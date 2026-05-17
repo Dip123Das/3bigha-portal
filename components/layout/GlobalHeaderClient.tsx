@@ -311,13 +311,29 @@ export default function GlobalHeaderClient() {
             Dashboard
           </Link>
 
+          <Link className="btnGhost" href="/dashboard/vendor/inventory">
+            Inventory
+          </Link>
+
+          <Link className="btnGhost" href="/dashboard/vendor/billing">
+            Billing
+          </Link>
+
+          <Link className="btnGhost" href="/dashboard/vendor/fleet">
+            Fleet
+          </Link>
+
+          <Link className="btnGhost" href="/dashboard/vendor/dispatch">
+            Dispatch
+          </Link>
+
           <Link className="btnGhost" href="/support/my">
             Support
           </Link>
 
           {/* This will become your mega “Post / List” menu later */}
-          <Link className="btnPrimary" href="/dashboard">
-            Post / List
+          <Link className="btnPrimary" href="/materials/add?inventory=1">
+            Add Stock
           </Link>
 
           <Link className="btnGhost" href="/login">
@@ -337,6 +353,21 @@ export default function GlobalHeaderClient() {
             </Link>
             <Link className="subLink" href="/dashboard/vendor/enquiries">
               Vendor Inbox
+            </Link>
+            <Link className="subLink" href="/dashboard/vendor/inventory">
+              Inventory
+            </Link>
+            <Link className="subLink" href="/dashboard/vendor/billing">
+              Billing
+            </Link>
+            <Link className="subLink" href="/dashboard/vendor/fleet">
+              Fleet
+            </Link>
+            <Link className="subLink" href="/dashboard/vendor/dispatch">
+              Dispatch
+            </Link>
+            <Link className="subLink" href="/materials/add?inventory=1">
+              Add Stock
             </Link>
             <Link className="subLink" href="/support/my">
               Support
