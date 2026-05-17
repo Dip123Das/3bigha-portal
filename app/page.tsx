@@ -109,7 +109,6 @@ export default function HomePage() {
     }));
   }
   const [featuredItems, setFeaturedItems] = useState<MarketplaceItem[]>(fallbackFeatured);
-  const [aiOpen, setAiOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"search" | "ai" | "post">("search");
 
   const placeholder = useMemo(() => {
@@ -438,29 +437,6 @@ export default function HomePage() {
         <nav><strong>Tools</strong><a href="/construction-cost">Cost Calculator</a><a href="/price-today">Price Today</a><a href="/search">AI Search</a></nav>
         <nav><strong>Company</strong><a href="/about">About Us</a><a href="/contact">Contact Us</a><a href="/support">Support</a></nav>
       </footer>
-
-      <button className="floatingAi" type="button" onClick={() => setAiOpen((v) => !v)}>🤖 <span>3Bigha AI</span></button>
-      {aiOpen ? (
-  <div className="aiPanel">
-    <div className="aiPanelHeader">
-      <strong>3Bigha AI Assistant</strong>
-      <small>Choose what you want AI to help with</small>
-    </div>
-
-    <div className="aiPanelGrid">
-      <a href="/search">🔍 AI Smart Search</a>
-      <a href="/rfq/general/new">📝 Draft RFQ</a>
-      <a href="/price-today">📈 Price Prediction</a>
-      <a href="/vendor/discovery">🤝 Find Vendors</a>
-      <a href="/construction-cost">🏗️ Cost Calculator</a>
-      <a href="/cost-calculator">🏦 EMI Calculator</a>
-      <a href="/materials/rfq/new">🧱 Material RFQ</a>
-      <a href="/services/turnkey">🏠 Turnkey Package</a>
-      <a href="/dashboard/inbox-v2">💬 AI Inbox</a>
-      <a href="/support/new">🛡️ Support AI</a>
-    </div>
-  </div>
-) : null}
 
       <style jsx>{`
 

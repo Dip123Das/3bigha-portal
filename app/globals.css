@@ -1819,3 +1819,90 @@ button[class*="actionButton"] {
     display: none !important;
   }
 }
+
+/* GLOBAL 3BIGHA AI COPILOT */
+.floatingAi {
+  position: fixed !important;
+  right: 20px !important;
+  bottom: 20px !important;
+  z-index: 10060 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #0f172a, #2563eb) !important;
+  color: #ffffff !important;
+  padding: 14px 18px !important;
+  box-shadow: 0 22px 54px rgba(15, 23, 42, 0.25) !important;
+  font-weight: 1000 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+.aiPanel {
+  position: fixed !important;
+  right: 20px !important;
+  bottom: 82px !important;
+  width: 380px !important;
+  max-width: calc(100vw - 28px) !important;
+  border-radius: 22px !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(15,23,42,0.10) !important;
+  box-shadow: 0 22px 54px rgba(15,23,42,0.18) !important;
+  padding: 16px !important;
+  z-index: 10059 !important;
+  display: grid !important;
+  gap: 14px !important;
+}
+
+.aiPanelHeader {
+  display: grid !important;
+  gap: 4px !important;
+}
+
+.aiPanelHeader strong {
+  font-size: 15px !important;
+  color: #0f172a !important;
+}
+
+.aiPanelHeader small {
+  font-size: 12px !important;
+  color: #64748b !important;
+  font-weight: 700 !important;
+}
+
+.aiPanelGrid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+}
+
+.aiPanelGrid a {
+  text-decoration: none !important;
+  color: #1d4ed8 !important;
+  font-weight: 900 !important;
+  border-radius: 12px !important;
+  background: #eff6ff !important;
+  padding: 10px 12px !important;
+  font-size: 13px !important;
+}
+
+@media (max-width: 640px) {
+  .floatingAi {
+    right: 14px !important;
+    bottom: 76px !important;
+    transform: scale(0.92) !important;
+  }
+
+  .aiPanel {
+    right: 12px !important;
+    left: 12px !important;
+    bottom: 138px !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  .aiPanelGrid {
+    grid-template-columns: 1fr !important;
+  }
+}

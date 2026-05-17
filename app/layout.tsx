@@ -16,6 +16,7 @@ import GlobalUnreadBadge from "./_components/GlobalUnreadBadge";
 import GlobalNotificationBell from "./_components/GlobalNotificationBell";
 import PresenceHeartbeat from "./_components/PresenceHeartbeat";
 import MobileMenuAutoClose from "./_components/MobileMenuAutoClose";
+import GlobalAiCopilot from "./_components/GlobalAiCopilot";
 import AutoTranslatePage from "@/components/language/AutoTranslatePage";
 import LanguageSwitcher from "@/components/language/LanguageSwitcher";
 
@@ -788,9 +789,19 @@ groups: [
               },
             ].map((menu) => (
               <details className="megaMenuItem" key={menu.label}>
-                <summary className="megaMenuButton">{menu.label}</summary>
+                <summary className="megaMenuButton">
+                  <span>{menu.label}</span>
+                  <span className="megaMenuChevron">⌄</span>
+                </summary>
 
                 <div className="megaMenuPanel">
+                  <div className="megaMenuGroup megaMenuMainGroup">
+                    <div className="megaMenuTitle">Main Page</div>
+                    <Link className="megaMenuMainLink" href={menu.href || "/"}>
+                      Open {menu.label}
+                    </Link>
+                  </div>
+
                   {menu.groups.map((group) => (
                     <div className="megaMenuGroup" key={group.title}>
                       <div className="megaMenuTitle">{group.title}</div>
@@ -807,7 +818,6 @@ groups: [
             ))}
           </Container>
         </nav>
-
 
         <div
           style={{
@@ -828,6 +838,8 @@ groups: [
         <main style={{ marginTop: 8 }}>
           <Container className="pageBody">{children}</Container>
         </main>
+
+        <GlobalAiCopilot />
 
         <footer className="siteFooter">
           <Container className="footerInner">
