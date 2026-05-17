@@ -309,7 +309,20 @@ export default function HomePage() {
       </section>
 
       <section className="contentSection">
-        <div className="sectionHead"><div><h2>Browse by Category</h2><p>Explore all popular categories</p></div><a href="/search">View all categories →</a></div>
+        <div className="sectionHead">
+          <div>
+            <h2>Browse by Category</h2>
+            <p>Explore all popular categories</p>
+          </div>
+
+          <button
+            className="sectionHeadAction"
+            type="button"
+            onClick={() => toggleMobileSection("categories")}
+          >
+            {mobileExpandedSections.categories ? "Show less categories ↑" : "View all categories →"}
+          </button>
+        </div>
         <div className={`categoryGrid premiumCategoryGrid ${mobileExpandedSections.categories ? "isMobileExpanded" : ""}`}>
           {categoryCards.map((item) => (
             <a href={item.href} className="categoryCard" key={item.title}>
