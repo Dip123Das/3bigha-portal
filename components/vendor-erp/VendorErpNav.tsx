@@ -27,6 +27,7 @@ const groups = [
     items: [
       { label: "Buyer Enquiries", href: "/dashboard/vendor/enquiries", icon: "💬" },
       { label: "Inbox", href: "/dashboard/inbox-v2", icon: "📥" },
+      { label: "Property", href: "/property/my", icon: "🏡" },
       { label: "Materials", href: "/materials/my", icon: "🏗️" },
       { label: "Services", href: "/services/my", icon: "🛠️" },
       { label: "Rentals", href: "/rentals/my", icon: "🚜" },
