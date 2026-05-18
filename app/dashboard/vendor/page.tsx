@@ -2555,8 +2555,30 @@ const aiDealUpgradeTarget =
           </div>
         ) : null}
 
-        <div style={{ marginBottom: 12 }}>
-          <Card>
+        <details
+          style={{
+            marginBottom: 12,
+            borderRadius: 18,
+            border: "1px solid #e5e7eb",
+            background: "#ffffff",
+            overflow: "hidden",
+          }}
+        >
+          <summary
+            style={{
+              padding: 14,
+              cursor: "pointer",
+              fontSize: 15,
+              fontWeight: 950,
+              color: "#0f172a",
+              background: "linear-gradient(135deg, #f8fafc, #ffffff)",
+            }}
+          >
+            📩 Recent Enquiries
+          </summary>
+
+          <div style={{ padding: 12 }}>
+            <Card>
             <CardBody>
               <div
                 style={{
@@ -2649,7 +2671,8 @@ const aiDealUpgradeTarget =
               </div>
             </CardFooter>
           </Card>
-        </div>
+          </div>
+        </details>
 
         {uniqueVendorCapabilities.length === 0 ? (
           <div
@@ -2667,9 +2690,32 @@ const aiDealUpgradeTarget =
           </div>
         ) : null}
 
-        <Card>
-          <CardBody>
-            <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Quick Actions</div>
+        <details
+          style={{
+            marginBottom: 12,
+            borderRadius: 18,
+            border: "1px solid #e5e7eb",
+            background: "#ffffff",
+            overflow: "hidden",
+          }}
+        >
+          <summary
+            style={{
+              padding: 14,
+              cursor: "pointer",
+              fontSize: 15,
+              fontWeight: 950,
+              color: "#0f172a",
+              background: "linear-gradient(135deg, #f8fafc, #ffffff)",
+            }}
+          >
+            ⚡ Quick Actions & Marketplace Listings
+          </summary>
+
+          <div style={{ padding: 12 }}>
+            <Card>
+              <CardBody>
+                <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>Quick Actions</div>
             <div style={{ color: "#5b6472", fontSize: 13 }}>
               Jump into your most common tasks.
             </div>
@@ -2919,8 +2965,10 @@ const aiDealUpgradeTarget =
             ) : null}
           </Grid>
         </div>
+          </div>
+        </details>
 
-                <details
+        <details
           style={{
             marginBottom: 16,
             borderRadius: 18,
