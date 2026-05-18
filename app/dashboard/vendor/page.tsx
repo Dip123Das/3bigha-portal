@@ -353,6 +353,10 @@ const [conversionAlert, setConversionAlert] = useState<{
   message: string;
 } | null>(null);
 
+const [workspaceTab, setWorkspaceTab] = useState<
+  "operations" | "crm" | "listings" | "ai" | "business"
+>("operations");
+
 const [aiRankingBreakdown, setAiRankingBreakdown] = useState({
   replySpeedScore: 0,
   priceScore: 0,
@@ -1734,6 +1738,84 @@ const aiDealUpgradeTarget =
           </ErpActionGrid>
         </ErpPanel>
 
+        <ErpPanel
+          title="Vendor Operational Workspace"
+          subtitle="Work from one focused area. Choose Operations, CRM, Listings, AI or Business without scrolling through the whole dashboard."
+          tone="blue"
+        >
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+            {[
+              ["operations", "Operations"],
+              ["crm", "CRM"],
+              ["listings", "Listings"],
+              ["ai", "AI Insights"],
+              ["business", "Business"],
+            ].map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setWorkspaceTab(key as typeof workspaceTab)}
+                style={{
+                  border: "1px solid rgba(15,23,42,0.12)",
+                  borderRadius: 999,
+                  padding: "9px 13px",
+                  fontWeight: 950,
+                  cursor: "pointer",
+                  background: workspaceTab === key ? "#0f172a" : "#ffffff",
+                  color: workspaceTab === key ? "#ffffff" : "#0f172a",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {workspaceTab === "operations" ? (
+            <ErpActionGrid>
+              <ErpActionCard title="Inventory OS" description="Stock, billing, fleet and dispatch control." href="/dashboard/vendor/inventory" tone="green" />
+              <ErpActionCard title="Create Bill" description="Generate invoices and stock deduction." href="/dashboard/vendor/billing" tone="orange" />
+              <ErpActionCard title="Dispatch" description="Assign delivery and track movement." href="/dashboard/vendor/dispatch" tone="blue" />
+              <ErpActionCard title="Fleet" description="Manage vehicles and delivery capacity." href="/dashboard/vendor/fleet" tone="violet" />
+            </ErpActionGrid>
+          ) : null}
+
+          {workspaceTab === "crm" ? (
+            <ErpActionGrid>
+              <ErpActionCard title="Buyer Enquiries" description={`${recentEnquiries.length} latest enquiries available.`} href="/dashboard/vendor/enquiries" tone="blue" />
+              <ErpActionCard title="Live Inbox" description={`${replyRate}% reply rate. Continue conversations.`} href="/dashboard/inbox-v2" tone="green" />
+              <ErpActionCard title="Deal Pipeline" description={`${dealStats.ready} ready deals from ${dealStats.total} signals.`} href="/dashboard/vendor/enquiries" tone="violet" />
+            </ErpActionGrid>
+          ) : null}
+
+          {workspaceTab === "listings" ? (
+            <ErpActionGrid>
+              <ErpActionCard title="Properties" description="Manage property listings." href="/property/my" tone="blue" />
+              <ErpActionCard title="Materials" description="Manage material listings and catalog." href="/materials/my" tone="green" />
+              <ErpActionCard title="Services" description="Manage service listings." href="/services/my" tone="orange" />
+              <ErpActionCard title="Rentals" description="Manage rental listings." href="/rentals/my" tone="violet" />
+            </ErpActionGrid>
+          ) : null}
+
+          {workspaceTab === "ai" ? (
+            <ErpAlertList
+              alerts={[
+                { label: `AI prediction: ${aiConversionPrediction}.`, tone: aiDealLearningScore >= 55 ? "green" : "orange" },
+                { label: `Vendor rank is #${estimatedRank} with ${growthVisibilityScore}/100 visibility score.`, tone: estimatedRank <= 5 ? "green" : "red" },
+                { label: aiVendorLearningAction, tone: "blue" },
+              ]}
+            />
+          ) : null}
+
+          {workspaceTab === "business" ? (
+            <ErpKpiGrid>
+              <ErpKpiCard label="Plan" value={vendorPlan.replace(/_/g, " ").toUpperCase()} helper={vendorStatus.toUpperCase()} tone="blue" />
+              <ErpKpiCard label="Deals Closed" value={successStats.dealsCompleted} helper={`${successStats.successRate}% success rate`} tone="green" />
+              <ErpKpiCard label="Boost Power" value={`+${getPlanBoostPower(vendorPlan, vendorBoostPriority)}`} helper="AI visibility boost" tone="orange" />
+              <ErpKpiCard label="Growth Level" value={vendorPerformanceLevel} helper="Business performance status" tone="violet" />
+            </ErpKpiGrid>
+          ) : null}
+        </ErpPanel>
+
         <VendorErpWorkspace
           rightRail={
             <>
@@ -1928,6 +2010,30 @@ const aiDealUpgradeTarget =
           />
         </ErpPanel>
 
+        <details
+          style={{
+            marginTop: 16,
+            marginBottom: 16,
+            borderRadius: 18,
+            border: "1px solid #e5e7eb",
+            background: "#ffffff",
+            overflow: "hidden",
+          }}
+        >
+          <summary
+            style={{
+              padding: 14,
+              cursor: "pointer",
+              fontSize: 15,
+              fontWeight: 950,
+              color: "#0f172a",
+              background: "linear-gradient(135deg, #f8fafc, #ffffff)",
+            }}
+          >
+            More tools, old dashboard cards and advanced AI panels
+          </summary>
+
+          <div style={{ padding: 12 }}>
         <div
           style={{
             marginBottom: 16,
@@ -4103,6 +4209,9 @@ const aiDealUpgradeTarget =
             {successCtaLabel}
           </button>
           </div>
+          </div>
+        </details>
+
           </div>
         </details>
 
