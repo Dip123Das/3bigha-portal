@@ -1771,48 +1771,118 @@ const aiDealUpgradeTarget =
           </div>
 
           {workspaceTab === "operations" ? (
-            <ErpActionGrid>
-              <ErpActionCard title="Inventory OS" description="Stock, billing, fleet and dispatch control." href="/dashboard/vendor/inventory" tone="green" />
-              <ErpActionCard title="Create Bill" description="Generate invoices and stock deduction." href="/dashboard/vendor/billing" tone="orange" />
-              <ErpActionCard title="Dispatch" description="Assign delivery and track movement." href="/dashboard/vendor/dispatch" tone="blue" />
-              <ErpActionCard title="Fleet" description="Manage vehicles and delivery capacity." href="/dashboard/vendor/fleet" tone="violet" />
-            </ErpActionGrid>
+            <>
+              <ErpKpiGrid>
+                <ErpKpiCard label="Inventory OS" value="Active" helper="Stock, billing, fleet and dispatch connected" tone="green" />
+                <ErpKpiCard label="Billing" value="Ready" helper="Create invoice and deduct stock" tone="orange" />
+                <ErpKpiCard label="Dispatch" value="Ready" helper="Assign delivery workflow" tone="blue" />
+                <ErpKpiCard label="Fleet" value="Ready" helper="Vehicle operations available" tone="violet" />
+              </ErpKpiGrid>
+
+              <ErpActionGrid>
+                <ErpActionCard title="Open Inventory OS" description="Manage stock and ERP operations." href="/dashboard/vendor/inventory" tone="green" />
+                <ErpActionCard title="Create Bill" description="Generate invoice and billing workflow." href="/dashboard/vendor/billing" tone="orange" />
+                <ErpActionCard title="Create Dispatch" description="Start delivery workflow." href="/dashboard/vendor/dispatch" tone="blue" />
+                <ErpActionCard title="Manage Fleet" description="Control vehicle capacity." href="/dashboard/vendor/fleet" tone="violet" />
+              </ErpActionGrid>
+            </>
           ) : null}
 
           {workspaceTab === "crm" ? (
-            <ErpActionGrid>
-              <ErpActionCard title="Buyer Enquiries" description={`${recentEnquiries.length} latest enquiries available.`} href="/dashboard/vendor/enquiries" tone="blue" />
-              <ErpActionCard title="Live Inbox" description={`${replyRate}% reply rate. Continue conversations.`} href="/dashboard/inbox-v2" tone="green" />
-              <ErpActionCard title="Deal Pipeline" description={`${dealStats.ready} ready deals from ${dealStats.total} signals.`} href="/dashboard/vendor/enquiries" tone="violet" />
-            </ErpActionGrid>
+            <>
+              <ErpKpiGrid>
+                <ErpKpiCard label="Recent Enquiries" value={recentEnquiries.length} helper="Latest buyer leads" tone="blue" />
+                <ErpKpiCard label="Reply Rate" value={`${replyRate}%`} helper={vendorResponseGrade} tone={replyRate >= 55 ? "green" : "orange"} />
+                <ErpKpiCard label="Ready Deals" value={dealStats.ready} helper={`${dealStats.total} tracked deal signals`} tone="violet" />
+                <ErpKpiCard label="Missed Follow-ups" value={missedLeads} helper="Needs attention" tone={missedLeads > 0 ? "red" : "green"} />
+              </ErpKpiGrid>
+
+              <ErpAlertList
+                alerts={[
+                  {
+                    label:
+                      missedLeads > 0
+                        ? `${missedLeads} follow-ups need attention.`
+                        : "CRM follow-up queue is stable.",
+                    tone: missedLeads > 0 ? "orange" : "green",
+                  },
+                  {
+                    label:
+                      dealStats.ready > 0
+                        ? `${dealStats.ready} conversations are close-ready.`
+                        : "No close-ready buyer signal yet.",
+                    tone: dealStats.ready > 0 ? "violet" : "blue",
+                  },
+                ]}
+              />
+
+              <ErpActionGrid>
+                <ErpActionCard title="Open Buyer Enquiries" description="Review and reply to leads." href="/dashboard/vendor/enquiries" tone="blue" />
+                <ErpActionCard title="Open Inbox" description="Continue buyer conversations." href="/dashboard/inbox-v2" tone="green" />
+              </ErpActionGrid>
+            </>
           ) : null}
 
           {workspaceTab === "listings" ? (
-            <ErpActionGrid>
-              <ErpActionCard title="Properties" description="Manage property listings." href="/property/my" tone="blue" />
-              <ErpActionCard title="Materials" description="Manage material listings and catalog." href="/materials/my" tone="green" />
-              <ErpActionCard title="Services" description="Manage service listings." href="/services/my" tone="orange" />
-              <ErpActionCard title="Rentals" description="Manage rental listings." href="/rentals/my" tone="violet" />
-            </ErpActionGrid>
+            <>
+              <ErpKpiGrid>
+                <ErpKpiCard label="Enabled Categories" value={uniqueVendorCapabilities.length} helper="Active business modules" tone="blue" />
+                <ErpKpiCard label="Profile" value={vendorComplete === true ? "Complete" : "Pending"} helper="Business registration status" tone={vendorComplete === true ? "green" : "orange"} />
+                <ErpKpiCard label="Materials" value={uniqueVendorCapabilities.includes("materials") ? "Enabled" : "Locked"} helper="Catalog and inventory access" tone={uniqueVendorCapabilities.includes("materials") ? "green" : "orange"} />
+                <ErpKpiCard label="Rentals" value={uniqueVendorCapabilities.includes("rentals") ? "Enabled" : "Locked"} helper="Rental listing access" tone={uniqueVendorCapabilities.includes("rentals") ? "violet" : "orange"} />
+              </ErpKpiGrid>
+
+              <ErpActionGrid>
+                {uniqueVendorCapabilities.includes("property_owner") ? (
+                  <ErpActionCard title="Properties" description="Manage property listings." href="/property/my" tone="blue" />
+                ) : null}
+                {uniqueVendorCapabilities.includes("materials") ? (
+                  <ErpActionCard title="Materials" description="Manage product catalog." href="/materials/my" tone="green" />
+                ) : null}
+                {uniqueVendorCapabilities.includes("services") ? (
+                  <ErpActionCard title="Services" description="Manage service listings." href="/services/my" tone="orange" />
+                ) : null}
+                {uniqueVendorCapabilities.includes("rentals") ? (
+                  <ErpActionCard title="Rentals" description="Manage rental listings." href="/rentals/my" tone="violet" />
+                ) : null}
+              </ErpActionGrid>
+            </>
           ) : null}
 
           {workspaceTab === "ai" ? (
-            <ErpAlertList
-              alerts={[
-                { label: `AI prediction: ${aiConversionPrediction}.`, tone: aiDealLearningScore >= 55 ? "green" : "orange" },
-                { label: `Vendor rank is #${estimatedRank} with ${growthVisibilityScore}/100 visibility score.`, tone: estimatedRank <= 5 ? "green" : "red" },
-                { label: aiVendorLearningAction, tone: "blue" },
-              ]}
-            />
+            <>
+              <ErpKpiGrid>
+                <ErpKpiCard label="AI Score" value={`${aiDealLearningScore}/100`} helper={aiConversionPrediction} tone={aiDealLearningScore >= 55 ? "green" : "orange"} />
+                <ErpKpiCard label="Visibility" value={`${growthVisibilityScore}/100`} helper={leaderboardStatus} tone={growthVisibilityScore >= 55 ? "green" : "orange"} />
+                <ErpKpiCard label="Rank" value={`#${estimatedRank}`} helper={rankLabel} tone={estimatedRank <= 5 ? "green" : "red"} />
+                <ErpKpiCard label="Boost" value={`+${getPlanBoostPower(vendorPlan, vendorBoostPriority)}`} helper="AI ranking power" tone="violet" />
+              </ErpKpiGrid>
+
+              <ErpAlertList
+                alerts={[
+                  { label: `AI prediction: ${aiConversionPrediction}.`, tone: aiDealLearningScore >= 55 ? "green" : "orange" },
+                  { label: `Vendor rank is #${estimatedRank} with ${growthVisibilityScore}/100 visibility score.`, tone: estimatedRank <= 5 ? "green" : "red" },
+                  { label: aiVendorLearningAction, tone: "blue" },
+                ]}
+              />
+            </>
           ) : null}
 
           {workspaceTab === "business" ? (
-            <ErpKpiGrid>
-              <ErpKpiCard label="Plan" value={vendorPlan.replace(/_/g, " ").toUpperCase()} helper={vendorStatus.toUpperCase()} tone="blue" />
-              <ErpKpiCard label="Deals Closed" value={successStats.dealsCompleted} helper={`${successStats.successRate}% success rate`} tone="green" />
-              <ErpKpiCard label="Boost Power" value={`+${getPlanBoostPower(vendorPlan, vendorBoostPriority)}`} helper="AI visibility boost" tone="orange" />
-              <ErpKpiCard label="Growth Level" value={vendorPerformanceLevel} helper="Business performance status" tone="violet" />
-            </ErpKpiGrid>
+            <>
+              <ErpKpiGrid>
+                <ErpKpiCard label="Plan" value={vendorPlan.replace(/_/g, " ").toUpperCase()} helper={vendorStatus.toUpperCase()} tone="blue" />
+                <ErpKpiCard label="Deals Closed" value={successStats.dealsCompleted} helper={`${successStats.successRate}% success rate`} tone="green" />
+                <ErpKpiCard label="Boost Power" value={`+${getPlanBoostPower(vendorPlan, vendorBoostPriority)}`} helper="AI visibility boost" tone="orange" />
+                <ErpKpiCard label="Growth Level" value={vendorPerformanceLevel} helper="Business performance status" tone="violet" />
+              </ErpKpiGrid>
+
+              <ErpActionGrid>
+                <ErpActionCard title="Subscription" description="Manage vendor plan and billing." href="/dashboard/subscription" tone="blue" />
+                <ErpActionCard title="AI Boost" description="Improve buyer discovery rank." href="/dashboard/subscription/boost" tone="orange" />
+                <ErpActionCard title="Business Profile" description="Update registration and business details." href="/onboarding/business" tone="green" />
+              </ErpActionGrid>
+            </>
           ) : null}
         </ErpPanel>
 
