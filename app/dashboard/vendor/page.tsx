@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -9,15 +8,12 @@ import { resolveAccessForUser, type VendorCapabilityKey } from "@/lib/access/res
 
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
-import { Card, CardBody, CardFooter } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ActionButton } from "@/components/ui/ActionButton";
-import { Grid } from "@/components/ui/Grid";
 import { EmptyState } from "@/components/ui/EmptyState";
 import {
   ErpActionCard,
   ErpActionGrid,
-  ErpActivityFeed,
   ErpAlertList,
   ErpKpiCard,
   ErpKpiGrid,

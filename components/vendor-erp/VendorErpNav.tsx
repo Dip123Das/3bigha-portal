@@ -7,24 +7,17 @@ const groups = [
   {
     title: "Operations",
     items: [
-      { label: "Mission Control", href: "/dashboard/vendor", icon: "🏠" },
-      { label: "Inventory OS", href: "/dashboard/vendor/inventory", icon: "📦" },
+      { label: "Dashboard", href: "/dashboard/vendor", icon: "🏠" },
+      { label: "Inventory", href: "/dashboard/vendor/inventory", icon: "📦" },
       { label: "Billing", href: "/dashboard/vendor/billing", icon: "🧾" },
       { label: "Fleet", href: "/dashboard/vendor/fleet", icon: "🚚" },
       { label: "Dispatch", href: "/dashboard/vendor/dispatch", icon: "📍" },
     ],
   },
   {
-    title: "AI Intelligence",
-    items: [
-      { label: "AI ERP Supervisor", href: "/dashboard/vendor/inventory-intelligence", icon: "🤖" },
-      { label: "Notifications", href: "/dashboard/vendor/notifications", icon: "🔔" },
-      { label: "Vendor RFQs", href: "/dashboard/vendor/rfqs", icon: "📨" },
-    ],
-  },
-  {
     title: "Marketplace",
     items: [
+      { label: "Buyer RFQs", href: "/dashboard/vendor/rfqs", icon: "📨" },
       { label: "Buyer Enquiries", href: "/dashboard/vendor/enquiries", icon: "💬" },
       { label: "Inbox", href: "/dashboard/inbox-v2", icon: "📥" },
       { label: "Property", href: "/property/my", icon: "🏡" },
@@ -32,16 +25,21 @@ const groups = [
       { label: "Materials", href: "/materials/my", icon: "🏗️" },
       { label: "Services", href: "/services/my", icon: "🛠️" },
       { label: "Rentals", href: "/rentals/my", icon: "🚜" },
-      { label: "Blog / News", href: "/blog/my", icon: "📰" },
-      { label: "Investment", href: "/dashboard/investor", icon: "💼" },
     ],
   },
   {
     title: "Business",
     items: [
-      { label: "Subscription", href: "/dashboard/subscription", icon: "💳" },
-      { label: "AI Boost", href: "/dashboard/subscription/boost", icon: "🚀" },
       { label: "Business Profile", href: "/onboarding/business", icon: "🏢" },
+      { label: "Subscription", href: "/dashboard/subscription", icon: "💳" },
+      { label: "Boost Visibility", href: "/dashboard/subscription/boost", icon: "🚀" },
+    ],
+  },
+  {
+    title: "AI",
+    items: [
+      { label: "AI Supervisor", href: "/dashboard/vendor/inventory-intelligence", icon: "🤖" },
+      { label: "Notifications", href: "/dashboard/vendor/notifications", icon: "🔔" },
     ],
   },
 ];
@@ -75,7 +73,7 @@ export function VendorErpNav() {
             3Bigha Vendor ERP
           </div>
           <div style={{ marginTop: 3, color: "#bfdbfe", fontSize: 12, fontWeight: 800 }}>
-            Operations • AI • Marketplace • Business
+            Operations • Marketplace • Business • AI
           </div>
         </div>
 
@@ -91,7 +89,7 @@ export function VendorErpNav() {
             textDecoration: "none",
           }}
         >
-          🤖 Open AI Supervisor
+          🤖 AI Supervisor
         </Link>
       </div>
 
