@@ -96,6 +96,36 @@ function money(v: number | null | undefined) {
   return `₹ ${v.toLocaleString("en-IN")}`;
 }
 
+function approxEmi(amount: number | null | undefined) {
+  if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) return null;
+
+  const loanAmount = amount * 0.8;
+  const monthlyRate = 0.085 / 12;
+  const months = 20 * 12;
+
+  const emi =
+    (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, months)) /
+    (Math.pow(1 + monthlyRate, months) - 1);
+
+  return Math.round(emi);
+}
+
+function financeBadgeLabel(price: number | null | undefined) {
+  const emi = approxEmi(price);
+  if (!emi) return "AI Finance Ready";
+  return `AI EMI ≈ ₹${emi.toLocaleString("en-IN")}/mo`;
+}
+
+function financeHref(price: number | null | undefined, title: string, city?: string | null) {
+  const params = new URLSearchParams();
+  if (typeof price === "number" && Number.isFinite(price)) params.set("propertyValue", String(price));
+  if (title) params.set("property", title);
+  if (city) params.set("location", city);
+  params.set("source", "property-card");
+
+  return `/emi-calculator?${params.toString()}`;
+}
+
 function propertyPriceTodayHref(p: ListingRow, typeName: string, subtypeName: string, title: string) {
   const itemName =
     subtypeName ||
@@ -644,6 +674,7 @@ export default function PropertyPublicListPage() {
                         {typeName ? <Badge>{typeName}</Badge> : null}
                         {subtypeName ? <Badge>{subtypeName}</Badge> : null}
                         <Badge>Updated: {fmt(p.updated_at)}</Badge>
+                        <Badge>{financeBadgeLabel(p.expected_price ?? p.price ?? null)}</Badge>
                       </div>
 
                       <div style={{ fontWeight: 900, marginBottom: 6 }}>{title}</div>
@@ -657,6 +688,13 @@ export default function PropertyPublicListPage() {
                           style={{ fontWeight: 900, color: "#2563eb" }}
                         >
                           Compare Price →
+                        </Link>
+
+                        <Link
+                          href={financeHref(finalPrice, title, p.city)}
+                          style={{ fontWeight: 900, color: "#16a34a" }}
+                        >
+                          Check EMI →
                         </Link>
 
                         <Link href={`/property/${p.id}`} style={{ fontWeight: 900 }}>

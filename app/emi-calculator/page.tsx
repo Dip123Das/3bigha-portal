@@ -50,6 +50,7 @@ export default function EmiCalculatorPage() {
   const [extraPayment, setExtraPayment] = useState(0);
   const [monthlyIncome, setMonthlyIncome] = useState(80000);
   const [existingEmi, setExistingEmi] = useState(0);
+  const [monthlyRent, setMonthlyRent] = useState(12000);
   const [age, setAge] = useState(30);
   const [employmentType, setEmploymentType] = useState<"salaried" | "business">("salaried");
   const [coApplicantIncome, setCoApplicantIncome] = useState(0);
@@ -199,6 +200,7 @@ const bestBank = bankComparisons.reduce(
     current.emi > 0 && current.emi < best.emi ? current : best,
   bankComparisons[0]
 );
+
 const result = useMemo(() => {
     const principal = clamp(Number(loanAmount), 0, 500000000);
     const rate = clamp(Number(interestRate), 0, 60);
@@ -252,6 +254,303 @@ const result = useMemo(() => {
       interestShare: totalPayment > 0 ? (totalInterest / totalPayment) * 100 : 0,
     };
   }, [loanAmount, interestRate, tenure, tenureMode, extraPayment]);
+
+  const safePropertyBudget = useMemo(() => {
+    const totalIncome = Number(eligibility.totalIncome || 0);
+    const safeEmiLimit = Math.max(totalIncome * 0.4 - Number(existingEmi || 0), 0);
+    const bankEmiLimit = Number(eligibility.maxEligibleEmi || 0);
+    const recommendedEmi = Math.min(safeEmiLimit, bankEmiLimit);
+
+    const monthlyRate = Number(interestRate || 0) / 12 / 100;
+    const months = Math.max(Number(eligibility.effectiveMonths || 0), 1);
+
+    const safeLoan =
+      monthlyRate === 0
+        ? recommendedEmi * months
+        : (recommendedEmi * (Math.pow(1 + monthlyRate, months) - 1)) /
+          (monthlyRate * Math.pow(1 + monthlyRate, months));
+
+    const recommendedPropertyBudget = safeLoan / 0.8;
+    const suggestedDownPayment = recommendedPropertyBudget * 0.2;
+    const registrationCost = recommendedPropertyBudget * 0.07;
+    const reserveFund = recommendedPropertyBudget * 0.05;
+    const totalCashNeeded = suggestedDownPayment + registrationCost + reserveFund;
+
+    const emiToIncomeRatio =
+      totalIncome > 0 ? Number(result.emi || 0) / totalIncome : 0;
+
+    let risk = "Low Risk";
+    let message = "Your EMI appears comfortable against your income.";
+
+    if (emiToIncomeRatio > 0.5) {
+      risk = "High Risk";
+      message = "EMI is taking a high share of income. Prefer lower budget or higher down payment.";
+    } else if (emiToIncomeRatio > 0.4) {
+      risk = "Moderate Risk";
+      message = "Budget is possible, but keep emergency savings before purchase.";
+    }
+
+    return {
+      recommendedEmi,
+      safeLoan,
+      recommendedPropertyBudget,
+      suggestedDownPayment,
+      registrationCost,
+      reserveFund,
+      totalCashNeeded,
+      risk,
+      message,
+    };
+  }, [
+    eligibility.totalIncome,
+    eligibility.maxEligibleEmi,
+    eligibility.effectiveMonths,
+    existingEmi,
+    interestRate,
+    result.emi,
+  ]);
+
+    const aiFinancialHealth = useMemo(() => {
+    const totalIncome = Number(eligibility.totalIncome || 0);
+    const currentEmi = Number(result.emi || 0);
+    const currentExistingEmi = Number(existingEmi || 0);
+    const emiBurdenRatio = totalIncome > 0 ? currentEmi / totalIncome : 0;
+    const totalDebtRatio =
+      totalIncome > 0 ? (currentEmi + currentExistingEmi) / totalIncome : 0;
+
+    let score = 100;
+
+    if (totalIncome <= 0) score -= 60;
+    if (emiBurdenRatio > 0.5) score -= 35;
+    else if (emiBurdenRatio > 0.4) score -= 22;
+    else if (emiBurdenRatio > 0.3) score -= 10;
+
+    if (totalDebtRatio > 0.6) score -= 25;
+    else if (totalDebtRatio > 0.5) score -= 15;
+    else if (totalDebtRatio > 0.4) score -= 8;
+
+    if (eligibility.effectiveYears < 8) score -= 14;
+    else if (eligibility.effectiveYears < 15) score -= 7;
+
+    if (Number(age) > 50) score -= 8;
+    else if (Number(age) > 45) score -= 4;
+
+    if (safePropertyBudget.risk === "High Risk") score -= 12;
+    else if (safePropertyBudget.risk === "Moderate Risk") score -= 6;
+
+    const finalScore = Math.max(0, Math.min(100, Math.round(score)));
+
+    let status = "Financially Healthy";
+    let badge = "🟢";
+    let message =
+      "Your current EMI plan looks comfortable. Keep emergency savings and avoid unnecessary extra debt.";
+
+    if (finalScore < 55) {
+      status = "Risky";
+      badge = "🔴";
+      message =
+        "This plan may create pressure on monthly income. Reduce loan amount, increase down payment, or choose a lower budget.";
+    } else if (finalScore < 75) {
+      status = "Moderate";
+      badge = "🟡";
+      message =
+        "This plan is possible, but maintain reserve funds and avoid stretching your EMI too high.";
+    }
+
+    const reserveNeeded = currentEmi * 6;
+
+    return {
+      score: finalScore,
+      status,
+      badge,
+      message,
+      emiBurdenRatio,
+      totalDebtRatio,
+      reserveNeeded,
+    };
+  }, [
+    eligibility.totalIncome,
+    eligibility.effectiveYears,
+    existingEmi,
+    result.emi,
+    age,
+    safePropertyBudget.risk,
+  ]);
+
+    const aiRentVsEmi = useMemo(() => {
+    const rent = Number(monthlyRent || 0);
+    const emi = Number(result.emi || 0);
+    const propertyBudget = Number(safePropertyBudget.recommendedPropertyBudget || 0);
+    const yearlyRent = rent * 12;
+    const yearlyEmi = emi * 12;
+    const yearlyDifference = yearlyEmi - yearlyRent;
+    const fiveYearRentOutflow = yearlyRent * 5;
+    const fiveYearEmiOutflow = yearlyEmi * 5;
+    const estimatedFiveYearAppreciation = propertyBudget * 0.25;
+
+    let verdict = "Buying appears smarter";
+    let badge = "🟢";
+    let confidence = "High";
+    let message =
+      "Buying may be a better long-term decision if your EMI is comfortable and you plan to stay for several years.";
+
+    if (rent <= 0) {
+      verdict = "Add rent for better analysis";
+      badge = "⚪";
+      confidence = "Low";
+      message =
+        "Enter your current monthly rent to compare renting against buying more accurately.";
+    } else if (emi > rent * 2.2) {
+      verdict = "Renting may be safer now";
+      badge = "🟡";
+      confidence = "Medium";
+      message =
+        "Your EMI is much higher than current rent. Consider waiting, increasing down payment, or choosing a lower-budget property.";
+    } else if (emi > rent * 1.6) {
+      verdict = "Buying is possible with caution";
+      badge = "🟡";
+      confidence = "Medium";
+      message =
+        "Buying is possible, but EMI is significantly higher than rent. Keep emergency reserve before purchase.";
+    }
+
+    return {
+      rent,
+      emi,
+      yearlyRent,
+      yearlyEmi,
+      yearlyDifference,
+      fiveYearRentOutflow,
+      fiveYearEmiOutflow,
+      estimatedFiveYearAppreciation,
+      verdict,
+      badge,
+      confidence,
+      message,
+    };
+  }, [monthlyRent, result.emi, safePropertyBudget.recommendedPropertyBudget]);
+
+    const aiDownPayment = useMemo(() => {
+    const propertyBudget = Number(
+      safePropertyBudget.recommendedPropertyBudget || 0
+    );
+
+    const minimumDownPayment = propertyBudget * 0.1;
+    const recommendedDownPayment = propertyBudget * 0.25;
+    const aggressiveDownPayment = propertyBudget * 0.4;
+
+    const currentLoan = propertyBudget * 0.8;
+    const recommendedLoan = propertyBudget - recommendedDownPayment;
+    const aggressiveLoan = propertyBudget - aggressiveDownPayment;
+
+    const monthlyRate = Number(interestRate || 0) / 12 / 100;
+    const months = Math.max(Number(eligibility.effectiveMonths || 0), 1);
+
+    const calculateEmi = (loan: number) => {
+      if (monthlyRate === 0) return loan / months;
+
+      return (
+        (loan *
+          monthlyRate *
+          Math.pow(1 + monthlyRate, months)) /
+        (Math.pow(1 + monthlyRate, months) - 1)
+      );
+    };
+
+    const currentEstimatedEmi = calculateEmi(currentLoan);
+    const recommendedEstimatedEmi = calculateEmi(recommendedLoan);
+    const aggressiveEstimatedEmi = calculateEmi(aggressiveLoan);
+
+    const emiSaving =
+      currentEstimatedEmi - recommendedEstimatedEmi;
+
+    let recommendation = "Recommended 25% down payment";
+    let badge = "🟢";
+
+    if (aiFinancialHealth.score < 60) {
+      recommendation = "Increase down payment before purchase";
+      badge = "🟡";
+    }
+
+    return {
+      minimumDownPayment,
+      recommendedDownPayment,
+      aggressiveDownPayment,
+      currentEstimatedEmi,
+      recommendedEstimatedEmi,
+      aggressiveEstimatedEmi,
+      emiSaving,
+      recommendation,
+      badge,
+    };
+  }, [
+    safePropertyBudget.recommendedPropertyBudget,
+    interestRate,
+    eligibility.effectiveMonths,
+    aiFinancialHealth.score,
+  ]);
+
+    const aiBuyingCost = useMemo(() => {
+    const propertyBudget = Number(
+      safePropertyBudget.recommendedPropertyBudget || 0
+    );
+
+    const registrationCost = propertyBudget * 0.07;
+    const furnishingCost = propertyBudget * 0.05;
+    const modularKitchenCost = propertyBudget * 0.025;
+    const electricalCost = propertyBudget * 0.018;
+    const paintingCost = propertyBudget * 0.012;
+    const shiftingReserve = propertyBudget * 0.01;
+    const emergencyReserve = propertyBudget * 0.03;
+
+    const totalHiddenCost =
+      registrationCost +
+      furnishingCost +
+      modularKitchenCost +
+      electricalCost +
+      paintingCost +
+      shiftingReserve +
+      emergencyReserve;
+
+    const totalBuyingRequirement =
+      propertyBudget + totalHiddenCost;
+
+    let warning =
+      "Your overall buying cost appears manageable.";
+
+    if (totalHiddenCost > propertyBudget * 0.18) {
+      warning =
+        "Hidden buying and setup costs are becoming significantly high. Keep reserve savings before final purchase.";
+    }
+
+    return {
+      registrationCost,
+      furnishingCost,
+      modularKitchenCost,
+      electricalCost,
+      paintingCost,
+      shiftingReserve,
+      emergencyReserve,
+      totalHiddenCost,
+      totalBuyingRequirement,
+      warning,
+    };
+  }, [safePropertyBudget.recommendedPropertyBudget]);
+
+  const financeAwareLinks = useMemo(() => {
+    const safeBudget = Math.round(
+      Number(safePropertyBudget.recommendedPropertyBudget || 0)
+    );
+
+    const minBudget = Math.max(Math.round(safeBudget * 0.75), 0);
+    const maxBudget = Math.max(Math.round(safeBudget * 1.05), 0);
+
+    return {
+      property: `/property?minBudget=${minBudget}&maxBudget=${maxBudget}`,
+      projects: `/property/projects?minBudget=${minBudget}&maxBudget=${maxBudget}`,
+      rfq: `/rfq/general/new?budget=${safeBudget}&source=emi-calculator`,
+    };
+  }, [safePropertyBudget.recommendedPropertyBudget]);
 
   const amortization: {
     month: number;
@@ -483,6 +782,18 @@ const result = useMemo(() => {
           />
 
           <div className="fieldTop">
+            <label>Current Monthly Rent Optional</label>
+            <strong>{formatINR(monthlyRent)}</strong>
+          </div>
+
+          <input
+            type="number"
+            value={monthlyRent}
+            onChange={(e) => setMonthlyRent(Number(e.target.value))}
+            placeholder="Example: 12000"
+          />
+
+          <div className="fieldTop">
             <label>Age</label>
             <strong>{age} years</strong>
           </div>
@@ -682,6 +993,234 @@ const result = useMemo(() => {
             </div>
           </div>
 
+          <div className="aiBudgetBox">
+            <div className="aiBudgetHeader">
+              <span>🤖 AI Safe Property Budget</span>
+              <strong>{formatINR(safePropertyBudget.recommendedPropertyBudget)}</strong>
+              <small>{safePropertyBudget.risk}</small>
+            </div>
+
+            <details>
+              <summary>View recommended safe property budget</summary>
+              <p>
+                Based on income, existing EMI, age-based tenure and current interest rate,
+                a safer buying budget is around{" "}
+                <b>{formatINR(safePropertyBudget.recommendedPropertyBudget)}</b>.
+              </p>
+            </details>
+
+            <details>
+              <summary>View down payment and cash requirement</summary>
+              <p>
+                Suggested down payment:{" "}
+                <b>{formatINR(safePropertyBudget.suggestedDownPayment)}</b>. Estimated
+                registration and reserve fund may need around{" "}
+                <b>{formatINR(safePropertyBudget.registrationCost + safePropertyBudget.reserveFund)}</b>.
+              </p>
+            </details>
+
+            <details>
+              <summary>View monthly income safety analysis</summary>
+              <p>{safePropertyBudget.message}</p>
+            </details>
+          </div>
+
+                    <div className="aiHealthBox">
+            <div className="aiBudgetHeader">
+              <span>🧠 AI Financial Health Score</span>
+              <strong>
+                {aiFinancialHealth.badge} {aiFinancialHealth.score}/100
+              </strong>
+              <small>{aiFinancialHealth.status}</small>
+            </div>
+
+            <details>
+              <summary>View affordability risk analysis</summary>
+              <p>{aiFinancialHealth.message}</p>
+            </details>
+
+            <details>
+              <summary>View EMI burden and debt ratio</summary>
+              <p>
+                EMI burden is around{" "}
+                <b>{Math.round(aiFinancialHealth.emiBurdenRatio * 100)}%</b> of
+                monthly income. Total debt burden including existing EMI is around{" "}
+                <b>{Math.round(aiFinancialHealth.totalDebtRatio * 100)}%</b>.
+              </p>
+            </details>
+
+            <details>
+              <summary>View emergency reserve suggestion</summary>
+              <p>
+                Recommended minimum emergency reserve before buying property:{" "}
+                <b>{formatINR(aiFinancialHealth.reserveNeeded)}</b>.
+              </p>
+            </details>
+          </div>
+
+                    <div className="aiRentBox">
+            <div className="aiBudgetHeader">
+              <span>🏠 AI Rent vs EMI Decision</span>
+              <strong>
+                {aiRentVsEmi.badge} {aiRentVsEmi.verdict}
+              </strong>
+              <small>Confidence: {aiRentVsEmi.confidence}</small>
+            </div>
+
+            <details>
+              <summary>View rent vs EMI comparison</summary>
+              <p>
+                Current monthly rent is <b>{formatINR(aiRentVsEmi.rent)}</b>.
+                Estimated EMI is <b>{formatINR(aiRentVsEmi.emi)}</b>.
+                Annual EMI difference against rent is around{" "}
+                <b>{formatINR(aiRentVsEmi.yearlyDifference)}</b>.
+              </p>
+            </details>
+
+            <details>
+              <summary>View 5-year money impact</summary>
+              <p>
+                In 5 years, rent outflow may be around{" "}
+                <b>{formatINR(aiRentVsEmi.fiveYearRentOutflow)}</b>, while EMI
+                outflow may be around{" "}
+                <b>{formatINR(aiRentVsEmi.fiveYearEmiOutflow)}</b>. Estimated
+                property value growth may be around{" "}
+                <b>{formatINR(aiRentVsEmi.estimatedFiveYearAppreciation)}</b>.
+              </p>
+            </details>
+
+            <details>
+              <summary>View AI recommendation</summary>
+              <p>{aiRentVsEmi.message}</p>
+            </details>
+          </div>
+
+                    <div className="aiDownPaymentBox">
+            <div className="aiBudgetHeader">
+              <span>💰 AI Down Payment Strategy</span>
+              <strong>
+                {aiDownPayment.badge} {aiDownPayment.recommendation}
+              </strong>
+              <small>
+                Suggested: {formatINR(aiDownPayment.recommendedDownPayment)}
+              </small>
+            </div>
+
+            <details>
+              <summary>View down payment options</summary>
+              <p>
+                Minimum suggested down payment:{" "}
+                <b>{formatINR(aiDownPayment.minimumDownPayment)}</b>.
+                Safer recommended down payment:{" "}
+                <b>{formatINR(aiDownPayment.recommendedDownPayment)}</b>.
+                Aggressive wealth-protection down payment:{" "}
+                <b>{formatINR(aiDownPayment.aggressiveDownPayment)}</b>.
+              </p>
+            </details>
+
+            <details>
+              <summary>View EMI reduction impact</summary>
+              <p>
+                Estimated EMI with safer down payment may reduce to{" "}
+                <b>{formatINR(aiDownPayment.recommendedEstimatedEmi)}</b>.
+                Approximate EMI reduction:{" "}
+                <b>{formatINR(aiDownPayment.emiSaving)}</b> per month.
+              </p>
+            </details>
+
+            <details>
+              <summary>View AI recommendation</summary>
+              <p>
+                Larger down payment reduces EMI pressure, interest burden,
+                and long-term financial stress while improving loan approval comfort.
+              </p>
+            </details>
+          </div>
+
+                    <div className="aiBuyingCostBox">
+            <div className="aiBudgetHeader">
+              <span>🏗 AI Total Buying Cost</span>
+
+              <strong>
+                {formatINR(aiBuyingCost.totalHiddenCost)}
+              </strong>
+
+              <small>
+                Hidden + setup ownership cost
+              </small>
+            </div>
+
+            <details>
+              <summary>View registration and legal cost</summary>
+
+              <p>
+                Estimated registration/stamp duty related cost:
+                <b>
+                  {" "}
+                  {formatINR(aiBuyingCost.registrationCost)}
+                </b>
+              </p>
+            </details>
+
+            <details>
+              <summary>View furnishing and setup estimate</summary>
+
+              <p>
+                Furnishing:
+                <b>
+                  {" "}
+                  {formatINR(aiBuyingCost.furnishingCost)}
+                </b>
+                , Modular kitchen:
+                <b>
+                  {" "}
+                  {formatINR(aiBuyingCost.modularKitchenCost)}
+                </b>
+                , Electrical setup:
+                <b>
+                  {" "}
+                  {formatINR(aiBuyingCost.electricalCost)}
+                </b>
+                , Painting/setup:
+                <b>
+                  {" "}
+                  {formatINR(aiBuyingCost.paintingCost)}
+                </b>
+              </p>
+            </details>
+
+            <details>
+              <summary>View reserve and safety recommendation</summary>
+
+              <p>
+                Suggested emergency + shifting reserve:
+                <b>
+                  {" "}
+                  {formatINR(
+                    aiBuyingCost.shiftingReserve +
+                      aiBuyingCost.emergencyReserve
+                  )}
+                </b>
+                . {aiBuyingCost.warning}
+              </p>
+            </details>
+
+            <details>
+              <summary>View actual estimated buying requirement</summary>
+
+              <p>
+                Estimated total real buying requirement including hidden/setup
+                costs:
+                <b>
+                  {" "}
+                  {formatINR(
+                    aiBuyingCost.totalBuyingRequirement
+                  )}
+                </b>
+              </p>
+            </details>
+          </div>
+
           <div className="summaryBox">
             <strong>Loan Summary</strong>
             <p>
@@ -699,9 +1238,24 @@ const result = useMemo(() => {
             ) : null}
           </div>
 
+          <div className="aiDiscoveryBridge">
+            <strong>🏡 Finance-Aware Property Discovery</strong>
+            <span>
+              Based on your safe buying budget, 3Bigha can now guide you toward
+              properties and projects that better match your EMI comfort.
+            </span>
+          </div>
+
           <div className="emiActions">
-            <a href="/property">Search Property</a>
-            <a href="/rfq/general/new">Submit Requirement</a>
+            <a href={financeAwareLinks.property}>
+              View Affordable Properties
+            </a>
+            <a href={financeAwareLinks.projects}>
+              View Projects in Budget
+            </a>
+            <a href={financeAwareLinks.rfq}>
+              Submit Finance-Aware Requirement
+            </a>
           </div>
 
           <div className="emiUtilityActions">
@@ -1394,6 +1948,93 @@ const result = useMemo(() => {
           font-weight: 700;
         }
 
+        .aiBudgetBox,
+        .aiHealthBox,
+        .aiRentBox,
+        .aiDownPaymentBox,
+        .aiBuyingCostBox {
+          border-radius: 18px;
+          background: rgba(255,255,255,0.12);
+          padding: 16px;
+        }
+
+        .aiHealthBox {
+          background: linear-gradient(135deg, rgba(34,197,94,0.16), rgba(59,130,246,0.14));
+        }
+
+        .aiRentBox {
+          background: linear-gradient(135deg, rgba(14,165,233,0.16), rgba(168,85,247,0.14));
+        }
+
+        .aiDownPaymentBox {
+          background: linear-gradient(135deg, rgba(234,179,8,0.18), rgba(249,115,22,0.16));
+        }
+
+        .aiBuyingCostBox {
+          background: linear-gradient(
+            135deg,
+            rgba(236,72,153,0.16),
+            rgba(99,102,241,0.16)
+          );
+        }
+
+        .aiBudgetHeader span {
+          display: block;
+          color: rgba(255,255,255,0.74);
+          font-size: 13px;
+          font-weight: 900;
+        }
+
+        .aiBudgetHeader strong {
+          display: block;
+          margin-top: 7px;
+          font-size: 24px;
+          font-weight: 1000;
+        }
+
+        .aiBudgetHeader small {
+          display: inline-flex;
+          margin-top: 8px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.14);
+          padding: 6px 10px;
+          font-size: 12px;
+          font-weight: 1000;
+        }
+
+        .aiBudgetBox details,
+        .aiHealthBox details,
+        .aiRentBox details,
+        .aiDownPaymentBox details,
+        .aiBuyingCostBox details {
+          margin-top: 10px;
+          border-radius: 14px;
+          background: rgba(255,255,255,0.08);
+          padding: 12px;
+        }
+
+        .aiBudgetBox summary,
+        .aiHealthBox summary,
+        .aiRentBox summary,
+        .aiDownPaymentBox summary,
+        .aiBuyingCostBox summary {
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 1000;
+        }
+
+        .aiBudgetBox p,
+        .aiHealthBox p,
+        .aiRentBox p,
+        .aiDownPaymentBox p,
+        .aiBuyingCostBox p {
+          margin: 9px 0 0;
+          color: rgba(255,255,255,0.76);
+          font-size: 13px;
+          line-height: 1.6;
+          font-weight: 700;
+        }
+
         .summaryBox strong {
           display: block;
           font-size: 15px;
@@ -1406,6 +2047,29 @@ const result = useMemo(() => {
           font-size: 13px;
           line-height: 1.6;
           font-weight: 700;
+        }
+
+        .aiDiscoveryBridge {
+          margin-top: 14px;
+          border-radius: 18px;
+          background: rgba(255,255,255,0.12);
+          padding: 14px;
+        }
+
+        .aiDiscoveryBridge strong {
+          display: block;
+          color: #ffffff;
+          font-size: 14px;
+          font-weight: 1000;
+        }
+
+        .aiDiscoveryBridge span {
+          display: block;
+          margin-top: 6px;
+          color: rgba(255,255,255,0.76);
+          font-size: 13px;
+          line-height: 1.55;
+          font-weight: 750;
         }
 
         .emiActions {

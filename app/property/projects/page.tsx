@@ -35,6 +35,15 @@ function fmt(iso?: string | null) {
   }
 }
 
+function projectFinanceHref(p: ProjectRow) {
+  const params = new URLSearchParams();
+  params.set("project", p.name);
+  params.set("source", "project-card");
+  if (p.city) params.set("location", p.city);
+
+  return `/emi-calculator?${params.toString()}`;
+}
+
 function statusLabel(s?: ProjectStatus | null) {
   if (s === "active") return "Active";
   if (s === "paused") return "Paused";
@@ -123,6 +132,7 @@ export default function PropertyProjectsPublicPage() {
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
                   <Badge>{statusLabel(p.status)}</Badge>
                   <Badge>Updated: {fmt(p.updated_at)}</Badge>
+                  <Badge>AI Finance Ready</Badge>
                 </div>
 
                 <div style={{ fontWeight: 900, fontSize: 16, marginBottom: 6 }}>
@@ -136,12 +146,21 @@ export default function PropertyProjectsPublicPage() {
                   {p.pincode ? ` — ${p.pincode}` : ""}
                 </div>
 
-                <Link
-                  href={`/property/projects/${encodeURIComponent(p.slug)}`}
-                  style={{ fontWeight: 900, textDecoration: "none" }}
-                >
-                  View Project →
-                </Link>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <Link
+                    href={projectFinanceHref(p)}
+                    style={{ fontWeight: 900, color: "#16a34a", textDecoration: "none" }}
+                  >
+                    Check Budget →
+                  </Link>
+
+                  <Link
+                    href={`/property/projects/${encodeURIComponent(p.slug)}`}
+                    style={{ fontWeight: 900, textDecoration: "none" }}
+                  >
+                    View Project →
+                  </Link>
+                </div>
               </CardBody>
             </Card>
           ))}
