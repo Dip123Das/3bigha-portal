@@ -27,6 +27,7 @@ import { buildRelatedContent } from "@/lib/seo/related-content";
 import { buildRelatedListings } from "@/lib/seo/related-listings";
 
 import { buildRecommendations } from "@/lib/ai/recommendation-engine";
+import { buildPropertyInvestmentIntel } from "@/lib/property-investment/investment-score";
 import MemoryEventTracker from "@/app/components/ai/MemoryEventTracker";
 import MemoryLink from "@/app/components/ai/MemoryLink";
 
@@ -505,6 +506,26 @@ const relatedListings = buildRelatedListings({
     "Property",
 });
 
+const investmentIntel = buildPropertyInvestmentIntel({
+  price:
+    row.price ||
+    row.expected_price ||
+    null,
+  propertyType:
+    safeText(row.property_type) ||
+    safeText(row.category),
+  category:
+    safeText(row.category),
+  listingType:
+    safeText(row.listing_type),
+  city:
+    safeText(row.city),
+  district:
+    safeText(row.district),
+  locality:
+    safeText(row.locality),
+});
+
 const aiRecommendations = buildRecommendations({
   module: "property",
 
@@ -792,6 +813,434 @@ const aiRecommendations = buildRecommendations({
                 No description provided.
               </div>
             )}
+
+            <div
+              style={{
+                marginTop: 18,
+                padding: 16,
+                borderRadius: 16,
+                background: "linear-gradient(135deg,#020617,#0f172a)",
+                color: "#fff",
+                border: "1px solid rgba(255,255,255,0.12)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 800 }}>
+                    AI Property Investment Score
+                  </div>
+                  <div style={{ fontSize: 28, fontWeight: 950, marginTop: 4 }}>
+                    {investmentIntel.investmentScore}/99
+                  </div>
+                  <div style={{ fontSize: 13, opacity: 0.82 }}>
+                    {investmentIntel.rating} investment profile
+                  </div>
+                </div>
+
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 800 }}>
+                    EMI Stress
+                  </div>
+                  <div style={{ fontSize: 20, fontWeight: 950, marginTop: 4 }}>
+                    {investmentIntel.emiStress}
+                  </div>
+                  <div style={{ fontSize: 12, opacity: 0.82 }}>
+                    Safer salary ₹{investmentIntel.safeSalaryRequired.toLocaleString("en-IN")}/mo
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(12,minmax(0,1fr))",
+                  gap: 10,
+                  marginTop: 14,
+                }}
+                className="investmentMiniGrid"
+              >
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Appreciation</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.appreciationPotential}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Rent Yield</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.rentalYieldPercent}%</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Rent Est.</div>
+                  <div style={{ fontWeight: 900 }}>₹{investmentIntel.estimatedMonthlyRent.toLocaleString("en-IN")}/mo</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Rent vs EMI</div>
+                  <div style={{ fontWeight: 900 }}>
+                    {investmentIntel.betterThanRent ? "Positive" : "Check EMI"}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Locality Growth</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.investorConfidenceIndex}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Growth Type</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.localityGrowthRating}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Price Signal</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.hotDealLabel}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Bargain Index</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.bargainOpportunityIndex}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Liquidity</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.resaleLiquidityScore}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Asset Type</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.wealthCompounderLabel}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Market Pulse</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.marketPulseLabel}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Timing</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.marketTimingScore}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Hyperlocal</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.hyperlocalDesirabilityIndex}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Locality Type</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.hyperlocalProfileLabel}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>AI Match</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.overallRecommendationScore}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Best For</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.bestForLabel}</div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: 14,
+                padding: 14,
+                borderRadius: 16,
+                background: "#fff",
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              <div style={{ fontWeight: 950, marginBottom: 10 }}>
+                AI Property Recommendation & Matchmaking
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4,minmax(0,1fr))",
+                  gap: 10,
+                }}
+                className="investmentMiniGrid"
+              >
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Overall Match</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.overallRecommendationScore}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Investor Fit</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.investorMatchScore}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>End-user Fit</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.endUserMatchScore}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Budget Fit</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.budgetFitScore}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Family Fit</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.familyMatchScore}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Rental Income Fit</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.rentalIncomeMatchScore}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Lifestyle Fit</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.lifestyleMatchScore}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Recommendation</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.recommendationLabel}</div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: 14,
+                padding: 14,
+                borderRadius: 16,
+                background: "#fff",
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              <div style={{ fontWeight: 950, marginBottom: 10 }}>
+                AI Hyperlocal Property Intelligence
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4,minmax(0,1fr))",
+                  gap: 10,
+                }}
+                className="investmentMiniGrid"
+              >
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>School Access</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.schoolAccessibilityScore}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Hospital Access</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.hospitalAccessibilityScore}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Market Access</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.marketConvenienceIndex}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Transport</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.transportConnectivityScore}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Livability</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.livabilityIndex}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Family Settlement</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.familySettlementScore}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Student Rental</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.studentRentalSuitability}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Smart Growth</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.smartCityGrowthProbability}/95</div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: 14,
+                padding: 14,
+                borderRadius: 16,
+                background: "#fff",
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              <div style={{ fontWeight: 950, marginBottom: 10 }}>
+                AI Property Market Pulse
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4,minmax(0,1fr))",
+                  gap: 10,
+                }}
+                className="investmentMiniGrid"
+              >
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Area Heat</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.areaHeatIndex}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Demand Imbalance</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.supplyDemandImbalance}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Buyer Momentum</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.buyerActivityMomentum}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Seller Pressure</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.sellerCompetitionPressure}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Market Timing</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.marketTimingScore}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Inventory Saturation</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.inventorySaturationScore}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Price Momentum</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.priceTrendMomentum}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Negotiation Leverage</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.negotiationLeverageIndex}/99</div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: 14,
+                padding: 14,
+                borderRadius: 16,
+                background: "#fff",
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              <div style={{ fontWeight: 950, marginBottom: 10 }}>
+                AI Liquidity & Buyer Demand Signals
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4,minmax(0,1fr))",
+                  gap: 10,
+                }}
+                className="investmentMiniGrid"
+              >
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Buyer Demand</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.buyerDemandIntensity}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Resale Liquidity</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.resaleLiquidityScore}/99</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Exit Probability</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.investorExitProbability}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Rental Absorption</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.rentalAbsorptionScore}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Family Demand</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.familyFriendlyScore}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Commercial Activity</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.commercialActivityScore}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Growth Velocity</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.appreciationVelocityScore}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Holding Strength</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.longTermHoldingStrength}/99</div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: 14,
+                padding: 14,
+                borderRadius: 16,
+                background: "#fff",
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              <div style={{ fontWeight: 950, marginBottom: 10 }}>
+                AI Price Undervaluation Signals
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4,minmax(0,1fr))",
+                  gap: 10,
+                }}
+                className="investmentMiniGrid"
+              >
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Fair Value</div>
+                  <div style={{ fontWeight: 900 }}>
+                    ₹{investmentIntel.fairValueEstimate.toLocaleString("en-IN")}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Price Gap</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.priceGapPercent}%</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Fast Selling</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.fastSellingProbability}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Confidence</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.priceConfidenceScore}/96</div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: 14,
+                padding: 14,
+                borderRadius: 16,
+                background: "#fff",
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              <div style={{ fontWeight: 950, marginBottom: 10 }}>
+                AI Locality Growth Signals
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3,minmax(0,1fr))",
+                  gap: 10,
+                }}
+                className="investmentMiniGrid"
+              >
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Highway Access</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.highwayScore}/100</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Railway Access</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.railwayScore}/100</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Demand Hotspot</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.demandHotspotScore}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Urban Expansion</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.urbanExpansionScore}/95</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Infrastructure</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.infrastructureGrowthScore}/100</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, opacity: 0.65 }}>Emerging Area</div>
+                  <div style={{ fontWeight: 900 }}>{investmentIntel.emergingAreaScore}/95</div>
+                </div>
+              </div>
+            </div>
 
             <div
               style={{
@@ -1146,6 +1595,7 @@ const aiRecommendations = buildRecommendations({
         }
         @media (max-width:980px){
           .propGrid{grid-template-columns:1fr}
+          .investmentMiniGrid{grid-template-columns:1fr 1fr !important}
         }
       `}</style>
     </Container>

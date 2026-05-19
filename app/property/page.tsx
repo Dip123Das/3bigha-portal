@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/Badge";
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
 import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/seo/schema";
+import { buildPropertyInvestmentIntel } from "@/lib/property-investment/investment-score";
 
 type Status = "draft" | "pending" | "approved" | "published" | "blocked" | "rejected" | string;
 
@@ -188,6 +189,8 @@ type ListingRow = {
   price?: number | null;
 
   city: string | null;
+  district?: string | null;
+  locality?: string | null;
   state: string | null;
 
   owner_id?: string | null;
@@ -222,6 +225,8 @@ function normalizeListing(x: any): ListingRow | null {
     expected_price: x.expected_price == null ? null : Number(x.expected_price),
 
     city: x.city == null ? null : String(x.city),
+    district: x.district == null ? null : String(x.district),
+    locality: x.locality == null ? null : String(x.locality),
     state: x.state == null ? null : String(x.state),
 
     price: x.price == null ? null : Number(x.price),
@@ -292,7 +297,7 @@ export default function PropertyPublicListPage() {
   const [hasMore, setHasMore] = useState(true);
 
   // The set of columns we will attempt in order, removing missing optional columns if needed
-    const [cols, setCols] = useState<string[]>([
+  const [cols, setCols] = useState<string[]>([
     "id",
     "title",
     "slug",
@@ -302,6 +307,8 @@ export default function PropertyPublicListPage() {
     "expected_price",
     "price",
     "city",
+    "district",
+    "locality",
     "state",
     "owner_id", // main owner fallback
     "owner_user_id", // optional fallback
@@ -523,21 +530,62 @@ export default function PropertyPublicListPage() {
     const qq = q.trim().toLowerCase();
     const wantedSubtypeName = subKey.startsWith("sub:") ? subKey.slice(4) : "";
 
-    return listings.filter((p) => {
-      const typeName = p.type_id ? typeMap[p.type_id]?.name : "";
-      const subtypeName = p.subtype_id ? subtypeMap[p.subtype_id]?.name : "";
+    return listings
+      .filter((p) => {
+        const typeName = p.type_id ? typeMap[p.type_id]?.name : "";
+        const subtypeName = p.subtype_id ? subtypeMap[p.subtype_id]?.name : "";
 
-      if (typeKey === "land" && typeName !== "Land / Plot") return false;
-      if (typeKey === "house" && typeName !== "House(s)") return false;
+        if (typeKey === "land" && typeName !== "Land / Plot") return false;
+        if (typeKey === "house" && typeName !== "House(s)") return false;
 
-      if (wantedSubtypeName) {
-        if (subtypeName !== wantedSubtypeName) return false;
-      }
+        if (wantedSubtypeName) {
+          if (subtypeName !== wantedSubtypeName) return false;
+        }
 
-      if (!qq) return true;
-      const hay = `${p.title ?? ""} ${p.city ?? ""} ${p.state ?? ""} ${typeName} ${subtypeName}`.toLowerCase();
-      return hay.includes(qq);
-    });
+        if (!qq) return true;
+        const hay = `${p.title ?? ""} ${p.locality ?? ""} ${p.city ?? ""} ${p.district ?? ""} ${p.state ?? ""} ${typeName} ${subtypeName}`.toLowerCase();
+        return hay.includes(qq);
+      })
+      .sort((a, b) => {
+        const aType = a.type_id ? typeMap[a.type_id]?.name : "";
+        const bType = b.type_id ? typeMap[b.type_id]?.name : "";
+
+        const aIntel = buildPropertyInvestmentIntel({
+          price: a.expected_price ?? a.price ?? null,
+          propertyType: aType,
+          city: a.city,
+          district: a.district,
+          locality: a.locality,
+        });
+
+        const bIntel = buildPropertyInvestmentIntel({
+          price: b.expected_price ?? b.price ?? null,
+          propertyType: bType,
+          city: b.city,
+          district: b.district,
+          locality: b.locality,
+        });
+
+        const aScore =
+          aIntel.investmentScore * 0.34 +
+          aIntel.investorConfidenceIndex * 0.16 +
+          aIntel.bargainOpportunityIndex * 0.1 +
+          aIntel.resaleLiquidityScore * 0.1 +
+          aIntel.marketTimingScore * 0.08 +
+          aIntel.hyperlocalDesirabilityIndex * 0.1 +
+          aIntel.overallRecommendationScore * 0.12;
+
+        const bScore =
+          bIntel.investmentScore * 0.34 +
+          bIntel.investorConfidenceIndex * 0.16 +
+          bIntel.bargainOpportunityIndex * 0.1 +
+          bIntel.resaleLiquidityScore * 0.1 +
+          bIntel.marketTimingScore * 0.08 +
+          bIntel.hyperlocalDesirabilityIndex * 0.1 +
+          bIntel.overallRecommendationScore * 0.12;
+
+        return bScore - aScore;
+      });
   }, [listings, q, typeKey, subKey, typeMap, subtypeMap]);
 
   return (
@@ -666,6 +714,15 @@ export default function PropertyPublicListPage() {
                 const vendorUserId =
                   p.owner_id ?? p.owner_user_id ?? null;
 
+                const investmentIntel = buildPropertyInvestmentIntel({
+                  price: finalPrice,
+                  propertyType: typeName,
+                  category: subtypeName,
+                  city: p.city,
+                  district: p.district,
+                  locality: p.locality,
+                });
+
                 return (
                   <Card key={p.id}>
                     <CardBody>
@@ -675,11 +732,40 @@ export default function PropertyPublicListPage() {
                         {subtypeName ? <Badge>{subtypeName}</Badge> : null}
                         <Badge>Updated: {fmt(p.updated_at)}</Badge>
                         <Badge>{financeBadgeLabel(p.expected_price ?? p.price ?? null)}</Badge>
+                        <Badge>AI Invest {investmentIntel.investmentScore}/99</Badge>
+                        <Badge>{investmentIntel.localityGrowthRating}</Badge>
+                        <Badge>{investmentIntel.hotDealLabel}</Badge>
+                        <Badge>{investmentIntel.hyperlocalProfileLabel}</Badge>
+                        <Badge>{investmentIntel.wealthCompounderLabel}</Badge>
+                        <Badge>{investmentIntel.marketPulseLabel}</Badge>
+                        <Badge>{investmentIntel.recommendationLabel}</Badge>
                       </div>
 
                       <div style={{ fontWeight: 900, marginBottom: 6 }}>{title}</div>
                       <div style={{ opacity: 0.8 }}>
                         {place} • {priceText}
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop: 8,
+                          display: "flex",
+                          gap: 8,
+                          flexWrap: "wrap",
+                          fontSize: 12,
+                          fontWeight: 800,
+                          color: "#334155",
+                        }}
+                      >
+                        <span>📈 {investmentIntel.rating} investment</span>
+                        <span>🏘️ Rent est. ₹{investmentIntel.estimatedMonthlyRent.toLocaleString("en-IN")}/mo</span>
+                        <span>💼 Salary safe ₹{investmentIntel.safeSalaryRequired.toLocaleString("en-IN")}/mo</span>
+                        <span>🔥 Locality {investmentIntel.investorConfidenceIndex}/99</span>
+                        <span>🏙️ Hyperlocal {investmentIntel.hyperlocalDesirabilityIndex}/99</span>
+                        <span>💎 Bargain {investmentIntel.bargainOpportunityIndex}/99</span>
+                        <span>⚡ Liquidity {investmentIntel.resaleLiquidityScore}/99</span>
+                        <span>📊 Market {investmentIntel.areaHeatIndex}/99</span>
+                        <span>🎯 Match {investmentIntel.overallRecommendationScore}/99</span>
                       </div>
 
                       <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
