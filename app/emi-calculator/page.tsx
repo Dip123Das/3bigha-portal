@@ -50,10 +50,22 @@ const eligibility = useMemo(() => {
 
   const monthlyRate = interestRate / 12 / 100;
 
-  const months =
+const requestedYears =
     tenureMode === "years"
-      ? clamp(Number(tenure), 1, 50) * 12
-      : clamp(Number(tenure), 1, 600);
+      ? clamp(Number(tenure), 1, 50)
+      : clamp(Number(tenure), 1, 600) / 12;
+
+  const ageLimit =
+    employmentType === "business" ? 70 : 60;
+
+  const maxTenureByAge = Math.max(ageLimit - age, 5);
+
+  const effectiveYears = Math.min(
+    requestedYears,
+    maxTenureByAge
+  );
+
+  const months = Math.round(effectiveYears * 12);
 
   let eligibleLoan = 0;
 
@@ -68,18 +80,19 @@ const eligibility = useMemo(() => {
 
   const estimatedPropertyValue = eligibleLoan / 0.8;
 
-  let status = "Weak";
+let status = "Weak";
 
-  if (maxEligibleEmi >= 60000) {
+  if (
+    maxEligibleEmi >= 70000 &&
+    effectiveYears >= 20
+  ) {
     status = "Excellent";
-  } else if (maxEligibleEmi >= 25000) {
+  } else if (
+    maxEligibleEmi >= 30000 &&
+    effectiveYears >= 10
+  ) {
     status = "Moderate";
   }
-
-  const ageLimit =
-    employmentType === "business" ? 70 : 60;
-
-  const maxTenureByAge = Math.max(ageLimit - age, 5);
 
   return {
     totalIncome,
@@ -88,6 +101,7 @@ const eligibility = useMemo(() => {
     estimatedPropertyValue,
     status,
     maxTenureByAge,
+      effectiveYears,
   };
 }, [
   monthlyIncome,
@@ -529,8 +543,13 @@ const result = useMemo(() => {
 
             <div className="eligibilityTips">
               <p>
-                Maximum recommended tenure by age:
+                Maximum tenure allowed by age:
                 <b> {eligibility.maxTenureByAge} years</b>
+              </p>
+
+              <p>
+                Effective tenure used in eligibility:
+                <b> {eligibility.effectiveYears.toFixed(1)} years</b>
               </p>
 
               {existingEmi > 0 ? (
