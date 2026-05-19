@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   PieChart,
   Pie,
@@ -50,22 +50,28 @@ const eligibility = useMemo(() => {
 
   const monthlyRate = interestRate / 12 / 100;
 
-const requestedYears =
-    tenureMode === "years"
-      ? clamp(Number(tenure), 1, 50)
-      : clamp(Number(tenure), 1, 600) / 12;
+const bankMaxTenureMonths = 360;
 
   const ageLimit =
     employmentType === "business" ? 70 : 60;
 
-  const maxTenureByAge = Math.max(ageLimit - age, 5);
+  const ageValue = clamp(Number(age), 18, ageLimit);
 
-  const effectiveYears = Math.min(
-    requestedYears,
-    maxTenureByAge
+  const maxTenureMonthsByAge = Math.max(
+    0,
+    Math.floor((ageLimit - ageValue) * 12)
   );
 
-  const months = Math.round(effectiveYears * 12);
+  const effectiveMonths = Math.min(
+    bankMaxTenureMonths,
+    maxTenureMonthsByAge
+  );
+
+  const effectiveYears = effectiveMonths / 12;
+
+  const maxTenureByAge = maxTenureMonthsByAge / 12;
+
+  const months = effectiveMonths;
 
   let eligibleLoan = 0;
 
@@ -101,18 +107,31 @@ let status = "Weak";
     estimatedPropertyValue,
     status,
     maxTenureByAge,
-      effectiveYears,
+    effectiveYears,
+    effectiveMonths,
   };
 }, [
   monthlyIncome,
   coApplicantIncome,
   existingEmi,
   interestRate,
-  tenure,
-  tenureMode,
   employmentType,
   age,
 ]);
+
+useEffect(() => {
+  const eligibleLoanAmount =
+    Math.round((eligibility.eligibleLoan || 0) / 1000) * 1000;
+
+  if (eligibleLoanAmount > 0) {
+    setLoanAmount(eligibleLoanAmount);
+  }
+
+  if (eligibility.effectiveMonths > 0) {
+    setTenureMode("months");
+    setTenure(eligibility.effectiveMonths);
+  }
+}, [eligibility.eligibleLoan, eligibility.effectiveMonths]);
 
 const result = useMemo(() => {
     const principal = clamp(Number(loanAmount), 0, 500000000);
@@ -168,7 +187,13 @@ const result = useMemo(() => {
     };
   }, [loanAmount, interestRate, tenure, tenureMode, extraPayment]);
 
-  const amortization = [];
+  const amortization: {
+    month: number;
+    emi: number;
+    principal: number;
+    interest: number;
+    balance: number;
+  }[] = [];
 
   let balance = result.principal;
   const monthlyRate = interestRate / 12 / 100;
@@ -192,16 +217,40 @@ const result = useMemo(() => {
 
   function downloadReport() {
     const lines = [
-      "3Bigha EMI Calculator Report",
-      "-----------------------------",
-      `Loan Amount: ${formatINR(result.principal)}`,
-      `Interest Rate: ${interestRate}% p.a.`,
+      "3Bigha EMI & Loan Eligibility Report",
+      "------------------------------------",
+      "Loan Eligibility Summary",
+      `Monthly Income: ${formatINR(monthlyIncome)}`,
+      `Co-Applicant Income: ${formatINR(coApplicantIncome)}`,
+      `Total Monthly Income: ${formatINR(eligibility.totalIncome)}`,
+      `Existing EMI: ${formatINR(existingEmi)}`,
+      `Age: ${age} years`,
+      `Employment Type: ${employmentType}`,
+      `Eligible Loan Amount: ${formatINR(eligibility.eligibleLoan)}`,
+      `Estimated Property Budget: ${formatINR(eligibility.estimatedPropertyValue)}`,
+      `Safe EMI Capacity: ${formatINR(eligibility.maxEligibleEmi)}`,
+      `Eligibility Status: ${eligibility.status}`,
+      `Maximum Tenure Allowed by Age: ${eligibility.maxTenureByAge.toFixed(1)} years`,
+      `Effective Tenure Used: ${eligibility.effectiveMonths} EMIs (${eligibility.effectiveYears.toFixed(1)} years)`,
+      "",
+      "EMI Summary",
+      `Loan Amount Used for EMI: ${formatINR(result.principal)}`,
+      `Rate of Interest: ${interestRate}% p.a.`,
       `Tenure: ${result.months} months`,
       `Monthly EMI: ${formatINR(result.emi)}`,
       `Total Interest: ${formatINR(result.totalInterest)}`,
       `Total Payment: ${formatINR(result.totalPayment)}`,
       `Extra Monthly Payment: ${formatINR(extraPayment)}`,
       `Estimated Interest Saved: ${formatINR(result.interestSaved)}`,
+      "",
+      "Amortization Schedule - First 12 Months",
+      "Month | EMI | Principal | Interest | Balance",
+      ...amortization.map(
+        (row) =>
+          `${row.month} | ${formatINR(row.emi)} | ${formatINR(row.principal)} | ${formatINR(row.interest)} | ${formatINR(row.balance)}`
+      ),
+      "",
+      "Note: This is an estimated calculation. Final eligibility depends on bank/NBFC policy, credit score, property documents and other verification.",
       "",
       "Generated from 3Bigha.com EMI Calculator",
     ];
@@ -281,7 +330,7 @@ const result = useMemo(() => {
           />
 
           <div className="fieldTop">
-            <label>Interest Rate</label>
+            <label>Rate of Interest Bank-wise Customisable</label>
             <strong>{interestRate}% p.a.</strong>
           </div>
           <input
@@ -294,9 +343,10 @@ const result = useMemo(() => {
           />
           <input
             type="number"
-            step="0.1"
+            step="0.01"
             value={interestRate}
             onChange={(e) => setInterestRate(Number(e.target.value))}
+            placeholder="Enter bank interest rate"
           />
 
           <div className="fieldTop">
@@ -549,7 +599,7 @@ const result = useMemo(() => {
 
               <p>
                 Effective tenure used in eligibility:
-                <b> {eligibility.effectiveYears.toFixed(1)} years</b>
+                <b> {eligibility.effectiveMonths} EMIs ({eligibility.effectiveYears.toFixed(1)} years)</b>
               </p>
 
               {existingEmi > 0 ? (
