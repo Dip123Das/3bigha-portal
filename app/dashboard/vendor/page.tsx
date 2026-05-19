@@ -20,6 +20,7 @@ import {
   ErpPanel,
 } from "@/components/vendor-erp/VendorErpWidgets";
 import { VendorErpNav } from "@/components/vendor-erp/VendorErpNav";
+import { VendorOperationStream } from "@/components/vendor-erp/VendorOperationStream";
 
 type CompletenessRow = {
   user_id?: string;
@@ -1432,6 +1433,16 @@ const aiDealUpgradeTarget =
         />
 
         <VendorErpNav />
+
+        <VendorOperationStream
+          newLeads={leadStats.newLeadCount}
+          unreadAlerts={unreadNotificationCount}
+          missedFollowups={missedLeads}
+          readyDeals={dealStats.ready}
+          visibilityScore={growthVisibilityScore}
+          estimatedRank={estimatedRank}
+          hiddenVendorWarning={hiddenVendorWarning}
+        />
 
         <ErpPanel
           title="Vendor Work Desk"
