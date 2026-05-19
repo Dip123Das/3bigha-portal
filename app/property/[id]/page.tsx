@@ -526,6 +526,70 @@ const investmentIntel = buildPropertyInvestmentIntel({
     safeText(row.locality),
 });
 
+const scoreMeter = (
+  label: string,
+  value: number,
+  max = 99,
+  caption?: string
+) => {
+  const percent = Math.max(4, Math.min(100, Math.round((value / max) * 100)));
+
+  return (
+    <div
+      style={{
+        padding: 12,
+        borderRadius: 14,
+        background: "rgba(255,255,255,0.08)",
+        border: "1px solid rgba(255,255,255,0.12)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 10,
+          fontSize: 11,
+          fontWeight: 900,
+          opacity: 0.82,
+        }}
+      >
+        <span>{label}</span>
+        <span>{value}/{max}</span>
+      </div>
+
+      <div
+        style={{
+          height: 8,
+          borderRadius: 999,
+          background: "rgba(255,255,255,0.16)",
+          overflow: "hidden",
+          marginTop: 8,
+        }}
+      >
+        <div
+          style={{
+            width: `${percent}%`,
+            height: "100%",
+            borderRadius: 999,
+            background:
+              percent >= 78
+                ? "linear-gradient(90deg,#22c55e,#a3e635)"
+                : percent >= 58
+                  ? "linear-gradient(90deg,#38bdf8,#2563eb)"
+                  : "linear-gradient(90deg,#f59e0b,#ef4444)",
+          }}
+        />
+      </div>
+
+      {caption ? (
+        <div style={{ fontSize: 11, opacity: 0.7, marginTop: 7 }}>
+          {caption}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
 const aiRecommendations = buildRecommendations({
   module: "property",
 
@@ -848,6 +912,21 @@ const aiRecommendations = buildRecommendations({
                     Safer salary ₹{investmentIntel.safeSalaryRequired.toLocaleString("en-IN")}/mo
                   </div>
                 </div>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4,minmax(0,1fr))",
+                  gap: 10,
+                  marginTop: 16,
+                }}
+                className="investmentMiniGrid"
+              >
+                {scoreMeter("AI Match", investmentIntel.overallRecommendationScore, 99, investmentIntel.recommendationLabel)}
+                {scoreMeter("Investment", investmentIntel.investmentScore, 99, investmentIntel.rating)}
+                {scoreMeter("Market Heat", investmentIntel.areaHeatIndex, 99, investmentIntel.marketPulseLabel)}
+                {scoreMeter("Bargain", investmentIntel.bargainOpportunityIndex, 99, investmentIntel.hotDealLabel)}
               </div>
 
               <div

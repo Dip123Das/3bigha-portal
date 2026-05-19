@@ -748,24 +748,63 @@ export default function PropertyPublicListPage() {
 
                       <div
                         style={{
-                          marginTop: 8,
-                          display: "flex",
-                          gap: 8,
-                          flexWrap: "wrap",
-                          fontSize: 12,
-                          fontWeight: 800,
-                          color: "#334155",
+                          marginTop: 10,
+                          padding: 10,
+                          borderRadius: 14,
+                          background: "linear-gradient(135deg,#f8fafc,#eef2ff)",
+                          border: "1px solid #e2e8f0",
                         }}
                       >
-                        <span>📈 {investmentIntel.rating} investment</span>
-                        <span>🏘️ Rent est. ₹{investmentIntel.estimatedMonthlyRent.toLocaleString("en-IN")}/mo</span>
-                        <span>💼 Salary safe ₹{investmentIntel.safeSalaryRequired.toLocaleString("en-IN")}/mo</span>
-                        <span>🔥 Locality {investmentIntel.investorConfidenceIndex}/99</span>
-                        <span>🏙️ Hyperlocal {investmentIntel.hyperlocalDesirabilityIndex}/99</span>
-                        <span>💎 Bargain {investmentIntel.bargainOpportunityIndex}/99</span>
-                        <span>⚡ Liquidity {investmentIntel.resaleLiquidityScore}/99</span>
-                        <span>📊 Market {investmentIntel.areaHeatIndex}/99</span>
-                        <span>🎯 Match {investmentIntel.overallRecommendationScore}/99</span>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            gap: 10,
+                            fontSize: 12,
+                            fontWeight: 900,
+                            color: "#0f172a",
+                          }}
+                        >
+                          <span>🎯 {investmentIntel.recommendationLabel}</span>
+                          <span>{investmentIntel.overallRecommendationScore}/99</span>
+                        </div>
+
+                        <div
+                          style={{
+                            height: 7,
+                            borderRadius: 999,
+                            background: "#e5e7eb",
+                            overflow: "hidden",
+                            marginTop: 8,
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${Math.max(4, Math.min(100, investmentIntel.overallRecommendationScore))}%`,
+                              height: "100%",
+                              borderRadius: 999,
+                              background: "linear-gradient(90deg,#2563eb,#22c55e)",
+                            }}
+                          />
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 8,
+                            display: "flex",
+                            gap: 8,
+                            flexWrap: "wrap",
+                            fontSize: 11,
+                            fontWeight: 800,
+                            color: "#334155",
+                          }}
+                        >
+                          <span>📈 {investmentIntel.rating}</span>
+                          <span>🔥 Locality {investmentIntel.investorConfidenceIndex}/99</span>
+                          <span>💎 Bargain {investmentIntel.bargainOpportunityIndex}/99</span>
+                          <span>⚡ Liquidity {investmentIntel.resaleLiquidityScore}/99</span>
+                          <span>📊 Market {investmentIntel.areaHeatIndex}/99</span>
+                        </div>
                       </div>
 
                       <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
