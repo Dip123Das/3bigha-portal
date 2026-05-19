@@ -57,6 +57,9 @@ export default function EmiCalculatorPage() {
   const [selectedBankState, setSelectedBankState] = useState("West Bengal");
   const [customBankRates, setCustomBankRates] = useState<Record<string, number>>({});
   const [showAllBanks, setShowAllBanks] = useState(false);
+  const [bankCategory, setBankCategory] = useState<
+    "best" | "public" | "private" | "hfc" | "rrb" | "small_finance"
+  >("best");
 
   
 const chartColors = ["#22c55e", "#f97316"];
@@ -205,9 +208,14 @@ const sortedBankComparisons = useMemo(() => {
   });
 }, [bankComparisons]);
 
+const filteredBankComparisons = useMemo(() => {
+  if (bankCategory === "best") return sortedBankComparisons.slice(0, 5);
+  return sortedBankComparisons.filter((bank) => bank.type === bankCategory);
+}, [bankCategory, sortedBankComparisons]);
+
 const visibleBankComparisons = showAllBanks
-  ? sortedBankComparisons
-  : sortedBankComparisons.slice(0, 3);
+  ? filteredBankComparisons
+  : filteredBankComparisons.slice(0, 3);
 
 const bestBank = sortedBankComparisons[0];
 
@@ -1301,6 +1309,29 @@ const result = useMemo(() => {
           </select>
         </div>
 
+        <div className="bankTabs">
+          {[
+            ["best", "Best Offers"],
+            ["public", "Public"],
+            ["private", "Private"],
+            ["hfc", "Housing Finance"],
+            ["rrb", "Regional/RRB"],
+            ["small_finance", "Small Finance"],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              className={bankCategory === value ? "active" : ""}
+              onClick={() => {
+                setBankCategory(value as typeof bankCategory);
+                setShowAllBanks(false);
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <div className="bestBankCard">
           <strong>Best Indicative EMI</strong>
           <span>
@@ -1354,7 +1385,7 @@ const result = useMemo(() => {
           </table>
         </div>
 
-        {sortedBankComparisons.length > 3 ? (
+        {filteredBankComparisons.length > 3 ? (
           <button
             type="button"
             className="seeMoreBanksButton"
@@ -1362,7 +1393,7 @@ const result = useMemo(() => {
           >
             {showAllBanks
               ? "Show Top 3 Banks Only"
-              : `See More Banks & Housing Finance Companies (${sortedBankComparisons.length - 3}+ more)`}
+              : `See More (${filteredBankComparisons.length - 3}+ more)`}
           </button>
         ) : null}
 
@@ -1462,6 +1493,32 @@ const result = useMemo(() => {
           font-size: 13px;
           font-weight: 900;
           outline: none;
+        }
+
+        .bankTabs {
+          margin-top: 16px;
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          padding-bottom: 4px;
+        }
+
+        .bankTabs button {
+          flex: 0 0 auto;
+          border: 1px solid rgba(37, 99, 235, 0.14);
+          border-radius: 999px;
+          background: #ffffff;
+          color: #1e293b;
+          padding: 9px 13px;
+          font-size: 12px;
+          font-weight: 1000;
+          cursor: pointer;
+        }
+
+        .bankTabs button.active {
+          background: #2563eb;
+          color: #ffffff;
+          border-color: #2563eb;
         }
 
         .bestBankCard {
@@ -1995,9 +2052,9 @@ const result = useMemo(() => {
         .aiRentBox,
         .aiDownPaymentBox,
         .aiBuyingCostBox {
-          border-radius: 18px;
+          border-radius: 16px;
           background: rgba(255,255,255,0.12);
-          padding: 16px;
+          padding: 12px;
         }
 
         .aiHealthBox {
@@ -2029,8 +2086,9 @@ const result = useMemo(() => {
 
         .aiBudgetHeader strong {
           display: block;
-          margin-top: 7px;
-          font-size: 24px;
+          margin-top: 5px;
+          font-size: 18px;
+          line-height: 1.2;
           font-weight: 1000;
         }
 
@@ -2049,10 +2107,10 @@ const result = useMemo(() => {
         .aiRentBox details,
         .aiDownPaymentBox details,
         .aiBuyingCostBox details {
-          margin-top: 10px;
-          border-radius: 14px;
+          margin-top: 7px;
+          border-radius: 12px;
           background: rgba(255,255,255,0.08);
-          padding: 12px;
+          padding: 8px 10px;
         }
 
         .aiBudgetBox summary,
