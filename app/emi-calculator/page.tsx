@@ -56,6 +56,7 @@ export default function EmiCalculatorPage() {
   const [coApplicantIncome, setCoApplicantIncome] = useState(0);
   const [selectedBankState, setSelectedBankState] = useState("West Bengal");
   const [customBankRates, setCustomBankRates] = useState<Record<string, number>>({});
+  const [showAllBanks, setShowAllBanks] = useState(false);
 
   
 const chartColors = ["#22c55e", "#f97316"];
@@ -195,11 +196,20 @@ const bankComparisons = useMemo(() => {
   eligibility.effectiveMonths,
 ]);
 
-const bestBank = bankComparisons.reduce(
-  (best, current) =>
-    current.emi > 0 && current.emi < best.emi ? current : best,
-  bankComparisons[0]
-);
+const sortedBankComparisons = useMemo(() => {
+  return [...bankComparisons].sort((a, b) => {
+    if (a.emi <= 0 && b.emi <= 0) return a.rate - b.rate;
+    if (a.emi <= 0) return 1;
+    if (b.emi <= 0) return -1;
+    return a.emi - b.emi;
+  });
+}, [bankComparisons]);
+
+const visibleBankComparisons = showAllBanks
+  ? sortedBankComparisons
+  : sortedBankComparisons.slice(0, 3);
+
+const bestBank = sortedBankComparisons[0];
 
 const result = useMemo(() => {
     const principal = clamp(Number(loanAmount), 0, 500000000);
@@ -1313,7 +1323,7 @@ const result = useMemo(() => {
             </thead>
 
             <tbody>
-              {bankComparisons.map((bank) => (
+              {visibleBankComparisons.map((bank) => (
                 <tr key={bank.bank}>
                   <td>
                     <strong>{bank.bank}</strong>
@@ -1343,6 +1353,18 @@ const result = useMemo(() => {
             </tbody>
           </table>
         </div>
+
+        {sortedBankComparisons.length > 3 ? (
+          <button
+            type="button"
+            className="seeMoreBanksButton"
+            onClick={() => setShowAllBanks((prev) => !prev)}
+          >
+            {showAllBanks
+              ? "Show Top 3 Banks Only"
+              : `See More Banks & Housing Finance Companies (${sortedBankComparisons.length - 3}+ more)`}
+          </button>
+        ) : null}
 
         <p className="bankDisclaimer">
           Rates are indicative and user-editable. Actual bank/NBFC loan rate and eligibility
@@ -1523,6 +1545,23 @@ const result = useMemo(() => {
           margin-left: 4px;
         }
 
+        .seeMoreBanksButton {
+          margin-top: 14px;
+          width: 100%;
+          border: 1px solid rgba(37, 99, 235, 0.18);
+          border-radius: 14px;
+          background: linear-gradient(135deg, #eff6ff, #ffffff);
+          color: #1d4ed8;
+          padding: 13px 16px;
+          font-size: 13px;
+          font-weight: 1000;
+          cursor: pointer;
+        }
+
+        .seeMoreBanksButton:hover {
+          background: #eff6ff;
+        }
+
         .bankDisclaimer {
           margin: 14px 0 0;
           color: #64748b;
@@ -1695,7 +1734,7 @@ const result = useMemo(() => {
 
         .emiForm {
           display: grid;
-          gap: 12px;
+          gap: 9px;
         }
 
         .fieldTop {
@@ -1703,7 +1742,7 @@ const result = useMemo(() => {
           align-items: center;
           justify-content: space-between;
           gap: 12px;
-          margin-top: 6px;
+          margin-top: 4px;
         }
 
         .fieldTop label {
@@ -1720,14 +1759,20 @@ const result = useMemo(() => {
 
         input[type="number"] {
           width: 100%;
+          min-height: 44px;
           border: 1px solid rgba(15, 23, 42, 0.12);
-          border-radius: 15px;
-          padding: 14px 15px;
-          font-size: 15px;
+          border-radius: 14px;
+          padding: 10px 12px;
+          font-size: 14px;
           font-weight: 850;
           outline: none;
           color: #0f172a;
           background: #ffffff;
+        }
+
+        .emiForm input[type="number"] {
+          max-height: 46px;
+          margin-top: -4px;
         }
 
         input[type="number"]:focus {
@@ -1876,11 +1921,8 @@ const result = useMemo(() => {
         }
 
         .eligibilityDivider {
-          margin-top: 10px;
-          padding: 14px;
-          border-radius: 16px;
-          background: #eef4ff;
-        }
+          margin-top: 6px;
+          padding: 12px;
 
         .eligibilityDivider strong {
           display: block;
