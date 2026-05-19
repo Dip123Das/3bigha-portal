@@ -2,6 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  defaultBankOffers,
+  getBankOffersByState,
+  indianStatesWithRegionalBanks,
+  type BankOffer,
+} from "@/lib/finance/bankRates";
+import {
   PieChart,
   Pie,
   Cell,
@@ -14,6 +20,21 @@ type TenureMode = "years" | "months";
 function formatINR(value: number) {
   if (!Number.isFinite(value)) return "₹0";
   return `₹${Math.round(value).toLocaleString("en-IN")}`;
+}
+
+function calculateEmi(principal: number, annualRate: number, months: number) {
+  const monthlyRate = annualRate / 12 / 100;
+
+  if (months <= 0) return 0;
+
+  if (monthlyRate === 0) {
+    return principal / months;
+  }
+
+  return (
+    (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) /
+    (Math.pow(1 + monthlyRate, months) - 1)
+  );
 }
 
 function clamp(value: number, min: number, max: number) {
@@ -32,6 +53,8 @@ export default function EmiCalculatorPage() {
   const [age, setAge] = useState(30);
   const [employmentType, setEmploymentType] = useState<"salaried" | "business">("salaried");
   const [coApplicantIncome, setCoApplicantIncome] = useState(0);
+  const [selectedBankState, setSelectedBankState] = useState("West Bengal");
+  const [customBankRates, setCustomBankRates] = useState<Record<string, number>>({});
 
   
 const chartColors = ["#22c55e", "#f97316"];
@@ -133,6 +156,49 @@ useEffect(() => {
   }
 }, [eligibility.eligibleLoan, eligibility.effectiveMonths]);
 
+const bankOffers = useMemo(() => {
+  const regionalOffers = getBankOffersByState(selectedBankState);
+
+  const merged = [
+    ...defaultBankOffers,
+    ...regionalOffers,
+  ];
+
+  const unique = new Map<string, BankOffer>();
+
+  merged.forEach((bank) => {
+    unique.set(bank.bank, bank);
+  });
+
+  return Array.from(unique.values());
+}, [selectedBankState]);
+
+const bankComparisons = useMemo(() => {
+  return bankOffers.map((bank) => {
+    const rate = customBankRates[bank.bank] ?? bank.indicativeRate;
+    const emi = calculateEmi(eligibility.eligibleLoan, rate, eligibility.effectiveMonths);
+    const totalPayment = emi * eligibility.effectiveMonths;
+
+    return {
+      ...bank,
+      rate,
+      emi,
+      eligibleLoan: eligibility.eligibleLoan,
+      totalPayment,
+    };
+  });
+}, [
+  bankOffers,
+  customBankRates,
+  eligibility.eligibleLoan,
+  eligibility.effectiveMonths,
+]);
+
+const bestBank = bankComparisons.reduce(
+  (best, current) =>
+    current.emi > 0 && current.emi < best.emi ? current : best,
+  bankComparisons[0]
+);
 const result = useMemo(() => {
     const principal = clamp(Number(loanAmount), 0, 500000000);
     const rate = clamp(Number(interestRate), 0, 60);
@@ -649,6 +715,88 @@ const result = useMemo(() => {
         </div>
       </section>
 
+            <section className="bankCompareSection">
+        <div className="sectionHeading">
+          <div>
+            <h2>Compare Bank Offers</h2>
+            <span>
+              Indicative bank-wise EMI, eligibility and total payment comparison
+            </span>
+          </div>
+
+          <select
+            className="stateSelect"
+            value={selectedBankState}
+            onChange={(e) => setSelectedBankState(e.target.value)}
+          >
+            {indianStatesWithRegionalBanks.map((state) => (
+              <option key={state} value={state}>
+                {state} Regional Banks
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="bestBankCard">
+          <strong>Best Indicative EMI</strong>
+          <span>
+            {bestBank?.bank || "—"} at {bestBank?.rate || "—"}% p.a. —
+            EMI {formatINR(bestBank?.emi || 0)}
+          </span>
+        </div>
+
+        <div className="bankTableWrap">
+          <table className="bankTable">
+            <thead>
+              <tr>
+                <th>Bank</th>
+                <th>Type</th>
+                <th>Interest Rate</th>
+                <th>EMI</th>
+                <th>Eligible Loan</th>
+                <th>Total Payment</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {bankComparisons.map((bank) => (
+                <tr key={bank.bank}>
+                  <td>
+                    <strong>{bank.bank}</strong>
+                    <span>{bank.shortName}</span>
+                  </td>
+                  <td>{bank.type.toUpperCase()}</td>
+                  <td>
+                    <input
+                      className="bankRateInput"
+                      type="number"
+                      step="0.01"
+                      value={bank.rate}
+                      onChange={(e) =>
+                        setCustomBankRates((prev) => ({
+                          ...prev,
+                          [bank.bank]: Number(e.target.value),
+                        }))
+                      }
+                    />
+                    <b>%</b>
+                  </td>
+                  <td>{formatINR(bank.emi)}</td>
+                  <td>{formatINR(bank.eligibleLoan)}</td>
+                  <td>{formatINR(bank.totalPayment)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="bankDisclaimer">
+          Rates are indicative and user-editable. Actual bank/NBFC loan rate and eligibility
+          depend on CIBIL score, income documents, property papers, LTV ratio, employer profile,
+          age, tenure and lender policy.
+        </p>
+      </section>
+
       <section className="scheduleSection">
         <div className="sectionHeading">
           <h2>Amortization Schedule</h2>
@@ -718,6 +866,116 @@ const result = useMemo(() => {
 
         .emiHero,
         .emiCard,
+
+        .bankCompareSection {
+          max-width: 1160px;
+          margin: 24px auto 0;
+          border-radius: 24px;
+          background: #ffffff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+          padding: 22px;
+        }
+
+        .stateSelect {
+          border: 1px solid rgba(15, 23, 42, 0.12);
+          border-radius: 14px;
+          background: #ffffff;
+          color: #0f172a;
+          padding: 12px 14px;
+          font-size: 13px;
+          font-weight: 900;
+          outline: none;
+        }
+
+        .bestBankCard {
+          margin-top: 16px;
+          border-radius: 18px;
+          background: linear-gradient(135deg, #ecfdf5, #ffffff);
+          border: 1px solid #bbf7d0;
+          padding: 16px;
+        }
+
+        .bestBankCard strong {
+          display: block;
+          color: #047857;
+          font-size: 15px;
+          font-weight: 1000;
+        }
+
+        .bestBankCard span {
+          display: block;
+          margin-top: 6px;
+          color: #334155;
+          font-size: 14px;
+          font-weight: 800;
+        }
+
+        .bankTableWrap {
+          margin-top: 18px;
+          overflow-x: auto;
+        }
+
+        .bankTable {
+          width: 100%;
+          min-width: 900px;
+          border-collapse: collapse;
+        }
+
+        .bankTable th {
+          background: #eff6ff;
+          color: #1d4ed8;
+          font-size: 13px;
+          font-weight: 1000;
+          text-align: left;
+          padding: 14px;
+        }
+
+        .bankTable td {
+          padding: 13px 14px;
+          border-top: 1px solid rgba(15,23,42,0.06);
+          color: #334155;
+          font-size: 13px;
+          font-weight: 800;
+          vertical-align: middle;
+        }
+
+        .bankTable td strong {
+          display: block;
+          color: #0f172a;
+          font-size: 13px;
+          font-weight: 1000;
+        }
+
+        .bankTable td span {
+          display: block;
+          margin-top: 4px;
+          color: #64748b;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .bankRateInput {
+          width: 82px;
+          border: 1px solid rgba(15, 23, 42, 0.12);
+          border-radius: 10px;
+          padding: 8px;
+          font-size: 13px;
+          font-weight: 900;
+          color: #0f172a;
+        }
+
+        .bankTable b {
+          margin-left: 4px;
+        }
+
+        .bankDisclaimer {
+          margin: 14px 0 0;
+          color: #64748b;
+          font-size: 13px;
+          font-weight: 750;
+          line-height: 1.6;
+        }
         
         .scheduleSection {
           max-width: 1160px;
