@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody } from "@/components/ui/Card";
-import { ActionButton } from "@/components/ui/ActionButton";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErpKpiCard, ErpKpiGrid, ErpPanel } from "@/components/vendor-erp/VendorErpWidgets";
@@ -81,23 +80,7 @@ export default function InventoryIntelligencePage() {
 
         <VendorErpNav />
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
-          <ActionButton href="/dashboard/vendor" variant="secondary">
-            ← Vendor Dashboard
-          </ActionButton>
-
-          <ActionButton href="/dashboard/vendor/inventory" variant="secondary">
-            Inventory
-          </ActionButton>
-
-          <ActionButton href="/dashboard/vendor/billing" variant="secondary">
-            Billing
-          </ActionButton>
-
-          <ActionButton href="/dashboard/vendor/dispatch" variant="secondary">
-            Dispatch
-          </ActionButton>
-
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 14 }}>
           <button
             type="button"
             onClick={() => void load()}
@@ -121,11 +104,26 @@ export default function InventoryIntelligencePage() {
           tone="violet"
         >
           <ErpKpiGrid>
-            <ErpKpiCard label="Risk Level" value={data?.riskLevel || "Auto"} helper="Operational risk signal" tone="violet" />
-            <ErpKpiCard label="Low Stock" value={lowStock.length} helper="Reorder attention" tone="red" />
-            <ErpKpiCard label="Fast Moving" value={fastMoving.length} helper="Demand signal" tone="green" />
-            <ErpKpiCard label="Dead Stock" value={deadStock.length} helper="Slow inventory" tone="orange" />
-            <ErpKpiCard label="Reorder Suggestions" value={reorderSuggestions.length} helper="AI action items" tone="blue" />
+            <ErpKpiCard
+              label="Risk Level"
+              value={data?.riskLevel || "Auto"}
+              helper="Operational risk signal"
+              tone="violet"
+            />
+
+            <ErpKpiCard
+              label="Low Stock"
+              value={lowStock.length}
+              helper="Reorder attention"
+              tone="red"
+            />
+
+            <ErpKpiCard
+              label="Reorder Suggestions"
+              value={reorderSuggestions.length}
+              helper="AI action items"
+              tone="blue"
+            />
           </ErpKpiGrid>
 
           <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -157,77 +155,55 @@ export default function InventoryIntelligencePage() {
               </CardBody>
             </Card>
 
-            <InsightSection
-              title="Low Stock Alerts"
-              tone="#dc2626"
-              items={lowStock}
-              empty="No low-stock alert detected."
-              render={(row) => (
-                <>
-                  <div style={{ fontWeight: 950 }}>{itemName(row)}</div>
-                  <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", fontWeight: 800 }}>
-                    Current: {row.current_stock ?? "—"} {row.unit || ""} • Reorder Level: {row.reorder_level ?? "—"}
-                  </div>
-                  <div style={{ marginTop: 6, fontSize: 13, color: "#7f1d1d", fontWeight: 800 }}>
-                    {row.reason || "Stock is below safe level."}
-                  </div>
-                </>
-              )}
-            />
+            <Card>
+              <CardBody>
+                <div style={{ fontSize: 18, fontWeight: 950 }}>
+                  Inventory Intelligence Feed
+                </div>
 
-            <InsightSection
-              title="Fast Moving Products"
-              tone="#047857"
-              items={fastMoving}
-              empty="No fast-moving product signal yet."
-              render={(row) => (
-                <>
-                  <div style={{ fontWeight: 950 }}>{itemName(row)}</div>
-                  <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", fontWeight: 800 }}>
-                    Movement: {row.movement_quantity ?? row.quantity ?? "—"} {row.unit || ""}
-                  </div>
-                  <div style={{ marginTop: 6, fontSize: 13, color: "#065f46", fontWeight: 800 }}>
-                    {row.reason || "Recent sales or stock-out movement is high."}
-                  </div>
-                </>
-              )}
-            />
+                <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+                  <FeedRow
+                    title="Low Stock Alerts"
+                    text={
+                      lowStock.length > 0
+                        ? `${lowStock.length} low-stock alert(s) detected.`
+                        : "No low-stock alert detected."
+                    }
+                    tone="#dc2626"
+                  />
 
-            <InsightSection
-              title="Dead / Slow Stock Detection"
-              tone="#9a3412"
-              items={deadStock}
-              empty="No dead-stock risk detected."
-              render={(row) => (
-                <>
-                  <div style={{ fontWeight: 950 }}>{itemName(row)}</div>
-                  <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", fontWeight: 800 }}>
-                    Age: {row.age_days ?? "—"} days • Stock: {row.current_stock ?? "—"} {row.unit || ""}
-                  </div>
-                  <div style={{ marginTop: 6, fontSize: 13, color: "#7c2d12", fontWeight: 800 }}>
-                    {row.reason || "No recent movement detected."}
-                  </div>
-                </>
-              )}
-            />
+                  <FeedRow
+                    title="Fast Moving Products"
+                    text={
+                      fastMoving.length > 0
+                        ? `${fastMoving.length} fast-moving product signal(s) detected.`
+                        : "No fast-moving product signal yet."
+                    }
+                    tone="#047857"
+                  />
 
-            <InsightSection
-              title="AI Reorder Suggestions"
-              tone="#1d4ed8"
-              items={reorderSuggestions}
-              empty="No reorder suggestion generated."
-              render={(row) => (
-                <>
-                  <div style={{ fontWeight: 950 }}>{itemName(row)}</div>
-                  <div style={{ marginTop: 6, fontSize: 13, color: "#64748b", fontWeight: 800 }}>
-                    Suggested Qty: {row.suggested_quantity ?? row.quantity ?? "—"} {row.unit || ""}
-                  </div>
-                  <div style={{ marginTop: 6, fontSize: 13, color: "#1e40af", fontWeight: 800 }}>
-                    {row.reason || "Suggested based on current stock and movement pattern."}
-                  </div>
-                </>
-              )}
-            />
+                  <FeedRow
+                    title="Dead / Slow Stock"
+                    text={
+                      deadStock.length > 0
+                        ? `${deadStock.length} dead-stock risk item(s) detected.`
+                        : "No dead-stock risk detected."
+                    }
+                    tone="#9a3412"
+                  />
+
+                  <FeedRow
+                    title="AI Reorder Suggestions"
+                    text={
+                      reorderSuggestions.length > 0
+                        ? `${reorderSuggestions.length} reorder recommendation(s) generated.`
+                        : "No reorder suggestion generated."
+                    }
+                    tone="#1d4ed8"
+                  />
+                </div>
+              </CardBody>
+            </Card>
 
             <Card>
               <CardBody>
@@ -278,47 +254,46 @@ export default function InventoryIntelligencePage() {
   );
 }
 
-function InsightSection({
+function FeedRow({
   title,
+  text,
   tone,
-  items,
-  empty,
-  render,
 }: {
   title: string;
+  text: string;
   tone: string;
-  items: any[];
-  empty: string;
-  render: (row: any) => React.ReactNode;
 }) {
   return (
-    <Card>
-      <CardBody>
-        <div style={{ fontSize: 18, fontWeight: 950, color: tone }}>{title}</div>
+    <div
+      style={{
+        border: "1px solid #e5e7eb",
+        borderRadius: 14,
+        padding: 12,
+        background: "#ffffff",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 14,
+          fontWeight: 950,
+          color: tone,
+        }}
+      >
+        {title}
+      </div>
 
-        {items.length === 0 ? (
-          <div style={{ marginTop: 10, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
-            {empty}
-          </div>
-        ) : (
-          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 10 }}>
-            {items.map((row, index) => (
-              <div
-                key={`${itemName(row)}-${index}`}
-                style={{
-                  border: "1px solid #e5e7eb",
-                  borderRadius: 16,
-                  padding: 12,
-                  background: "#ffffff",
-                }}
-              >
-                {render(row)}
-              </div>
-            ))}
-          </div>
-        )}
-      </CardBody>
-    </Card>
+      <div
+        style={{
+          marginTop: 6,
+          fontSize: 13,
+          fontWeight: 800,
+          color: "#64748b",
+          lineHeight: 1.5,
+        }}
+      >
+        {text}
+      </div>
+    </div>
   );
 }
 
