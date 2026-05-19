@@ -27,9 +27,78 @@ export default function EmiCalculatorPage() {
   const [tenure, setTenure] = useState(20);
   const [tenureMode, setTenureMode] = useState<TenureMode>("years");
   const [extraPayment, setExtraPayment] = useState(0);
+  const [monthlyIncome, setMonthlyIncome] = useState(80000);
+  const [existingEmi, setExistingEmi] = useState(0);
+  const [age, setAge] = useState(30);
+  const [employmentType, setEmploymentType] = useState<"salaried" | "business">("salaried");
+  const [coApplicantIncome, setCoApplicantIncome] = useState(0);
 
   
 const chartColors = ["#22c55e", "#f97316"];
+
+const eligibility = useMemo(() => {
+  const totalIncome =
+    Number(monthlyIncome || 0) + Number(coApplicantIncome || 0);
+
+  const allowedEmiRatio =
+    employmentType === "business" ? 0.45 : 0.5;
+
+  const maxEligibleEmi = Math.max(
+    totalIncome * allowedEmiRatio - Number(existingEmi || 0),
+    0
+  );
+
+  const monthlyRate = interestRate / 12 / 100;
+
+  const months =
+    tenureMode === "years"
+      ? clamp(Number(tenure), 1, 50) * 12
+      : clamp(Number(tenure), 1, 600);
+
+  let eligibleLoan = 0;
+
+  if (monthlyRate === 0) {
+    eligibleLoan = maxEligibleEmi * months;
+  } else {
+    eligibleLoan =
+      (maxEligibleEmi *
+        (Math.pow(1 + monthlyRate, months) - 1)) /
+      (monthlyRate * Math.pow(1 + monthlyRate, months));
+  }
+
+  const estimatedPropertyValue = eligibleLoan / 0.8;
+
+  let status = "Weak";
+
+  if (maxEligibleEmi >= 60000) {
+    status = "Excellent";
+  } else if (maxEligibleEmi >= 25000) {
+    status = "Moderate";
+  }
+
+  const ageLimit =
+    employmentType === "business" ? 70 : 60;
+
+  const maxTenureByAge = Math.max(ageLimit - age, 5);
+
+  return {
+    totalIncome,
+    maxEligibleEmi,
+    eligibleLoan,
+    estimatedPropertyValue,
+    status,
+    maxTenureByAge,
+  };
+}, [
+  monthlyIncome,
+  coApplicantIncome,
+  existingEmi,
+  interestRate,
+  tenure,
+  tenureMode,
+  employmentType,
+  age,
+]);
 
 const result = useMemo(() => {
     const principal = clamp(Number(loanAmount), 0, 500000000);
@@ -254,6 +323,90 @@ const result = useMemo(() => {
             onChange={(e) => setTenure(Number(e.target.value))}
           />
 
+          <div className="eligibilityDivider">
+            <strong>Loan Eligibility Details</strong>
+            <span>Check home loan eligibility based on income and age</span>
+          </div>
+
+          <div className="fieldTop">
+            <label>Monthly Income</label>
+            <strong>{formatINR(monthlyIncome)}</strong>
+          </div>
+
+          <input
+            type="number"
+            value={monthlyIncome}
+            onChange={(e) => setMonthlyIncome(Number(e.target.value))}
+            placeholder="Monthly income"
+          />
+
+          <div className="fieldTop">
+            <label>Existing EMI</label>
+            <strong>{formatINR(existingEmi)}</strong>
+          </div>
+
+          <input
+            type="number"
+            value={existingEmi}
+            onChange={(e) => setExistingEmi(Number(e.target.value))}
+            placeholder="Current EMI obligations"
+          />
+
+          <div className="fieldTop">
+            <label>Age</label>
+            <strong>{age} years</strong>
+          </div>
+
+          <input
+            type="range"
+            min="18"
+            max="70"
+            step="1"
+            value={age}
+            onChange={(e) => setAge(Number(e.target.value))}
+          />
+
+          <input
+            type="number"
+            value={age}
+            onChange={(e) => setAge(Number(e.target.value))}
+          />
+
+          <div className="fieldTop">
+            <label>Employment Type</label>
+            <strong>{employmentType}</strong>
+          </div>
+
+          <div className="tenureSwitch">
+            <button
+              type="button"
+              className={employmentType === "salaried" ? "active" : ""}
+              onClick={() => setEmploymentType("salaried")}
+            >
+              Salaried
+            </button>
+
+            <button
+              type="button"
+              className={employmentType === "business" ? "active" : ""}
+              onClick={() => setEmploymentType("business")}
+            >
+              Business
+            </button>
+          </div>
+
+          <div className="fieldTop">
+            <label>Co-Applicant Income Optional</label>
+            <strong>{formatINR(coApplicantIncome)}</strong>
+          </div>
+
+          <input
+            type="number"
+            value={coApplicantIncome}
+            onChange={(e) => setCoApplicantIncome(Number(e.target.value))}
+            placeholder="Optional co-applicant income"
+          />
+
           <div className="fieldTop">
             <label>Extra Monthly Payment Optional</label>
             <strong>{formatINR(extraPayment)}</strong>
@@ -347,6 +500,51 @@ const result = useMemo(() => {
           <div className="legend">
             <span><b className="principalDot" /> Principal</span>
             <span><b className="interestDot" /> Interest</span>
+          </div>
+
+          <div className="eligibilityBox">
+            <strong>Loan Eligibility Estimate</strong>
+
+            <div className="eligibilityGrid">
+              <div>
+                <span>Eligible Loan</span>
+                <strong>{formatINR(eligibility.eligibleLoan)}</strong>
+              </div>
+
+              <div>
+                <span>Estimated Property Budget</span>
+                <strong>{formatINR(eligibility.estimatedPropertyValue)}</strong>
+              </div>
+
+              <div>
+                <span>Safe EMI Capacity</span>
+                <strong>{formatINR(eligibility.maxEligibleEmi)}</strong>
+              </div>
+
+              <div>
+                <span>Eligibility Status</span>
+                <strong>{eligibility.status}</strong>
+              </div>
+            </div>
+
+            <div className="eligibilityTips">
+              <p>
+                Maximum recommended tenure by age:
+                <b> {eligibility.maxTenureByAge} years</b>
+              </p>
+
+              {existingEmi > 0 ? (
+                <p>
+                  Reducing existing EMI obligations may improve loan eligibility.
+                </p>
+              ) : null}
+
+              {coApplicantIncome === 0 ? (
+                <p>
+                  Adding co-applicant income can increase eligible loan amount.
+                </p>
+              ) : null}
+            </div>
           </div>
 
           <div className="summaryBox">
@@ -794,6 +992,79 @@ const result = useMemo(() => {
 
         .interestDot {
           background: #f97316;
+        }
+
+        .eligibilityDivider {
+          margin-top: 10px;
+          padding: 14px;
+          border-radius: 16px;
+          background: #eef4ff;
+        }
+
+        .eligibilityDivider strong {
+          display: block;
+          color: #1d4ed8;
+          font-size: 15px;
+          font-weight: 1000;
+        }
+
+        .eligibilityDivider span {
+          display: block;
+          margin-top: 6px;
+          color: #64748b;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .eligibilityBox {
+          border-radius: 18px;
+          background: rgba(255,255,255,0.10);
+          padding: 16px;
+        }
+
+        .eligibilityBox > strong {
+          display: block;
+          font-size: 15px;
+          font-weight: 1000;
+        }
+
+        .eligibilityGrid {
+          margin-top: 14px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+
+        .eligibilityGrid div {
+          border-radius: 14px;
+          background: rgba(255,255,255,0.08);
+          padding: 14px;
+        }
+
+        .eligibilityGrid span {
+          display: block;
+          color: rgba(255,255,255,0.7);
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .eligibilityGrid strong {
+          display: block;
+          margin-top: 6px;
+          font-size: 18px;
+          font-weight: 1000;
+        }
+
+        .eligibilityTips {
+          margin-top: 14px;
+        }
+
+        .eligibilityTips p {
+          margin: 8px 0 0;
+          color: rgba(255,255,255,0.75);
+          font-size: 13px;
+          line-height: 1.6;
+          font-weight: 700;
         }
 
         .summaryBox strong {
