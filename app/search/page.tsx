@@ -104,6 +104,49 @@ type AiRecommendation = {
   icon: string;
 };
 
+type ProcurementSearchMemory = {
+  query: string;
+  module: ModFilter;
+  timestamp: number;
+};
+
+function readProcurementSearchMemory(): ProcurementSearchMemory[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.localStorage.getItem("3bigha.procurement.search.memory.v1");
+    const parsed = raw ? JSON.parse(raw) : [];
+
+    return Array.isArray(parsed) ? parsed.slice(0, 8) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveProcurementSearchMemory(item: ProcurementSearchMemory) {
+  if (typeof window === "undefined") return;
+
+  try {
+    const prev = readProcurementSearchMemory();
+
+    const next = [
+      item,
+      ...prev.filter(
+        (x) =>
+          !(
+            x.query.toLowerCase() === item.query.toLowerCase() &&
+            x.module === item.module
+          )
+      ),
+    ].slice(0, 8);
+
+    window.localStorage.setItem(
+      "3bigha.procurement.search.memory.v1",
+      JSON.stringify(next)
+    );
+  } catch {}
+}
+
 function searchTokens(input: string) {
   return safeText(input)
     .toLowerCase()
@@ -338,7 +381,8 @@ function SearchInsightSection({
         style={{
           cursor: "pointer",
           listStyle: "none",
-          padding: "14px 16px",
+          padding: "12px 15px",
+          background: "linear-gradient(180deg, #ffffff, #f8fafc)",
           display: "flex",
           justifyContent: "space-between",
           gap: 12,
@@ -367,15 +411,15 @@ function SearchInsightSection({
         <span
           style={{
             borderRadius: 999,
-            background: "#eff6ff",
-            color: "#1d4ed8",
+            background: "#dbeafe",
+            color: "#1e40af",
             padding: "6px 10px",
             fontSize: 12,
             fontWeight: 950,
             whiteSpace: "nowrap",
           }}
         >
-          Open / Close
+          Open details
         </span>
       </summary>
 
@@ -458,6 +502,9 @@ function SearchPageInner() {
   const [err, setErr] = useState<string | null>(null);
   const [rows, setRows] = useState<ResultRow[]>([]);
   const [recentDiscovery, setRecentDiscovery] = useState<DiscoveryMemoryItem[]>([]);
+    const [recentProcurementSearches, setRecentProcurementSearches] = useState<
+    ProcurementSearchMemory[]
+  >([]);
   const [note, setNote] = useState<string | null>(null);
   const [lastAiIntent, setLastAiIntent] = useState<AiSearchIntent | null>(null);
   const [aiRecommendations, setAiRecommendations] = useState<AiRecommendation[]>([]);
@@ -1016,7 +1063,18 @@ if (want.includes("rentals")) {
           });
 
         if (!alive) return;
+
         setRows(filtered);
+
+        if (q && filtered.length > 0) {
+          saveProcurementSearchMemory({
+            query: q,
+            module: modFromUrl,
+            timestamp: Date.now(),
+          });
+
+          setRecentProcurementSearches(readProcurementSearchMemory());
+        }
       } catch (e: any) {
         if (!alive) return;
         setErr(e?.message || "Search failed.");
@@ -1111,6 +1169,7 @@ if (want.includes("rentals")) {
 
   useEffect(() => {
     setRecentDiscovery(readDiscoveryMemory());
+    setRecentProcurementSearches(readProcurementSearchMemory());
   }, []);
 
   const hasQuery = !!safeText(qFromUrl);
@@ -1842,6 +1901,60 @@ if (want.includes("rentals")) {
 
       <div style={{ height: 12 }} />
 
+      {!hasQuery && recentProcurementSearches.length ? (
+        <>
+          <Card>
+            <CardBody>
+              <div style={{ display: "grid", gap: 10 }}>
+                <div>
+                  <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                    🔄 Continue procurement journey
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 4,
+                      color: "#64748b",
+                      fontSize: 13,
+                      fontWeight: 800,
+                    }}
+                  >
+                    Resume recent marketplace searches, RFQ discovery and procurement workflows.
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {recentProcurementSearches.map((item) => (
+                    <Link
+                      key={`${item.query}-${item.module}`}
+                      href={`/search?q=${encodeURIComponent(item.query)}${
+                        item.module !== "all"
+                          ? `&module=${encodeURIComponent(item.module)}`
+                          : ""
+                      }`}
+                      style={{
+                        textDecoration: "none",
+                        border: "1px solid #dbeafe",
+                        background: "#eff6ff",
+                        borderRadius: 999,
+                        padding: "8px 12px",
+                        color: "#1d4ed8",
+                        fontSize: 12,
+                        fontWeight: 950,
+                      }}
+                    >
+                      🔎 {item.query}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
       {!hasQuery && recentDiscovery.length ? (
         <Card>
           <CardBody>
@@ -1993,15 +2106,15 @@ if (want.includes("rentals")) {
                           ) : null}
                         </div>
 
-                        <div style={{ marginTop: 4, fontWeight: 950, fontSize: 16, color: "#0f172a", lineHeight: 1.3 }}>
+                        <div style={{ marginTop: 4, fontWeight: 1000, fontSize: 16.5, color: "#020617", lineHeight: 1.32 }}>
                           {r.title}
                         </div>
                         {r.subtitle ? (
                           <div
                             style={{
                               marginTop: 2,
-                              opacity: 0.82,
-                              fontWeight: 750,
+                              color: "#475569",
+                              fontWeight: 800,
                               fontSize: 13,
                               lineHeight: 1.4,
                             }}
@@ -2013,9 +2126,9 @@ if (want.includes("rentals")) {
                           <div
                             style={{
                               marginTop: 3,
-                              opacity: 0.72,
-                              fontWeight: 850,
-                              fontSize: 11,
+                              color: "#64748b",
+                              fontWeight: 900,
+                              fontSize: 11.5,
                               lineHeight: 1.4,
                             }}
                           >
@@ -2083,10 +2196,10 @@ if (want.includes("rentals")) {
                               minHeight: 58,
                             }}
                           >
-                            <strong style={{ fontSize: 12, fontWeight: 950 }}>
+                            <strong style={{ fontSize: 12.5, fontWeight: 1000, color: "#0f172a" }}>
                               {card.icon} {card.label}
                             </strong>
-                            <span style={{ fontSize: 12, lineHeight: 1.45, fontWeight: 750 }}>
+                            <span style={{ fontSize: 12, lineHeight: 1.5, fontWeight: 800, color: "#475569" }}>
                               {card.text.length > 72 ? `${card.text.slice(0, 72)}…` : card.text}
                             </span>
                           </Link>
