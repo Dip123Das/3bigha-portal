@@ -221,10 +221,25 @@ export async function generateMetadata({
 
 export default async function PropertyPublicDetailPage({
   params,
+  searchParams,
 }: {
   params: { id: string };
+  searchParams?: { mode?: string };
 }) {
   const id = decodeURIComponent(params.id || "");
+
+  const activeBuyerMode = ["investor", "family", "budget", "rental"].includes(
+    String(searchParams?.mode || "")
+  )
+    ? String(searchParams?.mode)
+    : "investor";
+
+  const buyerModes = [
+    { key: "investor", label: "Investor" },
+    { key: "family", label: "Family" },
+    { key: "budget", label: "Budget" },
+    { key: "rental", label: "Rental Income" },
+  ];
 
   if (isBadId(id)) {
     return (
@@ -526,6 +541,13 @@ const investmentIntel = buildPropertyInvestmentIntel({
     safeText(row.locality),
 });
 
+const aiWhyPropertyReasons = [
+  `${investmentIntel.recommendationLabel}: this listing is currently classified as ${investmentIntel.bestForLabel.toLowerCase()}.`,
+  `${investmentIntel.hotDealLabel}: bargain opportunity is ${investmentIntel.bargainOpportunityIndex}/99 with fair value signal around ₹${investmentIntel.fairValueEstimate.toLocaleString("en-IN")}.`,
+  `${investmentIntel.marketPulseLabel}: market heat is ${investmentIntel.areaHeatIndex}/99 and timing score is ${investmentIntel.marketTimingScore}/99.`,
+  `${investmentIntel.hyperlocalProfileLabel}: hyperlocal desirability is ${investmentIntel.hyperlocalDesirabilityIndex}/99 with livability score ${investmentIntel.livabilityIndex}/99.`,
+];
+
 const scoreMeter = (
   label: string,
   value: number,
@@ -618,6 +640,55 @@ const aiRecommendations = buildRecommendations({
     safeText(row.property_type) ||
     "property discovery",
 });
+
+const aiSimilarMatches = (relatedRes.data || [])
+  .map((item: AnyRow) => {
+    const intel = buildPropertyInvestmentIntel({
+      price: item.price || item.expected_price || null,
+      propertyType:
+        safeText(item.property_type) ||
+        safeText(item.category),
+      category: safeText(item.category),
+      listingType: safeText(item.listing_type),
+      city: safeText(item.city),
+      district: safeText(item.district),
+      locality: safeText(item.locality),
+    });
+
+    const modeScore =
+      activeBuyerMode === "family"
+        ? intel.familyMatchScore
+        : activeBuyerMode === "budget"
+          ? intel.budgetFitScore
+          : activeBuyerMode === "rental"
+            ? intel.rentalIncomeMatchScore
+            : intel.investorMatchScore;
+
+    const modeReason =
+      activeBuyerMode === "family"
+        ? `Family fit ${intel.familyMatchScore}/99 with livability ${intel.livabilityIndex}/99`
+        : activeBuyerMode === "budget"
+          ? `Budget fit ${intel.budgetFitScore}/99 with bargain ${intel.bargainOpportunityIndex}/99`
+          : activeBuyerMode === "rental"
+            ? `Rental income fit ${intel.rentalIncomeMatchScore}/95 with absorption ${intel.rentalAbsorptionScore}/95`
+            : `Investor fit ${intel.investorMatchScore}/99 with liquidity ${intel.resaleLiquidityScore}/99`;
+
+    return {
+      id: String(item.id),
+      href: `/property/${encodeURIComponent(String(item.id))}`,
+      title: safeText(item.title) || "Property Opportunity",
+      location: [item.locality, item.city, item.district].filter(Boolean).join(", "),
+      priceText:
+        item.price || item.expected_price
+          ? `₹${Number(item.price || item.expected_price).toLocaleString("en-IN")}`
+          : "Price on request",
+      score: modeScore,
+      reason: modeReason,
+      label: intel.recommendationLabel,
+    };
+  })
+  .sort((a, b) => b.score - a.score)
+  .slice(0, 4);
 
   const propertyDetailSchema = {
     "@context": "https://schema.org",
@@ -1004,6 +1075,165 @@ const aiRecommendations = buildRecommendations({
                   <div style={{ fontSize: 11, opacity: 0.65 }}>Best For</div>
                   <div style={{ fontWeight: 900 }}>{investmentIntel.bestForLabel}</div>
                 </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: 14,
+                padding: 16,
+                borderRadius: 18,
+                background: "linear-gradient(135deg,#f8fafc,#eef2ff)",
+                border: "1px solid #dbeafe",
+              }}
+            >
+              <div style={{ fontWeight: 950, marginBottom: 8 }}>
+                Why this property?
+              </div>
+              <div style={{ display: "grid", gap: 8 }}>
+                {aiWhyPropertyReasons.map((reason) => (
+                  <div
+                    key={reason}
+                    style={{
+                      fontSize: 13,
+                      lineHeight: 1.55,
+                      color: "#334155",
+                      padding: 10,
+                      borderRadius: 12,
+                      background: "#ffffff",
+                      border: "1px solid #e5e7eb",
+                    }}
+                  >
+                    {reason}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div
+              style={{
+                marginTop: 14,
+                padding: 16,
+                borderRadius: 18,
+                background: "#ffffff",
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  marginBottom: 12,
+                }}
+              >
+                <div style={{ fontWeight: 950 }}>
+                  AI Similar Property Matches
+                </div>
+
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {buyerModes.map((mode) => (
+                    <Link
+                      key={mode.key}
+                      href={`/property/${encodeURIComponent(id)}?mode=${mode.key}`}
+                      style={{
+                        padding: "7px 10px",
+                        borderRadius: 999,
+                        fontSize: 12,
+                        fontWeight: 900,
+                        textDecoration: "none",
+                        color:
+                          activeBuyerMode === mode.key
+                            ? "#ffffff"
+                            : "#0f172a",
+                        background:
+                          activeBuyerMode === mode.key
+                            ? "linear-gradient(90deg,#2563eb,#16a34a)"
+                            : "#f8fafc",
+                        border: "1px solid #e5e7eb",
+                      }}
+                    >
+                      {mode.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2,minmax(0,1fr))",
+                  gap: 10,
+                }}
+                className="investmentMiniGrid"
+              >
+                {aiSimilarMatches.map((item) => (
+                  <MemoryLink
+                    key={item.id}
+                    href={item.href}
+                    module="property"
+                    entityId={item.id}
+                    entityTitle={item.title}
+                    source={`property_ai_similar_${activeBuyerMode}`}
+                    score={item.score}
+                    style={{
+                      display: "block",
+                      padding: 12,
+                      borderRadius: 14,
+                      background: "linear-gradient(135deg,#f8fafc,#eef2ff)",
+                      border: "1px solid #e2e8f0",
+                      textDecoration: "none",
+                      color: "inherit",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: 8,
+                        fontSize: 12,
+                        fontWeight: 950,
+                      }}
+                    >
+                      <span>{item.label}</span>
+                      <span>{item.score}/99</span>
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 6,
+                        fontWeight: 900,
+                        fontSize: 13,
+                      }}
+                    >
+                      {item.title}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 5,
+                        fontSize: 12,
+                        opacity: 0.75,
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      {[item.location, item.priceText].filter(Boolean).join(" • ")}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 6,
+                        fontSize: 12,
+                        color: "#334155",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      {item.reason}
+                    </div>
+                  </MemoryLink>
+                ))}
               </div>
             </div>
 

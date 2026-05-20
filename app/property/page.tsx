@@ -733,11 +733,7 @@ export default function PropertyPublicListPage() {
                         <Badge>Updated: {fmt(p.updated_at)}</Badge>
                         <Badge>{financeBadgeLabel(p.expected_price ?? p.price ?? null)}</Badge>
                         <Badge>AI Invest {investmentIntel.investmentScore}/99</Badge>
-                        <Badge>{investmentIntel.localityGrowthRating}</Badge>
                         <Badge>{investmentIntel.hotDealLabel}</Badge>
-                        <Badge>{investmentIntel.hyperlocalProfileLabel}</Badge>
-                        <Badge>{investmentIntel.wealthCompounderLabel}</Badge>
-                        <Badge>{investmentIntel.marketPulseLabel}</Badge>
                         <Badge>{investmentIntel.recommendationLabel}</Badge>
                       </div>
 
@@ -791,9 +787,9 @@ export default function PropertyPublicListPage() {
                         <div
                           style={{
                             marginTop: 8,
-                            display: "flex",
-                            gap: 8,
-                            flexWrap: "wrap",
+                            display: "grid",
+                            gridTemplateColumns: "repeat(2,minmax(0,1fr))",
+                            gap: 6,
                             fontSize: 11,
                             fontWeight: 800,
                             color: "#334155",
@@ -802,7 +798,6 @@ export default function PropertyPublicListPage() {
                           <span>📈 {investmentIntel.rating}</span>
                           <span>🔥 Locality {investmentIntel.investorConfidenceIndex}/99</span>
                           <span>💎 Bargain {investmentIntel.bargainOpportunityIndex}/99</span>
-                          <span>⚡ Liquidity {investmentIntel.resaleLiquidityScore}/99</span>
                           <span>📊 Market {investmentIntel.areaHeatIndex}/99</span>
                         </div>
                       </div>
