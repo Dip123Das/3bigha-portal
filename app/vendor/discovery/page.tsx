@@ -138,7 +138,7 @@ export default async function VendorDiscoveryPage({
         </div>
       </section>
 
-      <section className="mt-8 rounded-3xl border border-blue-200 bg-gradient-to-br from-slate-950 via-blue-950 to-blue-800 p-6 text-white shadow-xl">
+      <section className="aiVendorDiscoveryDark mt-8 rounded-3xl border border-blue-200 bg-gradient-to-br from-slate-950 via-blue-950 to-blue-800 p-6 text-white shadow-xl">
         <div className="text-xs font-black uppercase tracking-wide text-blue-200">
           AI Vendor Discovery Intelligence
         </div>

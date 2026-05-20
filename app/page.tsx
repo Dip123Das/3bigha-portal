@@ -640,10 +640,25 @@ export default function HomePage() {
             {mobileExpandedSections.investment ? "Show Less" : "See More Investments"}
           </button>
 
-      <section className="contentSection trustSection">
-        <div><h2>Why 3Bigha Marketplace?</h2><p>Trusted by thousands of buyers and sellers</p></div>
+      <section className="contentSection trustSection finalTrustSection">
+        <div>
+          <span className="trustEyebrow">Trusted Marketplace</span>
+          <h2>Why 3Bigha Marketplace?</h2>
+          <p>Verified listings, vendor discovery, RFQ support and local marketplace intelligence in one place.</p>
+        </div>
         <div className={`trustGrid premiumTrustGrid ${mobileExpandedSections.trust ? "isMobileExpanded" : ""}`}>
-          {["100% Verified", "Secure Payments", "Best Prices", "24/7 Support"].map((item) => <div key={item}><b>✓</b><strong>{item}</strong><span>We are here to help</span></div>)}
+          {[
+            ["100% Verified", "Verified sellers and marketplace listings"],
+            ["Secure Process", "Enquiry, RFQ and vendor workflow support"],
+            ["Best Prices", "Compare options before you decide"],
+            ["24/7 Support", "Marketplace support when you need help"],
+          ].map(([title, text]) => (
+            <div key={title}>
+              <b>✓</b>
+              <strong>{title}</strong>
+              <span>{text}</span>
+            </div>
+          ))}
         </div>
       </section>
         <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("trust")}>

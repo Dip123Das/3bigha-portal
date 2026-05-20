@@ -2329,3 +2329,87 @@ button[class*="actionButton"] {
     border-radius: 16px !important;
   }
 }
+
+/* Final readable Vendor Discovery dark intelligence strip */
+.pageBody .aiVendorDiscoveryDark {
+  background: linear-gradient(135deg, #020617, #172554, #1d4ed8) !important;
+  color: #ffffff !important;
+  border-color: rgba(147, 197, 253, 0.35) !important;
+  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.18) !important;
+}
+
+.pageBody .aiVendorDiscoveryDark h2,
+.pageBody .aiVendorDiscoveryDark div {
+  color: #ffffff !important;
+}
+
+.pageBody .aiVendorDiscoveryDark .text-blue-200 {
+  color: #bfdbfe !important;
+}
+
+.pageBody .aiVendorDiscoveryDark .bg-white\/10 {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+/* Final homepage trust section polish */
+.homePage .finalTrustSection {
+  background: linear-gradient(135deg, #0f172a, #1e293b) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.homePage .finalTrustSection h2,
+.homePage .finalTrustSection p {
+  color: #ffffff !important;
+}
+
+.homePage .trustEyebrow {
+  display: inline-flex;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.22);
+  color: #bfdbfe;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 1000;
+  margin-bottom: 8px;
+}
+
+.homePage .finalTrustSection .trustGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.homePage .finalTrustSection .trustGrid > div {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.homePage .finalTrustSection .trustGrid strong,
+.homePage .finalTrustSection .trustGrid span {
+  color: #ffffff !important;
+}
+
+@media (max-width: 640px) {
+  .homePage .finalTrustSection .trustGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Final subtle production hover polish */
+@media (min-width: 981px) {
+  .pageBody a,
+  .pageBody button {
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+  }
+
+  .pageBody a:hover,
+  .pageBody button:hover {
+    transform: translateY(-1px);
+  }
+}
