@@ -1933,7 +1933,7 @@ if (want.includes("rentals")) {
               alignItems: "start",
             }}
           >
-            <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
+            <div style={{ display: "grid", gap: 8, minWidth: 0 }}>
               {rows.map((r) => {
               const workflowCards = getSearchWorkflowCards({
                 query: qFromUrl,
@@ -1947,8 +1947,8 @@ if (want.includes("rentals")) {
               return (
               <Card key={`${r.module}:${r.id}`}>
                 <CardBody>
-                  <div style={{ display: "grid", gap: 12 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                  <div style={{ display: "grid", gap: 8 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
                           <span style={{ fontSize: 20 }}>{moduleEmoji(r.module)}</span>
@@ -1993,15 +1993,48 @@ if (want.includes("rentals")) {
                           ) : null}
                         </div>
 
-                        <div style={{ marginTop: 8, fontWeight: 950, fontSize: 17, color: "#0f172a" }}>{r.title}</div>
-                        {r.subtitle ? <div style={{ marginTop: 4, opacity: 0.8, fontWeight: 750 }}>{r.subtitle}</div> : null}
+                        <div style={{ marginTop: 4, fontWeight: 950, fontSize: 16, color: "#0f172a", lineHeight: 1.3 }}>
+                          {r.title}
+                        </div>
+                        {r.subtitle ? (
+                          <div
+                            style={{
+                              marginTop: 2,
+                              opacity: 0.82,
+                              fontWeight: 750,
+                              fontSize: 13,
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            📍 {r.subtitle}
+                          </div>
+                        ) : null}
                         {r.meta ? (
-                          <div style={{ marginTop: 6, opacity: 0.75, fontWeight: 850, fontSize: 12 }}>{r.meta}</div>
+                          <div
+                            style={{
+                              marginTop: 3,
+                              opacity: 0.72,
+                              fontWeight: 850,
+                              fontSize: 11,
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            {r.meta}
+                          </div>
                         ) : null}
                       </div>
 
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                        <Link href={r.href} className="topBtn topBtnGhost" style={{ textDecoration: "none" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                        <Link
+                          href={r.href}
+                          className="topBtn topBtnGhost"
+                          style={{
+                            textDecoration: "none",
+                            fontSize: 12,
+                            padding: "7px 11px",
+                            minHeight: 34,
+                          }}
+                        >
                           View →
                         </Link>
                         <Link
@@ -2010,6 +2043,9 @@ if (want.includes("rentals")) {
                           style={{
                             textDecoration: "none",
                             background: r.module === "materials" ? "#7c3aed" : "#0b57d0",
+                            fontSize: 12,
+                            padding: "7px 11px",
+                            minHeight: 34,
                           }}
                         >
                           {r.module === "materials"
@@ -2026,7 +2062,7 @@ if (want.includes("rentals")) {
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
                         gap: 8,
                       }}
                     >
@@ -2040,18 +2076,18 @@ if (want.includes("rentals")) {
                             style={{
                               ...toneStyle,
                               borderRadius: 14,
-                              padding: "10px 11px",
+                              padding: "8px 9px",
                               textDecoration: "none",
                               display: "grid",
                               gap: 4,
-                              minHeight: 72,
+                              minHeight: 58,
                             }}
                           >
                             <strong style={{ fontSize: 12, fontWeight: 950 }}>
                               {card.icon} {card.label}
                             </strong>
                             <span style={{ fontSize: 12, lineHeight: 1.45, fontWeight: 750 }}>
-                              {card.text}
+                              {card.text.length > 72 ? `${card.text.slice(0, 72)}…` : card.text}
                             </span>
                           </Link>
                         );
