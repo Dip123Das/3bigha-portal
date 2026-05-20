@@ -566,29 +566,47 @@ export default function HomePage() {
           {mobileExpandedSections.discovery ? "Show Less" : "See More AI Suggestions"}
         </button>
 
-      <section className="contentSection">
-        <div className="sectionHead"><div><h2>Popular Tools & Calculators</h2><p>Make smart decisions with our AI tools</p></div></div>
-        <div className={`toolsGrid premiumToolsGrid ${mobileExpandedSections.tools ? "isMobileExpanded" : ""}`}>
-          {tools.map((tool) => (
-            <a href={tool.href} className="toolCard" key={tool.title}>
-              <b>▣</b><div><h3>{tool.title}</h3><p>{tool.text}</p><span>{tool.action} →</span></div>
-            </a>
-          ))}
+      <section className="contentSection utilitySection">
+        <div className="sectionHead">
+          <div>
+            <h2>Marketplace Utility Engine</h2>
+            <p>Tools, RFQ and pricing actions in one compact workspace</p>
+          </div>
+          <a href="/rfq/general/new">Post RFQ →</a>
+        </div>
+
+        <div className="utilityLayout">
+          <div className={`toolsGrid premiumToolsGrid ${mobileExpandedSections.tools ? "isMobileExpanded" : ""}`}>
+            {tools.map((tool) => (
+              <a href={tool.href} className="toolCard" key={tool.title}>
+                <b>▣</b>
+                <div>
+                  <h3>{tool.title}</h3>
+                  <p>{tool.text}</p>
+                  <span>{tool.action} →</span>
+                </div>
+              </a>
+            ))}
+          </div>
+
+          <div className="rfqMiniCard">
+            <span>⚡ RFQ Engine</span>
+            <h2>Post Your Requirement</h2>
+            <p>Get quotes from multiple verified vendors and compare faster.</p>
+            <div className="rfqPills">
+              <span>Multiple Vendors</span>
+              <span>Compare Quotes</span>
+              <span>Fast Response</span>
+            </div>
+            <button type="button" onClick={submitRequirement}>
+              Post Requirement Now →
+            </button>
+          </div>
         </div>
       </section>
         <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("tools")}>
           {mobileExpandedSections.tools ? "Show Less" : "See More Tools"}
         </button>
-
-      <section className="rfqBanner">
-        <div>
-          <h2>Post Your Requirement (RFQ)</h2>
-          <p>Get quotes from multiple verified vendors</p>
-          <div className="rfqPills"><span>Reach Multiple Vendors</span><span>Compare Quotes</span><span>Best Price Guaranteed</span><span>Fast Response</span></div>
-          <button type="button" onClick={submitRequirement}>Post Requirement Now</button>
-        </div>
-        <div className="rfqVisual">✈️<span>RFQ Submitted</span><span>Vendor Matched</span></div>
-      </section>
 
       <section className="contentSection">
         <div className="sectionHead"><div><h2>Today's Market Prices</h2><p>Live price updates from local markets</p></div><a href="/price-today">View all prices →</a></div>
@@ -676,7 +694,7 @@ export default function HomePage() {
           z-index: 1;
         }
 
-        .homePage{min-height:100vh;background:#fff;color:#0f172a;padding-bottom:24px}.heroShell{padding:38px 68px 28px;background:radial-gradient(circle at 18% 18%,#dbeafe 0,transparent 34%),radial-gradient(circle at 86% 12%,#ede9fe 0,transparent 30%),linear-gradient(180deg,#f8fbff,#fff)}.heroGrid{display:grid;grid-template-columns:1.03fr .97fr;gap:48px;align-items:center;max-width:1380px;margin:0 auto}.miniBadge{display:inline-flex;border-radius:999px;background:#eef4ff;color:#1d4ed8;padding:9px 14px;font-size:13px;font-weight:950}.heroCopy h1{margin:22px 0 0;font-size:clamp(44px,5.7vw,78px);line-height:1.02;letter-spacing:-.065em;font-weight:1000}.heroCopy h1 span{display:block;color:#2457d6}.heroCopy p{max-width:660px;margin:18px 0 0;color:#475569;font-size:18px;line-height:1.65;font-weight:650}.heroFeatureRow{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}.heroFeatureRow a{display:inline-flex;border-radius:999px;background:#fff;border:1px solid rgba(15,23,42,.08);box-shadow:0 10px 28px rgba(15,23,42,.05);padding:10px 14px;color:#0f172a;text-decoration:none;font-size:13px;font-weight:950}.searchCard{background:rgba(255,255,255,.92);border:1px solid rgba(15,23,42,.08);box-shadow:0 28px 80px rgba(15,23,42,.12);border-radius:28px;padding:24px}.searchTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-bottom:1px solid #e5e7eb;margin:-4px 0 18px;padding-bottom:10px}.searchTabs button{border:0;background:transparent;border-radius:14px;padding:12px 8px;font-weight:950;color:#475569;cursor:pointer}.searchTabs button.active{background:#eff6ff;color:#1d4ed8;box-shadow:inset 0 2px 0 #2563eb}.searchCard textarea{width:100%;min-height:126px;border:1px solid rgba(15,23,42,.14);border-radius:18px;padding:18px;font-size:15px;line-height:1.7;resize:none;outline:none;color:#0f172a}.typeChips{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.typeChips button{border:1px solid rgba(15,23,42,.1);background:#fff;border-radius:999px;padding:9px 13px;font-size:13px;font-weight:950;cursor:pointer}.typeChips button.active{background:#eef4ff;color:#1d4ed8;border-color:#bfdbfe}.searchActions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.searchActions button{border:0;border-radius:18px;padding:16px;font-weight:1000;cursor:pointer}.primaryAction{background:#1d4ed8;color:#fff;box-shadow:0 14px 34px rgba(29,78,216,.24)}.secondaryAction{background:#fff;border:1px solid rgba(15,23,42,.12)!important;color:#0f172a}.statsRail{max-width:1380px;margin:-2px auto 34px;padding:0 68px;display:grid;grid-template-columns:repeat(6,1fr);gap:0}.statCard{background:#fff;border:1px solid rgba(15,23,42,.08);box-shadow:0 12px 30px rgba(15,23,42,.06);padding:22px;display:flex;gap:13px;align-items:center}.statCard:first-child{border-radius:18px 0 0 18px}.statCard:last-child{border-radius:0 18px 18px 0}.statCard span{width:42px;height:42px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#ecfdf5}.statCard strong{display:block;font-size:24px;font-weight:1000}.statCard small{display:block;color:#64748b;font-size:12px;font-weight:850}.contentSection,.splitSection,.rfqBanner,.startBanner,.homeFooter{max-width:1380px;margin:0 auto 34px;padding:0 68px}.sectionHead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:18px}.sectionHead h2,.trustSection h2{margin:0;font-size:25px;letter-spacing:-.03em;font-weight:1000}.sectionHead p,.trustSection p{margin:4px 0 0;color:#64748b;font-size:14px;font-weight:700}.sectionHead a{color:#1d4ed8;text-decoration:none;font-weight:950}.categoryGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:18px}.categoryCard{border:1px solid rgba(15,23,42,.09);border-radius:18px;background:#fff;text-align:center;text-decoration:none;color:inherit;padding:28px 18px;box-shadow:0 10px 26px rgba(15,23,42,.04);transition:.16s ease}.categoryCard:hover,.listingCard:hover,.toolCard:hover{transform:translateY(-3px);box-shadow:0 18px 42px rgba(15,23,42,.08)}.categoryIcon{font-size:42px}.categoryCard h3{margin:14px 0 0;font-size:16px;font-weight:1000}.categoryCard p{min-height:42px;margin:8px 0 0;color:#64748b;font-size:12px;line-height:1.45}.categoryCard strong{display:block;margin-top:14px;color:#16a34a;font-size:12px}.personalFeedStrip{border:1px solid #dbeafe;background:linear-gradient(135deg,#eff6ff,#fff);border-radius:18px;padding:14px;margin-bottom:16px;display:grid;gap:12px}
+        .homePage{min-height:100vh;background:#fff;color:#0f172a;padding-bottom:24px}.heroShell{padding:38px 68px 28px;background:radial-gradient(circle at 18% 18%,#dbeafe 0,transparent 34%),radial-gradient(circle at 86% 12%,#ede9fe 0,transparent 30%),linear-gradient(180deg,#f8fbff,#fff)}.heroGrid{display:grid;grid-template-columns:1.03fr .97fr;gap:48px;align-items:center;max-width:1380px;margin:0 auto}.miniBadge{display:inline-flex;border-radius:999px;background:#eef4ff;color:#1d4ed8;padding:9px 14px;font-size:13px;font-weight:950}.heroCopy h1{margin:22px 0 0;font-size:clamp(44px,5.7vw,78px);line-height:1.02;letter-spacing:-.065em;font-weight:1000}.heroCopy h1 span{display:block;color:#2457d6}.heroCopy p{max-width:660px;margin:18px 0 0;color:#475569;font-size:18px;line-height:1.65;font-weight:650}.heroFeatureRow{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}.heroFeatureRow a{display:inline-flex;border-radius:999px;background:#fff;border:1px solid rgba(15,23,42,.08);box-shadow:0 10px 28px rgba(15,23,42,.05);padding:10px 14px;color:#0f172a;text-decoration:none;font-size:13px;font-weight:950}.searchCard{background:rgba(255,255,255,.92);border:1px solid rgba(15,23,42,.08);box-shadow:0 28px 80px rgba(15,23,42,.12);border-radius:28px;padding:24px}.searchTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-bottom:1px solid #e5e7eb;margin:-4px 0 18px;padding-bottom:10px}.searchTabs button{border:0;background:transparent;border-radius:14px;padding:12px 8px;font-weight:950;color:#475569;cursor:pointer}.searchTabs button.active{background:#eff6ff;color:#1d4ed8;box-shadow:inset 0 2px 0 #2563eb}.searchCard textarea{width:100%;min-height:126px;border:1px solid rgba(15,23,42,.14);border-radius:18px;padding:18px;font-size:15px;line-height:1.7;resize:none;outline:none;color:#0f172a}.typeChips{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.typeChips button{border:1px solid rgba(15,23,42,.1);background:#fff;border-radius:999px;padding:9px 13px;font-size:13px;font-weight:950;cursor:pointer}.typeChips button.active{background:#eef4ff;color:#1d4ed8;border-color:#bfdbfe}.searchActions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.searchActions button{border:0;border-radius:18px;padding:16px;font-weight:1000;cursor:pointer}.primaryAction{background:#1d4ed8;color:#fff;box-shadow:0 14px 34px rgba(29,78,216,.24)}.secondaryAction{background:#fff;border:1px solid rgba(15,23,42,.12)!important;color:#0f172a}.statsRail{max-width:1380px;margin:10px auto 14px;padding:0 68px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.statCard{background:#0f172a;color:#fff;border:1px solid rgba(255,255,255,.1);box-shadow:0 14px 34px rgba(15,23,42,.12);padding:16px;display:flex;gap:11px;align-items:center;border-radius:16px}.statCard:first-child,.statCard:last-child{border-radius:16px}.statCard span{width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(37,99,235,.25)}.statCard strong{display:block;font-size:20px;font-weight:1000;color:#fff}.statCard small{display:block;color:#cbd5e1;font-size:11px;font-weight:850}.contentSection,.splitSection,.startBanner,.homeFooter{max-width:1380px;margin:0 auto 18px;padding:0 68px}.sectionHead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:14px}.sectionHead h2,.trustSection h2{margin:0;font-size:22px;letter-spacing:-.03em;font-weight:1000}.sectionHead p,.trustSection p{margin:4px 0 0;color:#64748b;font-size:13px;font-weight:700}.sectionHead a{color:#1d4ed8;text-decoration:none;font-weight:950}.categoryGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}.categoryCard{border:1px solid rgba(15,23,42,.09);border-radius:18px;background:#fff;text-align:center;text-decoration:none;color:inherit;padding:20px 14px;box-shadow:0 10px 26px rgba(15,23,42,.04);transition:.16s ease}.categoryCard:hover,.listingCard:hover,.toolCard:hover{transform:translateY(-2px);box-shadow:0 16px 36px rgba(15,23,42,.08)}.categoryIcon{font-size:34px}.categoryCard h3{margin:10px 0 0;font-size:15px;font-weight:1000}.categoryCard p{min-height:34px;margin:6px 0 0;color:#64748b;font-size:12px;line-height:1.35}.categoryCard strong{display:block;margin-top:10px;color:#16a34a;font-size:12px}.personalFeedStrip{border:1px solid #dbeafe;background:linear-gradient(135deg,#eff6ff,#fff);border-radius:18px;padding:14px;margin-bottom:16px;display:grid;gap:12px}
         .personalFeedStrip strong{display:block;font-weight:1000;color:#0f172a}
         .personalFeedStrip span{display:block;margin-top:3px;color:#64748b;font-size:12px;font-weight:800}
         .personalFeedItems{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
@@ -694,6 +712,29 @@ export default function HomePage() {
         .discoveryRailCard small{display:block;margin-top:7px;font-size:12px;line-height:1.45;color:#64748b;font-weight:800}
         .listingGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
 
+        .utilitySection{background:#fff;border:1px solid rgba(15,23,42,.08);border-radius:22px;padding:18px 68px!important;box-shadow:0 12px 34px rgba(15,23,42,.045)}
+        .utilityLayout{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:stretch}
+        .toolsGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+        .toolCard{display:flex;gap:12px;align-items:flex-start;text-decoration:none;color:inherit;border:1px solid rgba(15,23,42,.08);background:#fff;border-radius:16px;padding:14px;min-height:104px;box-shadow:0 8px 22px rgba(15,23,42,.045)}
+        .toolCard b{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#eff6ff;color:#1d4ed8;flex:0 0 auto}
+        .toolCard h3{margin:0;font-size:14px;font-weight:1000;color:#0f172a}
+        .toolCard p{margin:4px 0 0;color:#64748b;font-size:12px;line-height:1.4;font-weight:700}
+        .toolCard span{display:block;margin-top:8px;color:#1d4ed8;font-size:12px;font-weight:950}
+
+        .rfqMiniCard{border-radius:18px;background:linear-gradient(135deg,#1e3a8a,#7c3aed);color:#fff;padding:18px;box-shadow:0 18px 42px rgba(37,99,235,.18);display:flex;flex-direction:column;justify-content:center}
+        .rfqMiniCard>span{display:inline-flex;width:max-content;border-radius:999px;background:rgba(255,255,255,.15);color:#fff;padding:6px 10px;font-size:11px;font-weight:1000}
+        .rfqMiniCard h2{margin:10px 0 0;font-size:22px;color:#fff}
+        .rfqMiniCard p{margin:6px 0 0;color:#dbeafe;font-weight:800;font-size:13px;line-height:1.45}
+        .rfqMiniCard .rfqPills{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+        .rfqMiniCard .rfqPills span{border-radius:999px;background:rgba(255,255,255,.14);padding:5px 8px;font-size:11px;color:#fff;font-weight:900}
+        .rfqMiniCard button{border:0;border-radius:14px;background:#fff;color:#1d4ed8;padding:11px 14px;font-weight:1000;cursor:pointer}
+
+        .priceGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+        .priceCard{display:block;text-decoration:none;color:inherit;border:1px solid rgba(15,23,42,.08);background:#fff;border-radius:14px;padding:12px;box-shadow:0 8px 20px rgba(15,23,42,.035)}
+        .priceCard span{display:block;color:#475569;font-size:12px;font-weight:900}
+        .priceCard strong{display:block;margin-top:8px;color:#0f172a;font-size:15px;font-weight:1000}
+        .priceCard small{display:block;margin-top:5px;color:#16a34a;font-size:11px;font-weight:900}
+
         .mobileSeeMoreButton {
           display: none;
         }
@@ -707,8 +748,22 @@ export default function HomePage() {
             padding: 12px;
             border-radius: 16px;
           }
-          .discoveryRailGrid {
+          .discoveryRailGrid,
+          .toolsGrid,
+          .priceGrid {
             grid-template-columns: 1fr;
+          }
+
+          .utilitySection {
+            padding: 12px !important;
+          }
+
+          .utilityLayout {
+            grid-template-columns: 1fr;
+          }
+
+          .rfqMiniCard {
+            padding: 14px;
           }
 
           .premiumCategoryGrid:not(.isMobileExpanded) > *:nth-child(n+4),
