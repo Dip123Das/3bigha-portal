@@ -312,6 +312,77 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
 }
 
 // Try multiple SELECT column-sets until one works (fixes “column does not exist” problems)
+function SearchInsightSection({
+  title,
+  subtitle,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  defaultOpen?: boolean;
+  children: any;
+}) {
+  return (
+    <details
+      open={defaultOpen}
+      style={{
+        border: "1px solid #e2e8f0",
+        borderRadius: 18,
+        background: "#ffffff",
+        boxShadow: "0 10px 26px rgba(15,23,42,0.06)",
+        overflow: "hidden",
+      }}
+    >
+      <summary
+        style={{
+          cursor: "pointer",
+          listStyle: "none",
+          padding: "14px 16px",
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 12,
+          alignItems: "center",
+          fontWeight: 1000,
+          color: "#0f172a",
+        }}
+      >
+        <span>
+          {title}
+          {subtitle ? (
+            <span
+              style={{
+                display: "block",
+                marginTop: 3,
+                fontSize: 12,
+                fontWeight: 750,
+                color: "#64748b",
+              }}
+            >
+              {subtitle}
+            </span>
+          ) : null}
+        </span>
+
+        <span
+          style={{
+            borderRadius: 999,
+            background: "#eff6ff",
+            color: "#1d4ed8",
+            padding: "6px 10px",
+            fontSize: 12,
+            fontWeight: 950,
+            whiteSpace: "nowrap",
+          }}
+        >
+          Open / Close
+        </span>
+      </summary>
+
+      <div style={{ padding: "0 12px 12px" }}>{children}</div>
+    </details>
+  );
+}
 async function trySelectAny(
   supabase: any,
   tableOrView: string,
@@ -1432,44 +1503,81 @@ if (want.includes("rentals")) {
         </>
       ) : null}
 
-      {hasQuery && rows.length > 0 && rfqConversion.show ? (
+      {hasQuery && rows.length > 0 ? (
         <>
-          <SearchToRfqConversionCard conversion={rfqConversion} />
-          <div style={{ height: 12 }} />
-        </>
-      ) : null}
+          <Card>
+            <CardBody>
+              <div style={{ display: "grid", gap: 10 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 950, color: "#0b57d0" }}>
+                    AI Procurement Intelligence
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 20, fontWeight: 1000, color: "#0f172a" }}>
+                    Smart guidance for this search
+                  </div>
+                  <div style={{ marginTop: 4, color: "#64748b", fontWeight: 750 }}>
+                    Important procurement intelligence is shown first. Open other sections only when needed.
+                  </div>
+                </div>
 
-      {hasQuery && rows.length > 0 && vendorLiquidity.show ? (
-        <>
-          <VendorLiquidityPanel insight={vendorLiquidity} />
-          <div style={{ height: 12 }} />
-        </>
-      ) : null}
+                {procurementDecision.show ? (
+                  <SearchInsightSection
+                    title="🧠 Procurement Decision"
+                    subtitle="Readiness, complexity, vendor count and RFQ probability"
+                    defaultOpen
+                  >
+                    <ProcurementDecisionPanel insight={procurementDecision} />
+                  </SearchInsightSection>
+                ) : null}
 
-      {hasQuery && rows.length > 0 && procurementDecision.show ? (
-        <>
-          <ProcurementDecisionPanel insight={procurementDecision} />
-          <div style={{ height: 12 }} />
-        </>
-      ) : null}
+                {rfqConversion.show ? (
+                  <SearchInsightSection
+                    title="⚡ Search-to-RFQ Conversion"
+                    subtitle="Convert this search into a structured requirement"
+                  >
+                    <SearchToRfqConversionCard conversion={rfqConversion} />
+                  </SearchInsightSection>
+                ) : null}
 
-      {hasQuery && rows.length > 0 && vendorIntelligence.show ? (
-        <>
-          <VendorIntelligencePanel insight={vendorIntelligence} />
-          <div style={{ height: 12 }} />
-        </>
-      ) : null}
+                {vendorLiquidity.show ? (
+                  <SearchInsightSection
+                    title="🎯 Vendor Liquidity"
+                    subtitle="Active vendors, fast responders and response expectation"
+                  >
+                    <VendorLiquidityPanel insight={vendorLiquidity} />
+                  </SearchInsightSection>
+                ) : null}
 
-      {hasQuery && rows.length > 0 && vendorNegotiation.show ? (
-        <>
-          <VendorNegotiationPanel insight={vendorNegotiation} />
-          <div style={{ height: 12 }} />
-        </>
-      ) : null}
+                {vendorIntelligence.show ? (
+                  <SearchInsightSection
+                    title="🏅 Vendor Intelligence"
+                    subtitle="Vendor quality, fit, locality and procurement suitability"
+                  >
+                    <VendorIntelligencePanel insight={vendorIntelligence} />
+                  </SearchInsightSection>
+                ) : null}
 
-      {hasQuery && rows.length > 0 && procurementActionCopilot.show ? (
-        <>
-          <ProcurementActionCopilot insight={procurementActionCopilot} />
+                {vendorNegotiation.show ? (
+                  <SearchInsightSection
+                    title="🤝 Negotiation Intelligence"
+                    subtitle="RFQ acceptance, risk and best negotiation strategy"
+                  >
+                    <VendorNegotiationPanel insight={vendorNegotiation} />
+                  </SearchInsightSection>
+                ) : null}
+
+                {procurementActionCopilot.show ? (
+                  <SearchInsightSection
+                    title="🚀 Procurement Action Copilot"
+                    subtitle="RFQ strengthening and next best actions"
+                  >
+                    <ProcurementActionCopilot insight={procurementActionCopilot} />
+                  </SearchInsightSection>
+                ) : null}
+              </div>
+            </CardBody>
+          </Card>
+
           <div style={{ height: 12 }} />
         </>
       ) : null}
@@ -1536,8 +1644,10 @@ if (want.includes("rentals")) {
 
       {hasQuery && rows.length > 0 && aiRecommendations.length > 0 ? (
         <>
-          <Card>
-            <CardBody>
+          <SearchInsightSection
+            title="✨ AI Marketplace Recommendations"
+            subtitle="Related vendors, categories and next-step actions"
+          >
               <div style={{ display: "grid", gap: 14, minWidth: 0 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div>
@@ -1609,8 +1719,7 @@ if (want.includes("rentals")) {
                   ))}
                 </div>
               </div>
-            </CardBody>
-          </Card>
+          </SearchInsightSection>
 
           <div style={{ height: 12 }} />
         </>
