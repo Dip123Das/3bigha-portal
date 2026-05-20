@@ -104,6 +104,16 @@ type AiRecommendation = {
   icon: string;
 };
 
+function searchTokens(input: string) {
+  return safeText(input)
+    .toLowerCase()
+    .replace(/coochbehar/g, "cooch behar")
+    .split(/\s+/)
+    .map((x) => x.trim())
+    .filter((x) => x.length >= 3 && !["near", "with", "from", "into", "land"].includes(x))
+    .slice(0, 6);
+}
+
 function safeText(x: any) {
   return String(x ?? "").trim();
 }
@@ -632,13 +642,21 @@ function SearchPageInner() {
 
         // PROPERTY (your view has NO latitude/longitude, so don’t select them)
 if (want.includes("property")) {
-  const or = [
-    `title.ilike.%${term}%`,
-    `locality.ilike.%${term}%`,
-    `city.ilike.%${term}%`,
-    `district.ilike.%${term}%`,
-    `state.ilike.%${term}%`,
-  ].join(",");
+  const propertyTerms = [
+    term,
+    term.replace(/coochbehar/gi, "cooch behar"),
+    ...searchTokens(term),
+  ].filter(Boolean);
+
+  const or = propertyTerms
+    .flatMap((t) => [
+      `title.ilike.%${t}%`,
+      `locality.ilike.%${t}%`,
+      `city.ilike.%${t}%`,
+      `district.ilike.%${t}%`,
+      `state.ilike.%${t}%`,
+    ])
+    .join(",");
 
   const r = await supabase
     .from("v_property_listings_with_inventory")
