@@ -13,6 +13,29 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { parseAiSearchIntent } from "@/lib/search/ai-search-intent";
 import { getAiSearchContent } from "@/lib/search/ai-search-content";
 import { getSearchKeywordClusters } from "@/lib/search/search-keyword-clusters";
+import {
+  buildUnifiedMarketplaceRecommendations,
+  getUnifiedMarketplaceSummary,
+  scoreUnifiedMarketplaceResult,
+} from "@/lib/search/unified-marketplace-brain";
+import {
+  getSearchWorkflowCards,
+  workflowCardToneStyle,
+} from "@/lib/search/search-workflow-cards";
+import UnifiedSearchAutocomplete from "@/components/search/UnifiedSearchAutocomplete";
+import SearchToRfqConversionCard from "@/components/search/SearchToRfqConversion";
+import { buildSearchToRfqConversion } from "@/lib/search/search-to-rfq-engine";
+import VendorLiquidityPanel from "@/components/search/VendorLiquidityPanel";
+import { buildVendorLiquidityInsight } from "@/lib/search/vendor-liquidity-engine";
+import ProcurementRecommendationSidebar from "@/components/search/ProcurementRecommendationSidebar";
+import ProcurementDecisionPanel from "@/components/search/ProcurementDecisionPanel";
+import { buildProcurementDecisionInsight } from "@/lib/search/procurement-decision-engine";
+import VendorIntelligencePanel from "@/components/search/VendorIntelligencePanel";
+import { buildVendorIntelligenceInsight } from "@/lib/search/vendor-intelligence-engine";
+import VendorNegotiationPanel from "@/components/search/VendorNegotiationPanel";
+import { buildVendorNegotiationInsight } from "@/lib/search/vendor-negotiation-engine";
+import ProcurementActionCopilot from "@/components/search/ProcurementActionCopilot";
+import { buildProcurementActionCopilot } from "@/lib/search/procurement-action-copilot";
 
 type SearchModule = "property" | "materials" | "services" | "rentals" | "blog";
 type ModFilter = "all" | SearchModule;
@@ -358,6 +381,7 @@ function SearchPageInner() {
   const [lastAiIntent, setLastAiIntent] = useState<AiSearchIntent | null>(null);
   const [aiRecommendations, setAiRecommendations] = useState<AiRecommendation[]>([]);
   const [recommendationSummary, setRecommendationSummary] = useState("");
+  const [autocompleteOpen, setAutocompleteOpen] = useState(false);
   const aiAutoAppliedRef = useRef<string>("");
 
   // Sync inputs with URL changes
@@ -884,10 +908,20 @@ if (want.includes("rentals")) {
               moduleFilter: modFromUrl,
             });
 
+            const unified = scoreUnifiedMarketplaceResult({
+              module: row.module,
+              title: row.title,
+              subtitle: row.subtitle,
+              meta: row.meta,
+              price: row._price,
+              query: q,
+              moduleFilter: modFromUrl,
+            });
+
             return {
               ...row,
-              _aiScore: ai.score,
-              _aiReason: ai.reason,
+              _aiScore: ai.score + unified.score,
+              _aiReason: unified.score > 0 ? unified.reason : ai.reason,
             };
           })
           .sort((a, b) => {
@@ -924,7 +958,8 @@ if (want.includes("rentals")) {
         return;
       }
 
-      setAiRecommendations(fallbackRecommendations(q, modFromUrl));
+      setAiRecommendations(buildUnifiedMarketplaceRecommendations(q, modFromUrl));
+      setRecommendationSummary(getUnifiedMarketplaceSummary(q));
 
       try {
         const params = new URLSearchParams();
@@ -978,7 +1013,7 @@ if (want.includes("rentals")) {
       } catch {
         if (!alive) return;
         setAiRecommendations(fallbackRecommendations(q, modFromUrl));
-        setRecommendationSummary("AI recommendation fallback is active.");
+        setRecommendationSummary(getUnifiedMarketplaceSummary(q));
       }
     }
 
@@ -1015,6 +1050,90 @@ if (want.includes("rentals")) {
     [qFromUrl, localSearchIntent]
   );
 
+  const rfqConversion = useMemo(
+    () =>
+      buildSearchToRfqConversion({
+        query: qFromUrl,
+        module: modFromUrl,
+      }),
+    [qFromUrl, modFromUrl]
+  );
+
+  const vendorLiquidity = useMemo(
+    () =>
+      buildVendorLiquidityInsight({
+        query: qFromUrl,
+        module: modFromUrl,
+        resultCount: rows.length,
+      }),
+    [qFromUrl, modFromUrl, rows.length]
+  );
+
+  const procurementDecision = useMemo(
+    () =>
+      buildProcurementDecisionInsight({
+        query: qFromUrl,
+        module: modFromUrl,
+        resultCount: rows.length,
+        vendorLiquidityScore: vendorLiquidity.score,
+      }),
+    [qFromUrl, modFromUrl, rows.length, vendorLiquidity.score]
+  );
+
+  const vendorIntelligence = useMemo(
+    () =>
+      buildVendorIntelligenceInsight({
+        query: qFromUrl,
+        module: modFromUrl,
+        resultCount: rows.length,
+        liquidityScore: vendorLiquidity.score,
+        procurementReadinessScore: procurementDecision.readinessScore,
+      }),
+    [
+      qFromUrl,
+      modFromUrl,
+      rows.length,
+      vendorLiquidity.score,
+      procurementDecision.readinessScore,
+    ]
+  );
+
+  const vendorNegotiation = useMemo(
+    () =>
+      buildVendorNegotiationInsight({
+        query: qFromUrl,
+        module: modFromUrl,
+        resultCount: rows.length,
+        vendorLiquidityScore: vendorLiquidity.score,
+        procurementReadinessScore: procurementDecision.readinessScore,
+        vendorQualityScore: vendorIntelligence.qualityScore,
+      }),
+    [
+      qFromUrl,
+      modFromUrl,
+      rows.length,
+      vendorLiquidity.score,
+      procurementDecision.readinessScore,
+      vendorIntelligence.qualityScore,
+    ]
+  );
+
+  const procurementActionCopilot = useMemo(
+    () =>
+      buildProcurementActionCopilot({
+        query: qFromUrl,
+        module: modFromUrl,
+        readinessScore: procurementDecision.readinessScore,
+        negotiationScore: vendorNegotiation.negotiationScore,
+      }),
+    [
+      qFromUrl,
+      modFromUrl,
+      procurementDecision.readinessScore,
+      vendorNegotiation.negotiationScore,
+    ]
+  );
+
   return (
     <Container>
       <SectionHeader title="Search" subtitle="Find anything across 3Bigha.com" />
@@ -1025,22 +1144,72 @@ if (want.includes("rentals")) {
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
               <div style={{ fontWeight: 950 }}>Search</div>
 
-              <input
-                value={qInput}
-                onChange={(e) => setQInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") submitNow();
-                }}
-                placeholder="Type: location, title, keyword…"
+              <div
                 style={{
-                  height: 44,
-                  borderRadius: 12,
-                  border: "1px solid #e5e7eb",
-                  padding: "0 12px",
+                  position: "relative",
                   minWidth: 260,
                   flex: "1 1 360px",
                 }}
-              />
+                onBlur={() => {
+                  window.setTimeout(() => setAutocompleteOpen(false), 140);
+                }}
+              >
+                <input
+                  value={qInput}
+                  onFocus={() => setAutocompleteOpen(true)}
+                  onChange={(e) => {
+                    setQInput(e.target.value);
+                    setAutocompleteOpen(true);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      setAutocompleteOpen(false);
+                      submitNow();
+                    }
+                    if (e.key === "Escape") {
+                      setAutocompleteOpen(false);
+                    }
+                  }}
+                  placeholder="Type: cement price, 500 bags cement, rajmistri, 2 katha land…"
+                  style={{
+                    height: 44,
+                    borderRadius: 12,
+                    border: "1px solid #e5e7eb",
+                    padding: "0 12px",
+                    width: "100%",
+                  }}
+                />
+
+                {autocompleteOpen ? (
+                  <UnifiedSearchAutocomplete
+                    query={qInput}
+                    module={modInput}
+                    recentLocations={recentDiscovery
+                      .map((item) => item.locality || item.city || item.district || "")
+                      .filter(Boolean)
+                      .slice(0, 4)}
+                    onApply={(suggestion) => {
+                      setAutocompleteOpen(false);
+                      setQInput(suggestion.query);
+                      if (suggestion.module && suggestion.module !== "all") {
+                        setModInput(suggestion.module as ModFilter);
+                      }
+
+                      pushUrl({
+                        q: suggestion.query,
+                        module: (suggestion.module as ModFilter) || modInput,
+                        intent: intentInput,
+                        min: minInput,
+                        max: maxInput,
+                        near: nearOn,
+                        lat: latFromUrl,
+                        lng: lngFromUrl,
+                        km: nearKm,
+                      });
+                    }}
+                  />
+                ) : null}
+              </div>
 
               <select
                 value={modInput}
@@ -1242,6 +1411,48 @@ if (want.includes("rentals")) {
 
       <div style={{ height: 12 }} />
 
+      {hasQuery && rfqConversion.show ? (
+        <>
+          <SearchToRfqConversionCard conversion={rfqConversion} />
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
+      {hasQuery && vendorLiquidity.show ? (
+        <>
+          <VendorLiquidityPanel insight={vendorLiquidity} />
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
+      {hasQuery && procurementDecision.show ? (
+        <>
+          <ProcurementDecisionPanel insight={procurementDecision} />
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
+      {hasQuery && vendorIntelligence.show ? (
+        <>
+          <VendorIntelligencePanel insight={vendorIntelligence} />
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
+      {hasQuery && vendorNegotiation.show ? (
+        <>
+          <VendorNegotiationPanel insight={vendorNegotiation} />
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
+      {hasQuery && procurementActionCopilot.show ? (
+        <>
+          <ProcurementActionCopilot insight={procurementActionCopilot} />
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
       {hasQuery && lastAiIntent ? (
         <>
           <Card>
@@ -1306,7 +1517,7 @@ if (want.includes("rentals")) {
         <>
           <Card>
             <CardBody>
-              <div style={{ display: "grid", gap: 14 }}>
+              <div style={{ display: "grid", gap: 14, minWidth: 0 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 950, color: "#0b57d0" }}>
@@ -1580,8 +1791,26 @@ if (want.includes("rentals")) {
         <>
           <div style={{ marginBottom: 10, fontWeight: 900, opacity: 0.8 }}>Results: {rows.length}</div>
 
-          <div style={{ display: "grid", gap: 12 }}>
-            {rows.map((r) => (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1fr) 320px",
+              gap: 16,
+              alignItems: "start",
+            }}
+          >
+            <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
+              {rows.map((r) => {
+              const workflowCards = getSearchWorkflowCards({
+                query: qFromUrl,
+                module: r.module,
+                title: r.title,
+                subtitle: r.subtitle,
+                meta: r.meta,
+                moduleFilter: modFromUrl,
+              });
+
+              return (
               <Card key={`${r.module}:${r.id}`}>
                 <CardBody>
                   <div style={{ display: "grid", gap: 12 }}>
@@ -1660,21 +1889,61 @@ if (want.includes("rentals")) {
                       </div>
                     </div>
 
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <span style={{ borderRadius: 999, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 9px", fontSize: 12, fontWeight: 900 }}>
-                        🤖 AI matched
-                      </span>
-                      <span style={{ borderRadius: 999, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 9px", fontSize: 12, fontWeight: 900 }}>
-                        📍 Local discovery
-                      </span>
-                      <span style={{ borderRadius: 999, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 9px", fontSize: 12, fontWeight: 900 }}>
-                        ⚡ Workflow ready
-                      </span>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+                        gap: 8,
+                      }}
+                    >
+                      {workflowCards.map((card) => {
+                        const toneStyle = workflowCardToneStyle(card.tone);
+
+                        return (
+                          <Link
+                            key={`${r.module}:${r.id}:${card.label}`}
+                            href={card.href}
+                            style={{
+                              ...toneStyle,
+                              borderRadius: 14,
+                              padding: "10px 11px",
+                              textDecoration: "none",
+                              display: "grid",
+                              gap: 4,
+                              minHeight: 72,
+                            }}
+                          >
+                            <strong style={{ fontSize: 12, fontWeight: 950 }}>
+                              {card.icon} {card.label}
+                            </strong>
+                            <span style={{ fontSize: 12, lineHeight: 1.45, fontWeight: 750 }}>
+                              {card.text}
+                            </span>
+                          </Link>
+                        );
+                      })}
                     </div>
                   </div>
                 </CardBody>
               </Card>
-            ))}
+              );
+            })}
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gap: 14,
+                position: "sticky",
+                top: 84,
+                alignSelf: "start",
+              }}
+            >
+              <ProcurementRecommendationSidebar
+                query={qFromUrl}
+                module={modFromUrl}
+              />
+            </div>
           </div>
         </>
       )}
