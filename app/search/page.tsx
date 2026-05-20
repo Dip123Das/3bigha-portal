@@ -517,25 +517,8 @@ function SearchPageInner() {
     );
   }
 
-  useEffect(() => {
-    const query = safeText(qFromUrl);
-
-  if (!query) return;
-
-  const autoKey = query;
-
-  if (aiAutoAppliedRef.current === autoKey) return;
-
-  aiAutoAppliedRef.current = autoKey;
-
-  const t = setTimeout(() => {
-    applyAiSearchIntent(query);
-  }, 120);
-
-  return () => clearTimeout(t);
-
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [qFromUrl]);
+  // Keep auto-search active, but do not auto-rewrite filters while typing.
+  // Auto AI rerouting caused repeated URL/filter changes and layout jumping.
 
   function startVoice() {
     setNote(null);
@@ -628,11 +611,13 @@ function SearchPageInner() {
 
     async function run() {
       setErr(null);
-      setRows([]);
       setNote(null);
 
       const q = safeText(qFromUrl);
-      if (!q) return;
+      if (!q) {
+        setRows([]);
+        return;
+      }
 
       setLoading(true);
 
@@ -1790,7 +1775,13 @@ if (want.includes("rentals")) {
 
       <div style={{ height: 12 }} />
 
-      {loading ? (
+      {loading && rows.length > 0 ? (
+        <div style={{ marginBottom: 10, fontSize: 12, fontWeight: 900, color: "#64748b" }}>
+          Searching latest results…
+        </div>
+      ) : null}
+
+      {loading && rows.length === 0 ? (
         <EmptyState message="Searching…" />
       ) : err ? (
         <EmptyState message={err} />
