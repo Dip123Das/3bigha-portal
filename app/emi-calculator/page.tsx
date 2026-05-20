@@ -1463,29 +1463,436 @@ const result = useMemo(() => {
 
       <style jsx>{`
         .emiPage {
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
           min-height: 100vh;
-          padding: 28px 18px 70px;
+          padding: 24px 16px 64px;
           background:
-            radial-gradient(circle at 12% 10%, rgba(37, 99, 235, 0.12), transparent 30%),
-            radial-gradient(circle at 88% 12%, rgba(16, 185, 129, 0.10), transparent 28%),
+            radial-gradient(circle at 12% 10%, rgba(37,99,235,0.10), transparent 30%),
             linear-gradient(180deg, #f8fbff, #ffffff);
         }
 
         .emiHero,
         .emiCard,
-
-        .bankCompareSection {
+        .bankCompareSection,
+        .scheduleSection,
+        .emiInfo {
+          width: 100%;
           max-width: 1160px;
-          margin: 24px auto 0;
+          margin: 22px auto 0;
           border-radius: 24px;
           background: #ffffff;
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+          border: 1px solid rgba(15,23,42,0.08);
+          box-shadow: 0 14px 34px rgba(15,23,42,0.06);
           padding: 22px;
+          overflow: hidden;
+        }
+
+        .emiHero {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 280px;
+          gap: 18px;
+          align-items: end;
+        }
+
+        .emiHeroText {
+          min-width: 0;
+        }
+
+        .emiHeroText span {
+          display: inline-flex;
+          border-radius: 999px;
+          background: #eef4ff;
+          color: #2563eb;
+          padding: 8px 14px;
+          font-size: 13px;
+          font-weight: 900;
+        }
+
+        .emiHero h1 {
+          margin: 16px 0 0;
+          font-size: clamp(36px, 5vw, 62px);
+          line-height: 1;
+          letter-spacing: -0.06em;
+          color: #0f172a;
+          font-weight: 1000;
+        }
+
+        .emiHero p {
+          max-width: 720px;
+          margin: 14px 0 0;
+          color: #475569;
+          font-size: 16px;
+          line-height: 1.65;
+          font-weight: 700;
+        }
+
+        .heroMiniCard {
+          width: 100%;
+          border-radius: 22px;
+          background: linear-gradient(135deg, #0f172a, #2563eb);
+          color: #ffffff;
+          padding: 20px;
+          box-shadow: 0 18px 44px rgba(37,99,235,0.18);
+        }
+
+        .heroMiniCard strong {
+          display: block;
+          font-size: 32px;
+          line-height: 1;
+          font-weight: 1000;
+        }
+
+        .heroMiniCard span {
+          display: block;
+          margin-top: 8px;
+          color: rgba(255,255,255,0.78);
+          font-size: 13px;
+          font-weight: 800;
+        }
+
+        .emiCard {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+          gap: 22px;
+          background: rgba(255,255,255,0.94);
+          border-radius: 28px;
+          backdrop-filter: blur(18px);
+        }
+
+        .emiForm,
+        .emiResult {
+          min-width: 0;
+        }
+
+        .emiForm {
+          display: grid;
+          gap: 10px;
+        }
+
+        .fieldTop {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-top: 4px;
+        }
+
+        .fieldTop label {
+          color: #0f172a;
+          font-size: 14px;
+          font-weight: 950;
+        }
+
+        .fieldTop strong {
+          color: #2563eb;
+          font-size: 14px;
+          font-weight: 1000;
+          text-align: right;
+        }
+
+        input[type="number"] {
+          width: 100%;
+          min-height: 44px;
+          border: 1px solid rgba(15,23,42,0.12);
+          border-radius: 14px;
+          padding: 10px 12px;
+          font-size: 14px;
+          font-weight: 850;
+          outline: none;
+          color: #0f172a;
+          background: #ffffff;
+        }
+
+        input[type="number"]:focus {
+          border-color: #2563eb;
+          box-shadow: 0 0 0 4px rgba(37,99,235,0.10);
+        }
+
+        input[type="range"] {
+          width: 100%;
+          accent-color: #2563eb;
+        }
+
+        .tenureSwitch {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+
+        .tenureSwitch button {
+          border: 1px solid rgba(15,23,42,0.1);
+          border-radius: 14px;
+          background: #ffffff;
+          padding: 12px;
+          font-weight: 1000;
+          cursor: pointer;
+        }
+
+        .tenureSwitch button.active {
+          background: #2563eb;
+          color: #ffffff;
+          border-color: #2563eb;
+        }
+
+        .eligibilityDivider {
+          margin-top: 8px;
+          padding: 12px;
+          border-radius: 16px;
+          background: #eff6ff;
+          border: 1px solid rgba(37,99,235,0.12);
+        }
+
+        .eligibilityDivider strong {
+          display: block;
+          color: #1d4ed8;
+          font-size: 15px;
+          font-weight: 1000;
+        }
+
+        .eligibilityDivider span {
+          display: block;
+          margin-top: 6px;
+          color: #64748b;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .emiResult {
+          display: grid;
+          gap: 14px;
+          border-radius: 24px;
+          background: linear-gradient(135deg, #0f172a, #1d4ed8);
+          padding: 22px;
+          color: #ffffff;
+          overflow: hidden;
+        }
+
+        .mainResult,
+        .resultGrid div,
+        .summaryBox,
+        .eligibilityBox,
+        .aiBudgetBox,
+        .aiHealthBox,
+        .aiRentBox,
+        .aiDownPaymentBox,
+        .aiBuyingCostBox,
+        .aiDiscoveryBridge {
+          border-radius: 18px;
+          background: rgba(255,255,255,0.10);
+          padding: 16px;
+          min-width: 0;
+        }
+
+        .mainResult span,
+        .resultGrid span,
+        .eligibilityGrid span,
+        .aiBudgetHeader span {
+          display: block;
+          color: rgba(255,255,255,0.74);
+          font-size: 13px;
+          font-weight: 800;
+        }
+
+        .mainResult strong {
+          display: block;
+          margin-top: 8px;
+          font-size: clamp(32px, 5vw, 52px);
+          line-height: 1;
+          font-weight: 1000;
+          overflow-wrap: anywhere;
+        }
+
+        .mainResult small {
+          display: block;
+          margin-top: 10px;
+          color: rgba(255,255,255,0.70);
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .resultGrid,
+        .eligibilityGrid,
+        .emiActions,
+        .emiUtilityActions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+
+        .resultGrid strong,
+        .eligibilityGrid strong {
+          display: block;
+          margin-top: 7px;
+          font-size: 18px;
+          font-weight: 1000;
+          overflow-wrap: anywhere;
+        }
+
+        .chartBox {
+          width: 100%;
+          height: 240px;
+          border-radius: 18px;
+          background: rgba(255,255,255,0.08);
+          padding: 10px;
+        }
+
+        .paymentBar {
+          height: 14px;
+          border-radius: 999px;
+          overflow: hidden;
+          display: flex;
+          background: rgba(255,255,255,0.14);
+          margin-top: 10px;
+        }
+
+        .principalBar { background: #22c55e; }
+        .interestBar { background: #f97316; }
+
+        .legend {
+          display: flex;
+          gap: 16px;
+          flex-wrap: wrap;
+          color: rgba(255,255,255,0.78);
+          font-size: 12px;
+          font-weight: 900;
+        }
+
+        .legend span {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+        }
+
+        .legend b {
+          width: 10px;
+          height: 10px;
+          border-radius: 99px;
+          display: inline-block;
+        }
+
+        .principalDot { background: #22c55e; }
+        .interestDot { background: #f97316; }
+
+        .eligibilityTips p,
+        .summaryBox p,
+        .aiDiscoveryBridge span,
+        .aiBudgetBox p,
+        .aiHealthBox p,
+        .aiRentBox p,
+        .aiDownPaymentBox p,
+        .aiBuyingCostBox p {
+          margin: 8px 0 0;
+          color: rgba(255,255,255,0.76);
+          font-size: 13px;
+          line-height: 1.6;
+          font-weight: 700;
+        }
+
+        .aiBudgetHeader strong,
+        .summaryBox strong,
+        .aiDiscoveryBridge strong {
+          display: block;
+          color: #ffffff;
+          font-size: 16px;
+          line-height: 1.25;
+          font-weight: 1000;
+          overflow-wrap: anywhere;
+        }
+
+        .aiBudgetHeader small {
+          display: inline-flex;
+          margin-top: 8px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.14);
+          padding: 6px 10px;
+          font-size: 12px;
+          font-weight: 1000;
+        }
+
+        .aiBudgetBox details,
+        .aiHealthBox details,
+        .aiRentBox details,
+        .aiDownPaymentBox details,
+        .aiBuyingCostBox details {
+          margin-top: 8px;
+          border-radius: 12px;
+          background: rgba(255,255,255,0.08);
+          padding: 8px 10px;
+        }
+
+        .aiBudgetBox summary,
+        .aiHealthBox summary,
+        .aiRentBox summary,
+        .aiDownPaymentBox summary,
+        .aiBuyingCostBox summary {
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 1000;
+        }
+
+        .aiHealthBox {
+          background: linear-gradient(135deg, rgba(34,197,94,0.16), rgba(59,130,246,0.14));
+        }
+
+        .aiRentBox {
+          background: linear-gradient(135deg, rgba(14,165,233,0.16), rgba(168,85,247,0.14));
+        }
+
+        .aiDownPaymentBox {
+          background: linear-gradient(135deg, rgba(234,179,8,0.18), rgba(249,115,22,0.16));
+        }
+
+        .aiBuyingCostBox {
+          background: linear-gradient(135deg, rgba(236,72,153,0.16), rgba(99,102,241,0.16));
+        }
+
+        .emiActions a,
+        .emiUtilityActions button {
+          border-radius: 15px;
+          background: #ffffff;
+          color: #1d4ed8;
+          padding: 14px;
+          text-align: center;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 1000;
+          border: 0;
+          cursor: pointer;
+        }
+
+        .emiUtilityActions button {
+          background: rgba(255,255,255,0.12);
+          color: #ffffff;
+          border: 1px solid rgba(255,255,255,0.18);
+        }
+
+        .sectionHeading {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .sectionHeading h2 {
+          margin: 0;
+          color: #0f172a;
+          font-size: 26px;
+          font-weight: 1000;
+          letter-spacing: -0.04em;
+        }
+
+        .sectionHeading span {
+          color: #64748b;
+          font-size: 13px;
+          font-weight: 800;
         }
 
         .stateSelect {
-          border: 1px solid rgba(15, 23, 42, 0.12);
+          max-width: 100%;
+          border: 1px solid rgba(15,23,42,0.12);
           border-radius: 14px;
           background: #ffffff;
           color: #0f172a;
@@ -1505,7 +1912,7 @@ const result = useMemo(() => {
 
         .bankTabs button {
           flex: 0 0 auto;
-          border: 1px solid rgba(37, 99, 235, 0.14);
+          border: 1px solid rgba(37,99,235,0.14);
           border-radius: 999px;
           background: #ffffff;
           color: #1e293b;
@@ -1544,18 +1951,30 @@ const result = useMemo(() => {
           font-weight: 800;
         }
 
-        .bankTableWrap {
+        .bankTableWrap,
+        .scheduleTableWrap {
           margin-top: 18px;
+          width: 100%;
           overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
         }
 
-        .bankTable {
+        .bankTable,
+        .scheduleTable {
           width: 100%;
-          min-width: 900px;
           border-collapse: collapse;
         }
 
-        .bankTable th {
+        .bankTable {
+          min-width: 860px;
+        }
+
+        .scheduleTable {
+          min-width: 720px;
+        }
+
+        .bankTable th,
+        .scheduleTable th {
           background: #eff6ff;
           color: #1d4ed8;
           font-size: 13px;
@@ -1564,7 +1983,8 @@ const result = useMemo(() => {
           padding: 14px;
         }
 
-        .bankTable td {
+        .bankTable td,
+        .scheduleTable td {
           padding: 13px 14px;
           border-top: 1px solid rgba(15,23,42,0.06);
           color: #334155;
@@ -1590,7 +2010,7 @@ const result = useMemo(() => {
 
         .bankRateInput {
           width: 82px;
-          border: 1px solid rgba(15, 23, 42, 0.12);
+          border: 1px solid rgba(15,23,42,0.12);
           border-radius: 10px;
           padding: 8px;
           font-size: 13px;
@@ -1598,14 +2018,10 @@ const result = useMemo(() => {
           color: #0f172a;
         }
 
-        .bankTable b {
-          margin-left: 4px;
-        }
-
         .seeMoreBanksButton {
           margin-top: 14px;
           width: 100%;
-          border: 1px solid rgba(37, 99, 235, 0.18);
+          border: 1px solid rgba(37,99,235,0.18);
           border-radius: 14px;
           background: linear-gradient(135deg, #eff6ff, #ffffff);
           color: #1d4ed8;
@@ -1615,653 +2031,12 @@ const result = useMemo(() => {
           cursor: pointer;
         }
 
-        .seeMoreBanksButton:hover {
-          background: #eff6ff;
-        }
-
         .bankDisclaimer {
           margin: 14px 0 0;
           color: #64748b;
           font-size: 13px;
           font-weight: 750;
           line-height: 1.6;
-        }
-        
-        .scheduleSection {
-          max-width: 1160px;
-          margin: 24px auto 0;
-          border-radius: 24px;
-          background: #ffffff;
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
-          padding: 22px;
-        }
-
-        .sectionHeading {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          flex-wrap: wrap;
-        }
-
-        .sectionHeading h2 {
-          margin: 0;
-          color: #0f172a;
-          font-size: 26px;
-          font-weight: 1000;
-          letter-spacing: -0.04em;
-        }
-
-        .sectionHeading span {
-          color: #64748b;
-          font-size: 13px;
-          font-weight: 800;
-        }
-
-        .scheduleTableWrap {
-          overflow-x: auto;
-          margin-top: 18px;
-        }
-
-        .scheduleTable {
-          width: 100%;
-          border-collapse: collapse;
-          min-width: 760px;
-        }
-
-        .scheduleTable th {
-          background: #eff6ff;
-          color: #1d4ed8;
-          font-size: 13px;
-          font-weight: 1000;
-          text-align: left;
-          padding: 14px;
-        }
-
-        .scheduleTable td {
-          padding: 14px;
-          border-top: 1px solid rgba(15,23,42,0.06);
-          color: #334155;
-          font-size: 14px;
-          font-weight: 700;
-        }
-
-        .scheduleTable tr:hover td {
-          background: #f8fbff;
-        }
-
-        .emiUtilityActions {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-        }
-
-        .emiUtilityActions button {
-          border: 1px solid rgba(255,255,255,0.18);
-          border-radius: 15px;
-          background: rgba(255,255,255,0.10);
-          color: #ffffff;
-          padding: 13px;
-          text-align: center;
-          font-size: 13px;
-          font-weight: 1000;
-          cursor: pointer;
-        }
-
-        .emiUtilityActions button:hover {
-          background: rgba(255,255,255,0.16);
-        }
-
-        .emiInfo {
-
-          max-width: 1160px;
-          margin: 0 auto;
-        }
-
-        .emiHero {
-          padding: 34px 0 24px;
-          display: grid;
-          grid-template-columns: 1fr auto;
-          gap: 18px;
-          align-items: end;
-        }
-
-        .emiHero span {
-          display: inline-flex;
-          border-radius: 999px;
-          background: #eef4ff;
-          color: #2563eb;
-          padding: 8px 14px;
-          font-size: 13px;
-          font-weight: 900;
-        }
-
-        .emiHero h1 {
-          margin: 16px 0 0;
-          font-size: clamp(38px, 5vw, 68px);
-          line-height: 1;
-          letter-spacing: -0.06em;
-          color: #0f172a;
-          font-weight: 1000;
-        }
-
-        .emiHero p {
-          max-width: 740px;
-          margin-top: 14px;
-          color: #475569;
-          font-size: 17px;
-          line-height: 1.7;
-          font-weight: 700;
-        }
-
-        .heroMiniCard {
-          min-width: 260px;
-          border-radius: 24px;
-          background: linear-gradient(135deg, #0f172a, #2563eb);
-          color: white;
-          padding: 22px;
-          box-shadow: 0 18px 44px rgba(37, 99, 235, 0.18);
-        }
-
-        .heroMiniCard strong {
-          display: block;
-          font-size: 32px;
-          font-weight: 1000;
-        }
-
-        .heroMiniCard span {
-          margin-top: 8px;
-          background: transparent;
-          color: rgba(255,255,255,0.75);
-          padding: 0;
-        }
-
-        .emiCard {
-          display: grid;
-          grid-template-columns: 1fr 0.95fr;
-          gap: 22px;
-          background: rgba(255, 255, 255, 0.94);
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          border-radius: 30px;
-          padding: 24px;
-          box-shadow: 0 24px 70px rgba(15, 23, 42, 0.09);
-          backdrop-filter: blur(18px);
-        }
-
-        .emiForm {
-          display: grid;
-          gap: 9px;
-        }
-
-        .fieldTop {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          margin-top: 4px;
-        }
-
-        .fieldTop label {
-          color: #0f172a;
-          font-size: 14px;
-          font-weight: 950;
-        }
-
-        .fieldTop strong {
-          color: #2563eb;
-          font-size: 14px;
-          font-weight: 1000;
-        }
-
-        input[type="number"] {
-          width: 100%;
-          min-height: 44px;
-          border: 1px solid rgba(15, 23, 42, 0.12);
-          border-radius: 14px;
-          padding: 10px 12px;
-          font-size: 14px;
-          font-weight: 850;
-          outline: none;
-          color: #0f172a;
-          background: #ffffff;
-        }
-
-        .emiForm input[type="number"] {
-          max-height: 46px;
-          margin-top: -4px;
-        }
-
-        input[type="number"]:focus {
-          border-color: #2563eb;
-          box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-        }
-
-        input[type="range"] {
-          width: 100%;
-          accent-color: #2563eb;
-        }
-
-        .tenureSwitch {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 8px;
-        }
-
-        .tenureSwitch button {
-          border: 1px solid rgba(15, 23, 42, 0.1);
-          border-radius: 14px;
-          background: #ffffff;
-          padding: 12px;
-          font-weight: 1000;
-          cursor: pointer;
-        }
-
-        .tenureSwitch button.active {
-          background: #2563eb;
-          color: #ffffff;
-          border-color: #2563eb;
-        }
-
-        .emiResult {
-          display: grid;
-          gap: 14px;
-          border-radius: 24px;
-          background: linear-gradient(135deg, #0f172a, #1d4ed8);
-          padding: 22px;
-          color: white;
-        }
-
-        .mainResult,
-        .resultGrid div,
-        .summaryBox {
-          border-radius: 18px;
-          background: rgba(255, 255, 255, 0.1);
-          padding: 16px;
-        }
-
-        .mainResult span,
-        .resultGrid span {
-          display: block;
-          color: rgba(255, 255, 255, 0.74);
-          font-size: 13px;
-          font-weight: 800;
-        }
-
-        .mainResult strong {
-          display: block;
-          margin-top: 8px;
-          font-size: clamp(34px, 5vw, 52px);
-          line-height: 1;
-          font-weight: 1000;
-        }
-
-        .mainResult small {
-          display: block;
-          margin-top: 10px;
-          color: rgba(255, 255, 255, 0.7);
-          font-size: 12px;
-          font-weight: 800;
-        }
-
-        .resultGrid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-        }
-
-        .resultGrid strong {
-          display: block;
-          margin-top: 7px;
-          font-size: 18px;
-          font-weight: 1000;
-        }
-
-        
-        .chartSection {
-          display: grid;
-          gap: 10px;
-        }
-
-        .chartBox {
-          width: 100%;
-          height: 240px;
-          border-radius: 18px;
-          background: rgba(255,255,255,0.08);
-          padding: 10px;
-        }
-
-        .paymentBar {
-          height: 14px;
-          border-radius: 999px;
-          overflow: hidden;
-          display: flex;
-          background: rgba(255,255,255,0.14);
-        }
-
-        .principalBar {
-          background: #22c55e;
-        }
-
-        .interestBar {
-          background: #f97316;
-        }
-
-        .legend {
-          display: flex;
-          gap: 16px;
-          flex-wrap: wrap;
-          color: rgba(255,255,255,0.78);
-          font-size: 12px;
-          font-weight: 900;
-        }
-
-        .legend span {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-        }
-
-        .legend b {
-          width: 10px;
-          height: 10px;
-          border-radius: 99px;
-          display: inline-block;
-        }
-
-        .principalDot {
-          background: #22c55e;
-        }
-
-        .interestDot {
-          background: #f97316;
-        }
-
-        .eligibilityDivider {
-          margin-top: 6px;
-          padding: 12px;
-
-        .eligibilityDivider strong {
-          display: block;
-          color: #1d4ed8;
-          font-size: 15px;
-          font-weight: 1000;
-        }
-
-        .eligibilityDivider span {
-          display: block;
-          margin-top: 6px;
-          color: #64748b;
-          font-size: 12px;
-          font-weight: 800;
-        }
-
-        .eligibilityBox {
-          border-radius: 18px;
-          background: rgba(255,255,255,0.10);
-          padding: 16px;
-        }
-
-        .eligibilityBox > strong {
-          display: block;
-          font-size: 15px;
-          font-weight: 1000;
-        }
-
-        .eligibilityGrid {
-          margin-top: 14px;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-        }
-
-        .eligibilityGrid div {
-          border-radius: 14px;
-          background: rgba(255,255,255,0.08);
-          padding: 14px;
-        }
-
-        .eligibilityGrid span {
-          display: block;
-          color: rgba(255,255,255,0.7);
-          font-size: 12px;
-          font-weight: 800;
-        }
-
-        .eligibilityGrid strong {
-          display: block;
-          margin-top: 6px;
-          font-size: 18px;
-          font-weight: 1000;
-        }
-
-        .eligibilityTips {
-          margin-top: 14px;
-        }
-
-        .eligibilityTips p {
-          margin: 8px 0 0;
-          color: rgba(255,255,255,0.75);
-          font-size: 13px;
-          line-height: 1.6;
-          font-weight: 700;
-        }
-
-        .aiBudgetBox,
-        .aiHealthBox,
-        .aiRentBox,
-        .aiDownPaymentBox,
-        .aiBuyingCostBox {
-          border-radius: 16px;
-          background: rgba(255,255,255,0.12);
-          padding: 12px;
-        }
-
-        .aiHealthBox {
-          background: linear-gradient(135deg, rgba(34,197,94,0.16), rgba(59,130,246,0.14));
-        }
-
-        .aiRentBox {
-          background: linear-gradient(135deg, rgba(14,165,233,0.16), rgba(168,85,247,0.14));
-        }
-
-        .aiDownPaymentBox {
-          background: linear-gradient(135deg, rgba(234,179,8,0.18), rgba(249,115,22,0.16));
-        }
-
-        .aiBuyingCostBox {
-          background: linear-gradient(
-            135deg,
-            rgba(236,72,153,0.16),
-            rgba(99,102,241,0.16)
-          );
-        }
-
-        .aiBudgetHeader span {
-          display: block;
-          color: rgba(255,255,255,0.74);
-          font-size: 13px;
-          font-weight: 900;
-        }
-
-        .aiBudgetHeader strong {
-          display: block;
-          margin-top: 5px;
-          font-size: 18px;
-          line-height: 1.2;
-          font-weight: 1000;
-        }
-
-        .aiBudgetHeader small {
-          display: inline-flex;
-          margin-top: 8px;
-          border-radius: 999px;
-          background: rgba(255,255,255,0.14);
-          padding: 6px 10px;
-          font-size: 12px;
-          font-weight: 1000;
-        }
-
-        .aiBudgetBox details,
-        .aiHealthBox details,
-        .aiRentBox details,
-        .aiDownPaymentBox details,
-        .aiBuyingCostBox details {
-          margin-top: 7px;
-          border-radius: 12px;
-          background: rgba(255,255,255,0.08);
-          padding: 8px 10px;
-        }
-
-        .aiBudgetBox summary,
-        .aiHealthBox summary,
-        .aiRentBox summary,
-        .aiDownPaymentBox summary,
-        .aiBuyingCostBox summary {
-          cursor: pointer;
-          font-size: 13px;
-          font-weight: 1000;
-        }
-
-        .aiBudgetBox p,
-        .aiHealthBox p,
-        .aiRentBox p,
-        .aiDownPaymentBox p,
-        .aiBuyingCostBox p {
-          margin: 9px 0 0;
-          color: rgba(255,255,255,0.76);
-          font-size: 13px;
-          line-height: 1.6;
-          font-weight: 700;
-        }
-
-        .summaryBox strong {
-          display: block;
-          font-size: 15px;
-          font-weight: 1000;
-        }
-
-        .summaryBox p {
-          margin: 8px 0 0;
-          color: rgba(255,255,255,0.76);
-          font-size: 13px;
-          line-height: 1.6;
-          font-weight: 700;
-        }
-
-        .aiDiscoveryBridge {
-          margin-top: 14px;
-          border-radius: 18px;
-          background: rgba(255,255,255,0.12);
-          padding: 14px;
-        }
-
-        .aiDiscoveryBridge strong {
-          display: block;
-          color: #ffffff;
-          font-size: 14px;
-          font-weight: 1000;
-        }
-
-        .aiDiscoveryBridge span {
-          display: block;
-          margin-top: 6px;
-          color: rgba(255,255,255,0.76);
-          font-size: 13px;
-          line-height: 1.55;
-          font-weight: 750;
-        }
-
-        .emiActions {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-        }
-
-        .emiActions a {
-          border-radius: 15px;
-          background: white;
-          color: #1d4ed8;
-          padding: 14px;
-          text-align: center;
-          text-decoration: none;
-          font-size: 14px;
-          font-weight: 1000;
-        }
-
-        
-        .scheduleSection {
-          max-width: 1160px;
-          margin: 24px auto 0;
-          border-radius: 24px;
-          background: #ffffff;
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
-          padding: 22px;
-        }
-
-        .sectionHeading {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          flex-wrap: wrap;
-        }
-
-        .sectionHeading h2 {
-          margin: 0;
-          color: #0f172a;
-          font-size: 26px;
-          font-weight: 1000;
-          letter-spacing: -0.04em;
-        }
-
-        .sectionHeading span {
-          color: #64748b;
-          font-size: 13px;
-          font-weight: 800;
-        }
-
-        .scheduleTableWrap {
-          overflow-x: auto;
-          margin-top: 18px;
-        }
-
-        .scheduleTable {
-          width: 100%;
-          border-collapse: collapse;
-          min-width: 760px;
-        }
-
-        .scheduleTable th {
-          background: #eff6ff;
-          color: #1d4ed8;
-          font-size: 13px;
-          font-weight: 1000;
-          text-align: left;
-          padding: 14px;
-        }
-
-        .scheduleTable td {
-          padding: 14px;
-          border-top: 1px solid rgba(15,23,42,0.06);
-          color: #334155;
-          font-size: 14px;
-          font-weight: 700;
-        }
-
-        .scheduleTable tr:hover td {
-          background: #f8fbff;
-        }
-
-        .emiInfo {
-
-          margin-top: 24px;
-          background: #ffffff;
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          border-radius: 24px;
-          padding: 22px;
-          box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
         }
 
         .emiInfo h2 {
@@ -2316,7 +2091,7 @@ const result = useMemo(() => {
           }
 
           .heroMiniCard {
-            min-width: 0;
+            width: 100%;
           }
 
           .infoGrid {
@@ -2326,24 +2101,38 @@ const result = useMemo(() => {
 
         @media (max-width: 640px) {
           .emiPage {
-            padding: 18px 10px 50px;
+            padding: 14px 10px 44px;
+          }
+
+          .emiHero,
+          .emiCard,
+          .bankCompareSection,
+          .scheduleSection,
+          .emiInfo {
+            margin-top: 14px;
+            border-radius: 20px;
+            padding: 14px;
           }
 
           .emiHero {
-            padding: 24px 0 16px;
+            gap: 12px;
           }
 
           .emiHero h1 {
-            font-size: 38px;
+            font-size: 34px;
           }
 
           .emiHero p {
             font-size: 14px;
+            line-height: 1.55;
           }
 
-          .emiCard {
-            border-radius: 20px;
-            padding: 14px;
+          .heroMiniCard {
+            padding: 16px;
+          }
+
+          .heroMiniCard strong {
+            font-size: 28px;
           }
 
           .emiResult {
@@ -2351,10 +2140,48 @@ const result = useMemo(() => {
             padding: 14px;
           }
 
+          .fieldTop {
+            align-items: flex-start;
+          }
+
+          .fieldTop label,
+          .fieldTop strong {
+            font-size: 13px;
+          }
+
           .resultGrid,
+          .eligibilityGrid,
           .emiActions,
           .emiUtilityActions {
             grid-template-columns: 1fr;
+          }
+
+          .mainResult strong {
+            font-size: 32px;
+          }
+
+          .chartBox {
+            height: 210px;
+          }
+
+          .sectionHeading {
+            display: grid;
+            gap: 8px;
+          }
+
+          .sectionHeading h2 {
+            font-size: 22px;
+          }
+
+          .bankCompareSection,
+          .scheduleSection {
+            overflow: hidden;
+          }
+
+          .bankTableWrap,
+          .scheduleTableWrap {
+            border-radius: 14px;
+            border: 1px solid rgba(15,23,42,0.08);
           }
         }
       `}</style>
