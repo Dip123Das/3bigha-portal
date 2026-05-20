@@ -1407,42 +1407,49 @@ if (want.includes("rentals")) {
 
       <div style={{ height: 12 }} />
 
-      {hasQuery && rfqConversion.show ? (
+      {hasQuery && !loading && rows.length === 0 ? (
+        <>
+          <EmptyState message="No results found. Try a broader keyword or choose All category." />
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
+      {hasQuery && rows.length > 0 && rfqConversion.show ? (
         <>
           <SearchToRfqConversionCard conversion={rfqConversion} />
           <div style={{ height: 12 }} />
         </>
       ) : null}
 
-      {hasQuery && vendorLiquidity.show ? (
+      {hasQuery && rows.length > 0 && vendorLiquidity.show ? (
         <>
           <VendorLiquidityPanel insight={vendorLiquidity} />
           <div style={{ height: 12 }} />
         </>
       ) : null}
 
-      {hasQuery && procurementDecision.show ? (
+      {hasQuery && rows.length > 0 && procurementDecision.show ? (
         <>
           <ProcurementDecisionPanel insight={procurementDecision} />
           <div style={{ height: 12 }} />
         </>
       ) : null}
 
-      {hasQuery && vendorIntelligence.show ? (
+      {hasQuery && rows.length > 0 && vendorIntelligence.show ? (
         <>
           <VendorIntelligencePanel insight={vendorIntelligence} />
           <div style={{ height: 12 }} />
         </>
       ) : null}
 
-      {hasQuery && vendorNegotiation.show ? (
+      {hasQuery && rows.length > 0 && vendorNegotiation.show ? (
         <>
           <VendorNegotiationPanel insight={vendorNegotiation} />
           <div style={{ height: 12 }} />
         </>
       ) : null}
 
-      {hasQuery && procurementActionCopilot.show ? (
+      {hasQuery && rows.length > 0 && procurementActionCopilot.show ? (
         <>
           <ProcurementActionCopilot insight={procurementActionCopilot} />
           <div style={{ height: 12 }} />
@@ -1509,7 +1516,7 @@ if (want.includes("rentals")) {
         </>
       ) : null}
 
-      {hasQuery && aiRecommendations.length > 0 ? (
+      {hasQuery && rows.length > 0 && aiRecommendations.length > 0 ? (
         <>
           <Card>
             <CardBody>
@@ -1787,9 +1794,7 @@ if (want.includes("rentals")) {
         <EmptyState message={err} />
       ) : !hasQuery ? (
         <EmptyState message="Type a query above (example: Cooch Behar, Jalpaiguri, plot, cement) — results will appear automatically." />
-      ) : rows.length === 0 ? (
-        <EmptyState message="No results found." />
-      ) : (
+      ) : rows.length === 0 ? null : (
         <>
           <div style={{ marginBottom: 10, fontWeight: 900, opacity: 0.8 }}>Results: {rows.length}</div>
 
