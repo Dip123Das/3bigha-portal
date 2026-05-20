@@ -33,6 +33,28 @@ type AiSearchIntent = {
   error?: string;
 };
 
+type DiscoveryMemoryItem = {
+  id: string;
+  module: "property" | "materials" | "services" | "rentals";
+  title: string;
+  href: string;
+  city?: string | null;
+  district?: string | null;
+  locality?: string | null;
+  viewedAt: number;
+};
+
+function readDiscoveryMemory(): DiscoveryMemoryItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem("3bigha.discovery.memory.v1");
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.slice(0, 10) : [];
+  } catch {
+    return [];
+  }
+}
+
 type ResultRow = {
   module: SearchModule;
   id: string;
@@ -46,6 +68,9 @@ type ResultRow = {
 
   _lat?: number | null;
   _lng?: number | null;
+
+  _aiScore?: number;
+  _aiReason?: string;
 };
 
 type AiRecommendation = {
@@ -138,6 +163,109 @@ function parseNum(v: string | null) {
   return Number.isFinite(n) ? n : null;
 }
 
+function detectLightweightSearchIntent(query: string) {
+  const q = safeText(query).toLowerCase();
+
+  return {
+    wantsProperty:
+      /land|plot|flat|house|home|property|জমি|বাড়ি|फ्लैट|जमीन/.test(q),
+    wantsMaterials:
+      /cement|rod|tmt|brick|sand|stone|tiles|paint|সিমেন্ট|রড|ইট|बालू/.test(q),
+    wantsServices:
+      /mason|rajmistri|contractor|electrician|plumber|architect|service|মিস্ত্রি|রাজমিস্ত্রি|ठेकेदार/.test(q),
+    wantsRentals:
+      /jcb|rental|rent|mixer|scaffold|machine|ভাড়া|किराया/.test(q),
+    wantsCheap:
+      /cheap|budget|low price|কম দাম|সস্তা|सस्ता|budget/.test(q),
+    wantsInvestment:
+      /investment|growth|future|return|bargain|high growth|বিনিয়োগ|लाभ/.test(q),
+    wantsNearby:
+      /near me|nearby|near|local|লোকাল|पास|नजदीक/.test(q),
+  };
+}
+
+function scoreSearchResultForUser(input: {
+  row: ResultRow;
+  query: string;
+  memory: DiscoveryMemoryItem[];
+  moduleFilter: ModFilter;
+}) {
+  const { row, query, memory, moduleFilter } = input;
+  const intent = detectLightweightSearchIntent(query);
+  const text = `${row.title || ""} ${row.subtitle || ""} ${row.meta || ""}`.toLowerCase();
+
+  let score = 0;
+  const reasons: string[] = [];
+
+  if (moduleFilter !== "all" && row.module === moduleFilter) {
+    score += 18;
+    reasons.push("module match");
+  }
+
+  if (text.includes(query.toLowerCase())) {
+    score += 20;
+    reasons.push("exact query match");
+  }
+
+  for (const token of query.toLowerCase().split(/\s+/).filter((x) => x.length >= 3).slice(0, 8)) {
+    if (text.includes(token)) score += 5;
+  }
+
+  if (intent.wantsProperty && row.module === "property") {
+    score += 18;
+    reasons.push("property intent");
+  }
+  if (intent.wantsMaterials && row.module === "materials") {
+    score += 18;
+    reasons.push("material intent");
+  }
+  if (intent.wantsServices && row.module === "services") {
+    score += 18;
+    reasons.push("service intent");
+  }
+  if (intent.wantsRentals && row.module === "rentals") {
+    score += 18;
+    reasons.push("rental intent");
+  }
+
+  if (intent.wantsCheap && row._price != null && row._price > 0) {
+    score += 8;
+    reasons.push("budget signal");
+  }
+
+  if (intent.wantsInvestment && row.module === "property") {
+    score += 10;
+    reasons.push("investment signal");
+  }
+
+  for (const item of memory.slice(0, 8)) {
+    const mText = `${item.locality || ""} ${item.city || ""} ${item.district || ""} ${item.title || ""}`.toLowerCase();
+    const recency = Math.max(0.35, 1 - (Date.now() - Number(item.viewedAt || 0)) / 1000 / 60 / 60 / 24 / 14);
+
+    if (item.module === row.module) {
+      score += Math.round(5 * recency);
+    }
+
+    for (const place of [item.locality, item.city, item.district].filter(Boolean)) {
+      const p = String(place).toLowerCase();
+      if (p && text.includes(p)) {
+        score += Math.round(14 * recency);
+        reasons.push("near recent interest");
+        break;
+      }
+    }
+
+    if (mText && query.toLowerCase().includes(mText)) {
+      score += Math.round(6 * recency);
+    }
+  }
+
+  return {
+    score,
+    reason: reasons[0] || "marketplace match",
+  };
+}
+
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const toRad = (x: number) => (x * Math.PI) / 180;
   const R = 6371;
@@ -225,6 +353,7 @@ function SearchPageInner() {
   const [aiBusy, setAiBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [rows, setRows] = useState<ResultRow[]>([]);
+  const [recentDiscovery, setRecentDiscovery] = useState<DiscoveryMemoryItem[]>([]);
   const [note, setNote] = useState<string | null>(null);
   const [lastAiIntent, setLastAiIntent] = useState<AiSearchIntent | null>(null);
   const [aiRecommendations, setAiRecommendations] = useState<AiRecommendation[]>([]);
@@ -735,7 +864,7 @@ if (want.includes("rentals")) {
           }
         }
 
-        // Sort by module
+        // AI Dynamic Search Intelligence: lightweight local ranking
         const order: Record<SearchModule, number> = {
           property: 1,
           materials: 2,
@@ -743,7 +872,29 @@ if (want.includes("rentals")) {
           rentals: 4,
           blog: 5,
         };
-        filtered.sort((a, b) => (order[a.module] ?? 99) - (order[b.module] ?? 99));
+
+        const memory = readDiscoveryMemory();
+
+        filtered = filtered
+          .map((row) => {
+            const ai = scoreSearchResultForUser({
+              row,
+              query: q,
+              memory,
+              moduleFilter: modFromUrl,
+            });
+
+            return {
+              ...row,
+              _aiScore: ai.score,
+              _aiReason: ai.reason,
+            };
+          })
+          .sort((a, b) => {
+            const aiDiff = (b._aiScore || 0) - (a._aiScore || 0);
+            if (aiDiff !== 0) return aiDiff;
+            return (order[a.module] ?? 99) - (order[b.module] ?? 99);
+          });
 
         if (!alive) return;
         setRows(filtered);
@@ -837,6 +988,10 @@ if (want.includes("rentals")) {
       alive = false;
     };
   }, [qFromUrl, modFromUrl]);
+
+  useEffect(() => {
+    setRecentDiscovery(readDiscoveryMemory());
+  }, []);
 
   const hasQuery = !!safeText(qFromUrl);
 
@@ -1346,6 +1501,73 @@ if (want.includes("rentals")) {
 
       <div style={{ height: 12 }} />
 
+      {!hasQuery && recentDiscovery.length ? (
+        <Card>
+          <CardBody>
+            <div style={{ fontWeight: 1000, color: "#1e3a8a" }}>✨ Continue your discovery</div>
+            <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
+              Recently viewed properties and localities can help you search faster.
+            </div>
+
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+              {recentDiscovery.slice(0, 6).map((item) => (
+                <Link
+                  key={`${item.module}:${item.id}`}
+                  href={item.href}
+                  style={{
+                    textDecoration: "none",
+                    border: "1px solid #bfdbfe",
+                    background: "#eff6ff",
+                    borderRadius: 999,
+                    padding: "8px 12px",
+                    color: "#1d4ed8",
+                    fontSize: 12,
+                    fontWeight: 950,
+                  }}
+                >
+                  {item.locality || item.city || item.title}
+                </Link>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
+      ) : null}
+
+      <div style={{ height: 12 }} />
+
+      {hasQuery ? (
+        <Card>
+          <CardBody>
+            <div style={{ display: "flex", gap: 10, alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontWeight: 1000, color: "#1e3a8a" }}>🧠 AI Dynamic Search Intelligence</div>
+                <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
+                  Results are ranked using query intent, locality signals, marketplace module fit and recent discovery memory.
+                </div>
+              </div>
+
+              <Link
+                href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`}
+                style={{
+                  textDecoration: "none",
+                  border: "1px solid #bfdbfe",
+                  background: "#eff6ff",
+                  color: "#1d4ed8",
+                  borderRadius: 999,
+                  padding: "8px 12px",
+                  fontSize: 12,
+                  fontWeight: 950,
+                }}
+              >
+                Convert to RFQ →
+              </Link>
+            </div>
+          </CardBody>
+        </Card>
+      ) : null}
+
+      <div style={{ height: 12 }} />
+
       {loading ? (
         <EmptyState message="Searching…" />
       ) : err ? (
@@ -1389,8 +1611,23 @@ if (want.includes("rentals")) {
                               fontWeight: 950,
                             }}
                           >
-                            ✅ {moduleTrustLabel(r.module)}
+                            {moduleTrustLabel(r.module)}
                           </span>
+
+                          {(r._aiScore || 0) > 0 ? (
+                            <span
+                              style={{
+                                borderRadius: 999,
+                                background: "#fef3c7",
+                                color: "#92400e",
+                                padding: "5px 8px",
+                                fontSize: 11,
+                                fontWeight: 950,
+                              }}
+                            >
+                              AI Rank +{r._aiScore} • {r._aiReason}
+                            </span>
+                          ) : null}
                         </div>
 
                         <div style={{ marginTop: 8, fontWeight: 950, fontSize: 17, color: "#0f172a" }}>{r.title}</div>

@@ -13,6 +13,31 @@ import {
 
 type SearchScope = "property" | "materials" | "services" | "rentals" | "investment";
 
+type DiscoveryMemoryItem = {
+  id: string;
+  module: "property" | "materials" | "services" | "rentals";
+  title: string;
+  href: string;
+  city?: string | null;
+  district?: string | null;
+  locality?: string | null;
+  type?: string | null;
+  category?: string | null;
+  price?: number | null;
+  viewedAt: number;
+};
+
+function readDiscoveryMemory(): DiscoveryMemoryItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem("3bigha.discovery.memory.v1");
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.slice(0, 8) : [];
+  } catch {
+    return [];
+  }
+}
+
 type MarketplaceItem = {
   id: string;
   module: "Property" | "Material" | "Service" | "Rental";
@@ -96,6 +121,86 @@ function moduleIcon(module: MarketplaceItem["module"]) {
   return "🚜";
 }
 
+type DiscoveryRail = {
+  title: string;
+  subtitle: string;
+  href: string;
+  icon: string;
+  tone: string;
+};
+
+function buildHomepageDiscoveryRails(
+  recentDiscovery: DiscoveryMemoryItem[],
+  featuredItems: MarketplaceItem[]
+): DiscoveryRail[] {
+  const latest = recentDiscovery[0];
+  const location =
+    latest?.locality ||
+    latest?.city ||
+    latest?.district ||
+    "Cooch Behar";
+
+  const encodedLocation = encodeURIComponent(location);
+
+  const rails: DiscoveryRail[] = [
+    {
+      title: `Trending near ${location}`,
+      subtitle: "Explore properties, materials, vendors and rentals around this area.",
+      href: `/search?q=${encodedLocation}`,
+      icon: "📍",
+      tone: "Local Pulse",
+    },
+    {
+      title: "High-growth property opportunities",
+      subtitle: "Find land, plots and investment-friendly listings with strong local potential.",
+      href: `/property?sort=growth&q=${encodedLocation}`,
+      icon: "📈",
+      tone: "Growth",
+    },
+    {
+      title: "Build after buying",
+      subtitle: "Estimate house construction cost, materials and contractor needs.",
+      href: `/house-construction-cost?location=${encodedLocation}`,
+      icon: "🏗️",
+      tone: "Next Step",
+    },
+    {
+      title: "Materials for your project",
+      subtitle: "Cement, TMT, sand, bricks, tiles and finishing materials.",
+      href: `/materials?q=${encodedLocation}`,
+      icon: "🧱",
+      tone: "Materials",
+    },
+    {
+      title: "Services you may need",
+      subtitle: "Mason, architect, plumber, electrician, painter and legal support.",
+      href: `/services?q=${encodedLocation}`,
+      icon: "🛠️",
+      tone: "Services",
+    },
+    {
+      title: "Rent construction equipment",
+      subtitle: "JCB, mixer, scaffolding and site equipment near your area.",
+      href: `/rentals?q=${encodedLocation}`,
+      icon: "🚜",
+      tone: "Rentals",
+    },
+  ];
+
+  const hasLiveProperty = featuredItems.some((item) => item.module === "Property");
+  if (!hasLiveProperty) {
+    rails.push({
+      title: "Browse latest property listings",
+      subtitle: "See homes, plots, land and commercial spaces available now.",
+      href: "/property",
+      icon: "🏡",
+      tone: "Property",
+    });
+  }
+
+  return rails.slice(0, 6);
+}
+
 export default function HomePage() {
   const router = useRouter();
   const [scope, setScope] = useState<SearchScope>("property");
@@ -109,6 +214,7 @@ export default function HomePage() {
     }));
   }
   const [featuredItems, setFeaturedItems] = useState<MarketplaceItem[]>(fallbackFeatured);
+  const [recentDiscovery, setRecentDiscovery] = useState<DiscoveryMemoryItem[]>([]);
   const [activeTab, setActiveTab] = useState<"search" | "ai" | "post">("search");
 
   const placeholder = useMemo(() => {
@@ -116,6 +222,15 @@ export default function HomePage() {
     if (activeTab === "post") return "Describe your requirement. Example: Need 500 bags cement in Cooch Behar within 7 days.";
     return "What do you need?\n\nExample: 500 bags cement in Cooch Behar, 2 katha land, mason, JCB rental...";
   }, [activeTab]);
+
+  const homepageDiscoveryRails = useMemo(
+    () => buildHomepageDiscoveryRails(recentDiscovery, featuredItems),
+    [recentDiscovery, featuredItems]
+  );
+
+  useEffect(() => {
+    setRecentDiscovery(readDiscoveryMemory());
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -385,6 +500,25 @@ export default function HomePage() {
 
       <section className="contentSection">
         <div className="sectionHead"><div><h2>Featured Listings</h2><p>Fresh opportunities from our marketplace</p></div><a href="/search">View all listings →</a></div>
+        {recentDiscovery.length ? (
+          <div className="personalFeedStrip">
+            <div>
+              <strong>Recommended for you</strong>
+              <span>Based on recently viewed property interest</span>
+            </div>
+
+            <div className="personalFeedItems">
+              {recentDiscovery.slice(0, 4).map((item) => (
+                <a key={`${item.module}:${item.id}`} href={item.href}>
+                  <b>✨ {item.module}</b>
+                  <strong>{item.title}</strong>
+                  <small>{[item.locality, item.city, item.district].filter(Boolean).join(", ") || "Continue browsing"}</small>
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         <div className={`listingGrid premiumListingsGrid ${mobileExpandedSections.featured ? "isMobileExpanded" : ""}`}>
           {featuredItems.map((item) => (
             <a href={item.href} className="listingCard" key={`${item.module}-${item.id}`}>
@@ -404,6 +538,32 @@ export default function HomePage() {
       </section>
         <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("featured")}>
           {mobileExpandedSections.featured ? "Show Less" : "See More Listings"}
+        </button>
+
+      <section className="contentSection">
+        <div className="sectionHead">
+          <div>
+            <h2>AI Discovery Rails</h2>
+            <p>Personalized next steps across property, materials, services and rentals</p>
+          </div>
+          <a href="/search">Explore all →</a>
+        </div>
+
+        <div className={`discoveryRailGrid premiumDiscoveryGrid ${mobileExpandedSections.discovery ? "isMobileExpanded" : ""}`}>
+          {homepageDiscoveryRails.map((rail) => (
+            <a href={rail.href} className="discoveryRailCard" key={rail.href}>
+              <div>
+                <b>{rail.icon}</b>
+                <span>{rail.tone}</span>
+              </div>
+              <strong>{rail.title}</strong>
+              <small>{rail.subtitle}</small>
+            </a>
+          ))}
+        </div>
+      </section>
+        <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("discovery")}>
+          {mobileExpandedSections.discovery ? "Show Less" : "See More AI Suggestions"}
         </button>
 
       <section className="contentSection">
@@ -516,15 +676,44 @@ export default function HomePage() {
           z-index: 1;
         }
 
-        .homePage{min-height:100vh;background:#fff;color:#0f172a;padding-bottom:24px}.heroShell{padding:38px 68px 28px;background:radial-gradient(circle at 18% 18%,#dbeafe 0,transparent 34%),radial-gradient(circle at 86% 12%,#ede9fe 0,transparent 30%),linear-gradient(180deg,#f8fbff,#fff)}.heroGrid{display:grid;grid-template-columns:1.03fr .97fr;gap:48px;align-items:center;max-width:1380px;margin:0 auto}.miniBadge{display:inline-flex;border-radius:999px;background:#eef4ff;color:#1d4ed8;padding:9px 14px;font-size:13px;font-weight:950}.heroCopy h1{margin:22px 0 0;font-size:clamp(44px,5.7vw,78px);line-height:1.02;letter-spacing:-.065em;font-weight:1000}.heroCopy h1 span{display:block;color:#2457d6}.heroCopy p{max-width:660px;margin:18px 0 0;color:#475569;font-size:18px;line-height:1.65;font-weight:650}.heroFeatureRow{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}.heroFeatureRow a{display:inline-flex;border-radius:999px;background:#fff;border:1px solid rgba(15,23,42,.08);box-shadow:0 10px 28px rgba(15,23,42,.05);padding:10px 14px;color:#0f172a;text-decoration:none;font-size:13px;font-weight:950}.searchCard{background:rgba(255,255,255,.92);border:1px solid rgba(15,23,42,.08);box-shadow:0 28px 80px rgba(15,23,42,.12);border-radius:28px;padding:24px}.searchTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-bottom:1px solid #e5e7eb;margin:-4px 0 18px;padding-bottom:10px}.searchTabs button{border:0;background:transparent;border-radius:14px;padding:12px 8px;font-weight:950;color:#475569;cursor:pointer}.searchTabs button.active{background:#eff6ff;color:#1d4ed8;box-shadow:inset 0 2px 0 #2563eb}.searchCard textarea{width:100%;min-height:126px;border:1px solid rgba(15,23,42,.14);border-radius:18px;padding:18px;font-size:15px;line-height:1.7;resize:none;outline:none;color:#0f172a}.typeChips{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.typeChips button{border:1px solid rgba(15,23,42,.1);background:#fff;border-radius:999px;padding:9px 13px;font-size:13px;font-weight:950;cursor:pointer}.typeChips button.active{background:#eef4ff;color:#1d4ed8;border-color:#bfdbfe}.searchActions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.searchActions button{border:0;border-radius:18px;padding:16px;font-weight:1000;cursor:pointer}.primaryAction{background:#1d4ed8;color:#fff;box-shadow:0 14px 34px rgba(29,78,216,.24)}.secondaryAction{background:#fff;border:1px solid rgba(15,23,42,.12)!important;color:#0f172a}.statsRail{max-width:1380px;margin:-2px auto 34px;padding:0 68px;display:grid;grid-template-columns:repeat(6,1fr);gap:0}.statCard{background:#fff;border:1px solid rgba(15,23,42,.08);box-shadow:0 12px 30px rgba(15,23,42,.06);padding:22px;display:flex;gap:13px;align-items:center}.statCard:first-child{border-radius:18px 0 0 18px}.statCard:last-child{border-radius:0 18px 18px 0}.statCard span{width:42px;height:42px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#ecfdf5}.statCard strong{display:block;font-size:24px;font-weight:1000}.statCard small{display:block;color:#64748b;font-size:12px;font-weight:850}.contentSection,.splitSection,.rfqBanner,.startBanner,.homeFooter{max-width:1380px;margin:0 auto 34px;padding:0 68px}.sectionHead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:18px}.sectionHead h2,.trustSection h2{margin:0;font-size:25px;letter-spacing:-.03em;font-weight:1000}.sectionHead p,.trustSection p{margin:4px 0 0;color:#64748b;font-size:14px;font-weight:700}.sectionHead a{color:#1d4ed8;text-decoration:none;font-weight:950}.categoryGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:18px}.categoryCard{border:1px solid rgba(15,23,42,.09);border-radius:18px;background:#fff;text-align:center;text-decoration:none;color:inherit;padding:28px 18px;box-shadow:0 10px 26px rgba(15,23,42,.04);transition:.16s ease}.categoryCard:hover,.listingCard:hover,.toolCard:hover{transform:translateY(-3px);box-shadow:0 18px 42px rgba(15,23,42,.08)}.categoryIcon{font-size:42px}.categoryCard h3{margin:14px 0 0;font-size:16px;font-weight:1000}.categoryCard p{min-height:42px;margin:8px 0 0;color:#64748b;font-size:12px;line-height:1.45}.categoryCard strong{display:block;margin-top:14px;color:#16a34a;font-size:12px}.listingGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}.listingCard{border:1px solid rgba(15,23,42,.09);border-radius:16px;background:#fff;text-decoration:none;color:inherit;overflow:hidden;box-shadow:0 10px 28px rgba(15,23,42,.05);transition:.16s ease}.listingImage{height:148px;background:linear-gradient(135deg,#dbeafe,#fef3c7);position:relative;display:flex;align-items:center;justify-content:center}.listingImage img{width:100%;height:100%;object-fit:cover}.listingImage b{font-size:48px}.listingImage span{position:absolute;left:10px;top:10px;border-radius:999px;background:#2563eb;color:#fff;padding:5px 9px;font-size:11px;font-weight:950}.listingBody{padding:13px}.listingBody h3{margin:0;font-size:15px;line-height:1.35;font-weight:1000}.listingBody p{margin:7px 0 0;color:#64748b;font-size:12px}.listingBody strong{display:block;margin-top:10px;color:#dc2626;font-size:15px}.listingBody small{display:block;margin-top:7px;color:#64748b;font-size:11px}.toolsGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:18px}.toolCard{display:flex;gap:12px;border:1px solid rgba(15,23,42,.09);border-radius:16px;background:#fff;text-decoration:none;color:inherit;padding:18px;box-shadow:0 10px 28px rgba(15,23,42,.04);transition:.16s ease}.toolCard b{color:#2563eb}.toolCard h3{margin:0;font-size:14px;font-weight:1000}.toolCard p{margin:6px 0 0;color:#64748b;font-size:12px;line-height:1.4}.toolCard span{display:block;margin-top:10px;color:#1d4ed8;font-size:12px;font-weight:950}.rfqBanner{background:linear-gradient(135deg,#153bc9,#6d28d9);border-radius:18px;color:#fff;padding:16px 24px;min-height:112px;display:flex;justify-content:space-between;align-items:center;overflow:hidden;box-shadow:0 14px 34px rgba(30,64,175,.16)}.rfqBanner h2{font-size:22px;margin:0;font-weight:1000;line-height:1.15}.rfqBanner p{margin:7px 0 0;color:#dbeafe}.rfqPills{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.rfqPills span{border-radius:10px;background:rgba(255,255,255,.12);padding:9px 12px;font-size:12px;font-weight:900}.rfqBanner button{border:0;border-radius:12px;background:#fff;color:#1d4ed8;padding:13px 18px;font-weight:1000;cursor:pointer}.rfqVisual{font-size:36px;min-width:180px;text-align:center}.rfqV.rfqVisual span{display:block;background:#fff;color:#1e3a8a;border-radius:10px;padding:6px 9px;margin-top:5px;font-size:11px;font-weight:950;transform:rotate(-4deg)}isual span{display:block;background:#fff;color:#1e3a8a;border-radius:12px;padding:10px 12px;margin-top:8px;font-size:13px;font-weight:950;transform:rotate(-4deg)}.priceGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}.priceCard{border:1px solid rgba(15,23,42,.09);border-radius:16px;background:#fff;text-decoration:none;color:inherit;padding:18px;box-shadow:0 10px 24px rgba(15,23,42,.04)}.priceCard span{font-size:12px;color:#475569;font-weight:850}.priceCard strong{display:block;margin-top:12px;font-size:20px}.priceCard small{display:block;margin-top:14px;color:#16a34a;font-weight:950}.splitSection{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panelCard{border:1px solid rgba(15,23,42,.09);border-radius:18px;background:#fff;padding:18px;box-shadow:0 10px 28px rgba(15,23,42,.04)}.compact{margin-bottom:12px}.compact h2{font-size:21px}.blogList{display:grid;gap:10px}.blogList a{display:flex;gap:12px;align-items:center;text-decoration:none;color:inherit;border-bottom:1px solid #f1f5f9;padding:9px 0}.blogList span{width:76px;height:56px;border-radius:12px;background:linear-gradient(135deg,#bfdbfe,#fed7aa);display:flex;align-items:center;justify-content:center;font-weight:1000}.blogList strong{font-size:14px}.blogList small{display:block;margin-top:6px;color:#64748b}.investmentGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.investmentGrid a{text-decoration:none;color:inherit;border:1px solid #e5e7eb;border-radius:15px;overflow:hidden}.investmentGrid div{height:120px;background:linear-gradient(135deg,#bbf7d0,#bfdbfe);display:flex;align-items:center;justify-content:center;font-size:48px}.investmentGrid strong,.investmentGrid span,.investmentGrid small{display:block;padding:0 12px}.investmentGrid strong{margin-top:12px}.investmentGrid span{margin-top:7px;font-weight:1000}.investmentGrid small{margin:8px 0 12px;color:#64748b}.trustSection{margin-bottom:24px}.trustGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px}.trustGrid div{border:1px solid rgba(15,23,42,.09);border-radius:16px;background:#fff;padding:18px;display:flex;gap:12px;align-items:center}.trustGrid b{width:40px;height:40px;border-radius:12px;background:#ecfdf5;color:#16a34a;display:flex;align-items:center;justify-content:center}.trustGrid strong{font-size:15px}.trustGrid span{display:block;color:#64748b;font-size:12px}.startBanner{border:1px solid #bbf7d0;border-radius:18px;background:linear-gradient(135deg,#ecfdf5,#fff);padding:26px 68px;display:flex;justify-content:space-between;align-items:center}.startBanner h2{margin:0}.startBanner p{margin:6px 0 0;color:#64748b}.startBanner div:last-child{display:flex;gap:12px}.startBanner a{border-radius:10px;padding:13px 18px;text-decoration:none;font-weight:950}.startBanner a:first-child{background:#16a34a;color:#fff}.startBanner a:last-child{border:1px solid #16a34a;color:#15803d;background:#fff}.homeFooter{border-top:1px solid #e5e7eb;padding-top:26px;display:grid;grid-template-columns:2fr repeat(3,1fr);gap:36px;color:#475569}.homeFooter strong{color:#0f172a}.homeFooter p{max-width:360px;font-size:13px;line-height:1.6}.homeFooter nav{display:grid;gap:8px}.homeFooter a{text-decoration:none;color:#475569;font-size:13px}.floatingAi{position:fixed;right:20px;bottom:20px;z-index:10060;border:0;border-radius:999px;background:linear-gradient(135deg,#0f172a,#2563eb);color:#fff;padding:14px 18px;box-shadow:0 22px 54px rgba(15,23,42,.25);font-weight:1000;cursor:pointer;display:flex;gap:8px;align-items:center}.aiPanel{position:fixed;right:20px;bottom:82px;width:380px;max-width:calc(100vw - 28px);border-radius:22px;background:#fff;border:1px solid rgba(15,23,42,.1);box-shadow:0 22px 54px rgba(15,23,42,.18);padding:16px;z-index:10059;display:grid;gap:14px}.aiPanelHeader{display:grid;gap:4px}.aiPanelHeader strong{font-size:15px;color:#0f172a}.aiPanelHeader small{font-size:12px;color:#64748b;font-weight:700}.aiPanelGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.aiPanel a{text-decoration:none;color:#1d4ed8;font-weight:900;border-radius:12px;background:#eff6ff;padding:10px 12px;font-size:13px}
+        .homePage{min-height:100vh;background:#fff;color:#0f172a;padding-bottom:24px}.heroShell{padding:38px 68px 28px;background:radial-gradient(circle at 18% 18%,#dbeafe 0,transparent 34%),radial-gradient(circle at 86% 12%,#ede9fe 0,transparent 30%),linear-gradient(180deg,#f8fbff,#fff)}.heroGrid{display:grid;grid-template-columns:1.03fr .97fr;gap:48px;align-items:center;max-width:1380px;margin:0 auto}.miniBadge{display:inline-flex;border-radius:999px;background:#eef4ff;color:#1d4ed8;padding:9px 14px;font-size:13px;font-weight:950}.heroCopy h1{margin:22px 0 0;font-size:clamp(44px,5.7vw,78px);line-height:1.02;letter-spacing:-.065em;font-weight:1000}.heroCopy h1 span{display:block;color:#2457d6}.heroCopy p{max-width:660px;margin:18px 0 0;color:#475569;font-size:18px;line-height:1.65;font-weight:650}.heroFeatureRow{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}.heroFeatureRow a{display:inline-flex;border-radius:999px;background:#fff;border:1px solid rgba(15,23,42,.08);box-shadow:0 10px 28px rgba(15,23,42,.05);padding:10px 14px;color:#0f172a;text-decoration:none;font-size:13px;font-weight:950}.searchCard{background:rgba(255,255,255,.92);border:1px solid rgba(15,23,42,.08);box-shadow:0 28px 80px rgba(15,23,42,.12);border-radius:28px;padding:24px}.searchTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-bottom:1px solid #e5e7eb;margin:-4px 0 18px;padding-bottom:10px}.searchTabs button{border:0;background:transparent;border-radius:14px;padding:12px 8px;font-weight:950;color:#475569;cursor:pointer}.searchTabs button.active{background:#eff6ff;color:#1d4ed8;box-shadow:inset 0 2px 0 #2563eb}.searchCard textarea{width:100%;min-height:126px;border:1px solid rgba(15,23,42,.14);border-radius:18px;padding:18px;font-size:15px;line-height:1.7;resize:none;outline:none;color:#0f172a}.typeChips{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.typeChips button{border:1px solid rgba(15,23,42,.1);background:#fff;border-radius:999px;padding:9px 13px;font-size:13px;font-weight:950;cursor:pointer}.typeChips button.active{background:#eef4ff;color:#1d4ed8;border-color:#bfdbfe}.searchActions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.searchActions button{border:0;border-radius:18px;padding:16px;font-weight:1000;cursor:pointer}.primaryAction{background:#1d4ed8;color:#fff;box-shadow:0 14px 34px rgba(29,78,216,.24)}.secondaryAction{background:#fff;border:1px solid rgba(15,23,42,.12)!important;color:#0f172a}.statsRail{max-width:1380px;margin:-2px auto 34px;padding:0 68px;display:grid;grid-template-columns:repeat(6,1fr);gap:0}.statCard{background:#fff;border:1px solid rgba(15,23,42,.08);box-shadow:0 12px 30px rgba(15,23,42,.06);padding:22px;display:flex;gap:13px;align-items:center}.statCard:first-child{border-radius:18px 0 0 18px}.statCard:last-child{border-radius:0 18px 18px 0}.statCard span{width:42px;height:42px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:#ecfdf5}.statCard strong{display:block;font-size:24px;font-weight:1000}.statCard small{display:block;color:#64748b;font-size:12px;font-weight:850}.contentSection,.splitSection,.rfqBanner,.startBanner,.homeFooter{max-width:1380px;margin:0 auto 34px;padding:0 68px}.sectionHead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:18px}.sectionHead h2,.trustSection h2{margin:0;font-size:25px;letter-spacing:-.03em;font-weight:1000}.sectionHead p,.trustSection p{margin:4px 0 0;color:#64748b;font-size:14px;font-weight:700}.sectionHead a{color:#1d4ed8;text-decoration:none;font-weight:950}.categoryGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:18px}.categoryCard{border:1px solid rgba(15,23,42,.09);border-radius:18px;background:#fff;text-align:center;text-decoration:none;color:inherit;padding:28px 18px;box-shadow:0 10px 26px rgba(15,23,42,.04);transition:.16s ease}.categoryCard:hover,.listingCard:hover,.toolCard:hover{transform:translateY(-3px);box-shadow:0 18px 42px rgba(15,23,42,.08)}.categoryIcon{font-size:42px}.categoryCard h3{margin:14px 0 0;font-size:16px;font-weight:1000}.categoryCard p{min-height:42px;margin:8px 0 0;color:#64748b;font-size:12px;line-height:1.45}.categoryCard strong{display:block;margin-top:14px;color:#16a34a;font-size:12px}.personalFeedStrip{border:1px solid #dbeafe;background:linear-gradient(135deg,#eff6ff,#fff);border-radius:18px;padding:14px;margin-bottom:16px;display:grid;gap:12px}
+        .personalFeedStrip strong{display:block;font-weight:1000;color:#0f172a}
+        .personalFeedStrip span{display:block;margin-top:3px;color:#64748b;font-size:12px;font-weight:800}
+        .personalFeedItems{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+        .personalFeedItems a{text-decoration:none;color:inherit;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:11px}
+        .personalFeedItems b{display:block;color:#1d4ed8;font-size:11px;text-transform:capitalize}
+        .personalFeedItems strong{margin-top:5px;font-size:13px;line-height:1.35}
+        .personalFeedItems small{display:block;margin-top:5px;color:#64748b;font-size:11px}
+        .discoveryRailGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+        .discoveryRailCard{text-decoration:none;color:inherit;border:1px solid #dbeafe;background:linear-gradient(135deg,#ffffff,#eff6ff);border-radius:18px;padding:15px;box-shadow:0 12px 30px rgba(37,99,235,.06);transition:.16s ease}
+        .discoveryRailCard:hover{transform:translateY(-2px);box-shadow:0 18px 38px rgba(37,99,235,.12)}
+        .discoveryRailCard div{display:flex;align-items:center;justify-content:space-between;gap:10px}
+        .discoveryRailCard b{font-size:24px}
+        .discoveryRailCard span{font-size:11px;font-weight:1000;color:#2563eb;background:#dbeafe;border-radius:999px;padding:5px 8px}
+        .discoveryRailCard strong{display:block;margin-top:12px;font-size:15px;line-height:1.25;color:#0f172a}
+        .discoveryRailCard small{display:block;margin-top:7px;font-size:12px;line-height:1.45;color:#64748b;font-weight:800}
+        .listingGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
 
         .mobileSeeMoreButton {
           display: none;
         }
 
         @media (max-width: 640px) {
+          .personalFeedItems {
+            grid-template-columns: 1fr;
+          }
+
+          .personalFeedStrip {
+            padding: 12px;
+            border-radius: 16px;
+          }
+          .discoveryRailGrid {
+            grid-template-columns: 1fr;
+          }
+
           .premiumCategoryGrid:not(.isMobileExpanded) > *:nth-child(n+4),
           .premiumListingsGrid:not(.isMobileExpanded) > *:nth-child(n+4),
+          .premiumDiscoveryGrid:not(.isMobileExpanded) > *:nth-child(n+4),
           .premiumToolsGrid:not(.isMobileExpanded) > *:nth-child(n+4),
           .premiumPriceGrid:not(.isMobileExpanded) > *:nth-child(n+4),
           .premiumTrustGrid:not(.isMobileExpanded) > *:nth-child(n+3) {

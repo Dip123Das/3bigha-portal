@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { buildVendorTrustReputation } from "@/lib/vendors/vendor-trust-reputation";
 
 export const runtime = "nodejs";
 
@@ -596,6 +597,29 @@ export async function GET(req: Request) {
             conversionRate * 10; // max +10
         }
 
+        const trustProfile = buildVendorTrustReputation({
+          isVerified: row.verified === true || row.is_verified === true,
+          approvalStatus: row.approval_status,
+          city: row.city,
+          locality: row.locality,
+          district: row.district,
+          description: row.description,
+          boostPriority: row.boost_priority,
+          reputationScore: ranked.reputation_score,
+          totalMatches: m?.total_matches || 0,
+          totalSelected: m?.total_selected || 0,
+          totalConverted: m?.total_converted || 0,
+          readyDealSignals: dealStats.ready,
+          riskScore: ranked.risk_score,
+        });
+
+        const trustBoost =
+          trustProfile.riskLevel === "low"
+            ? Math.round(trustProfile.score * 0.08)
+            : trustProfile.riskLevel === "medium"
+            ? Math.round(trustProfile.score * 0.03)
+            : -12;
+
         const finalScore = Math.min(
           ranked.score +
             (aiRanked?.score || 0) +
@@ -603,7 +627,8 @@ export async function GET(req: Request) {
             weightedBoost +
             performanceBoost +
             dealSignalScore +
-            buyerIntentScore,
+            buyerIntentScore +
+            trustBoost,
           99
         );
 
@@ -643,6 +668,11 @@ export async function GET(req: Request) {
           buyer_intent_reason: buyerIntent.reason,
           ready_deal_signals: dealStats.ready,
           total_deal_signals: dealStats.total,
+          trust_score: trustProfile.score,
+          trust_label: trustProfile.label,
+          trust_badges: trustProfile.badges,
+          trust_risk_level: trustProfile.riskLevel,
+          trust_reason: trustProfile.reason,
           routing_priority:
             dealStats.ready >= 3
               ? "top_closer"
@@ -674,7 +704,12 @@ export async function GET(req: Request) {
       const pDiff = (b.win_probability || 0) - (a.win_probability || 0);
       if (Math.abs(pDiff) > 0.05) return pDiff;
 
-      // 🔥 PRIORITY 3: Boost (Revenue logic)
+      // 🔥 PRIORITY 3: Trust & reputation
+      if ((b.trust_score || 0) !== (a.trust_score || 0)) {
+        return (b.trust_score || 0) - (a.trust_score || 0);
+      }
+
+      // 🔥 PRIORITY 4: Boost (Revenue logic)
       if ((b.weighted_boost || 0) !== (a.weighted_boost || 0)) {
         return (b.weighted_boost || 0) - (a.weighted_boost || 0);
       }

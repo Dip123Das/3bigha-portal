@@ -21,6 +21,7 @@ import {
 } from "@/components/vendor-erp/VendorErpWidgets";
 import { VendorErpNav } from "@/components/vendor-erp/VendorErpNav";
 import { VendorOperationStream } from "@/components/vendor-erp/VendorOperationStream";
+import { buildVendorSmartNotifications } from "@/lib/notifications/smart-reengagement";
 
 type CompletenessRow = {
   user_id?: string;
@@ -478,6 +479,17 @@ const estimatedRank =
     : growthVisibilityScore >= 25
     ? 10
     : 12;
+
+const vendorSmartNotifications = buildVendorSmartNotifications({
+  newLeadCount: leadStats.newLeadCount,
+  unreadNotificationCount,
+  missedLeads,
+  readyDeals: dealStats.ready,
+  replyRate,
+  estimatedRank,
+  growthVisibilityScore,
+  priceNeedsCorrection: priceIntelligenceStats.overpricedCount,
+});
 
 const rankLabel =
   estimatedRank <= 3
@@ -1433,6 +1445,44 @@ const aiDealUpgradeTarget =
         />
 
         <VendorErpNav />
+
+        <ErpPanel
+          title="Smart Vendor Alerts"
+          subtitle="AI-style re-engagement reminders generated from leads, rank, replies and pricing signals."
+          tone="orange"
+        >
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10 }}>
+            {vendorSmartNotifications.map((item) => (
+              <a
+                key={item.id}
+                href={item.href}
+                style={{
+                  textDecoration: "none",
+                  color: "inherit",
+                  border: "1px solid #fed7aa",
+                  background: "#fff7ed",
+                  borderRadius: 16,
+                  padding: 12,
+                }}
+              >
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ fontSize: 22 }}>{item.icon}</div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 1000, color: "#0f172a" }}>
+                      {item.title}
+                    </div>
+                    <div style={{ marginTop: 4, color: "#64748b", fontSize: 12, lineHeight: 1.45, fontWeight: 750 }}>
+                      {item.message}
+                    </div>
+                    <div style={{ marginTop: 8, color: "#ea580c", fontSize: 12, fontWeight: 950 }}>
+                      {item.cta} →
+                    </div>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </ErpPanel>
 
         <VendorOperationStream
           newLeads={leadStats.newLeadCount}

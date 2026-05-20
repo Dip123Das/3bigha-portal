@@ -18,6 +18,7 @@ import {
 } from "@/lib/seo/vendor-authority-graph";
 
 import { buildVendorAuthorityJsonLd } from "@/lib/seo/vendor-authority-jsonld";
+import { buildVendorTrustReputation } from "@/lib/vendors/vendor-trust-reputation";
 
 type Props = {
   params: {
@@ -149,6 +150,24 @@ export default async function VendorAuthorityPage({
     boostActive: vendorData?.boostActive ?? true,
   });
 
+    const aiTrustReputation = buildVendorTrustReputation({
+    isVerified: vendorData?.isVerified ?? true,
+    approvalStatus: undefined,
+    city: vendorData?.city,
+    locality: vendorData?.locality,
+    district: vendorData?.district,
+    description: summary.summary,
+    boostPriority: vendorData?.boostActive ? 10 : 0,
+    reputationScore: reputation.reputationScore,
+    leaderboardScore: leaderboard.leaderboardScore,
+    recommendationScore: recommendation.recommendationScore,
+    totalMatches: reputation.totalMatches,
+    totalConverted: reputation.totalConverted,
+    readyDealSignals: reputation.totalConverted,
+    riskScore: reputation.reputationScore >= 70 ? 10 : reputation.reputationScore >= 55 ? 25 : 40,
+  });
+
+
     const recommendationClusters = buildVendorRecommendationClusters({
     baseVendor: {
       vendorId: vendorData?.vendorId || params.slug,
@@ -265,14 +284,45 @@ const relatedEntities = buildRelatedVendorEntities({
           </p>
         </div>
 
-          <div className="mt-6">
-            <div className="text-sm text-gray-500">
-              Vendor Authority Score
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div>
+              <div className="text-sm text-gray-500">
+                Vendor Authority Score
+              </div>
+
+              <div className="mt-1 text-4xl font-bold">
+                {summary.authorityScore}/100
+              </div>
             </div>
 
-            <div className="mt-1 text-4xl font-bold">
-              {summary.authorityScore}/100
+            <div className="rounded-2xl border bg-amber-50 p-4">
+              <div className="text-sm font-bold text-amber-700">
+                AI Vendor Trust
+              </div>
+
+              <div className="mt-1 text-3xl font-black text-slate-900">
+                {aiTrustReputation.score}/100
+              </div>
+
+              <div className="mt-1 text-sm font-bold text-amber-700">
+                {aiTrustReputation.label}
+              </div>
+
+              <p className="mt-2 text-xs leading-5 text-gray-600">
+                {aiTrustReputation.reason}
+              </p>
             </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {aiTrustReputation.badges.map((badge) => (
+              <span
+                key={badge}
+                className="rounded-full border bg-white px-3 py-1 text-xs font-bold text-gray-700"
+              >
+                {badge}
+              </span>
+            ))}
           </div>
 
           <div className="mt-8 grid gap-6 md:grid-cols-2">

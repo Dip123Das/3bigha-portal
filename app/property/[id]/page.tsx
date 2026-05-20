@@ -28,8 +28,10 @@ import { buildRelatedListings } from "@/lib/seo/related-listings";
 
 import { buildRecommendations } from "@/lib/ai/recommendation-engine";
 import { buildPropertyInvestmentIntel } from "@/lib/property-investment/investment-score";
+import { buildPropertyCrossModuleSuggestions } from "@/lib/marketplace-orchestration/property-cross-module";
 import MemoryEventTracker from "@/app/components/ai/MemoryEventTracker";
 import MemoryLink from "@/app/components/ai/MemoryLink";
+import PropertyDiscoveryMemoryTracker from "./PropertyDiscoveryMemoryTracker";
 
 type AnyRow = Record<string, any>;
 
@@ -541,6 +543,21 @@ const investmentIntel = buildPropertyInvestmentIntel({
     safeText(row.locality),
 });
 
+const crossModuleSuggestions = buildPropertyCrossModuleSuggestions({
+  title,
+  propertyType:
+    safeText(row.property_type) ||
+    safeText(row.category),
+  category:
+    safeText(row.category),
+  city:
+    safeText(row.city),
+  district:
+    safeText(row.district),
+  locality:
+    safeText(row.locality),
+});
+
 const aiWhyPropertyReasons = [
   `${investmentIntel.recommendationLabel}: this listing is currently classified as ${investmentIntel.bestForLabel.toLowerCase()}.`,
   `${investmentIntel.hotDealLabel}: bargain opportunity is ${investmentIntel.bargainOpportunityIndex}/99 with fair value signal around ₹${investmentIntel.fairValueEstimate.toLocaleString("en-IN")}.`,
@@ -926,6 +943,17 @@ const aiSimilarMatches = (relatedRes.data || [])
             null,
         }}
       />
+      <PropertyDiscoveryMemoryTracker
+        id={id}
+        title={title}
+        city={safeText(row.city)}
+        district={safeText(row.district)}
+        locality={safeText(row.locality)}
+        type={safeText(row.property_type) || safeText(row.listing_type)}
+        category={safeText(row.category)}
+        price={Number(row.price || row.expected_price || 0) || null}
+      />
+
       <SectionHeader title={title} subtitle="Property details" />
 
       <div style={{ marginBottom: 12, display: "flex", gap: 10 }}>
@@ -1870,6 +1898,79 @@ const aiSimilarMatches = (relatedRes.data || [])
             >
               AI Recommended Vendors →
             </Link>
+
+            <div
+              style={{
+                marginTop: 14,
+                padding: 14,
+                borderRadius: 18,
+                background: "linear-gradient(135deg,#eff6ff,#ffffff)",
+                border: "1px solid #dbeafe",
+              }}
+            >
+              <div style={{ fontWeight: 950, color: "#1e3a8a" }}>
+                You may also need
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  lineHeight: 1.45,
+                  color: "#475569",
+                  fontWeight: 800,
+                }}
+              >
+                Smart next steps from this property view.
+              </div>
+
+              <div style={{ display: "grid", gap: 9, marginTop: 12 }}>
+                {crossModuleSuggestions.slice(0, 5).map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    style={{
+                      display: "block",
+                      textDecoration: "none",
+                      color: "inherit",
+                      border: "1px solid #e5e7eb",
+                      background: "#ffffff",
+                      borderRadius: 14,
+                      padding: 11,
+                    }}
+                  >
+                    <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                      <div style={{ fontSize: 20 }}>{item.icon}</div>
+                      <div>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 950,
+                            color: "#2563eb",
+                            marginBottom: 3,
+                          }}
+                        >
+                          {item.badge}
+                        </div>
+                        <div style={{ fontWeight: 950, fontSize: 13 }}>
+                          {item.title}
+                        </div>
+                        <div
+                          style={{
+                            marginTop: 3,
+                            fontSize: 12,
+                            color: "#64748b",
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          {item.subtitle}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
 
             <ProcurementKnowledgeGraphBlock
               graph={buildProcurementKnowledgeGraph({

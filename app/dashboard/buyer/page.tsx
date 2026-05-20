@@ -28,6 +28,8 @@ import {
   mergeBehaviorSignals,
 } from "@/lib/ai/behavior-memory";
 
+import { buildBuyerSmartNotifications } from "@/lib/notifications/smart-reengagement";
+
 function readableRfqTitle(r: BuyerRfqMini) {
   const rawTitle = String(r.title || "").trim();
   const moduleName = String(r.module || "Procurement").trim();
@@ -358,6 +360,15 @@ const closedDeals =
     }
   );
 
+  const buyerSmartNotifications = buildBuyerSmartNotifications({
+    totalRfqs: procurementStats.totalRfqs,
+    activeRfqs: procurementStats.activeRfqs,
+    urgentRfqs: procurementStats.urgentRfqs,
+    memoryCount: procurementStats.memoryCount,
+    recentRfqs: procurementStats.recentRfqs,
+  });
+
+
   const buyerAiInsights: BuyerAiInsight[] = [
     {
       title: "Create next procurement RFQ",
@@ -451,7 +462,57 @@ const closedDeals =
           subtitle="Browse, enquire, compare quotes, and continue your conversations with vendors."
         />
 
-                <div
+        <div
+          style={{
+            border: "1px solid #fde68a",
+            background: "linear-gradient(135deg,#fffbeb,#ffffff)",
+            borderRadius: 22,
+            padding: 16,
+            marginBottom: 18,
+          }}
+        >
+          <div style={{ fontSize: 20, fontWeight: 1000, color: "#92400e" }}>
+            🔔 Smart Buyer Alerts
+          </div>
+
+          <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
+            Personalized reminders generated from your RFQ and marketplace activity.
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 10, marginTop: 12 }}>
+            {buyerSmartNotifications.map((item) => (
+              <Link
+                key={item.id}
+                href={item.href}
+                style={{
+                  textDecoration: "none",
+                  color: "inherit",
+                  border: "1px solid #fef3c7",
+                  background: "#ffffff",
+                  borderRadius: 16,
+                  padding: 12,
+                }}
+              >
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ fontSize: 22 }}>{item.icon}</div>
+                  <div>
+                    <div style={{ fontWeight: 1000, color: "#0f172a", fontSize: 14 }}>
+                      {item.title}
+                    </div>
+                    <div style={{ marginTop: 4, color: "#64748b", fontSize: 12, lineHeight: 1.45, fontWeight: 750 }}>
+                      {item.message}
+                    </div>
+                    <div style={{ marginTop: 8, color: "#2563eb", fontSize: 12, fontWeight: 950 }}>
+                      {item.cta} →
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div
           style={{
             border: "1px solid #dbeafe",
             background: "#f8fbff",

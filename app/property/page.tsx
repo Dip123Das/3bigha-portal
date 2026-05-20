@@ -15,6 +15,11 @@ import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
 import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/seo/schema";
 import { buildPropertyInvestmentIntel } from "@/lib/property-investment/investment-score";
+import {
+  readDiscoveryMemory,
+  scorePersonalizedDiscoveryRow,
+  type DiscoveryMemoryItem,
+} from "@/lib/personalized-discovery/discovery-memory";
 
 type Status = "draft" | "pending" | "approved" | "published" | "blocked" | "rejected" | string;
 
@@ -280,11 +285,16 @@ export default function PropertyPublicListPage() {
     }
   }, []);
 
+  useEffect(() => {
+    setDiscoveryMemory(readDiscoveryMemory());
+  }, []);
+
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   const [listings, setListings] = useState<ListingRow[]>([]);
+  const [discoveryMemory, setDiscoveryMemory] = useState<DiscoveryMemoryItem[]>([]);
   const [typeMap, setTypeMap] = useState<TypeMap>({});
   const [subtypeMap, setSubtypeMap] = useState<SubtypeMap>({});
 
@@ -584,9 +594,37 @@ export default function PropertyPublicListPage() {
           bIntel.hyperlocalDesirabilityIndex * 0.1 +
           bIntel.overallRecommendationScore * 0.12;
 
-        return bScore - aScore;
+        const aPersonal = scorePersonalizedDiscoveryRow(
+          {
+            id: a.id,
+            title: a.title,
+            city: a.city,
+            district: a.district,
+            locality: a.locality,
+            type: aType,
+            category: a.subtype_id ? subtypeMap[a.subtype_id]?.name : "",
+            price: a.expected_price ?? a.price ?? null,
+          },
+          discoveryMemory
+        );
+
+        const bPersonal = scorePersonalizedDiscoveryRow(
+          {
+            id: b.id,
+            title: b.title,
+            city: b.city,
+            district: b.district,
+            locality: b.locality,
+            type: bType,
+            category: b.subtype_id ? subtypeMap[b.subtype_id]?.name : "",
+            price: b.expected_price ?? b.price ?? null,
+          },
+          discoveryMemory
+        );
+
+        return bScore + bPersonal - (aScore + aPersonal);
       });
-  }, [listings, q, typeKey, subKey, typeMap, subtypeMap]);
+  }, [listings, q, typeKey, subKey, typeMap, subtypeMap, discoveryMemory]);
 
   return (
     <Container>

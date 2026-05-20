@@ -7,6 +7,7 @@ import {
 
 import { getMarketplaceDiscoveryVendors } from "@/lib/seo/marketplace-discovery-data";
 import { buildProcurementKnowledgeGraph } from "@/lib/seo/procurement-knowledge-graph";
+import { buildVendorTrustReputation } from "@/lib/vendors/vendor-trust-reputation";
 
 export const dynamic = "force-dynamic";
 
@@ -204,7 +205,16 @@ export default async function VendorDiscoveryPage({
 
       <section className="mt-8 grid gap-5 md:grid-cols-3">
         {rankedVendors.map((vendor, index) => {
-          const score = vendor.recommendationScore || 0;
+          const score = vendor.recommendationScore;
+          const trust = buildVendorTrustReputation({
+            isVerified: true,
+            city: vendor.city,
+            locality: vendor.locality,
+            district: vendor.district,
+            reputationScore: score,
+            recommendationScore: score,
+            riskScore: score >= 70 ? 10 : score >= 55 ? 25 : 40,
+          });
 
           return (
             <div
@@ -237,6 +247,9 @@ export default async function VendorDiscoveryPage({
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
                   ✅ {vendorTrustLabel(score)}
                 </span>
+                <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">
+                  ⭐ {trust.label} • {trust.score}/100
+                </span>
                 <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-black text-orange-700">
                   ⚡ {responseProbability(score)}
                 </span>
@@ -248,6 +261,17 @@ export default async function VendorDiscoveryPage({
               <p className="mt-4 text-sm leading-6 text-gray-600">
                 {vendor.recommendationReason}
               </p>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {trust.badges.slice(0, 4).map((badge) => (
+                  <span
+                    key={badge}
+                    className="rounded-full border bg-white px-3 py-1 text-xs font-bold text-gray-700"
+                  >
+                    {badge}
+                  </span>
+                ))}
+              </div>
 
               <div className="mt-5 grid gap-2">
                 <Link

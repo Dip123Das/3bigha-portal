@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import type { SmartReengagementNotification } from "@/lib/notifications/smart-reengagement";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -59,9 +60,31 @@ export async function GET(req: Request) {
 
     const list = Array.isArray(rows) ? rows : [];
 
+    const smartRows: SmartReengagementNotification[] = [
+      {
+        id: "smart-open-dashboard",
+        title: "Continue your 3Bigha activity",
+        message: "Open your dashboard to review pending requirements, leads, conversations and marketplace opportunities.",
+        href: "/dashboard",
+        cta: "Open Dashboard",
+        priority: list.some((n) => !n.is_read) ? "high" : "normal",
+        icon: "🔔",
+      },
+      {
+        id: "smart-marketplace-discovery",
+        title: "Explore new marketplace matches",
+        message: "Check property, materials, services and rentals based on your recent marketplace activity.",
+        href: "/search",
+        cta: "Explore",
+        priority: "normal",
+        icon: "✨",
+      },
+    ];
+
     return NextResponse.json({
       ok: true,
       rows: list,
+      smartRows,
       unread: list.filter((n) => !n.is_read).length,
       urgent: list.filter(
         (n) => !n.is_read && ["high", "urgent", "critical"].includes(String(n.priority))
