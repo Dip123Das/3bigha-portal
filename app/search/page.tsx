@@ -383,6 +383,17 @@ function SearchPageInner() {
   const [recommendationSummary, setRecommendationSummary] = useState("");
   const [autocompleteOpen, setAutocompleteOpen] = useState(false);
   const aiAutoAppliedRef = useRef<string>("");
+  const [isCompactSearchLayout, setIsCompactSearchLayout] = useState(false);
+
+  useEffect(() => {
+    function updateSearchLayout() {
+      setIsCompactSearchLayout(window.innerWidth < 980);
+    }
+
+    updateSearchLayout();
+    window.addEventListener("resize", updateSearchLayout);
+    return () => window.removeEventListener("resize", updateSearchLayout);
+  }, []);
 
   // Sync inputs with URL changes
   useEffect(() => {
@@ -1794,7 +1805,7 @@ if (want.includes("rentals")) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "minmax(0, 1fr) 320px",
+              gridTemplateColumns: isCompactSearchLayout ? "1fr" : "minmax(0, 1fr) 320px",
               gap: 16,
               alignItems: "start",
             }}
@@ -1934,8 +1945,8 @@ if (want.includes("rentals")) {
               style={{
                 display: "grid",
                 gap: 14,
-                position: "sticky",
-                top: 84,
+                position: isCompactSearchLayout ? "static" : "sticky",
+                top: isCompactSearchLayout ? "auto" : 84,
                 alignSelf: "start",
               }}
             >
