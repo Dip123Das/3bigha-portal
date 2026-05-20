@@ -138,29 +138,29 @@ export default async function VendorDiscoveryPage({
         </div>
       </section>
 
-      <section className="mt-8 rounded-2xl border bg-gradient-to-r from-slate-950 to-blue-800 p-6 text-white">
+      <section className="mt-8 rounded-3xl border border-blue-200 bg-gradient-to-br from-slate-950 via-blue-950 to-blue-800 p-6 text-white shadow-xl">
         <div className="text-xs font-black uppercase tracking-wide text-blue-200">
           AI Vendor Discovery Intelligence
         </div>
 
-        <h2 className="mt-2 text-2xl font-bold">
+        <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
           Rank vendors by trust, response probability and procurement fit.
         </h2>
 
         <div className="mt-5 grid gap-4 md:grid-cols-3">
-          <div className="rounded-xl bg-white/10 p-4">
-            <div className="text-sm text-blue-100">Trust Engine</div>
-            <div className="mt-1 text-lg font-bold">AI Verified Matching</div>
+          <div className="rounded-2xl border border-white/15 bg-white/10 p-4">
+            <div className="text-sm font-bold text-blue-200">Trust Engine</div>
+            <div className="mt-2 text-lg font-black text-white">AI Verified Matching</div>
           </div>
 
-          <div className="rounded-xl bg-white/10 p-4">
-            <div className="text-sm text-blue-100">Response Signal</div>
-            <div className="mt-1 text-lg font-bold">Fast Vendor Priority</div>
+          <div className="rounded-2xl border border-white/15 bg-white/10 p-4">
+            <div className="text-sm font-bold text-blue-200">Response Signal</div>
+            <div className="mt-2 text-lg font-black text-white">Fast Vendor Priority</div>
           </div>
 
-          <div className="rounded-xl bg-white/10 p-4">
-            <div className="text-sm text-blue-100">Procurement Fit</div>
-            <div className="mt-1 text-lg font-bold">RFQ-ready Discovery</div>
+          <div className="rounded-2xl border border-white/15 bg-white/10 p-4">
+            <div className="text-sm font-bold text-blue-200">Procurement Fit</div>
+            <div className="mt-2 text-lg font-black text-white">RFQ-ready Discovery</div>
           </div>
         </div>
       </section>
