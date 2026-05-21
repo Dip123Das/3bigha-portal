@@ -25,18 +25,18 @@ export default function ProcurementJourneyBar({
         borderRadius: 18,
         background: "#ffffff",
         boxShadow: "0 10px 26px rgba(15,23,42,0.06)",
-        padding: 14,
+        padding: "12px",
       }}
     >
       <div style={{ fontSize: 12, fontWeight: 950, color: "#0b57d0" }}>
         Procurement Journey Actions
       </div>
 
-      <div style={{ marginTop: 4, fontSize: 18, fontWeight: 1000, color: "#0f172a" }}>
+      <div style={{ marginTop: 4, fontSize: 16, fontWeight: 1000, color: "#0f172a" }}>
         Continue your marketplace workflow
       </div>
 
-      <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 750 }}>
+      <div className="hidden md:block" style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 750 }}>
         Pick up RFQ, vendor discovery, price checking or negotiation from this search.
       </div>
 
@@ -55,8 +55,8 @@ export default function ProcurementJourneyBar({
                 color: s.color,
                 borderRadius: 14,
                 padding: "9px 11px",
-                minWidth: 170,
-                flex: "1 1 180px",
+                minWidth: 140,
+                flex: "1 1 150px",
               }}
             >
               <div style={{ fontSize: 13, fontWeight: 1000 }}>{action.label}</div>

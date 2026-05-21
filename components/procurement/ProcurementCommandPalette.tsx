@@ -104,14 +104,14 @@ export default function ProcurementCommandPalette() {
       <button
         aria-label="Open AI Procurement Command Center"
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-[9998] inline-flex h-14 w-14 items-center justify-center rounded-full border border-indigo-200 bg-slate-950 text-xl font-black text-white shadow-2xl shadow-slate-900/30 lg:hidden"
+        className="fixed bottom-4 right-4 z-[9998] inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-slate-950 px-4 py-3 text-sm font-black text-white shadow-2xl shadow-slate-900/30 lg:hidden"
       >
-        AI
+        🤖 Procurement AI
       </button>
 
       {open ? (
-        <div className="fixed inset-0 z-[9999] bg-black/40 p-4 backdrop-blur-sm">
-          <div className="mx-auto mt-24 max-w-2xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-2xl">
+        <div className="fixed inset-0 z-[9999] bg-black/40 p-3 backdrop-blur-sm md:p-4">
+          <div className="mx-auto mt-6 max-h-[92vh] max-w-2xl overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-2xl md:mt-24 md:rounded-[2rem]">
             <div className="border-b border-slate-200 bg-gradient-to-r from-slate-950 via-indigo-950 to-violet-950 px-5 py-4 text-white">
               <div className="text-xs font-black uppercase tracking-[0.14em] text-indigo-200">
                 Enterprise AI Procurement OS
@@ -215,7 +215,7 @@ export default function ProcurementCommandPalette() {
               </div>
             </div>
 
-            <div className="max-h-[420px] overflow-y-auto p-4">
+            <div className="max-h-[45vh] overflow-y-auto p-3 md:max-h-[420px] md:p-4">
               {empty ? (
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold text-slate-500">
                   No procurement commands found.

@@ -37,7 +37,7 @@ export default function ProcurementMemoryTimeline() {
         border: "1px solid #e2e8f0",
         background: "#ffffff",
         borderRadius: 18,
-        padding: 14,
+        padding: "12px",
         boxShadow: "0 10px 26px rgba(15,23,42,0.06)",
       }}
     >
@@ -45,11 +45,11 @@ export default function ProcurementMemoryTimeline() {
         Procurement Memory
       </div>
 
-      <div style={{ marginTop: 4, fontSize: 18, fontWeight: 1000, color: "#0f172a" }}>
+      <div style={{ marginTop: 4, fontSize: 16, fontWeight: 1000, color: "#0f172a" }}>
         Recent procurement timeline
       </div>
 
-      <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 750 }}>
+      <div className="hidden md:block" style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 750 }}>
         Continue previous search, RFQ, vendor discovery or negotiation workflows.
       </div>
 

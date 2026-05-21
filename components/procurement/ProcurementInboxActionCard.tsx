@@ -16,10 +16,10 @@ export default function ProcurementInboxActionCard({
   item,
 }: Props) {
   return (
-    <div className="rounded-[2rem] border border-slate-200 bg-white p-6">
+    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 md:rounded-[2rem] md:p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-xl font-black text-slate-950">
+          <div className="text-base font-black text-slate-950 md:text-xl">
             {item.thread}
           </div>
 
@@ -33,17 +33,17 @@ export default function ProcurementInboxActionCard({
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl bg-violet-50 p-5">
+      <div className="mt-4 rounded-2xl bg-violet-50 p-4 md:mt-6 md:p-5">
         <div className="text-xs font-black uppercase tracking-[0.14em] text-violet-700">
           Recommended AI Action
         </div>
 
-        <div className="mt-3 text-lg font-black text-violet-950">
+        <div className="mt-2 text-base font-black text-violet-950 md:mt-3 md:text-lg">
           {item.aiAction}
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-4 md:mt-6">
         <div className="mb-2 flex items-center justify-between text-sm font-bold text-slate-600">
           <span>AI Confidence</span>
           <span>{item.confidence}%</span>

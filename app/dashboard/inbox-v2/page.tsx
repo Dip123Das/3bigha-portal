@@ -619,14 +619,14 @@ function StatCard({
   subtext: string;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm md:rounded-3xl md:p-4">
       <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
         {label}
       </div>
-      <div className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+      <div className="mt-1 text-xl font-bold tracking-tight text-slate-950 md:mt-2 md:text-2xl">
         {value}
       </div>
-      <div className="mt-1 text-xs text-slate-600">{subtext}</div>
+      <div className="mt-1 hidden text-xs text-slate-600 md:block">{subtext}</div>
     </div>
   );
 }
@@ -1821,7 +1821,7 @@ export default async function DashboardInboxV2Page({
     unreadOnly;
 
   return (
-    <div id="top-of-inbox" className="mx-auto max-w-7xl space-y-6 px-4 py-6">
+    <div id="top-of-inbox" className="mx-auto max-w-7xl space-y-4 px-3 py-4 md:space-y-6 md:px-4 md:py-6">
       <InboxAutoFocus targetId={firstUnreadSection} />
       <FloatingUnreadButton href={latestUnreadItem?.href ?? null} />
       <ActiveSectionTracker />
@@ -1830,12 +1830,12 @@ export default async function DashboardInboxV2Page({
       <InboxReminderBanner />
       {/* Priority AI strip moved below the real inbox workspace later. */}
       <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-blue-50 shadow-sm">
-        <div className="flex flex-col gap-5 px-5 py-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+        <div className="flex flex-col gap-4 px-4 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-8 lg:py-6">
           <div>
             <div className="inline-flex rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">
               Inbox V2
             </div>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">
+            <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-950 md:text-3xl">
               Unified Dashboard Inbox
             </h1>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -1855,7 +1855,7 @@ export default async function DashboardInboxV2Page({
               </span>
             </div>
 
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="mt-2 hidden flex-wrap gap-2 md:flex">
               <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
                 Unread badge = thread has unread activity
               </span>
@@ -2125,7 +2125,7 @@ export default async function DashboardInboxV2Page({
         </div>
       </details>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:gap-4 xl:grid-cols-4">
         <StatCard
           label="Total Threads"
           value={stats.total}
@@ -2148,7 +2148,7 @@ export default async function DashboardInboxV2Page({
         />
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
         <a
           href="#recent-activity"
           className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
