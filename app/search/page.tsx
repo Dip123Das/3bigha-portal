@@ -1289,10 +1289,16 @@ if (want.includes("rentals")) {
     ]
   );
 
-  const currentJourneyActions = useMemo(
-    () => buildSearchJourneyActions(qFromUrl, modFromUrl),
-    [qFromUrl, modFromUrl]
-  );
+  const currentJourneyActions = useMemo(() => {
+    const seen = new Set<string>();
+
+    return buildSearchJourneyActions(qFromUrl, modFromUrl).filter((action) => {
+      const key = `${action.label}-${action.href}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [qFromUrl, modFromUrl]);
 
   const procurementActionCopilot = useMemo(
     () =>
@@ -1340,6 +1346,37 @@ if (want.includes("rentals")) {
       value: String(rows.length),
       tone: "#f8fafc",
       color: "#334155",
+    },
+  ];
+
+  const executionRailActions = [
+    {
+      label: "Create RFQ",
+      href: `/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`,
+      icon: "⚡",
+      primary: true,
+    },
+    {
+      label: "Find Vendors",
+      href: `/vendor/discovery?q=${encodeURIComponent(qFromUrl)}${
+        modFromUrl !== "all" ? `&module=${encodeURIComponent(modFromUrl)}` : ""
+      }`,
+      icon: "🎯",
+      primary: false,
+    },
+    {
+      label: "Check Price",
+      href: `/price-today?q=${encodeURIComponent(qFromUrl)}`,
+      icon: "📊",
+      primary: false,
+    },
+    {
+      label: "AI Assist",
+      href: `/vendor/discovery?q=${encodeURIComponent(qFromUrl)}${
+        modFromUrl !== "all" ? `&module=${encodeURIComponent(modFromUrl)}` : ""
+      }`,
+      icon: "🤖",
+      primary: false,
     },
   ];
 
@@ -1619,6 +1656,70 @@ if (want.includes("rentals")) {
       </Card>
 
       <div style={{ height: 12 }} />
+
+      {hasQuery ? (
+        <>
+          <div
+            style={{
+              position: "sticky",
+              top: isCompactSearchLayout ? 8 : 84,
+              zIndex: 40,
+              border: "1px solid #dbeafe",
+              borderRadius: 18,
+              background: "rgba(255,255,255,0.94)",
+              backdropFilter: "blur(14px)",
+              boxShadow: "0 12px 30px rgba(15,23,42,0.08)",
+              padding: isCompactSearchLayout ? 10 : 12,
+              display: "flex",
+              gap: 10,
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 1000, color: "#1d4ed8" }}>
+                Execution Workspace
+              </div>
+              <div style={{ marginTop: 2, fontSize: 13, fontWeight: 850, color: "#334155" }}>
+                Continue this search through RFQ, vendor discovery, price check or AI assistance.
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                overflowX: isCompactSearchLayout ? "auto" : "visible",
+                maxWidth: isCompactSearchLayout ? "100%" : "none",
+                paddingBottom: isCompactSearchLayout ? 2 : 0,
+              }}
+            >
+              {executionRailActions.map((action) => (
+                <Link
+                  key={action.label}
+                  href={action.href}
+                  style={{
+                    textDecoration: "none",
+                    borderRadius: 999,
+                    border: action.primary ? "1px solid #0f172a" : "1px solid #bfdbfe",
+                    background: action.primary ? "#0f172a" : "#eff6ff",
+                    color: action.primary ? "#ffffff" : "#1d4ed8",
+                    padding: "9px 13px",
+                    fontSize: 12,
+                    fontWeight: 1000,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {action.icon} {action.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
 
       {hasQuery && !loading && rows.length === 0 ? (
         <>
@@ -2193,7 +2294,7 @@ if (want.includes("rentals")) {
 
               return (
               <Card key={`${r.module}:${r.id}`}>
-                <CardBody>
+                <CardBody style={{ padding: isCompactSearchLayout ? 12 : 14 }}>
                   <div style={{ display: "grid", gap: 8 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                       <div style={{ minWidth: 0 }}>

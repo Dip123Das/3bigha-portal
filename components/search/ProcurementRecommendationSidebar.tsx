@@ -33,7 +33,7 @@ export default function ProcurementRecommendationSidebar({
           borderRadius: 20,
           background: "#ffffff",
           border: "1px solid #e2e8f0",
-          padding: 16,
+          padding: 14,
           boxShadow: "0 10px 28px rgba(15,23,42,0.06)",
           display: "grid",
           gap: 12,
@@ -53,7 +53,7 @@ export default function ProcurementRecommendationSidebar({
           <div
             style={{
               marginTop: 4,
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: 1000,
               color: "#0f172a",
             }}
@@ -63,9 +63,9 @@ export default function ProcurementRecommendationSidebar({
 
           <div
             style={{
-              marginTop: 6,
-              fontSize: 13,
-              lineHeight: 1.6,
+              marginTop: 4,
+              fontSize: 12,
+              lineHeight: 1.5,
               color: "#64748b",
               fontWeight: 700,
             }}
@@ -90,7 +90,7 @@ export default function ProcurementRecommendationSidebar({
                 style={{
                   ...tone,
                   borderRadius: 16,
-                  padding: 12,
+                  padding: 10,
                   textDecoration: "none",
                   display: "grid",
                   gap: 4,
@@ -98,7 +98,7 @@ export default function ProcurementRecommendationSidebar({
               >
                 <div
                   style={{
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: 950,
                   }}
                 >
