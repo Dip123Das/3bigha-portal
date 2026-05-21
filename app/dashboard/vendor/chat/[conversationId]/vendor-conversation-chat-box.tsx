@@ -9,6 +9,9 @@ import ConversationComposer from "@/app/components/chat/ConversationComposer";
 import ConversationActionMenu from "@/app/components/chat/ConversationActionMenu";
 import ConversationDeleteConfirm from "@/app/components/chat/ConversationDeleteConfirm";
 import {
+  readConversationContext,
+} from "@/lib/procurement/conversation-context";
+import {
   fmtBubbleTime,
   fmtShortSeen,
   sortMessagesByCreatedAt,
@@ -323,6 +326,80 @@ function toDisplayRole(role?: string | null) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function buildVendorProcurementContextSignal(
+  context: {
+    query?: string;
+    module?: string;
+  } | null
+) {
+  if (!context?.query) {
+    return {
+      title: "General buyer intent",
+      insight:
+        "Continue qualifying buyer quantity, location, timeline and pricing expectations.",
+      suggestedReply:
+        "Please share quantity, location and expected timeline so I can confirm the best price and availability.",
+    };
+  }
+
+  const q = String(context.query || "").toLowerCase();
+  const module = String(context.module || "").toLowerCase();
+
+  if (
+    q.includes("cement") ||
+    q.includes("rod") ||
+    q.includes("steel") ||
+    q.includes("sand") ||
+    module === "materials"
+  ) {
+    return {
+      title: "Bulk material procurement detected",
+      insight:
+        "Buyer likely comparing multiple suppliers for pricing, delivery and GST billing.",
+      suggestedReply:
+        "We can support bulk supply. Please confirm quantity, delivery location, unloading requirements, GST invoice and expected timeline.",
+    };
+  }
+
+  if (module === "property") {
+    return {
+      title: "Property acquisition intent detected",
+      insight:
+        "Buyer may require ownership verification, pricing negotiation and site visit coordination.",
+      suggestedReply:
+        "Please let me know your preferred budget, location priorities and site visit availability so I can assist further.",
+    };
+  }
+
+  if (module === "services") {
+    return {
+      title: "Service procurement workflow detected",
+      insight:
+        "Buyer may compare labour responsibility, scope coverage, timeline and warranty support.",
+      suggestedReply:
+        "Please confirm scope of work, project timeline and whether materials are included so I can finalize the quotation.",
+    };
+  }
+
+  if (module === "rentals") {
+    return {
+      title: "Rental procurement detected",
+      insight:
+        "Buyer may evaluate transport cost, rental duration and equipment availability.",
+      suggestedReply:
+        "Please confirm rental duration, delivery location and expected start date so I can check availability.",
+    };
+  }
+
+  return {
+    title: "Procurement workflow active",
+    insight:
+      "Buyer is continuing an active procurement workflow from marketplace discovery.",
+    suggestedReply:
+      "Please share your detailed requirement so I can confirm the best possible offer.",
+  };
+}
+
 function getVendorAgentIntelligence(messages: MsgRow[]) {
   const visibleMessages = messages.filter((m) => {
     const isSystem = m.sender_role === "system" || m.message_type === "system";
@@ -485,7 +562,23 @@ export default function VendorConversationChatBox(props: {
   const ordered = useMemo(() => sortMessagesByCreatedAt(messages), [messages]);
 
   const vendorAgent = useMemo(() => {
-    return getVendorAgentIntelligence(ordered);
+    const intelligence = getVendorAgentIntelligence(ordered);
+
+    const context =
+      typeof window !== "undefined"
+        ? readConversationContext()
+        : null;
+
+    const procurementSignal =
+      buildVendorProcurementContextSignal(context);
+
+    return {
+      ...intelligence,
+      procurementSignal,
+      suggestedReply:
+        procurementSignal?.suggestedReply ||
+        intelligence.suggestedReply,
+    };
   }, [ordered]);
 
   const canSend = text.trim().length > 0 && !loading && !uploading;
@@ -2156,6 +2249,51 @@ useEffect(() => {
               </div>
             ))}
           </div>
+
+                    {vendorAgent.procurementSignal ? (
+            <div
+              style={{
+                marginTop: 10,
+                border: "1px solid #bfdbfe",
+                background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+                borderRadius: 12,
+                padding: 10,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 950,
+                  color: "#1e3a8a",
+                }}
+              >
+                🧠 Procurement Continuity Signal
+              </div>
+
+              <div
+                style={{
+                  marginTop: 5,
+                  fontSize: 13,
+                  fontWeight: 900,
+                  color: "#0f172a",
+                }}
+              >
+                {vendorAgent.procurementSignal.title}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 12,
+                  lineHeight: 1.6,
+                  color: "#475569",
+                  fontWeight: 800,
+                }}
+              >
+                {vendorAgent.procurementSignal.insight}
+              </div>
+            </div>
+          ) : null}
 
           <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>

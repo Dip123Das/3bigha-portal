@@ -8,6 +8,8 @@ import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import DealScoreClient from "@/app/components/ai/DealScoreClient";
 import BuyerConversationChatBox from "@/app/dashboard/buyer/chat/[conversationId]/buyer-conversation-chat-box";
+import ConversationContextBanner from "@/components/chat/ConversationContextBanner";
+import ProcurementActionSuggestions from "@/components/chat/ProcurementActionSuggestions";
 
 import {
   buildBehaviorMemory,
@@ -683,6 +685,9 @@ export default async function UniversalThreadPage({
         </Link>
       </div>
 
+      <ConversationContextBanner />
+
+      <ProcurementActionSuggestions />
       <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50 p-4 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3">

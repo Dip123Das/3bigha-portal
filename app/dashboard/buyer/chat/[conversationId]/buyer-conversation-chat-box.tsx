@@ -10,6 +10,9 @@ import DealScoreClient from "@/app/components/ai/DealScoreClient";
 import DealReadyClient from "@/app/components/ai/DealReadyClient";
 import ConversationDeleteConfirm from "@/app/components/chat/ConversationDeleteConfirm";
 import {
+  readConversationContext,
+} from "@/lib/procurement/conversation-context";
+import {
   fmtBubbleTime,
   fmtShortSeen,
   sortMessagesByCreatedAt,
@@ -324,6 +327,43 @@ function toDisplayRole(role?: string | null) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function buildContextAwareReplySuggestion(
+  baseReply: string,
+  context: {
+    query?: string;
+    module?: string;
+  } | null
+) {
+  if (!context?.query) return baseReply;
+
+  const q = String(context.query || "").toLowerCase();
+  const module = String(context.module || "").toLowerCase();
+
+  if (
+    q.includes("cement") ||
+    q.includes("rod") ||
+    q.includes("steel") ||
+    q.includes("sand") ||
+    module === "materials"
+  ) {
+    return "Please confirm bulk price, delivery timeline, transport cost, GST invoice and payment terms.";
+  }
+
+  if (module === "property") {
+    return "Please confirm ownership documents, mutation status, final price and site visit availability.";
+  }
+
+  if (module === "services") {
+    return "Please confirm scope of work, labour/material responsibility, timeline and warranty details.";
+  }
+
+  if (module === "rentals") {
+    return "Please confirm rental availability, duration, transport charge and security/payment terms.";
+  }
+
+  return baseReply;
+}
+
 function getBuyerAgentIntelligence(messages: MsgRow[]) {
   const visibleMessages = messages.filter((m) => {
     const isSystem = m.sender_role === "system" || m.message_type === "system";
@@ -491,7 +531,20 @@ export default function BuyerConversationChatBox(props: {
   }, [ordered]);
 
   const buyerAgent = useMemo(() => {
-    return getBuyerAgentIntelligence(ordered);
+    const intelligence = getBuyerAgentIntelligence(ordered);
+
+    const context =
+      typeof window !== "undefined"
+        ? readConversationContext()
+        : null;
+
+    return {
+      ...intelligence,
+      suggestedReply: buildContextAwareReplySuggestion(
+        intelligence.suggestedReply,
+        context
+      ),
+    };
   }, [ordered]);
 
   const canSend = text.trim().length > 0 && !loading && !uploading;

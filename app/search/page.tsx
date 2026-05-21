@@ -36,6 +36,20 @@ import VendorNegotiationPanel from "@/components/search/VendorNegotiationPanel";
 import { buildVendorNegotiationInsight } from "@/lib/search/vendor-negotiation-engine";
 import ProcurementActionCopilot from "@/components/search/ProcurementActionCopilot";
 import { buildProcurementActionCopilot } from "@/lib/search/procurement-action-copilot";
+import ProcurementMemoryTimeline from "@/components/procurement/ProcurementMemoryTimeline";
+import ProcurementReEngagement from "@/components/procurement/ProcurementReEngagement";
+
+import ProcurementJourneyBar from "@/components/procurement/ProcurementJourneyBar";
+import {
+  buildSearchJourneyActions,
+  saveProcurementJourneyAction,
+  readProcurementJourneyActions,
+  type ProcurementJourneyAction,
+} from "@/lib/procurement/journey-actions";
+
+import {
+  saveConversationContext,
+} from "@/lib/procurement/conversation-context";
 
 type SearchModule = "property" | "materials" | "services" | "rentals" | "blog";
 type ModFilter = "all" | SearchModule;
@@ -502,8 +516,12 @@ function SearchPageInner() {
   const [err, setErr] = useState<string | null>(null);
   const [rows, setRows] = useState<ResultRow[]>([]);
   const [recentDiscovery, setRecentDiscovery] = useState<DiscoveryMemoryItem[]>([]);
-    const [recentProcurementSearches, setRecentProcurementSearches] = useState<
+  const [recentProcurementSearches, setRecentProcurementSearches] = useState<
     ProcurementSearchMemory[]
+  >([]);
+
+  const [journeyActions, setJourneyActions] = useState<
+    ProcurementJourneyAction[]
   >([]);
   const [note, setNote] = useState<string | null>(null);
   const [lastAiIntent, setLastAiIntent] = useState<AiSearchIntent | null>(null);
@@ -1074,6 +1092,14 @@ if (want.includes("rentals")) {
           });
 
           setRecentProcurementSearches(readProcurementSearchMemory());
+
+          const nextActions = buildSearchJourneyActions(q, modFromUrl);
+
+          nextActions.forEach((action) => {
+            saveProcurementJourneyAction(action);
+          });
+
+          setJourneyActions(readProcurementJourneyActions());
         }
       } catch (e: any) {
         if (!alive) return;
@@ -1170,6 +1196,7 @@ if (want.includes("rentals")) {
   useEffect(() => {
     setRecentDiscovery(readDiscoveryMemory());
     setRecentProcurementSearches(readProcurementSearchMemory());
+    setJourneyActions(readProcurementJourneyActions());
   }, []);
 
   const hasQuery = !!safeText(qFromUrl);
@@ -1260,6 +1287,11 @@ if (want.includes("rentals")) {
       procurementDecision.readinessScore,
       vendorIntelligence.qualityScore,
     ]
+  );
+
+  const currentJourneyActions = useMemo(
+    () => buildSearchJourneyActions(qFromUrl, modFromUrl),
+    [qFromUrl, modFromUrl]
   );
 
   const procurementActionCopilot = useMemo(
@@ -1558,6 +1590,14 @@ if (want.includes("rentals")) {
       {hasQuery && !loading && rows.length === 0 ? (
         <>
           <EmptyState message="No results found. Try a broader keyword or choose All category." />
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
+      {hasQuery && currentJourneyActions.length > 0 ? (
+        <>
+          <ProcurementJourneyBar actions={currentJourneyActions} />
+
           <div style={{ height: 12 }} />
         </>
       ) : null}
@@ -1901,6 +1941,26 @@ if (want.includes("rentals")) {
 
       <div style={{ height: 12 }} />
 
+      {!hasQuery ? (
+        <>
+          <ProcurementReEngagement />
+
+          <div style={{ height: 12 }} />
+
+          <ProcurementMemoryTimeline />
+
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
+      {!hasQuery && journeyActions.length > 0 ? (
+        <>
+          <ProcurementJourneyBar actions={journeyActions} />
+
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
       {!hasQuery && recentProcurementSearches.length ? (
         <>
           <Card>
@@ -2141,6 +2201,16 @@ if (want.includes("rentals")) {
                         <Link
                           href={r.href}
                           className="topBtn topBtnGhost"
+                          onClick={() => {
+                            saveConversationContext({
+                              query: qFromUrl,
+                              module: modFromUrl,
+                              source: "search",
+                              href: r.href,
+                              title: r.title,
+                              timestamp: Date.now(),
+                            });
+                          }}
                           style={{
                             textDecoration: "none",
                             fontSize: 12,
@@ -2150,9 +2220,20 @@ if (want.includes("rentals")) {
                         >
                           View →
                         </Link>
+
                         <Link
                           href={resultActionHref(r, qFromUrl)}
                           className="topBtn"
+                          onClick={() => {
+                            saveConversationContext({
+                              query: qFromUrl,
+                              module: modFromUrl,
+                              source: "search",
+                              href: resultActionHref(r, qFromUrl),
+                              title: r.title,
+                              timestamp: Date.now(),
+                            });
+                          }}
                           style={{
                             textDecoration: "none",
                             background: r.module === "materials" ? "#7c3aed" : "#0b57d0",
@@ -2222,6 +2303,10 @@ if (want.includes("rentals")) {
                 alignSelf: "start",
               }}
             >
+              <ProcurementReEngagement />
+
+              <ProcurementMemoryTimeline />
+
               <ProcurementRecommendationSidebar
                 query={qFromUrl}
                 module={modFromUrl}
