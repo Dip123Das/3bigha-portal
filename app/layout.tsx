@@ -17,6 +17,7 @@ import GlobalNotificationBell from "./_components/GlobalNotificationBell";
 import PresenceHeartbeat from "./_components/PresenceHeartbeat";
 import MobileMenuAutoClose from "./_components/MobileMenuAutoClose";
 import GlobalAiCopilot from "./_components/GlobalAiCopilot";
+import GlobalWorkflowContinuityRibbon from "@/components/workflow/GlobalWorkflowContinuityRibbon";
 import AutoTranslatePage from "@/components/language/AutoTranslatePage";
 import LanguageSwitcher from "@/components/language/LanguageSwitcher";
 
@@ -840,6 +841,7 @@ groups: [
         </main>
 
         <GlobalAiCopilot />
+        <GlobalWorkflowContinuityRibbon />
 
         <footer className="siteFooter">
           <Container className="footerInner">

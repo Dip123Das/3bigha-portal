@@ -699,6 +699,35 @@ function SearchPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qFromUrl, modFromUrl, intentFromUrl, minPriceFromUrl, maxPriceFromUrl, nearFromUrl, kmFromUrl]);
 
+  useEffect(() => {
+    if (!qFromUrl) return;
+
+    try {
+      const workflow = {
+        query: qFromUrl,
+        module: modFromUrl,
+        stage: "search",
+        title: `Search: ${qFromUrl}`,
+        href: `/search?q=${encodeURIComponent(qFromUrl)}${
+          modFromUrl !== "all" ? `&module=${encodeURIComponent(modFromUrl)}` : ""
+        }`,
+        rfqHref: `/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`,
+        vendorHref: `/vendor/discovery?q=${encodeURIComponent(qFromUrl)}${
+          modFromUrl !== "all" ? `&module=${encodeURIComponent(modFromUrl)}` : ""
+        }`,
+        priceHref: `/price-today?q=${encodeURIComponent(qFromUrl)}`,
+        updatedAt: Date.now(),
+      };
+
+      window.localStorage.setItem(
+        "3bigha_active_workflow",
+        JSON.stringify(workflow)
+      );
+    } catch {
+      // ignore localStorage errors
+    }
+  }, [qFromUrl, modFromUrl]);
+
   function pushUrl(next: {
     q: string;
     module: ModFilter;
