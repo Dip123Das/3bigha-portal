@@ -1310,6 +1310,39 @@ if (want.includes("rentals")) {
     ]
   );
 
+  const procurementQuickSignals = [
+    {
+      label: "Readiness",
+      value: `${procurementDecision.readinessScore || 0}/100`,
+      tone: "#eff6ff",
+      color: "#1d4ed8",
+    },
+    {
+      label: "Vendor liquidity",
+      value: `${vendorLiquidity.score || 0}/100`,
+      tone: "#ecfdf5",
+      color: "#047857",
+    },
+    {
+      label: "Vendor quality",
+      value: `${vendorIntelligence.qualityScore || 0}/100`,
+      tone: "#f5f3ff",
+      color: "#5b21b6",
+    },
+    {
+      label: "Negotiation",
+      value: `${vendorNegotiation.negotiationScore || 0}/100`,
+      tone: "#fffbeb",
+      color: "#92400e",
+    },
+    {
+      label: "Results",
+      value: String(rows.length),
+      tone: "#f8fafc",
+      color: "#334155",
+    },
+  ];
+
   return (
     <Container>
       <SectionHeader title="Search" subtitle="Find anything across 3Bigha.com" />
@@ -1612,18 +1645,59 @@ if (want.includes("rentals")) {
                     AI Procurement Intelligence
                   </div>
                   <div style={{ marginTop: 4, fontSize: 20, fontWeight: 1000, color: "#0f172a" }}>
-                    Smart guidance for this search
+                    Compact execution guidance
                   </div>
                   <div style={{ marginTop: 4, color: "#64748b", fontWeight: 750 }}>
-                    Important procurement intelligence is shown first. Open other sections only when needed.
+                    Key signals first. Open detailed AI cards only when needed.
                   </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+                    gap: 8,
+                  }}
+                >
+                  {procurementQuickSignals.map((item) => (
+                    <div
+                      key={item.label}
+                      style={{
+                        border: "1px solid #e2e8f0",
+                        borderRadius: 14,
+                        background: item.tone,
+                        padding: "10px 12px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 950,
+                          color: "#64748b",
+                          textTransform: "uppercase",
+                          letterSpacing: 0.3,
+                        }}
+                      >
+                        {item.label}
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 4,
+                          fontSize: 16,
+                          fontWeight: 1000,
+                          color: item.color,
+                        }}
+                      >
+                        {item.value}
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 {procurementDecision.show ? (
                   <SearchInsightSection
                     title="🧠 Procurement Decision"
                     subtitle="Readiness, complexity, vendor count and RFQ probability"
-                    defaultOpen
                   >
                     <ProcurementDecisionPanel insight={procurementDecision} />
                   </SearchInsightSection>
@@ -1882,8 +1956,8 @@ if (want.includes("rentals")) {
                 }}
               >
                 {[
-                  ...searchKeywordClusters.related.slice(0, 8),
-                  ...searchKeywordClusters.price.slice(0, 4),
+                  ...searchKeywordClusters.related.slice(0, 5),
+                  ...searchKeywordClusters.price.slice(0, 3),
                 ].map((item) => (
                   <Link
                     key={item}
@@ -1913,7 +1987,7 @@ if (want.includes("rentals")) {
                   gap: 10,
                 }}
               >
-                {searchKeywordClusters.rfq.slice(0, 5).map((item) => (
+                {searchKeywordClusters.rfq.slice(0, 3).map((item) => (
                   <Link
                     key={item}
                     href={`/rfq/general/new?q=${encodeURIComponent(item)}${
@@ -2256,7 +2330,7 @@ if (want.includes("rentals")) {
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
                         gap: 8,
                       }}
                     >
@@ -2274,7 +2348,7 @@ if (want.includes("rentals")) {
                               textDecoration: "none",
                               display: "grid",
                               gap: 4,
-                              minHeight: 58,
+                              minHeight: 50,
                             }}
                           >
                             <strong style={{ fontSize: 12.5, fontWeight: 1000, color: "#0f172a" }}>
