@@ -134,6 +134,11 @@ type UnifiedInboxItem = {
   autonomousReason?: string;
   supplierSignal?: "Strong" | "Moderate" | "Weak";
   workflowRisk?: "High" | "Medium" | "Low";
+  dealHealth?: "Healthy" | "Watch" | "At Risk" | "Stalled" | "High Conversion";
+  dealHealthScore?: number;
+  responseLatencyHours?: number;
+  followupUrgency?: "Now" | "Today" | "Monitor";
+  recoveryTrigger?: string;
 };
 
 function parseMs(v?: string | null) {
@@ -500,9 +505,82 @@ function computeAutonomousProcurementOs(item: UnifiedInboxItem) {
   };
 }
 
+function computeUnifiedDealHealth(item: UnifiedInboxItem) {
+  const ageHours = Math.max(
+    0,
+    Math.round((Date.now() - parseMs(item.lastActivityAt)) / (1000 * 60 * 60))
+  );
+
+  let score = Number(item.procurementScore || item.priorityScore || 35);
+
+  if (item.unreadCount > 0) score -= 12;
+  if (ageHours > 24) score -= 8;
+  if (ageHours > 48) score -= 12;
+  if (ageHours > 72) score -= 15;
+  if (item.workflowRisk === "High") score -= 18;
+  if (item.workflowRisk === "Medium") score -= 8;
+  if (item.responsivenessSignal === "Slow") score -= 12;
+  if (item.closurePrediction === "High") score += 14;
+  if (item.supplierSignal === "Strong") score += 10;
+  if (item.module === "rfq") score += 6;
+  if (item.module === "investment") score += 4;
+
+  score = Math.max(1, Math.min(100, Math.round(score)));
+
+  const dealHealth: UnifiedInboxItem["dealHealth"] =
+    item.closurePrediction === "High" && score >= 76
+      ? "High Conversion"
+      : ageHours > 72 || item.workflowRisk === "High"
+      ? "Stalled"
+      : score < 45
+      ? "At Risk"
+      : score < 65
+      ? "Watch"
+      : "Healthy";
+
+  const followupUrgency: UnifiedInboxItem["followupUrgency"] =
+    dealHealth === "Stalled" || item.unreadCount > 0
+      ? "Now"
+      : dealHealth === "At Risk" || ageHours > 36
+      ? "Today"
+      : "Monitor";
+
+  const recoveryTrigger =
+    dealHealth === "Stalled"
+      ? "Recover this thread with follow-up or alternate vendor action."
+      : dealHealth === "At Risk"
+      ? "Keep this deal warm before it loses momentum."
+      : dealHealth === "High Conversion"
+      ? "Move this conversation toward final confirmation."
+      : "Monitor deal movement.";
+
+  return {
+    dealHealth,
+    dealHealthScore: score,
+    responseLatencyHours: ageHours,
+    followupUrgency,
+    recoveryTrigger,
+  };
+}
+
 function workflowRiskClass(level?: UnifiedInboxItem["workflowRisk"]) {
   if (level === "High") return "border-rose-200 bg-rose-50 text-rose-700";
   if (level === "Medium") return "border-amber-200 bg-amber-50 text-amber-700";
+  return "border-emerald-200 bg-emerald-50 text-emerald-700";
+}
+
+function dealHealthClass(level?: UnifiedInboxItem["dealHealth"]) {
+  if (level === "High Conversion") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (level === "Healthy") return "border-blue-200 bg-blue-50 text-blue-700";
+  if (level === "Watch") return "border-amber-200 bg-amber-50 text-amber-700";
+  if (level === "At Risk") return "border-orange-200 bg-orange-50 text-orange-700";
+  if (level === "Stalled") return "border-rose-200 bg-rose-50 text-rose-700";
+  return "border-slate-200 bg-slate-100 text-slate-700";
+}
+
+function followupUrgencyClass(level?: UnifiedInboxItem["followupUrgency"]) {
+  if (level === "Now") return "border-rose-200 bg-rose-50 text-rose-700";
+  if (level === "Today") return "border-amber-200 bg-amber-50 text-amber-700";
   return "border-emerald-200 bg-emerald-50 text-emerald-700";
 }
 
@@ -855,6 +933,26 @@ function RecentActivityStrip({
                 {item.procurementScore != null ? (
                   <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
                     AI {item.procurementScore}/100
+                  </span>
+                ) : null}
+
+                {item.dealHealth ? (
+                  <span
+                    className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${dealHealthClass(
+                      item.dealHealth
+                    )}`}
+                  >
+                    Deal {item.dealHealth}
+                  </span>
+                ) : null}
+
+                {item.followupUrgency ? (
+                  <span
+                    className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${followupUrgencyClass(
+                      item.followupUrgency
+                    )}`}
+                  >
+                    Follow-up {item.followupUrgency}
                   </span>
                 ) : null}
 
@@ -1494,6 +1592,16 @@ export default async function DashboardInboxV2Page({
         procurementScore: procurementAi.procurementScore,
       });
 
+      const dealHealth = computeUnifiedDealHealth({
+        ...item,
+        procurementScore: procurementAi.procurementScore,
+        responsivenessSignal: procurementAi.responsivenessSignal,
+        negotiationUrgency: procurementAi.negotiationUrgency,
+        closurePrediction: procurementAi.closurePrediction,
+        supplierSignal: autonomousOs.supplierSignal,
+        workflowRisk: autonomousOs.workflowRisk,
+      });
+
       return {
         ...item,
         priorityScore: score,
@@ -1511,6 +1619,11 @@ export default async function DashboardInboxV2Page({
         autonomousReason: autonomousOs.autonomousReason,
         supplierSignal: autonomousOs.supplierSignal,
         workflowRisk: autonomousOs.workflowRisk,
+        dealHealth: dealHealth.dealHealth,
+        dealHealthScore: dealHealth.dealHealthScore,
+        responseLatencyHours: dealHealth.responseLatencyHours,
+        followupUrgency: dealHealth.followupUrgency,
+        recoveryTrigger: dealHealth.recoveryTrigger,
       };
     })
     .sort((a, b) => b.priorityScore - a.priorityScore);
@@ -1701,6 +1814,24 @@ export default async function DashboardInboxV2Page({
       String(item.autonomousAction || "").toLowerCase().includes("reply")
     ).length,
   };
+
+    const dealHealthStats = {
+    highConversion: filteredItems.filter((item) => item.dealHealth === "High Conversion").length,
+    healthy: filteredItems.filter((item) => item.dealHealth === "Healthy").length,
+    watch: filteredItems.filter((item) => item.dealHealth === "Watch").length,
+    atRisk: filteredItems.filter((item) => item.dealHealth === "At Risk").length,
+    stalled: filteredItems.filter((item) => item.dealHealth === "Stalled").length,
+    urgentFollowups: filteredItems.filter((item) => item.followupUrgency === "Now").length,
+  };
+
+  const dealHealthAction =
+    dealHealthStats.stalled > 0
+      ? "Recover stalled conversations before buyers or vendors drop off."
+      : dealHealthStats.atRisk > 0
+      ? "Prioritize at-risk deals and send follow-ups today."
+      : dealHealthStats.highConversion > 0
+      ? "Move high-conversion conversations toward final confirmation."
+      : "Deal health is stable. Continue monitoring active workflows.";
 
   const autonomousOsAction =
     autonomousOsStats.highRisk > 0
@@ -2148,6 +2279,64 @@ export default async function DashboardInboxV2Page({
         />
       </div>
 
+      <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm md:p-5">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.14em] text-blue-700">
+              Unified Deal Health Engine
+            </div>
+            <div className="mt-1 text-lg font-black text-slate-950">
+              AI transaction completion monitor
+            </div>
+            <div className="mt-1 text-sm font-semibold text-slate-500">
+              {dealHealthAction}
+            </div>
+          </div>
+
+          <Link
+            href={buildInboxHref(params, { sort: "unread" })}
+            className="inline-flex rounded-2xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-black text-white transition hover:opacity-90"
+          >
+            Open Priority Deals →
+          </Link>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-6">
+          {[
+            ["High Conversion", dealHealthStats.highConversion, "emerald"],
+            ["Healthy", dealHealthStats.healthy, "blue"],
+            ["Watch", dealHealthStats.watch, "amber"],
+            ["At Risk", dealHealthStats.atRisk, "orange"],
+            ["Stalled", dealHealthStats.stalled, "rose"],
+            ["Follow-up Now", dealHealthStats.urgentFollowups, "slate"],
+          ].map(([label, value, tone]) => (
+            <div
+              key={String(label)}
+              className={`rounded-2xl border p-3 ${
+                tone === "emerald"
+                  ? "border-emerald-200 bg-emerald-50"
+                  : tone === "blue"
+                  ? "border-blue-200 bg-blue-50"
+                  : tone === "amber"
+                  ? "border-amber-200 bg-amber-50"
+                  : tone === "orange"
+                  ? "border-orange-200 bg-orange-50"
+                  : tone === "rose"
+                  ? "border-rose-200 bg-rose-50"
+                  : "border-slate-200 bg-slate-50"
+              }`}
+            >
+              <div className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">
+                {label}
+              </div>
+              <div className="mt-1 text-xl font-black text-slate-950">
+                {value}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
         <a
           href="#recent-activity"
@@ -2519,11 +2708,27 @@ export default async function DashboardInboxV2Page({
                       Closure {item.closurePrediction}
                     </span>
                   ) : null}
+
+                  {item.dealHealth ? (
+                    <span
+                      className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${dealHealthClass(
+                        item.dealHealth
+                      )}`}
+                    >
+                      Deal {item.dealHealth}
+                    </span>
+                  ) : null}
                 </div>
 
                 {item.autonomousAction ? (
                   <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-2 text-xs font-bold leading-5 text-emerald-800">
                     🤖 {item.autonomousAction}
+                  </div>
+                ) : null}
+
+                {item.recoveryTrigger ? (
+                  <div className="mt-2 rounded-xl border border-blue-200 bg-blue-50 p-2 text-[11px] font-bold leading-5 text-blue-800">
+                    🩺 {item.recoveryTrigger}
                   </div>
                 ) : null}
 
