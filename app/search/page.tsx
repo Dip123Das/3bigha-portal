@@ -253,6 +253,152 @@ function parseNum(v: string | null) {
   return Number.isFinite(n) ? n : null;
 }
 
+function buildConversationalMarketplaceSuggestions(input: {
+  query: string;
+  module: ModFilter;
+}) {
+  const q = safeText(input.query).toLowerCase();
+
+  const suggestions: {
+    label: string;
+    href: string;
+    tone: "blue" | "green" | "purple" | "amber";
+  }[] = [];
+
+  const encoded = encodeURIComponent(input.query);
+
+  if (/cement|tmt|rod|brick|sand|stone/.test(q)) {
+    suggestions.push(
+      {
+        label: "Need transport also?",
+        href: `/services?q=${encoded} transport`,
+        tone: "blue",
+      },
+      {
+        label: "Need unloading labour?",
+        href: `/services?q=${encoded} labour`,
+        tone: "green",
+      },
+      {
+        label: "Want branded materials?",
+        href: `/search?q=branded ${encoded}&module=materials`,
+        tone: "purple",
+      },
+      {
+        label: "Create bulk RFQ",
+        href: `/rfq/general/new?query=${encoded}`,
+        tone: "amber",
+      }
+    );
+  }
+
+  if (/land|plot|flat|house|property/.test(q)) {
+    suggestions.push(
+      {
+        label: "Check investment potential",
+        href: `/investment/opportunities?q=${encoded}`,
+        tone: "green",
+      },
+      {
+        label: "Need construction estimate?",
+        href: `/house-construction-cost`,
+        tone: "blue",
+      },
+      {
+        label: "Find nearby contractors",
+        href: `/vendor/discovery?q=contractor&module=services`,
+        tone: "purple",
+      }
+    );
+  }
+
+  if (/mason|contractor|electrician|plumber|rajmistri/.test(q)) {
+    suggestions.push(
+      {
+        label: "Create hiring RFQ",
+        href: `/rfq/general/new?query=${encoded}`,
+        tone: "amber",
+      },
+      {
+        label: "Compare local vendors",
+        href: `/vendor/discovery?q=${encoded}&module=services`,
+        tone: "green",
+      },
+      {
+        label: "Need material suppliers too?",
+        href: `/search?q=materials for ${encoded}&module=materials`,
+        tone: "blue",
+      }
+    );
+  }
+
+  if (/jcb|machine|rental|rent/.test(q)) {
+    suggestions.push(
+      {
+        label: "Check rental availability",
+        href: `/rentals?search=${encoded}`,
+        tone: "amber",
+      },
+      {
+        label: "Need operator also?",
+        href: `/services?q=machine operator`,
+        tone: "green",
+      }
+    );
+  }
+
+  if (!suggestions.length) {
+    suggestions.push(
+      {
+        label: "Create smart RFQ",
+        href: `/rfq/general/new?query=${encoded}`,
+        tone: "blue",
+      },
+      {
+        label: "Find matching vendors",
+        href: `/vendor/discovery?q=${encoded}`,
+        tone: "green",
+      }
+    );
+  }
+
+  return suggestions.slice(0, 5);
+}
+
+function conversationalSuggestionTone(
+  tone: "blue" | "green" | "purple" | "amber"
+) {
+  if (tone === "green") {
+    return {
+      background: "#ecfdf5",
+      border: "#bbf7d0",
+      color: "#047857",
+    };
+  }
+
+  if (tone === "purple") {
+    return {
+      background: "#f5f3ff",
+      border: "#ddd6fe",
+      color: "#5b21b6",
+    };
+  }
+
+  if (tone === "amber") {
+    return {
+      background: "#fffbeb",
+      border: "#fde68a",
+      color: "#92400e",
+    };
+  }
+
+  return {
+    background: "#eff6ff",
+    border: "#bfdbfe",
+    color: "#1d4ed8",
+  };
+}
+
 function detectLightweightSearchIntent(query: string) {
   const q = safeText(query).toLowerCase();
 
@@ -1349,6 +1495,15 @@ if (want.includes("rentals")) {
     },
   ];
 
+  const conversationalSuggestions = useMemo(
+    () =>
+      buildConversationalMarketplaceSuggestions({
+        query: qFromUrl,
+        module: modFromUrl,
+      }),
+    [qFromUrl, modFromUrl]
+  );
+
   const executionRailActions = [
     {
       label: "Create RFQ",
@@ -1677,11 +1832,88 @@ if (want.includes("rentals")) {
               flexWrap: "wrap",
             }}
           >
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 1000, color: "#1d4ed8" }}>
-                Execution Workspace
+            <div
+              style={{
+                display: "grid",
+                gap: 4,
+                minWidth: 0,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 1000, color: "#1d4ed8" }}>
+                  Execution Workspace
+                </div>
+
+                <span
+                  style={{
+                    borderRadius: 999,
+                    background: "#eff6ff",
+                    color: "#1d4ed8",
+                    padding: "4px 8px",
+                    fontSize: 10,
+                    fontWeight: 1000,
+                  }}
+                >
+                  {modFromUrl === "all" ? "Marketplace" : moduleLabel(modFromUrl as SearchModule)}
+                </span>
+
+                <span
+                  style={{
+                    borderRadius: 999,
+                    background: "#ecfdf5",
+                    color: "#047857",
+                    padding: "4px 8px",
+                    fontSize: 10,
+                    fontWeight: 1000,
+                  }}
+                >
+                  AI Score {(procurementDecision.readinessScore || 0)}/100
+                </span>
+
+                <span
+                  style={{
+                    borderRadius: 999,
+                    background: "#f5f3ff",
+                    color: "#5b21b6",
+                    padding: "4px 8px",
+                    fontSize: 10,
+                    fontWeight: 1000,
+                  }}
+                >
+                  {rows.length} Results
+                </span>
               </div>
-              <div style={{ marginTop: 2, fontSize: 13, fontWeight: 850, color: "#334155" }}>
+
+              <div
+                style={{
+                  marginTop: 1,
+                  fontSize: 13,
+                  fontWeight: 850,
+                  color: "#334155",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  maxWidth: isCompactSearchLayout ? "100%" : 520,
+                }}
+              >
+                🔎 {qFromUrl}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 2,
+                  fontSize: 13,
+                  fontWeight: 850,
+                  color: "#334155",
+                }}
+              >
                 Continue this search through RFQ, vendor discovery, price check or AI assistance.
               </div>
             </div>
@@ -1724,6 +1956,83 @@ if (want.includes("rentals")) {
       {hasQuery && !loading && rows.length === 0 ? (
         <>
           <EmptyState message="No results found. Try a broader keyword or choose All category." />
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
+      {hasQuery && conversationalSuggestions.length > 0 ? (
+        <>
+          <Card>
+            <CardBody>
+              <div style={{ display: "grid", gap: 12 }}>
+                <div>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 950,
+                      color: "#0b57d0",
+                    }}
+                  >
+                    Conversational Marketplace Brain
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 4,
+                      fontSize: 20,
+                      fontWeight: 1000,
+                      color: "#0f172a",
+                    }}
+                  >
+                    AI follow-up suggestions for this workflow
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 4,
+                      color: "#64748b",
+                      fontWeight: 750,
+                    }}
+                  >
+                    Continue procurement, vendor discovery, RFQ and execution workflows intelligently.
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 10,
+                  }}
+                >
+                  {conversationalSuggestions.map((item) => {
+                    const tone = conversationalSuggestionTone(item.tone);
+
+                    return (
+                      <Link
+                        key={item.label}
+                        href={item.href}
+                        style={{
+                          textDecoration: "none",
+                          border: `1px solid ${tone.border}`,
+                          background: tone.background,
+                          color: tone.color,
+                          borderRadius: 999,
+                          padding: "10px 14px",
+                          fontSize: 13,
+                          fontWeight: 950,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        ✨ {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
           <div style={{ height: 12 }} />
         </>
       ) : null}
@@ -2255,6 +2564,90 @@ if (want.includes("rentals")) {
         </Card>
       ) : null}
 
+            {hasQuery ? (
+        <div
+          style={{
+            position: "fixed",
+            left: isCompactSearchLayout ? 10 : 24,
+            right: isCompactSearchLayout ? 10 : "auto",
+            bottom: 12,
+            zIndex: 80,
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            borderRadius: 999,
+            background: "rgba(15,23,42,0.92)",
+            backdropFilter: "blur(12px)",
+            padding: "10px 12px",
+            boxShadow: "0 16px 40px rgba(15,23,42,0.22)",
+          }}
+        >
+          <Link
+            href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`}
+            style={{
+              textDecoration: "none",
+              borderRadius: 999,
+              background: "#ffffff",
+              color: "#0f172a",
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 1000,
+              whiteSpace: "nowrap",
+            }}
+          >
+            ⚡ RFQ
+          </Link>
+
+          <Link
+            href={`/vendor/discovery?q=${encodeURIComponent(qFromUrl)}`}
+            style={{
+              textDecoration: "none",
+              borderRadius: 999,
+              background: "#1d4ed8",
+              color: "#ffffff",
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 1000,
+              whiteSpace: "nowrap",
+            }}
+          >
+            🎯 Vendors
+          </Link>
+
+          <Link
+            href={`/price-today?q=${encodeURIComponent(qFromUrl)}`}
+            style={{
+              textDecoration: "none",
+              borderRadius: 999,
+              background: "#7c3aed",
+              color: "#ffffff",
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 1000,
+              whiteSpace: "nowrap",
+            }}
+          >
+            📊 Price
+          </Link>
+
+          <Link
+            href={`/search?q=${encodeURIComponent(qFromUrl)}`}
+            style={{
+              textDecoration: "none",
+              borderRadius: 999,
+              background: "#16a34a",
+              color: "#ffffff",
+              padding: "8px 12px",
+              fontSize: 12,
+              fontWeight: 1000,
+              whiteSpace: "nowrap",
+            }}
+          >
+            🤖 AI
+          </Link>
+        </div>
+      ) : null}
+
       <div style={{ height: 12 }} />
 
       {loading && rows.length > 0 ? (
@@ -2282,7 +2675,58 @@ if (want.includes("rentals")) {
             }}
           >
             <div style={{ display: "grid", gap: 8, minWidth: 0 }}>
-              {rows.map((r) => {
+              {Object.entries(
+                rows.reduce((acc, row) => {
+                  if (!acc[row.module]) acc[row.module] = [];
+                  acc[row.module].push(row);
+                  return acc;
+                }, {} as Record<string, ResultRow[]>)
+              ).map(([group, groupRows]) => (
+                <div
+                  key={group}
+                  style={{
+                    display: "grid",
+                    gap: 8,
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "sticky",
+                      top: isCompactSearchLayout ? 62 : 132,
+                      zIndex: 12,
+                      background: "rgba(248,250,252,0.92)",
+                      backdropFilter: "blur(10px)",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: 14,
+                      padding: "8px 12px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: 1000,
+                        color: "#0f172a",
+                        fontSize: 14,
+                      }}
+                    >
+                      {moduleEmoji(group as SearchModule)}{" "}
+                      {moduleLabel(group as SearchModule)}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 950,
+                        color: "#64748b",
+                      }}
+                    >
+                      {groupRows.length} results
+                    </div>
+                  </div>
+
+                  {groupRows.map((r) => {
               const workflowCards = getSearchWorkflowCards({
                 query: qFromUrl,
                 module: r.module,
@@ -2428,6 +2872,58 @@ if (want.includes("rentals")) {
                       </div>
                     </div>
 
+                    <details
+                      style={{
+                        border: "1px solid #e2e8f0",
+                        borderRadius: 12,
+                        background: "#f8fafc",
+                        padding: "8px 10px",
+                      }}
+                    >
+                      <summary
+                        style={{
+                          cursor: "pointer",
+                          fontSize: 12,
+                          fontWeight: 950,
+                          color: "#1d4ed8",
+                        }}
+                      >
+                        🤖 Why this result?
+                      </summary>
+
+                      <div
+                        style={{
+                          marginTop: 8,
+                          display: "grid",
+                          gap: 6,
+                          fontSize: 12,
+                          color: "#475569",
+                          lineHeight: 1.6,
+                          fontWeight: 750,
+                        }}
+                      >
+                        <div>
+                          • AI procurement relevance score:{" "}
+                          <b>{r._aiScore || 0}</b>
+                        </div>
+
+                        <div>
+                          • Marketplace signal:{" "}
+                          <b>{r._aiReason || "workflow match"}</b>
+                        </div>
+
+                        <div>
+                          • Module intelligence:{" "}
+                          <b>{moduleLabel(r.module)}</b>
+                        </div>
+
+                        <div>
+                          • Search workflow matched against procurement,
+                          vendor discovery and execution intent.
+                        </div>
+                      </div>
+                    </details>
+
                     <div
                       style={{
                         display: "grid",
@@ -2467,6 +2963,8 @@ if (want.includes("rentals")) {
               </Card>
               );
             })}
+                </div>
+              ))}
             </div>
 
             <div
