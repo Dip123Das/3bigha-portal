@@ -139,6 +139,10 @@ type UnifiedInboxItem = {
   responseLatencyHours?: number;
   followupUrgency?: "Now" | "Today" | "Monitor";
   recoveryTrigger?: string;
+  recoveryPriority?: number;
+  recoveryAction?: string;
+  recoveryReason?: string;
+  recoveryHref?: string;
 };
 
 function parseMs(v?: string | null) {
@@ -560,6 +564,47 @@ function computeUnifiedDealHealth(item: UnifiedInboxItem) {
     responseLatencyHours: ageHours,
     followupUrgency,
     recoveryTrigger,
+  };
+}
+
+function computeDealRecovery(item: UnifiedInboxItem) {
+  let priority = 0;
+
+  if (item.dealHealth === "Stalled") priority += 45;
+  if (item.dealHealth === "At Risk") priority += 35;
+  if (item.followupUrgency === "Now") priority += 30;
+  if (item.workflowRisk === "High") priority += 25;
+  if (item.unreadCount > 0) priority += 20;
+  if (item.responsivenessSignal === "Slow") priority += 15;
+  if (item.closurePrediction === "High") priority += 10;
+
+  priority = Math.max(0, Math.min(100, Math.round(priority)));
+
+  const recoveryAction =
+    item.unreadCount > 0
+      ? "Open and respond now"
+      : item.dealHealth === "Stalled"
+      ? "Recover with follow-up"
+      : item.dealHealth === "At Risk"
+      ? "Send warm follow-up"
+      : item.closurePrediction === "High"
+      ? "Push final confirmation"
+      : "Monitor";
+
+  const recoveryReason =
+    item.dealHealth === "Stalled"
+      ? "This deal is aging or high-risk and may lose momentum."
+      : item.dealHealth === "At Risk"
+      ? "This thread needs attention before it becomes stalled."
+      : item.closurePrediction === "High"
+      ? "This conversation has strong closure potential."
+      : "No urgent recovery needed.";
+
+  return {
+    recoveryPriority: priority,
+    recoveryAction,
+    recoveryReason,
+    recoveryHref: item.href,
   };
 }
 
@@ -1602,6 +1647,15 @@ export default async function DashboardInboxV2Page({
         workflowRisk: autonomousOs.workflowRisk,
       });
 
+      const recovery = computeDealRecovery({
+        ...item,
+        dealHealth: dealHealth.dealHealth,
+        followupUrgency: dealHealth.followupUrgency,
+        workflowRisk: autonomousOs.workflowRisk,
+        responsivenessSignal: procurementAi.responsivenessSignal,
+        closurePrediction: procurementAi.closurePrediction,
+      });
+
       return {
         ...item,
         priorityScore: score,
@@ -1624,6 +1678,10 @@ export default async function DashboardInboxV2Page({
         responseLatencyHours: dealHealth.responseLatencyHours,
         followupUrgency: dealHealth.followupUrgency,
         recoveryTrigger: dealHealth.recoveryTrigger,
+        recoveryPriority: recovery.recoveryPriority,
+        recoveryAction: recovery.recoveryAction,
+        recoveryReason: recovery.recoveryReason,
+        recoveryHref: recovery.recoveryHref,
       };
     })
     .sort((a, b) => b.priorityScore - a.priorityScore);
@@ -1679,6 +1737,17 @@ export default async function DashboardInboxV2Page({
       const priorityDiff =
         Number(b.priorityScore ?? 0) - Number(a.priorityScore ?? 0);
       if (priorityDiff !== 0) return priorityDiff;
+
+      return parseMs(b.lastActivityAt) - parseMs(a.lastActivityAt);
+    })
+    .slice(0, 5);
+
+  const recoveryQueue = [...filteredItems]
+    .filter((item) => Number(item.recoveryPriority || 0) >= 45)
+    .sort((a, b) => {
+      const recoveryDiff =
+        Number(b.recoveryPriority || 0) - Number(a.recoveryPriority || 0);
+      if (recoveryDiff !== 0) return recoveryDiff;
 
       return parseMs(b.lastActivityAt) - parseMs(a.lastActivityAt);
     })
@@ -1803,7 +1872,7 @@ export default async function DashboardInboxV2Page({
         : 0,
   };
 
-    const autonomousOsStats = {
+  const autonomousOsStats = {
     highRisk: filteredItems.filter((item) => item.workflowRisk === "High").length,
     mediumRisk: filteredItems.filter((item) => item.workflowRisk === "Medium").length,
     strongSupplier: filteredItems.filter((item) => item.supplierSignal === "Strong").length,
@@ -1815,7 +1884,7 @@ export default async function DashboardInboxV2Page({
     ).length,
   };
 
-    const dealHealthStats = {
+  const dealHealthStats = {
     highConversion: filteredItems.filter((item) => item.dealHealth === "High Conversion").length,
     healthy: filteredItems.filter((item) => item.dealHealth === "Healthy").length,
     watch: filteredItems.filter((item) => item.dealHealth === "Watch").length,
@@ -1823,6 +1892,22 @@ export default async function DashboardInboxV2Page({
     stalled: filteredItems.filter((item) => item.dealHealth === "Stalled").length,
     urgentFollowups: filteredItems.filter((item) => item.followupUrgency === "Now").length,
   };
+
+  const recoveryStats = {
+    total: recoveryQueue.length,
+    stalled: recoveryQueue.filter((item) => item.dealHealth === "Stalled").length,
+    atRisk: recoveryQueue.filter((item) => item.dealHealth === "At Risk").length,
+    urgent: recoveryQueue.filter((item) => item.followupUrgency === "Now").length,
+  };
+
+  const recoveryAction =
+    recoveryStats.stalled > 0
+      ? "Recover stalled deals first before they lose transaction momentum."
+      : recoveryStats.atRisk > 0
+      ? "Warm up at-risk conversations with follow-up actions."
+      : recoveryStats.urgent > 0
+      ? "Open urgent threads and complete the next response."
+      : "No major recovery blocker detected.";
 
   const dealHealthAction =
     dealHealthStats.stalled > 0
@@ -2335,6 +2420,78 @@ export default async function DashboardInboxV2Page({
             </div>
           ))}
         </div>
+      </div>
+
+            <div className="rounded-[1.75rem] border border-rose-200 bg-gradient-to-r from-rose-50 via-white to-amber-50 p-4 shadow-sm md:p-5">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.14em] text-rose-700">
+              AI Deal Recovery Queue
+            </div>
+            <div className="mt-1 text-lg font-black text-slate-950">
+              Stalled, risky and high-priority transaction recovery
+            </div>
+            <div className="mt-1 text-sm font-semibold text-slate-600">
+              {recoveryAction}
+            </div>
+          </div>
+
+          <span className="inline-flex rounded-2xl border border-rose-200 bg-white px-4 py-2 text-sm font-black text-rose-700">
+            {recoveryStats.total} recovery items
+          </span>
+        </div>
+
+        {recoveryQueue.length === 0 ? (
+          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800">
+            ✅ No urgent recovery queue right now. Continue monitoring active workflows.
+          </div>
+        ) : (
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            {recoveryQueue.map((item) => (
+              <Link
+                key={`recovery-${item.id}`}
+                href={item.recoveryHref || item.href}
+                className="rounded-2xl border border-rose-200 bg-white p-4 transition hover:border-rose-300 hover:bg-rose-50"
+              >
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-black text-rose-700">
+                    Recovery {item.recoveryPriority || 0}
+                  </span>
+
+                  {item.dealHealth ? (
+                    <span
+                      className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${dealHealthClass(
+                        item.dealHealth
+                      )}`}
+                    >
+                      {item.dealHealth}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="mt-3 line-clamp-2 text-sm font-black text-slate-950">
+                  {item.title}
+                </div>
+
+                <div className="mt-1 line-clamp-2 text-xs font-semibold text-slate-500">
+                  {item.counterpart}
+                </div>
+
+                <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-2 text-xs font-bold leading-5 text-amber-800">
+                  ⚙️ {item.recoveryAction}
+                </div>
+
+                <div className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">
+                  {item.recoveryReason}
+                </div>
+
+                <div className="mt-3 text-xs font-black text-rose-700">
+                  Open recovery →
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">

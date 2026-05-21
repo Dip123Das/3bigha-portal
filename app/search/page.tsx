@@ -1464,11 +1464,26 @@ if (want.includes("rentals")) {
     ]
   );
 
-  const currentJourneyActions = useMemo(() => {
+    const currentJourneyActions = useMemo(() => {
     const seen = new Set<string>();
 
     return buildSearchJourneyActions(qFromUrl, modFromUrl).filter((action) => {
-      const key = `${action.label}-${action.href}`;
+      const normalizedLabel = action.label
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+
+      const actionFamily =
+        action.href.includes("/price-today")
+          ? "price"
+          : action.href.includes("/vendor/discovery")
+          ? "vendor"
+          : action.href.includes("/rfq")
+          ? "rfq"
+          : normalizedLabel;
+
+      const key = `${actionFamily}-${action.href.split("?")[0]}`;
+
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -1982,6 +1997,124 @@ if (want.includes("rentals")) {
         </>
       ) : null}
 
+      {hasQuery ? (
+        <>
+          <Card>
+            <CardBody>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  borderRadius: 18,
+                  background: "linear-gradient(135deg, #f8fafc, #eff6ff)",
+                  border: "1px solid #bfdbfe",
+                  padding: isCompactSearchLayout ? 12 : 14,
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 1000,
+                      color: "#1d4ed8",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    AI Focus Mode
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 4,
+                      fontSize: isCompactSearchLayout ? 16 : 18,
+                      fontWeight: 1000,
+                      color: "#0f172a",
+                    }}
+                  >
+                    {qFromUrl}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 4,
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: "#475569",
+                    }}
+                  >
+                    Best next step: create RFQ, compare vendors, check price, or continue search results.
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                  }}
+                >
+                  <Link
+                    href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`}
+                    style={{
+                      textDecoration: "none",
+                      borderRadius: 999,
+                      background: "#0f172a",
+                      color: "#ffffff",
+                      padding: "9px 13px",
+                      fontSize: 12,
+                      fontWeight: 1000,
+                    }}
+                  >
+                    ⚡ Create RFQ
+                  </Link>
+
+                  <Link
+                    href={`/vendor/discovery?q=${encodeURIComponent(qFromUrl)}${
+                      modFromUrl !== "all" ? `&module=${encodeURIComponent(modFromUrl)}` : ""
+                    }`}
+                    style={{
+                      textDecoration: "none",
+                      borderRadius: 999,
+                      background: "#ecfdf5",
+                      color: "#047857",
+                      border: "1px solid #bbf7d0",
+                      padding: "9px 13px",
+                      fontSize: 12,
+                      fontWeight: 1000,
+                    }}
+                  >
+                    🎯 Vendors
+                  </Link>
+
+                  <Link
+                    href={`/price-today?q=${encodeURIComponent(qFromUrl)}`}
+                    style={{
+                      textDecoration: "none",
+                      borderRadius: 999,
+                      background: "#f5f3ff",
+                      color: "#5b21b6",
+                      border: "1px solid #ddd6fe",
+                      padding: "9px 13px",
+                      fontSize: 12,
+                      fontWeight: 1000,
+                    }}
+                  >
+                    📊 Price
+                  </Link>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
       {hasQuery && !loading && rows.length === 0 ? (
         <>
           <EmptyState message="No results found. Try a broader keyword or choose All category." />
@@ -1991,8 +2124,10 @@ if (want.includes("rentals")) {
 
       {hasQuery && conversationalSuggestions.length > 0 ? (
         <>
-          <Card>
-            <CardBody>
+          <SearchInsightSection
+            title="✨ AI follow-up suggestions for this workflow"
+            subtitle="Optional next-step prompts for procurement, vendors, RFQ and pricing"
+          >
               <div style={{ display: "grid", gap: 12 }}>
                 <div>
                   <div
@@ -2059,8 +2194,7 @@ if (want.includes("rentals")) {
                   })}
                 </div>
               </div>
-            </CardBody>
-          </Card>
+          </SearchInsightSection>
 
           <div style={{ height: 12 }} />
         </>
@@ -2456,6 +2590,60 @@ if (want.includes("rentals")) {
 
       {!hasQuery ? (
         <>
+          <Card>
+            <CardBody>
+              <div style={{ display: "grid", gap: 14 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 1000, color: "#1d4ed8" }}>
+                    AI Starter Workflows
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 22, fontWeight: 1000, color: "#0f172a" }}>
+                    Start with a real marketplace workflow
+                  </div>
+                  <div style={{ marginTop: 4, color: "#64748b", fontWeight: 750 }}>
+                    Choose a common procurement, property, service or rental flow and let 3Bigha guide the next steps.
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+                    gap: 10,
+                  }}
+                >
+                  {[
+                    ["🧱 500 bags cement", "/search?q=500 bags cement&module=materials"],
+                    ["🏠 2 katha land", "/search?q=2 katha land&module=property"],
+                    ["👷 Need rajmistri", "/search?q=rajmistri for house&module=services"],
+                    ["🚜 JCB rental", "/search?q=jcb rental&module=rentals"],
+                    ["📊 Cement price", "/price-today?q=cement"],
+                    ["⚡ Create RFQ", "/rfq/general/new"],
+                  ].map(([label, href]) => (
+                    <Link
+                      key={label}
+                      href={href}
+                      style={{
+                        textDecoration: "none",
+                        border: "1px solid #dbeafe",
+                        background: "#eff6ff",
+                        color: "#1d4ed8",
+                        borderRadius: 16,
+                        padding: "12px 14px",
+                        fontSize: 13,
+                        fontWeight: 1000,
+                      }}
+                    >
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          <div style={{ height: 12 }} />
+
           <ProcurementReEngagement />
 
           <div style={{ height: 12 }} />
@@ -2689,9 +2877,7 @@ if (want.includes("rentals")) {
         <EmptyState message="Searching…" />
       ) : err ? (
         <EmptyState message={err} />
-      ) : !hasQuery ? (
-        <EmptyState message="Type a query above (example: Cooch Behar, Jalpaiguri, plot, cement) — results will appear automatically." />
-      ) : rows.length === 0 ? null : (
+      ) : !hasQuery ? null : rows.length === 0 ? null : (
         <>
           <div style={{ marginBottom: 10, fontWeight: 900, opacity: 0.8 }}>Results: {rows.length}</div>
 
@@ -3017,6 +3203,7 @@ if (want.includes("rentals")) {
           </div>
         </>
       )}
+      <div style={{ height: hasQuery ? 96 : 24 }} />
     </Container>
   );
 }
