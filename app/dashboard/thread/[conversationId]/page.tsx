@@ -12,6 +12,10 @@ import ConversationContextBanner from "@/components/chat/ConversationContextBann
 import ProcurementActionSuggestions from "@/components/chat/ProcurementActionSuggestions";
 import UniversalWorkflowHeader from "@/components/operational/UniversalWorkflowHeader";
 import StickyWorkflowCommandBar from "@/components/operational/StickyWorkflowCommandBar";
+import OperationalPageShell from "@/components/operational/OperationalPageShell";
+import OperationalWorkspacePanel from "@/components/operational/OperationalWorkspacePanel";
+import ContextualAiAssist from "@/components/ai-assist/ContextualAiAssist";
+import { resolveNextAction } from "@/lib/workflow/next-action-engine";
 
 import {
   buildBehaviorMemory,
@@ -19,6 +23,8 @@ import {
 } from "@/lib/ai/behavior-memory";
 
 export const dynamic = "force-dynamic";
+
+const operationalNextAction = resolveNextAction("thread");
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -670,7 +676,8 @@ export default async function UniversalThreadPage({
   );
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 space-y-6">
+    <OperationalPageShell>
+      <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold text-slate-900">Conversation</h1>
@@ -698,6 +705,23 @@ export default async function UniversalThreadPage({
       />
 
       <ConversationContextBanner />
+
+      <OperationalWorkspacePanel
+        title="Conversation Work Space"
+        nextAction={negotiationAi.nextAction}
+        status={`Stage: ${negotiationAi.stage} • Risk: ${negotiationAi.workflowRisk}`}
+        actions={[
+          { label: "Reply Now", href: "#message-composer", tone: "primary" },
+          { label: "Open Inbox", href: backHref, tone: "neutral" },
+          rfqId
+            ? {
+                label: "Quote Compare",
+                href: `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}`,
+                tone: "warning",
+              }
+            : { label: "New RFQ", href: "/rfq/general/new", tone: "success" },
+        ]}
+      />
 
       <ProcurementActionSuggestions />
 
@@ -808,6 +832,10 @@ export default async function UniversalThreadPage({
         </div>
       </div>
 
+      <ContextualAiAssist
+        title="AI negotiation and procurement assistance"
+        description="AI helps analyze negotiation, risk, payment signals, supplier confidence, follow-up actions, procurement execution and delivery timelines."
+      >
             <div className="rounded-3xl border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-violet-50 p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -1171,6 +1199,8 @@ export default async function UniversalThreadPage({
         ) : null}
       </div>
 
+      </ContextualAiAssist>
+
       {isUnifiedLiveChat ? (
         <BuyerConversationChatBox
           conversationId={conversationId}
@@ -1189,9 +1219,11 @@ export default async function UniversalThreadPage({
           initialUnreadCutoffAt={lastReadAt}
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border bg-white">
+        <div className="overflow-hidden rounded-3xl border-2 border-slate-200 bg-white shadow-sm">
           <div className="border-b px-5 py-4">
-            <h2 className="text-lg font-semibold text-slate-900">Messages</h2>
+            <h2 className="text-lg font-black text-slate-950">
+              Conversation Timeline
+            </h2>
             <p className="mt-1 text-sm text-slate-500">
               RFQ unified thread is active.
             </p>
@@ -1286,6 +1318,7 @@ export default async function UniversalThreadPage({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </OperationalPageShell>
   );
 }

@@ -28,8 +28,6 @@ import {
   buildBehaviorMemory,
   mergeBehaviorSignals,
 } from "@/lib/ai/behavior-memory";
-export const dynamic = "force-dynamic";
-
 const operationalNextAction = resolveNextAction("inbox");
 
 type SearchParams = {
