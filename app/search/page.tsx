@@ -38,6 +38,7 @@ import ProcurementActionCopilot from "@/components/search/ProcurementActionCopil
 import { buildProcurementActionCopilot } from "@/lib/search/procurement-action-copilot";
 import ProcurementMemoryTimeline from "@/components/procurement/ProcurementMemoryTimeline";
 import ProcurementReEngagement from "@/components/procurement/ProcurementReEngagement";
+import AIExecutionDrawer from "@/components/ai-execution/AIExecutionDrawer";
 
 import ProcurementJourneyBar from "@/components/procurement/ProcurementJourneyBar";
 import {
@@ -1999,6 +2000,19 @@ if (want.includes("rentals")) {
 
       {hasQuery ? (
         <>
+          <AIExecutionDrawer
+            input={{
+              query: qFromUrl,
+              module: modFromUrl,
+              source: "search",
+              readinessScore: procurementDecision.readinessScore,
+              negotiationScore: vendorNegotiation.negotiationScore,
+              resultCount: rows.length,
+            }}
+          />
+
+          <div style={{ height: 12 }} />
+
           <Card>
             <CardBody>
               <div

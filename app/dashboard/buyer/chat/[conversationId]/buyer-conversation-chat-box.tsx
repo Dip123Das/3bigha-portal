@@ -9,6 +9,8 @@ import ConversationActionMenu from "@/app/components/chat/ConversationActionMenu
 import DealScoreClient from "@/app/components/ai/DealScoreClient";
 import DealReadyClient from "@/app/components/ai/DealReadyClient";
 import ConversationDeleteConfirm from "@/app/components/chat/ConversationDeleteConfirm";
+import AIExecutionDrawer from "@/components/ai-execution/AIExecutionDrawer";
+import AIExecutionTimeline from "@/components/ai-execution/AIExecutionTimeline";
 import {
   readConversationContext,
 } from "@/lib/procurement/conversation-context";
@@ -517,6 +519,11 @@ export default function BuyerConversationChatBox(props: {
 
   const ordered = useMemo(() => sortMessagesByCreatedAt(messages), [messages]);
 
+  const conversationContext = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    return readConversationContext();
+  }, []);
+
   const dealScoreMessages = useMemo(() => {
     return ordered
       .filter((m) => {
@@ -533,19 +540,14 @@ export default function BuyerConversationChatBox(props: {
   const buyerAgent = useMemo(() => {
     const intelligence = getBuyerAgentIntelligence(ordered);
 
-    const context =
-      typeof window !== "undefined"
-        ? readConversationContext()
-        : null;
-
     return {
       ...intelligence,
       suggestedReply: buildContextAwareReplySuggestion(
         intelligence.suggestedReply,
-        context
+        conversationContext
       ),
     };
-  }, [ordered]);
+  }, [ordered, conversationContext]);
 
   const canSend = text.trim().length > 0 && !loading && !uploading;
 
@@ -1717,6 +1719,66 @@ useEffect(() => {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              <div style={{ marginTop: 12 }}>
+                <AIExecutionDrawer
+                  compact
+                  input={{
+                    query:
+                      conversationContext?.query ||
+                      contextTitle ||
+                      buyerAgent.lifecycleStage ||
+                      "",
+                    module:
+                      conversationContext?.module ||
+                      contextType ||
+                      "inbox",
+                    source: "inbox",
+                    readinessScore: buyerAgent.agentScore,
+                    procurementStage: buyerAgent.lifecycleStage,
+                    workflowRisk:
+                      buyerAgent.workflowRisk === "High"
+                        ? "High"
+                        : buyerAgent.workflowRisk === "Medium"
+                          ? "Medium"
+                          : "Low",
+                    closurePrediction:
+                      buyerAgent.supplierReliability === "Strong"
+                        ? "High"
+                        : buyerAgent.supplierReliability === "Moderate"
+                          ? "Medium"
+                          : "Low",
+                    inboxUrgency:
+                      buyerAgent.workflowRisk === "High"
+                        ? "Critical"
+                        : buyerAgent.workflowRisk === "Medium"
+                          ? "High"
+                          : "Normal",
+                  }}
+                />
+              </div>
+
+              <div style={{ marginTop: 12 }}>
+                <AIExecutionTimeline
+                  input={{
+                    module: conversationContext?.module || contextType || "inbox",
+                    stage: buyerAgent.lifecycleStage,
+                    workflowRisk:
+                      buyerAgent.workflowRisk === "High"
+                        ? "High"
+                        : buyerAgent.workflowRisk === "Medium"
+                          ? "Medium"
+                          : "Low",
+                    closurePrediction:
+                      buyerAgent.supplierReliability === "Strong"
+                        ? "High"
+                        : buyerAgent.supplierReliability === "Moderate"
+                          ? "Medium"
+                          : "Low",
+                    vendorCount: 1,
+                  }}
+                />
               </div>
 
               <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>

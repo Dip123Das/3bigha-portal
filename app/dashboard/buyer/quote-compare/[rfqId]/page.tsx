@@ -3,6 +3,7 @@ import { fetchBuyerQuoteCompare } from "@/lib/rfq/buyer-quote-compare/server";
 import SmartDecisionBox from "./SmartDecisionBox";
 import MarketplaceAiDashboard from "./MarketplaceAiDashboard";
 import PricePredictionToggle from "./PricePredictionToggle";
+import AIExecutionTimeline from "@/components/ai-execution/AIExecutionTimeline";
 
 export const dynamic = "force-dynamic";
 
@@ -764,6 +765,26 @@ export default async function BuyerQuoteComparePage({
           </div>
         </div>
       </div>
+
+      <AIExecutionTimeline
+        input={{
+          module,
+          stage: autonomousOsDecision.milestone,
+          workflowRisk: autonomousOsDecision.workflowRisk,
+          closurePrediction:
+            buyerDecisionConfidence >= 80
+              ? "High"
+              : buyerDecisionConfidence >= 55
+                ? "Medium"
+                : "Low",
+          vendorCount: vendorsSorted.length,
+          hasAcceptedQuote: Boolean(acceptedQuoteId),
+          hasPriceSignal: priced.length > 0,
+          hasDeliverySignal: Boolean(fastestVendorId),
+        }}
+      />
+
+      <div style={{ height: 14 }} />
 
       <MarketplaceAiDashboard payload={smartDecisionPayload} />
 

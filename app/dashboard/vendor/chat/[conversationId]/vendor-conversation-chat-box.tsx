@@ -7,6 +7,8 @@ import { clearInboxReminder } from "@/lib/inbox/clearInboxReminder";
 import ConversationMessageList from "@/app/components/chat/ConversationMessageList";
 import ConversationComposer from "@/app/components/chat/ConversationComposer";
 import ConversationActionMenu from "@/app/components/chat/ConversationActionMenu";
+import AIExecutionDrawer from "@/components/ai-execution/AIExecutionDrawer";
+import AIExecutionTimeline from "@/components/ai-execution/AIExecutionTimeline";
 import ConversationDeleteConfirm from "@/app/components/chat/ConversationDeleteConfirm";
 import {
   readConversationContext,
@@ -561,16 +563,16 @@ export default function VendorConversationChatBox(props: {
 
   const ordered = useMemo(() => sortMessagesByCreatedAt(messages), [messages]);
 
+  const conversationContext = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    return readConversationContext();
+  }, []);
+
   const vendorAgent = useMemo(() => {
     const intelligence = getVendorAgentIntelligence(ordered);
 
-    const context =
-      typeof window !== "undefined"
-        ? readConversationContext()
-        : null;
-
     const procurementSignal =
-      buildVendorProcurementContextSignal(context);
+      buildVendorProcurementContextSignal(conversationContext);
 
     return {
       ...intelligence,
@@ -579,7 +581,7 @@ export default function VendorConversationChatBox(props: {
         procurementSignal?.suggestedReply ||
         intelligence.suggestedReply,
     };
-  }, [ordered]);
+  }, [ordered, conversationContext]);
 
   const canSend = text.trim().length > 0 && !loading && !uploading;
 
@@ -2196,7 +2198,64 @@ useEffect(() => {
           background: "#fff",
         }}
       >
-                <div
+        <div style={{ marginBottom: 12 }}>
+          <AIExecutionDrawer
+            compact
+            input={{
+              query:
+                conversationContext?.query ||
+                contextTitle ||
+                vendorAgent.procurementSignal?.title ||
+                "",
+              module:
+                conversationContext?.module ||
+                contextType ||
+                "inbox",
+              source: "inbox",
+              readinessScore: vendorAgent.agentScore,
+              procurementStage: vendorAgent.lifecycleStage,
+              workflowRisk:
+                vendorAgent.workflowRisk === "High"
+                  ? "High"
+                  : vendorAgent.workflowRisk === "Medium"
+                    ? "Medium"
+                    : "Low",
+              closurePrediction:
+                vendorAgent.buyerReliability === "Strong"
+                  ? "High"
+                  : vendorAgent.buyerReliability === "Moderate"
+                    ? "Medium"
+                    : "Low",
+              inboxUrgency:
+                vendorAgent.workflowRisk === "High"
+                  ? "Critical"
+                  : vendorAgent.workflowRisk === "Medium"
+                    ? "High"
+                    : "Normal",
+            }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <AIExecutionTimeline
+            input={{
+              module: conversationContext?.module || contextType || "inbox",
+              stage: vendorAgent.lifecycleStage,
+              workflowRisk: vendorAgent.workflowRisk,
+              closurePrediction:
+                vendorAgent.buyerReliability === "Strong"
+                  ? "High"
+                  : vendorAgent.buyerReliability === "Moderate"
+                    ? "Medium"
+                    : "Low",
+              vendorCount: 1,
+              hasPriceSignal: vendorAi.missing.includes("final price") === false,
+              hasDeliverySignal: vendorAi.missing.includes("delivery time") === false,
+            }}
+          />
+        </div>
+
+        <div
           style={{
             marginBottom: 12,
             border: "1px solid #bbf7d0",

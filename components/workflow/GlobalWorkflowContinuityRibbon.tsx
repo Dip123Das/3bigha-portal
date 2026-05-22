@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { buildAiExecutionPlan } from "@/lib/ai-execution/execution-engine";
 
 type WorkflowState = {
   query: string;
@@ -138,6 +139,18 @@ export default function GlobalWorkflowContinuityRibbon() {
     [workflow]
   );
 
+  const executionPlan = useMemo(
+    () =>
+      workflow
+        ? buildAiExecutionPlan({
+            query: workflow.query,
+            module: workflow.module,
+            source: "workflow",
+          })
+        : null,
+    [workflow]
+  );
+
   if (!workflow || pathname?.startsWith("/search") || !insight) return null;
 
   if (collapsed) {
@@ -198,15 +211,16 @@ export default function GlobalWorkflowContinuityRibbon() {
           >
             {insight.primaryLabel}
           </Link>
-          <Link href={workflow.rfqHref} className="rounded-full bg-blue-600 px-3 py-2 text-xs font-black text-white">
-            RFQ
-          </Link>
-          <Link href={workflow.vendorHref} className="rounded-full bg-emerald-600 px-3 py-2 text-xs font-black text-white">
-            Vendors
-          </Link>
-          <Link href={workflow.priceHref} className="rounded-full bg-violet-600 px-3 py-2 text-xs font-black text-white">
-            Price
-          </Link>
+
+          {(executionPlan?.actions || []).slice(0, 4).map((action) => (
+            <Link
+              key={action.id}
+              href={action.href}
+              className="rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-black text-blue-700"
+            >
+              {action.icon} {action.title}
+            </Link>
+          ))}
         </div>
       </div>
     </div>
