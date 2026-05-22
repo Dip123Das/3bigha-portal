@@ -11,6 +11,7 @@ import DealReadyClient from "@/app/components/ai/DealReadyClient";
 import ConversationDeleteConfirm from "@/app/components/chat/ConversationDeleteConfirm";
 import AIExecutionDrawer from "@/components/ai-execution/AIExecutionDrawer";
 import AIExecutionTimeline from "@/components/ai-execution/AIExecutionTimeline";
+import OperationalWorkspacePanel from "@/components/operational/OperationalWorkspacePanel";
 import {
   readConversationContext,
 } from "@/lib/procurement/conversation-context";
@@ -1721,6 +1722,18 @@ useEffect(() => {
                 ))}
               </div>
 
+              <OperationalWorkspacePanel
+                title="Buyer Work Space"
+                nextAction={buyerAgent.autonomousAction}
+                status={`Stage: ${buyerAgent.lifecycleStage} • Risk: ${buyerAgent.workflowRisk}`}
+                actions={[
+                  { label: "Reply Vendor", href: "#message-composer", tone: "primary" },
+                  { label: "Ask Final Details", href: "#message-composer", tone: "warning" },
+                  { label: "Compare Vendors", href: "/dashboard/inbox-v2?module=rfq", tone: "neutral" },
+                  { label: "Open Inbox", href: "/dashboard/inbox-v2", tone: "neutral" },
+                ]}
+              />
+
               <div style={{ marginTop: 12 }}>
                 <AIExecutionDrawer
                   compact
@@ -1938,7 +1951,8 @@ useEffect(() => {
         src="/sounds/message-pop.mp3"
       />
 
-      <ConversationComposer
+      <div id="message-composer">
+        <ConversationComposer
         QUICK_REPLIES={QUICK_REPLIES}
         COMPOSER_EMOJIS={COMPOSER_EMOJIS}
         MAX_FILES={1}
@@ -1986,5 +2000,6 @@ useEffect(() => {
         }}
       />
       </div>
+    </div>
   );
 }

@@ -9,6 +9,7 @@ import ConversationComposer from "@/app/components/chat/ConversationComposer";
 import ConversationActionMenu from "@/app/components/chat/ConversationActionMenu";
 import AIExecutionDrawer from "@/components/ai-execution/AIExecutionDrawer";
 import AIExecutionTimeline from "@/components/ai-execution/AIExecutionTimeline";
+import OperationalWorkspacePanel from "@/components/operational/OperationalWorkspacePanel";
 import ConversationDeleteConfirm from "@/app/components/chat/ConversationDeleteConfirm";
 import {
   readConversationContext,
@@ -2198,6 +2199,19 @@ useEffect(() => {
           background: "#fff",
         }}
       >
+
+        <OperationalWorkspacePanel
+          title="Vendor Work Space"
+          nextAction={vendorAgent.autonomousAction}
+          status={`Stage: ${vendorAgent.lifecycleStage} • Risk: ${vendorAgent.workflowRisk}`}
+          actions={[
+            { label: "Write Reply", href: "#message-composer", tone: "primary" },
+            { label: "Use Suggested Reply", href: "#message-composer", tone: "success" },
+            { label: "Check Deal Status", href: "#deal-status", tone: "neutral" },
+            { label: "Open Inbox", href: "/dashboard/inbox-v2", tone: "neutral" },
+          ]}
+        />
+
         <div style={{ marginBottom: 12 }}>
           <AIExecutionDrawer
             compact
@@ -2649,7 +2663,7 @@ useEffect(() => {
         </div>
       </div>
 
-      <div>
+      <div id="message-composer">
         <ConversationComposer
         QUICK_REPLIES={QUICK_REPLIES}
         COMPOSER_EMOJIS={COMPOSER_EMOJIS}

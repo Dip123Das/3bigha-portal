@@ -18,6 +18,7 @@ import SectionSummaryChips from "@/app/components/inbox/SectionSummaryChips";
 import ThreadSectionLiveList from "@/app/components/inbox/ThreadSectionLiveList";
 import ThreadDueReminderState from "@/app/components/inbox/ThreadDueReminderState";
 import { normalizeBehaviorMemory } from "@/lib/ai/normalize-memory";
+import OperationalWorkspacePanel from "@/components/operational/OperationalWorkspacePanel";
 
 import {
   buildBehaviorMemory,
@@ -2126,6 +2127,20 @@ export default async function DashboardInboxV2Page({
           </div>
         </div>
       </div>
+
+      <OperationalWorkspacePanel
+        title="Inbox Work Space"
+        nextAction={latestUnreadItem ? "Open the latest unread thread first." : procurementNextAction}
+        status={`${stats.unread} unread • ${recoveryStats.total} recovery item(s)`}
+        actions={[
+          latestUnreadItem
+            ? { label: "Open Latest Unread", href: latestUnreadItem.href, tone: "primary" }
+            : { label: "View All Threads", href: "/dashboard/inbox-v2", tone: "primary" },
+          { label: "Priority Deals", href: buildInboxHref(params, { sort: "unread" }), tone: "warning" },
+          { label: "New RFQ", href: "/rfq/general/new", tone: "success" },
+          { label: "Procurement Live", href: "/dashboard/procurement-live", tone: "neutral" },
+        ]}
+      />
 
       <details className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
         <summary className="cursor-pointer px-5 py-4 text-sm font-black text-slate-900">

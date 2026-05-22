@@ -4,6 +4,7 @@ import SmartDecisionBox from "./SmartDecisionBox";
 import MarketplaceAiDashboard from "./MarketplaceAiDashboard";
 import PricePredictionToggle from "./PricePredictionToggle";
 import AIExecutionTimeline from "@/components/ai-execution/AIExecutionTimeline";
+import OperationalWorkspacePanel from "@/components/operational/OperationalWorkspacePanel";
 
 export const dynamic = "force-dynamic";
 
@@ -764,6 +765,28 @@ export default async function BuyerQuoteComparePage({
             <strong>Updated:</strong> {fmtDateTime(rfq?.updated_at)}
           </div>
         </div>
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <OperationalWorkspacePanel
+          title="Quote Compare Work Space"
+          nextAction={aiProcurementDecision.buyerAction}
+          status={`Vendors: ${vendorsSorted.length} • Confidence: ${buyerDecisionConfidence || "—"}/100`}
+          actions={[
+            aiProcurementDecision.bestOverall?.vendorId
+              ? {
+                  label: "Negotiate Best Vendor",
+                  href: `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}/chat?vendorId=${encodeURIComponent(
+                    aiProcurementDecision.bestOverall.vendorId
+                  )}`,
+                  tone: "primary",
+                }
+              : { label: "Wait for Quotes", href: "/dashboard/inbox-v2?module=rfq", tone: "warning" },
+            { label: "Print Compare", href: buyerPrintHref, tone: "neutral" },
+            { label: "Open RFQ Inbox", href: "/dashboard/inbox-v2?module=rfq", tone: "neutral" },
+            { label: "My RFQs", href: "/dashboard/buyer/rfqs", tone: "neutral" },
+          ]}
+        />
       </div>
 
       <AIExecutionTimeline
