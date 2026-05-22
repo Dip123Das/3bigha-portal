@@ -2212,9 +2212,14 @@ useEffect(() => {
           ]}
         />
 
-        <div style={{ marginBottom: 12 }}>
-          <AIExecutionDrawer
-            compact
+        <details style={{ marginBottom: 12 }}>
+          <summary style={{ cursor: "pointer", fontWeight: 950, color: "#334155" }}>
+            Show advanced AI deal analysis
+          </summary>
+
+          <div style={{ marginTop: 12 }}>
+            <AIExecutionDrawer
+              compact
             input={{
               query:
                 conversationContext?.query ||
@@ -2268,6 +2273,8 @@ useEffect(() => {
             }}
           />
         </div>
+
+        </details>
 
         <div
           style={{

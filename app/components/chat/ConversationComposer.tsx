@@ -270,20 +270,27 @@ export default function ConversationComposer(props: {
         ))}
       </div>
 
-      <div
+      <details
         style={{
           marginBottom: 10,
-          border: "1px solid #c7d2fe",
-          background: "linear-gradient(90deg, #eef2ff, #ffffff)",
+          border: "1px solid #e5e7eb",
+          background: "#f8fafc",
           borderRadius: 14,
           padding: "10px 12px",
         }}
       >
-        <div style={{ fontSize: 13, fontWeight: 900, color: "#3730a3", marginBottom: 8 }}>
-          ✨ AI Deal Assistant
-        </div>
+        <summary
+          style={{
+            cursor: "pointer",
+            fontSize: 13,
+            fontWeight: 900,
+            color: "#111827",
+          }}
+        >
+          ✨ Need AI help writing this message?
+        </summary>
 
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button type="button" onClick={() => applyAiDealSuggestion("Please confirm the exact item, quantity, delivery location, final price and expected delivery time.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 999, border: "1px solid #c7d2fe", background: "#fff", color: "#3730a3", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
             Ask full deal details
           </button>
@@ -330,7 +337,7 @@ export default function ConversationComposer(props: {
             </span>
           ) : null}
         </div>
-      </div>
+      </details>
 
       {replyingTo ? (
         <div

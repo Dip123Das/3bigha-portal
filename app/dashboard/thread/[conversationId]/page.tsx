@@ -768,16 +768,15 @@ export default async function UniversalThreadPage({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="inline-flex rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-blue-700">
-              AI Negotiation & Deal Execution Intelligence
+              Deal Status
             </div>
 
             <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">
-              Procurement Execution Assistant
+              What should I do next?
             </h2>
 
             <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
-              AI reads this thread to detect deal stage, closure probability, payment terms,
-              commitment signals, negotiation risk and the next best action.
+              {negotiationAi.nextAction}
             </p>
           </div>
 

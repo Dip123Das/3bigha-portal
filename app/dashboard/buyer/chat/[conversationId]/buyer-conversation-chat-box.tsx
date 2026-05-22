@@ -1734,8 +1734,13 @@ useEffect(() => {
                 ]}
               />
 
-              <div style={{ marginTop: 12 }}>
-                <AIExecutionDrawer
+              <details style={{ marginTop: 12 }}>
+                <summary style={{ cursor: "pointer", fontWeight: 950, color: "#334155" }}>
+                  Show advanced AI deal analysis
+                </summary>
+
+                <div style={{ marginTop: 12 }}>
+                  <AIExecutionDrawer
                   compact
                   input={{
                     query:
@@ -1793,6 +1798,8 @@ useEffect(() => {
                   }}
                 />
               </div>
+
+              </details>
 
               <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
