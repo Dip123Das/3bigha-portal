@@ -39,6 +39,7 @@ import { buildProcurementActionCopilot } from "@/lib/search/procurement-action-c
 import ProcurementMemoryTimeline from "@/components/procurement/ProcurementMemoryTimeline";
 import ProcurementReEngagement from "@/components/procurement/ProcurementReEngagement";
 import AIExecutionDrawer from "@/components/ai-execution/AIExecutionDrawer";
+import UniversalWorkflowHeader from "@/components/operational/UniversalWorkflowHeader";
 
 import ProcurementJourneyBar from "@/components/procurement/ProcurementJourneyBar";
 import {
@@ -1859,6 +1860,38 @@ if (want.includes("rentals")) {
 
       {hasQuery ? (
         <>
+          <UniversalWorkflowHeader
+            eyebrow="Search Workflow"
+            title={`You are searching: ${qFromUrl}`}
+            status={`${rows.length} result(s) found in ${modFromUrl === "all" ? "marketplace" : moduleLabel(modFromUrl as SearchModule)}.`}
+            nextAction={
+              modFromUrl === "materials"
+                ? "Create RFQ or compare suppliers before buying."
+                : modFromUrl === "property"
+                  ? "Review matching listings, then check construction or legal workflow."
+                  : modFromUrl === "services"
+                    ? "Compare providers and confirm scope of work."
+                    : modFromUrl === "rentals"
+                      ? "Check availability, duration and operator support."
+                      : "Choose the best result or create a requirement."
+            }
+            steps={[
+              { label: "Search", done: true },
+              { label: "Vendor Discovery", active: true },
+              { label: "Negotiation" },
+              { label: "Confirmation" },
+              { label: "Delivery" },
+              { label: "Complete" },
+            ]}
+            actions={executionRailActions.map((action) => ({
+              label: `${action.icon} ${action.label}`,
+              href: action.href,
+              primary: action.primary,
+            }))}
+          />
+
+          <div style={{ height: 12 }} />
+
           <div
             style={{
               position: "sticky",

@@ -19,6 +19,7 @@ import ThreadSectionLiveList from "@/app/components/inbox/ThreadSectionLiveList"
 import ThreadDueReminderState from "@/app/components/inbox/ThreadDueReminderState";
 import { normalizeBehaviorMemory } from "@/lib/ai/normalize-memory";
 import OperationalWorkspacePanel from "@/components/operational/OperationalWorkspacePanel";
+import UniversalWorkflowHeader from "@/components/operational/UniversalWorkflowHeader";
 
 import {
   buildBehaviorMemory,
@@ -2127,6 +2128,28 @@ export default async function DashboardInboxV2Page({
           </div>
         </div>
       </div>
+
+      <UniversalWorkflowHeader
+        eyebrow="Inbox Workflow"
+        title="You are in Unified Inbox"
+        status={`${filteredItems.length} thread(s), ${stats.unread} unread, ${recoveryStats.total} recovery item(s).`}
+        nextAction={latestUnreadItem ? "Open the latest unread thread first." : procurementNextAction}
+        steps={[
+          { label: "Inbox", done: true },
+          { label: "Needs Action", active: stats.unread > 0 || recoveryStats.total > 0 },
+          { label: "Reply / Follow-up" },
+          { label: "Confirm Deal" },
+          { label: "Close" },
+        ]}
+        actions={[
+          latestUnreadItem
+            ? { label: "Open Latest Unread", href: latestUnreadItem.href, primary: true }
+            : { label: "View All Threads", href: "/dashboard/inbox-v2", primary: true },
+          { label: "Priority Deals", href: buildInboxHref(params, { sort: "unread" }) },
+          { label: "New RFQ", href: "/rfq/general/new" },
+          { label: "Procurement Live", href: "/dashboard/procurement-live" },
+        ]}
+      />
 
       <OperationalWorkspacePanel
         title="Inbox Work Space"

@@ -12,6 +12,7 @@ import ConversationDeleteConfirm from "@/app/components/chat/ConversationDeleteC
 import AIExecutionDrawer from "@/components/ai-execution/AIExecutionDrawer";
 import AIExecutionTimeline from "@/components/ai-execution/AIExecutionTimeline";
 import OperationalWorkspacePanel from "@/components/operational/OperationalWorkspacePanel";
+import StickyWorkflowCommandBar from "@/components/operational/StickyWorkflowCommandBar";
 import {
   readConversationContext,
 } from "@/lib/procurement/conversation-context";
@@ -1629,6 +1630,16 @@ useEffect(() => {
             ) : null}
           </div>
         </div>
+
+      <StickyWorkflowCommandBar
+        stage={buyerAgent.lifecycleStage}
+        risk={buyerAgent.workflowRisk}
+        nextAction={buyerAgent.autonomousAction}
+        primaryLabel="Reply Now"
+        primaryHref="#message-composer"
+        secondaryHref="/dashboard/inbox-v2"
+        secondaryLabel="Open Inbox"
+      />
 
       <div style={{ position: "relative", background: "#f3f4f6" }}>
         <div

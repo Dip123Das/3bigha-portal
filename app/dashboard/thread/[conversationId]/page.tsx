@@ -10,6 +10,8 @@ import DealScoreClient from "@/app/components/ai/DealScoreClient";
 import BuyerConversationChatBox from "@/app/dashboard/buyer/chat/[conversationId]/buyer-conversation-chat-box";
 import ConversationContextBanner from "@/components/chat/ConversationContextBanner";
 import ProcurementActionSuggestions from "@/components/chat/ProcurementActionSuggestions";
+import UniversalWorkflowHeader from "@/components/operational/UniversalWorkflowHeader";
+import StickyWorkflowCommandBar from "@/components/operational/StickyWorkflowCommandBar";
 
 import {
   buildBehaviorMemory,
@@ -685,9 +687,51 @@ export default async function UniversalThreadPage({
         </Link>
       </div>
 
+      <StickyWorkflowCommandBar
+        stage={negotiationAi.stage}
+        risk={negotiationAi.workflowRisk}
+        nextAction={negotiationAi.nextAction}
+        primaryLabel="Reply Now"
+        primaryHref="#message-composer"
+        secondaryHref={backHref}
+        secondaryLabel="Open Inbox"
+      />
+
       <ConversationContextBanner />
 
       <ProcurementActionSuggestions />
+
+      <UniversalWorkflowHeader
+        eyebrow="Deal Workflow"
+        title={`You are in: ${conv.title || "Conversation"}`}
+        status={`Stage: ${negotiationAi.stage} • Risk: ${negotiationAi.workflowRisk} • Score: ${negotiationAi.dealScore}/100`}
+        nextAction={negotiationAi.nextAction}
+        steps={[
+          { label: "Requirement", done: true },
+          { label: "Conversation", done: messages.length > 0 },
+          {
+            label: "Negotiation",
+            active: String(negotiationAi.stage || "").toLowerCase().includes("negotiation"),
+          },
+          {
+            label: "Confirmation",
+            active: String(negotiationAi.stage || "").toLowerCase().includes("confirmation"),
+          },
+          { label: "Delivery" },
+          { label: "Complete", done: isClosed },
+        ]}
+        actions={[
+          { label: "Reply Now", href: "#message-composer", primary: true },
+          { label: "Open Inbox", href: backHref },
+          rfqId
+            ? {
+                label: "Quote Compare",
+                href: `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}`,
+              }
+            : { label: "Back to Inbox", href: "/dashboard/inbox-v2" },
+        ]}
+      />
+
       <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50 p-4 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3">
