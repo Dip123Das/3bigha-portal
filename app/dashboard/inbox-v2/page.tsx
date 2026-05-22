@@ -20,12 +20,17 @@ import ThreadDueReminderState from "@/app/components/inbox/ThreadDueReminderStat
 import { normalizeBehaviorMemory } from "@/lib/ai/normalize-memory";
 import OperationalWorkspacePanel from "@/components/operational/OperationalWorkspacePanel";
 import UniversalWorkflowHeader from "@/components/operational/UniversalWorkflowHeader";
+import OperationalPageShell from "@/components/operational/OperationalPageShell";
+import StickyWorkflowCommandBar from "@/components/operational/StickyWorkflowCommandBar";
+import { resolveNextAction } from "@/lib/workflow/next-action-engine";
 
 import {
   buildBehaviorMemory,
   mergeBehaviorSignals,
 } from "@/lib/ai/behavior-memory";
 export const dynamic = "force-dynamic";
+
+const operationalNextAction = resolveNextAction("inbox");
 
 type SearchParams = {
   q?: string;
@@ -2039,7 +2044,8 @@ export default async function DashboardInboxV2Page({
     unreadOnly;
 
   return (
-    <div id="top-of-inbox" className="mx-auto max-w-7xl space-y-4 px-3 py-4 md:space-y-6 md:px-4 md:py-6">
+    <OperationalPageShell>
+      <div id="top-of-inbox" className="space-y-4 md:space-y-6">
       <InboxAutoFocus targetId={firstUnreadSection} />
       <FloatingUnreadButton href={latestUnreadItem?.href ?? null} />
       <ActiveSectionTracker />
@@ -2128,6 +2134,16 @@ export default async function DashboardInboxV2Page({
           </div>
         </div>
       </div>
+
+      <StickyWorkflowCommandBar
+        stage={operationalNextAction.stage}
+        risk={operationalNextAction.risk}
+        nextAction={latestUnreadItem ? "Open the latest unread thread first." : procurementNextAction}
+        primaryLabel={latestUnreadItem ? "Open Latest Unread" : "View Inbox"}
+        primaryHref={latestUnreadItem?.href ?? "/dashboard/inbox-v2"}
+        secondaryHref="/dashboard/procurement-os"
+        secondaryLabel="Procurement OS"
+      />
 
       <UniversalWorkflowHeader
         eyebrow="Inbox Workflow"
@@ -3111,6 +3127,7 @@ export default async function DashboardInboxV2Page({
           variant="direct"
         />
       )}
-    </div>
+      </div>
+    </OperationalPageShell>
   );
 }
