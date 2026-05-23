@@ -22,6 +22,28 @@ import OperationalWorkspacePanel from "@/components/operational/OperationalWorks
 import UniversalWorkflowHeader from "@/components/operational/UniversalWorkflowHeader";
 import OperationalPageShell from "@/components/operational/OperationalPageShell";
 import StickyWorkflowCommandBar from "@/components/operational/StickyWorkflowCommandBar";
+import WorkflowContinuityBar from "@/components/workflow-continuity/WorkflowContinuityBar";
+import WorkflowContinuityRecorder from "@/components/workflow-continuity/WorkflowContinuityRecorder";
+import OperationalEventStream from "@/components/operational-events/OperationalEventStream";
+import OperationalEventRecorder from "@/components/operational-events/OperationalEventRecorder";
+import NeedsAttentionStrip from "@/components/operational/NeedsAttentionStrip";
+import WorkflowNextStepBar from "@/components/operational/WorkflowNextStepBar";
+import {
+  buildOperationalPriorityItems,
+  buildOperationalNextStep,
+} from "@/lib/operational-priority/priority-engine";
+import {
+  buildOperationalEscalations,
+} from "@/lib/operational-priority/escalation-engine";
+import OperationalEscalationPanel from "@/components/operational/OperationalEscalationPanel";
+import OperationalExecutionQueue from "@/components/operational/OperationalExecutionQueue";
+import OperationalWorkloadPanel from "@/components/operational-workload/OperationalWorkloadPanel";
+import {
+  buildOperationalWorkload,
+} from "@/lib/operational-workload/workload-engine";
+import {
+  buildOperationalOrchestration,
+} from "@/lib/operational-priority/orchestration-engine";
 import { resolveNextAction } from "@/lib/workflow/next-action-engine";
 
 import {
@@ -2069,6 +2091,51 @@ export default async function DashboardInboxV2Page({
         },
   ];
 
+  const operationalPriorityItems = buildOperationalPriorityItems({
+    unread: procurementInboxStats.urgent,
+    highRisk: autonomousOsStats.highRisk,
+    stale: procurementInboxStats.slowResponses,
+    activeThreads: procurementInboxStats.total,
+    fallbackHref: "/dashboard/inbox-v2",
+  });
+
+  const operationalNextStep = buildOperationalNextStep({
+    unread: procurementInboxStats.urgent,
+    highRisk: autonomousOsStats.highRisk,
+    stale: procurementInboxStats.slowResponses,
+  });
+
+  const operationalEscalations = buildOperationalEscalations({
+    unread: procurementInboxStats.urgent,
+    highRisk: autonomousOsStats.highRisk,
+    stale: procurementInboxStats.slowResponses,
+    activeThreads: procurementInboxStats.total,
+    href: "/dashboard/inbox-v2",
+  });
+
+  const operationalOrchestration = buildOperationalOrchestration({
+    unread: procurementInboxStats.urgent,
+    highRisk: autonomousOsStats.highRisk,
+    stale: procurementInboxStats.slowResponses,
+    activeThreads: procurementInboxStats.total,
+    href: "/dashboard/inbox-v2",
+  });
+
+  const executionQueueItems = [
+    ...operationalOrchestration.recommendedSequence,
+    ...operationalOrchestration.quickWins,
+    ...operationalOrchestration.blockedWorkflows,
+    ...operationalOrchestration.stableFlows,
+  ].slice(0, 5);
+
+  const operationalWorkload = buildOperationalWorkload({
+    unread: procurementInboxStats.urgent,
+    stale: procurementInboxStats.slowResponses,
+    highRisk: autonomousOsStats.highRisk,
+    activeThreads: procurementInboxStats.total,
+    pendingQuotes: procurementInboxStats.rfq,
+  });
+
   const isFiltered =
     Boolean(String(params.q ?? "").trim()) ||
     moduleFilter !== "all" ||
@@ -2078,6 +2145,67 @@ export default async function DashboardInboxV2Page({
 
   return (
     <OperationalPageShell>
+      <WorkflowContinuityRecorder
+        state={{
+          id: "inbox-v2",
+          module: "inbox",
+          stage: "review",
+          title: "Unified Dashboard Inbox",
+          summary: "Continue reviewing conversations, RFQs, reminders and vendor follow-ups.",
+          href: "/dashboard/inbox-v2",
+          primaryActionLabel: "Open Inbox",
+          updatedAt: Date.now(),
+        }}
+      />
+      <WorkflowContinuityBar />
+      <OperationalEventRecorder
+        event={{
+          id: "inbox-v2-opened",
+          module: "inbox",
+          title: "Inbox workspace opened",
+          detail: "Review conversations, RFQs, reminders and vendor follow-ups.",
+          href: "/dashboard/inbox-v2",
+          tone: "info",
+          createdAt: Date.now(),
+        }}
+      />
+      <OperationalEventStream title="Recent operational activity" limit={5} />
+
+      <NeedsAttentionStrip
+        title="Operational priorities"
+        items={operationalPriorityItems}
+      />
+
+      <OperationalEscalationPanel
+        title="Operational escalation queue"
+        items={operationalEscalations}
+      />
+
+      <OperationalExecutionQueue
+        title="Execution sequence"
+        items={executionQueueItems}
+      />
+
+      <OperationalWorkloadPanel
+        data={operationalWorkload}
+      />
+
+      <WorkflowNextStepBar
+        title="Recommended next operational step"
+        nextStep={operationalNextStep}
+        actions={[
+          {
+            label: "Open Inbox",
+            href: "/dashboard/inbox-v2",
+            tone: "primary",
+          },
+          {
+            label: "Create RFQ",
+            href: "/rfq/general/new",
+          },
+        ]}
+      />
+
       <div id="top-of-inbox" className="space-y-4 md:space-y-6">
       <InboxAutoFocus targetId={firstUnreadSection} />
       <FloatingUnreadButton href={latestUnreadItem?.href ?? null} />
