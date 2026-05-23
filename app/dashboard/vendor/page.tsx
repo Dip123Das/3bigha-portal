@@ -1316,6 +1316,275 @@ const aiDealUpgradeTarget =
     );
   }
 
+  // HUMAN_FIRST_VENDOR_DASHBOARD_RETURN
+  return (
+    <main>
+      <WorkflowContinuityRecorder
+        state={{
+          id: "vendor-dashboard",
+          module: "vendor",
+          stage: "review",
+          title: "Vendor Work Desk",
+          summary: "Continue buyer replies, RFQs, inventory, billing and dispatch.",
+          href: "/dashboard/vendor",
+          primaryActionLabel: "Open Vendor Work Desk",
+          updatedAt: Date.now(),
+        }}
+      />
+
+      <OperationalEventRecorder
+        event={{
+          id: "vendor-dashboard-opened",
+          module: "vendor",
+          title: "Vendor work desk opened",
+          detail: "Daily vendor work desk opened for buyer replies, RFQs and operations.",
+          href: "/dashboard/vendor",
+          tone: "info",
+          createdAt: Date.now(),
+        }}
+      />
+
+      <Container>
+        <section
+          style={{
+            border: "1px solid #e2e8f0",
+            borderRadius: 24,
+            padding: 20,
+            background: "linear-gradient(to bottom right,#f8fafc,#ffffff)",
+            boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
+            marginBottom: 16,
+          }}
+        >
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: "0.16em", textTransform: "uppercase", color: "#64748b" }}>
+            Vendor Work Desk
+          </div>
+
+          <h1 style={{ marginTop: 8, fontSize: 30, lineHeight: 1.15, fontWeight: 950, color: "#0f172a" }}>
+            Start your daily vendor work here
+          </h1>
+
+          <p style={{ marginTop: 10, maxWidth: 760, fontSize: 14, lineHeight: 1.7, color: "#475569", fontWeight: 650 }}>
+            Reply to buyers, check RFQs, update stock, create bills and manage dispatch from one simple place.
+          </p>
+
+          <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+            {[
+              ["RFQs / Buyer Leads", "Check new requirements and quote quickly.", "/dashboard/vendor/rfqs"],
+              ["Messages", "Reply to buyer conversations.", "/dashboard/vendor/inbox"],
+              ["Inventory", "Update stock and available items.", "/dashboard/vendor/inventory"],
+              ["Billing", "Create invoice and bill records.", "/dashboard/vendor/billing"],
+              ["Dispatch", "Track delivery and dispatch work.", "/dashboard/vendor/dispatch"],
+              ["Notifications", "Review important vendor alerts.", "/dashboard/vendor/notifications"],
+            ].map(([title, detail, href]) => (
+              <a
+                key={title}
+                href={href}
+                style={{
+                  textDecoration: "none",
+                  border: "1px solid #dbeafe",
+                  background: "#ffffff",
+                  borderRadius: 18,
+                  padding: 14,
+                  minHeight: 92,
+                  display: "block",
+                  boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
+                }}
+              >
+                <div style={{ fontSize: 15, fontWeight: 950, color: "#0f172a" }}>{title}</div>
+                <div style={{ marginTop: 6, fontSize: 12, lineHeight: 1.5, fontWeight: 700, color: "#64748b" }}>{detail}</div>
+              </a>
+            ))}
+          </div>
+        </section>
+
+        <section
+          style={{
+            border: "1px solid #bbf7d0",
+            borderRadius: 22,
+            padding: 16,
+            background: "#f0fdf4",
+            marginBottom: 16,
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 950, color: "#065f46" }}>
+            Today’s Action Centre
+          </h2>
+          <p style={{ marginTop: 6, fontSize: 13, fontWeight: 750, color: "#475569" }}>
+            Only the important things that need your attention today.
+          </p>
+
+          <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+            <div style={{ border: "1px solid #dcfce7", borderRadius: 14, padding: 12, background: "#ffffff", fontWeight: 850, color: "#065f46" }}>
+              {leadStats.newLeadCount > 0 ? `${leadStats.newLeadCount} new buyer lead(s) need checking.` : "No urgent buyer follow-up pending."}
+            </div>
+            <div style={{ border: "1px solid #dbeafe", borderRadius: 14, padding: 12, background: "#ffffff", fontWeight: 850, color: "#1e3a8a" }}>
+              {dealStats.ready > 0 ? `${dealStats.ready} ready-to-close deal signal(s) found.` : "No ready-to-close deal signal detected yet."}
+            </div>
+            <div style={{ border: "1px solid #fef3c7", borderRadius: 14, padding: 12, background: "#ffffff", fontWeight: 850, color: "#92400e" }}>
+              {missedLeads > 0 ? `${missedLeads} lead(s) may need faster reply.` : "Reply pressure is normal today."}
+            </div>
+          </div>
+        </section>
+
+        <section
+          style={{
+            border: "1px solid #fed7aa",
+            borderRadius: 22,
+            padding: 16,
+            background: "#fff7ed",
+            marginBottom: 16,
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 950, color: "#9a3412" }}>
+            Important Vendor Alerts
+          </h2>
+          <p style={{ marginTop: 6, fontSize: 13, fontWeight: 750, color: "#475569" }}>
+            Simple reminders for replies, visibility and pending vendor work.
+          </p>
+
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
+            <div style={{ border: "1px solid #fed7aa", borderRadius: 16, padding: 12, background: "#ffffff" }}>
+              <div style={{ fontWeight: 950, color: "#9a3412" }}>Reply rate</div>
+              <div style={{ marginTop: 4, fontSize: 13, fontWeight: 750, color: "#475569" }}>{replyRate}% reply performance.</div>
+            </div>
+            <div style={{ border: "1px solid #fed7aa", borderRadius: 16, padding: 12, background: "#ffffff" }}>
+              <div style={{ fontWeight: 950, color: "#9a3412" }}>Visibility</div>
+              <div style={{ marginTop: 4, fontSize: 13, fontWeight: 750, color: "#475569" }}>Profile and activity help buyers find you faster.</div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          style={{
+            border: "1px solid #dbeafe",
+            borderRadius: 22,
+            padding: 16,
+            background: "#eff6ff",
+            marginBottom: 16,
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 950, color: "#1e3a8a" }}>
+            Daily Work Areas
+          </h2>
+
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
+            {[
+              ["Property", "/property"],
+              ["Builder Projects", "/services/turnkey"],
+              ["Materials", "/materials"],
+              ["Services", "/services"],
+              ["Rentals", "/rentals"],
+              ["Buyer Leads", "/dashboard/vendor/rfqs"],
+              ["Messages", "/dashboard/vendor/inbox"],
+              ["Inventory", "/dashboard/vendor/inventory"],
+              ["Billing", "/dashboard/vendor/billing"],
+              ["Fleet", "/dashboard/vendor/fleet"],
+              ["Dispatch", "/dashboard/vendor/dispatch"],
+            ].map(([title, href]) => (
+              <a
+                key={title}
+                href={href}
+                style={{
+                  textDecoration: "none",
+                  border: "1px solid #bfdbfe",
+                  background: "#ffffff",
+                  color: "#1e3a8a",
+                  borderRadius: 14,
+                  padding: "12px 14px",
+                  fontWeight: 950,
+                  fontSize: 13,
+                }}
+              >
+                {title}
+              </a>
+            ))}
+          </div>
+        </section>
+
+        <section
+          style={{
+            border: "1px solid #e2e8f0",
+            borderRadius: 22,
+            padding: 16,
+            background: "#ffffff",
+            marginBottom: 16,
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 950, color: "#0f172a" }}>
+            Business Management
+          </h2>
+
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 10 }}>
+            <div style={{ border: "1px solid #bbf7d0", borderRadius: 16, padding: 12, background: "#f0fdf4" }}>
+              <div style={{ fontSize: 12, fontWeight: 850, color: "#047857" }}>Profile</div>
+              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#064e3b" }}>
+                {vendorComplete ? "Complete" : vendorPct !== null ? `${vendorPct}%` : "Review"}
+              </div>
+              <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#475569" }}>Business profile</div>
+            </div>
+
+            <div style={{ border: "1px solid #dbeafe", borderRadius: 16, padding: 12, background: "#eff6ff" }}>
+              <div style={{ fontSize: 12, fontWeight: 850, color: "#1d4ed8" }}>Leads</div>
+              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#1e3a8a" }}>{leadStats.newLeadCount}</div>
+              <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#475569" }}>New buyer leads</div>
+            </div>
+
+            <div style={{ border: "1px solid #fef3c7", borderRadius: 16, padding: 12, background: "#fffbeb" }}>
+              <div style={{ fontSize: 12, fontWeight: 850, color: "#92400e" }}>Replies</div>
+              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#78350f" }}>{replyRate}%</div>
+              <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#475569" }}>Reply rate</div>
+            </div>
+
+            <a
+              href="/dashboard/subscription"
+              style={{
+                textDecoration: "none",
+                border: "1px solid #e9d5ff",
+                borderRadius: 16,
+                padding: 12,
+                background: "#faf5ff",
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 850, color: "#7e22ce" }}>Plan</div>
+              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#581c87" }}>{String(vendorPlan || "Free").replace(/_/g, " ")}</div>
+              <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#475569" }}>Manage vendor plan</div>
+            </a>
+          </div>
+        </section>
+
+        <section
+          style={{
+            border: "1px solid #e9d5ff",
+            borderRadius: 22,
+            padding: 16,
+            background: "#faf5ff",
+            marginBottom: 18,
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 950, color: "#581c87" }}>
+            Extra Suggestions
+          </h2>
+          <p style={{ marginTop: 6, fontSize: 13, fontWeight: 750, color: "#475569" }}>
+            Use these only after finishing daily work.
+          </p>
+
+          <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+            {aiRecommendations.slice(0, 4).map((rec, i) => (
+              <div key={i} style={{ border: "1px solid #e9d5ff", borderRadius: 14, padding: 12, background: "#ffffff", fontSize: 13, fontWeight: 850, color: "#581c87" }}>
+                {rec}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div style={{ marginTop: 10, marginBottom: 24, fontSize: 12, fontWeight: 700, color: "#64748b" }}>
+          Daily vendor work simplified for easy business operations.
+        </div>
+      </Container>
+    </main>
+  );
+
+
   return (
     <main>
       <WorkflowContinuityRecorder
