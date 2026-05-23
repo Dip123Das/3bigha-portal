@@ -1344,76 +1344,6 @@ const aiDealUpgradeTarget =
       />
 
       <Container>
-        <WorkflowContinuityBar />
-        <OperationalEventStream
-          title="Recent vendor operational activity"
-          limit={6}
-        />
-        {conversionAlert?.show ? (
-          <div
-            style={{
-              position: "sticky",
-              left: "50%",
-              top: "50%",
-              transform: "translate(-50%, -50%)",
-              zIndex: 10000,
-              width: "min(420px, 92vw)",
-              borderRadius: 12,
-              border: "2px solid #dc2626",
-              background: "white",
-              boxShadow: "0 30px 80px rgba(0,0,0,0.35)",
-              padding: 14,
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: 18, fontWeight: 950, color: "#dc2626" }}>
-              Visibility Attention Required
-            </div>
-
-            <div style={{ marginTop: 10, fontSize: 14, fontWeight: 850, color: "#374151", lineHeight: 1.6 }}>
-              {conversionAlert.message}
-            </div>
-
-            <div style={{ marginTop: 14, fontSize: 13, color: "#6b7280", fontWeight: 800 }}>
-              Improve response speed, quotation quality and activity consistency to strengthen visibility.
-            </div>
-
-            <div style={{ marginTop: 16, display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-              <button
-                onClick={() => {
-                  setConversionAlert(null);
-                  router.push("/dashboard/subscription/boost");
-                }}
-                style={{
-                  background: "#dc2626",
-                  color: "white",
-                  border: "none",
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  fontWeight: 950,
-                  cursor: "pointer",
-                }}
-              >
-                Improve Visibility
-              </button>
-
-              <button
-                onClick={() => setConversionAlert(null)}
-                style={{
-                  background: "#f3f4f6",
-                  color: "#111827",
-                  border: "none",
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  fontWeight: 900,
-                  cursor: "pointer",
-                }}
-              >
-                Later
-              </button>
-            </div>
-          </div>
-        ) : null}
           {rankToast ? (
           <div
             style={{
@@ -1502,7 +1432,7 @@ const aiDealUpgradeTarget =
                   color: "#64748b",
                 }}
               >
-                Today’s Work
+                Vendor Dashboard
               </div>
 
               <h1
@@ -1514,7 +1444,7 @@ const aiDealUpgradeTarget =
                   color: "#0f172a",
                 }}
               >
-                Continue vendor operations calmly.
+                Today’s vendor work
               </h1>
 
               <div
@@ -1526,8 +1456,7 @@ const aiDealUpgradeTarget =
                   fontWeight: 600,
                 }}
               >
-                Review buyer replies, continue RFQs, manage dispatch,
-                update inventory and complete pending follow-ups from one operational workspace.
+                Reply to buyers, check RFQs, manage inventory, billing and dispatch from one simple work desk.
               </div>
             </div>
 
@@ -1588,11 +1517,10 @@ const aiDealUpgradeTarget =
           </div>
         </div>
 
-        <VendorErpNav />
 
         <ErpPanel
-          title="Vendor Alerts"
-          subtitle="AI-style re-engagement reminders generated from leads, rank, replies and pricing signals."
+          title="Important Vendor Alerts"
+          subtitle="Simple reminders for replies, leads, visibility and pending vendor work."
           tone="orange"
         >
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 10 }}>
@@ -1743,8 +1671,8 @@ const aiDealUpgradeTarget =
         </ErpPanel>
 
         <ErpPanel
-          title="Advanced Insights"
-          subtitle="AI stays below the real work desk. Use it only when needed for pricing, ranking, risk and growth."
+          title="Extra Suggestions"
+          subtitle="Extra suggestions stay below daily work. Use only when needed."
           tone="violet"
         >
           <ErpKpiGrid>
