@@ -34,7 +34,7 @@ export default function ContactPage() {
           may contact 3Bigha through the details below.
         </p>
 
-        <div style={{ marginTop: 28, lineHeight: 1.9, color: "#334155" }}>
+        <div style={{ marginTop: 16, lineHeight: 1.9, color: "#334155" }}>
           <p>
             <strong>Business Name:</strong> 3Bigha
           </p>
@@ -50,7 +50,7 @@ export default function ContactPage() {
           </p>
         </div>
 
-        <p style={{ marginTop: 24, color: "#64748b", lineHeight: 1.7 }}>
+        <p style={{ marginTop: 14, color: "#64748b", lineHeight: 1.7 }}>
           Note: Payment services are currently not active. Online payment
           infrastructure is being prepared and will be enabled only after
           completion of applicable legal, tax and banking formalities.

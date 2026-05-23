@@ -279,7 +279,7 @@ export default async function BuyerRfqComparePage({
                           border: isBestOverall
                             ? "2px solid rgba(16,185,129,0.55)"
                             : "1px solid rgba(0,0,0,0.08)",
-                          borderRadius: 14,
+                          borderRadius: 12,
                           padding: 12,
                           background: isBestOverall ? bestColBg : "white",
                         }}
@@ -401,7 +401,7 @@ export default async function BuyerRfqComparePage({
       alignItems: "center",
       gap: 6,
       padding: "6px 10px",
-      borderRadius: 999,
+      borderRadius: 12,
       border: "1px solid rgba(16,185,129,0.35)",
       background: "#f5fbf6",
       fontSize: 12,
@@ -413,7 +413,7 @@ export default async function BuyerRfqComparePage({
       style={{
         width: 10,
         height: 10,
-        borderRadius: 999,
+        borderRadius: 12,
         background: "rgba(16,185,129,0.7)",
         display: "inline-block",
       }}
@@ -427,7 +427,7 @@ export default async function BuyerRfqComparePage({
       alignItems: "center",
       gap: 6,
       padding: "6px 10px",
-      borderRadius: 999,
+      borderRadius: 12,
       border: "1px solid rgba(245,158,11,0.45)",
       background: "#fff7ed",
       fontSize: 12,
@@ -439,7 +439,7 @@ export default async function BuyerRfqComparePage({
       style={{
         width: 10,
         height: 10,
-        borderRadius: 999,
+        borderRadius: 12,
         background: "rgba(245,158,11,0.8)",
         display: "inline-block",
       }}
@@ -452,7 +452,7 @@ export default async function BuyerRfqComparePage({
   </span>
 </div>
 
-                <div style={{ overflowX: "auto" }}>
+                <div style={{ overflowX: "auto", background: "#ffffff" }}>
                   <table
                     style={{
                       width: "100%",

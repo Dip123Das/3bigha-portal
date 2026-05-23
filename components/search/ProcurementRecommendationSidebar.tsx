@@ -54,7 +54,7 @@ export default function ProcurementRecommendationSidebar({
             style={{
               marginTop: 4,
               fontSize: 18,
-              fontWeight: 1000,
+              fontWeight: 800,
               color: "#0f172a",
             }}
           >
@@ -89,7 +89,7 @@ export default function ProcurementRecommendationSidebar({
                 href={item.href}
                 style={{
                   ...tone,
-                  borderRadius: 16,
+                  borderRadius: 12,
                   padding: 10,
                   textDecoration: "none",
                   display: "grid",

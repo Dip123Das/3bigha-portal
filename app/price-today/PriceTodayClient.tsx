@@ -2146,7 +2146,7 @@ if (userData.user) {
               href="/dashboard/buyer/rfqs"
               className="rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-3 text-sm font-black text-indigo-700 hover:bg-indigo-100"
             >
-              Open RFQ Command Center →
+              Open RFQ Work Desk →
             </Link>
           </div>
         </div>

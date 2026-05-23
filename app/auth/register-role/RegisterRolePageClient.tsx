@@ -363,12 +363,12 @@ export default function RegisterRolePageClient() {
           maxWidth: 860,
           margin: "0 auto",
           border: "1px solid rgba(0,0,0,0.08)",
-          borderRadius: 16,
+          borderRadius: 12,
           padding: 24,
           background: "white",
         }}
       >
-        <div style={{ fontWeight: 900, fontSize: 22, marginBottom: 8 }}>
+        <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 8 }}>
           Complete Your Registration
         </div>
 

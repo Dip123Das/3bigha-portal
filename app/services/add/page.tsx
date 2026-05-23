@@ -293,7 +293,7 @@ const styles = {
     flex: 1,
     minWidth: 180,
     padding: "10px 12px",
-    borderRadius: 14,
+    borderRadius: 12,
     border: active ? "2px solid #111827" : "1px solid #e5e7eb",
     background: "#fff",
     cursor: "pointer",
@@ -302,13 +302,13 @@ const styles = {
   minor: { color: "#5b6472", fontSize: 12 },
   gateBox: {
     border: "1px solid #e5e7eb",
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 14,
     background: "#fff",
   },
   stepPill: (active: boolean): React.CSSProperties => ({
     padding: "8px 12px",
-    borderRadius: 999,
+    borderRadius: 12,
     border: active ? "2px solid #111827" : "1px solid #e5e7eb",
     background: "#fff",
     fontWeight: 900,
@@ -325,7 +325,7 @@ const styles = {
   }),
   box: {
     border: "1px solid #e5e7eb",
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 12,
     background: "#fff",
   },
@@ -334,7 +334,7 @@ const styles = {
   highlightCard: (on: boolean): React.CSSProperties => ({
     border: on ? "2px solid #111827" : "1px solid #e5e7eb",
     background: on ? "#fff7ed" : "#fff",
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 12,
   }),
   toggleRow: {
@@ -351,7 +351,7 @@ const styles = {
     alignItems: "center",
     gap: 8,
     padding: "8px 12px",
-    borderRadius: 999,
+    borderRadius: 12,
     border: "1px solid #111827",
     background: "#111827",
     color: "#fff",
@@ -363,7 +363,7 @@ const styles = {
     alignItems: "center",
     gap: 8,
     padding: "8px 12px",
-    borderRadius: 999,
+    borderRadius: 12,
     border: "1px solid #e5e7eb",
     background: "#fff",
     color: "#111827",
@@ -1241,7 +1241,7 @@ function TurnkeyToggle() {
                   <div
   style={{
     border: includeTurnkey ? "2px solid #111827" : "1px solid #e5e7eb",
-    borderRadius: 14,
+    borderRadius: 12,
     padding: "8px 10px",
     background: "#fff",
     display: "flex",
@@ -1449,7 +1449,7 @@ function TurnkeyToggle() {
                                     key={s.id}
                                     style={{
                                       border: "1px solid #e5e7eb",
-                                      borderRadius: 14,
+                                      borderRadius: 12,
                                       padding: 10,
                                       background: "#fff",
                                       opacity: alreadyListed ? 0.55 : 1,

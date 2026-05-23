@@ -109,7 +109,7 @@ function ProgressBar({ status }: { status: string }) {
         style={{
           marginTop: 7,
           height: 10,
-          borderRadius: 999,
+          borderRadius: 12,
           background: "#e5e7eb",
           overflow: "hidden",
         }}
@@ -118,7 +118,7 @@ function ProgressBar({ status }: { status: string }) {
           style={{
             width: `${progress}%`,
             height: "100%",
-            borderRadius: 999,
+            borderRadius: 12,
             background: color,
             transition: "width 0.35s ease",
           }}
@@ -446,7 +446,7 @@ export default function AdminSupportPage() {
 
                     <div
                       style={{
-                        borderRadius: 999,
+                        borderRadius: 12,
                         padding: "7px 11px",
                         color: "#fff",
                         background: statusColor(ticket.status),
@@ -463,7 +463,7 @@ export default function AdminSupportPage() {
                   <div
                     style={{
                       marginTop: 12,
-                      borderRadius: 14,
+                      borderRadius: 12,
                       border: "1px solid #e5e7eb",
                       background: "#f8fafc",
                       padding: 12,
@@ -480,7 +480,7 @@ export default function AdminSupportPage() {
                   <div
                     style={{
                       marginTop: 12,
-                      borderRadius: 14,
+                      borderRadius: 12,
                       border: "1px solid #e5e7eb",
                       background: "#fff",
                       padding: 12,
@@ -498,7 +498,7 @@ export default function AdminSupportPage() {
                     <div
                       style={{
                         marginTop: 12,
-                        borderRadius: 14,
+                        borderRadius: 12,
                         border: "1px solid #bbf7d0",
                         background: "#ecfdf5",
                         padding: 12,

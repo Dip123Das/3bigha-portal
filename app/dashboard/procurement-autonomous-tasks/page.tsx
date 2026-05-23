@@ -58,7 +58,7 @@ export default function ProcurementAutonomousTasksPage() {
           <Stat label="Ready" value={summary.ready || 0} />
 
           <Stat
-            label="Recovery Agent"
+            label="Recovery Help"
             value={recovery?.summary?.total || 0}
           />
         </div>
@@ -82,11 +82,11 @@ export default function ProcurementAutonomousTasksPage() {
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="text-sm font-black uppercase tracking-[0.14em] text-indigo-700">
-                Procurement Recovery Agent
+                Procurement Recovery Help
               </div>
 
               <div className="mt-2 text-3xl font-black text-indigo-950">
-                AI Recovery Agent is actively supervising procurement continuity.
+                AI Recovery Help is actively supervising procurement continuity.
               </div>
 
               <div className="mt-4 text-sm font-semibold leading-6 text-indigo-900">
@@ -176,7 +176,7 @@ export default function ProcurementAutonomousTasksPage() {
             href="/dashboard/procurement-mission-control"
             className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
           >
-            Open Mission Control
+            Open Work Desk
           </a>
 
           <a
@@ -190,7 +190,7 @@ export default function ProcurementAutonomousTasksPage() {
             href="/dashboard/procurement-inbox-actions"
             className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
           >
-            Open Inbox AI
+            Open Inbox Help
           </a>
 
           <a

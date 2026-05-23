@@ -63,7 +63,7 @@ const futureFeatures = [
   "OpenGraph preview",
   "Schema validator",
   "Broken SEO checker",
-  "AI search intent landing pages",
+  "Smart search intent landing pages",
   "AI price trend SEO pages",
   "Pincode and locality SEO pages",
 ];
@@ -96,7 +96,7 @@ export default function AdminSeoPage() {
             target={tool.href.startsWith("http") ? "_blank" : undefined}
             style={{
               display: "block",
-              padding: 18,
+              padding: 14,
               borderRadius: 18,
               border: "1px solid rgba(15,23,42,0.10)",
               background: "#fff",
@@ -117,14 +117,14 @@ export default function AdminSeoPage() {
 
       <section
         style={{
-          padding: 20,
+          padding: 14,
           borderRadius: 20,
           border: "1px solid rgba(37,99,235,0.18)",
-          background: "linear-gradient(135deg, rgba(37,99,235,0.08), rgba(16,185,129,0.08))",
+          background: "#ffffff",
           marginBottom: 24,
         }}
       >
-        <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 10 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 900, marginBottom: 10 }}>
           Completed SEO Infrastructure
         </h2>
 
@@ -140,7 +140,7 @@ export default function AdminSeoPage() {
               key={item}
               style={{
                 padding: 14,
-                borderRadius: 14,
+                borderRadius: 12,
                 background: "#fff",
                 fontWeight: 800,
                 border: "1px solid rgba(15,23,42,0.08)",
@@ -154,14 +154,14 @@ export default function AdminSeoPage() {
 
       <section
         style={{
-          padding: 20,
+          padding: 14,
           borderRadius: 20,
           border: "1px solid rgba(16,185,129,0.22)",
           background: "#ecfdf5",
           marginBottom: 24,
         }}
       >
-        <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 10 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 900, marginBottom: 10 }}>
           Live Regional SEO Hierarchy
         </h2>
 
@@ -178,7 +178,7 @@ export default function AdminSeoPage() {
               target="_blank"
               style={{
                 padding: 14,
-                borderRadius: 14,
+                borderRadius: 12,
                 background: "#fff",
                 border: "1px solid rgba(16,185,129,0.25)",
                 color: "#064e3b",
@@ -194,14 +194,14 @@ export default function AdminSeoPage() {
 
       <section
         style={{
-          padding: 20,
+          padding: 14,
           borderRadius: 20,
           border: "1px solid rgba(245,158,11,0.25)",
           background: "#fffbeb",
           marginBottom: 24,
         }}
       >
-        <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 10 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 900, marginBottom: 10 }}>
           Google Search Console Action Plan
         </h2>
 
@@ -220,7 +220,7 @@ export default function AdminSeoPage() {
               key={item}
               style={{
                 padding: 14,
-                borderRadius: 14,
+                borderRadius: 12,
                 background: "#fff",
                 border: "1px solid rgba(245,158,11,0.20)",
                 fontWeight: 800,
@@ -238,7 +238,7 @@ export default function AdminSeoPage() {
             target="_blank"
             style={{
               padding: "12px 16px",
-              borderRadius: 14,
+              borderRadius: 12,
               background: "#f59e0b",
               color: "#fff",
               fontWeight: 900,
@@ -253,7 +253,7 @@ export default function AdminSeoPage() {
             target="_blank"
             style={{
               padding: "12px 16px",
-              borderRadius: 14,
+              borderRadius: 12,
               background: "#fff",
               color: "#92400e",
               fontWeight: 900,
@@ -268,13 +268,13 @@ export default function AdminSeoPage() {
 
       <section
         style={{
-          padding: 20,
+          padding: 14,
           borderRadius: 20,
           border: "1px solid rgba(15,23,42,0.10)",
           background: "#fff",
         }}
       >
-        <h2 style={{ fontSize: 22, fontWeight: 900, marginBottom: 10 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 900, marginBottom: 10 }}>
           Coming AI SEO Features
         </h2>
 

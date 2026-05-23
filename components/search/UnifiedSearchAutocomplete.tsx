@@ -36,7 +36,7 @@ export default function UnifiedSearchAutocomplete({
         zIndex: 30,
         background: "#ffffff",
         border: "1px solid #e2e8f0",
-        borderRadius: 16,
+        borderRadius: 12,
         boxShadow: "0 18px 40px rgba(15,23,42,0.14)",
         padding: 8,
         display: "grid",
@@ -53,7 +53,7 @@ export default function UnifiedSearchAutocomplete({
             alignItems: "center",
             borderRadius: 12,
             padding: 8,
-            background: "#f8fafc",
+            background: "#ffffff",
             border: "1px solid #eef2f7",
           }}
         >
@@ -83,9 +83,9 @@ export default function UnifiedSearchAutocomplete({
             href={item.href}
             style={{
               textDecoration: "none",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "7px 9px",
-              background: "#eff6ff",
+              background: "#ffffff",
               color: "#1d4ed8",
               fontSize: 12,
               fontWeight: 950,

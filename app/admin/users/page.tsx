@@ -23,7 +23,7 @@ export default async function AdminUsersPage() {
     .maybeSingle();
 
   if (prof?.role !== "master_admin") {
-    return <div style={{ padding: 20 }}>Access denied</div>;
+    return <div style={{ padding: 14 }}>Access denied</div>;
   }
 
   const { data: users } = await supabase
@@ -43,8 +43,8 @@ export default async function AdminUsersPage() {
   );
 
   return (
-    <main style={{ padding: 20 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 900 }}>User Approvals</h1>
+    <main style={{ padding: 14 }}>
+      <h1 style={{ fontSize: 18, fontWeight: 900 }}>User Approvals</h1>
 
       <div style={{ marginTop: 20 }}>
         {users?.map((u) => (

@@ -7,17 +7,17 @@ function badgeStyle(tone: "up" | "down" | "stable" | "neutral" = "neutral"): Rea
     display: "inline-flex",
     alignItems: "center",
     padding: "5px 10px",
-    borderRadius: 999,
+    borderRadius: 12,
     fontSize: 12,
     fontWeight: 900,
     border: "1px solid #e5e7eb",
-    background: "#f8fafc",
+    background: "#ffffff",
     color: "#111827",
   };
 
   if (tone === "up") return { ...base, borderColor: "#fecaca", background: "#fff1f2", color: "#be123c" };
   if (tone === "down") return { ...base, borderColor: "#bbf7d0", background: "#ecfdf5", color: "#047857" };
-  if (tone === "stable") return { ...base, borderColor: "#bfdbfe", background: "#eff6ff", color: "#1d4ed8" };
+  if (tone === "stable") return { ...base, borderColor: "#bfdbfe", background: "#ffffff", color: "#1d4ed8" };
   return base;
 }
 
@@ -86,16 +86,16 @@ export default function PricePredictionToggle({ payload }: { payload: any }) {
     <div
       style={{
         marginTop: 16,
-        padding: 16,
-        borderRadius: 16,
+        padding: 12,
+        borderRadius: 12,
         border: "1px solid #fed7aa",
-        background: "linear-gradient(135deg, #fff7ed, #ffffff)",
+        background: "#ffffff",
         boxShadow: "0 10px 24px rgba(249,115,22,0.08)",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 1000, color: "#c2410c" }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: "#c2410c" }}>
             📈 Price Prediction AI
           </div>
           <div style={{ marginTop: 5, fontSize: 13, color: "#475569", fontWeight: 800 }}>
@@ -110,11 +110,11 @@ export default function PricePredictionToggle({ payload }: { payload: any }) {
           style={{
             height: 40,
             padding: "0 16px",
-            borderRadius: 999,
+            borderRadius: 12,
             border: "1px solid #f97316",
             background: loading ? "#ffedd5" : "#f97316",
             color: loading ? "#9a3412" : "#fff",
-            fontWeight: 1000,
+            fontWeight: 800,
             cursor: loading ? "default" : "pointer",
           }}
         >

@@ -22,7 +22,7 @@ function chip(text: string, tone: "neutral" | "blue" | "amber" | "green" = "neut
   const base: React.CSSProperties = {
     display: "inline-block",
     padding: "2px 10px",
-    borderRadius: 999,
+    borderRadius: 12,
     fontSize: 12,
     fontWeight: 700,
     whiteSpace: "nowrap",
@@ -116,7 +116,7 @@ export default function VendorInboxTable(props: Props) {
   }
 
   if (!rows?.length) {
-    return <div style={{ padding: 16, opacity: 0.7 }}>No RFQs found.</div>;
+    return <div style={{ padding: 12, opacity: 0.7 }}>No RFQs found.</div>;
   }
 
   return (

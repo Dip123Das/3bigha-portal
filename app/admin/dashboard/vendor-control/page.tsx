@@ -93,7 +93,7 @@ export default function AdminVendorControlPage() {
   }, []);
 
   return (
-    <main style={{ padding: 20, maxWidth: 1100, margin: "0 auto" }}>
+    <main style={{ padding: 14, maxWidth: 1100, margin: "0 auto" }}>
       <h1 style={{ fontSize: 26, fontWeight: 950 }}>🧠 Admin Vendor Control AI</h1>
 
       <div style={{ marginTop: 8, color: "#64748b", fontWeight: 800 }}>
@@ -136,7 +136,7 @@ export default function AdminVendorControlPage() {
               key={row.user_id}
               style={{
                 border: "1px solid #e5e7eb",
-                borderRadius: 16,
+                borderRadius: 12,
                 padding: 14,
                 background: row.boost_priority ? "#fffbeb" : "white",
               }}

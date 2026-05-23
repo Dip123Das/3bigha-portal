@@ -1942,7 +1942,7 @@ useEffect(() => {
               style={{
                 width: 8,
                 height: 8,
-                borderRadius: 999,
+                borderRadius: 12,
                 background: presenceColor,
                 display: "inline-block",
               }}
@@ -1958,7 +1958,7 @@ useEffect(() => {
               textDecoration: "none",
               fontWeight: 900,
               border: "1px solid #d1d5db",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "8px 14px",
               color: "#111827",
               background: "#fff",
@@ -1984,7 +1984,7 @@ useEffect(() => {
               border: aiUpgradeAlert.premium
                 ? "1px solid #bbf7d0"
                 : "1px solid #f59e0b",
-              borderRadius: 16,
+              borderRadius: 12,
               padding: 14,
               boxShadow: "0 10px 24px rgba(15,23,42,0.08)",
             }}
@@ -2129,9 +2129,9 @@ useEffect(() => {
               right: 14,
               bottom: 14,
               border: "1px solid #bfdbfe",
-              background: "#eff6ff",
+              background: "#ffffff",
               color: "#1d4ed8",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "10px 14px",
               fontWeight: 900,
               cursor: "pointer",
@@ -2280,8 +2280,8 @@ useEffect(() => {
           style={{
             marginBottom: 12,
             border: "1px solid #bbf7d0",
-            background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
-            borderRadius: 16,
+            background: "#ffffff",
+            borderRadius: 12,
             padding: 12,
             boxShadow: "0 10px 24px rgba(16,185,129,0.08)",
           }}
@@ -2298,7 +2298,7 @@ useEffect(() => {
 
             <div
               style={{
-                borderRadius: 999,
+                borderRadius: 12,
                 border: "1px solid #bbf7d0",
                 background: "#fff",
                 color: "#047857",
@@ -2335,7 +2335,7 @@ useEffect(() => {
               style={{
                 marginTop: 10,
                 border: "1px solid #bfdbfe",
-                background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+                background: "#ffffff",
                 borderRadius: 12,
                 padding: 10,
               }}
@@ -2385,7 +2385,7 @@ useEffect(() => {
               </div>
             </div>
 
-            <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
+            <div style={{ border: "1px solid #bfdbfe", background: "#ffffff", borderRadius: 12, padding: 10 }}>
               <div style={{ color: "#1e3a8a", fontWeight: 950, fontSize: 13 }}>
                 ⚡ Escalation Signal
               </div>
@@ -2421,7 +2421,7 @@ useEffect(() => {
             background: vendorAi.isHotBuyer
               ? "linear-gradient(135deg, #fefce8, #ffffff)"
               : "linear-gradient(135deg, #eff6ff, #ffffff)",
-            borderRadius: 16,
+            borderRadius: 12,
             padding: 12,
           }}
         >
@@ -2432,7 +2432,7 @@ useEffect(() => {
               color: vendorAi.isHotBuyer ? "#92400e" : "#1e3a8a",
             }}
           >
-            {vendorAi.isHotBuyer ? "🔥 Buyer looks ready to close" : "🤖 AI Vendor Assistant"}
+            {vendorAi.isHotBuyer ? "🔥 Buyer looks ready to close" : "🤖 AI Vendor Workflow Assistant"}
           </div>
 
           <div style={{ marginTop: 6, fontSize: 13, color: "#334155", lineHeight: 1.45 }}>
@@ -2450,7 +2450,7 @@ useEffect(() => {
                 marginTop: 8,
                 padding: "9px 10px",
                 borderRadius: 12,
-                background: "linear-gradient(135deg, #fff7ed, #ffffff)",
+                background: "#ffffff",
                 border: "1px solid #fdba74",
                 color: "#9a3412",
                 fontSize: 12,
@@ -2611,7 +2611,7 @@ useEffect(() => {
                     disabled={loading || uploading || isRecording}
                     style={{
                       padding: "7px 11px",
-                      borderRadius: 999,
+                      borderRadius: 12,
                       border: "1px solid #93c5fd",
                       background: "#dbeafe",
                       color: "#1d4ed8",
@@ -2630,7 +2630,7 @@ useEffect(() => {
                   disabled={loading || uploading || isRecording}
                   style={{
                     padding: "7px 11px",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     border: "1px solid #93c5fd",
                     background: "#dbeafe",
                     color: "#1d4ed8",

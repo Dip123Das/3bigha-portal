@@ -223,7 +223,7 @@ export default function UniversalMediaUploader({
             border: "1px solid #dbeafe",
             background: "#eff6ff",
             color: "#1e3a8a",
-            borderRadius: 999,
+            borderRadius: 12,
             padding: "6px 10px",
             fontSize: 12,
             fontWeight: 950,
@@ -338,7 +338,7 @@ export default function UniversalMediaUploader({
       <div
         style={{
           marginTop: 12,
-          borderRadius: 14,
+          borderRadius: 12,
           padding: 12,
           background: "#f8fafc",
           border: "1px dashed #cbd5e1",
@@ -356,7 +356,7 @@ export default function UniversalMediaUploader({
         <div
           style={{
             marginTop: 12,
-            borderRadius: 14,
+            borderRadius: 12,
             padding: 12,
             background: "#fff7ed",
             border: "1px solid #fed7aa",
@@ -423,7 +423,7 @@ export default function UniversalMediaUploader({
               key={asset.id}
               style={{
                 border: "1px solid #e5e7eb",
-                borderRadius: 14,
+                borderRadius: 12,
                 overflow: "hidden",
                 background: "#fff",
               }}
@@ -508,7 +508,7 @@ function buttonStyle(disabled: boolean): React.CSSProperties {
     border: "1px solid #dbeafe",
     background: disabled ? "#f1f5f9" : "#eff6ff",
     color: disabled ? "#94a3b8" : "#1e3a8a",
-    borderRadius: 14,
+    borderRadius: 12,
     padding: "10px 12px",
     fontWeight: 950,
     cursor: disabled ? "not-allowed" : "pointer",

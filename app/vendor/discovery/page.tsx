@@ -83,7 +83,7 @@ export default async function VendorDiscoveryPage({
     <main className="mx-auto max-w-6xl px-4 py-10">
       <section className="rounded-2xl border p-6">
         <div className="inline-flex rounded-full border px-3 py-1 text-xs font-semibold">
-          AI Procurement Assistant
+          AI Workflow Assistant
         </div>
 
         <h1 className="mt-4 text-3xl font-bold">

@@ -26,7 +26,7 @@ export default function ConstructionHeatmap({ items, loading = false }: Props) {
         Execution Heatmap
       </div>
       <h3 className="mt-1 text-xl font-black text-slate-950">
-        Construction Risk Heatmap
+        Construction Risk Overview
       </h3>
 
       <div className="mt-5 grid gap-3 md:grid-cols-2">

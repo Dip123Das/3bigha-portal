@@ -93,7 +93,7 @@ export default function ProcurementCrisisCenterPage() {
     <div className="mx-auto max-w-7xl p-6">
       <div className="rounded-[2rem] bg-gradient-to-r from-rose-950 via-slate-950 to-indigo-950 p-8 text-white shadow-2xl">
         <div className="text-xs font-black uppercase tracking-[0.14em] text-rose-200">
-          Enterprise Procurement Crisis Center
+          Enterprise Procurement Issue Center
         </div>
 
       <div className="mt-8">
@@ -173,7 +173,7 @@ export default function ProcurementCrisisCenterPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-black text-slate-950">
-                  Autonomous Crisis Escalation Engine
+                  Autonomous Issue Escalation Engine
                 </h2>
 
                 <p className="mt-1 text-sm font-semibold text-slate-500">
@@ -253,21 +253,21 @@ export default function ProcurementCrisisCenterPage() {
               href="/dashboard/procurement-mission-control"
               className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
             >
-              Open Mission Control
+              Open Work Desk
             </a>
 
             <a
               href="/dashboard/procurement-war-room"
               className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
             >
-              Open War Room
+              Open Priority Work
             </a>
 
             <a
               href="/dashboard/procurement-situation-room"
               className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
             >
-              Open Situation Room
+              Open Work Updates
             </a>
           </div>
         </>

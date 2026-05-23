@@ -515,17 +515,17 @@ export default function LoginClient() {
             </div>
 
             <div style={{ marginTop: 18, display: "grid", gap: 10 }}>
-              <div style={{ padding: 14, borderRadius: 14, background: "rgba(255,255,255,0.08)" }}>
+              <div style={{ padding: 14, borderRadius: 12, background: "rgba(255,255,255,0.08)" }}>
                 <div style={{ fontWeight: 700, fontSize: 13 }}>Premium UX</div>
                 <div style={{ fontSize: 12, opacity: 0.85 }}>Auto-return to listing after login + auto-open enquiry modal.</div>
               </div>
 
-              <div style={{ padding: 14, borderRadius: 14, background: "rgba(255,255,255,0.08)" }}>
+              <div style={{ padding: 14, borderRadius: 12, background: "rgba(255,255,255,0.08)" }}>
                 <div style={{ fontWeight: 700, fontSize: 13 }}>Secure by default</div>
                 <div style={{ fontSize: 12, opacity: 0.85 }}>Passwordless login via Supabase Auth.</div>
               </div>
 
-              <div style={{ padding: 14, borderRadius: 14, background: "rgba(255,255,255,0.08)" }}>
+              <div style={{ padding: 14, borderRadius: 12, background: "rgba(255,255,255,0.08)" }}>
                 <div style={{ fontWeight: 700, fontSize: 13 }}>Redirect chain</div>
                 <div style={{ fontSize: 12, opacity: 0.85 }}>/login → /auth/callback → next (and openEnquiry auto-opens)</div>
               </div>
@@ -758,7 +758,7 @@ export default function LoginClient() {
         .loginGrid {
           display: grid;
           grid-template-columns: 1.1fr 0.9fr;
-          gap: 18px;
+          gap: 10px;
           align-items: stretch;
         }
         @media (max-width: 980px) {

@@ -83,11 +83,11 @@ export default function ProcurementActionSuggestions() {
         boxShadow: "0 10px 24px rgba(15,23,42,0.05)",
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: 1000, color: "#0b57d0" }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: "#0b57d0" }}>
         AI Procurement Suggestions
       </div>
 
-      <div style={{ marginTop: 4, fontSize: 18, fontWeight: 1000, color: "#0f172a" }}>
+      <div style={{ marginTop: 4, fontSize: 18, fontWeight: 800, color: "#0f172a" }}>
         Suggested next actions
       </div>
 
@@ -97,9 +97,9 @@ export default function ProcurementActionSuggestions() {
             key={`${item.label}-${index}`}
             style={{
               border: "1px solid #e2e8f0",
-              borderRadius: 14,
+              borderRadius: 12,
               padding: 12,
-              background: "#f8fafc",
+              background: "#ffffff",
             }}
           >
             <div
@@ -111,7 +111,7 @@ export default function ProcurementActionSuggestions() {
               }}
             >
               <div>
-                <div style={{ fontSize: 14, fontWeight: 1000, color: "#0f172a" }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a" }}>
                   {item.label}
                 </div>
 

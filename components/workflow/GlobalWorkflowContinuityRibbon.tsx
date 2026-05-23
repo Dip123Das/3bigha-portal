@@ -172,7 +172,7 @@ export default function GlobalWorkflowContinuityRibbon() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <div className="text-[11px] font-black uppercase tracking-[0.14em] text-blue-700">
-                AI Resume Intelligence
+                What to do next
               </div>
 
               <span

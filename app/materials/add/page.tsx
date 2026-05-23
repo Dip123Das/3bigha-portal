@@ -919,9 +919,9 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
   }
 
   return (
-    <div style={{ padding: 16, maxWidth: 1100, margin: "0 auto" }}>
+    <div style={{ padding: 12, maxWidth: 1100, margin: "0 auto" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Add Material Listing</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Add Material Listing</h1>
         <div style={{ fontSize: 12, opacity: 0.7 }}>
           {loadingTaxons ? "Loading taxonomy..." : `Loaded ${allTaxons.length} taxonomy rows.`}
         </div>
@@ -1112,8 +1112,8 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
                 <div
                   style={{
                     border: "1px solid #bbf7d0",
-                    background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
-                    borderRadius: 14,
+                    background: "#ffffff",
+                    borderRadius: 12,
                     padding: 12,
                   }}
                 >

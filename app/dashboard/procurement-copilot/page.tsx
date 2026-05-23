@@ -26,7 +26,7 @@ export default function ProcurementCopilotPage() {
             href="/dashboard/procurement-control-tower"
             className="rounded-2xl bg-white px-4 py-2.5 text-sm font-black text-slate-950"
           >
-            Control Tower
+            Operations Desk
           </Link>
 
           <Link
@@ -40,7 +40,7 @@ export default function ProcurementCopilotPage() {
             href="/dashboard/inbox-v2"
             className="rounded-2xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-black text-white"
           >
-            Inbox Command Center
+            Inbox Work Desk
           </Link>
         </div>
       </div>

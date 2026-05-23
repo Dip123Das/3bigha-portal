@@ -46,7 +46,7 @@ export default function DealScoreClient({
       style={{
         border: "1px solid #fecaca",
         background: "#fff1f2",
-        borderRadius: 16,
+        borderRadius: 12,
         padding: 14,
         marginBottom: 16,
       }}
@@ -70,7 +70,7 @@ export default function DealScoreClient({
           width: "100%",
           marginTop: 12,
           border: 0,
-          borderRadius: 999,
+          borderRadius: 12,
           padding: "10px 14px",
           background: "#dc2626",
           color: "white",

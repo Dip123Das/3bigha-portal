@@ -194,21 +194,21 @@ export default async function ProcurementActionsPage() {
           href="/dashboard/procurement-mission-control"
           className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
         >
-          Open Mission Control
+          Open Work Desk
         </a>
 
         <a
           href="/dashboard/procurement-execution"
           className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
         >
-          Open Execution AI
+          Open Execution Workspace
         </a>
 
         <a
           href="/dashboard/procurement-crisis-center"
           className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
         >
-          Open Crisis Center
+          Open Issue Center
         </a>
       </div>
 

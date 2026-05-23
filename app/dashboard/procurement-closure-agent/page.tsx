@@ -22,7 +22,7 @@ export default function ProcurementClosureAgentPage() {
           </div>
 
           <h1 className="mt-6 text-5xl font-black">
-            AI Procurement Closure Agent
+            AI Procurement Closure Tracking
           </h1>
 
           <p className="mt-4 max-w-3xl text-base font-medium text-slate-200">
@@ -44,14 +44,14 @@ export default function ProcurementClosureAgentPage() {
             href="/dashboard/procurement-mission-control"
             className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
           >
-            Open Mission Control
+            Open Work Desk
           </a>
 
           <a
             href="/dashboard/procurement-negotiation-agent"
             className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
           >
-            Open Negotiation AI
+            Open Negotiation
           </a>
 
           <a

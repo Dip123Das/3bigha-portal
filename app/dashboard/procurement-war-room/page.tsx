@@ -39,7 +39,7 @@ export default function ProcurementWarRoomPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-7xl p-6">
-        Loading AI Procurement War Room...
+        Loading AI Procurement Priority Work...
       </div>
     );
   }
@@ -48,7 +48,7 @@ export default function ProcurementWarRoomPage() {
     <div className="mx-auto max-w-7xl p-6">
       <div className="rounded-[2rem] bg-gradient-to-r from-slate-950 via-rose-950 to-indigo-950 p-8 text-white shadow-2xl">
         <div className="text-xs font-black uppercase tracking-[0.14em] text-rose-200">
-          Executive Procurement War Room
+          Executive Procurement Priority Work
         </div>
 
         <h1 className="mt-3 text-5xl font-black">
@@ -128,7 +128,7 @@ export default function ProcurementWarRoomPage() {
               <div className="text-3xl">🛰️</div>
 
               <div className="mt-4 text-lg font-black">
-                Mission Control
+                Work Desk
               </div>
 
               <div className="mt-2 text-sm font-semibold text-slate-300">
@@ -142,7 +142,7 @@ export default function ProcurementWarRoomPage() {
               <div className="text-3xl">🔥</div>
 
               <div className="mt-4 text-lg font-black text-rose-700">
-                Crisis Escalation
+                Issue Escalation
               </div>
 
               <div className="mt-2 text-sm font-semibold text-rose-600">
@@ -171,7 +171,7 @@ export default function ProcurementWarRoomPage() {
               <div className="text-3xl">⚡</div>
 
               <div className="mt-4 text-lg font-black text-amber-700">
-                AI Actions
+                Pending Actions
               </div>
 
               <div className="mt-2 text-sm font-semibold text-amber-600">
@@ -201,7 +201,7 @@ export default function ProcurementWarRoomPage() {
               <div className="text-3xl">🧠</div>
 
               <div className="mt-4 text-lg font-black text-violet-700">
-                AI Copilot
+                Workflow Assistant
               </div>
 
               <div className="mt-2 text-sm font-semibold text-violet-600">

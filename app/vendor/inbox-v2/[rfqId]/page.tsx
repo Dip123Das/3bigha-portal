@@ -28,7 +28,7 @@ function pill(text: string, tone: "neutral" | "ok" | "warn" = "neutral") {
     display: "inline-flex",
     alignItems: "center",
     padding: "3px 10px",
-    borderRadius: 999,
+    borderRadius: 12,
     fontSize: 12,
     fontWeight: 900,
     border: "1px solid #e5e7eb",
@@ -69,9 +69,9 @@ function actionBtnStyle(kind: "talk" | "normal" | "call" = "normal"): React.CSSP
       gap: 8,
       minHeight: 40,
       padding: "0 14px",
-      borderRadius: 999,
+      borderRadius: 12,
       border: "1px solid #86efac",
-      background: "linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%)",
+      background: "#ffffff",
       color: "#166534",
       fontWeight: 900,
       textDecoration: "none",
@@ -87,7 +87,7 @@ function actionBtnStyle(kind: "talk" | "normal" | "call" = "normal"): React.CSSP
       gap: 8,
       minHeight: 40,
       padding: "0 14px",
-      borderRadius: 999,
+      borderRadius: 12,
       border: "1px solid #bbf7d0",
       background: "#ecfdf5",
       color: "#065f46",
@@ -103,7 +103,7 @@ function actionBtnStyle(kind: "talk" | "normal" | "call" = "normal"): React.CSSP
     gap: 8,
     minHeight: 40,
     padding: "0 14px",
-    borderRadius: 999,
+    borderRadius: 12,
     border: "1px solid rgba(0,0,0,0.12)",
     background: "#fff",
     color: "#111827",
@@ -122,8 +122,8 @@ export default async function VendorRfqDetailV2Page({
 
   if (!UUID_RE.test(rfqId)) {
     return (
-      <div style={{ padding: 16 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700 }}>Invalid RFQ ID</h1>
+      <div style={{ padding: 12 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 700 }}>Invalid RFQ ID</h1>
       </div>
     );
   }
@@ -135,8 +135,8 @@ export default async function VendorRfqDetailV2Page({
 
   if (userErr || !user) {
     return (
-      <div style={{ padding: 16 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700 }}>Please login</h1>
+      <div style={{ padding: 12 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 700 }}>Please login</h1>
       </div>
     );
   }
@@ -163,7 +163,7 @@ export default async function VendorRfqDetailV2Page({
 
   if (headerErr) {
     return (
-      <div style={{ padding: 16 }}>
+      <div style={{ padding: 12 }}>
         <pre style={{ color: "crimson" }}>{headerErr.message}</pre>
       </div>
     );
@@ -171,7 +171,7 @@ export default async function VendorRfqDetailV2Page({
 
   if (!header) {
     return (
-      <div style={{ padding: 16 }}>
+      <div style={{ padding: 12 }}>
         <h2>RFQ not found</h2>
       </div>
     );
@@ -192,7 +192,7 @@ export default async function VendorRfqDetailV2Page({
 
   if (itemsErr) {
     return (
-      <div style={{ padding: 16 }}>
+      <div style={{ padding: 12 }}>
         <pre style={{ color: "crimson" }}>{itemsErr.message}</pre>
       </div>
     );
@@ -222,7 +222,7 @@ export default async function VendorRfqDetailV2Page({
 
   if (qhErr) {
     return (
-      <div style={{ padding: 16 }}>
+      <div style={{ padding: 12 }}>
         <pre style={{ color: "crimson" }}>{qhErr.message}</pre>
       </div>
     );
@@ -272,8 +272,8 @@ export default async function VendorRfqDetailV2Page({
     .maybeSingle();
 
   return (
-    <div style={{ padding: 16, maxWidth: 1000 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700 }}>RFQ #{rfqNo}</h1>
+    <div style={{ padding: 12, maxWidth: 1000 }}>
+      <h1 style={{ fontSize: 18, fontWeight: 700 }}>RFQ #{rfqNo}</h1>
 
       {isAccepted ? (
         <div
@@ -316,7 +316,7 @@ export default async function VendorRfqDetailV2Page({
       <div
         style={{
           marginTop: 16,
-          padding: 16,
+          padding: 12,
           border: "1px solid #e5e7eb",
           borderRadius: 12,
         }}
@@ -438,7 +438,7 @@ export default async function VendorRfqDetailV2Page({
         </div>
       ) : null}
 
-      <div style={{ marginTop: 24 }}>
+      <div style={{ marginTop: 14 }}>
         <h2 style={{ fontSize: 18, fontWeight: 600 }}>RFQ Items</h2>
 
         {rows.length > 0 ? (
@@ -474,10 +474,10 @@ export default async function VendorRfqDetailV2Page({
       {history.length > 0 ? (
         <QuoteHistory rfqId={rfqId} history={history} itemTitleById={itemTitleById} />
       ) : (
-        <div style={{ marginTop: 24, opacity: 0.7 }}>No submitted quotes yet.</div>
+        <div style={{ marginTop: 14, opacity: 0.7 }}>No submitted quotes yet.</div>
       )}
 
-      <div style={{ marginTop: 28, padding: 16, border: "1px dashed #ccc", borderRadius: 12 }}>
+      <div style={{ marginTop: 16, padding: 12, border: "1px dashed #ccc", borderRadius: 12 }}>
         <h3 style={{ margin: 0, fontWeight: 700 }}>Submit Your Quote</h3>
 
         {isAccepted ? (

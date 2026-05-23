@@ -118,7 +118,7 @@ export default async function VendorAcceptedQuotePrintPage({
             marginTop: 18,
             border: "1px solid #e5e7eb",
             borderRadius: 12,
-            padding: 16,
+            padding: 12,
           }}
         >
           <div><strong>Buyer:</strong> {(header as any).buyer_name ?? "—"}</div>

@@ -18,14 +18,14 @@ export default function ConversationDeleteConfirm(props: {
     <div
       onClick={closeDeleteConfirm}
       style={{
-        position: "fixed",
+        position: "sticky",
         inset: 0,
         background: "rgba(0,0,0,0.28)",
         zIndex: 1100,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: 16,
+        padding: 12,
       }}
     >
       <div
@@ -34,10 +34,10 @@ export default function ConversationDeleteConfirm(props: {
           width: "100%",
           maxWidth: 360,
           background: "#fff",
-          borderRadius: 16,
-          boxShadow: "0 24px 60px rgba(0,0,0,0.18)",
+          borderRadius: 12,
+          boxShadow: "0 2px 6px rgba(15,23,42,0.04)",
           border: "1px solid #e5e7eb",
-          padding: 16,
+          padding: 12,
         }}
       >
         <div style={{ fontSize: 16, fontWeight: 900 }}>

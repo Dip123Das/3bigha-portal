@@ -31,7 +31,7 @@ export default function ConstructionHealthPanel({ health, loading = false }: Pro
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-            AI Construction Control Tower
+            AI Construction Operations Desk
           </div>
           <h3 className="mt-1 text-xl font-black text-slate-950">
             Project Health Score

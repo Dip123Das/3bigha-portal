@@ -201,7 +201,7 @@ export default function RfqNewPage() {
 
   return (
     <div className="container pageBody" style={{ paddingTop: 16 }}>
-      <h1 style={{ fontSize: 22, marginBottom: 8 }}>Submit Requirement (RFQ)</h1>
+      <h1 style={{ fontSize: 18, marginBottom: 8 }}>Submit Requirement (RFQ)</h1>
       <div style={{ opacity: 0.8, marginBottom: 16 }}>
         Type your items or upload a handwritten/PDF list. Vendors will send competitive quotations.
       </div>

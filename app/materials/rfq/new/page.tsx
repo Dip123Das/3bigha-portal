@@ -180,7 +180,7 @@ export default function NewMaterialRFQPage() {
                   key={i}
                   style={{
                     border: "1px solid rgba(0,0,0,0.10)",
-                    borderRadius: 14,
+                    borderRadius: 12,
                     padding: 12,
                     background: "rgba(0,0,0,0.02)",
                   }}

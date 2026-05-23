@@ -90,11 +90,11 @@ export default function ProcurementTimelinePage() {
       <div className="mx-auto max-w-7xl">
         <div className="overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-indigo-950 to-violet-950 p-10 text-white shadow-2xl">
           <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
-            AI Procurement Timeline Replay
+            AI Procurement Activity Timeline
           </div>
 
           <h1 className="mt-6 text-5xl font-black">
-            Procurement Timeline Replay
+            Procurement Activity Timeline
           </h1>
 
           <p className="mt-4 max-w-3xl text-base font-medium text-slate-200">

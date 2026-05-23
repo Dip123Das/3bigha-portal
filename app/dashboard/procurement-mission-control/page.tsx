@@ -66,11 +66,11 @@ export default async function ProcurementMissionControlPage() {
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
       <div className="rounded-[2rem] border border-slate-200 bg-gradient-to-r from-slate-950 via-indigo-950 to-rose-950 p-7 text-white shadow-sm">
         <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]">
-          Enterprise Procurement Mission Control
+          Enterprise Procurement Work Desk
         </div>
 
         <h1 className="mt-4 text-4xl font-black">
-          AI Procurement Mission Control
+          AI Procurement Work Desk
         </h1>
 
         <p className="mt-3 max-w-4xl text-sm font-medium leading-6 text-slate-200">
@@ -136,7 +136,7 @@ export default async function ProcurementMissionControlPage() {
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-black text-slate-950">
-              AI Procurement Recovery Command Center
+              AI Procurement Recovery Work Desk
             </h2>
 
             <p className="mt-1 text-sm font-semibold text-slate-500">
@@ -216,20 +216,20 @@ export default async function ProcurementMissionControlPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
-        <Shortcut href="/dashboard/procurement-crisis-center" icon="🚨" title="Crisis Center" />
-        <Shortcut href="/dashboard/procurement-os" icon="🧭" title="Procurement OS" />
-        <Shortcut href="/dashboard/procurement-war-room" icon="🏛️" title="War Room" />
-        <Shortcut href="/dashboard/procurement-situation-room" icon="📡" title="Situation Room" />
-        <Shortcut href="/dashboard/procurement-heatmap" icon="🔥" title="Heatmap AI" />
-        <Shortcut href="/dashboard/procurement-actions" icon="⚡" title="AI Actions" />
+        <Shortcut href="/dashboard/procurement-crisis-center" icon="🚨" title="Issue Center" />
+        <Shortcut href="/dashboard/procurement-os" icon="🧭" title="Procurement Workspace" />
+        <Shortcut href="/dashboard/procurement-war-room" icon="🏛️" title="Priority Work" />
+        <Shortcut href="/dashboard/procurement-situation-room" icon="📡" title="Work Updates" />
+        <Shortcut href="/dashboard/procurement-heatmap" icon="🔥" title="Risk Overview" />
+        <Shortcut href="/dashboard/procurement-actions" icon="⚡" title="Pending Actions" />
         <Shortcut href="/dashboard/procurement-followup-agent" icon="🤖" title="Follow-up AI" />
-        <Shortcut href="/dashboard/procurement-inbox-actions" icon="📥" title="Inbox AI" />
-        <Shortcut href="/dashboard/procurement-negotiation-agent" icon="🤝" title="Negotiation AI" />
-        <Shortcut href="/dashboard/procurement-supplier-reliability" icon="🏭" title="Supplier AI" />
-        <Shortcut href="/dashboard/procurement-memory-intelligence" icon="🧠" title="Memory AI" />
-        <Shortcut href="/dashboard/procurement-closure-agent" icon="✅" title="Closure AI" />
-        <Shortcut href="/dashboard/procurement-autonomous-tasks" icon="🛠️" title="Auto Tasks" />
-        <Shortcut href="/dashboard/procurement-task-execution-log" icon="📜" title="Task Log" />
+        <Shortcut href="/dashboard/procurement-inbox-actions" icon="📥" title="Inbox Help" />
+        <Shortcut href="/dashboard/procurement-negotiation-agent" icon="🤝" title="Negotiation" />
+        <Shortcut href="/dashboard/procurement-supplier-reliability" icon="🏭" title="Supplier Overview" />
+        <Shortcut href="/dashboard/procurement-memory-intelligence" icon="🧠" title="Recent Workflow" />
+        <Shortcut href="/dashboard/procurement-closure-agent" icon="✅" title="Closure Tracking" />
+        <Shortcut href="/dashboard/procurement-autonomous-tasks" icon="🛠️" title="Pending Tasks" />
+        <Shortcut href="/dashboard/procurement-task-execution-log" icon="📜" title="Activity Log" />
         <Shortcut href="/dashboard/procurement-real-execution" icon="🚀" title="Real Execute" />
         <Shortcut href="/dashboard/procurement-crisis-center" icon="🛡️" title="Recovery Command" />
       </div>

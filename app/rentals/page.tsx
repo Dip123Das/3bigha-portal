@@ -711,7 +711,7 @@ export default function RentalsPublicPage() {
                             marginTop: 12,
                             border: "1px solid rgba(16,185,129,0.22)",
                             background: "rgba(236,253,245,0.75)",
-                            borderRadius: 14,
+                            borderRadius: 12,
                             padding: 12,
                           }}
                         >

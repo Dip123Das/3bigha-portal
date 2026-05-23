@@ -65,7 +65,7 @@ function fmt(iso: string) {
 
 function MessageBox(props: { title: string; description?: string }) {
   return (
-    <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 16 }}>
+    <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 12 }}>
       <div style={{ fontWeight: 900, marginBottom: 6 }}>{props.title}</div>
       {props.description ? <div style={{ opacity: 0.8, lineHeight: 1.5 }}>{props.description}</div> : null}
     </div>

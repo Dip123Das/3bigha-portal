@@ -47,21 +47,21 @@ export default function ProcurementMemoryIntelligencePage() {
             href="/dashboard/procurement-mission-control"
             className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
           >
-            Open Mission Control
+            Open Work Desk
           </a>
 
           <a
             href="/dashboard/procurement-negotiation-agent"
             className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
           >
-            Open Negotiation AI
+            Open Negotiation
           </a>
 
           <a
             href="/dashboard/procurement-supplier-reliability"
             className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
           >
-            Open Supplier AI
+            Open Supplier Overview
           </a>
         </div>
 

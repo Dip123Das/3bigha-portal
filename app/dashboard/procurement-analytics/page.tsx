@@ -123,7 +123,7 @@ export default async function ProcurementAnalyticsPage() {
             href="/dashboard/procurement-control-tower"
             className="rounded-2xl bg-white px-4 py-2.5 text-sm font-black text-slate-950"
           >
-            Open Control Tower
+            Open Operations Desk
           </Link>
 
           <Link

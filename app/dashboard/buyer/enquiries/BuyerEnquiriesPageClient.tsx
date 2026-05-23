@@ -531,7 +531,7 @@ function BuyerEnquiriesPageInner() {
                               <div
                                 style={{
                                   maxWidth: 760,
-                                  borderRadius: 14,
+                                  borderRadius: 12,
                                   padding: 12,
                                   border: "1px solid rgba(0,0,0,0.08)",
                                   background: "white",

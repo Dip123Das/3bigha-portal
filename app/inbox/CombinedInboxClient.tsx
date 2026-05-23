@@ -92,7 +92,7 @@ function pill(text: string, tone: "neutral" | "ok" | "warn" = "neutral") {
     display: "inline-flex",
     alignItems: "center",
     padding: "2px 10px",
-    borderRadius: 999,
+    borderRadius: 12,
     fontSize: 12,
     fontWeight: 800,
     border: "1px solid #e5e7eb",
@@ -294,7 +294,7 @@ export default function CombinedInboxClient({ rows }: { rows: CombinedInboxRow[]
         <div
           style={{
             marginTop: 12,
-            padding: 16,
+            padding: 12,
             border: "1px solid #e5e7eb",
             borderRadius: 12,
             background: "#fff",

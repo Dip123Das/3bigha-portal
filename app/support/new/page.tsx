@@ -222,7 +222,7 @@ export default function NewSupportTicketPage() {
 
           <Card>
             <CardBody>
-              <div style={{ fontSize: 22, fontWeight: 950, color: "#065f46" }}>
+              <div style={{ fontSize: 18, fontWeight: 950, color: "#065f46" }}>
                 ✅ Ticket Generated
               </div>
 
@@ -265,7 +265,7 @@ export default function NewSupportTicketPage() {
               style={{
                 border: "1px solid #dbeafe",
                 background: "#eff6ff",
-                borderRadius: 14,
+                borderRadius: 12,
                 padding: 12,
                 marginBottom: 14,
                 fontSize: 13,
@@ -415,7 +415,7 @@ export default function NewSupportTicketPage() {
                   style={{
                     border: "1px solid #e5e7eb",
                     background: "#f8fafc",
-                    borderRadius: 14,
+                    borderRadius: 12,
                     padding: 12,
                     fontSize: 13,
                     color: "#334155",

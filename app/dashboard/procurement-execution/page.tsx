@@ -61,11 +61,11 @@ export default async function ProcurementExecutionPage() {
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
       <div className="rounded-[2rem] border border-slate-200 bg-gradient-to-r from-slate-950 via-violet-950 to-indigo-950 p-6 text-white shadow-sm">
         <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]">
-          Autonomous Procurement Execution AI
+          Autonomous Procurement Execution Workspace
         </div>
 
         <h1 className="mt-4 text-3xl font-black">
-          AI Procurement Execution Engine
+          AI Procurement Execution Workflow
         </h1>
 
         <p className="mt-3 max-w-4xl text-sm font-medium leading-6 text-slate-200">
@@ -130,14 +130,14 @@ export default async function ProcurementExecutionPage() {
           href="/dashboard/procurement-mission-control"
           className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
         >
-          Open Mission Control
+          Open Work Desk
         </a>
 
         <a
           href="/dashboard/procurement-actions"
           className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
         >
-          Open AI Actions
+          Open Pending Actions
         </a>
 
         <a
@@ -151,13 +151,13 @@ export default async function ProcurementExecutionPage() {
           href="/dashboard/procurement-situation-room"
           className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
         >
-          Open Situation Room
+          Open Work Updates
         </a>
       </div>
 
       <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
         <div className="text-lg font-black text-slate-950">
-          Autonomous Execution Plan
+          Workflow Execution Plan
         </div>
 
         <div className="mt-4 space-y-3">

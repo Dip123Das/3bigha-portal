@@ -60,7 +60,7 @@ function statusLabel(s: Status) {
 
 function MessageBox(props: { title: string; description?: string }) {
   return (
-    <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 16 }}>
+    <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 12 }}>
       <div style={{ fontWeight: 800, marginBottom: 6 }}>{props.title}</div>
       {props.description ? <div style={{ opacity: 0.8, lineHeight: 1.5 }}>{props.description}</div> : null}
     </div>
@@ -281,7 +281,7 @@ export default function MaterialsMyPage() {
                           border: "1px solid rgba(22,163,74,0.35)",
                           background: submittingId === m.id ? "#dcfce7" : "#f0fdf4",
                           color: "#166534",
-                          borderRadius: 999,
+                          borderRadius: 12,
                           padding: "6px 10px",
                           fontWeight: 900,
                           cursor: submittingId === m.id ? "not-allowed" : "pointer",

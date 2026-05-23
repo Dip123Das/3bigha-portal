@@ -727,7 +727,7 @@ useEffect(() => {
         style={{
           margin: "0 0 12px 0",
           border: "1px solid #bfdbfe",
-          background: "linear-gradient(90deg, #ffffff, #eff6ff)",
+          background: "#ffffff",
           borderRadius: 18,
           padding: "12px 14px",
           boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
@@ -753,13 +753,13 @@ useEffect(() => {
               color: "#334155",
             }}
           >
-            <span style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 999, padding: "5px 10px" }}>
+            <span style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 12, padding: "5px 10px" }}>
               📦 Item under discussion
             </span>
-            <span style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 999, padding: "5px 10px" }}>
+            <span style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 12, padding: "5px 10px" }}>
               📍 Location shared
             </span>
-            <span style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 999, padding: "5px 10px" }}>
+            <span style={{ border: "1px solid #e5e7eb", background: "#fff", borderRadius: 12, padding: "5px 10px" }}>
               💬 Live negotiation
             </span>
           </div>
@@ -788,7 +788,7 @@ useEffect(() => {
           style={{
             margin: "0 0 12px 0",
             border: "1px solid #fb7185",
-            background: "linear-gradient(90deg, #fff1f2, #ffffff)",
+            background: "#ffffff",
             borderRadius: 18,
             padding: "12px 14px",
             boxShadow: "0 10px 24px rgba(190,18,60,0.10)",
@@ -808,7 +808,7 @@ useEffect(() => {
                 border: "1px solid #fecaca",
                 background: "#fff",
                 color: "#991b1b",
-                borderRadius: 999,
+                borderRadius: 12,
                 padding: "5px 10px",
                 fontSize: 12,
                 fontWeight: 950,
@@ -822,7 +822,7 @@ useEffect(() => {
                 border: "1px solid #fed7aa",
                 background: "#fff7ed",
                 color: "#9a3412",
-                borderRadius: 999,
+                borderRadius: 12,
                 padding: "5px 10px",
                 fontSize: 12,
                 fontWeight: 950,
@@ -844,7 +844,7 @@ useEffect(() => {
                 border: "none",
                 background: "#be123c",
                 color: "#fff",
-                borderRadius: 999,
+                borderRadius: 12,
                 padding: "7px 11px",
                 fontSize: 12,
                 fontWeight: 950,
@@ -862,7 +862,7 @@ useEffect(() => {
           style={{
             margin: "0 0 12px 0",
             border: "1px solid #c7d2fe",
-            background: "linear-gradient(90deg, #eef2ff, #ffffff)",
+            background: "#ffffff",
             borderRadius: 18,
             padding: "12px 14px",
           }}
@@ -884,7 +884,7 @@ useEffect(() => {
             <div
               style={{
                 height: 9,
-                borderRadius: 999,
+                borderRadius: 12,
                 background: "#e0e7ff",
                 overflow: "hidden",
               }}
@@ -893,7 +893,7 @@ useEffect(() => {
                 style={{
                   width: `${liveDealHealth}%`,
                   height: "100%",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   background:
                     liveDealHealth >= 80
                       ? "#16a34a"
@@ -907,16 +907,16 @@ useEffect(() => {
             </div>
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <span style={{ border: "1px solid #ddd6fe", background: "#fff", borderRadius: 999, padding: "5px 9px", fontSize: 11, fontWeight: 900 }}>
+              <span style={{ border: "1px solid #ddd6fe", background: "#fff", borderRadius: 12, padding: "5px 9px", fontSize: 11, fontWeight: 900 }}>
                 🌡 Temperature: {aiDealScore.dealTemperature || aiVendorAlert.dealTemperature || "cold"}
               </span>
-              <span style={{ border: "1px solid #ddd6fe", background: "#fff", borderRadius: 999, padding: "5px 9px", fontSize: 11, fontWeight: 900 }}>
+              <span style={{ border: "1px solid #ddd6fe", background: "#fff", borderRadius: 12, padding: "5px 9px", fontSize: 11, fontWeight: 900 }}>
                 ⚠ Lead risk: {liveDealRiskLabel}
               </span>
-              <span style={{ border: "1px solid #ddd6fe", background: "#fff", borderRadius: 999, padding: "5px 9px", fontSize: 11, fontWeight: 900 }}>
+              <span style={{ border: "1px solid #ddd6fe", background: "#fff", borderRadius: 12, padding: "5px 9px", fontSize: 11, fontWeight: 900 }}>
                 ⏱ Follow-up: {aiDealStage?.followUpTiming || "soon"}
               </span>
-              <span style={{ border: "1px solid #ddd6fe", background: "#fff", borderRadius: 999, padding: "5px 9px", fontSize: 11, fontWeight: 900 }}>
+              <span style={{ border: "1px solid #ddd6fe", background: "#fff", borderRadius: 12, padding: "5px 9px", fontSize: 11, fontWeight: 900 }}>
                 📈 Momentum: {aiDealStage?.dealMomentum || "medium"}
               </span>
             </div>
@@ -935,7 +935,7 @@ useEffect(() => {
           style={{
             margin: "0 0 12px 0",
             border: "1px solid #a7f3d0",
-            background: "linear-gradient(90deg, #ecfdf5, #ffffff)",
+            background: "#ffffff",
             borderRadius: 18,
             padding: "12px 14px",
             boxShadow: "0 8px 20px rgba(16,185,129,0.08)",
@@ -957,7 +957,7 @@ useEffect(() => {
                 border: "1px solid #bbf7d0",
                 background: "#fff",
                 color: "#047857",
-                borderRadius: 999,
+                borderRadius: 12,
                 padding: "5px 10px",
                 fontSize: 12,
                 fontWeight: 950,
@@ -973,13 +973,13 @@ useEffect(() => {
                 key={`${item.title}-${idx}`}
                 style={{
                   ...copilotToneStyle(item.tone),
-                  borderRadius: 14,
+                  borderRadius: 12,
                   padding: 10,
                   display: "grid",
                   gap: 6,
                 }}
               >
-                <div style={{ fontSize: 13, fontWeight: 1000 }}>{item.title}</div>
+                <div style={{ fontSize: 13, fontWeight: 800 }}>{item.title}</div>
                 <div style={{ fontSize: 12, fontWeight: 800 }}>{item.detail}</div>
 
                 <button
@@ -990,7 +990,7 @@ useEffect(() => {
                     border: "1px solid rgba(15,23,42,0.12)",
                     background: "#fff",
                     color: "inherit",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     padding: "6px 10px",
                     fontSize: 12,
                     fontWeight: 950,
@@ -1067,7 +1067,7 @@ useEffect(() => {
                   style={{
                     display: "inline-block",
                     padding: "8px 12px",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     background: "#eef2f7",
                     fontSize: 12,
                     color: "#374151",
@@ -1106,7 +1106,7 @@ useEffect(() => {
                       color: "#dc2626",
                       background: "#fff",
                       padding: "2px 10px",
-                      borderRadius: 999,
+                      borderRadius: 12,
                       border: "1px solid #fecaca",
                     }}
                   >
@@ -1375,7 +1375,7 @@ useEffect(() => {
                             type="button"
                             onClick={() => toggleReaction(m, emoji)}
                             style={{
-                              borderRadius: 999,
+                              borderRadius: 12,
                               border: "1px solid #e5e7eb",
                               background: reacted ? "#dcfce7" : "#fff",
                               padding: "2px 8px",
@@ -1403,7 +1403,7 @@ useEffect(() => {
                         alignItems: "center",
                         background: "#fff",
                         border: "1px solid #e5e7eb",
-                        borderRadius: 999,
+                        borderRadius: 12,
                         padding: "4px 6px",
                         boxShadow: "0 8px 20px rgba(0,0,0,0.10)",
                         zIndex: 3,
@@ -1484,7 +1484,7 @@ useEffect(() => {
                           color: deliveryState.color,
                           background: deliveryState.bg,
                           border: `1px solid ${deliveryState.border}`,
-                          borderRadius: 999,
+                          borderRadius: 12,
                           padding: "2px 7px",
                           lineHeight: 1.4,
                         }}
@@ -1534,7 +1534,7 @@ useEffect(() => {
                 border: "1px solid #fed7aa",
                 background: "#fff",
                 color: "#9a3412",
-                borderRadius: 999,
+                borderRadius: 12,
                 padding: "4px 8px",
                 fontSize: 11,
                 fontWeight: 900,
@@ -1551,7 +1551,7 @@ useEffect(() => {
                   border: "1px solid #c7d2fe",
                   background: "#eef2ff",
                   color: "#3730a3",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   padding: "4px 8px",
                   fontSize: 11,
                   fontWeight: 900,
@@ -1589,7 +1589,7 @@ useEffect(() => {
               border: "none",
               background: aiVendorAlert.priority === "premium" ? "#f97316" : "#f59e0b",
               color: "#fff",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "8px 12px",
               fontWeight: 900,
               cursor: "pointer",
@@ -1605,13 +1605,13 @@ useEffect(() => {
           style={{
             marginTop: 14,
             border: "1px solid #fca5a5",
-            background: "linear-gradient(90deg, #fff1f2, #ffffff)",
+            background: "#ffffff",
             borderRadius: 18,
             padding: "12px 14px",
           }}
         >
           <div style={{ fontSize: 13, fontWeight: 900, color: "#b91c1c", marginBottom: 8 }}>
-            🔥 AI deal strength
+            🔥 Deal Status
           </div>
 
           <div style={{ display: "grid", gap: 8 }}>
@@ -1639,7 +1639,7 @@ useEffect(() => {
                 border: "none",
                 background: "#dc2626",
                 color: "#fff",
-                borderRadius: 999,
+                borderRadius: 12,
                 padding: "8px 12px",
                 fontWeight: 900,
                 cursor: "pointer",
@@ -1654,7 +1654,7 @@ useEffect(() => {
           style={{
             marginTop: 14,
             border: "1px solid #bbf7d0",
-            background: "linear-gradient(90deg, #ecfdf5, #ffffff)",
+            background: "#ffffff",
             borderRadius: 18,
             padding: "12px 14px",
           }}
@@ -1675,7 +1675,7 @@ useEffect(() => {
                     border: "1px solid #bbf7d0",
                     background: "#fff",
                     color: "#065f46",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     padding: "6px 10px",
                     fontSize: 12,
                     fontWeight: 900,
@@ -1689,7 +1689,7 @@ useEffect(() => {
                     border: "1px solid #d1fae5",
                     background: "#fff",
                     color: "#047857",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     padding: "6px 10px",
                     fontSize: 12,
                     fontWeight: 900,
@@ -1713,7 +1713,7 @@ useEffect(() => {
                   border: "1px solid #047857",
                   background: "#059669",
                   color: "#fff",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   padding: "8px 12px",
                   fontSize: 12,
                   fontWeight: 900,
@@ -1735,7 +1735,7 @@ useEffect(() => {
           style={{
             marginTop: 14,
             border: "1px solid #ddd6fe",
-            background: "linear-gradient(90deg, #faf5ff, #ffffff)",
+            background: "#ffffff",
             borderRadius: 18,
             padding: "12px 14px",
           }}
@@ -1760,7 +1760,7 @@ useEffect(() => {
                     border: "1px solid #c4b5fd",
                     background: "#fff",
                     color: "#4c1d95",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     padding: "7px 10px",
                     fontSize: 12,
                     fontWeight: 900,

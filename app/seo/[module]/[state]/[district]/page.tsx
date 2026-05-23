@@ -177,7 +177,7 @@ export default function DistrictSeoPage({ params }: PageProps) {
       <section style={{ maxWidth: 1180, margin: "0 auto", padding: "42px 16px 18px" }}>
         <div
           style={{
-            background: "linear-gradient(135deg, #ffffff, #eef2ff)",
+            background: "#ffffff",
             border: "1px solid #c7d2fe",
             borderRadius: 28,
             padding: 32,
@@ -189,7 +189,7 @@ export default function DistrictSeoPage({ params }: PageProps) {
               display: "inline-flex",
               background: "#e0e7ff",
               color: "#3730a3",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "8px 14px",
               fontWeight: 900,
               fontSize: 13,
@@ -228,14 +228,14 @@ export default function DistrictSeoPage({ params }: PageProps) {
             {description}
           </p>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 28 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 16 }}>
             <Link
               href={modulePath(module)}
               style={{
                 background: "#0f172a",
                 color: "#ffffff",
                 padding: "14px 22px",
-                borderRadius: 999,
+                borderRadius: 12,
                 fontWeight: 900,
               }}
             >
@@ -249,7 +249,7 @@ export default function DistrictSeoPage({ params }: PageProps) {
                 border: "1px solid #cbd5e1",
                 color: "#0f172a",
                 padding: "14px 22px",
-                borderRadius: 999,
+                borderRadius: 12,
                 fontWeight: 900,
               }}
             >
@@ -265,7 +265,7 @@ export default function DistrictSeoPage({ params }: PageProps) {
                 background: "#0f172a",
                 color: "#ffffff",
                 padding: "14px 22px",
-                borderRadius: 999,
+                borderRadius: 12,
                 fontWeight: 900,
               }}
             >
@@ -315,8 +315,8 @@ export default function DistrictSeoPage({ params }: PageProps) {
                 style={{
                   background: "#f8fafc",
                   border: "1px solid #e2e8f0",
-                  borderRadius: 16,
-                  padding: 16,
+                  borderRadius: 12,
+                  padding: 12,
                   color: "#0f172a",
                   fontWeight: 900,
                 }}
@@ -335,7 +335,7 @@ export default function DistrictSeoPage({ params }: PageProps) {
           padding: "0 16px 60px",
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: 18,
+          gap: 10,
         }}
       >
         <div
@@ -347,7 +347,7 @@ export default function DistrictSeoPage({ params }: PageProps) {
             boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
           }}
         >
-          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 22 }}>
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 18 }}>
             Related district pages
           </h2>
 
@@ -362,7 +362,7 @@ export default function DistrictSeoPage({ params }: PageProps) {
                 href={`/seo/${item}/${params.state}/${params.district}`}
                 style={{
                   border: "1px solid #e2e8f0",
-                  borderRadius: 14,
+                  borderRadius: 12,
                   padding: "12px 14px",
                   color: "#0f172a",
                   fontWeight: 900,
@@ -384,7 +384,7 @@ export default function DistrictSeoPage({ params }: PageProps) {
             boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
           }}
         >
-          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 22 }}>
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 18 }}>
             District marketplace workflow
           </h2>
 
@@ -405,7 +405,7 @@ export default function DistrictSeoPage({ params }: PageProps) {
                 style={{
                   background: "#f8fafc",
                   border: "1px solid #e2e8f0",
-                  borderRadius: 14,
+                  borderRadius: 12,
                   padding: "12px 14px",
                   color: "#0f172a",
                   fontWeight: 900,

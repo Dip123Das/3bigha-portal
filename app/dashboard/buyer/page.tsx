@@ -465,14 +465,14 @@ const closedDeals =
         <div
           style={{
             border: "1px solid #fde68a",
-            background: "linear-gradient(135deg,#fffbeb,#ffffff)",
+            background: "#ffffff",
             borderRadius: 22,
-            padding: 16,
+            padding: 12,
             marginBottom: 18,
           }}
         >
-          <div style={{ fontSize: 20, fontWeight: 1000, color: "#92400e" }}>
-            🔔 Smart Buyer Alerts
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#92400e" }}>
+            🔔 Buyer Alerts
           </div>
 
           <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
@@ -489,14 +489,14 @@ const closedDeals =
                   color: "inherit",
                   border: "1px solid #fef3c7",
                   background: "#ffffff",
-                  borderRadius: 16,
+                  borderRadius: 12,
                   padding: 12,
                 }}
               >
                 <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <div style={{ fontSize: 22 }}>{item.icon}</div>
+                  <div style={{ fontSize: 18 }}>{item.icon}</div>
                   <div>
-                    <div style={{ fontWeight: 1000, color: "#0f172a", fontSize: 14 }}>
+                    <div style={{ fontWeight: 800, color: "#0f172a", fontSize: 14 }}>
                       {item.title}
                     </div>
                     <div style={{ marginTop: 4, color: "#64748b", fontSize: 12, lineHeight: 1.45, fontWeight: 750 }}>
@@ -516,20 +516,20 @@ const closedDeals =
           style={{
             border: "1px solid #dbeafe",
             background: "#f8fbff",
-            borderRadius: 24,
-            padding: 24,
+            borderRadius: 12,
+            padding: 12,
             marginBottom: 18,
           }}
         >
           <div
             style={{
-              fontSize: 30,
-              fontWeight: 1000,
+              fontSize: 18,
+              fontWeight: 800,
               color: "#0f172a",
               marginBottom: 6,
             }}
           >
-            Your Buyer Work Center
+            Your Buyer Work Desk
           </div>
 
           <div
@@ -571,7 +571,7 @@ const closedDeals =
                 "Completed procurement",
               ],
               [
-                "Urgent Actions",
+                "Needs Attention",
                 procurementStats.urgentRfqs,
                 "#fffbeb",
                 "Requires immediate attention",
@@ -583,7 +583,7 @@ const closedDeals =
                   background: String(bg),
                   border: "1px solid rgba(15,23,42,0.06)",
                   borderRadius: 18,
-                  padding: 16,
+                  padding: 12,
                 }}
               >
                 <div
@@ -600,7 +600,7 @@ const closedDeals =
                   style={{
                     marginTop: 6,
                     fontSize: 34,
-                    fontWeight: 1000,
+                    fontWeight: 800,
                     color: "#0f172a",
                   }}
                 >
@@ -649,16 +649,16 @@ const closedDeals =
         <div
           style={{
             border: "1px solid #bbf7d0",
-            background: "linear-gradient(135deg,#ecfdf5,#ffffff)",
-            borderRadius: 24,
-            padding: 18,
+            background: "#ffffff",
+            borderRadius: 12,
+            padding: 14,
             marginBottom: 18,
           }}
         >
           <div
             style={{
-              fontSize: 22,
-              fontWeight: 1000,
+              fontSize: 18,
+              fontWeight: 800,
               color: "#064e3b",
             }}
           >
@@ -673,7 +673,7 @@ const closedDeals =
               fontSize: 13,
             }}
           >
-            Important procurement activity requiring your attention today.
+            Review pending work, vendor responses and required follow-ups.
           </div>
 
           <div
@@ -687,7 +687,7 @@ const closedDeals =
             <div
               style={{
                 border: "1px solid #bbf7d0",
-                borderRadius: 16,
+                borderRadius: 12,
                 padding: 14,
                 background: "#ffffff",
               }}
@@ -705,8 +705,8 @@ const closedDeals =
               <div
                 style={{
                   marginTop: 6,
-                  fontSize: 28,
-                  fontWeight: 1000,
+                  fontSize: 18,
+                  fontWeight: 800,
                   color: "#0f172a",
                 }}
               >
@@ -728,7 +728,7 @@ const closedDeals =
             <div
               style={{
                 border: "1px solid #fed7aa",
-                borderRadius: 16,
+                borderRadius: 12,
                 padding: 14,
                 background: "#fff7ed",
               }}
@@ -746,8 +746,8 @@ const closedDeals =
               <div
                 style={{
                   marginTop: 6,
-                  fontSize: 28,
-                  fontWeight: 1000,
+                  fontSize: 18,
+                  fontWeight: 800,
                   color: "#0f172a",
                 }}
               >
@@ -769,9 +769,9 @@ const closedDeals =
             <div
               style={{
                 border: "1px solid #bfdbfe",
-                borderRadius: 16,
+                borderRadius: 12,
                 padding: 14,
-                background: "#eff6ff",
+                background: "#ffffff",
               }}
             >
               <div
@@ -787,8 +787,8 @@ const closedDeals =
               <div
                 style={{
                   marginTop: 6,
-                  fontSize: 28,
-                  fontWeight: 1000,
+                  fontSize: 18,
+                  fontWeight: 800,
                   color: "#0f172a",
                 }}
               >
@@ -810,7 +810,7 @@ const closedDeals =
             <div
               style={{
                 border: "1px solid #e0e7ff",
-                borderRadius: 16,
+                borderRadius: 12,
                 padding: 14,
                 background: "#ffffff",
               }}
@@ -828,8 +828,8 @@ const closedDeals =
               <div
                 style={{
                   marginTop: 6,
-                  fontSize: 28,
-                  fontWeight: 1000,
+                  fontSize: 18,
+                  fontWeight: 800,
                   color: "#0f172a",
                 }}
               >
@@ -1093,20 +1093,20 @@ const closedDeals =
             style={{
               padding: 14,
               cursor: "pointer",
-              fontWeight: 1000,
+              fontWeight: 800,
               fontSize: 13,
               color: "#334155",
-              background: "#f8fafc",
+              background: "#ffffff",
             }}
           >
-            🧠 Buyer AI Assistant — click to open quote guidance, vendor follow-up and procurement intelligence
+            🧠 Buyer Workflow Assistant — click to open quote guidance, vendor follow-up and procurement intelligence
           </summary>
 
           <div
             style={{
-              padding: 16,
+              padding: 12,
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+              gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
               gap: 12,
             }}
           >
@@ -1115,12 +1115,12 @@ const closedDeals =
                 key={x.title}
                 style={{
                   border: "1px solid rgba(15,23,42,0.08)",
-                  borderRadius: 14,
+                  borderRadius: 12,
                   padding: 14,
                   background: x.tone === "warn" ? "#fffbeb" : "#ffffff",
                 }}
               >
-                <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                <div style={{ fontWeight: 800, color: "#0f172a" }}>
                   {x.title}
                 </div>
 
@@ -1150,7 +1150,7 @@ const closedDeals =
         </details>
 
         <div style={{ marginTop: 16, opacity: 0.75, fontSize: 13 }}>
-          Buyer dashboard now connects procurement creation, RFQ comparison, vendor chat, inbox, marketplace discovery and AI procurement intelligence.
+          Buyer dashboard now connects procurement creation, RFQ comparison, vendor chat, inbox, marketplace discovery and Procurement guidance.
         </div>
 
 </Container>

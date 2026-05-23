@@ -2175,7 +2175,7 @@ export default async function DashboardInboxV2Page({
         primaryLabel={latestUnreadItem ? "Open Latest Unread" : "View Inbox"}
         primaryHref={latestUnreadItem?.href ?? "/dashboard/inbox-v2"}
         secondaryHref="/dashboard/procurement-os"
-        secondaryLabel="Procurement OS"
+        secondaryLabel="Procurement Workspace"
       />
 
       <UniversalWorkflowHeader
@@ -2246,7 +2246,7 @@ export default async function DashboardInboxV2Page({
             {[
               ["Total Active Threads", procurementInboxStats.total, "📨"],
               ["RFQ Threads", procurementInboxStats.rfq, "📦"],
-              ["Urgent Actions", procurementInboxStats.urgent, "🚨"],
+              ["Needs Attention", procurementInboxStats.urgent, "🚨"],
               ["High Closure", procurementInboxStats.highClosure, "✅"],
               ["Slow Responses", procurementInboxStats.slowResponses, "⏳"],
             ].map(([label, value, icon]) => (

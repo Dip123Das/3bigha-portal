@@ -165,7 +165,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 Blog
               </ActiveLink>
               <ActiveLink className="topNavLink" href="/dashboard/procurement-health">
-                AI Procurement OS
+                Procurement Workspace
               </ActiveLink>
               <ProcurementCommandPalette />
             </nav>
@@ -360,7 +360,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     Support
                   </ActiveLink>
                   <ActiveLink className="topMobileLink" href="/dashboard/procurement-health">
-                    AI Procurement OS
+                    Procurement Workspace
                   </ActiveLink>
                   <ActiveLink className="topMobileLink" href="/search">
                     Search
@@ -567,7 +567,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 />
 
                 <Link className="topSubLink" href="/dashboard/procurement-health">
-                  AI Procurement OS
+                  Procurement Workspace
                 </Link>
 
                 <Link className="topSubLink" href="/support/my">
@@ -740,14 +740,14 @@ groups: [
               },
 
               {
-                label: "AI Tools",
+                label: "Advanced Insights",
                 href: "/ai-search-guide",
 groups: [
                   {
                     title: "AI Workflows",
                     links: [
-                      ["AI Search Guide", "/search"],
-                      ["AI Procurement OS", "/dashboard/procurement-health"],
+                      ["Search Guide", "/search"],
+                      ["Procurement Workspace", "/dashboard/procurement-health"],
                       ["Unified Inbox", "/dashboard/inbox-v2"],
                       ["Price Today", "/price-today"],
                     ],
@@ -864,7 +864,7 @@ groups: [
               <Link href="/services">Construction Services</Link>
               <Link href="/rentals">Rental Marketplace</Link>
               <Link href="/rfq/general/new">Submit RFQ</Link>
-              <Link href="/ai-search-guide">AI Search Guide</Link>
+              <Link href="/ai-search-guide">Search Guide</Link>
               <Link href="/about">About Us</Link>
               <Link href="/contact">Contact Us</Link>
               <Link href="/privacy-policy">Privacy Policy</Link>
@@ -881,7 +881,7 @@ groups: [
               </Link>
 
               <Link href="/ai-search-guide">
-                AI Marketplace Search
+                Marketplace Search
               </Link>
               <Link href="/search/land-for-sale-cooch-behar">
                 Land for Sale Cooch Behar

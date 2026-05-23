@@ -13,7 +13,7 @@ export function Badge({ children, className }: BadgeProps) {
       style={{
         fontSize: 12,
         padding: "4px 8px",
-        borderRadius: 999,
+        borderRadius: 12,
         background: "#f3f4f6",
         color: "#3f4754",
         whiteSpace: "nowrap",

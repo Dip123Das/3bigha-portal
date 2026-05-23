@@ -38,7 +38,7 @@ const groups = [
   {
     title: "AI",
     items: [
-      { label: "AI Supervisor", href: "/dashboard/vendor/inventory-intelligence", icon: "🤖" },
+      { label: "Supervisor", href: "/dashboard/vendor/inventory-intelligence", icon: "📌" },
       { label: "Notifications", href: "/dashboard/vendor/notifications", icon: "🔔" },
     ],
   },
@@ -53,7 +53,7 @@ export function VendorErpNav() {
         marginBottom: 16,
         borderRadius: 22,
         border: "1px solid rgba(15,23,42,0.08)",
-        background: "linear-gradient(135deg, #0f172a, #1e3a8a)",
+        background: "#ffffff",
         padding: 14,
         boxShadow: "0 18px 46px rgba(15,23,42,0.18)",
       }}
@@ -69,7 +69,7 @@ export function VendorErpNav() {
         }}
       >
         <div>
-          <div style={{ color: "#ffffff", fontSize: 18, fontWeight: 1000 }}>
+          <div style={{ color: "#ffffff", fontSize: 18, fontWeight: 800 }}>
             3Bigha Vendor ERP
           </div>
           <div style={{ marginTop: 3, color: "#bfdbfe", fontSize: 12, fontWeight: 800 }}>
@@ -80,16 +80,16 @@ export function VendorErpNav() {
         <Link
           href="/dashboard/vendor/inventory-intelligence"
           style={{
-            borderRadius: 999,
+            borderRadius: 12,
             background: "#ffffff",
             color: "#1d4ed8",
             padding: "9px 13px",
             fontSize: 12,
-            fontWeight: 1000,
+            fontWeight: 800,
             textDecoration: "none",
           }}
         >
-          🤖 AI Supervisor
+          🤖 Supervisor
         </Link>
       </div>
 
@@ -114,7 +114,7 @@ export function VendorErpNav() {
               style={{
                 color: "#bfdbfe",
                 fontSize: 11,
-                fontWeight: 1000,
+                fontWeight: 800,
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
                 marginBottom: 8,

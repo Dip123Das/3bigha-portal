@@ -121,13 +121,13 @@ export default async function BuyerAcceptedQuotePrintPage({
         background: "#fff",
         color: "#111",
         margin: 0,
-        padding: 24,
+        padding: 12,
       }}
     >
       <div style={{ maxWidth: 980, margin: "0 auto" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: 28 }}>Accepted Quote</h1>
+            <h1 style={{ margin: 0, fontSize: 20 }}>Accepted Quote</h1>
             <div style={{ marginTop: 6, opacity: 0.8 }}>RFQ #{rfqNo}</div>
           </div>
 
@@ -139,7 +139,7 @@ export default async function BuyerAcceptedQuotePrintPage({
             marginTop: 18,
             border: "1px solid #e5e7eb",
             borderRadius: 12,
-            padding: 16,
+            padding: 12,
           }}
         >
           <div><strong>Vendor:</strong> {(vendorBiz as any)?.business_name ?? "—"}</div>

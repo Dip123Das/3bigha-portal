@@ -3981,7 +3981,7 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
 
         {!profileComplete ? (
           <div style={{ marginBottom: 14 }}>
-            <div style={{ border: "1px solid #e5e7eb", borderRadius: 16, padding: 14, background: "#fff" }}>
+            <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 14, background: "#fff" }}>
               <div style={{ fontWeight: 900, marginBottom: 6 }}>Complete your Business Profile to save drafts or submit</div>
               <div style={{ color: "#5b6472", fontSize: 13, marginBottom: 10 }}>
                 You can fill the form now, but saving/submitting will redirect you to profile completion.
@@ -4626,7 +4626,7 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                 {(Object.keys(ROOM_LABELS) as RoomKey[]).map((k) => (
                   <div
                     key={k}
-                    style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 12, background: "white" }}
+                    style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 12, background: "white" }}
                   >
                     <div style={{ fontWeight: 900, marginBottom: 6 }}>{ROOM_LABELS[k]}</div>
                     <div style={{ display: "flex", gap: 10, alignItems: "center" }}>

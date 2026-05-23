@@ -6,13 +6,13 @@ import { usePathname } from "next/navigation";
 const ITEMS = [
   {
     href: "/dashboard/procurement-os",
-    label: "Procurement OS",
+    label: "Procurement Workspace",
     emoji: "🧭",
     description: "Master command index for all AI procurement modules",
   },
   {
     href: "/dashboard/procurement-situation-room",
-    label: "Situation Room",
+    label: "Work Updates",
     emoji: "🚨",
     description: "Unified live procurement command center",
   },
@@ -30,9 +30,9 @@ const ITEMS = [
   },
   {
     href: "/dashboard/procurement-briefing",
-    label: "Executive Briefing",
+    label: "Work Summary",
     emoji: "📋",
-    description: "AI procurement executive summary",
+    description: "Procurement summary",
   },
   {
     href: "/dashboard/procurement-heatmap",
@@ -42,19 +42,19 @@ const ITEMS = [
   },
   {
     href: "/dashboard/procurement-control-tower",
-    label: "Control Tower",
+    label: "Operations Desk",
     emoji: "🧠",
     description: "Executive procurement intelligence",
   },
   {
     href: "/dashboard/procurement-mission-control",
-    label: "Mission Control",
+    label: "Operations",
     emoji: "🛰️",
     description: "Unified executive procurement command center",
   },
   {
     href: "/dashboard/procurement-actions",
-    label: "AI Actions",
+    label: "Pending Actions",
     emoji: "🧩",
     description: "Autonomous procurement action intelligence",
   },
@@ -78,7 +78,7 @@ const ITEMS = [
   },
   {
     href: "/dashboard/procurement-copilot",
-    label: "AI Copilot",
+    label: "Assistant",
     emoji: "🤖",
     description: "Ask procurement intelligence questions",
   },
@@ -90,7 +90,7 @@ const ITEMS = [
   },
   {
     href: "/dashboard/inbox-v2",
-    label: "Inbox Command Center",
+    label: "Inbox Work Desk",
     emoji: "📬",
     description: "Unified procurement execution inbox",
   },
@@ -104,13 +104,13 @@ const ITEMS = [
     href: "/dashboard/procurement-inbox-actions",
     label: "Inbox AI",
     emoji: "📥",
-    description: "AI inbox action intelligence",
+    description: "Inbox workflow guidance",
   },
   {
     href: "/dashboard/procurement-negotiation-agent",
     label: "Negotiation AI",
     emoji: "🤝",
-    description: "AI negotiation guidance",
+    description: "Negotiation guidance",
   },
   {
     href: "/dashboard/procurement-supplier-reliability",
@@ -140,7 +140,7 @@ const ITEMS = [
     href: "/dashboard/procurement-task-execution-log",
     label: "Task Log",
     emoji: "📜",
-    description: "AI execution history log",
+    description: "Workflow history log",
   },
   {
     href: "/dashboard/procurement-real-execution",

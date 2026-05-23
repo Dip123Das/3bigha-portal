@@ -138,8 +138,8 @@ export default function QuoteCompareClient(props: {
   }, [items, vendors, quoteByVendor, itemsByQuoteId]);
 
   return (
-    <div style={{ padding: 16, maxWidth: 1200 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 800 }}>
+    <div style={{ padding: 12, maxWidth: 1200 }}>
+      <h1 style={{ fontSize: 18, fontWeight: 800 }}>
         Quote Comparison {rfqNo ? `(RFQ #${rfqNo})` : ""}
       </h1>
 
@@ -175,7 +175,7 @@ export default function QuoteCompareClient(props: {
             {lowestGrandVendorId ? (
               <div style={{ marginLeft: "auto", fontWeight: 700 }}>
                 Lowest Grand Total:{" "}
-                <span style={{ padding: "3px 10px", border: "1px solid #bbf7d0", background: "#ecfdf5", borderRadius: 999 }}>
+                <span style={{ padding: "3px 10px", border: "1px solid #bbf7d0", background: "#ecfdf5", borderRadius: 12 }}>
                   {lowestGrandVendorId}
                 </span>
               </div>

@@ -7,7 +7,7 @@ function toneStyle(tone: ProcurementJourneyAction["tone"]) {
   if (tone === "green") return { background: "#ecfdf5", border: "#bbf7d0", color: "#047857" };
   if (tone === "purple") return { background: "#f5f3ff", border: "#ddd6fe", color: "#5b21b6" };
   if (tone === "amber") return { background: "#fffbeb", border: "#fde68a", color: "#92400e" };
-  if (tone === "blue") return { background: "#eff6ff", border: "#bfdbfe", color: "#1d4ed8" };
+  if (tone === "blue") return { background: "#ffffff", border: "#bfdbfe", color: "#1d4ed8" };
   return { background: "#eef2ff", border: "#c7d2fe", color: "#3730a3" };
 }
 
@@ -32,7 +32,7 @@ export default function ProcurementJourneyBar({
         Procurement Journey Actions
       </div>
 
-      <div style={{ marginTop: 4, fontSize: 16, fontWeight: 1000, color: "#0f172a" }}>
+      <div style={{ marginTop: 4, fontSize: 16, fontWeight: 800, color: "#0f172a" }}>
         Continue your marketplace workflow
       </div>
 
@@ -53,13 +53,13 @@ export default function ProcurementJourneyBar({
                 border: `1px solid ${s.border}`,
                 background: s.background,
                 color: s.color,
-                borderRadius: 14,
+                borderRadius: 12,
                 padding: "9px 11px",
                 minWidth: 140,
                 flex: "1 1 150px",
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 1000 }}>{action.label}</div>
+              <div style={{ fontSize: 13, fontWeight: 800 }}>{action.label}</div>
               <div style={{ marginTop: 3, fontSize: 12, lineHeight: 1.45, fontWeight: 750 }}>
                 {action.description}
               </div>

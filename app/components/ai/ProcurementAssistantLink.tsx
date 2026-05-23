@@ -30,7 +30,7 @@ export default function ProcurementAssistantLink({
       className="topBtn topBtnPrimary"
       style={{ textDecoration: "none", marginTop: 10 }}
     >
-      Ask AI Procurement Assistant →
+      Ask AI Workflow Assistant →
     </Link>
   );
 }

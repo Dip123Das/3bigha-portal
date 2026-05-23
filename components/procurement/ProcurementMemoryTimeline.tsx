@@ -41,11 +41,11 @@ export default function ProcurementMemoryTimeline() {
         boxShadow: "0 10px 26px rgba(15,23,42,0.06)",
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: 1000, color: "#0b57d0" }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: "#0b57d0" }}>
         Procurement Memory
       </div>
 
-      <div style={{ marginTop: 4, fontSize: 16, fontWeight: 1000, color: "#0f172a" }}>
+      <div style={{ marginTop: 4, fontSize: 16, fontWeight: 800, color: "#0f172a" }}>
         Recent procurement timeline
       </div>
 
@@ -72,12 +72,12 @@ export default function ProcurementMemoryTimeline() {
                 display: "grid",
                 gap: 4,
                 border: "1px solid #e2e8f0",
-                background: "#f8fafc",
-                borderRadius: 14,
+                background: "#ffffff",
+                borderRadius: 12,
                 padding: 11,
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 1000, color: "#0f172a" }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>
                 🔎 {item.query}
               </div>
 

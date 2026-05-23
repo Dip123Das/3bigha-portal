@@ -34,18 +34,18 @@ export default function ConversationContextBanner() {
     <div
       style={{
         border: "1px solid #bfdbfe",
-        background: "linear-gradient(180deg, #eff6ff, #ffffff)",
+        background: "#ffffff",
         borderRadius: 18,
         padding: 14,
         marginBottom: 12,
         boxShadow: "0 10px 24px rgba(15,23,42,0.05)",
       }}
     >
-      <div style={{ fontSize: 12, fontWeight: 1000, color: "#1d4ed8" }}>
+      <div style={{ fontSize: 12, fontWeight: 800, color: "#1d4ed8" }}>
         Conversation Context
       </div>
 
-      <div style={{ marginTop: 4, fontSize: 17, fontWeight: 1000, color: "#0f172a" }}>
+      <div style={{ marginTop: 4, fontSize: 17, fontWeight: 800, color: "#0f172a" }}>
         Continuing procurement: “{context.query}”
       </div>
 

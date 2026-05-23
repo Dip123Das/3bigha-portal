@@ -364,8 +364,8 @@ export default function PostLoginPageClient() {
           maxWidth: 720,
           margin: "0 auto",
           border: "1px solid rgba(0,0,0,0.08)",
-          borderRadius: 16,
-          padding: 20,
+          borderRadius: 12,
+          padding: 14,
           background: "white",
         }}
       >

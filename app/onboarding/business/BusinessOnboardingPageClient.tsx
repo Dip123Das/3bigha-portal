@@ -1166,14 +1166,14 @@ export default function BusinessOnboardingPageClient() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: 900, margin: "40px auto", padding: 16 }}>
+      <div style={{ maxWidth: 900, margin: "40px auto", padding: 12 }}>
         Loading business profile...
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: "40px auto", padding: 16 }}>
+    <div style={{ maxWidth: 900, margin: "40px auto", padding: 12 }}>
       <h1 style={{ fontSize: 26, fontWeight: 800 }}>Complete Your Business Profile</h1>
       <p style={{ opacity: 0.8 }}>
         Complete this profile to activate your business-side access on 3bigha. After all required details are filled, click <b>Activate My Dashboard</b> to enable your dashboard actions, listing submission, and publishing access.
@@ -1215,13 +1215,13 @@ export default function BusinessOnboardingPageClient() {
 
           <div style={{ minWidth: 220 }}>
             <div style={{ fontWeight: 700, marginBottom: 6 }}>Progress</div>
-            <div style={{ height: 10, background: "#eee", borderRadius: 999 }}>
+            <div style={{ height: 10, background: "#eee", borderRadius: 12 }}>
               <div
                 style={{
                   height: 10,
                   width: `${scoreUI}%`,
                   background: scoreUI >= 100 ? "green" : "#333",
-                  borderRadius: 999,
+                  borderRadius: 12,
                 }}
               />
             </div>
@@ -1261,7 +1261,7 @@ export default function BusinessOnboardingPageClient() {
                 type="button"
                 onClick={() => router.replace(returnTo)}
                 style={{
-                  padding: "12px 18px",
+                  padding: "10px 14px",
                   fontWeight: 800,
                   borderRadius: 10,
                   border: "1px solid #16a34a",
@@ -1280,7 +1280,7 @@ export default function BusinessOnboardingPageClient() {
                 disabled={saving || !isCompleteUI}
                 onClick={onFinishRegistration}
                 style={{
-                  padding: "12px 18px",
+                  padding: "10px 14px",
                   fontWeight: 800,
                   borderRadius: 10,
                   border: "1px solid #16a34a",

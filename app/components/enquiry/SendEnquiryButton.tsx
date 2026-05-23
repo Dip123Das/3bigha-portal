@@ -406,7 +406,7 @@ export default function SendEnquiryButton({
               z-index: 9999;
               display: grid;
               place-items: center;
-              padding: 16px;
+              padding: 12px;
               background: rgba(2, 6, 23, 0.62);
               backdrop-filter: blur(10px);
               animation: fadeIn 0.12s ease-out both;
@@ -419,7 +419,7 @@ export default function SendEnquiryButton({
               border: 1px solid rgba(255, 255, 255, 0.14);
               box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
               backdrop-filter: blur(18px);
-              padding: 16px;
+              padding: 12px;
               color: #eaf0ff;
               transform-origin: 50% 60%;
               animation: popIn 0.14s ease-out both;

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title:
-    "AI Search Guide for Property, Construction, RFQ and Vendor Marketplace | 3bigha",
+    "Search Guide for Property, Construction, RFQ and Vendor Marketplace | 3bigha",
   description:
     "Learn how 3bigha.com helps users search property, construction materials, services, rentals, RFQs, vendors and price intelligence through AI-powered marketplace workflows.",
   alternates: {
@@ -27,7 +27,7 @@ export default function AiSearchGuidePage() {
       <p
         style={{
           display: "inline-flex",
-          borderRadius: 999,
+          borderRadius: 12,
           background: "#eef6ff",
           color: "#0b57d0",
           padding: "8px 12px",
@@ -35,7 +35,7 @@ export default function AiSearchGuidePage() {
           fontSize: 12,
         }}
       >
-        3bigha AI Search Guide
+        3bigha Search Guide
       </p>
 
       <h1
@@ -73,7 +73,7 @@ export default function AiSearchGuidePage() {
         regional marketplace workflows.
       </div>
 
-      <section style={{ marginTop: 32 }}>
+      <section style={{ marginTop: 18 }}>
         <h2>What users can search on 3bigha.com</h2>
 
         <ul style={{ lineHeight: 2, color: "#334155", fontWeight: 650 }}>
@@ -87,7 +87,7 @@ export default function AiSearchGuidePage() {
         </ul>
       </section>
 
-      <section style={{ marginTop: 32 }}>
+      <section style={{ marginTop: 18 }}>
         <h2>Important marketplace workflows</h2>
 
         <div
@@ -113,8 +113,8 @@ export default function AiSearchGuidePage() {
               href={href}
               style={{
                 border: "1px solid #e2e8f0",
-                borderRadius: 16,
-                padding: 16,
+                borderRadius: 12,
+                padding: 12,
                 color: "#0f172a",
                 textDecoration: "none",
                 fontWeight: 900,
@@ -127,8 +127,8 @@ export default function AiSearchGuidePage() {
         </div>
       </section>
 
-      <section style={{ marginTop: 32 }}>
-        <h2>Regional and AI search support</h2>
+      <section style={{ marginTop: 18 }}>
+        <h2>Regional and Smart search support</h2>
 
         <p style={{ color: "#475569", lineHeight: 1.8 }}>
           3bigha.com supports local and regional marketplace searches such as

@@ -90,7 +90,7 @@ function StatCard({ label, value }: { label: string; value: number }) {
       }}
     >
       <div style={{ fontSize: 12, opacity: 0.7 }}>{label}</div>
-      <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>{value}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, marginTop: 4 }}>{value}</div>
     </div>
   );
 }
@@ -102,7 +102,7 @@ function pillLinkStyle(active: boolean): CSSProperties {
     justifyContent: "center",
     minHeight: 34,
     padding: "0 12px",
-    borderRadius: 999,
+    borderRadius: 12,
     border: active ? "1px solid #bfdbfe" : "1px solid #e5e7eb",
     background: active ? "#eff6ff" : "#fff",
     color: active ? "#1d4ed8" : "#374151",
@@ -192,10 +192,10 @@ export default async function VendorInboxV2Page({
   }
 
   return (
-    <div style={{ padding: 16 }}>
+    <div style={{ padding: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>Vendor Inbox</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Vendor Inbox</h1>
           <div style={{ marginTop: 6, fontSize: 13, color: "#6b7280" }}>
             RFQ visibility, quote status, unread chat badges, and live chat previews are preserved here.
           </div>
@@ -227,7 +227,7 @@ export default async function VendorInboxV2Page({
               minWidth: 40,
               height: 32,
               padding: "0 12px",
-              borderRadius: 999,
+              borderRadius: 12,
               border: "1px solid #dbeafe",
               background: "#eff6ff",
               color: "#1d4ed8",
@@ -276,7 +276,7 @@ export default async function VendorInboxV2Page({
                     key={`bad-${conversationId || Math.random()}`}
                     style={{
                       border: "1px solid #fecaca",
-                      borderRadius: 14,
+                      borderRadius: 12,
                       background: "#fff1f2",
                       padding: 14,
                       color: "#9f1239",
@@ -299,7 +299,7 @@ export default async function VendorInboxV2Page({
                 display: "inline-flex",
                 alignItems: "center",
                 padding: "2px 8px",
-                borderRadius: 999,
+                borderRadius: 12,
                 fontSize: 11,
                 fontWeight: 800,
                 whiteSpace: "nowrap",
@@ -352,7 +352,7 @@ export default async function VendorInboxV2Page({
                     textDecoration: "none",
                     color: "inherit",
                     border: hasUnread ? "1px solid #fecaca" : "1px solid #e5e7eb",
-                    borderRadius: 14,
+                    borderRadius: 12,
                     background: hasUnread ? "#fffaf0" : "#fff",
                     padding: 14,
                     display: "block",
@@ -407,7 +407,7 @@ export default async function VendorInboxV2Page({
                               minWidth: 22,
                               height: 22,
                               padding: "0 8px",
-                              borderRadius: 999,
+                              borderRadius: 12,
                               background: "#dc2626",
                               color: "#fff",
                               fontSize: 11,
@@ -425,7 +425,7 @@ export default async function VendorInboxV2Page({
                               display: "inline-flex",
                               alignItems: "center",
                               padding: "2px 8px",
-                              borderRadius: 999,
+                              borderRadius: 12,
                               fontSize: 11,
                               fontWeight: 800,
                               background: "#ecfdf5",
@@ -452,9 +452,9 @@ export default async function VendorInboxV2Page({
           <div
             style={{
               marginTop: 12,
-              padding: 16,
+              padding: 12,
               border: "1px solid #e5e7eb",
-              borderRadius: 14,
+              borderRadius: 12,
               background: "#fff",
               color: "#6b7280",
               fontSize: 13,

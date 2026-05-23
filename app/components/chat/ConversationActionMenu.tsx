@@ -54,13 +54,13 @@ export default function ConversationActionMenu(props: {
     <div
       onClick={(e) => e.stopPropagation()}
       style={{
-        position: "fixed",
+        position: "sticky",
         top: actionMenu.y,
         left: actionMenu.x,
         zIndex: 1000,
         background: "#fff",
         border: "1px solid #e5e7eb",
-        borderRadius: 14,
+        borderRadius: 12,
         boxShadow: "0 18px 40px rgba(0,0,0,0.14)",
         padding: 8,
         minWidth: 180,
@@ -205,7 +205,7 @@ export default function ConversationActionMenu(props: {
               style={{
                 border: "1px solid #e5e7eb",
                 background: "#fff",
-                borderRadius: 999,
+                borderRadius: 12,
                 padding: "6px 10px",
                 cursor: "pointer",
                 fontSize: 16,

@@ -100,7 +100,7 @@ export default function QuoteHistory(props: {
   }, [selected]);
 
   return (
-    <div style={{ marginTop: 24, padding: 16, border: "1px solid #e5e7eb", borderRadius: 12, background: "#fafafa" }}>
+    <div style={{ marginTop: 14, padding: 12, border: "1px solid #e5e7eb", borderRadius: 12, background: "#fafafa" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
         <h3 style={{ margin: 0, fontWeight: 800 }}>Your Submitted Quotes</h3>
 

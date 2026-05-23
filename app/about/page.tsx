@@ -37,7 +37,7 @@ export default function AboutPage() {
           communication and decision-making through one connected workflow.
         </p>
 
-        <h2 style={{ marginTop: 32 }}>What we do</h2>
+        <h2 style={{ marginTop: 18 }}>What we do</h2>
 
         <ul style={{ lineHeight: 1.9, color: "#334155", paddingLeft: 22 }}>
           <li>Property listing and discovery</li>
@@ -49,7 +49,7 @@ export default function AboutPage() {
           <li>AI-assisted workflows for faster decision-making</li>
         </ul>
 
-        <h2 style={{ marginTop: 32 }}>Our vision</h2>
+        <h2 style={{ marginTop: 18 }}>Our vision</h2>
 
         <p style={{ fontSize: 16, lineHeight: 1.8, color: "#475569" }}>
           We aim to build a trusted local-first platform where people can find
@@ -63,8 +63,8 @@ export default function AboutPage() {
             href="/contact"
             style={{
               display: "inline-flex",
-              padding: "12px 18px",
-              borderRadius: 999,
+              padding: "10px 14px",
+              borderRadius: 12,
               background: "#0f172a",
               color: "#ffffff",
               fontWeight: 800,

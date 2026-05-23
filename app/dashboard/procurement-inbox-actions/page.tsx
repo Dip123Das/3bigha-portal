@@ -27,7 +27,7 @@ export default function ProcurementInboxActionsPage() {
       <div className="mx-auto max-w-7xl">
         <div className="overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-violet-950 to-indigo-950 p-10 text-white shadow-2xl">
           <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
-            Autonomous Inbox Execution AI
+            Autonomous Inbox Execution Workspace
           </div>
 
           <h1 className="mt-6 text-5xl font-black">
@@ -140,7 +140,7 @@ export default function ProcurementInboxActionsPage() {
             href="/dashboard/procurement-mission-control"
             className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
           >
-            Open Mission Control
+            Open Work Desk
           </a>
         </div>
 

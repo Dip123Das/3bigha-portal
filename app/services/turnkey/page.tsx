@@ -74,18 +74,18 @@ const styles = {
   }),
   box: {
     border: "1px solid #e5e7eb",
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 12,
     background: "#fff",
   },
   modalOverlay: {
-    position: "fixed" as const,
+    position: "sticky" as const,
     inset: 0,
     background: "rgba(0,0,0,0.45)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: 16,
+    padding: 12,
     zIndex: 60,
   },
   modal: {

@@ -7,11 +7,11 @@ function pillStyle(tone: "ok" | "warn" | "bad" | "neutral" = "neutral"): React.C
     display: "inline-flex",
     alignItems: "center",
     padding: "5px 10px",
-    borderRadius: 999,
+    borderRadius: 12,
     fontSize: 12,
     fontWeight: 900,
     border: "1px solid #e5e7eb",
-    background: "#f8fafc",
+    background: "#ffffff",
     color: "#111827",
   };
 
@@ -68,16 +68,16 @@ export default function MarketplaceAiDashboard({ payload }: { payload: any }) {
     <div
       style={{
         marginTop: 16,
-        padding: 16,
+        padding: 12,
         borderRadius: 18,
         border: "1px solid #ddd6fe",
-        background: "linear-gradient(135deg, #f5f3ff, #ffffff)",
+        background: "#ffffff",
         boxShadow: "0 12px 28px rgba(109,40,217,0.08)",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 1000, color: "#6d28d9" }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: "#6d28d9" }}>
             🧠 Marketplace AI Dashboard
           </div>
           <div style={{ marginTop: 5, fontSize: 13, color: "#475569", fontWeight: 800 }}>
@@ -92,11 +92,11 @@ export default function MarketplaceAiDashboard({ payload }: { payload: any }) {
           style={{
             height: 40,
             padding: "0 16px",
-            borderRadius: 999,
+            borderRadius: 12,
             border: "1px solid #7c3aed",
             background: loading ? "#ede9fe" : "#7c3aed",
             color: loading ? "#5b21b6" : "#fff",
-            fontWeight: 1000,
+            fontWeight: 800,
             cursor: loading ? "default" : "pointer",
           }}
         >
@@ -115,7 +115,7 @@ export default function MarketplaceAiDashboard({ payload }: { payload: any }) {
             <span style={pillStyle("neutral")}>Price: {intel?.pricePrediction?.direction ?? "—"}</span>
           </div>
 
-          <div style={{ fontSize: 18, fontWeight: 1000, color: "#111827" }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#111827" }}>
             🎯 {summary.decisionLabel || "AI marketplace decision ready"}
           </div>
 
@@ -124,7 +124,7 @@ export default function MarketplaceAiDashboard({ payload }: { payload: any }) {
           </div>
 
           <div style={{ display: "grid", gap: 10, gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}>
-            <div style={{ padding: 12, borderRadius: 14, background: "#fff", border: "1px solid #e5e7eb" }}>
+            <div style={{ padding: 12, borderRadius: 12, background: "#fff", border: "1px solid #e5e7eb" }}>
               <strong>📊 RFQ Intelligence</strong>
               <div style={{ marginTop: 6, fontSize: 13 }}>{intel?.rfqIntelligence?.aiSummary || "—"}</div>
               <div style={{ marginTop: 6, fontSize: 12, color: "#64748b", fontWeight: 800 }}>
@@ -132,7 +132,7 @@ export default function MarketplaceAiDashboard({ payload }: { payload: any }) {
               </div>
             </div>
 
-            <div style={{ padding: 12, borderRadius: 14, background: "#fff", border: "1px solid #e5e7eb" }}>
+            <div style={{ padding: 12, borderRadius: 12, background: "#fff", border: "1px solid #e5e7eb" }}>
               <strong>📈 Price Prediction</strong>
               <div style={{ marginTop: 6, fontSize: 13 }}>{intel?.pricePrediction?.prediction || "—"}</div>
               <div style={{ marginTop: 6, fontSize: 12, color: "#64748b", fontWeight: 800 }}>
@@ -140,7 +140,7 @@ export default function MarketplaceAiDashboard({ payload }: { payload: any }) {
               </div>
             </div>
 
-            <div style={{ padding: 12, borderRadius: 14, background: "#fff", border: "1px solid #e5e7eb" }}>
+            <div style={{ padding: 12, borderRadius: 12, background: "#fff", border: "1px solid #e5e7eb" }}>
               <strong>⚠ Quote Risk</strong>
               <div style={{ marginTop: 6, fontSize: 13 }}>
                 {intel?.quoteRisk?.riskReasons?.[0] || "No major risk detected from available data."}

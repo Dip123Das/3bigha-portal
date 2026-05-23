@@ -302,7 +302,7 @@ export default function VendorDispatchPage() {
         </ErpPanel>
 
                 <ErpPanel
-          title="Dispatch Workflow Actions"
+          title="Dispatch Pending Actions"
           subtitle="Delivery execution, buyer tracking and logistics operations."
           tone="blue"
         >
@@ -532,7 +532,7 @@ export default function VendorDispatchPage() {
                         key={d.id}
                         style={{
                           border: "1px solid #e5e7eb",
-                          borderRadius: 16,
+                          borderRadius: 12,
                           padding: 12,
                           background: "#fff",
                         }}

@@ -383,7 +383,7 @@ console.log("INVENTORY_ROWS_RUNTIME:", invRes.data);
 
     return (
       <Card key={it.id}>
-        <CardBody style={{ padding: 16 }}>
+        <CardBody style={{ padding: 12 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
             <Badge>{it.availability_status}</Badge>
             {it.unit_code ? <Badge>{it.unit_code}</Badge> : null}
@@ -524,13 +524,13 @@ console.log("INVENTORY_ROWS_RUNTIME:", invRes.data);
       ) : (
         <>
           <Card>
-            <CardBody style={{ padding: 20 }}>
+            <CardBody style={{ padding: 14 }}>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
                 <Badge>Active</Badge>
                 <Badge>Updated: {fmt(project.updated_at)}</Badge>
               </div>
 
-              <div style={{ fontWeight: 900, fontSize: 22, marginBottom: 10 }}>
+              <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 10 }}>
                 {project.name}
               </div>
 
@@ -568,7 +568,7 @@ console.log("INVENTORY_ROWS_RUNTIME:", invRes.data);
 
                 return (
                   <Card key={c.id}>
-                    <CardBody style={{ padding: 18 }}>
+                    <CardBody style={{ padding: 14 }}>
                       <div
                         style={{
                           display: "flex",
@@ -597,7 +597,7 @@ console.log("INVENTORY_ROWS_RUNTIME:", invRes.data);
 
               {(byCatalog["__uncataloged__"] ?? []).filter(passFilter).length > 0 ? (
                 <Card>
-                  <CardBody style={{ padding: 18 }}>
+                  <CardBody style={{ padding: 14 }}>
                     <div
                       style={{
                         display: "flex",
@@ -624,7 +624,7 @@ console.log("INVENTORY_ROWS_RUNTIME:", invRes.data);
 
               {listingOnlyItems.length > 0 ? (
                 <Card>
-                  <CardBody style={{ padding: 18 }}>
+                  <CardBody style={{ padding: 14 }}>
                     <div
                       style={{
                         display: "flex",
@@ -641,7 +641,7 @@ console.log("INVENTORY_ROWS_RUNTIME:", invRes.data);
                     <Grid style={{ gap: 16 }}>
                       {listingOnlyItems.map((it) => (
                         <Card key={it.id}>
-                          <CardBody style={{ padding: 16 }}>
+                          <CardBody style={{ padding: 12 }}>
                             <div
                               style={{
                                 display: "flex",

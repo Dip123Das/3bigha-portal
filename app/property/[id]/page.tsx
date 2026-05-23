@@ -577,7 +577,7 @@ const scoreMeter = (
     <div
       style={{
         padding: 12,
-        borderRadius: 14,
+        borderRadius: 12,
         background: "rgba(255,255,255,0.08)",
         border: "1px solid rgba(255,255,255,0.12)",
       }}
@@ -599,7 +599,7 @@ const scoreMeter = (
       <div
         style={{
           height: 8,
-          borderRadius: 999,
+          borderRadius: 12,
           background: "rgba(255,255,255,0.16)",
           overflow: "hidden",
           marginTop: 8,
@@ -609,7 +609,7 @@ const scoreMeter = (
           style={{
             width: `${percent}%`,
             height: "100%",
-            borderRadius: 999,
+            borderRadius: 12,
             background:
               percent >= 78
                 ? "linear-gradient(90deg,#22c55e,#a3e635)"
@@ -737,9 +737,9 @@ const aiSimilarMatches = (relatedRes.data || [])
   {relatedListings.length ? (
   <div
     style={{
-      marginTop: 24,
-      padding: 18,
-      borderRadius: 16,
+      marginTop: 14,
+      padding: 14,
+      borderRadius: 12,
       background: "#fff",
       border: "1px solid #e5e7eb",
     }}
@@ -755,9 +755,9 @@ const aiSimilarMatches = (relatedRes.data || [])
       {aiRecommendations.length ? (
   <div
     style={{
-      marginTop: 24,
-      padding: 18,
-      borderRadius: 16,
+      marginTop: 14,
+      padding: 14,
+      borderRadius: 12,
       background: "#fff",
       border: "1px solid #e5e7eb",
     }}
@@ -795,7 +795,7 @@ const aiSimilarMatches = (relatedRes.data || [])
             style={{
               display: "block",
               padding: 14,
-              borderRadius: 14,
+              borderRadius: 12,
               background: "#f8fafc",
               border: "1px solid #e5e7eb",
               textDecoration: "none",
@@ -875,7 +875,7 @@ const aiSimilarMatches = (relatedRes.data || [])
             style={{
               display: "block",
               padding: 14,
-              borderRadius: 14,
+              borderRadius: 12,
               background: "#f8fafc",
               border: "1px solid #e5e7eb",
               textDecoration: "none",
@@ -980,9 +980,9 @@ const aiSimilarMatches = (relatedRes.data || [])
             <div
               style={{
                 marginTop: 18,
-                padding: 16,
-                borderRadius: 16,
-                background: "linear-gradient(135deg,#020617,#0f172a)",
+                padding: 12,
+                borderRadius: 12,
+                background: "#ffffff",
                 color: "#fff",
                 border: "1px solid rgba(255,255,255,0.12)",
               }}
@@ -1004,7 +1004,7 @@ const aiSimilarMatches = (relatedRes.data || [])
                   <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 800 }}>
                     EMI Stress
                   </div>
-                  <div style={{ fontSize: 20, fontWeight: 950, marginTop: 4 }}>
+                  <div style={{ fontSize: 18, fontWeight: 950, marginTop: 4 }}>
                     {investmentIntel.emiStress}
                   </div>
                   <div style={{ fontSize: 12, opacity: 0.82 }}>
@@ -1109,9 +1109,9 @@ const aiSimilarMatches = (relatedRes.data || [])
             <div
               style={{
                 marginTop: 14,
-                padding: 16,
+                padding: 12,
                 borderRadius: 18,
-                background: "linear-gradient(135deg,#f8fafc,#eef2ff)",
+                background: "#ffffff",
                 border: "1px solid #dbeafe",
               }}
             >
@@ -1141,7 +1141,7 @@ const aiSimilarMatches = (relatedRes.data || [])
             <div
               style={{
                 marginTop: 14,
-                padding: 16,
+                padding: 12,
                 borderRadius: 18,
                 background: "#ffffff",
                 border: "1px solid #e5e7eb",
@@ -1168,7 +1168,7 @@ const aiSimilarMatches = (relatedRes.data || [])
                       href={`/property/${encodeURIComponent(id)}?mode=${mode.key}`}
                       style={{
                         padding: "7px 10px",
-                        borderRadius: 999,
+                        borderRadius: 12,
                         fontSize: 12,
                         fontWeight: 900,
                         textDecoration: "none",
@@ -1209,8 +1209,8 @@ const aiSimilarMatches = (relatedRes.data || [])
                     style={{
                       display: "block",
                       padding: 12,
-                      borderRadius: 14,
-                      background: "linear-gradient(135deg,#f8fafc,#eef2ff)",
+                      borderRadius: 12,
+                      background: "#ffffff",
                       border: "1px solid #e2e8f0",
                       textDecoration: "none",
                       color: "inherit",
@@ -1269,7 +1269,7 @@ const aiSimilarMatches = (relatedRes.data || [])
               style={{
                 marginTop: 14,
                 padding: 14,
-                borderRadius: 16,
+                borderRadius: 12,
                 background: "#fff",
                 border: "1px solid #e5e7eb",
               }}
@@ -1325,7 +1325,7 @@ const aiSimilarMatches = (relatedRes.data || [])
               style={{
                 marginTop: 14,
                 padding: 14,
-                borderRadius: 16,
+                borderRadius: 12,
                 background: "#fff",
                 border: "1px solid #e5e7eb",
               }}
@@ -1381,7 +1381,7 @@ const aiSimilarMatches = (relatedRes.data || [])
               style={{
                 marginTop: 14,
                 padding: 14,
-                borderRadius: 16,
+                borderRadius: 12,
                 background: "#fff",
                 border: "1px solid #e5e7eb",
               }}
@@ -1437,7 +1437,7 @@ const aiSimilarMatches = (relatedRes.data || [])
               style={{
                 marginTop: 14,
                 padding: 14,
-                borderRadius: 16,
+                borderRadius: 12,
                 background: "#fff",
                 border: "1px solid #e5e7eb",
               }}
@@ -1493,7 +1493,7 @@ const aiSimilarMatches = (relatedRes.data || [])
               style={{
                 marginTop: 14,
                 padding: 14,
-                borderRadius: 16,
+                borderRadius: 12,
                 background: "#fff",
                 border: "1px solid #e5e7eb",
               }}
@@ -1535,7 +1535,7 @@ const aiSimilarMatches = (relatedRes.data || [])
               style={{
                 marginTop: 14,
                 padding: 14,
-                borderRadius: 16,
+                borderRadius: 12,
                 background: "#fff",
                 border: "1px solid #e5e7eb",
               }}
@@ -1581,9 +1581,9 @@ const aiSimilarMatches = (relatedRes.data || [])
 
             <div
               style={{
-                marginTop: 24,
-                padding: 18,
-                borderRadius: 16,
+                marginTop: 14,
+                padding: 14,
+                borderRadius: 12,
                 background: "#f8fafc",
                 border: "1px solid #e2e8f0",
               }}
@@ -1630,9 +1630,9 @@ const aiSimilarMatches = (relatedRes.data || [])
 
             <div
               style={{
-                marginTop: 24,
-                padding: 18,
-                borderRadius: 16,
+                marginTop: 14,
+                padding: 14,
+                borderRadius: 12,
                 background: "#fff",
                 border: "1px solid #e5e7eb",
               }}
@@ -1802,9 +1802,9 @@ const aiSimilarMatches = (relatedRes.data || [])
                 </div>
                 <div
                   style={{
-                    marginTop: 24,
-                    padding: 18,
-                    borderRadius: 16,
+                    marginTop: 14,
+                    padding: 14,
+                    borderRadius: 12,
                     background: "#f8fafc",
                     border: "1px solid #e2e8f0",
                   }}
@@ -1832,7 +1832,7 @@ const aiSimilarMatches = (relatedRes.data || [])
                         style={{
                           display: "block",
                           padding: 14,
-                          borderRadius: 14,
+                          borderRadius: 12,
                           background: "#fff",
                           border: "1px solid #e5e7eb",
                           textDecoration: "none",
@@ -1904,7 +1904,7 @@ const aiSimilarMatches = (relatedRes.data || [])
                 marginTop: 14,
                 padding: 14,
                 borderRadius: 18,
-                background: "linear-gradient(135deg,#eff6ff,#ffffff)",
+                background: "#ffffff",
                 border: "1px solid #dbeafe",
               }}
             >
@@ -1935,7 +1935,7 @@ const aiSimilarMatches = (relatedRes.data || [])
                       color: "inherit",
                       border: "1px solid #e5e7eb",
                       background: "#ffffff",
-                      borderRadius: 14,
+                      borderRadius: 12,
                       padding: 11,
                     }}
                   >

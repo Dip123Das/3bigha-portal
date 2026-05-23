@@ -34,11 +34,11 @@ export default async function BuyerRfqChatPage({
   const supabase = getSupabaseServerClient(cookies());
 
   if (!UUID_RE.test(rfqId)) {
-    return <div style={{ padding: 16 }}>Invalid RFQ ID</div>;
+    return <div style={{ padding: 12 }}>Invalid RFQ ID</div>;
   }
 
   if (vendorId && !UUID_RE.test(vendorId)) {
-    return <div style={{ padding: 16 }}>Invalid vendor ID</div>;
+    return <div style={{ padding: 12 }}>Invalid vendor ID</div>;
   }
 
   const {
@@ -47,7 +47,7 @@ export default async function BuyerRfqChatPage({
   } = await supabase.auth.getUser();
 
   if (userErr || !user) {
-    return <div style={{ padding: 16 }}>Please login.</div>;
+    return <div style={{ padding: 12 }}>Please login.</div>;
   }
 
   const currentUserId = user.id;
@@ -85,13 +85,13 @@ export default async function BuyerRfqChatPage({
   }
 
   if (convErr) {
-    return <div style={{ padding: 16, color: "crimson" }}>{convErr.message}</div>;
+    return <div style={{ padding: 12, color: "crimson" }}>{convErr.message}</div>;
   }
 
   if (!conv?.id) {
     return (
-      <div style={{ padding: 16 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800 }}>RFQ Chat</h1>
+      <div style={{ padding: 12 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 800 }}>RFQ Chat</h1>
         <div style={{ marginTop: 10, opacity: 0.75 }}>
           Conversation not found for this RFQ.
         </div>
@@ -123,7 +123,7 @@ export default async function BuyerRfqChatPage({
 
   if (msgsErr) {
     return (
-      <div style={{ padding: 16, color: "crimson" }}>
+      <div style={{ padding: 12, color: "crimson" }}>
         {msgsErr.message || "Failed to load messages."}
       </div>
     );
@@ -167,10 +167,10 @@ export default async function BuyerRfqChatPage({
     : `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}`;
 
   return (
-    <div style={{ padding: 16, maxWidth: 1000, margin: "0 auto" }}>
+    <div style={{ padding: 12, maxWidth: 1000, margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>RFQ Chat</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>RFQ Chat</h1>
           <div style={{ marginTop: 6, opacity: 0.75 }}>
             Buyer ↔ Vendor conversation for RFQ #{rfqId.slice(0, 8)}
           </div>

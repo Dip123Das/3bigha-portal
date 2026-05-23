@@ -69,7 +69,7 @@ const PLAN_META: Record<
     title: "BASIC",
     price: "₹299 / month",
     boost: "+3 AI Boost",
-    alertStrength: "Low AI alerts",
+    alertStrength: "Low Workflow alerts",
     whatsapp: "Limited WhatsApp-ready alerts",
     priorityLead: "Above free vendors",
     visibility: "Basic boost visibility",
@@ -84,7 +84,7 @@ const PLAN_META: Record<
     title: "SILVER",
     price: "₹499 / month",
     boost: "+5 AI Boost",
-    alertStrength: "Medium AI alerts",
+    alertStrength: "Medium Workflow alerts",
     whatsapp: "WhatsApp alert access",
     priorityLead: "Priority RFQ visibility",
     visibility: "Stronger buyer visibility",
@@ -99,7 +99,7 @@ const PLAN_META: Record<
     title: "GOLD",
     price: "₹999 / month",
     boost: "+10 AI Boost",
-    alertStrength: "Strong AI alerts",
+    alertStrength: "Strong Workflow alerts",
     whatsapp: "WhatsApp + priority alerts",
     priorityLead: "High-priority lead access",
     visibility: "Premium ranking advantage",
@@ -114,7 +114,7 @@ const PLAN_META: Record<
     title: "PLATINUM",
     price: "₹1999 / month",
     boost: "+20 AI Boost",
-    alertStrength: "Maximum AI alerts",
+    alertStrength: "Maximum Workflow alerts",
     whatsapp: "Fastest WhatsApp alerts",
     priorityLead: "Top priority lead access",
     visibility: "Maximum boost visibility",
@@ -471,7 +471,7 @@ export default function SubscriptionPageClient() {
                 </div>
               </div>
             ) : focus === "ai" ? (
-              <div className="alert" style={{ borderColor: "#2563eb", background: "#eff6ff", color: "#1e3a8a" }}>
+              <div className="alert" style={{ borderColor: "#2563eb", background: "#ffffff", color: "#1e3a8a" }}>
                 <b>⚠️ Your deal conversion needs improvement.</b>
                 <div style={{ marginTop: 6 }}>
                   Use AI-powered replies and better follow-ups to close more deals.
@@ -561,7 +561,7 @@ export default function SubscriptionPageClient() {
               </div>
 
               <div className="revenueScore">
-                <div className="scoreLabel">Your AI visibility score</div>
+                <div className="scoreLabel">Your Visibility score</div>
                 <div className="scoreValue">+{planAiBoostPower(activePlan)}</div>
 
                 <div style={{ marginTop: 8, fontWeight: 900, fontSize: 14 }}>
@@ -577,9 +577,9 @@ export default function SubscriptionPageClient() {
               style={{
                 marginTop: 14,
                 borderRadius: 18,
-                padding: 16,
+                padding: 12,
                 border: "1px solid #fde68a",
-                background: "linear-gradient(135deg, #fffbeb, #ffffff)",
+                background: "#ffffff",
                 boxShadow: "0 12px 28px rgba(245,158,11,0.10)",
               }}
             >
@@ -599,9 +599,9 @@ export default function SubscriptionPageClient() {
                   gap: 10,
                 }}
               >
-                <div style={{ border: "1px solid #fed7aa", borderRadius: 14, padding: 12, background: "#fff" }}>
+                <div style={{ border: "1px solid #fed7aa", borderRadius: 12, padding: 12, background: "#fff" }}>
                   <div style={{ fontSize: 12, color: "#92400e", fontWeight: 900 }}>Current Plan</div>
-                  <div style={{ marginTop: 4, fontSize: 22, fontWeight: 950, color: "#111827" }}>
+                  <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950, color: "#111827" }}>
                     {activePrediction.multiplier}
                   </div>
                   <div style={{ marginTop: 4, fontSize: 12, color: "#64748b", fontWeight: 800 }}>
@@ -609,9 +609,9 @@ export default function SubscriptionPageClient() {
                   </div>
                 </div>
 
-                <div style={{ border: "1px solid #bfdbfe", borderRadius: 14, padding: 12, background: "#eff6ff" }}>
+                <div style={{ border: "1px solid #bfdbfe", borderRadius: 12, padding: 12, background: "#ffffff" }}>
                   <div style={{ fontSize: 12, color: "#1d4ed8", fontWeight: 900 }}>Gold Upgrade</div>
-                  <div style={{ marginTop: 4, fontSize: 22, fontWeight: 950, color: "#1d4ed8" }}>
+                  <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950, color: "#1d4ed8" }}>
                     {goldPrediction.multiplier}
                   </div>
                   <div style={{ marginTop: 4, fontSize: 12, color: "#1e3a8a", fontWeight: 800 }}>
@@ -619,9 +619,9 @@ export default function SubscriptionPageClient() {
                   </div>
                 </div>
 
-                <div style={{ border: "1px solid #fecaca", borderRadius: 14, padding: 12, background: "#fff1f2" }}>
+                <div style={{ border: "1px solid #fecaca", borderRadius: 12, padding: 12, background: "#fff1f2" }}>
                   <div style={{ fontSize: 12, color: "#be123c", fontWeight: 900 }}>Platinum Upgrade</div>
-                  <div style={{ marginTop: 4, fontSize: 22, fontWeight: 950, color: "#be123c" }}>
+                  <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950, color: "#be123c" }}>
                     {platinumPrediction.multiplier}
                   </div>
                   <div style={{ marginTop: 4, fontSize: 12, color: "#7f1d1d", fontWeight: 800 }}>
@@ -880,10 +880,10 @@ export default function SubscriptionPageClient() {
           border: 1px solid #fde68a;
           background: linear-gradient(135deg, #fffbeb, #ffffff);
           border-radius: 20px;
-          padding: 18px;
+          padding: 14px;
           display: flex;
           justify-content: space-between;
-          gap: 18px;
+          gap: 10px;
           flex-wrap: wrap;
           box-shadow: 0 14px 30px rgba(15, 23, 42, 0.07);
         }
@@ -941,7 +941,7 @@ export default function SubscriptionPageClient() {
           border: 1px solid #e5e7eb;
           border-radius: 20px;
           background: linear-gradient(135deg, #ffffff, #f8fafc);
-          padding: 16px;
+          padding: 12px;
         }
         .subPage .comparisonHead {
           display: flex;

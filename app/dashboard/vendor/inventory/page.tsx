@@ -222,12 +222,12 @@ export default function VendorInventoryPage() {
           style={{
             marginBottom: 16,
             borderRadius: 22,
-            padding: 16,
+            padding: 12,
             border: "1px solid #c7d2fe",
-            background: "linear-gradient(135deg, #eef2ff, #ffffff)",
+            background: "#ffffff",
           }}
         >
-          <div style={{ fontSize: 20, fontWeight: 950, color: "#3730a3" }}>
+          <div style={{ fontSize: 18, fontWeight: 950, color: "#3730a3" }}>
             Inventory Operating System
           </div>
 
@@ -257,7 +257,7 @@ export default function VendorInventoryPage() {
             </ActionButton>
 
             <ActionButton href="/dashboard/vendor/inventory-intelligence" variant="secondary">
-              🤖 AI Inventory Intelligence
+              🤖 Inventory Insights
             </ActionButton>
 
             <ActionButton href="/dashboard/vendor/inventory" variant="secondary">
@@ -414,7 +414,7 @@ export default function VendorInventoryPage() {
                         key={row.id}
                         style={{
                           border: "1px solid #e5e7eb",
-                          borderRadius: 16,
+                          borderRadius: 12,
                           padding: 12,
                           background: "#fff",
                           display: "grid",
@@ -440,7 +440,7 @@ export default function VendorInventoryPage() {
                               border: `1px solid ${tone.border}`,
                               background: tone.bg,
                               color: tone.color,
-                              borderRadius: 999,
+                              borderRadius: 12,
                               padding: "7px 11px",
                               fontSize: 12,
                               fontWeight: 950,
@@ -454,14 +454,14 @@ export default function VendorInventoryPage() {
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
                           <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
                             <div style={{ fontSize: 12, fontWeight: 900, color: "#64748b" }}>Current Stock</div>
-                            <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950 }}>
+                            <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950 }}>
                               {current} {inv?.stock_unit || ""}
                             </div>
                           </div>
 
                           <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
                             <div style={{ fontSize: 12, fontWeight: 900, color: "#64748b" }}>Selling Price</div>
-                            <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950 }}>
+                            <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950 }}>
                               {selling > 0 ? money(selling) : "—"}
                             </div>
                           </div>

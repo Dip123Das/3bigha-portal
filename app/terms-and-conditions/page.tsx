@@ -34,7 +34,7 @@ export default function TermsPage() {
           platform.
         </p>
 
-        <h2 style={{ marginTop: 28 }}>Platform nature</h2>
+        <h2 style={{ marginTop: 16 }}>Platform nature</h2>
         <p style={{ color: "#475569", lineHeight: 1.8 }}>
           3Bigha is a digital platform that facilitates discovery, connection,
           communication and workflow between buyers, vendors, builders,
@@ -42,7 +42,7 @@ export default function TermsPage() {
           execute transactions between users.
         </p>
 
-        <h2 style={{ marginTop: 28 }}>User responsibilities</h2>
+        <h2 style={{ marginTop: 16 }}>User responsibilities</h2>
         <ul style={{ paddingLeft: 20, lineHeight: 1.8, color: "#334155" }}>
           <li>Provide accurate and truthful information</li>
           <li>Use the platform for lawful purposes only</li>
@@ -50,7 +50,7 @@ export default function TermsPage() {
           <li>Respect other users and maintain professional conduct</li>
         </ul>
 
-        <h2 style={{ marginTop: 28 }}>Vendor and listing responsibility</h2>
+        <h2 style={{ marginTop: 16 }}>Vendor and listing responsibility</h2>
         <p style={{ color: "#475569", lineHeight: 1.8 }}>
           Vendors, builders and service providers are solely responsible for
           the accuracy of their listings, pricing, availability and
@@ -58,21 +58,21 @@ export default function TermsPage() {
           any service or transaction.
         </p>
 
-        <h2 style={{ marginTop: 28 }}>Payments</h2>
+        <h2 style={{ marginTop: 16 }}>Payments</h2>
         <p style={{ color: "#475569", lineHeight: 1.8 }}>
           Payments between users (buyers and vendors) are handled directly
           between them. 3Bigha may introduce platform-level payment systems in
           the future, subject to legal compliance and activation.
         </p>
 
-        <h2 style={{ marginTop: 28 }}>Limitation of liability</h2>
+        <h2 style={{ marginTop: 16 }}>Limitation of liability</h2>
         <p style={{ color: "#475569", lineHeight: 1.8 }}>
           3Bigha is not liable for any loss, dispute, delay, fraud or damage
           arising from interactions between users. Users are advised to verify
           details independently before making decisions.
         </p>
 
-        <h2 style={{ marginTop: 28 }}>Changes to terms</h2>
+        <h2 style={{ marginTop: 16 }}>Changes to terms</h2>
         <p style={{ color: "#475569", lineHeight: 1.8 }}>
           These terms may be updated from time to time. Continued use of the
           platform indicates acceptance of the revised terms.

@@ -289,16 +289,16 @@ export default async function AdminDashboardPage() {
         )}
 
         {isMaster(role) && (
-          <div style={{ marginTop: 28, display: "grid", gap: 16 }}>
+          <div style={{ marginTop: 16, display: "grid", gap: 16 }}>
             <div
               style={{
                 border: "1px solid #d1fae5",
                 borderRadius: 18,
-                padding: 16,
-                background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
+                padding: 12,
+                background: "#ffffff",
               }}
             >
-              <div style={{ fontSize: 20, fontWeight: 950, marginBottom: 6 }}>
+              <div style={{ fontSize: 18, fontWeight: 950, marginBottom: 6 }}>
                 💰 AI Revenue Analytics
               </div>
 
@@ -363,8 +363,8 @@ export default async function AdminDashboardPage() {
               style={{
                 border: "1px solid #fde68a",
                 borderRadius: 18,
-                padding: 16,
-                background: "linear-gradient(135deg, #fffbeb, #ffffff)",
+                padding: 12,
+                background: "#ffffff",
               }}
             >
               <div style={{ fontSize: 18, fontWeight: 950, marginBottom: 6 }}>
@@ -385,7 +385,7 @@ export default async function AdminDashboardPage() {
               </div>
             </div>
 
-            <div style={{ border: "1px solid #e5e7eb", borderRadius: 18, padding: 16 }}>
+            <div style={{ border: "1px solid #e5e7eb", borderRadius: 18, padding: 12 }}>
               <div style={{ fontSize: 18, fontWeight: 950, marginBottom: 10 }}>
                 📊 Payment History
               </div>
@@ -435,7 +435,7 @@ export default async function AdminDashboardPage() {
               style={{
                 border: "1px solid #fde68a",
                 borderRadius: 18,
-                padding: 16,
+                padding: 12,
                 background: "#fffbeb",
               }}
             >
@@ -574,7 +574,7 @@ export default async function AdminDashboardPage() {
         )}
 
         {isMaster(role) && (
-          <div style={{ marginTop: 28, border: "1px solid #ddd", borderRadius: 14, padding: 16 }}>
+          <div style={{ marginTop: 16, border: "1px solid #ddd", borderRadius: 12, padding: 12 }}>
             <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 12 }}>Master Data Entry</div>
 
             <Grid min={260} gap={12}>

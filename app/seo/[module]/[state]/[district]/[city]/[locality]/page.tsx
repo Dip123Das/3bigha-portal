@@ -240,7 +240,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
       >
         <div
           style={{
-            background: "linear-gradient(135deg, #ffffff, #ecfeff)",
+            background: "#ffffff",
             border: "1px solid #a5f3fc",
             borderRadius: 28,
             padding: 32,
@@ -252,7 +252,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
               display: "inline-flex",
               background: "#cffafe",
               color: "#155e75",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "8px 14px",
               fontWeight: 900,
               fontSize: 13,
@@ -306,7 +306,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
               display: "flex",
               flexWrap: "wrap",
               gap: 14,
-              marginTop: 28,
+              marginTop: 16,
             }}
           >
             <Link
@@ -315,7 +315,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                 background: "#0f172a",
                 color: "#ffffff",
                 padding: "14px 22px",
-                borderRadius: 999,
+                borderRadius: 12,
                 fontWeight: 900,
               }}
             >
@@ -329,7 +329,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                 border: "1px solid #cbd5e1",
                 color: "#0f172a",
                 padding: "14px 22px",
-                borderRadius: 999,
+                borderRadius: 12,
                 fontWeight: 900,
               }}
             >
@@ -345,7 +345,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                 background: "#0f172a",
                 color: "#ffffff",
                 padding: "14px 22px",
-                borderRadius: 999,
+                borderRadius: 12,
                 fontWeight: 900,
               }}
             >
@@ -383,7 +383,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                 background: "#ffffff",
                 border: "1px solid #e2e8f0",
                 borderRadius: 18,
-                padding: 18,
+                padding: 14,
                 boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
               }}
             >
@@ -430,7 +430,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
       >
         <div
           style={{
-            background: "linear-gradient(135deg, #fefce8, #ffffff)",
+            background: "#ffffff",
             border: "1px solid #fde68a",
             borderRadius: 24,
             padding: 26,
@@ -461,10 +461,10 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                   background: "#ffffff",
                   border: "1px solid #fef3c7",
                   borderRadius: 18,
-                  padding: 16,
+                  padding: 12,
                 }}
               >
-                <div style={{ color: "#92400e", fontSize: 22, fontWeight: 950 }}>
+                <div style={{ color: "#92400e", fontSize: 18, fontWeight: 950 }}>
                   {stat.value}
                 </div>
                 <div style={{ color: "#475569", fontSize: 13, fontWeight: 800, marginTop: 4 }}>
@@ -478,7 +478,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
             style={{
               margin: "24px 0 0",
               color: "#0f172a",
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: 950,
             }}
           >
@@ -521,7 +521,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                   background: "#ffffff",
                   border: "1px solid #fef3c7",
                   borderRadius: 18,
-                  padding: 16,
+                  padding: 12,
                   color: "#0f172a",
                   textDecoration: "none",
                 }}
@@ -532,7 +532,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                     background: "#fffbeb",
                     color: "#92400e",
                     border: "1px solid #fde68a",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     padding: "5px 9px",
                     fontSize: 11,
                     fontWeight: 950,
@@ -558,7 +558,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
             <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
         <div
           style={{
-            background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+            background: "#ffffff",
             border: "1px solid #bfdbfe",
             borderRadius: 26,
             padding: 28,
@@ -572,7 +572,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
               gap: 10,
               background: "#dbeafe",
               color: "#1e3a8a",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "8px 14px",
               fontWeight: 900,
               fontSize: 12,
@@ -598,7 +598,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
           <div
             style={{
               display: "grid",
-              gap: 18,
+              gap: 10,
             }}
           >
             {aiMarketContent.paragraphs.map((paragraph) => (
@@ -622,7 +622,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
             <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
         <div
           style={{
-            background: "linear-gradient(135deg, #eef2ff, #ffffff)",
+            background: "#ffffff",
             border: "1px solid #c7d2fe",
             borderRadius: 24,
             padding: 26,
@@ -666,7 +666,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                     background: "#ffffff",
                     border: "1px solid #e0e7ff",
                     borderRadius: 18,
-                    padding: 16,
+                    padding: 12,
                     color: "#0f172a",
                     textDecoration: "none",
                     fontWeight: 900,
@@ -699,7 +699,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                   background: "#ffffff",
                   border: "1px solid #ddd6fe",
                   borderRadius: 18,
-                  padding: 16,
+                  padding: 12,
                   color: "#4c1d95",
                   textDecoration: "none",
                   fontWeight: 900,
@@ -716,7 +716,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
             <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
         <div
           style={{
-            background: "linear-gradient(135deg, #f0fdf4, #ffffff)",
+            background: "#ffffff",
             border: "1px solid #bbf7d0",
             borderRadius: 24,
             padding: 26,
@@ -749,7 +749,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                   background: "#ffffff",
                   border: "1px solid #dcfce7",
                   borderRadius: 18,
-                  padding: 16,
+                  padding: 12,
                   color: "#064e3b",
                   textDecoration: "none",
                   fontWeight: 900,
@@ -777,7 +777,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
           padding: "0 16px 60px",
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: 18,
+          gap: 10,
         }}
       >
         <div
@@ -793,7 +793,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
             style={{
               margin: 0,
               color: "#0f172a",
-              fontSize: 22,
+              fontSize: 18,
             }}
           >
             Nearby localities
@@ -813,7 +813,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
                 href={`/seo/${module}/${params.state}/${params.district}/${params.city}/${item}`}
                 style={{
                   border: "1px solid #e2e8f0",
-                  borderRadius: 14,
+                  borderRadius: 12,
                   padding: "12px 14px",
                   color: "#0f172a",
                   fontWeight: 900,
@@ -839,7 +839,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
             style={{
               margin: 0,
               color: "#0f172a",
-              fontSize: 22,
+              fontSize: 18,
             }}
           >
             Explore regional pages
@@ -857,7 +857,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
               href={`/seo/${module}/${params.state}/${params.district}/${params.city}`}
               style={{
                 border: "1px solid #e2e8f0",
-                borderRadius: 14,
+                borderRadius: 12,
                 padding: "12px 14px",
                 color: "#0f172a",
                 fontWeight: 900,
@@ -871,7 +871,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
               href={`/seo/${module}/${params.state}/${params.district}`}
               style={{
                 border: "1px solid #e2e8f0",
-                borderRadius: 14,
+                borderRadius: 12,
                 padding: "12px 14px",
                 color: "#0f172a",
                 fontWeight: 900,
@@ -885,7 +885,7 @@ export default async function LocalitySeoPage({ params }: PageProps) {
               href={`/seo/${module}/${params.state}`}
               style={{
                 border: "1px solid #e2e8f0",
-                borderRadius: 14,
+                borderRadius: 12,
                 padding: "12px 14px",
                 color: "#0f172a",
                 fontWeight: 900,

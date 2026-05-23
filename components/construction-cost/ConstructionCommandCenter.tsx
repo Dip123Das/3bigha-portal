@@ -11,7 +11,7 @@ export default function ConstructionCommandCenter({ commandCenter, loading = fal
   if (loading) {
     return (
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="font-black text-slate-950">AI Construction Mission Control</div>
+        <div className="font-black text-slate-950">AI Construction Operations</div>
         <p className="mt-2 text-sm text-slate-500">Loading construction command intelligence...</p>
       </div>
     );
@@ -20,7 +20,7 @@ export default function ConstructionCommandCenter({ commandCenter, loading = fal
   if (!commandCenter) {
     return (
       <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="font-black text-slate-950">AI Construction Mission Control</div>
+        <div className="font-black text-slate-950">AI Construction Operations</div>
         <p className="mt-2 text-sm text-slate-500">No command data available.</p>
       </div>
     );
@@ -31,10 +31,10 @@ export default function ConstructionCommandCenter({ commandCenter, loading = fal
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-            AI Construction Mission Control
+            AI Construction Operations
           </div>
           <h3 className="mt-1 text-xl font-black text-slate-950">
-            Command Center
+            Work Desk
           </h3>
         </div>
 

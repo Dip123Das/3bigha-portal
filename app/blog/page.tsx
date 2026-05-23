@@ -141,7 +141,7 @@ function MessageBox(props: { title: string; description?: string }) {
       style={{
         border: "1px solid rgba(0,0,0,0.08)",
         borderRadius: 12,
-        padding: 16,
+        padding: 12,
         background: "rgba(0,0,0,0.02)",
       }}
     >

@@ -113,7 +113,7 @@ const internalGraphLinks = getSearchInternalGraph({
     <main
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(180deg,#f8fafc 0%,#ffffff 100%)",
+        background: "#ffffff",
       }}
     >
       <section
@@ -129,7 +129,7 @@ const internalGraphLinks = getSearchInternalGraph({
             background: "#eff6ff",
             color: "#1d4ed8",
             border: "1px solid #bfdbfe",
-            borderRadius: 999,
+            borderRadius: 12,
             padding: "8px 14px",
             fontWeight: 950,
             fontSize: 12,
@@ -170,7 +170,7 @@ const internalGraphLinks = getSearchInternalGraph({
             display: "flex",
             flexWrap: "wrap",
             gap: 12,
-            marginTop: 24,
+            marginTop: 14,
           }}
         >
           <Link
@@ -178,8 +178,8 @@ const internalGraphLinks = getSearchInternalGraph({
             style={{
               background: "#16a34a",
               color: "#ffffff",
-              borderRadius: 999,
-              padding: "12px 18px",
+              borderRadius: 12,
+              padding: "10px 14px",
               textDecoration: "none",
               fontWeight: 950,
             }}
@@ -192,8 +192,8 @@ const internalGraphLinks = getSearchInternalGraph({
             style={{
               background: "#4f46e5",
               color: "#ffffff",
-              borderRadius: 999,
-              padding: "12px 18px",
+              borderRadius: 12,
+              padding: "10px 14px",
               textDecoration: "none",
               fontWeight: 950,
             }}
@@ -208,8 +208,8 @@ const internalGraphLinks = getSearchInternalGraph({
             style={{
               background: "#0f172a",
               color: "#ffffff",
-              borderRadius: 999,
-              padding: "12px 18px",
+              borderRadius: 12,
+              padding: "10px 14px",
               textDecoration: "none",
               fontWeight: 950,
             }}
@@ -252,7 +252,7 @@ const internalGraphLinks = getSearchInternalGraph({
         <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
           <div
             style={{
-              background: "linear-gradient(135deg,#ecfeff,#ffffff)",
+              background: "#ffffff",
               border: "1px solid #a5f3fc",
               borderRadius: 26,
               padding: 28,
@@ -339,7 +339,7 @@ const internalGraphLinks = getSearchInternalGraph({
                     background: "#f8fafc",
                     border: "1px solid #e2e8f0",
                     borderRadius: 20,
-                    padding: 20,
+                    padding: 14,
                   }}
                 >
                   <h3 style={{ marginTop: 0, color: "#0f172a" }}>{item.title}</h3>
@@ -356,7 +356,7 @@ const internalGraphLinks = getSearchInternalGraph({
             <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
         <div
           style={{
-            background: "linear-gradient(135deg,#f0fdf4,#ffffff)",
+            background: "#ffffff",
             border: "1px solid #bbf7d0",
             borderRadius: 26,
             padding: 28,
@@ -374,7 +374,7 @@ const internalGraphLinks = getSearchInternalGraph({
               fontWeight: 600,
             }}
           >
-            Continue from this AI search into live results, RFQ submission,
+            Continue from this Smart search into live results, RFQ submission,
             price discovery and related marketplace workflows.
           </p>
 
@@ -394,7 +394,7 @@ const internalGraphLinks = getSearchInternalGraph({
                   background: "#ffffff",
                   border: "1px solid #dcfce7",
                   borderRadius: 18,
-                  padding: 18,
+                  padding: 14,
                   textDecoration: "none",
                   color: "#064e3b",
                   fontWeight: 900,
@@ -418,14 +418,14 @@ const internalGraphLinks = getSearchInternalGraph({
       <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 60px" }}>
         <div
           style={{
-            background: "linear-gradient(135deg,#f5f3ff,#ffffff)",
+            background: "#ffffff",
             border: "1px solid #ddd6fe",
             borderRadius: 26,
             padding: 28,
           }}
         >
           <h2 style={{ marginTop: 0, color: "#0f172a", fontSize: 30 }}>
-            Related AI search clusters
+            Related Smart search clusters
           </h2>
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 18 }}>
@@ -436,7 +436,7 @@ const internalGraphLinks = getSearchInternalGraph({
                 style={{
                   background: "#ffffff",
                   border: "1px solid #e2e8f0",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   padding: "10px 14px",
                   color: "#0f172a",
                   textDecoration: "none",
@@ -459,7 +459,7 @@ const internalGraphLinks = getSearchInternalGraph({
                 style={{
                   background: "#ffffff",
                   border: "1px solid #ddd6fe",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   padding: "10px 14px",
                   color: "#4c1d95",
                   textDecoration: "none",

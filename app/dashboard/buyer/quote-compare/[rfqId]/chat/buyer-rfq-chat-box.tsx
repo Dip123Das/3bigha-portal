@@ -1958,7 +1958,7 @@ async function deleteMessageForEveryone(messageId: string) {
               style={{
                 width: 8,
                 height: 8,
-                borderRadius: 999,
+                borderRadius: 12,
                 background: presenceColor,
                 display: "inline-block",
               }}
@@ -1974,7 +1974,7 @@ async function deleteMessageForEveryone(messageId: string) {
               textDecoration: "none",
               fontWeight: 900,
               border: "1px solid #d1d5db",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "8px 14px",
               color: "#111827",
               background: "#fff",
@@ -2001,9 +2001,9 @@ async function deleteMessageForEveryone(messageId: string) {
         {stickyDate ? (
   <div
     style={{
-      position: "sticky",
+      position: "relative",
       top: 0,
-      zIndex: 20,
+      zIndex: 1,
       display: "flex",
       justifyContent: "center",
       pointerEvents: "none",
@@ -2013,7 +2013,7 @@ async function deleteMessageForEveryone(messageId: string) {
       style={{
         marginTop: 6,
         padding: "6px 12px",
-        borderRadius: 999,
+        borderRadius: 12,
         background: "#e5e7eb",
         color: "#374151",
         fontSize: 12,
@@ -2085,7 +2085,7 @@ const nextMine =
                     style={{
                       display: "inline-block",
                       padding: "8px 12px",
-                      borderRadius: 999,
+                      borderRadius: 12,
                       background: "#eef2f7",
                       fontSize: 12,
                       color: "#374151",
@@ -2124,7 +2124,7 @@ return (
           color: "#dc2626",
           background: "#fff",
           padding: "2px 10px",
-          borderRadius: 999,
+          borderRadius: 12,
           border: "1px solid #fecaca",
         }}
       >
@@ -2230,7 +2230,7 @@ style={{
       marginBottom: m.body ? 8 : 6,
       padding: "8px 10px",
       borderLeft: "3px solid #94a3b8",
-      background: "#f8fafc",
+      background: "#ffffff",
       borderRadius: 8,
       fontSize: 12,
       cursor: "pointer",
@@ -2348,7 +2348,7 @@ style={{
                             type="button"
                             onClick={() => toggleReaction(m, emoji)}
                             style={{
-                              borderRadius: 999,
+                              borderRadius: 12,
                               border: "1px solid #e5e7eb",
                               background: reacted ? "#dcfce7" : "#fff",
                               padding: "2px 8px",
@@ -2375,7 +2375,7 @@ style={{
       alignItems: "center",
       background: "#fff",
       border: "1px solid #e5e7eb",
-      borderRadius: 999,
+      borderRadius: 12,
       padding: "4px 6px",
       boxShadow: "0 8px 20px rgba(0,0,0,0.10)",
       zIndex: 3,
@@ -2472,12 +2472,12 @@ style={{
   <button
     onClick={scrollToLatest}
     style={{
-      position: "sticky",
+      position: "relative",
       bottom: 10,
       marginLeft: "auto",
       marginRight: 10,
       padding: "8px 12px",
-      borderRadius: 999,
+      borderRadius: 12,
       border: "1px solid #d1d5db",
       background: "#fff",
       fontWeight: 800,
@@ -2496,13 +2496,13 @@ style={{
         <div
           onClick={(e) => e.stopPropagation()}
           style={{
-            position: "fixed",
+            position: "relative",
             top: actionMenu.y,
             left: actionMenu.x,
             zIndex: 1000,
             background: "#fff",
             border: "1px solid #e5e7eb",
-            borderRadius: 14,
+            borderRadius: 12,
             boxShadow: "0 18px 40px rgba(0,0,0,0.14)",
             padding: 8,
             minWidth: 180,
@@ -2595,14 +2595,14 @@ style={{
   <div
     onClick={closeDeleteConfirm}
     style={{
-      position: "fixed",
+      position: "relative",
       inset: 0,
       background: "rgba(0,0,0,0.28)",
       zIndex: 1100,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      padding: 16,
+      padding: 12,
     }}
   >
     <div
@@ -2611,10 +2611,10 @@ style={{
         width: "100%",
         maxWidth: 360,
         background: "#fff",
-        borderRadius: 16,
-        boxShadow: "0 24px 60px rgba(0,0,0,0.18)",
+        borderRadius: 12,
+        boxShadow: "0 2px 6px rgba(15,23,42,0.04)",
         border: "1px solid #e5e7eb",
-        padding: 16,
+        padding: 12,
       }}
     >
       <div style={{ fontSize: 16, fontWeight: 900 }}>
@@ -2744,7 +2744,7 @@ style={{
                   style={{
                     border: "1px solid #e5e7eb",
                     background: "#fff",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     padding: "6px 10px",
                     cursor: "pointer",
                     fontSize: 16,
@@ -2777,13 +2777,13 @@ style={{
           style={{
             marginBottom: 12,
             border: "1px solid #bfdbfe",
-            background: "linear-gradient(135deg, #eff6ff, #f8fafc)",
-            borderRadius: 16,
+            background: "#ffffff",
+            borderRadius: 12,
             padding: 12,
           }}
         >
           <div style={{ fontSize: 14, fontWeight: 950, color: "#1e3a8a" }}>
-            🤖 AI Buyer Assistant
+            🤖 AI Buyer Workflow Assistant
           </div>
 
           {dealReady ? (
@@ -2932,7 +2932,7 @@ style={{
                   onClick={() => applyBuyerSuggestionToTextarea(s)}
                   style={{
                     padding: "7px 11px",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     border: "1px solid #93c5fd",
                     background: "#dbeafe",
                     color: "#1d4ed8",
@@ -2950,7 +2950,7 @@ style={{
                 onClick={() => applyBuyerSuggestionToTextarea(aiSuggestions[0] || buyerAi.suggestedReply)}
                 style={{
                   padding: "7px 11px",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   border: "1px solid #93c5fd",
                   background: "#dbeafe",
                   color: "#1d4ed8",
@@ -2971,7 +2971,7 @@ style={{
                 onClick={() => applyBuyerAiAction(action)}
                 style={{
                   padding: "7px 11px",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   border: "1px solid #d1d5db",
                   background: "#fff",
                   fontSize: 12,
@@ -2991,7 +2991,7 @@ style={{
               marginBottom: 12,
               border: "1px solid #facc15",
               background: "#fefce8",
-              borderRadius: 14,
+              borderRadius: 12,
               padding: 12,
               display: "flex",
               justifyContent: "space-between",
@@ -3042,7 +3042,7 @@ style={{
               onClick={() => applyQuickReply(q)}
               style={{
                 padding: "6px 10px",
-                borderRadius: 999,
+                borderRadius: 12,
                 border: "1px solid #d1d5db",
                 background: "#fff",
                 fontSize: 12,
@@ -3060,7 +3060,7 @@ style={{
             style={{
               marginBottom: 10,
               border: "1px solid #dbeafe",
-              background: "#eff6ff",
+              background: "#ffffff",
               borderRadius: 12,
               padding: 10,
               display: "flex",
@@ -3132,7 +3132,7 @@ style={{
                 position: "absolute",
                 top: "44px",
                 left: 0,
-                zIndex: 20,
+                zIndex: 1,
                 background: "#fff",
                 border: "1px solid #e5e7eb",
                 borderRadius: 12,
@@ -3153,7 +3153,7 @@ style={{
                     border: "none",
                     background: "#fff",
                     cursor: "pointer",
-                    fontSize: 22,
+                    fontSize: 18,
                     lineHeight: 1.2,
                     padding: 6,
                     borderRadius: 8,
@@ -3200,7 +3200,7 @@ style={{
           style={{
             width: "100%",
             padding: 12,
-            borderRadius: 14,
+            borderRadius: 12,
             border: "1px solid #d1d5db",
             resize: "vertical",
             outline: "none",
@@ -3375,7 +3375,7 @@ style={{
                             justifyContent: "center",
                             background: "#f3f4f6",
                             flexShrink: 0,
-                            fontSize: 20,
+                            fontSize: 18,
                           }}
                         >
                           📄
@@ -3390,7 +3390,7 @@ style={{
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
-                            maxWidth: 260,
+                            maxWidth: "100%",
                           }}
                         >
                           {file.name}
@@ -3445,7 +3445,7 @@ style={{
                 disabled={loading}
                 style={{
                   padding: "6px 10px",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   border: "1px solid #fecaca",
                   background: "#fff1f2",
                   color: "#b91c1c",

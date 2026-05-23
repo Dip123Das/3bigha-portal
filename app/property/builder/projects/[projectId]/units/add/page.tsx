@@ -1201,7 +1201,7 @@ if (priceNum !== null) {
           style={{
             position: "sticky",
             top: 12,
-            zIndex: 999,
+            zIndex: 20,
             marginTop: 10,
             marginBottom: 12,
             border: flash.kind === "success" ? "1px solid rgba(46, 160, 67, 0.25)" : "1px solid rgba(220, 53, 69, 0.25)",
@@ -1821,7 +1821,7 @@ if (priceNum !== null) {
                     <div style={{ padding: 12, borderRadius: 12, border: "1px solid #eee", display: "flex", gap: 8, flexWrap: "wrap" }}>
                       {unitCodePreview.length ? (
                         unitCodePreview.map((c) => (
-                          <span key={c} style={{ padding: "6px 10px", borderRadius: 999, border: "1px solid #e5e7eb", fontWeight: 900 }}>
+                          <span key={c} style={{ padding: "6px 10px", borderRadius: 12, border: "1px solid #e5e7eb", fontWeight: 900 }}>
                             {c}
                           </span>
                         ))

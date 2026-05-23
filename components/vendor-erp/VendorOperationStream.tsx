@@ -106,7 +106,7 @@ export function VendorOperationStream({
       detail:
         hiddenVendorWarning || estimatedRank > 5
           ? "Improve replies, pricing and boost strength to appear higher."
-          : `Current AI visibility score is ${visibilityScore}/100.`,
+          : `Current Visibility score is ${visibilityScore}/100.`,
       href: "/dashboard/subscription/boost",
       icon: "📈",
       tone: hiddenVendorWarning || estimatedRank > 5 ? "orange" : "violet",
@@ -120,8 +120,8 @@ export function VendorOperationStream({
         marginBottom: 16,
         borderRadius: 22,
         border: "1px solid #dbeafe",
-        background: "linear-gradient(135deg, #eff6ff, #ffffff)",
-        padding: 16,
+        background: "#ffffff",
+        padding: 12,
         boxShadow: "0 16px 38px rgba(15,23,42,0.06)",
       }}
     >
@@ -135,7 +135,7 @@ export function VendorOperationStream({
         }}
       >
         <div>
-          <div style={{ fontSize: 20, fontWeight: 1000, color: "#0f172a" }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "#0f172a" }}>
             Today’s Vendor Operation Stream
           </div>
           <div
@@ -154,12 +154,12 @@ export function VendorOperationStream({
         <Link
           href="/dashboard/inbox-v2"
           style={{
-            borderRadius: 999,
+            borderRadius: 12,
             background: "#0f172a",
             color: "#ffffff",
             padding: "10px 14px",
             fontSize: 12,
-            fontWeight: 1000,
+            fontWeight: 800,
             textDecoration: "none",
           }}
         >
@@ -192,18 +192,18 @@ export function VendorOperationStream({
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                <div style={{ fontSize: 22 }}>{item.icon}</div>
+                <div style={{ fontSize: 18 }}>{item.icon}</div>
 
                 {item.badge !== undefined ? (
                   <span
                     style={{
-                      borderRadius: 999,
+                      borderRadius: 12,
                       background: "#ffffff",
                       border: `1px solid ${border}`,
                       color,
                       padding: "4px 8px",
                       fontSize: 11,
-                      fontWeight: 1000,
+                      fontWeight: 800,
                       height: 24,
                     }}
                   >
@@ -216,7 +216,7 @@ export function VendorOperationStream({
                 style={{
                   marginTop: 10,
                   fontSize: 14,
-                  fontWeight: 1000,
+                  fontWeight: 800,
                   color,
                   lineHeight: 1.35,
                 }}

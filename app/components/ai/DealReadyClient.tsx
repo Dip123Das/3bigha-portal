@@ -83,7 +83,7 @@ export default function DealReadyClient({
       style={{
         border: data.ready ? "1px solid #86efac" : "1px solid #bbf7d0",
         background: data.ready ? "#ecfdf5" : "#f0fdf4",
-        borderRadius: 16,
+        borderRadius: 12,
         padding: 14,
         marginBottom: 16,
       }}
@@ -107,7 +107,7 @@ export default function DealReadyClient({
           width: "100%",
           marginTop: 12,
           border: 0,
-          borderRadius: 999,
+          borderRadius: 12,
           padding: "10px 14px",
           background: data.ready ? "#16a34a" : "#22c55e",
           color: "white",

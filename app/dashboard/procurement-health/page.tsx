@@ -40,11 +40,11 @@ export default async function ProcurementHealthPage() {
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
       <div className="rounded-[2rem] border border-slate-200 bg-gradient-to-r from-slate-950 via-emerald-950 to-blue-950 p-6 text-white shadow-sm">
         <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]">
-          AI Procurement Health
+          Procurement Health
         </div>
 
         <h1 className="mt-4 text-3xl font-black">
-          Enterprise Procurement Health Score
+          Procurement Work Status
         </h1>
 
         <p className="mt-3 max-w-4xl text-sm font-medium leading-6 text-slate-200">
@@ -91,21 +91,21 @@ export default async function ProcurementHealthPage() {
           href="/dashboard/procurement-mission-control"
           className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
         >
-          Open Mission Control
+          Open Work Desk
         </a>
 
         <a
           href="/dashboard/procurement-war-room"
           className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
         >
-          Open War Room
+          Open Priority Work
         </a>
 
         <a
           href="/dashboard/procurement-crisis-center"
           className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
         >
-          Open Crisis Center
+          Open Issue Center
         </a>
 
         <a

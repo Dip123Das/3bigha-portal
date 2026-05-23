@@ -355,14 +355,14 @@ export default function MaterialsPage() {
           }}
         >
           {CATALOG.map((g) => (
-            <div key={g.key} style={{ border: "1px solid #eee", borderRadius: 14, background: "#fff", padding: 14 }}>
+            <div key={g.key} style={{ border: "1px solid #eee", borderRadius: 12, background: "#fff", padding: 14 }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
                 <div style={{ fontWeight: 900, whiteSpace: "pre-line", lineHeight: 1.2 }}>{g.title}</div>
                 <span
                   style={{
                     fontSize: 12,
                     padding: "4px 10px",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     border: "1px solid #e6e6e6",
                     background: "#f7f7f7",
                     fontWeight: 800,
@@ -388,7 +388,7 @@ export default function MaterialsPage() {
                       }}
                       style={{
                         padding: "8px 12px",
-                        borderRadius: 999,
+                        borderRadius: 12,
                         border: "1px solid #e6e6e6",
                         background: active ? "#111" : "#fff",
                         color: active ? "#fff" : "#111",
@@ -426,7 +426,7 @@ export default function MaterialsPage() {
             onClick={clearAllFilters}
             style={{
               padding: "8px 12px",
-              borderRadius: 999,
+              borderRadius: 12,
               border: "1px solid #e6e6e6",
               background: selectedTypeSlug || q.trim() ? "#fff" : "#edf4ff",
               cursor: "pointer",
@@ -442,7 +442,7 @@ export default function MaterialsPage() {
             <div
               style={{
                 padding: "8px 12px",
-                borderRadius: 999,
+                borderRadius: 12,
                 border: "1px solid #e6e6e6",
                 background: "#f7f7f7",
                 fontWeight: 900,
@@ -519,7 +519,7 @@ export default function MaterialsPage() {
               const badge = pg?.category_name || pg?.type_name || "Material";
 
               return (
-                <div key={l.id} style={{ border: "1px solid #eee", borderRadius: 14, background: "#fff", overflow: "hidden" }}>
+                <div key={l.id} style={{ border: "1px solid #eee", borderRadius: 12, background: "#fff", overflow: "hidden" }}>
                   <div style={{ padding: 14 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
                       <div style={{ fontWeight: 800, fontSize: 16 }}>{title}</div>
@@ -527,7 +527,7 @@ export default function MaterialsPage() {
                         style={{
                           fontSize: 12,
                           padding: "4px 10px",
-                          borderRadius: 999,
+                          borderRadius: 12,
                           border: "1px solid #e6e6e6",
                           background: "#f7f7f7",
                         }}

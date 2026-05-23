@@ -346,7 +346,7 @@ export default function GlobalUnreadBadge({
           minWidth: 18,
           height: 18,
           padding: "0 6px",
-          borderRadius: 999,
+          borderRadius: 12,
           alignItems: "center",
           justifyContent: "center",
           background: "#dc2626",

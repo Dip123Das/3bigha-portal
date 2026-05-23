@@ -43,7 +43,7 @@ function MessageBox(props: { title: string; description?: string }) {
       style={{
         border: "1px solid rgba(0,0,0,0.08)",
         borderRadius: 12,
-        padding: 16,
+        padding: 12,
         background: "rgba(0,0,0,0.02)",
       }}
     >
@@ -159,8 +159,8 @@ export default function RentalCatalogItemPage() {
             <div
               style={{
                 border: "1px solid #eee",
-                borderRadius: 16,
-                padding: 16,
+                borderRadius: 12,
+                padding: 12,
                 boxShadow: "0 1px 0 rgba(0,0,0,0.02)",
               }}
             >
@@ -186,8 +186,8 @@ export default function RentalCatalogItemPage() {
             <div
               style={{
                 border: "1px solid #eee",
-                borderRadius: 16,
-                padding: 16,
+                borderRadius: 12,
+                padding: 12,
                 boxShadow: "0 1px 0 rgba(0,0,0,0.02)",
               }}
             >

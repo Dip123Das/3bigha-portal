@@ -34,7 +34,7 @@ export default function PrivacyPolicyPage() {
           safeguard your data.
         </p>
 
-        <h2 style={{ marginTop: 28 }}>Information we collect</h2>
+        <h2 style={{ marginTop: 16 }}>Information we collect</h2>
         <ul style={{ paddingLeft: 20, lineHeight: 1.8, color: "#334155" }}>
           <li>Basic user information (name, email, phone number)</li>
           <li>Business details and documents (if applicable)</li>
@@ -42,7 +42,7 @@ export default function PrivacyPolicyPage() {
           <li>Usage data to improve platform experience</li>
         </ul>
 
-        <h2 style={{ marginTop: 28 }}>How we use your information</h2>
+        <h2 style={{ marginTop: 16 }}>How we use your information</h2>
         <ul style={{ paddingLeft: 20, lineHeight: 1.8, color: "#334155" }}>
           <li>To provide platform services and features</li>
           <li>To connect buyers, vendors, builders and investors</li>
@@ -50,21 +50,21 @@ export default function PrivacyPolicyPage() {
           <li>To communicate important updates and support</li>
         </ul>
 
-        <h2 style={{ marginTop: 28 }}>Data protection</h2>
+        <h2 style={{ marginTop: 16 }}>Data protection</h2>
         <p style={{ color: "#475569", lineHeight: 1.8 }}>
           We implement reasonable technical and security measures to protect
           user data. However, no system is completely secure, and users are
           advised to exercise caution while sharing sensitive information.
         </p>
 
-        <h2 style={{ marginTop: 28 }}>Third-party services</h2>
+        <h2 style={{ marginTop: 16 }}>Third-party services</h2>
         <p style={{ color: "#475569", lineHeight: 1.8 }}>
           3Bigha may integrate with third-party services such as payment
           gateways and messaging platforms. These services operate under their
           own privacy policies.
         </p>
 
-        <h2 style={{ marginTop: 28 }}>Policy updates</h2>
+        <h2 style={{ marginTop: 16 }}>Policy updates</h2>
         <p style={{ color: "#475569", lineHeight: 1.8 }}>
           This policy may be updated from time to time. Continued use of the
           platform implies acceptance of the latest version.

@@ -13,16 +13,16 @@ export default function SearchToRfqConversionCard({
   const urgencyStyle =
     conversion.urgency === "high"
       ? {
-          background: "linear-gradient(135deg, #7f1d1d, #dc2626)",
+          background: "#ffffff",
           border: "1px solid #fecaca",
         }
       : conversion.urgency === "medium"
         ? {
-            background: "linear-gradient(135deg, #4c1d95, #7c3aed)",
+            background: "#ffffff",
             border: "1px solid #ddd6fe",
           }
         : {
-            background: "linear-gradient(135deg, #0f172a, #1d4ed8)",
+            background: "#ffffff",
             border: "1px solid #bfdbfe",
           };
 
@@ -32,7 +32,7 @@ export default function SearchToRfqConversionCard({
         ...urgencyStyle,
         color: "#ffffff",
         borderRadius: 20,
-        padding: 16,
+        padding: 12,
         display: "grid",
         gap: 14,
         boxShadow: "0 18px 42px rgba(15,23,42,0.16)",
@@ -43,7 +43,7 @@ export default function SearchToRfqConversionCard({
           <div style={{ fontSize: 12, fontWeight: 950, color: "rgba(255,255,255,0.72)" }}>
             Search-to-RFQ Conversion Engine
           </div>
-          <div style={{ marginTop: 4, fontSize: 22, fontWeight: 1000 }}>
+          <div style={{ marginTop: 4, fontSize: 18, fontWeight: 800 }}>
             ⚡ {conversion.title}
           </div>
           <div style={{ marginTop: 6, color: "rgba(255,255,255,0.82)", fontWeight: 750, lineHeight: 1.55 }}>
@@ -53,7 +53,7 @@ export default function SearchToRfqConversionCard({
 
         <div
           style={{
-            borderRadius: 999,
+            borderRadius: 12,
             background: "rgba(255,255,255,0.14)",
             padding: "8px 11px",
             height: "fit-content",
@@ -71,7 +71,7 @@ export default function SearchToRfqConversionCard({
           <span
             key={chip}
             style={{
-              borderRadius: 999,
+              borderRadius: 12,
               background: "rgba(255,255,255,0.14)",
               border: "1px solid rgba(255,255,255,0.18)",
               padding: "7px 10px",

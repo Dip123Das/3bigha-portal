@@ -87,8 +87,7 @@ export default function ProcurementReEngagement() {
     <div
       style={{
         border: "1px solid #fde68a",
-        background:
-          "linear-gradient(135deg,#fffdf5,#ffffff)",
+        background: "#ffffff",
         borderRadius: 18,
         padding: 14,
         boxShadow: "0 10px 24px rgba(15,23,42,0.06)",
@@ -97,7 +96,7 @@ export default function ProcurementReEngagement() {
       <div
         style={{
           fontSize: 12,
-          fontWeight: 1000,
+          fontWeight: 800,
           color: "#b45309",
         }}
       >
@@ -108,7 +107,7 @@ export default function ProcurementReEngagement() {
         style={{
           marginTop: 4,
           fontSize: 18,
-          fontWeight: 1000,
+          fontWeight: 800,
           color: "#0f172a",
         }}
       >
@@ -143,7 +142,7 @@ export default function ProcurementReEngagement() {
               key={`${item.query}-${index}`}
               style={{
                 border: "1px solid #fde68a",
-                borderRadius: 14,
+                borderRadius: 12,
                 padding: 12,
                 background: "#fffef7",
               }}
@@ -160,7 +159,7 @@ export default function ProcurementReEngagement() {
                   <div
                     style={{
                       fontSize: 14,
-                      fontWeight: 1000,
+                      fontWeight: 800,
                       color: "#0f172a",
                     }}
                   >

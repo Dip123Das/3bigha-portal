@@ -112,7 +112,7 @@ export default async function InvestmentPage() {
   const items = (data ?? []) as OpportunityRow[];
 
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: 14 }}>
       <h1 style={{ fontSize: 32, fontWeight: 900, marginBottom: 8 }}>
         Investment Opportunities
       </h1>
@@ -125,8 +125,8 @@ export default async function InvestmentPage() {
         <div
           style={{
             border: "1px solid #fecaca",
-            borderRadius: 16,
-            padding: 20,
+            borderRadius: 12,
+            padding: 14,
             background: "#fff1f2",
             color: "#9f1239",
           }}
@@ -140,8 +140,8 @@ export default async function InvestmentPage() {
         <div
           style={{
             border: "1px solid #ddd",
-            borderRadius: 16,
-            padding: 20,
+            borderRadius: 12,
+            padding: 14,
             background: "#fff",
           }}
         >
@@ -172,7 +172,7 @@ export default async function InvestmentPage() {
                 key={item.id}
                 style={{
                   border: "1px solid #ddd",
-                  borderRadius: 16,
+                  borderRadius: 12,
                   overflow: "hidden",
                   background: "#fff",
                   display: "flex",
@@ -207,14 +207,14 @@ export default async function InvestmentPage() {
                   )}
                 </div>
 
-                <div style={{ padding: 16, display: "grid", gap: 10 }}>
+                <div style={{ padding: 12, display: "grid", gap: 10 }}>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     <span
                       style={{
                         border: "1px solid #dbeafe",
                         background: "#eff6ff",
                         color: "#1d4ed8",
-                        borderRadius: 999,
+                        borderRadius: 12,
                         padding: "4px 10px",
                         fontSize: 12,
                         fontWeight: 800,
@@ -226,7 +226,7 @@ export default async function InvestmentPage() {
                     <span
                       style={{
                         ...riskStyle,
-                        borderRadius: 999,
+                        borderRadius: 12,
                         padding: "4px 10px",
                         fontSize: 12,
                         fontWeight: 800,

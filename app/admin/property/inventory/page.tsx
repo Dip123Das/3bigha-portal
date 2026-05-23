@@ -202,7 +202,7 @@ function AdminPropertyInventoryPageInner() {
       stickyCardWrap: { position: "sticky", top: 12, zIndex: 20 } as React.CSSProperties,
       stickyCardBg: {
         background: "#fff",
-        borderRadius: 14,
+        borderRadius: 12,
         boxShadow: "0 8px 24px rgba(0,0,0,0.06)",
       } as React.CSSProperties,
       panel: {
@@ -221,7 +221,7 @@ function AdminPropertyInventoryPageInner() {
       pill: {
         fontSize: 12,
         padding: "4px 8px",
-        borderRadius: 999,
+        borderRadius: 12,
         border: "1px solid #e1e1e1",
         background: "#fff",
         opacity: 0.92,
@@ -1123,7 +1123,7 @@ try {
           style={{
             position: "sticky",
             top: 12,
-            zIndex: 999,
+            zIndex: 20,
             marginTop: 10,
             marginBottom: 12,
             border:

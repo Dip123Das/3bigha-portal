@@ -386,7 +386,7 @@ export default function PropertyTaxonomyMasterPage() {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "start" }}>
           {/* TYPES */}
-          <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 14, padding: 12, background: "#fff" }}>
+          <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 12, background: "#fff" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
               <div style={{ fontWeight: 900 }}>Property Types</div>
               <Badge>{types.length}</Badge>
@@ -447,7 +447,7 @@ export default function PropertyTaxonomyMasterPage() {
 
             {/* TYPE FORM */}
             {typeFormOpen ? (
-              <div style={{ marginTop: 14, border: "2px solid #2563eb", borderRadius: 14, padding: 12 }}>
+              <div style={{ marginTop: 14, border: "2px solid #2563eb", borderRadius: 12, padding: 12 }}>
                 <div style={{ fontWeight: 900, marginBottom: 10 }}>
                   {typeMode === "add" ? "Add Type" : "Edit Type"}
                 </div>
@@ -491,7 +491,7 @@ export default function PropertyTaxonomyMasterPage() {
           </div>
 
           {/* SUBTYPES */}
-          <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 14, padding: 12, background: "#fff" }}>
+          <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 12, background: "#fff" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
               <div style={{ fontWeight: 900 }}>Subtypes</div>
               <Badge>{subtypes.length}</Badge>
@@ -576,7 +576,7 @@ export default function PropertyTaxonomyMasterPage() {
 
             {/* SUBTYPE FORM */}
             {subFormOpen ? (
-              <div style={{ marginTop: 14, border: "2px solid #2563eb", borderRadius: 14, padding: 12 }}>
+              <div style={{ marginTop: 14, border: "2px solid #2563eb", borderRadius: 12, padding: 12 }}>
                 <div style={{ fontWeight: 900, marginBottom: 10 }}>
                   {subMode === "add" ? "Add Subtype" : "Edit Subtype"}
                 </div>

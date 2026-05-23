@@ -74,7 +74,7 @@ export default function InventoryIntelligencePage() {
     <main>
       <Container>
         <SectionHeader
-          title="AI Inventory Intelligence"
+          title="Inventory Insights"
           subtitle="Low stock alerts, fast-moving products, dead stock detection and reorder suggestions."
         />
 
@@ -232,7 +232,7 @@ export default function InventoryIntelligencePage() {
                         key={`${action}-${index}`}
                         style={{
                           border: "1px solid #e5e7eb",
-                          borderRadius: 14,
+                          borderRadius: 12,
                           padding: 12,
                           background: "#ffffff",
                           fontSize: 13,
@@ -267,7 +267,7 @@ function FeedRow({
     <div
       style={{
         border: "1px solid #e5e7eb",
-        borderRadius: 14,
+        borderRadius: 12,
         padding: 12,
         background: "#ffffff",
       }}
@@ -302,7 +302,7 @@ function InsightMini({ title, text }: { title: string; text: string }) {
     <div
       style={{
         border: "1px solid #e5e7eb",
-        borderRadius: 16,
+        borderRadius: 12,
         padding: 12,
         background: "#ffffff",
       }}

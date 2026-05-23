@@ -149,7 +149,7 @@ export default function VendorNotificationsPage() {
                     ? "#ffffff"
                     : "linear-gradient(135deg, #fffbeb, #ffffff)",
                   padding: 14,
-                  borderRadius: 16,
+                  borderRadius: 12,
                   boxShadow: "0 10px 24px rgba(15,23,42,0.06)",
                 }}
               >

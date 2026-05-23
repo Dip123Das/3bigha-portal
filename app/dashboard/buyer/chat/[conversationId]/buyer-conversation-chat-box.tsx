@@ -1586,7 +1586,7 @@ useEffect(() => {
               style={{
                 width: 8,
                 height: 8,
-                borderRadius: 999,
+                borderRadius: 12,
                 background: presenceColor,
                 display: "inline-block",
               }}
@@ -1604,7 +1604,7 @@ useEffect(() => {
               color: "white",
               border: "none",
               padding: "8px 12px",
-              borderRadius: 999,
+              borderRadius: 12,
               fontWeight: 900,
               cursor: "pointer",
             }}
@@ -1619,7 +1619,7 @@ useEffect(() => {
                 textDecoration: "none",
                 fontWeight: 900,
                 border: "1px solid #d1d5db",
-                borderRadius: 999,
+                borderRadius: 12,
                 padding: "8px 14px",
                 color: "#111827",
                 background: "#fff",
@@ -1683,8 +1683,8 @@ useEffect(() => {
               style={{
                 marginTop: 12,
                 border: "1px solid #bbf7d0",
-                background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
-                borderRadius: 16,
+                background: "#ffffff",
+                borderRadius: 12,
                 padding: 12,
                 boxShadow: "0 10px 24px rgba(16,185,129,0.08)",
               }}
@@ -1701,7 +1701,7 @@ useEffect(() => {
 
                 <div
                   style={{
-                    borderRadius: 999,
+                    borderRadius: 12,
                     border: "1px solid #bbf7d0",
                     background: "#fff",
                     color: "#047857",
@@ -1822,7 +1822,7 @@ useEffect(() => {
                   </div>
                 </div>
 
-                <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
+                <div style={{ border: "1px solid #bfdbfe", background: "#ffffff", borderRadius: 12, padding: 10 }}>
                   <div style={{ color: "#1e3a8a", fontWeight: 950, fontSize: 13 }}>
                     ⚡ Escalation Signal
                   </div>
@@ -1906,9 +1906,9 @@ useEffect(() => {
               right: 14,
               bottom: 14,
               border: "1px solid #bfdbfe",
-              background: "#eff6ff",
+              background: "#ffffff",
               color: "#1d4ed8",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "10px 14px",
               fontWeight: 900,
               cursor: "pointer",

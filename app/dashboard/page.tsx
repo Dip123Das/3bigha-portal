@@ -269,15 +269,15 @@ export default function DashboardPage() {
       <div
         style={{
           border: "1px solid rgba(79,70,229,0.25)",
-          background: "linear-gradient(135deg, rgba(79,70,229,0.08), #ffffff)",
+          background: "#ffffff",
           borderRadius: 18,
-          padding: 18,
-          boxShadow: "0 14px 30px rgba(79,70,229,0.08)",
+          padding: 14,
+          boxShadow: "0 2px 6px rgba(15,23,42,0.04)",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div style={{ fontSize: 24, fontWeight: 1000, color: "#3730a3" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "#3730a3" }}>
               🧠 AI Procurement Analytics & Forecasting Hub
             </div>
             <div style={{ marginTop: 5, color: "#475569", fontSize: 14, fontWeight: 800 }}>
@@ -289,9 +289,9 @@ export default function DashboardPage() {
             style={{
               background: analyticsScore >= 75 ? "#dcfce7" : analyticsScore >= 45 ? "#fef3c7" : "#fee2e2",
               color: analyticsScore >= 75 ? "#166534" : analyticsScore >= 45 ? "#92400e" : "#991b1b",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "9px 14px",
-              fontWeight: 1000,
+              fontWeight: 800,
               alignSelf: "center",
             }}
           >
@@ -307,11 +307,11 @@ export default function DashboardPage() {
             ["Unread Alerts", stats.unreadVendorAlerts, "⚡"],
             ["Price Signals", stats.priceSignals, "📈"],
           ].map(([label, value, icon]) => (
-            <div key={String(label)} style={{ border: "1px solid #e2e8f0", background: "#ffffff", borderRadius: 14, padding: 12 }}>
+            <div key={String(label)} style={{ border: "1px solid #e2e8f0", background: "#ffffff", borderRadius: 12, padding: 12 }}>
               <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
                 {icon} {label}
               </div>
-              <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000, fontSize: 22 }}>
+              <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 800, fontSize: 18 }}>
                 {value}
               </div>
             </div>
@@ -319,15 +319,15 @@ export default function DashboardPage() {
         </div>
 
         <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 12 }}>
-            <div style={{ color: "#1e3a8a", fontWeight: 1000 }}>🔮 AI Forecast</div>
+          <div style={{ border: "1px solid #bfdbfe", background: "#ffffff", borderRadius: 12, padding: 12 }}>
+            <div style={{ color: "#1e3a8a", fontWeight: 800 }}>🔮 AI Forecast</div>
             <div style={{ marginTop: 5, color: "#1e40af", fontSize: 13, fontWeight: 800 }}>
               {forecast}
             </div>
           </div>
 
           <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 12 }}>
-            <div style={{ color: "#166534", fontWeight: 1000 }}>🎯 AI Next Best Action</div>
+            <div style={{ color: "#166534", fontWeight: 800 }}>🎯 AI Next Best Action</div>
             <div style={{ marginTop: 5, color: "#14532d", fontSize: 13, fontWeight: 800 }}>
               {stats.unreadVendorAlerts > 0
                 ? "Clear unread vendor alerts and follow up active procurement threads."
@@ -341,14 +341,14 @@ export default function DashboardPage() {
             style={{
               marginTop: 14,
               border: "1px solid rgba(124,58,237,0.25)",
-              background: "linear-gradient(135deg, rgba(124,58,237,0.08), #ffffff)",
-              borderRadius: 16,
+              background: "#ffffff",
+              borderRadius: 12,
               padding: 14,
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
               <div>
-                <div style={{ fontWeight: 1000, color: "#5b21b6", fontSize: 18 }}>
+                <div style={{ fontWeight: 800, color: "#5b21b6", fontSize: 18 }}>
                   🔮 AI Recommendation & Forecasting Engine
                 </div>
                 <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
@@ -360,9 +360,9 @@ export default function DashboardPage() {
                 style={{
                   background: "#ede9fe",
                   color: "#5b21b6",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   padding: "8px 12px",
-                  fontWeight: 1000,
+                  fontWeight: 800,
                   alignSelf: "center",
                 }}
               >
@@ -388,7 +388,7 @@ export default function DashboardPage() {
                   <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
                     {icon} {label}
                   </div>
-                  <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000 }}>
+                  <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 800 }}>
                     {value}
                   </div>
                 </div>
@@ -396,15 +396,15 @@ export default function DashboardPage() {
             </div>
 
             <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
-                <div style={{ color: "#1e3a8a", fontWeight: 1000 }}>Best Supplier Prediction</div>
+              <div style={{ border: "1px solid #bfdbfe", background: "#ffffff", borderRadius: 12, padding: 10 }}>
+                <div style={{ color: "#1e3a8a", fontWeight: 800 }}>Best Supplier Prediction</div>
                 <div style={{ marginTop: 5, color: "#1e40af", fontSize: 13, fontWeight: 800 }}>
                   {procurementRecommendation.supplierPrediction || "More RFQ/vendor data needed."}
                 </div>
               </div>
 
               <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
-                <div style={{ color: "#166534", fontWeight: 1000 }}>AI Next Best Action</div>
+                <div style={{ color: "#166534", fontWeight: 800 }}>AI Next Best Action</div>
                 <div style={{ marginTop: 5, color: "#14532d", fontSize: 13, fontWeight: 800 }}>
                   {procurementRecommendation.nextAction || "Create RFQs and monitor procurement signals."}
                 </div>
@@ -423,7 +423,7 @@ export default function DashboardPage() {
                       padding: 10,
                     }}
                   >
-                    <div style={{ fontWeight: 1000, color: "#0f172a" }}>{card.title}</div>
+                    <div style={{ fontWeight: 800, color: "#0f172a" }}>{card.title}</div>
                     <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
                       {card.detail}
                     </div>
@@ -439,14 +439,14 @@ export default function DashboardPage() {
             style={{
               marginTop: 14,
               border: "1px solid rgba(16,185,129,0.25)",
-              background: "linear-gradient(135deg, rgba(16,185,129,0.08), #ffffff)",
-              borderRadius: 16,
+              background: "#ffffff",
+              borderRadius: 12,
               padding: 14,
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
               <div>
-                <div style={{ fontWeight: 1000, color: "#047857", fontSize: 18 }}>
+                <div style={{ fontWeight: 800, color: "#047857", fontSize: 18 }}>
                   🧬 AI Procurement Memory & Learning Graph
                 </div>
                 <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
@@ -458,9 +458,9 @@ export default function DashboardPage() {
                 style={{
                   background: "#dcfce7",
                   color: "#166534",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   padding: "8px 12px",
-                  fontWeight: 1000,
+                  fontWeight: 800,
                   alignSelf: "center",
                 }}
               >
@@ -486,7 +486,7 @@ export default function DashboardPage() {
                   <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
                     {icon} {label}
                   </div>
-                  <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000 }}>
+                  <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 800 }}>
                     {value}
                   </div>
                 </div>
@@ -495,14 +495,14 @@ export default function DashboardPage() {
 
             <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
-                <div style={{ color: "#166534", fontWeight: 1000 }}>Learning Summary</div>
+                <div style={{ color: "#166534", fontWeight: 800 }}>Learning Summary</div>
                 <div style={{ marginTop: 5, color: "#14532d", fontSize: 13, fontWeight: 800 }}>
                   {procurementMemory.learningSummary || "Learning graph is collecting procurement signals."}
                 </div>
               </div>
 
-              <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
-                <div style={{ color: "#1e3a8a", fontWeight: 1000 }}>Next Learning Action</div>
+              <div style={{ border: "1px solid #bfdbfe", background: "#ffffff", borderRadius: 12, padding: 10 }}>
+                <div style={{ color: "#1e3a8a", fontWeight: 800 }}>Next Learning Action</div>
                 <div style={{ marginTop: 5, color: "#1e40af", fontSize: 13, fontWeight: 800 }}>
                   {procurementMemory.nextLearningAction || "Continue collecting RFQ, chat and closure signals."}
                 </div>
@@ -521,7 +521,7 @@ export default function DashboardPage() {
                       padding: 10,
                     }}
                   >
-                    <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                    <div style={{ fontWeight: 800, color: "#0f172a" }}>
                       {node.type.replaceAll("_", " ").toUpperCase()}
                     </div>
                     <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
@@ -544,7 +544,7 @@ export default function DashboardPage() {
             AI Inbox →
           </Link>
           <Link href="/dashboard/buyer/rfqs" className="topBtn topBtnGhost">
-            RFQ Command Center →
+            RFQ Work Desk →
           </Link>
           <Link href="/price-today" className="topBtn topBtnGhost">
             Predictive Prices →

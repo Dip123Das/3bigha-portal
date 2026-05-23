@@ -32,7 +32,7 @@ export default function LeadScore({ message }: { message: string }) {
         border: "1px solid #bfdbfe",
         background: "#eff6ff",
         color: "#1e40af",
-        borderRadius: 999,
+        borderRadius: 12,
         padding: "4px 8px",
         fontSize: 11,
         fontWeight: 900,

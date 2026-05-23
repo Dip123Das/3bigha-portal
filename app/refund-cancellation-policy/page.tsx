@@ -34,21 +34,21 @@ export default function RefundPolicyPage() {
           this stage.
         </p>
 
-        <h2 style={{ marginTop: 28 }}>Future payment services</h2>
+        <h2 style={{ marginTop: 16 }}>Future payment services</h2>
         <p style={{ color: "#475569", lineHeight: 1.8 }}>
           Once payment features (such as subscriptions, vendor boosts or other
           services) are activated, refund and cancellation terms will be
           clearly defined and updated on this page.
         </p>
 
-        <h2 style={{ marginTop: 28 }}>Third-party transactions</h2>
+        <h2 style={{ marginTop: 16 }}>Third-party transactions</h2>
         <p style={{ color: "#475569", lineHeight: 1.8 }}>
           Any payments made directly between users (buyers and vendors) are
           outside the control of 3Bigha. Users must resolve such matters
           independently between themselves.
         </p>
 
-        <h2 style={{ marginTop: 28 }}>Policy updates</h2>
+        <h2 style={{ marginTop: 16 }}>Policy updates</h2>
         <p style={{ color: "#475569", lineHeight: 1.8 }}>
           This policy may be updated as payment features are introduced and
           regulatory requirements evolve. Users are advised to review this page

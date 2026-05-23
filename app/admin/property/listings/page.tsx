@@ -867,7 +867,7 @@ export default function AdminPropertyListingsPage() {
         style={{
           height: 34,
           padding: "0 12px",
-          borderRadius: 999,
+          borderRadius: 12,
           border: "1px solid rgba(0,0,0,0.08)",
           background: "white",
           fontWeight: 800,

@@ -369,7 +369,7 @@ export default function QuoteForm(props: { rfqId: string; items: QuoteItemInput[
   // UI
   // -----------------------------
   return (
-    <div style={{ marginTop: 12, padding: 16, border: "1px solid #e5e7eb", borderRadius: 12 }}>
+    <div style={{ marginTop: 12, padding: 12, border: "1px solid #e5e7eb", borderRadius: 12 }}>
       <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Submit Quote</h3>
 
       {/* Commercial fields */}

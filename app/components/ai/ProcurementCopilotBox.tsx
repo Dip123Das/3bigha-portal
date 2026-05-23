@@ -94,10 +94,10 @@ export default function ProcurementCopilotBox({
         border: "1px solid #dbeafe",
         background: "#eff6ff",
         borderRadius: 20,
-        padding: 18,
+        padding: 14,
       }}
     >
-      <div style={{ fontSize: 22, fontWeight: 950 }}>
+      <div style={{ fontSize: 18, fontWeight: 950 }}>
         🤖 AI Procurement Copilot
       </div>
 
@@ -116,7 +116,7 @@ export default function ProcurementCopilotBox({
           <div
             style={{
               border: "1px dashed #93c5fd",
-              borderRadius: 14,
+              borderRadius: 12,
               padding: 14,
               color: "#1e3a8a",
               background: "white",
@@ -132,7 +132,7 @@ export default function ProcurementCopilotBox({
               style={{
                 justifySelf: message.role === "buyer" ? "end" : "start",
                 maxWidth: "85%",
-                borderRadius: 14,
+                borderRadius: 12,
                 padding: 12,
                 background: message.role === "buyer" ? "#2563eb" : "white",
                 color: message.role === "buyer" ? "white" : "#0f172a",
@@ -153,7 +153,7 @@ export default function ProcurementCopilotBox({
             marginTop: 16,
             border: "1px solid #bfdbfe",
             background: "white",
-            borderRadius: 16,
+            borderRadius: 12,
             padding: 14,
           }}
         >
@@ -213,7 +213,7 @@ export default function ProcurementCopilotBox({
           style={{
             flex: 1,
             border: "1px solid #bfdbfe",
-            borderRadius: 14,
+            borderRadius: 12,
             padding: 12,
             resize: "vertical",
           }}
@@ -225,7 +225,7 @@ export default function ProcurementCopilotBox({
           disabled={loading}
           style={{
             border: 0,
-            borderRadius: 14,
+            borderRadius: 12,
             background: loading ? "#93c5fd" : "#2563eb",
             color: "white",
             fontWeight: 900,

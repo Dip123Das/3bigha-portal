@@ -44,10 +44,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {/* Toast container */}
       <div
         style={{
-          position: "fixed",
+          position: "sticky",
           right: 16,
           top: 16,
-          zIndex: 9999,
+          zIndex: 209,
           display: "flex",
           flexDirection: "column",
           gap: 10,

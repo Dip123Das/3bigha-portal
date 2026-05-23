@@ -23,8 +23,8 @@ export default async function BuyerQuoteComparePage({
 
   if (!rfqParam) {
     return (
-      <div style={{ padding: 16 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800 }}>RFQ not provided</h1>
+      <div style={{ padding: 12 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 800 }}>RFQ not provided</h1>
       </div>
     );
   }
@@ -52,8 +52,8 @@ export default async function BuyerQuoteComparePage({
 
   if (!rfq?.id) {
     return (
-      <div style={{ padding: 16 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800 }}>RFQ not found</h1>
+      <div style={{ padding: 12 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 800 }}>RFQ not found</h1>
         <div style={{ marginTop: 8, opacity: 0.7 }}>
           Tried to resolve RFQ by <code>id</code> or <code>public_id</code> using:{" "}
           <code>{rfqParam}</code>
@@ -73,7 +73,7 @@ export default async function BuyerQuoteComparePage({
 
   if (itemsErr) {
     return (
-      <div style={{ padding: 16 }}>
+      <div style={{ padding: 12 }}>
         <pre style={{ color: "crimson" }}>{itemsErr.message}</pre>
       </div>
     );
@@ -90,7 +90,7 @@ export default async function BuyerQuoteComparePage({
 
   if (mxErr) {
     return (
-      <div style={{ padding: 16 }}>
+      <div style={{ padding: 12 }}>
         <pre style={{ color: "crimson" }}>{mxErr.message}</pre>
       </div>
     );
@@ -130,7 +130,7 @@ export default async function BuyerQuoteComparePage({
 
   if (qErr) {
     return (
-      <div style={{ padding: 16 }}>
+      <div style={{ padding: 12 }}>
         <pre style={{ color: "crimson" }}>{qErr.message}</pre>
       </div>
     );
@@ -152,7 +152,7 @@ export default async function BuyerQuoteComparePage({
 
   if (qiErr) {
     return (
-      <div style={{ padding: 16 }}>
+      <div style={{ padding: 12 }}>
         <pre style={{ color: "crimson" }}>{qiErr.message}</pre>
       </div>
     );

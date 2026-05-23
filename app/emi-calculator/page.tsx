@@ -1492,7 +1492,7 @@ const result = useMemo(() => {
         .emiHero {
           display: grid;
           grid-template-columns: minmax(0, 1fr) 280px;
-          gap: 18px;
+          gap: 10px;
           align-items: end;
         }
 
@@ -1533,7 +1533,7 @@ const result = useMemo(() => {
           border-radius: 22px;
           background: linear-gradient(135deg, #0f172a, #2563eb);
           color: #ffffff;
-          padding: 20px;
+          padding: 14px;
           box-shadow: 0 18px 44px rgba(37,99,235,0.18);
         }
 
@@ -1681,7 +1681,7 @@ const result = useMemo(() => {
         .aiDiscoveryBridge {
           border-radius: 18px;
           background: rgba(255,255,255,0.10);
-          padding: 16px;
+          padding: 12px;
           min-width: 0;
         }
 
@@ -1933,7 +1933,7 @@ const result = useMemo(() => {
           border-radius: 18px;
           background: linear-gradient(135deg, #ecfdf5, #ffffff);
           border: 1px solid #bbf7d0;
-          padding: 16px;
+          padding: 12px;
         }
 
         .bestBankCard strong {
@@ -2128,7 +2128,7 @@ const result = useMemo(() => {
           }
 
           .heroMiniCard {
-            padding: 16px;
+            padding: 12px;
           }
 
           .heroMiniCard strong {

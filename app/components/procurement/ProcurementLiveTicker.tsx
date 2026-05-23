@@ -43,7 +43,7 @@ export default function ProcurementLiveTicker() {
 
   const text = useMemo(() => {
     if (events.length === 0) {
-      return "AI Procurement OS is monitoring live RFQs, chats, recommendations, memory events and supplier signals.";
+      return "Procurement Workspace is monitoring live RFQs, chats, recommendations, memory events and supplier signals.";
     }
 
     return events

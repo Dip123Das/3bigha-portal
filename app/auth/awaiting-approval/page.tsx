@@ -89,13 +89,13 @@ export default function AwaitingApprovalPage() {
           maxWidth: 640,
           margin: "0 auto",
           border: "1px solid rgba(0,0,0,0.08)",
-          borderRadius: 16,
+          borderRadius: 12,
           padding: 24,
           background: "white",
           textAlign: "center",
         }}
       >
-        <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 10 }}>
+        <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 10 }}>
           Redirecting…
         </div>
 

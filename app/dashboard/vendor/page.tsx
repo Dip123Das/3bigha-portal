@@ -445,7 +445,7 @@ const aiNegotiationStyle =
 
 const aiVendorLearningAction =
   replyRate < 50
-    ? "Reply to every buyer lead quickly to improve AI ranking and conversion."
+    ? "Reply to every buyer lead quickly to improve Ranking and conversion."
     : closeRate < 25
     ? "Use AI suggestions in chat to push deals toward final price, delivery and bill confirmation."
     : "Maintain quick replies and keep deal follow-ups active to protect your ranking.";
@@ -547,7 +547,7 @@ if (missedLeads > 3) {
 
 if (getPlanBoostPower(vendorPlan, vendorBoostPriority) === 0) {
   aiRecommendations.push(
-    "🚀 Upgrade your plan to unlock higher AI visibility and better RFQ routing."
+    "🚀 Upgrade your plan to unlock higher Visibility and better RFQ routing."
   );
 }
 
@@ -1118,9 +1118,9 @@ const aiDealUpgradeTarget =
           style={{
             marginBottom: 16,
             borderRadius: 18,
-            padding: 16,
+            padding: 12,
             border: "1px solid #bbf7d0",
-            background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
+            background: "#ffffff",
             boxShadow: "0 10px 24px rgba(15,23,42,0.06)",
           }}
         >
@@ -1133,30 +1133,30 @@ const aiDealUpgradeTarget =
           </div>
 
           <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
-            <div style={{ border: "1px solid #dcfce7", borderRadius: 14, padding: 12, background: "#fff" }}>
+            <div style={{ border: "1px solid #dcfce7", borderRadius: 12, padding: 12, background: "#fff" }}>
               <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>AI Optimized</div>
-              <div style={{ marginTop: 4, fontSize: 26, fontWeight: 950, color: "#047857" }}>
+              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#047857" }}>
                 {priceIntelligenceStats.aiOptimizedCount}
               </div>
             </div>
 
-            <div style={{ border: "1px solid #dbeafe", borderRadius: 14, padding: 12, background: "#fff" }}>
+            <div style={{ border: "1px solid #dbeafe", borderRadius: 12, padding: 12, background: "#fff" }}>
               <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>Competitive</div>
-              <div style={{ marginTop: 4, fontSize: 26, fontWeight: 950, color: "#1d4ed8" }}>
+              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#1d4ed8" }}>
                 {priceIntelligenceStats.competitiveCount}
               </div>
             </div>
 
-            <div style={{ border: "1px solid #fed7aa", borderRadius: 14, padding: 12, background: "#fff7ed" }}>
+            <div style={{ border: "1px solid #fed7aa", borderRadius: 12, padding: 12, background: "#fff7ed" }}>
               <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>Needs Correction</div>
-              <div style={{ marginTop: 4, fontSize: 26, fontWeight: 950, color: "#c2410c" }}>
+              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#c2410c" }}>
                 {priceIntelligenceStats.overpricedCount}
               </div>
             </div>
 
-            <div style={{ border: "1px solid #e2e8f0", borderRadius: 14, padding: 12, background: "#fff" }}>
+            <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 12, background: "#fff" }}>
               <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>Avg. Deviation</div>
-              <div style={{ marginTop: 4, fontSize: 26, fontWeight: 950, color: "#0f172a" }}>
+              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#0f172a" }}>
                 {priceIntelligenceStats.averageDeviation === null
                   ? "—"
                   : `${priceIntelligenceStats.averageDeviation}%`}
@@ -1178,9 +1178,9 @@ const aiDealUpgradeTarget =
           style={{
             marginBottom: 16,
             borderRadius: 18,
-            padding: 16,
+            padding: 12,
             border: "1px solid #c7d2fe",
-            background: "linear-gradient(135deg, #eef2ff, #ffffff)",
+            background: "#ffffff",
             boxShadow: "0 10px 24px rgba(79,70,229,0.08)",
           }}
         >
@@ -1189,25 +1189,25 @@ const aiDealUpgradeTarget =
           </div>
 
           <div style={{ marginTop: 6, color: "#475569", fontSize: 13, fontWeight: 800, lineHeight: 1.5 }}>
-            Your AI visibility score decides how strongly you appear against competing vendors.
+            Your Visibility score decides how strongly you appear against competing vendors.
           </div>
 
           <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}>
-            <div style={{ border: "1px solid #e0e7ff", borderRadius: 14, padding: 12, background: "#fff" }}>
+            <div style={{ border: "1px solid #e0e7ff", borderRadius: 12, padding: 12, background: "#fff" }}>
               <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>Visibility Score</div>
-              <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950, color: "#4338ca" }}>
+              <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950, color: "#4338ca" }}>
                 {growthVisibilityScore}/100
               </div>
             </div>
 
-            <div style={{ border: "1px solid #e0e7ff", borderRadius: 14, padding: 12, background: "#fff" }}>
+            <div style={{ border: "1px solid #e0e7ff", borderRadius: 12, padding: 12, background: "#fff" }}>
               <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>Leaderboard Status</div>
               <div style={{ marginTop: 4, fontSize: 16, fontWeight: 950, color: "#111827" }}>
                 {leaderboardStatus}
               </div>
             </div>
 
-            <div style={{ border: "1px solid #fed7aa", borderRadius: 14, padding: 12, background: "#fff7ed" }}>
+            <div style={{ border: "1px solid #fed7aa", borderRadius: 12, padding: 12, background: "#fff7ed" }}>
               <div style={{ fontSize: 12, color: "#9a3412", fontWeight: 900 }}>Growth Gap</div>
               <div style={{ marginTop: 4, fontSize: 13, color: "#7c2d12", fontWeight: 850, lineHeight: 1.5 }}>
                 {leaderboardGap}
@@ -1252,9 +1252,9 @@ const aiDealUpgradeTarget =
           style={{
             marginBottom: 16,
             borderRadius: 18,
-            padding: 16,
+            padding: 12,
             border: "1px solid #bbf7d0",
-            background: "linear-gradient(135deg, #ecfdf5, #ffffff)",
+            background: "#ffffff",
             boxShadow: "0 10px 24px rgba(16,185,129,0.08)",
           }}
         >
@@ -1318,21 +1318,21 @@ const aiDealUpgradeTarget =
         {conversionAlert?.show ? (
           <div
             style={{
-              position: "fixed",
+              position: "sticky",
               left: "50%",
               top: "50%",
               transform: "translate(-50%, -50%)",
               zIndex: 10000,
               width: "min(420px, 92vw)",
-              borderRadius: 20,
+              borderRadius: 12,
               border: "2px solid #dc2626",
               background: "white",
               boxShadow: "0 30px 80px rgba(0,0,0,0.35)",
-              padding: 18,
+              padding: 14,
               textAlign: "center",
             }}
           >
-            <div style={{ fontSize: 22, fontWeight: 950, color: "#dc2626" }}>
+            <div style={{ fontSize: 18, fontWeight: 950, color: "#dc2626" }}>
               🚨 Visibility Drop Detected
             </div>
 
@@ -1383,15 +1383,15 @@ const aiDealUpgradeTarget =
           {rankToast ? (
           <div
             style={{
-              position: "fixed",
+              position: "sticky",
               right: 18,
               top: 110,
-              zIndex: 9999,
+              zIndex: 209,
               maxWidth: 360,
               borderRadius: 18,
               border: "1px solid #f59e0b",
-              background: "linear-gradient(135deg, #fffbeb, #ffffff)",
-              boxShadow: "0 20px 45px rgba(15,23,42,0.22)",
+              background: "#ffffff",
+              boxShadow: "0 2px 6px rgba(15,23,42,0.04)",
               padding: 14,
             }}
           >
@@ -1447,11 +1447,11 @@ const aiDealUpgradeTarget =
         <VendorErpNav />
 
         <ErpPanel
-          title="Smart Vendor Alerts"
+          title="Vendor Alerts"
           subtitle="AI-style re-engagement reminders generated from leads, rank, replies and pricing signals."
           tone="orange"
         >
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 10 }}>
             {vendorSmartNotifications.map((item) => (
               <a
                 key={item.id}
@@ -1461,14 +1461,14 @@ const aiDealUpgradeTarget =
                   color: "inherit",
                   border: "1px solid #fed7aa",
                   background: "#fff7ed",
-                  borderRadius: 16,
+                  borderRadius: 12,
                   padding: 12,
                 }}
               >
                 <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <div style={{ fontSize: 22 }}>{item.icon}</div>
+                  <div style={{ fontSize: 18 }}>{item.icon}</div>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 1000, color: "#0f172a" }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "#0f172a" }}>
                       {item.title}
                     </div>
                     <div style={{ marginTop: 4, color: "#64748b", fontSize: 12, lineHeight: 1.45, fontWeight: 750 }}>
@@ -1599,33 +1599,33 @@ const aiDealUpgradeTarget =
         </ErpPanel>
 
         <ErpPanel
-          title="AI Tools"
+          title="Advanced Insights"
           subtitle="AI stays below the real work desk. Use it only when needed for pricing, ranking, risk and growth."
           tone="violet"
         >
           <ErpKpiGrid>
             <ErpKpiCard label="AI Score" value={`${aiDealLearningScore}/100`} helper={aiConversionPrediction} tone={aiDealLearningScore >= 55 ? "green" : "orange"} />
             <ErpKpiCard label="Price Accuracy" value={priceIntelligenceStats.averageDeviation === null ? "—" : `${priceIntelligenceStats.averageDeviation}%`} helper="Average deviation" tone={priceIntelligenceStats.overpricedCount > 0 ? "orange" : "green"} />
-            <ErpKpiCard label="Boost Power" value={`+${getPlanBoostPower(vendorPlan, vendorBoostPriority)}`} helper="AI ranking power" tone="violet" />
+            <ErpKpiCard label="Boost Power" value={`+${getPlanBoostPower(vendorPlan, vendorBoostPriority)}`} helper="Ranking power" tone="violet" />
             <ErpKpiCard label="Risk" value={hiddenVendorWarning ? "High" : "Normal"} helper="Visibility and follow-up risk" tone={hiddenVendorWarning ? "red" : "green"} />
           </ErpKpiGrid>
 
           <ErpAlertList
             alerts={[
-              { label: `AI prediction: ${aiConversionPrediction}.`, tone: aiDealLearningScore >= 55 ? "green" : "orange" },
+              { label: `Prediction: ${aiConversionPrediction}.`, tone: aiDealLearningScore >= 55 ? "green" : "orange" },
               { label: aiVendorLearningAction, tone: "blue" },
               {
                 label:
                   hiddenVendorWarning
                     ? "Your visibility is weak. Improve replies, pricing and boost strength."
-                    : "AI visibility is stable.",
+                    : "Visibility is stable.",
                 tone: hiddenVendorWarning ? "red" : "green",
               },
             ]}
           />
 
           <ErpActionGrid>
-            <ErpActionCard title="AI Inventory Intelligence" description="Review inventory, billing and dispatch risks." href="/dashboard/vendor/inventory-intelligence" tone="violet" />
+            <ErpActionCard title="Inventory Insights" description="Review inventory, billing and dispatch risks." href="/dashboard/vendor/inventory-intelligence" tone="violet" />
             <ErpActionCard title="Smart Price Update" description="Improve AI pricing accuracy." href="/vendor/price-updates/new" tone="green" />
             <ErpActionCard title="AI Boost" description="Improve rank and buyer discovery." href="/dashboard/subscription/boost" tone="orange" />
           </ErpActionGrid>

@@ -78,7 +78,7 @@ function MessageBox(props: { title: string; description?: string }) {
       style={{
         border: "1px solid rgba(0,0,0,0.08)",
         borderRadius: 12,
-        padding: 16,
+        padding: 12,
         background: "rgba(0,0,0,0.02)",
       }}
     >
@@ -259,7 +259,7 @@ function chipStyle(active: boolean) {
   return {
     height: 34,
     padding: "0 12px",
-    borderRadius: 999,
+    borderRadius: 12,
     border: "1px solid rgba(0,0,0,0.12)",
     background: active ? "rgba(37,99,235,0.10)" : "white",
     color: active ? "#1d4ed8" : "#111827",
@@ -784,8 +784,8 @@ export default function PropertyPublicListPage() {
                         style={{
                           marginTop: 10,
                           padding: 10,
-                          borderRadius: 14,
-                          background: "linear-gradient(135deg,#f8fafc,#eef2ff)",
+                          borderRadius: 12,
+                          background: "#ffffff",
                           border: "1px solid #e2e8f0",
                         }}
                       >
@@ -806,7 +806,7 @@ export default function PropertyPublicListPage() {
                         <div
                           style={{
                             height: 7,
-                            borderRadius: 999,
+                            borderRadius: 12,
                             background: "#e5e7eb",
                             overflow: "hidden",
                             marginTop: 8,
@@ -816,8 +816,8 @@ export default function PropertyPublicListPage() {
                             style={{
                               width: `${Math.max(4, Math.min(100, investmentIntel.overallRecommendationScore))}%`,
                               height: "100%",
-                              borderRadius: 999,
-                              background: "linear-gradient(90deg,#2563eb,#22c55e)",
+                              borderRadius: 12,
+                              background: "#ffffff",
                             }}
                           />
                         </div>

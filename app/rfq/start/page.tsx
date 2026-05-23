@@ -37,7 +37,7 @@ function UnifiedRfqStartPageInner() {
             style={{
               border: "1px solid #e5e7eb",
               borderRadius: 12,
-              padding: 16,
+              padding: 12,
             }}
           >
             <p style={{ marginTop: 0 }}>
@@ -68,7 +68,7 @@ function UnifiedRfqStartPageInner() {
               style={{
                 border: "1px solid #e5e7eb",
                 borderRadius: 12,
-                padding: 16,
+                padding: 12,
               }}
             >
               <h2 style={{ marginTop: 0 }}>Materials RFQ</h2>
@@ -91,7 +91,7 @@ function UnifiedRfqStartPageInner() {
               style={{
                 border: "1px solid #e5e7eb",
                 borderRadius: 12,
-                padding: 16,
+                padding: 12,
               }}
             >
               <h2 style={{ marginTop: 0 }}>General RFQ</h2>

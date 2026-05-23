@@ -368,7 +368,7 @@ export default function VendorFleetPage() {
                         key={row.id}
                         style={{
                           border: "1px solid #e5e7eb",
-                          borderRadius: 16,
+                          borderRadius: 12,
                           padding: 12,
                           background: "#fff",
                         }}
@@ -431,9 +431,9 @@ export default function VendorFleetPage() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div style={{ border: "1px solid #bae6fd", borderRadius: 16, padding: 12, background: "#fff" }}>
+    <div style={{ border: "1px solid #bae6fd", borderRadius: 12, padding: 12, background: "#fff" }}>
       <div style={{ fontSize: 12, fontWeight: 900, color: "#0369a1" }}>{label}</div>
-      <div style={{ marginTop: 4, fontSize: 28, fontWeight: 950 }}>{value}</div>
+      <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950 }}>{value}</div>
     </div>
   );
 }

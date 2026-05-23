@@ -259,7 +259,7 @@ export default function PropertyValuesMasterPage() {
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 14 }}>
           {/* LEFT */}
-          <div style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 12 }}>
+          <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 12 }}>
             <div style={{ fontWeight: 900 }}>Select Attribute</div>
             {selectableAttrs.map((a) => (
               <button
@@ -283,7 +283,7 @@ export default function PropertyValuesMasterPage() {
           </div>
 
           {/* RIGHT */}
-          <div style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 12 }}>
+          <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 12 }}>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <div style={{ fontWeight: 900 }}>Values</div>
               <ActionButton variant="primary" onClick={openAdd}>
@@ -319,7 +319,7 @@ export default function PropertyValuesMasterPage() {
             )}
 
             {showForm && (
-              <div style={{ marginTop: 16, border: "2px solid #2563eb", borderRadius: 14, padding: 12 }}>
+              <div style={{ marginTop: 16, border: "2px solid #2563eb", borderRadius: 12, padding: 12 }}>
                 <input
                   placeholder="Value label"
                   value={form.value}

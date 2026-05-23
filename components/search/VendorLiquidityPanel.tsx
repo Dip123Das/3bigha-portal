@@ -13,16 +13,16 @@ export default function VendorLiquidityPanel({
   const tone =
     insight.score >= 85
       ? {
-          background: "linear-gradient(135deg, #064e3b, #059669)",
+          background: "#ffffff",
           chip: "rgba(255,255,255,0.16)",
         }
       : insight.score >= 68
         ? {
-            background: "linear-gradient(135deg, #0f172a, #2563eb)",
+            background: "#ffffff",
             chip: "rgba(255,255,255,0.14)",
           }
         : {
-            background: "linear-gradient(135deg, #422006, #d97706)",
+            background: "#ffffff",
             chip: "rgba(255,255,255,0.16)",
           };
 
@@ -32,7 +32,7 @@ export default function VendorLiquidityPanel({
         background: tone.background,
         color: "#ffffff",
         borderRadius: 20,
-        padding: 16,
+        padding: 12,
         display: "grid",
         gap: 14,
         boxShadow: "0 18px 42px rgba(15,23,42,0.14)",
@@ -43,7 +43,7 @@ export default function VendorLiquidityPanel({
           <div style={{ fontSize: 12, fontWeight: 950, color: "rgba(255,255,255,0.72)" }}>
             Vendor Liquidity Intelligence
           </div>
-          <div style={{ marginTop: 4, fontSize: 22, fontWeight: 1000 }}>
+          <div style={{ marginTop: 4, fontSize: 18, fontWeight: 800 }}>
             🎯 {insight.title}
           </div>
           <div style={{ marginTop: 6, color: "rgba(255,255,255,0.82)", fontWeight: 750, lineHeight: 1.55 }}>
@@ -61,7 +61,7 @@ export default function VendorLiquidityPanel({
             height: "fit-content",
           }}
         >
-          <div style={{ fontSize: 26, fontWeight: 1000 }}>{insight.score}</div>
+          <div style={{ fontSize: 26, fontWeight: 800 }}>{insight.score}</div>
           <div style={{ fontSize: 11, fontWeight: 950, color: "rgba(255,255,255,0.76)" }}>
             {insight.confidenceLabel} liquidity
           </div>
@@ -85,11 +85,11 @@ export default function VendorLiquidityPanel({
             style={{
               background: "rgba(255,255,255,0.12)",
               border: "1px solid rgba(255,255,255,0.16)",
-              borderRadius: 16,
+              borderRadius: 12,
               padding: 12,
             }}
           >
-            <div style={{ fontSize: 22, fontWeight: 1000 }}>{value}</div>
+            <div style={{ fontSize: 18, fontWeight: 800 }}>{value}</div>
             <div style={{ marginTop: 2, fontSize: 12, fontWeight: 850, color: "rgba(255,255,255,0.74)" }}>
               {label}
             </div>
@@ -100,7 +100,7 @@ export default function VendorLiquidityPanel({
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <span
           style={{
-            borderRadius: 999,
+            borderRadius: 12,
             background: tone.chip,
             border: "1px solid rgba(255,255,255,0.18)",
             padding: "7px 10px",
@@ -115,7 +115,7 @@ export default function VendorLiquidityPanel({
           <span
             key={chip}
             style={{
-              borderRadius: 999,
+              borderRadius: 12,
               background: tone.chip,
               border: "1px solid rgba(255,255,255,0.18)",
               padding: "7px 10px",

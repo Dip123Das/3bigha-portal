@@ -76,7 +76,7 @@ export default function ProcurementBriefingPage() {
           </div>
 
           <h1 className="mt-6 text-5xl font-black">
-            Procurement Executive Briefing
+            Procurement Today's Summary
           </h1>
 
           <p className="mt-4 max-w-3xl text-base font-medium text-slate-200">

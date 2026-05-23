@@ -33,7 +33,7 @@ export function ErpKpiCard({
       }}
     >
       <div style={{ fontSize: 12, fontWeight: 950, color }}>{label}</div>
-      <div style={{ marginTop: 6, fontSize: 28, lineHeight: 1, fontWeight: 1000, color: "#0f172a" }}>
+      <div style={{ marginTop: 6, fontSize: 20, lineHeight: 1, fontWeight: 800, color: "#0f172a" }}>
         {value}
       </div>
       {helper ? (
@@ -111,7 +111,7 @@ export function ErpActionCard({
       <div
         style={{
           fontSize: 14,
-          fontWeight: 1000,
+          fontWeight: 800,
           color,
         }}
       >
@@ -162,7 +162,7 @@ export function ErpAlertList({
           <div
             key={`${alert.label}-${index}`}
             style={{
-              borderRadius: 14,
+              borderRadius: 12,
               padding: "12px 14px",
               background: "#ffffff",
               border: "1px solid rgba(15,23,42,0.08)",
@@ -175,7 +175,7 @@ export function ErpAlertList({
               style={{
                 width: 10,
                 height: 10,
-                borderRadius: 999,
+                borderRadius: 12,
                 background: toneMap[alert.tone || "blue"],
                 flexShrink: 0,
               }}
@@ -223,13 +223,13 @@ export function ErpPanel({
       style={{
         marginBottom: 16,
         borderRadius: 22,
-        padding: 16,
+        padding: 12,
         border: `1px solid ${border}`,
         background: `linear-gradient(135deg, ${bg}, #ffffff)`,
         boxShadow: "0 16px 38px rgba(15,23,42,0.06)",
       }}
     >
-      <div style={{ fontSize: 20, fontWeight: 950, color }}>{title}</div>
+      <div style={{ fontSize: 18, fontWeight: 950, color }}>{title}</div>
       <div style={{ marginTop: 6, color: "#475569", fontSize: 13, fontWeight: 800, lineHeight: 1.6 }}>
         {subtitle}
       </div>
@@ -273,7 +273,7 @@ export function ErpActivityFeed({
           padding: "13px 14px",
           borderBottom: "1px solid rgba(15,23,42,0.08)",
           fontSize: 14,
-          fontWeight: 1000,
+          fontWeight: 800,
           color: "#0f172a",
         }}
       >
@@ -298,7 +298,7 @@ export function ErpActivityFeed({
                 style={{
                   width: 10,
                   height: 10,
-                  borderRadius: 999,
+                  borderRadius: 12,
                   background: toneMap[item.tone || "blue"],
                   marginTop: 4,
                 }}

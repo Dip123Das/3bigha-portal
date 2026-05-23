@@ -34,7 +34,7 @@ function pillStyle(tone: "neutral" | "ok" | "warn" | "bad" = "neutral") {
     display: "inline-flex",
     alignItems: "center",
     padding: "4px 10px",
-    borderRadius: 999,
+    borderRadius: 12,
     fontSize: 12,
     fontWeight: 900,
     border: "1px solid rgba(0,0,0,0.10)",
@@ -52,7 +52,7 @@ function pillStyle(tone: "neutral" | "ok" | "warn" | "bad" = "neutral") {
   if (tone === "bad") {
     return { ...base, borderColor: "#fecaca", background: "#fef2f2", color: "#991b1b" };
   }
-  return { ...base, borderColor: "#e5e7eb", background: "#f8fafc", color: "#111827" };
+  return { ...base, borderColor: "#e5e7eb", background: "#ffffff", color: "#111827" };
 }
 
 function titleCase(s: string | null | undefined) {
@@ -211,7 +211,7 @@ function decisionCardStyle(tone: BuyerDecisionCard["tone"]): React.CSSProperties
   if (tone === "ok") {
     return {
       border: "1px solid #bbf7d0",
-      background: "linear-gradient(180deg, #f0fdf4, #ffffff)",
+      background: "#ffffff",
       color: "#14532d",
     };
   }
@@ -219,7 +219,7 @@ function decisionCardStyle(tone: BuyerDecisionCard["tone"]): React.CSSProperties
   if (tone === "warn") {
     return {
       border: "1px solid #fde68a",
-      background: "linear-gradient(180deg, #fffbeb, #ffffff)",
+      background: "#ffffff",
       color: "#78350f",
     };
   }
@@ -227,14 +227,14 @@ function decisionCardStyle(tone: BuyerDecisionCard["tone"]): React.CSSProperties
   if (tone === "bad") {
     return {
       border: "1px solid #fecaca",
-      background: "linear-gradient(180deg, #fef2f2, #ffffff)",
+      background: "#ffffff",
       color: "#7f1d1d",
     };
   }
 
   return {
     border: "1px solid #e2e8f0",
-    background: "linear-gradient(180deg, #f8fafc, #ffffff)",
+    background: "#ffffff",
     color: "#0f172a",
   };
 }
@@ -248,9 +248,9 @@ function actionBtnStyle(kind: "talk" | "normal" | "accept" = "normal"): React.CS
       gap: 8,
       minHeight: 38,
       padding: "0 14px",
-      borderRadius: 999,
+      borderRadius: 12,
       border: "1px solid #86efac",
-      background: "linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%)",
+      background: "#ffffff",
       color: "#166534",
       fontWeight: 900,
       textDecoration: "none",
@@ -262,7 +262,7 @@ function actionBtnStyle(kind: "talk" | "normal" | "accept" = "normal"): React.CS
     return {
       height: 38,
       padding: "0 14px",
-      borderRadius: 999,
+      borderRadius: 12,
       border: "1px solid rgba(0,0,0,0.12)",
       background: "#fff",
       fontWeight: 900,
@@ -277,7 +277,7 @@ function actionBtnStyle(kind: "talk" | "normal" | "accept" = "normal"): React.CS
     gap: 8,
     minHeight: 38,
     padding: "0 14px",
-    borderRadius: 999,
+    borderRadius: 12,
     border: "1px solid rgba(0,0,0,0.12)",
     background: "#fff",
     fontWeight: 900,
@@ -297,8 +297,8 @@ export default async function BuyerQuoteComparePage({
 
   if (!UUID_RE.test(rfqId)) {
     return (
-      <main style={{ padding: 16 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 900, margin: 0 }}>Invalid RFQ ID</h1>
+      <main style={{ padding: 12 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 900, margin: 0 }}>Invalid RFQ ID</h1>
         <div style={{ marginTop: 10 }}>
           <Link href="/dashboard/buyer/rfqs" style={{ fontWeight: 900 }}>
             ← Back to My RFQs
@@ -699,7 +699,7 @@ export default async function BuyerQuoteComparePage({
     <main style={{ padding: 14, maxWidth: 1200, margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 900, margin: 0 }}>Vendor Comparison Workspace</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 900, margin: 0 }}>Vendor Comparison Workspace</h1>
           <div style={{ marginTop: 6, opacity: 0.8 }}>
             Compare vendor quotations, delivery timelines, trust level and next steps before making a final decision.
           </div>
@@ -736,7 +736,7 @@ export default async function BuyerQuoteComparePage({
           marginTop: 14,
           padding: 14,
           border: "1px solid #e5e7eb",
-          borderRadius: 14,
+          borderRadius: 12,
           background: "#fff",
         }}
       >
@@ -794,7 +794,7 @@ export default async function BuyerQuoteComparePage({
           marginTop: 16,
           padding: 14,
           border: "1px solid #e5e7eb",
-          borderRadius: 14,
+          borderRadius: 12,
           background: "#ffffff",
         }}
       >
@@ -852,7 +852,7 @@ export default async function BuyerQuoteComparePage({
             padding: 14,
             border: "1px solid #bbf7d0",
             background: "#ecfdf5",
-            borderRadius: 14,
+            borderRadius: 12,
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
@@ -877,7 +877,7 @@ export default async function BuyerQuoteComparePage({
 
             <div style={{ textAlign: "right", minWidth: 220 }}>
               <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 900 }}>Final Total</div>
-              <div style={{ fontSize: 24, fontWeight: 1000 }}>{fmtMoney(selectedVendor.grand_total)}</div>
+              <div style={{ fontSize: 20, fontWeight: 800 }}>{fmtMoney(selectedVendor.grand_total)}</div>
               <div style={{ marginTop: 6, fontSize: 13 }}>
                 Delivery: <strong>{selectedVendor.delivery_days ?? "—"}</strong> days
               </div>
@@ -909,7 +909,7 @@ export default async function BuyerQuoteComparePage({
       ) : null}
 
       <div style={{ marginTop: 14 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 1000, margin: 0 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>
           Vendor Comparison
         </h2>
 
@@ -920,7 +920,7 @@ export default async function BuyerQuoteComparePage({
         {vendorsSorted.length === 0 ? (
           <div style={{ marginTop: 10, opacity: 0.75 }}>No vendor responses yet.</div>
         ) : (
-          <div style={{ marginTop: 10, overflowX: "auto" }}>
+          <div style={{ marginTop: 10, overflowX: "auto", background: "#ffffff" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 980 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid #e5e7eb", background: "#fafafa" }}>
@@ -1037,7 +1037,7 @@ export default async function BuyerQuoteComparePage({
         {items.length === 0 ? (
           <div style={{ marginTop: 10, opacity: 0.75 }}>No items found for this RFQ.</div>
         ) : (
-          <div style={{ marginTop: 10, overflowX: "auto" }}>
+          <div style={{ marginTop: 10, overflowX: "auto", background: "#ffffff" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 760 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid #e5e7eb", background: "#fafafa" }}>
@@ -1065,7 +1065,7 @@ export default async function BuyerQuoteComparePage({
       </div>
 
       <div style={{ marginTop: 18 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 1000, margin: 0 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>
           Vendor Responses
         </h2>
 
@@ -1097,7 +1097,7 @@ export default async function BuyerQuoteComparePage({
                   key={v.vendor_id}
                   style={{
                     border: "1px solid rgba(0,0,0,0.12)",
-                    borderRadius: 14,
+                    borderRadius: 12,
                     padding: 12,
                     background: "#fff",
                     display: "flex",
@@ -1136,7 +1136,7 @@ export default async function BuyerQuoteComparePage({
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ fontSize: 12, opacity: 0.7, fontWeight: 900 }}>Grand Total</div>
-                      <div style={{ fontSize: 18, fontWeight: 1000 }}>{fmtMoney(v.grand_total)}</div>
+                      <div style={{ fontSize: 18, fontWeight: 800 }}>{fmtMoney(v.grand_total)}</div>
                       <div style={{ fontSize: 12, opacity: 0.8 }}>
                         GST: {fmtMoney(v.gst_amount)} • Subtotal: {fmtMoney(v.subtotal)}
                       </div>
@@ -1169,14 +1169,14 @@ export default async function BuyerQuoteComparePage({
       </div>
 
       <div style={{ marginTop: 18 }}>
-        <h2 style={{ fontSize: 18, fontWeight: 1000, margin: 0 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>
           Item-wise Comparison
         </h2>
 
         {items.length === 0 || vendorsSorted.length === 0 ? (
           <div style={{ marginTop: 10, opacity: 0.75 }}>Nothing to compare yet.</div>
         ) : (
-          <div style={{ marginTop: 10, overflowX: "auto" }}>
+          <div style={{ marginTop: 10, overflowX: "auto", background: "#ffffff" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 980 }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid #e5e7eb", background: "#fafafa" }}>
@@ -1186,7 +1186,7 @@ export default async function BuyerQuoteComparePage({
                       v.vendor_business_name ?? (v.vendor_id ? `Vendor ${String(v.vendor_id).slice(0, 8)}…` : "Vendor");
                     return (
                       <th key={v.vendor_id} style={{ textAlign: "left", padding: 10, minWidth: 220 }}>
-                        <div style={{ fontWeight: 1000 }}>{name}</div>
+                        <div style={{ fontWeight: 800 }}>{name}</div>
                         <div style={{ marginTop: 4, display: "flex", gap: 8, flexWrap: "wrap" }}>
                           <span style={pillStyle(v.is_outdated ? "warn" : "ok")}>
                             {v.is_outdated ? "outdated" : "latest"} v{v.version ?? "—"}
@@ -1253,10 +1253,10 @@ export default async function BuyerQuoteComparePage({
 
               <tfoot>
                 <tr style={{ borderTop: "1px solid #e5e7eb", background: "#fafafa" }}>
-                  <td style={{ padding: 10, fontWeight: 1000 }}>Totals</td>
+                  <td style={{ padding: 10, fontWeight: 800 }}>Totals</td>
                   {vendorsSorted.map((v: any) => (
                     <td key={v.vendor_id} style={{ padding: 10 }}>
-                      <div style={{ fontWeight: 1000 }}>{fmtMoney(v.grand_total)}</div>
+                      <div style={{ fontWeight: 800 }}>{fmtMoney(v.grand_total)}</div>
                       <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
                         Subtotal: {fmtMoney(v.subtotal)} <br />
                         GST: {fmtMoney(v.gst_amount)}
@@ -1274,7 +1274,7 @@ export default async function BuyerQuoteComparePage({
         style={{
           marginTop: 20,
           border: "1px solid #e5e7eb",
-          borderRadius: 14,
+          borderRadius: 12,
           background: "#fff",
           padding: 12,
         }}

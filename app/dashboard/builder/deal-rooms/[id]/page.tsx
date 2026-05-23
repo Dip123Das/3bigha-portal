@@ -9,7 +9,7 @@ export default function BuilderDealRoomDetailPage() {
 
   if (!id) {
     return (
-      <div style={{ padding: 16 }}>
+      <div style={{ padding: 12 }}>
         Invalid investment deal room id.
       </div>
     );

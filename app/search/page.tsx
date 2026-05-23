@@ -544,12 +544,12 @@ function SearchInsightSection({
           cursor: "pointer",
           listStyle: "none",
           padding: "12px 15px",
-          background: "linear-gradient(180deg, #ffffff, #f8fafc)",
+          background: "#ffffff",
           display: "flex",
           justifyContent: "space-between",
           gap: 12,
           alignItems: "center",
-          fontWeight: 1000,
+          fontWeight: 800,
           color: "#0f172a",
         }}
       >
@@ -572,7 +572,7 @@ function SearchInsightSection({
 
         <span
           style={{
-            borderRadius: 999,
+            borderRadius: 12,
             background: "#dbeafe",
             color: "#1e40af",
             padding: "6px 10px",
@@ -1713,7 +1713,7 @@ if (want.includes("rentals")) {
                 }}
                 title="Open AI procurement assistant with vendor recommendations"
               >
-                🤖 AI Procurement Assistant
+                🤖 AI Workflow Assistant
               </Link>
 
               <button
@@ -1925,18 +1925,18 @@ if (want.includes("rentals")) {
                   alignItems: "center",
                 }}
               >
-                <div style={{ fontSize: 12, fontWeight: 1000, color: "#1d4ed8" }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#1d4ed8" }}>
                   Execution Workspace
                 </div>
 
                 <span
                   style={{
-                    borderRadius: 999,
+                    borderRadius: 12,
                     background: "#eff6ff",
                     color: "#1d4ed8",
                     padding: "4px 8px",
                     fontSize: 10,
-                    fontWeight: 1000,
+                    fontWeight: 800,
                   }}
                 >
                   {modFromUrl === "all" ? "Marketplace" : moduleLabel(modFromUrl as SearchModule)}
@@ -1944,12 +1944,12 @@ if (want.includes("rentals")) {
 
                 <span
                   style={{
-                    borderRadius: 999,
+                    borderRadius: 12,
                     background: "#ecfdf5",
                     color: "#047857",
                     padding: "4px 8px",
                     fontSize: 10,
-                    fontWeight: 1000,
+                    fontWeight: 800,
                   }}
                 >
                   AI Score {(procurementDecision.readinessScore || 0)}/100
@@ -1957,12 +1957,12 @@ if (want.includes("rentals")) {
 
                 <span
                   style={{
-                    borderRadius: 999,
+                    borderRadius: 12,
                     background: "#f5f3ff",
                     color: "#5b21b6",
                     padding: "4px 8px",
                     fontSize: 10,
-                    fontWeight: 1000,
+                    fontWeight: 800,
                   }}
                 >
                   {rows.length} Results
@@ -2011,13 +2011,13 @@ if (want.includes("rentals")) {
                   href={action.href}
                   style={{
                     textDecoration: "none",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     border: action.primary ? "1px solid #0f172a" : "1px solid #bfdbfe",
                     background: action.primary ? "#0f172a" : "#eff6ff",
                     color: action.primary ? "#ffffff" : "#1d4ed8",
                     padding: "9px 13px",
                     fontSize: 12,
-                    fontWeight: 1000,
+                    fontWeight: 800,
                     whiteSpace: "nowrap",
                   }}
                 >
@@ -2056,7 +2056,7 @@ if (want.includes("rentals")) {
                   justifyContent: "space-between",
                   flexWrap: "wrap",
                   borderRadius: 18,
-                  background: "linear-gradient(135deg, #f8fafc, #eff6ff)",
+                  background: "#ffffff",
                   border: "1px solid #bfdbfe",
                   padding: isCompactSearchLayout ? 12 : 14,
                 }}
@@ -2065,7 +2065,7 @@ if (want.includes("rentals")) {
                   <div
                     style={{
                       fontSize: 11,
-                      fontWeight: 1000,
+                      fontWeight: 800,
                       color: "#1d4ed8",
                       textTransform: "uppercase",
                       letterSpacing: 0.5,
@@ -2078,7 +2078,7 @@ if (want.includes("rentals")) {
                     style={{
                       marginTop: 4,
                       fontSize: isCompactSearchLayout ? 16 : 18,
-                      fontWeight: 1000,
+                      fontWeight: 800,
                       color: "#0f172a",
                     }}
                   >
@@ -2109,12 +2109,12 @@ if (want.includes("rentals")) {
                     href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`}
                     style={{
                       textDecoration: "none",
-                      borderRadius: 999,
+                      borderRadius: 12,
                       background: "#0f172a",
                       color: "#ffffff",
                       padding: "9px 13px",
                       fontSize: 12,
-                      fontWeight: 1000,
+                      fontWeight: 800,
                     }}
                   >
                     ⚡ Create RFQ
@@ -2126,13 +2126,13 @@ if (want.includes("rentals")) {
                     }`}
                     style={{
                       textDecoration: "none",
-                      borderRadius: 999,
+                      borderRadius: 12,
                       background: "#ecfdf5",
                       color: "#047857",
                       border: "1px solid #bbf7d0",
                       padding: "9px 13px",
                       fontSize: 12,
-                      fontWeight: 1000,
+                      fontWeight: 800,
                     }}
                   >
                     🎯 Vendors
@@ -2142,13 +2142,13 @@ if (want.includes("rentals")) {
                     href={`/price-today?q=${encodeURIComponent(qFromUrl)}`}
                     style={{
                       textDecoration: "none",
-                      borderRadius: 999,
+                      borderRadius: 12,
                       background: "#f5f3ff",
                       color: "#5b21b6",
                       border: "1px solid #ddd6fe",
                       padding: "9px 13px",
                       fontSize: 12,
-                      fontWeight: 1000,
+                      fontWeight: 800,
                     }}
                   >
                     📊 Price
@@ -2190,8 +2190,8 @@ if (want.includes("rentals")) {
                   <div
                     style={{
                       marginTop: 4,
-                      fontSize: 20,
-                      fontWeight: 1000,
+                      fontSize: 18,
+                      fontWeight: 800,
                       color: "#0f172a",
                     }}
                   >
@@ -2228,7 +2228,7 @@ if (want.includes("rentals")) {
                           border: `1px solid ${tone.border}`,
                           background: tone.background,
                           color: tone.color,
-                          borderRadius: 999,
+                          borderRadius: 12,
                           padding: "10px 14px",
                           fontSize: 13,
                           fontWeight: 950,
@@ -2264,7 +2264,7 @@ if (want.includes("rentals")) {
                   <div style={{ fontSize: 12, fontWeight: 950, color: "#0b57d0" }}>
                     AI Procurement Intelligence
                   </div>
-                  <div style={{ marginTop: 4, fontSize: 20, fontWeight: 1000, color: "#0f172a" }}>
+                  <div style={{ marginTop: 4, fontSize: 18, fontWeight: 800, color: "#0f172a" }}>
                     Compact execution guidance
                   </div>
                   <div style={{ marginTop: 4, color: "#64748b", fontWeight: 750 }}>
@@ -2284,7 +2284,7 @@ if (want.includes("rentals")) {
                       key={item.label}
                       style={{
                         border: "1px solid #e2e8f0",
-                        borderRadius: 14,
+                        borderRadius: 12,
                         background: item.tone,
                         padding: "10px 12px",
                       }}
@@ -2304,7 +2304,7 @@ if (want.includes("rentals")) {
                         style={{
                           marginTop: 4,
                           fontSize: 16,
-                          fontWeight: 1000,
+                          fontWeight: 800,
                           color: item.color,
                         }}
                       >
@@ -2383,10 +2383,10 @@ if (want.includes("rentals")) {
                 style={{
                   display: "grid",
                   gap: 12,
-                  background: "linear-gradient(135deg, #0f172a, #1d4ed8)",
+                  background: "#ffffff",
                   color: "#ffffff",
                   borderRadius: 18,
-                  padding: 16,
+                  padding: 12,
                 }}
               >
                 <div style={{ fontSize: 12, fontWeight: 950, color: "#bfdbfe" }}>
@@ -2395,7 +2395,7 @@ if (want.includes("rentals")) {
 
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div>
-                    <div style={{ fontSize: 22, fontWeight: 950 }}>
+                    <div style={{ fontSize: 18, fontWeight: 950 }}>
                       {moduleEmoji((lastAiIntent.module === "all" ? "property" : lastAiIntent.module) as SearchModule)}{" "}
                       {lastAiIntent.module === "all" ? "All Marketplace" : moduleLabel(lastAiIntent.module as SearchModule)}
                     </div>
@@ -2405,11 +2405,11 @@ if (want.includes("rentals")) {
                   </div>
 
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                    <span style={{ borderRadius: 999, background: "rgba(255,255,255,0.12)", padding: "8px 10px", fontWeight: 950 }}>
+                    <span style={{ borderRadius: 12, background: "rgba(255,255,255,0.12)", padding: "8px 10px", fontWeight: 950 }}>
                       {Math.round(Number(lastAiIntent.confidence || 0.75) * 100)}% confidence
                     </span>
                     {lastAiIntent.near ? (
-                      <span style={{ borderRadius: 999, background: "rgba(34,197,94,0.20)", padding: "8px 10px", fontWeight: 950 }}>
+                      <span style={{ borderRadius: 12, background: "rgba(34,197,94,0.20)", padding: "8px 10px", fontWeight: 950 }}>
                         📍 Near me
                       </span>
                     ) : null}
@@ -2447,7 +2447,7 @@ if (want.includes("rentals")) {
                     <div style={{ fontSize: 12, fontWeight: 950, color: "#0b57d0" }}>
                       AI Marketplace Recommendation Engine
                     </div>
-                    <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#0f172a" }}>
+                    <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950, color: "#0f172a" }}>
                       Recommended next steps for this search
                     </div>
                     <div style={{ marginTop: 4, color: "#64748b", fontWeight: 750 }}>
@@ -2477,19 +2477,19 @@ if (want.includes("rentals")) {
                       href={item.href}
                       style={{
                         border: "1px solid #e2e8f0",
-                        borderRadius: 16,
+                        borderRadius: 12,
                         padding: 14,
-                        background: "linear-gradient(180deg, #ffffff, #f8fbff)",
+                        background: "#ffffff",
                         textDecoration: "none",
                         color: "inherit",
                         boxShadow: "0 10px 24px rgba(15,23,42,0.05)",
                       }}
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                        <span style={{ fontSize: 24 }}>{item.icon}</span>
+                        <span style={{ fontSize: 20 }}>{item.icon}</span>
                         <span
                           style={{
-                            borderRadius: 999,
+                            borderRadius: 12,
                             background: "#eef6ff",
                             color: "#0b57d0",
                             padding: "5px 8px",
@@ -2529,7 +2529,7 @@ if (want.includes("rentals")) {
                   background: "#eff6ff",
                   color: "#1d4ed8",
                   border: "1px solid #bfdbfe",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   padding: "7px 12px",
                   fontSize: 12,
                   fontWeight: 950,
@@ -2541,7 +2541,7 @@ if (want.includes("rentals")) {
               </div>
 
               <div>
-                <h2 style={{ margin: 0, color: "#0f172a", fontSize: 24 }}>
+                <h2 style={{ margin: 0, color: "#0f172a", fontSize: 20 }}>
                   {aiSearchContent.heading}
                 </h2>
 
@@ -2587,7 +2587,7 @@ if (want.includes("rentals")) {
                     style={{
                       background: "#f8fafc",
                       border: "1px solid #e2e8f0",
-                      borderRadius: 999,
+                      borderRadius: 12,
                       padding: "9px 13px",
                       color: "#0f172a",
                       textDecoration: "none",
@@ -2616,7 +2616,7 @@ if (want.includes("rentals")) {
                     style={{
                       background: "#f5f3ff",
                       border: "1px solid #ddd6fe",
-                      borderRadius: 999,
+                      borderRadius: 12,
                       padding: "9px 13px",
                       color: "#4c1d95",
                       textDecoration: "none",
@@ -2641,10 +2641,10 @@ if (want.includes("rentals")) {
             <CardBody>
               <div style={{ display: "grid", gap: 14 }}>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 1000, color: "#1d4ed8" }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "#1d4ed8" }}>
                     AI Starter Workflows
                   </div>
-                  <div style={{ marginTop: 4, fontSize: 22, fontWeight: 1000, color: "#0f172a" }}>
+                  <div style={{ marginTop: 4, fontSize: 18, fontWeight: 800, color: "#0f172a" }}>
                     Start with a real marketplace workflow
                   </div>
                   <div style={{ marginTop: 4, color: "#64748b", fontWeight: 750 }}>
@@ -2675,10 +2675,10 @@ if (want.includes("rentals")) {
                         border: "1px solid #dbeafe",
                         background: "#eff6ff",
                         color: "#1d4ed8",
-                        borderRadius: 16,
+                        borderRadius: 12,
                         padding: "12px 14px",
                         fontSize: 13,
-                        fontWeight: 1000,
+                        fontWeight: 800,
                       }}
                     >
                       {label}
@@ -2715,7 +2715,7 @@ if (want.includes("rentals")) {
             <CardBody>
               <div style={{ display: "grid", gap: 10 }}>
                 <div>
-                  <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                  <div style={{ fontWeight: 800, color: "#0f172a" }}>
                     🔄 Continue procurement journey
                   </div>
 
@@ -2744,7 +2744,7 @@ if (want.includes("rentals")) {
                         textDecoration: "none",
                         border: "1px solid #dbeafe",
                         background: "#eff6ff",
-                        borderRadius: 999,
+                        borderRadius: 12,
                         padding: "8px 12px",
                         color: "#1d4ed8",
                         fontSize: 12,
@@ -2766,7 +2766,7 @@ if (want.includes("rentals")) {
       {!hasQuery && recentDiscovery.length ? (
         <Card>
           <CardBody>
-            <div style={{ fontWeight: 1000, color: "#1e3a8a" }}>✨ Continue your discovery</div>
+            <div style={{ fontWeight: 800, color: "#1e3a8a" }}>✨ Continue your discovery</div>
             <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
               Recently viewed properties and localities can help you search faster.
             </div>
@@ -2780,7 +2780,7 @@ if (want.includes("rentals")) {
                     textDecoration: "none",
                     border: "1px solid #bfdbfe",
                     background: "#eff6ff",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     padding: "8px 12px",
                     color: "#1d4ed8",
                     fontSize: 12,
@@ -2802,7 +2802,7 @@ if (want.includes("rentals")) {
           <CardBody>
             <div style={{ display: "flex", gap: 10, alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap" }}>
               <div>
-                <div style={{ fontWeight: 1000, color: "#1e3a8a" }}>🧠 AI Dynamic Search Intelligence</div>
+                <div style={{ fontWeight: 800, color: "#1e3a8a" }}>🧠 AI Dynamic Search Intelligence</div>
                 <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
                   Results are ranked using query intent, locality signals, marketplace module fit and recent discovery memory.
                 </div>
@@ -2815,7 +2815,7 @@ if (want.includes("rentals")) {
                   border: "1px solid #bfdbfe",
                   background: "#eff6ff",
                   color: "#1d4ed8",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   padding: "8px 12px",
                   fontSize: 12,
                   fontWeight: 950,
@@ -2831,7 +2831,7 @@ if (want.includes("rentals")) {
             {hasQuery ? (
         <div
           style={{
-            position: "fixed",
+            position: "sticky",
             left: isCompactSearchLayout ? 10 : 24,
             right: isCompactSearchLayout ? 10 : "auto",
             bottom: 12,
@@ -2839,7 +2839,7 @@ if (want.includes("rentals")) {
             display: "flex",
             gap: 8,
             flexWrap: "wrap",
-            borderRadius: 999,
+            borderRadius: 12,
             background: "rgba(15,23,42,0.92)",
             backdropFilter: "blur(12px)",
             padding: "10px 12px",
@@ -2850,12 +2850,12 @@ if (want.includes("rentals")) {
             href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`}
             style={{
               textDecoration: "none",
-              borderRadius: 999,
+              borderRadius: 12,
               background: "#ffffff",
               color: "#0f172a",
               padding: "8px 12px",
               fontSize: 12,
-              fontWeight: 1000,
+              fontWeight: 800,
               whiteSpace: "nowrap",
             }}
           >
@@ -2866,12 +2866,12 @@ if (want.includes("rentals")) {
             href={`/vendor/discovery?q=${encodeURIComponent(qFromUrl)}`}
             style={{
               textDecoration: "none",
-              borderRadius: 999,
+              borderRadius: 12,
               background: "#1d4ed8",
               color: "#ffffff",
               padding: "8px 12px",
               fontSize: 12,
-              fontWeight: 1000,
+              fontWeight: 800,
               whiteSpace: "nowrap",
             }}
           >
@@ -2882,12 +2882,12 @@ if (want.includes("rentals")) {
             href={`/price-today?q=${encodeURIComponent(qFromUrl)}`}
             style={{
               textDecoration: "none",
-              borderRadius: 999,
+              borderRadius: 12,
               background: "#7c3aed",
               color: "#ffffff",
               padding: "8px 12px",
               fontSize: 12,
-              fontWeight: 1000,
+              fontWeight: 800,
               whiteSpace: "nowrap",
             }}
           >
@@ -2898,12 +2898,12 @@ if (want.includes("rentals")) {
             href={`/search?q=${encodeURIComponent(qFromUrl)}`}
             style={{
               textDecoration: "none",
-              borderRadius: 999,
+              borderRadius: 12,
               background: "#16a34a",
               color: "#ffffff",
               padding: "8px 12px",
               fontSize: 12,
-              fontWeight: 1000,
+              fontWeight: 800,
               whiteSpace: "nowrap",
             }}
           >
@@ -2959,7 +2959,7 @@ if (want.includes("rentals")) {
                       background: "rgba(248,250,252,0.92)",
                       backdropFilter: "blur(10px)",
                       border: "1px solid #e2e8f0",
-                      borderRadius: 14,
+                      borderRadius: 12,
                       padding: "8px 12px",
                       display: "flex",
                       alignItems: "center",
@@ -2968,7 +2968,7 @@ if (want.includes("rentals")) {
                   >
                     <div
                       style={{
-                        fontWeight: 1000,
+                        fontWeight: 800,
                         color: "#0f172a",
                         fontSize: 14,
                       }}
@@ -3008,7 +3008,7 @@ if (want.includes("rentals")) {
                           <span style={{ fontSize: 20 }}>{moduleEmoji(r.module)}</span>
                           <span
                             style={{
-                              borderRadius: 999,
+                              borderRadius: 12,
                               background: "#eef6ff",
                               color: "#0b57d0",
                               padding: "5px 8px",
@@ -3020,7 +3020,7 @@ if (want.includes("rentals")) {
                           </span>
                           <span
                             style={{
-                              borderRadius: 999,
+                              borderRadius: 12,
                               background: "#ecfdf5",
                               color: "#047857",
                               padding: "5px 8px",
@@ -3034,7 +3034,7 @@ if (want.includes("rentals")) {
                           {(r._aiScore || 0) > 0 ? (
                             <span
                               style={{
-                                borderRadius: 999,
+                                borderRadius: 12,
                                 background: "#fef3c7",
                                 color: "#92400e",
                                 padding: "5px 8px",
@@ -3047,7 +3047,7 @@ if (want.includes("rentals")) {
                           ) : null}
                         </div>
 
-                        <div style={{ marginTop: 4, fontWeight: 1000, fontSize: 16.5, color: "#020617", lineHeight: 1.32 }}>
+                        <div style={{ marginTop: 4, fontWeight: 800, fontSize: 16.5, color: "#020617", lineHeight: 1.32 }}>
                           {r.title}
                         </div>
                         {r.subtitle ? (
@@ -3202,7 +3202,7 @@ if (want.includes("rentals")) {
                             href={card.href}
                             style={{
                               ...toneStyle,
-                              borderRadius: 14,
+                              borderRadius: 12,
                               padding: "8px 9px",
                               textDecoration: "none",
                               display: "grid",
@@ -3210,7 +3210,7 @@ if (want.includes("rentals")) {
                               minHeight: 50,
                             }}
                           >
-                            <strong style={{ fontSize: 12.5, fontWeight: 1000, color: "#0f172a" }}>
+                            <strong style={{ fontSize: 12.5, fontWeight: 800, color: "#0f172a" }}>
                               {card.icon} {card.label}
                             </strong>
                             <span style={{ fontSize: 12, lineHeight: 1.5, fontWeight: 800, color: "#475569" }}>

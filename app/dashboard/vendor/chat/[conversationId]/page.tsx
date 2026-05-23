@@ -99,8 +99,8 @@ export default async function VendorConversationPage({
 
   if (isBadConversationId(conversationId)) {
     return (
-      <div style={{ padding: 16 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>Conversation</h1>
+      <div style={{ padding: 12 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Conversation</h1>
         <div style={{ marginTop: 10, opacity: 0.75 }}>Invalid conversation ID.</div>
         <div style={{ marginTop: 12, display: "flex", gap: 12, flexWrap: "wrap" }}>
           <Link href="/vendor/inbox-v2" style={{ fontWeight: 800 }}>
@@ -120,7 +120,7 @@ export default async function VendorConversationPage({
   } = await supabase.auth.getUser();
 
   if (userErr || !user) {
-    return <div style={{ padding: 16 }}>Please login.</div>;
+    return <div style={{ padding: 12 }}>Please login.</div>;
   }
 
   const convRes = await supabase
@@ -152,13 +152,13 @@ export default async function VendorConversationPage({
   const conv = (convRes.data ?? null) as ConversationRow | null;
 
   if (convErr) {
-    return <div style={{ padding: 16, color: "crimson" }}>{convErr.message}</div>;
+    return <div style={{ padding: 12, color: "crimson" }}>{convErr.message}</div>;
   }
 
   if (!conv) {
     return (
-      <div style={{ padding: 16 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800 }}>Conversation</h1>
+      <div style={{ padding: 12 }}>
+        <h1 style={{ fontSize: 18, fontWeight: 800 }}>Conversation</h1>
         <div style={{ marginTop: 10, opacity: 0.75 }}>Conversation not found.</div>
         <div style={{ marginTop: 12, display: "flex", gap: 12, flexWrap: "wrap" }}>
           <Link href="/vendor/inbox-v2" style={{ fontWeight: 800 }}>
@@ -185,7 +185,7 @@ export default async function VendorConversationPage({
   const initialUnreadCutoffAt = participant?.last_read_at ?? null;
 
   if (participantErr) {
-    return <div style={{ padding: 16, color: "crimson" }}>{participantErr.message}</div>;
+    return <div style={{ padding: 12, color: "crimson" }}>{participantErr.message}</div>;
   }
 
   const msgsRes = await supabase
@@ -198,7 +198,7 @@ export default async function VendorConversationPage({
   const msgs = (msgsRes.data ?? []) as MsgRow[];
 
   if (msgsErr) {
-    return <div style={{ padding: 16, color: "crimson" }}>{msgsErr.message}</div>;
+    return <div style={{ padding: 12, color: "crimson" }}>{msgsErr.message}</div>;
   }
 
   const latestMessageId =
@@ -235,10 +235,10 @@ export default async function VendorConversationPage({
   const isClosed = !!conv.is_closed;
 
   return (
-    <div style={{ padding: 16, maxWidth: 1000, margin: "0 auto" }}>
+    <div style={{ padding: 12, maxWidth: 1000, margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>Conversation</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Conversation</h1>
           <div style={{ marginTop: 6, opacity: 0.75 }}>
             {titleCase(conv.context_type)} • {String(conv.title ?? "Chat")}
           </div>

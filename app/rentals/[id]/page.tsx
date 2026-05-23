@@ -117,7 +117,7 @@ function photoUrls(photos: any): string[] {
 
 function MessageBox(props: { title: string; description?: string }) {
   return (
-    <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 16, background: "rgba(0,0,0,0.02)" }}>
+    <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 12, background: "rgba(0,0,0,0.02)" }}>
       <div style={{ fontWeight: 800, marginBottom: 6 }}>{props.title}</div>
       {props.description ? <div style={{ opacity: 0.8, lineHeight: 1.5 }}>{props.description}</div> : null}
     </div>
@@ -334,9 +334,9 @@ const aiRecommendations = buildRecommendations({
 
     <div
   style={{
-    marginTop: 24,
-    padding: 18,
-    borderRadius: 16,
+    marginTop: 14,
+    padding: 14,
+    borderRadius: 12,
     background: "#f8fafc",
     border: "1px solid #e2e8f0",
   }}
@@ -364,7 +364,7 @@ const aiRecommendations = buildRecommendations({
         style={{
           display: "block",
           padding: 14,
-          borderRadius: 14,
+          borderRadius: 12,
           background: "#fff",
           border: "1px solid #e5e7eb",
           textDecoration: "none",
@@ -392,9 +392,9 @@ const aiRecommendations = buildRecommendations({
 {relatedListings.length ? (
   <div
     style={{
-      marginTop: 24,
-      padding: 18,
-      borderRadius: 16,
+      marginTop: 14,
+      padding: 14,
+      borderRadius: 12,
       background: "#fff",
       border: "1px solid #e5e7eb",
     }}
@@ -417,7 +417,7 @@ const aiRecommendations = buildRecommendations({
           style={{
             display: "block",
             padding: 14,
-            borderRadius: 14,
+            borderRadius: 12,
             background: "#f8fafc",
             border: "1px solid #e5e7eb",
             textDecoration: "none",
@@ -446,9 +446,9 @@ const aiRecommendations = buildRecommendations({
 {aiRecommendations.length ? (
   <div
     style={{
-      marginTop: 24,
-      padding: 18,
-      borderRadius: 16,
+      marginTop: 14,
+      padding: 14,
+      borderRadius: 12,
       background: "#fff",
       border: "1px solid #e5e7eb",
     }}
@@ -481,7 +481,7 @@ const aiRecommendations = buildRecommendations({
           style={{
             display: "block",
             padding: 14,
-            borderRadius: 14,
+            borderRadius: 12,
             background: "#f8fafc",
             border: "1px solid #e5e7eb",
             textDecoration: "none",
@@ -613,7 +613,7 @@ const aiRecommendations = buildRecommendations({
                 {row.security_deposit != null ? <Badge>Deposit: ₹ {row.security_deposit}</Badge> : null}
               </div>
 
-              <div style={{ fontWeight: 900, fontSize: 20, marginBottom: 8 }}>{(row.title ?? "").trim() || "Untitled rental"}</div>
+              <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 8 }}>{(row.title ?? "").trim() || "Untitled rental"}</div>
 
               <div style={{ opacity: 0.85, marginBottom: 10 }}>
                 {loc} • {priceText}
@@ -643,9 +643,9 @@ const aiRecommendations = buildRecommendations({
 
               <div
                 style={{
-                  marginTop: 24,
-                  padding: 18,
-                  borderRadius: 16,
+                  marginTop: 14,
+                  padding: 14,
+                  borderRadius: 12,
                   background: "#f8fafc",
                   border: "1px solid #e2e8f0",
                 }}
@@ -692,9 +692,9 @@ const aiRecommendations = buildRecommendations({
 
               <div
                 style={{
-                  marginTop: 24,
-                  padding: 18,
-                  borderRadius: 16,
+                  marginTop: 14,
+                  padding: 14,
+                  borderRadius: 12,
                   background: "#fff",
                   border: "1px solid #e5e7eb",
                 }}

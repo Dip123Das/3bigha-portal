@@ -60,7 +60,7 @@ export default async function ProcurementAnomalyPage() {
         </div>
 
         <h1 className="mt-4 text-3xl font-black">
-          Procurement Workflow Anomaly Engine
+          Procurement Workflow Issue Review
         </h1>
 
         <p className="mt-3 max-w-4xl text-sm font-medium leading-6 text-slate-200">

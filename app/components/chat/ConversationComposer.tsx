@@ -257,7 +257,7 @@ export default function ConversationComposer(props: {
             onClick={() => applyQuickReply(q)}
             style={{
               padding: "6px 10px",
-              borderRadius: 999,
+              borderRadius: 12,
               border: "1px solid #d1d5db",
               background: "#fff",
               fontSize: 12,
@@ -275,7 +275,7 @@ export default function ConversationComposer(props: {
           marginBottom: 10,
           border: "1px solid #e5e7eb",
           background: "#f8fafc",
-          borderRadius: 14,
+          borderRadius: 12,
           padding: "10px 12px",
         }}
       >
@@ -287,47 +287,47 @@ export default function ConversationComposer(props: {
             color: "#111827",
           }}
         >
-          ✨ Need AI help writing this message?
+          ✨ Need help writing this message?
         </summary>
 
         <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button type="button" onClick={() => applyAiDealSuggestion("Please confirm the exact item, quantity, delivery location, final price and expected delivery time.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 999, border: "1px solid #c7d2fe", background: "#fff", color: "#3730a3", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
+          <button type="button" onClick={() => applyAiDealSuggestion("Please confirm the exact item, quantity, delivery location, final price and expected delivery time.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 12, border: "1px solid #c7d2fe", background: "#fff", color: "#3730a3", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
             Ask full deal details
           </button>
 
-          <button type="button" onClick={() => applyAiDealSuggestion("Your price seems slightly higher than expected. Could you offer a better rate or any discount for immediate confirmation?")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 999, border: "1px solid #f59e0b", background: "#fff", color: "#92400e", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
+          <button type="button" onClick={() => applyAiDealSuggestion("Your price seems slightly higher than expected. Could you offer a better rate or any discount for immediate confirmation?")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 12, border: "1px solid #f59e0b", background: "#fff", color: "#92400e", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
             💰 Ask for discount
           </button>
 
-          <button type="button" onClick={() => applyAiDealSuggestion("I am comparing multiple vendors. If you can give your best final rate now, I can confirm quickly.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 999, border: "1px solid #0ea5e9", background: "#fff", color: "#075985", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
+          <button type="button" onClick={() => applyAiDealSuggestion("I am comparing multiple vendors. If you can give your best final rate now, I can confirm quickly.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 12, border: "1px solid #0ea5e9", background: "#fff", color: "#075985", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
             📊 Compare vendors
           </button>
 
-          <button type="button" onClick={() => applyAiDealSuggestion("If the price and delivery can be finalized today, I am ready to proceed immediately.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 999, border: "1px solid #16a34a", background: "#fff", color: "#065f46", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
+          <button type="button" onClick={() => applyAiDealSuggestion("If the price and delivery can be finalized today, I am ready to proceed immediately.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 12, border: "1px solid #16a34a", background: "#fff", color: "#065f46", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
             ⚡ Create urgency
           </button>
 
-          <button type="button" onClick={() => applyAiDealSuggestion("I am ready to proceed, but the quoted rate is slightly above my expected budget. If you can revise the final price or include delivery/extra support within the same rate, I can confirm faster.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 999, border: "1px solid #dc2626", background: "#fff", color: "#991b1b", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
+          <button type="button" onClick={() => applyAiDealSuggestion("I am ready to proceed, but the quoted rate is slightly above my expected budget. If you can revise the final price or include delivery/extra support within the same rate, I can confirm faster.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 12, border: "1px solid #dc2626", background: "#fff", color: "#991b1b", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
             🤝 AI Counter Offer
           </button>
 
-          <button type="button" onClick={() => applyAiDealSuggestion("Please confirm your final best offer. If everything is aligned, I will close this deal right now.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 999, border: "1px solid #7c3aed", background: "#fff", color: "#4c1d95", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
+          <button type="button" onClick={() => applyAiDealSuggestion("Please confirm your final best offer. If everything is aligned, I will close this deal right now.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 12, border: "1px solid #7c3aed", background: "#fff", color: "#4c1d95", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
             🏁 Close deal fast
           </button>
 
-          <button type="button" onClick={() => applyAiDealSuggestion("Thank you. Please share your best final rate, including delivery charges and any applicable taxes.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 999, border: "1px solid #c7d2fe", background: "#fff", color: "#3730a3", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
+          <button type="button" onClick={() => applyAiDealSuggestion("Thank you. Please share your best final rate, including delivery charges and any applicable taxes.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 12, border: "1px solid #c7d2fe", background: "#fff", color: "#3730a3", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
             Negotiate better price
           </button>
 
-          <button type="button" onClick={() => applyAiDealSuggestion("Before we proceed, please confirm your business name, location, availability, and whether you can provide proper bill or document if required.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 999, border: "1px solid #c7d2fe", background: "#fff", color: "#3730a3", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
+          <button type="button" onClick={() => applyAiDealSuggestion("Before we proceed, please confirm your business name, location, availability, and whether you can provide proper bill or document if required.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 12, border: "1px solid #c7d2fe", background: "#fff", color: "#3730a3", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
             Verify vendor trust
           </button>
 
-          <button type="button" onClick={() => applyAiDealSuggestion("I am interested, but I need a clear final confirmation from your side. Please confirm availability, final price, delivery/service timing, and any extra charges so I can decide without delay.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 999, border: "1px solid #0f766e", background: "#fff", color: "#115e59", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
+          <button type="button" onClick={() => applyAiDealSuggestion("I am interested, but I need a clear final confirmation from your side. Please confirm availability, final price, delivery/service timing, and any extra charges so I can decide without delay.")} disabled={loading} style={{ padding: "7px 10px", borderRadius: 12, border: "1px solid #0f766e", background: "#fff", color: "#115e59", fontSize: 12, fontWeight: 900, cursor: loading ? "default" : "pointer" }}>
             🚨 Prevent Lost Lead
           </button>
 
-          <button type="button" onClick={improveMessageWithAi} disabled={loading || aiAssistLoading} style={{ padding: "7px 10px", borderRadius: 999, border: "1px solid #7c3aed", background: aiAssistLoading ? "#ede9fe" : "#7c3aed", color: aiAssistLoading ? "#5b21b6" : "#fff", fontSize: 12, fontWeight: 900, cursor: loading || aiAssistLoading ? "default" : "pointer" }}>
+          <button type="button" onClick={improveMessageWithAi} disabled={loading || aiAssistLoading} style={{ padding: "7px 10px", borderRadius: 12, border: "1px solid #7c3aed", background: aiAssistLoading ? "#ede9fe" : "#7c3aed", color: aiAssistLoading ? "#5b21b6" : "#fff", fontSize: 12, fontWeight: 900, cursor: loading || aiAssistLoading ? "default" : "pointer" }}>
             {aiAssistLoading ? "AI improving..." : "✨ Improve typed message"}
           </button>
 
@@ -394,8 +394,8 @@ export default function ConversationComposer(props: {
         style={{
           marginBottom: 10,
           border: "1px solid #bbf7d0",
-          background: "linear-gradient(90deg, #ecfdf5, #ffffff)",
-          borderRadius: 14,
+          background: "#ffffff",
+          borderRadius: 12,
           padding: "10px 12px",
           display: "flex",
           gap: 10,
@@ -483,7 +483,7 @@ export default function ConversationComposer(props: {
                   border: "none",
                   background: "#fff",
                   cursor: "pointer",
-                  fontSize: 22,
+                  fontSize: 18,
                   lineHeight: 1.2,
                   padding: 6,
                   borderRadius: 8,
@@ -501,8 +501,8 @@ export default function ConversationComposer(props: {
           style={{
             marginBottom: 10,
             border: "1px solid #fde68a",
-            background: "linear-gradient(90deg, #fffbeb, #ffffff)",
-            borderRadius: 14,
+            background: "#ffffff",
+            borderRadius: 12,
             padding: "10px 12px",
             display: "flex",
             justifyContent: "space-between",
@@ -549,8 +549,8 @@ export default function ConversationComposer(props: {
           style={{
             marginBottom: 10,
             border: "1px solid #bbf7d0",
-            background: "linear-gradient(90deg, #ecfdf5, #ffffff)",
-            borderRadius: 14,
+            background: "#ffffff",
+            borderRadius: 12,
             padding: "10px 12px",
             display: "flex",
             justifyContent: "space-between",
@@ -621,7 +621,7 @@ export default function ConversationComposer(props: {
         style={{
           width: "100%",
           padding: 12,
-          borderRadius: 14,
+          borderRadius: 12,
           border: "1px solid #d1d5db",
           resize: "vertical",
           outline: "none",
@@ -797,7 +797,7 @@ export default function ConversationComposer(props: {
                           justifyContent: "center",
                           background: "#f3f4f6",
                           flexShrink: 0,
-                          fontSize: 20,
+                          fontSize: 18,
                         }}
                       >
                         📄
@@ -945,12 +945,12 @@ export default function ConversationComposer(props: {
                 cursor: loading ? "default" : "pointer",
               }}
             >
-              ⚡ Auto AI Reply
+              ⚡ Quick Reply Help
             </button>
           ) : (
             <button
               type="button"
-              onClick={() => alert("Upgrade to Gold to unlock Auto AI Reply")}
+              onClick={() => alert("Upgrade to Gold to unlock Quick Reply Help")}
               disabled={loading}
               style={{
                 padding: "10px 14px",
@@ -961,7 +961,7 @@ export default function ConversationComposer(props: {
                 cursor: "pointer",
               }}
             >
-              🔒 Auto AI Reply
+              🔒 Quick Reply Help
             </button>
           )}
 

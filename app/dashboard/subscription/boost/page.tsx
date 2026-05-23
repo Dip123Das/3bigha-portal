@@ -80,8 +80,8 @@ export default function BoostPage() {
   }
 
   return (
-    <div style={{ padding: 20, maxWidth: 880, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 28, fontWeight: 950 }}>
+    <div style={{ padding: 14, maxWidth: 880, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 18, fontWeight: 950 }}>
         🚀 Boost Your Visibility
       </h1>
 
@@ -93,8 +93,8 @@ export default function BoostPage() {
         style={{
           marginTop: 16,
           border: "1px solid #fed7aa",
-          background: "linear-gradient(135deg, #fff7ed, #ffffff)",
-          borderRadius: 16,
+          background: "#ffffff",
+          borderRadius: 12,
           padding: 14,
           fontWeight: 850,
           color: "#7c2d12",
@@ -111,7 +111,7 @@ export default function BoostPage() {
             border: "1px solid #bbf7d0",
             background: "#ecfdf5",
             color: "#065f46",
-            borderRadius: 14,
+            borderRadius: 12,
             padding: 12,
             fontWeight: 900,
           }}
@@ -127,7 +127,7 @@ export default function BoostPage() {
             style={{
               border: plan.highlight ? "2px solid #f59e0b" : "1px solid #ddd",
               borderRadius: 18,
-              padding: 18,
+              padding: 14,
               background: plan.highlight
                 ? "linear-gradient(135deg, #fffbeb, #ffffff)"
                 : "white",
@@ -144,7 +144,7 @@ export default function BoostPage() {
               {plan.desc}
             </div>
 
-            <div style={{ marginTop: 10, fontSize: 24, fontWeight: 950 }}>
+            <div style={{ marginTop: 10, fontSize: 20, fontWeight: 950 }}>
               {plan.price}
             </div>
 

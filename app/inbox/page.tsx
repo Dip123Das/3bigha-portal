@@ -23,7 +23,7 @@ function StatCard({ label, value }: { label: string; value: number }) {
       }}
     >
       <div style={{ fontSize: 12, opacity: 0.7 }}>{label}</div>
-      <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>{value}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, marginTop: 4 }}>{value}</div>
     </div>
   );
 }
@@ -49,10 +49,10 @@ export default async function InboxPage({
   const vendorRows = rows.filter((r) => r.role === "vendor").length;
 
   return (
-    <div style={{ padding: 16 }}>
+    <div style={{ padding: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>Unified Inbox</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Unified Inbox</h1>
           <div style={{ marginTop: 6, fontSize: 13, color: "#6b7280" }}>
             Buyer + Vendor RFQ chat conversations in one place, with unread counts and latest message preview.
           </div>

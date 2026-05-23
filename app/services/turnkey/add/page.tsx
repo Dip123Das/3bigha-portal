@@ -138,13 +138,13 @@ const styles = {
   minor: { color: "#5b6472", fontSize: 12 },
   gateBox: {
     border: "1px solid #e5e7eb",
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 14,
     background: "#fff",
   },
   stepPill: (active: boolean): React.CSSProperties => ({
     padding: "8px 12px",
-    borderRadius: 999,
+    borderRadius: 12,
     border: active ? "2px solid #111827" : "1px solid #e5e7eb",
     background: "#fff",
     fontWeight: 900,
@@ -161,7 +161,7 @@ const styles = {
   }),
   box: {
     border: "1px solid #e5e7eb",
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 12,
     background: "#fff",
   },
@@ -778,7 +778,7 @@ setActiveKey(ds[0]?.key ?? "");
                                     marginTop: 10,
                                     border: "1px solid #bfdbfe",
                                     background: "#eff6ff",
-                                    borderRadius: 14,
+                                    borderRadius: 12,
                                     padding: 12,
                                   }}
                                 >
@@ -907,8 +907,8 @@ setActiveKey(ds[0]?.key ?? "");
                       style={{
                         marginTop: 12,
                         border: "1px solid rgba(22,163,74,0.24)",
-                        background: "linear-gradient(135deg, rgba(22,163,74,0.08), #ffffff)",
-                        borderRadius: 16,
+                        background: "#ffffff",
+                        borderRadius: 12,
                         padding: 14,
                       }}
                     >
@@ -979,7 +979,7 @@ setActiveKey(ds[0]?.key ?? "");
                           <div style={{ fontSize: 12, color: "#166534", fontWeight: 900 }}>
                             Estimated Total
                           </div>
-                          <div style={{ marginTop: 4, color: "#14532d", fontWeight: 1000, fontSize: 18 }}>
+                          <div style={{ marginTop: 4, color: "#14532d", fontWeight: 800, fontSize: 18 }}>
                             {formatIndianCurrency(turnkeyCostPreview.estimatedTotal)}
                           </div>
                         </div>
@@ -988,7 +988,7 @@ setActiveKey(ds[0]?.key ?? "");
                           <div style={{ fontSize: 12, color: "#1e40af", fontWeight: 900 }}>
                             Current Rate / Sq.ft
                           </div>
-                          <div style={{ marginTop: 4, color: "#1e3a8a", fontWeight: 1000, fontSize: 18 }}>
+                          <div style={{ marginTop: 4, color: "#1e3a8a", fontWeight: 800, fontSize: 18 }}>
                             {formatIndianCurrency(turnkeyCostPreview.ratePerSqFt)}
                           </div>
                         </div>
@@ -997,7 +997,7 @@ setActiveKey(ds[0]?.key ?? "");
                           <div style={{ fontSize: 12, color: "#92400e", fontWeight: 900 }}>
                             Market Range
                           </div>
-                          <div style={{ marginTop: 4, color: "#78350f", fontWeight: 1000, fontSize: 13 }}>
+                          <div style={{ marginTop: 4, color: "#78350f", fontWeight: 800, fontSize: 13 }}>
                             {formatIndianCurrency(turnkeyCostPreview.estimatedMinTotal)} -{" "}
                             {formatIndianCurrency(turnkeyCostPreview.estimatedMaxTotal)}
                           </div>
@@ -1091,7 +1091,7 @@ setActiveKey(ds[0]?.key ?? "");
                                 marginTop: 12,
                                 border: "1px solid #fed7aa",
                                 background: "#fff7ed",
-                                borderRadius: 16,
+                                borderRadius: 12,
                                 padding: 12,
                               }}
                             >
@@ -1297,7 +1297,7 @@ setActiveKey(ds[0]?.key ?? "");
                             {activeDraft.payment_milestones.map((m) => (
                               <div
                                 key={m.key}
-                                style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 10, background: "#fff" }}
+                                style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 10, background: "#fff" }}
                               >
                                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                                   <div style={{ flex: 1, minWidth: 180 }}>

@@ -310,7 +310,7 @@ export default function BlogPostPage() {
                   <div
                     style={{
                       padding: "12px 14px",
-                      borderRadius: 14,
+                      borderRadius: 12,
                       border: "1px solid rgba(0,0,0,0.08)",
                       background: "rgba(0,0,0,0.02)",
                       marginBottom: 14,

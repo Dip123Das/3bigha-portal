@@ -57,7 +57,7 @@ export default function DeliveryUpdateForm(props: {
   return (
     <div
       style={{
-        padding: 16,
+        padding: 12,
         border: "1px solid #e5e7eb",
         borderRadius: 12,
         background: "#fff",

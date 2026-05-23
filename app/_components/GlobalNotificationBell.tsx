@@ -67,7 +67,7 @@ export default function GlobalNotificationBell({
             minWidth: 18,
             height: 18,
             padding: "0 5px",
-            borderRadius: 999,
+            borderRadius: 12,
             background: "#dc2626",
             color: "white",
             fontSize: 11,

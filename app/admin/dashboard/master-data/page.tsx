@@ -251,7 +251,7 @@ export default function MasterDataEntryCentrePage() {
 
         .segWrap {
           width: 100%;
-          max-width: 360px;
+          max-width: 260px;
 
           display: grid;
 .segWrap.two {

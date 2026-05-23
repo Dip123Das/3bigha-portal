@@ -13,10 +13,10 @@ export default function ProcurementActionCopilot({
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, #111827, #4338ca)",
+        background: "#ffffff",
         color: "#ffffff",
         borderRadius: 20,
-        padding: 16,
+        padding: 12,
         display: "grid",
         gap: 14,
         boxShadow: "0 18px 42px rgba(15,23,42,0.14)",
@@ -27,7 +27,7 @@ export default function ProcurementActionCopilot({
           Procurement Action Copilot
         </div>
 
-        <div style={{ marginTop: 4, fontSize: 22, fontWeight: 1000 }}>
+        <div style={{ marginTop: 4, fontSize: 18, fontWeight: 800 }}>
           🚀 {insight.title}
         </div>
 
@@ -50,7 +50,7 @@ export default function ProcurementActionCopilot({
             style={{
               background: "rgba(255,255,255,0.12)",
               border: "1px solid rgba(255,255,255,0.16)",
-              borderRadius: 16,
+              borderRadius: 12,
               padding: 12,
               textDecoration: "none",
               color: "#ffffff",
@@ -59,12 +59,12 @@ export default function ProcurementActionCopilot({
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-              <strong style={{ fontSize: 14, fontWeight: 1000 }}>
+              <strong style={{ fontSize: 14, fontWeight: 800 }}>
                 {action.icon} {action.title}
               </strong>
               <span
                 style={{
-                  borderRadius: 999,
+                  borderRadius: 12,
                   background:
                     action.priority === "High"
                       ? "rgba(34,197,94,0.22)"

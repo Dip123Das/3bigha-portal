@@ -94,7 +94,7 @@ export default function ProcurementCommandPalette() {
   return (
     <>
       <button
-        aria-label="Open AI Procurement Command Center"
+        aria-label="Open AI Procurement Work Desk"
         onClick={() => setOpen(true)}
         className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 lg:inline-flex"
       >
@@ -102,7 +102,7 @@ export default function ProcurementCommandPalette() {
       </button>
 
       <button
-        aria-label="Open AI Procurement Command Center"
+        aria-label="Open AI Procurement Work Desk"
         onClick={() => setOpen(true)}
         className="fixed bottom-4 right-4 z-[9998] inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-slate-950 px-4 py-3 text-sm font-black text-white shadow-2xl shadow-slate-900/30 lg:hidden"
       >
@@ -114,18 +114,18 @@ export default function ProcurementCommandPalette() {
           <div className="mx-auto mt-6 max-h-[92vh] max-w-2xl overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-2xl md:mt-24 md:rounded-[2rem]">
             <div className="border-b border-slate-200 bg-gradient-to-r from-slate-950 via-indigo-950 to-violet-950 px-5 py-4 text-white">
               <div className="text-xs font-black uppercase tracking-[0.14em] text-indigo-200">
-                Enterprise AI Procurement OS
+                Enterprise Procurement Workspace
               </div>
 
               <div className="mt-1 text-lg font-black">
-                AI Operational Command Center
+                AI Operational Work Desk
               </div>
             </div>
 
             <div className="border-b border-slate-200 bg-slate-50 p-4">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-black text-emerald-700">
-                  Live AI Procurement OS
+                  Live Procurement Workspace
                 </span>
 
                 <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-black text-blue-700">
@@ -162,7 +162,7 @@ export default function ProcurementCommandPalette() {
                   <div className="text-lg">🛰️</div>
 
                   <div className="mt-2 text-xs font-black">
-                    Mission Control
+                    Work Desk
                   </div>
                 </Link>
                 <Link
@@ -185,7 +185,7 @@ export default function ProcurementCommandPalette() {
                   <div className="text-lg">⚡</div>
 
                   <div className="mt-2 text-xs font-black text-amber-700">
-                    AI Actions
+                    Pending Actions
                   </div>
                 </Link>
 
@@ -209,7 +209,7 @@ export default function ProcurementCommandPalette() {
                   <div className="text-lg">📡</div>
 
                   <div className="mt-2 text-xs font-black text-blue-700">
-                    Live Stream
+                    Activity Feed
                   </div>
                 </Link>
               </div>
@@ -267,7 +267,7 @@ export default function ProcurementCommandPalette() {
                 </div>
 
                 <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-black text-emerald-700">
-                  Live Enterprise Procurement OS
+                  Live Enterprise Procurement Workspace
                 </div>
               </div>
             </div>

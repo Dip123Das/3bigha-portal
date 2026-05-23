@@ -107,11 +107,11 @@ export default function ProcurementSituationRoomPage() {
       <div className="mx-auto max-w-7xl">
         <div className="overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-red-950 to-orange-950 p-10 text-white shadow-2xl">
           <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
-            AI Procurement Situation Room
+            AI Procurement Work Updates
           </div>
 
           <h1 className="mt-6 text-5xl font-black">
-            Procurement Situation Room
+            Procurement Work Updates
           </h1>
 
           <p className="mt-4 max-w-3xl text-base font-medium text-slate-200">
@@ -134,7 +134,7 @@ export default function ProcurementSituationRoomPage() {
         </div>
 
         <div className="mt-6">
-          <LiveProcurementRefreshBadge label="Situation Room auto-refresh" />
+          <LiveProcurementRefreshBadge label="Work Updates auto-refresh" />
         </div>
 
         <div className="mt-6">
@@ -203,7 +203,7 @@ export default function ProcurementSituationRoomPage() {
             ))}
           </Panel>
 
-          <Panel title="Timeline Replay Snapshot">
+          <Panel title="Activity Timeline Snapshot">
             {timelineSteps.slice(-8).reverse().map((step: any) => (
               <div
                 key={`${step.id}-${step.createdAt}`}
@@ -235,9 +235,9 @@ export default function ProcurementSituationRoomPage() {
           <div className="mt-5 grid gap-4 md:grid-cols-4">
             <Command href="/dashboard/procurement-live" title="Open Live Feed" />
             <Command href="/dashboard/procurement-timeline" title="Open Timeline" />
-            <Command href="/dashboard/procurement-heatmap" title="Open Heatmap AI" />
-            <Command href="/dashboard/procurement-autonomous-tasks" title="Autonomous Tasks" />
-            <Command href="/dashboard/procurement-mission-control" title="Mission Control" />
+            <Command href="/dashboard/procurement-heatmap" title="Open Risk Overview" />
+            <Command href="/dashboard/procurement-autonomous-tasks" title="Pending Tasks" />
+            <Command href="/dashboard/procurement-mission-control" title="Work Desk" />
           </div>
         </div>
       </div>

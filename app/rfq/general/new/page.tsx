@@ -1813,7 +1813,7 @@ return;
 
   return (
     <div className="container pageBody" style={{ paddingTop: 16 }}>
-      <h1 style={{ fontSize: 22, marginBottom: 8 }}>Submit Requirement (Unified RFQ)</h1>
+      <h1 style={{ fontSize: 18, marginBottom: 8 }}>Submit Requirement (Unified RFQ)</h1>
       <div style={{ opacity: 0.8, marginBottom: 16 }}>
         Select module → describe requirement → add items/work or upload a handwritten/PDF list.
       </div>
@@ -1823,7 +1823,7 @@ return;
           border: "1px solid rgba(37,99,235,0.16)",
           background: "#ffffff",
           borderRadius: 18,
-          padding: 16,
+          padding: 12,
           marginBottom: 16,
           boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
           position: "sticky",
@@ -1843,8 +1843,8 @@ return;
           <div>
             <div
               style={{
-                fontSize: 20,
-                fontWeight: 1000,
+                fontSize: 18,
+                fontWeight: 800,
                 color: "#0f172a",
               }}
             >
@@ -1867,9 +1867,9 @@ return;
             style={{
               background: "#dbeafe",
               color: "#1d4ed8",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "8px 12px",
-              fontWeight: 1000,
+              fontWeight: 800,
               alignSelf: "center",
             }}
           >
@@ -1881,7 +1881,7 @@ return;
           style={{
             height: 10,
             background: "#e5e7eb",
-            borderRadius: 999,
+            borderRadius: 12,
             overflow: "hidden",
             marginBottom: 14,
           }}
@@ -1890,7 +1890,7 @@ return;
             style={{
               width: `${smartProgress.percent}%`,
               height: "100%",
-              background: "linear-gradient(90deg, #2563eb, #0ea5e9)",
+              background: "#ffffff",
             }}
           />
         </div>
@@ -1954,8 +1954,8 @@ return;
         <div
           style={{
             border: "1px solid rgba(124,58,237,0.28)",
-            background: "linear-gradient(135deg, rgba(124,58,237,0.08), #ffffff)",
-            borderRadius: 14,
+            background: "#ffffff",
+            borderRadius: 12,
             padding: 14,
             marginBottom: 12,
             boxShadow: "0 10px 24px rgba(124,58,237,0.06)",
@@ -1986,7 +1986,7 @@ return;
             >
               <div
                 style={{
-                  fontWeight: 1000,
+                  fontWeight: 800,
                   color: "#6d28d9",
                   fontSize: 18,
                 }}
@@ -1996,8 +1996,8 @@ return;
 
               <div
                 style={{
-                  fontSize: 20,
-                  fontWeight: 1000,
+                  fontSize: 18,
+                  fontWeight: 800,
                   color: "#6d28d9",
                 }}
               >
@@ -2010,7 +2010,7 @@ return;
             <>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
             <div>
-              <div style={{ fontWeight: 1000, color: "#6d28d9" }}>
+              <div style={{ fontWeight: 800, color: "#6d28d9" }}>
                 Need Help Improving This Requirement?
               </div>
               <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 700 }}>
@@ -2020,10 +2020,10 @@ return;
 
             <div
               style={{
-                fontWeight: 1000,
+                fontWeight: 800,
                 color: "#fff",
                 background: rfqHealthTone,
-                borderRadius: 999,
+                borderRadius: 12,
                 padding: "7px 12px",
                 alignSelf: "center",
               }}
@@ -2046,7 +2046,7 @@ return;
                     border: "1px solid #ddd6fe",
                     background: "#f5f3ff",
                     color: "#5b21b6",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     padding: "5px 10px",
                     fontSize: 12,
                     fontWeight: 900,
@@ -2060,7 +2060,7 @@ return;
                     border: "1px solid #bbf7d0",
                     background: "#ecfdf5",
                     color: "#065f46",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     padding: "5px 10px",
                     fontSize: 12,
                     fontWeight: 900,
@@ -2074,7 +2074,7 @@ return;
                     border: "1px solid #e5e7eb",
                     background: "#f8fafc",
                     color: "#334155",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     padding: "5px 10px",
                     fontSize: 12,
                     fontWeight: 900,
@@ -2100,7 +2100,7 @@ return;
                     fontWeight: 800,
                   }}
                 >
-                  <div style={{ fontWeight: 1000, marginBottom: 4 }}>⚠ Missing / weak details</div>
+                  <div style={{ fontWeight: 800, marginBottom: 4 }}>⚠ Missing / weak details</div>
                   {rfqAi.missingInformation.slice(0, 4).map((x, idx) => (
                     <div key={idx}>• {x}</div>
                   ))}
@@ -2119,7 +2119,7 @@ return;
                     fontWeight: 800,
                   }}
                 >
-                  <div style={{ fontWeight: 1000, marginBottom: 4 }}>Suggested improvements</div>
+                  <div style={{ fontWeight: 800, marginBottom: 4 }}>Suggested improvements</div>
                   {rfqAi.improvementSuggestions.slice(0, 4).map((x, idx) => (
                     <div key={idx}>• {x}</div>
                   ))}
@@ -2140,11 +2140,11 @@ return;
         <div
           style={{
             border: "1px solid rgba(37,99,235,0.30)",
-            background: "linear-gradient(135deg, rgba(37,99,235,0.08), #ffffff)",
+            background: "#ffffff",
             borderRadius: 18,
-            padding: 16,
+            padding: 12,
             marginBottom: 14,
-            boxShadow: "0 14px 30px rgba(37,99,235,0.08)",
+            boxShadow: "0 2px 6px rgba(15,23,42,0.04)",
           }}
         >
           <div
@@ -2167,7 +2167,7 @@ return;
                 textAlign: "left",
               }}
             >
-              <div style={{ fontWeight: 1000, color: "#1e3a8a", fontSize: 18 }}>
+              <div style={{ fontWeight: 800, color: "#1e3a8a", fontSize: 18 }}>
                 Supplier Match Guidance
                 <span style={{ marginLeft: 10, color: "#2563eb" }}>
                   {showSupplierIntel ? "−" : "+"}
@@ -2185,9 +2185,9 @@ return;
                   background: "#dbeafe",
                   color: "#1e40af",
                   border: "1px solid #bfdbfe",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   padding: "8px 12px",
-                  fontWeight: 1000,
+                  fontWeight: 800,
                   alignSelf: "center",
                 }}
               >
@@ -2205,7 +2205,7 @@ return;
                     style={{
                       background: "#ffffff",
                       border: v.rank === 1 ? "2px solid #2563eb" : "1px solid rgba(15,23,42,0.10)",
-                      borderRadius: 14,
+                      borderRadius: 12,
                       padding: 12,
                     }}
                   >
@@ -2216,16 +2216,16 @@ return;
                             style={{
                               background: v.rank === 1 ? "#2563eb" : "#e2e8f0",
                               color: v.rank === 1 ? "#ffffff" : "#334155",
-                              borderRadius: 999,
+                              borderRadius: 12,
                               padding: "4px 9px",
-                              fontWeight: 1000,
+                              fontWeight: 800,
                               fontSize: 12,
                             }}
                           >
                             Rank #{v.rank}
                           </span>
 
-                          <div style={{ fontWeight: 1000, color: "#0f172a" }}>{v.name}</div>
+                          <div style={{ fontWeight: 800, color: "#0f172a" }}>{v.name}</div>
                         </div>
 
                         <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 6 }}>
@@ -2241,10 +2241,10 @@ return;
 
                       <div
                         style={{
-                          fontWeight: 1000,
+                          fontWeight: 800,
                           color: "#166534",
                           background: "#dcfce7",
-                          borderRadius: 999,
+                          borderRadius: 12,
                           padding: "7px 11px",
                           alignSelf: "center",
                         }}
@@ -2263,17 +2263,17 @@ return;
                     >
                       <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: 8 }}>
                         <div style={{ fontSize: 11, color: "#64748b", fontWeight: 900 }}>Delivery confidence</div>
-                        <div style={{ fontWeight: 1000, color: "#0f172a" }}>{v.deliveryConfidence}</div>
+                        <div style={{ fontWeight: 800, color: "#0f172a" }}>{v.deliveryConfidence}</div>
                       </div>
 
                       <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: 8 }}>
                         <div style={{ fontSize: 11, color: "#64748b", fontWeight: 900 }}>Pricing confidence</div>
-                        <div style={{ fontWeight: 1000, color: "#0f172a" }}>{v.pricingConfidence}</div>
+                        <div style={{ fontWeight: 800, color: "#0f172a" }}>{v.pricingConfidence}</div>
                       </div>
 
                       <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: 8 }}>
                         <div style={{ fontSize: 11, color: "#64748b", fontWeight: 900 }}>Negotiation</div>
-                        <div style={{ fontWeight: 1000, color: "#0f172a" }}>{v.negotiationReadiness}</div>
+                        <div style={{ fontWeight: 800, color: "#0f172a" }}>{v.negotiationReadiness}</div>
                       </div>
                     </div>
 
@@ -2319,16 +2319,16 @@ return;
             <div
         style={{
           border: "1px solid rgba(37,99,235,0.18)",
-          background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+          background: "#ffffff",
           borderRadius: 18,
-          padding: 16,
+          padding: 12,
           marginBottom: 16,
-          boxShadow: "0 14px 34px rgba(37,99,235,0.08)",
+          boxShadow: "0 2px 6px rgba(15,23,42,0.04)",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 1000, color: "#1e3a8a" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#1e3a8a" }}>
               Quick Requirement Mode
             </div>
             <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 700 }}>
@@ -2341,9 +2341,9 @@ return;
               background: "#dbeafe",
               color: "#1d4ed8",
               border: "1px solid #bfdbfe",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "8px 12px",
-              fontWeight: 1000,
+              fontWeight: 800,
               alignSelf: "center",
               fontSize: 12,
             }}
@@ -2427,7 +2427,7 @@ return;
               background: voiceListening ? "#dbeafe" : "#ffffff",
               color: "#1d4ed8",
               padding: "11px 14px",
-              fontWeight: 1000,
+              fontWeight: 800,
               cursor: "pointer",
               whiteSpace: "nowrap",
             }}
@@ -2444,7 +2444,7 @@ return;
               background: "#2563eb",
               color: "#ffffff",
               padding: "11px 14px",
-              fontWeight: 1000,
+              fontWeight: 800,
               cursor: "pointer",
               boxShadow: "0 10px 22px rgba(37,99,235,0.22)",
               whiteSpace: "nowrap",
@@ -2462,16 +2462,16 @@ return;
       <div
         style={{
           border: "1px solid rgba(79,70,229,0.28)",
-          background: "linear-gradient(135deg, rgba(79,70,229,0.08), #ffffff)",
+          background: "#ffffff",
           borderRadius: 18,
-          padding: 16,
+          padding: 12,
           marginBottom: 14,
-          boxShadow: "0 14px 30px rgba(79,70,229,0.07)",
+          boxShadow: "0 2px 6px rgba(15,23,42,0.04)",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 1000, color: "#3730a3" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#3730a3" }}>
               <button
                 type="button"
                 onClick={() =>
@@ -2497,7 +2497,7 @@ return;
                   <div
                     style={{
                       fontSize: 18,
-                      fontWeight: 1000,
+                      fontWeight: 800,
                       color: "#0f172a",
                     }}
                   >
@@ -2506,8 +2506,8 @@ return;
 
                   <div
                     style={{
-                      fontSize: 22,
-                      fontWeight: 1000,
+                      fontSize: 18,
+                      fontWeight: 800,
                       color: "#2563eb",
                     }}
                   >
@@ -2536,9 +2536,9 @@ return;
                   : procurementInsight.readinessScore >= 50
                     ? "#92400e"
                     : "#991b1b",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "8px 13px",
-              fontWeight: 1000,
+              fontWeight: 800,
               alignSelf: "center",
             }}
           >
@@ -2546,7 +2546,7 @@ return;
           </div>
         </div>
 
-        <div style={{ marginTop: 12, background: "#e5e7eb", height: 10, borderRadius: 999, overflow: "hidden" }}>
+        <div style={{ marginTop: 12, background: "#e5e7eb", height: 10, borderRadius: 12, overflow: "hidden" }}>
           <div
             style={{
               width: `${procurementInsight.completionPercent}%`,
@@ -2574,7 +2574,7 @@ return;
           ].map(([label, value]) => (
             <div key={label} style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: 10 }}>
               <div style={{ fontSize: 11, color: "#64748b", fontWeight: 900 }}>{label}</div>
-              <div style={{ color: "#0f172a", fontWeight: 1000, marginTop: 4 }}>{value}</div>
+              <div style={{ color: "#0f172a", fontWeight: 800, marginTop: 4 }}>{value}</div>
             </div>
           ))}
         </div>
@@ -2594,7 +2594,7 @@ return;
 
         {procurementInsight.missingFields.length > 0 ? (
           <div style={{ marginTop: 12, border: "1px solid #fed7aa", background: "#fff7ed", color: "#9a3412", borderRadius: 12, padding: 10, fontSize: 13, fontWeight: 800 }}>
-            <div style={{ fontWeight: 1000, marginBottom: 5 }}>Missing details to complete</div>
+            <div style={{ fontWeight: 800, marginBottom: 5 }}>Missing details to complete</div>
             {procurementInsight.missingFields.slice(0, 5).map((x, idx) => (
               <div key={idx}>• {x}</div>
             ))}
@@ -2606,16 +2606,16 @@ return;
         <div
           style={{
             border: "1px solid rgba(124,58,237,0.28)",
-            background: "linear-gradient(135deg, rgba(124,58,237,0.08), #ffffff)",
+            background: "#ffffff",
             borderRadius: 18,
-            padding: 16,
+            padding: 12,
             marginBottom: 14,
-            boxShadow: "0 14px 30px rgba(124,58,237,0.07)",
+            boxShadow: "0 2px 6px rgba(15,23,42,0.04)",
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 1000, color: "#5b21b6" }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#5b21b6" }}>
                 🧩 Convert Into Clear Requirement Format
               </div>
               <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 4 }}>
@@ -2628,9 +2628,9 @@ return;
                 background: "#ede9fe",
                 color: "#5b21b6",
                 border: "1px solid #ddd6fe",
-                borderRadius: 999,
+                borderRadius: 12,
                 padding: "8px 12px",
-                fontWeight: 1000,
+                fontWeight: 800,
                 alignSelf: "center",
               }}
             >
@@ -2641,7 +2641,7 @@ return;
                   border: 0,
                   background: "transparent",
                   color: "#5b21b6",
-                  fontWeight: 1000,
+                  fontWeight: 800,
                   cursor: "pointer",
                 }}
               >
@@ -2660,7 +2660,7 @@ return;
                   padding: 10,
                 }}
               >
-                <div style={{ fontWeight: 1000, color: "#581c87", marginBottom: 5 }}>
+                <div style={{ fontWeight: 800, color: "#581c87", marginBottom: 5 }}>
                   Scope
                 </div>
                 <div style={{ color: "#334155", fontSize: 13, fontWeight: 800 }}>
@@ -2673,7 +2673,7 @@ return;
                   ? "1fr"
                   : "1fr 1fr", gap: 10 }}>
                 <div style={{ border: "1px solid #bfdbfe", background: "#eff6ff", borderRadius: 12, padding: 10 }}>
-                  <div style={{ fontWeight: 1000, color: "#1e3a8a", marginBottom: 5 }}>
+                  <div style={{ fontWeight: 800, color: "#1e3a8a", marginBottom: 5 }}>
                     Deliverables
                   </div>
                   {structuredRfq.deliverables.slice(0, 4).map((x, idx) => (
@@ -2684,7 +2684,7 @@ return;
                 </div>
 
                 <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
-                  <div style={{ fontWeight: 1000, color: "#166534", marginBottom: 5 }}>
+                  <div style={{ fontWeight: 800, color: "#166534", marginBottom: 5 }}>
                     Technical Requirements
                   </div>
                   {structuredRfq.technicalRequirements.slice(0, 4).map((x, idx) => (
@@ -2700,7 +2700,7 @@ return;
                   ? "1fr"
                   : "1fr 1fr", gap: 10 }}>
                 <div style={{ border: "1px solid #fde68a", background: "#fffbeb", borderRadius: 12, padding: 10 }}>
-                  <div style={{ fontWeight: 1000, color: "#92400e", marginBottom: 5 }}>
+                  <div style={{ fontWeight: 800, color: "#92400e", marginBottom: 5 }}>
                     Commercial Terms
                   </div>
                   {structuredRfq.commercialTerms.slice(0, 4).map((x, idx) => (
@@ -2711,7 +2711,7 @@ return;
                 </div>
 
                 <div style={{ border: "1px solid #c7d2fe", background: "#eef2ff", borderRadius: 12, padding: 10 }}>
-                  <div style={{ fontWeight: 1000, color: "#3730a3", marginBottom: 5 }}>
+                  <div style={{ fontWeight: 800, color: "#3730a3", marginBottom: 5 }}>
                     Vendor Expectations
                   </div>
                   {structuredRfq.vendorExpectations.slice(0, 4).map((x, idx) => (
@@ -2740,7 +2740,7 @@ return;
 
           {showStructuredRfq && procurementReasoning.length > 0 ? (
             <div style={{ marginTop: 14 }}>
-              <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
+              <div style={{ fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
                 🧠 Requirement Insights
               </div>
 
@@ -2770,7 +2770,7 @@ return;
 
                   return (
                     <div key={`${r.title}-${idx}`} style={{ border: "1px solid rgba(15,23,42,0.10)", background: bg, borderRadius: 12, padding: 10 }}>
-                      <div style={{ color, fontWeight: 1000, marginBottom: 4 }}>
+                      <div style={{ color, fontWeight: 800, marginBottom: 4 }}>
                         {r.title}
                       </div>
                       <div style={{ color: "#334155", fontSize: 13, fontWeight: 800 }}>
@@ -2785,7 +2785,7 @@ return;
 
           {showStructuredRfq && procurementRecommendations.length > 0 ? (
             <div style={{ marginTop: 14 }}>
-              <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
+              <div style={{ fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
                 🎯 Suggested Improvements
               </div>
 
@@ -2805,7 +2805,7 @@ return;
                     }}
                   >
                     <div style={{ maxWidth: 760 }}>
-                      <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                      <div style={{ fontWeight: 800, color: "#0f172a" }}>
                         {r.title}
                       </div>
                       <div style={{ color: "#475569", fontSize: 13, fontWeight: 800, marginTop: 4 }}>
@@ -2848,11 +2848,11 @@ return;
           border: "1px solid #dbeafe",
           background: "#eff6ff",
           borderRadius: 18,
-          padding: 18,
+          padding: 14,
           marginBottom: 22,
         }}
       >
-        <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 8 }}>
+        <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 8 }}>
           Need Help Writing?
         </div>
 
@@ -2891,7 +2891,7 @@ return;
             borderRadius: 12,
             background: aiDrafting ? "#93c5fd" : "#2563eb",
             color: "white",
-            padding: "12px 18px",
+            padding: "10px 14px",
             fontWeight: 900,
             cursor: aiDrafting ? "not-allowed" : "pointer",
           }}
@@ -2911,9 +2911,9 @@ return;
       <div
         style={{
           border: "1px solid rgba(22,163,74,0.28)",
-          background: "linear-gradient(135deg, rgba(22,163,74,0.08), #ffffff)",
+          background: "#ffffff",
           borderRadius: 18,
-          padding: 16,
+          padding: 12,
           marginTop: 14,
           marginBottom: 18,
         }}
@@ -2932,7 +2932,7 @@ return;
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 1000, color: "#166534" }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#166534" }}>
                 🏗 Budget Estimate
               </div>
               <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 4 }}>
@@ -2940,7 +2940,7 @@ return;
               </div>
             </div>
 
-            <div style={{ fontSize: 22, fontWeight: 1000, color: "#166534" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#166534" }}>
               {showConstructionBudget ? "−" : "+"}
             </div>
           </div>
@@ -3036,7 +3036,7 @@ return;
                 <div style={{ fontSize: 12, color: "#166534", fontWeight: 900 }}>
                   Estimated Budget
                 </div>
-                <div style={{ marginTop: 4, color: "#14532d", fontSize: 20, fontWeight: 1000 }}>
+                <div style={{ marginTop: 4, color: "#14532d", fontSize: 18, fontWeight: 800 }}>
                   {formatIndianCurrency(constructionBudgetEstimate.estimatedTotal)}
                 </div>
               </div>
@@ -3045,7 +3045,7 @@ return;
                 <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
                   Rate Per Sq.ft
                 </div>
-                <div style={{ marginTop: 4, color: "#0f172a", fontSize: 20, fontWeight: 1000 }}>
+                <div style={{ marginTop: 4, color: "#0f172a", fontSize: 18, fontWeight: 800 }}>
                   {formatIndianCurrency(constructionBudgetEstimate.ratePerSqFt)}
                 </div>
               </div>
@@ -3054,7 +3054,7 @@ return;
                 <div style={{ fontSize: 12, color: "#92400e", fontWeight: 900 }}>
                   Expected Range
                 </div>
-                <div style={{ marginTop: 4, color: "#78350f", fontSize: 14, fontWeight: 1000 }}>
+                <div style={{ marginTop: 4, color: "#78350f", fontSize: 14, fontWeight: 800 }}>
                   {formatIndianCurrency(constructionBudgetEstimate.estimatedMinTotal)} -{" "}
                   {formatIndianCurrency(constructionBudgetEstimate.estimatedMaxTotal)}
                 </div>
@@ -3090,9 +3090,9 @@ return;
       <div
         style={{
           border: "1px solid rgba(14,165,233,0.28)",
-          background: "linear-gradient(135deg, rgba(14,165,233,0.08), #ffffff)",
+          background: "#ffffff",
           borderRadius: 18,
-          padding: 16,
+          padding: 12,
           marginTop: 14,
           marginBottom: 18,
         }}
@@ -3110,10 +3110,10 @@ return;
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-            <div style={{ fontSize: 18, fontWeight: 1000, color: "#075985", marginBottom: 6 }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#075985", marginBottom: 6 }}>
               🧠 Step-by-Step Requirement Builder
             </div>
-            <div style={{ fontSize: 20, fontWeight: 1000, color: "#075985" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#075985" }}>
               {showProgressiveBuilder ? "−" : "+"}
             </div>
           </div>
@@ -3175,7 +3175,7 @@ return;
               padding: 10,
             }}
           >
-            <div style={{ fontWeight: 1000, color: "#166534", marginBottom: 4 }}>
+            <div style={{ fontWeight: 800, color: "#166534", marginBottom: 4 }}>
               💰 Budget Guidance
             </div>
             <div style={{ fontSize: 13, color: "#14532d", fontWeight: 700 }}>
@@ -3191,7 +3191,7 @@ return;
               padding: 10,
             }}
           >
-            <div style={{ fontWeight: 1000, color: "#92400e", marginBottom: 4 }}>
+            <div style={{ fontWeight: 800, color: "#92400e", marginBottom: 4 }}>
               🤝 Vendor Discussion Guidance
             </div>
             <div style={{ fontSize: 13, color: "#78350f", fontWeight: 700 }}>
@@ -3211,7 +3211,7 @@ return;
 
         {showProgressiveBuilder && procurementMemory.length > 0 ? (
           <div style={{ marginTop: 14 }}>
-            <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
+            <div style={{ fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
               Previous Requirements
             </div>
 
@@ -3327,7 +3327,7 @@ return;
                 <div>
                   <div
                     style={{
-                      fontWeight: 1000,
+                      fontWeight: 800,
                       color: "#075985",
                     }}
                   >
@@ -3412,7 +3412,7 @@ return;
             >
               <div
                 style={{
-                  fontWeight: 1000,
+                  fontWeight: 800,
                   color: "#5b21b6",
                   marginBottom: 10,
                 }}
@@ -3446,7 +3446,7 @@ return;
                         style={{
                           background: "#ede9fe",
                           color: "#5b21b6",
-                          borderRadius: 999,
+                          borderRadius: 12,
                           padding: "5px 10px",
                           fontSize: 12,
                           fontWeight: 900,
@@ -3500,7 +3500,7 @@ return;
                 >
                   <div
                     style={{
-                      fontWeight: 1000,
+                      fontWeight: 800,
                       color: "#991b1b",
                       marginBottom: 5,
                     }}

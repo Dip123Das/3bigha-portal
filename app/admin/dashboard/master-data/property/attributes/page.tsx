@@ -92,13 +92,13 @@ function ModalShell(props: { open: boolean; title: string; onClose: () => void; 
       role="dialog"
       aria-modal="true"
       style={{
-        position: "fixed",
+        position: "sticky",
         inset: 0,
         background: "rgba(0,0,0,0.45)",
-        zIndex: 9999,
+        zIndex: 209,
         display: "grid",
         placeItems: "center",
-        padding: 16,
+        padding: 12,
       }}
       onMouseDown={(e) => {
         // click outside closes
@@ -109,9 +109,9 @@ function ModalShell(props: { open: boolean; title: string; onClose: () => void; 
         style={{
           width: "min(920px, 100%)",
           background: "#fff",
-          borderRadius: 14,
+          borderRadius: 12,
           border: "1px solid rgba(0,0,0,0.12)",
-          boxShadow: "0 20px 45px rgba(0,0,0,0.25)",
+          boxShadow: "0 2px 6px rgba(15,23,42,0.04)",
           overflow: "hidden",
         }}
       >
@@ -391,7 +391,7 @@ export default function PropertyAttributesMasterPage() {
       ) : (
         <div style={{ display: "grid", gap: 12, position: "relative", zIndex: 10, pointerEvents: "auto" }}>
           {/* RECOMMENDED PANEL */}
-          <div style={{ border: "1px dashed #c7d2fe", borderRadius: 14, padding: 14, background: "rgba(99,102,241,0.06)" }}>
+          <div style={{ border: "1px dashed #c7d2fe", borderRadius: 12, padding: 14, background: "rgba(99,102,241,0.06)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
               <div>
                 <div style={{ fontWeight: 900, fontSize: 15 }}>Recommended Global Property Attributes</div>
@@ -425,7 +425,7 @@ export default function PropertyAttributesMasterPage() {
           </div>
 
           {/* ATTRIBUTES LIST */}
-          <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 14, padding: 12, background: "#fff" }}>
+          <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 12, background: "#fff" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
               <div style={{ fontWeight: 900 }}>Attributes</div>
               <Badge>{attrs.length}</Badge>

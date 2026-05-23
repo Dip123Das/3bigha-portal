@@ -428,7 +428,7 @@ export default function BuilderProjectUnitsPage() {
           style={{
             position: "sticky",
             top: 12,
-            zIndex: 999,
+            zIndex: 20,
             marginTop: 10,
             marginBottom: 12,
             border:

@@ -1806,7 +1806,7 @@ async function deleteMessageForEveryone(messageId: string) {
               style={{
                 width: 8,
                 height: 8,
-                borderRadius: 999,
+                borderRadius: 12,
                 background: presenceColor,
                 display: "inline-block",
               }}
@@ -1822,7 +1822,7 @@ async function deleteMessageForEveryone(messageId: string) {
               textDecoration: "none",
               fontWeight: 900,
               border: "1px solid #d1d5db",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "8px 14px",
               color: "#111827",
               background: "#fff",
@@ -1861,7 +1861,7 @@ async function deleteMessageForEveryone(messageId: string) {
       style={{
         marginTop: 6,
         padding: "6px 12px",
-        borderRadius: 999,
+        borderRadius: 12,
         background: "#e5e7eb",
         color: "#374151",
         fontSize: 12,
@@ -1916,7 +1916,7 @@ async function deleteMessageForEveryone(messageId: string) {
       marginLeft: "auto",
       marginRight: 10,
       padding: "8px 12px",
-      borderRadius: 999,
+      borderRadius: 12,
       border: "1px solid #d1d5db",
       background: "#fff",
       fontWeight: 800,

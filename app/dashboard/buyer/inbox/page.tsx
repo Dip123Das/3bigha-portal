@@ -44,7 +44,7 @@ function pillLinkStyle(active: boolean): CSSProperties {
     justifyContent: "center",
     minHeight: 34,
     padding: "0 12px",
-    borderRadius: 999,
+    borderRadius: 12,
     border: active ? "1px solid #bbf7d0" : "1px solid #e5e7eb",
     background: active ? "#ecfdf5" : "#fff",
     color: active ? "#065f46" : "#374151",
@@ -60,7 +60,7 @@ function buildBadge(contextType: string | null) {
     display: "inline-flex",
     alignItems: "center",
     padding: "2px 8px",
-    borderRadius: 999,
+    borderRadius: 12,
     fontSize: 11,
     fontWeight: 800,
     whiteSpace: "nowrap",
@@ -137,10 +137,10 @@ export default async function BuyerInboxPage({
   const totalUnread = listingChats.reduce((sum, row) => sum + Number(row.unread_count ?? 0), 0);
 
   return (
-    <div style={{ padding: 16, maxWidth: 1200, margin: "0 auto" }}>
+    <div style={{ padding: 12, maxWidth: 1200, margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>Buyer Inbox</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Buyer Inbox</h1>
           <div style={{ marginTop: 6, fontSize: 13, color: "#6b7280" }}>
             Direct conversations with vendors from Property, Materials, Services and Rentals.
           </div>
@@ -182,7 +182,7 @@ export default async function BuyerInboxPage({
                 minWidth: 40,
                 height: 32,
                 padding: "0 12px",
-                borderRadius: 999,
+                borderRadius: 12,
                 border: "1px solid #dcfce7",
                 background: "#f0fdf4",
                 color: "#166534",
@@ -201,7 +201,7 @@ export default async function BuyerInboxPage({
                 minWidth: 40,
                 height: 32,
                 padding: "0 12px",
-                borderRadius: 999,
+                borderRadius: 12,
                 border: "1px solid #fecaca",
                 background: "#fff1f2",
                 color: "#b91c1c",
@@ -251,7 +251,7 @@ export default async function BuyerInboxPage({
                     key={`bad-${conversationId || Math.random()}`}
                     style={{
                       border: "1px solid #fecaca",
-                      borderRadius: 14,
+                      borderRadius: 12,
                       background: "#fff1f2",
                       padding: 14,
                       color: "#9f1239",
@@ -280,7 +280,7 @@ export default async function BuyerInboxPage({
                     textDecoration: "none",
                     color: "inherit",
                     border: c.unread_count > 0 ? "1px solid #bbf7d0" : "1px solid #e5e7eb",
-                    borderRadius: 14,
+                    borderRadius: 12,
                     background: c.unread_count > 0 ? "#f0fdf4" : "#fff",
                     padding: 14,
                     display: "block",
@@ -336,7 +336,7 @@ export default async function BuyerInboxPage({
                               display: "inline-flex",
                               alignItems: "center",
                               padding: "2px 8px",
-                              borderRadius: 999,
+                              borderRadius: 12,
                               fontSize: 11,
                               fontWeight: 800,
                               background: "#f3f4f6",
@@ -356,7 +356,7 @@ export default async function BuyerInboxPage({
                               minWidth: 22,
                               height: 22,
                               padding: "0 8px",
-                              borderRadius: 999,
+                              borderRadius: 12,
                               background: "#16a34a",
                               color: "#fff",
                               fontSize: 11,
@@ -384,9 +384,9 @@ export default async function BuyerInboxPage({
           <div
             style={{
               marginTop: 12,
-              padding: 16,
+              padding: 12,
               border: "1px solid #e5e7eb",
-              borderRadius: 14,
+              borderRadius: 12,
               background: "#fff",
               color: "#6b7280",
               fontSize: 13,

@@ -136,14 +136,14 @@ export default function ProcurementRealExecutionPage() {
             href="/dashboard/procurement-autonomous-tasks"
             className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
           >
-            Open Auto Tasks
+            Open Pending Tasks
           </a>
 
           <a
             href="/dashboard/procurement-task-execution-log"
             className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
           >
-            Open Task Log
+            Open Activity Log
           </a>
 
           <a

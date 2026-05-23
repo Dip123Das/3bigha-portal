@@ -98,7 +98,7 @@ export default function LanguageSwitcher() {
         aria-label="Select Language"
         style={{
           height: 36,
-          borderRadius: 999,
+          borderRadius: 12,
           border: "1px solid rgba(15,23,42,0.16)",
           background: "#ffffff",
           color: "#0f172a",

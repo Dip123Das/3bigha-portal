@@ -236,7 +236,7 @@ export default function RfqBrowseModulePage() {
     <div className="container pageBody" style={{ paddingTop: 16 }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-        <h1 style={{ fontSize: 22, margin: 0 }}>Browse for RFQ • {moduleLabel(module)}</h1>
+        <h1 style={{ fontSize: 18, margin: 0 }}>Browse for RFQ • {moduleLabel(module)}</h1>
         <Link className="topBtn topBtnGhost" href={returnTo}>
           Back to RFQ →
         </Link>

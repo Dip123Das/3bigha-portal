@@ -454,7 +454,7 @@ export default function BrowseForRfqModulePage() {
     <div className="container pageBody" style={{ paddingTop: 16 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 22 }}>
+          <h1 style={{ margin: 0, fontSize: 18 }}>
             Browse for RFQ • {moduleLabel(module)}
           </h1>
           <div style={{ opacity: 0.8, marginTop: 6 }}>
@@ -490,7 +490,7 @@ export default function BrowseForRfqModulePage() {
         style={{
           marginTop: 12,
           border: "1px solid rgba(0,0,0,0.12)",
-          borderRadius: 14,
+          borderRadius: 12,
           padding: 12,
           background: selectedCount ? "rgba(11,87,208,0.05)" : "rgba(0,0,0,0.02)",
           display: "flex",
@@ -564,7 +564,7 @@ export default function BrowseForRfqModulePage() {
                     key={tp.id}
                     style={{
                       border: "1px solid rgba(0,0,0,0.12)",
-                      borderRadius: 14,
+                      borderRadius: 12,
                       overflow: "hidden",
                       background: "#fff",
                     }}
@@ -750,7 +750,7 @@ export default function BrowseForRfqModulePage() {
               key={g.key}
               style={{
                 border: "1px solid rgba(0,0,0,0.12)",
-                borderRadius: 14,
+                borderRadius: 12,
                 overflow: "hidden",
                 background: "#fff",
               }}
@@ -829,7 +829,7 @@ export default function BrowseForRfqModulePage() {
         style={{
           marginTop: 14,
           border: "1px solid rgba(0,0,0,0.12)",
-          borderRadius: 14,
+          borderRadius: 12,
           padding: 12,
           background: "rgba(16,185,129,0.05)",
         }}

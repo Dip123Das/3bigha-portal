@@ -331,7 +331,7 @@ export default function VendorBillingPage() {
         </ErpPanel>
 
                 <ErpPanel
-          title="Billing Workflow Actions"
+          title="Billing Pending Actions"
           subtitle="Vendor ERP billing automation, collections and invoice operations."
           tone="orange"
         >
@@ -523,7 +523,7 @@ export default function VendorBillingPage() {
                         key={bill.id}
                         style={{
                           border: "1px solid #e5e7eb",
-                          borderRadius: 16,
+                          borderRadius: 12,
                           padding: 12,
                           background: "#fff",
                         }}
@@ -550,8 +550,8 @@ export default function VendorBillingPage() {
                               rel="noreferrer"
                               style={{
                                 borderRadius: 12,
-                                background: "#0f172a",
-                                color: "#ffffff",
+                                background: "#ffffff",
+                                color: "#111827",
                                 padding: "8px 11px",
                                 fontSize: 12,
                                 fontWeight: 950,

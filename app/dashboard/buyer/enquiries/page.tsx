@@ -10,7 +10,7 @@ export default function BuyerEnquiriesPage() {
       fallback={
         <main>
           <div style={{ width: "min(1120px, 92vw)", margin: "0 auto", padding: "24px 0" }}>
-            <div style={{ fontWeight: 900, fontSize: 24, marginBottom: 8 }}>
+            <div style={{ fontWeight: 900, fontSize: 20, marginBottom: 8 }}>
               My Enquiries
             </div>
             <div style={{ opacity: 0.8 }}>Preparing your inbox…</div>

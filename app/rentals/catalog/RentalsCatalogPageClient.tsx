@@ -430,7 +430,7 @@ function RentalsCatalogPageInner() {
           border: 1px solid #eeeeee;
           background: #fff;
           border-radius: 16px;
-          padding: 16px;
+          padding: 12px;
           box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
         }
         .cardHead {
@@ -532,7 +532,7 @@ function RentalsCatalogPageInner() {
         }
         .callout {
           margin-top: 18px;
-          padding: 16px;
+          padding: 12px;
           border-radius: 16px;
           border: 1px dashed #d7d7d7;
           background: #fafafa;

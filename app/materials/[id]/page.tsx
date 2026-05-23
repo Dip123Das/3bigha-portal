@@ -452,7 +452,7 @@ const aiRecommendations = buildRecommendations({
 
                     return (
                       <a key={String(m.id)} href={url} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
-                        <div style={{ borderRadius: 14, border: "1px solid rgba(0,0,0,0.10)", overflow: "hidden", background: "rgba(0,0,0,0.02)" }}>
+                        <div style={{ borderRadius: 12, border: "1px solid rgba(0,0,0,0.10)", overflow: "hidden", background: "rgba(0,0,0,0.02)" }}>
                           {t === "video" ? (
                             <video src={url} controls playsInline style={{ width: "100%", height: 190, objectFit: "cover", display: "block" }} />
                           ) : (
@@ -464,7 +464,7 @@ const aiRecommendations = buildRecommendations({
                   })}
                 </div>
               ) : (
-                <div style={{ padding: 14, borderRadius: 14, border: "1px dashed rgba(0,0,0,0.20)", color: "#5b6472", fontWeight: 800 }}>
+                <div style={{ padding: 14, borderRadius: 12, border: "1px dashed rgba(0,0,0,0.20)", color: "#5b6472", fontWeight: 800 }}>
                   No photos / videos added yet.
                 </div>
               )}
@@ -510,9 +510,9 @@ const aiRecommendations = buildRecommendations({
 
                 <div
                   style={{
-                    marginTop: 24,
-                    padding: 18,
-                    borderRadius: 16,
+                    marginTop: 14,
+                    padding: 14,
+                    borderRadius: 12,
                     background: "#f8fafc",
                     border: "1px solid #e2e8f0",
                   }}
@@ -559,9 +559,9 @@ const aiRecommendations = buildRecommendations({
 
                 <div
                   style={{
-                    marginTop: 24,
-                    padding: 18,
-                    borderRadius: 16,
+                    marginTop: 14,
+                    padding: 14,
+                    borderRadius: 12,
                     background: "#fff",
                     border: "1px solid #e5e7eb",
                   }}
@@ -615,9 +615,9 @@ const aiRecommendations = buildRecommendations({
 
               <div
                 style={{
-                  marginTop: 24,
-                  padding: 18,
-                  borderRadius: 16,
+                  marginTop: 14,
+                  padding: 14,
+                  borderRadius: 12,
                   background: "#f8fafc",
                   border: "1px solid #e2e8f0",
                 }}
@@ -645,7 +645,7 @@ const aiRecommendations = buildRecommendations({
                       style={{
                         display: "block",
                         padding: 14,
-                        borderRadius: 14,
+                        borderRadius: 12,
                         background: "#fff",
                         border: "1px solid #e5e7eb",
                         textDecoration: "none",
@@ -678,9 +678,9 @@ const aiRecommendations = buildRecommendations({
               {relatedListings.length ? (
                 <div
                   style={{
-                    marginTop: 24,
-                    padding: 18,
-                    borderRadius: 16,
+                    marginTop: 14,
+                    padding: 14,
+                    borderRadius: 12,
                     background: "#fff",
                     border: "1px solid #e5e7eb",
                   }}
@@ -712,7 +712,7 @@ const aiRecommendations = buildRecommendations({
                         style={{
                           display: "block",
                           padding: 14,
-                          borderRadius: 14,
+                          borderRadius: 12,
                           background: "#f8fafc",
                           border: "1px solid #e5e7eb",
                           textDecoration: "none",
@@ -748,9 +748,9 @@ const aiRecommendations = buildRecommendations({
               {aiRecommendations.length ? (
                 <div
                   style={{
-                    marginTop: 24,
-                    padding: 18,
-                    borderRadius: 16,
+                    marginTop: 14,
+                    padding: 14,
+                    borderRadius: 12,
                     background: "#fff",
                     border: "1px solid #e5e7eb",
                   }}
@@ -788,7 +788,7 @@ const aiRecommendations = buildRecommendations({
                         style={{
                           display: "block",
                           padding: 14,
-                          borderRadius: 14,
+                          borderRadius: 12,
                           background: "#f8fafc",
                           border: "1px solid #e5e7eb",
                           textDecoration: "none",

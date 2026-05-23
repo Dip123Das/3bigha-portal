@@ -234,14 +234,14 @@ export default function ProcurementLivePage() {
             href="/dashboard/procurement-mission-control"
             className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
           >
-            Mission Control
+            Work Desk
           </Link>
 
           <Link
             href="/dashboard/procurement-autonomous-tasks"
             className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
           >
-            Autonomous Tasks
+            Pending Tasks
           </Link>
         </div>
 

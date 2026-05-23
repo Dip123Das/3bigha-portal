@@ -18,7 +18,7 @@ export default function LogoutPage() {
   }, [router]);
 
   return (
-    <div style={{ padding: 18 }}>
+    <div style={{ padding: 14 }}>
       <h1 style={{ fontSize: 18, fontWeight: 800 }}>Logging out…</h1>
       <p style={{ opacity: 0.75, marginTop: 6 }}>
         Please wait. Redirecting to home.

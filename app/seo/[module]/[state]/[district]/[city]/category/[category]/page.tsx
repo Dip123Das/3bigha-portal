@@ -164,7 +164,7 @@ export default async function SeoCategoryPage({ params }: PageProps) {
 
       <main
         style={{
-          background: "linear-gradient(180deg,#f8fafc 0%,#ffffff 100%)",
+          background: "#ffffff",
           minHeight: "100vh",
         }}
       >
@@ -176,7 +176,7 @@ export default async function SeoCategoryPage({ params }: PageProps) {
               gap: 10,
               background: "#dcfce7",
               color: "#166534",
-              borderRadius: 999,
+              borderRadius: 12,
               padding: "8px 14px",
               fontWeight: 900,
               fontSize: 12,
@@ -197,7 +197,7 @@ export default async function SeoCategoryPage({ params }: PageProps) {
         </section>
 
         <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 34px" }}>
-          <div style={{ background: "linear-gradient(135deg,#eff6ff,#ffffff)", border: "1px solid #bfdbfe", borderRadius: 26, padding: 28 }}>
+          <div style={{ background: "#ffffff", border: "1px solid #bfdbfe", borderRadius: 26, padding: 28 }}>
             <h2 style={{ marginTop: 0, color: "#0f172a", fontSize: 30 }}>
               AI market insights
             </h2>
@@ -219,8 +219,8 @@ export default async function SeoCategoryPage({ params }: PageProps) {
                 style={{
                   background: "#0f172a",
                   color: "#ffffff",
-                  borderRadius: 999,
-                  padding: "12px 18px",
+                  borderRadius: 12,
+                  padding: "10px 14px",
                   textDecoration: "none",
                   fontWeight: 950,
                 }}
@@ -246,8 +246,7 @@ export default async function SeoCategoryPage({ params }: PageProps) {
         >
           <div
             style={{
-              background:
-                "linear-gradient(135deg,#ecfeff,#ffffff)",
+              background: "#ffffff",
               border: "1px solid #a5f3fc",
               borderRadius: 26,
               padding: 28,
@@ -260,7 +259,7 @@ export default async function SeoCategoryPage({ params }: PageProps) {
                 gap: 10,
                 background: "#cffafe",
                 color: "#155e75",
-                borderRadius: 999,
+                borderRadius: 12,
                 padding: "8px 14px",
                 fontWeight: 900,
                 fontSize: 12,
@@ -370,8 +369,8 @@ export default async function SeoCategoryPage({ params }: PageProps) {
                 display: "grid",
                 gridTemplateColumns:
                   "repeat(auto-fit,minmax(260px,1fr))",
-                gap: 18,
-                marginTop: 28,
+                gap: 10,
+                marginTop: 16,
               }}
             >
               {marketInsights.map((item) => (
@@ -389,7 +388,7 @@ export default async function SeoCategoryPage({ params }: PageProps) {
                       marginTop: 0,
                       marginBottom: 12,
                       color: "#0f172a",
-                      fontSize: 22,
+                      fontSize: 18,
                     }}
                   >
                     {item.title}
@@ -422,7 +421,7 @@ export default async function SeoCategoryPage({ params }: PageProps) {
                   key={item.keyword}
                   style={{
                     background: "#f1f5f9",
-                    borderRadius: 999,
+                    borderRadius: 12,
                     padding: "10px 16px",
                     fontWeight: 700,
                     color: "#334155",
@@ -450,7 +449,7 @@ export default async function SeoCategoryPage({ params }: PageProps) {
                     background: "#f8fafc",
                     border: "1px solid #e2e8f0",
                     borderRadius: 20,
-                    padding: 18,
+                    padding: 14,
                     textDecoration: "none",
                     color: "#0f172a",
                     fontWeight: 800,
@@ -464,7 +463,7 @@ export default async function SeoCategoryPage({ params }: PageProps) {
         </section>
 
         <section style={{ maxWidth: 1180, margin: "0 auto", padding: "0 16px 60px" }}>
-          <div style={{ background: "linear-gradient(135deg,#f0fdf4,#ffffff)", border: "1px solid #bbf7d0", borderRadius: 26, padding: 28 }}>
+          <div style={{ background: "#ffffff", border: "1px solid #bbf7d0", borderRadius: 26, padding: 28 }}>
             <h2 style={{ marginTop: 0, color: "#0f172a", fontSize: 28 }}>
               Explore marketplace workflow
             </h2>
@@ -478,7 +477,7 @@ export default async function SeoCategoryPage({ params }: PageProps) {
                     background: "#ffffff",
                     border: "1px solid #dcfce7",
                     borderRadius: 18,
-                    padding: 18,
+                    padding: 14,
                     textDecoration: "none",
                     color: "#064e3b",
                     fontWeight: 900,

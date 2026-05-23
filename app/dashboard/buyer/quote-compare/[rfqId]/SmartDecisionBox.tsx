@@ -7,7 +7,7 @@ function pillStyle(tone: "ok" | "warn" | "bad" | "neutral" = "neutral") {
     display: "inline-flex",
     alignItems: "center",
     padding: "4px 10px",
-    borderRadius: 999,
+    borderRadius: 12,
     fontSize: 12,
     fontWeight: 900,
     border: "1px solid rgba(0,0,0,0.10)",
@@ -19,7 +19,7 @@ function pillStyle(tone: "ok" | "warn" | "bad" | "neutral" = "neutral") {
   if (tone === "ok") return { ...base, borderColor: "#bbf7d0", background: "#ecfdf5", color: "#065f46" };
   if (tone === "warn") return { ...base, borderColor: "#fde68a", background: "#fffbeb", color: "#92400e" };
   if (tone === "bad") return { ...base, borderColor: "#fecaca", background: "#fef2f2", color: "#991b1b" };
-  return { ...base, borderColor: "#e5e7eb", background: "#f8fafc", color: "#111827" };
+  return { ...base, borderColor: "#e5e7eb", background: "#ffffff", color: "#111827" };
 }
 
 export default function SmartDecisionBox({ payload }: { payload: any }) {
@@ -59,10 +59,10 @@ export default function SmartDecisionBox({ payload }: { payload: any }) {
     <div
       style={{
         marginTop: 16,
-        padding: 16,
-        borderRadius: 16,
+        padding: 12,
+        borderRadius: 12,
         border: "1px solid #c7d2fe",
-        background: "linear-gradient(135deg, #eef2ff, #ffffff)",
+        background: "#ffffff",
         boxShadow: "0 10px 24px rgba(79,70,229,0.08)",
       }}
     >
@@ -83,11 +83,11 @@ export default function SmartDecisionBox({ payload }: { payload: any }) {
           style={{
             height: 40,
             padding: "0 16px",
-            borderRadius: 999,
+            borderRadius: 12,
             border: "1px solid #4f46e5",
             background: loading ? "#e0e7ff" : "#4f46e5",
             color: loading ? "#3730a3" : "#fff",
-            fontWeight: 1000,
+            fontWeight: 800,
             cursor: loading ? "default" : "pointer",
             boxShadow: "0 8px 18px rgba(79,70,229,0.22)",
           }}
@@ -111,7 +111,7 @@ export default function SmartDecisionBox({ payload }: { payload: any }) {
             <span style={pillStyle("neutral")}>Source: {decision.source ?? "—"}</span>
           </div>
 
-          <div style={{ fontSize: 18, fontWeight: 1000 }}>
+          <div style={{ fontSize: 18, fontWeight: 800 }}>
             ⭐ Best Vendor:{" "}
             {decision.bestVendor?.vendor_business_name ||
               decision.bestVendor?.business_name ||

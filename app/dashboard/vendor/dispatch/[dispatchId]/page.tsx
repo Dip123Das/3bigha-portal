@@ -311,16 +311,16 @@ export default function DispatchTrackingPage() {
           <div style={{ display: "grid", gap: 14 }}>
             <div
               style={{
-                borderRadius: 24,
-                padding: 18,
+                borderRadius: 12,
+                padding: 14,
                 border: "1px solid #bfdbfe",
-                background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+                background: "#ffffff",
                 boxShadow: "0 16px 38px rgba(37,99,235,0.10)",
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <div>
-                  <div style={{ fontSize: 22, fontWeight: 950, color: "#0f172a" }}>
+                  <div style={{ fontSize: 18, fontWeight: 950, color: "#0f172a" }}>
                     {dispatch.material_name || "Material Delivery"}
                   </div>
 
@@ -335,10 +335,10 @@ export default function DispatchTrackingPage() {
 
                 <div
                   style={{
-                    borderRadius: 999,
+                    borderRadius: 12,
                     padding: "9px 13px",
                     background: currentColor,
-                    color: "#ffffff",
+                    color: "#111827",
                     fontWeight: 950,
                     fontSize: 13,
                     height: "fit-content",
@@ -358,7 +358,7 @@ export default function DispatchTrackingPage() {
                   style={{
                     marginTop: 7,
                     height: 12,
-                    borderRadius: 999,
+                    borderRadius: 12,
                     background: "#dbeafe",
                     overflow: "hidden",
                     border: "1px solid #bfdbfe",
@@ -369,7 +369,7 @@ export default function DispatchTrackingPage() {
                       width: `${currentProgress}%`,
                       height: "100%",
                       background: currentColor,
-                      borderRadius: 999,
+                      borderRadius: 12,
                     }}
                   />
                 </div>
@@ -419,8 +419,8 @@ export default function DispatchTrackingPage() {
                           display: "inline-block",
                           marginTop: 12,
                           borderRadius: 12,
-                          background: "#0f172a",
-                          color: "#ffffff",
+                          background: "#ffffff",
+                          color: "#111827",
                           padding: "10px 13px",
                           fontWeight: 950,
                           fontSize: 13,
@@ -489,7 +489,7 @@ export default function DispatchTrackingPage() {
                     borderRadius: 12,
                     padding: "10px 14px",
                     background: saving ? "#94a3b8" : "#16a34a",
-                    color: "#ffffff",
+                    color: "#111827",
                     fontWeight: 950,
                     cursor: saving ? "not-allowed" : "pointer",
                   }}
@@ -507,7 +507,7 @@ export default function DispatchTrackingPage() {
                     borderRadius: 12,
                     padding: "10px 14px",
                     background: saving ? "#94a3b8" : "#2563eb",
-                    color: "#ffffff",
+                    color: "#111827",
                     fontWeight: 950,
                     cursor: saving ? "not-allowed" : "pointer",
                   }}
@@ -542,7 +542,7 @@ function Info({ title, value }: { title: string; value: string }) {
     <div
       style={{
         border: "1px solid #e5e7eb",
-        borderRadius: 14,
+        borderRadius: 12,
         padding: 12,
         background: "#ffffff",
       }}
@@ -561,7 +561,7 @@ function TimelineItem({ title, value, active }: { title: string; value: string; 
       style={{
         border: active ? "1px solid #bfdbfe" : "1px solid #e5e7eb",
         background: active ? "#eff6ff" : "#ffffff",
-        borderRadius: 14,
+        borderRadius: 12,
         padding: 12,
         display: "flex",
         justifyContent: "space-between",

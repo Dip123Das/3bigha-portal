@@ -1015,17 +1015,17 @@ export default function BuyerRfqsPage() {
                 <div
           style={{
             border: "1px solid rgba(37,99,235,0.25)",
-            background: "linear-gradient(135deg, rgba(37,99,235,0.08), #ffffff)",
+            background: "#ffffff",
             borderRadius: 18,
-            padding: 16,
+            padding: 12,
             marginBottom: 16,
-            boxShadow: "0 14px 30px rgba(37,99,235,0.08)",
+            boxShadow: "0 2px 6px rgba(15,23,42,0.04)",
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 1000, color: "#1e3a8a" }}>
-                🧠 AI Procurement Command Center
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#1e3a8a" }}>
+                🧠 AI Procurement Work Desk
               </div>
               <div style={{ marginTop: 4, color: "#475569", fontSize: 14, fontWeight: 800 }}>
                 AI prioritizes RFQs by urgency, vendor response, quote readiness, chat activity and closure stage.
@@ -1046,9 +1046,9 @@ export default function BuyerRfqsPage() {
                     : commandCenterStats.avgScore >= 40
                       ? "#92400e"
                       : "#166534",
-                borderRadius: 999,
+                borderRadius: 12,
                 padding: "9px 14px",
-                fontWeight: 1000,
+                fontWeight: 800,
                 alignSelf: "center",
                 border: "1px solid rgba(15,23,42,0.08)",
               }}
@@ -1070,14 +1070,14 @@ export default function BuyerRfqsPage() {
                 style={{
                   border: "1px solid #e2e8f0",
                   background: "#ffffff",
-                  borderRadius: 14,
+                  borderRadius: 12,
                   padding: 12,
                 }}
               >
                 <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
                   {icon} {label}
                 </div>
-                <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000, fontSize: 22 }}>
+                <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 800, fontSize: 18 }}>
                   {value}
                 </div>
               </div>
@@ -1088,7 +1088,7 @@ export default function BuyerRfqsPage() {
             style={{
               marginTop: 12,
               border: "1px solid #bfdbfe",
-              background: "#eff6ff",
+              background: "#ffffff",
               color: "#1e3a8a",
               borderRadius: 12,
               padding: 10,
@@ -1111,7 +1111,7 @@ export default function BuyerRfqsPage() {
             <div
               style={{
                 color: "#6b21a8",
-                fontWeight: 1000,
+                fontWeight: 800,
                 marginBottom: 6,
               }}
             >
@@ -1170,7 +1170,7 @@ export default function BuyerRfqsPage() {
                 style={{
                   height: 36,
                   padding: "0 12px",
-                  borderRadius: 999,
+                  borderRadius: 12,
                   border: aiFocusFilter === key ? "1px solid #2563eb" : "1px solid #e2e8f0",
                   background: aiFocusFilter === key ? "#dbeafe" : "#ffffff",
                   color: aiFocusFilter === key ? "#1e40af" : "#334155",
@@ -1401,7 +1401,7 @@ export default function BuyerRfqsPage() {
         minWidth: 22,
         height: 22,
         padding: "0 7px",
-        borderRadius: 999,
+        borderRadius: 12,
         alignItems: "center",
         justifyContent: "center",
         background: "#dc2626",
@@ -1461,7 +1461,7 @@ export default function BuyerRfqsPage() {
                           >
                             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                               <div style={{ minWidth: 260, flex: 1 }}>
-                                <div style={{ fontSize: 12, fontWeight: 1000, color: "#334155", marginBottom: 5 }}>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: "#334155", marginBottom: 5 }}>
                                   AI RFQ STATUS INTELLIGENCE
                                 </div>
 
@@ -1632,7 +1632,7 @@ export default function BuyerRfqsPage() {
                                       <div style={{ fontSize: 12, fontWeight: 900, color: "#065f46", opacity: 0.85 }}>
                                         Final Total
                                       </div>
-                                      <div style={{ fontSize: 22, fontWeight: 1000, color: "#065f46" }}>
+                                      <div style={{ fontSize: 18, fontWeight: 800, color: "#065f46" }}>
                                         {fmtMoney(selectedTotal)}
                                       </div>
 
@@ -1663,7 +1663,7 @@ export default function BuyerRfqsPage() {
                                                 minWidth: 20,
                                                 height: 20,
                                                 padding: "0 6px",
-                                                borderRadius: 999,
+                                                borderRadius: 12,
                                                 alignItems: "center",
                                                 justifyContent: "center",
                                                 background: "#dc2626",
@@ -1752,7 +1752,7 @@ export default function BuyerRfqsPage() {
                                     minWidth: 20,
                                     height: 20,
                                     padding: "0 6px",
-                                    borderRadius: 999,
+                                    borderRadius: 12,
                                     alignItems: "center",
                                     justifyContent: "center",
                                     background: "#dc2626",

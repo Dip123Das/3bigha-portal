@@ -409,7 +409,7 @@ export default function PropertyMappingMasterPage() {
       ) : (
         <div style={{ display: "grid", gap: 12 }}>
           {/* SELECT SUBTYPE */}
-          <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 14, padding: 12, background: "#fff" }}>
+          <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 12, background: "#fff" }}>
             <div style={{ fontWeight: 900, marginBottom: 10 }}>Select Subtype</div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -489,7 +489,7 @@ export default function PropertyMappingMasterPage() {
           {/* MAPPED + AVAILABLE */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, alignItems: "start" }}>
             {/* MAPPED */}
-            <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 14, padding: 12, background: "#fff" }}>
+            <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 12, background: "#fff" }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
                 <div style={{ fontWeight: 900 }}>Mapped Attributes</div>
                 <Badge>{mappedList.length}</Badge>
@@ -546,7 +546,7 @@ export default function PropertyMappingMasterPage() {
             </div>
 
             {/* AVAILABLE */}
-            <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 14, padding: 12, background: "#fff" }}>
+            <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 12, background: "#fff" }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
                 <div style={{ fontWeight: 900 }}>Available Attributes</div>
                 <Badge>{availableList.length}</Badge>
@@ -596,7 +596,7 @@ export default function PropertyMappingMasterPage() {
 
           {/* PANEL */}
           {panelOpen ? (
-            <div style={{ border: "2px solid #2563eb", borderRadius: 14, padding: 12, background: "#fff" }}>
+            <div style={{ border: "2px solid #2563eb", borderRadius: 12, padding: 12, background: "#fff" }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                 <div style={{ fontWeight: 900 }}>
                   {panelMode === "add" ? "Add Attribute to Subtype" : "Edit Mapping"}{" "}
@@ -648,7 +648,7 @@ export default function PropertyMappingMasterPage() {
                 </div>
               </div>
 
-              <div style={{ marginTop: 12, display: "flex", gap: 18, flexWrap: "wrap", alignItems: "center" }}>
+              <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                 <label style={{ display: "flex", gap: 10, alignItems: "center", cursor: "pointer" }}>
                   <input
                     type="checkbox"

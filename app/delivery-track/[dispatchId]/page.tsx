@@ -88,7 +88,7 @@ export default async function BuyerDeliveryTrackPage({ params }: PageProps) {
               borderRadius: 28,
               padding: 22,
               border: "1px solid #bfdbfe",
-              background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+              background: "#ffffff",
               boxShadow: "0 18px 44px rgba(37,99,235,0.10)",
               marginBottom: 14,
             }}
@@ -96,12 +96,12 @@ export default async function BuyerDeliveryTrackPage({ params }: PageProps) {
             <div
               style={{
                 display: "inline-flex",
-                borderRadius: 999,
+                borderRadius: 12,
                 background: "#dbeafe",
                 color: "#1d4ed8",
                 padding: "7px 12px",
                 fontSize: 12,
-                fontWeight: 1000,
+                fontWeight: 800,
               }}
             >
               3Bigha Delivery Tracking
@@ -135,7 +135,7 @@ export default async function BuyerDeliveryTrackPage({ params }: PageProps) {
           {!dispatch ? (
             <Card>
               <CardBody>
-                <div style={{ fontSize: 20, fontWeight: 950, color: "#b91c1c" }}>
+                <div style={{ fontSize: 18, fontWeight: 950, color: "#b91c1c" }}>
                   Delivery not found
                 </div>
                 <div style={{ marginTop: 8, color: "#64748b", fontWeight: 800 }}>
@@ -156,7 +156,7 @@ export default async function BuyerDeliveryTrackPage({ params }: PageProps) {
                     }}
                   >
                     <div>
-                      <div style={{ fontSize: 22, fontWeight: 950, color: "#0f172a" }}>
+                      <div style={{ fontSize: 18, fontWeight: 950, color: "#0f172a" }}>
                         {dispatch.material_name || "Material Delivery"}
                       </div>
 
@@ -171,7 +171,7 @@ export default async function BuyerDeliveryTrackPage({ params }: PageProps) {
 
                     <div
                       style={{
-                        borderRadius: 999,
+                        borderRadius: 12,
                         padding: "9px 13px",
                         background: color,
                         color: "#ffffff",
@@ -202,7 +202,7 @@ export default async function BuyerDeliveryTrackPage({ params }: PageProps) {
                       style={{
                         marginTop: 7,
                         height: 13,
-                        borderRadius: 999,
+                        borderRadius: 12,
                         background: "#dbeafe",
                         overflow: "hidden",
                         border: "1px solid #bfdbfe",
@@ -213,7 +213,7 @@ export default async function BuyerDeliveryTrackPage({ params }: PageProps) {
                           width: `${pct}%`,
                           height: "100%",
                           background: color,
-                          borderRadius: 999,
+                          borderRadius: 12,
                         }}
                       />
                     </div>
@@ -372,7 +372,7 @@ function InfoCard({ title, value }: { title: string; value: string }) {
     <div
       style={{
         border: "1px solid #e5e7eb",
-        borderRadius: 16,
+        borderRadius: 12,
         padding: 13,
         background: "#ffffff",
       }}
@@ -391,7 +391,7 @@ function TimelineItem({ title, value, active }: { title: string; value: string; 
       style={{
         border: active ? "1px solid #bfdbfe" : "1px solid #e5e7eb",
         background: active ? "#eff6ff" : "#ffffff",
-        borderRadius: 14,
+        borderRadius: 12,
         padding: 12,
         display: "flex",
         justifyContent: "space-between",
