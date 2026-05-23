@@ -5,6 +5,10 @@ import MarketplaceAiDashboard from "./MarketplaceAiDashboard";
 import PricePredictionToggle from "./PricePredictionToggle";
 import AIExecutionTimeline from "@/components/ai-execution/AIExecutionTimeline";
 import OperationalWorkspacePanel from "@/components/operational/OperationalWorkspacePanel";
+import WorkflowContinuityBar from "@/components/workflow-continuity/WorkflowContinuityBar";
+import WorkflowContinuityRecorder from "@/components/workflow-continuity/WorkflowContinuityRecorder";
+import OperationalEventStream from "@/components/operational-events/OperationalEventStream";
+import OperationalEventRecorder from "@/components/operational-events/OperationalEventRecorder";
 
 export const dynamic = "force-dynamic";
 
@@ -697,6 +701,32 @@ export default async function BuyerQuoteComparePage({
 
   return (
     <main style={{ padding: 14, maxWidth: 1200, margin: "0 auto" }}>
+      <WorkflowContinuityRecorder
+        state={{
+          id: rfqId,
+          module: "rfq",
+          stage: "comparison",
+          title: "Vendor Comparison Workspace",
+          summary: `Compare ${vendorsSorted.length} vendor response${vendorsSorted.length === 1 ? "" : "s"} and continue quotation decision.`,
+          href: `/dashboard/buyer/quote-compare/${rfqId}`,
+          primaryActionLabel: "Continue Comparison",
+          updatedAt: Date.now(),
+        }}
+      />
+      <WorkflowContinuityBar />
+      <OperationalEventRecorder
+        event={{
+          id: `quote-compare-opened-${rfqId}`,
+          module: "quote",
+          title: "Quotation comparison opened",
+          detail: `Review ${vendorsSorted.length} vendor response${vendorsSorted.length === 1 ? "" : "s"} and continue decision.`,
+          href: `/dashboard/buyer/quote-compare/${rfqId}`,
+          tone: "info",
+          createdAt: Date.now(),
+        }}
+      />
+      <OperationalEventStream title="Recent quotation activity" limit={5} />
+
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: 18, fontWeight: 900, margin: 0 }}>Vendor Comparison Workspace</h1>

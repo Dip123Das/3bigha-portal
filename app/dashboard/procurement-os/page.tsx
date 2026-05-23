@@ -1,6 +1,10 @@
 import Link from "next/link";
 import ProcurementCommandCenterNav from "@/app/components/procurement/ProcurementCommandCenterNav";
 import { headers } from "next/headers";
+import WorkflowContinuityBar from "@/components/workflow-continuity/WorkflowContinuityBar";
+import WorkflowContinuityRecorder from "@/components/workflow-continuity/WorkflowContinuityRecorder";
+import OperationalEventStream from "@/components/operational-events/OperationalEventStream";
+import OperationalEventRecorder from "@/components/operational-events/OperationalEventRecorder";
 
 async function getOrigin() {
   const h = await headers();
@@ -53,17 +57,47 @@ export default async function ProcurementOSPage() {
   const t = telemetry?.telemetry || {};
   return (
     <main className="min-h-screen bg-[#f6f7fb] p-6">
+      <WorkflowContinuityRecorder
+        state={{
+          id: "procurement-os",
+          module: "procurement",
+          stage: "review",
+          title: "Procurement Operations Desk",
+          summary: "Continue supplier coordination, follow-up, risk review and execution planning.",
+          href: "/dashboard/procurement-os",
+          primaryActionLabel: "Open Procurement Desk",
+          updatedAt: Date.now(),
+        }}
+      />
+
+      <OperationalEventRecorder
+        event={{
+          id: "procurement-os-opened",
+          module: "procurement",
+          title: "Procurement workspace opened",
+          detail: "Review supplier coordination, follow-up, risk and execution activity.",
+          href: "/dashboard/procurement-os",
+          tone: "info",
+          createdAt: Date.now(),
+        }}
+      />
+
       <div className="mx-auto max-w-7xl">
-        <div className="rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-indigo-950 to-emerald-950 p-10 text-white shadow-2xl">
-          <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
+        <WorkflowContinuityBar />
+        <OperationalEventStream
+          title="Recent procurement activity"
+          limit={6}
+        />
+        <div className="rounded-[1.25rem] border border-slate-200 bg-white p-6 text-slate-950 shadow-sm">
+          <div className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-slate-600">
             3bigha Procurement Operations Desk
           </div>
 
-          <h1 className="mt-6 text-5xl font-black">
+          <h1 className="mt-4 text-2xl font-black">
             Procurement Operations Desk
           </h1>
 
-          <p className="mt-4 max-w-4xl text-base font-medium leading-7 text-slate-200">
+          <p className="mt-3 max-w-4xl text-sm font-medium leading-6 text-slate-600">
             One place to manage procurement workflows, supplier coordination, follow-up, recovery, forecasting and execution tasks.
           </p>
         </div>

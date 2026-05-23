@@ -21,6 +21,10 @@ import {
 } from "@/components/vendor-erp/VendorErpWidgets";
 import { VendorErpNav } from "@/components/vendor-erp/VendorErpNav";
 import { VendorOperationStream } from "@/components/vendor-erp/VendorOperationStream";
+import WorkflowContinuityBar from "@/components/workflow-continuity/WorkflowContinuityBar";
+import WorkflowContinuityRecorder from "@/components/workflow-continuity/WorkflowContinuityRecorder";
+import OperationalEventStream from "@/components/operational-events/OperationalEventStream";
+import OperationalEventRecorder from "@/components/operational-events/OperationalEventRecorder";
 import { buildVendorSmartNotifications } from "@/lib/notifications/smart-reengagement";
 
 type CompletenessRow = {
@@ -512,7 +516,7 @@ const autoBoostMessage =
 const autoBoostCta =
   estimatedRank <= 3
     ? "🏆 Protect Top Position"
-    : "🚀 Boost My Rank Now";
+    : "Improve Visibility";
 
 // 🔴 TRUE REAL-TIME COMPETITION ALERT
 const rankDropDetected =
@@ -1314,7 +1318,37 @@ const aiDealUpgradeTarget =
 
   return (
     <main>
+      <WorkflowContinuityRecorder
+        state={{
+          id: "vendor-dashboard",
+          module: "vendor",
+          stage: "review",
+          title: "Vendor Operations Dashboard",
+          summary: "Continue enquiries, quotations, inventory, dispatch and business operations.",
+          href: "/dashboard/vendor",
+          primaryActionLabel: "Open Vendor Workspace",
+          updatedAt: Date.now(),
+        }}
+      />
+
+      <OperationalEventRecorder
+        event={{
+          id: "vendor-dashboard-opened",
+          module: "vendor",
+          title: "Vendor operations workspace opened",
+          detail: "Continue enquiries, quotations, dispatch and operational follow-up.",
+          href: "/dashboard/vendor",
+          tone: "info",
+          createdAt: Date.now(),
+        }}
+      />
+
       <Container>
+        <WorkflowContinuityBar />
+        <OperationalEventStream
+          title="Recent vendor operational activity"
+          limit={6}
+        />
         {conversionAlert?.show ? (
           <div
             style={{
@@ -1333,7 +1367,7 @@ const aiDealUpgradeTarget =
             }}
           >
             <div style={{ fontSize: 18, fontWeight: 950, color: "#dc2626" }}>
-              🚨 Visibility Drop Detected
+              Visibility Attention Required
             </div>
 
             <div style={{ marginTop: 10, fontSize: 14, fontWeight: 850, color: "#374151", lineHeight: 1.6 }}>
@@ -1341,7 +1375,7 @@ const aiDealUpgradeTarget =
             </div>
 
             <div style={{ marginTop: 14, fontSize: 13, color: "#6b7280", fontWeight: 800 }}>
-              Vendors above you are getting more buyer leads right now.
+              Improve response speed, quotation quality and activity consistency to strengthen visibility.
             </div>
 
             <div style={{ marginTop: 16, display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
@@ -1360,7 +1394,7 @@ const aiDealUpgradeTarget =
                   cursor: "pointer",
                 }}
               >
-                🚀 Boost My Rank Now
+                Improve Visibility
               </button>
 
               <button
@@ -1439,10 +1473,120 @@ const aiDealUpgradeTarget =
           </div>
           ) : null}
 
-        <SectionHeader
-          title={dashboardTitle}
-          subtitle="Your simple vendor work desk: manage listings, leads, inventory, billing, dispatch and AI support from one place."
-        />
+        <div
+          style={{
+            border: "1px solid #e2e8f0",
+            borderRadius: 24,
+            padding: 20,
+            background: "linear-gradient(to bottom right,#f8fafc,#ffffff)",
+            boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
+            marginBottom: 18,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 16,
+              flexWrap: "wrap",
+              alignItems: "flex-start",
+            }}
+          >
+            <div style={{ maxWidth: 760 }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 900,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  color: "#64748b",
+                }}
+              >
+                Today’s Work
+              </div>
+
+              <h1
+                style={{
+                  marginTop: 10,
+                  fontSize: 30,
+                  lineHeight: 1.15,
+                  fontWeight: 900,
+                  color: "#0f172a",
+                }}
+              >
+                Continue vendor operations calmly.
+              </h1>
+
+              <div
+                style={{
+                  marginTop: 10,
+                  fontSize: 14,
+                  lineHeight: 1.7,
+                  color: "#475569",
+                  fontWeight: 600,
+                }}
+              >
+                Review buyer replies, continue RFQs, manage dispatch,
+                update inventory and complete pending follow-ups from one operational workspace.
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: 10,
+                flexWrap: "wrap",
+              }}
+            >
+              <a
+                href="/dashboard/vendor/rfqs"
+                style={{
+                  textDecoration: "none",
+                  background: "#0f172a",
+                  color: "white",
+                  padding: "10px 16px",
+                  borderRadius: 999,
+                  fontWeight: 900,
+                  fontSize: 13,
+                }}
+              >
+                Open RFQs
+              </a>
+
+              <a
+                href="/dashboard/vendor/inbox"
+                style={{
+                  textDecoration: "none",
+                  border: "1px solid #cbd5e1",
+                  background: "white",
+                  color: "#334155",
+                  padding: "10px 16px",
+                  borderRadius: 999,
+                  fontWeight: 900,
+                  fontSize: 13,
+                }}
+              >
+                Open Inbox
+              </a>
+
+              <a
+                href="/dashboard/vendor/dispatch"
+                style={{
+                  textDecoration: "none",
+                  border: "1px solid #cbd5e1",
+                  background: "white",
+                  color: "#334155",
+                  padding: "10px 16px",
+                  borderRadius: 999,
+                  fontWeight: 900,
+                  fontSize: 13,
+                }}
+              >
+                Dispatch
+              </a>
+            </div>
+          </div>
+        </div>
 
         <VendorErpNav />
 

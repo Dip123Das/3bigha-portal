@@ -14,6 +14,10 @@ import UniversalWorkflowHeader from "@/components/operational/UniversalWorkflowH
 import StickyWorkflowCommandBar from "@/components/operational/StickyWorkflowCommandBar";
 import OperationalPageShell from "@/components/operational/OperationalPageShell";
 import OperationalWorkspacePanel from "@/components/operational/OperationalWorkspacePanel";
+import WorkflowContinuityBar from "@/components/workflow-continuity/WorkflowContinuityBar";
+import WorkflowContinuityRecorder from "@/components/workflow-continuity/WorkflowContinuityRecorder";
+import OperationalEventStream from "@/components/operational-events/OperationalEventStream";
+import OperationalEventRecorder from "@/components/operational-events/OperationalEventRecorder";
 import ContextualAiAssist from "@/components/ai-assist/ContextualAiAssist";
 import { resolveNextAction } from "@/lib/workflow/next-action-engine";
 
@@ -677,6 +681,32 @@ export default async function UniversalThreadPage({
 
   return (
     <OperationalPageShell>
+      <WorkflowContinuityRecorder
+        state={{
+          id: conversationId,
+          module: "inbox",
+          stage: "conversation",
+          title: "Conversation Workspace",
+          summary: "Continue discussion, negotiation and operational follow-up.",
+          href: `/dashboard/thread/${conversationId}`,
+          primaryActionLabel: "Continue Conversation",
+          updatedAt: Date.now(),
+        }}
+      />
+      <WorkflowContinuityBar />
+      <OperationalEventRecorder
+        event={{
+          id: `thread-opened-${conversationId}`,
+          module: "thread",
+          title: "Conversation opened",
+          detail: "Continue discussion, negotiation and operational follow-up.",
+          href: `/dashboard/thread/${conversationId}`,
+          tone: "info",
+          createdAt: Date.now(),
+        }}
+      />
+      <OperationalEventStream title="Recent conversation activity" limit={5} />
+
       <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>

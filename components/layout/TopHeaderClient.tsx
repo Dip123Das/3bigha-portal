@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import LanguageSwitcher from "@/components/language/LanguageSwitcher";
+import GlobalOperationalAwarenessBar from "@/components/operational-events/GlobalOperationalAwarenessBar";
 
 type NavItem = { label: string; href: string; match: string };
 
@@ -307,6 +308,7 @@ export default function TopHeaderClient() {
 
   return (
     <header className="topHeader">
+      <GlobalOperationalAwarenessBar />
       <div className="topHeaderInner">
         {/* Brand */}
         <div className="topBrand">

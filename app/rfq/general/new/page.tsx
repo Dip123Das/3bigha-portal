@@ -13,6 +13,10 @@ import {
   formatIndianCurrency,
 } from "@/lib/construction-cost/cost-utils";
 import type { ConstructionGrade } from "@/lib/construction-cost/cost-config";
+import WorkflowContinuityBar from "@/components/workflow-continuity/WorkflowContinuityBar";
+import WorkflowContinuityRecorder from "@/components/workflow-continuity/WorkflowContinuityRecorder";
+import OperationalEventStream from "@/components/operational-events/OperationalEventStream";
+import OperationalEventRecorder from "@/components/operational-events/OperationalEventRecorder";
 
 type RfqModule = "materials" | "services" | "rentals" | "properties";
 
@@ -1813,6 +1817,32 @@ return;
 
   return (
     <div className="container pageBody" style={{ paddingTop: 16 }}>
+      <WorkflowContinuityRecorder
+        state={{
+          id: "rfq-general-new",
+          module: "rfq",
+          stage: "draft",
+          title: "Submit Requirement",
+          summary: "Continue preparing your requirement, item details, location and contact information.",
+          href: "/rfq/general/new",
+          primaryActionLabel: "Continue Requirement",
+          updatedAt: Date.now(),
+        }}
+      />
+      <WorkflowContinuityBar />
+      <OperationalEventRecorder
+        event={{
+          id: "rfq-draft-opened",
+          module: "rfq",
+          title: "Requirement draft opened",
+          detail: "Continue preparing item details, location and contact information.",
+          href: "/rfq/general/new",
+          tone: "info",
+          createdAt: Date.now(),
+        }}
+      />
+      <OperationalEventStream title="Recent requirement activity" limit={5} />
+
       <h1 style={{ fontSize: 18, marginBottom: 8 }}>Submit Requirement (Unified RFQ)</h1>
       <div style={{ opacity: 0.8, marginBottom: 16 }}>
         Select module → describe requirement → add items/work or upload a handwritten/PDF list.
