@@ -14,22 +14,22 @@ async function getOrigin() {
 }
 
 const MODULES = [
-  ["🚨", "Situation Room", "/dashboard/procurement-situation-room", "Live command center"],
-  ["⚡", "Live Stream", "/dashboard/procurement-live", "Real-time procurement signals"],
-  ["🔥", "Heatmap AI", "/dashboard/procurement-heatmap", "Category, zone and risk heatmap"],
-  ["📈", "Shortage Forecast", "/dashboard/procurement-analytics", "Shortage and supplier stress forecast"],
-  ["🛰️", "Mission Control", "/dashboard/procurement-mission-control", "Executive command center"],
-  ["🏛️", "War Room", "/dashboard/procurement-war-room", "Emergency operations HQ"],
-  ["🛡️", "Crisis Center", "/dashboard/procurement-crisis-center", "Crisis escalation engine"],
-  ["🏭", "Supplier AI", "/dashboard/procurement-supplier-reliability", "Supplier reliability and collapse prediction"],
-  ["📥", "Inbox AI", "/dashboard/procurement-inbox-actions", "Emergency rerouting and inbox actions"],
-  ["🤖", "Follow-up AI", "/dashboard/procurement-followup-agent", "Recovery follow-up automation"],
-  ["🤝", "Negotiation AI", "/dashboard/procurement-negotiation-agent", "Fallback negotiation intelligence"],
-  ["🧩", "AI Actions", "/dashboard/procurement-actions", "Autonomous decision layer"],
-  ["🛠️", "Auto Tasks", "/dashboard/procurement-autonomous-tasks", "Autonomous task queue"],
-  ["🚀", "Real Execute", "/dashboard/procurement-real-execution", "Execution readiness bridge"],
+  ["🚨", "Situation Room", "/dashboard/procurement-situation-room", "Live procurement operations overview"],
+  ["⚡", "Live Stream", "/dashboard/procurement-live", "Live workflow and procurement activity"],
+  ["🔥", "Heatmap Analysis", "/dashboard/procurement-heatmap", "Zone, category and workflow heatmap"],
+  ["📈", "Shortage Forecast", "/dashboard/procurement-analytics", "Material shortage and supplier pressure forecast"],
+  ["🛰️", "Mission Control", "/dashboard/procurement-mission-control", "Central procurement operations workspace"],
+  ["🏛️", "War Room", "/dashboard/procurement-war-room", "Critical procurement coordination workspace"],
+  ["🛡️", "Crisis Center", "/dashboard/procurement-crisis-center", "Issue escalation and recovery workspace"],
+  ["🏭", "Supplier Reliability", "/dashboard/procurement-supplier-reliability", "Supplier response and reliability overview"],
+  ["📥", "Inbox Actions", "/dashboard/procurement-inbox-actions", "Inbox follow-up and rerouting support"],
+  ["🤖", "Follow-up Support", "/dashboard/procurement-followup-agent", "Follow-up and recovery assistance"],
+  ["🤝", "Negotiation Guidance", "/dashboard/procurement-negotiation-agent", "Negotiation and supplier discussion support"],
+  ["🧩", "Workflow Actions", "/dashboard/procurement-actions", "Workflow execution and operational actions"],
+  ["🛠️", "Auto Tasks", "/dashboard/procurement-autonomous-tasks", "Automatic task and reminder queue"],
+  ["🚀", "Real Execute", "/dashboard/procurement-real-execution", "Execution preparation and readiness"],
   ["📜", "Task Log", "/dashboard/procurement-task-execution-log", "Execution history log"],
-  ["🧠", "AI Copilot", "/dashboard/procurement-copilot", "Ask procurement intelligence"],
+  ["🧠", "Procurement Guidance", "/dashboard/procurement-copilot", "Get procurement workflow assistance"],
 ];
 
 export default async function ProcurementOSPage() {
@@ -56,16 +56,15 @@ export default async function ProcurementOSPage() {
       <div className="mx-auto max-w-7xl">
         <div className="rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-indigo-950 to-emerald-950 p-10 text-white shadow-2xl">
           <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
-            3bigha AI Procurement OS
+            3bigha Procurement Operations Center
           </div>
 
           <h1 className="mt-6 text-5xl font-black">
-            Master Procurement Command Index
+            Procurement Operations Center
           </h1>
 
           <p className="mt-4 max-w-4xl text-base font-medium leading-7 text-slate-200">
-            One clean operating index for all AI procurement intelligence, crisis,
-            recovery, rerouting, forecasting, execution and autonomous decision systems.
+            One place to manage procurement workflows, supplier coordination, follow-up, recovery, forecasting and execution tasks.
           </p>
         </div>
 

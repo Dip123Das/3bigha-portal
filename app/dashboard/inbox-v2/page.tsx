@@ -28,6 +28,8 @@ import {
   buildBehaviorMemory,
   mergeBehaviorSignals,
 } from "@/lib/ai/behavior-memory";
+export const dynamic = "force-dynamic";
+
 const operationalNextAction = resolveNextAction("inbox");
 
 type SearchParams = {
@@ -1532,7 +1534,40 @@ export default async function DashboardInboxV2Page({
   } = await supabase.auth.getUser();
 
   if (userErr || !user) {
-    return <div className="p-6 text-sm text-slate-600">Please login.</div>;
+    return (
+      <OperationalPageShell>
+        <div className="rounded-[2rem] border border-amber-200 bg-amber-50 p-6 shadow-sm">
+          <div className="text-xs font-black uppercase tracking-[0.14em] text-amber-700">
+            Session Required
+          </div>
+
+          <h1 className="mt-2 text-2xl font-black text-slate-950">
+            Please login to continue your inbox work
+          </h1>
+
+          <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-amber-900">
+            Your session is missing or expired. Login again to view conversations,
+            RFQs, follow-ups, and workflow actions.
+          </p>
+
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/login"
+              className="inline-flex rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-black text-white"
+            >
+              Login Again
+            </Link>
+
+            <Link
+              href="/"
+              className="inline-flex rounded-2xl border border-amber-300 bg-white px-4 py-2.5 text-sm font-black text-amber-800"
+            >
+              Back Home
+            </Link>
+          </div>
+        </div>
+      </OperationalPageShell>
+    );
   }
 
   const userId = String(user.id);
@@ -2007,7 +2042,7 @@ export default async function DashboardInboxV2Page({
           title: automationQueue[0].automationLabel || "Open automation task",
           detail: automationQueue[0].autonomousAction || automationQueue[0].title,
           href: automationQueue[0].href,
-          badge: "AI action",
+          badge: "Needs action",
           tone: automationQueue[0].automationTone || "blue",
         }
       : {
@@ -2029,7 +2064,7 @@ export default async function DashboardInboxV2Page({
           title: "Monitor stable workflow",
           detail: autonomousOsAction,
           href: "/dashboard/procurement-live",
-          badge: "OS stable",
+          badge: "Stable",
           tone: "emerald",
         },
   ];
@@ -2181,7 +2216,7 @@ export default async function DashboardInboxV2Page({
 
       <details className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
         <summary className="cursor-pointer px-5 py-4 text-sm font-black text-slate-900">
-          🤖 AI Assistance — pricing, follow-up, procurement and workflow intelligence
+          Helpful guidance and advanced details
         </summary>
 
         <div className="space-y-4 px-4 pb-4">
@@ -2190,16 +2225,15 @@ export default async function DashboardInboxV2Page({
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="inline-flex rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">
-                AI Procurement Inbox Intelligence
+                Conversation Priority Guidance
               </div>
 
               <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">
-                Unified Negotiation & Execution Command Layer
+                What needs attention across your conversations
               </h2>
 
               <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-600">
-                AI reads RFQ, direct, and investment conversations to identify urgency,
-                responsiveness, procurement stage, closure probability, and the next best action.
+                This section helps you understand which conversations need reply, follow-up, quote review, or final confirmation.
               </p>
             </div>
 
@@ -2231,7 +2265,7 @@ export default async function DashboardInboxV2Page({
           </div>
 
           <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
-            🎯 AI next best action: {procurementNextAction}
+            🎯 Suggested next step: {procurementNextAction}
           </div>
 
           <div className="mt-3 flex flex-wrap gap-2">
@@ -2253,7 +2287,7 @@ export default async function DashboardInboxV2Page({
               href="/rfq/general/new"
               className="inline-flex rounded-full border border-slate-900 bg-slate-900 px-3 py-1.5 text-xs font-bold text-white transition hover:opacity-90"
             >
-              + New AI Procurement RFQ
+              + New Requirement
             </Link>
           </div>
         </div>
@@ -2264,16 +2298,15 @@ export default async function DashboardInboxV2Page({
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="inline-flex rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                Autonomous Procurement Operating System
+                Workflow Follow-up System
               </div>
 
               <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">
-                AI Workflow Agent for Follow-up, Supplier Shortlisting & Execution
+                Follow-up, supplier review and execution support
               </h2>
 
               <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-600">
-                This layer converts inbox intelligence into autonomous procurement actions:
-                reply, follow-up, shortlist supplier, review quote, or push milestone.
+                This section helps you decide whether to reply, follow up, review a quote, shortlist a supplier, or move the work forward.
               </p>
             </div>
 
@@ -2305,11 +2338,11 @@ export default async function DashboardInboxV2Page({
           </div>
 
           <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
-            🤖 Autonomous OS action: {autonomousOsAction}
+            Suggested workflow action: {autonomousOsAction}
           </div>
-                    <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-4">
+            <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-4">
             <div className="text-sm font-black text-violet-800">
-              🧠 AI Inbox Behavior Memory
+              🧠 Work Pattern Memory
             </div>
 
             <div className="mt-2 text-sm font-semibold leading-6 text-violet-900">
@@ -2345,15 +2378,15 @@ export default async function DashboardInboxV2Page({
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-100">
-                Unified AI Action Cockpit
+                Action Control Center
               </div>
 
               <h2 className="mt-3 text-2xl font-black tracking-tight">
-                One inbox command layer for RFQ, vendor, buyer and investment actions.
+                One place to continue important RFQ, vendor, buyer and investment work.
               </h2>
 
               <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-white/70">
-                AI converts inbox activity into prioritized next steps: unread response, quote review, follow-up, supplier shortlisting and procurement execution.
+                Your conversations are organized into clear next steps: reply, review quote, follow up, shortlist supplier, or continue procurement.
               </p>
             </div>
 
@@ -2420,10 +2453,10 @@ export default async function DashboardInboxV2Page({
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.14em] text-blue-700">
-              Unified Deal Health Engine
+              Workflow Situation
             </div>
             <div className="mt-1 text-lg font-black text-slate-950">
-              AI transaction completion monitor
+              Current condition of your active conversations
             </div>
             <div className="mt-1 text-sm font-semibold text-slate-500">
               {dealHealthAction}
@@ -2478,10 +2511,10 @@ export default async function DashboardInboxV2Page({
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.14em] text-rose-700">
-              AI Deal Recovery Queue
+              Deals Needing Follow-up
             </div>
             <div className="mt-1 text-lg font-black text-slate-950">
-              Stalled, risky and high-priority transaction recovery
+              Conversations that need action before they lose momentum
             </div>
             <div className="mt-1 text-sm font-semibold text-slate-600">
               {recoveryAction}
@@ -2538,7 +2571,7 @@ export default async function DashboardInboxV2Page({
                 </div>
 
                 <div className="mt-3 text-xs font-black text-rose-700">
-                  Open recovery →
+                  Open follow-up →
                 </div>
               </Link>
             ))}
@@ -2810,7 +2843,7 @@ export default async function DashboardInboxV2Page({
 
       <details className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
         <summary className="cursor-pointer px-5 py-4 text-sm font-black text-slate-900">
-          🧠 Smart Inbox Summary
+          🧠 Inbox Summary
         </summary>
         <div className="px-5 pb-5">
           <InboxPrioritySummaryStrip items={filteredItems} />
@@ -2840,10 +2873,10 @@ export default async function DashboardInboxV2Page({
           <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-slate-950">
-                AI Automation Queue
+                Tasks Requiring Attention
               </h2>
               <p className="mt-1 text-sm text-slate-500">
-                Threads that likely need action today based on unread state, age, and module priority.
+                Conversations that may need reply, review, follow-up, or confirmation today.
               </p>
             </div>
 
@@ -2855,7 +2888,7 @@ export default async function DashboardInboxV2Page({
 
         {automationQueue.length === 0 ? (
           <div className="px-5 py-10 text-sm text-slate-500">
-            No automation candidates in the current filtered view.
+            No urgent tasks in the current filtered view.
           </div>
         ) : (
           <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-5">
@@ -2898,13 +2931,13 @@ export default async function DashboardInboxV2Page({
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {typeof item.automationPriority === "number" ? (
                     <span className="inline-flex rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600">
-                      Automation {item.automationPriority}
+                      Priority {item.automationPriority}
                     </span>
                   ) : null}
 
                   {typeof item.procurementScore === "number" ? (
                     <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
-                      AI {item.procurementScore}/100
+                      Progress {item.procurementScore}/100
                     </span>
                   ) : null}
 
@@ -3102,7 +3135,7 @@ export default async function DashboardInboxV2Page({
         <ThreadSection
           anchorId="rfq-section"
           title="RFQ"
-          description="RFQ procurement conversations with AI urgency, responsiveness, follow-up and closure signals."
+          description="RFQ conversations that may need quote review, follow-up, or confirmation."
           items={grouped.rfq}
           emptyMessage="No RFQ threads match the current filters."
           sortLabel={sortFilter === "unread" ? "Unread First" : "Latest First"}
@@ -3116,7 +3149,7 @@ export default async function DashboardInboxV2Page({
         <ThreadSection
           anchorId="direct-section"
           title="Direct"
-          description="Buyer-vendor direct negotiations with AI reply, follow-up and execution intelligence."
+          description="Buyer-vendor conversations that may need reply, follow-up, or next-step confirmation."
           items={grouped.direct}
           emptyMessage="No direct buyer-vendor conversations match the current filters."
           sortLabel={sortFilter === "unread" ? "Unread First" : "Latest First"}

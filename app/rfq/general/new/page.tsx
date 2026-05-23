@@ -518,8 +518,8 @@ ${items
         riskFlags,
         procurementStrategy:
           technicalKeywords.length >= 3
-            ? "AI recommends multi-vendor comparison procurement strategy."
-            : "AI recommends local fast-response vendor strategy.",
+            ? "Multi-vendor comparison is recommended."
+            : "Fast local vendor response is recommended.",
       });
     } catch (e) {
       console.error(e);
@@ -865,7 +865,7 @@ ${items
     ].filter(Boolean);
 
     setAiAutoFillApplied(true);
-    setAiAutoFillSummary(summaryParts.join(" • ") || "Homepage AI command applied");
+    setAiAutoFillSummary(summaryParts.join(" • ") || "Homepage requirement applied");
 
     const clean = new URLSearchParams(sp.toString());
     clean.delete("query");
@@ -1303,10 +1303,10 @@ return;
                 : "Needs manual verification",
         shortlistReason:
           score >= 80
-            ? "AI recommends shortlisting this supplier first based on location, relevance and match quality."
+            ? "Suggested first shortlist based on location, relevance and match quality."
             : score >= 60
-              ? "AI recommends keeping this supplier as a comparison option."
-              : "AI suggests checking this supplier only after stronger matches respond.",
+              ? "Keep this supplier as a comparison option."
+              : "Check this supplier after stronger matches respond.",
       };
     });
   }, [aiVendorMatches, rfqHealthScore]);
@@ -1848,7 +1848,7 @@ return;
                 color: "#0f172a",
               }}
             >
-              🚀 Smart RFQ Submission
+              Guided Requirement Submission
             </div>
 
             <div
@@ -1859,7 +1859,7 @@ return;
                 fontWeight: 700,
               }}
             >
-              Step-by-step guided procurement flow for faster vendor response.
+              Complete your requirement step by step so suppliers can respond clearly.
             </div>
           </div>
 
@@ -1945,7 +1945,7 @@ return;
             lineHeight: 1.6,
           }}
         >
-          🤖 AI auto-filled this RFQ from homepage command.
+          Requirement details were prepared from your homepage search.
           {aiAutoFillSummary ? <div style={{ fontWeight: 700 }}>{aiAutoFillSummary}</div> : null}
         </div>
       ) : null}
@@ -1991,7 +1991,7 @@ return;
                   fontSize: 18,
                 }}
               >
-                🧠 AI RFQ Creation Assistant
+                Need Help Improving This Requirement?
               </div>
 
               <div
@@ -2011,10 +2011,10 @@ return;
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
             <div>
               <div style={{ fontWeight: 1000, color: "#6d28d9" }}>
-                🧠 AI RFQ Creation Assistant
+                Need Help Improving This Requirement?
               </div>
               <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 700 }}>
-                Live quality check before submission.
+                Check what is missing before submitting.
               </div>
             </div>
 
@@ -2028,7 +2028,7 @@ return;
                 alignSelf: "center",
               }}
             >
-              {rfqAiLoading ? "Checking..." : `Health ${rfqAi?.rfqHealthScore ?? "—"}/100`}
+              {rfqAiLoading ? "Checking..." : `Clarity ${rfqAi?.rfqHealthScore ?? "—"}/100`}
             </div>
           </div>
 
@@ -2080,7 +2080,7 @@ return;
                     fontWeight: 900,
                   }}
                 >
-                  Source: {rfqAi.source || "AI"}
+                  Checked by: {rfqAi.source || "Assistant"}
                 </span>
               </div>
 
@@ -2119,7 +2119,7 @@ return;
                     fontWeight: 800,
                   }}
                 >
-                  <div style={{ fontWeight: 1000, marginBottom: 4 }}>💡 AI suggestions</div>
+                  <div style={{ fontWeight: 1000, marginBottom: 4 }}>Suggested improvements</div>
                   {rfqAi.improvementSuggestions.slice(0, 4).map((x, idx) => (
                     <div key={idx}>• {x}</div>
                   ))}
@@ -2127,7 +2127,7 @@ return;
               ) : null}
 
               <div style={{ color: "#111827", fontSize: 13, fontWeight: 900 }}>
-                Recommended action: {rfqAi.recommendedAction}
+                Suggested next step: {rfqAi.recommendedAction}
               </div>
             </div>
           ) : null}
@@ -2168,14 +2168,14 @@ return;
               }}
             >
               <div style={{ fontWeight: 1000, color: "#1e3a8a", fontSize: 18 }}>
-                🏆 AI Supplier Recommendation Cards
+                Supplier Match Guidance
                 <span style={{ marginLeft: 10, color: "#2563eb" }}>
                   {showSupplierIntel ? "−" : "+"}
                 </span>
               </div>
 
               <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 4 }}>
-                AI compares nearby suppliers before RFQ submission using match score, location, RFQ quality and negotiation readiness.
+                See possible nearby suppliers based on location, requirement clarity and match quality.
               </div>
             </button>
 
@@ -2307,7 +2307,7 @@ return;
                   fontWeight: 800,
                 }}
               >
-                📊 Supplier Comparison Engine: Submit this RFQ to open full vendor comparison with quote price, delivery timeline, chat readiness and AI deal score.
+                📊 Supplier comparison: Submit this requirement to compare quote price, delivery timeline, chat readiness and deal progress.
               </div>
             </>
           ) : null}
@@ -2329,10 +2329,10 @@ return;
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div style={{ fontSize: 18, fontWeight: 1000, color: "#1e3a8a" }}>
-              ⚡ Quick RFQ Mode
+              Quick Requirement Mode
             </div>
             <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 700 }}>
-              Type like WhatsApp. AI will prepare the full requirement form automatically.
+              Type naturally like WhatsApp. The form will be prepared for you.
             </div>
           </div>
 
@@ -2501,7 +2501,7 @@ return;
                       color: "#0f172a",
                     }}
                   >
-                    📈 AI Procurement Readiness Engine
+                    📈 Requirement Progress Tracker
                   </div>
 
                   <div
@@ -2518,7 +2518,7 @@ return;
             </div>
 
             <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 4 }}>
-              Completion meter, timeline intelligence, urgency prediction and delivery risk analysis.
+              Shows what is complete, what is missing, and what should be added next.
             </div>
           </div>
 
@@ -2542,7 +2542,7 @@ return;
               alignSelf: "center",
             }}
           >
-            Readiness {procurementInsight.readinessScore}/100
+            Progress {procurementInsight.readinessScore}/100
           </div>
         </div>
 
@@ -2594,7 +2594,7 @@ return;
 
         {procurementInsight.missingFields.length > 0 ? (
           <div style={{ marginTop: 12, border: "1px solid #fed7aa", background: "#fff7ed", color: "#9a3412", borderRadius: 12, padding: 10, fontSize: 13, fontWeight: 800 }}>
-            <div style={{ fontWeight: 1000, marginBottom: 5 }}>Smart missing-fields detector</div>
+            <div style={{ fontWeight: 1000, marginBottom: 5 }}>Missing details to complete</div>
             {procurementInsight.missingFields.slice(0, 5).map((x, idx) => (
               <div key={idx}>• {x}</div>
             ))}
@@ -2616,10 +2616,10 @@ return;
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
             <div>
               <div style={{ fontSize: 18, fontWeight: 1000, color: "#5b21b6" }}>
-                🧩 AI Copilot → Structured RFQ Conversion
+                🧩 Convert Into Clear Requirement Format
               </div>
               <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 4 }}>
-                AI converts your conversation and form inputs into professional procurement blocks.
+                Turn your rough notes into clear scope, deliverables, terms and vendor expectations.
               </div>
             </div>
 
@@ -2741,7 +2741,7 @@ return;
           {showStructuredRfq && procurementReasoning.length > 0 ? (
             <div style={{ marginTop: 14 }}>
               <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
-                🧠 Procurement Reasoning Stream
+                🧠 Requirement Insights
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
@@ -2786,7 +2786,7 @@ return;
           {showStructuredRfq && procurementRecommendations.length > 0 ? (
             <div style={{ marginTop: 14 }}>
               <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
-                🎯 AI Procurement Recommendation Cards
+                🎯 Suggested Improvements
               </div>
 
               <div style={{ display: "grid", gap: 8 }}>
@@ -2853,14 +2853,14 @@ return;
         }}
       >
         <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 8 }}>
-          🤖 AI Procurement Assistant
+          Need Help Writing?
         </div>
 
         <div style={{ fontSize: 14, color: "#334155", marginBottom: 14 }}>
-          Describe your requirement naturally and AI will draft the RFQ automatically.
+          Describe your requirement naturally and get help preparing the RFQ.
           {autocompleteLoading ? (
             <span style={{ marginLeft: 8, color: "#2563eb", fontWeight: 900 }}>
-              AI reading...
+              Checking...
             </span>
           ) : null}
         </div>
@@ -2896,7 +2896,7 @@ return;
             cursor: aiDrafting ? "not-allowed" : "pointer",
           }}
         >
-          {aiDrafting ? "AI drafting RFQ..." : "✨ Generate AI RFQ Draft"}
+          {aiDrafting ? "Preparing RFQ..." : "Prepare Requirement Draft"}
         </button>
       </div>
 
@@ -2933,10 +2933,10 @@ return;
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
             <div>
               <div style={{ fontSize: 18, fontWeight: 1000, color: "#166534" }}>
-                🏗 AI Construction Budget Prediction
+                🏗 Budget Estimate
               </div>
               <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 4 }}>
-                Estimate house construction budget before submitting RFQ.
+                Estimate possible house construction cost before submitting the requirement.
               </div>
             </div>
 
@@ -3067,7 +3067,7 @@ return;
               style={{ marginTop: 12 }}
               onClick={() => {
                 const block = [
-                  "AI Construction Budget Estimate:",
+                  "Construction Budget Estimate:",
                   `Built-up area: ${constructionAreaSqFt} sq.ft`,
                   `Floors: ${constructionFloorCount}`,
                   `Grade: ${constructionGrade}`,
@@ -3111,7 +3111,7 @@ return;
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
             <div style={{ fontSize: 18, fontWeight: 1000, color: "#075985", marginBottom: 6 }}>
-              🧠 AI Progressive RFQ Builder
+              🧠 Step-by-Step Requirement Builder
             </div>
             <div style={{ fontSize: 20, fontWeight: 1000, color: "#075985" }}>
               {showProgressiveBuilder ? "−" : "+"}
@@ -3120,7 +3120,7 @@ return;
         </button>
 
         <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginBottom: 12 }}>
-          Live suggestions, procurement memory, negotiation guidance and rough budget signals.
+          Helpful suggestions, previous requirements, vendor discussion points and rough budget guidance.
         </div>
 
         {showProgressiveBuilder ? (
@@ -3157,7 +3157,7 @@ return;
             </div>
           ) : (
             <div style={{ color: "#64748b", fontSize: 13, marginBottom: 12 }}>
-              Start typing your requirement to get live AI procurement suggestions.
+              Start typing your requirement to get helpful suggestions.
             </div>
           )
         ) : null}
@@ -3176,7 +3176,7 @@ return;
             }}
           >
             <div style={{ fontWeight: 1000, color: "#166534", marginBottom: 4 }}>
-              💰 AI Budget Guidance
+              💰 Budget Guidance
             </div>
             <div style={{ fontSize: 13, color: "#14532d", fontWeight: 700 }}>
               {estimatedBudget || "Add item and quantity to get rough procurement budget guidance."}
@@ -3192,7 +3192,7 @@ return;
             }}
           >
             <div style={{ fontWeight: 1000, color: "#92400e", marginBottom: 4 }}>
-              🤝 AI Negotiation Coach
+              🤝 Vendor Discussion Guidance
             </div>
             <div style={{ fontSize: 13, color: "#78350f", fontWeight: 700 }}>
               {negotiationCoach || "After vendor replies, compare price, timeline and payment terms before closing."}
@@ -3204,7 +3204,7 @@ return;
         {showProgressiveBuilder ? (
         <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button type="button" className="topBtn topBtnPrimary" onClick={saveProcurementMemory}>
-            Save Procurement Memory
+            Save Requirement
           </button>
         </div>
         ) : null}
@@ -3212,7 +3212,7 @@ return;
         {showProgressiveBuilder && procurementMemory.length > 0 ? (
           <div style={{ marginTop: 14 }}>
             <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 8 }}>
-              Previous Procurement Memory
+              Previous Requirements
             </div>
 
             <div style={{ display: "grid", gap: 8 }}>
@@ -3331,7 +3331,7 @@ return;
                       color: "#075985",
                     }}
                   >
-                    ✨ AI Live Procurement Suggestion
+                    ✨ Suggested Detail
                   </div>
 
                   <div
@@ -3376,7 +3376,7 @@ return;
                   fontWeight: 900,
                 }}
               >
-                Confidence: {aiAutocomplete.confidence}%
+                Suggestion strength: {aiAutocomplete.confidence}%
               </div>
             </div>
           ) : null}
@@ -3417,7 +3417,7 @@ return;
                   marginBottom: 10,
                 }}
               >
-                🧠 AI Scope Extraction Engine
+                🧠 Requirement Detail Check
               </div>
 
               {scopeInsight.technicalKeywords.length > 0 ? (
@@ -3505,7 +3505,7 @@ return;
                       marginBottom: 5,
                     }}
                   >
-                    ⚠ AI detected risks
+                    ⚠ Details needing attention
                   </div>
 
                   {scopeInsight.riskFlags.map((k) => (

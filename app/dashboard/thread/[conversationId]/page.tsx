@@ -823,7 +823,7 @@ export default async function UniversalThreadPage({
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 sm:min-w-[210px]">
-             <div className="font-bold text-slate-900">AI deal safety tip</div>
+             <div className="font-bold text-slate-900">Deal safety tip</div>
             <div className="mt-1 text-xs leading-5">
               Before closing, confirm final price, delivery/work timeline,
               GST/invoice, payment terms and hidden charges in chat.
@@ -833,8 +833,8 @@ export default async function UniversalThreadPage({
       </div>
 
       <ContextualAiAssist
-        title="AI negotiation and procurement assistance"
-        description="AI helps analyze negotiation, risk, payment signals, supplier confidence, follow-up actions, procurement execution and delivery timelines."
+        title="Conversation guidance"
+        description="Helpful guidance for reply, follow-up, payment terms, delivery timeline and deal closure."
       >
             <div className="rounded-3xl border border-blue-200 bg-gradient-to-br from-blue-50 via-white to-violet-50 p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -853,7 +853,7 @@ export default async function UniversalThreadPage({
           </div>
 
           <div className="rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm font-black text-blue-700 shadow-sm">
-            Deal Score {negotiationAi.dealScore}/100
+            Deal Progress {negotiationAi.dealScore}/100
           </div>
         </div>
 
@@ -877,7 +877,7 @@ export default async function UniversalThreadPage({
 
         <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-            <div className="font-black text-emerald-800">🎯 AI Next Best Action</div>
+            <div className="font-black text-emerald-800">🎯 Suggested Next Step</div>
             <div className="mt-2 text-sm font-semibold leading-6 text-emerald-900">
               {negotiationAi.nextAction}
             </div>
@@ -891,7 +891,7 @@ export default async function UniversalThreadPage({
           </div>
 
           <div className="rounded-2xl border border-violet-200 bg-violet-50 p-4">
-            <div className="font-black text-violet-800">💳 Payment-Term Intelligence</div>
+            <div className="font-black text-violet-800">💳 Payment Terms</div>
             <div className="mt-2 text-sm font-semibold leading-6 text-violet-900">
               {negotiationAi.paymentSignal}
             </div>
@@ -919,14 +919,14 @@ export default async function UniversalThreadPage({
             href="/dashboard/inbox-v2"
             className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-black text-slate-700 transition hover:bg-slate-50"
           >
-            Back to AI Inbox
+            Back to Inbox
           </Link>
 
           <Link
             href="/rfq/general/new"
             className="inline-flex rounded-full border border-slate-900 bg-slate-900 px-3 py-1.5 text-xs font-black text-white transition hover:opacity-90"
           >
-            + New AI RFQ
+            + New Requirement
           </Link>
         </div>
       </div>
@@ -935,16 +935,15 @@ export default async function UniversalThreadPage({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="inline-flex rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-emerald-700">
-              Autonomous Procurement OS
+              Workflow Follow-up System
             </div>
 
             <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">
-              AI Workflow Agent for This Thread
+              Follow-up and Deal Movement Support
             </h2>
 
             <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
-              The agent converts this conversation into execution actions: follow-up,
-              supplier shortlisting, milestone movement, risk control and deal closure.
+              This section helps you decide the next practical action: reply, follow up, confirm terms, move milestone or close the deal.
             </p>
           </div>
 

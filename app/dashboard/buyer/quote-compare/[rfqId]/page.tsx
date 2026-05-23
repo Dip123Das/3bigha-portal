@@ -70,10 +70,10 @@ function getVendorAiSignals(v: any, bestPriceVendorId: string | null, fastestVen
   const isBestPrice = bestPriceVendorId && String(v.vendor_id) === String(bestPriceVendorId);
   const isFastest = fastestVendorId && String(v.vendor_id) === String(fastestVendorId);
 
-  if (isAiRecommended) signals.push({ label: "🧠 AI Recommended", tone: "ok" });
+  if (isAiRecommended) signals.push({ label: "Recommended", tone: "ok" });
   if (isBestPrice) signals.push({ label: "📉 Best value", tone: "ok" });
-  if (isTopCloser) signals.push({ label: "🔥 Top Closer", tone: "ok" });
-  if (!isTopCloser && isHighWin) signals.push({ label: "⚡ High Win", tone: "ok" });
+  if (isTopCloser) signals.push({ label: "🔥 Strong Response", tone: "ok" });
+  if (!isTopCloser && isHighWin) signals.push({ label: "⚡ Strong Match", tone: "ok" });
   if (isPremium) signals.push({ label: "⭐ Premium", tone: "neutral" });
   if (isFastest) signals.push({ label: "🚚 Fastest", tone: "neutral" });
 
@@ -91,7 +91,7 @@ type AiVendorComparisonCard = {
   deliveryScore: number;
   trustScore: number;
   riskScore: number;
-  valueLabel: "Best Overall" | "Lowest Price" | "Fastest Delivery" | "Most Trusted" | "Backup Option";
+  valueLabel: "Best Option" | "Lowest Price" | "Fastest Delivery" | "Trusted" | "Alternative Option";
   decision: string;
   negotiationTip: string;
   riskNote: string;
@@ -168,19 +168,19 @@ function buildAutonomousProcurementOsDecision(args: {
     isClosed
       ? "Closed"
       : vendorCount === 0
-        ? "Waiting for quotes"
+        ? "Waiting for vendor responses"
         : bestScore >= 78
-          ? "Shortlist & negotiate"
-          : "Compare more vendors";
+          ? "Shortlist and negotiate"
+          : "Compare additional vendors";
 
   const autonomousAction =
     isClosed
       ? "Archive this RFQ as completed and use it as procurement learning data."
       : vendorCount === 0
-        ? "Trigger follow-up to vendors or expand supplier discovery."
+        ? "Send follow-up or expand supplier search."
         : bestScore >= 78 && args.best
           ? `Shortlist ${args.best.name}, negotiate final delivery/payment terms, then accept.`
-          : "Compare at least 2–3 vendors before accepting any quote.";
+          : "Compare at least 2–3 vendors before making a final decision.";
 
   const autonomousReason =
     workflowRisk === "High"
@@ -312,7 +312,7 @@ export default async function BuyerQuoteComparePage({
 
   if (res.error) {
     return (
-      <main style={{ padding: 16, maxWidth: 1100, margin: "0 auto" }}>
+      <main style={{ padding: 14, maxWidth: 1100, margin: "0 auto" }}>
         <div
           style={{
             border: "1px solid #fecaca",
@@ -470,35 +470,35 @@ export default async function BuyerQuoteComparePage({
 
     const valueLabel: AiVendorComparisonCard["valueLabel"] =
       isRecommended
-        ? "Best Overall"
+        ? "Best Option"
         : isLowest
           ? "Lowest Price"
           : isFastest
             ? "Fastest Delivery"
             : trustScore >= 75
-              ? "Most Trusted"
-              : "Backup Option";
+              ? "Trusted"
+              : "Alternative Option";
 
     const decision =
       aiScore >= 78
-        ? "Strong shortlist candidate. Good balance of price, delivery and trust."
+        ? "Strong shortlist option with balanced pricing, delivery and reliability."
         : aiScore >= 58
-          ? "Usable comparison option. Negotiate before final decision."
-          : "Keep as backup unless stronger vendors do not respond.";
+          ? "Good comparison option. Negotiate before deciding."
+          : "Keep as an alternative option if needed.";
 
     const negotiationTip =
       total != null && priced.length > 1 && total > Number(priced[0]?.grand_total || total)
-        ? `Use the lowest quote ${fmtMoney(priced[0]?.grand_total)} as negotiation leverage.`
+        ? `Use the lower quote ${fmtMoney(priced[0]?.grand_total)} as negotiation leverage.`
         : deliveryDays != null && fastestDays != null && deliveryDays > fastestDays
           ? `Ask vendor to reduce delivery time closer to ${fastestDays} days.`
           : "Ask vendor to confirm final price, delivery charges, GST invoice and payment terms.";
 
     const riskNote =
       riskScore >= 60
-        ? "High caution: verify vendor details, price terms and delivery commitment before accepting."
+        ? "Carefully verify vendor details, pricing and delivery commitment before accepting."
         : riskScore >= 30
-          ? "Moderate caution: confirm hidden charges and final delivery terms."
-          : "Low visible risk based on available quote signals.";
+          ? "Confirm hidden charges and final delivery terms."
+          : "Lower visible workflow risk based on current vendor signals.";
 
     return {
       vendorId: String(v.vendor_id ?? ""),
@@ -598,19 +598,19 @@ export default async function BuyerQuoteComparePage({
 
   const buyerDecisionCards: BuyerDecisionCard[] = [
     {
-      title: "Decision Confidence",
+      title: "Decision Readiness",
       value: buyerDecisionConfidence ? `${buyerDecisionConfidence}/100` : "Waiting",
       detail:
         buyerDecisionConfidence >= 80
-          ? "AI indicates this RFQ has enough vendor signals for a confident buyer decision."
+          ? "This RFQ has enough vendor activity for a confident decision."
           : buyerDecisionConfidence >= 55
-            ? "AI recommends negotiation and comparison before accepting."
-            : "AI recommends waiting for more quotes or stronger vendor signals.",
+            ? "Negotiation and comparison are recommended before acceptance."
+            : "Wait for more quotes or stronger vendor responses.",
       tone: buyerDecisionConfidence >= 80 ? "ok" : buyerDecisionConfidence >= 55 ? "warn" : "bad",
       icon: "🧠",
     },
     {
-      title: "Best Buyer Action",
+      title: "Suggested Next Step",
       value: aiProcurementDecision.bestOverall?.name || "No shortlist yet",
       detail: aiProcurementDecision.buyerAction,
       tone: Number(aiProcurementDecision.bestOverall?.aiScore || 0) >= 78 ? "ok" : "warn",
@@ -629,7 +629,7 @@ export default async function BuyerQuoteComparePage({
       icon: "🤝",
     },
     {
-      title: "Execution Risk",
+      title: "Work Status",
       value: autonomousOsDecision.workflowRisk,
       detail: autonomousOsDecision.autonomousReason,
       tone:
@@ -696,12 +696,12 @@ export default async function BuyerQuoteComparePage({
   };
 
   return (
-    <main style={{ padding: 16, maxWidth: 1200, margin: "0 auto" }}>
+    <main style={{ padding: 14, maxWidth: 1200, margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 900, margin: 0 }}>Quote Compare</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 900, margin: 0 }}>Vendor Comparison Workspace</h1>
           <div style={{ marginTop: 6, opacity: 0.8 }}>
-            Compare vendors’ latest quotes for this RFQ and pick the best option.
+            Compare vendor quotations, delivery timelines, trust level and next steps before making a final decision.
           </div>
         </div>
 
@@ -769,7 +769,7 @@ export default async function BuyerQuoteComparePage({
 
       <div style={{ marginTop: 16 }}>
         <OperationalWorkspacePanel
-          title="Quote Compare Work Space"
+          title="Vendor Comparison Workspace"
           nextAction={aiProcurementDecision.buyerAction}
           status={`Vendors: ${vendorsSorted.length} • Confidence: ${buyerDecisionConfidence || "—"}/100`}
           actions={[
@@ -783,209 +783,43 @@ export default async function BuyerQuoteComparePage({
                 }
               : { label: "Wait for Quotes", href: "/dashboard/inbox-v2?module=rfq", tone: "warning" },
             { label: "Print Compare", href: buyerPrintHref, tone: "neutral" },
-            { label: "Open RFQ Inbox", href: "/dashboard/inbox-v2?module=rfq", tone: "neutral" },
+            { label: "Open Inbox", href: "/dashboard/inbox-v2?module=rfq", tone: "neutral" },
             { label: "My RFQs", href: "/dashboard/buyer/rfqs", tone: "neutral" },
           ]}
         />
       </div>
 
-      <AIExecutionTimeline
-        input={{
-          module,
-          stage: autonomousOsDecision.milestone,
-          workflowRisk: autonomousOsDecision.workflowRisk,
-          closurePrediction:
-            buyerDecisionConfidence >= 80
-              ? "High"
-              : buyerDecisionConfidence >= 55
-                ? "Medium"
-                : "Low",
-          vendorCount: vendorsSorted.length,
-          hasAcceptedQuote: Boolean(acceptedQuoteId),
-          hasPriceSignal: priced.length > 0,
-          hasDeliverySignal: Boolean(fastestVendorId),
-        }}
-      />
-
-      <div style={{ height: 14 }} />
-
-      <MarketplaceAiDashboard payload={smartDecisionPayload} />
-
-      <PricePredictionToggle payload={smartDecisionPayload} />
-
-      <SmartDecisionBox payload={smartDecisionPayload} />
-
-      {buyerDecisionCards.length > 0 ? (
-        <div
-          style={{
-            marginTop: 16,
-            padding: 16,
-            borderRadius: 20,
-            border: "1px solid rgba(15,23,42,0.12)",
-            background: "linear-gradient(135deg, #0f172a, #1d4ed8)",
-            color: "#ffffff",
-            boxShadow: "0 18px 44px rgba(15,23,42,0.18)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 1000, color: "#bfdbfe", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                AI Buyer Final Decision Intelligence
-              </div>
-              <div style={{ marginTop: 6, fontSize: 22, fontWeight: 1000 }}>
-                Decide the safest vendor, not only the cheapest quote.
-              </div>
-              <div style={{ marginTop: 5, color: "rgba(255,255,255,0.76)", fontSize: 13, fontWeight: 800 }}>
-                AI combines price, trust, delivery, risk, quote spread and procurement readiness into a buyer decision layer.
-              </div>
-            </div>
-
-            <div
-              style={{
-                alignSelf: "center",
-                borderRadius: 999,
-                background: "rgba(255,255,255,0.12)",
-                border: "1px solid rgba(255,255,255,0.16)",
-                padding: "9px 13px",
-                fontWeight: 1000,
-              }}
-            >
-              Confidence {buyerDecisionConfidence || "—"}/100
-            </div>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
-            {buyerDecisionCards.map((card) => (
-              <div
-                key={card.title}
-                style={{
-                  ...decisionCardStyle(card.tone),
-                  borderRadius: 14,
-                  padding: 12,
-                }}
-              >
-                <div style={{ fontSize: 12, fontWeight: 1000, opacity: 0.86 }}>
-                  {card.icon} {card.title}
-                </div>
-                <div style={{ marginTop: 6, fontSize: 16, fontWeight: 1000 }}>
-                  {card.value}
-                </div>
-                <div style={{ marginTop: 6, fontSize: 12, lineHeight: 1.45, fontWeight: 800, color: "#475569" }}>
-                  {card.detail}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {aiProcurementDecision.bestOverall?.vendorId ? (
-              <Link
-                href={`/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}/chat?vendorId=${encodeURIComponent(
-                  aiProcurementDecision.bestOverall.vendorId
-                )}`}
-                style={actionBtnStyle("talk")}
-              >
-                💬 Negotiate with Best Vendor
-              </Link>
-            ) : null}
-
-            <Link href={buyerPrintHref} style={actionBtnStyle("normal")}>
-              🖨️ Print Comparison
-            </Link>
-
-            <Link href="/dashboard/inbox-v2?module=rfq" style={actionBtnStyle("normal")}>
-              Continue in Inbox
-            </Link>
-          </div>
-        </div>
-      ) : null}
-
-            <div
+      <div
         style={{
           marginTop: 16,
-          padding: 16,
-          borderRadius: 18,
-          border: "1px solid rgba(16,185,129,0.28)",
-          background: "linear-gradient(135deg, rgba(16,185,129,0.10), #ffffff)",
-          boxShadow: "0 14px 30px rgba(16,185,129,0.08)",
+          padding: 14,
+          border: "1px solid #e5e7eb",
+          borderRadius: 14,
+          background: "#ffffff",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 1000, color: "#047857" }}>
-              🤖 Autonomous Procurement OS
+            <div style={{ fontSize: 16, fontWeight: 900, color: "#111827" }}>
+              What to do now
             </div>
-            <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
-              AI converts this quote comparison into execution: shortlist supplier, negotiate terms, follow up, or accept safely.
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: "#dcfce7",
-              color: "#166534",
-              border: "1px solid #bbf7d0",
-              borderRadius: 999,
-              padding: "8px 12px",
-              fontWeight: 1000,
-              alignSelf: "center",
-            }}
-          >
-            OS Score {autonomousOsDecision.osScore}/100
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
-          {[
-            ["Workflow Risk", autonomousOsDecision.workflowRisk, "🚦"],
-            ["Supplier Signal", autonomousOsDecision.supplierSignal, "🏆"],
-            ["Milestone", autonomousOsDecision.milestone, "📍"],
-            ["Shortlist", autonomousOsDecision.shortlistVendor, "✅"],
-          ].map(([label, value, icon]) => (
-            <div
-              key={label}
-              style={{
-                border: "1px solid #e2e8f0",
-                background: "#ffffff",
-                borderRadius: 14,
-                padding: 12,
-              }}
-            >
-              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
-                {icon} {label}
-              </div>
-              <div style={{ marginTop: 6 }}>
-                <span
-                  style={
-                    label === "Workflow Risk" || label === "Supplier Signal"
-                      ? osToneStyle(value as any)
-                      : { fontWeight: 1000, color: "#0f172a" }
-                  }
-                >
-                  {value}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 12 }}>
-          <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
-            <div style={{ color: "#166534", fontWeight: 1000, marginBottom: 4 }}>
-              🤖 Autonomous Action
-            </div>
-            <div style={{ color: "#14532d", fontSize: 13, fontWeight: 850, lineHeight: 1.5 }}>
-              {autonomousOsDecision.autonomousAction}
+            <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 750 }}>
+              {aiProcurementDecision.buyerAction}
             </div>
           </div>
 
-          <div style={{ border: "1px solid #a5f3fc", background: "#ecfeff", borderRadius: 12, padding: 10 }}>
-            <div style={{ color: "#0e7490", fontWeight: 1000, marginBottom: 4 }}>
-              🧠 Why This Action
-            </div>
-            <div style={{ color: "#155e75", fontSize: 13, fontWeight: 850, lineHeight: 1.5 }}>
-              {autonomousOsDecision.autonomousReason}
-            </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <span style={pillStyle("neutral")}>
+              Vendors: {vendorsSorted.length}
+            </span>
+            <span style={pillStyle(buyerDecisionConfidence >= 80 ? "ok" : buyerDecisionConfidence >= 55 ? "warn" : "neutral")}>
+              Readiness: {buyerDecisionConfidence || "—"}/100
+            </span>
+            {aiProcurementDecision.priceSpread != null ? (
+              <span style={pillStyle("neutral")}>
+                Price gap: {aiProcurementDecision.priceSpread}%
+              </span>
+            ) : null}
           </div>
         </div>
 
@@ -997,331 +831,25 @@ export default async function BuyerQuoteComparePage({
               )}`}
               style={actionBtnStyle("talk")}
             >
-              💬 Execute with Shortlisted Vendor
+              💬 Start Discussion
             </Link>
           ) : null}
 
-          <Link href="/dashboard/inbox-v2?module=rfq" style={actionBtnStyle("normal")}>
-            Open RFQ Execution Inbox
+          <Link href={buyerPrintHref} style={actionBtnStyle("normal")}>
+            🖨️ Print Compare
           </Link>
 
-          <Link href="/dashboard/buyer/rfqs" style={actionBtnStyle("normal")}>
-            Back to RFQ Command Center
+          <Link href="/dashboard/inbox-v2?module=rfq" style={actionBtnStyle("normal")}>
+            Open Inbox
           </Link>
         </div>
       </div>
-
-            {aiComparisonSorted.length > 0 ? (
-        <div
-          style={{
-            marginTop: 16,
-            padding: 16,
-            borderRadius: 18,
-            border: "1px solid rgba(37,99,235,0.25)",
-            background: "linear-gradient(135deg, rgba(37,99,235,0.08), #ffffff)",
-            boxShadow: "0 14px 30px rgba(37,99,235,0.08)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-            <div>
-              <div style={{ fontSize: 20, fontWeight: 1000, color: "#1e3a8a" }}>
-                🧠 AI Multi-Vendor Comparison Workspace
-              </div>
-              <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
-                AI compares price, delivery, trust, risk, negotiation leverage and best-value decision.
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: "#dbeafe",
-                color: "#1e40af",
-                border: "1px solid #bfdbfe",
-                borderRadius: 999,
-                padding: "8px 12px",
-                fontWeight: 1000,
-                alignSelf: "center",
-              }}
-            >
-              Best Overall: {aiProcurementDecision.bestOverall?.name ?? "—"}
-            </div>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
-            {[
-              ["Best Overall", aiProcurementDecision.bestOverall?.name ?? "—", "🧠"],
-              ["Lowest Price", aiProcurementDecision.lowestPrice?.name ?? "—", "📉"],
-              ["Fastest Delivery", aiProcurementDecision.fastestDelivery?.name ?? "—", "🚚"],
-              ["Most Trusted", aiProcurementDecision.mostTrusted?.name ?? "—", "🛡️"],
-            ].map(([label, value, icon]) => (
-              <div
-                key={label}
-                style={{
-                  border: "1px solid #e2e8f0",
-                  background: "#ffffff",
-                  borderRadius: 14,
-                  padding: 12,
-                }}
-              >
-                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>
-                  {icon} {label}
-                </div>
-                <div style={{ marginTop: 5, color: "#0f172a", fontWeight: 1000 }}>
-                  {value}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginTop: 12 }}>
-            <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
-              <div style={{ fontSize: 12, color: "#166534", fontWeight: 1000 }}>Average Price</div>
-              <div style={{ marginTop: 4, fontWeight: 1000, color: "#14532d" }}>
-                {fmtMoney(aiProcurementDecision.averagePrice)}
-              </div>
-            </div>
-
-            <div style={{ border: "1px solid #fde68a", background: "#fffbeb", borderRadius: 12, padding: 10 }}>
-              <div style={{ fontSize: 12, color: "#92400e", fontWeight: 1000 }}>Price Spread</div>
-              <div style={{ marginTop: 4, fontWeight: 1000, color: "#78350f" }}>
-                {aiProcurementDecision.priceSpread != null ? `${aiProcurementDecision.priceSpread}%` : "—"}
-              </div>
-            </div>
-
-            <div style={{ border: "1px solid #fecaca", background: "#fef2f2", borderRadius: 12, padding: 10 }}>
-              <div style={{ fontSize: 12, color: "#991b1b", fontWeight: 1000 }}>Overpriced Vendors</div>
-              <div style={{ marginTop: 4, fontWeight: 1000, color: "#7f1d1d" }}>
-                {aiProcurementDecision.overpricedCount}
-              </div>
-            </div>
-          </div>
-
-          <div
-            style={{
-              marginTop: 12,
-              border: "1px solid #bfdbfe",
-              background: "#eff6ff",
-              color: "#1e3a8a",
-              borderRadius: 12,
-              padding: 10,
-              fontSize: 13,
-              fontWeight: 900,
-            }}
-          >
-            💡 Negotiation leverage: {aiProcurementDecision.negotiationLeverage}
-          </div>
-
-          <div
-            style={{
-              marginTop: 10,
-              border: "1px solid #bbf7d0",
-              background: "#f0fdf4",
-              color: "#14532d",
-              borderRadius: 12,
-              padding: 10,
-              fontSize: 13,
-              fontWeight: 900,
-            }}
-          >
-            ✅ AI buyer action: {aiProcurementDecision.buyerAction}
-          </div>
-
-          <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
-            {aiComparisonSorted.map((card) => {
-              const scoreTone =
-                card.aiScore >= 78 ? "ok" : card.aiScore >= 58 ? "warn" : "bad";
-
-              const chatHref = `/dashboard/buyer/quote-compare/${encodeURIComponent(
-                rfqId
-              )}/chat?vendorId=${encodeURIComponent(card.vendorId)}`;
-
-              return (
-                <div
-                  key={card.vendorId}
-                  style={{
-                    border:
-                      aiProcurementDecision.bestOverall?.vendorId === card.vendorId
-                        ? "2px solid #2563eb"
-                        : "1px solid rgba(15,23,42,0.10)",
-                    background: "#ffffff",
-                    borderRadius: 14,
-                    padding: 12,
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                    <div>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                        <div style={{ fontWeight: 1000, color: "#0f172a", fontSize: 16 }}>
-                          {card.name}
-                        </div>
-                        <span style={pillStyle(scoreTone)}>AI Score {card.aiScore}/100</span>
-                        <span style={pillStyle("neutral")}>{card.valueLabel}</span>
-                      </div>
-
-                      <div style={{ marginTop: 6, color: "#475569", fontSize: 13, fontWeight: 800 }}>
-                        {card.decision}
-                      </div>
-                    </div>
-
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 12, color: "#64748b", fontWeight: 900 }}>Quote Total</div>
-                      <div style={{ fontWeight: 1000, color: "#0f172a", fontSize: 18 }}>
-                        {fmtMoney(card.total)}
-                      </div>
-                      <div style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>
-                        Delivery: {card.deliveryDays != null ? `${card.deliveryDays} days` : "—"}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8, marginTop: 10 }}>
-                    {[
-                      ["Price", card.priceScore],
-                      ["Delivery", card.deliveryScore],
-                      ["Trust", card.trustScore],
-                      ["Risk", card.riskScore],
-                    ].map(([label, value]) => (
-                      <div
-                        key={label}
-                        style={{
-                          border: "1px solid #e2e8f0",
-                          background: "#f8fafc",
-                          borderRadius: 10,
-                          padding: 8,
-                        }}
-                      >
-                        <div style={{ fontSize: 11, color: "#64748b", fontWeight: 900 }}>{label}</div>
-                        <div style={{ fontWeight: 1000, color: "#0f172a" }}>{value}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10 }}>
-                    <div style={{ border: "1px solid #fde68a", background: "#fffbeb", color: "#78350f", borderRadius: 10, padding: 9, fontSize: 13, fontWeight: 800 }}>
-                      🤝 {card.negotiationTip}
-                    </div>
-
-                    <div style={{ border: "1px solid #fecaca", background: "#fef2f2", color: "#7f1d1d", borderRadius: 10, padding: 9, fontSize: 13, fontWeight: 800 }}>
-                      ⚠ {card.riskNote}
-                    </div>
-                  </div>
-
-                  <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <Link href={chatHref} style={actionBtnStyle("talk")}>
-                      💬 Negotiate with AI Context
-                    </Link>
-
-                    {card.quoteId && String(rfq?.status ?? "") !== "closed" ? (
-                      <form
-                        action={`/api/buyer/rfq/${encodeURIComponent(rfqId)}/accept`}
-                        method="post"
-                        style={{ display: "inline-flex" }}
-                      >
-                        <input type="hidden" name="quote_id" value={card.quoteId} />
-                        <button type="submit" style={actionBtnStyle("accept")}>
-                          Accept This Quote
-                        </button>
-                      </form>
-                    ) : null}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
-
-      {aiRecommendedVendor ? (
-        <div
-          style={{
-            marginTop: 16,
-            padding: 16,
-            borderRadius: 16,
-            border: "1px solid #bfdbfe",
-            background: "linear-gradient(135deg, #eff6ff, #ffffff)",
-            boxShadow: "0 10px 24px rgba(37,99,235,0.08)",
-          }}
-        >
-          <div style={{ fontSize: 13, fontWeight: 950, color: "#1d4ed8" }}>
-            🧠 AI Recommended Vendor
-          </div>
-
-          <div style={{ marginTop: 6, fontSize: 20, fontWeight: 1000, color: "#0f172a" }}>
-            {aiRecommendedVendor.vendor_business_name ??
-              (aiRecommendedVendor.vendor_id
-                ? `Vendor ${String(aiRecommendedVendor.vendor_id).slice(0, 8)}…`
-                : "Vendor")}
-          </div>
-
-          <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <span style={pillStyle("ok")}>Best AI Fit</span>
-
-            {Number(aiRecommendedVendor.ready_deal_signals || 0) >= 3 ? (
-              <span style={pillStyle("ok")}>🔥 Top Closer</span>
-            ) : null}
-
-            {Number(aiRecommendedVendor.win_probability || 0) > 0.7 ? (
-              <span style={pillStyle("ok")}>⚡ High Win Probability</span>
-            ) : null}
-
-            {Number(aiRecommendedVendor.weighted_boost || 0) > 0 ? (
-              <span style={pillStyle("neutral")}>⭐ Premium Vendor</span>
-            ) : null}
-
-            <span style={pillStyle("neutral")}>
-              Total: {fmtMoney(aiRecommendedVendor.grand_total)}
-            </span>
-          </div>
-
-          <div style={{ marginTop: 8, fontSize: 13, color: "#475569", fontWeight: 800 }}>
-            Suggested based on deal signals, AI win probability, vendor reputation and quote strength.
-          </div>
-
-          <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <Link
-              href={`/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}/chat?vendorId=${encodeURIComponent(
-                String(aiRecommendedVendor.vendor_id ?? "")
-              )}`}
-              style={{
-                ...actionBtnStyle("talk"),
-                background: "linear-gradient(180deg, #dcfce7 0%, #86efac 100%)",
-                border: "1px solid #22c55e",
-                fontWeight: 1000,
-              }}
-            >
-              💬 Talk to AI Recommended Vendor
-            </Link>
-
-            <form
-              action={`/api/buyer/rfq/${encodeURIComponent(rfqId)}/accept`}
-              method="post"
-              style={{ display: "inline-flex" }}
-            >
-              <input type="hidden" name="quote_id" value={String(aiRecommendedVendor.quote_id ?? "")} />
-              <button
-                type="submit"
-                style={{
-                  height: 38,
-                  padding: "0 14px",
-                  borderRadius: 999,
-                  border: "1px solid #60a5fa",
-                  background: "#eff6ff",
-                  fontWeight: 900,
-                  cursor: "pointer",
-                }}
-              >
-                ✅ Accept Recommended
-              </button>
-            </form>
-          </div>
-        </div>
-      ) : null}
 
       {selectedVendor ? (
         <div
           style={{
             marginTop: 18,
-            padding: 16,
+            padding: 14,
             border: "1px solid #bbf7d0",
             background: "#ecfdf5",
             borderRadius: 14,
@@ -1332,7 +860,7 @@ export default async function BuyerQuoteComparePage({
               <div style={{ fontSize: 12, fontWeight: 900, color: "#065f46", marginBottom: 6 }}>
                 SELECTED VENDOR SUMMARY
               </div>
-              <div style={{ fontSize: 20, fontWeight: 900 }}>
+              <div style={{ fontSize: 18, fontWeight: 900 }}>
                 {selectedVendor.vendor_business_name ??
                   (selectedVendor.vendor_id ? `Vendor ${String(selectedVendor.vendor_id).slice(0, 8)}…` : "Vendor")}
               </div>
@@ -1380,8 +908,14 @@ export default async function BuyerQuoteComparePage({
         </div>
       ) : null}
 
-      <div style={{ marginTop: 18 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>Quick Compare</h2>
+      <div style={{ marginTop: 14 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 1000, margin: 0 }}>
+          Vendor Comparison
+        </h2>
+
+        <div style={{ marginTop: 4, fontSize: 13, color: "#64748b" }}>
+          Compare vendors quickly before starting discussion or accepting quotation.
+        </div>
 
         {vendorsSorted.length === 0 ? (
           <div style={{ marginTop: 10, opacity: 0.75 }}>No vendor responses yet.</div>
@@ -1391,7 +925,7 @@ export default async function BuyerQuoteComparePage({
               <thead>
                 <tr style={{ borderBottom: "1px solid #e5e7eb", background: "#fafafa" }}>
                   <th style={{ textAlign: "left", padding: 10 }}>Vendor</th>
-                  <th style={{ textAlign: "left", padding: 10 }}>AI Decision</th>
+                  <th style={{ textAlign: "left", padding: 10 }}>Match</th>
                   <th style={{ textAlign: "left", padding: 10 }}>Price</th>
                   <th style={{ textAlign: "left", padding: 10 }}>Delivery</th>
                   <th style={{ textAlign: "left", padding: 10 }}>Action</th>
@@ -1454,7 +988,7 @@ export default async function BuyerQuoteComparePage({
 
                           return (
                             <div style={{ display: "grid", gap: 5 }}>
-                              <span style={pillStyle(tone)}>AI {card.aiScore}/100</span>
+                              <span style={pillStyle(tone)}>Match {card.aiScore}/100</span>
                               <span style={{ fontSize: 12, color: "#475569", fontWeight: 800 }}>
                                 {card.valueLabel}
                               </span>
@@ -1531,7 +1065,9 @@ export default async function BuyerQuoteComparePage({
       </div>
 
       <div style={{ marginTop: 18 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>Vendors (latest quote per vendor)</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 1000, margin: 0 }}>
+          Vendor Responses
+        </h2>
 
         {vendorsSorted.length === 0 ? (
           <div style={{ marginTop: 10, opacity: 0.75 }}>No quotes received yet.</div>
@@ -1633,7 +1169,9 @@ export default async function BuyerQuoteComparePage({
       </div>
 
       <div style={{ marginTop: 18 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 900, margin: 0 }}>Compare (Item-wise)</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 1000, margin: 0 }}>
+          Item-wise Comparison
+        </h2>
 
         {items.length === 0 || vendorsSorted.length === 0 ? (
           <div style={{ marginTop: 10, opacity: 0.75 }}>Nothing to compare yet.</div>
@@ -1731,6 +1269,54 @@ export default async function BuyerQuoteComparePage({
           </div>
         )}
       </div>
+
+      <details
+        style={{
+          marginTop: 20,
+          border: "1px solid #e5e7eb",
+          borderRadius: 14,
+          background: "#fff",
+          padding: 12,
+        }}
+      >
+        <summary
+          style={{
+            cursor: "pointer",
+            fontWeight: 900,
+            color: "#111827",
+          }}
+        >
+          Advanced Help & Price Intelligence
+        </summary>
+
+        <div style={{ marginTop: 14 }}>
+          <AIExecutionTimeline
+            input={{
+              module,
+              stage: autonomousOsDecision.milestone,
+              workflowRisk: autonomousOsDecision.workflowRisk,
+              closurePrediction:
+                buyerDecisionConfidence >= 80
+                  ? "High"
+                  : buyerDecisionConfidence >= 55
+                    ? "Medium"
+                    : "Low",
+              vendorCount: vendorsSorted.length,
+              hasAcceptedQuote: Boolean(acceptedQuoteId),
+              hasPriceSignal: priced.length > 0,
+              hasDeliverySignal: Boolean(fastestVendorId),
+            }}
+          />
+
+          <div style={{ height: 14 }} />
+
+          <MarketplaceAiDashboard payload={smartDecisionPayload} />
+
+          <PricePredictionToggle payload={smartDecisionPayload} />
+
+          <SmartDecisionBox payload={smartDecisionPayload} />
+        </div>
+      </details>
 
       <div style={{ marginTop: 16, opacity: 0.75, fontSize: 13 }}>
         Tip: If a vendor shows <strong>outdated</strong>, ask them to submit a revised quote for the latest RFQ revision.
