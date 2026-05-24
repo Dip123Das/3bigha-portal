@@ -19,7 +19,7 @@ import {
   ErpKpiGrid,
   ErpPanel,
 } from "@/components/vendor-erp/VendorErpWidgets";
-import { VendorErpNav } from "@/components/vendor-erp/VendorErpNav";
+import VendorWorkMenu from "@/components/vendor-erp/VendorWorkMenu";
 
 type VehicleRow = {
   id: string;
@@ -184,11 +184,33 @@ export default function VendorFleetPage() {
     <main>
       <Container>
         <SectionHeader
-          title="Vendor Fleet"
-          subtitle="Manage truck, lorry, dumper and tractor details for delivery and dispatch."
+          title="Fleet Work Desk"
+          subtitle="Manage trucks, drivers and vehicle availability for dispatch work."
         />
 
-        <VendorErpNav />
+        <VendorWorkMenu />
+
+        <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 22,
+            padding: 16,
+            border: "1px solid #dbeafe",
+            background: "linear-gradient(to bottom right,#eff6ff,#ffffff)",
+          }}
+        >
+          <div style={{ fontSize: 11, fontWeight: 950, letterSpacing: "0.14em", textTransform: "uppercase", color: "#2563eb" }}>
+            Daily Fleet Work
+          </div>
+
+          <h1 style={{ marginTop: 8, marginBottom: 0, fontSize: 26, lineHeight: 1.15, fontWeight: 950, color: "#0f172a" }}>
+            Keep your delivery vehicles ready
+          </h1>
+
+          <p style={{ marginTop: 8, maxWidth: 780, fontSize: 14, lineHeight: 1.7, fontWeight: 700, color: "#475569" }}>
+            Add trucks, tractors, dumpers or pickups here. Mark vehicles as available, assigned, in transit or maintenance so dispatch work stays clear.
+          </p>
+        </div>
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
           <ActionButton href="/dashboard/vendor" variant="secondary">
@@ -229,7 +251,7 @@ export default function VendorFleetPage() {
         </ErpPanel>
 
                 <ErpPanel
-          title="Fleet ERP Operations"
+          title="Fleet Daily Actions"
           subtitle="Vehicle assignment, dispatch linkage and delivery operations."
           tone="blue"
         >
@@ -256,8 +278,8 @@ export default function VendorFleetPage() {
             />
 
             <ErpActionCard
-              title="AI Fleet Monitoring"
-              description="Review operational risk and delivery efficiency."
+              title="Fleet Suggestions"
+              description="Review vehicle availability and delivery follow-up."
               href="/dashboard/vendor/inventory-intelligence"
               tone="violet"
             />
