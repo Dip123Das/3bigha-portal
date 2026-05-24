@@ -212,7 +212,6 @@ function StatCard({
 
   return (
     <div className={`rounded-3xl border p-4 shadow-sm ${toneClasses}`}>
-      <BuyerWorkMenu />
       <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
         {label}
       </div>
@@ -405,6 +404,8 @@ export default function DashboardInboxPage() {
           </div>
         </div>
       </div>
+
+      <BuyerWorkMenu />
 
       {error ? (
         <div className="rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700 shadow-sm">
