@@ -75,6 +75,19 @@ function normalizeProjectType(value: unknown): ConstructionProjectType | undefin
     : undefined;
 }
 
+function normalizeScheduleMode(value: unknown) {
+  if (
+    value === "indicative" ||
+    value === "pwd_sor" ||
+    value === "cpwd_dsr" ||
+    value === "price_today"
+  ) {
+    return value;
+  }
+
+  return "indicative";
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -94,6 +107,9 @@ export async function POST(req: Request) {
     const payload: ConstructionEstimateRequest = {
       builtUpAreaSqFt,
       floorCount: toNumber(body.floorCount, 1),
+      basementCount: toNumber(body.basementCount, 0),
+      scheduleMode: normalizeScheduleMode(body.scheduleMode),
+      priceTodayLinked: toBoolean(body.priceTodayLinked, false),
       grade: normalizeGrade(body.grade),
       region: normalizeRegion(body.region),
       projectType: normalizeProjectType(body.projectType),

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { absoluteUrl, siteConfig } from "./site";
+import { isIndexable } from "./isIndexable";
 
 type SeoInput = {
   title?: string;
@@ -69,7 +70,9 @@ export function createMetadata(input: SeoInput = {}): Metadata {
     input.description ||
     `${title} available on ${siteConfig.name}. Explore verified listings, compare vendors, discover property, construction materials, RFQ procurement, rentals, services and AI-powered marketplace workflows in ${geoText}.`;
 
-  const path = input.path || "/";
+  const rawPath = input.path || "/";
+  const path = rawPath.split("?")[0] || "/";
+  const allowIndex = isIndexable(path);
   const image = input.image || siteConfig.ogImage;
 
   const keywords = uniq([
@@ -175,22 +178,28 @@ export function createMetadata(input: SeoInput = {}): Metadata {
       images: [absoluteUrl(image)],
     },
 
-    robots: input.noIndex
-      ? {
+    robots:
+  input.noIndex || !allowIndex
+    ? {
+        index: false,
+        follow: false,
+        googleBot: {
           index: false,
           follow: false,
-        }
-      : {
+          noimageindex: true,
+        },
+      }
+    : {
+        index: true,
+        follow: true,
+
+        googleBot: {
           index: true,
           follow: true,
-
-          googleBot: {
-            index: true,
-            follow: true,
-            "max-image-preview": "large",
-            "max-snippet": -1,
-            "max-video-preview": -1,
-          },
+          "max-image-preview": "large",
+          "max-snippet": -1,
+          "max-video-preview": -1,
         },
+      },
   };
 }

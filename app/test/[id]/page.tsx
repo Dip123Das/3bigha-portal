@@ -1,8 +1,12 @@
-export default function TestDynamic({ params }: { params: { id: string } }) {
-  return (
-    <main style={{ padding: 24 }}>
-      <h1>Dynamic route working ✅</h1>
-      <pre>{JSON.stringify(params, null, 2)}</pre>
-    </main>
-  );
+import { notFound } from "next/navigation";
+
+export const metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
+export default function TestDynamic() {
+  notFound();
 }

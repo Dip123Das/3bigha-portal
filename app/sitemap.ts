@@ -31,7 +31,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
 const staticRoutes = [
   "",
-  "/ai-search-guide",
 
   "/seo/property/west-bengal/cooch-behar/cooch-behar",
   "/seo/materials/west-bengal/cooch-behar/cooch-behar",
@@ -47,12 +46,17 @@ const staticRoutes = [
   "/services",
   "/rentals",
   "/price-today",
+  "/emi-calculator",
+  "/cost-calculator",
+  "/construction-cost",
+  "/house-construction-cost",
+  "/compare-rates",
   "/blog",
   "/vendor",
   "/vendor/discovery",
+  "/investment",
   "/search",
   "/ai-search-guide",
-  "/llms.txt",
   "/about",
   "/contact",
   "/privacy-policy",
@@ -79,6 +83,14 @@ const staticRoutes = [
         ? 0.88
         : path.startsWith("/search/")
         ? 0.84
+        : [
+            "/emi-calculator",
+            "/cost-calculator",
+            "/construction-cost",
+            "/house-construction-cost",
+            "/compare-rates",
+          ].includes(path)
+        ? 0.86
         : 0.8,
   }));
 

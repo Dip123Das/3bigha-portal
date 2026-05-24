@@ -32,6 +32,10 @@ export type BoqItem = {
   vendorCategory: string;
   rfqReadyName: string;
   note: string;
+  pwdCode?: string;
+  pwdSection?: string;
+  pwdSource?: string;
+  priceTodayKeys?: string[];
 };
 
 export type BoqEstimateResult = {

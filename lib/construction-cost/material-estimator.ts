@@ -17,7 +17,7 @@ function sanitizeArea(value: number): number {
 
 function sanitizeFloorCount(value?: number): number {
   if (!Number.isFinite(value)) return 1;
-  return Math.max(1, Math.min(Math.round(value ?? 1), 20));
+  return Math.max(1, Math.min(Math.round(value ?? 1), 75));
 }
 
 function normalizeGrade(value?: ConstructionGrade): ConstructionGrade {
@@ -46,7 +46,7 @@ export function estimateConstructionMaterials(
   const gradeMultiplier = MATERIAL_GRADE_MULTIPLIERS[grade] ?? 1;
 
   const floorMultiplier =
-    floorCount <= 1 ? 1 : 1 + Math.min(floorCount - 1, 10) * 0.04;
+    floorCount <= 1 ? 1 : 1 + Math.min(floorCount - 1, 74) * 0.018;
 
   const items = MATERIAL_ESTIMATION_RULES.map((rule) => {
     const rawQuantity =

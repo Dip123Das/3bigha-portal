@@ -81,6 +81,12 @@ export default function BoqPreviewTable({
                 <div className="mt-1 text-xs leading-5 text-slate-600">
                   {item.description}
                 </div>
+
+                {item.pwdCode ? (
+                  <div className="mt-2 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-black text-emerald-700">
+                    {item.pwdCode}
+                  </div>
+                ) : null}
               </div>
 
               <div className="font-black text-slate-950">
@@ -96,6 +102,18 @@ export default function BoqPreviewTable({
                 <div className="mt-1 text-xs leading-5 text-slate-500">
                   {item.note}
                 </div>
+
+                {item.pwdSection ? (
+                  <div className="mt-2 text-[11px] font-bold text-emerald-700">
+                    PWD Section: {item.pwdSection}
+                  </div>
+                ) : null}
+
+                {item.priceTodayKeys?.length ? (
+                  <div className="mt-1 text-[11px] font-bold text-orange-700">
+                    Price Today: {item.priceTodayKeys.join(", ")}
+                  </div>
+                ) : null}
               </div>
             </div>
           ))}

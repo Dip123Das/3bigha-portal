@@ -10,6 +10,7 @@ import type {
 } from "./boq-types";
 
 import type { ConstructionGrade } from "./cost-config";
+import { findPwdBoqMapping } from "./pwd-boq-item-master";
 
 function sanitizeArea(value: number): number {
   if (!Number.isFinite(value)) return 1000;
@@ -83,6 +84,8 @@ export function generateBoqEstimate(
 
     const quantity = roundBoqQuantity(rawQuantity, rule.unit);
 
+    const pwdMapping = findPwdBoqMapping(rule.category);
+
     return {
       category: rule.category,
       itemName: rule.itemName,
@@ -92,6 +95,10 @@ export function generateBoqEstimate(
       vendorCategory: rule.vendorCategory,
       rfqReadyName: rule.rfqReadyName,
       note: rule.note,
+      pwdCode: pwdMapping?.pwdCode,
+      pwdSection: pwdMapping?.pwdSection,
+      pwdSource: pwdMapping?.source,
+      priceTodayKeys: pwdMapping?.priceTodayKeys,
     };
   });
 
