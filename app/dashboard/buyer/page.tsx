@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/Badge";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { Grid } from "@/components/ui/Grid";
 import { EmptyState } from "@/components/ui/EmptyState";
+import BuyerWorkMenu from "@/components/buyer/BuyerWorkMenu";
 import {
   normalizeBehaviorMemory,
   normalizeMemoryList,
@@ -458,9 +459,111 @@ const closedDeals =
     <main>
       <Container>
         <SectionHeader
-          title="Buyer Dashboard"
-          subtitle="Browse, enquire, compare quotes, and continue your conversations with vendors."
+          title="Buyer Work Desk"
+          subtitle="Manage RFQs, compare quotations, continue vendor conversations and complete buying decisions."
         />
+
+        <BuyerWorkMenu />
+
+        <div
+          style={{
+            border: "1px solid #dbeafe",
+            background: "#f8fbff",
+            borderRadius: 22,
+            padding: 18,
+            marginBottom: 18,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 950,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "#2563eb",
+            }}
+          >
+            Today’s Buying Work
+          </div>
+
+          <h1
+            style={{
+              marginTop: 8,
+              marginBottom: 0,
+              fontSize: 30,
+              lineHeight: 1.15,
+              fontWeight: 950,
+              color: "#0f172a",
+            }}
+          >
+            Continue your procurement workflow
+          </h1>
+
+          <p
+            style={{
+              marginTop: 8,
+              maxWidth: 760,
+              fontSize: 14,
+              lineHeight: 1.7,
+              fontWeight: 700,
+              color: "#475569",
+            }}
+          >
+            Create RFQs, compare vendor quotes, continue conversations and finalize buying decisions from one simple buyer workspace.
+          </p>
+
+          <div
+            style={{
+              marginTop: 14,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+              gap: 10,
+            }}
+          >
+            {[
+              ["1", "Create RFQ", "Submit buyer requirement"],
+              ["2", "Compare Quotes", "Review vendor quotations"],
+              ["3", "Continue Inbox", "Reply to vendors"],
+              ["4", "Finalize Deal", "Close procurement decision"],
+            ].map(([step, title, detail]) => (
+              <div
+                key={title}
+                style={{
+                  border: "1px solid #bfdbfe",
+                  borderRadius: 16,
+                  padding: 12,
+                  background: "#ffffff",
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 950, color: "#2563eb" }}>
+                  Step {step}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 4,
+                    fontSize: 15,
+                    fontWeight: 950,
+                    color: "#0f172a",
+                  }}
+                >
+                  {title}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 4,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "#64748b",
+                  }}
+                >
+                  {detail}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div
           style={{
@@ -472,7 +575,7 @@ const closedDeals =
           }}
         >
           <div style={{ fontSize: 18, fontWeight: 800, color: "#92400e" }}>
-            🔔 Buyer Alerts
+            Important Buyer Alerts
           </div>
 
           <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
@@ -529,7 +632,7 @@ const closedDeals =
               marginBottom: 6,
             }}
           >
-            Your Buyer Work Desk
+            Buyer Procurement Overview
           </div>
 
           <div
