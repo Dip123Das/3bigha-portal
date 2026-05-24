@@ -982,8 +982,6 @@ export default function BuyerRfqsPage() {
       <main>
         <Container>
           <SectionHeader title="My RFQs" subtitle="Loading..." />
-
-        <BuyerWorkMenu />
           <div style={{ opacity: 0.8 }}>Preparing your RFQ list…</div>
         </Container>
       </main>
@@ -1014,6 +1012,8 @@ export default function BuyerRfqsPage() {
           title="My RFQs"
           subtitle="See requirements you submitted and compare vendor quotes."
         />
+
+        <BuyerWorkMenu />
 
                 <div
           style={{
