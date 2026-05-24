@@ -2495,3 +2495,237 @@ button[class*="actionButton"] {
     font-size: 11px;
   }
 }
+
+/* Clean compact homepage bottom sections */
+.homeBottomGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.bottomPanel {
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: #fff;
+  padding: 16px;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.04);
+}
+
+.bottomPanelHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.bottomPanelHead h2,
+.cleanTrustIntro h2,
+.cleanStartBanner h2 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 950;
+}
+
+.bottomPanelHead p,
+.cleanTrustIntro p,
+.cleanStartBanner p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.bottomPanelHead a {
+  color: #1d4ed8;
+  font-weight: 900;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cleanBlogList,
+.cleanInvestmentList {
+  display: grid;
+  gap: 10px;
+}
+
+.cleanBlogList a,
+.cleanInvestmentList a {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid #eef2ff;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.cleanBlogList span,
+.cleanInvestmentList > a > span {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 950;
+}
+
+.cleanBlogList strong,
+.cleanInvestmentList strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.cleanBlogList small,
+.cleanInvestmentList small {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.cleanTrustSection {
+  margin-top: 16px;
+  border-radius: 22px;
+  background: #0f172a;
+  color: #fff;
+  padding: 18px;
+}
+
+.cleanTrustIntro span {
+  display: inline-flex;
+  margin-bottom: 8px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.22);
+  padding: 6px 10px;
+  color: #bfdbfe;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.cleanTrustIntro p {
+  color: #cbd5e1;
+}
+
+.cleanTrustGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.cleanTrustGrid div {
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.cleanTrustGrid strong,
+.cleanTrustGrid span {
+  display: block;
+  line-height: 1.4;
+}
+
+.cleanTrustGrid span {
+  margin-top: 4px;
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.cleanStartBanner {
+  margin-top: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  background: #fff;
+}
+
+.cleanStartBanner div:last-child {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cleanStartBanner a {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 10px 13px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 900;
+}
+
+.cleanHomeFooter {
+  margin-top: 16px;
+  padding: 16px 0 8px;
+  display: grid;
+  grid-template-columns: 2fr repeat(3, 1fr);
+  gap: 18px;
+  color: #334155;
+}
+
+.cleanHomeFooter p {
+  margin: 6px 0 0;
+  max-width: 560px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.cleanHomeFooter nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cleanHomeFooter a {
+  text-decoration: none;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .homeBottomGrid,
+  .cleanTrustGrid,
+  .cleanHomeFooter {
+    grid-template-columns: 1fr;
+  }
+
+  .bottomPanel,
+  .cleanTrustSection,
+  .cleanStartBanner {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .bottomPanelHead,
+  .cleanStartBanner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cleanStartBanner div:last-child {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .cleanHomeFooter {
+    gap: 12px;
+  }
+}

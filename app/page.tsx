@@ -620,61 +620,114 @@ export default function HomePage() {
           {mobileExpandedSections.prices ? "Show Less" : "See More Prices"}
         </button>
 
-      <section className="splitSection">
-        <div className="panelCard">
-          <div className="sectionHead compact"><div><h2>Latest from Blog / News</h2><p>Stay updated with market insights</p></div><a href="/blog">View all blogs →</a></div>
-          <div className={`blogList premiumBlogList ${mobileExpandedSections.blog ? "isMobileExpanded" : ""}`}>
-            {blogItems.map((post, index) => <a href="/blog" key={post.title}><span>{index + 1}</span><div><strong>{post.title}</strong><small>{post.meta}</small></div></a>)}
+      <section className="homeBottomGrid">
+        <div className="bottomPanel compactNewsPanel">
+          <div className="bottomPanelHead">
+            <div>
+              <h2>Latest from Blog / News</h2>
+              <p>Short market updates and construction guidance.</p>
+            </div>
+            <a href="/blog">View all →</a>
+          </div>
+
+          <div className="cleanBlogList">
+            {blogItems.slice(0, 3).map((post, index) => (
+              <a href="/blog" key={post.title}>
+                <span>{index + 1}</span>
+                <div>
+                  <strong>{post.title}</strong>
+                  <small>{post.meta}</small>
+                </div>
+              </a>
+            ))}
           </div>
         </div>
 
-        <div className="panelCard">
-          <div className="sectionHead compact"><div><h2>Investment Opportunities</h2><p>High return investment options</p></div><a href="/investment/opportunities">View all →</a></div>
-          <div className={`investmentGrid premiumInvestmentGrid ${mobileExpandedSections.investment ? "isMobileExpanded" : ""}`}>
-            <a href="/investment/opportunities"><div>🌿</div><strong>Green Valley Township</strong><span>₹15 Lakh Onwards</span><small>ROI: 18-22%</small></a>
-            <a href="/investment/opportunities"><div>🏢</div><strong>Royal Enclave Project</strong><span>₹22 Lakh Onwards</span><small>ROI: 20-25%</small></a>
+        <div className="bottomPanel compactInvestmentPanel">
+          <div className="bottomPanelHead">
+            <div>
+              <h2>Investment Opportunities</h2>
+              <p>Selected high-return project options.</p>
+            </div>
+            <a href="/investment/opportunities">View all →</a>
+          </div>
+
+          <div className="cleanInvestmentList">
+            <a href="/investment/opportunities">
+              <span>🌿</span>
+              <div>
+                <strong>Green Valley Township</strong>
+                <small>₹15 Lakh onwards • ROI 18–22%</small>
+              </div>
+            </a>
+            <a href="/investment/opportunities">
+              <span>🏢</span>
+              <div>
+                <strong>Royal Enclave Project</strong>
+                <small>₹22 Lakh onwards • ROI 20–25%</small>
+              </div>
+            </a>
           </div>
         </div>
       </section>
-          <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("investment")}>
-            {mobileExpandedSections.investment ? "Show Less" : "See More Investments"}
-          </button>
 
-      <section className="contentSection trustSection finalTrustSection">
-        <div>
-          <span className="trustEyebrow">Trusted Marketplace</span>
+      <section className="cleanTrustSection">
+        <div className="cleanTrustIntro">
+          <span>Trusted Marketplace</span>
           <h2>Why 3Bigha Marketplace?</h2>
           <p>Verified listings, vendor discovery, RFQ support and local marketplace intelligence in one place.</p>
         </div>
-        <div className={`trustGrid premiumTrustGrid ${mobileExpandedSections.trust ? "isMobileExpanded" : ""}`}>
+
+        <div className="cleanTrustGrid">
           {[
             ["100% Verified", "Verified sellers and marketplace listings"],
             ["Secure Process", "Enquiry, RFQ and vendor workflow support"],
             ["Best Prices", "Compare options before you decide"],
             ["24/7 Support", "Marketplace support when you need help"],
-          ].map(([title, text]) => (
+          ].map(([title, detail]) => (
             <div key={title}>
-              <b>✓</b>
-              <strong>{title}</strong>
-              <span>{text}</span>
+              <strong>✓ {title}</strong>
+              <span>{detail}</span>
             </div>
           ))}
         </div>
       </section>
-        <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("trust")}>
-          {mobileExpandedSections.trust ? "Show Less" : "See More Benefits"}
-        </button>
 
-      <section className="startBanner">
-        <div><h2>Ready to get started?</h2><p>Join thousands of users who trust 3Bigha Marketplace</p></div>
-        <div><a href="/signup">Create Account</a><a href="/rfq/general/new">Post Your First Requirement</a></div>
+      <section className="cleanStartBanner">
+        <div>
+          <h2>Ready to get started?</h2>
+          <p>Join 3Bigha Marketplace and start with your first requirement.</p>
+        </div>
+        <div>
+          <a href="/signup">Create Account</a>
+          <a href="/rfq/general/new">Post Requirement</a>
+        </div>
       </section>
 
-      <footer className="homeFooter">
-        <div><strong>🏠 3bigha</strong><p>India's most trusted AI-powered marketplace for property, construction, materials, services, rentals and more.</p></div>
-        <nav><strong>Marketplace</strong><a href="/property">Property</a><a href="/materials">Materials</a><a href="/services">Services</a><a href="/rentals">Rentals</a></nav>
-        <nav><strong>Tools</strong><a href="/construction-cost">Cost Calculator</a><a href="/price-today">Price Today</a><a href="/search">AI Search</a></nav>
-        <nav><strong>Company</strong><a href="/about">About Us</a><a href="/contact">Contact Us</a><a href="/support">Support</a></nav>
+      <footer className="cleanHomeFooter">
+        <div>
+          <strong>🏠 3bigha</strong>
+          <p>AI-powered marketplace for property, construction, materials, services and rentals.</p>
+        </div>
+        <nav>
+          <strong>Marketplace</strong>
+          <a href="/property">Property</a>
+          <a href="/materials">Materials</a>
+          <a href="/services">Services</a>
+          <a href="/rentals">Rentals</a>
+        </nav>
+        <nav>
+          <strong>Tools</strong>
+          <a href="/construction-cost">Cost Calculator</a>
+          <a href="/price-today">Price Today</a>
+          <a href="/search">AI Search</a>
+        </nav>
+        <nav>
+          <strong>Company</strong>
+          <a href="/about">About</a>
+          <a href="/contact">Contact</a>
+          <a href="/support">Support</a>
+        </nav>
       </footer>
 
       <style jsx>{`
