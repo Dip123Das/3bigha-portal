@@ -1028,10 +1028,10 @@ export default function BuyerRfqsPage() {
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <div>
               <div style={{ fontSize: 18, fontWeight: 800, color: "#1e3a8a" }}>
-                🧠 AI Procurement Work Desk
+                RFQ Work Desk
               </div>
               <div style={{ marginTop: 4, color: "#475569", fontSize: 14, fontWeight: 800 }}>
-                AI prioritizes RFQs by urgency, vendor response, quote readiness, chat activity and closure stage.
+                Review urgent RFQs, vendor responses, quote readiness, chat activity and closure stage.
               </div>
             </div>
 
@@ -1099,7 +1099,7 @@ export default function BuyerRfqsPage() {
               fontWeight: 900,
             }}
           >
-            🎯 AI next best action: {commandCenterFocus}
+            Next best action: {commandCenterFocus}
           </div>
 
                     <div
@@ -1465,7 +1465,7 @@ export default function BuyerRfqsPage() {
                             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                               <div style={{ minWidth: 260, flex: 1 }}>
                                 <div style={{ fontSize: 12, fontWeight: 800, color: "#334155", marginBottom: 5 }}>
-                                  AI RFQ STATUS INTELLIGENCE
+                                  RFQ Status Guidance
                                 </div>
 
                                 <div style={{ color: "#0f172a", fontWeight: 900 }}>
@@ -1805,7 +1805,7 @@ export default function BuyerRfqsPage() {
                           RFQ ID: {r.id.slice(0, 8)}… • RFQ No: {r.public_id ?? "—"}
                         </span>
                         <span style={{ marginLeft: "auto", color: "#5b6472", fontSize: 13 }}>
-                          AI sorts this list by priority, unread vendor activity, quote readiness and procurement urgency.
+                          This list is arranged by priority, unread vendor activity, quote readiness and procurement urgency.
                         </span>
                       </div>
                     </CardFooter>
