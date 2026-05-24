@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { fetchBuyerListingConversations } from "@/lib/conversations/buyer-listing-inbox";
+import BuyerWorkMenu from "@/components/buyer/BuyerWorkMenu";
 
 export const dynamic = "force-dynamic";
 
@@ -154,6 +155,10 @@ export default async function BuyerInboxPage({
             Legacy Enquiries
           </Link>
         </div>
+      </div>
+
+      <div style={{ marginTop: 14 }}>
+        <BuyerWorkMenu />
       </div>
 
       <div style={{ marginTop: 18 }}>

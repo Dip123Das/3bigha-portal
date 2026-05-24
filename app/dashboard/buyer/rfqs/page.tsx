@@ -11,6 +11,7 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody, CardFooter } from "@/components/ui/Card";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import BuyerWorkMenu from "@/components/buyer/BuyerWorkMenu";
 import { Badge } from "@/components/ui/Badge";
 import { normalizeBehaviorMemory } from "@/lib/ai/normalize-memory";
 
@@ -981,6 +982,8 @@ export default function BuyerRfqsPage() {
       <main>
         <Container>
           <SectionHeader title="My RFQs" subtitle="Loading..." />
+
+        <BuyerWorkMenu />
           <div style={{ opacity: 0.8 }}>Preparing your RFQ list…</div>
         </Container>
       </main>

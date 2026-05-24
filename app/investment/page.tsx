@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import BuyerWorkMenu from "@/components/buyer/BuyerWorkMenu";
 
 export const dynamic = "force-dynamic";
 
@@ -116,6 +117,8 @@ export default async function InvestmentPage() {
       <h1 style={{ fontSize: 32, fontWeight: 900, marginBottom: 8 }}>
         Investment Opportunities
       </h1>
+
+      <BuyerWorkMenu />
 
       <p style={{ color: "#555", marginBottom: 20 }}>
         Explore only those builder projects and properties that are open for investment.

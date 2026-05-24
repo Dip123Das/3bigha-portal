@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import BuyerWorkMenu from "@/components/buyer/BuyerWorkMenu";
 
 type AnyRow = Record<string, any>;
 
@@ -211,6 +212,7 @@ function StatCard({
 
   return (
     <div className={`rounded-3xl border p-4 shadow-sm ${toneClasses}`}>
+      <BuyerWorkMenu />
       <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
         {label}
       </div>
