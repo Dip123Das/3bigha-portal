@@ -2827,3 +2827,37 @@ linear-gradient(135deg, #0f172a 0%, #172554 100%);
     font-size: 15px !important;
   }
 }
+
+/* FINAL FIX — make homepage trust section readable */
+.cleanTrustSection {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  color: #0f172a !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05) !important;
+}
+
+.cleanTrustIntro span {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
+.cleanTrustIntro h2 {
+  color: #0f172a !important;
+}
+
+.cleanTrustIntro p {
+  color: #475569 !important;
+}
+
+.cleanTrustGrid div {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.cleanTrustGrid strong {
+  color: #0f172a !important;
+}
+
+.cleanTrustGrid span {
+  color: #475569 !important;
+}
