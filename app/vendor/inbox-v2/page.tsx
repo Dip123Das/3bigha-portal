@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { fetchVendorInbox, fetchVendorInboxStats } from "@/lib/rfq/vendor-inbox/server";
 import { fetchVendorListingConversations } from "../../../lib/conversations/vendor-listing-inbox";
 import VendorInboxV2Client from "./VendorInboxV2Client";
+import VendorWorkMenu from "@/components/vendor-erp/VendorWorkMenu";
 
 export const dynamic = "force-dynamic";
 
@@ -197,9 +198,13 @@ export default async function VendorInboxV2Page({
         <div>
           <h1 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Vendor Inbox</h1>
           <div style={{ marginTop: 6, fontSize: 13, color: "#6b7280" }}>
-            RFQ visibility, quote status, unread chat badges, and live chat previews are preserved here.
+            Reply to buyer messages, check RFQ conversations and continue vendor follow-up.
           </div>
         </div>
+      </div>
+
+      <div style={{ marginTop: 14 }}>
+        <VendorWorkMenu />
       </div>
 
       <div style={{ marginTop: 18 }}>
