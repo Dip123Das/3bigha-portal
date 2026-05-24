@@ -8,6 +8,7 @@ import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import VendorWorkMenu from "@/components/vendor-erp/VendorWorkMenu";
 
 type VendorNotificationRow = {
   id: string;
@@ -107,8 +108,10 @@ export default function VendorNotificationsPage() {
       <Container>
         <SectionHeader
           title="Vendor Notifications"
-          subtitle="Rank alerts, visibility changes, and future WhatsApp or push alerts will appear here."
+          subtitle="Important vendor alerts, rank updates and visibility reminders."
         />
+
+        <VendorWorkMenu />
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
           <ActionButton href="/dashboard/vendor" variant="secondary">

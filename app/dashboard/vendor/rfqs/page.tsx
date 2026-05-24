@@ -11,6 +11,7 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ActionButton } from "@/components/ui/ActionButton";
+import VendorWorkMenu from "@/components/vendor-erp/VendorWorkMenu";
 
 type InboxRow = {
   rfq_id: string;
@@ -107,7 +108,9 @@ export default function VendorRFQInboxPage() {
 
   return (
     <Container>
-      <SectionHeader title="Material RFQs" subtitle="Customer requirement lists (Request for Quotation)" />
+      <SectionHeader title="RFQs / Buyer Leads" subtitle="Check buyer requirements, quote quickly and continue buyer follow-up." />
+
+      <VendorWorkMenu />
 
       <div style={{ marginBottom: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
         <Link href="/vendor/inbox-v2" className="topBtn topBtnGhost" style={{ textDecoration: "none" }}>
