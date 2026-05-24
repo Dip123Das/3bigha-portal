@@ -363,7 +363,8 @@ button[class*="actionButton"] {
   transform: translateY(-50%);
   width: 260px;
   border-radius: 18px;
-  background: #0f172a;
+  background:
+linear-gradient(135deg, #0f172a 0%, #172554 100%);
   color: #ffffff;
   padding: 13px 15px;
   font-size: 12px;
@@ -404,7 +405,8 @@ button[class*="actionButton"] {
     width: 58px;
     height: 58px;
     border-radius: 20px;
-    background: #0f172a;
+    background:
+linear-gradient(135deg, #0f172a 0%, #172554 100%);
     color: #ffffff;
     align-items: center;
     justify-content: center;
@@ -2004,7 +2006,8 @@ button[class*="actionButton"] {
 .aiLiveOpsHead a {
   flex: 0 0 auto;
   border-radius: 999px;
-  background: #0f172a;
+  background:
+linear-gradient(135deg, #0f172a 0%, #172554 100%);
   color: #ffffff;
   padding: 11px 16px;
   font-size: 13px;
@@ -2376,7 +2379,7 @@ button[class*="actionButton"] {
   display: inline-flex;
   border-radius: 999px;
   background: rgba(37, 99, 235, 0.22);
-  color: #bfdbfe;
+  color: #dbeafe;
   padding: 6px 10px;
   font-size: 11px;
   font-weight: 1000;
@@ -2597,8 +2600,9 @@ button[class*="actionButton"] {
 .cleanTrustSection {
   margin-top: 16px;
   border-radius: 22px;
-  background: #0f172a;
-  color: #fff;
+  background:
+linear-gradient(135deg, #0f172a 0%, #172554 100%);
+  color: #ffffff;
   padding: 18px;
 }
 
@@ -2606,15 +2610,15 @@ button[class*="actionButton"] {
   display: inline-flex;
   margin-bottom: 8px;
   border-radius: 999px;
-  background: rgba(59, 130, 246, 0.22);
+  background: rgba(96, 165, 250, 0.24);
   padding: 6px 10px;
-  color: #bfdbfe;
+  color: #dbeafe;
   font-size: 12px;
   font-weight: 900;
 }
 
 .cleanTrustIntro p {
-  color: #cbd5e1;
+  color: #e2e8f0;
 }
 
 .cleanTrustGrid {
@@ -2625,8 +2629,8 @@ button[class*="actionButton"] {
 }
 
 .cleanTrustGrid div {
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.10);
   border-radius: 14px;
   padding: 12px;
 }
@@ -2639,7 +2643,7 @@ button[class*="actionButton"] {
 
 .cleanTrustGrid span {
   margin-top: 4px;
-  color: #cbd5e1;
+  color: #e2e8f0;
   font-size: 13px;
 }
 
@@ -2728,4 +2732,27 @@ button[class*="actionButton"] {
   .cleanHomeFooter {
     gap: 12px;
   }
+}
+
+
+.cleanTrustGrid strong {
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 900 !important;
+}
+
+.cleanTrustGrid span {
+  color: #f1f5f9 !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+.cleanTrustIntro h2 {
+  color: #ffffff !important;
+}
+
+.cleanTrustIntro p {
+  color: #e2e8f0 !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
 }
