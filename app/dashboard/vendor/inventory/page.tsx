@@ -20,7 +20,6 @@ import {
   ErpKpiGrid,
   ErpPanel,
 } from "@/components/vendor-erp/VendorErpWidgets";
-import { VendorErpNav } from "@/components/vendor-erp/VendorErpNav";
 
 type MaterialListingRow = {
   id: string;
@@ -182,11 +181,55 @@ export default function VendorInventoryPage() {
     <main>
       <Container>
         <SectionHeader
-          title="Inventory Operating Hub"
-          subtitle="Manage stock, billing, fleet, dispatch and AI inventory intelligence from one place."
+          title="Inventory Work Desk"
+          subtitle="Manage stock first. Then create bills, assign fleet and send dispatch updates when needed."
         />
 
-        <VendorErpNav />
+        <div
+          style={{
+            marginBottom: 16,
+            borderRadius: 22,
+            padding: 16,
+            border: "1px solid #dbeafe",
+            background: "linear-gradient(to bottom right,#eff6ff,#ffffff)",
+          }}
+        >
+          <div style={{ fontSize: 11, fontWeight: 950, letterSpacing: "0.14em", textTransform: "uppercase", color: "#2563eb" }}>
+            Daily Inventory Work
+          </div>
+
+          <h1 style={{ marginTop: 8, marginBottom: 0, fontSize: 26, lineHeight: 1.15, fontWeight: 950, color: "#0f172a" }}>
+            Start with your stock items
+          </h1>
+
+          <p style={{ marginTop: 8, maxWidth: 780, fontSize: 14, lineHeight: 1.7, fontWeight: 700, color: "#475569" }}>
+            Check available stock, add new stock, create bill, then move items to dispatch. This page is for shop owners, material suppliers and local vendors to manage daily inventory work easily.
+          </p>
+
+          <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 10 }}>
+            {[
+              ["1", "Inventory Items", "See all stock records"],
+              ["2", "Add Inventory", "Add new material stock"],
+              ["3", "Billing", "Create invoice or challan"],
+              ["4", "Fleet", "Assign vehicle if needed"],
+              ["5", "Dispatch", "Send material delivery update"],
+            ].map(([step, title, detail]) => (
+              <div
+                key={title}
+                style={{
+                  border: "1px solid #bfdbfe",
+                  borderRadius: 16,
+                  padding: 12,
+                  background: "#ffffff",
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 950, color: "#2563eb" }}>Step {step}</div>
+                <div style={{ marginTop: 4, fontSize: 15, fontWeight: 950, color: "#0f172a" }}>{title}</div>
+                <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#64748b" }}>{detail}</div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
           <ActionButton href="/dashboard/vendor" variant="secondary">
@@ -228,11 +271,11 @@ export default function VendorInventoryPage() {
           }}
         >
           <div style={{ fontSize: 18, fontWeight: 950, color: "#3730a3" }}>
-            Inventory Operating System
+            Inventory Daily Work
           </div>
 
           <div style={{ marginTop: 6, color: "#475569", fontSize: 13, fontWeight: 800, lineHeight: 1.6 }}>
-            Inventory is the main control room. From here vendors can manage stock, add inventory, create bills, download PDF invoices, assign fleet, create dispatch and use AI inventory intelligence.
+            Use this area after checking your stock. Add inventory first, then create bill, assign vehicle and prepare dispatch only when required.
           </div>
 
           <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
@@ -257,7 +300,7 @@ export default function VendorInventoryPage() {
             </ActionButton>
 
             <ActionButton href="/dashboard/vendor/inventory-intelligence" variant="secondary">
-              🤖 Inventory Insights
+              Inventory Suggestions
             </ActionButton>
 
             <ActionButton href="/dashboard/vendor/inventory" variant="secondary">
@@ -320,8 +363,8 @@ export default function VendorInventoryPage() {
             />
 
             <ErpActionCard
-              title="AI Stock Intelligence"
-              description="Review reorder risk, dead stock and AI ERP analysis."
+              title="Stock Suggestions"
+              description="Review low stock, dead stock and reorder needs."
               href="/dashboard/vendor/inventory-intelligence"
               tone="blue"
             />
