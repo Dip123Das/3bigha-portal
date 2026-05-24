@@ -2756,3 +2756,74 @@ linear-gradient(135deg, #0f172a 0%, #172554 100%);
   font-size: 15px !important;
   line-height: 1.6 !important;
 }
+
+/* FORCE FIX — Homepage trust section readability */
+
+.cleanTrustSection {
+  background:
+    linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%) !important;
+  color: #ffffff !important;
+}
+
+.cleanTrustIntro,
+.cleanTrustIntro h2,
+.cleanTrustIntro p,
+.cleanTrustIntro span {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.cleanTrustIntro h2 {
+  color: #ffffff !important;
+  font-size: 34px !important;
+  font-weight: 950 !important;
+}
+
+.cleanTrustIntro p {
+  color: #e2e8f0 !important;
+  font-size: 16px !important;
+  line-height: 1.7 !important;
+  font-weight: 700 !important;
+}
+
+.cleanTrustIntro span {
+  background: rgba(255,255,255,0.14) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+}
+
+.cleanTrustGrid div {
+  background: rgba(255,255,255,0.12) !important;
+  border: 1px solid rgba(255,255,255,0.22) !important;
+  backdrop-filter: blur(8px);
+}
+
+.cleanTrustGrid strong {
+  color: #ffffff !important;
+  font-size: 17px !important;
+  font-weight: 950 !important;
+  opacity: 1 !important;
+}
+
+.cleanTrustGrid span {
+  color: #f8fafc !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 768px) {
+  .cleanTrustIntro h2 {
+    font-size: 24px !important;
+  }
+
+  .cleanTrustIntro p,
+  .cleanTrustGrid span {
+    font-size: 14px !important;
+  }
+
+  .cleanTrustGrid strong {
+    font-size: 15px !important;
+  }
+}
