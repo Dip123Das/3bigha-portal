@@ -19,7 +19,7 @@ import {
   ErpKpiGrid,
   ErpPanel,
 } from "@/components/vendor-erp/VendorErpWidgets";
-import { VendorErpNav } from "@/components/vendor-erp/VendorErpNav";
+import VendorWorkMenu from "@/components/vendor-erp/VendorWorkMenu";
 
 type MaterialRow = {
   id: string;
@@ -302,7 +302,7 @@ export default function VendorBillingPage() {
           subtitle="Create offline/online bills and automatically deduct stock from inventory."
         />
 
-        <VendorErpNav />
+        <VendorWorkMenu />
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
           <ActionButton href="/dashboard/vendor" variant="secondary">
@@ -358,8 +358,8 @@ export default function VendorBillingPage() {
             />
 
             <ErpActionCard
-              title="AI Billing Intelligence"
-              description="Analyze unpaid invoices and cashflow risk."
+              title="Billing Suggestions"
+              description="Review unpaid bills and collection follow-up."
               href="/dashboard/vendor/inventory-intelligence"
               tone="green"
             />

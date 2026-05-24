@@ -19,7 +19,7 @@ import {
   ErpKpiGrid,
   ErpPanel,
 } from "@/components/vendor-erp/VendorErpWidgets";
-import { VendorErpNav } from "@/components/vendor-erp/VendorErpNav";
+import VendorWorkMenu from "@/components/vendor-erp/VendorWorkMenu";
 
 type VehicleRow = {
   id: string;
@@ -271,7 +271,7 @@ export default function VendorDispatchPage() {
           subtitle="Assign vehicles, manage deliveries and track dispatch operations."
         />
 
-        <VendorErpNav />
+        <VendorWorkMenu />
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
           <ActionButton href="/dashboard/vendor" variant="secondary">
@@ -329,8 +329,8 @@ export default function VendorDispatchPage() {
             />
 
             <ErpActionCard
-              title="AI Dispatch Intelligence"
-              description="Analyze delay risk and operational bottlenecks."
+              title="Dispatch Suggestions"
+              description="Review delay risk and delivery follow-up."
               href="/dashboard/vendor/inventory-intelligence"
               tone="violet"
             />
