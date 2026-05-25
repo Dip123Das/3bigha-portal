@@ -523,6 +523,12 @@ useEffect(() => {
   }
 }, [selectedBankName, sortedBankComparisons]);
 
+useEffect(() => {
+  if (selectedBankComparison?.rate) {
+    setInterestRate(Number(selectedBankComparison.rate.toFixed(2)));
+  }
+}, [selectedBankComparison?.rate]);
+
 const result = useMemo(() => {
     const principal = clamp(Number(loanAmount), 0, 500000000);
     const rate = clamp(Number(interestRate), 0, 60);

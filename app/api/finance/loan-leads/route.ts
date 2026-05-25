@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+import {
+  calculateFinanceLeadScore,
+  getLeadPriority,
+  getLoanDocumentChecklist,
+  getRegionalBorrowerGuidance,
+  getSanctionProbability,
+} from "@/lib/finance/financeLeadScoring";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -25,13 +33,29 @@ export async function POST(request: Request) {
 
     const supabase = getAdminClient();
 
+    const loanPurpose = String(body.loanPurpose || "home");
+    const state = String(body.state || "West Bengal");
+
+    const leadScore = calculateFinanceLeadScore({
+      monthlyIncome: Number(body.monthlyIncome || 0),
+      cibilScore: Number(body.cibilScore || 0),
+      existingEmi: Number(body.existingEmi || 0),
+      eligibleLoan: Number(body.eligibleLoan || 0),
+    });
+
+    const sanctionProbability =
+      getSanctionProbability(leadScore);
+
+    const preferredBank =
+      String(body.preferredBank || "").trim() || null;
+
     const payload = {
       name: String(body.name || "").trim() || null,
       phone: String(body.phone || "").trim() || null,
       email: String(body.email || "").trim() || null,
 
-      loan_purpose: String(body.loanPurpose || "home"),
-      state: String(body.state || "West Bengal"),
+      loan_purpose: loanPurpose,
+      state,
       district: String(body.district || "").trim() || null,
 
       monthly_income: Number(body.monthlyIncome || 0),
@@ -40,8 +64,17 @@ export async function POST(request: Request) {
       cibil_score: Number(body.cibilScore || 0),
 
       eligible_loan: Number(body.eligibleLoan || 0),
-      estimated_property_budget: Number(body.estimatedPropertyBudget || 0),
-      preferred_bank: String(body.preferredBank || "").trim() || null,
+      estimated_property_budget: Number(
+        body.estimatedPropertyBudget || 0
+      ),
+      preferred_bank: preferredBank,
+
+      lead_score: leadScore,
+      sanction_probability: sanctionProbability,
+      priority: getLeadPriority(leadScore),
+      recommended_lender: preferredBank,
+      document_checklist: getLoanDocumentChecklist(loanPurpose),
+      regional_guidance: getRegionalBorrowerGuidance(state),
 
       source: "emi-calculator",
       status: "new",
@@ -63,12 +96,17 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       leadId: data?.id,
+      leadScore,
+      sanctionProbability,
     });
   } catch (error) {
     return NextResponse.json(
       {
         ok: false,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown error",
       },
       { status: 500 }
     );
