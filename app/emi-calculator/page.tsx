@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import type { LiveLenderOffer } from "@/lib/finance/lenderOffer";
 
 type TenureMode = "years" | "months";
 
@@ -42,6 +43,58 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
+function getCibilRateAdjustment(score: number) {
+  if (!Number.isFinite(score) || score <= 0) return 0;
+  if (score >= 800) return -0.15;
+  if (score >= 760) return -0.05;
+  if (score >= 720) return 0;
+  if (score >= 680) return 0.25;
+  if (score >= 650) return 0.45;
+  return 0.75;
+}
+
+function getCibilStatus(score: number) {
+  if (!Number.isFinite(score) || score <= 0) return "Not added";
+  if (score >= 760) return "Strong";
+  if (score >= 700) return "Good";
+  if (score >= 650) return "Average";
+  return "Needs improvement";
+}
+
+function estimateProcessingFee(bankType: BankOffer["type"]) {
+  if (bankType === "public") return 0.35;
+  if (bankType === "hfc") return 0.5;
+  if (bankType === "private") return 0.6;
+  if (bankType === "rrb" || bankType === "cooperative") return 0.4;
+  if (bankType === "small_finance") return 0.75;
+  return 0.6;
+}
+
+function getApprovalChance(score: number, bankType: BankOffer["type"], employmentType: "salaried" | "business") {
+  let chance = 65;
+
+  if (score >= 800) chance += 18;
+  else if (score >= 760) chance += 12;
+  else if (score >= 720) chance += 6;
+  else if (score < 650) chance -= 22;
+
+  if (bankType === "public") chance += 5;
+  if (bankType === "rrb" || bankType === "cooperative") chance += 8;
+  if (bankType === "small_finance") chance += 4;
+  if (employmentType === "business") chance -= 6;
+
+  return clamp(Math.round(chance), 10, 95);
+}
+
+function getBankTermsNote(bankType: BankOffer["type"]) {
+  if (bankType === "public") return "Usually lower ROI, stricter document verification.";
+  if (bankType === "private") return "Faster processing, ROI may vary by profile.";
+  if (bankType === "hfc") return "Useful for home loan and construction finance.";
+  if (bankType === "rrb") return "Good for local borrowers and rural areas.";
+  if (bankType === "cooperative") return "Useful for regional and relationship-based lending.";
+  return "Final terms depend on lender policy and borrower profile.";
+}
+
 export default function EmiCalculatorPage() {
   const [loanAmount, setLoanAmount] = useState(2500000);
   const [interestRate, setInterestRate] = useState(8.5);
@@ -53,8 +106,38 @@ export default function EmiCalculatorPage() {
   const [monthlyRent, setMonthlyRent] = useState(12000);
   const [age, setAge] = useState(30);
   const [employmentType, setEmploymentType] = useState<"salaried" | "business">("salaried");
+  const [serviceProfile, setServiceProfile] = useState<
+  "normal" | "govt_60" | "govt_65" | "doctor_professor"
+    >("normal");
+
+    const [loanPurpose, setLoanPurpose] = useState<
+      "home" | "construction" | "plot"
+    >("home");
+
+  const [monthlyPensionIncome, setMonthlyPensionIncome] = useState(0);
+  const [monthlyAgricultureIncome, setMonthlyAgricultureIncome] = useState(0);
   const [coApplicantIncome, setCoApplicantIncome] = useState(0);
   const [selectedBankState, setSelectedBankState] = useState("West Bengal");
+  const [selectedBankName, setSelectedBankName] = useState("");
+
+  const [liveLenderOffers, setLiveLenderOffers] = useState<
+    LiveLenderOffer[]
+  >([]);
+
+  const [loadingLiveOffers, setLoadingLiveOffers] =
+    useState(false);
+
+  const [leadName, setLeadName] = useState("");
+  const [leadPhone, setLeadPhone] = useState("");
+  const [leadEmail, setLeadEmail] = useState("");
+
+  const [submittingLead, setSubmittingLead] =
+    useState(false);
+
+  const [leadSuccess, setLeadSuccess] =
+    useState(false);
+  const [cibilScore, setCibilScore] = useState(760);
+  const [isWomanBorrower, setIsWomanBorrower] = useState(false);
   const [customBankRates, setCustomBankRates] = useState<Record<string, number>>({});
   const [showAllBanks, setShowAllBanks] = useState(false);
   const [bankCategory, setBankCategory] = useState<
@@ -66,10 +149,25 @@ const chartColors = ["#22c55e", "#f97316"];
 
 const eligibility = useMemo(() => {
   const totalIncome =
-    Number(monthlyIncome || 0) + Number(coApplicantIncome || 0);
+    monthlyIncome +
+    Math.max(0, coApplicantIncome) +
+    Math.max(0, monthlyPensionIncome) +
+    Math.max(0, monthlyAgricultureIncome);
 
-  const allowedEmiRatio =
+  let allowedEmiRatio =
     employmentType === "business" ? 0.45 : 0.5;
+
+  if (Number(cibilScore) >= 780 && totalIncome >= 100000) {
+    allowedEmiRatio = Math.min(allowedEmiRatio + 0.05, 0.55);
+  }
+
+  if (Number(cibilScore) < 680) {
+    allowedEmiRatio = Math.min(allowedEmiRatio, 0.4);
+  }
+
+  if (Number(cibilScore) < 650) {
+    allowedEmiRatio = Math.min(allowedEmiRatio, 0.35);
+  }
 
   const maxEligibleEmi = Math.max(
     totalIncome * allowedEmiRatio - Number(existingEmi || 0),
@@ -80,8 +178,14 @@ const eligibility = useMemo(() => {
 
 const bankMaxTenureMonths = 360;
 
-  const ageLimit =
-    employmentType === "business" ? 70 : 60;
+  let ageLimit = employmentType === "business" ? 70 : 60;
+
+  if (
+    employmentType === "salaried" &&
+    (serviceProfile === "govt_65" || serviceProfile === "doctor_professor")
+  ) {
+    ageLimit = 65;
+  }
 
   const ageValue = clamp(Number(age), 18, ageLimit);
 
@@ -112,7 +216,30 @@ const bankMaxTenureMonths = 360;
       (monthlyRate * Math.pow(1 + monthlyRate, months));
   }
 
-  const estimatedPropertyValue = eligibleLoan / 0.8;
+  let ltvRatio = 0.8;
+
+  if (loanPurpose === "plot") {
+    ltvRatio = 0.7;
+  }
+
+  if (loanPurpose === "construction") {
+    ltvRatio = 0.75;
+  }
+
+  const estimatedPropertyValue = eligibleLoan / ltvRatio;
+  const annualIncome = totalIncome * 12;
+
+  const constructionStageRelease =
+    loanPurpose === "construction"
+      ? [
+          "Foundation Stage",
+          "Lintel/Roof Stage",
+          "Brickwork & Structure",
+          "Finishing Stage",
+        ]
+      : [];
+  const pmayEligible = annualIncome <= 1800000;
+  const womenBenefitRateReduction = isWomanBorrower ? 0.05 : 0;
 
 let status = "Weak";
 
@@ -131,20 +258,32 @@ let status = "Weak";
   return {
     totalIncome,
     maxEligibleEmi,
+    allowedEmiRatio,
     eligibleLoan,
     estimatedPropertyValue,
     status,
     maxTenureByAge,
     effectiveYears,
     effectiveMonths,
+    annualIncome,
+    pmayEligible,
+    ltvRatio,
+    constructionStageRelease,
+    womenBenefitRateReduction,
   };
 }, [
   monthlyIncome,
   coApplicantIncome,
+  monthlyPensionIncome,
+  monthlyAgricultureIncome,
   existingEmi,
   interestRate,
   employmentType,
+  serviceProfile,
+  loanPurpose,
   age,
+  cibilScore,
+  isWomanBorrower,
 ]);
 
 useEffect(() => {
@@ -178,25 +317,182 @@ const bankOffers = useMemo(() => {
   return Array.from(unique.values());
 }, [selectedBankState]);
 
-const bankComparisons = useMemo(() => {
+const mergedLiveBankOffers = useMemo(() => {
+  if (!liveLenderOffers.length) {
+    return bankOffers;
+  }
+
   return bankOffers.map((bank) => {
-    const rate = customBankRates[bank.bank] ?? bank.indicativeRate;
-    const emi = calculateEmi(eligibility.eligibleLoan, rate, eligibility.effectiveMonths);
-    const totalPayment = emi * eligibility.effectiveMonths;
+    const liveMatch = liveLenderOffers.find(
+      (offer) =>
+        offer.lender_name.toLowerCase() ===
+        bank.bank.toLowerCase()
+    );
+
+    if (!liveMatch) {
+      return bank;
+    }
 
     return {
       ...bank,
+      indicativeRate:
+        Number(liveMatch.min_roi) || bank.indicativeRate,
+      processingFeePercent:
+        Number(liveMatch.processing_fee_percent) ||
+        bank.processingFeePercent,
+      termsNote:
+        liveMatch.terms_note || bank.termsNote,
+      lastUpdated:
+        liveMatch.updated_at || bank.lastUpdated,
+    };
+  });
+}, [bankOffers, liveLenderOffers]);
+
+useEffect(() => {
+  let active = true;
+
+  async function loadLiveOffers() {
+    try {
+      setLoadingLiveOffers(true);
+
+      const params = new URLSearchParams({
+        state: selectedBankState,
+        productType: loanPurpose,
+      });
+
+      const response = await fetch(
+        `/api/finance/lender-offers?${params.toString()}`,
+        {
+          cache: "no-store",
+        }
+      );
+
+      const json = await response.json();
+
+      if (!active) return;
+
+      if (json?.ok && Array.isArray(json.offers)) {
+        setLiveLenderOffers(json.offers);
+      }
+    } catch (error) {
+      console.error("Failed to load live lender offers", error);
+    } finally {
+      if (active) {
+        setLoadingLiveOffers(false);
+      }
+    }
+  }
+
+  loadLiveOffers();
+
+  return () => {
+    active = false;
+  };
+}, [selectedBankState, loanPurpose]);
+
+async function submitFinanceLead() {
+  try {
+    setSubmittingLead(true);
+
+    const response = await fetch(
+      "/api/finance/loan-leads",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: leadName,
+          phone: leadPhone,
+          email: leadEmail,
+
+          loanPurpose,
+          state: selectedBankState,
+
+          monthlyIncome,
+          coApplicantIncome,
+          existingEmi,
+          cibilScore,
+
+          eligibleLoan:
+            selectedBankComparison?.eligibleLoan || 0,
+
+          estimatedPropertyBudget:
+            eligibility.estimatedPropertyValue || 0,
+
+          preferredBank:
+            selectedBankName ||
+            selectedBankComparison?.bank ||
+            "",
+        }),
+      }
+    );
+
+    const json = await response.json();
+
+    if (!json?.ok) {
+      alert("Unable to submit lead right now.");
+      return;
+    }
+
+    setLeadSuccess(true);
+  } catch (error) {
+    console.error(error);
+    alert("Something went wrong.");
+  } finally {
+    setSubmittingLead(false);
+  }
+}
+
+const cibilRateAdjustment = useMemo(
+  () => getCibilRateAdjustment(Number(cibilScore)),
+  [cibilScore]
+);
+
+const bankComparisons = useMemo(() => {
+  return mergedLiveBankOffers.map((bank) => {
+    const baseRate = customBankRates[bank.bank] ?? bank.indicativeRate;
+    const rate = clamp(
+      baseRate + cibilRateAdjustment - eligibility.womenBenefitRateReduction,
+      0,
+      60
+    );
+    const emi = calculateEmi(eligibility.eligibleLoan, rate, eligibility.effectiveMonths);
+    const totalPayment = emi * eligibility.effectiveMonths;
+    const totalInterest = totalPayment - eligibility.eligibleLoan;
+    const processingFeePercent =
+      bank.processingFeePercent ?? estimateProcessingFee(bank.type);
+    const processingFee = eligibility.eligibleLoan * (processingFeePercent / 100);
+    const approvalChance = getApprovalChance(
+      Number(cibilScore),
+      bank.type,
+      employmentType
+    );
+
+    return {
+      ...bank,
+      baseRate,
       rate,
       emi,
       eligibleLoan: eligibility.eligibleLoan,
       totalPayment,
+      totalInterest,
+      processingFeePercent,
+      processingFee,
+      approvalChance,
+      lastUpdated: bank.lastUpdated || "Demo rate",
+      termsNote: bank.termsNote || getBankTermsNote(bank.type),
     };
   });
 }, [
-  bankOffers,
+  mergedLiveBankOffers,
   customBankRates,
+  cibilRateAdjustment,
   eligibility.eligibleLoan,
   eligibility.effectiveMonths,
+  eligibility.womenBenefitRateReduction,
+  cibilScore,
+  employmentType,
 ]);
 
 const sortedBankComparisons = useMemo(() => {
@@ -218,6 +514,14 @@ const visibleBankComparisons = showAllBanks
   : filteredBankComparisons.slice(0, 3);
 
 const bestBank = sortedBankComparisons[0];
+const selectedBankComparison =
+  sortedBankComparisons.find((bank) => bank.bank === selectedBankName) || bestBank;
+
+useEffect(() => {
+  if (!selectedBankName && sortedBankComparisons[0]?.bank) {
+    setSelectedBankName(sortedBankComparisons[0].bank);
+  }
+}, [selectedBankName, sortedBankComparisons]);
 
 const result = useMemo(() => {
     const principal = clamp(Number(loanAmount), 0, 500000000);
@@ -692,6 +996,102 @@ const result = useMemo(() => {
         </div>
       </section>
 
+      <section className="financeLeadSection">
+        <div className="financeLeadCard">
+          <div className="financeLeadHeader">
+            <div>
+              <h3>Need Loan Assistance?</h3>
+
+              <p>
+                Get help for home loan, construction loan,
+                plot loan, PMAY guidance and bank selection.
+              </p>
+            </div>
+
+            <div className="financeLeadBadge">
+              Finance Support
+            </div>
+          </div>
+
+          {leadSuccess ? (
+            <div className="financeLeadSuccess">
+              Your request has been submitted successfully.
+              Our finance assistance team can now contact you.
+            </div>
+          ) : (
+            <>
+              <div className="financeLeadGrid">
+                <input
+                  type="text"
+                  placeholder="Your Name"
+                  value={leadName}
+                  onChange={(e) =>
+                    setLeadName(e.target.value)
+                  }
+                />
+
+                <input
+                  type="tel"
+                  placeholder="Mobile Number"
+                  value={leadPhone}
+                  onChange={(e) =>
+                    setLeadPhone(e.target.value)
+                  }
+                />
+
+                <input
+                  type="email"
+                  placeholder="Email Optional"
+                  value={leadEmail}
+                  onChange={(e) =>
+                    setLeadEmail(e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="financeLeadSummary">
+                <div>
+                  <span>Estimated Eligibility</span>
+                  <strong>
+                    {formatINR(
+                      selectedBankComparison?.eligibleLoan || 0
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Preferred Bank</span>
+                  <strong>
+                    {selectedBankName ||
+                      selectedBankComparison?.bank ||
+                      "Best Match"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Loan Purpose</span>
+                  <strong>{loanPurpose}</strong>
+                </div>
+              </div>
+
+              <button
+                className="financeLeadButton"
+                disabled={
+                  submittingLead ||
+                  !leadName.trim() ||
+                  !leadPhone.trim()
+                }
+                onClick={submitFinanceLead}
+              >
+                {submittingLead
+                  ? "Submitting..."
+                  : "Get Loan Assistance"}
+              </button>
+            </>
+          )}
+        </div>
+      </section>
+
       <section className="emiCard">
         <div className="emiForm">
           <div className="fieldTop">
@@ -854,16 +1254,114 @@ const result = useMemo(() => {
             </button>
           </div>
 
+          {employmentType === "salaried" ? (
+            <>
+              <div className="fieldTop">
+                <label>Service / Retirement Profile</label>
+                <strong>
+                  {serviceProfile === "normal"
+                    ? "Normal 60"
+                    : serviceProfile === "govt_60"
+                      ? "Govt 60"
+                      : serviceProfile === "govt_65"
+                        ? "Govt 65"
+                        : "Doctor / Professor"}
+                </strong>
+              </div>
+
+              <div className="fieldTop">
+                <label>Loan Purpose</label>
+                <strong>
+                  {loanPurpose === "home"
+                    ? "Home Purchase"
+                    : loanPurpose === "construction"
+                      ? "House Construction"
+                      : "Plot Purchase"}
+                </strong>
+              </div>
+
+              <select
+                className="stateSelect"
+                value={loanPurpose}
+                onChange={(e) =>
+                  setLoanPurpose(
+                    e.target.value as "home" | "construction" | "plot"
+                  )
+                }
+              >
+                <option value="home">Ready House / Flat Purchase</option>
+                <option value="construction">House Construction Loan</option>
+                <option value="plot">Plot / Land Purchase Loan</option>
+              </select>
+
+              <select
+                className="stateSelect"
+                value={serviceProfile}
+                onChange={(e) =>
+                  setServiceProfile(
+                    e.target.value as
+                      | "normal"
+                      | "govt_60"
+                      | "govt_65"
+                      | "doctor_professor"
+                  )
+                }
+              >
+                <option value="normal">Normal salaried / retirement at 60</option>
+                <option value="govt_60">Government service / retirement at 60</option>
+                <option value="govt_65">Government service / retirement at 65</option>
+                <option value="doctor_professor">Doctor / professor / professional service up to 65</option>
+              </select>
+            </>
+          ) : null}
+
           <div className="fieldTop">
             <label>Co-Applicant Income Optional</label>
             <strong>{formatINR(coApplicantIncome)}</strong>
           </div>
+
+          <label className="womanBorrowerBox">
+            <input
+              type="checkbox"
+              checked={isWomanBorrower}
+              onChange={(e) => setIsWomanBorrower(e.target.checked)}
+            />
+
+            <span>
+              <strong>Woman Borrower Benefit</strong>
+              <small>Some banks may offer slightly lower ROI for woman borrowers.</small>
+            </span>
+          </label>
 
           <input
             type="number"
             value={coApplicantIncome}
             onChange={(e) => setCoApplicantIncome(Number(e.target.value))}
             placeholder="Optional co-applicant income"
+          />
+
+          <div className="fieldTop">
+            <label>Pension Income Optional</label>
+            <strong>{formatINR(monthlyPensionIncome)}</strong>
+          </div>
+
+          <input
+            type="number"
+            value={monthlyPensionIncome}
+            onChange={(e) => setMonthlyPensionIncome(Number(e.target.value))}
+            placeholder="Monthly pension income"
+          />
+
+          <div className="fieldTop">
+            <label>Agriculture Income Optional</label>
+            <strong>{formatINR(monthlyAgricultureIncome)}</strong>
+          </div>
+
+          <input
+            type="number"
+            value={monthlyAgricultureIncome}
+            onChange={(e) => setMonthlyAgricultureIncome(Number(e.target.value))}
+            placeholder="Monthly agriculture income"
           />
 
           <div className="fieldTop">
@@ -978,6 +1476,9 @@ const result = useMemo(() => {
               <div>
                 <span>Safe EMI Capacity</span>
                 <strong>{formatINR(eligibility.maxEligibleEmi)}</strong>
+                <small>
+                  Deduction ratio used: {Math.round(eligibility.allowedEmiRatio * 100)}% of net monthly income
+                </small>
               </div>
 
               <div>
@@ -988,13 +1489,33 @@ const result = useMemo(() => {
 
             <div className="eligibilityTips">
               <p>
-                Maximum tenure allowed by age:
+                Maximum tenure allowed by age and service profile:
                 <b> {eligibility.maxTenureByAge} years</b>
               </p>
 
               <p>
                 Effective tenure used in eligibility:
                 <b> {eligibility.effectiveMonths} EMIs ({eligibility.effectiveYears.toFixed(1)} years)</b>
+              </p>
+
+              <p>
+                EMI deduction rule:
+                <b> {Math.round(eligibility.allowedEmiRatio * 100)}% of monthly net income</b>{" "}
+                has been used after considering employment type, CIBIL score and existing EMI.
+              </p>
+
+              <p>
+                Loan-to-value ratio used:
+                <b> {Math.round(eligibility.ltvRatio * 100)}%</b>
+              </p>
+
+              <p>
+                PMAY income check:
+                <b>
+                  {eligibility.pmayEligible
+                    ? " Potentially eligible under income range"
+                    : " Income appears above common PMAY range"}
+                </b>
               </p>
 
               {existingEmi > 0 ? (
@@ -1007,6 +1528,18 @@ const result = useMemo(() => {
                 <p>
                   Adding co-applicant income can increase eligible loan amount.
                 </p>
+              ) : null}
+
+              {eligibility.constructionStageRelease?.length ? (
+                <div className="constructionStageBox">
+                  <strong>Construction Loan Stage Disbursement</strong>
+
+                  <ul>
+                    {eligibility.constructionStageRelease.map((stage: string) => (
+                      <li key={stage}>{stage}</li>
+                    ))}
+                  </ul>
+                </div>
               ) : null}
             </div>
           </div>
@@ -1287,121 +1820,289 @@ const result = useMemo(() => {
         </div>
       </section>
 
-            <section className="bankCompareSection">
-        <div className="sectionHeading">
+      <section className="bankCompareSection bg-white border border-slate-200 rounded-2xl p-4 md:p-6 mt-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h2>Compare Bank Offers</h2>
-            <span>
-              Indicative bank-wise EMI, eligibility and total payment comparison
-            </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+                Compare Bank Offers
+              </div>
+
+              <div className="rounded-full bg-emerald-100 text-emerald-700 px-2 py-1 text-[11px] font-bold">
+                {loadingLiveOffers
+                  ? "Loading live ROI..."
+                  : liveLenderOffers.length
+                    ? "Live Verified ROI"
+                    : "Demo ROI"}
+              </div>
+            </div>
+
+            <h2 className="text-lg md:text-xl font-bold text-slate-900 mt-1">
+              Compare EMI, Interest & Eligibility
+            </h2>
+
+            <p className="text-sm text-slate-600 mt-1">
+              Compare indicative EMI, loan eligibility and total repayment across public,
+              private, cooperative, gramin and housing finance institutions.
+            </p>
           </div>
 
-          <select
-            className="stateSelect"
-            value={selectedBankState}
-            onChange={(e) => setSelectedBankState(e.target.value)}
-          >
-            {indianStatesWithRegionalBanks.map((state) => (
-              <option key={state} value={state}>
-                {state} Regional Banks
-              </option>
-            ))}
-          </select>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="min-w-[220px]">
+              <label className="text-xs font-semibold text-slate-600 block mb-1">
+                Select Bank
+              </label>
+
+              <select
+                value={selectedBankName}
+                onChange={(e) => setSelectedBankName(e.target.value)}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white"
+              >
+                {sortedBankComparisons.map((bank) => (
+                  <option key={bank.bank} value={bank.bank}>
+                    {bank.bank}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="min-w-[180px]">
+              <label className="text-xs font-semibold text-slate-600 block mb-1">
+                CIBIL Score
+              </label>
+
+              <input
+                type="number"
+                min={300}
+                max={900}
+                value={cibilScore}
+                onChange={(e) => setCibilScore(Number(e.target.value))}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              />
+
+              <div className="text-[11px] text-slate-500 mt-1">
+                Status: {getCibilStatus(cibilScore)}
+              </div>
+            </div>
+
+            <div className="min-w-[220px]">
+              <label className="text-xs font-semibold text-slate-600 block mb-1">
+                Regional / Gramin Banks
+              </label>
+
+              <select
+                value={selectedBankState}
+                onChange={(e) => setSelectedBankState(e.target.value)}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white"
+              >
+                {indianStatesWithRegionalBanks.map((state) => (
+                  <option key={state} value={state}>
+                    {state} Regional Banks
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
-        <div className="bankTabs">
-          {[
-            ["best", "Best Offers"],
-            ["public", "Public"],
-            ["private", "Private"],
-            ["hfc", "Housing Finance"],
-            ["rrb", "Regional/RRB"],
-            ["small_finance", "Small Finance"],
-          ].map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              className={bankCategory === value ? "active" : ""}
-              onClick={() => {
-                setBankCategory(value as typeof bankCategory);
-                setShowAllBanks(false);
-              }}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 border border-emerald-200 bg-emerald-50 rounded-2xl p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
+              Lowest Indicative Interest
+            </div>
+
+            <div className="mt-2 text-lg font-bold text-slate-900">
+              {bestBank?.bank}
+            </div>
+
+            <div className="mt-1 text-sm text-slate-700">
+              Estimated ROI: <span className="font-semibold">{bestBank?.rate.toFixed(2)}%</span>
+            </div>
+
+            <div className="mt-1 text-sm text-slate-700">
+              Estimated EMI: <span className="font-semibold">{formatINR(bestBank?.emi || 0)}</span>
+            </div>
+
+            <div className="mt-1 text-sm text-slate-700">
+              Estimated Total Interest:{" "}
+              <span className="font-semibold">
+                {formatINR(bestBank?.totalInterest || 0)}
+              </span>
+            </div>
+
+            <div className="mt-3 text-xs text-slate-600 leading-relaxed">
+              Estimated rate adjusted using your CIBIL score and indicative market lending trends.
+              Final sanction depends on bank policy, income proof, property verification,
+              employer profile, LTV ratio and repayment history.
+            </div>
+          </div>
+
+          <div className="border border-blue-200 bg-blue-50 rounded-2xl p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+              Selected Bank Snapshot
+            </div>
+
+            <div className="mt-2 text-base font-bold text-slate-900">
+              {selectedBankComparison?.bank}
+            </div>
+
+            <div className="mt-3 space-y-2 text-sm">
+              <div className="flex justify-between gap-3">
+                <span className="text-slate-600">Indicative ROI</span>
+                <span className="font-semibold">
+                  {selectedBankComparison?.rate.toFixed(2)}%
+                </span>
+              </div>
+
+              <div className="flex justify-between gap-3">
+                <span className="text-slate-600">Estimated EMI</span>
+                <span className="font-semibold">
+                  {formatINR(selectedBankComparison?.emi || 0)}
+                </span>
+              </div>
+
+              <div className="flex justify-between gap-3">
+                <span className="text-slate-600">Total Interest</span>
+                <span className="font-semibold">
+                  {formatINR(selectedBankComparison?.totalInterest || 0)}
+                </span>
+              </div>
+
+              <div className="flex justify-between gap-3">
+                <span className="text-slate-600">Total Payment</span>
+                <span className="font-semibold">
+                  {formatINR(selectedBankComparison?.totalPayment || 0)}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4 text-xs text-slate-600 leading-relaxed">
+              Better CIBIL score and lower existing EMI can improve final sanctioned rate.
+              <br />
+              Approval chance: <b>{selectedBankComparison?.approvalChance}%</b>
+              <br />
+              Processing fee estimate:{" "}
+              <b>{formatINR(selectedBankComparison?.processingFee || 0)}</b>
+              <br />
+              Terms: {selectedBankComparison?.termsNote}
+            </div>
+          </div>
         </div>
 
-        <div className="bestBankCard">
-          <strong>Best Indicative EMI</strong>
-          <span>
-            {bestBank?.bank || "—"} at {bestBank?.rate || "—"}% p.a. —
-            EMI {formatINR(bestBank?.emi || 0)}
-          </span>
-        </div>
-
-        <div className="bankTableWrap">
-          <table className="bankTable">
+        <div className="overflow-x-auto mt-5">
+          <table className="w-full min-w-[900px] border-collapse">
             <thead>
-              <tr>
-                <th>Bank</th>
-                <th>Type</th>
-                <th>Interest Rate</th>
-                <th>EMI</th>
-                <th>Eligible Loan</th>
-                <th>Total Payment</th>
+              <tr className="bg-slate-100 text-left">
+                <th className="px-4 py-3 text-xs font-semibold text-slate-700">Bank</th>
+                <th className="px-4 py-3 text-xs font-semibold text-slate-700">Type</th>
+                <th className="px-4 py-3 text-xs font-semibold text-slate-700">ROI</th>
+                <th className="px-4 py-3 text-xs font-semibold text-slate-700">EMI</th>
+                <th className="px-4 py-3 text-xs font-semibold text-slate-700">Eligible Loan</th>
+                <th className="px-4 py-3 text-xs font-semibold text-slate-700">Total Interest</th>
+                <th className="px-4 py-3 text-xs font-semibold text-slate-700">Processing Fee</th>
+                <th className="px-4 py-3 text-xs font-semibold text-slate-700">Approval Chance</th>
+                <th className="px-4 py-3 text-xs font-semibold text-slate-700">Updated</th>
+                <th className="px-4 py-3 text-xs font-semibold text-slate-700">Total Payment</th>
               </tr>
             </thead>
 
             <tbody>
-              {visibleBankComparisons.map((bank) => (
-                <tr key={bank.bank}>
-                  <td>
-                    <strong>{bank.bank}</strong>
-                    <span>{bank.shortName}</span>
-                  </td>
-                  <td>{bank.type.toUpperCase()}</td>
-                  <td>
-                    <input
-                      className="bankRateInput"
-                      type="number"
-                      step="0.01"
-                      value={bank.rate}
-                      onChange={(e) =>
-                        setCustomBankRates((prev) => ({
-                          ...prev,
-                          [bank.bank]: Number(e.target.value),
-                        }))
-                      }
-                    />
-                    <b>%</b>
-                  </td>
-                  <td>{formatINR(bank.emi)}</td>
-                  <td>{formatINR(bank.eligibleLoan)}</td>
-                  <td>{formatINR(bank.totalPayment)}</td>
-                </tr>
-              ))}
+              {sortedBankComparisons
+                .slice(0, showAllBanks ? sortedBankComparisons.length : 8)
+                .map((bank) => (
+                  <tr
+                    key={bank.bank}
+                    className="border-b border-slate-100 hover:bg-slate-50"
+                  >
+                    <td className="px-4 py-3">
+                      <div className="font-semibold text-slate-900">{bank.bank}</div>
+
+                      {bank.bank === bestBank?.bank ? (
+                        <div className="text-[11px] text-emerald-600 font-semibold mt-1">
+                          Lowest estimated ROI
+                        </div>
+                      ) : null}
+                    </td>
+
+                    <td className="px-4 py-3 text-sm uppercase text-slate-600">
+                      {bank.type}
+                    </td>
+
+                    <td className="px-4 py-3 text-sm font-semibold">
+                      {bank.rate.toFixed(2)}%
+                    </td>
+
+                    <td className="px-4 py-3 text-sm font-semibold">
+                      {formatINR(bank.emi)}
+                    </td>
+
+                    <td className="px-4 py-3 text-sm">
+                      {formatINR(bank.eligibleLoan)}
+                    </td>
+
+                    <td className="px-4 py-3 text-sm">
+                      {formatINR(bank.totalInterest)}
+                    </td>
+
+                    <td className="px-4 py-3 text-sm">
+                      {formatINR(bank.processingFee)}
+                    </td>
+
+                    <td className="px-4 py-3 text-sm font-semibold">
+                      {bank.approvalChance}%
+                    </td>
+
+                    <td className="px-4 py-3 text-xs text-slate-500">
+                      {bank.lastUpdated}
+                    </td>
+
+                    <td className="px-4 py-3 text-sm font-semibold">
+                      {formatINR(bank.totalPayment)}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
 
-        {filteredBankComparisons.length > 3 ? (
-          <button
-            type="button"
-            className="seeMoreBanksButton"
-            onClick={() => setShowAllBanks((prev) => !prev)}
-          >
-            {showAllBanks
-              ? "Show Top 3 Banks Only"
-              : `See More (${filteredBankComparisons.length - 3}+ more)`}
-          </button>
+        {sortedBankComparisons.length > 8 ? (
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setShowAllBanks((prev) => !prev)}
+              className="rounded-full border border-blue-300 bg-white px-5 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+            >
+              {showAllBanks ? "Show Less Banks" : `See More Banks (${sortedBankComparisons.length - 8}+ more)`}
+            </button>
+          </div>
         ) : null}
 
-        <p className="bankDisclaimer">
-          Rates are indicative and user-editable. Actual bank/NBFC loan rate and eligibility
-          depend on CIBIL score, income documents, property papers, LTV ratio, employer profile,
-          age, tenure and lender policy.
-        </p>
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+          <button className="rounded-xl bg-blue-600 text-white px-4 py-3 text-sm font-semibold hover:bg-blue-700">
+            View Affordable Properties
+          </button>
+
+          <button className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50">
+            Request Bank Assistance
+          </button>
+
+          <button className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold hover:bg-slate-50">
+            Request Construction Loan Help
+          </button>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <div className="text-sm font-semibold text-amber-900">
+            For Banks & Financial Institutions
+          </div>
+
+          <div className="text-xs text-amber-800 mt-1 leading-relaxed">
+            Banker login will allow banks, NBFCs, LIC Housing Finance,
+            cooperative banks and gramin banks to update latest ROI, eligibility rules,
+            processing fees, offers and loan terms directly from their dashboard.
+            This EMI page is now ready for database-controlled lender offers in the next phase.
+          </div>
+        </div>
       </section>
 
       <section className="scheduleSection">
@@ -1634,6 +2335,60 @@ const result = useMemo(() => {
           background: #2563eb;
           color: #ffffff;
           border-color: #2563eb;
+        }
+
+        .womanBorrowerBox {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          border-radius: 16px;
+          border: 1px solid rgba(236,72,153,0.22);
+          background: #fdf2f8;
+          padding: 12px;
+          cursor: pointer;
+        }
+
+        .womanBorrowerBox input {
+          margin-top: 4px;
+        }
+
+        .womanBorrowerBox strong {
+          display: block;
+          color: #831843;
+          font-size: 14px;
+          font-weight: 1000;
+        }
+
+        .womanBorrowerBox small {
+          display: block;
+          margin-top: 4px;
+          color: #9d174d;
+          font-size: 12px;
+          line-height: 1.45;
+          font-weight: 800;
+        }
+
+        .constructionStageBox {
+          margin-top: 14px;
+          border-radius: 16px;
+          background: #eff6ff;
+          border: 1px solid rgba(37,99,235,0.18);
+          padding: 14px;
+        }
+
+        .constructionStageBox strong {
+          display: block;
+          color: #1e3a8a;
+          margin-bottom: 8px;
+          font-size: 14px;
+        }
+
+        .constructionStageBox ul {
+          margin: 0;
+          padding-left: 18px;
+          color: #1e40af;
+          font-size: 13px;
+          line-height: 1.7;
         }
 
         .eligibilityDivider {
@@ -2184,6 +2939,130 @@ const result = useMemo(() => {
             border: 1px solid rgba(15,23,42,0.08);
           }
         }
+
+        .financeLeadSection {
+            margin-top: 28px;
+          }
+
+          .financeLeadCard {
+            border-radius: 24px;
+            padding: 22px;
+            background: linear-gradient(
+              135deg,
+              #eff6ff,
+              #ffffff
+            );
+
+            border: 1px solid rgba(37,99,235,0.15);
+          }
+
+          .financeLeadHeader {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+          }
+
+          .financeLeadHeader h3 {
+            margin: 0;
+            font-size: 22px;
+            color: #0f172a;
+          }
+
+          .financeLeadHeader p {
+            margin-top: 6px;
+            color: #475569;
+            line-height: 1.6;
+            font-size: 14px;
+          }
+
+          .financeLeadBadge {
+            border-radius: 999px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 900;
+            height: fit-content;
+          }
+
+          .financeLeadGrid {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(
+              auto-fit,
+              minmax(220px, 1fr)
+            );
+            gap: 12px;
+          }
+
+          .financeLeadGrid input {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid rgba(148,163,184,0.35);
+            padding: 12px 14px;
+            font-size: 14px;
+            outline: none;
+          }
+
+          .financeLeadSummary {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(
+              auto-fit,
+              minmax(160px, 1fr)
+            );
+            gap: 14px;
+          }
+
+          .financeLeadSummary div {
+            border-radius: 16px;
+            background: #ffffff;
+            border: 1px solid rgba(148,163,184,0.18);
+            padding: 14px;
+          }
+
+          .financeLeadSummary span {
+            display: block;
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 6px;
+          }
+
+          .financeLeadSummary strong {
+            color: #0f172a;
+            font-size: 15px;
+          }
+
+          .financeLeadButton {
+            margin-top: 20px;
+            width: 100%;
+            border: none;
+            border-radius: 18px;
+            background: #2563eb;
+            color: white;
+            font-weight: 900;
+            padding: 15px;
+            font-size: 15px;
+            cursor: pointer;
+          }
+
+          .financeLeadButton:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+
+          .financeLeadSuccess {
+            margin-top: 18px;
+            border-radius: 18px;
+            background: #ecfdf5;
+            border: 1px solid rgba(16,185,129,0.2);
+            color: #065f46;
+            padding: 16px;
+            line-height: 1.7;
+            font-size: 14px;
+            font-weight: 700;
+          }
       `}</style>
     </main>
   );

@@ -4,6 +4,9 @@ export type BankOffer = {
   type: "public" | "private" | "cooperative" | "rrb" | "small_finance" | "foreign" | "hfc" | "nbfc";
   state?: string;
   indicativeRate: number;
+  processingFeePercent?: number;
+  lastUpdated?: string;
+  termsNote?: string;
 };
 
 export const nationalBankOffers: BankOffer[] = [
