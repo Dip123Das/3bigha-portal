@@ -758,6 +758,7 @@ groups: [
                       ["Finance Assistance", "/banking-finance-assistance"],
                       ["EMI Calculator", "/emi-calculator"],
                       ["Loan Eligibility", "/emi-calculator"],
+                      ["Land Area Calculator", "/land-area-calculator"],
                       ["Apply as Banker", "/banker/apply"],
                     ],
                   },

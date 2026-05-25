@@ -47,6 +47,7 @@ const staticRoutes = [
   "/rentals",
   "/price-today",
   "/emi-calculator",
+  "/land-area-calculator",
   "/banking-finance-assistance",
   "/banker/apply",
   "/cost-calculator",
@@ -87,6 +88,7 @@ const staticRoutes = [
         ? 0.84
         : [
             "/emi-calculator",
+            "/land-area-calculator",
             "/banking-finance-assistance",
             "/cost-calculator",
             "/construction-cost",
