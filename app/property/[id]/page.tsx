@@ -32,6 +32,7 @@ import { buildPropertyCrossModuleSuggestions } from "@/lib/marketplace-orchestra
 import MemoryEventTracker from "@/app/components/ai/MemoryEventTracker";
 import MemoryLink from "@/app/components/ai/MemoryLink";
 import PropertyDiscoveryMemoryTracker from "./PropertyDiscoveryMemoryTracker";
+import FinanceAssistanceCta from "@/components/finance/FinanceAssistanceCta";
 
 type AnyRow = Record<string, any>;
 
@@ -1888,6 +1889,15 @@ const aiSimilarMatches = (relatedRes.data || [])
               vendorUserId={resolvedVendorUserId}
               nextUrl={`/property/${encodeURIComponent(id)}`}
             />
+
+            <div style={{ marginTop: 14 }}>
+              <FinanceAssistanceCta
+                title="Need loan help for this property?"
+                description="Check EMI, loan eligibility, property loan assistance and verified banker support before sending enquiry."
+                budget={row.price || row.expected_price || null}
+                source="property-detail"
+              />
+            </div>
 
             <Link
               href={`/vendor/discovery?q=${encodeURIComponent(

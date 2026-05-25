@@ -753,6 +753,15 @@ groups: [
                     ],
                   },
                   {
+                    title: "Banking & Finance",
+                    links: [
+                      ["Finance Assistance", "/banking-finance-assistance"],
+                      ["EMI Calculator", "/emi-calculator"],
+                      ["Loan Eligibility", "/emi-calculator"],
+                      ["Apply as Banker", "/banker/apply"],
+                    ],
+                  },
+                  {
                     title: "Automation",
                     links: [
                       ["Vendor Discovery", "/vendor/discovery"],

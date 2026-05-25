@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import ConstructionCostCalculator from "@/components/construction-cost/ConstructionCostCalculator";
+import FinanceAssistanceCta from "@/components/finance/FinanceAssistanceCta";
 
 export default function ConstructionCostIndexPage() {
   return (
@@ -36,6 +37,13 @@ export default function ConstructionCostIndexPage() {
               Compare Turnkey Services
             </Link>
           </div>
+        </div>
+        <div className="mt-6">
+          <FinanceAssistanceCta
+            title="Need construction loan or staged finance?"
+            description="After estimating house construction cost, check EMI, loan eligibility and banker assistance for construction finance."
+            source="construction-cost"
+          />
         </div>
       </section>
 

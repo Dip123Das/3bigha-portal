@@ -11,6 +11,7 @@ import { Card, CardBody } from "@/components/ui/Card";
 import { Grid } from "@/components/ui/Grid";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import FinanceAssistanceCta from "@/components/finance/FinanceAssistanceCta";
 
 type ProjectStatus = "draft" | "active" | "paused" | "completed" | "blocked" | string;
 
@@ -117,6 +118,14 @@ export default function PropertyProjectsPublicPage() {
   return (
     <Container>
       <SectionHeader title="Projects" subtitle="Public builder projects" />
+
+      <div style={{ marginBottom: 14 }}>
+        <FinanceAssistanceCta
+          title="Need finance for a property project?"
+          description="Compare EMI, construction loan support and property finance assistance before choosing a project."
+          source="property-projects"
+        />
+      </div>
 
       {err ? (
         <EmptyState message={err} />
