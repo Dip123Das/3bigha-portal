@@ -50,8 +50,32 @@ export default async function BankerDashboardPage() {
   const converted =
     leads?.filter((lead) => lead.status === "converted").length || 0;
 
+  const documentsPending =
+    leads?.filter((lead) => lead.status === "documents_pending").length || 0;
+
+  const sanctionLikely =
+    leads?.filter(
+      (lead) =>
+        Number(lead.sanction_probability || 0) >= 70 ||
+        lead.status === "sanction_possible"
+    ).length || 0;
+
+  const activeOffers =
+    lenderOffers?.filter(
+      (offer) => offer.is_verified && offer.is_active
+    ).length || 0;
+
+  const priorityLeads = (leads || [])
+    .filter(
+      (lead) =>
+        lead.priority === "high" ||
+        Number(lead.sanction_probability || 0) >= 70 ||
+        lead.status === "documents_pending"
+    )
+    .slice(0, 4);
+
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6">
+    <main data-finance-workflow="true" className="min-h-screen bg-slate-50 px-4 py-6">
       <section className="mx-auto max-w-7xl">
         <div className="rounded-3xl border bg-white p-5 shadow-sm">
           <p className="text-xs font-bold uppercase tracking-wide text-blue-600">
@@ -59,11 +83,11 @@ export default async function BankerDashboardPage() {
           </p>
 
           <h1 className="mt-2 text-2xl font-black text-slate-900">
-            Assigned Loan Leads
+            Banker Finance Work Desk
           </h1>
 
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Verified banker operations dashboard for assigned finance leads.
+            Your daily workspace for borrower follow-up, document collection, lender offers and loan progress.
           </p>
 
           <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -91,13 +115,12 @@ export default async function BankerDashboardPage() {
               </strong>
 
               <p className="mt-1 text-xs leading-5 text-slate-600">
-                This banker can receive assigned finance leads and update lender offers
-                in the next phase.
+                You can receive assigned finance leads, submit lender offers and track borrower progress.
               </p>
             </div>
           </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="mt-5 grid gap-3 sm:grid-cols-4">
             <div className="rounded-2xl bg-blue-50 p-4">
               <p className="text-xs font-bold text-blue-700">Assigned Leads</p>
               <strong className="mt-1 block text-2xl text-slate-900">
@@ -121,11 +144,88 @@ export default async function BankerDashboardPage() {
           </div>
         </div>
 
+        <div className="rounded-2xl bg-violet-50 p-4">
+          <p className="text-xs font-bold text-violet-700">Active Offers</p>
+          <strong className="mt-1 block text-2xl text-slate-900">
+            {activeOffers}
+          </strong>
+        </div>
+
         {error ? (
           <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
             {error.message}
           </div>
         ) : null}
+
+        <div className="mt-5 rounded-3xl border bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-orange-600">
+                Today’s Work
+              </p>
+
+              <h2 className="mt-1 text-lg font-black text-slate-900">
+                Priority Borrower Follow-ups
+              </h2>
+
+              <p className="mt-1 text-sm text-slate-600">
+                Start with high-score borrowers, document-pending cases and sanction-likely leads.
+              </p>
+            </div>
+
+            <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-black text-orange-700">
+              {priorityLeads.length} priority
+            </span>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {priorityLeads.map((lead) => (
+              <Link
+                key={lead.id}
+                href={`/admin/dashboard/finance-leads/${lead.id}`}
+                className="rounded-2xl border bg-slate-50 p-4 hover:bg-blue-50"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-black text-slate-900">
+                      {lead.name || "Borrower"}
+                    </p>
+
+                    <p className="mt-1 text-xs text-slate-500">
+                      {lead.phone || "-"} • {lead.loan_purpose || "loan"}
+                    </p>
+                  </div>
+
+                  <span className={`rounded-full px-3 py-1 text-xs font-black ${getPriorityColor(lead.priority)}`}>
+                    {lead.priority || "normal"}
+                  </span>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                  <div className="rounded-xl bg-white p-2">
+                    <span className="text-slate-500">Sanction</span>
+                    <strong className="block text-slate-900">
+                      {lead.sanction_probability || 0}%
+                    </strong>
+                  </div>
+
+                  <div className="rounded-xl bg-white p-2">
+                    <span className="text-slate-500">Eligible</span>
+                    <strong className="block text-slate-900">
+                      {formatINR(lead.eligible_loan)}
+                    </strong>
+                  </div>
+                </div>
+              </Link>
+            ))}
+
+            {!priorityLeads.length ? (
+              <div className="rounded-2xl bg-slate-50 p-5 text-sm font-bold text-slate-500 md:col-span-2">
+                No urgent borrower follow-up right now.
+              </div>
+            ) : null}
+          </div>
+        </div>
 
         <div className="mt-5">
           <BankerLenderOfferForm lenderName={bankerProfile.bank_name} />

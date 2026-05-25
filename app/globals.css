@@ -2916,3 +2916,38 @@ body:has(a[href="/admin/dashboard/banker-verification"]) {
     transform: scale(0.76);
   }
 }
+
+/* FINAL FINANCE WORKFLOW CALM MODE */
+body:has([data-finance-workflow="true"]) .workflow-continuity-card,
+body:has([data-finance-workflow="true"]) .global-ai-workflow-card,
+body:has([data-finance-workflow="true"]) .ai-workflow-popover {
+  display: none !important;
+}
+
+body:has([data-finance-workflow="true"]) .floatingAi,
+body:has([data-finance-workflow="true"]) .floatingAiCopilot {
+  left: 16px !important;
+  bottom: 18px !important;
+  min-width: 118px !important;
+  min-height: 44px !important;
+  padding: 8px 12px !important;
+  transform: scale(0.82) !important;
+  opacity: 0.78 !important;
+  z-index: 35 !important;
+}
+
+body:has([data-finance-workflow="true"]) .floatingAi::after,
+body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
+  content: "Finance AI" !important;
+  font-size: 10px !important;
+}
+
+@media (max-width: 768px) {
+  body:has([data-finance-workflow="true"]) .floatingAi,
+  body:has([data-finance-workflow="true"]) .floatingAiCopilot,
+  body:has([data-finance-workflow="true"]) .workflow-continuity-card,
+  body:has([data-finance-workflow="true"]) .global-ai-workflow-card,
+  body:has([data-finance-workflow="true"]) .ai-workflow-popover {
+    display: none !important;
+  }
+}
