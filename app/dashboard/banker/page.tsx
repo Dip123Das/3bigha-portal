@@ -58,18 +58,35 @@ export default async function BankerDashboardPage() {
             Verified banker operations dashboard for assigned finance leads.
           </p>
 
-          <div className="mt-4 rounded-2xl bg-blue-50 p-4">
-            <p className="text-sm font-bold text-slate-900">
-              {bankerProfile.full_name}
-            </p>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl bg-blue-50 p-4 md:col-span-2">
+              <p className="text-sm font-bold text-slate-900">
+                {bankerProfile.full_name}
+              </p>
 
-            <p className="mt-1 text-xs text-slate-600">
-              {bankerProfile.bank_name}
-            </p>
+              <p className="mt-1 text-xs text-slate-600">
+                {bankerProfile.bank_name}
+              </p>
 
-            <p className="mt-1 text-xs text-slate-500">
-              {bankerProfile.branch_name} • {bankerProfile.designation}
-            </p>
+              <p className="mt-1 text-xs text-slate-500">
+                {bankerProfile.branch_name} • {bankerProfile.designation}
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-emerald-50 p-4">
+              <p className="text-xs font-bold text-emerald-700">
+                Verified Banker Access
+              </p>
+
+              <strong className="mt-1 block text-sm text-slate-900">
+                Active
+              </strong>
+
+              <p className="mt-1 text-xs leading-5 text-slate-600">
+                This banker can receive assigned finance leads and update lender offers
+                in the next phase.
+              </p>
+            </div>
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-3">

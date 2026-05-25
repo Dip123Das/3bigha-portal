@@ -82,6 +82,7 @@ export default async function BankerVerificationPage() {
                 <th className="px-4 py-3 text-xs font-bold text-slate-600">Branch / IFSC</th>
                 <th className="px-4 py-3 text-xs font-bold text-slate-600">Employee</th>
                 <th className="px-4 py-3 text-xs font-bold text-slate-600">Contact</th>
+                <th className="px-4 py-3 text-xs font-bold text-slate-600">Employee Card</th>
                 <th className="px-4 py-3 text-xs font-bold text-slate-600">AI Status</th>
                 <th className="px-4 py-3 text-xs font-bold text-slate-600">Final Status</th>
                 <th className="px-4 py-3 text-xs font-bold text-slate-600">Action</th>
@@ -128,6 +129,23 @@ export default async function BankerVerificationPage() {
                     </div>
                   </td>
 
+                  <td className="px-4 py-3 text-sm">
+                    {banker.employee_card_url ? (
+                      <a
+                        href={`/api/finance/banker-documents/view?path=${encodeURIComponent(
+                          banker.employee_card_url
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-bold text-blue-600 hover:text-blue-800"
+                      >
+                        View Card
+                      </a>
+                    ) : (
+                      <span className="text-slate-400">Not added</span>
+                    )}
+                  </td>
+
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-3 py-1 text-xs font-black ${statusColor(banker.ai_verification_status)}`}>
                       {banker.ai_verification_status}
@@ -148,7 +166,7 @@ export default async function BankerVerificationPage() {
 
               {!bankers?.length ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-sm text-slate-500">
+                  <td colSpan={9} className="px-4 py-8 text-center text-sm text-slate-500">
                     No banker applications yet.
                   </td>
                 </tr>

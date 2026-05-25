@@ -12,6 +12,19 @@ function getAdminClient() {
   );
 }
 
+function normalizeLenderType(type?: string | null) {
+  const value = String(type || "").toLowerCase();
+
+  if (value.includes("public")) return "public_bank";
+  if (value.includes("private")) return "private_bank";
+  if (value.includes("hfc") || value.includes("housing")) return "hfc";
+  if (value.includes("nbfc")) return "nbfc";
+  if (value.includes("rrb") || value.includes("gramin")) return "rrb";
+  if (value.includes("coop")) return "cooperative";
+
+  return "bank";
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
@@ -44,6 +57,19 @@ export async function PATCH(
       );
     }
 
+    const { data: banker, error: bankerError } = await supabase
+      .from("finance_banker_profiles")
+      .select("*")
+      .eq("id", params.id)
+      .single();
+
+    if (bankerError) {
+      return NextResponse.json(
+        { ok: false, error: bankerError.message },
+        { status: 500 }
+      );
+    }
+
     const { error } = await supabase
       .from("finance_banker_profiles")
       .update({
@@ -64,6 +90,37 @@ export async function PATCH(
         { ok: false, error: error.message },
         { status: 500 }
       );
+    }
+
+    if (finalStatus === "verified" && banker?.bank_name) {
+      const bankName = String(banker.bank_name || "").trim();
+
+      const { data: existingLender } = await supabase
+        .from("finance_lender_registry")
+        .select("id")
+        .ilike("lender_name", bankName)
+        .maybeSingle();
+
+      if (existingLender?.id) {
+        await supabase
+          .from("finance_lender_registry")
+          .update({
+            is_active: true,
+            is_verified: true,
+            lender_type: normalizeLenderType(banker.lender_type),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingLender.id);
+      } else {
+        await supabase.from("finance_lender_registry").insert({
+          lender_name: bankName,
+          lender_type: normalizeLenderType(banker.lender_type),
+          ifsc_prefix: String(banker.ifsc_code || "").slice(0, 4) || null,
+          is_active: true,
+          is_verified: true,
+          created_by: banker.user_id || null,
+        });
+      }
     }
 
     return NextResponse.json({ ok: true });

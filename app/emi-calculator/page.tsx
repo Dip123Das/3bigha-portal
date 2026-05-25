@@ -18,6 +18,14 @@ import type { LiveLenderOffer } from "@/lib/finance/lenderOffer";
 
 type TenureMode = "years" | "months";
 
+type RegistryLender = {
+  id: string;
+  lender_name: string;
+  lender_type: string;
+  head_office_state?: string | null;
+  updated_at?: string | null;
+};
+
 function formatINR(value: number) {
   if (!Number.isFinite(value)) return "₹0";
   return `₹${Math.round(value).toLocaleString("en-IN")}`;
@@ -86,6 +94,19 @@ function getApprovalChance(score: number, bankType: BankOffer["type"], employmen
   return clamp(Math.round(chance), 10, 95);
 }
 
+function mapRegistryLenderType(type: string): BankOffer["type"] {
+  const value = String(type || "").toLowerCase();
+
+  if (value.includes("public")) return "public";
+  if (value.includes("private")) return "private";
+  if (value.includes("hfc") || value.includes("housing")) return "hfc";
+  if (value.includes("rrb") || value.includes("gramin")) return "rrb";
+  if (value.includes("cooperative") || value.includes("coop")) return "cooperative";
+  if (value.includes("small")) return "small_finance";
+
+  return "private";
+}
+
 function getBankTermsNote(bankType: BankOffer["type"]) {
   if (bankType === "public") return "Usually lower ROI, stricter document verification.";
   if (bankType === "private") return "Faster processing, ROI may vary by profile.";
@@ -122,6 +143,10 @@ export default function EmiCalculatorPage() {
 
   const [liveLenderOffers, setLiveLenderOffers] = useState<
     LiveLenderOffer[]
+  >([]);
+
+  const [registryLenders, setRegistryLenders] = useState<
+    RegistryLender[]
   >([]);
 
   const [loadingLiveOffers, setLoadingLiveOffers] =
@@ -303,9 +328,20 @@ useEffect(() => {
 const bankOffers = useMemo(() => {
   const regionalOffers = getBankOffersByState(selectedBankState);
 
+  const registryOffers: BankOffer[] = registryLenders.map((lender) => ({
+    bank: lender.lender_name,
+    shortName: lender.lender_name,
+    type: mapRegistryLenderType(lender.lender_type),
+    state: lender.head_office_state || undefined,
+    indicativeRate: 8.75,
+    lastUpdated: lender.updated_at || "Verified lender registry",
+    termsNote: "Verified lender added from 3Bigha lender registry.",
+  }));
+
   const merged = [
     ...defaultBankOffers,
     ...regionalOffers,
+    ...registryOffers,
   ];
 
   const unique = new Map<string, BankOffer>();
@@ -315,7 +351,7 @@ const bankOffers = useMemo(() => {
   });
 
   return Array.from(unique.values());
-}, [selectedBankState]);
+}, [selectedBankState, registryLenders]);
 
 const mergedLiveBankOffers = useMemo(() => {
   if (!liveLenderOffers.length) {
@@ -347,6 +383,34 @@ const mergedLiveBankOffers = useMemo(() => {
     };
   });
 }, [bankOffers, liveLenderOffers]);
+
+useEffect(() => {
+  let active = true;
+
+  async function loadRegistryLenders() {
+    try {
+      const response = await fetch("/api/finance/lender-registry", {
+        cache: "no-store",
+      });
+
+      const json = await response.json();
+
+      if (!active) return;
+
+      if (json?.ok && Array.isArray(json.lenders)) {
+        setRegistryLenders(json.lenders);
+      }
+    } catch (error) {
+      console.error("Failed to load lender registry", error);
+    }
+  }
+
+  loadRegistryLenders();
+
+  return () => {
+    active = false;
+  };
+}, []);
 
 useEffect(() => {
   let active = true;

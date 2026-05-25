@@ -19,6 +19,7 @@ const knownBanks = [
 export default function BankerApplyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [employeeCardFileName, setEmployeeCardFileName] = useState("");
 
   const [form, setForm] = useState({
     fullName: "",
@@ -198,19 +199,45 @@ export default function BankerApplyPage() {
                 className="rounded-2xl border px-4 py-3 text-sm"
               />
 
-              <input
-                placeholder="Employee Card URL for now"
-                value={form.employeeCardUrl}
-                onChange={(e) =>
-                  updateField("employeeCardUrl", e.target.value)
-                }
-                className="rounded-2xl border px-4 py-3 text-sm"
-              />
+              <div className="rounded-2xl border border-dashed border-blue-200 bg-blue-50 p-4 md:col-span-2">
+                <label className="block text-sm font-black text-slate-900">
+                  Employee Card / ID Proof
+                </label>
+
+                <p className="mt-1 text-xs leading-5 text-slate-600">
+                  Upload system will be connected to Supabase Storage in the next step.
+                  For now, you may paste a document URL below.
+                </p>
+
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) =>
+                    setEmployeeCardFileName(e.target.files?.[0]?.name || "")
+                  }
+                  className="mt-3 w-full rounded-xl bg-white px-3 py-2 text-sm"
+                />
+
+                {employeeCardFileName ? (
+                  <div className="mt-2 rounded-xl bg-white px-3 py-2 text-xs font-bold text-blue-700">
+                    Selected: {employeeCardFileName}
+                  </div>
+                ) : null}
+
+                <input
+                  placeholder="Employee Card URL optional for now"
+                  value={form.employeeCardUrl}
+                  onChange={(e) =>
+                    updateField("employeeCardUrl", e.target.value)
+                  }
+                  className="mt-3 w-full rounded-2xl border px-4 py-3 text-sm"
+                />
+              </div>
             </div>
 
             <div className="mt-5 rounded-2xl bg-amber-50 p-4 text-sm leading-6 text-amber-800">
-              Employee card upload + AI OCR verification will be added in the
-              next phase. For now, paste document URL if available.
+              Manual verification is active now. Real employee-card upload storage and
+              AI OCR checking will be connected after this stable UI step.
             </div>
 
             <button
