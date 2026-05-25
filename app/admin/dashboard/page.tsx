@@ -298,68 +298,7 @@ export default async function AdminDashboardPage() {
                 background: "#ffffff",
               }}
             >
-              <div style={{ fontSize: 18, fontWeight: 950, marginBottom: 6 }}>
-                💰 AI Revenue Analytics
-              </div>
-
-              <div style={{ fontSize: 13, color: "#047857", fontWeight: 800, marginBottom: 14 }}>
-                Monitor premium subscriptions, WhatsApp alert monetization, and upgrade pressure.
-              </div>
-
-              <Grid min={180} gap={12}>
-                <Card>
-                  <CardBody>
-                    <div style={{ fontSize: 13, color: "#334155", fontWeight: 900 }}>Basic</div>
-                    <div style={{ fontSize: 26, fontWeight: 950 }}>{revenueStats.basic}</div>
-                    <div style={{ fontSize: 12, color: "#64748b" }}>₹{revenueStats.basic * 299}</div>
-                  </CardBody>
-                </Card>
-
-                <Card>
-                  <CardBody>
-                    <div style={{ fontSize: 13, color: "#065f46", fontWeight: 900 }}>Silver</div>
-                    <div style={{ fontSize: 26, fontWeight: 950 }}>{revenueStats.silver}</div>
-                    <div style={{ fontSize: 12, color: "#047857" }}>₹{revenueStats.silver * 499}</div>
-                  </CardBody>
-                </Card>
-
-                <Card>
-                  <CardBody>
-                    <div style={{ fontSize: 13, color: "#92400e", fontWeight: 900 }}>Gold</div>
-                    <div style={{ fontSize: 26, fontWeight: 950 }}>{revenueStats.gold}</div>
-                    <div style={{ fontSize: 12, color: "#b45309" }}>₹{revenueStats.gold * 999}</div>
-                  </CardBody>
-                </Card>
-
-                <Card>
-                  <CardBody>
-                    <div style={{ fontSize: 13, color: "#312e81", fontWeight: 900 }}>Platinum</div>
-                    <div style={{ fontSize: 26, fontWeight: 950 }}>{revenueStats.platinum}</div>
-                    <div style={{ fontSize: 12, color: "#4338ca" }}>₹{revenueStats.platinum * 1999}</div>
-                  </CardBody>
-                </Card>
-
-                <Card>
-                  <CardBody>
-                    <div style={{ fontSize: 13, color: "#111827", fontWeight: 900 }}>Estimated MRR</div>
-                    <div style={{ fontSize: 28, fontWeight: 950 }}>₹{revenueStats.totalRevenue}</div>
-                    <div style={{ fontSize: 12, color: "#64748b" }}>Active paid subscriptions</div>
-                  </CardBody>
-                </Card>
-
-                <Card>
-                  <CardBody>
-                    <div style={{ fontSize: 13, color: "#be123c", fontWeight: 900 }}>AI Alert Triggers</div>
-                    <div style={{ fontSize: 28, fontWeight: 950 }}>{revenueStats.alertCount}</div>
-                    <div style={{ fontSize: 12, color: "#be123c" }}>
-                      {revenueStats.unreadAlertCount} unread / recent 100
-                    </div>
-                  </CardBody>
-                </Card>
-              </Grid>
-            </div>
-
-<details
+              <details
             open
             style={{
               marginTop: 16,
@@ -483,6 +422,69 @@ export default async function AdminDashboardPage() {
               </Grid>
             </div>
           </details>
+
+<div style={{ fontSize: 18, fontWeight: 950, marginBottom: 6 }}>
+                💰 AI Revenue Analytics
+              </div>
+
+              <div style={{ fontSize: 13, color: "#047857", fontWeight: 800, marginBottom: 14 }}>
+                Monitor premium subscriptions, WhatsApp alert monetization, and upgrade pressure.
+              </div>
+
+              <Grid min={180} gap={12}>
+                <Card>
+                  <CardBody>
+                    <div style={{ fontSize: 13, color: "#334155", fontWeight: 900 }}>Basic</div>
+                    <div style={{ fontSize: 26, fontWeight: 950 }}>{revenueStats.basic}</div>
+                    <div style={{ fontSize: 12, color: "#64748b" }}>₹{revenueStats.basic * 299}</div>
+                  </CardBody>
+                </Card>
+
+                <Card>
+                  <CardBody>
+                    <div style={{ fontSize: 13, color: "#065f46", fontWeight: 900 }}>Silver</div>
+                    <div style={{ fontSize: 26, fontWeight: 950 }}>{revenueStats.silver}</div>
+                    <div style={{ fontSize: 12, color: "#047857" }}>₹{revenueStats.silver * 499}</div>
+                  </CardBody>
+                </Card>
+
+                <Card>
+                  <CardBody>
+                    <div style={{ fontSize: 13, color: "#92400e", fontWeight: 900 }}>Gold</div>
+                    <div style={{ fontSize: 26, fontWeight: 950 }}>{revenueStats.gold}</div>
+                    <div style={{ fontSize: 12, color: "#b45309" }}>₹{revenueStats.gold * 999}</div>
+                  </CardBody>
+                </Card>
+
+                <Card>
+                  <CardBody>
+                    <div style={{ fontSize: 13, color: "#312e81", fontWeight: 900 }}>Platinum</div>
+                    <div style={{ fontSize: 26, fontWeight: 950 }}>{revenueStats.platinum}</div>
+                    <div style={{ fontSize: 12, color: "#4338ca" }}>₹{revenueStats.platinum * 1999}</div>
+                  </CardBody>
+                </Card>
+
+                <Card>
+                  <CardBody>
+                    <div style={{ fontSize: 13, color: "#111827", fontWeight: 900 }}>Estimated MRR</div>
+                    <div style={{ fontSize: 28, fontWeight: 950 }}>₹{revenueStats.totalRevenue}</div>
+                    <div style={{ fontSize: 12, color: "#64748b" }}>Active paid subscriptions</div>
+                  </CardBody>
+                </Card>
+
+                <Card>
+                  <CardBody>
+                    <div style={{ fontSize: 13, color: "#be123c", fontWeight: 900 }}>AI Alert Triggers</div>
+                    <div style={{ fontSize: 28, fontWeight: 950 }}>{revenueStats.alertCount}</div>
+                    <div style={{ fontSize: 12, color: "#be123c" }}>
+                      {revenueStats.unreadAlertCount} unread / recent 100
+                    </div>
+                  </CardBody>
+                </Card>
+              </Grid>
+            </div>
+
+
 
             <div
               style={{
