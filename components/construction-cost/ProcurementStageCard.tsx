@@ -74,6 +74,15 @@ export default function ProcurementStageCard({
       <div className="mt-3 rounded-xl bg-indigo-50 p-3 text-xs font-bold text-indigo-800">
         Procurement progress weight: {stage.progressWeight}%
       </div>
+
+      <div className="mt-3 rounded-xl bg-red-50 p-3 text-xs font-semibold leading-5 text-red-800">
+        <span className="font-black">Critical path signal:</span>{" "}
+        {stage.progressWeight >= 25 || stage.blocks.length >= 3
+          ? "High priority. Delay here can affect multiple next stages."
+          : stage.blocks.length > 0
+          ? "Medium priority. Keep vendor and material confirmation ready."
+          : "Low blocking risk. Can be handled after earlier work is stable."}
+      </div>
     </div>
   );
 }

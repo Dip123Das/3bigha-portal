@@ -8,6 +8,9 @@ export type ProcurementExecutionInsight = {
   arrivalPlan: string;
   riskWarning: string;
   commandAction: string;
+  criticalPath: boolean;
+  delayImpact: string;
+  siteStoppageRisk: "high" | "medium" | "low";
 };
 
 const VENDOR_CATEGORY_BY_STAGE: Record<string, string> = {
@@ -32,6 +35,7 @@ export function generateProcurementExecutionInsights(
   return stages.map((stage, index) => {
     const isFirst = index === 0;
     const isHighUrgency = stage.urgency === "high";
+    const criticalPath = stage.progressWeight >= 25 || stage.blocks.length >= 3;
 
     return {
       stageKey: stage.key,
@@ -52,6 +56,104 @@ export function generateProcurementExecutionInsights(
       commandAction: stage.rfqReady
         ? "Ready for RFQ and vendor matching"
         : "Needs more details before RFQ",
+      criticalPath,
+      delayImpact: criticalPath
+        ? "Delay here can push the whole construction schedule."
+        : "Delay here may affect the next local activity only.",
+      siteStoppageRisk: isHighUrgency
+        ? "high"
+        : stage.blocks.length > 0
+        ? "medium"
+        : "low",
     };
+  });
+}
+
+export type ProcurementHealthSummary = {
+  healthScore: number;
+  healthStatus: "Healthy" | "Watch Closely" | "High Risk";
+  delayRiskPercent: number;
+  estimatedTimelineSlipDays: number;
+  recoverySuggestion: string;
+};
+
+export function calculateProcurementHealthSummary(
+  insights: ProcurementExecutionInsight[],
+): ProcurementHealthSummary {
+  const criticalCount = insights.filter((item) => item.criticalPath).length;
+  const highRiskCount = insights.filter(
+    (item) => item.siteStoppageRisk === "high",
+  ).length;
+  const mediumRiskCount = insights.filter(
+    (item) => item.siteStoppageRisk === "medium",
+  ).length;
+
+  const penalty = criticalCount * 8 + highRiskCount * 12 + mediumRiskCount * 5;
+  const healthScore = Math.max(45, Math.min(95, 95 - penalty));
+
+  const delayRiskPercent = Math.min(
+    90,
+    criticalCount * 18 + highRiskCount * 25 + mediumRiskCount * 10,
+  );
+
+  const estimatedTimelineSlipDays = Math.max(
+    0,
+    criticalCount * 4 + highRiskCount * 5 + mediumRiskCount * 2,
+  );
+
+  return {
+    healthScore,
+    healthStatus:
+      healthScore >= 80
+        ? "Healthy"
+        : healthScore >= 65
+        ? "Watch Closely"
+        : "High Risk",
+    delayRiskPercent,
+    estimatedTimelineSlipDays,
+    recoverySuggestion:
+      healthScore >= 80
+        ? "Procurement sequence is stable. Keep vendor confirmation and delivery dates updated."
+        : healthScore >= 65
+        ? "Confirm structural and masonry vendors early to avoid labour idle time."
+        : "Immediately lock critical materials, vendor delivery dates and backup suppliers.",
+  };
+}
+
+export type ProcurementAutonomousAction = {
+  key: string;
+  title: string;
+  priority: "critical" | "high" | "medium" | "low";
+  owner: string;
+  action: string;
+};
+
+export function generateProcurementAutonomousActions(
+  insights: ProcurementExecutionInsight[],
+): ProcurementAutonomousAction[] {
+  return insights.flatMap((item) => {
+    const actions: ProcurementAutonomousAction[] = [];
+
+    if (item.criticalPath) {
+      actions.push({
+        key: `${item.stageKey}_vendor_confirm`,
+        title: `Confirm vendor for ${item.vendorCategory}`,
+        priority: "high",
+        owner: "Procurement team",
+        action: "Call vendor, confirm stock, rate validity, delivery date and unloading support.",
+      });
+    }
+
+    if (item.siteStoppageRisk === "high") {
+      actions.push({
+        key: `${item.stageKey}_backup_vendor`,
+        title: `Prepare backup supplier for ${item.vendorCategory}`,
+        priority: "critical",
+        owner: "Site manager",
+        action: "Keep second vendor ready before work starts to avoid labour idle time.",
+      });
+    }
+
+    return actions;
   });
 }
