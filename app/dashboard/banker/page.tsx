@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { requireVerifiedBanker } from "@/lib/finance/requireVerifiedBanker";
+import BankerLenderOfferForm from "./BankerLenderOfferForm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,9 +33,16 @@ export default async function BankerDashboardPage() {
   const { data: leads, error } = await supabase
     .from("finance_loan_leads")
     .select("*")
-    .not("assigned_lender", "is", null)
+    .eq("assigned_lender", bankerProfile.bank_name)
     .order("created_at", { ascending: false })
     .limit(100);
+
+  const { data: lenderOffers } = await supabase
+    .from("finance_lender_offers")
+    .select("*")
+    .eq("lender_name", bankerProfile.bank_name)
+    .order("updated_at", { ascending: false })
+    .limit(20);
 
   const totalAssigned = leads?.length || 0;
   const highPriority =
@@ -118,6 +126,108 @@ export default async function BankerDashboardPage() {
             {error.message}
           </div>
         ) : null}
+
+        <div className="mt-5">
+          <BankerLenderOfferForm lenderName={bankerProfile.bank_name} />
+        </div>
+
+        <div className="mt-5 rounded-3xl border bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-blue-600">
+                Submitted Offers
+              </p>
+
+              <h2 className="mt-1 text-lg font-black text-slate-900">
+                Your Latest Lender Offers
+              </h2>
+            </div>
+
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+              {lenderOffers?.length || 0} offers
+            </span>
+          </div>
+
+          <div className="mt-4 overflow-x-auto">
+            <table className="min-w-[900px] w-full border-collapse">
+              <thead>
+                <tr className="bg-slate-100 text-left">
+                  <th className="px-4 py-3 text-xs font-bold text-slate-600">
+                    Product
+                  </th>
+                  <th className="px-4 py-3 text-xs font-bold text-slate-600">
+                    ROI
+                  </th>
+                  <th className="px-4 py-3 text-xs font-bold text-slate-600">
+                    CIBIL
+                  </th>
+                  <th className="px-4 py-3 text-xs font-bold text-slate-600">
+                    FOIR
+                  </th>
+                  <th className="px-4 py-3 text-xs font-bold text-slate-600">
+                    Tenure
+                  </th>
+                  <th className="px-4 py-3 text-xs font-bold text-slate-600">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {(lenderOffers || []).map((offer) => (
+                  <tr key={offer.id} className="border-t">
+                    <td className="px-4 py-3 text-sm font-bold capitalize text-slate-900">
+                      {offer.product_type || "home"}
+                      <div className="text-xs font-normal text-slate-500">
+                        {offer.state || "West Bengal"}
+                        {offer.district ? ` • ${offer.district}` : ""}
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-3 text-sm text-slate-700">
+                      {offer.min_roi || 0}% - {offer.max_roi || 0}%
+                    </td>
+
+                    <td className="px-4 py-3 text-sm text-slate-700">
+                      {offer.min_cibil || "-"}
+                    </td>
+
+                    <td className="px-4 py-3 text-sm text-slate-700">
+                      {offer.max_foir_percent || "-"}%
+                    </td>
+
+                    <td className="px-4 py-3 text-sm text-slate-700">
+                      {offer.max_tenure_years || "-"} yrs
+                    </td>
+
+                    <td className="px-4 py-3">
+                      {offer.is_verified && offer.is_active ? (
+                        <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">
+                          Active
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-700">
+                          Pending Admin
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+
+                {!lenderOffers?.length ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-4 py-8 text-center text-sm text-slate-500"
+                    >
+                      No lender offers submitted yet.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
         <div className="mt-5 overflow-x-auto rounded-3xl border bg-white shadow-sm">
           <table className="min-w-[1100px] w-full border-collapse">

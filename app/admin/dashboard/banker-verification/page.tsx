@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import BankerVerificationActions from "./BankerVerificationActions";
+import LenderOfferActions from "./LenderOfferActions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,6 +30,32 @@ export default async function BankerVerificationPage() {
     .limit(100);
 
   const total = bankers?.length || 0;
+  const { data: lenderOffers } = await supabase
+    .from("finance_lender_offers")
+    .select(`
+      id,
+      lender_name,
+      lender_type,
+      state,
+      district,
+      product_type,
+      min_roi,
+      max_roi,
+      min_cibil,
+      max_foir_percent,
+      max_tenure_years,
+      is_verified,
+      is_active,
+      updated_at
+    `)
+    .order("updated_at", { ascending: false })
+    .limit(50);
+
+  const activeOffers =
+    lenderOffers?.filter(
+      (offer) =>
+        offer.is_verified && offer.is_active
+    ).length || 0;
   const pending = bankers?.filter((b) => b.final_status === "pending").length || 0;
   const verified = bankers?.filter((b) => b.final_status === "verified").length || 0;
 
@@ -49,7 +76,7 @@ export default async function BankerVerificationPage() {
             employee ID and verification status before allowing banker dashboard access.
           </p>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="mt-5 grid gap-3 sm:grid-cols-4">
             <div className="rounded-2xl bg-blue-50 p-4">
               <p className="text-xs font-bold text-blue-700">Total Applications</p>
               <strong className="mt-1 block text-2xl text-slate-900">{total}</strong>
@@ -63,6 +90,11 @@ export default async function BankerVerificationPage() {
             <div className="rounded-2xl bg-emerald-50 p-4">
               <p className="text-xs font-bold text-emerald-700">Verified</p>
               <strong className="mt-1 block text-2xl text-slate-900">{verified}</strong>
+            </div>
+
+            <div className="rounded-2xl bg-violet-50 p-4">
+              <p className="text-xs font-bold text-violet-700">Active Lender Offers</p>
+              <strong className="mt-1 block text-2xl text-slate-900">{activeOffers}</strong>
             </div>
           </div>
         </div>
@@ -175,6 +207,122 @@ export default async function BankerVerificationPage() {
           </table>
         </div>
       </section>
+      <div className="mt-6 rounded-3xl border bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-violet-600">
+              Lender Offer Approval
+            </p>
+
+            <h2 className="mt-1 text-xl font-black text-slate-900">
+              Banker Submitted Lender Offers
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Approve only genuine lender offers. Approved and active offers can appear
+              inside EMI calculator live ROI comparison.
+            </p>
+          </div>
+
+          <span className="rounded-full bg-violet-50 px-4 py-2 text-xs font-black text-violet-700">
+            {lenderOffers?.length || 0} offers
+          </span>
+        </div>
+
+        <div className="mt-5 overflow-x-auto">
+          <table className="min-w-[1050px] w-full border-collapse">
+            <thead>
+              <tr className="bg-slate-100 text-left">
+                <th className="px-4 py-3 text-xs font-bold text-slate-600">
+                  Lender
+                </th>
+
+                <th className="px-4 py-3 text-xs font-bold text-slate-600">
+                  Product
+                </th>
+
+                <th className="px-4 py-3 text-xs font-bold text-slate-600">
+                  ROI
+                </th>
+
+                <th className="px-4 py-3 text-xs font-bold text-slate-600">
+                  Rules
+                </th>
+
+                <th className="px-4 py-3 text-xs font-bold text-slate-600">
+                  Status
+                </th>
+
+                <th className="px-4 py-3 text-xs font-bold text-slate-600">
+                  Action
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {(lenderOffers || []).map((offer) => (
+                <tr key={offer.id} className="border-t">
+                  <td className="px-4 py-3">
+                    <div className="text-sm font-black text-slate-900">
+                      {offer.lender_name}
+                    </div>
+
+                    <div className="text-xs text-slate-500">
+                      {offer.lender_type || "bank"} • {offer.state || "West Bengal"}
+                      {offer.district ? ` • ${offer.district}` : ""}
+                    </div>
+                  </td>
+
+                  <td className="px-4 py-3 text-sm font-bold capitalize text-slate-700">
+                    {offer.product_type || "home"}
+                  </td>
+
+                  <td className="px-4 py-3 text-sm text-slate-700">
+                    {offer.min_roi || 0}% - {offer.max_roi || 0}%
+                  </td>
+
+                  <td className="px-4 py-3 text-xs leading-5 text-slate-600">
+                    CIBIL: {offer.min_cibil || "-"} <br />
+                    FOIR: {offer.max_foir_percent || "-"}% <br />
+                    Tenure: {offer.max_tenure_years || "-"} yrs
+                  </td>
+
+                  <td className="px-4 py-3">
+                    {offer.is_verified && offer.is_active ? (
+                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">
+                        Active
+                      </span>
+                    ) : offer.is_verified && !offer.is_active ? (
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
+                        Paused
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-700">
+                        Pending
+                      </span>
+                    )}
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <LenderOfferActions offerId={offer.id} />
+                  </td>
+                </tr>
+              ))}
+
+              {!lenderOffers?.length ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-4 py-8 text-center text-sm text-slate-500"
+                  >
+                    No lender offers submitted yet.
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </main>
   );
 }

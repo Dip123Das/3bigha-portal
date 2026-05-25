@@ -1,8 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { lenderMaster } from "@/lib/finance/lenderMaster";
+
+type RegistryLender = {
+  id: string;
+  lender_name: string;
+  lender_type: string;
+};
 
 export default function FinanceLeadActionPanel({
   leadId,
@@ -20,28 +25,72 @@ export default function FinanceLeadActionPanel({
   const router = useRouter();
 
   const [status, setStatus] = useState(currentStatus || "new");
-  const [assignedLender, setAssignedLender] = useState(currentLender || "");
+
+  const [assignedLender, setAssignedLender] =
+    useState(currentLender || "");
+
   const [assignedLenderType, setAssignedLenderType] =
     useState(currentLenderType || "");
-  const [adminNotes, setAdminNotes] = useState(currentNotes || "");
+
+  const [adminNotes, setAdminNotes] =
+    useState(currentNotes || "");
+
   const [saving, setSaving] = useState(false);
+
+  const [lenders, setLenders] = useState<
+    RegistryLender[]
+  >([]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadLenders() {
+      try {
+        const response = await fetch(
+          "/api/finance/lender-registry",
+          {
+            cache: "no-store",
+          }
+        );
+
+        const json = await response.json();
+
+        if (!active) return;
+
+        if (json?.ok && Array.isArray(json.lenders)) {
+          setLenders(json.lenders);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    loadLenders();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function saveLead() {
     try {
       setSaving(true);
 
-      const response = await fetch(`/api/finance/loan-leads/${leadId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          status,
-          assignedLender,
-          assignedLenderType,
-          adminNotes,
-        }),
-      });
+      const response = await fetch(
+        `/api/finance/loan-leads/${leadId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status,
+            assignedLender,
+            assignedLenderType,
+            adminNotes,
+          }),
+        }
+      );
 
       const json = await response.json();
 
@@ -77,9 +126,7 @@ export default function FinanceLeadActionPanel({
             onChange={(e) => setStatus(e.target.value)}
             className="rounded-xl border px-3 py-2 text-sm"
           >
-            <option value="new">
-              🔵 New Lead
-            </option>
+            <option value="new">🔵 New Lead</option>
 
             <option value="contacted">
               🟡 Contacted
@@ -113,34 +160,37 @@ export default function FinanceLeadActionPanel({
 
         <label className="grid gap-2">
           <span className="text-sm font-bold text-slate-700">
-            Assign Lender / Bank / NBFC
+            Assign Verified Lender
           </span>
 
           <select
             value={assignedLender}
             onChange={(e) => {
-              const lender = lenderMaster.find(
-                (item) => item.name === e.target.value
+              const lender = lenders.find(
+                (item) =>
+                  item.lender_name === e.target.value
               );
 
               setAssignedLender(e.target.value);
 
-              if (lender?.type) {
-                setAssignedLenderType(lender.type);
+              if (lender?.lender_type) {
+                setAssignedLenderType(
+                  lender.lender_type
+                );
               }
             }}
             className="rounded-xl border px-3 py-2 text-sm"
           >
             <option value="">
-              Select lender
+              Select verified lender
             </option>
 
-            {lenderMaster.map((lender) => (
+            {lenders.map((lender) => (
               <option
-                key={lender.name}
-                value={lender.name}
+                key={lender.id}
+                value={lender.lender_name}
               >
-                {lender.name}
+                {lender.lender_name}
               </option>
             ))}
           </select>
@@ -151,19 +201,14 @@ export default function FinanceLeadActionPanel({
             Lender Type
           </span>
 
-          <select
+          <input
             value={assignedLenderType}
-            onChange={(e) => setAssignedLenderType(e.target.value)}
+            onChange={(e) =>
+              setAssignedLenderType(e.target.value)
+            }
+            placeholder="bank / nbfc / hfc"
             className="rounded-xl border px-3 py-2 text-sm"
-          >
-            <option value="">Select lender type</option>
-            <option value="public_bank">Public Bank</option>
-            <option value="private_bank">Private Bank</option>
-            <option value="hfc">Housing Finance Company</option>
-            <option value="nbfc">NBFC</option>
-            <option value="cooperative">Cooperative Bank</option>
-            <option value="rrb">Gramin / Regional Rural Bank</option>
-          </select>
+          />
         </label>
 
         <label className="grid gap-2">
@@ -172,21 +217,25 @@ export default function FinanceLeadActionPanel({
           </span>
 
           <textarea
+            rows={5}
             value={adminNotes}
-            onChange={(e) => setAdminNotes(e.target.value)}
-            rows={4}
-            placeholder="Write follow-up notes, borrower condition, document status..."
-            className="rounded-xl border px-3 py-2 text-sm"
+            onChange={(e) =>
+              setAdminNotes(e.target.value)
+            }
+            placeholder="Internal finance CRM notes"
+            className="rounded-xl border px-3 py-3 text-sm"
           />
         </label>
 
         <button
           type="button"
-          onClick={saveLead}
           disabled={saving}
-          className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white disabled:opacity-60"
+          onClick={saveLead}
+          className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white hover:bg-blue-700 disabled:opacity-60"
         >
-          {saving ? "Saving..." : "Update Lead"}
+          {saving
+            ? "Saving..."
+            : "Update Finance Lead"}
         </button>
       </div>
     </div>

@@ -19,6 +19,7 @@ const knownBanks = [
 export default function BankerApplyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [employeeCardFile, setEmployeeCardFile] = useState<File | null>(null);
   const [employeeCardFileName, setEmployeeCardFileName] = useState("");
 
   const [form, setForm] = useState({
@@ -47,12 +48,39 @@ export default function BankerApplyPage() {
     try {
       setSubmitting(true);
 
+      let employeeCardUrl = form.employeeCardUrl.trim();
+
+      if (employeeCardFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append("file", employeeCardFile);
+
+        const uploadResponse = await fetch(
+          "/api/finance/banker-documents/upload",
+          {
+            method: "POST",
+            body: uploadFormData,
+          }
+        );
+
+        const uploadJson = await uploadResponse.json();
+
+        if (!uploadJson?.ok) {
+          alert(uploadJson?.error || "Unable to upload employee card.");
+          return;
+        }
+
+        employeeCardUrl = uploadJson.employeeCardUrl || "";
+      }
+
       const response = await fetch("/api/finance/banker-profile", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          employeeCardUrl,
+        }),
       });
 
       const json = await response.json();
@@ -205,16 +233,18 @@ export default function BankerApplyPage() {
                 </label>
 
                 <p className="mt-1 text-xs leading-5 text-slate-600">
-                  Upload system will be connected to Supabase Storage in the next step.
-                  For now, you may paste a document URL below.
+                  Upload employee card as JPG, PNG, WEBP or PDF. Maximum file size: 5 MB.
+                  You may also paste a secure document path if already available.
                 </p>
 
                 <input
                   type="file"
                   accept="image/*,.pdf"
-                  onChange={(e) =>
-                    setEmployeeCardFileName(e.target.files?.[0]?.name || "")
-                  }
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setEmployeeCardFile(file);
+                    setEmployeeCardFileName(file?.name || "");
+                  }}
                   className="mt-3 w-full rounded-xl bg-white px-3 py-2 text-sm"
                 />
 
@@ -225,7 +255,7 @@ export default function BankerApplyPage() {
                 ) : null}
 
                 <input
-                  placeholder="Employee Card URL optional for now"
+                  placeholder="Employee Card URL optional"
                   value={form.employeeCardUrl}
                   onChange={(e) =>
                     updateField("employeeCardUrl", e.target.value)
@@ -236,8 +266,9 @@ export default function BankerApplyPage() {
             </div>
 
             <div className="mt-5 rounded-2xl bg-amber-50 p-4 text-sm leading-6 text-amber-800">
-              Manual verification is active now. Real employee-card upload storage and
-              AI OCR checking will be connected after this stable UI step.
+              Manual verification is active now. Uploaded employee card will be stored
+              privately and viewed only through secure signed admin links. AI OCR checking
+              will be added later.
             </div>
 
             <button
