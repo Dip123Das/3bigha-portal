@@ -359,6 +359,131 @@ export default async function AdminDashboardPage() {
               </Grid>
             </div>
 
+<details
+            open
+            style={{
+              marginTop: 16,
+              border: "1px solid #bfdbfe",
+              borderRadius: 18,
+              padding: 12,
+              background: "#eff6ff",
+            }}
+          >
+            <summary
+              style={{
+                cursor: "pointer",
+                fontSize: 18,
+                fontWeight: 950,
+                color: "#1e3a8a",
+              }}
+            >
+              🏦 Finance Operations
+            </summary>
+
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 13,
+                color: "#1e40af",
+                fontWeight: 800,
+                lineHeight: 1.6,
+              }}
+            >
+              Control banking assistance, EMI leads, verified bankers, lender offers and public finance SEO visibility.
+            </div>
+
+            <div style={{ marginTop: 12 }}>
+              <Grid min={240} gap={12}>
+                <Card>
+                  <CardBody>
+                    <div style={{ fontWeight: 900 }}>Finance Leads</div>
+                    <div style={{ marginTop: 6, fontSize: 13, color: "#475569", lineHeight: 1.5 }}>
+                      Manage EMI calculator leads, borrower details, sanction probability and lender assignment.
+                    </div>
+                    <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <Badge>loan leads</Badge>
+                      <Badge>assignment</Badge>
+                      <Badge>CRM</Badge>
+                    </div>
+                  </CardBody>
+                  <CardFooter>
+                    <ActionButton href="/admin/dashboard/finance-leads" variant="primary">
+                      Open →
+                    </ActionButton>
+                  </CardFooter>
+                </Card>
+
+                <Card>
+                  <CardBody>
+                    <div style={{ fontWeight: 900 }}>Banker Verification</div>
+                    <div style={{ marginTop: 6, fontSize: 13, color: "#475569", lineHeight: 1.5 }}>
+                      Approve bankers, review employee card proof and activate lender-offer workflows.
+                    </div>
+                    <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <Badge>banker KYC</Badge>
+                      <Badge>lender offers</Badge>
+                      <Badge>approval</Badge>
+                    </div>
+                  </CardBody>
+                  <CardFooter>
+                    <ActionButton href="/admin/dashboard/banker-verification" variant="primary">
+                      Open →
+                    </ActionButton>
+                  </CardFooter>
+                </Card>
+
+                <Card>
+                  <CardBody>
+                    <div style={{ fontWeight: 900 }}>Banker Work Desk</div>
+                    <div style={{ marginTop: 6, fontSize: 13, color: "#475569", lineHeight: 1.5 }}>
+                      Open banker-facing workspace for assigned leads, follow-ups and lender offer submission.
+                    </div>
+                    <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <Badge>banker desk</Badge>
+                      <Badge>follow-up</Badge>
+                      <Badge>offers</Badge>
+                    </div>
+                  </CardBody>
+                  <CardFooter>
+                    <ActionButton href="/dashboard/banker" variant="primary">
+                      Open →
+                    </ActionButton>
+                  </CardFooter>
+                </Card>
+
+                <Card>
+                  <CardBody>
+                    <div style={{ fontWeight: 900 }}>Public Finance Tools</div>
+                    <div style={{ marginTop: 6, fontSize: 13, color: "#475569", lineHeight: 1.5 }}>
+                      Review public finance discovery pages, EMI calculator and banker application portal.
+                    </div>
+                    <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <Badge>EMI</Badge>
+                      <Badge>SEO</Badge>
+                      <Badge>banker apply</Badge>
+                    </div>
+                  </CardBody>
+                  <CardFooter>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <ActionButton href="/emi-calculator" variant="primary">
+                        EMI →
+                      </ActionButton>
+                      <ActionButton href="/banking-finance-assistance" variant="secondary">
+                        Finance Page →
+                      </ActionButton>
+                      <ActionButton href="/banker/apply" variant="secondary">
+                        Apply →
+                      </ActionButton>
+                      <ActionButton href="/construction-cost" variant="secondary">
+                        Construction Cost →
+                      </ActionButton>
+                    </div>
+                  </CardFooter>
+                </Card>
+              </Grid>
+            </div>
+          </details>
+
             <div
               style={{
                 border: "1px solid #fde68a",
@@ -573,132 +698,7 @@ export default async function AdminDashboardPage() {
           </div>
         )}
 
-        {isMaster(role) && (
-          <details
-            open
-            style={{
-              marginTop: 16,
-              border: "1px solid #bfdbfe",
-              borderRadius: 18,
-              padding: 12,
-              background: "#eff6ff",
-            }}
-          >
-            <summary
-              style={{
-                cursor: "pointer",
-                fontSize: 18,
-                fontWeight: 950,
-                color: "#1e3a8a",
-              }}
-            >
-              🏦 Finance Operations
-            </summary>
-
-            <div
-              style={{
-                marginTop: 8,
-                fontSize: 13,
-                color: "#1e40af",
-                fontWeight: 800,
-                lineHeight: 1.6,
-              }}
-            >
-              Control banking assistance, EMI leads, verified bankers, lender offers and public finance SEO visibility.
-            </div>
-
-            <div style={{ marginTop: 12 }}>
-              <Grid min={240} gap={12}>
-                <Card>
-                  <CardBody>
-                    <div style={{ fontWeight: 900 }}>Finance Leads</div>
-                    <div style={{ marginTop: 6, fontSize: 13, color: "#475569", lineHeight: 1.5 }}>
-                      Manage EMI calculator leads, borrower details, sanction probability and lender assignment.
-                    </div>
-                    <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <Badge>loan leads</Badge>
-                      <Badge>assignment</Badge>
-                      <Badge>CRM</Badge>
-                    </div>
-                  </CardBody>
-                  <CardFooter>
-                    <ActionButton href="/admin/dashboard/finance-leads" variant="primary">
-                      Open →
-                    </ActionButton>
-                  </CardFooter>
-                </Card>
-
-                <Card>
-                  <CardBody>
-                    <div style={{ fontWeight: 900 }}>Banker Verification</div>
-                    <div style={{ marginTop: 6, fontSize: 13, color: "#475569", lineHeight: 1.5 }}>
-                      Approve bankers, review employee card proof and activate lender-offer workflows.
-                    </div>
-                    <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <Badge>banker KYC</Badge>
-                      <Badge>lender offers</Badge>
-                      <Badge>approval</Badge>
-                    </div>
-                  </CardBody>
-                  <CardFooter>
-                    <ActionButton href="/admin/dashboard/banker-verification" variant="primary">
-                      Open →
-                    </ActionButton>
-                  </CardFooter>
-                </Card>
-
-                <Card>
-                  <CardBody>
-                    <div style={{ fontWeight: 900 }}>Banker Work Desk</div>
-                    <div style={{ marginTop: 6, fontSize: 13, color: "#475569", lineHeight: 1.5 }}>
-                      Open banker-facing workspace for assigned leads, follow-ups and lender offer submission.
-                    </div>
-                    <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <Badge>banker desk</Badge>
-                      <Badge>follow-up</Badge>
-                      <Badge>offers</Badge>
-                    </div>
-                  </CardBody>
-                  <CardFooter>
-                    <ActionButton href="/dashboard/banker" variant="primary">
-                      Open →
-                    </ActionButton>
-                  </CardFooter>
-                </Card>
-
-                <Card>
-                  <CardBody>
-                    <div style={{ fontWeight: 900 }}>Public Finance Tools</div>
-                    <div style={{ marginTop: 6, fontSize: 13, color: "#475569", lineHeight: 1.5 }}>
-                      Review public finance discovery pages, EMI calculator and banker application portal.
-                    </div>
-                    <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <Badge>EMI</Badge>
-                      <Badge>SEO</Badge>
-                      <Badge>banker apply</Badge>
-                    </div>
-                  </CardBody>
-                  <CardFooter>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <ActionButton href="/emi-calculator" variant="primary">
-                        EMI →
-                      </ActionButton>
-                      <ActionButton href="/banking-finance-assistance" variant="secondary">
-                        Finance Page →
-                      </ActionButton>
-                      <ActionButton href="/banker/apply" variant="secondary">
-                        Apply →
-                      </ActionButton>
-                      <ActionButton href="/construction-cost" variant="secondary">
-                        Construction Cost →
-                      </ActionButton>
-                    </div>
-                  </CardFooter>
-                </Card>
-              </Grid>
-            </div>
-          </details>
-        )}
+        
 
         {isMaster(role) && (
           <div style={{ marginTop: 16, border: "1px solid #ddd", borderRadius: 12, padding: 12 }}>
