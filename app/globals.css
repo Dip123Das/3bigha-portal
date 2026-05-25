@@ -2861,3 +2861,58 @@ linear-gradient(135deg, #0f172a 0%, #172554 100%);
 .cleanTrustGrid span {
   color: #475569 !important;
 }
+
+/* Finance workflow pages need calm, non-overlapping AI assistance */
+body:has(a[href="/admin/dashboard/finance-leads"]),
+body:has(a[href="/admin/dashboard/banker-verification"]) {
+  --finance-workflow-page: 1;
+}
+
+@media (min-width: 768px) {
+  body:has([data-finance-workflow="true"]) .global-ai-workflow-card,
+  body:has([data-finance-workflow="true"]) .workflow-continuity-card,
+  body:has([data-finance-workflow="true"]) .ai-workflow-popover {
+    max-width: 280px !important;
+    transform: scale(0.88);
+    transform-origin: bottom right;
+    opacity: 0.92;
+  }
+}
+
+@media (max-width: 767px) {
+  body:has([data-finance-workflow="true"]) .global-ai-workflow-card,
+  body:has([data-finance-workflow="true"]) .workflow-continuity-card,
+  body:has([data-finance-workflow="true"]) .ai-workflow-popover {
+    display: none !important;
+  }
+}
+
+/* Finance workflows need non-intrusive AI support */
+.financeAiCompact {
+  transform: scale(0.82);
+  transform-origin: bottom left;
+  opacity: 0.9;
+}
+
+.financeAiPanelCompact {
+  max-width: 260px !important;
+  transform: scale(0.9);
+  transform-origin: bottom left;
+}
+
+.financeWorkflowCompactAi {
+  transform: scale(0.84);
+  transform-origin: bottom right;
+  opacity: 0.88;
+}
+
+@media (max-width: 768px) {
+  .financeAiPanelCompact,
+  .financeWorkflowCompactAi {
+    display: none !important;
+  }
+
+  .financeAiCompact {
+    transform: scale(0.76);
+  }
+}

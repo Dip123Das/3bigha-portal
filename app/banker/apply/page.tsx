@@ -79,7 +79,7 @@ export default function BankerApplyPage() {
     form.designation.trim();
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6">
+    <main data-finance-workflow="true" className="min-h-screen bg-slate-50 px-4 py-6">
       <section className="mx-auto max-w-4xl">
         <div className="rounded-3xl border bg-white p-5 shadow-sm">
           <p className="text-xs font-bold uppercase tracking-wide text-blue-600">

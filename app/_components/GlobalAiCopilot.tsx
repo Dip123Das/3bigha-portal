@@ -1,15 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 export default function GlobalAiCopilot() {
+  const pathname = usePathname();
+
+  const isFinanceWorkflowPage =
+    pathname === "/emi-calculator" ||
+    pathname === "/banker/apply" ||
+    pathname.startsWith("/admin/dashboard/finance-leads") ||
+    pathname.startsWith("/admin/dashboard/banker-verification");
   const [aiOpen, setAiOpen] = useState(false);
 
   return (
     <>
       <button
-        className="floatingAi"
+        className={`floatingAi ${isFinanceWorkflowPage ? "financeAiCompact" : ""}`}
         type="button"
         onClick={() => setAiOpen((v) => !v)}
         aria-expanded={aiOpen}
@@ -19,7 +27,7 @@ export default function GlobalAiCopilot() {
       </button>
 
       {aiOpen ? (
-        <div className="aiPanel">
+        <div className={`aiPanel ${isFinanceWorkflowPage ? "financeAiPanelCompact" : ""}`}>
           <div className="aiPanelHeader">
             <strong>3Bigha AI Assistant</strong>
             <small>Choose what you want AI to help with</small>

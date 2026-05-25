@@ -97,6 +97,12 @@ function buildResumeInsight(workflow: WorkflowState) {
 
 export default function GlobalWorkflowContinuityRibbon() {
   const pathname = usePathname();
+
+  const isFinanceWorkflowPage =
+    pathname === "/emi-calculator" ||
+    pathname === "/banker/apply" ||
+    pathname.startsWith("/admin/dashboard/finance-leads") ||
+    pathname.startsWith("/admin/dashboard/banker-verification");
   const [workflow, setWorkflow] = useState<WorkflowState | null>(null);
   const [collapsed, setCollapsed] = useState(false);
 
