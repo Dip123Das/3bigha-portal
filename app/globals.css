@@ -3392,3 +3392,98 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     display: none !important;
   }
 }
+
+/* FINAL MOBILE HEADER MENU VISIBILITY FIX */
+@media (max-width: 980px) {
+  .topMobileMenu {
+    display: block !important;
+    position: relative !important;
+    z-index: 10060 !important;
+  }
+
+  .topHamburger {
+    display: inline-flex !important;
+    width: 42px !important;
+    height: 42px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-direction: column !important;
+    gap: 5px !important;
+    border: 1px solid rgba(15,23,42,0.14) !important;
+    border-radius: 14px !important;
+    background: #ffffff !important;
+    cursor: pointer !important;
+  }
+
+  .topHamburger span {
+    display: block !important;
+    width: 20px !important;
+    height: 2px !important;
+    border-radius: 999px !important;
+    background: #0f172a !important;
+  }
+
+  .topMobilePanel {
+    display: none !important;
+    position: absolute !important;
+    right: 0 !important;
+    top: calc(100% + 10px) !important;
+    width: min(92vw, 420px) !important;
+    max-height: calc(100vh - 92px) !important;
+    overflow-y: auto !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(15,23,42,0.12) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 24px 70px rgba(15,23,42,0.22) !important;
+    padding: 14px !important;
+    z-index: 10080 !important;
+  }
+
+  .topMobileMenu[open] .topMobilePanel {
+    display: grid !important;
+    gap: 14px !important;
+  }
+
+  .stableDesktopMegaNav {
+    display: none !important;
+  }
+}
+
+@media (min-width: 981px) {
+  .topMobileMenu {
+    display: none !important;
+  }
+}
+
+/* FINAL MOBILE HEADER LAYOUT FIX - show hamburger + full mobile mega menu */
+@media (max-width: 980px) {
+  .topHeaderInner {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+
+  .topNav,
+  .topSearchQuick,
+  .topLanguageSelector,
+  .topActions {
+    display: none !important;
+  }
+
+  .topBrand {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  .topMobileMenu {
+    flex: 0 0 auto !important;
+    display: block !important;
+    margin-left: auto !important;
+  }
+
+  .topMobileMenu[open] .topMobilePanel {
+    display: grid !important;
+  }
+}
