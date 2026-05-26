@@ -319,6 +319,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <span />
               </summary>
 
+              <div className="mobileAccountStrip">
+                <AuthButtons />
+              </div>
+
               <div className="topMobilePanel">
                 <div className="topMobileGroup" data-no-translate="true">
                   <div className="topMobileTitle">Select Language</div>

@@ -3593,3 +3593,37 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     display: none !important;
   }
 }
+
+/* FINAL MOBILE ACCOUNT STRIP */
+@media (max-width: 980px) {
+  .mobileAccountStrip {
+    display: flex !important;
+    width: 100vw !important;
+    max-width: calc(100vw - 24px) !important;
+    overflow-x: auto !important;
+    gap: 6px !important;
+    padding: 8px 0 0 0 !important;
+    scrollbar-width: none !important;
+    order: 3 !important;
+  }
+
+  .mobileAccountStrip::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .mobileAccountStrip .topBtn,
+  .mobileAccountStrip .topBtnGhost {
+    flex: 0 0 auto !important;
+    min-height: 32px !important;
+    padding: 0 10px !important;
+    font-size: 11px !important;
+    border-radius: 999px !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (min-width: 981px) {
+  .mobileAccountStrip {
+    display: none !important;
+  }
+}
