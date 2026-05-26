@@ -289,51 +289,24 @@ export default function AuthButtons() {
   const email = session.user.email ?? null;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+    <>
+      <span className="topBtn topBtnGhost">
+        {roleLabel || "Buyer"}
+      </span>
+
       <span
+        className="topBtn topBtnGhost"
         title={email ?? undefined}
-        style={{
-          fontSize: 12,
-          fontWeight: 800,
-          color: "#334155",
-          background: "rgba(15, 23, 42, 0.06)",
-          padding: "6px 10px",
-          borderRadius: 12,
-          border: "1px solid rgba(15, 23, 42, 0.10)",
-          maxWidth: 220,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
       >
         {shortEmail(email)}
       </span>
 
-      {roleLabel ? (
-        
-<>
-  <span className="topBtn topBtnGhost">
-    {roleLabel}
-  </span>
-
-  {session?.user?.email ? (
-    <span
-      className="topBtn topBtnGhost"
-      title={session.user.email}
-    >
-      {shortEmail(session.user.email)}
-    </span>
-  ) : null}
-
-  <Link
-    href={dashboardHref}
-    className="topBtn topBtnGhost"
-  >
-    My Dashboard
-  </Link>
-</>
-
-      ) : null}
+      <Link
+        href={dashboardHref}
+        className="topBtn topBtnGhost"
+      >
+        My Dashboard
+      </Link>
 
       <button
         type="button"
@@ -343,6 +316,7 @@ export default function AuthButtons() {
       >
         Logout
       </button>
-    </div>
+    </>
   );
+
 }
