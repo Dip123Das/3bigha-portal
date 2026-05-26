@@ -39,6 +39,7 @@ export default function GlobalAiCopilot() {
             <Link href="/price-today">📈 Price Prediction</Link>
             <Link href="/vendor/discovery">🤝 Find Vendors</Link>
             <Link href="/construction-cost">🏗️ Cost Calculator</Link>
+            <Link href="/land-area-calculator">📐 Land Area Calculator</Link>
             <Link href="/emi-calculator">🏦 EMI Calculator</Link>
             <Link href="/materials/rfq/new">🧱 Material RFQ</Link>
             <Link href="/services/turnkey">🏠 Turnkey Package</Link>

@@ -15,7 +15,7 @@ type MenuItem = {
   groups: MenuGroup[];
 };
 
-const MENUS: MenuItem[] = [
+export const MENUS: MenuItem[] = [
   {
     label: "Home",
     href: "/",

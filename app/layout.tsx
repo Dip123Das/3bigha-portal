@@ -16,6 +16,7 @@ import GlobalNotificationBell from "./_components/GlobalNotificationBell";
 import PresenceHeartbeat from "./_components/PresenceHeartbeat";
 import MobileMenuAutoClose from "./_components/MobileMenuAutoClose";
 import DesktopMegaNavClient from "@/components/layout/DesktopMegaNavClient";
+import MobileMegaNavClient from "@/components/layout/MobileMegaNavClient";
 import GlobalAiCopilot from "./_components/GlobalAiCopilot";
 import GlobalWorkflowContinuityRibbon from "@/components/workflow/GlobalWorkflowContinuityRibbon";
 import AutoTranslatePage from "@/components/language/AutoTranslatePage";
@@ -326,37 +327,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
                 <div className="topMobileGroup">
                   <div className="topMobileTitle">Browse</div>
-
-                  <ActiveLink className="topMobileLink" href="/" exact>
-                    Home
-                  </ActiveLink>
-                  <ActiveLink className="topMobileLink" href="/property">
-                    Property
-                  </ActiveLink>
-                  <ActiveLink className="topMobileLink" href="/materials">
-                    Materials
-                  </ActiveLink>
-                  <ActiveLink className="topMobileLink" href="/services">
-                    Services
-                  </ActiveLink>
-                  <ActiveLink className="topMobileLink" href="/rentals">
-                    Rentals
-                  </ActiveLink>
-                  <ActiveLink className="topMobileLink" href="/investment">
-                    Investment
-                  </ActiveLink>
-                  <ActiveLink className="topMobileLink" href="/blog">
-                    Blog
-                  </ActiveLink>
-                  <ActiveLink className="topMobileLink" href="/support/my">
-                    Support
-                  </ActiveLink>
-                  <ActiveLink className="topMobileLink" href="/dashboard/procurement-health">
-                    Procurement Workspace
-                  </ActiveLink>
-                  <ActiveLink className="topMobileLink" href="/search">
-                    Search
-                  </ActiveLink>
+                  <MobileMegaNavClient />
                 </div>
 
                 <div className="topMobileGroup">
