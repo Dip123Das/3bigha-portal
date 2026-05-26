@@ -723,6 +723,7 @@ groups: [
                     title: "AI Construction Tools",
                     links: [
                       ["Construction Cost", "/construction-cost"],
+                      ["Land / Building Measurement", "/land-area-calculator"],
                       ["BOQ Generator", "/construction-cost"],
                       ["Material Estimator", "/construction-cost"],
                       ["Timeline Planner", "/construction-cost"],

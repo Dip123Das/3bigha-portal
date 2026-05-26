@@ -228,6 +228,13 @@ export default async function AdminDashboardPage() {
       show: isMaster(role),
       badges: ["sitemap", "robots.txt", "AI SEO", "regional SEO"],
     },
+    {
+      title: "Admin · Measurement Master Data",
+      desc: "Future control center for local land units, district-wise measurements, city practices and conversion values.",
+      href: "/admin/dashboard/master-data/measurement",
+      show: isMaster(role),
+      badges: ["land units", "district/city", "local practice", "future DB"],
+    },
   ].filter((c) => c.show);
 
   return (

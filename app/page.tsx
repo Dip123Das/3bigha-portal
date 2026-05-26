@@ -88,7 +88,8 @@ const tools = [
   { title: "AI Smart Search", text: "Search in natural language across categories", href: "/search", action: "Search Now" },
   { title: "Vendor Discovery", text: "Find verified vendors near you", href: "/vendor/discovery", action: "Find Vendors" },
   { title: "ROI Calculator", text: "Calculate investment returns & growth", href: "/investment/opportunities", action: "Calculate" },
-  { title: "EMI Calculator", text: "Calculate EMI for your property", href: "/cost-calculator", action: "Calculate" },
+  { title: "EMI Calculator", text: "Calculate EMI for your property", href: "/emi-calculator", action: "Calculate" },
+  { title: "Land Measurement", text: "Measure land, roof and building area", href: "/land-area-calculator", action: "Measure" },
 ];
 
 const marketPrices = [
