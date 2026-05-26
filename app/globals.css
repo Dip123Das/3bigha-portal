@@ -3510,3 +3510,86 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     display: grid !important;
   }
 }
+
+/* FINAL MOBILE BRAND + LOGIN STATUS HEADER FIX */
+@media (max-width: 980px) {
+  .topHeader {
+    display: block !important;
+  }
+
+  .topHeaderInner {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+    overflow: visible !important;
+  }
+
+  .topBrand {
+    display: flex !important;
+    flex: 1 1 calc(100% - 58px) !important;
+    max-width: calc(100% - 58px) !important;
+    min-width: 0 !important;
+    order: 1 !important;
+  }
+
+  .topBrandLink {
+    display: inline-flex !important;
+    align-items: center !important;
+    width: auto !important;
+    max-width: 160px !important;
+  }
+
+  .siteLogoFull {
+    display: block !important;
+    width: 118px !important;
+    height: 42px !important;
+    min-width: 118px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .topMobileMenu {
+    display: block !important;
+    order: 2 !important;
+    flex: 0 0 46px !important;
+    margin-left: auto !important;
+    position: relative !important;
+    z-index: 10060 !important;
+  }
+
+  .topActions {
+    display: flex !important;
+    order: 3 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    gap: 6px !important;
+    padding-top: 4px !important;
+    scrollbar-width: none !important;
+  }
+
+  .topActions::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .topActions .topBtn,
+  .topActions .topBtnGhost {
+    flex: 0 0 auto !important;
+    min-height: 32px !important;
+    padding: 0 9px !important;
+    font-size: 11px !important;
+    border-radius: 999px !important;
+    white-space: nowrap !important;
+  }
+
+  .topNav,
+  .topSearchQuick,
+  .topLanguageSelector,
+  .stableDesktopMegaNav {
+    display: none !important;
+  }
+}
