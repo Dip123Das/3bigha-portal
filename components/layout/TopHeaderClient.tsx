@@ -100,13 +100,48 @@ export default function TopHeaderClient() {
     }
 
     try {
-      const { data } = await supabase
+      // MASTER / ADMIN / BUYER ROLE CHECK
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .maybeSingle();
+
+      const role = String(profile?.role || "").toLowerCase();
+
+      // MASTER ADMIN
+      if (
+        role === "master_admin" ||
+        role === "admin" ||
+        role === "super_admin"
+      ) {
+        setDashboardHref("/admin/dashboard");
+        return;
+      }
+
+      // BANKER
+      if (
+        role === "banker" ||
+        role === "finance_banker"
+      ) {
+        setDashboardHref("/dashboard/banker");
+        return;
+      }
+
+      // VENDOR / HUB VENDOR
+      const { data: vendor } = await supabase
         .from("business_profiles")
         .select("id,user_id")
         .eq("user_id", userId)
         .maybeSingle();
 
-      setDashboardHref(data ? "/dashboard/vendor" : "/dashboard");
+      if (vendor || role.includes("vendor")) {
+        setDashboardHref("/dashboard/vendor");
+        return;
+      }
+
+      // DEFAULT BUYER / USER
+      setDashboardHref("/dashboard");
     } catch {
       setDashboardHref("/dashboard");
     }
