@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   averageRectangleAreaToSqft,
   circleAreaToSqft,
@@ -32,6 +32,26 @@ type MeasurementPart = {
   label: string;
   squareFeet: number;
   squareMeter: number;
+};
+
+type LiveMeasurementRegion = {
+  id: string;
+  state: string;
+  district: string | null;
+  city: string | null;
+  block: string | null;
+  mouza: string | null;
+  region_slug: string;
+  warning_note: string | null;
+};
+
+type LiveMeasurementUnit = {
+  id: string;
+  region_id: string;
+  unit_name: string;
+  unit_slug: string;
+  sqft_value: number | string;
+  notes: string | null;
 };
 
 function formatNumber(value: number, digits = 2) {
@@ -74,6 +94,8 @@ export default function LandAreaCalculatorPage() {
   const [state, setState] = useState("West Bengal");
   const [district, setDistrict] = useState("All districts / local practice");
   const [parts, setParts] = useState<MeasurementPart[]>([]);
+  const [liveRegions, setLiveRegions] = useState<LiveMeasurementRegion[]>([]);
+  const [liveUnits, setLiveUnits] = useState<LiveMeasurementUnit[]>([]);
 
   function syncDrawingToTextarea(points: Array<{ x: number; y: number }>) {
     setPolygonPointsText(
@@ -84,7 +106,20 @@ export default function LandAreaCalculatorPage() {
   }
 
   function addDrawingPoint(x: number, y: number) {
-    const next = [...drawingPoints, { x, y }];
+    const snappedX = Math.round(x / 5) * 5;
+    const snappedY = Math.round(y / 5) * 5;
+
+    const alreadyExists = drawingPoints.some(
+      (point) =>
+        Math.abs(point.x - snappedX) < 6 &&
+        Math.abs(point.y - snappedY) < 6
+    );
+
+    if (alreadyExists) {
+      return;
+    }
+
+    const next = [...drawingPoints, { x: snappedX, y: snappedY }];
     setDrawingPoints(next);
     syncDrawingToTextarea(next);
   }
@@ -95,8 +130,13 @@ export default function LandAreaCalculatorPage() {
   }
 
   function updateDrawingPoint(index: number, x: number, y: number) {
+    const snappedX = Math.round(x / 5) * 5;
+    const snappedY = Math.round(y / 5) * 5;
+
     const next = drawingPoints.map((point, pointIndex) =>
-      pointIndex === index ? { x, y } : point
+      pointIndex === index
+        ? { x: snappedX, y: snappedY }
+        : point
     );
 
     setDrawingPoints(next);
@@ -108,6 +148,69 @@ export default function LandAreaCalculatorPage() {
     setDrawingPoints(next);
     syncDrawingToTextarea(next);
   }
+
+  useEffect(() => {
+    let mounted = true;
+
+    fetch("/api/measurement/live", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
+        if (!mounted) return;
+
+        setLiveRegions(Array.isArray(json.regions) ? json.regions : []);
+        setLiveUnits(Array.isArray(json.units) ? json.units : []);
+      })
+      .catch(() => {
+        if (!mounted) return;
+
+        setLiveRegions([]);
+        setLiveUnits([]);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  function liveRegionLabel(region: LiveMeasurementRegion) {
+    return (
+      [region.district, region.city, region.block, region.mouza]
+        .filter(Boolean)
+        .join(" / ") || "All districts / local practice"
+    );
+  }
+
+  const stateOptions = useMemo(() => {
+    const names = new Set<string>();
+
+    indiaLandRegions.forEach((item) => names.add(item.state));
+    liveRegions.forEach((region) => {
+      if (region.state) names.add(region.state);
+    });
+
+    return Array.from(names).sort((a, b) => a.localeCompare(b));
+  }, [liveRegions]);
+
+  const districtOptions = useMemo(() => {
+    const names = new Set<string>();
+
+    getDistrictOptions(state).forEach((item) => names.add(item.name));
+    liveRegions
+      .filter((region) => region.state === state)
+      .forEach((region) => names.add(liveRegionLabel(region)));
+
+    return Array.from(names);
+  }, [state, liveRegions]);
+
+  const selectedLiveRegion = useMemo(() => {
+    const regionsForState = liveRegions.filter((region) => region.state === state);
+
+    return (
+      regionsForState.find((region) => liveRegionLabel(region) === district) ||
+      regionsForState.find((region) => liveRegionLabel(region) === "All districts / local practice") ||
+      null
+    );
+  }, [state, district, liveRegions]);
 
   const polygonPoints = useMemo(() => {
     return polygonPointsText
@@ -148,8 +251,30 @@ export default function LandAreaCalculatorPage() {
       squareMeter,
       acre: sqftToAcre(squareFeet),
       hectare: sqftToHectare(squareFeet),
-      regional: convertSqftToRegionalUnits(squareFeet, state, district),
-      districtRegion: getDistrictRegion(state, district),
+      regional:
+        selectedLiveRegion &&
+        liveUnits.some((unitItem) => unitItem.region_id === selectedLiveRegion.id)
+          ? liveUnits
+              .filter((unitItem) => unitItem.region_id === selectedLiveRegion.id)
+              .map((unitItem) => {
+                const sqft = Number(unitItem.sqft_value) || 0;
+
+                return {
+                  label: unitItem.unit_name,
+                  key: unitItem.unit_slug,
+                  sqft,
+                  note: unitItem.notes || undefined,
+                  value: sqft > 0 ? squareFeet / sqft : 0,
+                };
+              })
+          : convertSqftToRegionalUnits(squareFeet, state, district),
+      districtRegion: selectedLiveRegion
+        ? {
+            warning:
+              selectedLiveRegion.warning_note ||
+              getDistrictRegion(state, district).warning,
+          }
+        : getDistrictRegion(state, district),
     };
   }, [
     shape,
@@ -170,6 +295,8 @@ export default function LandAreaCalculatorPage() {
     unit,
     state,
     district,
+    selectedLiveRegion,
+    liveUnits,
   ]);
 
     const combinedResult = useMemo(() => {
@@ -181,9 +308,25 @@ export default function LandAreaCalculatorPage() {
       squareMeter,
       acre: sqftToAcre(squareFeet),
       hectare: sqftToHectare(squareFeet),
-      regional: convertSqftToRegionalUnits(squareFeet, state, district),
+      regional:
+        selectedLiveRegion &&
+        liveUnits.some((unitItem) => unitItem.region_id === selectedLiveRegion.id)
+          ? liveUnits
+              .filter((unitItem) => unitItem.region_id === selectedLiveRegion.id)
+              .map((unitItem) => {
+                const sqft = Number(unitItem.sqft_value) || 0;
+
+                return {
+                  label: unitItem.unit_name,
+                  key: unitItem.unit_slug,
+                  sqft,
+                  note: unitItem.notes || undefined,
+                  value: sqft > 0 ? squareFeet / sqft : 0,
+                };
+              })
+          : convertSqftToRegionalUnits(squareFeet, state, district),
     };
-  }, [parts, state, district]);
+  }, [parts, state, district, selectedLiveRegion, liveUnits]);
 
   function addCurrentAreaAsPart() {
     const nextPart: MeasurementPart = {
@@ -369,6 +512,54 @@ export default function LandAreaCalculatorPage() {
                         fill="#f8fafc"
                       />
 
+                      {Array.from({ length: 31 }).map((_, index) => (
+                        <line
+                          key={`v-${index}`}
+                          x1={index * 10}
+                          y1="0"
+                          x2={index * 10}
+                          y2="220"
+                          stroke="#e2e8f0"
+                          strokeWidth={index % 5 === 0 ? 1.5 : 1}
+                        />
+                      ))}
+
+                      {Array.from({ length: 23 }).map((_, index) => (
+                        <line
+                          key={`h-${index}`}
+                          x1="0"
+                          y1={index * 10}
+                          x2="300"
+                          y2={index * 10}
+                          stroke="#e2e8f0"
+                          strokeWidth={index % 5 === 0 ? 1.5 : 1}
+                        />
+                      ))}
+
+                      <g>
+                        <line
+                          x1="260"
+                          y1="45"
+                          x2="260"
+                          y2="18"
+                          stroke="#0f172a"
+                          strokeWidth="2"
+                        />
+                        <polygon
+                          points="260,10 255,22 265,22"
+                          fill="#0f172a"
+                        />
+                        <text
+                          x="254"
+                          y="58"
+                          fontSize="11"
+                          fill="#0f172a"
+                          fontWeight="bold"
+                        >
+                          N
+                        </text>
+                      </g>
+
                       {drawingPoints.length >= 2 ? (
                         <polyline
                           points={drawingPoints
@@ -392,7 +583,26 @@ export default function LandAreaCalculatorPage() {
                         />
                       ) : null}
 
-                      {drawingPoints.map((point, index) => (
+                      {drawingPoints.map((point, index) => {
+                        const nextPoint =
+                          drawingPoints[(index + 1) % drawingPoints.length];
+
+                        const distance = nextPoint
+                          ? Math.sqrt(
+                              Math.pow(nextPoint.x - point.x, 2) +
+                                Math.pow(nextPoint.y - point.y, 2)
+                            )
+                          : 0;
+
+                        const labelX = nextPoint
+                          ? (point.x + nextPoint.x) / 2
+                          : point.x;
+
+                        const labelY = nextPoint
+                          ? (point.y + nextPoint.y) / 2
+                          : point.y;
+
+                        return (
                         <g key={`${point.x}-${point.y}-${index}`}>
                           <circle
                             cx={point.x}
@@ -439,8 +649,33 @@ export default function LandAreaCalculatorPage() {
                           >
                             P{index + 1}
                           </text>
+
+                          {drawingPoints.length >= 2 ? (
+                            <g>
+                              <rect
+                                x={labelX - 18}
+                                y={labelY - 12}
+                                width="36"
+                                height="16"
+                                rx="4"
+                                fill="white"
+                                opacity="0.95"
+                              />
+                              <text
+                                x={labelX}
+                                y={labelY}
+                                textAnchor="middle"
+                                fontSize="9"
+                                fill="#0f172a"
+                                fontWeight="bold"
+                              >
+                                {Math.round(distance)} ft
+                              </text>
+                            </g>
+                          ) : null}
                         </g>
-                      ))}
+                        );
+                      })}
                     </svg>
                   </div>
 
@@ -463,6 +698,7 @@ export default function LandAreaCalculatorPage() {
 
                     <div className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
                       Tap to add points. Drag green points to adjust shape.
+                      Grid snapping and duplicate-point protection are enabled.
                     </div>
                   </div>
                 </div>
@@ -509,13 +745,21 @@ export default function LandAreaCalculatorPage() {
                     onChange={(e) => {
                       const nextState = e.target.value;
                       setState(nextState);
-                      setDistrict(getDistrictOptions(nextState)[0]?.name || "All districts / local practice");
+                      const firstLiveDistrict = liveRegions
+                        .filter((region) => region.state === nextState)
+                        .map((region) => liveRegionLabel(region))[0];
+
+                      setDistrict(
+                        firstLiveDistrict ||
+                          getDistrictOptions(nextState)[0]?.name ||
+                          "All districts / local practice"
+                      );
                     }}
                     className="mt-2 w-full rounded-xl border px-3 py-3 text-base"
                   >
-                    {indiaLandRegions.map((item) => (
-                      <option key={item.state} value={item.state}>
-                        {item.state}
+                    {stateOptions.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
                       </option>
                     ))}
                   </select>
@@ -528,9 +772,9 @@ export default function LandAreaCalculatorPage() {
                     onChange={(e) => setDistrict(e.target.value)}
                     className="mt-2 w-full rounded-xl border px-3 py-3 text-base"
                   >
-                    {getDistrictOptions(state).map((item) => (
-                      <option key={item.name} value={item.name}>
-                        {item.name}
+                    {districtOptions.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
                       </option>
                     ))}
                   </select>
@@ -656,7 +900,19 @@ export default function LandAreaCalculatorPage() {
               <h2 className="text-lg font-bold text-slate-950">
                 Regional Land Conversion · {state} · {district}
               </h2>
-              <p className="mt-1 text-sm text-slate-600">
+              <div className="mt-2 flex flex-wrap gap-2">
+                <span className={`rounded-full px-3 py-1 text-xs font-bold ${
+                  selectedLiveRegion
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-amber-100 text-amber-800"
+                }`}>
+                  {selectedLiveRegion ? "Using verified live master data" : "Using safe static fallback data"}
+                </span>
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                  Universal sqft/sqm first · regional units second
+                </span>
+              </div>
+              <p className="mt-2 text-sm text-slate-600">
                 These are local-practice conversions from the universal square feet value.
               </p>
             </div>
@@ -691,6 +947,79 @@ export default function LandAreaCalculatorPage() {
             </div>
           </section>
         )}
+
+        <section className="mt-5 rounded-2xl border bg-white p-4">
+          <h2 className="text-lg font-bold text-slate-950">
+            Next Action After Measurement
+          </h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            Use this calculated area for construction estimate, material planning, vendor RFQ,
+            finance discussion or property comparison.
+          </p>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <a
+              href="/construction-cost"
+              className="rounded-2xl border bg-slate-50 p-4 hover:border-emerald-300"
+            >
+              <div className="text-sm font-black text-slate-950">
+                Estimate Construction Cost
+              </div>
+              <p className="mt-1 text-xs leading-5 text-slate-600">
+                Use the area for house, roof, floor or project cost calculation.
+              </p>
+            </a>
+
+            <a
+              href="/rfq/general/new"
+              className="rounded-2xl border bg-slate-50 p-4 hover:border-emerald-300"
+            >
+              <div className="text-sm font-black text-slate-950">
+                Create RFQ from Area
+              </div>
+              <p className="mt-1 text-xs leading-5 text-slate-600">
+                Ask contractors, masons or material vendors for quotes.
+              </p>
+            </a>
+
+            <a
+              href="/banking-finance-assistance"
+              className="rounded-2xl border bg-slate-50 p-4 hover:border-emerald-300"
+            >
+              <div className="text-sm font-black text-slate-950">
+                Finance Assistance
+              </div>
+              <p className="mt-1 text-xs leading-5 text-slate-600">
+                Use measured land/building size for loan or project finance discussion.
+              </p>
+            </a>
+          </div>
+        </section>
+
+        <section className="mt-5 rounded-2xl border bg-slate-50 p-4">
+          <h2 className="text-lg font-bold text-slate-950">
+            Land Measurement FAQ
+          </h2>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <InfoCard
+              title="Why show square feet first?"
+              text="Square feet and square meter are universal. Local units like katha, bigha, kanal, marla or guntha vary by region, so universal area is shown first."
+            />
+            <InfoCard
+              title="Why does katha or bigha vary?"
+              text="Indian land units often depend on state, district, mouza, registry office and local practice. Always verify before legal use."
+            />
+            <InfoCard
+              title="When should I use Average Rectangle?"
+              text="Use it when opposite sides of a rectangular-looking land are not equal. The calculator averages both lengths and both breadths."
+            />
+            <InfoCard
+              title="When should I use Polygon?"
+              text="Use polygon measurement for irregular plots where you can mark multiple corner points from a sketch, map or field measurement."
+            />
+          </div>
+        </section>
       </section>
     </main>
   );
