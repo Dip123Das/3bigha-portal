@@ -6,10 +6,12 @@ export type InputUnit = "feet" | "meter";
 
 export type AreaShape =
   | "rectangle"
+  | "average-rectangle"
   | "triangle"
   | "circle"
   | "trapezium"
-  | "irregular";
+  | "irregular"
+  | "polygon";
 
 export function roundArea(value: number, digits = 2) {
   if (!Number.isFinite(value)) return 0;
@@ -36,6 +38,19 @@ export function rectangleAreaToSqft(length: number, breadth: number, unit: Input
   return toSqft(safe(length) * safe(breadth), unit);
 }
 
+export function averageRectangleAreaToSqft(
+  lengthOne: number,
+  lengthTwo: number,
+  breadthOne: number,
+  breadthTwo: number,
+  unit: InputUnit
+) {
+  const averageLength = (safe(lengthOne) + safe(lengthTwo)) / 2;
+  const averageBreadth = (safe(breadthOne) + safe(breadthTwo)) / 2;
+
+  return toSqft(averageLength * averageBreadth, unit);
+}
+
 export function triangleAreaToSqft(base: number, height: number, unit: InputUnit) {
   return toSqft((safe(base) * safe(height)) / 2, unit);
 }
@@ -50,6 +65,25 @@ export function trapeziumAreaToSqft(sideA: number, sideB: number, height: number
 
 export function irregularFourSideAreaToSqft(diagonalOne: number, diagonalTwo: number, unit: InputUnit) {
   return toSqft((safe(diagonalOne) * safe(diagonalTwo)) / 2, unit);
+}
+
+export function polygonAreaToSqft(
+  points: Array<{ x: number; y: number }>,
+  unit: InputUnit
+) {
+  if (points.length < 3) return 0;
+
+  let area = 0;
+
+  for (let i = 0; i < points.length; i++) {
+    const current = points[i];
+    const next = points[(i + 1) % points.length];
+
+    area += current.x * next.y;
+    area -= current.y * next.x;
+  }
+
+  return toSqft(Math.abs(area) / 2, unit);
 }
 
 export function sqftToAcre(value: number) {
