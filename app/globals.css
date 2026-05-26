@@ -3467,9 +3467,32 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
 
   .topNav,
   .topSearchQuick,
-  .topLanguageSelector,
-  .topActions {
+  .topLanguageSelector {
     display: none !important;
+  }
+
+  .topActions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    max-width: calc(100vw - 120px) !important;
+    flex: 0 1 auto !important;
+  }
+
+  .topActions::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .topBtn,
+  .topBtnGhost {
+    min-height: 34px !important;
+    padding: 0 10px !important;
+    font-size: 11px !important;
+    border-radius: 12px !important;
+    white-space: nowrap !important;
+    flex: 0 0 auto !important;
   }
 
   .topBrand {
