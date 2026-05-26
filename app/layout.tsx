@@ -12,7 +12,6 @@ import ProcurementCommandPalette from "@/components/procurement/ProcurementComma
 // confirmed existing files
 import AuthButtons from "./_components/AuthButtons";
 import ActiveLink from "./_components/ActiveLink";
-import GlobalUnreadBadge from "./_components/GlobalUnreadBadge";
 import GlobalNotificationBell from "./_components/GlobalNotificationBell";
 import PresenceHeartbeat from "./_components/PresenceHeartbeat";
 import MobileMenuAutoClose from "./_components/MobileMenuAutoClose";
@@ -304,14 +303,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </div>
               </details>
 
-              <GlobalUnreadBadge
-                className="topBtn topBtnGhost"
-                href="/dashboard/vendor"
-                label="Vendor Hub"
-                variant="topBtn"
-                title="Open vendor hub dashboard with unread chat count"
-              />
-
               <GlobalNotificationBell
                 className="topBtn topBtnGhost"
                 label="Alerts"
@@ -377,14 +368,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     My RFQs / Compare Quotes
                   </ActiveLink>
 
-                <GlobalUnreadBadge
-                  className="topSubLink"
-                  href="/dashboard/inbox"
-                  label="Unified Inbox"
-                  variant="subLink"
-                  title="Open unified inbox with unread chat count"
-                />
-
                   <GlobalNotificationBell
                     className="topMobileLink"
                     label="Notifications"
@@ -412,13 +395,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
                 <div className="topMobileGroup">
                   <div className="topMobileTitle">Vendor</div>
-                  <GlobalUnreadBadge
-                    className="topMobileLink"
-                    href="/vendor/inbox-v2"
-                    label="Vendor Inbox"
-                    variant="subLink"
-                    title="Open vendor inbox with unread chat count"
-                  />
                   <ActiveLink className="topMobileLink" href="/dashboard/vendor">
                     Vendor Hub Dashboard
                   </ActiveLink>
@@ -464,14 +440,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <Link className="rfqToggleSecondary" href="/dashboard/inbox-v2">
                         📥 Unified Inbox (All Chats) →
                       </Link>
-
-                      <GlobalUnreadBadge
-                        className="rfqToggleSecondary"
-                        href="/dashboard/buyer/inbox"
-                        label="💬 My Enquiries (Messages) →"
-                        variant="subLink"
-                        title="Open buyer inbox with unread chat count"
-                      />
 
                       <Link className="rfqToggleSecondary" href="/dashboard/buyer">
                         🧾 Buyer Dashboard →
@@ -535,37 +503,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       <Link className="rfqTogglePrimary" href="/rfq/general/new">
                         Start RFQ (Property / Materials / Services / Rentals) →
                       </Link>
-
-                      <GlobalUnreadBadge
-                        className="rfqToggleSecondary"
-                        href="/vendor/inbox-v2"
-                        label="Vendor Inbox →"
-                        variant="subLink"
-                        title="Open vendor inbox with unread chat count"
-                      />
                     </div>
                   </div>
                 </details>
 
-                <GlobalUnreadBadge
-                  className="topSubLink"
-                  href="/dashboard/inbox-v2"
-                  label="Unified Inbox"
-                  variant="subLink"
-                  title="Open unified inbox with unread chat count"
-                />
-
                 <Link className="topSubLink" href="/investment">
                   Investment
                 </Link>
-
-                <GlobalUnreadBadge
-                  className="topSubLink"
-                  href="/vendor/inbox-v2"
-                  label="Vendor Inbox"
-                  variant="subLink"
-                  title="Open vendor inbox with unread chat count"
-                />
 
                 <Link className="topSubLink" href="/dashboard/procurement-health">
                   Procurement Workspace
