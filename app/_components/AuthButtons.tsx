@@ -32,7 +32,19 @@ function prettyRole(profile?: ProfileLite | null): string {
   if (r === "master_admin") return "Master Admin";
   if (r === "blog_admin") return "Blog Admin";
 
-  return "My Dashboard";
+  if (
+    r === "vendor" ||
+    r === "builder" ||
+    r === "hub_vendor"
+  ) {
+    return "Vendor";
+  }
+
+  if (r === "banker") {
+    return "Banker";
+  }
+
+  return "Buyer";
 }
 
 function dashboardHrefFor(profile?: ProfileLite | null): string {
@@ -298,22 +310,29 @@ export default function AuthButtons() {
       </span>
 
       {roleLabel ? (
-        <Link
-          href={dashboardHref}
-          style={{
-            fontSize: 12,
-            fontWeight: 900,
-            color: "#1d4ed8",
-            background: "#eff6ff",
-            padding: "6px 10px",
-            borderRadius: 12,
-            border: "1px solid #bfdbfe",
-            whiteSpace: "nowrap",
-            textDecoration: "none",
-          }}
-        >
-          {roleLabel}
-        </Link>
+        
+<>
+  <span className="topBtn topBtnGhost">
+    {roleLabel}
+  </span>
+
+  {session?.user?.email ? (
+    <span
+      className="topBtn topBtnGhost"
+      title={session.user.email}
+    >
+      {shortEmail(session.user.email)}
+    </span>
+  ) : null}
+
+  <Link
+    href={dashboardHref}
+    className="topBtn topBtnGhost"
+  >
+    My Dashboard
+  </Link>
+</>
+
       ) : null}
 
       <button
