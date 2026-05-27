@@ -22,6 +22,7 @@ import GlobalWorkflowContinuityRibbon from "@/components/workflow/GlobalWorkflow
 import AutoTranslatePage from "@/components/language/AutoTranslatePage";
 import LanguageSwitcher from "@/components/language/LanguageSwitcher";
 import RegisterServiceWorker from "@/components/pwa/RegisterServiceWorker";
+import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
 
 export const metadata = createMetadata({
   title:
@@ -524,6 +525,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <GlobalAiCopilot />
         <GlobalWorkflowContinuityRibbon />
         <RegisterServiceWorker />
+        <PWAInstallPrompt />
 
         <footer className="siteFooter">
           <Container className="footerInner">
