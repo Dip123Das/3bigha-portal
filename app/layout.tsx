@@ -21,6 +21,7 @@ import GlobalAiCopilot from "./_components/GlobalAiCopilot";
 import GlobalWorkflowContinuityRibbon from "@/components/workflow/GlobalWorkflowContinuityRibbon";
 import AutoTranslatePage from "@/components/language/AutoTranslatePage";
 import LanguageSwitcher from "@/components/language/LanguageSwitcher";
+import RegisterServiceWorker from "@/components/pwa/RegisterServiceWorker";
 
 export const metadata = createMetadata({
   title:
@@ -522,6 +523,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
         <GlobalAiCopilot />
         <GlobalWorkflowContinuityRibbon />
+        <RegisterServiceWorker />
 
         <footer className="siteFooter">
           <Container className="footerInner">
