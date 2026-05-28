@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.threebigha.app",
-  appName: "3bigha",
+  appId: "com.threebigha.mobilefresh",
+  appName: "3Bigha Mobile",
   webDir: "out",
   server: {
     url: "https://www.3bigha.com",
