@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "com.threebigha.app"
+    namespace = "com.threebigha.mobile"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.threebigha.app"
+        applicationId "com.threebigha.mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.1"
+        versionCode 1
+        versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

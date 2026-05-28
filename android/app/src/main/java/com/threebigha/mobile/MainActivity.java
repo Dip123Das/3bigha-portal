@@ -1,4 +1,4 @@
-package com.threebigha.app;
+package com.threebigha.mobile;
 
 import com.getcapacitor.BridgeActivity;
 
