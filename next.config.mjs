@@ -41,6 +41,10 @@ const nextConfig = {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
+          {
+            key: "X-Robots-Tag",
+            value: "all",
+          },
         ],
       },
     ];

@@ -1,220 +1,99 @@
 import type { Metadata } from "next";
-import { absoluteUrl, siteConfig } from "./site";
-import { isIndexable } from "./isIndexable";
+import { canonicalUrl, cleanPath } from "@/lib/seo/url-policy";
 
-type SeoInput = {
-  title?: string;
-  description?: string;
-  path?: string;
+const SITE_NAME = "3bigha.com";
+
+export type MetadataInput = {
+  title: string;
+  description: string;
+  path: string;
   image?: string;
-  keywords?: string[];
   noIndex?: boolean;
-
-  state?: string;
+  keywords?: string[];
   city?: string;
   district?: string;
   locality?: string;
   category?: string;
   type?: string;
-
   publishedTime?: string;
   modifiedTime?: string;
 };
 
-function uniq(arr: string[]) {
-  return [...new Set(arr.filter(Boolean))];
-}
+export function createMetadata({
+  title,
+  description,
+  path,
+  image,
+  noIndex,
+  keywords,
+  publishedTime,
+  modifiedTime,
+}: MetadataInput): Metadata {
+  const clean = cleanPath(path);
+  const canonical = canonicalUrl(clean);
 
-function languageAlternates(path: string) {
-  return {
-    "en-IN": absoluteUrl(path),
-    "bn-IN": absoluteUrl(`/bn${path === "/" ? "" : path}`),
-    "hi-IN": absoluteUrl(`/hi${path === "/" ? "" : path}`),
-    "as-IN": absoluteUrl(`/as${path === "/" ? "" : path}`),
-    "or-IN": absoluteUrl(`/or${path === "/" ? "" : path}`),
-    "x-default": absoluteUrl(path),
-  };
-}
+  const finalTitle = title.includes(SITE_NAME)
+    ? title
+    : `${title} | ${SITE_NAME}`;
 
-export function createMetadata(input: SeoInput = {}): Metadata {
-  const cleanInputTitle = input.title?.trim();
-
-  const title = cleanInputTitle
-    ? cleanInputTitle.includes("3bigha") || cleanInputTitle.includes("3Bigha")
-      ? cleanInputTitle
-      : `${cleanInputTitle} | 3Bigha`
-    : siteConfig.title;
-
-  const geoParts = [
-    input.locality,
-    input.city,
-    input.district,
-  ].filter(Boolean);
-
-  const geoText = geoParts.length ? geoParts.join(", ") : "India";
-
-  const geoKeywords = uniq([
-  input.locality ? `${input.locality} marketplace` : "",
-  input.city ? `${input.city} marketplace` : "",
-  input.city ? `${input.city} property` : "",
-  input.city ? `${input.city} construction services` : "",
-  input.city ? `${input.city} building materials` : "",
-  input.city ? `${input.city} rentals` : "",
-  input.district ? `${input.district} marketplace` : "",
-  input.district ? `${input.district} property` : "",
-  input.district ? `${input.district} RFQ marketplace` : "",
-  input.state ? `${input.state} marketplace` : "",
-]);
-
-  const description =
-    input.description ||
-    `${title} available on ${siteConfig.name}. Explore verified listings, compare vendors, discover property, construction materials, RFQ procurement, rentals, services and AI-powered marketplace workflows in ${geoText}.`;
-
-  const rawPath = input.path || "/";
-  const path = rawPath.split("?")[0] || "/";
-  const allowIndex = isIndexable(path);
-  const image = input.image || siteConfig.ogImage;
-
-  const keywords = uniq([
-  ...(input.keywords || []),
-
-  ...geoKeywords,
-
-  cleanInputTitle || "",
-
-  input.category || "",
-  input.type || "",
-
-  input.locality || "",
-  input.city || "",
-  input.district || "",
-
-  `${input.category || "property"} in ${input.city || "India"}`,
-  `${input.category || "property"} in ${
-    input.locality || input.city || "India"
-  }`,
-
-  "3bigha",
-  "3 bigha",
-  "3bigha.com",
-
-  "AI marketplace",
-  "AI procurement platform",
-  "AI RFQ platform",
-
-  "property marketplace",
-  "real estate marketplace India",
-  "construction marketplace",
-  "materials marketplace",
-  "RFQ marketplace",
-  "vendor marketplace",
-
-  "banking finance assistance",
-  "banking finance assistance India",
-  "home loan assistance",
-  "construction loan assistance",
-  "property loan assistance",
-  "EMI calculator India",
-  "loan eligibility calculator",
-  "CIBIL based loan assistance",
-  "verified banker assistance",
-  "bank loan support India",
-  "housing loan assistance",
-  "loan assistance West Bengal",
-  "home loan Cooch Behar",
-  "construction finance Cooch Behar",
-
-  "building materials marketplace",
-  "construction services marketplace",
-  "rental marketplace",
-
-  "buy property",
-  "sell property",
-  "land for sale",
-  "house for sale",
-  "commercial property",
-
-  "local vendors",
-  "verified vendors",
-  "construction suppliers",
-
-  "property investment",
-  "property near me",
-  "cement supplier",
-  "steel supplier",
-  "rajmistri near me",
-]);
+  const finalDescription = String(description || "")
+    .trim()
+    .slice(0, 160);
 
   return {
-    title,
-    description,
+    metadataBase: new URL("https://www.3bigha.com"),
+
+    title: finalTitle,
+    description: finalDescription,
     keywords,
 
-    metadataBase: new URL(siteConfig.url),
-
     alternates: {
-      canonical: absoluteUrl(path),
-
-      languages: languageAlternates(path),
+      canonical,
     },
 
-    openGraph: {
-      title,
-      description,
-      url: absoluteUrl(path),
-      siteName: siteConfig.name,
-
-      images: [
-        {
-          url: absoluteUrl(image),
-          width: 1200,
-          height: 630,
-          alt: title,
+    robots: noIndex
+      ? {
+          index: false,
+          follow: true,
+          googleBot: {
+            index: false,
+            follow: true,
+          },
+        }
+      : {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+          },
         },
-      ],
 
-      locale: "en_IN",
-        countryName: "India",
-        type: "website",
-      },
-
-    other: {
-      geography: geoText,
-      region: input.state || "India",
-      locality: input.locality || "",
-      city: input.city || "",
-      district: input.district || "",
+    openGraph: {
+      title: finalTitle,
+      description: finalDescription,
+      url: canonical,
+      siteName: SITE_NAME,
+      type: "website",
+      images: image
+        ? [
+            {
+              url: image,
+            },
+          ]
+        : undefined,
     },
 
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
-      images: [absoluteUrl(image)],
+      title: finalTitle,
+      description: finalDescription,
+      images: image ? [image] : undefined,
     },
 
-    robots:
-  input.noIndex || !allowIndex
-    ? {
-        index: false,
-        follow: false,
-        googleBot: {
-          index: false,
-          follow: false,
-          noimageindex: true,
-        },
-      }
-    : {
-        index: true,
-        follow: true,
-
-        googleBot: {
-          index: true,
-          follow: true,
-          "max-image-preview": "large",
-          "max-snippet": -1,
-          "max-video-preview": -1,
-        },
-      },
+    other: {
+      ...(publishedTime ? { "article:published_time": publishedTime } : {}),
+      ...(modifiedTime ? { "article:modified_time": modifiedTime } : {}),
+    },
   };
 }

@@ -2,6 +2,9 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import {
+  sendOperationalPush,
+} from "@/lib/mobile/sendOperationalPush";
 
 export const dynamic = "force-dynamic";
 
@@ -432,6 +435,44 @@ export async function POST(req: Request, { params }: { params: { rfqId: string }
       },
       { status: 500 }
     );
+  }
+
+  try {
+    const targetUserId =
+      senderRole === "buyer"
+        ? conv.vendor_user_id
+        : conv.buyer_user_id;
+
+    if (targetUserId) {
+      const preview =
+        messageType === "text"
+          ? messageBody.slice(0, 120)
+          : messageType === "image"
+          ? "Sent image attachment"
+          : "Sent file attachment";
+
+      await sendOperationalPush({
+        userId: String(targetUserId),
+        title:
+          senderRole === "vendor"
+            ? "New vendor response"
+            : "New buyer message",
+        body: preview || "You have a new RFQ message on 3Bigha.",
+        category:
+          senderRole === "vendor"
+            ? "rfq_response"
+            : "chat_message",
+        rfqId,
+        conversationId: unifiedConversationId,
+        url:
+          senderRole === "vendor"
+            ? `/dashboard/buyer/quote-compare/${rfqId}/chat`
+            : `/vendor/inbox-v2/${rfqId}/chat`,
+        priority: "high",
+      });
+    }
+  } catch (pushErr) {
+    console.error("RFQ conversation mobile push failed", pushErr);
   }
 
   return NextResponse.json({

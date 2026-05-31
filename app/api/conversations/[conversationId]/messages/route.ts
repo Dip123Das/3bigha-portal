@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import { trackMemoryEvent } from "@/lib/ai/memory-events";
+import {
+  sendOperationalPush,
+} from "@/lib/mobile/sendOperationalPush";
 
 export const dynamic = "force-dynamic";
 
@@ -488,6 +491,39 @@ export async function POST(req: Request, { params }: RouteContext) {
         updated_at: nowIso,
       })
       .eq("id", conversationId);
+
+    try {
+      const targetUserId =
+        actualRole === "buyer"
+          ? validated.conversation?.vendor_user_id
+          : validated.conversation?.buyer_user_id;
+
+      if (targetUserId) {
+        const preview =
+          messageType === "text"
+            ? trimmedMessageBody.slice(0, 120)
+            : messageType === "image"
+            ? "Sent an image"
+            : messageType === "audio"
+            ? "Sent an audio message"
+            : "Sent an attachment";
+
+        await sendOperationalPush({
+          userId: String(targetUserId),
+          title:
+            actualRole === "buyer"
+              ? "New buyer message"
+              : "New vendor message",
+          body: preview || "You have a new message on 3Bigha.",
+          category: "chat_message",
+          conversationId,
+          url: `/dashboard/thread/${conversationId}`,
+          priority: "high",
+        });
+      }
+    } catch (pushErr) {
+      console.error("Chat mobile push notification failed", pushErr);
+    }
 
     try {
       await trackMemoryEvent({

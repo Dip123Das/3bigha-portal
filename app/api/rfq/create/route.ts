@@ -6,6 +6,10 @@ import { createClient } from "@supabase/supabase-js";
 import { ensureConversation } from "@/lib/conversations/ensureConversation";
 import type { ConversationContextType } from "@/types/conversation";
 import { trackMemoryEvent } from "@/lib/ai/memory-events";
+import { notifyUser } from "@/lib/mobile/notifyUser";
+import {
+  sendOperationalPush,
+} from "@/lib/mobile/sendOperationalPush";
 
 type AttachmentPayload = {
   bucket: string;
@@ -456,6 +460,28 @@ export async function POST(req: Request) {
 
               await Promise.allSettled(
                 targetRows.map(async (target: any) => {
+                  if (!target?.vendor_user_id) return;
+
+                  await notifyUser(String(target.vendor_user_id), {
+                    title: "New RFQ lead near you",
+                    body: `${title} enquiry from ${locality}, ${city}`,
+                    category: "vendor_lead",
+                    rfqId,
+                    url: `/dashboard/vendor/rfqs/${rfqId}`,
+                    data: {
+                      source: "rfq_create_vendor_target",
+                      module,
+                      city,
+                      locality,
+                      pincode,
+                      leadType: "new_rfq",
+                    },
+                  });
+                })
+              );
+
+              await Promise.allSettled(
+                targetRows.map(async (target: any) => {
                   const to = normalizeIndianPhone(target.vendor_phone || "");
 
                   if (!to) return;
@@ -567,6 +593,22 @@ Please share your best price and delivery timeline.`;
 
       const { error: attErr } = await supabaseAdmin.from("rfq_attachments").insert(rows);
       if (attErr) return jsonError(attErr.message || "Attachments insert failed.", 500);
+    }
+
+    try {
+      if (isAuthed && user?.id && rfqId) {
+        await sendOperationalPush({
+          userId: String(user.id),
+          title: "RFQ created successfully",
+          body: "Your procurement request is now live and vendors can respond.",
+          category: "rfq_response",
+          rfqId,
+          url: `/dashboard/buyer/rfqs/${rfqId}`,
+          priority: "normal",
+        });
+      }
+    } catch (e) {
+      console.error("RFQ creation push failed", e);
     }
 
     return NextResponse.json({

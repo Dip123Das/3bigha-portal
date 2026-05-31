@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+import {
+  calculateProcurementUrgency,
+  notifyProcurementUrgency,
+} from "@/lib/mobile/procurementUrgency";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -45,7 +50,13 @@ function buildNotificationForConversation(row: any) {
   const contextType = String(row.context_type || "conversation");
 
   const priority =
-    age >= 96 ? "critical" : age >= 48 ? "high" : age >= 24 ? "medium" : "low";
+  age >= 120
+    ? "critical"
+    : age >= 72
+    ? "high"
+    : age >= 24
+    ? "medium"
+    : "low";
 
   const title =
     priority === "critical"
@@ -169,6 +180,51 @@ export async function GET(req: Request) {
       if (!targetUserId) {
         skipped += 1;
         continue;
+      }
+
+      const urgency =
+        calculateProcurementUrgency({
+          unreadCount:
+            notification.priority === "critical"
+              ? 8
+              : notification.priority === "high"
+              ? 4
+              : 1,
+
+          hoursSinceLastActivity:
+            notification.age,
+
+          vendorResponseCount:
+            0,
+        });
+
+      if (urgency.needsEscalation) {
+        try {
+          await notifyProcurementUrgency({
+            userId: targetUserId,
+
+            title:
+              urgency.level === "critical"
+                ? "Critical procurement delay"
+                : "Procurement follow-up needed",
+
+            body:
+              urgency.level === "critical"
+                ? "A procurement workflow has been inactive for too long. Immediate action recommended."
+                : "A procurement workflow may need follow-up action.",
+
+            url: `/dashboard/thread/${row.id}`,
+
+            score: urgency.score,
+
+            level: urgency.level,
+          });
+        } catch (pushErr) {
+          console.error(
+            "Procurement escalation push failed",
+            pushErr
+          );
+        }
       }
 
       const result = await insertVendorNotificationIfMissing({

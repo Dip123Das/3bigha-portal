@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildVendorTrustReputation } from "@/lib/vendors/vendor-trust-reputation";
+import {
+  sendOperationalPush,
+} from "@/lib/mobile/sendOperationalPush";
 
 export const runtime = "nodejs";
 
@@ -763,9 +766,9 @@ export async function GET(req: Request) {
     // 🔥 TRACK MATCH EXPOSURE
     if (matches.length > 0) {
       // 🧠 LEARNING SAFE CLIENT
-const learningClient = createClient(SUPABASE_URL, SUPABASE_SERVICE);
+      const learningClient = createClient(SUPABASE_URL, SUPABASE_SERVICE);
 
-await learningClient.from("vendor_performance_metrics").upsert(
+      await learningClient.from("vendor_performance_metrics").upsert(
         matches.map((v: any) => ({
           user_id: v.user_id,
           total_matches: 1,
@@ -773,6 +776,33 @@ await learningClient.from("vendor_performance_metrics").upsert(
         })),
         { onConflict: "user_id", ignoreDuplicates: false }
       );
+    }
+
+    try {
+      const params = new URL(req.url).searchParams;
+
+      const buyerUserId =
+        clean(params.get("buyerUserId")) ||
+        clean(params.get("userId")) ||
+        clean(params.get("requesterUserId"));
+
+      const rfqId =
+        clean(params.get("rfqId")) ||
+        clean(params.get("id"));
+
+      if (buyerUserId && rfqId && matches.length > 0) {
+        await sendOperationalPush({
+          userId: buyerUserId,
+          title: "New vendor matches found",
+          body: `${matches.length} vendors matched your RFQ.`,
+          category: "vendor_lead",
+          rfqId,
+          url: `/dashboard/buyer/quote-compare/${rfqId}`,
+          priority: "high",
+        });
+      }
+    } catch (e) {
+      console.error("Vendor match push failed", e);
     }
 
     return NextResponse.json({

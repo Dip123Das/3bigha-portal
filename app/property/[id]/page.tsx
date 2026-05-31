@@ -1,5 +1,6 @@
 // app/property/[id]/page.tsx
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
@@ -245,12 +246,7 @@ export default async function PropertyPublicDetailPage({
   ];
 
   if (isBadId(id)) {
-    return (
-      <Container>
-        <SectionHeader title="Property" subtitle="Not available" />
-        <EmptyState message="Invalid property id in URL." />
-      </Container>
-    );
+    notFound();
   }
 
   const supabase = getSupabaseServer();
@@ -270,12 +266,20 @@ export default async function PropertyPublicDetailPage({
   }
 
   if (!row) {
-    return (
-      <Container>
-        <SectionHeader title="Property" subtitle="Not available" />
-        <EmptyState message="Not found." />
-      </Container>
-    );
+    notFound();
+  }
+
+  const titleQuality = safeText(row.title);
+  const locationQuality = [row.locality, row.city, row.district, row.state]
+    .map(safeText)
+    .filter(Boolean)
+    .join(" ");
+
+  if (
+    titleQuality.length < 6 ||
+    (!safeText(row.description) && locationQuality.length < 4)
+  ) {
+    notFound();
   }
 
     let resolvedVendorUserId =

@@ -7,6 +7,8 @@ import LiveProcurementRefreshBadge from "@/app/components/procurement/LiveProcur
 import ProcurementLiveTicker from "@/app/components/procurement/ProcurementLiveTicker";
 import ProcurementHeatmapIntelligence from "@/app/components/procurement/ProcurementHeatmapIntelligence";
 import { createClient } from "@supabase/supabase-js";
+import GlobalAiOperationalStatus from "@/components/ai-operational/GlobalAiOperationalStatus";
+import OperationalRecoveryFeed from "@/components/ai-operational/OperationalRecoveryFeed";
 
 type LiveEvent = {
   id: string;
@@ -131,6 +133,17 @@ export default function ProcurementLivePage() {
   return (
     <main className="min-h-screen bg-[#f6f7fb] p-6">
       <div className="mx-auto max-w-7xl">
+        <div className="mb-6 space-y-4">
+          <GlobalAiOperationalStatus
+            battlefieldPulse="active"
+            procurementPressure="attention"
+            economicStress="watch"
+            supplyChainRisk="stable"
+            orchestrationState="loaded"
+          />
+
+          <OperationalRecoveryFeed />
+        </div>
         <div className="overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-cyan-950 to-emerald-950 p-10 text-white shadow-2xl">
           <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
             Live Procurement Event Feed

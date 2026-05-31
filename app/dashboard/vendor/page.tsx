@@ -26,6 +26,8 @@ import WorkflowContinuityRecorder from "@/components/workflow-continuity/Workflo
 import OperationalEventStream from "@/components/operational-events/OperationalEventStream";
 import OperationalEventRecorder from "@/components/operational-events/OperationalEventRecorder";
 import { buildVendorSmartNotifications } from "@/lib/notifications/smart-reengagement";
+import GlobalAiOperationalStatus from "@/components/ai-operational/GlobalAiOperationalStatus";
+import OperationalRecoveryFeed from "@/components/ai-operational/OperationalRecoveryFeed";
 
 type CompletenessRow = {
   user_id?: string;
@@ -1345,6 +1347,20 @@ const aiDealUpgradeTarget =
       />
 
       <Container>
+        <div style={{ marginBottom: 16 }}>
+          <GlobalAiOperationalStatus
+            battlefieldPulse="active"
+            procurementPressure="watch"
+            economicStress="stable"
+            supplyChainRisk="stable"
+            orchestrationState="loaded"
+          />
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <OperationalRecoveryFeed />
+        </div>
+
         <section
           style={{
             border: "1px solid #e2e8f0",

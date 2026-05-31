@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.threebigha.mobilefresh",
+  appId: "com.threebigha.mobile",
   appName: "3Bigha Mobile",
   webDir: "out",
   server: {

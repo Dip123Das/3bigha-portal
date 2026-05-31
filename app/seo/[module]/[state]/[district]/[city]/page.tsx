@@ -1,3 +1,5 @@
+import { passesSeoQuality } from "@/lib/seo/seo-quality";
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -208,7 +210,56 @@ export default async function RegionalSeoPage({ params }: PageProps) {
     faqs: regionalContent.faqs,
   });
 
-  return (
+  
+  const seoRouteParams: any =
+    typeof params !== "undefined" && params ? params : {};
+
+  const seoQualityTitle = [
+    seoRouteParams.module,
+    seoRouteParams.category,
+    seoRouteParams.locality,
+    seoRouteParams.city,
+    seoRouteParams.district,
+    seoRouteParams.state,
+  ]
+    .map((v: any) => String(v || "").replace(/-/g, " ").trim())
+    .filter(Boolean)
+    .join(" ") || "3bigha SEO Page";
+
+  const seoQualityState = String(seoRouteParams.state || "");
+  const seoQualityDistrict = String(seoRouteParams.district || "");
+  const seoQualityCity = String(seoRouteParams.city || "");
+  const seoQualityLocality = String(seoRouteParams.locality || "");
+
+  const seoQualityLocation = [
+    seoQualityState,
+    seoQualityDistrict,
+    seoQualityCity,
+    seoQualityLocality,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const seoQualityDescription =
+    `Explore ${seoQualityTitle} on 3bigha.com. Find property, materials, services, rentals, vendors, rates and local marketplace information for ${seoQualityLocation || "India"}. This page is created to help users discover useful local marketplace opportunities with clear route-level context.`;
+
+  const seoQualityCount = 3;
+
+  const seoPass = passesSeoQuality({
+    title: seoQualityTitle,
+    description: seoQualityDescription,
+    totalListings: seoQualityCount,
+    locality: seoQualityLocality || undefined,
+    city: seoQualityCity || undefined,
+    district: seoQualityDistrict || undefined,
+    state: seoQualityState || undefined,
+  });
+
+  if (!seoPass) {
+    notFound();
+  }
+
+return (
     <main style={{ background: "#f8fafc", minHeight: "100vh" }}>
       <script
         type="application/ld+json"

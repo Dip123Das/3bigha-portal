@@ -23,6 +23,9 @@ import AutoTranslatePage from "@/components/language/AutoTranslatePage";
 import LanguageSwitcher from "@/components/language/LanguageSwitcher";
 import RegisterServiceWorker from "@/components/pwa/RegisterServiceWorker";
 import PWAInstallPrompt from "@/components/pwa/PWAInstallPrompt";
+import MobilePushRuntime from "@/components/mobile/MobilePushRuntime";
+import MobileForegroundNotifications from "@/components/mobile/MobileForegroundNotifications";
+import MobileOperationalDock from "@/components/mobile/MobileOperationalDock";
 
 export const metadata = createMetadata({
   title:
@@ -526,6 +529,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <GlobalWorkflowContinuityRibbon />
         <RegisterServiceWorker />
         <PWAInstallPrompt />
+        <MobilePushRuntime />
+        <MobileForegroundNotifications />
+        <MobileOperationalDock />
 
         <footer className="siteFooter">
           <Container className="footerInner">

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import GlobalAiOperationalStatus from "@/components/ai-operational/GlobalAiOperationalStatus";
+import OperationalRecoveryFeed from "@/components/ai-operational/OperationalRecoveryFeed";
 
 type WarRoomData = {
   healthScore: number;
@@ -39,6 +41,17 @@ export default function ProcurementWarRoomPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-7xl p-6">
+      <div className="mb-6 space-y-4">
+        <GlobalAiOperationalStatus
+          battlefieldPulse="strained"
+          procurementPressure="high_pressure"
+          economicStress="tightening"
+          supplyChainRisk="watch"
+          orchestrationState="strained"
+        />
+
+        <OperationalRecoveryFeed />
+      </div>
         Loading AI Procurement Priority Work...
       </div>
     );

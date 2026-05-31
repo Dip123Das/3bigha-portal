@@ -42,3 +42,14 @@ next-env.d.ts
 
 .vercel
 .env*.local
+
+# Android release signing
+android/keystore/*.jks
+android/key.properties
+
+# Android signing / local IDE
+.idea/
+key.properties
+android/key.properties.save
+android/app/*.jks
+android/app/google-services.json

@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/lib/seo/site";
 import { getAllSeoUrls } from "@/lib/geo/india-geo";
+import { isIndexableStaticPath, hasSeoMinimumQuality, isSafePublicId } from "@/lib/seo/url-policy";
 
 type SitemapRow = {
   id?: string | null;
@@ -27,7 +28,10 @@ function safeId(value: unknown) {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  const regionalSeoRoutes = getAllSeoUrls();
+  const regionalSeoRoutes = getAllSeoUrls()
+    .filter((path) => path.startsWith("/seo/"))
+    .filter((path) => !path.includes("/category/"))
+    .slice(0, 120);
 
 const staticRoutes = [
   "",
@@ -37,9 +41,6 @@ const staticRoutes = [
   "/seo/services/west-bengal/cooch-behar/cooch-behar",
   "/seo/rentals/west-bengal/cooch-behar/cooch-behar",
 
-  "/search/cement-price-cooch-behar",
-  "/search/building-materials-west-bengal",
-  "/search/land-for-sale-cooch-behar",
 
   "/property",
   "/materials",
@@ -48,18 +49,13 @@ const staticRoutes = [
   "/price-today",
   "/emi-calculator",
   "/land-area-calculator",
-  "/banking-finance-assistance",
-  "/banker/apply",
   "/cost-calculator",
   "/construction-cost",
   "/house-construction-cost",
   "/compare-rates",
   "/blog",
-  "/vendor",
-  "/vendor/discovery",
   "/investment",
   "/search",
-  "/ai-search-guide",
   "/about",
   "/contact",
   "/privacy-policy",
@@ -68,7 +64,9 @@ const staticRoutes = [
   ...regionalSeoRoutes,
 ];
 
-  const staticPages: MetadataRoute.Sitemap = staticRoutes.map((path) => ({
+  const staticPages: MetadataRoute.Sitemap = staticRoutes
+    .filter((path) => path.startsWith("/seo/") || isIndexableStaticPath(path))
+    .map((path) => ({
     url: route(path),
     lastModified: now,
     changeFrequency:
@@ -89,8 +87,7 @@ const staticRoutes = [
         : [
             "/emi-calculator",
             "/land-area-calculator",
-            "/banking-finance-assistance",
-            "/cost-calculator",
+                      "/cost-calculator",
             "/construction-cost",
             "/house-construction-cost",
             "/compare-rates",
@@ -123,23 +120,25 @@ const staticRoutes = [
     investmentRes,
   ] = await Promise.allSettled([
     supabase
-      .from("property_listings")
-      .select("id,updated_at,created_at,published_at")
+      .from("property_listings_public")
+      .select("id,title,city,district,locality,state,description,updated_at,created_at,published_at")
       .limit(5000),
 
     supabase
       .from("material_listings")
-      .select("id,updated_at,created_at")
+      .select("id,title,description,local_name,updated_at,created_at")
+      .eq("is_public", true)
+      .eq("is_active", true)
       .limit(5000),
 
     supabase
       .from("service_listings")
-      .select("id,updated_at,created_at")
+      .select("id,title,description,updated_at,created_at")
       .limit(5000),
 
     supabase
-      .from("rental_listings")
-      .select("id,updated_at,created_at")
+      .from("rental_listings_public")
+      .select("id,title,description,city,district,state,updated_at,created_at")
       .limit(5000),
 
     supabase
@@ -157,8 +156,16 @@ const staticRoutes = [
   const dynamicPages: MetadataRoute.Sitemap = [];
 
   if (propertyRes.status === "fulfilled" && !propertyRes.value.error) {
-    (propertyRes.value.data || []).forEach((row: SitemapRow) => {
-      if (!row.id) return;
+    (propertyRes.value.data || []).forEach((row: SitemapRow & Record<string, any>) => {
+      if (!isSafePublicId(row.id)) return;
+      if (!hasSeoMinimumQuality(row as Record<string, any>)) return;
+
+      const title = String(row.title || "").trim();
+      const place = [row.locality, row.city, row.district, row.state].filter(Boolean).join(" ");
+      const desc = String(row.description || "").trim();
+
+      if (title.length < 6) return;
+      if (!desc && place.length < 4) return;
 
       dynamicPages.push({
         url: route(`/property/${safeId(row.id)}`),
@@ -171,7 +178,8 @@ const staticRoutes = [
 
   if (materialRes.status === "fulfilled" && !materialRes.value.error) {
     (materialRes.value.data || []).forEach((row: SitemapRow) => {
-      if (!row.id) return;
+      if (!isSafePublicId(row.id)) return;
+      if (!hasSeoMinimumQuality(row as Record<string, any>)) return;
 
       dynamicPages.push({
         url: route(`/materials/${safeId(row.id)}`),
@@ -184,7 +192,8 @@ const staticRoutes = [
 
   if (serviceRes.status === "fulfilled" && !serviceRes.value.error) {
     (serviceRes.value.data || []).forEach((row: SitemapRow) => {
-      if (!row.id) return;
+      if (!isSafePublicId(row.id)) return;
+      if (!hasSeoMinimumQuality(row as Record<string, any>)) return;
 
       dynamicPages.push({
         url: route(`/services/${safeId(row.id)}`),
@@ -197,7 +206,8 @@ const staticRoutes = [
 
   if (rentalRes.status === "fulfilled" && !rentalRes.value.error) {
     (rentalRes.value.data || []).forEach((row: SitemapRow) => {
-      if (!row.id) return;
+      if (!isSafePublicId(row.id)) return;
+      if (!hasSeoMinimumQuality(row as Record<string, any>)) return;
 
       dynamicPages.push({
         url: route(`/rentals/${safeId(row.id)}`),
