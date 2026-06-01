@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
@@ -25,20 +26,47 @@ import {
 import UnifiedSearchAutocomplete from "@/components/search/UnifiedSearchAutocomplete";
 import SearchToRfqConversionCard from "@/components/search/SearchToRfqConversion";
 import { buildSearchToRfqConversion } from "@/lib/search/search-to-rfq-engine";
-import VendorLiquidityPanel from "@/components/search/VendorLiquidityPanel";
+const VendorLiquidityPanel = dynamic(
+  () => import("@/components/search/VendorLiquidityPanel"),
+  { ssr: false }
+);
 import { buildVendorLiquidityInsight } from "@/lib/search/vendor-liquidity-engine";
-import ProcurementRecommendationSidebar from "@/components/search/ProcurementRecommendationSidebar";
-import ProcurementDecisionPanel from "@/components/search/ProcurementDecisionPanel";
+const ProcurementRecommendationSidebar = dynamic(
+  () => import("@/components/search/ProcurementRecommendationSidebar"),
+  { ssr: false }
+);
+const ProcurementDecisionPanel = dynamic(
+  () => import("@/components/search/ProcurementDecisionPanel"),
+  { ssr: false }
+);
 import { buildProcurementDecisionInsight } from "@/lib/search/procurement-decision-engine";
-import VendorIntelligencePanel from "@/components/search/VendorIntelligencePanel";
+const VendorIntelligencePanel = dynamic(
+  () => import("@/components/search/VendorIntelligencePanel"),
+  { ssr: false }
+);
 import { buildVendorIntelligenceInsight } from "@/lib/search/vendor-intelligence-engine";
-import VendorNegotiationPanel from "@/components/search/VendorNegotiationPanel";
+const VendorNegotiationPanel = dynamic(
+  () => import("@/components/search/VendorNegotiationPanel"),
+  { ssr: false }
+);
 import { buildVendorNegotiationInsight } from "@/lib/search/vendor-negotiation-engine";
-import ProcurementActionCopilot from "@/components/search/ProcurementActionCopilot";
+const ProcurementActionCopilot = dynamic(
+  () => import("@/components/search/ProcurementActionCopilot"),
+  { ssr: false }
+);
 import { buildProcurementActionCopilot } from "@/lib/search/procurement-action-copilot";
-import ProcurementMemoryTimeline from "@/components/procurement/ProcurementMemoryTimeline";
-import ProcurementReEngagement from "@/components/procurement/ProcurementReEngagement";
-import AIExecutionDrawer from "@/components/ai-execution/AIExecutionDrawer";
+const ProcurementMemoryTimeline = dynamic(
+  () => import("@/components/procurement/ProcurementMemoryTimeline"),
+  { ssr: false }
+);
+const ProcurementReEngagement = dynamic(
+  () => import("@/components/procurement/ProcurementReEngagement"),
+  { ssr: false }
+);
+const AIExecutionDrawer = dynamic(
+  () => import("@/components/ai-execution/AIExecutionDrawer"),
+  { ssr: false }
+);
 import UniversalWorkflowHeader from "@/components/operational/UniversalWorkflowHeader";
 
 import ProcurementJourneyBar from "@/components/procurement/ProcurementJourneyBar";
@@ -1392,10 +1420,16 @@ if (want.includes("rentals")) {
     () =>
       getSearchKeywordClusters({
         query: qFromUrl,
-        module: localSearchIntent.module,
-        area: localSearchIntent.areaHint || "your area",
+        module:
+          modFromUrl === "property" ||
+          modFromUrl === "materials" ||
+          modFromUrl === "services" ||
+          modFromUrl === "rentals"
+            ? modFromUrl
+            : null,
+        area: localSearchIntent.areaHint || undefined,
       }),
-    [qFromUrl, localSearchIntent]
+    [qFromUrl, modFromUrl, localSearchIntent.areaHint]
   );
 
   const rfqConversion = useMemo(
@@ -1407,37 +1441,37 @@ if (want.includes("rentals")) {
     [qFromUrl, modFromUrl]
   );
 
-  const vendorLiquidity = useMemo(
-    () =>
-      buildVendorLiquidityInsight({
+  const vendorLiquidity = useMemo(() => {
+
+    return buildVendorLiquidityInsight({
         query: qFromUrl,
         module: modFromUrl,
         resultCount: rows.length,
-      }),
-    [qFromUrl, modFromUrl, rows.length]
+      });
+  }, [qFromUrl, modFromUrl, rows.length]
   );
 
-  const procurementDecision = useMemo(
-    () =>
-      buildProcurementDecisionInsight({
+  const procurementDecision = useMemo(() => {
+
+    return buildProcurementDecisionInsight({
         query: qFromUrl,
         module: modFromUrl,
         resultCount: rows.length,
         vendorLiquidityScore: vendorLiquidity.score,
-      }),
-    [qFromUrl, modFromUrl, rows.length, vendorLiquidity.score]
+      });
+  }, [qFromUrl, modFromUrl, rows.length, vendorLiquidity.score]
   );
 
-  const vendorIntelligence = useMemo(
-    () =>
-      buildVendorIntelligenceInsight({
+  const vendorIntelligence = useMemo(() => {
+
+    return buildVendorIntelligenceInsight({
         query: qFromUrl,
         module: modFromUrl,
         resultCount: rows.length,
         liquidityScore: vendorLiquidity.score,
         procurementReadinessScore: procurementDecision.readinessScore,
-      }),
-    [
+      });
+  }, [
       qFromUrl,
       modFromUrl,
       rows.length,
@@ -1446,17 +1480,17 @@ if (want.includes("rentals")) {
     ]
   );
 
-  const vendorNegotiation = useMemo(
-    () =>
-      buildVendorNegotiationInsight({
+  const vendorNegotiation = useMemo(() => {
+
+    return buildVendorNegotiationInsight({
         query: qFromUrl,
         module: modFromUrl,
         resultCount: rows.length,
         vendorLiquidityScore: vendorLiquidity.score,
         procurementReadinessScore: procurementDecision.readinessScore,
         vendorQualityScore: vendorIntelligence.qualityScore,
-      }),
-    [
+      });
+  }, [
       qFromUrl,
       modFromUrl,
       rows.length,
@@ -1492,15 +1526,15 @@ if (want.includes("rentals")) {
     });
   }, [qFromUrl, modFromUrl]);
 
-  const procurementActionCopilot = useMemo(
-    () =>
-      buildProcurementActionCopilot({
+  const procurementActionCopilot = useMemo(() => {
+
+    return buildProcurementActionCopilot({
         query: qFromUrl,
         module: modFromUrl,
         readinessScore: procurementDecision.readinessScore,
         negotiationScore: vendorNegotiation.negotiationScore,
-      }),
-    [
+      });
+  }, [
       qFromUrl,
       modFromUrl,
       procurementDecision.readinessScore,

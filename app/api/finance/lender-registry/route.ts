@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export async function GET() {
   try {

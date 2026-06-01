@@ -1,24 +1,25 @@
 // app/dashboard/thread/[conversationId]/page.tsx
 
 import Link from "next/link";
+import nextDynamic from "next/dynamic";
 import BuyerRfqChatBox from "@/app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box";
 import VendorRfqChatBox from "@/app/vendor/inbox-v2/[rfqId]/chat/vendor-rfq-chat-box";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
-import DealScoreClient from "@/app/components/ai/DealScoreClient";
+const DealScoreClient = nextDynamic(() => import("@/app/components/ai/DealScoreClient"));
 import BuyerConversationChatBox from "@/app/dashboard/buyer/chat/[conversationId]/buyer-conversation-chat-box";
 import ConversationContextBanner from "@/components/chat/ConversationContextBanner";
-import ProcurementActionSuggestions from "@/components/chat/ProcurementActionSuggestions";
+const ProcurementActionSuggestions = nextDynamic(() => import("@/components/chat/ProcurementActionSuggestions"));
 import UniversalWorkflowHeader from "@/components/operational/UniversalWorkflowHeader";
-import StickyWorkflowCommandBar from "@/components/operational/StickyWorkflowCommandBar";
+const StickyWorkflowCommandBar = nextDynamic(() => import("@/components/operational/StickyWorkflowCommandBar"));
 import OperationalPageShell from "@/components/operational/OperationalPageShell";
-import OperationalWorkspacePanel from "@/components/operational/OperationalWorkspacePanel";
-import WorkflowContinuityBar from "@/components/workflow-continuity/WorkflowContinuityBar";
-import WorkflowContinuityRecorder from "@/components/workflow-continuity/WorkflowContinuityRecorder";
-import OperationalEventStream from "@/components/operational-events/OperationalEventStream";
-import OperationalEventRecorder from "@/components/operational-events/OperationalEventRecorder";
-import ContextualAiAssist from "@/components/ai-assist/ContextualAiAssist";
+const OperationalWorkspacePanel = nextDynamic(() => import("@/components/operational/OperationalWorkspacePanel"));
+const WorkflowContinuityBar = nextDynamic(() => import("@/components/workflow-continuity/WorkflowContinuityBar"));
+const WorkflowContinuityRecorder = nextDynamic(() => import("@/components/workflow-continuity/WorkflowContinuityRecorder"));
+const OperationalEventStream = nextDynamic(() => import("@/components/operational-events/OperationalEventStream"));
+const OperationalEventRecorder = nextDynamic(() => import("@/components/operational-events/OperationalEventRecorder"));
+const ContextualAiAssist = nextDynamic(() => import("@/components/ai-assist/ContextualAiAssist"));
 import { resolveNextAction } from "@/lib/workflow/next-action-engine";
 
 import {

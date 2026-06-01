@@ -239,7 +239,7 @@ function safeClearExpiredSupabaseSessions() {
   } catch {}
 }
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default function RentalsPublicPage() {
   const supabaseAnon = useMemo(() => {

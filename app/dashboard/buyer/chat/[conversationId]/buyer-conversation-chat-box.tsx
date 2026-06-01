@@ -1,18 +1,37 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import nextDynamic from "next/dynamic";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { clearInboxReminder } from "@/lib/inbox/clearInboxReminder";
 import ConversationMessageList from "@/app/components/chat/ConversationMessageList";
 import ConversationComposer from "@/app/components/chat/ConversationComposer";
 import ConversationActionMenu from "@/app/components/chat/ConversationActionMenu";
-import DealScoreClient from "@/app/components/ai/DealScoreClient";
-import DealReadyClient from "@/app/components/ai/DealReadyClient";
+const DealScoreClient = nextDynamic(
+  () => import("@/app/components/ai/DealScoreClient"),
+  { ssr: false }
+);
+const DealReadyClient = nextDynamic(
+  () => import("@/app/components/ai/DealReadyClient"),
+  { ssr: false }
+);
 import ConversationDeleteConfirm from "@/app/components/chat/ConversationDeleteConfirm";
-import AIExecutionDrawer from "@/components/ai-execution/AIExecutionDrawer";
-import AIExecutionTimeline from "@/components/ai-execution/AIExecutionTimeline";
-import OperationalWorkspacePanel from "@/components/operational/OperationalWorkspacePanel";
-import StickyWorkflowCommandBar from "@/components/operational/StickyWorkflowCommandBar";
+const AIExecutionDrawer = nextDynamic(
+  () => import("@/components/ai-execution/AIExecutionDrawer"),
+  { ssr: false }
+);
+const AIExecutionTimeline = nextDynamic(
+  () => import("@/components/ai-execution/AIExecutionTimeline"),
+  { ssr: false }
+);
+const OperationalWorkspacePanel = nextDynamic(
+  () => import("@/components/operational/OperationalWorkspacePanel"),
+  { ssr: false }
+);
+const StickyWorkflowCommandBar = nextDynamic(
+  () => import("@/components/operational/StickyWorkflowCommandBar"),
+  { ssr: false }
+);
 import {
   readConversationContext,
 } from "@/lib/procurement/conversation-context";

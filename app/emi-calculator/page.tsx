@@ -1,19 +1,37 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import nextDynamic from "next/dynamic";
 import {
   defaultBankOffers,
   getBankOffersByState,
   indianStatesWithRegionalBanks,
   type BankOffer,
 } from "@/lib/finance/bankRates";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+const PieChart = nextDynamic(
+  () => import("recharts").then((m) => m.PieChart),
+  { ssr: false }
+);
+
+const Pie = nextDynamic(
+  () => import("recharts").then((m) => m.Pie),
+  { ssr: false }
+);
+
+const Cell = nextDynamic(
+  () => import("recharts").then((m) => m.Cell),
+  { ssr: false }
+);
+
+const ResponsiveContainer = nextDynamic(
+  () => import("recharts").then((m) => m.ResponsiveContainer),
+  { ssr: false }
+);
+
+const Tooltip = nextDynamic(
+  () => import("recharts").then((m) => m.Tooltip),
+  { ssr: false }
+);
 import type { LiveLenderOffer } from "@/lib/finance/lenderOffer";
 
 type TenureMode = "years" | "months";

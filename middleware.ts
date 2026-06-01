@@ -1,10 +1,5 @@
 // middleware.ts
 import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-
-const FALLBACK_URL = "https://lynnvmqzdxqhhpkxuzvt.supabase.co";
-const FALLBACK_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6Imx5bm52bXF6ZHhxaGhwa3h1enZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyNjk3ODMsImV4cCI6MjA4Mjg0NTc4M30.y5E3EhDIX2gw8xav1QOMzk6eUhty0VegL6CC4lH_Jrk";
 
 const LOCALES = [
   "en",
@@ -30,6 +25,50 @@ const LOCALES = [
   "doi",
   "sat",
 ];
+
+
+const PUBLIC_PATH_PREFIXES = [
+  "/",
+  "/property",
+  "/materials",
+  "/services",
+  "/rentals",
+  "/blog",
+  "/search",
+  "/seo",
+  "/price-today",
+  "/investment",
+  "/emi-calculator",
+  "/land-area-calculator",
+  "/construction-cost",
+  "/house-construction-cost",
+  "/compare-rates",
+  "/about",
+  "/contact",
+  "/privacy-policy",
+  "/terms-and-conditions",
+  "/refund-cancellation-policy",
+];
+
+function isPublicPath(pathname: string) {
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/vendor") ||
+    pathname.startsWith("/buyer") ||
+    pathname.startsWith("/inbox")
+  ) {
+    return false;
+  }
+
+  return PUBLIC_PATH_PREFIXES.some(
+    (prefix) =>
+      pathname === prefix ||
+      pathname.startsWith(prefix + "/")
+  );
+}
 
 function getLocaleFromPath(pathname: string) {
   const first = pathname.split("/").filter(Boolean)[0];
@@ -69,8 +108,18 @@ export async function middleware(req: NextRequest) {
     });
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_ANON_KEY;
+  if (isPublicPath(pathname)) {
+    return res;
+  }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anon) {
+    return res;
+  }
+
+  const { createServerClient } = await import("@supabase/ssr");
 
   const supabase = createServerClient(url, anon, {
     cookies: {

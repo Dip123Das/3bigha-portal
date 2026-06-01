@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import {
+  getSharedChannel,
+  releaseSharedChannel,
+} from "@/lib/realtime/channel-manager";
 
 type ConversationRow = {
   id: string;

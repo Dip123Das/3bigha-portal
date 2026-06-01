@@ -7,9 +7,29 @@ import type React from "react";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import nextDynamic from "next/dynamic";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
-import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
+const UniversalMediaUploader = nextDynamic(
+  () => import("@/app/components/media/UniversalMediaUploader"),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        style={{
+          border: "1px dashed #cbd5e1",
+          borderRadius: 14,
+          padding: 16,
+          background: "#f8fafc",
+          color: "#475569",
+          fontWeight: 700,
+        }}
+      >
+        Loading media uploader...
+      </div>
+    ),
+  }
+);
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
 
 

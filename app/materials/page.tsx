@@ -176,7 +176,7 @@ function safeClearExpiredSupabaseSessions() {
   } catch {}
 }
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default function MaterialsPage() {
   const router = useRouter();

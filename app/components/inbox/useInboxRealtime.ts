@@ -2,6 +2,11 @@
 
 import { useEffect } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import { createRealtimeThrottle } from "@/lib/realtime/throttle-event";
+import {
+  getSharedChannel,
+  releaseSharedChannel,
+} from "@/lib/realtime/channel-manager";
 
 type UseInboxRealtimeArgs = {
   onChange: () => void;
@@ -15,18 +20,18 @@ export default function useInboxRealtime({
   useEffect(() => {
     const supabase = getSupabaseBrowser();
 
-    let timer: ReturnType<typeof setTimeout> | null = null;
-
-    const schedule = () => {
-      if (timer) clearTimeout(timer);
-
-      timer = setTimeout(() => {
+    const schedule = createRealtimeThrottle(
+      () => {
         onChange();
-      }, debounceMs);
-    };
+      },
+      debounceMs
+    );
 
-    const channel = supabase
-      .channel("inbox-realtime-hook")
+    const channel = getSharedChannel(
+      "inbox-realtime-hook",
+      () =>
+        supabase
+          .channel("inbox-realtime-hook")
       .on(
         "postgres_changes",
         {
@@ -34,7 +39,7 @@ export default function useInboxRealtime({
           schema: "public",
           table: "conversation_messages",
         },
-        () => schedule()
+        () => schedule(undefined)
       )
       .on(
         "postgres_changes",
@@ -43,7 +48,7 @@ export default function useInboxRealtime({
           schema: "public",
           table: "conversation_participants",
         },
-        () => schedule()
+        () => schedule(undefined)
       )
       .on(
         "postgres_changes",
@@ -52,7 +57,7 @@ export default function useInboxRealtime({
           schema: "public",
           table: "investment_messages",
         },
-        () => schedule()
+        () => schedule(undefined)
       )
       .on(
         "postgres_changes",
@@ -61,13 +66,15 @@ export default function useInboxRealtime({
           schema: "public",
           table: "investment_deal_rooms",
         },
-        () => schedule()
+        () => schedule(undefined)
       )
-      .subscribe();
+      .subscribe()
+    );
 
     return () => {
-      if (timer) clearTimeout(timer);
-      supabase.removeChannel(channel);
+      releaseSharedChannel("inbox-realtime-hook", (ch) => {
+        supabase.removeChannel(ch);
+      });
     };
   }, [onChange, debounceMs]);
 }
