@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useRef } from "react";
 import { usePathname } from "next/navigation";
 
@@ -135,7 +136,7 @@ export default function SiteHeader() {
         {/* Brand */}
         <div className="topBrand">
           <Link className="topBrandLink" href="/">
-            <div className="topBrandName">3Bigha.com</div>
+            <Image src="/logo.png" alt="3Bigha" width={82} height={38} priority style={{objectFit:"contain"}} />
             <div className="topBrandTagline">
               Real Estate & Construction Ecosystem
             </div>

@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 type SearchKind = "property" | "materials" | "services" | "rentals" | "blog";
 
@@ -194,7 +195,7 @@ export default function GlobalHeaderClient() {
         {/* Brand */}
         <div className="brandPro">
           <Link href="/" className="brandLink">
-            <div className="brandName">3Bigha.com</div>
+            <Image src="/logo.png" alt="3Bigha" width={82} height={38} priority style={{objectFit:"contain"}} />
             <div className="brandTagline">Real Estate Platform</div>
           </Link>
         </div>

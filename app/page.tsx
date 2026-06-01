@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import JsonLd from "@/components/seo/JsonLd";
-import MobileOperationalDock from "@/components/mobile/MobileOperationalDock";
 import {
   aiMarketplaceSchema,
   marketplaceFaqSchema,
@@ -700,18 +699,6 @@ export default function HomePage() {
           <a href="/rfq/general/new">Post Requirement</a>
         </div>
       </section>
-
-      <MobileOperationalDock
-        title="Start your work"
-        subtitle="Search, post requirement, check prices or open dashboard."
-        actions={[
-          { label: "Search", href: "/search" },
-          { label: "Post", href: "/rfq/general/new", primary: true },
-          { label: "Prices", href: "/price-today" },
-          { label: "Dashboard", href: "/dashboard" },
-        ]}
-      />
-
       <footer className="cleanHomeFooter">
         <div>
           <strong>🏠 3bigha</strong>

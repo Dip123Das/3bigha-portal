@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
@@ -344,7 +345,7 @@ export default function TopHeaderClient() {
         {/* Brand */}
         <div className="topBrand">
           <Link className="topBrandLink" href="/">
-            <div className="topBrandName">3Bigha.com</div>
+            <Image src="/logo.png" alt="3Bigha" width={82} height={38} priority style={{objectFit:"contain"}} />
             <div className="topBrandTagline">Real Estate &amp; Construction Ecosystem</div>
           </Link>
         </div>
@@ -383,7 +384,7 @@ export default function TopHeaderClient() {
             }}
           />
 
-          <button className="topSearchBtn" type="button" onClick={submitSearch}>
+          <button className="topSearchBtn" type="button" onClick={submitSearch} style={{background:"#1d4ed8",color:"#ffffff",fontWeight:900}}>
             Search
           </button>
         </div>
@@ -803,7 +804,7 @@ export default function TopHeaderClient() {
                   />
                 </div>
 
-                <button className="topMobileBtn" type="button" onClick={submitSearch}>
+                <button className="topMobileBtn" type="button" onClick={submitSearch} style={{background:"#1d4ed8",color:"#ffffff",fontWeight:900}}>
                   Search
                 </button>
               </div>
