@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
@@ -56,6 +57,59 @@ type TypeRow = {
   slug: string;
   sort_order: number | null;
 };
+
+type MaterialDiscoveryItem = {
+  title: string;
+  note: string;
+  query: string;
+  href: string;
+};
+
+const MATERIAL_DISCOVERY: MaterialDiscoveryItem[] = [
+  {
+    title: "Cement & Concrete",
+    note: "Start here for slab, column, foundation and general construction.",
+    query: "cement",
+    href: "/materials?q=cement",
+  },
+  {
+    title: "Steel & Structure",
+    note: "TMT, rods, structural steel and reinforcement materials.",
+    query: "steel",
+    href: "/materials?q=steel",
+  },
+  {
+    title: "Sand & Aggregates",
+    note: "Sand, stone chips, gravel and site filling materials.",
+    query: "sand",
+    href: "/materials?q=sand",
+  },
+  {
+    title: "Electrical",
+    note: "Wires, switches, fittings and electrical construction items.",
+    query: "electrical",
+    href: "/materials?q=electrical",
+  },
+  {
+    title: "Plumbing",
+    note: "Pipes, tanks, sanitary and water line materials.",
+    query: "plumbing",
+    href: "/materials?q=plumbing",
+  },
+  {
+    title: "Interior & Finishing",
+    note: "Tiles, paint, ceiling, boards and finishing materials.",
+    query: "tiles",
+    href: "/materials?q=tiles",
+  },
+];
+
+const MATERIAL_WORKFLOWS = [
+  ["Check today’s rate", "/price-today"],
+  ["Send bulk requirement", "/materials/rfq/new"],
+  ["Find nearby vendors", "/vendor/discovery"],
+  ["Add your material", "/materials/add"],
+] as const;
 
 function norm(v: unknown) {
   return String(v ?? "").trim().toLowerCase();
@@ -195,6 +249,29 @@ export default function MaterialsPage() {
   const [allTypes, setAllTypes] = useState<TypeRow[]>([]);
 
   const [typeSlug, setTypeSlug] = useState<string>("all");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const urlQ = params.get("q");
+    const materialCategory = params.get("materialCategory");
+
+    if (urlQ) {
+      setQ(urlQ);
+    }
+
+    if (materialCategory) {
+      const normalized = materialCategory
+        .toLowerCase()
+        .replace(/&/g, "and")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+
+      setTypeSlug(normalized);
+    }
+  }, []);
   const [q, setQ] = useState<string>("");
 
   useEffect(() => {
@@ -412,7 +489,73 @@ export default function MaterialsPage() {
       />
 
       <Container>
-        <SectionHeader title="Materials" subtitle="Browse building materials. Vendors can add listings after login." />
+        <SectionHeader
+          title="Materials"
+          subtitle="Start with a simple material group, then use search and filters for exact products."
+        />
+
+        <div
+          style={{
+            marginTop: 14,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: 12,
+          }}
+        >
+          {MATERIAL_DISCOVERY.map((item) => (
+            <button
+              key={item.title}
+              type="button"
+              onClick={() => {
+                setQ(item.query);
+                setTypeSlug("all");
+              }}
+              style={{
+                textAlign: "left",
+                border: "1px solid rgba(0,0,0,0.1)",
+                borderRadius: 16,
+                background: "#fff",
+                padding: 14,
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ fontWeight: 900, marginBottom: 6 }}>{item.title}</div>
+              <div style={{ fontSize: 13, opacity: 0.75, lineHeight: 1.45 }}>{item.note}</div>
+            </button>
+          ))}
+        </div>
+
+        <div
+          style={{
+            marginTop: 12,
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <span style={{ fontSize: 13, fontWeight: 900, opacity: 0.75 }}>
+            Next useful actions:
+          </span>
+          {MATERIAL_WORKFLOWS.map(([label, href]) => (
+            <Link
+              key={href}
+              href={href}
+              style={{
+                border: "1px solid rgba(0,0,0,0.1)",
+                borderRadius: 999,
+                padding: "8px 10px",
+                fontSize: 13,
+                fontWeight: 800,
+                textDecoration: "none",
+                color: "inherit",
+                background: "rgba(0,0,0,0.02)",
+              }}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
 
         <div
           style={{

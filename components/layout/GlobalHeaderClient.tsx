@@ -305,35 +305,18 @@ export default function GlobalHeaderClient() {
           </button>
         </form>
 
-        {/* Right actions (static for now; we can wire session later) */}
+        {/* Compact work actions */}
         <div className="rightActions">
           <Link className="btnGhost" href="/dashboard">
             Dashboard
-          </Link>
-
-          <Link className="btnGhost" href="/dashboard/vendor/inventory">
-            Inventory
-          </Link>
-
-          <Link className="btnGhost" href="/dashboard/vendor/billing">
-            Billing
-          </Link>
-
-          <Link className="btnGhost" href="/dashboard/vendor/fleet">
-            Fleet
-          </Link>
-
-          <Link className="btnGhost" href="/dashboard/vendor/dispatch">
-            Dispatch
           </Link>
 
           <Link className="btnGhost" href="/support/my">
             Support
           </Link>
 
-          {/* This will become your mega “Post / List” menu later */}
-          <Link className="btnPrimary" href="/materials/add?inventory=1">
-            Add Stock
+          <Link className="btnPrimary" href="/rfq/general/new">
+            Post Requirement
           </Link>
 
           <Link className="btnGhost" href="/login">
@@ -345,32 +328,20 @@ export default function GlobalHeaderClient() {
       <div className="topSubBar">
         <div className="container subInner">
           <div className="subLeft">
-            Browse verified listings • Compare rates • Contact vendors • Track enquiries
+            Work first • Discover clearly • Compare rates • Execute with confidence
           </div>
           <div className="subRight">
+            <Link className="subLink" href="/search">
+              Search
+            </Link>
+            <Link className="subLink" href="/price-today">
+              Price Today
+            </Link>
             <Link className="subLink" href="/dashboard/buyer/enquiries">
               My Enquiries
             </Link>
             <Link className="subLink" href="/dashboard/vendor/enquiries">
               Vendor Inbox
-            </Link>
-            <Link className="subLink" href="/dashboard/vendor/inventory">
-              Inventory
-            </Link>
-            <Link className="subLink" href="/dashboard/vendor/billing">
-              Billing
-            </Link>
-            <Link className="subLink" href="/dashboard/vendor/fleet">
-              Fleet
-            </Link>
-            <Link className="subLink" href="/dashboard/vendor/dispatch">
-              Dispatch
-            </Link>
-            <Link className="subLink" href="/materials/add?inventory=1">
-              Add Stock
-            </Link>
-            <Link className="subLink" href="/support/my">
-              Support
             </Link>
           </div>
         </div>

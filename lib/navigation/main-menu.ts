@@ -17,7 +17,6 @@ export const MENUS: MenuItem[] = [
       {
         title: "Start Here",
         links: [
-          ["Homepage", "/"],
           ["Marketplace Search", "/search"],
           ["Submit Requirement", "/rfq/general/new"],
           ["Price Today", "/price-today"],
@@ -30,20 +29,12 @@ export const MENUS: MenuItem[] = [
     href: "/property",
     groups: [
       {
-        title: "Browse Property",
+        title: "Property Workflow",
         links: [
-          ["All Properties", "/property"],
-          ["Builder Projects", "/property/projects"],
-          ["Builder Inventory", "/property/inventory"],
-          ["Investment Opportunities", "/investment/opportunities"],
-        ],
-      },
-      {
-        title: "Property Work",
-        links: [
-          ["Post Property", "/property/add"],
-          ["My Property Listings", "/property/my"],
-          ["Create Builder Project", "/property/builder/projects/add"],
+          ["Buy / Browse Property", "/property"],
+          ["Sell / Post Property", "/property/add"],
+          ["Rent / Lease", "/rentals?type=property"],
+          ["Investment", "/investment/opportunities"],
           ["Submit Property Requirement", "/rfq/general/new?module=property"],
         ],
       },
@@ -54,26 +45,12 @@ export const MENUS: MenuItem[] = [
     href: "/materials",
     groups: [
       {
-        title: "Browse Materials",
+        title: "Material Workflow",
         links: [
-          ["All Materials", "/materials"],
-          ["Cement & Concrete", "/materials?q=cement"],
-          ["Steel / TMT Rod", "/materials?q=steel"],
-          ["Sand & Aggregates", "/materials?q=sand"],
-          ["Bricks & Blocks", "/materials?q=bricks"],
-          ["Tiles & Flooring", "/materials?q=tiles"],
-          ["Paints", "/materials?q=paint"],
-          ["Plumbing Materials", "/materials?q=plumbing"],
-          ["Electrical Materials", "/materials?q=electrical"],
-        ],
-      },
-      {
-        title: "Material Work",
-        links: [
+          ["Browse Materials", "/materials"],
+          ["Check Price Today", "/price-today"],
           ["Submit Material RFQ", "/materials/rfq/new"],
           ["Post Material", "/materials/add"],
-          ["My Materials", "/materials/my"],
-          ["Price Today", "/price-today"],
           ["Find Vendors", "/vendor/discovery"],
         ],
       },
@@ -84,53 +61,13 @@ export const MENUS: MenuItem[] = [
     href: "/services",
     groups: [
       {
-        title: "Professional / Skilled",
+        title: "Service Workflow",
         links: [
-          ["Engineering", "/services?q=engineering"],
-          ["Architecture", "/services?q=architecture"],
-          ["Design", "/services?q=design"],
-          ["Project Management", "/services?q=project"],
-          ["Estimation", "/services?q=estimation"],
-          ["Testing", "/services?q=testing"],
-          ["Surveying", "/services?q=surveying"],
-          ["MEP", "/services?q=mep"],
-          ["Contracting", "/services?q=contracting"],
-          ["Masonry", "/services?q=masonry"],
-          ["Carpentry", "/services?q=carpentry"],
-          ["Electrical", "/services?q=electrical"],
-          ["Plumbing", "/services?q=plumbing"],
-          ["Painting", "/services?q=painting"],
-          ["Flooring", "/services?q=flooring"],
-          ["Fabrication", "/services?q=fabrication"],
-          ["Roofing", "/services?q=roofing"],
-          ["Operators", "/services?q=operators"],
-          ["Manpower", "/services?q=manpower"],
-          ["Maintenance", "/services?q=maintenance"],
-          ["Interior", "/services?q=interior"],
-          ["Security", "/services?q=security"],
-          ["Safety", "/services?q=safety"],
-          ["Renewable", "/services?q=renewable"],
-          ["Water", "/services?q=water"],
-        ],
-      },
-      {
-        title: "Legal",
-        links: [
-          ["Documentation", "/services?q=documentation"],
-          ["Advisory", "/services?q=advisory"],
-          ["Valuation", "/services?q=valuation"],
-          ["Banking", "/services?q=banking"],
-          ["Legal Survey", "/services?q=legal%20survey"],
-        ],
-      },
-      {
-        title: "Service Work",
-        links: [
-          ["All Services", "/services"],
-          ["Service Providers", "/services/providers"],
-          ["Turnkey Construction", "/services/turnkey"],
+          ["Browse Services", "/services"],
+          ["Construction Services", "/services?q=construction"],
+          ["Design / Engineer / Legal", "/services"],
           ["Add Service", "/services/add"],
-          ["My Services", "/services/my"],
+          ["Submit Service Requirement", "/rfq/general/new?module=services"],
         ],
       },
     ],
@@ -140,23 +77,12 @@ export const MENUS: MenuItem[] = [
     href: "/rentals",
     groups: [
       {
-        title: "Browse Rentals",
+        title: "Rental Workflow",
         links: [
-          ["All Rentals", "/rentals"],
-          ["Rental Catalog", "/rentals/catalog"],
-          ["JCB / Excavator", "/rentals?q=jcb"],
-          ["Concrete Mixer", "/rentals?q=concrete%20mixer"],
-          ["Scaffolding", "/rentals?q=scaffolding"],
-          ["Shuttering", "/rentals?q=shuttering"],
-          ["Tools", "/rentals?q=tools"],
-          ["Transport", "/rentals?q=transport"],
-        ],
-      },
-      {
-        title: "Rental Work",
-        links: [
+          ["Browse Rentals", "/rentals"],
+          ["Equipment Rental", "/rentals?q=equipment"],
+          ["Property Rental", "/rentals?type=property"],
           ["Add Rental", "/rentals/add"],
-          ["My Rentals", "/rentals/my"],
           ["Submit Rental Requirement", "/rfq/general/new?module=rentals"],
         ],
       },
@@ -167,22 +93,13 @@ export const MENUS: MenuItem[] = [
     href: "/construction-cost",
     groups: [
       {
-        title: "Calculators",
+        title: "Build Workflow",
         links: [
           ["Construction Cost", "/construction-cost"],
-          ["House Construction Cost", "/house-construction-cost"],
           ["Land / Building Measurement", "/land-area-calculator"],
-          ["EMI Calculator", "/emi-calculator"],
-          ["Compare Rates", "/compare-rates"],
-        ],
-      },
-      {
-        title: "Construction Work",
-        links: [
-          ["Turnkey Construction", "/services/turnkey"],
           ["Find Contractors", "/services?q=contractor"],
+          ["Compare Rates", "/compare-rates"],
           ["Submit Construction RFQ", "/rfq/general/new?module=services"],
-          ["Price Today", "/price-today"],
         ],
       },
     ],
@@ -192,19 +109,19 @@ export const MENUS: MenuItem[] = [
     href: "/banking-finance-assistance",
     groups: [
       {
-        title: "Finance Tools",
+        title: "Finance Workflow",
         links: [
           ["Finance Assistance", "/banking-finance-assistance"],
           ["EMI Calculator", "/emi-calculator"],
           ["Loan Eligibility", "/emi-calculator"],
-          ["Apply as Banker", "/banker/apply"],
           ["Investment Opportunities", "/investment/opportunities"],
+          ["Apply as Banker", "/banker/apply"],
         ],
       },
     ],
   },
   {
-    label: "Blog / News",
+    label: "Learn",
     href: "/blog",
     groups: [
       {

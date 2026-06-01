@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  runMarketplaceAiOrchestrator,
-  type MarketplaceAiContext,
-} from "@/lib/ai/marketplace-orchestrator";
+import { runAiWorkflow } from "@/lib/ai/run-ai-workflow";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +17,7 @@ function buildAssistantAnswer(result: any) {
     summary:
       vendorDiscovery?.summary ||
       procurementGraph?.summary ||
-      "AI procurement assistant prepared marketplace guidance.",
+      "Procurement assistant prepared marketplace guidance.",
     recommendedVendors:
       vendorDiscovery?.recommendedVendors?.slice?.(0, 5) || [],
     procurementGraph,
@@ -40,19 +37,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
 
-    const context: MarketplaceAiContext = {
-      module: body?.module || "marketplace",
-      category: body?.category || null,
-      buyerIntent: body?.query || body?.buyerIntent || body?.requirement || null,
-      city: body?.city || null,
-      district: body?.district || null,
-      locality: body?.locality || null,
-      rfq: body?.rfq || null,
-      priceData: body?.priceData || null,
-      quote: body?.quote || null,
-    } as MarketplaceAiContext;
-
-    const orchestrator = await runMarketplaceAiOrchestrator(context, {
+    const workflow = await runAiWorkflow(body, {
       smartDecision: true,
       pricePrediction: Boolean(body?.priceData),
       rfqIntelligence: Boolean(body?.rfq),
@@ -64,9 +49,9 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ok: true,
       source: "ai-procurement-assistant",
-      context,
-      orchestrator,
-      assistant: buildAssistantAnswer(orchestrator),
+      context: workflow.context,
+      orchestrator: workflow.orchestrator,
+      assistant: buildAssistantAnswer(workflow.orchestrator),
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -84,34 +69,35 @@ export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
 
-    const context: MarketplaceAiContext = {
-      module: url.searchParams.get("module") || "marketplace",
-      category: url.searchParams.get("category"),
-      buyerIntent:
-        url.searchParams.get("q") ||
-        url.searchParams.get("query") ||
-        url.searchParams.get("requirement"),
-      city: url.searchParams.get("city"),
-      district: url.searchParams.get("district"),
-      locality: url.searchParams.get("locality"),
-    } as MarketplaceAiContext;
-
-    const orchestrator = await runMarketplaceAiOrchestrator(context, {
-      smartDecision: true,
-      pricePrediction: false,
-      rfqIntelligence: false,
-      quoteRisk: false,
-      vendorDiscovery: true,
-      procurementGraph: true,
-    });
+    const workflow = await runAiWorkflow(
+      {
+        module: url.searchParams.get("module") || "marketplace",
+        category: url.searchParams.get("category"),
+        query:
+          url.searchParams.get("q") ||
+          url.searchParams.get("query") ||
+          url.searchParams.get("requirement"),
+        city: url.searchParams.get("city"),
+        district: url.searchParams.get("district"),
+        locality: url.searchParams.get("locality"),
+      },
+      {
+        smartDecision: true,
+        pricePrediction: false,
+        rfqIntelligence: false,
+        quoteRisk: false,
+        vendorDiscovery: true,
+        procurementGraph: true,
+      }
+    );
 
     return NextResponse.json({
       ok: true,
       source: "ai-procurement-assistant",
       method: "GET",
-      context,
-      orchestrator,
-      assistant: buildAssistantAnswer(orchestrator),
+      context: workflow.context,
+      orchestrator: workflow.orchestrator,
+      assistant: buildAssistantAnswer(workflow.orchestrator),
     });
   } catch (error: any) {
     return NextResponse.json(

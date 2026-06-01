@@ -44,6 +44,7 @@ type NotificationRow = {
 
 function scopeToHref(scope: SearchScope, q: string) {
   const query = q.trim();
+
   if (!query) {
     if (scope === "property") return "/property";
     if (scope === "materials") return "/materials";
@@ -52,13 +53,8 @@ function scopeToHref(scope: SearchScope, q: string) {
     return "/blog";
   }
 
-  // NOTE: even if pages don't use ?q yet, it won't break anything.
   const enc = encodeURIComponent(query);
-  if (scope === "property") return `/property?q=${enc}`;
-  if (scope === "materials") return `/materials?q=${enc}`;
-  if (scope === "services") return `/services?q=${enc}`;
-  if (scope === "rentals") return `/rentals?q=${enc}`;
-  return `/blog?q=${enc}`;
+  return `/search?q=${enc}&module=${encodeURIComponent(scope)}`;
 }
 
 export default function TopHeaderClient() {
@@ -381,7 +377,7 @@ export default function TopHeaderClient() {
             className="topSearchInput"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search..."
+            placeholder="Search land, cement, rajmistri, JCB..."
             onKeyDown={(e) => {
               if (e.key === "Enter") submitSearch();
             }}
@@ -859,7 +855,7 @@ export default function TopHeaderClient() {
 
       <div className="topSubBar">
         <div className="topSubBarInner">
-          <div className="topHint">Browse verified listings • Compare rates • Contact vendors • Track enquiries</div>
+          <div className="topHint">Search clearly • Discover categories • Compare rates • Execute work</div>
           <div className="topSubLinks">
             <Link className="topSubLink" href="/dashboard/buyer/enquiries">
               My Enquiries

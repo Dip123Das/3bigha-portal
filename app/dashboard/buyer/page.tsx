@@ -14,6 +14,7 @@ import { ActionButton } from "@/components/ui/ActionButton";
 import { Grid } from "@/components/ui/Grid";
 import { EmptyState } from "@/components/ui/EmptyState";
 import BuyerWorkMenu from "@/components/buyer/BuyerWorkMenu";
+import UniversalDashboardShell from "@/components/operational/UniversalDashboardShell";
 import {
   normalizeBehaviorMemory,
   normalizeMemoryList,
@@ -413,21 +414,26 @@ const closedDeals =
 
   if (loading) {
     return (
-      <main>
-        <Container>
-          <SectionHeader title="Buyer Dashboard" subtitle="Loading..." />
-          <div style={{ opacity: 0.8 }}>Preparing your buyer workspace…</div>
-        </Container>
-      </main>
+      <UniversalDashboardShell
+        eyebrow="Buyer Workspace"
+        title="Buyer Dashboard"
+        subtitle="Preparing your procurement workspace."
+      >
+        <div style={{ opacity: 0.8 }}>
+          Preparing your buyer workspace…
+        </div>
+      </UniversalDashboardShell>
     );
   }
 
   if (err) {
     return (
-      <main>
-        <Container>
-          <SectionHeader title="Buyer Dashboard" subtitle="" />
-          <EmptyState message="Something went wrong while loading your buyer dashboard." />
+      <UniversalDashboardShell
+        eyebrow="Buyer Workspace"
+        title="Buyer Dashboard"
+        subtitle="Unable to load your procurement workspace."
+      >
+        <EmptyState message="Something went wrong while loading your buyer dashboard." />
           <div style={{ marginTop: 12, color: "crimson", fontWeight: 800 }}>{err}</div>
 
           <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -450,18 +456,17 @@ const closedDeals =
               Retry
             </button>
           </div>
-        </Container>
-      </main>
+
+      </UniversalDashboardShell>
     );
   }
 
   return (
-    <main>
-      <Container>
-        <SectionHeader
-          title="Buyer Work Desk"
-          subtitle="Manage RFQs, compare quotations, continue vendor conversations and complete buying decisions."
-        />
+    <UniversalDashboardShell
+      eyebrow="Buyer Operations"
+      title="Buyer Work Desk"
+      subtitle="Manage RFQs, compare quotations, continue vendor conversations and complete buying decisions."
+    >
 
         <BuyerWorkMenu />
 
@@ -1256,7 +1261,6 @@ const closedDeals =
           Buyer dashboard now connects procurement creation, RFQ comparison, vendor chat, inbox, marketplace discovery and Procurement guidance.
         </div>
 
-</Container>
-    </main>
+    </UniversalDashboardShell>
   );
 }

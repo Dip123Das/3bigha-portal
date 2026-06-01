@@ -76,6 +76,46 @@ function money(v: number | null | undefined) {
   return `₹ ${v}`;
 }
 
+const RENTAL_DISCOVERY = [
+  {
+    title: "Earthwork Equipment",
+    note: "JCB, excavator, loader and site development equipment.",
+    q: "jcb",
+  },
+  {
+    title: "Concrete Work",
+    note: "Mixer, vibrator, pump and slab casting support equipment.",
+    q: "concrete mixer",
+  },
+  {
+    title: "Scaffolding & Shuttering",
+    note: "Scaffolding, shuttering plates, props and staging support.",
+    q: "scaffolding",
+  },
+  {
+    title: "Transport & Delivery",
+    note: "Trucks, tractors, pickup and material movement vehicles.",
+    q: "transport",
+  },
+  {
+    title: "Small Tools",
+    note: "Cutters, drills, compactors, welding and construction tools.",
+    q: "tools",
+  },
+  {
+    title: "Temporary Site Needs",
+    note: "Site office, lighting, generator and temporary work support.",
+    q: "generator",
+  },
+] as const;
+
+const RENTAL_WORKFLOWS = [
+  ["Submit Rental Requirement", "/rfq/general/new?module=rentals"],
+  ["Add Rental Item", "/rentals/add"],
+  ["Browse Rental Catalog", "/rentals/catalog"],
+  ["Check Rental Rates", "/price-today?type=Rentals"],
+] as const;
+
 function fmtRate(rate: number | null, pricingUnit: string | null, rateUnitLabel?: string | null) {
   if (rate == null) return "Rate: —";
   const unit = rateUnitLabel || pricingUnit || "";
@@ -258,6 +298,17 @@ export default function RentalsPublicPage() {
 
   const [typeId, setTypeId] = useState<string>("all");
   const [q, setQ] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const urlQ = params.get("q");
+
+    if (urlQ) {
+      setQ(urlQ);
+    }
+  }, []);
   const [city, setCity] = useState<string>("all");
 
   useEffect(() => {
@@ -539,8 +590,72 @@ export default function RentalsPublicPage() {
           </ActionButton>
         </div>
 
+        <div
+          style={{
+            marginTop: 14,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+            gap: 12,
+          }}
+        >
+          {RENTAL_DISCOVERY.map((item) => (
+            <button
+              key={item.title}
+              type="button"
+              onClick={() => {
+                setQ(item.q);
+                setCity("all");
+                setTypeId("all");
+              }}
+              style={{
+                textAlign: "left",
+                border: "1px solid rgba(0,0,0,0.1)",
+                borderRadius: 16,
+                background: "#fff",
+                padding: 14,
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ fontWeight: 900, marginBottom: 6 }}>{item.title}</div>
+              <div style={{ fontSize: 13, opacity: 0.75, lineHeight: 1.45 }}>{item.note}</div>
+            </button>
+          ))}
+        </div>
+
+        <div
+          style={{
+            marginTop: 12,
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <span style={{ fontSize: 13, fontWeight: 900, opacity: 0.75 }}>
+            Useful next actions:
+          </span>
+          {RENTAL_WORKFLOWS.map(([label, href]) => (
+            <Link
+              key={href}
+              href={href}
+              style={{
+                border: "1px solid rgba(0,0,0,0.1)",
+                borderRadius: 999,
+                padding: "8px 10px",
+                fontSize: 13,
+                fontWeight: 800,
+                textDecoration: "none",
+                color: "inherit",
+                background: "rgba(0,0,0,0.02)",
+              }}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+
         <div style={{ marginTop: 18 }}>
-          <SectionHeader title="Public Listings" subtitle="Filter by rental type, city and search across title, location and description." />
+          <SectionHeader title="Public Listings" subtitle="Choose a simple rental group above, then filter by type, city and search." />
 
           <div style={{ marginTop: 12 }}>
             {taxLoading ? (

@@ -1,6 +1,7 @@
 // app/services/page.tsx
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
@@ -98,6 +99,58 @@ const LEGAL_FILTER: FilterBarItem[] = [
   { key: "Banking", label: "Banking" },
   { key: "Legal Survey", label: "Legal Survey" },
 ];
+
+const SERVICE_DISCOVERY = [
+  {
+    title: "Construction Work",
+    note: "Contractors, masons, labour, supervisors and turnkey execution support.",
+    group: "Professional / Skilled",
+    active: "Contracting",
+    q: "construction",
+  },
+  {
+    title: "Design & Engineering",
+    note: "Architects, engineers, planning, drawing and estimation professionals.",
+    group: "Professional / Skilled",
+    active: "Engineering",
+    q: "engineering",
+  },
+  {
+    title: "Electrical & Plumbing",
+    note: "MEP, wiring, water line, sanitary and site utility service providers.",
+    group: "Professional / Skilled",
+    active: "MEP",
+    q: "electrical plumbing",
+  },
+  {
+    title: "Interior & Finishing",
+    note: "Painting, flooring, carpentry, interior and finishing teams.",
+    group: "Professional / Skilled",
+    active: "Interior",
+    q: "interior",
+  },
+  {
+    title: "Legal Documentation",
+    note: "Deed, mutation, valuation, banking papers and legal survey support.",
+    group: "Legal",
+    active: "Documentation",
+    q: "documentation",
+  },
+  {
+    title: "Valuation & Loan Support",
+    note: "Property valuation, banking documentation and finance assistance.",
+    group: "Legal",
+    active: "Valuation",
+    q: "valuation",
+  },
+] as const;
+
+const SERVICE_WORKFLOWS = [
+  ["Turnkey House Construction", "/services/turnkey"],
+  ["Submit Service Requirement", "/rfq/general/new?module=services"],
+  ["Compare Service Rates", "/price-today?category=Services"],
+  ["Post Your Service", "/services/add"],
+] as const;
 
 function norm(v: unknown) {
   return String(v ?? "").trim().toLowerCase();
@@ -414,6 +467,70 @@ export default function ServicesPage() {
           <ActionButton href="/services/my" variant="secondary">
             My Services
           </ActionButton>
+        </div>
+
+        <div
+          style={{
+            marginTop: 14,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+            gap: 12,
+          }}
+        >
+          {SERVICE_DISCOVERY.map((item) => (
+            <button
+              key={item.title}
+              type="button"
+              onClick={() => {
+                setGroup(item.group as ServiceGroup);
+                setActive(item.active);
+                setQ(item.q);
+              }}
+              style={{
+                textAlign: "left",
+                border: "1px solid rgba(0,0,0,0.1)",
+                borderRadius: 16,
+                background: "#fff",
+                padding: 14,
+                cursor: "pointer",
+              }}
+            >
+              <div style={{ fontWeight: 900, marginBottom: 6 }}>{item.title}</div>
+              <div style={{ fontSize: 13, opacity: 0.75, lineHeight: 1.45 }}>{item.note}</div>
+            </button>
+          ))}
+        </div>
+
+        <div
+          style={{
+            marginTop: 12,
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <span style={{ fontSize: 13, fontWeight: 900, opacity: 0.75 }}>
+            Useful next actions:
+          </span>
+          {SERVICE_WORKFLOWS.map(([label, href]) => (
+            <Link
+              key={href}
+              href={href}
+              style={{
+                border: "1px solid rgba(0,0,0,0.1)",
+                borderRadius: 999,
+                padding: "8px 10px",
+                fontSize: 13,
+                fontWeight: 800,
+                textDecoration: "none",
+                color: "inherit",
+                background: "rgba(0,0,0,0.02)",
+              }}
+            >
+              {label}
+            </Link>
+          ))}
         </div>
 
         <div style={{ marginTop: 18 }}>

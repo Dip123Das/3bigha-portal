@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import JsonLd from "@/components/seo/JsonLd";
+import MobileOperationalDock from "@/components/mobile/MobileOperationalDock";
 import {
   aiMarketplaceSchema,
   marketplaceFaqSchema,
@@ -74,22 +75,17 @@ function clipText(value: any, max = 86) {
 }
 
 const categoryCards = [
-  { title: "Property", icon: "🏠", text: "Land, plots, houses, flats, commercial", count: "12K+ Listings", href: "/property" },
-  { title: "Materials", icon: "🧱", text: "Cement, steel, sand, bricks, tiles & more", count: "8K+ Listings", href: "/materials" },
-  { title: "Services", icon: "🛠️", text: "Mason, plumber, electrician, legal & more", count: "6K+ Listings", href: "/services" },
-  { title: "Rentals", icon: "🚜", text: "JCB, tools, machinery, equipment & more", count: "4K+ Listings", href: "/rentals" },
-  { title: "Investment", icon: "📊", text: "Investment zones, projects & opportunities", count: "1K+ Listings", href: "/investment/opportunities" },
-  { title: "Cost Calculator", icon: "🧮", text: "Estimate construction cost, BOQ & timeline", count: "Try Now →", href: "/construction-cost" },
+  { title: "Property", icon: "🏠", text: "Land, plots, houses and commercial property", count: "Buy • Sell • Invest", href: "/property" },
+  { title: "Materials", icon: "🧱", text: "Cement, steel, sand, bricks and construction materials", count: "Compare • Buy • RFQ", href: "/materials" },
+  { title: "Services", icon: "🛠️", text: "Contractors, labour, plumbing, electrical and legal support", count: "Hire • Compare • Execute", href: "/services" },
+  { title: "Rentals", icon: "🚜", text: "JCB, machinery, scaffolding and construction rentals", count: "Rent • Operate • Deliver", href: "/rentals" },
 ];
 
 const tools = [
-  { title: "AI Cost Calculator", text: "Estimate construction cost, BOQ and materials", href: "/construction-cost", action: "Calculate" },
-  { title: "Price Today", text: "Check latest prices of cement, steel, sand & more", href: "/price-today", action: "Check Prices" },
-  { title: "AI Smart Search", text: "Search in natural language across categories", href: "/search", action: "Search Now" },
-  { title: "Vendor Discovery", text: "Find verified vendors near you", href: "/vendor/discovery", action: "Find Vendors" },
-  { title: "ROI Calculator", text: "Calculate investment returns & growth", href: "/investment/opportunities", action: "Calculate" },
-  { title: "EMI Calculator", text: "Calculate EMI for your property", href: "/emi-calculator", action: "Calculate" },
-  { title: "Land Measurement", text: "Measure land, roof and building area", href: "/land-area-calculator", action: "Measure" },
+  { title: "Construction Cost", text: "Estimate house construction cost and materials", href: "/construction-cost", action: "Open" },
+  { title: "Price Today", text: "Check latest cement, steel and material prices", href: "/price-today", action: "Open" },
+  { title: "Marketplace Search", text: "Search property, materials, services and rentals", href: "/search", action: "Search" },
+  { title: "EMI Calculator", text: "Calculate property EMI and loan estimate", href: "/emi-calculator", action: "Calculate" },
 ];
 
 const marketPrices = [
@@ -146,24 +142,24 @@ function buildHomepageDiscoveryRails(
   const rails: DiscoveryRail[] = [
     {
       title: `Trending near ${location}`,
-      subtitle: "Explore properties, materials, vendors and rentals around this area.",
+      subtitle: "Explore property, materials, services and rentals around this area.",
       href: `/search?q=${encodedLocation}`,
       icon: "📍",
       tone: "Local Pulse",
     },
     {
-      title: "High-growth property opportunities",
-      subtitle: "Find land, plots and investment-friendly listings with strong local potential.",
+      title: "Popular property opportunities",
+      subtitle: "Browse land, plots and property opportunities with strong local demand.",
       href: `/property?sort=growth&q=${encodedLocation}`,
       icon: "📈",
-      tone: "Growth",
+      tone: "Popular",
     },
     {
-      title: "Build after buying",
-      subtitle: "Estimate house construction cost, materials and contractor needs.",
+      title: "Plan your construction",
+      subtitle: "Plan house construction cost, materials and contractor requirements.",
       href: `/house-construction-cost?location=${encodedLocation}`,
       icon: "🏗️",
-      tone: "Next Step",
+      tone: "Construction",
     },
     {
       title: "Materials for your project",
@@ -219,9 +215,9 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState<"search" | "ai" | "post">("search");
 
   const placeholder = useMemo(() => {
-    if (activeTab === "ai") return "Ask 3Bigha AI anything: best cement rate, land near Cooch Behar, house cost estimate...";
-    if (activeTab === "post") return "Describe your requirement. Example: Need 500 bags cement in Cooch Behar within 7 days.";
-    return "What do you need?\n\nExample: 500 bags cement in Cooch Behar, 2 katha land, mason, JCB rental...";
+    
+    if (activeTab === "post") return "Describe your requirement clearly. Example: Need 500 bags cement in Cooch Behar within 7 days.";
+    return "Search property, materials, services, rentals or construction needs...";
   }, [activeTab]);
 
   const homepageDiscoveryRails = useMemo(
@@ -364,14 +360,14 @@ export default function HomePage() {
       <section className="heroShell">
         <div className="heroGrid">
           <div className="heroCopy">
-            <div className="miniBadge">🔎 AI Powered Marketplace</div>
+            <div className="miniBadge">🔎 Construction & Property Marketplace</div>
             <h1><span>One Marketplace.</span> All Your Construction & Property Needs.</h1>
             <p>
               Search properties, materials, services, rentals, vendors, prices and more.
               Compare, connect and get the best deal — all in one place.
             </p>
             <div className="heroFeatureRow">
-              <a href="/search">🔍 AI Search</a>
+              <a href="/search">🔍 Marketplace Search</a>
               <a href="/vendor/discovery">🧠 Smart Matching</a>
               <a href="/price-today">💰 Best Prices</a>
               <a href="/support/new">🛡️ Secure Deals</a>
@@ -705,10 +701,21 @@ export default function HomePage() {
         </div>
       </section>
 
+      <MobileOperationalDock
+        title="Start your work"
+        subtitle="Search, post requirement, check prices or open dashboard."
+        actions={[
+          { label: "Search", href: "/search" },
+          { label: "Post", href: "/rfq/general/new", primary: true },
+          { label: "Prices", href: "/price-today" },
+          { label: "Dashboard", href: "/dashboard" },
+        ]}
+      />
+
       <footer className="cleanHomeFooter">
         <div>
           <strong>🏠 3bigha</strong>
-          <p>AI-powered marketplace for property, construction, materials, services and rentals.</p>
+          <p>Marketplace for property, construction, materials, services and rentals.</p>
         </div>
         <nav>
           <strong>Marketplace</strong>
@@ -721,7 +728,7 @@ export default function HomePage() {
           <strong>Tools</strong>
           <a href="/construction-cost">Cost Calculator</a>
           <a href="/price-today">Price Today</a>
-          <a href="/search">AI Search</a>
+          <a href="/search">Marketplace Search</a>
         </nav>
         <nav>
           <strong>Company</strong>

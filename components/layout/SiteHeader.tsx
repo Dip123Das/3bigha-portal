@@ -148,7 +148,7 @@ export default function SiteHeader() {
           <NavLink href="/materials" label="Materials" active={active.materials} />
           <NavLink href="/services" label="Services" active={active.services} />
           <NavLink href="/rentals" label="Rentals" active={active.rentals} />
-          <NavLink href="/blog" label="Blog / News" active={active.blog} />
+          <NavLink href="/blog" label="Learn" active={active.blog} />
         </nav>
 
         {/* Actions */}
@@ -222,7 +222,7 @@ export default function SiteHeader() {
       <div className="topSubBar">
         <div className="topSubBarInner">
           <div className="topHint">
-            Browse verified listings • Compare rates • Contact vendors • Track enquiries
+            Search clearly • Discover categories • Compare rates • Execute work
           </div>
           <div className="topSubLinks">
             <Link className="topSubLink" href="/dashboard/buyer/enquiries">

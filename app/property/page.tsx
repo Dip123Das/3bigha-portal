@@ -52,6 +52,54 @@ const HOUSE_SUBTYPES: HouseSubtypeUI[] = [
 
 // ✅ We will NOT increase "limit".
 // We'll keep a fixed page size (20) and load page-by-page while scrolling.
+const PROPERTY_DISCOVERY = [
+  {
+    title: "Residential Land",
+    note: "Plots, homestead land and residential investment opportunities.",
+    q: "residential land",
+    type: "land",
+  },
+  {
+    title: "Commercial Land",
+    note: "High-road, market-side and business-use land discovery.",
+    q: "commercial land",
+    type: "land",
+  },
+  {
+    title: "Agricultural Land",
+    note: "Farm, cultivation and long-term land holding opportunities.",
+    q: "agricultural",
+    type: "land",
+  },
+  {
+    title: "Independent House",
+    note: "Ready houses, villas and independent residential properties.",
+    q: "house",
+    type: "house",
+  },
+  {
+    title: "Office & Shop",
+    note: "Commercial spaces for business and rental income.",
+    q: "office",
+    type: "house",
+  },
+  {
+    title: "Builder Projects",
+    note: "Apartments, projects and under-construction opportunities.",
+    q: "project",
+    type: "all",
+  },
+];
+
+const PROPERTY_WORKFLOWS = [
+  ["Browse Builder Projects", "/property/projects"],
+  ["Post Property", "/property/add"],
+  ["Check EMI", "/emi-calculator"],
+  ["Investment Opportunities", "/investment/opportunities"],
+  ["Submit Requirement", "/rfq/general/new?module=property"],
+] as const;
+
+
 const PAGE_SIZE = 20;
 async function withTimeout<T>(
   promiseLike: PromiseLike<T>,
@@ -299,6 +347,39 @@ export default function PropertyPublicListPage() {
   const [subtypeMap, setSubtypeMap] = useState<SubtypeMap>({});
 
   const [q, setQ] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const urlQ = params.get("q");
+
+    if (urlQ) {
+      setQ(urlQ);
+
+      const normalized = urlQ.trim().toLowerCase();
+
+      if (
+        normalized.includes("land") ||
+        normalized.includes("plot") ||
+        normalized.includes("farm") ||
+        normalized.includes("agricultural")
+      ) {
+        setTypeKey("land");
+      }
+
+      if (
+        normalized.includes("house") ||
+        normalized.includes("flat") ||
+        normalized.includes("villa") ||
+        normalized.includes("office") ||
+        normalized.includes("shop") ||
+        normalized.includes("commercial")
+      ) {
+        setTypeKey("house");
+      }
+    }
+  }, []);
   const [typeKey, setTypeKey] = useState<TypeFilterKey>("all");
   const [subKey, setSubKey] = useState<SubKey>("all");
 
@@ -685,14 +766,104 @@ export default function PropertyPublicListPage() {
         </div>
       </div>
 
-      <div style={{ marginTop: 10 }}>
+      <div
+        style={{
+          marginTop: 14,
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+          gap: 12,
+        }}
+      >
+        {PROPERTY_DISCOVERY.map((item) => (
+          <button
+            key={item.title}
+            type="button"
+            onClick={() => {
+              setQ(item.q);
+
+              if (item.type === "land") {
+                setTypeKey("land");
+              } else if (item.type === "house") {
+                setTypeKey("house");
+              } else {
+                setTypeKey("all");
+              }
+
+              setSubKey("all");
+            }}
+            style={{
+              textAlign: "left",
+              border: "1px solid rgba(0,0,0,0.1)",
+              borderRadius: 16,
+              background: "#fff",
+              padding: 14,
+              cursor: "pointer",
+            }}
+          >
+            <div style={{ fontWeight: 900, marginBottom: 6 }}>
+              {item.title}
+            </div>
+
+            <div
+              style={{
+                fontSize: 13,
+                opacity: 0.75,
+                lineHeight: 1.45,
+              }}
+            >
+              {item.note}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <div
+        style={{
+          marginTop: 12,
+          display: "flex",
+          gap: 8,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 900,
+            opacity: 0.75,
+          }}
+        >
+          Useful next actions:
+        </span>
+
+        {PROPERTY_WORKFLOWS.map(([label, href]) => (
+          <Link
+            key={href}
+            href={href}
+            style={{
+              border: "1px solid rgba(0,0,0,0.1)",
+              borderRadius: 999,
+              padding: "8px 10px",
+              fontSize: 13,
+              fontWeight: 800,
+              textDecoration: "none",
+              color: "inherit",
+              background: "rgba(0,0,0,0.02)",
+            }}
+          >
+            {label}
+          </Link>
+        ))}
+      </div>
+
+      <div style={{ marginTop: 14 }}>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search in All..."
+          placeholder="Search property by location, type or keyword..."
           style={{
             width: "100%",
-            height: 40,
+            height: 42,
             borderRadius: 12,
             padding: "0 14px",
             border: "1px solid rgba(0,0,0,0.12)",

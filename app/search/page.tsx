@@ -232,7 +232,7 @@ function moduleEmoji(m: SearchModule) {
 }
 
 function moduleTrustLabel(m: SearchModule) {
-  if (m === "property") return "AI location match";
+  if (m === "property") return "Location match";
   if (m === "materials") return "Procurement ready";
   if (m === "services") return "Provider match";
   if (m === "rentals") return "Availability signal";
@@ -1606,7 +1606,7 @@ if (want.includes("rentals")) {
       primary: false,
     },
     {
-      label: "AI Assist",
+      label: "Help",
       href: `/vendor/discovery?q=${encodeURIComponent(qFromUrl)}${
         modFromUrl !== "all" ? `&module=${encodeURIComponent(modFromUrl)}` : ""
       }`,
@@ -1617,7 +1617,7 @@ if (want.includes("rentals")) {
 
   return (
     <Container>
-      <SectionHeader title="Search" subtitle="Find anything across 3Bigha.com" />
+      <SectionHeader title="Marketplace Search" subtitle="Start with what you need. 3Bigha will guide discovery, comparison, RFQ and vendor workflow." />
 
       <Card>
         <CardBody>
@@ -1745,9 +1745,9 @@ if (want.includes("rentals")) {
                   alignItems: "center",
                   textDecoration: "none",
                 }}
-                title="Open AI procurement assistant with vendor recommendations"
+                title="Open workflow assistant with vendor recommendations"
               >
-                🤖 AI Workflow Assistant
+                Workflow Assistant
               </Link>
 
               <button
@@ -1986,7 +1986,7 @@ if (want.includes("rentals")) {
                     fontWeight: 800,
                   }}
                 >
-                  AI Score {(procurementDecision.readinessScore || 0)}/100
+                  Readiness {(procurementDecision.readinessScore || 0)}/100
                 </span>
 
                 <span
@@ -2026,7 +2026,7 @@ if (want.includes("rentals")) {
                   color: "#334155",
                 }}
               >
-                Continue this search through RFQ, vendor discovery, price check or AI assistance.
+                Continue this search through RFQ, vendor discovery or price check.
               </div>
             </div>
 
@@ -2105,7 +2105,7 @@ if (want.includes("rentals")) {
                       letterSpacing: 0.5,
                     }}
                   >
-                    AI Focus Mode
+                    Workflow Focus
                   </div>
 
                   <div
@@ -2206,7 +2206,7 @@ if (want.includes("rentals")) {
       {hasQuery && conversationalSuggestions.length > 0 ? (
         <>
           <SearchInsightSection
-            title="✨ AI follow-up suggestions for this workflow"
+            title="✨ Suggested next steps for this workflow"
             subtitle="Optional next-step prompts for procurement, vendors, RFQ and pricing"
           >
               <div style={{ display: "grid", gap: 12 }}>
@@ -2218,7 +2218,7 @@ if (want.includes("rentals")) {
                       color: "#0b57d0",
                     }}
                   >
-                    Conversational Marketplace Brain
+                    Marketplace Workflow Suggestions
                   </div>
 
                   <div
@@ -2229,7 +2229,7 @@ if (want.includes("rentals")) {
                       color: "#0f172a",
                     }}
                   >
-                    AI follow-up suggestions for this workflow
+                    Suggested next steps for this workflow
                   </div>
 
                   <div
@@ -2239,7 +2239,7 @@ if (want.includes("rentals")) {
                       fontWeight: 750,
                     }}
                   >
-                    Continue procurement, vendor discovery, RFQ and execution workflows intelligently.
+                    Continue with practical next actions for RFQ, vendors, pricing and execution.
                   </div>
                 </div>
 
@@ -2296,13 +2296,13 @@ if (want.includes("rentals")) {
               <div style={{ display: "grid", gap: 10 }}>
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 950, color: "#0b57d0" }}>
-                    AI Procurement Intelligence
+                    Procurement Intelligence
                   </div>
                   <div style={{ marginTop: 4, fontSize: 18, fontWeight: 800, color: "#0f172a" }}>
                     Compact execution guidance
                   </div>
                   <div style={{ marginTop: 4, color: "#64748b", fontWeight: 750 }}>
-                    Key signals first. Open detailed AI cards only when needed.
+                    Key signals first. Open detailed intelligence cards only when needed.
                   </div>
                 </div>
 
@@ -2424,7 +2424,7 @@ if (want.includes("rentals")) {
                 }}
               >
                 <div style={{ fontSize: 12, fontWeight: 950, color: "#bfdbfe" }}>
-                  AI Search Decision Engine
+                  Search Decision Engine
                 </div>
 
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
@@ -2434,7 +2434,7 @@ if (want.includes("rentals")) {
                       {lastAiIntent.module === "all" ? "All Marketplace" : moduleLabel(lastAiIntent.module as SearchModule)}
                     </div>
                     <div style={{ marginTop: 6, color: "rgba(255,255,255,0.78)", fontWeight: 750 }}>
-                      {lastAiIntent.explanation || "AI selected the best search workflow for this query."}
+                      {lastAiIntent.explanation || "3Bigha selected the best search workflow for this query."}
                     </div>
                   </div>
 
@@ -2472,20 +2472,20 @@ if (want.includes("rentals")) {
       {hasQuery && rows.length > 0 && aiRecommendations.length > 0 ? (
         <>
           <SearchInsightSection
-            title="✨ AI Marketplace Recommendations"
+            title="✨ Marketplace Recommendations"
             subtitle="Related vendors, categories and next-step actions"
           >
               <div style={{ display: "grid", gap: 14, minWidth: 0 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 950, color: "#0b57d0" }}>
-                      AI Marketplace Recommendation Engine
+                      Marketplace Recommendation Engine
                     </div>
                     <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950, color: "#0f172a" }}>
                       Recommended next steps for this search
                     </div>
                     <div style={{ marginTop: 4, color: "#64748b", fontWeight: 750 }}>
-                      {recommendationSummary || "AI is connecting search intent with RFQ, vendor and price workflows."}
+                      {recommendationSummary || "3Bigha is connecting search intent with RFQ, vendor and price workflows."}
                     </div>
                   </div>
 
@@ -2571,7 +2571,7 @@ if (want.includes("rentals")) {
                   letterSpacing: 0.4,
                 }}
               >
-                AI Search Landing
+                Search Discovery Guide
               </div>
 
               <div>
@@ -2676,13 +2676,13 @@ if (want.includes("rentals")) {
               <div style={{ display: "grid", gap: 14 }}>
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 800, color: "#1d4ed8" }}>
-                    AI Starter Workflows
+                    Marketplace Starter Workflows
                   </div>
                   <div style={{ marginTop: 4, fontSize: 18, fontWeight: 800, color: "#0f172a" }}>
-                    Start with a real marketplace workflow
+                    Start with a real need
                   </div>
                   <div style={{ marginTop: 4, color: "#64748b", fontWeight: 750 }}>
-                    Choose a common procurement, property, service or rental flow and let 3Bigha guide the next steps.
+                    Choose a common property, material, service or rental need. 3Bigha will guide the next practical step.
                   </div>
                 </div>
 
@@ -2836,9 +2836,9 @@ if (want.includes("rentals")) {
           <CardBody>
             <div style={{ display: "flex", gap: 10, alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap" }}>
               <div>
-                <div style={{ fontWeight: 800, color: "#1e3a8a" }}>🧠 AI Dynamic Search Intelligence</div>
+                <div style={{ fontWeight: 800, color: "#1e3a8a" }}>🧠 Dynamic Search Intelligence</div>
                 <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
-                  Results are ranked using query intent, locality signals, marketplace module fit and recent discovery memory.
+                  Results are ranked using query intent, locality signals, marketplace fit and recent discovery memory.
                 </div>
               </div>
 
@@ -2941,7 +2941,7 @@ if (want.includes("rentals")) {
               whiteSpace: "nowrap",
             }}
           >
-            🤖 AI
+            Help
           </Link>
         </div>
       ) : null}
@@ -2960,7 +2960,7 @@ if (want.includes("rentals")) {
         <EmptyState message={err} />
       ) : !hasQuery ? null : rows.length === 0 ? null : (
         <>
-          <div style={{ marginBottom: 10, fontWeight: 900, opacity: 0.8 }}>Results: {rows.length}</div>
+          <div style={{ marginBottom: 10, fontWeight: 900, opacity: 0.8 }}>Matching results: {rows.length}</div>
 
           <div
             style={{
@@ -3076,7 +3076,7 @@ if (want.includes("rentals")) {
                                 fontWeight: 950,
                               }}
                             >
-                              AI Rank +{r._aiScore} • {r._aiReason}
+                              Best match +{r._aiScore} • {r._aiReason}
                             </span>
                           ) : null}
                         </div>
@@ -3158,12 +3158,12 @@ if (want.includes("rentals")) {
                           }}
                         >
                           {r.module === "materials"
-                            ? "Create RFQ"
+                            ? "Send RFQ"
                             : r.module === "services"
                               ? "Find Vendors"
                               : r.module === "rentals"
                                 ? "Check Rental"
-                                : "Smart Action"}
+                                : "Next Step"}
                         </Link>
                       </div>
                     </div>
@@ -3184,7 +3184,7 @@ if (want.includes("rentals")) {
                           color: "#1d4ed8",
                         }}
                       >
-                        🤖 Why this result?
+                        Why this result?
                       </summary>
 
                       <div
@@ -3199,7 +3199,7 @@ if (want.includes("rentals")) {
                         }}
                       >
                         <div>
-                          • AI procurement relevance score:{" "}
+                          • Match relevance score:{" "}
                           <b>{r._aiScore || 0}</b>
                         </div>
 
