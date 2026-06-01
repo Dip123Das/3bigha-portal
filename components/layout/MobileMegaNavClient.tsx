@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { MENUS } from "@/components/layout/DesktopMegaNavClient";
+import { MENUS } from "@/lib/navigation/main-menu";
 
 export default function MobileMegaNavClient() {
   const [open, setOpen] = useState<string | null>(null);
