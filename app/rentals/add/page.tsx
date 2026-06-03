@@ -6,6 +6,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import {
+  loadVendorListingMemory,
+  saveVendorListingMemory,
+  type VendorListingMemoryRow,
+} from "@/lib/vendors/vendorListingMemory";
+import {
+  buildVendorSmartSuggestions,
+} from "@/lib/vendors/vendorSmartSuggestions";
+import {
+  loadVendorTaxonomyExtensions,
+  type VendorExtensionRow,
+} from "@/lib/vendors/loadVendorTaxonomyExtensions";
 import { ensureBusinessProfileComplete } from "@/lib/ensureBusinessProfileComplete";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
@@ -109,6 +121,7 @@ export default function AddRentalPage() {
   const [cats, setCats] = useState<Cat[]>([]);
   const [subs, setSubs] = useState<Sub[]>([]);
   const [eqs, setEqs] = useState<Eq[]>([]);
+  const [vendorExtensions, setVendorExtensions] = useState<VendorExtensionRow[]>([]);
 
   // Form fields
   const [categoryId, setCategoryId] = useState<string>("");
@@ -139,6 +152,15 @@ export default function AddRentalPage() {
   const [saving, setSaving] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [saveOk, setSaveOk] = useState<string | null>(null);
+
+  const [recentRentalMemory, setRecentRentalMemory] = useState<
+    VendorListingMemoryRow[]
+  >([]);
+
+  const smartRentalSuggestions = buildVendorSmartSuggestions(
+    recentRentalMemory,
+    4
+  );
 
   // Expand/collapse
   const [openTaxonomy, setOpenTaxonomy] = useState(true);
@@ -217,6 +239,33 @@ export default function AddRentalPage() {
       alive = false;
     };
   }, [supabase, userId]);
+
+  // ---------- Load vendor-private rental options ----------
+  useEffect(() => {
+    if (!userId) return;
+
+    let alive = true;
+
+    async function loadVendorRentalOptions() {
+      const uid = userId;
+      if (!uid) return;
+
+      const rows = await loadVendorTaxonomyExtensions({
+        module: "rentals",
+        userId: uid,
+      });
+
+      if (!alive) return;
+
+      setVendorExtensions(rows);
+    }
+
+    loadVendorRentalOptions();
+
+    return () => {
+      alive = false;
+    };
+  }, [userId]);
 
   // ---------- Load master taxonomy once authenticated ----------
   useEffect(() => {
@@ -307,36 +356,101 @@ export default function AddRentalPage() {
     };
   }, [supabase, authLoading, userId]);
 
+  const mergedCats = useMemo<Cat[]>(() => {
+    const vendorCats: Cat[] = vendorExtensions
+      .filter((x) => x.level === "category")
+      .map((x) => ({
+        id: `vendor-${x.id}`,
+        name: x.label,
+        slug: x.value || x.label.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        sort_order: 999999,
+        is_system_others: false,
+      }));
+
+    return [...cats, ...vendorCats].sort((a, b) => {
+      const sa = a.sort_order ?? 999999;
+      const sb = b.sort_order ?? 999999;
+      if (sa !== sb) return sa - sb;
+      return a.name.localeCompare(b.name);
+    });
+  }, [cats, vendorExtensions]);
+
+  const mergedSubs = useMemo<Sub[]>(() => {
+    const vendorSubs: Sub[] = vendorExtensions
+      .filter((x) => x.level === "subcategory" && x.parent_id === categoryId)
+      .map((x) => ({
+        id: `vendor-${x.id}`,
+        category_id: categoryId,
+        name: x.label,
+        slug: x.value || x.label.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        sort_order: 999999,
+        is_system_others: false,
+      }));
+
+    return [
+      ...subs.filter((s: Sub) => s.category_id === categoryId),
+      ...vendorSubs,
+    ].sort((a, b) => {
+      const sa = a.sort_order ?? 999999;
+      const sb = b.sort_order ?? 999999;
+      if (sa !== sb) return sa - sb;
+      return a.name.localeCompare(b.name);
+    });
+  }, [subs, vendorExtensions, categoryId]);
+
+  const mergedEqs = useMemo<Eq[]>(() => {
+    const vendorEqs: Eq[] = vendorExtensions
+      .filter((x) => x.level === "equipment" && x.parent_id === subcategoryId)
+      .map((x) => ({
+        id: `vendor-${x.id}`,
+        subcategory_id: subcategoryId,
+        name: x.label,
+        slug: x.value || x.label.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        sort_order: 999999,
+        is_system_others: false,
+      }));
+
+    return [
+      ...eqs.filter((e: Eq) => e.subcategory_id === subcategoryId),
+      ...vendorEqs,
+    ].sort((a, b) => {
+      const sa = a.sort_order ?? 999999;
+      const sb = b.sort_order ?? 999999;
+      if (sa !== sb) return sa - sb;
+      return a.name.localeCompare(b.name);
+    });
+  }, [eqs, vendorExtensions, subcategoryId]);
+
   const selectedCat = useMemo(
-    () => cats.find((c) => c.id === categoryId) ?? null,
-    [cats, categoryId]
+    () => mergedCats.find((c: Cat) => c.id === categoryId) ?? null,
+    [mergedCats, categoryId]
   );
 
   const catSubs = useMemo(
-    () => subs.filter((s) => s.category_id === categoryId),
-    [subs, categoryId]
+    () => mergedSubs,
+    [mergedSubs]
   );
 
   const selectedSub = useMemo(
-    () => subs.find((s) => s.id === subcategoryId) ?? null,
-    [subs, subcategoryId]
+    () => mergedSubs.find((s: Sub) => s.id === subcategoryId) ?? null,
+    [mergedSubs, subcategoryId]
   );
 
   const subEqs = useMemo(
-    () => eqs.filter((e) => e.subcategory_id === subcategoryId),
-    [eqs, subcategoryId]
+    () => mergedEqs,
+    [mergedEqs]
   );
 
   const selectedEq = useMemo(
-    () => eqs.find((e) => e.id === equipmentId) ?? null,
-    [eqs, equipmentId]
+    () => mergedEqs.find((e: Eq) => e.id === equipmentId) ?? null,
+    [mergedEqs, equipmentId]
   );
 
   // Reset cascade when category changes
   useEffect(() => {
     if (!categoryId) return;
 
-    const list = subs.filter((s) => s.category_id === categoryId);
+    const list = mergedSubs;
     const firstSub = list.find((s) => !s.is_system_others && s.slug !== "others") ?? list[0];
 
     setSubcategoryId(firstSub?.id ?? "");
@@ -351,7 +465,7 @@ export default function AddRentalPage() {
   useEffect(() => {
     if (!subcategoryId) return;
 
-    const list = eqs.filter((e) => e.subcategory_id === subcategoryId);
+    const list = mergedEqs;
     const firstEq = list.find((e) => !e.is_system_others && e.slug !== "others") ?? list[0];
 
     setEquipmentId(firstEq?.id ?? "");
@@ -421,6 +535,41 @@ export default function AddRentalPage() {
     setDescription(smart.description);
   }
 
+
+  function applyRentalMemory(memory: VendorListingMemoryRow) {
+    const payload = memory.payload ?? {};
+
+    if (payload.category_id) {
+      setCategoryId(payload.category_id);
+    }
+
+    if (payload.subcategory_id) {
+      setSubcategoryId(payload.subcategory_id);
+    }
+
+    if (payload.equipment_id) {
+      setEquipmentId(payload.equipment_id);
+    }
+
+    setPricingUnit(payload.pricing_unit ?? "");
+    setRate(payload.rate != null ? String(payload.rate) : "");
+    setSecurityDeposit(
+      payload.security_deposit != null
+        ? String(payload.security_deposit)
+        : ""
+    );
+
+    setStateName(payload.state ?? "");
+    setDistrict(payload.district ?? "");
+    setCity(payload.city ?? "");
+    setLocality(payload.locality ?? "");
+    setPincode(payload.pincode ?? "");
+
+    if (payload.description_template) {
+      setDescription(payload.description_template);
+    }
+  }
+
   async function insertDraft(): Promise<{ ok: true; id: string } | { ok: false; message: string }> {
     setSaveOk(null);
     setSaveErr(null);
@@ -438,7 +587,7 @@ export default function AddRentalPage() {
 
       category_id: categoryId,
       subcategory_id: subcategoryId,
-      equipment_id: equipmentId || null,
+      equipment_id: equipmentId.startsWith("vendor-") ? null : equipmentId || null,
 
       other_category_text:
         selectedCat?.is_system_others || selectedCat?.slug === "others"
@@ -514,6 +663,45 @@ export default function AddRentalPage() {
 
     const id = (data as any)?.id as string | undefined;
     if (!id) return { ok: false, message: "Saved but could not read new listing ID." };
+
+    try {
+      await saveVendorListingMemory({
+        userId,
+
+        module: "rentals",
+        memoryType: "workflow",
+
+        title:
+          title.trim() ||
+          selectedEq?.name ||
+          selectedSub?.name ||
+          selectedCat?.name ||
+          "Rental Setup",
+
+        payload: {
+          category_id: categoryId,
+          subcategory_id: subcategoryId,
+          equipment_id: equipmentId,
+
+          pricing_unit: pricingUnit,
+          rate: toNumberOrNull(rate),
+          security_deposit: toNumberOrNull(securityDeposit),
+
+          state: stateName.trim(),
+          district: district.trim(),
+          city: city.trim(),
+          locality: locality.trim(),
+          pincode: pincode.trim(),
+
+          description_template: description.trim(),
+
+          saved_from: "rentals_add_page",
+          saved_at: new Date().toISOString(),
+        },
+      });
+    } catch (memoryErr) {
+      console.error("Rental memory save failed", memoryErr);
+    }
 
     return { ok: true, id };
   }
@@ -642,6 +830,84 @@ export default function AddRentalPage() {
               </div>
             ) : null}
 
+            {recentRentalMemory.length > 0 ? (
+              <div
+                style={{
+                  marginBottom: 14,
+                  border: "1px solid #dbeafe",
+                  background: "#f8fbff",
+                  borderRadius: 12,
+                  padding: 10,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 800,
+                    marginBottom: 8,
+                    color: "#1d4ed8",
+                  }}
+                >
+                  Suggested For You
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 8,
+                  }}
+                >
+                  {smartRentalSuggestions.map((suggestion) => {
+                    const memory = suggestion.memory;
+
+                    return (
+                      <button
+                        key={suggestion.key}
+                        type="button"
+                        onClick={() => applyRentalMemory(memory)}
+                        style={{
+                          border: "1px solid #bfdbfe",
+                          background: "#fff",
+                          borderRadius: 999,
+                          padding: "8px 12px",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          textAlign: "left",
+                        }}
+                      >
+                        <div style={{ fontWeight: 800 }}>
+                          {suggestion.title}
+                        </div>
+
+                        <div
+                          style={{
+                            marginTop: 2,
+                            fontSize: 10,
+                            opacity: 0.72,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {suggestion.reason}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 8,
+                    fontSize: 11,
+                    opacity: 0.72,
+                  }}
+                >
+                  Smart suggestions based on your frequently reused rental pricing, location and equipment workflows.
+                </div>
+              </div>
+            ) : null}
+
             <Section
               title="1) Category → Subcategory → Equipment"
               open={openTaxonomy}
@@ -658,9 +924,10 @@ export default function AddRentalPage() {
                       setOtherCategoryText("");
                     }}
                   >
-                    {cats.map((c) => (
+                    {mergedCats.map((c: Cat) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
+                      {String(c.id).startsWith("vendor-") ? " • My Added Option" : ""}
                       </option>
                     ))}
                   </select>
@@ -690,9 +957,10 @@ export default function AddRentalPage() {
                     }}
                     disabled={!categoryId}
                   >
-                    {catSubs.map((s) => (
+                    {catSubs.map((s: Sub) => (
                       <option key={s.id} value={s.id}>
                         {s.name}
+                      {String(s.id).startsWith("vendor-") ? " • My Added Option" : ""}
                       </option>
                     ))}
                   </select>
@@ -725,9 +993,10 @@ export default function AddRentalPage() {
                     {subEqs.length === 0 ? (
                       <option value="">No equipment in this subcategory</option>
                     ) : (
-                      subEqs.map((eq) => (
+                      subEqs.map((eq: Eq) => (
                         <option key={eq.id} value={eq.id}>
                           {eq.name}
+                          {String(eq.id).startsWith("vendor-") ? " • My Added Option" : ""}
                         </option>
                       ))
                     )}

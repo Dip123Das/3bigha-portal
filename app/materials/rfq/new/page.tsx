@@ -4,6 +4,11 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import {
+  loadVendorListingMemory,
+  saveVendorListingMemory,
+  type VendorListingMemoryRow,
+} from "@/lib/vendors/vendorListingMemory";
 
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
@@ -47,6 +52,30 @@ export default function NewMaterialRFQPage() {
   const [ok, setOk] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
+  const [recentRFQMemory, setRecentRFQMemory] = useState<
+    VendorListingMemoryRow[]
+  >([]);
+
+
+  useState(() => {
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user?.id) return;
+
+      const rows = await loadVendorListingMemory({
+        userId: user.id,
+        module: "materials",
+        memoryType: "workflow",
+        limit: 8,
+      });
+
+      setRecentRFQMemory(rows);
+    })();
+  });
+
   function updateItem(i: number, patch: Partial<Item>) {
     setItems((prev) => prev.map((x, idx) => (idx === i ? { ...x, ...patch } : x)));
   }
@@ -57,6 +86,30 @@ export default function NewMaterialRFQPage() {
 
   function removeRow(i: number) {
     setItems((prev) => prev.filter((_, idx) => idx !== i));
+  }
+
+
+  function applyRFQMemory(memory: VendorListingMemoryRow) {
+    const payload = memory.payload ?? {};
+
+    setDeliveryDistrict(payload.delivery_district ?? "");
+    setDeliveryCity(payload.delivery_city ?? "");
+    setDeliveryPincode(payload.delivery_pincode ?? "");
+    setDeliveryAddress(payload.delivery_address ?? "");
+
+    setNotes(payload.notes ?? "");
+
+    if (Array.isArray(payload.items) && payload.items.length > 0) {
+      setItems(
+        payload.items.map((x: any) => ({
+          item_name: x.item_name ?? "",
+          qty: x.qty != null ? String(x.qty) : "",
+          unit: x.unit ?? "",
+          brand_pref: x.brand_pref ?? "",
+          remarks: x.remarks ?? "",
+        }))
+      );
+    }
   }
 
   async function submit() {
@@ -136,6 +189,41 @@ export default function NewMaterialRFQPage() {
         if (fileIns.error) throw fileIns.error;
       }
 
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user?.id) {
+          await saveVendorListingMemory({
+            userId: user.id,
+            module: "materials",
+            memoryType: "workflow",
+
+            title:
+              cleaned[0]?.item_name ||
+              "Material RFQ",
+
+            payload: {
+              delivery_district: safeText(deliveryDistrict),
+              delivery_city: safeText(deliveryCity),
+              delivery_pincode: safeText(deliveryPincode),
+              delivery_address: safeText(deliveryAddress),
+
+              notes: safeText(notes),
+
+              items: cleaned,
+
+              memory_scope: "rfq",
+              saved_from: "materials_rfq_page",
+              saved_at: new Date().toISOString(),
+            },
+          });
+        }
+      } catch (memoryErr) {
+        console.error("RFQ memory save failed", memoryErr);
+      }
+
       setOk("✅ Submitted! Vendors will contact you with quotations.");
       setItems([{ item_name: "", qty: "", unit: "", brand_pref: "", remarks: "" }]);
       setFileUrls("");
@@ -161,6 +249,66 @@ export default function NewMaterialRFQPage() {
         {/* LEFT: Items */}
         <Card>
           <CardBody>
+            {recentRFQMemory.length > 0 ? (
+              <div
+                style={{
+                  marginBottom: 14,
+                  border: "1px solid #dbeafe",
+                  background: "#f8fbff",
+                  borderRadius: 12,
+                  padding: 10,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 800,
+                    marginBottom: 8,
+                    color: "#1d4ed8",
+                  }}
+                >
+                  Recently Used RFQ Setups
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 8,
+                  }}
+                >
+                  {recentRFQMemory.map((memory) => (
+                    <button
+                      key={memory.id}
+                      type="button"
+                      onClick={() => applyRFQMemory(memory)}
+                      style={{
+                        border: "1px solid #bfdbfe",
+                        background: "#fff",
+                        borderRadius: 999,
+                        padding: "8px 12px",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {memory.title}
+                    </button>
+                  ))}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 8,
+                    fontSize: 11,
+                    opacity: 0.72,
+                  }}
+                >
+                  Quickly reuse your previous procurement requirements and delivery setup.
+                </div>
+              </div>
+            ) : null}
+
             {ok ? (
               <div style={{ padding: 10, borderRadius: 12, background: "#ecfdf5", border: "1px solid #a7f3d0", fontWeight: 900 }}>
                 {ok}

@@ -5,6 +5,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import {
+  loadVendorListingMemory,
+  saveVendorListingMemory,
+  type VendorListingMemoryRow,
+} from "@/lib/vendors/vendorListingMemory";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
 
@@ -140,6 +145,10 @@ export default function BuilderAddProjectPage() {
   const [userId, setUserId] = useState<string>("");
   const [builder, setBuilder] = useState<BuilderProfileRow | null>(null);
 
+  const [recentProjectMemory, setRecentProjectMemory] = useState<
+    VendorListingMemoryRow[]
+  >([]);
+
   // form fields
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -235,6 +244,62 @@ export default function BuilderAddProjectPage() {
 
   function toggleProjectAmenity(id: string) {
     setSelectedProjectAmenityIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
+
+  useEffect(() => {
+    let alive = true;
+
+    async function loadRecentProjectMemory() {
+      if (!userId) return;
+
+      const rows = await loadVendorListingMemory({
+        userId,
+        module: "property",
+        memoryType: "workflow",
+        limit: 8,
+      });
+
+      if (!alive) return;
+
+      setRecentProjectMemory(rows);
+    }
+
+    loadRecentProjectMemory();
+
+    return () => {
+      alive = false;
+    };
+  }, [userId]);
+
+
+  function applyProjectMemory(memory: VendorListingMemoryRow) {
+    const payload = memory.payload ?? {};
+
+    setProjectKind(payload.project_kind ?? "residential");
+
+    setAddressLine(payload.address_line ?? "");
+    setLocality(payload.locality ?? "");
+    setCity(payload.city ?? "");
+    setDistrict(payload.district ?? "");
+    setStateName(payload.state ?? "");
+    setPincode(payload.pincode ?? "");
+
+    setReraId(payload.rera_id ?? "");
+
+    setNearbyHighlights(payload.nearby_highlights ?? "");
+
+    if (payload.description_template) {
+      setDescription(payload.description_template);
+    }
+
+    if (Array.isArray(payload.amenity_ids)) {
+      setSelectedProjectAmenityIds(payload.amenity_ids);
+    }
+
+    if (payload.investment_plan_master_id) {
+      setSelectedInvestmentPlanId(payload.investment_plan_master_id);
+    }
   }
 
   // bootstrap
@@ -630,6 +695,43 @@ export default function BuilderAddProjectPage() {
             flashError(`Project created but media save failed — ${friendlyDbError(e)}`);
           }
 
+          try {
+            await saveVendorListingMemory({
+              userId,
+              module: "property",
+              memoryType: "workflow",
+
+              title: projectName,
+
+              payload: {
+                project_kind: projectKind,
+
+                address_line: addressLine,
+                locality,
+                city,
+                district,
+                state: stateName,
+                pincode,
+
+                rera_id: reraId,
+
+                nearby_highlights: nearbyHighlights,
+
+                description_template: description,
+
+                amenity_ids: selectedProjectAmenityIds,
+
+                investment_plan_master_id:
+                  selectedInvestmentPlanId || null,
+
+                saved_from: "builder_project_add_page",
+                saved_at: new Date().toISOString(),
+              },
+            });
+          } catch (memoryErr) {
+            console.error("Builder project memory save failed", memoryErr);
+          }
+
           router.push(`/property/builder/projects?created=${encodeURIComponent(projectId)}`);
           return;
         }
@@ -736,6 +838,66 @@ export default function BuilderAddProjectPage() {
             </div>
 
             <div style={{ height: 14 }} />
+
+            {recentProjectMemory.length > 0 ? (
+              <div
+                style={{
+                  marginBottom: 14,
+                  border: "1px solid #dbeafe",
+                  background: "#f8fbff",
+                  borderRadius: 12,
+                  padding: 10,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 800,
+                    marginBottom: 8,
+                    color: "#1d4ed8",
+                  }}
+                >
+                  Recently Used Project Setups
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 8,
+                  }}
+                >
+                  {recentProjectMemory.map((memory) => (
+                    <button
+                      key={memory.id}
+                      type="button"
+                      onClick={() => applyProjectMemory(memory)}
+                      style={{
+                        border: "1px solid #bfdbfe",
+                        background: "#fff",
+                        borderRadius: 999,
+                        padding: "8px 12px",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {memory.title}
+                    </button>
+                  ))}
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 8,
+                    fontSize: 11,
+                    opacity: 0.72,
+                  }}
+                >
+                  Quickly reuse your previously used builder project setup.
+                </div>
+              </div>
+            ) : null}
 
             <div style={{ fontWeight: 900, marginBottom: 10 }}>Project basics</div>
 

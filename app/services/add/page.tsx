@@ -4,6 +4,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import {
+  loadVendorListingMemory,
+  saveVendorListingMemory,
+  type VendorListingMemoryRow,
+} from "@/lib/vendors/vendorListingMemory";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
 
@@ -456,6 +461,70 @@ export default function AddServicesPage() {
   const [provider, setProvider] = useState<ProviderRow | null>(null);
   const [myProviderServices, setMyProviderServices] = useState<MyProviderServiceRow[]>([]);
   const [aiLoadingField, setAiLoadingField] = useState<null | "description" | "sla" | "refund">(null);
+  const [recentServiceMemory, setRecentServiceMemory] = useState<
+    VendorListingMemoryRow[]
+  >([]);
+
+  function applyServiceMemory(memory: VendorListingMemoryRow) {
+    const payload = memory.payload ?? {};
+    const active = drafts.find((d) => d.key === activeDraftKey);
+    if (!active) return;
+
+    setDraft(active.key, {
+      availability: payload.availability ?? active.availability,
+      payment_modes: payload.payment_modes ?? active.payment_modes,
+
+      rate_type: payload.rate_type ?? active.rate_type,
+      rate_unit: payload.rate_unit ?? active.rate_unit,
+
+      daily_rate:
+        typeof payload.daily_rate === "number"
+          ? payload.daily_rate
+          : active.daily_rate,
+
+      hourly_rate:
+        typeof payload.hourly_rate === "number"
+          ? payload.hourly_rate
+          : active.hourly_rate,
+
+      package_rate:
+        typeof payload.package_rate === "number"
+          ? payload.package_rate
+          : active.package_rate,
+
+      site_visit_charge:
+        typeof payload.site_visit_charge === "number"
+          ? payload.site_visit_charge
+          : active.site_visit_charge,
+
+      description: payload.description_template ?? active.description,
+    });
+  }
+
+  useEffect(() => {
+    let alive = true;
+
+    async function loadRecentServiceMemoryData() {
+      if (!userId) return;
+
+      const rows = await loadVendorListingMemory({
+        userId,
+        module: "services",
+        memoryType: "workflow",
+        limit: 8,
+      });
+
+      if (!alive) return;
+
+      setRecentServiceMemory(rows);
+    }
+
+    loadRecentServiceMemoryData();
+
+    return () => {
+      alive = false;
+    };
+  }, [userId]);
 
   // ---------- draft helpers ----------
   function setDraft(key: string, patch: Partial<ServiceDraft>) {
@@ -1101,6 +1170,37 @@ function TurnkeyToggle() {
 
         try {
           await insertProviderServiceSafe(supabase, payload);
+
+      try {
+        await saveVendorListingMemory({
+          userId,
+          module: "services",
+          memoryType: "workflow",
+          title:
+            d.headline?.trim() ||
+            d.description?.trim()?.slice(0, 80) ||
+            "Service Workflow",
+          payload: {
+            availability: d.availability,
+            payment_modes: d.payment_modes,
+
+            rate_type: d.rate_type,
+            rate_unit: d.rate_unit,
+
+            daily_rate: d.daily_rate ?? null,
+            hourly_rate: d.hourly_rate ?? null,
+            package_rate: d.package_rate ?? null,
+            site_visit_charge: d.site_visit_charge ?? null,
+
+            description_template: d.description ?? null,
+
+            saved_from: "services_add_page",
+            saved_at: new Date().toISOString(),
+          },
+        });
+      } catch (memoryErr) {
+        console.error("Service memory save failed", memoryErr);
+      }
         } catch (error: any) {
           console.error(error);
           setErr(error.message || "Failed to save provider service.");

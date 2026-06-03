@@ -4,6 +4,19 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import {
+  loadVendorTaxonomyExtensions,
+  type VendorExtensionRow,
+} from "@/lib/vendors/loadVendorTaxonomyExtensions";
+import {
+  loadVendorListingMemory,
+  saveVendorListingMemory,
+  type VendorListingMemoryRow,
+} from "@/lib/vendors/vendorListingMemory";
+
+import {
+  buildVendorSmartSuggestions,
+} from "@/lib/vendors/vendorSmartSuggestions";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
 
@@ -154,9 +167,18 @@ export default function MaterialsAddPage() {
   const [vehicleType, setVehicleType] = useState("");
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [loadCapacity, setLoadCapacity] = useState("");
+  const [recentInventoryMemory, setRecentInventoryMemory] = useState<
+  VendorListingMemoryRow[]
+>([]);
+
+  const smartInventorySuggestions = buildVendorSmartSuggestions(
+    recentInventoryMemory,
+    4
+  );
 
   // Data
   const [allTaxons, setAllTaxons] = useState<TaxonRow[]>([]);
+  const [vendorExtensions, setVendorExtensions] = useState<VendorExtensionRow[]>([]);
   const [loadingTaxons, setLoadingTaxons] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -173,6 +195,62 @@ export default function MaterialsAddPage() {
   const [saving, setSaving] = useState(false);
   const [aiLoading, setAiLoading] = useState<string | null>(null);
   const [aiBuyerType, setAiBuyerType] = useState<"home_owner" | "contractor" | "mason" | "vendor">("home_owner");
+
+  useEffect(() => {
+  let alive = true;
+
+  async function loadVendorData() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!alive || !user?.id) return;
+
+    const rows = await loadVendorTaxonomyExtensions({
+      module: "materials",
+      userId: user.id,
+    });
+
+    if (!alive) return;
+
+    setVendorExtensions(rows);
+  }
+
+  loadVendorData();
+
+  return () => {
+    alive = false;
+  };
+}, [supabase]);
+
+useEffect(() => {
+  let alive = true;
+
+  async function loadRecentInventoryMemory() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!alive || !user?.id) return;
+
+    const rows = await loadVendorListingMemory({
+      userId: user.id,
+      module: "materials",
+      memoryType: "inventory",
+      limit: 6,
+    });
+
+    if (!alive) return;
+
+    setRecentInventoryMemory(rows);
+  }
+
+  loadRecentInventoryMemory();
+
+  return () => {
+    alive = false;
+  };
+}, [supabase]);
 
   // ✅ Load ALL taxons once
   useEffect(() => {
@@ -322,10 +400,33 @@ export default function MaterialsAddPage() {
     () => (subcategoryId ? taxonById.get(subcategoryId) ?? null : null),
     [taxonById, subcategoryId]
   );
+  const vendorProductGroups = useMemo(() => {
+    if (!subcategoryId) return [];
+
+    return vendorExtensions
+      .filter((x) => x.level === "product_group" && x.parent_id === subcategoryId)
+      .map((x) => ({
+        id: `vendor-${x.id}`,
+        parent_id: x.parent_id,
+        kind: "product_group" as const,
+        name: x.label,
+        slug: null,
+        sort_order: 999999,
+        is_active: true,
+      }));
+  }, [vendorExtensions, subcategoryId]);
+
   const selectedProductGroup = useMemo(
-    () => (productGroupId ? taxonById.get(productGroupId) ?? null : null),
-    [taxonById, productGroupId]
+    () =>
+      productGroupId
+        ? productGroupOptions.find((pg) => pg.id === productGroupId) ??
+          taxonById.get(productGroupId) ??
+          null
+        : null,
+    [productGroupId, productGroupOptions, taxonById]
   );
+
+  const isVendorProductGroup = productGroupId.startsWith("vendor-");
 
   // ✅ Auto-select subcategory
   useEffect(() => {
@@ -374,8 +475,8 @@ export default function MaterialsAddPage() {
       if (!subcategoryId) return;
 
       setLoadingPG(true);
+
       try {
-        // Step-B mapping table
         const { data: mapRows, error: mapErr } = await supabase
           .from("material_subcategory_product_groups")
           .select("product_group_id")
@@ -387,33 +488,32 @@ export default function MaterialsAddPage() {
           .map((r: any) => r.product_group_id)
           .filter(Boolean) as string[];
 
-        if (pgIds.length === 0) {
-          if (!alive) return;
-          setProductGroupOptions([]);
-          setLoadingPG(false);
-          return;
+        let adminRows: TaxonRow[] = [];
+
+        if (pgIds.length > 0) {
+          const { data: pgRows, error: pgErr } = await supabase
+            .from("material_taxons")
+            .select("id,parent_id,kind,name,slug,sort_order,is_active")
+            .in("id", pgIds)
+            .eq("kind", "product_group")
+            .or("is_active.is.null,is_active.eq.true");
+
+          if (pgErr) throw pgErr;
+
+          adminRows = ((pgRows ?? []) as TaxonRow[]).filter(
+            (r) => r.is_active !== false
+          );
         }
 
-        // Get product_group taxon rows
-        const { data: pgRows, error: pgErr } = await supabase
-          .from("material_taxons")
-          .select("id,parent_id,kind,name,slug,sort_order,is_active")
-          .in("id", pgIds)
-          .eq("kind", "product_group")
-          .or("is_active.is.null,is_active.eq.true");
-
-        if (pgErr) throw pgErr;
-
-        const rows = ((pgRows ?? []) as TaxonRow[])
-          .filter((r) => r.is_active !== false)
-          .slice()
-          .sort(bySortThenName);
+        const mergedRows = [...adminRows, ...vendorProductGroups].sort(bySortThenName);
 
         if (!alive) return;
-        setProductGroupOptions(rows);
 
-        // If only 1 product group, auto-select
-        if (rows.length === 1) setProductGroupId(rows[0].id);
+        setProductGroupOptions(mergedRows);
+
+        if (mergedRows.length === 1) {
+          setProductGroupId(mergedRows[0].id);
+        }
       } catch (e: any) {
         if (!alive) return;
         setErrorMsg(e?.message ?? "Failed to load product groups");
@@ -423,10 +523,11 @@ export default function MaterialsAddPage() {
     }
 
     loadProductGroupsViaMapping();
+
     return () => {
       alive = false;
     };
-  }, [subcategoryId, supabase]);
+  }, [subcategoryId, supabase, vendorProductGroups]);
 
   // Load attributes when product group selected
   useEffect(() => {
@@ -435,7 +536,7 @@ export default function MaterialsAddPage() {
     async function loadAttrs() {
       setErrorMsg(null);
 
-      if (!productGroupId) {
+      if (!productGroupId || isVendorProductGroup) {
         setAttrs([]);
         setAttrValues({});
         setAttrInput({});
@@ -530,7 +631,7 @@ export default function MaterialsAddPage() {
     return () => {
       alive = false;
     };
-  }, [productGroupId, supabase]);
+  }, [productGroupId, isVendorProductGroup, supabase]);
 
   const canSubmit = !!productGroupId && title.trim().length > 0;
 
@@ -824,6 +925,56 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
     }
   }
 
+
+  useEffect(() => {
+    if (smartInventorySuggestions.length === 0) return;
+
+    const top = smartInventorySuggestions[0]?.memory;
+    const inv = top?.payload?.inventory ?? {};
+
+    if (!stockUnit && inv.stock_unit) {
+      setStockUnit(String(inv.stock_unit));
+    }
+
+    if (!purchasePrice && inv.purchase_price) {
+      setPurchasePrice(String(inv.purchase_price));
+    }
+
+    if (!sellingPrice && inv.selling_price) {
+      setSellingPrice(String(inv.selling_price));
+    }
+
+    if (!vehicleType && inv.vehicle_type) {
+      setVehicleType(String(inv.vehicle_type));
+    }
+  }, [
+    smartInventorySuggestions,
+    stockUnit,
+    purchasePrice,
+    sellingPrice,
+    vehicleType,
+  ]);
+
+  function applyInventoryMemory(memory: VendorListingMemoryRow) {
+    const inv = memory.payload?.inventory ?? {};
+
+    setStockUnit(inv.stock_unit ?? "");
+    setPurchasePrice(inv.purchase_price ?? "");
+    setSellingPrice(inv.selling_price ?? "");
+    setReorderLevel(inv.reorder_level ?? "");
+
+    setGodownNo(inv.godown_no ?? "");
+    setRoomNo(inv.room_no ?? "");
+    setRackNo(inv.rack_no ?? "");
+
+    setVehicleType(inv.vehicle_type ?? "");
+    setLoadCapacity(inv.load_capacity ?? "");
+
+    if (memory.payload?.description_template) {
+      setDescription(memory.payload.description_template);
+    }
+  }
+
   async function onSaveDraft() {
     setErrorMsg(null);
 
@@ -880,10 +1031,18 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
         type_id: typeId || null,
         category_id: categoryId || null,
         subcategory_id: subcategoryId || null,
-        product_group_id: productGroupId || null,
+        product_group_id: isVendorProductGroup ? null : productGroupId || null,
 
         attributes: {
           ...attributes_payload,
+          vendor_private_product_group: isVendorProductGroup
+            ? {
+                id: productGroupId.replace("vendor-", ""),
+                name: selectedProductGroup?.name ?? "",
+                subcategory_id: subcategoryId,
+                source: "vendor_taxonomy_extensions",
+              }
+            : null,
           media_links,
           inventory: {
             enabled: inventoryEnabled,
@@ -910,7 +1069,55 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
       });
 
       if (insErr) throw insErr;
-      router.push("/materials");
+
+// ---------- Save reusable operational memory ----------
+try {
+  await saveVendorListingMemory({
+    userId: user.id,
+    module: "materials",
+    memoryType: "inventory",
+    title:
+      selectedProductGroup?.name ||
+      title.trim() ||
+      "Material Listing Setup",
+
+    payload: {
+      type_id: typeId || null,
+      category_id: categoryId || null,
+      subcategory_id: subcategoryId || null,
+
+      product_group: selectedProductGroup
+        ? {
+            id: productGroupId,
+            name: selectedProductGroup.name,
+          }
+        : null,
+
+      inventory: {
+        stock_unit: stockUnit.trim() || null,
+        purchase_price: purchasePrice.trim() || null,
+        selling_price: sellingPrice.trim() || null,
+        reorder_level: reorderLevel.trim() || null,
+
+        godown_no: godownNo.trim() || null,
+        room_no: roomNo.trim() || null,
+        rack_no: rackNo.trim() || null,
+
+        vehicle_type: vehicleType.trim() || null,
+        load_capacity: loadCapacity.trim() || null,
+      },
+
+      description_template: description.trim() || null,
+
+      saved_from: "materials_add_page",
+      saved_at: new Date().toISOString(),
+    },
+  });
+} catch (memoryErr) {
+  console.error("Vendor memory save failed", memoryErr);
+}
+
+router.push("/materials");
     } catch (e: any) {
       setErrorMsg(e?.message ?? "Save failed");
     } finally {
@@ -1047,11 +1254,12 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
                   {productGroupOptions.map((pg) => (
                     <option key={pg.id} value={pg.id}>
                       {pg.name}
+                      {String(pg.id).startsWith("vendor-") ? " • My Added Option" : ""}
                     </option>
                   ))}
                 </select>
                 <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75, lineHeight: 1.4 }}>
-                  Product groups come from <b>Step-B mapping</b> (material_subcategory_product_groups).
+                  Product groups come from approved master options. Your own saved variations will appear here as <b>My Added Option</b>.
                 </div>
               </div>
 
@@ -1130,12 +1338,93 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
                     This will help vendors manage online stock, offline billing, godown location, rack search and future inventory reports.
                   </div>
 
+                  {recentInventoryMemory.length > 0 ? (
+                    <div
+                      style={{
+                        marginTop: 12,
+                        marginBottom: 10,
+                        border: "1px solid #dbeafe",
+                        background: "#f8fbff",
+                        borderRadius: 12,
+                        padding: 10,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 800,
+                          marginBottom: 8,
+                          color: "#1d4ed8",
+                        }}
+                      >
+                        Suggested For You
+                      </div>
+
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                        {smartInventorySuggestions.map((suggestion) => {
+                          const memory = suggestion.memory;
+
+                          return (
+                            <button
+                              key={suggestion.key}
+                              type="button"
+                              onClick={() => applyInventoryMemory(memory)}
+                              style={{
+                                border: "1px solid #bfdbfe",
+                                background: "#fff",
+                                borderRadius: 999,
+                                padding: "8px 12px",
+                                fontSize: 12,
+                                fontWeight: 700,
+                                cursor: "pointer",
+                                textAlign: "left",
+                              }}
+                            >
+                              <div style={{ fontWeight: 800 }}>
+                                {suggestion.title}
+                              </div>
+
+                              <div
+                                style={{
+                                  marginTop: 2,
+                                  fontSize: 10,
+                                  opacity: 0.72,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {suggestion.reason}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div
+                        style={{
+                          marginTop: 8,
+                          fontSize: 11,
+                          opacity: 0.72,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        Smart suggestions based on your frequently reused inventory, pricing and delivery workflows.
+                      </div>
+                    </div>
+                  ) : null}
+
                   {inventoryEnabled ? (
                     <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
                       <input value={skuCode} onChange={(e) => setSkuCode(e.target.value)} placeholder="SKU Code" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
                       <input value={barcode} onChange={(e) => setBarcode(e.target.value)} placeholder="Barcode / Item Code" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
                       <input value={openingStock} onChange={(e) => setOpeningStock(e.target.value)} placeholder="Opening Stock" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
-                      <input value={stockUnit} onChange={(e) => setStockUnit(e.target.value)} placeholder="Unit: bag / pcs / cft / kg" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                      <div style={{ display: "grid", gap: 4 }}>
+                        <input value={stockUnit} onChange={(e) => setStockUnit(e.target.value)} placeholder="Unit: bag / pcs / cft / kg" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+                        {!stockUnit && smartInventorySuggestions.length > 0 ? (
+                          <div style={{ fontSize: 10, opacity: 0.65 }}>
+                            Suggested from your previous workflow
+                          </div>
+                        ) : null}
+                      </div>
                       <input value={purchasePrice} onChange={(e) => setPurchasePrice(e.target.value)} placeholder="Purchase Price" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
                       <input value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} placeholder="Selling Price" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
                       <input value={reorderLevel} onChange={(e) => setReorderLevel(e.target.value)} placeholder="Low Stock Alert Level" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />

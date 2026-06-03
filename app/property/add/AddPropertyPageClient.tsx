@@ -10,6 +10,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import nextDynamic from "next/dynamic";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+
+import {
+  loadVendorListingMemory,
+  saveVendorListingMemory,
+  type VendorListingMemoryRow,
+} from "@/lib/vendors/vendorListingMemory";
+
+import {
+  buildVendorSmartSuggestions,
+} from "@/lib/vendors/vendorSmartSuggestions";
 const UniversalMediaUploader = nextDynamic(
   () => import("@/app/components/media/UniversalMediaUploader"),
   {
@@ -1489,6 +1499,15 @@ const isBuilderListing = listingMode === "builder_project";
 
   const [locality, setLocality] = useState("");
 
+  const [recentPropertyMemory, setRecentPropertyMemory] = useState<
+    VendorListingMemoryRow[]
+  >([]);
+
+  const smartPropertySuggestions = buildVendorSmartSuggestions(
+    recentPropertyMemory,
+    4
+  );
+
   const [subLocality, setSubLocality] = useState("");
 
   const [plotNo, setPlotNo] = useState("");
@@ -2232,6 +2251,37 @@ setDbAttrValues(init);
       subtype &&
       (listingMode === "individual" || (listingMode === "builder_project" && selectedBuilderProjectId))
   );
+
+  useEffect(() => {
+    (async () => {
+      if (!userId) return;
+
+      const rows = await loadVendorListingMemory({
+        userId,
+        module: "property",
+        memoryType: "workflow",
+        limit: 8,
+      });
+
+      setRecentPropertyMemory(rows);
+    })();
+  }, [userId]);
+
+  function applyPropertyMemory(memory: VendorListingMemoryRow) {
+    const p = memory.payload ?? {};
+
+    setCity(String(p.city ?? ""));
+    setDistrict(String(p.district ?? ""));
+    setLocality(String(p.locality ?? ""));
+    setSubLocality(String(p.subLocality ?? ""));
+    setStateName(String(p.stateName ?? ""));
+    setPostalCode(String(p.postalCode ?? ""));
+    setStreetAddress(String(p.streetAddress ?? ""));
+    setPlotNo(String(p.plotNo ?? ""));
+    setApartmentSociety(String(p.apartmentSociety ?? ""));
+    setGoogleMapsUrl(String(p.googleMapsUrl ?? ""));
+  }
+
   const canContinueStep2 = Boolean(city.trim() && locality.trim());
 
   // Step 3 rules:
@@ -3240,6 +3290,47 @@ const extraUpdate: Record<string, any> = {
           } as any)
           .eq("id", newId);
 
+
+        try {
+          await saveVendorListingMemory({
+            userId,
+            module: "property",
+            memoryType: "workflow",
+
+            title:
+              computedTitle ||
+              [type, subtype, locality, city]
+                .filter(Boolean)
+                .join(" - ") ||
+              "Property Workflow",
+
+            payload: {
+              city,
+              district,
+              locality,
+              subLocality,
+              stateName,
+              postalCode,
+              streetAddress,
+              plotNo,
+              apartmentSociety,
+              googleMapsUrl,
+
+              intent,
+              property_type: type,
+              property_subtype: subtype,
+
+              expectedPrice,
+              ownership,
+
+              saved_from: "property_add_page",
+              saved_at: new Date().toISOString(),
+            },
+          });
+        } catch (memoryErr) {
+          console.error("Property memory save failed", memoryErr);
+        }
+
         router.push(
           `/dashboard/subscription?source=property&listingId=${encodeURIComponent(newId)}&return=${encodeURIComponent(
             "/property/my"
@@ -4188,6 +4279,86 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                 <div style={{ color: "#5b6472", fontSize: 13 }}>
                   Where is your property located? (You can type any new city/locality.)
                 </div>
+
+                {recentPropertyMemory.length > 0 ? (
+                  <div
+                    style={{
+                      marginTop: 14,
+                      marginBottom: 12,
+                      border: "1px solid #dbeafe",
+                      background: "#f8fbff",
+                      borderRadius: 12,
+                      padding: 10,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 800,
+                        marginBottom: 8,
+                        color: "#1d4ed8",
+                      }}
+                    >
+                      Suggested For You
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 8,
+                      }}
+                    >
+                      {smartPropertySuggestions.map((suggestion) => {
+                        const memory = suggestion.memory;
+
+                        return (
+                          <button
+                            key={suggestion.key}
+                            type="button"
+                            onClick={() => applyPropertyMemory(memory)}
+                            style={{
+                              border: "1px solid #bfdbfe",
+                              background: "#fff",
+                              borderRadius: 999,
+                              padding: "8px 12px",
+                              fontSize: 12,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              textAlign: "left",
+                            }}
+                          >
+                            <div style={{ fontWeight: 800 }}>
+                              {suggestion.title}
+                            </div>
+
+                            <div
+                              style={{
+                                marginTop: 2,
+                                fontSize: 10,
+                                opacity: 0.72,
+                                fontWeight: 600,
+                              }}
+                            >
+                              {suggestion.reason}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 8,
+                        fontSize: 11,
+                        opacity: 0.72,
+                      }}
+                    >
+                      Smart suggestions based on your frequently reused property location and pricing workflows.
+                    </div>
+                  </div>
+                ) : null}
+
 
                 <FieldLabel title="City" required />
                 <TextInput value={city} onChange={setCity} placeholder="e.g., Cooch Behar" />
