@@ -409,7 +409,7 @@ export default function TopHeaderClient() {
               Post / List <span className="postMenuCaret">▾</span>
             </summary>
 
-            <div className="postMenuPanel" role="dialog" aria-label="Post or list options">
+            <div className="postMenuPanel" style={{ zIndex: 99999 }} role="dialog" aria-label="Post or list options">
               <div className="postMenuHeader">
                 <div className="postMenuTitle">Create a Listing</div>
                 <div className="postMenuSubtitle">
@@ -606,7 +606,7 @@ export default function TopHeaderClient() {
                       borderRadius: 12,
                       boxShadow: "0 18px 45px rgba(15,23,42,0.18)",
                       zIndex: 80,
-                      overflow: "hidden",
+                      overflow: "visible",
                     }}
                   >
                     <div

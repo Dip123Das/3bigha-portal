@@ -197,7 +197,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   Post / List <span className="postMenuCaret">▾</span>
                 </summary>
 
-                <div className="postMenuPanel" role="dialog" aria-label="Post or List">
+                <div className="postMenuPanel" style={{ zIndex: 99999 }} role="dialog" aria-label="Post or List">
                   <div className="postMenuHeader">
                     <div className="postMenuTitle">Post / List on 3Bigha</div>
                     <div className="postMenuSubtitle">
@@ -510,7 +510,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             position: "absolute",
             width: 1,
             height: 1,
-            overflow: "hidden",
+            overflow: "visible",
             clipPath: "inset(50%)",
             whiteSpace: "nowrap",
           }}

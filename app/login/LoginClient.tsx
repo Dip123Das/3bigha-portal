@@ -543,8 +543,8 @@ export default function LoginClient() {
         {/* RIGHT: Login box */}
         <div className="ui-card">
           <div className="ui-card__header" style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <div style={{ fontWeight: 800, fontSize: 18 }}>Login</div>
-            <div style={{ fontSize: 12, color: "#5b6472" }}>Choose a method</div>
+            <div style={{ fontWeight: 900, fontSize: 26 }}>Welcome to 3Bigha</div>
+            <div style={{ fontSize: 14, color: "#5b6472" }}>Sign in to continue</div>
           </div>
 
           <div className="ui-card__body">
@@ -757,7 +757,7 @@ export default function LoginClient() {
         }
         .loginGrid {
           display: grid;
-          grid-template-columns: 1.1fr 0.9fr;
+          grid-template-columns: minmax(320px, 520px); justify-content:center;
           gap: 10px;
           align-items: stretch;
         }
