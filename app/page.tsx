@@ -695,7 +695,7 @@ export default function HomePage() {
           <p>Join 3Bigha Marketplace and start with your first requirement.</p>
         </div>
         <div>
-          <a href="/signup">Create Account</a>
+          <a href="/login?next=/auth/register-role">Create Account</a>
           <a href="/rfq/general/new">Post Requirement</a>
         </div>
       </section>
