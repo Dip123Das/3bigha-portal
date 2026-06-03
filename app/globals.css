@@ -3627,3 +3627,30 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     display: none !important;
   }
 }
+
+
+/* 3Bigha header dropdown stacking fix */
+.topHeader,
+.topHeaderShell,
+.topHeaderInner,
+.topActions,
+.topSubBar,
+.topSubBarInner,
+.postMenu,
+.stableDesktopMegaNav,
+.stableDesktopMegaNavInner {
+  overflow: visible !important;
+  position: relative;
+}
+
+.topHeader,
+.topHeaderShell {
+  z-index: 9990 !important;
+}
+
+.postMenuPanel,
+.stableMegaPanel,
+.topMobilePanel {
+  z-index: 99999 !important;
+}
+

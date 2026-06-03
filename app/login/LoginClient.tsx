@@ -493,261 +493,196 @@ export default function LoginClient() {
   const nextLooksInvalid = nextWithOpen.includes("/services/<id>") || nextWithOpen.includes("%3Cid%3E");
 
   return (
-    <div className="layout-container loginWrap" style={{ padding: "28px 0 40px" }}>
-      <div className="loginGrid">
-        {/* LEFT: Hero */}
+    <div className="layout-container loginWrap" style={{ padding: "34px 0 60px" }}>
+      <div
+        className="ui-card"
+        style={{
+          maxWidth: 520,
+          margin: "0 auto",
+          borderRadius: 22,
+          boxShadow: "0 24px 70px rgba(15,23,42,0.10)",
+        }}
+      >
         <div
-          className="ui-card"
+          className="ui-card__header"
           style={{
-            background:
-              "radial-gradient(1200px 600px at 20% 10%, rgba(11,87,208,0.35), transparent 55%)," +
-              "radial-gradient(900px 500px at 80% 60%, rgba(0,180,120,0.25), transparent 60%)," +
-              "#0b0f1a",
-            color: "white",
-            borderColor: "rgba(255,255,255,0.08)",
+            display: "block",
+            textAlign: "center",
+            paddingTop: 24,
           }}
         >
-          <div className="ui-card__body" style={{ padding: 22 }}>
-            <div style={{ fontSize: 13, opacity: 0.85 }}>3Bigha</div>
-            <h1 style={{ margin: "10px 0 8px", fontSize: 44, lineHeight: 1.05 }}>Sign in to move faster.</h1>
-            <div style={{ fontSize: 14, opacity: 0.82, maxWidth: 520 }}>
-              Verified listings, instant enquiries, and clean buyer inbox threads.
-            </div>
-
-            <div style={{ marginTop: 18, display: "grid", gap: 10 }}>
-              <div style={{ padding: 14, borderRadius: 12, background: "rgba(255,255,255,0.08)" }}>
-                <div style={{ fontWeight: 700, fontSize: 13 }}>Premium UX</div>
-                <div style={{ fontSize: 12, opacity: 0.85 }}>Auto-return to listing after login + auto-open enquiry modal.</div>
-              </div>
-
-              <div style={{ padding: 14, borderRadius: 12, background: "rgba(255,255,255,0.08)" }}>
-                <div style={{ fontWeight: 700, fontSize: 13 }}>Secure by default</div>
-                <div style={{ fontSize: 12, opacity: 0.85 }}>Passwordless login via Supabase Auth.</div>
-              </div>
-
-              <div style={{ padding: 14, borderRadius: 12, background: "rgba(255,255,255,0.08)" }}>
-                <div style={{ fontWeight: 700, fontSize: 13 }}>Redirect chain</div>
-                <div style={{ fontSize: 12, opacity: 0.85 }}>/login → /auth/callback → next (and openEnquiry auto-opens)</div>
-              </div>
-            </div>
-
-            <div style={{ marginTop: 16, fontSize: 12, opacity: 0.75 }}>
-              Redirect after login:{" "}
-              <span style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" }}>
-                {shouldAutoRedirectWhenSession ? nextWithOpen : "(none) – opened directly"}
-              </span>
-            </div>
+          <div style={{ fontWeight: 950, fontSize: 30, color: "#0f172a" }}>
+            Welcome to 3Bigha
+          </div>
+          <div style={{ marginTop: 6, fontSize: 14, color: "#64748b", fontWeight: 700 }}>
+            Login to continue your marketplace work
           </div>
         </div>
 
-        {/* RIGHT: Login box */}
-        <div className="ui-card">
-          <div className="ui-card__header" style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <div style={{ fontWeight: 900, fontSize: 26 }}>Welcome to 3Bigha</div>
-            <div style={{ fontSize: 14, color: "#5b6472" }}>Sign in to continue</div>
-          </div>
-
-          <div className="ui-card__body">
-            {/* Status box */}
+        <div className="ui-card__body">
+          {msg.type !== "idle" ? (
             <div
               style={{
-                border: "1px solid #e7e9ee",
+                marginBottom: 12,
                 borderRadius: 12,
-                padding: 10,
-                background: "#f7f8fb",
-                fontSize: 12,
-                color: "#142033",
+                padding: 12,
+                fontSize: 13,
+                border:
+                  msg.type === "success"
+                    ? "1px solid #bfdbfe"
+                    : msg.type === "error"
+                    ? "1px solid #fecaca"
+                    : "1px solid #e2e8f0",
+                background:
+                  msg.type === "success"
+                    ? "#eff6ff"
+                    : msg.type === "error"
+                    ? "#fef2f2"
+                    : "#f8fafc",
+                color: msg.type === "error" ? "#991b1b" : "#0f172a",
+                fontWeight: 700,
               }}
             >
-              <div>
-                <b>phase:</b> {phase}
-              </div>
-              <div>
-                <b>loadingMagic:</b> {String(loadingMagic)} {loadingMagic ? `(${Math.floor(elapsedMs / 1000)}s)` : ""}
-              </div>
-              <div>
-                <b>next:</b>{" "}
-                <span style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" }}>
-                  {shouldAutoRedirectWhenSession ? nextWithOpen : "(none)"}
-                </span>
-              </div>
+              {msg.text}
             </div>
+          ) : null}
 
-            {nextLooksInvalid ? (
-              <div
+          {!sessionChecked ? (
+            <div style={{ color: "#64748b", fontSize: 14, fontWeight: 700 }}>
+              Checking session…
+            </div>
+          ) : hasSession && shouldAutoRedirectWhenSession ? (
+            <div style={{ color: "#1d4ed8", fontSize: 14, fontWeight: 800 }}>
+              Already signed in. Redirecting…
+            </div>
+          ) : (
+            <>
+              <button
+                className="ui-btn ui-btn--full ui-btn--primary"
+                onClick={onGoogle}
+                disabled={loadingGoogle}
+                type="button"
                 style={{
-                  marginTop: 10,
-                  border: "1px solid #ffd3d3",
-                  background: "#fff1f1",
-                  color: "#8a1f1f",
-                  borderRadius: 12,
-                  padding: 10,
-                  fontSize: 13,
+                  height: 48,
+                  fontSize: 15,
+                  fontWeight: 950,
+                  borderRadius: 14,
                 }}
               >
-                ⚠️ Your redirect URL contains <b>/services/&lt;id&gt;</b> (placeholder). It must be a real service id.
+                {loadingGoogle ? "Opening Google…" : "Continue with Google"}
+              </button>
+
+              <div style={{ margin: "18px 0", display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ height: 1, background: "#e2e8f0", flex: 1 }} />
+                <div style={{ fontSize: 12, color: "#64748b", fontWeight: 800 }}>or</div>
+                <div style={{ height: 1, background: "#e2e8f0", flex: 1 }} />
               </div>
-            ) : null}
 
-            {/* Message banner */}
-            {msg.type !== "idle" ? (
-              <div
-                style={{
-                  marginTop: 10,
-                  borderRadius: 12,
-                  padding: 10,
-                  fontSize: 13,
-                  border:
-                    msg.type === "success"
-                      ? "1px solid #cfe0ff"
-                      : msg.type === "error"
-                      ? "1px solid #ffd3d3"
-                      : "1px solid #e2e7f2",
-                  background: msg.type === "success" ? "#eef4ff" : msg.type === "error" ? "#fff1f1" : "#f3f6fb",
-                  color: msg.type === "error" ? "#8a1f1f" : "#142033",
-                }}
-              >
-                {msg.text}
+              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                <button className={`ui-pill ${tab === "email" ? "ui-pill--selected" : ""}`} onClick={() => setTab("email")} type="button">
+                  Email Magic Link
+                </button>
+                <button className={`ui-pill ${tab === "phone" ? "ui-pill--selected" : ""}`} onClick={() => setTab("phone")} type="button">
+                  Phone OTP
+                </button>
               </div>
-            ) : null}
 
-            {!sessionChecked ? (
-              <div style={{ marginTop: 12, color: "#5b6472", fontSize: 13 }}>Checking session…</div>
-            ) : hasSession && shouldAutoRedirectWhenSession ? (
-              <div style={{ marginTop: 12, color: "#0b57d0", fontSize: 13 }}>Already signed in. Redirecting…</div>
-            ) : (
-              <>
-                <div style={{ marginTop: 12 }}>
-                  <button className="ui-btn ui-btn--full ui-btn--secondary" onClick={onGoogle} disabled={loadingGoogle}>
-                    {loadingGoogle ? "Opening Google…" : "Continue with Google"}
-                  </button>
-                </div>
+              {tab === "email" ? (
+                <div style={{ display: "grid", gap: 10 }}>
+                  <input
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (msg.type === "error") {
+                        setMsg({ type: "idle", text: "" });
+                        if (phase === "callback-error") setPhase("idle");
+                      }
+                    }}
+                    placeholder="Enter your email"
+                    style={{
+                      width: "100%",
+                      borderRadius: 14,
+                      border: "1px solid #e2e8f0",
+                      padding: "13px 14px",
+                      fontSize: 15,
+                    }}
+                  />
 
-                <div style={{ margin: "14px 0 10px", display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ height: 1, background: "#e7e9ee", flex: 1 }} />
-                  <div style={{ fontSize: 12, color: "#5b6472" }}>or</div>
-                  <div style={{ height: 1, background: "#e7e9ee", flex: 1 }} />
-                </div>
-
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button className={`ui-pill ${tab === "email" ? "ui-pill--selected" : ""}`} onClick={() => setTab("email")} type="button">
-                    Email
-                  </button>
-                  <button className={`ui-pill ${tab === "phone" ? "ui-pill--selected" : ""}`} onClick={() => setTab("phone")} type="button">
-                    Phone OTP
-                  </button>
-                </div>
-
-                {tab === "email" ? (
-                  <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Email</div>
-                      <input
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value);
-                          if (msg.type === "error") {
-                            setMsg({ type: "idle", text: "" });
-                            if (phase === "callback-error") setPhase("idle");
-                          }
-                        }}
-                        placeholder="you@example.com"
-                        style={{
-                          width: "100%",
-                          borderRadius: 10,
-                          border: "1px solid #e7e9ee",
-                          padding: "10px 12px",
-                          fontSize: 14,
-                        }}
-                      />
-                    </div>
-
-                    <button className="ui-btn ui-btn--full ui-btn--primary" onClick={onSendMagicLink} disabled={loadingMagic} type="button">
-                      {loadingMagic ? `Sending… ${Math.floor(elapsedMs / 1000)}s` : "Send magic link"}
-                    </button>
-
-                    <button className="ui-btn ui-btn--full ui-btn--ghost" onClick={runAuthNetworkProbe} type="button">
-                      Run auth network probe
-                    </button>
-                    <div style={{ fontSize: 12, color: "#5b6472", lineHeight: 1.5 }}>
-                      Tip: every new magic link replaces the previous one. If you requested multiple emails, use only the latest link.
-                    </div>
-
-                    <div style={{ fontSize: 12, color: "#5b6472" }}>
-                      After clicking the link in your email, you’ll return to{" "}
-                      <span style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace" }}>
-                        {shouldAutoRedirectWhenSession ? nextWithOpen : "/"}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>Phone</div>
-                      <input
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="+91XXXXXXXXXX"
-                        style={{
-                          width: "100%",
-                          borderRadius: 10,
-                          border: "1px solid #e7e9ee",
-                          padding: "10px 12px",
-                          fontSize: 14,
-                        }}
-                      />
-                    </div>
-
-                    <button className="ui-btn ui-btn--full ui-btn--secondary" onClick={onSendPhoneOtp} disabled={loadingPhoneSend} type="button">
-                      {loadingPhoneSend ? "Sending OTP…" : "Send OTP"}
-                    </button>
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                      <input
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        placeholder="OTP"
-                        style={{
-                          width: "100%",
-                          borderRadius: 10,
-                          border: "1px solid #e7e9ee",
-                          padding: "10px 12px",
-                          fontSize: 14,
-                        }}
-                      />
-                      <button className="ui-btn ui-btn--primary ui-btn--full" onClick={onVerifyPhoneOtp} disabled={loadingPhoneVerify} type="button">
-                        {loadingPhoneVerify ? "Verifying…" : "Verify & Login"}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <div style={{ marginTop: 12 }}>
-                  <button className="ui-btn ui-btn--full ui-btn--ghost" onClick={continueAsGuest} type="button">
-                    Continue as guest →
-                  </button>
-                </div>
-
-                <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", gap: 10 }}>
-                  <a
-                    href={`/login?next=${encodeURIComponent(nextPath)}${openEnquiry === "1" ? "&openEnquiry=1" : ""}&debug=1`}
-                    style={{ fontSize: 12, color: "#5b6472", fontWeight: 700 }}
+                  <button
+                    className="ui-btn ui-btn--full ui-btn--primary"
+                    onClick={onSendMagicLink}
+                    disabled={loadingMagic}
+                    type="button"
+                    style={{ height: 46, borderRadius: 14, fontWeight: 950 }}
                   >
-                    Debug view
-                  </a>
-                </div>
+                    {loadingMagic ? `Sending… ${Math.floor(elapsedMs / 1000)}s` : "Send magic link"}
+                  </button>
 
-                {debugEnabled ? (
-                  <div style={{ marginTop: 12, border: "1px solid #e7e9ee", borderRadius: 12, background: "#f7f8fb" }}>
-                    <div style={{ padding: 10, fontSize: 12, fontWeight: 800, color: "#142033" }}>Debug log</div>
-                    <pre style={{ margin: 0, padding: 10, maxHeight: 240, overflow: "auto", fontSize: 11, color: "#142033" }}>
-                      {debugLines.current.join("\n")}
-                    </pre>
+                  <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5, fontWeight: 700 }}>
+                    We will send a secure login link to your email.
                   </div>
-                ) : null}
-              </>
-            )}
-          </div>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: 10 }}>
+                  <input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+91XXXXXXXXXX"
+                    style={{
+                      width: "100%",
+                      borderRadius: 14,
+                      border: "1px solid #e2e8f0",
+                      padding: "13px 14px",
+                      fontSize: 15,
+                    }}
+                  />
+
+                  <button
+                    className="ui-btn ui-btn--full ui-btn--secondary"
+                    onClick={onSendPhoneOtp}
+                    disabled={loadingPhoneSend}
+                    type="button"
+                    style={{ height: 46, borderRadius: 14, fontWeight: 950 }}
+                  >
+                    {loadingPhoneSend ? "Sending OTP…" : "Send OTP"}
+                  </button>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <input
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      placeholder="OTP"
+                      style={{
+                        width: "100%",
+                        borderRadius: 14,
+                        border: "1px solid #e2e8f0",
+                        padding: "13px 14px",
+                        fontSize: 15,
+                      }}
+                    />
+                    <button
+                      className="ui-btn ui-btn--primary ui-btn--full"
+                      onClick={onVerifyPhoneOtp}
+                      disabled={loadingPhoneVerify}
+                      type="button"
+                      style={{ borderRadius: 14, fontWeight: 950 }}
+                    >
+                      {loadingPhoneVerify ? "Verifying…" : "Verify"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <button
+                className="ui-btn ui-btn--full ui-btn--ghost"
+                onClick={continueAsGuest}
+                type="button"
+                style={{ marginTop: 14, borderRadius: 14, fontWeight: 900 }}
+              >
+                Continue as guest →
+              </button>
+            </>
+          )}
         </div>
       </div>
 
