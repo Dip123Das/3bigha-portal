@@ -460,7 +460,49 @@ export default function LandAreaCalculatorPage() {
             </span>
           </div>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-4">
+          <div className="mt-4 grid gap-3 md:grid-cols-6">
+            <label className="text-sm font-semibold text-slate-700">
+              State / UT
+              <select
+                value={state}
+                onChange={(e) => {
+                  const nextState = e.target.value;
+                  setState(nextState);
+                  const firstLiveDistrict = liveRegions
+                    .filter((region) => region.state === nextState)
+                    .map((region) => liveRegionLabel(region))[0];
+
+                  setDistrict(
+                    firstLiveDistrict ||
+                      getDistrictOptions(nextState)[0]?.name ||
+                      "All districts / local practice"
+                  );
+                }}
+                className="mt-2 w-full rounded-xl border px-3 py-3 text-base"
+              >
+                {stateOptions.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="text-sm font-semibold text-slate-700">
+              District / Local Practice
+              <select
+                value={district}
+                onChange={(e) => setDistrict(e.target.value)}
+                className="mt-2 w-full rounded-xl border px-3 py-3 text-base"
+              >
+                {districtOptions.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </label>
+
             <label className="text-sm font-semibold text-slate-700">
               Value
               <input
@@ -502,7 +544,7 @@ export default function LandAreaCalculatorPage() {
               </select>
             </label>
 
-            <div className="rounded-2xl bg-white p-4">
+            <div className="rounded-2xl bg-white p-4 md:col-span-1">
               <div className="text-xs font-bold uppercase text-emerald-700">
                 Converted Result
               </div>
@@ -527,7 +569,7 @@ export default function LandAreaCalculatorPage() {
           </div>
 
           <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
-            Regional units vary by state, district and local practice. For registry, mutation, deed or legal work, verify with local land/revenue office.
+            Showing conversion for <b>{state}</b> · <b>{district}</b>. Regional units vary by state, district and local practice. For registry, mutation, deed or legal work, verify with local land/revenue office.
           </div>
         </section>
 
