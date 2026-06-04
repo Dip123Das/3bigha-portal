@@ -25,6 +25,12 @@ import {
 type CalculatorMode = "land" | "building";
 type InputUnit = "feet" | "meter";
 
+type ConverterUnitOption = {
+  key: string;
+  label: string;
+  sqft: number;
+};
+
 type MeasurementPart = {
   id: string;
   mode: CalculatorMode;
@@ -96,6 +102,10 @@ export default function LandAreaCalculatorPage() {
   const [parts, setParts] = useState<MeasurementPart[]>([]);
   const [liveRegions, setLiveRegions] = useState<LiveMeasurementRegion[]>([]);
   const [liveUnits, setLiveUnits] = useState<LiveMeasurementUnit[]>([]);
+
+  const [converterValue, setConverterValue] = useState(1);
+  const [converterFromUnit, setConverterFromUnit] = useState("sqft");
+  const [converterToUnit, setConverterToUnit] = useState("katha");
 
   function syncDrawingToTextarea(points: Array<{ x: number; y: number }>) {
     setPolygonPointsText(
@@ -211,6 +221,77 @@ export default function LandAreaCalculatorPage() {
       null
     );
   }, [state, district, liveRegions]);
+
+  const converterRegionalUnits = useMemo<ConverterUnitOption[]>(() => {
+    if (
+      selectedLiveRegion &&
+      liveUnits.some((unitItem) => unitItem.region_id === selectedLiveRegion.id)
+    ) {
+      return liveUnits
+        .filter((unitItem) => unitItem.region_id === selectedLiveRegion.id)
+        .map((unitItem) => ({
+          key: unitItem.unit_slug,
+          label: unitItem.unit_name,
+          sqft: Number(unitItem.sqft_value) || 0,
+        }))
+        .filter((unitItem) => unitItem.sqft > 0);
+    }
+
+    return convertSqftToRegionalUnits(1, state, district)
+      .map((unitItem) => ({
+        key: unitItem.key,
+        label: unitItem.label,
+        sqft: unitItem.sqft,
+      }))
+      .filter((unitItem) => unitItem.sqft > 0);
+  }, [selectedLiveRegion, liveUnits, state, district]);
+
+  const converterUnits = useMemo<ConverterUnitOption[]>(() => {
+    const baseUnits: ConverterUnitOption[] = [
+      { key: "sqft", label: "Square Feet", sqft: 1 },
+      { key: "sqm", label: "Square Meter", sqft: 10.7639104167 },
+      { key: "acre", label: "Acre", sqft: 43560 },
+      { key: "hectare", label: "Hectare", sqft: 107639.104167 },
+      { key: "decimal", label: "Decimal", sqft: 435.6 },
+    ];
+
+    const map = new Map<string, ConverterUnitOption>();
+
+    [...baseUnits, ...converterRegionalUnits].forEach((unitItem) => {
+      const key = unitItem.key || unitItem.label.toLowerCase().replace(/\s+/g, "-");
+      if (!map.has(key) && unitItem.sqft > 0) {
+        map.set(key, { ...unitItem, key });
+      }
+    });
+
+    return Array.from(map.values());
+  }, [converterRegionalUnits]);
+
+  useEffect(() => {
+    if (!converterUnits.some((unitItem) => unitItem.key === converterFromUnit)) {
+      setConverterFromUnit("sqft");
+    }
+
+    if (!converterUnits.some((unitItem) => unitItem.key === converterToUnit)) {
+      setConverterToUnit(converterRegionalUnits[0]?.key || "decimal");
+    }
+  }, [converterUnits, converterRegionalUnits, converterFromUnit, converterToUnit]);
+
+  const converterResult = useMemo(() => {
+    const fromUnit = converterUnits.find((unitItem) => unitItem.key === converterFromUnit);
+    const toUnit = converterUnits.find((unitItem) => unitItem.key === converterToUnit);
+
+    const inputValue = Number(converterValue) || 0;
+    const totalSqft = inputValue * (fromUnit?.sqft || 0);
+    const convertedValue = toUnit?.sqft ? totalSqft / toUnit.sqft : 0;
+
+    return {
+      fromUnit,
+      toUnit,
+      totalSqft,
+      convertedValue,
+    };
+  }, [converterUnits, converterValue, converterFromUnit, converterToUnit]);
 
   const polygonPoints = useMemo(() => {
     return polygonPointsText
@@ -362,6 +443,93 @@ export default function LandAreaCalculatorPage() {
             in square feet and square meter first, then convert land area into Indian regional units.
           </p>
         </div>
+
+        <section className="mb-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-black text-slate-950">
+                State & District Wise Land Unit Converter
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-slate-700">
+                Convert sqft, sqm, acre, hectare, decimal and local units like katha, bigha, dhur, biswa etc. using the selected state/district practice.
+              </p>
+            </div>
+
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-emerald-800">
+              Universal sqft basis
+            </span>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-4">
+            <label className="text-sm font-semibold text-slate-700">
+              Value
+              <input
+                type="number"
+                min="0"
+                value={converterValue}
+                onChange={(e) => setConverterValue(Number(e.target.value))}
+                className="mt-2 w-full rounded-xl border px-3 py-3 text-base"
+              />
+            </label>
+
+            <label className="text-sm font-semibold text-slate-700">
+              From Unit
+              <select
+                value={converterFromUnit}
+                onChange={(e) => setConverterFromUnit(e.target.value)}
+                className="mt-2 w-full rounded-xl border px-3 py-3 text-base"
+              >
+                {converterUnits.map((unitItem) => (
+                  <option key={unitItem.key} value={unitItem.key}>
+                    {unitItem.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="text-sm font-semibold text-slate-700">
+              To Unit
+              <select
+                value={converterToUnit}
+                onChange={(e) => setConverterToUnit(e.target.value)}
+                className="mt-2 w-full rounded-xl border px-3 py-3 text-base"
+              >
+                {converterUnits.map((unitItem) => (
+                  <option key={unitItem.key} value={unitItem.key}>
+                    {unitItem.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="rounded-2xl bg-white p-4">
+              <div className="text-xs font-bold uppercase text-emerald-700">
+                Converted Result
+              </div>
+              <div className="mt-1 text-2xl font-black text-slate-950">
+                {formatNumber(converterResult.convertedValue, 6)}
+              </div>
+              <div className="mt-1 text-xs font-semibold text-slate-600">
+                {converterResult.toUnit?.label || "Selected unit"}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 grid gap-2 text-xs leading-5 text-slate-600 md:grid-cols-2">
+            <div className="rounded-xl bg-white px-3 py-2">
+              {formatNumber(converterValue, 6)} {converterResult.fromUnit?.label || "unit"} =
+              {" "}{formatNumber(converterResult.totalSqft, 6)} sqft
+            </div>
+            <div className="rounded-xl bg-white px-3 py-2">
+              1 {converterResult.toUnit?.label || "selected unit"} =
+              {" "}{formatNumber(converterResult.toUnit?.sqft || 0, 6)} sqft
+            </div>
+          </div>
+
+          <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+            Regional units vary by state, district and local practice. For registry, mutation, deed or legal work, verify with local land/revenue office.
+          </div>
+        </section>
 
         <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-2xl border bg-slate-50 p-4">
