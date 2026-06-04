@@ -86,8 +86,18 @@ export default function ExperienceModeProvider({
 
 export function useExperienceMode() {
   const ctx = useContext(ExperienceModeContext);
+
   if (!ctx) {
-    throw new Error("useExperienceMode must be used inside ExperienceModeProvider");
+    return {
+      mode: DEFAULT_EXPERIENCE_MODE,
+      setMode: () => {},
+      isSimple: true,
+      isSmart: false,
+      isAdvanced: false,
+      showSmart: false,
+      showAdvanced: false,
+    };
   }
+
   return ctx;
 }
