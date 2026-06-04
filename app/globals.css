@@ -3655,7 +3655,7 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
 }
 
 
-/* Final homepage category polish: compact, balanced, no hierarchy change */
+/* Homepage category visual polish: left aligned and mobile-safe */
 @media (min-width: 900px) {
   .contentSection:has(.premiumCategoryGrid) .sectionHead {
     align-items: flex-start;
@@ -3663,14 +3663,13 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
 
   .contentSection:has(.premiumCategoryGrid) .sectionHeadAction {
     margin-left: auto;
-    align-self: center;
+    align-self: flex-start;
   }
 
   .premiumCategoryGrid {
-    grid-template-columns: repeat(5, minmax(160px, 1fr));
-    max-width: 1180px;
-    margin: 18px auto 0;
-    justify-content: center;
+    grid-template-columns: repeat(5, minmax(170px, 1fr));
+    justify-content: start;
+    margin-top: 18px;
   }
 
   .premiumCategoryGrid .categoryCard {
@@ -3679,11 +3678,11 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
 }
 
 @media (max-width: 899px) {
-  .premiumCategoryGrid:not(.isMobileExpanded) > *:nth-child(n+4) {
+  .contentSection:has(.premiumCategoryGrid) .sectionHeadAction {
     display: none;
   }
 
-  .contentSection:has(.premiumCategoryGrid) .sectionHeadAction {
-    display: none;
+  .premiumCategoryGrid:not(.isMobileExpanded) > *:nth-child(n+4) {
+    display: block;
   }
 }
