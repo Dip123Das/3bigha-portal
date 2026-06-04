@@ -1,10 +1,13 @@
+import ProjectWorkflowHub from "@/components/project/ProjectWorkflowHub";
 import Link from "next/link";
 
 import ConstructionCostCalculator from "@/components/construction-cost/ConstructionCostCalculator";
 import FinanceAssistanceCta from "@/components/finance/FinanceAssistanceCta";
 
 export default function ConstructionCostIndexPage() {
-  return (
+  
+return (
+
     <main className="min-h-screen bg-slate-50">
       <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-orange-50">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
@@ -51,5 +54,5 @@ export default function ConstructionCostIndexPage() {
         <ConstructionCostCalculator />
       </section>
     </main>
-  );
+    );
 }

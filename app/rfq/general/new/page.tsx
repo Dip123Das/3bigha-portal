@@ -1,6 +1,8 @@
 // app/rfq/general/new/page.tsx
 "use client";
 
+import ProjectWorkflowHub from "@/components/project/ProjectWorkflowHub";
+
 import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";

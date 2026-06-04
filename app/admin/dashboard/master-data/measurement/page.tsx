@@ -58,6 +58,11 @@ async function addUnit(formData: FormData) {
   const sqft_value = Number(formData.get("sqft_value") || 0);
   const notes = String(formData.get("notes") || "").trim() || null;
   const aliasesRaw = String(formData.get("aliases") || "").trim();
+  const unit_category = String(formData.get("unit_category") || "").trim() || null;
+  const common_usage = String(formData.get("common_usage") || "").trim() || null;
+  const hierarchy_relation = String(formData.get("hierarchy_relation") || "").trim() || null;
+  const confidence_level = String(formData.get("confidence_level") || "").trim() || null;
+  const search_keywords_raw = String(formData.get("search_keywords") || "").trim();
   const is_verified = String(formData.get("is_verified") || "") === "on";
 
   const unit_slug = unit_name
@@ -73,22 +78,45 @@ async function addUnit(formData: FormData) {
     ? aliasesRaw.split(",").map((item) => item.trim()).filter(Boolean)
     : [];
 
-  await supabase.from("measurement_units").upsert(
-    {
-      region_id,
-      unit_name,
-      unit_slug,
-      sqft_value,
-      sqm_value: sqft_value / 10.7639104167,
-      acre_value: sqft_value / 43560,
-      hectare_value: sqft_value / 107639.104167,
-      aliases,
-      notes,
-      is_verified,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "region_id,unit_slug" }
-  );
+  const search_keywords = search_keywords_raw
+    ? search_keywords_raw.split(",").map((item) => item.trim()).filter(Boolean)
+    : [];
+
+  const unitPayload: Record<string, any> = {
+    region_id,
+    unit_name,
+    unit_slug,
+    sqft_value,
+    sqm_value: sqft_value / 10.7639104167,
+    acre_value: sqft_value / 43560,
+    hectare_value: sqft_value / 107639.104167,
+    aliases,
+    unit_category,
+    common_usage,
+    hierarchy_relation,
+    confidence_level,
+    search_keywords,
+    notes,
+    is_verified,
+    updated_at: new Date().toISOString(),
+  };
+
+  const firstAttempt = await supabase
+    .from("measurement_units")
+    .upsert(unitPayload, { onConflict: "region_id,unit_slug" });
+
+  if (firstAttempt.error) {
+    const safePayload = { ...unitPayload };
+    delete safePayload.unit_category;
+    delete safePayload.common_usage;
+    delete safePayload.hierarchy_relation;
+    delete safePayload.confidence_level;
+    delete safePayload.search_keywords;
+
+    await supabase
+      .from("measurement_units")
+      .upsert(safePayload, { onConflict: "region_id,unit_slug" });
+  }
 
   revalidatePath("/admin/dashboard/master-data/measurement");
   revalidatePath("/land-area-calculator");
@@ -163,6 +191,41 @@ export default async function MeasurementMasterDataPage() {
               <input name="unit_name" required placeholder="Local unit name *" className="rounded-2xl border px-4 py-3 text-sm" />
               <input name="sqft_value" required type="number" step="0.0001" placeholder="Value in square feet *" className="rounded-2xl border px-4 py-3 text-sm" />
               <input name="aliases" placeholder="Aliases, comma separated" className="rounded-2xl border px-4 py-3 text-sm" />
+
+              <select name="unit_category" className="rounded-2xl border px-4 py-3 text-sm">
+                <option value="">Unit category</option>
+                <option value="Land">Land</option>
+                <option value="Agriculture">Agriculture</option>
+                <option value="Commercial">Commercial</option>
+                <option value="Urban">Urban</option>
+                <option value="Registry">Registry</option>
+                <option value="Traditional">Traditional</option>
+                <option value="Construction">Construction</option>
+              </select>
+
+              <select name="common_usage" className="rounded-2xl border px-4 py-3 text-sm">
+                <option value="">Common usage</option>
+                <option value="Village use">Village use</option>
+                <option value="Registry office">Registry office</option>
+                <option value="Broker practice">Broker practice</option>
+                <option value="Agriculture">Agriculture</option>
+                <option value="Urban plotting">Urban plotting</option>
+                <option value="Builder usage">Builder usage</option>
+              </select>
+
+              <input name="hierarchy_relation" placeholder="Hierarchy relation, e.g. 20 dhur = 1 katha" className="rounded-2xl border px-4 py-3 text-sm" />
+
+              <select name="confidence_level" className="rounded-2xl border px-4 py-3 text-sm">
+                <option value="">Confidence level</option>
+                <option value="Verified by registry">Verified by registry</option>
+                <option value="Verified by local revenue office">Verified by local revenue office</option>
+                <option value="Local estimate">Local estimate</option>
+                <option value="Community practice">Community practice</option>
+                <option value="Historical usage">Historical usage</option>
+              </select>
+
+              <input name="search_keywords" placeholder="Search keywords, comma separated" className="rounded-2xl border px-4 py-3 text-sm" />
+
               <textarea name="notes" placeholder="Unit note / local practice explanation" className="min-h-24 rounded-2xl border px-4 py-3 text-sm" />
               <label className="flex items-center gap-2 text-sm font-bold text-slate-700">
                 <input name="is_verified" type="checkbox" /> Mark as verified
@@ -192,9 +255,19 @@ export default async function MeasurementMasterDataPage() {
             {(units || []).map((unit: any) => (
               <div key={unit.id} className="rounded-2xl border bg-slate-50 p-3 text-sm">
                 <b>{unit.unit_name}</b> · {Number(unit.sqft_value).toLocaleString("en-IN")} sqft
-                <div className="text-xs text-slate-500">
+                <div className="mt-1 text-xs text-slate-500">
                   {unit.measurement_regions?.region_slug} · {unit.is_verified ? "Verified" : "Unverified"}
                 </div>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                  {unit.unit_category ? <span className="rounded-full bg-emerald-50 px-2 py-1 font-bold text-emerald-700">{unit.unit_category}</span> : null}
+                  {unit.common_usage ? <span className="rounded-full bg-blue-50 px-2 py-1 font-bold text-blue-700">{unit.common_usage}</span> : null}
+                  {unit.confidence_level ? <span className="rounded-full bg-amber-50 px-2 py-1 font-bold text-amber-700">{unit.confidence_level}</span> : null}
+                </div>
+                {unit.hierarchy_relation ? (
+                  <div className="mt-2 text-xs font-semibold text-slate-700">
+                    Relation: {unit.hierarchy_relation}
+                  </div>
+                ) : null}
               </div>
             ))}
           </div>

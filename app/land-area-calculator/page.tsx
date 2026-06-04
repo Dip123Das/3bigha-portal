@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import ConstructionIntelligencePanel from "@/components/construction/ConstructionIntelligencePanel";
+import ProjectWorkflowHub from "@/components/project/ProjectWorkflowHub";
+import {
+  saveProjectWorkflow,
+} from "@/lib/project/projectWorkflowMemory";
 import {
   averageRectangleAreaToSqft,
   circleAreaToSqft,
@@ -183,7 +188,8 @@ export default function LandAreaCalculatorPage() {
   }, []);
 
   function liveRegionLabel(region: LiveMeasurementRegion) {
-    return (
+
+  return (
       [region.district, region.city, region.block, region.mouza]
         .filter(Boolean)
         .join(" / ") || "All districts / local practice"
@@ -215,7 +221,7 @@ export default function LandAreaCalculatorPage() {
   const selectedLiveRegion = useMemo(() => {
     const regionsForState = liveRegions.filter((region) => region.state === state);
 
-    return (
+  return (
       regionsForState.find((region) => liveRegionLabel(region) === district) ||
       regionsForState.find((region) => liveRegionLabel(region) === "All districts / local practice") ||
       null
@@ -429,6 +435,96 @@ export default function LandAreaCalculatorPage() {
   function clearParts() {
     setParts([]);
   }
+
+
+  useEffect(() => {
+    if (!result.squareFeet || result.squareFeet <= 0) return;
+
+    saveProjectWorkflow({
+      id: "active-construction-project",
+      title:
+        mode === "building"
+          ? `${Math.round(result.squareFeet)} sqft Building Project`
+          : `${Math.round(result.squareFeet)} sqft Land Project`,
+      state,
+      district,
+      areaSqft: result.squareFeet,
+      buildingType:
+        mode === "building" ? "residential" : "rural_house",
+      quality: "standard",
+      currentStage: "land-calculation",
+      completedStages: ["land-calculation"],
+      updatedAt: Date.now(),
+      source: "land-area-calculator",
+    });
+  }, [
+    result.squareFeet,
+    mode,
+    state,
+    district,
+  ]);
+
+  const contextualGuidance = useMemo(() => {
+    const sqft = result.squareFeet;
+    const items: string[] = [];
+
+    if (mode === "land") {
+      if (sqft <= 1200) {
+        items.push("Suitable for compact 2BHK planning or small residential construction.");
+      } else if (sqft <= 2500) {
+        items.push("Suitable for medium residential house, rental units or mixed-use planning.");
+      } else if (sqft <= 10000) {
+        items.push("Suitable for apartment, warehouse, commercial or subdivision planning.");
+      } else {
+        items.push("Large land parcel suitable for township, agriculture, layout or commercial development.");
+      }
+
+      if (state === "West Bengal") {
+        items.push("West Bengal registry commonly uses decimal and boundary schedule descriptions.");
+        items.push("Verify mutation, LR-RS records and access road before final transaction.");
+      }
+
+      if (district.toLowerCase().includes("cooch")) {
+        items.push("Check monsoon drainage and road accessibility during rainy season.");
+      }
+
+      if (sqft < 800) {
+        items.push("Very small plot. Verify setback rules and parking feasibility before planning.");
+      }
+
+      if (sqft > 43560) {
+        items.push("Large area detected. Verify land classification, conversion and agricultural permissions.");
+      }
+
+      items.push("Always verify land dimensions physically before registry or final payment.");
+    }
+
+    if (mode === "building") {
+      if (sqft <= 1000) {
+        items.push("Suitable for compact residential construction or shop + residence planning.");
+      } else if (sqft <= 3000) {
+        items.push("Suitable for multi-room residential or commercial floor planning.");
+      } else {
+        items.push("Large built-up area. Structural planning and phased execution may be required.");
+      }
+
+      items.push("Built-up area can later connect with BOQ, material estimation and RFQ workflows.");
+    }
+
+    return items.slice(0, 6);
+  }, [result.squareFeet, mode, state, district]);
+
+  const areaWorkflowParams = new URLSearchParams({
+    area: String(Math.round(result.squareFeet)),
+    unit: "sqft",
+    state,
+    district,
+    source: "land-area-calculator",
+  });
+
+  const constructionEstimateHref = `/construction-cost?${areaWorkflowParams.toString()}`;
+  const materialRfqHref = `/materials/rfq/new?${areaWorkflowParams.toString()}`;
+  const propertyAddHref = `/property/add?${areaWorkflowParams.toString()}`;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
@@ -812,7 +908,7 @@ export default function LandAreaCalculatorPage() {
                           ? (point.y + nextPoint.y) / 2
                           : point.y;
 
-                        return (
+  return (
                         <g key={`${point.x}-${point.y}-${index}`}>
                           <circle
                             cx={point.x}
@@ -1022,6 +1118,93 @@ export default function LandAreaCalculatorPage() {
               <ResultCard label="Acre" value={formatNumber(result.acre, 5)} />
               <ResultCard label="Hectare" value={formatNumber(result.hectare, 5)} />
             </div>
+
+            <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-black text-slate-950">
+                    Property & Land Guidance
+                  </h3>
+
+                  <p className="mt-1 text-sm leading-6 text-slate-700">
+                    Contextual operational guidance based on area, location and usage pattern.
+                  </p>
+                </div>
+
+                <div className="rounded-full bg-white px-3 py-1 text-xs font-bold text-emerald-700">
+                  {state} · {district}
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3">
+                {contextualGuidance.map((item, index) => (
+                  <div
+                    key={`${item}-${index}`}
+                    className="rounded-xl bg-white px-4 py-3 text-sm leading-6 text-slate-700"
+                  >
+                    • {item}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-5 text-blue-900">
+                These are practical operational suggestions, not legal advice. Final verification should be done through architect, engineer, surveyor, registry office or local authority where applicable.
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-black text-slate-950">
+                    Use This Area for Next Work
+                  </h3>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    Continue from this calculated area into construction planning, material requirement or property listing.
+                  </p>
+                </div>
+
+                <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                  {formatNumber(roundArea(result.squareFeet))} sqft
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3">
+                <a
+                  href={constructionEstimateHref}
+                  className="rounded-2xl bg-slate-950 px-4 py-3 text-center text-sm font-bold text-white hover:bg-slate-800"
+                >
+                  Estimate Construction Cost
+                </a>
+
+                <a
+                  href={materialRfqHref}
+                  className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-bold text-emerald-800 hover:bg-emerald-100"
+                >
+                  Generate Material Requirement / RFQ
+                </a>
+
+                <a
+                  href={propertyAddHref}
+                  className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-center text-sm font-bold text-blue-800 hover:bg-blue-100"
+                >
+                  Create Property Listing from This Area
+                </a>
+              </div>
+
+              <div className="mt-3 rounded-xl bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-600">
+                This keeps the workflow simple: calculate area first, then move to cost, materials, RFQ or listing when ready.
+              </div>
+            </div>
+
+            <ConstructionIntelligencePanel
+              areaSqft={result.squareFeet}
+              state={state}
+              district={district}
+              buildingType={mode === "building" ? "residential" : "rural_house"}
+              floors={1}
+              quality="standard"
+              source="land-area-calculator"
+            />
           </div>
         </div>
 
@@ -1379,6 +1562,7 @@ function ShapeMiniSvg({ shape, active }: { shape: AreaShape; active?: boolean })
 }
 
 function ShapeLargeSvg({ shape }: { shape: AreaShape }) {
+
   return (
     <svg viewBox="0 0 160 110" className="h-24 w-full" aria-hidden="true">
       <ShapePath shape={shape} stroke="#047857" large />
@@ -1399,7 +1583,8 @@ function ShapePath({
   const height = large ? 110 : 44;
 
   if (shape === "average-rectangle") {
-    return (
+
+  return (
       <>
         <polygon points={`14,12 ${width - 10},8 ${width - 14},${height - 10} 10,${height - 8}`} fill="none" stroke={stroke} strokeWidth="4" />
         {large ? (
@@ -1413,7 +1598,8 @@ function ShapePath({
   }
 
   if (shape === "triangle") {
-    return (
+
+  return (
       <>
         <polygon points={`${width / 2},10 ${width - 18},${height - 10} 18,${height - 10}`} fill="none" stroke={stroke} strokeWidth="4" />
         {large ? <line x1={width / 2} y1="14" x2={width / 2} y2={height - 10} stroke={stroke} strokeDasharray="5 5" strokeWidth="2" /> : null}
@@ -1422,7 +1608,8 @@ function ShapePath({
   }
 
   if (shape === "circle") {
-    return (
+
+  return (
       <>
         <circle cx={width / 2} cy={height / 2} r={large ? 36 : 15} fill="none" stroke={stroke} strokeWidth="4" />
         {large ? <line x1={width / 2} y1={height / 2} x2={width / 2 + 36} y2={height / 2} stroke={stroke} strokeDasharray="5 5" strokeWidth="2" /> : null}
@@ -1435,7 +1622,8 @@ function ShapePath({
   }
 
   if (shape === "polygon") {
-    return (
+
+  return (
       <polygon
         points={`12,18 42,8 ${width - 10},24 ${width - 22},${height - 10} 20,${height - 6}`}
         fill="none"
@@ -1446,7 +1634,8 @@ function ShapePath({
   }
 
   if (shape === "irregular") {
-    return (
+
+  return (
       <>
         <polygon points={`24,10 ${width - 12},18 ${width - 24},${height - 8} 12,${height - 14}`} fill="none" stroke={stroke} strokeWidth="4" />
         {large ? (
@@ -1511,6 +1700,7 @@ function UnitSelect({
   unit: InputUnit;
   setUnit: (unit: InputUnit) => void;
 }) {
+
   return (
     <label className="text-sm font-semibold text-slate-700">
       Input Unit
@@ -1547,6 +1737,7 @@ function ResultCard({
 }
 
 function InfoCard({ title, text }: { title: string; text: string }) {
+
   return (
     <div className="rounded-2xl bg-white p-4">
       <b>{title}</b>

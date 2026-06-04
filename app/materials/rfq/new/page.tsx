@@ -1,6 +1,8 @@
 // app/materials/rfq/new/page.tsx
 "use client";
 
+import ProjectWorkflowHub from "@/components/project/ProjectWorkflowHub";
+
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
