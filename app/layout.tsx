@@ -311,10 +311,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </div>
 
                 <div className="topMobileGroup">
-                  <div className="topMobileTitle">Buyer</div>
+                  <div className="topMobileTitle">My Work</div>
+
                   <ActiveLink className="topMobileLink" href="/dashboard/buyer">
                     My Dashboard
                   </ActiveLink>
+
                   <ActiveLink className="topMobileLink" href="/dashboard/buyer/rfqs">
                     My RFQs / Compare Quotes
                   </ActiveLink>
@@ -323,32 +325,29 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     className="topMobileLink"
                     label="Notifications"
                   />
+
                   <ActiveLink className="topMobileLink" href="/rfq/general/new">
                     Submit Requirement
                   </ActiveLink>
-                </div>
 
-                <div className="topMobileGroup">
-                  <div className="topMobileTitle">Investment</div>
+                  <ActiveLink className="topMobileLink" href="/dashboard/vendor">
+                    Vendor Hub
+                  </ActiveLink>
+
                   <ActiveLink
                     className="topMobileLink"
                     href="/dashboard/investor/deal-rooms"
                   >
-                    Investor Deal Rooms
+                    Investment Workspace
                   </ActiveLink>
+
                   <ActiveLink
                     className="topMobileLink"
-                    href="/dashboard/builder/deal-rooms"
+                    href="/dashboard/procurement-os"
                   >
-                    Builder Deal Rooms
+                    Procurement Workspace
                   </ActiveLink>
-                </div>
 
-                <div className="topMobileGroup">
-                  <div className="topMobileTitle">Vendor</div>
-                  <ActiveLink className="topMobileLink" href="/dashboard/vendor">
-                    Vendor Hub Dashboard
-                  </ActiveLink>
                   <Link className="topMobileLink" href="/login">
                     Login / Account
                   </Link>

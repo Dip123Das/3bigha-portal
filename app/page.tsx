@@ -78,16 +78,8 @@ const categoryCards = [
   { title: "Materials", icon: "🧱", text: "Cement, steel, sand, bricks and construction materials", count: "Compare • Buy • RFQ", href: "/materials" },
   { title: "Services", icon: "🛠️", text: "Contractors, labour, plumbing, electrical and legal support", count: "Hire • Compare • Execute", href: "/services" },
   { title: "Rentals", icon: "🚜", text: "JCB, machinery, scaffolding and construction rentals", count: "Rent • Operate • Deliver", href: "/rentals" },
-  { title: "Submit RFQ", icon: "⚡", text: "Post material, service, rental or project requirements", count: "Post • Compare • Select", href: "/rfq/general/new" },
-  { title: "Construction Cost", icon: "🏗️", text: "Estimate house construction cost, BOQ and materials", count: "Estimate • Plan • Build", href: "/construction-cost" },
-  { title: "Land Calculator", icon: "📐", text: "Measure land and convert katha, bigha, decimal and sqft", count: "Measure • Convert • Plan", href: "/land-area-calculator" },
-  { title: "Price Today", icon: "📈", text: "Track cement, steel, sand, bricks and market rates", count: "Check • Compare • Decide", href: "/price-today" },
-  { title: "Procurement Workspace", icon: "📦", text: "Track RFQ, supplier response, purchase and execution", count: "Order • Track • Execute", href: "/dashboard/procurement-os" },
-  { title: "Construction Projects", icon: "🏘️", text: "Manage construction plans, execution and site progress", count: "Plan • Execute • Monitor", href: "/dashboard/construction-projects" },
-  { title: "Vendor Network", icon: "🤝", text: "Discover vendors, suppliers, contractors and service providers", count: "Find • Verify • Connect", href: "/vendor" },
-  { title: "Investment", icon: "💰", text: "Explore property, land and construction investment opportunities", count: "Explore • Apply • Grow", href: "/investment" },
+  { title: "Submit Requirement", icon: "⚡", text: "Post material, service, rental or project requirements", count: "Post • Compare • Select", href: "/rfq/general/new" },
 ];
-
 const tools = [
   { title: "Construction Cost", text: "Estimate house construction cost and materials", href: "/construction-cost", action: "Open" },
   { title: "Price Today", text: "Check latest cement, steel and material prices", href: "/price-today", action: "Open" },
