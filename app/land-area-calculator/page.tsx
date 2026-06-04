@@ -6,6 +6,10 @@ import ProjectWorkflowHub from "@/components/project/ProjectWorkflowHub";
 import {
   saveProjectWorkflow,
 } from "@/lib/project/projectWorkflowMemory";
+
+import {
+  addProjectActivity,
+} from "@/lib/activity/projectActivityMemory";
 import {
   averageRectangleAreaToSqft,
   circleAreaToSqft,
@@ -439,6 +443,18 @@ export default function LandAreaCalculatorPage() {
 
   useEffect(() => {
     if (!result.squareFeet || result.squareFeet <= 0) return;
+
+    addProjectActivity({
+      id: `workflow-${Date.now()}`,
+      type: "workflow",
+      title:
+        mode === "building"
+          ? "Construction workflow started"
+          : "Land workflow started",
+      description: `${Math.round(result.squareFeet)} sqft project workflow initialized`,
+      actor: "owner",
+      createdAt: Date.now(),
+    });
 
     saveProjectWorkflow({
       id: "active-construction-project",
