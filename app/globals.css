@@ -3654,3 +3654,36 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   z-index: 99999 !important;
 }
 
+
+/* Final homepage category polish: compact, balanced, no hierarchy change */
+@media (min-width: 900px) {
+  .contentSection:has(.premiumCategoryGrid) .sectionHead {
+    align-items: flex-start;
+  }
+
+  .contentSection:has(.premiumCategoryGrid) .sectionHeadAction {
+    margin-left: auto;
+    align-self: center;
+  }
+
+  .premiumCategoryGrid {
+    grid-template-columns: repeat(5, minmax(160px, 1fr));
+    max-width: 1180px;
+    margin: 18px auto 0;
+    justify-content: center;
+  }
+
+  .premiumCategoryGrid .categoryCard {
+    min-height: 178px;
+  }
+}
+
+@media (max-width: 899px) {
+  .premiumCategoryGrid:not(.isMobileExpanded) > *:nth-child(n+4) {
+    display: none;
+  }
+
+  .contentSection:has(.premiumCategoryGrid) .sectionHeadAction {
+    display: none;
+  }
+}
