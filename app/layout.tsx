@@ -7,7 +7,6 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Container } from "@/components/layout/Container";
-import ProcurementCommandPalette from "@/components/procurement/ProcurementCommandPalette";
 
 // confirmed existing files
 import AuthButtons from "./_components/AuthButtons";
@@ -148,33 +147,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </Link>
             </div>
 
-            <nav className="topNav" aria-label="Primary navigation">
-              <ActiveLink className="topNavLink" href="/" exact>
-                Home
-              </ActiveLink>
-              <ActiveLink className="topNavLink" href="/property">
-                Property
-              </ActiveLink>
-              <ActiveLink className="topNavLink" href="/materials">
-                Materials
-              </ActiveLink>
-              <ActiveLink className="topNavLink" href="/services">
-                Services
-              </ActiveLink>
-              <ActiveLink className="topNavLink" href="/rentals">
-                Rentals
-              </ActiveLink>
-              <ActiveLink className="topNavLink" href="/support/my">
-                Support
-              </ActiveLink>
-              <ActiveLink className="topNavLink" href="/blog">
-                Blog
-              </ActiveLink>
-              <ActiveLink className="topNavLink" href="/dashboard/procurement-health">
-                Procurement Workspace
-              </ActiveLink>
-              <ProcurementCommandPalette />
-            </nav>
+            <div className="topNav" aria-label="Primary navigation">
+              <DesktopMegaNavClient />
+            </div>
 
             <form className="topSearchQuick" action="/search" method="get">
               <input

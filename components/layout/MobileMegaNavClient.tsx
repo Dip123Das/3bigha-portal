@@ -1,12 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useExperienceMode } from "@/components/experience/ExperienceModeProvider";
 import { MENUS } from "@/lib/navigation/main-menu";
 
 export default function MobileMegaNavClient() {
   const [open, setOpen] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const { showSmart } = useExperienceMode();
+
+  const visibleMenus = useMemo(
+    () => MENUS.filter((menu) => showSmart || menu.label !== "Business"),
+    [showSmart]
+  );
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -20,9 +27,15 @@ export default function MobileMegaNavClient() {
     return () => document.removeEventListener("click", onClick);
   }, []);
 
+  useEffect(() => {
+    if (open && !visibleMenus.some((menu) => menu.label === open)) {
+      setOpen(null);
+    }
+  }, [open, visibleMenus]);
+
   return (
     <div ref={wrapRef} className="mobileMegaNav">
-      {MENUS.map((menu) => {
+      {visibleMenus.map((menu) => {
         const isOpen = open === menu.label;
 
         return (

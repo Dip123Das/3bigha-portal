@@ -17,121 +17,109 @@ export const MENUS: MenuItem[] = [
       {
         title: "Start Here",
         links: [
-          ["Marketplace Search", "/search"],
-          ["Submit Requirement", "/rfq/general/new"],
-          ["Price Today", "/price-today"],
+          ["Search Marketplace", "/search"],
+          ["Post Requirement", "/rfq/general/new"],
+          ["Continue My Work", "/dashboard"],
         ],
       },
     ],
   },
   {
-    label: "Property",
+    label: "Marketplace",
     href: "/property",
     groups: [
       {
-        title: "Property Workflow",
+        title: "Find / Buy / Hire",
         links: [
-          ["Buy / Browse Property", "/property"],
-          ["Sell / Post Property", "/property/add"],
-          ["Rent / Lease", "/rentals?type=property"],
-          ["Investment", "/investment/opportunities"],
-          ["Submit Property Requirement", "/rfq/general/new?module=property"],
+          ["Property", "/property"],
+          ["Materials", "/materials"],
+          ["Services", "/services"],
+          ["Rentals", "/rentals"],
         ],
       },
-    ],
-  },
-  {
-    label: "Materials",
-    href: "/materials",
-    groups: [
       {
-        title: "Material Workflow",
+        title: "List / Sell",
         links: [
-          ["Browse Materials", "/materials"],
-          ["Check Price Today", "/price-today"],
-          ["Submit Material RFQ", "/materials/rfq/new"],
-          ["Post Material", "/materials/add"],
-          ["Find Vendors", "/vendor/discovery"],
-        ],
-      },
-    ],
-  },
-  {
-    label: "Services",
-    href: "/services",
-    groups: [
-      {
-        title: "Service Workflow",
-        links: [
-          ["Browse Services", "/services"],
-          ["Construction Services", "/services?q=construction"],
-          ["Design / Engineer / Legal", "/services"],
+          ["Post Property", "/property/add"],
+          ["Add Material", "/materials/add"],
           ["Add Service", "/services/add"],
-          ["Submit Service Requirement", "/rfq/general/new?module=services"],
-        ],
-      },
-    ],
-  },
-  {
-    label: "Rentals",
-    href: "/rentals",
-    groups: [
-      {
-        title: "Rental Workflow",
-        links: [
-          ["Browse Rentals", "/rentals"],
-          ["Equipment Rental", "/rentals?q=equipment"],
-          ["Property Rental", "/rentals?type=property"],
           ["Add Rental", "/rentals/add"],
-          ["Submit Rental Requirement", "/rfq/general/new?module=rentals"],
         ],
       },
     ],
   },
   {
-    label: "Construction",
+    label: "Tools",
     href: "/construction-cost",
     groups: [
       {
-        title: "Build Workflow",
+        title: "Calculate & Decide",
         links: [
           ["Construction Cost", "/construction-cost"],
-          ["Land / Building Measurement", "/land-area-calculator"],
-          ["Find Contractors", "/services?q=contractor"],
+          ["Land / Building Calculator", "/land-area-calculator"],
+          ["Price Today", "/price-today"],
+          ["EMI Calculator", "/emi-calculator"],
           ["Compare Rates", "/compare-rates"],
-          ["Submit Construction RFQ", "/rfq/general/new?module=services"],
         ],
       },
     ],
   },
   {
-    label: "Finance",
-    href: "/banking-finance-assistance",
+    label: "My Work",
+    href: "/dashboard",
     groups: [
       {
-        title: "Finance Workflow",
+        title: "Work Actions",
         links: [
-          ["Finance Assistance", "/banking-finance-assistance"],
-          ["EMI Calculator", "/emi-calculator"],
-          ["Loan Eligibility", "/emi-calculator"],
+          ["Post Requirement / RFQ", "/rfq/general/new"],
+          ["My RFQs", "/dashboard/buyer/rfqs"],
+          ["Inbox", "/dashboard/inbox-v2"],
+          ["Purchase & Procurement", "/dashboard/procurement-os"],
+        ],
+      },
+      {
+        title: "Project Tracking",
+        links: [
+          ["Construction Projects", "/dashboard/construction-projects"],
+          ["Site Work", "/dashboard/site-execution"],
+          ["Activity Feed", "/dashboard/activity-feed"],
+          ["Project Health", "/dashboard/procurement-health"],
+        ],
+      },
+    ],
+  },
+  {
+    label: "Business",
+    href: "/dashboard/vendor",
+    groups: [
+      {
+        title: "For Vendors",
+        links: [
+          ["Vendor Dashboard", "/dashboard/vendor"],
+          ["Vendor Network", "/vendor/discovery"],
+          ["Vendor Master Data", "/dashboard/vendor/master-data"],
+        ],
+      },
+      {
+        title: "Growth & Finance",
+        links: [
           ["Investment Opportunities", "/investment/opportunities"],
+          ["Finance Assistance", "/banking-finance-assistance"],
           ["Apply as Banker", "/banker/apply"],
         ],
       },
     ],
   },
   {
-    label: "Learn",
-    href: "/blog",
+    label: "Help",
+    href: "/support/my",
     groups: [
       {
-        title: "Knowledge",
+        title: "Help & Learning",
         links: [
-          ["Latest Blogs", "/blog"],
+          ["Support Center", "/support/my"],
+          ["Blog / Guides", "/blog"],
           ["AI Search Guide", "/ai-search-guide"],
-          ["Property News", "/blog?q=property"],
-          ["Construction Guides", "/blog?q=construction"],
-          ["Material Price News", "/blog?q=materials"],
         ],
       },
     ],

@@ -1,12 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Container } from "@/components/layout/Container";
+import { useExperienceMode } from "@/components/experience/ExperienceModeProvider";
 import { MENUS } from "@/lib/navigation/main-menu";
+
 export default function DesktopMegaNavClient() {
   const [active, setActive] = useState<string | null>(null);
-  const activeMenu = MENUS.find((m) => m.label === active) || null;
+  const { showSmart } = useExperienceMode();
+
+  const visibleMenus = useMemo(
+    () => MENUS.filter((menu) => showSmart || menu.label !== "Business"),
+    [showSmart]
+  );
+
+  const activeMenu = visibleMenus.find((m) => m.label === active) || null;
 
   return (
     <nav
@@ -15,7 +24,7 @@ export default function DesktopMegaNavClient() {
       onMouseLeave={() => setActive(null)}
     >
       <Container className="stableDesktopMegaNavInner">
-        {MENUS.map((menu) => (
+        {visibleMenus.map((menu) => (
           <div
             className="stableMegaItem"
             key={menu.label}
@@ -29,15 +38,16 @@ export default function DesktopMegaNavClient() {
         ))}
 
         {activeMenu ? (
-          <div className="stableMegaPanel" onMouseEnter={() => setActive(activeMenu.label)}>
-            {activeMenu.label !== "Advanced Insights" ? (
-              <div className="stableMegaGroup stableMegaMainGroup">
-                <div className="stableMegaTitle">Main Page</div>
-                <Link className="stableMegaMainLink" href={activeMenu.href}>
-                  Open {activeMenu.label}
-                </Link>
-              </div>
-            ) : null}
+          <div
+            className="stableMegaPanel"
+            onMouseEnter={() => setActive(activeMenu.label)}
+          >
+            <div className="stableMegaGroup stableMegaMainGroup">
+              <div className="stableMegaTitle">Main Page</div>
+              <Link className="stableMegaMainLink" href={activeMenu.href}>
+                Open {activeMenu.label}
+              </Link>
+            </div>
 
             {activeMenu.groups.map((group) => (
               <div className="stableMegaGroup" key={group.title}>

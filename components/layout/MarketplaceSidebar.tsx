@@ -1,118 +1,149 @@
 import Link from "next/link";
 
-const mainMenus = [
-  {
-    title: "Home",
-    icon: "🏠",
-    href: "/",
-    preview: "Main marketplace dashboard.",
-  },
+const marketplaceMenus = [
   {
     title: "Property",
     icon: "🏡",
     href: "/property",
-    preview: "Land, flat, house and commercial property listings.",
+    preview: "Land, house, flat and commercial property.",
   },
   {
     title: "Materials",
     icon: "🧱",
     href: "/materials",
-    preview: "Cement, steel, sand, bricks and construction materials.",
+    preview: "Cement, steel, sand, bricks and building items.",
   },
   {
     title: "Services",
     icon: "🛠️",
     href: "/services",
-    preview: "Contractors, masons, engineers, plumbers and legal services.",
+    preview: "Masons, contractors, engineers and legal help.",
   },
   {
     title: "Rentals",
     icon: "🚜",
     href: "/rentals",
-    preview: "JCB, excavator, shuttering, tools and machinery rentals.",
+    preview: "JCB, tools, shuttering and machinery rentals.",
   },
+];
+
+const quickActions = [
   {
-    title: "Construction Cost",
-    icon: "🏗️",
-    href: "/construction-cost",
-    preview: "AI house construction cost, BOQ, materials and timeline calculator.",
-  },
-  {
-    title: "RFQ",
+    title: "Post Requirement",
     icon: "⚡",
     href: "/rfq/general/new",
-    preview: "Submit requirement and get vendor quotations.",
+    preview: "Tell vendors what you need and get responses.",
   },
+  {
+    title: "Price Today",
+    icon: "📈",
+    href: "/price-today",
+    preview: "Check material rates before buying.",
+  },
+  {
+    title: "Cost Calculator",
+    icon: "🏗️",
+    href: "/construction-cost",
+    preview: "Estimate house construction cost.",
+  },
+  {
+    title: "Land Calculator",
+    icon: "📐",
+    href: "/land-area-calculator",
+    preview: "Convert sqft, decimal, katha and bigha.",
+  },
+];
+
+const workMenus = [
   {
     title: "Inbox",
     icon: "💬",
     href: "/dashboard/inbox-v2",
-    preview: "Continue buyer, vendor and RFQ conversations.",
+    preview: "Continue buyer and vendor conversations.",
   },
   {
-    title: "Vendor Hub",
-    icon: "🏪",
-    href: "/dashboard/vendor",
-    preview: "Vendor dashboard, RFQs, leads and performance.",
+    title: "My RFQs",
+    icon: "🧾",
+    href: "/dashboard/buyer/rfqs",
+    preview: "Track requirements and vendor quotations.",
   },
   {
-    title: "AI Procurement",
-    icon: "🧠",
-    href: "/dashboard/procurement-health",
-    preview: "AI procurement OS, mission control and intelligence.",
-  },
-  {
-    title: "Support",
-    icon: "🆘",
-    href: "/support/my",
-    preview: "Support tickets and help desk.",
+    title: "My Dashboard",
+    icon: "📋",
+    href: "/dashboard",
+    preview: "Open your work area and recent activity.",
   },
 ];
 
+function SidebarSection({
+  title,
+  items,
+}: {
+  title: string;
+  items: typeof marketplaceMenus;
+}) {
+  return (
+    <div className="marketplaceSideNavSection">
+      <div className="marketplaceSideNavSectionTitle">{title}</div>
+
+      <div className="marketplaceSideNavList">
+        {items.map((item) => (
+          <Link key={item.href} href={item.href} className="marketplaceSideNavItem">
+            <span className="marketplaceSideNavIcon">{item.icon}</span>
+
+            <span className="marketplaceSideNavText">
+              <b>{item.title}</b>
+              <small>{item.preview}</small>
+            </span>
+
+            <span className="marketplaceSideNavArrow">›</span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function MarketplaceSidebar() {
+  const mobileMenus = [
+    { title: "Marketplace", items: marketplaceMenus },
+    { title: "Quick Actions", items: quickActions },
+    { title: "Continue Work", items: workMenus },
+  ];
+
   return (
     <>
-      <aside className="marketplaceSideNav" aria-label="3bigha marketplace sidebar">
+      <aside className="marketplaceSideNav" aria-label="3bigha marketplace shortcuts">
         <div className="marketplaceSideNavTitle">
           <span>☰</span>
-          <b>3Bigha Menu</b>
+          <b>Quick Shortcuts</b>
         </div>
 
-        <div className="marketplaceSideNavList">
-          {mainMenus.map((item) => (
-            <Link key={item.href} href={item.href} className="marketplaceSideNavItem">
-              <span className="marketplaceSideNavIcon">{item.icon}</span>
-
-              <span className="marketplaceSideNavText">
-                <b>{item.title}</b>
-                <small>{item.preview}</small>
-              </span>
-
-              <span className="marketplaceSideNavArrow">›</span>
-            </Link>
-          ))}
-        </div>
+        <SidebarSection title="Marketplace" items={marketplaceMenus} />
+        <SidebarSection title="Quick Actions" items={quickActions} />
+        <SidebarSection title="Continue Work" items={workMenus} />
       </aside>
 
       <details className="marketplaceMobileNav">
         <summary>
-          <span>☰ Menu</span>
-          <b>View shortcuts</b>
+          <span>☰ Shortcuts</span>
+          <b>Open</b>
         </summary>
 
         <div className="marketplaceMobileNavPanel">
-          {mainMenus.map((item) => (
-            <details key={item.href} className="marketplaceMobileNavItem">
+          {mobileMenus.map((section) => (
+            <details key={section.title} className="marketplaceMobileNavItem">
               <summary>
-                <span>
-                  {item.icon} {item.title}
-                </span>
+                <span>{section.title}</span>
                 <b>⌄</b>
               </summary>
 
               <div>
-                <p>{item.preview}</p>
-                <Link href={item.href}>Open {item.title} →</Link>
+                {section.items.map((item) => (
+                  <Link key={item.href} href={item.href}>
+                    {item.icon} {item.title}
+                  </Link>
+                ))}
               </div>
             </details>
           ))}
