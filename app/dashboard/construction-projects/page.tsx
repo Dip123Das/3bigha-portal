@@ -1,5 +1,6 @@
 "use client";
 
+import SiteExecutionBoard from "@/components/execution/SiteExecutionBoard";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -28,6 +29,9 @@ export default function ConstructionProjectsDashboardPage() {
 
   return (
     <main className="min-h-screen bg-slate-50">
+      <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
+        <SiteExecutionBoard />
+      </div>
       <section className="border-b border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-lime-50">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">
