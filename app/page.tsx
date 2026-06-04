@@ -471,13 +471,6 @@ export default function HomePage() {
             <p>Explore all popular categories</p>
           </div>
 
-          <button
-            className="sectionHeadAction"
-            type="button"
-            onClick={() => toggleMobileSection("categories")}
-          >
-            {mobileExpandedSections.categories ? "Show less categories ↑" : "View all categories →"}
-          </button>
         </div>
         <div className={`categoryGrid premiumCategoryGrid ${mobileExpandedSections.categories ? "isMobileExpanded" : ""}`}>
           {categoryCards.map((item) => (
@@ -490,10 +483,6 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-        <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("categories")}>
-          {mobileExpandedSections.categories ? "Show Less" : "See More Categories"}
-        </button>
-
       <section className="contentSection">
         <div className="sectionHead"><div><h2>Featured Listings</h2><p>Fresh opportunities from our marketplace</p></div><a href="/search">View all listings →</a></div>
         {recentDiscovery.length ? (
