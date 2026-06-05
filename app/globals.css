@@ -4168,3 +4168,22 @@ a {
     font-size: 11px !important;
   }
 }
+
+/* =========================================================
+   INBOX-V2 FAST DECLUTTER — Progressive Operational Comfort
+========================================================= */
+
+.inboxDeclutterHint {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .inboxV2Compact,
+  .workflowSurface,
+  .operationalSurface {
+    padding: 12px !important;
+    border-radius: 16px !important;
+  }
+}

@@ -1982,7 +1982,7 @@ export default async function DashboardInboxV2Page({
 
   const autonomousOsAction =
     autonomousOsStats.highRisk > 0
-      ? "Start with high-risk stale/unread threads and push them to reply, quote, or milestone."
+      ? "Start with unread or inactive conversations and move them to reply, quote or confirmation."
       : autonomousOsStats.strongSupplier > 0
       ? "Shortlist strong supplier threads and move them toward final decision."
       : autonomousOsStats.followups > 0
@@ -2076,8 +2076,8 @@ export default async function DashboardInboxV2Page({
         },
     autonomousOsStats.highRisk > 0
       ? {
-          title: "Resolve high-risk threads",
-          detail: `${autonomousOsStats.highRisk} workflow risk item(s) need attention.`,
+          title: "Review important threads",
+          detail: `${autonomousOsStats.highRisk} conversation(s) may need attention.`,
           href: buildInboxHref(params, { sort: "unread" }),
           badge: "Risk control",
           tone: "amber",
@@ -2169,15 +2169,15 @@ export default async function DashboardInboxV2Page({
           createdAt: Date.now(),
         }}
       />
-      <OperationalEventStream title="Recent operational activity" limit={5} />
+      <OperationalEventStream title="Recent activity" limit={3} />
 
       <NeedsAttentionStrip
-        title="Operational priorities"
+        title="What needs attention"
         items={operationalPriorityItems}
       />
 
       <OperationalEscalationPanel
-        title="Operational escalation queue"
+        title="Important follow-ups"
         items={operationalEscalations}
       />
 
@@ -2309,7 +2309,7 @@ export default async function DashboardInboxV2Page({
       <UniversalWorkflowHeader
         eyebrow="Inbox Workflow"
         title="You are in Unified Inbox"
-        status={`${filteredItems.length} thread(s), ${stats.unread} unread, ${recoveryStats.total} recovery item(s).`}
+        status={`${filteredItems.length} thread(s), ${stats.unread} unread, ${recoveryStats.total} attention item(s).`}
         nextAction={latestUnreadItem ? "Continue with the latest unread conversation." : procurementNextAction}
         steps={[
           { label: "Inbox", done: true },
@@ -2331,7 +2331,7 @@ export default async function DashboardInboxV2Page({
       <OperationalWorkspacePanel
         title="Inbox Work Space"
         nextAction={latestUnreadItem ? "Continue with the latest unread conversation." : procurementNextAction}
-        status={`${stats.unread} unread • ${recoveryStats.total} recovery item(s)`}
+        status={`${stats.unread} unread • ${recoveryStats.total} attention item(s)`}
         actions={[
           latestUnreadItem
             ? { label: "Open Latest Unread", href: latestUnreadItem.href, tone: "primary" }
@@ -2344,7 +2344,7 @@ export default async function DashboardInboxV2Page({
 
       <details className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
         <summary className="cursor-pointer px-5 py-4 text-sm font-black text-slate-900">
-          Helpful guidance and advanced details
+          More guidance
         </summary>
 
         <div className="space-y-4 px-4 pb-4">
@@ -2426,7 +2426,7 @@ export default async function DashboardInboxV2Page({
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="inline-flex rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
-                Workflow Follow-up System
+                Follow-up helper
               </div>
 
               <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">
@@ -2506,7 +2506,7 @@ export default async function DashboardInboxV2Page({
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-100">
-                Workflow Actions
+                Next actions
               </div>
 
               <h2 className="mt-3 text-2xl font-black tracking-tight">
@@ -2581,10 +2581,10 @@ export default async function DashboardInboxV2Page({
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.14em] text-blue-700">
-              Workflow Overview
+              Conversation overview
             </div>
             <div className="mt-1 text-lg font-black text-slate-950">
-              Current activity across your important conversations
+              Important buyer/vendor conversation activity
             </div>
             <div className="mt-1 text-sm font-semibold text-slate-500">
               {dealHealthAction}
@@ -2650,13 +2650,13 @@ export default async function DashboardInboxV2Page({
           </div>
 
           <span className="inline-flex rounded-2xl border border-rose-200 bg-white px-4 py-2 text-sm font-black text-rose-700">
-            {recoveryStats.total} recovery items
+            {recoveryStats.total} attention items
           </span>
         </div>
 
         {recoveryQueue.length === 0 ? (
           <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800">
-            ✅ No urgent inactive conversations right now. Continue active discussions normally.
+            ✅ No urgent inactive conversations right now.
           </div>
         ) : (
           <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -2668,7 +2668,7 @@ export default async function DashboardInboxV2Page({
               >
                 <div className="flex flex-wrap gap-2">
                   <span className="inline-flex rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-black text-rose-700">
-                    Recovery {item.recoveryPriority || 0}
+                    Attention {item.recoveryPriority || 0}
                   </span>
 
                   {item.dealHealth ? (
@@ -2971,7 +2971,7 @@ export default async function DashboardInboxV2Page({
 
       <details className="rounded-[1.75rem] border border-slate-200 bg-white shadow-sm">
         <summary className="cursor-pointer px-5 py-4 text-sm font-black text-slate-900">
-          🧠 Inbox Summary
+          Inbox Summary
         </summary>
         <div className="px-5 pb-5">
           <InboxPrioritySummaryStrip items={filteredItems} />
@@ -3001,7 +3001,7 @@ export default async function DashboardInboxV2Page({
           <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-slate-950">
-                Tasks Requiring Attention
+                Tasks needing attention
               </h2>
               <p className="mt-1 text-sm text-slate-500">
                 Conversations that may need reply, review, follow-up, or confirmation today.
@@ -3125,7 +3125,7 @@ export default async function DashboardInboxV2Page({
           <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-slate-950">
-                Search & Filters
+                Find conversations
               </h2>
               <p className="text-sm text-slate-500">
                 Filter by module, role-side, title, counterpart, preview,
