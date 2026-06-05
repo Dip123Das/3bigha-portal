@@ -4053,3 +4053,118 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     padding: 0 9px;
   }
 }
+
+/* =========================================================
+   FAST NEXT UPGRADE — Marketplace Polish Pack
+   Header, cards, AI bubble and long-page comfort
+========================================================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #f8fafc;
+}
+
+main,
+.pageBody {
+  max-width: 1480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+header,
+.siteHeader,
+.topHeader,
+.navbar {
+  backdrop-filter: blur(14px);
+}
+
+.topBtn,
+.ui-btn,
+button,
+a {
+  touch-action: manipulation;
+}
+
+.card,
+.ui-card,
+.searchCard,
+.marketplaceCard,
+.discoveryCard {
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.055);
+}
+
+.card:hover,
+.ui-card:hover,
+.searchCard:hover,
+.marketplaceCard:hover,
+.discoveryCard:hover {
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.085);
+}
+
+.categoryGrid,
+.premiumCategoryGrid,
+.searchResultsGrid {
+  align-items: stretch;
+}
+
+.floating-ai,
+.aiFloating,
+.aiAssistant,
+.askAi,
+[class*="FloatingAI"],
+[class*="AiFloating"],
+[class*="AIFloating"] {
+  z-index: 30 !important;
+}
+
+@media (min-width: 900px) {
+  .floating-ai,
+  .aiFloating,
+  .aiAssistant,
+  .askAi,
+  [class*="FloatingAI"],
+  [class*="AiFloating"],
+  [class*="AIFloating"] {
+    transform: scale(0.88);
+    transform-origin: left center;
+  }
+}
+
+@media (max-width: 768px) {
+  main,
+  .pageBody,
+  .container {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .topBtn,
+  .ui-btn,
+  button {
+    min-height: 42px;
+  }
+
+  .card,
+  .ui-card,
+  .searchCard,
+  .marketplaceCard,
+  .discoveryCard {
+    border-radius: 16px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .floating-ai,
+  .aiFloating,
+  .aiAssistant,
+  .askAi,
+  [class*="FloatingAI"],
+  [class*="AiFloating"],
+  [class*="AIFloating"] {
+    max-width: 112px !important;
+    font-size: 11px !important;
+  }
+}
