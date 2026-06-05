@@ -646,6 +646,7 @@ const aiDealUpgradeTarget =
     );
 
     const v =
+      access.isAdmin ||
       access.isVendor ||
       access.isHubVendor ||
       mergedCapabilities.length > 0 ||
