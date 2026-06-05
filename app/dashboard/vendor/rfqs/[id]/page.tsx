@@ -138,19 +138,19 @@ export default function VendorRFQDetailsPage() {
   // Quick AI-style templates (you can edit any text here)
   const quickMsgs = [
     {
-      label: "Quote request",
+      label: "Send quotation",
       text: `Hi ${buyerName}, I am a vendor on 3Bigha. I can supply materials for your RFQ (${rfqId}). Please share item list/brand/quantity and delivery time so I can send best quotation.`,
     },
     {
-      label: "Need details",
+      label: "Ask for details",
       text: `Hi ${buyerName}, regarding your RFQ (${rfqId}), I need a few details: exact brands/grade, delivery address, and required delivery date. Please confirm.`,
     },
     {
-      label: "Best price",
+      label: "Share best rate",
       text: `Hi ${buyerName}, I can offer best market price for your RFQ (${rfqId}). Please confirm quantities and delivery location so I can finalize the rate.`,
     },
     {
-      label: "Available today",
+      label: "Ready for delivery",
       text: `Hi ${buyerName}, materials for RFQ (${rfqId}) are available. I can deliver quickly in ${safeText(row?.delivery_city) || "your area"}. Shall I call you for confirmation?`,
     },
   ];
@@ -195,7 +195,7 @@ export default function VendorRFQDetailsPage() {
 
   return (
     <Container>
-      <SectionHeader title="RFQ Details" subtitle="Material requirement details" />
+      <SectionHeader title="RFQ Details" subtitle="Buyer requirement overview" />
 
       <div style={{ marginBottom: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
         <Link href="/dashboard/vendor/rfqs" className="topBtn topBtnGhost" style={{ textDecoration: "none" }}>
@@ -226,7 +226,7 @@ export default function VendorRFQDetailsPage() {
       </div>
 
       {loading ? (
-        <EmptyState message="Loading RFQ…" />
+        <EmptyState message="Preparing buyer requirement…" />
       ) : err ? (
         <EmptyState message={err} />
       ) : !row ? (
@@ -242,10 +242,10 @@ export default function VendorRFQDetailsPage() {
 
                 <div style={{ marginTop: 6, opacity: 0.85 }}>🕒 {fmtDate(row.created_at)}</div>
 
-                {/* Buyer Contact + Rapido-style toggles */}
+                {/* Buyer Contact Details + Rapido-style toggles */}
                 {showContactBlock ? (
                   <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(0,0,0,0.1)" }}>
-                    <div style={{ fontWeight: 800, marginBottom: 8 }}>Buyer Contact</div>
+                    <div style={{ fontWeight: 800, marginBottom: 8 }}>Buyer Contact Details</div>
 
                     {buyerPhoneDigits ? (
                       <div style={{ opacity: 0.9, marginBottom: 6 }}>Phone: {buyerPhoneRaw || buyerPhoneDigits}</div>
@@ -315,9 +315,9 @@ export default function VendorRFQDetailsPage() {
                     {/* AI Message Chips */}
                     <div style={{ marginTop: 14 }}>
                       <div style={{ fontWeight: 800, marginBottom: 8 }}>
-                        AI Quick Messages
+                        Quick Response Messages
                         <span style={{ fontWeight: 600, opacity: 0.6, marginLeft: 8, fontSize: 12 }}>
-                          (tap to send like Rapido)
+                          (tap to quickly contact buyer)
                         </span>
                       </div>
 
@@ -359,7 +359,7 @@ export default function VendorRFQDetailsPage() {
                   </div>
                 ) : (
                   <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(0,0,0,0.1)", opacity: 0.7 }}>
-                    Buyer contact not available.
+                    Buyer contact details are not available yet.
                   </div>
                 )}
 

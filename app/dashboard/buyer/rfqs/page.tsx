@@ -188,8 +188,8 @@ function Pill({
 
 type AiRfqLifecycleStage =
   | "Drafting"
-  | "Waiting for vendors"
-  | "Compare quotes"
+  | "Waiting for vendor responses"
+  | "Compare quotations"
   | "Negotiate"
   | "Ready to close"
   | "Closed";
@@ -251,10 +251,10 @@ function getAiRfqCommandInsight(args: {
       : unreadChatCount > 0
         ? "Negotiate"
         : vendorCount >= 2
-          ? "Compare quotes"
+          ? "Compare quotations"
           : vendorCount === 1
             ? "Ready to close"
-            : "Waiting for vendors";
+            : "Waiting for vendor responses";
 
   const stageTone: AiRfqCommandInsight["stageTone"] =
     stage === "Closed" ? "ok" : priorityLabel === "Critical" || priorityLabel === "High" ? "warn" : "neutral";
@@ -263,12 +263,12 @@ function getAiRfqCommandInsight(args: {
     stage === "Closed"
       ? "Review selected vendor and download quote."
       : unreadChatCount > 0
-        ? "Open vendor chat and reply."
+        ? "Continue vendor conversation."
         : vendorCount >= 2
-          ? "Compare quotes and choose best value."
+          ? "Compare quotations and choose best value."
           : vendorCount === 1
             ? "Negotiate final price, delivery and payment terms."
-            : "Follow up or wait for vendor quotes.";
+            : "Continue vendor discussion or wait for more responses.";
 
   const nextActionHref =
     stage === "Closed" || vendorCount > 0
@@ -279,21 +279,21 @@ function getAiRfqCommandInsight(args: {
     dueDays != null && dueDays <= 0
       ? "Deadline reached or overdue. Immediate follow-up recommended."
       : dueDays != null && dueDays <= 2
-        ? "Very urgent requirement. Prioritize vendor response."
+        ? "This requirement may need faster vendor attention."
         : unreadChatCount > 0
           ? `${unreadChatCount} unread vendor message(s).`
           : vendorCount === 0
-            ? "No vendor quote yet."
+            ? "Vendors are reviewing your requirement."
             : "RFQ is progressing.";
 
   const followUpText =
     unreadChatCount > 0
-      ? "Reply to vendor and confirm price, timeline, GST/invoice and payment terms."
+      ? "Continue vendor discussion and finalize delivery timeline and payment terms."
       : vendorCount === 0
         ? "Use vendor discovery or improve RFQ details to attract faster quotes."
         : vendorCount === 1
-          ? "Ask at least one more vendor or negotiate with current vendor."
-          : "Use AI comparison to shortlist best value vendor.";
+          ? "You may ask one more vendor or continue negotiation with the current supplier."
+          : "Review quotations and continue vendor discussion before final selection.";
 
   const successPrediction: AiRfqCommandInsight["successPrediction"] =
     selected || status === "closed" || (vendorCount >= 2 && bestTotal != null)
@@ -1031,7 +1031,7 @@ export default function BuyerRfqsPage() {
                 RFQ Work Desk
               </div>
               <div style={{ marginTop: 4, color: "#475569", fontSize: 14, fontWeight: 800 }}>
-                Review urgent RFQs, vendor responses, quote readiness, chat activity and closure stage.
+                Track vendor responses, quotation progress and buyer conversations.
               </div>
             </div>
 
@@ -1444,6 +1444,16 @@ export default function BuyerRfqsPage() {
                               {vendorCount} vendor{vendorCount === 1 ? "" : "s"} responded
                             </Pill>
                             {latestAt ? <Pill>Latest quote: {fmtDate(latestAt)}</Pill> : <Pill>Latest quote: —</Pill>}
+
+                            {vendorCount > 0 ? (
+                              <Pill>⚡ Vendors active</Pill>
+                            ) : (
+                              <Pill>👀 Vendors reviewing</Pill>
+                            )}
+
+                            {unreadChatCount > 0 ? (
+                              <Pill>💬 New vendor activity</Pill>
+                            ) : null}
                             {best != null ? <Pill tone="ok">Best total: {fmtMoney(best)}</Pill> : <Pill>Best total: —</Pill>}
                           </div>
 
@@ -1559,7 +1569,7 @@ export default function BuyerRfqsPage() {
                                   color: unreadChatCount > 0 ? "#b45309" : "#475569",
                                 }}
                               >
-                               Continue chat →
+                               Continue conversation →
                               </div>
                             </Link>
                           ) : null}
@@ -1805,7 +1815,7 @@ export default function BuyerRfqsPage() {
                           RFQ ID: {r.id.slice(0, 8)}… • RFQ No: {r.public_id ?? "—"}
                         </span>
                         <span style={{ marginLeft: "auto", color: "#5b6472", fontSize: 13 }}>
-                          This list is arranged by priority, unread vendor activity, quote readiness and procurement urgency.
+                          This list helps you continue important vendor conversations and quotation decisions.
                         </span>
                       </div>
                     </CardFooter>

@@ -267,8 +267,8 @@ export default function VendorDispatchPage() {
     <main>
       <Container>
         <SectionHeader
-          title="Dispatch Center"
-          subtitle="Assign vehicles, manage deliveries and track dispatch operations."
+          title="Delivery & Dispatch"
+          subtitle="Assign vehicles and manage material deliveries easily."
         />
 
         <VendorWorkMenu />
@@ -288,13 +288,13 @@ export default function VendorDispatchPage() {
         </div>
 
         <ErpPanel
-          title="Delivery & Dispatch Operating Center"
-          subtitle="Connect inventory materials with assigned vehicles, buyers and delivery workflows."
+          title="Delivery Overview"
+          subtitle="Manage material delivery, vehicle assignment and buyer delivery updates."
           tone="blue"
         >
           <ErpKpiGrid>
             <ErpKpiCard label="Total Dispatches" value={dispatchStats.total} helper="All delivery records" tone="blue" />
-            <ErpKpiCard label="Pending" value={dispatchStats.pending} helper="Needs operational action" tone="orange" />
+            <ErpKpiCard label="Pending" value={dispatchStats.pending} helper="Needs delivery update" tone="orange" />
             <ErpKpiCard label="In Transit" value={dispatchStats.inTransit} helper="Currently moving" tone="violet" />
             <ErpKpiCard label="Delivered" value={dispatchStats.delivered} helper="Completed deliveries" tone="green" />
             <ErpKpiCard label="Failed / Cancelled" value={dispatchStats.failed} helper="Needs review" tone="red" />
@@ -303,34 +303,34 @@ export default function VendorDispatchPage() {
 
                 <ErpPanel
           title="Dispatch Pending Actions"
-          subtitle="Delivery execution, buyer tracking and logistics operations."
+          subtitle="Manage deliveries, buyer updates and vehicle movement."
           tone="blue"
         >
           <ErpActionGrid>
             <ErpActionCard
-              title="Create Dispatch"
-              description="Generate new delivery operations."
+              title="Create Delivery"
+              description="Create new delivery entry."
               href="/dashboard/vendor/dispatch"
               tone="blue"
             />
 
             <ErpActionCard
-              title="Assign Vehicle"
-              description="Link transport vehicle with dispatch route."
+              title="Select Vehicle"
+              description="Assign vehicle for delivery."
               href="/dashboard/vendor/fleet"
               tone="green"
             />
 
             <ErpActionCard
-              title="Inventory Source"
-              description="Pull dispatch items directly from inventory."
+              title="Select Stock Item"
+              description="Select delivery items from stock."
               href="/dashboard/vendor/inventory"
               tone="orange"
             />
 
             <ErpActionCard
               title="Dispatch Suggestions"
-              description="Review delay risk and delivery follow-up."
+              description="Review pending and delayed deliveries."
               href="/dashboard/vendor/inventory-intelligence"
               tone="violet"
             />
@@ -339,7 +339,7 @@ export default function VendorDispatchPage() {
           <ErpAlertList
             alerts={[
               {
-                label: `${dispatchStats.pending} dispatches still require operational processing.`,
+                label: `${dispatchStats.pending} deliveries still need updates.`,
                 tone: "orange",
               },
               {
@@ -356,17 +356,17 @@ export default function VendorDispatchPage() {
             title="Dispatch Activity Timeline"
             items={[
               {
-                label: "Dispatch queue scanned.",
-                meta: `${dispatchStats.pending} pending operations`,
+                label: "Delivery queue reviewed.",
+                meta: `${dispatchStats.pending} pending deliveries`,
                 tone: "orange",
               },
               {
-                label: "Active delivery status reviewed.",
+                label: "Delivery movement reviewed.",
                 meta: `${dispatchStats.inTransit} deliveries in transit`,
                 tone: "blue",
               },
               {
-                label: "Completed delivery count updated.",
+                label: "Completed delivery records updated.",
                 meta: `${dispatchStats.delivered} deliveries completed`,
                 tone: "green",
               },
@@ -377,7 +377,7 @@ export default function VendorDispatchPage() {
         <Card>
           <CardBody>
             <div style={{ fontSize: 18, fontWeight: 950 }}>
-              Create Dispatch
+              Create Delivery
             </div>
 
             <div
@@ -414,7 +414,7 @@ export default function VendorDispatchPage() {
                 onChange={(e) => setSelectedVehicle(e.target.value)}
                 style={inputStyle}
               >
-                <option value="">Assign Vehicle</option>
+                <option value="">Select Vehicle</option>
 
                 {vehicles.map((v) => (
                   <option key={v.id} value={v.id}>
@@ -508,7 +508,7 @@ export default function VendorDispatchPage() {
                 cursor: saving ? "not-allowed" : "pointer",
               }}
             >
-              {saving ? "Creating..." : "Create Dispatch"}
+              {saving ? "Creating..." : "Create Delivery"}
             </button>
           </CardBody>
         </Card>

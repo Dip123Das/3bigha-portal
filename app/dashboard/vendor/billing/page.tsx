@@ -298,8 +298,8 @@ export default function VendorBillingPage() {
     <main>
       <Container>
         <SectionHeader
-          title="Billing Center"
-          subtitle="Create offline/online bills and automatically deduct stock from inventory."
+          title="Billing"
+          subtitle="Create bills easily and update stock automatically."
         />
 
         <VendorWorkMenu />
@@ -317,49 +317,49 @@ export default function VendorBillingPage() {
         </div>
 
         <ErpPanel
-          title="Billing + Stock Deduction Engine"
+          title="Billing Overview"
           subtitle="When a vendor creates a bill, stock is reduced automatically and a stock movement log is created."
           tone="orange"
         >
           <ErpKpiGrid>
             <ErpKpiCard label="Total Bills" value={billingStats.totalBills} helper="Recent billing records" tone="orange" />
-            <ErpKpiCard label="Total Billing" value={money(billingStats.totalBilling)} helper="Gross bill value" tone="violet" />
+            <ErpKpiCard label="Total Billing" value={money(billingStats.totalBilling)} helper="Total billing value" tone="violet" />
             <ErpKpiCard label="Paid Amount" value={money(billingStats.paidBilling)} helper="Collected billing value" tone="green" />
-            <ErpKpiCard label="Pending Amount" value={money(billingStats.pendingBilling)} helper="Collection follow-up needed" tone="red" />
-            <ErpKpiCard label="Unpaid Bills" value={billingStats.unpaidBills} helper="Outstanding invoices" tone="slate" />
+            <ErpKpiCard label="Pending Amount" value={money(billingStats.pendingBilling)} helper="Pending payment amount" tone="red" />
+            <ErpKpiCard label="Unpaid Bills" value={billingStats.unpaidBills} helper="Bills awaiting payment" tone="slate" />
           </ErpKpiGrid>
         </ErpPanel>
 
                 <ErpPanel
-          title="Billing Pending Actions"
-          subtitle="Vendor ERP billing automation, collections and invoice operations."
+          title="Billing Actions"
+          subtitle="Manage invoices, payments and customer billing work."
           tone="orange"
         >
           <ErpActionGrid>
             <ErpActionCard
               title="Create Invoice"
-              description="Generate new billing from inventory items."
+              description="Create invoice from stock items."
               href="/dashboard/vendor/billing"
               tone="orange"
             />
 
             <ErpActionCard
               title="Dispatch Linked Billing"
-              description="Connect invoice with dispatch and delivery."
+              description="Connect invoice with delivery work."
               href="/dashboard/vendor/dispatch"
               tone="blue"
             />
 
             <ErpActionCard
               title="Fleet Delivery Billing"
-              description="Track billing with transport movement."
+              description="Link invoice with vehicle delivery."
               href="/dashboard/vendor/fleet"
               tone="violet"
             />
 
             <ErpActionCard
               title="Billing Suggestions"
-              description="Review unpaid bills and collection follow-up."
+              description="Review unpaid bills and pending payments."
               href="/dashboard/vendor/inventory-intelligence"
               tone="green"
             />
@@ -376,7 +376,7 @@ export default function VendorBillingPage() {
                 tone: "orange",
               },
               {
-                label: `Billing engine is synchronized with inventory deduction workflows.`,
+                label: `Billing updates stock automatically.`,
                 tone: "green",
               },
             ]}

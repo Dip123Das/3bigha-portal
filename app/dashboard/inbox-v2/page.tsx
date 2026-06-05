@@ -126,7 +126,7 @@ type RfqConversationRow = {
   is_closed?: boolean | null;
 };
 
-type InboxCockpitAction = {
+type InboxWorkflowAction = {
   title: string;
   detail: string;
   href: string;
@@ -488,7 +488,7 @@ function closurePredictionClass(level?: UnifiedInboxItem["closurePrediction"]) {
   return "border-slate-200 bg-slate-100 text-slate-700";
 }
 
-function computeAutonomousProcurementOs(item: UnifiedInboxItem) {
+function computeSmartProcurementOs(item: UnifiedInboxItem) {
   const ageHours = (Date.now() - parseMs(item.lastActivityAt)) / (1000 * 60 * 60);
   const score = Number(item.procurementScore || item.priorityScore || 0);
 
@@ -521,7 +521,7 @@ function computeAutonomousProcurementOs(item: UnifiedInboxItem) {
       ? "Reply to direct enquiry."
       : ageHours > 48
       ? "Send direct follow-up."
-      : "Monitor conversation.";
+      : "Keep conversation active.";
 
   const autonomousReason =
     workflowRisk === "High"
@@ -613,9 +613,9 @@ function computeDealRecovery(item: UnifiedInboxItem) {
     item.unreadCount > 0
       ? "Open and respond now"
       : item.dealHealth === "Stalled"
-      ? "Recover with follow-up"
+      ? "Continue conversation"
       : item.dealHealth === "At Risk"
-      ? "Send warm follow-up"
+      ? "Reconnect with buyer/vendor"
       : item.closurePrediction === "High"
       ? "Push final confirmation"
       : "Monitor";
@@ -706,7 +706,7 @@ function computeAutomation(item: UnifiedInboxItem) {
   };
 }
 
-function cockpitToneClass(tone: InboxCockpitAction["tone"]) {
+function workflowToneClass(tone: InboxWorkflowAction["tone"]) {
   if (tone === "rose") return "border-rose-200 bg-rose-50 text-rose-700";
   if (tone === "amber") return "border-amber-200 bg-amber-50 text-amber-700";
   if (tone === "blue") return "border-blue-200 bg-blue-50 text-blue-700";
@@ -954,7 +954,7 @@ function RecentActivityStrip({
           No recent activity found.
         </div>
       ) : (
-        <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
           {items.map((item) => (
             <Link
               key={`recent-${item.id}`}
@@ -1006,7 +1006,7 @@ function RecentActivityStrip({
 
                 {item.procurementScore != null ? (
                   <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
-                    AI {item.procurementScore}/100
+                    {item.procurementScore}/100
                   </span>
                 ) : null}
 
@@ -1694,7 +1694,7 @@ export default async function DashboardInboxV2Page({
 
       const automation = computeAutomation(item);
       const procurementAi = computeProcurementInboxIntelligence(item);
-      const autonomousOs = computeAutonomousProcurementOs({
+      const autonomousOs = computeSmartProcurementOs({
         ...item,
         procurementScore: procurementAi.procurementScore,
       });
@@ -1966,19 +1966,19 @@ export default async function DashboardInboxV2Page({
     recoveryStats.stalled > 0
       ? "Recover stalled deals first before they lose transaction momentum."
       : recoveryStats.atRisk > 0
-      ? "Warm up at-risk conversations with follow-up actions."
+      ? "Reconnect with inactive buyer/vendor conversations."
       : recoveryStats.urgent > 0
       ? "Open urgent threads and complete the next response."
       : "No major recovery blocker detected.";
 
   const dealHealthAction =
     dealHealthStats.stalled > 0
-      ? "Recover stalled conversations before buyers or vendors drop off."
+      ? "Continue inactive conversations before momentum slows down."
       : dealHealthStats.atRisk > 0
-      ? "Prioritize at-risk deals and send follow-ups today."
+      ? "Prioritize important conversations and continue discussion today."
       : dealHealthStats.highConversion > 0
-      ? "Move high-conversion conversations toward final confirmation."
-      : "Deal health is stable. Continue monitoring active workflows.";
+      ? "Continue high-potential conversations toward final confirmation."
+      : "Conversations are progressing normally. Continue important discussions.";
 
   const autonomousOsAction =
     autonomousOsStats.highRisk > 0
@@ -1986,7 +1986,7 @@ export default async function DashboardInboxV2Page({
       : autonomousOsStats.strongSupplier > 0
       ? "Shortlist strong supplier threads and move them toward final decision."
       : autonomousOsStats.followups > 0
-      ? "Send follow-ups to warm aging procurement conversations."
+      ? "Reconnect with older buyer/vendor conversations."
       : "Monitor stable threads and create new RFQs when demand appears.";
 
   const inboxBehaviorMemory = buildBehaviorMemory(
@@ -2043,7 +2043,7 @@ export default async function DashboardInboxV2Page({
           ? "Follow up with slow-response vendors or counterparties."
           : "Monitor conversations and create new procurement opportunities when needed.";
 
-  const inboxCockpitActions: InboxCockpitAction[] = [
+  const inboxWorkflowActions: InboxWorkflowAction[] = [
     latestUnreadItem
       ? {
           title: "Open latest unread",
@@ -2069,7 +2069,7 @@ export default async function DashboardInboxV2Page({
         }
       : {
           title: "Create new RFQ",
-          detail: "Start a fresh procurement workflow from the inbox cockpit.",
+          detail: "Start a fresh procurement workflow from the inbox workflow.",
           href: "/rfq/general/new",
           badge: "New workflow",
           tone: "blue",
@@ -2151,7 +2151,7 @@ export default async function DashboardInboxV2Page({
           module: "inbox",
           stage: "review",
           title: "Unified Dashboard Inbox",
-          summary: "Continue reviewing conversations, RFQs, reminders and vendor follow-ups.",
+          summary: "Continue important buyer/vendor conversations and quotation decisions.",
           href: "/dashboard/inbox-v2",
           primaryActionLabel: "Open Inbox",
           updatedAt: Date.now(),
@@ -2163,7 +2163,7 @@ export default async function DashboardInboxV2Page({
           id: "inbox-v2-opened",
           module: "inbox",
           title: "Inbox workspace opened",
-          detail: "Review conversations, RFQs, reminders and vendor follow-ups.",
+          detail: "Review important conversations and continue pending discussions.",
           href: "/dashboard/inbox-v2",
           tone: "info",
           createdAt: Date.now(),
@@ -2213,7 +2213,7 @@ export default async function DashboardInboxV2Page({
       {/* Realtime wrapper disabled here to prevent repeated inbox reload/flicker. */}
       <InboxBackgroundScheduler />
       <InboxReminderBanner />
-      {/* Priority AI strip moved below the real inbox workspace later. */}
+      {/* Priority strip moved below the real inbox workspace later. */}
       <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-blue-50 shadow-sm">
         <div className="flex flex-col gap-4 px-4 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-8 lg:py-6">
           <div>
@@ -2299,7 +2299,7 @@ export default async function DashboardInboxV2Page({
       <StickyWorkflowCommandBar
         stage={operationalNextAction.stage}
         risk={operationalNextAction.risk}
-        nextAction={latestUnreadItem ? "Open the latest unread thread first." : procurementNextAction}
+        nextAction={latestUnreadItem ? "Continue with the latest unread conversation." : procurementNextAction}
         primaryLabel={latestUnreadItem ? "Open Latest Unread" : "View Inbox"}
         primaryHref={latestUnreadItem?.href ?? "/dashboard/inbox-v2"}
         secondaryHref="/dashboard/procurement-os"
@@ -2310,10 +2310,10 @@ export default async function DashboardInboxV2Page({
         eyebrow="Inbox Workflow"
         title="You are in Unified Inbox"
         status={`${filteredItems.length} thread(s), ${stats.unread} unread, ${recoveryStats.total} recovery item(s).`}
-        nextAction={latestUnreadItem ? "Open the latest unread thread first." : procurementNextAction}
+        nextAction={latestUnreadItem ? "Continue with the latest unread conversation." : procurementNextAction}
         steps={[
           { label: "Inbox", done: true },
-          { label: "Needs Action", active: stats.unread > 0 || recoveryStats.total > 0 },
+          { label: "Needs Attention", active: stats.unread > 0 || recoveryStats.total > 0 },
           { label: "Reply / Follow-up" },
           { label: "Confirm Deal" },
           { label: "Close" },
@@ -2330,7 +2330,7 @@ export default async function DashboardInboxV2Page({
 
       <OperationalWorkspacePanel
         title="Inbox Work Space"
-        nextAction={latestUnreadItem ? "Open the latest unread thread first." : procurementNextAction}
+        nextAction={latestUnreadItem ? "Continue with the latest unread conversation." : procurementNextAction}
         status={`${stats.unread} unread • ${recoveryStats.total} recovery item(s)`}
         actions={[
           latestUnreadItem
@@ -2357,11 +2357,11 @@ export default async function DashboardInboxV2Page({
               </div>
 
               <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">
-                What needs attention across your conversations
+                Important conversations that may need attention
               </h2>
 
               <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-600">
-                This section helps you understand which conversations need reply, follow-up, quote review, or final confirmation.
+                This section helps you continue important buyer/vendor discussions and quotation decisions.
               </p>
             </div>
 
@@ -2370,7 +2370,7 @@ export default async function DashboardInboxV2Page({
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {[
               ["Total Active Threads", procurementInboxStats.total, "📨"],
               ["RFQ Threads", procurementInboxStats.rfq, "📦"],
@@ -2408,7 +2408,7 @@ export default async function DashboardInboxV2Page({
               href={buildInboxHref(params, { unread: "1" })}
               className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 transition hover:opacity-90"
             >
-              View Unread Actions
+              View Unread Messages
             </Link>
 
             <Link
@@ -2434,7 +2434,7 @@ export default async function DashboardInboxV2Page({
               </h2>
 
               <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-600">
-                This section helps you decide whether to reply, follow up, review a quote, shortlist a supplier, or move the work forward.
+                This section helps you continue discussions, review quotations and move work forward.
               </p>
             </div>
 
@@ -2443,7 +2443,7 @@ export default async function DashboardInboxV2Page({
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {[
               ["High Risk", autonomousOsStats.highRisk, "🚨"],
               ["Medium Risk", autonomousOsStats.mediumRisk, "⚠️"],
@@ -2466,7 +2466,7 @@ export default async function DashboardInboxV2Page({
           </div>
 
           <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
-            Suggested workflow action: {autonomousOsAction}
+            Suggested next step: {autonomousOsAction}
           </div>
             <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-4">
             <div className="text-sm font-black text-violet-800">
@@ -2506,15 +2506,15 @@ export default async function DashboardInboxV2Page({
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-blue-100">
-                Action Control Center
+                Workflow Actions
               </div>
 
               <h2 className="mt-3 text-2xl font-black tracking-tight">
-                One place to continue important RFQ, vendor, buyer and investment work.
+                One place to continue important buyer, vendor and RFQ conversations.
               </h2>
 
               <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-white/70">
-                Your conversations are organized into clear next steps: reply, review quote, follow up, shortlist supplier, or continue procurement.
+                Your conversations are organized into simple next steps so work can continue smoothly.
               </p>
             </div>
 
@@ -2527,14 +2527,14 @@ export default async function DashboardInboxV2Page({
           </div>
 
           <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
-            {inboxCockpitActions.map((action) => (
+            {inboxWorkflowActions.map((action) => (
               <Link
                 key={action.title}
                 href={action.href}
                 className="rounded-2xl border border-white/15 bg-white/10 p-4 text-white transition hover:bg-white/15"
               >
                 <span
-                  className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${cockpitToneClass(
+                  className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${workflowToneClass(
                     action.tone
                   )}`}
                 >
@@ -2581,10 +2581,10 @@ export default async function DashboardInboxV2Page({
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.14em] text-blue-700">
-              Workflow Situation
+              Workflow Overview
             </div>
             <div className="mt-1 text-lg font-black text-slate-950">
-              Current condition of your active conversations
+              Current activity across your important conversations
             </div>
             <div className="mt-1 text-sm font-semibold text-slate-500">
               {dealHealthAction}
@@ -2656,10 +2656,10 @@ export default async function DashboardInboxV2Page({
 
         {recoveryQueue.length === 0 ? (
           <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800">
-            ✅ No urgent recovery queue right now. Continue monitoring active workflows.
+            ✅ No urgent inactive conversations right now. Continue active discussions normally.
           </div>
         ) : (
-          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {recoveryQueue.map((item) => (
               <Link
                 key={`recovery-${item.id}`}
@@ -3019,7 +3019,7 @@ export default async function DashboardInboxV2Page({
             No urgent tasks in the current filtered view.
           </div>
         ) : (
-          <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-5">
+          <div className="grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
             {automationQueue.map((item) => (
               <Link
                 key={`automation-${item.id}`}

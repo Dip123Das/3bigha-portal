@@ -108,7 +108,7 @@ export default function VendorRFQInboxPage() {
 
   return (
     <Container>
-      <SectionHeader title="RFQs / Buyer Leads" subtitle="Check buyer requirements, quote quickly and continue buyer follow-up." />
+      <SectionHeader title="Buyer Requirements" subtitle="Review buyer requirements, respond quickly and continue buyer conversation." />
 
       <VendorWorkMenu />
 
@@ -181,6 +181,10 @@ export default function VendorRFQInboxPage() {
                         </strong>
                         {"  "}• Items: <strong>{r.items_count ?? 0}</strong>
                         {"  "}• Quote: <strong>{quoteText}</strong>
+
+                        <span className="trustInline">
+                          ⚡ Active Buyer
+                        </span>
                         {r.latest_quote_grand_total != null ? (
                           <>
                             {"  "}• Total: <strong>₹{Number(r.latest_quote_grand_total).toLocaleString("en-IN")}</strong>

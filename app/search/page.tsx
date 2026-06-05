@@ -11,6 +11,8 @@ import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { SectionSkeleton, CardSkeleton } from "@/components/ui/Skeleton";
+import { OperationalEmptyState } from "@/components/ui/OperationalEmptyState";
 import { parseAiSearchIntent } from "@/lib/search/ai-search-intent";
 import { getAiSearchContent } from "@/lib/search/ai-search-content";
 import { getSearchKeywordClusters } from "@/lib/search/search-keyword-clusters";
@@ -899,7 +901,7 @@ function SearchPageInner() {
     const query = safeText(queryOverride || qInput);
 
     if (!query) {
-      setNote("Type what you are looking for, then use Smart AI Search.");
+      setNote("Type what you are looking for, then use Smart Smart Search.");
       return;
     }
 
@@ -917,7 +919,7 @@ function SearchPageInner() {
       const data = (await res.json()) as AiSearchIntent;
 
       if (!res.ok || !data?.ok) {
-        setNote(data?.error || "Smart AI Search could not understand this query.");
+        setNote(data?.error || "Smart Smart Search could not understand this query.");
         return;
       }
 
@@ -936,7 +938,7 @@ function SearchPageInner() {
       setNearOn(nextNear);
 
       setLastAiIntent(data);
-      setNote(data.explanation || "Smart AI Search applied better filters.");
+      setNote(data.explanation || "Smart Smart Search applied better filters.");
 
       pushUrl({
         q: nextQ,
@@ -950,7 +952,7 @@ function SearchPageInner() {
         km: nearKm,
       });
     } catch {
-      setNote("Smart AI Search failed. Normal search is still available.");
+      setNote("Smart Smart Search failed. Normal search is still available.");
     } finally {
       setAiBusy(false);
     }
@@ -1365,7 +1367,7 @@ if (want.includes("rentals")) {
           },
           {
             title: categories?.[0]?.name || "Related marketplace category",
-            text: "Continue discovery with category-aware AI recommendations.",
+            text: "Continue discovery with category-aware Recommendations.",
             href: `/search?q=${encodeURIComponent(q)}${modFromUrl !== "all" ? `&module=${encodeURIComponent(modFromUrl)}` : ""}`,
             badge: "Related opportunity",
             icon: "🧠",
@@ -1382,7 +1384,7 @@ if (want.includes("rentals")) {
         setAiRecommendations(next);
         setRecommendationSummary(
           discovery?.summary ||
-            "AI recommendation engine connected search, vendors, categories and RFQ actions."
+            "Recommendation engine connected search, vendors, categories and RFQ actions."
         );
       } catch {
         if (!alive) return;
@@ -2296,7 +2298,7 @@ if (want.includes("rentals")) {
               <div style={{ display: "grid", gap: 10 }}>
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 950, color: "#0b57d0" }}>
-                    Procurement Intelligence
+                    Procurement Insights
                   </div>
                   <div style={{ marginTop: 4, fontSize: 18, fontWeight: 800, color: "#0f172a" }}>
                     Compact execution guidance
@@ -2377,7 +2379,7 @@ if (want.includes("rentals")) {
 
                 {vendorIntelligence.show ? (
                   <SearchInsightSection
-                    title="🏅 Vendor Intelligence"
+                    title="🏅 Vendor Insights"
                     subtitle="Vendor quality, fit, locality and procurement suitability"
                   >
                     <VendorIntelligencePanel insight={vendorIntelligence} />
@@ -2395,7 +2397,7 @@ if (want.includes("rentals")) {
 
                 {procurementActionCopilot.show ? (
                   <SearchInsightSection
-                    title="🚀 Procurement Action Copilot"
+                    title="🚀 Workflow Suggestions"
                     subtitle="RFQ strengthening and next best actions"
                   >
                     <ProcurementActionCopilot insight={procurementActionCopilot} />
@@ -3291,7 +3293,15 @@ if (want.includes("rentals")) {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<Container><EmptyState message="Loading search…" /></Container>}>
+    <Suspense
+      fallback={
+        <Container>
+          <div style={{ paddingTop: 18 }}>
+            <SectionSkeleton cards={5} />
+          </div>
+        </Container>
+      }
+    >
       <SearchPageInner />
     </Suspense>
   );

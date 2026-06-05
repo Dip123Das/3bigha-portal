@@ -53,7 +53,7 @@ function getInventory(row: MaterialListingRow) {
 }
 
 function getTitle(row: MaterialListingRow) {
-  return row.title?.trim() || row.local_name?.trim() || row.sku?.trim() || "Inventory Item";
+  return row.title?.trim() || row.local_name?.trim() || row.sku?.trim() || "Stock Item";
 }
 
 function stockTone(current: number, reorder: number) {
@@ -182,7 +182,7 @@ export default function VendorInventoryPage() {
     <main>
       <Container>
         <SectionHeader
-          title="Inventory Work Desk"
+          title="Inventory"
           subtitle="Manage stock first. Then create bills, assign fleet and send dispatch updates when needed."
         />
 
@@ -198,7 +198,7 @@ export default function VendorInventoryPage() {
           }}
         >
           <div style={{ fontSize: 11, fontWeight: 950, letterSpacing: "0.14em", textTransform: "uppercase", color: "#2563eb" }}>
-            Daily Inventory Work
+            Daily Stock Work
           </div>
 
           <h1 style={{ marginTop: 8, marginBottom: 0, fontSize: 26, lineHeight: 1.15, fontWeight: 950, color: "#0f172a" }}>
@@ -211,8 +211,8 @@ export default function VendorInventoryPage() {
 
           <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 10 }}>
             {[
-              ["1", "Inventory Items", "See all stock records"],
-              ["2", "Add Inventory", "Add new material stock"],
+              ["1", "Stock Items", "See all stock records"],
+              ["2", "Add Stock", "Add new material stock"],
               ["3", "Billing", "Create invoice or challan"],
               ["4", "Fleet", "Assign vehicle if needed"],
               ["5", "Dispatch", "Send material delivery update"],
@@ -240,7 +240,7 @@ export default function VendorInventoryPage() {
           </ActionButton>
 
           <ActionButton href="/materials/add?inventory=1" variant="primary">
-            Add Inventory Item →
+            Add Stock Item →
           </ActionButton>
 
           <ActionButton href="/materials/my" variant="secondary">
@@ -274,7 +274,7 @@ export default function VendorInventoryPage() {
           }}
         >
           <div style={{ fontSize: 18, fontWeight: 950, color: "#3730a3" }}>
-            Inventory Daily Work
+            Daily Inventory Steps
           </div>
 
           <div style={{ marginTop: 6, color: "#475569", fontSize: 13, fontWeight: 800, lineHeight: 1.6 }}>
@@ -283,11 +283,11 @@ export default function VendorInventoryPage() {
 
           <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
             <ActionButton href="/dashboard/vendor/inventory" variant="primary">
-              📦 Inventory Items
+              📦 Stock Items
             </ActionButton>
 
             <ActionButton href="/materials/add?inventory=1" variant="secondary">
-              ➕ Add Inventory
+              ➕ Add Stock
             </ActionButton>
 
             <ActionButton href="/dashboard/vendor/billing" variant="secondary">
@@ -303,11 +303,11 @@ export default function VendorInventoryPage() {
             </ActionButton>
 
             <ActionButton href="/dashboard/vendor/inventory-intelligence" variant="secondary">
-              Inventory Suggestions
+              Stock Suggestions
             </ActionButton>
 
             <ActionButton href="/dashboard/vendor/inventory" variant="secondary">
-              📊 Stock Movement
+              📊 Stock Updates
             </ActionButton>
 
             <ActionButton href="/dashboard/vendor/billing" variant="secondary">
@@ -317,28 +317,28 @@ export default function VendorInventoryPage() {
         </div>
 
         <ErpPanel
-          title="Stock Control Center"
+          title="Stock Overview"
           subtitle="Materials added from the normal vendor material form now become inventory items. Shop owners can search by SKU, barcode, godown, room, rack or vehicle number."
           tone="green"
         >
           <ErpKpiGrid>
-            <ErpKpiCard label="Inventory Items" value={stats.totalItems} helper="Active stock records" tone="green" />
+            <ErpKpiCard label="Stock Items" value={stats.totalItems} helper="Available stock items" tone="green" />
             <ErpKpiCard label="Total Stock" value={stats.totalStock} helper="Available quantity" tone="blue" />
-            <ErpKpiCard label="Stock Value" value={money(stats.stockValue)} helper="Approximate sale value" tone="violet" />
-            <ErpKpiCard label="Low Stock" value={stats.lowStock} helper="Needs reorder check" tone="orange" />
-            <ErpKpiCard label="Out of Stock" value={stats.outOfStock} helper="Urgent restocking needed" tone="red" />
-            <ErpKpiCard label="Vehicle Linked" value={stats.vehicleLinked} helper="Ready for dispatch planning" tone="slate" />
+            <ErpKpiCard label="Stock Value" value={money(stats.stockValue)} helper="Current stock value" tone="violet" />
+            <ErpKpiCard label="Low Stock" value={stats.lowStock} helper="May need refill" tone="orange" />
+            <ErpKpiCard label="Out of Stock" value={stats.outOfStock} helper="Currently unavailable" tone="red" />
+            <ErpKpiCard label="Ready for Delivery" value={stats.vehicleLinked} helper="Ready for delivery work" tone="slate" />
           </ErpKpiGrid>
         </ErpPanel>
 
                 <ErpPanel
-          title="Inventory Operational Actions"
-          subtitle="Quick ERP workflows for inventory movement, billing, dispatch and AI stock planning."
+          title="Daily Inventory Actions"
+          subtitle="Quick actions for stock, billing and delivery work."
           tone="blue"
         >
           <ErpActionGrid>
             <ErpActionCard
-              title="Add Inventory"
+              title="Add Stock"
               description="Create new inventory records and stock entries."
               href="/dashboard/vendor/inventory"
               tone="green"
@@ -390,20 +390,20 @@ export default function VendorInventoryPage() {
             ]}
           />
                   <ErpActivityFeed
-            title="Inventory Activity Timeline"
+            title="Recent Inventory Activity"
             items={[
               {
-                label: "Inventory health checked by ERP analytics.",
+                label: "Inventory checked successfully.",
                 meta: `${stats.totalItems} items scanned`,
                 tone: "blue",
               },
               {
-                label: "Low stock monitoring is active.",
+                label: "Low stock items reviewed.",
                 meta: `${stats.lowStock} reorder signals found`,
                 tone: "orange",
               },
               {
-                label: "Fleet-linked inventory is ready for dispatch planning.",
+                label: "Delivery-ready stock reviewed.",
                 meta: `${stats.vehicleLinked} stock records linked`,
                 tone: "green",
               },
@@ -415,7 +415,7 @@ export default function VendorInventoryPage() {
           <CardBody>
             <div style={{ display: "flex", gap: 12, justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }}>
               <div>
-                <div style={{ fontSize: 18, fontWeight: 950 }}>Inventory Items</div>
+                <div style={{ fontSize: 18, fontWeight: 950 }}>Stock Items</div>
                 <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
                   Search products by name, SKU, barcode, godown, room, rack or vehicle number.
                 </div>
@@ -539,7 +539,7 @@ export default function VendorInventoryPage() {
           <CardFooter>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
               <ActionButton href="/materials/add?inventory=1" variant="primary">
-                Add New Inventory Item →
+                Add New Stock Item →
               </ActionButton>
 
               <Link href="/materials" style={{ fontWeight: 900, alignSelf: "center" }}>

@@ -3686,3 +3686,370 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     display: block;
   }
 }
+
+/* =========================================================
+   PHASE 1B — Universal Stability Foundation
+   Calm loading, empty and error states
+========================================================= */
+
+.ui-empty-state {
+  margin-top: 14px;
+  border: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  color: #475569;
+  border-radius: 16px;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.ui-skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #e5e7eb;
+}
+
+.ui-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.72), transparent);
+  animation: uiSkeletonShimmer 1.4s infinite;
+}
+
+@keyframes uiSkeletonShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.ui-skeleton-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.ui-skeleton-line {
+  height: 12px;
+}
+
+.ui-skeleton-line-short {
+  width: 62%;
+}
+
+.ui-skeleton-title {
+  width: 46%;
+  height: 18px;
+  margin-bottom: 12px;
+}
+
+.ui-skeleton-card {
+  min-height: 118px;
+}
+
+.ui-section-skeleton {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.ui-operational-state {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #dbeafe;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+  border-radius: 18px;
+  padding: 16px;
+  color: #0f172a;
+  box-shadow: 0 8px 22px rgba(15,23,42,0.04);
+}
+
+.ui-operational-state-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 20px;
+}
+
+.ui-operational-state h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.25;
+  font-weight: 950;
+  color: #0f172a;
+}
+
+.ui-operational-state p {
+  margin: 5px 0 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.55;
+  font-weight: 700;
+}
+
+.ui-operational-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ui-operational-state-error {
+  border-color: #fed7aa;
+  background: linear-gradient(180deg, #ffffff, #fff7ed);
+}
+
+.ui-operational-state-error .ui-operational-state-icon {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+@media (max-width: 640px) {
+  .ui-empty-state,
+  .ui-operational-state {
+    border-radius: 16px;
+    padding: 14px;
+  }
+
+  .ui-operational-state-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .ui-operational-state-actions .ui-btn {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+   PHASE 1D — Search Calmness & Rhythm
+========================================================= */
+
+.searchResultsGrid {
+  gap: 14px !important;
+}
+
+.searchCard,
+.marketplaceCard,
+.discoveryCard {
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.searchCard:hover,
+.marketplaceCard:hover,
+.discoveryCard:hover {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  .searchResultsGrid {
+    gap: 12px !important;
+  }
+
+  .searchCard,
+  .marketplaceCard,
+  .discoveryCard {
+    border-radius: 16px !important;
+  }
+}
+
+/* =========================================================
+   PHASE 1F — Operational Breathing & Mobile Rhythm
+========================================================= */
+
+.workflowSurface,
+.operationalSurface,
+.procurementSurface {
+  border-radius: 18px;
+  padding: 16px;
+}
+
+@media (max-width: 640px) {
+  .workflowSurface,
+  .operationalSurface,
+  .procurementSurface {
+    border-radius: 16px;
+    padding: 14px;
+  }
+}
+
+/* calmer operational rhythm */
+
+.workflowCard,
+.procurementCard,
+.inboxCard {
+  transition:
+    box-shadow 0.18s ease,
+    transform 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.workflowCard + .workflowCard,
+.procurementCard + .procurementCard,
+.inboxCard + .inboxCard {
+  margin-top: 14px;
+}
+
+@media (max-width: 640px) {
+  .workflowCard + .workflowCard,
+  .procurementCard + .procurementCard,
+  .inboxCard + .inboxCard {
+    margin-top: 12px;
+  }
+}
+
+/* calmer horizontal scrolling */
+
+.mobileChipScroll {
+  scrollbar-width: none;
+}
+
+.mobileChipScroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* reduce operational visual aggression */
+
+.workflowMuted {
+  opacity: 0.82;
+}
+
+.workflowSecondary {
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+/* mobile breathing */
+
+@media (max-width: 640px) {
+  .pageBody {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* =========================================================
+   PHASE 1H — Buyer Decision Calmness
+========================================================= */
+
+.quoteCompareSurface {
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.quoteCompareTable {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.quoteCompareTable table {
+  min-width: 720px;
+}
+
+.quoteCompareCard {
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.quoteCompareCard + .quoteCompareCard {
+  margin-top: 14px;
+}
+
+@media (max-width: 640px) {
+  .quoteCompareSurface {
+    border-radius: 16px;
+    padding: 14px;
+  }
+
+  .quoteCompareCard + .quoteCompareCard {
+    margin-top: 12px;
+  }
+}
+
+/* =========================================================
+   PHASE 2A — Vendor RFQ Response Confidence
+========================================================= */
+
+.vendorResponseSurface {
+  border-radius: 18px;
+  padding: 16px;
+  background: linear-gradient(180deg, #ffffff, #fcfcfd);
+}
+
+.vendorResponseActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.vendorResponseHint {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.vendorResponseSoftCard {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 16px;
+}
+
+@media (max-width: 640px) {
+  .vendorResponseSurface {
+    border-radius: 16px;
+    padding: 14px;
+  }
+
+  .vendorResponseActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   PHASE 3A — Human Trust Signals
+========================================================= */
+
+.trustChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  color: #475569;
+}
+
+.trustInline {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+}
+
+@media (max-width: 640px) {
+  .trustChip {
+    font-size: 11px;
+    height: 28px;
+    padding: 0 9px;
+  }
+}

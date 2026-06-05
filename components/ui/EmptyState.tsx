@@ -6,7 +6,7 @@ type EmptyStateProps = {
 
 export function EmptyState({ message = "No results found." }: EmptyStateProps) {
   return (
-    <div style={{ marginTop: 16, color: "#5b6472" }}>
+    <div className="ui-empty-state">
       {message}
     </div>
   );

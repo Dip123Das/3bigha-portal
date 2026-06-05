@@ -3,6 +3,8 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { Card, CardBody } from "@/components/ui/Card";
+import { SectionSkeleton } from "@/components/ui/Skeleton";
 import { Suspense, useMemo } from "react";
 
 function UnifiedRfqStartPageInner() {
@@ -33,29 +35,21 @@ function UnifiedRfqStartPageInner() {
         </div>
 
         {quickRoute ? (
-          <div
-            style={{
-              border: "1px solid #e5e7eb",
-              borderRadius: 12,
-              padding: 12,
-            }}
-          >
-            <p style={{ marginTop: 0 }}>
-              You came here with module: <strong>{module}</strong>
-            </p>
-            <Link
-              href={quickRoute}
-              style={{
-                display: "inline-flex",
-                padding: "10px 14px",
-                borderRadius: 10,
-                textDecoration: "none",
-                border: "1px solid #111827",
-              }}
-            >
-              Continue
-            </Link>
-          </div>
+          <Card>
+            <CardBody>
+              <div style={{ display: "grid", gap: 10 }}>
+                <div style={{ fontWeight: 900, color: "#0f172a" }}>
+                  Continue your {module} requirement
+                </div>
+                <p style={{ margin: 0, color: "#475569", fontWeight: 700 }}>
+                  We will open the right RFQ form directly, so you do not need to choose again.
+                </p>
+                <Link className="ui-btn ui-btn--primary" href={quickRoute}>
+                  Continue RFQ
+                </Link>
+              </div>
+            </CardBody>
+          </Card>
         ) : (
           <div
             style={{
@@ -64,51 +58,33 @@ function UnifiedRfqStartPageInner() {
               gap: 16,
             }}
           >
-            <div
-              style={{
-                border: "1px solid #e5e7eb",
-                borderRadius: 12,
-                padding: 12,
-              }}
-            >
-              <h2 style={{ marginTop: 0 }}>Materials RFQ</h2>
-              <p>Create an RFQ for material requirements.</p>
-              <Link
-                href="/rfq/new"
-                style={{
-                  display: "inline-flex",
-                  padding: "10px 14px",
-                  borderRadius: 10,
-                  textDecoration: "none",
-                  border: "1px solid #111827",
-                }}
-              >
-                Start Materials RFQ
-              </Link>
-            </div>
+            <Card>
+              <CardBody>
+                <div style={{ display: "grid", gap: 10 }}>
+                  <h2 style={{ margin: 0 }}>Materials RFQ</h2>
+                  <p style={{ margin: 0, color: "#475569", fontWeight: 700 }}>
+                    Cement, steel, sand, bricks, tiles, fittings and other construction materials.
+                  </p>
+                  <Link className="ui-btn ui-btn--primary" href="/rfq/new">
+                    Start Materials RFQ
+                  </Link>
+                </div>
+              </CardBody>
+            </Card>
 
-            <div
-              style={{
-                border: "1px solid #e5e7eb",
-                borderRadius: 12,
-                padding: 12,
-              }}
-            >
-              <h2 style={{ marginTop: 0 }}>General RFQ</h2>
-              <p>Create a general-purpose RFQ.</p>
-              <Link
-                href="/rfq/general/new"
-                style={{
-                  display: "inline-flex",
-                  padding: "10px 14px",
-                  borderRadius: 10,
-                  textDecoration: "none",
-                  border: "1px solid #111827",
-                }}
-              >
-                Start General RFQ
-              </Link>
-            </div>
+            <Card>
+              <CardBody>
+                <div style={{ display: "grid", gap: 10 }}>
+                  <h2 style={{ margin: 0 }}>General RFQ</h2>
+                  <p style={{ margin: 0, color: "#475569", fontWeight: 700 }}>
+                    Services, rentals, labour, machines, mixed requirements and custom needs.
+                  </p>
+                  <Link className="ui-btn ui-btn--secondary" href="/rfq/general/new">
+                    Start General RFQ
+                  </Link>
+                </div>
+              </CardBody>
+            </Card>
           </div>
         )}
       </div>
@@ -121,7 +97,7 @@ export default function UnifiedRfqStartPage() {
     <Suspense
       fallback={
         <div className="container pageBody" style={{ paddingTop: 16 }}>
-          Loading...
+          <SectionSkeleton cards={2} />
         </div>
       }
     >

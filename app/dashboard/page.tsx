@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import { SectionSkeleton } from "@/components/ui/Skeleton";
+import { OperationalErrorState } from "@/components/ui/OperationalErrorState";
 import {
   getDefaultPostLoginPath,
   resolveAccessForUser,
@@ -51,7 +53,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("Loading AI procurement analytics...");
+  const [message, setMessage] = useState("Preparing your marketplace workspace...");
+  const [fatalError, setFatalError] = useState<string | null>(null);
   const [stats, setStats] = useState<AnalyticsStats>({
     rfqs: 0,
     vendorAlerts: 0,
@@ -78,7 +81,8 @@ export default function DashboardPage() {
         if (!alive) return;
 
         if (sessionErr) {
-          setMessage(sessionErr.message || "Unable to load session.");
+          setFatalError(sessionErr.message || "Unable to load session.");
+          setMessage("Unable to load your workspace.");
           setLoading(false);
           return;
         }
@@ -233,7 +237,8 @@ export default function DashboardPage() {
         setLoading(false);
       } catch (e: any) {
         if (!alive) return;
-        setMessage(e?.message || "Something went wrong while loading analytics.");
+        setFatalError(e?.message || "Something went wrong while loading your dashboard.");
+        setMessage("Unable to load your workspace.");
         setLoading(false);
       }
     })();
@@ -264,6 +269,26 @@ export default function DashboardPage() {
       ? "Moderate procurement activity. More RFQs and vendor responses will improve intelligence."
       : "Early-stage procurement data. Create RFQs and collect vendor/price signals.";
 
+  if (loading) {
+    return (
+      <div className="container pageBody" style={{ paddingTop: 16, paddingBottom: 32 }}>
+        <SectionSkeleton cards={4} />
+      </div>
+    );
+  }
+
+  if (fatalError) {
+    return (
+      <div className="container pageBody" style={{ paddingTop: 16, paddingBottom: 32 }}>
+        <OperationalErrorState
+          title="Dashboard could not load"
+          message={fatalError}
+          onRetry={() => window.location.reload()}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="container pageBody" style={{ paddingTop: 16, paddingBottom: 32 }}>
       <div
@@ -278,10 +303,10 @@ export default function DashboardPage() {
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, color: "#3730a3" }}>
-              🧠 AI Procurement Analytics & Forecasting Hub
+              Marketplace Operations Overview
             </div>
             <div style={{ marginTop: 5, color: "#475569", fontSize: 14, fontWeight: 800 }}>
-              Unified view of RFQs, conversations, vendor alerts, price intelligence and procurement forecasting.
+              Simple view of RFQs, conversations, vendor alerts, price signals and next actions.
             </div>
           </div>
 
@@ -320,14 +345,14 @@ export default function DashboardPage() {
 
         <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           <div style={{ border: "1px solid #bfdbfe", background: "#ffffff", borderRadius: 12, padding: 12 }}>
-            <div style={{ color: "#1e3a8a", fontWeight: 800 }}>🔮 AI Forecast</div>
+            <div style={{ color: "#1e3a8a", fontWeight: 800 }}>🔮 Workflow Forecast</div>
             <div style={{ marginTop: 5, color: "#1e40af", fontSize: 13, fontWeight: 800 }}>
               {forecast}
             </div>
           </div>
 
           <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 12 }}>
-            <div style={{ color: "#166534", fontWeight: 800 }}>🎯 AI Next Best Action</div>
+            <div style={{ color: "#166534", fontWeight: 800 }}>🎯 Suggested Next Action</div>
             <div style={{ marginTop: 5, color: "#14532d", fontSize: 13, fontWeight: 800 }}>
               {stats.unreadVendorAlerts > 0
                 ? "Clear unread vendor alerts and follow up active procurement threads."
@@ -349,10 +374,10 @@ export default function DashboardPage() {
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
               <div>
                 <div style={{ fontWeight: 800, color: "#5b21b6", fontSize: 18 }}>
-                  🔮 AI Recommendation & Forecasting Engine
+                  Recommendation & Forecasting
                 </div>
                 <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
-                  Platform-wide supplier prediction, demand signal, budget risk and conversion insight.
+                  Supplier prediction, demand signal, budget risk and conversion insight.
                 </div>
               </div>
 
@@ -404,7 +429,7 @@ export default function DashboardPage() {
               </div>
 
               <div style={{ border: "1px solid #bbf7d0", background: "#f0fdf4", borderRadius: 12, padding: 10 }}>
-                <div style={{ color: "#166534", fontWeight: 800 }}>AI Next Best Action</div>
+                <div style={{ color: "#166534", fontWeight: 800 }}>Suggested Next Action</div>
                 <div style={{ marginTop: 5, color: "#14532d", fontSize: 13, fontWeight: 800 }}>
                   {procurementRecommendation.nextAction || "Create RFQs and monitor procurement signals."}
                 </div>
@@ -447,10 +472,10 @@ export default function DashboardPage() {
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
               <div>
                 <div style={{ fontWeight: 800, color: "#047857", fontSize: 18 }}>
-                  🧬 AI Procurement Memory & Learning Graph
+                  Procurement Memory & Learning
                 </div>
                 <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 800 }}>
-                  Platform memory connects RFQs, suppliers, conversations, pricing, closure and anomaly signals.
+                  3Bigha connects RFQs, suppliers, conversations, pricing, closure and attention signals.
                 </div>
               </div>
 
@@ -541,7 +566,7 @@ export default function DashboardPage() {
             Vendor Intelligence →
           </Link>
           <Link href="/dashboard/inbox-v2" className="topBtn topBtnGhost">
-            AI Inbox →
+            Inbox →
           </Link>
           <Link href="/dashboard/buyer/rfqs" className="topBtn topBtnGhost">
             RFQ Work Desk →
@@ -550,7 +575,7 @@ export default function DashboardPage() {
             Predictive Prices →
           </Link>
           <Link href="/rfq/general/new" className="topBtn topBtnGhost">
-            + New AI RFQ →
+            + New RFQ →
           </Link>
         </div>
       </div>

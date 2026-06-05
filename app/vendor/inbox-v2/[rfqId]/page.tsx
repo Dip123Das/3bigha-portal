@@ -287,9 +287,9 @@ export default async function VendorRfqDetailV2Page({
             fontWeight: 900,
           }}
         >
-          🎉 Congratulations! Your quote has been <strong>ACCEPTED</strong> by the buyer.
+          🎉 Your quotation has been <strong>ACCEPTED</strong> by the buyer.
           <div style={{ marginTop: 6, fontSize: 12, opacity: 0.9, fontWeight: 800 }}>
-            RFQ is now locked. You can view history, totals, and next actions below.
+            Buyer accepted your quotation. You can continue delivery coordination below.
           </div>
         </div>
       ) : null}
@@ -308,7 +308,7 @@ export default async function VendorRfqDetailV2Page({
         >
           This RFQ has been <strong>closed</strong> and your quote was <strong>not selected</strong>.
           <div style={{ marginTop: 6, fontSize: 12, opacity: 0.9, fontWeight: 800 }}>
-            You can still review the RFQ details and your quote history below.
+            You can still continue buyer discussion and review quotation history below.
           </div>
         </div>
       ) : null}
@@ -333,6 +333,18 @@ export default async function VendorRfqDetailV2Page({
         <div style={{ marginTop: 10 }}>
           <div>
             <strong>Buyer:</strong> {buyerName ?? "—"}
+
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 8,
+                marginTop: 10,
+              }}
+            >
+              <span className="trustChip">🟢 Buyer active recently</span>
+              <span className="trustChip">💬 Conversation open</span>
+            </div>
           </div>
           <div>
             <strong>Location:</strong>{" "}
@@ -356,7 +368,7 @@ export default async function VendorRfqDetailV2Page({
           }}
         >
           <div style={{ fontWeight: 900, marginBottom: 8 }}>
-            {isAccepted ? "Next Actions" : "Talk / Quote Actions"}
+            {isAccepted ? "Next Steps" : "Buyer Communication"}
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -364,7 +376,7 @@ export default async function VendorRfqDetailV2Page({
               href={`/vendor/inbox-v2/${encodeURIComponent(rfqId)}/chat`}
               style={actionBtnStyle("talk")}
             >
-              💬 {isAccepted ? "Talk to Buyer" : "Contact Buyer"}
+              💬 {isAccepted ? "Talk to Buyer" : "Talk to Buyer"}
             </Link>
 
             {isAccepted ? (
@@ -373,7 +385,7 @@ export default async function VendorRfqDetailV2Page({
                 target="_blank"
                 style={actionBtnStyle("normal")}
               >
-                🧾 Download / Print Quote
+                🧾 Download Quotation
               </Link>
             ) : null}
 
@@ -382,7 +394,7 @@ export default async function VendorRfqDetailV2Page({
                 href="#delivery-update-panel"
                 style={actionBtnStyle("normal")}
               >
-                🚚 Update Delivery Schedule
+                🚚 Update Delivery
               </a>
             ) : null}
 
@@ -395,8 +407,8 @@ export default async function VendorRfqDetailV2Page({
 
           <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
             {isAccepted
-              ? "Tip: Once accepted, the buyer typically expects quick confirmation + delivery timeline."
-              : "Tip: You can now talk with the buyer before acceptance to discuss rate, delivery time, rental terms, or clarification."}
+              ? "Tip: Buyers usually expect quick confirmation and delivery schedule after acceptance."
+              : "Tip: Continue buyer discussion to finalize rates, delivery schedule and requirement details."}
           </div>
 
           {isAccepted && latestDelivery ? (
@@ -474,11 +486,11 @@ export default async function VendorRfqDetailV2Page({
       {history.length > 0 ? (
         <QuoteHistory rfqId={rfqId} history={history} itemTitleById={itemTitleById} />
       ) : (
-        <div style={{ marginTop: 14, opacity: 0.7 }}>No submitted quotes yet.</div>
+        <div style={{ marginTop: 14, opacity: 0.7 }}>No quotation submitted yet.</div>
       )}
 
-      <div style={{ marginTop: 16, padding: 12, border: "1px dashed #ccc", borderRadius: 12 }}>
-        <h3 style={{ margin: 0, fontWeight: 700 }}>Submit Your Quote</h3>
+      <div style={{ marginTop: 16, padding: 12, border: "1px solid #e5e7eb", borderRadius: 12 }}>
+        <h3 style={{ margin: 0, fontWeight: 700 }}>Share Your Quotation</h3>
 
         {isAccepted ? (
           <div style={{ marginTop: 10 }}>
@@ -495,7 +507,7 @@ export default async function VendorRfqDetailV2Page({
               ✅ Quote submission is disabled because this RFQ is already <strong>ACCEPTED</strong>.
             </div>
             <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
-              You can still review your submitted versions above.
+              You can still review your submitted quotation versions above.
             </div>
           </div>
         ) : isLost ? (
@@ -517,7 +529,7 @@ export default async function VendorRfqDetailV2Page({
             </div>
           </div>
         ) : itemsForForm.length === 0 ? (
-          <div style={{ marginTop: 10, opacity: 0.7 }}>No quoteable items found in this RFQ.</div>
+          <div style={{ marginTop: 10, opacity: 0.7 }}>No quotation items available in this RFQ.</div>
         ) : (
           <QuoteForm rfqId={rfqId} items={itemsForForm} />
         )}

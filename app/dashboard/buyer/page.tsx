@@ -13,6 +13,9 @@ import { Badge } from "@/components/ui/Badge";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { Grid } from "@/components/ui/Grid";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { SectionSkeleton } from "@/components/ui/Skeleton";
+import { OperationalErrorState } from "@/components/ui/OperationalErrorState";
+import { OperationalEmptyState } from "@/components/ui/OperationalEmptyState";
 import BuyerWorkMenu from "@/components/buyer/BuyerWorkMenu";
 import UniversalDashboardShell from "@/components/operational/UniversalDashboardShell";
 import {
@@ -377,10 +380,10 @@ const closedDeals =
       detail:
         procurementStats.totalRfqs === 0
           ? "You have no RFQs yet. Start with the AI Procurement Copilot to get matched vendors faster."
-          : "Use the upgraded RFQ workspace for structured procurement, vendor discovery and AI readiness scoring.",
+          : "Use the RFQ workspace for structured procurement, vendor discovery and readiness checking.",
       tone: procurementStats.totalRfqs === 0 ? "warn" : "ok",
       href: "/rfq/general/new",
-      cta: "Open AI RFQ Workspace",
+      cta: "Open RFQ Workspace",
     },
     {
       title: "Review active procurement decisions",
@@ -395,7 +398,7 @@ const closedDeals =
     {
       title: "Check vendor conversations",
       detail:
-        "Continue vendor negotiation from unified chat and use AI deal intelligence before closing.",
+        "Continue vendor negotiation from unified chat before closing.",
       tone: "neutral",
       href: "/dashboard/inbox",
       cta: "Open Inbox",
@@ -419,9 +422,7 @@ const closedDeals =
         title="Buyer Dashboard"
         subtitle="Preparing your procurement workspace."
       >
-        <div style={{ opacity: 0.8 }}>
-          Preparing your buyer workspace…
-        </div>
+        <SectionSkeleton cards={4} />
       </UniversalDashboardShell>
     );
   }
@@ -433,29 +434,17 @@ const closedDeals =
         title="Buyer Dashboard"
         subtitle="Unable to load your procurement workspace."
       >
-        <EmptyState message="Something went wrong while loading your buyer dashboard." />
-          <div style={{ marginTop: 12, color: "crimson", fontWeight: 800 }}>{err}</div>
+        <OperationalErrorState
+          title="Buyer dashboard could not load"
+          message={err}
+          onRetry={() => load()}
+        />
 
-          <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <ActionButton href="/dashboard" variant="secondary">
-              ← All Dashboards
-            </ActionButton>
-            <button
-              type="button"
-              onClick={() => load()}
-              style={{
-                height: 40,
-                padding: "0 14px",
-                borderRadius: 12,
-                border: "1px solid rgba(0,0,0,0.12)",
-                background: "white",
-                fontWeight: 800,
-                cursor: "pointer",
-              }}
-            >
-              Retry
-            </button>
-          </div>
+        <div style={{ marginTop: 12 }}>
+          <ActionButton href="/dashboard" variant="secondary">
+            ← All Dashboards
+          </ActionButton>
+        </div>
 
       </UniversalDashboardShell>
     );
@@ -488,7 +477,7 @@ const closedDeals =
               color: "#2563eb",
             }}
           >
-            Today’s Buying Work
+            Today’s Buying Workflow
           </div>
 
           <h1
@@ -580,11 +569,11 @@ const closedDeals =
           }}
         >
           <div style={{ fontSize: 18, fontWeight: 800, color: "#92400e" }}>
-            Important Buyer Alerts
+            Important Buyer Reminders
           </div>
 
           <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
-            Personalized reminders generated from your RFQ and marketplace activity.
+            Reminders from your RFQ and marketplace activity.
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 10, marginTop: 12 }}>
@@ -728,6 +717,21 @@ const closedDeals =
               </div>
             ))}
           </div>
+
+          {procurementStats.totalRfqs === 0 ? (
+            <>
+              <OperationalEmptyState
+                icon="🧾"
+                title="No RFQ created yet"
+                message="Start with one simple requirement. Vendors can respond after your RFQ is posted."
+                actionLabel="Submit First Requirement"
+                actionHref="/rfq/general/new"
+                secondaryLabel="Search Marketplace"
+                secondaryHref="/search"
+              />
+              <div style={{ height: 12 }} />
+            </>
+          ) : null}
 
           <div
             style={{

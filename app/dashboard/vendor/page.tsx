@@ -11,6 +11,8 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Badge } from "@/components/ui/Badge";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { SectionSkeleton } from "@/components/ui/Skeleton";
+import { OperationalErrorState } from "@/components/ui/OperationalErrorState";
 import {
   ErpActionCard,
   ErpActionGrid,
@@ -1069,8 +1071,8 @@ const aiDealUpgradeTarget =
       return (
         <main>
           <Container>
-            <SectionHeader title={dashboardTitle} subtitle="Loading..." />
-            <div style={{ opacity: 0.8 }}>Preparing your vendor workspace…</div>
+            <SectionHeader title={dashboardTitle} subtitle="Preparing your vendor workspace." />
+            <SectionSkeleton cards={4} />
           </Container>
         </main>
       );
@@ -1080,13 +1082,13 @@ const aiDealUpgradeTarget =
       return (
         <main>
           <Container>
-            <SectionHeader title={dashboardTitle} subtitle="Something went wrong." />
+            <SectionHeader title={dashboardTitle} subtitle="Unable to load your vendor workspace." />
 
-            <EmptyState message="Something went wrong while loading your vendor dashboard." />
-
-            <div style={{ marginTop: 12, color: "crimson", fontWeight: 800 }}>
-              {err}
-            </div>
+            <OperationalErrorState
+              title="Vendor dashboard could not load"
+              message={err}
+              onRetry={() => load()}
+            />
 
             <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
               <ActionButton href="/dashboard/vendor" variant="secondary">

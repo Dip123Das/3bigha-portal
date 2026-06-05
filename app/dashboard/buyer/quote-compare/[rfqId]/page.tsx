@@ -95,7 +95,7 @@ type AiVendorComparisonCard = {
   deliveryScore: number;
   trustScore: number;
   riskScore: number;
-  valueLabel: "Best Option" | "Lowest Price" | "Fastest Delivery" | "Trusted" | "Alternative Option";
+  valueLabel: string;
   decision: string;
   negotiationTip: string;
   riskNote: string;
@@ -113,9 +113,9 @@ type AiProcurementDecisionSummary = {
   buyerAction: string;
 };
 
-type AutonomousProcurementOsDecision = {
+type SmartProcurementOsDecision = {
   osScore: number;
-  workflowRisk: "High" | "Medium" | "Low";
+  workflowRisk: "Attention Needed" | "Monitor" | "Stable";
   supplierSignal: "Strong" | "Moderate" | "Weak";
   autonomousAction: string;
   autonomousReason: string;
@@ -131,7 +131,7 @@ type BuyerDecisionCard = {
   icon: string;
 };
 
-function buildAutonomousProcurementOsDecision(args: {
+function buildSmartProcurementOsDecision(args: {
   rfq: any;
   vendors: any[];
   best?: AiVendorComparisonCard;
@@ -156,16 +156,16 @@ function buildAutonomousProcurementOsDecision(args: {
     )
   );
 
-  const workflowRisk: AutonomousProcurementOsDecision["workflowRisk"] =
+  const workflowRisk: SmartProcurementOsDecision["workflowRisk"] =
     isClosed
-      ? "Low"
+      ? "Stable"
       : vendorCount === 0 || !args.best
-        ? "High"
+        ? "Attention Needed"
         : args.priceSpread != null && args.priceSpread >= 25
-          ? "Medium"
-          : "Low";
+          ? "Monitor"
+          : "Stable";
 
-  const supplierSignal: AutonomousProcurementOsDecision["supplierSignal"] =
+  const supplierSignal: SmartProcurementOsDecision["supplierSignal"] =
     bestScore >= 78 ? "Strong" : bestScore >= 58 ? "Moderate" : "Weak";
 
   const milestone =
@@ -175,21 +175,21 @@ function buildAutonomousProcurementOsDecision(args: {
         ? "Waiting for vendor responses"
         : bestScore >= 78
           ? "Shortlist and negotiate"
-          : "Compare additional vendors";
+          : "Continue reviewing vendors";
 
   const autonomousAction =
     isClosed
       ? "Archive this RFQ as completed and use it as procurement learning data."
       : vendorCount === 0
-        ? "Send follow-up or expand supplier search."
+        ? "Continue vendor discussion or expand supplier search."
         : bestScore >= 78 && args.best
           ? `Shortlist ${args.best.name}, negotiate final delivery/payment terms, then accept.`
-          : "Compare at least 2–3 vendors before making a final decision.";
+          : "Continue reviewing 2–3 vendors before finalizing the decision.";
 
   const autonomousReason =
-    workflowRisk === "High"
+    workflowRisk === "Attention Needed"
       ? "This RFQ has low vendor response or missing quote data, which can block procurement execution."
-      : workflowRisk === "Medium"
+      : workflowRisk === "Monitor"
         ? "There is meaningful price/risk variation, so negotiation should happen before acceptance."
         : "RFQ has enough signals for controlled execution.";
 
@@ -201,13 +201,13 @@ function buildAutonomousProcurementOsDecision(args: {
     autonomousReason,
     milestone,
     shortlistVendor: args.best?.name || "—",
-  } as AutonomousProcurementOsDecision;
+  } as SmartProcurementOsDecision;
 }
 
-function osToneStyle(level: "High" | "Medium" | "Low" | "Strong" | "Moderate" | "Weak"): React.CSSProperties {
-  if (level === "High") return pillStyle("bad");
-  if (level === "Medium" || level === "Moderate") return pillStyle("warn");
-  if (level === "Strong" || level === "Low") return pillStyle("ok");
+function osToneStyle(level: "Attention Needed" | "Monitor" | "Stable" | "Strong" | "Moderate" | "Weak"): React.CSSProperties {
+  if (level === "Attention Needed") return pillStyle("bad");
+  if (level === "Monitor" || level === "Moderate") return pillStyle("warn");
+  if (level === "Strong" || level === "Stable") return pillStyle("ok");
   return pillStyle("neutral");
 }
 
@@ -571,13 +571,13 @@ export default async function BuyerQuoteComparePage({
           : "Need more priced quotes to calculate strong negotiation leverage.",
     buyerAction:
       aiComparisonSorted.length === 0
-        ? "Wait for vendor responses or follow up with matched vendors."
+        ? "Wait for vendor responses or continue discussion with matched vendors."
         : aiComparisonSorted[0].aiScore >= 78
           ? `Shortlist ${aiComparisonSorted[0].name} and negotiate final delivery/payment terms.`
           : "Compare at least 2–3 vendors before accepting.",
   };
 
-  const autonomousOsDecision = buildAutonomousProcurementOsDecision({
+  const autonomousOsDecision = buildSmartProcurementOsDecision({
     rfq,
     vendors: vendorsSorted,
     best: aiProcurementDecision.bestOverall,
@@ -594,7 +594,7 @@ export default async function BuyerQuoteComparePage({
             Math.round(
               aiProcurementDecision.bestOverall.aiScore * 0.72 +
                 autonomousOsDecision.osScore * 0.28 -
-                (autonomousOsDecision.workflowRisk === "High" ? 10 : autonomousOsDecision.workflowRisk === "Medium" ? 4 : 0)
+                (autonomousOsDecision.workflowRisk === "Attention Needed" ? 10 : autonomousOsDecision.workflowRisk === "Monitor" ? 4 : 0)
             )
           )
         )
@@ -602,11 +602,11 @@ export default async function BuyerQuoteComparePage({
 
   const buyerDecisionCards: BuyerDecisionCard[] = [
     {
-      title: "Decision Readiness",
+      title: "Decision Confidence",
       value: buyerDecisionConfidence ? `${buyerDecisionConfidence}/100` : "Waiting",
       detail:
         buyerDecisionConfidence >= 80
-          ? "This RFQ has enough vendor activity for a confident decision."
+          ? "This requirement now has enough vendor activity for a confident decision."
           : buyerDecisionConfidence >= 55
             ? "Negotiation and comparison are recommended before acceptance."
             : "Wait for more quotes or stronger vendor responses.",
@@ -637,9 +637,9 @@ export default async function BuyerQuoteComparePage({
       value: autonomousOsDecision.workflowRisk,
       detail: autonomousOsDecision.autonomousReason,
       tone:
-        autonomousOsDecision.workflowRisk === "Low"
+        autonomousOsDecision.workflowRisk === "Stable"
           ? "ok"
-          : autonomousOsDecision.workflowRisk === "Medium"
+          : autonomousOsDecision.workflowRisk === "Monitor"
             ? "warn"
             : "bad",
       icon: "🚦",
@@ -731,11 +731,11 @@ export default async function BuyerQuoteComparePage({
         <div>
           <h1 style={{ fontSize: 18, fontWeight: 900, margin: 0 }}>Vendor Comparison Workspace</h1>
           <div style={{ marginTop: 6, opacity: 0.8 }}>
-            Compare vendor quotations, delivery timelines, trust level and next steps before making a final decision.
+            Review vendor quotations, delivery timelines and conversations before making the final decision.
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           <Link href="/dashboard/buyer/rfqs" style={{ fontWeight: 900 }}>
             ← My RFQs
           </Link>
@@ -770,7 +770,7 @@ export default async function BuyerQuoteComparePage({
           background: "#fff",
         }}
       >
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           <span style={pillStyle("neutral")}>RFQ #{rfqNo}</span>
           <span style={pillStyle(rfq?.status === "open" ? "ok" : "neutral")}>{titleCase(rfq?.status ?? "—")}</span>
           <span style={pillStyle("neutral")}>{subjectType}</span>
@@ -801,7 +801,7 @@ export default async function BuyerQuoteComparePage({
         <OperationalWorkspacePanel
           title="Vendor Comparison Workspace"
           nextAction={aiProcurementDecision.buyerAction}
-          status={`Vendors: ${vendorsSorted.length} • Confidence: ${buyerDecisionConfidence || "—"}/100`}
+          status={`Vendors: ${vendorsSorted.length} • Decision confidence: ${buyerDecisionConfidence || "—"}/100`}
           actions={[
             aiProcurementDecision.bestOverall?.vendorId
               ? {
@@ -866,7 +866,7 @@ export default async function BuyerQuoteComparePage({
           ) : null}
 
           <Link href={buyerPrintHref} style={actionBtnStyle("normal")}>
-            🖨️ Print Compare
+            🖨️ Print Comparison
           </Link>
 
           <Link href="/dashboard/inbox-v2?module=rfq" style={actionBtnStyle("normal")}>
@@ -902,6 +902,29 @@ export default async function BuyerQuoteComparePage({
               </div>
               <div style={{ marginTop: 8, fontSize: 13, opacity: 0.85 }}>
                 📍 {[selectedVendor.vendor_locality, selectedVendor.vendor_city].filter(Boolean).join(", ") || "—"}
+
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  marginTop: 10,
+                }}
+              >
+                <span className="trustChip">✅ Verified Vendor</span>
+
+                {selectedVendor.vendor_city ? (
+                  <span className="trustChip">📍 Local Supplier</span>
+                ) : null}
+
+                <span className="trustChip">⚡ Usually Responds Fast</span>
+
+                {selectedVendor.delivery_days != null ? (
+                  <span className="trustChip">
+                    🚚 Delivery in {selectedVendor.delivery_days} day{Number(selectedVendor.delivery_days) === 1 ? "" : "s"}
+                  </span>
+                ) : null}
+              </div>
               </div>
             </div>
 
@@ -944,11 +967,11 @@ export default async function BuyerQuoteComparePage({
         </h2>
 
         <div style={{ marginTop: 4, fontSize: 13, color: "#64748b" }}>
-          Compare vendors quickly before starting discussion or accepting quotation.
+          Continue vendor discussion carefully before accepting a quotation.
         </div>
 
         {vendorsSorted.length === 0 ? (
-          <div style={{ marginTop: 10, opacity: 0.75 }}>No vendor responses yet.</div>
+          <div style={{ marginTop: 10, opacity: 0.75 }}>No vendor quotations received yet. Vendors usually respond after viewing the requirement.</div>
         ) : (
           <div style={{ marginTop: 10, overflowX: "auto", background: "#ffffff" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 980 }}>
@@ -1102,7 +1125,7 @@ export default async function BuyerQuoteComparePage({
         {vendorsSorted.length === 0 ? (
           <div style={{ marginTop: 10, opacity: 0.75 }}>No quotes received yet.</div>
         ) : (
-          <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
+          <div style={{ marginTop: 10, display: "grid", gap: 12 }}>
             {vendorsSorted.map((v: any) => {
               const outdated = !!v.is_outdated;
               const tone = outdated ? "warn" : "ok";
@@ -1163,7 +1186,7 @@ export default async function BuyerQuoteComparePage({
                     <div style={{ marginTop: 4, fontSize: 13, opacity: 0.8 }}>{place ? `📍 ${place}` : null}</div>
                   </div>
 
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ fontSize: 12, opacity: 0.7, fontWeight: 900 }}>Grand Total</div>
                       <div style={{ fontSize: 18, fontWeight: 800 }}>{fmtMoney(v.grand_total)}</div>
@@ -1327,10 +1350,10 @@ export default async function BuyerQuoteComparePage({
               workflowRisk: autonomousOsDecision.workflowRisk,
               closurePrediction:
                 buyerDecisionConfidence >= 80
-                  ? "High"
+                  ? "Attention Needed"
                   : buyerDecisionConfidence >= 55
-                    ? "Medium"
-                    : "Low",
+                    ? "Monitor"
+                    : "Stable",
               vendorCount: vendorsSorted.length,
               hasAcceptedQuote: Boolean(acceptedQuoteId),
               hasPriceSignal: priced.length > 0,
