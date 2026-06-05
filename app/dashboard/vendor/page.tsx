@@ -655,7 +655,7 @@ const aiDealUpgradeTarget =
 
     setIsVendor(v);
     setVendorCapabilities(mergedCapabilities);
-    setVendorHasFullAccess(access.vendorHasFullAccess || mergedCapabilities.length >= 4);
+    setVendorHasFullAccess(access.isAdmin || access.vendorHasFullAccess || mergedCapabilities.length >= 4);
 
     if (!v) {
       setVendorComplete(null);
