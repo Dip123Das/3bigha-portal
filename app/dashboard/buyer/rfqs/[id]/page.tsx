@@ -7,6 +7,13 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody, CardFooter } from "@/components/ui/Card";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import UniversalRfqWorkflowHeader from "@/components/procurement/UniversalRfqWorkflowHeader";
+import WorkflowContinuityRecorder from "@/components/workflow-continuity/WorkflowContinuityRecorder";
+import OperationalEventRecorder from "@/components/operational-events/OperationalEventRecorder";
+import {
+  buildProcurementOperationalEvent,
+  buildProcurementWorkflowContinuity,
+} from "@/lib/procurement/workflow-timeline";
 
 function Pill({
   children,
@@ -103,6 +110,22 @@ export default async function BuyerRfqComparePage({
 
   const { rfq, revisionNo, items, vendors, quoteItems } = res as any;
 
+  const procurementHref = `/dashboard/buyer/rfqs/${encodeURIComponent(rfqId)}`;
+  const procurementTitle = rfq?.public_id
+    ? `Buyer RFQ ${rfq.public_id}`
+    : `Buyer RFQ ${String(rfq?.id ?? rfqId).slice(0, 8)}…`;
+
+  const procurementTimelineInput = {
+    id: String(rfq?.id ?? rfqId),
+    title: procurementTitle,
+    href: procurementHref,
+    module: "buyer" as const,
+    rfqStatus: rfq?.status,
+    vendorCount: (vendors ?? []).length,
+    quoteCount: (vendors ?? []).length,
+    createdAt: rfq?.updated_at ? new Date(rfq.updated_at).getTime() : Date.now(),
+  };
+
   // ✅ Determine lowest TOTAL vendor (overall best price)
   let bestVendorId: string | null = null;
   let lowestTotal = Number.POSITIVE_INFINITY;
@@ -168,6 +191,20 @@ export default async function BuyerRfqComparePage({
   return (
     <main>
       <Container>
+        <WorkflowContinuityRecorder
+          state={buildProcurementWorkflowContinuity(procurementTimelineInput)}
+        />
+        <OperationalEventRecorder
+          event={buildProcurementOperationalEvent(procurementTimelineInput)}
+        />
+        <UniversalRfqWorkflowHeader
+          rfqId={rfq?.public_id || rfq?.id}
+          rfqStatus={rfq?.status}
+          vendorCount={(vendors ?? []).length}
+          quoteCount={(vendors ?? []).length}
+          lastActivityAt={rfq?.updated_at}
+        />
+
         <SectionHeader
           title="Compare Quotes"
           subtitle="Compare latest vendor quotes item-by-item."

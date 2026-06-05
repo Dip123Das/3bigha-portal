@@ -7,6 +7,10 @@ import {
   clearWorkflowContinuity,
   getWorkflowContinuity,
 } from "@/lib/workflow-continuity/storage";
+import {
+  getWorkflowAttentionLevel,
+  getWorkflowHeartbeat,
+} from "@/lib/procurement/workflow-state";
 
 function timeAgo(ts: number) {
   const diff = Math.max(0, Date.now() - ts);
@@ -43,6 +47,22 @@ export default function WorkflowContinuityBar() {
 
   if (!workflow) return null;
 
+  const heartbeat = getWorkflowHeartbeat(workflow.updatedAt);
+
+  const attention = getWorkflowAttentionLevel({
+    updatedAt: workflow.updatedAt,
+    stage: workflow.stage,
+  });
+
+  const heartbeatColor =
+    heartbeat.level === "critical"
+      ? "#dc2626"
+      : heartbeat.level === "stale"
+        ? "#d97706"
+        : heartbeat.level === "slowing"
+          ? "#2563eb"
+          : "#059669";
+
   return (
     <div
       style={{
@@ -59,8 +79,33 @@ export default function WorkflowContinuityBar() {
       }}
     >
       <div>
-        <div style={{ fontSize: 12, fontWeight: 900, color: "#64748b" }}>
-          Continue where you left off • {timeAgo(workflow.updatedAt)}
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 900, color: "#64748b" }}>
+            Continue where you left off • {timeAgo(workflow.updatedAt)}
+          </div>
+
+          <div
+            style={{
+              border: `1px solid ${heartbeatColor}22`,
+              background: `${heartbeatColor}12`,
+              color: heartbeatColor,
+              borderRadius: 999,
+              padding: "2px 8px",
+              fontSize: 10,
+              fontWeight: 900,
+              textTransform: "uppercase",
+              letterSpacing: 0.4,
+            }}
+          >
+            {heartbeat.label}
+          </div>
         </div>
 
         <div style={{ marginTop: 3, fontSize: 14, fontWeight: 900, color: "#111827" }}>
@@ -72,6 +117,17 @@ export default function WorkflowContinuityBar() {
             {workflow.summary}
           </div>
         ) : null}
+
+        <div
+          style={{
+            marginTop: 6,
+            fontSize: 11,
+            fontWeight: 700,
+            color: heartbeatColor,
+          }}
+        >
+          {attention.label} • {heartbeat.detail}
+        </div>
       </div>
 
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>

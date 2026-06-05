@@ -11,6 +11,13 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ActionButton } from "@/components/ui/ActionButton";
+import UniversalRfqWorkflowHeader from "@/components/procurement/UniversalRfqWorkflowHeader";
+import WorkflowContinuityRecorder from "@/components/workflow-continuity/WorkflowContinuityRecorder";
+import OperationalEventRecorder from "@/components/operational-events/OperationalEventRecorder";
+import {
+  buildProcurementOperationalEvent,
+  buildProcurementWorkflowContinuity,
+} from "@/lib/procurement/workflow-timeline";
 
 type RFQRow = {
   id: string;
@@ -193,8 +200,42 @@ export default function VendorRFQDetailsPage() {
 
   const showContactBlock = Boolean(buyerPhoneDigits || buyerEmail || buyerWhatsAppDigits);
 
+  const procurementHref = `/dashboard/vendor/rfqs/${encodeURIComponent(rfqId)}`;
+  const procurementTitle = `Vendor RFQ ${rfqId.slice(0, 8)}…`;
+
+  const procurementTimelineInput = row
+    ? {
+        id: rfqId,
+        title: procurementTitle,
+        href: procurementHref,
+        module: "vendor" as const,
+        rfqStatus: row.status,
+        vendorCount: 1,
+        quoteCount: 0,
+        createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+      }
+    : null;
+
   return (
     <Container>
+      {procurementTimelineInput ? (
+        <>
+          <WorkflowContinuityRecorder
+            state={buildProcurementWorkflowContinuity(procurementTimelineInput)}
+          />
+          <OperationalEventRecorder
+            event={buildProcurementOperationalEvent(procurementTimelineInput)}
+          />
+          <UniversalRfqWorkflowHeader
+            rfqId={rfqId}
+            rfqStatus={row?.status}
+            vendorCount={1}
+            quoteCount={0}
+            lastActivityAt={row?.created_at}
+          />
+        </>
+      ) : null}
+
       <SectionHeader title="RFQ Details" subtitle="Buyer requirement overview" />
 
       <div style={{ marginBottom: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>

@@ -9,6 +9,7 @@ import WorkflowContinuityBar from "@/components/workflow-continuity/WorkflowCont
 import WorkflowContinuityRecorder from "@/components/workflow-continuity/WorkflowContinuityRecorder";
 import OperationalEventStream from "@/components/operational-events/OperationalEventStream";
 import OperationalEventRecorder from "@/components/operational-events/OperationalEventRecorder";
+import UniversalRfqWorkflowHeader from "@/components/procurement/UniversalRfqWorkflowHeader";
 
 export const dynamic = "force-dynamic";
 
