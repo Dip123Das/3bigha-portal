@@ -18,8 +18,8 @@ export type ProcurementWorkflowStage =
 
 export type WorkflowHealth =
   | "healthy"
-  | "active"
-  | "warning"
+  | "watching"
+  | "attention"
   | "critical"
   | "completed";
 
@@ -44,7 +44,7 @@ export const PROCUREMENT_WORKFLOW_STAGES: Record<
     label: "Draft RFQ",
     shortLabel: "Draft",
     description: "RFQ is being prepared.",
-    health: "active",
+    health: "healthy",
     progress: 5,
     buyerAction: "Complete RFQ details",
     operationalMessage:
@@ -56,7 +56,7 @@ export const PROCUREMENT_WORKFLOW_STAGES: Record<
     label: "RFQ Created",
     shortLabel: "Created",
     description: "RFQ successfully created.",
-    health: "active",
+    health: "healthy",
     progress: 10,
     buyerAction: "Start vendor discovery",
     operationalMessage:
@@ -68,7 +68,7 @@ export const PROCUREMENT_WORKFLOW_STAGES: Record<
     label: "Vendor Discovery",
     shortLabel: "Discovery",
     description: "Searching for suitable vendors.",
-    health: "active",
+    health: "healthy",
     progress: 20,
     buyerAction: "Review matching vendors",
     operationalMessage:
@@ -80,7 +80,7 @@ export const PROCUREMENT_WORKFLOW_STAGES: Record<
     label: "Vendor Engagement",
     shortLabel: "Engaged",
     description: "Vendors have been contacted.",
-    health: "active",
+    health: "healthy",
     progress: 30,
     buyerAction: "Wait for vendor responses",
     vendorAction: "Submit quotations",
@@ -167,7 +167,7 @@ export const PROCUREMENT_WORKFLOW_STAGES: Record<
     label: "Delivery In Progress",
     shortLabel: "Delivery",
     description: "Materials/services are being delivered.",
-    health: "active",
+    health: "healthy",
     progress: 94,
     operationalMessage:
       "Delivery and fulfillment currently in progress.",
@@ -178,7 +178,7 @@ export const PROCUREMENT_WORKFLOW_STAGES: Record<
     label: "Partially Delivered",
     shortLabel: "Partial",
     description: "Partial delivery completed.",
-    health: "warning",
+    health: "attention",
     progress: 96,
     buyerAction: "Review pending delivery",
     operationalMessage:
@@ -212,7 +212,7 @@ export const PROCUREMENT_WORKFLOW_STAGES: Record<
     label: "Workflow Stalled",
     shortLabel: "Stalled",
     description: "Workflow inactive for extended period.",
-    health: "warning",
+    health: "attention",
     progress: 40,
     buyerAction: "Resume workflow",
     operationalMessage:
@@ -364,8 +364,8 @@ export function resolveProcurementWorkflowState(
       ? "completed"
       : risk === "critical" || risk === "high"
         ? "critical"
-        : risk === "medium" || stage.health === "warning"
-          ? "warning"
+        : risk === "medium" || stage.health === "attention"
+          ? "attention"
           : stage.health;
 
   return {
@@ -387,7 +387,7 @@ export function resolveProcurementWorkflowState(
 }
 
 export type WorkflowHeartbeat = {
-  level: "live" | "slowing" | "stale" | "critical";
+  level: "healthy" | "watching" | "attention" | "stale";
   label: string;
   detail: string;
   inactivityMinutes: number;
@@ -418,8 +418,8 @@ export function getWorkflowHeartbeat(
 
   if (mins <= 30) {
     return {
-      level: "live",
-      label: "Workflow Active",
+      level: "healthy",
+      label: "Operationally Healthy",
       detail: "Operational activity is flowing normally.",
       inactivityMinutes: mins,
     };
@@ -427,8 +427,8 @@ export function getWorkflowHeartbeat(
 
   if (mins <= 180) {
     return {
-      level: "slowing",
-      label: "Workflow Slowing",
+      level: "watching",
+      label: "Monitoring Workflow",
       detail: "Workflow activity has reduced recently.",
       inactivityMinutes: mins,
     };
@@ -444,8 +444,8 @@ export function getWorkflowHeartbeat(
   }
 
   return {
-    level: "critical",
-    label: "Workflow Needs Attention",
+    level: "attention",
+    label: "Needs Operational Attention",
     detail: "Workflow appears inactive for a long duration.",
     inactivityMinutes: mins,
   };
@@ -472,7 +472,7 @@ export function getWorkflowAttentionLevel(input: {
   if (
     risk === "critical" ||
     risk === "high" ||
-    heartbeat.level === "critical"
+    heartbeat.level === "attention"
   ) {
     return {
       level: "critical",

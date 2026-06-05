@@ -28,9 +28,9 @@ export type NormalizedProcurementSignal = {
 
 function toneFromWorkflowHealth(health: WorkflowHealth): ProcurementSignalTone {
   if (health === "critical") return "critical";
-  if (health === "warning") return "high";
+  if (health === "attention") return "high";
   if (health === "completed") return "closed";
-  if (health === "active") return "active";
+  if (health === "healthy") return "active";
   return "medium";
 }
 
@@ -75,9 +75,9 @@ export function normalizeLiveProcurementTone(
   if (raw === "closed" || raw === "completed") return "closed";
 
   const heartbeat = getWorkflowHeartbeat(updatedAt);
-  if (heartbeat.level === "critical") return "critical";
+  if (heartbeat.level === "attention") return "critical";
   if (heartbeat.level === "stale") return "high";
-  if (heartbeat.level === "slowing") return "medium";
+  if (heartbeat.level === "watching") return "medium";
 
   return "active";
 }

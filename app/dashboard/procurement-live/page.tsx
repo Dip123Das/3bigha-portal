@@ -9,6 +9,8 @@ import ProcurementHeatmapIntelligence from "@/app/components/procurement/Procure
 import { createClient } from "@supabase/supabase-js";
 import GlobalAiOperationalStatus from "@/components/ai-operational/GlobalAiOperationalStatus";
 import OperationalRecoveryFeed from "@/components/ai-operational/OperationalRecoveryFeed";
+import ProcurementDecayBadge from "@/components/procurement/intelligence/ProcurementDecayBadge";
+import { normalizeOperationalUrgency } from "@/lib/procurement-live/procurementLiveAdapters";
 
 type LiveEvent = {
   id: string;
@@ -278,8 +280,21 @@ export default function ProcurementLivePage() {
                 No live procurement events found for this filter.
               </div>
             ) : (
-              filteredEvents.map((event) => (
-                <Link
+              filteredEvents.map((event) => {
+                const normalizedUrgency = normalizeOperationalUrgency(
+                  event.priority || event.tone
+                );
+
+                const activityAt = event.updated_at || event.createdAt;
+                const activityAgeHours = activityAt
+                  ? Math.max(
+                      0,
+                      Math.round((Date.now() - new Date(activityAt).getTime()) / 3600000)
+                    )
+                  : 999;
+
+                return (
+                  <Link
                   key={`${event.id}-${event.eventType}`}
                   href={event.href || "/dashboard/procurement-live"}
                   className="block rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 transition hover:border-slate-300 hover:bg-white"
@@ -292,7 +307,7 @@ export default function ProcurementLivePage() {
                             event.tone
                           )}`}
                         >
-                          {(event.tone || event.priority || "active").toUpperCase()}
+                          {normalizedUrgency.label}
                         </span>
 
                         <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">
@@ -302,6 +317,15 @@ export default function ProcurementLivePage() {
                         <span className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-slate-700">
                           {String(event.eventType || "event").replace(/_/g, " ")}
                         </span>
+
+                        <ProcurementDecayBadge
+                          compact
+                          signals={{
+                            workflowAgeHours: activityAgeHours,
+                            hoursSinceLastActivity: activityAgeHours,
+                            quoteCount: Number(event.score || 0) > 0 ? 1 : 0,
+                          }}
+                        />
                       </div>
 
                       <div className="mt-3 text-lg font-black text-slate-950">
@@ -331,8 +355,9 @@ export default function ProcurementLivePage() {
                       </div>
                     </div>
                   </div>
-                </Link>
-              ))
+                  </Link>
+                );
+              })
             )}
           </div>
         </div>

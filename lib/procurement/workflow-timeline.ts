@@ -15,9 +15,9 @@ export type ProcurementTimelineInput = ProcurementWorkflowResolveInput & {
 
 function eventToneFromHealth(health: string): OperationalEventTone {
   if (health === "critical") return "danger";
-  if (health === "warning") return "warning";
+  if (health === "attention") return "warning";
   if (health === "completed") return "success";
-  if (health === "active") return "info";
+  if (health === "healthy") return "info";
   return "normal";
 }
 

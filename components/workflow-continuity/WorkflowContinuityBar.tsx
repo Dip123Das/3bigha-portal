@@ -55,11 +55,11 @@ export default function WorkflowContinuityBar() {
   });
 
   const heartbeatColor =
-    heartbeat.level === "critical"
+    heartbeat.level === "attention"
       ? "#dc2626"
       : heartbeat.level === "stale"
         ? "#d97706"
-        : heartbeat.level === "slowing"
+        : heartbeat.level === "watching"
           ? "#2563eb"
           : "#059669";
 

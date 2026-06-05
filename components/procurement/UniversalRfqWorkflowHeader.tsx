@@ -42,7 +42,7 @@ function healthColor(level: string) {
     };
   }
 
-  if (level === "warning") {
+  if (level === "attention") {
     return {
       border: "1px solid #fde68a",
       background: "#fffbeb",
@@ -275,7 +275,7 @@ export default function UniversalRfqWorkflowHeader({
             background:
               workflow.health === "critical"
                 ? "#dc2626"
-                : workflow.health === "warning"
+                : workflow.health === "attention"
                   ? "#f59e0b"
                   : "#2563eb",
             transition: "width 0.25s ease",
