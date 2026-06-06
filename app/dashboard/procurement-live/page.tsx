@@ -11,6 +11,10 @@ import GlobalAiOperationalStatus from "@/components/ai-operational/GlobalAiOpera
 import OperationalRecoveryFeed from "@/components/ai-operational/OperationalRecoveryFeed";
 import ProcurementDecayBadge from "@/components/procurement/intelligence/ProcurementDecayBadge";
 import { normalizeOperationalUrgency } from "@/lib/procurement-live/procurementLiveAdapters";
+import {
+  calculateOperationalAttentionPriority,
+  sortByOperationalAttention,
+} from "@/lib/procurement/intelligence/operational-priority";
 
 type LiveEvent = {
   id: string;
@@ -37,7 +41,7 @@ function toneClass(tone?: string) {
 }
 
 function fmt(v?: string) {
-  if (!v) return "—";
+  if (!v) return "â€”";
   try {
     return new Intl.DateTimeFormat("en-IN", {
       day: "2-digit",
@@ -57,7 +61,12 @@ export default function ProcurementLivePage() {
   );
   const [data, setData] = useState<any>(null);
   const [telemetry, setTelemetry] = useState<any>(null);
+  const [cognition, setCognition] = useState<any>(null);
   const [filter, setFilter] = useState("all");
+  const [showOps, setShowOps] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(false);
+  const [showTelemetryStats, setShowTelemetryStats] = useState(false);
+  const [compactEvents, setCompactEvents] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -66,6 +75,7 @@ export default function ProcurementLivePage() {
       Promise.all([
         fetch("/api/ai/procurement-live-events").then((r) => r.json()),
         fetch("/api/ai/procurement-telemetry").then((r) => r.json()),
+        fetch("/api/ai/procurement-unified-cognition").then((r) => r.json()),
       ])
         .then(([liveJson, telemetryJson]) => {
           if (!mounted) return;
@@ -130,22 +140,107 @@ export default function ProcurementLivePage() {
     );
   }, [events, filter]);
 
+  function eventAttention(event: LiveEvent) {
+    const activityAt = event.updated_at || event.createdAt;
+    const activityAgeHours = activityAt
+      ? Math.max(
+          0,
+          Math.round((Date.now() - new Date(activityAt).getTime()) / 3600000)
+        )
+      : 999;
+
+    const tone = event.priority || event.tone || "active";
+
+    const urgency =
+      tone === "critical"
+        ? 20
+        : tone === "high"
+          ? 14
+          : tone === "medium"
+            ? 8
+            : tone === "low"
+              ? 3
+              : 5;
+
+    const operationalRisk =
+      tone === "critical"
+        ? 15
+        : tone === "high"
+          ? 10
+          : tone === "medium"
+            ? 5
+            : 0;
+
+    return calculateOperationalAttentionPriority({
+      decay: {
+        workflowAgeHours: activityAgeHours,
+        hoursSinceLastActivity: activityAgeHours,
+        quoteCount: Number(event.score || 0) > 0 ? 1 : 0,
+      },
+      momentum: {
+        recentActivityCount: activityAgeHours <= 12 ? 3 : 0,
+        quoteGrowth: Number(event.score || 0) > 0 ? 1 : 0,
+      },
+      urgency,
+      operationalRisk,
+      workflowHealth:
+        tone === "critical"
+          ? 25
+          : tone === "high"
+            ? 45
+            : tone === "medium"
+              ? 65
+              : 85,
+      aiConfidence: Math.min(100, Number(event.score || 0)),
+      escalationSignals:
+        tone === "critical" ? 2 : tone === "high" ? 1 : 0,
+    });
+  }
+
+  const sortedEvents = sortByOperationalAttention(
+    filteredEvents,
+    eventAttention
+  );
+
+  const priorityEvents = sortedEvents.filter((event) =>
+    ["critical", "high"].includes(event.priority || event.tone || "")
+  );
+
+  const normalEvents = sortedEvents.filter(
+    (event) => !["critical", "high"].includes(event.priority || event.tone || "")
+  );
+
+  const visibleEvents = compactEvents
+    ? [...priorityEvents, ...normalEvents.slice(0, 8)]
+    : sortedEvents;
+
+  const hiddenNormalCount = compactEvents
+    ? Math.max(0, normalEvents.length - 8)
+    : 0;
+
   const summary = data?.summary || {};
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] p-6">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 space-y-4">
-          <GlobalAiOperationalStatus
-            battlefieldPulse="active"
-            procurementPressure="attention"
-            economicStress="watch"
-            supplyChainRisk="stable"
-            orchestrationState="loaded"
-          />
+        <CompressionZone
+          title="Operational intelligence"
+          subtitle="AI status and recovery feed"
+          open={showOps}
+          onToggle={() => setShowOps((v) => !v)}
+        >
+          <div className="space-y-4">
+            <GlobalAiOperationalStatus
+              battlefieldPulse="active"
+              procurementPressure="attention"
+              economicStress="watch"
+              supplyChainRisk="stable"
+              orchestrationState="loaded"
+            />
 
-          <OperationalRecoveryFeed />
-        </div>
+            <OperationalRecoveryFeed />
+          </div>
+        </CompressionZone>
         <div className="overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-cyan-950 to-emerald-950 p-10 text-white shadow-2xl">
           <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
             Live Procurement Event Feed
@@ -179,49 +274,132 @@ export default function ProcurementLivePage() {
           <ProcurementCommandCenterNav />
         </div>
 
+
+        <div className={`mt-6 rounded-[1.5rem] border p-5 shadow-sm ${
+          cognition?.cognition?.predictiveRisk === "critical"
+            ? "border-rose-200 bg-rose-50 text-rose-900"
+            : cognition?.cognition?.predictiveRisk === "high"
+              ? "border-amber-200 bg-amber-50 text-amber-900"
+              : cognition?.cognition?.predictiveRisk === "elevated"
+                ? "border-blue-200 bg-blue-50 text-blue-900"
+                : "border-emerald-200 bg-emerald-50 text-emerald-900"
+        }`}>
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+              <div className="text-xs font-black uppercase tracking-[0.14em]">
+                Live Predictive Cognition
+              </div>
+
+              <div className="mt-2 text-2xl font-black">
+                {(cognition?.cognition?.trajectory || "stable")} · {(cognition?.cognition?.predictiveRisk || "low")}
+              </div>
+
+              <div className="mt-2 text-sm font-bold leading-6">
+                {cognition?.executiveSummary ||
+                  "Live procurement cognition remains stable."}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-2xl border border-white/40 bg-white/50 px-4 py-2 text-xs font-black">
+                Cognition {cognition?.cognition?.cognitionScore || 0}
+              </span>
+
+              <span className="rounded-2xl border border-white/40 bg-white/50 px-4 py-2 text-xs font-black">
+                Drift {cognition?.cognition?.operationalDrift || 0}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {cognition?.cognition?.silentRiskDetected ? (
+              <span className="rounded-full border border-amber-200 bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">
+                Silent weakening detected
+              </span>
+            ) : null}
+
+            {cognition?.cognition?.escalationLikely ? (
+              <span className="rounded-full border border-rose-200 bg-rose-100 px-3 py-1 text-xs font-black text-rose-800">
+                Escalation pressure rising
+              </span>
+            ) : null}
+
+            {cognition?.cognition?.recoveryLikely ? (
+              <span className="rounded-full border border-emerald-200 bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">
+                Recovery likely
+              </span>
+            ) : null}
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-white/30 bg-white/40 px-4 py-3 text-sm font-black">
+            {cognition?.nextBestAction ||
+              "Continue live procurement monitoring."}
+          </div>
+        </div>
+
         <div className="mt-6">
           <ProcurementLiveTicker />
         </div>
 
-        <div className="mt-8">
+        <CompressionZone
+          title="Heatmap intelligence"
+          subtitle="Open only when deeper scanning is needed"
+          open={showHeatmap}
+          onToggle={() => setShowHeatmap((v) => !v)}
+        >
           <ProcurementHeatmapIntelligence
             liveEvents={events}
             timelineSteps={[]}
           />
-        </div>
+        </CompressionZone>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-4 xl:grid-cols-12">
+        <div className="mt-8 grid gap-4 md:grid-cols-4">
           <Stat label="Total" value={summary.total || 0} />
           <Stat label="Critical" value={summary.critical || 0} />
           <Stat label="High" value={summary.high || 0} />
-          <Stat label="Medium" value={summary.medium || 0} />
           <Stat label="Active" value={summary.active || 0} />
-          <Stat label="Memory" value={summary.memory || 0} />
-          <Stat label="RFQ" value={summary.rfq || 0} />
-          <Stat label="Chat" value={summary.chat || 0} />
-
-          <Stat
-            label="Load"
-            value={telemetry?.telemetry?.operationalLoad || 0}
-          />
-
-          <Stat
-            label="Recovery"
-            value={telemetry?.telemetry?.recoveryPressure || 0}
-          />
-
-          <Stat
-            label="Stale"
-            value={telemetry?.telemetry?.staleConversations || 0}
-          />
-
-          <Stat
-            label="24h Msg"
-            value={telemetry?.telemetry?.messages24h || 0}
-          />
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-3">
+        <CompressionZone
+          title="Detailed procurement metrics"
+          subtitle="Memory, RFQ, chat and telemetry signals"
+          open={showTelemetryStats}
+          onToggle={() => setShowTelemetryStats((v) => !v)}
+        >
+          <div className="grid gap-4 md:grid-cols-4">
+            <Stat label="Medium" value={summary.medium || 0} />
+            <Stat label="Memory" value={summary.memory || 0} />
+            <Stat label="RFQ" value={summary.rfq || 0} />
+            <Stat label="Chat" value={summary.chat || 0} />
+
+            <Stat
+              label="Load"
+              value={telemetry?.telemetry?.operationalLoad || 0}
+            />
+
+            <Stat
+              label="Recovery"
+              value={telemetry?.telemetry?.recoveryPressure || 0}
+            />
+
+            <Stat
+              label="Stale"
+              value={telemetry?.telemetry?.staleConversations || 0}
+            />
+
+            <Stat
+              label="24h Msg"
+              value={telemetry?.telemetry?.messages24h || 0}
+            />
+          </div>
+        </CompressionZone>
+
+        <div className="mt-8 rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+            Operational filters
+          </div>
+
+          <div className="flex flex-wrap gap-3">
           {[
             ["all", "All"],
             ["critical", "Critical"],
@@ -245,6 +423,14 @@ export default function ProcurementLivePage() {
             </button>
           ))}
 
+          <button
+            type="button"
+            onClick={() => setCompactEvents((v) => !v)}
+            className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+          >
+            {compactEvents ? "Expanded stream" : "Compact stream"}
+          </button>
+
           <Link
             href="/dashboard/procurement-mission-control"
             className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
@@ -258,6 +444,7 @@ export default function ProcurementLivePage() {
           >
             Pending Tasks
           </Link>
+          </div>
         </div>
 
         <div className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
@@ -267,7 +454,7 @@ export default function ProcurementLivePage() {
                 Live Event Stream
               </h2>
               <p className="mt-1 text-sm font-semibold text-slate-500">
-                Showing {filteredEvents.length} of {events.length} procurement signals.
+                Showing {visibleEvents.length} adaptively prioritized signals from {events.length} total procurement events.
               </p>
             </div>
 
@@ -275,12 +462,12 @@ export default function ProcurementLivePage() {
           </div>
 
           <div className="mt-6 space-y-4">
-            {filteredEvents.length === 0 ? (
+            {visibleEvents.length === 0 ? (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-sm font-bold text-slate-500">
                 No live procurement events found for this filter.
               </div>
             ) : (
-              filteredEvents.map((event) => {
+              visibleEvents.map((event) => {
                 const normalizedUrgency = normalizeOperationalUrgency(
                   event.priority || event.tone
                 );
@@ -297,38 +484,40 @@ export default function ProcurementLivePage() {
                   <Link
                   key={`${event.id}-${event.eventType}`}
                   href={event.href || "/dashboard/procurement-live"}
-                  className="block rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 transition hover:border-slate-300 hover:bg-white"
+                  className={`block rounded-[1.35rem] border border-slate-200 bg-slate-50 transition hover:border-slate-300 hover:bg-white ${
+                    compactEvents ? "p-4" : "p-5"
+                  }`}
                 >
                   <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span
                           className={`inline-flex rounded-full border px-3 py-1 text-xs font-black ${toneClass(
                             event.tone
                           )}`}
                         >
-                          {normalizedUrgency.label}
+                          {normalizedUrgency.label} · {event.module || "procurement"}
                         </span>
 
-                        <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">
-                          {event.module || "procurement"}
-                        </span>
+                        {!compactEvents ? (
+                          <>
+                            <span className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-slate-700">
+                              {String(event.eventType || "event").replace(/_/g, " ")}
+                            </span>
 
-                        <span className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-slate-700">
-                          {String(event.eventType || "event").replace(/_/g, " ")}
-                        </span>
-
-                        <ProcurementDecayBadge
-                          compact
-                          signals={{
-                            workflowAgeHours: activityAgeHours,
-                            hoursSinceLastActivity: activityAgeHours,
-                            quoteCount: Number(event.score || 0) > 0 ? 1 : 0,
-                          }}
-                        />
+                            <ProcurementDecayBadge
+                              compact
+                              signals={{
+                                workflowAgeHours: activityAgeHours,
+                                hoursSinceLastActivity: activityAgeHours,
+                                quoteCount: Number(event.score || 0) > 0 ? 1 : 0,
+                              }}
+                            />
+                          </>
+                        ) : null}
                       </div>
 
-                      <div className="mt-3 text-lg font-black text-slate-950">
+                      <div className={`${compactEvents ? "mt-2 text-base" : "mt-3 text-lg"} font-black text-slate-950`}>
                         {event.title}
                       </div>
 
@@ -338,19 +527,19 @@ export default function ProcurementLivePage() {
 
                       {event.action ? (
                         <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-800">
-                          🤖 Next action: {event.action}
+                          ðŸ¤– Next action: {event.action}
                         </div>
                       ) : null}
                     </div>
 
-                    <div className="min-w-[120px] text-left md:text-right">
-                      <div className="text-3xl font-black text-slate-950">
-                        {event.score || 0}
+                    <div className="min-w-[96px] text-left md:text-right">
+                      <div className={`${compactEvents ? "text-xl" : "text-3xl"} font-black text-slate-950`}>
+                        {eventAttention(event).attentionScore}
                       </div>
-                      <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
-                        AI Score
+                      <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
+                        Attention
                       </div>
-                      <div className="mt-3 text-xs font-bold text-slate-500">
+                      <div className={`${compactEvents ? "mt-1" : "mt-3"} text-xs font-bold text-slate-500`}>
                         {fmt(event.updated_at || event.createdAt)}
                       </div>
                     </div>
@@ -359,10 +548,51 @@ export default function ProcurementLivePage() {
                 );
               })
             )}
+
+            {hiddenNormalCount > 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-black text-slate-600">
+                {hiddenNormalCount} lower-attention operational signals compressed. Use Expanded stream to inspect all.
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
     </main>
+  );
+}
+
+function CompressionZone({
+  title,
+  subtitle,
+  open,
+  onToggle,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="mt-6 rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between gap-4 text-left"
+      >
+        <div>
+          <div className="text-base font-black text-slate-950">{title}</div>
+          <div className="mt-1 text-xs font-bold text-slate-500">{subtitle}</div>
+        </div>
+
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-black text-slate-700">
+          {open ? "Hide" : "Open"}
+        </span>
+      </button>
+
+      {open ? <div className="mt-4">{children}</div> : null}
+    </section>
   );
 }
 

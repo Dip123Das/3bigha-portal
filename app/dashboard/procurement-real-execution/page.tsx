@@ -13,14 +13,14 @@ export default function ProcurementRealExecutionPage() {
       .then(setReadiness);
   }, []);
   return (
-    <main className="min-h-screen bg-[#f6f7fb] p-6">
+    <main className="min-h-screen bg-[#f6f7fb] p-4 md:p-5">
       <div className="mx-auto max-w-7xl">
-        <div className="overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-emerald-950 to-indigo-950 p-10 text-white shadow-2xl">
+        <div className="overflow-hidden rounded-[2rem] bg-gradient-to-r from-slate-950 via-emerald-950 to-indigo-950 p-6 md:p-8 text-white shadow-xl">
           <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
             Real Autonomous Procurement Execution
           </div>
 
-          <h1 className="mt-6 text-5xl font-black">
+          <h1 className="mt-5 text-3xl md:text-5xl font-black">
             Real AI Execution Bridge
           </h1>
 
@@ -30,32 +30,32 @@ export default function ProcurementRealExecutionPage() {
             execution streams.
           </p>
 
-          <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 px-6 py-4 text-sm font-bold text-slate-100">
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 px-5 py-4 text-sm font-bold text-slate-100">
             Current mode: safe preview. Real injection activates when
             conversationId is connected from Unified Inbox / RFQ threads.
           </div>
         </div>
 
-        <div className="mt-8">
+        <div className="mt-6">
           <ProcurementCommandCenterNav />
         </div>
 
-                <div className="mt-8 rounded-[2rem] border border-emerald-200 bg-emerald-50 p-6 shadow-sm">
+                <div className="mt-6 rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
           <div className="text-sm font-black uppercase tracking-[0.14em] text-emerald-700">
             AI Recovery Execution Readiness
           </div>
 
-          <div className="mt-3 text-2xl font-black text-emerald-950">
+          <div className="mt-2 text-xl font-black text-emerald-950">
             Procurement recovery execution bridge is ready for autonomous stabilization workflows.
           </div>
 
-          <div className="mt-4 text-sm font-semibold leading-6 text-emerald-900">
+          <div className="mt-3 text-xs font-semibold leading-5 text-emerald-900">
             Crisis escalation, supplier recovery, emergency rerouting and AI operational stabilization
             are now connected into real execution readiness orchestration.
           </div>
         </div>
 
-                <div className="mt-8 grid gap-4 md:grid-cols-5">
+                <div className="mt-6 grid gap-3 grid-cols-2 md:grid-cols-5">
           <Metric
             label="Readiness"
             value={
@@ -96,7 +96,7 @@ export default function ProcurementRealExecutionPage() {
           />
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-3 md:grid-cols-3">
           <Card
             title="Execution API"
             value="/api/ai/execute-task"
@@ -116,39 +116,39 @@ export default function ProcurementRealExecutionPage() {
           />
         </div>
 
-                <div className="mt-8 rounded-[2rem] border border-indigo-200 bg-indigo-50 p-6 shadow-sm">
+                <div className="mt-6 rounded-[1.75rem] border border-indigo-200 bg-indigo-50 p-5 shadow-sm">
           <div className="text-sm font-black uppercase tracking-[0.14em] text-indigo-700">
             Autonomous Procurement Decision Execution
           </div>
 
-          <div className="mt-3 text-2xl font-black text-indigo-950">
+          <div className="mt-2 text-xl font-black text-indigo-950">
             AI operational decisions are now connected to execution readiness orchestration.
           </div>
 
-          <div className="mt-4 text-sm font-semibold leading-6 text-indigo-900">
+          <div className="mt-3 text-xs font-semibold leading-5 text-indigo-900">
             Follow-up, rerouting, negotiation, escalation and recovery decisions
             are now synchronized with autonomous execution infrastructure.
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-wrap gap-2">
           <a
             href="/dashboard/procurement-autonomous-tasks"
-            className="rounded-full bg-slate-950 px-5 py-3 text-sm font-black text-white"
+            className="rounded-full bg-slate-950 px-4 py-2 text-xs font-black text-white"
           >
             Open Pending Tasks
           </a>
 
           <a
             href="/dashboard/procurement-task-execution-log"
-            className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+            className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-black text-slate-800"
           >
             Open Activity Log
           </a>
 
           <a
             href="/dashboard/inbox-v2"
-            className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+            className="rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-black text-slate-800"
           >
             Open Unified Inbox
           </a>
@@ -168,12 +168,12 @@ function Card({
   text: string;
 }) {
   return (
-    <div className="rounded-[2rem] border border-slate-200 bg-white p-6">
+    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4">
       <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
         {title}
       </div>
 
-      <div className="mt-3 text-2xl font-black text-slate-950">
+      <div className="mt-2 text-xl font-black text-slate-950">
         {value}
       </div>
 
@@ -192,12 +192,12 @@ function Metric({
   value: string | number;
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
+    <div className="rounded-[1.25rem] border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
         {label}
       </div>
 
-      <div className="mt-2 text-3xl font-black text-slate-950">
+      <div className="mt-1 text-2xl font-black text-slate-950">
         {value}
       </div>
     </div>

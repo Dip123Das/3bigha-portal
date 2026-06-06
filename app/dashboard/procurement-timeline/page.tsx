@@ -51,6 +51,7 @@ function fmt(v?: string) {
 export default function ProcurementTimelinePage() {
   const [data, setData] = useState<any>(null);
   const [stage, setStage] = useState("all");
+  const [compactMode, setCompactMode] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -86,14 +87,14 @@ export default function ProcurementTimelinePage() {
   const summary = data?.summary || {};
 
   return (
-    <main className="min-h-screen bg-[#f6f7fb] p-6">
+    <main className="min-h-screen bg-[#f6f7fb] p-4 md:p-5">
       <div className="mx-auto max-w-7xl">
-        <div className="overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-indigo-950 to-violet-950 p-10 text-white shadow-2xl">
+        <div className="overflow-hidden rounded-[2rem] bg-gradient-to-r from-slate-950 via-indigo-950 to-violet-950 p-6 md:p-8 text-white shadow-xl">
           <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
             AI Procurement Activity Timeline
           </div>
 
-          <h1 className="mt-6 text-5xl font-black">
+          <h1 className="mt-5 text-3xl md:text-5xl font-black">
             Procurement Activity Timeline
           </h1>
 
@@ -103,12 +104,25 @@ export default function ProcurementTimelinePage() {
             chronological order.
           </p>
 
-          <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 px-6 py-4 text-sm font-bold text-slate-100">
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 px-5 py-4 text-sm font-bold text-slate-100">
             {data?.executiveSummary || "Loading procurement timeline replay..."}
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setCompactMode((prev) => !prev)}
+              className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white transition hover:bg-white/20"
+            >
+              {compactMode ? "Expanded View" : "Compact View"}
+            </button>
+
+            <div className="text-xs font-bold uppercase tracking-[0.16em] text-slate-300">
+              Timeline Compression Active
+            </div>
           </div>
         </div>
 
-        <div className="mt-8">
+        <div className="mt-6">
           <ProcurementCommandCenterNav />
         </div>
 
@@ -116,14 +130,14 @@ export default function ProcurementTimelinePage() {
           <ProcurementLiveTicker />
         </div>
 
-        <div className="mt-8">
+        <div className="mt-6">
           <ProcurementHeatmapIntelligence
             liveEvents={[]}
             timelineSteps={steps}
           />
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-4 xl:grid-cols-8">
+        <div className="mt-6 grid gap-3 grid-cols-2 md:grid-cols-4 xl:grid-cols-8">
           <Stat label="Total" value={summary.total || 0} />
           <Stat label="Created" value={summary.created || 0} />
           <Stat label="Matched" value={summary.matched || 0} />
@@ -134,7 +148,7 @@ export default function ProcurementTimelinePage() {
           <Stat label="Closed" value={summary.closed || 0} />
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-wrap gap-2">
           {[
             ["all", "All"],
             ["created", "Created"],
@@ -149,7 +163,7 @@ export default function ProcurementTimelinePage() {
               key={key}
               type="button"
               onClick={() => setStage(key)}
-              className={`rounded-full px-5 py-3 text-sm font-black transition ${
+              className={`rounded-full px-4 py-2 text-xs font-black transition ${
                 stage === key
                   ? "bg-slate-950 text-white"
                   : "border border-slate-300 bg-white text-slate-800"
@@ -160,7 +174,7 @@ export default function ProcurementTimelinePage() {
           ))}
         </div>
 
-        <div className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mt-6 rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-2xl font-black text-slate-950">
@@ -174,17 +188,17 @@ export default function ProcurementTimelinePage() {
             <LiveProcurementRefreshBadge label="Timeline auto-refresh" />
           </div>
 
-          <div className="mt-8 space-y-5 border-l-4 border-slate-200 pl-6">
+          <div className="mt-6 space-y-3 border-l-2 border-slate-200 pl-4">
             {filteredSteps.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-sm font-bold text-slate-500">
+              <div className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-5 text-sm font-bold text-slate-500">
                 No procurement timeline events found for this stage.
               </div>
             ) : (
-              filteredSteps.map((step, index) => (
+              (compactMode ? filteredSteps.slice(0, 12) : filteredSteps).map((step, index) => (
                 <div key={`${step.id}-${index}`} className="relative">
-                  <div className="absolute -left-[35px] top-6 h-5 w-5 rounded-full border-4 border-white bg-slate-950 shadow" />
+                  <div className="absolute -left-[22px] top-5 h-3 w-3 rounded-full border-2 border-white bg-slate-950 shadow" />
 
-                  <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 transition hover:border-slate-300 hover:bg-white">
+                  <div className="rounded-[1.25rem] border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 hover:bg-white">
                     <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                       <div>
                         <div className="flex flex-wrap gap-2">
@@ -205,23 +219,23 @@ export default function ProcurementTimelinePage() {
                           </span>
                         </div>
 
-                        <div className="mt-3 text-lg font-black text-slate-950">
+                        <div className="mt-3 text-sm font-black text-slate-950">
                           {step.title}
                         </div>
 
-                        <div className="mt-1 text-sm font-semibold leading-6 text-slate-600">
+                        <div className="mt-1 text-xs font-semibold leading-5 text-slate-600">
                           {step.description}
                         </div>
                       </div>
 
                       <div className="min-w-[120px] text-left md:text-right">
-                        <div className="text-3xl font-black text-slate-950">
+                        <div className="text-xl font-black text-slate-950">
                           {step.score}
                         </div>
                         <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
-                          AI Score
+                          Score
                         </div>
-                        <div className="mt-3 text-xs font-bold text-slate-500">
+                        <div className="mt-2 text-[11px] font-bold text-slate-500">
                           {fmt(step.createdAt)}
                         </div>
                       </div>
@@ -244,7 +258,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
         {label}
       </div>
 
-      <div className="mt-2 text-3xl font-black text-slate-950">{value}</div>
+      <div className="mt-2 text-xl font-black text-slate-950">{value}</div>
     </div>
   );
 }

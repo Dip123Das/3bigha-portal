@@ -40,6 +40,7 @@ export default async function ProcurementMissionControlPage() {
     : [];
 
   let recoveryData: any = null;
+  let cognitionData: any = null;
 
   try {
     const origin = await getOrigin();
@@ -55,6 +56,24 @@ export default async function ProcurementMissionControlPage() {
   } catch {
     recoveryData = { ok: false };
   }
+
+  try {
+    const origin = await getOrigin();
+
+    const cognitionRes = await fetch(
+      `${origin}/api/ai/procurement-unified-cognition`,
+      {
+        cache: "no-store",
+      }
+    );
+
+    cognitionData = await cognitionRes.json();
+  } catch {
+    cognitionData = { ok: false };
+  }
+
+  const cognition =
+    cognitionData?.cognition || {};
 
   const recoveryItems = Array.isArray(
     recoveryData?.recovery
@@ -114,6 +133,84 @@ export default async function ProcurementMissionControlPage() {
           value={mission.staleConversations ?? 0}
         />
       </div>
+
+      <div className={`rounded-[2rem] border p-6 ${
+        cognition.predictiveRisk === "critical"
+          ? "border-rose-200 bg-rose-50 text-rose-900"
+          : cognition.predictiveRisk === "high"
+            ? "border-amber-200 bg-amber-50 text-amber-900"
+            : cognition.predictiveRisk === "elevated"
+              ? "border-blue-200 bg-blue-50 text-blue-900"
+              : "border-emerald-200 bg-emerald-50 text-emerald-900"
+      }`}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.14em]">
+              Predictive Procurement Cognition
+            </div>
+
+            <div className="mt-3 text-3xl font-black">
+              {cognition.trajectory || "stable"} • {cognition.predictiveRisk || "low"}
+            </div>
+
+            <div className="mt-3 max-w-3xl text-sm font-semibold leading-6">
+              {cognitionData?.executiveSummary ||
+                "Procurement cognition stable."}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+              Cognition {cognition.cognitionScore || 0}
+            </div>
+
+            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+              Drift {cognition.operationalDrift || 0}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5 flex flex-wrap gap-2">
+          {cognition.silentRiskDetected ? (
+            <span className="inline-flex rounded-full border border-amber-200 bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">
+              Silent operational weakening detected
+            </span>
+          ) : null}
+
+          {cognition.escalationLikely ? (
+            <span className="inline-flex rounded-full border border-rose-200 bg-rose-100 px-3 py-1 text-xs font-black text-rose-800">
+              Escalation pressure rising
+            </span>
+          ) : null}
+
+          {cognition.recoveryLikely ? (
+            <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">
+              Recovery likely with intervention
+            </span>
+          ) : null}
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-white/30 bg-white/40 px-5 py-4 text-sm font-bold">
+          {cognitionData?.nextBestAction ||
+            "Continue procurement operational monitoring."}
+        </div>
+
+        {Array.isArray(cognition.reasons) &&
+        cognition.reasons.length > 0 ? (
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {cognition.reasons.slice(0, 4).map((reason: string) => (
+              <div
+                key={reason}
+                className="rounded-2xl border border-white/30 bg-white/40 px-4 py-3 text-sm font-bold"
+              >
+                {reason}
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+
 
       <div className={`rounded-[2rem] border p-6 ${statusClass(mission.crisisLevel)}`}>
         <div className="text-xs font-black uppercase tracking-[0.14em]">

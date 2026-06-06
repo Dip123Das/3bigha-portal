@@ -7,6 +7,10 @@ import LiveProcurementRefreshBadge from "@/app/components/procurement/LiveProcur
 import ProcurementLiveTicker from "@/app/components/procurement/ProcurementLiveTicker";
 import ProcurementHeatmapIntelligence from "@/app/components/procurement/ProcurementHeatmapIntelligence";
 import { createClient } from "@supabase/supabase-js";
+import {
+  calculateOperationalAttentionPriority,
+  sortByOperationalAttention,
+} from "@/lib/procurement/intelligence/operational-priority";
 
 export default function ProcurementSituationRoomPage() {
   const supabase = createClient(
@@ -16,6 +20,7 @@ export default function ProcurementSituationRoomPage() {
   const [live, setLive] = useState<any>(null);
   const [timeline, setTimeline] = useState<any>(null);
   const [telemetry, setTelemetry] = useState<any>(null);
+  const [compactMode, setCompactMode] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -82,11 +87,73 @@ export default function ProcurementSituationRoomPage() {
   const liveEvents = Array.isArray(live?.events) ? live.events : [];
   const timelineSteps = Array.isArray(timeline?.steps) ? timeline.steps : [];
 
-  const criticalEvents = liveEvents.filter(
+  function eventAttention(event: any) {
+    const activityAt = event.updated_at || event.createdAt;
+    const activityAgeHours = activityAt
+      ? Math.max(
+          0,
+          Math.round((Date.now() - new Date(activityAt).getTime()) / 3600000)
+        )
+      : 999;
+
+    const tone = event.priority || event.tone || "active";
+
+    const urgency =
+      tone === "critical"
+        ? 20
+        : tone === "high"
+          ? 14
+          : tone === "medium"
+            ? 8
+            : tone === "low"
+              ? 3
+              : 5;
+
+    const operationalRisk =
+      tone === "critical"
+        ? 15
+        : tone === "high"
+          ? 10
+          : tone === "medium"
+            ? 5
+            : 0;
+
+    return calculateOperationalAttentionPriority({
+      decay: {
+        workflowAgeHours: activityAgeHours,
+        hoursSinceLastActivity: activityAgeHours,
+        quoteCount: Number(event.score || 0) > 0 ? 1 : 0,
+      },
+      momentum: {
+        recentActivityCount: activityAgeHours <= 12 ? 3 : 0,
+        quoteGrowth: Number(event.score || 0) > 0 ? 1 : 0,
+      },
+      urgency,
+      operationalRisk,
+      workflowHealth:
+        tone === "critical"
+          ? 25
+          : tone === "high"
+            ? 45
+            : tone === "medium"
+              ? 65
+              : 85,
+      aiConfidence: Math.min(100, Number(event.score || 0)),
+      escalationSignals:
+        tone === "critical" ? 2 : tone === "high" ? 1 : 0,
+    });
+  }
+
+  const prioritizedLiveEvents = sortByOperationalAttention(
+    liveEvents,
+    eventAttention
+  );
+
+  const criticalEvents = prioritizedLiveEvents.filter(
     (e: any) => e.tone === "critical" || e.priority === "critical"
   );
 
-  const highEvents = liveEvents.filter(
+  const highEvents = prioritizedLiveEvents.filter(
     (e: any) => e.tone === "high" || e.priority === "high"
   );
 
@@ -103,14 +170,14 @@ export default function ProcurementSituationRoomPage() {
   }, [criticalEvents.length, highEvents.length]);
 
   return (
-    <main className="min-h-screen bg-[#f6f7fb] p-6">
+    <main className="min-h-screen bg-[#f6f7fb] p-4 md:p-5">
       <div className="mx-auto max-w-7xl">
-        <div className="overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-red-950 to-orange-950 p-10 text-white shadow-2xl">
+        <div className="overflow-hidden rounded-[2rem] bg-gradient-to-r from-slate-950 via-red-950 to-orange-950 p-6 md:p-8 text-white shadow-xl">
           <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
             AI Procurement Work Updates
           </div>
 
-          <h1 className="mt-6 text-5xl font-black">
+          <h1 className="mt-5 text-3xl md:text-5xl font-black">
             Procurement Work Updates
           </h1>
 
@@ -123,8 +190,17 @@ export default function ProcurementSituationRoomPage() {
             {executiveSummary}
           </div>
 
-          <div className="mt-3 rounded-2xl border border-rose-300/20 bg-rose-400/10 px-6 py-4 text-sm font-bold text-rose-100">
-            Realtime procurement command telemetry connected to live workflow events.
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setCompactMode((prev) => !prev)}
+              className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white transition hover:bg-white/20"
+            >
+              {compactMode ? "Expanded View" : "Compact View"}
+            </button>
+
+            <div className="text-xs font-bold uppercase tracking-[0.16em] text-slate-300">
+              Operational Compression Active
+            </div>
           </div>
 
         </div>
@@ -147,7 +223,7 @@ export default function ProcurementSituationRoomPage() {
           />
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-4 xl:grid-cols-8">
+        <div className="mt-6 grid gap-3 grid-cols-2 md:grid-cols-4 xl:grid-cols-8">
           <Stat label="Live Events" value={live?.summary?.total || 0} />
           <Stat label="Critical" value={live?.summary?.critical || 0} />
           <Stat label="Timeline Steps" value={timeline?.summary?.total || 0} />
@@ -174,13 +250,13 @@ export default function ProcurementSituationRoomPage() {
           />
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
           <Panel title="Critical Procurement Radar">
             {criticalEvents.length === 0 ? (
               <Empty text="No critical procurement risks detected." />
             ) : (
-              criticalEvents.slice(0, 6).map((event: any) => (
-                <EventCard key={event.id} event={event} />
+              criticalEvents.slice(0, compactMode ? 3 : 6).map((event: any) => (
+                <EventCard key={event.id} event={event} attention={eventAttention(event)} />
               ))
             )}
           </Panel>
@@ -189,22 +265,22 @@ export default function ProcurementSituationRoomPage() {
             {highEvents.length === 0 ? (
               <Empty text="No high-priority follow-ups pending." />
             ) : (
-              highEvents.slice(0, 6).map((event: any) => (
-                <EventCard key={event.id} event={event} />
+              highEvents.slice(0, compactMode ? 3 : 6).map((event: any) => (
+                <EventCard key={event.id} event={event} attention={eventAttention(event)} />
               ))
             )}
           </Panel>
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
           <Panel title="Live Procurement Stream">
-            {liveEvents.slice(0, 8).map((event: any) => (
-              <EventCard key={`${event.id}-${event.eventType}`} event={event} />
+            {prioritizedLiveEvents.slice(0, compactMode ? 4 : 8).map((event: any) => (
+              <EventCard key={`${event.id}-${event.eventType}`} event={event} attention={eventAttention(event)} />
             ))}
           </Panel>
 
           <Panel title="Activity Timeline Snapshot">
-            {timelineSteps.slice(-8).reverse().map((step: any) => (
+            {timelineSteps.slice(-(compactMode ? 4 : 8)).reverse().map((step: any) => (
               <div
                 key={`${step.id}-${step.createdAt}`}
                 className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
@@ -227,7 +303,7 @@ export default function ProcurementSituationRoomPage() {
           </Panel>
         </div>
 
-        <div className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mt-6 rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-2xl font-black text-slate-950">
             AI Command Actions
           </h2>
@@ -247,20 +323,26 @@ export default function ProcurementSituationRoomPage() {
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
+    <div className="rounded-[1.25rem] border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
         {label}
       </div>
-      <div className="mt-2 text-3xl font-black text-slate-950">{value}</div>
+
+      <div className="mt-1 text-2xl font-black text-slate-950">
+        {value}
+      </div>
     </div>
   );
 }
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-2xl font-black text-slate-950">{title}</h2>
-      <div className="mt-5 space-y-4">{children}</div>
+    <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 className="text-xl font-black text-slate-950">{title}</h2>
+
+      <div className="mt-4 space-y-3">
+        {children}
+      </div>
     </section>
   );
 }
@@ -273,28 +355,27 @@ function Badge({ children }: { children: React.ReactNode }) {
   );
 }
 
-function EventCard({ event }: { event: any }) {
+function EventCard({ event, attention }: { event: any; attention?: any }) {
   return (
     <Link
       href={event.href || "/dashboard/procurement-live"}
-      className="block rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:bg-white"
+      className="block rounded-[1.25rem] border border-slate-200 bg-slate-50 p-3 transition hover:bg-white"
     >
       <div className="flex flex-wrap gap-2">
-        <Badge>{event.tone || event.priority || "active"}</Badge>
-        <Badge>{event.module || "procurement"}</Badge>
-        <Badge>{String(event.eventType || "event").replace(/_/g, " ")}</Badge>
+        <Badge>{attention?.attentionLevel || event.tone || event.priority || "active"}</Badge>
+        <Badge>{event.module || "procurement"}</Badge><Badge>attention {attention?.attentionScore ?? 0}</Badge>
       </div>
 
-      <div className="mt-3 text-base font-black text-slate-950">
+      <div className="mt-2 text-sm font-black text-slate-950">
         {event.title}
       </div>
 
-      <div className="mt-1 text-sm font-semibold leading-6 text-slate-600">
+      <div className="mt-1 text-xs font-semibold leading-5 text-slate-600">
         {event.signal || event.description || "Procurement signal detected."}
       </div>
 
       {event.action ? (
-        <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-800">
+        <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-800">
           🤖 {event.action}
         </div>
       ) : null}
