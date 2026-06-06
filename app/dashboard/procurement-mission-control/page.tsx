@@ -504,7 +504,7 @@ export default async function ProcurementMissionControlPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
-      <div className="rounded-[2rem] border border-slate-200 bg-gradient-to-r from-slate-950 via-indigo-950 to-rose-950 p-7 text-white shadow-sm">
+      <div className="rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-950 via-indigo-950 to-rose-950 p-4 text-white shadow-sm">
         <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]">
           Enterprise Procurement Work Desk
         </div>
@@ -513,12 +513,12 @@ export default async function ProcurementMissionControlPage() {
           AI Procurement Work Desk
         </h1>
 
-        <p className="mt-3 max-w-4xl text-sm font-medium leading-6 text-slate-200">
+        <p className="mt-3 max-w-4xl text-sm font-medium leading-5 text-slate-200">
           Unified executive command layer for procurement health, crisis level,
           execution urgency, live operations and autonomous AI directives.
         </p>
 
-        <div className="mt-5 rounded-2xl border border-white/10 bg-white/10 p-4 text-sm font-bold text-slate-100">
+        <div className="mt-3 rounded-2xl border border-white/10 bg-white/10 p-4 text-sm font-bold text-slate-100">
           {data?.executiveSummary || "Mission intelligence unavailable."}
         </div>
       </div>
@@ -526,12 +526,12 @@ export default async function ProcurementMissionControlPage() {
       <ProcurementCommandCenterNav />
 
       {!data?.ok ? (
-        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-5 text-sm font-bold text-rose-700">
+        <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4 text-sm font-bold text-rose-700">
           Procurement mission control could not load.
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-13">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-13">
         <Stat label="Health" value={`${mission.healthScore ?? 0}/100`} />
         <Stat label="Crisis" value={mission.crisisLevel || "unknown"} />
         <Stat label="Threat" value={mission.operationalThreat ?? 0} />
@@ -555,35 +555,35 @@ export default async function ProcurementMissionControlPage() {
         />
       </div>
 
-      <div className={`rounded-[2rem] border p-6 ${
+      <div className={`rounded-2xl border p-4 ${
         executiveData?.synthesis?.executiveMode === "executive-intervention"
           ? "border-rose-200 bg-rose-50 text-rose-900"
           : executiveData?.synthesis?.executiveMode === "executive-watch"
             ? "border-amber-200 bg-amber-50 text-amber-900"
             : "border-emerald-200 bg-emerald-50 text-emerald-900"
       }`}>
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.14em]">
               Executive Procurement Synthesis
             </div>
 
-            <div className="mt-3 text-3xl font-black">
+            <div className="mt-2 text-2xl font-black">
               {executiveData?.synthesis?.executiveMode || "executive-stable"}
             </div>
 
-            <div className="mt-3 max-w-3xl text-sm font-semibold leading-6">
+            <div className="mt-2 max-w-3xl text-sm font-semibold leading-5">
               {executiveData?.executiveDirective ||
                 "Procurement ecosystem remains operationally stable under supervised executive monitoring."}
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+          <div className="flex flex-wrap gap-1.5">
+            <div className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-xs font-black">
               Pressure {executiveData?.synthesis?.executivePressure || 0}
             </div>
 
-            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+            <div className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-xs font-black">
               Approvals {executiveData?.synthesis?.approvals || 0}
             </div>
           </div>
@@ -591,21 +591,21 @@ export default async function ProcurementMissionControlPage() {
 
         {Array.isArray(executiveData?.directives) &&
         executiveData.directives.length > 0 ? (
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
             {executiveData.directives.slice(0, 4).map((directive: any) => (
               <div
                 key={directive.title}
-                className="rounded-2xl border border-white/30 bg-white/40 px-5 py-4"
+                className="rounded-xl border border-white/30 bg-white/40 px-3 py-2"
               >
                 <div className="text-sm font-black">
                   {directive.title}
                 </div>
 
-                <div className="mt-2 text-sm font-semibold leading-6">
+                <div className="mt-1.5 text-xs font-semibold leading-5">
                   {directive.directive}
                 </div>
 
-                <div className="mt-3 text-xs font-black uppercase tracking-[0.12em] opacity-70">
+                <div className="mt-2 text-[10px] font-black uppercase tracking-[0.12em] opacity-70">
                   {directive.executiveImpact}
                 </div>
               </div>
@@ -615,14 +615,14 @@ export default async function ProcurementMissionControlPage() {
       </div>
 
 
-      <div className={`rounded-[2rem] border p-6 ${
+      <div className={`rounded-2xl border p-4 ${
         continuityData?.continuity?.continuityMode === "continuity-intervention"
           ? "border-rose-200 bg-rose-50 text-rose-900"
           : continuityData?.continuity?.continuityMode === "continuity-watch"
             ? "border-amber-200 bg-amber-50 text-amber-900"
             : "border-emerald-200 bg-emerald-50 text-emerald-900"
       }`}>
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.14em]">
 
@@ -639,7 +639,7 @@ export default async function ProcurementMissionControlPage() {
             style={{
               display: "flex",
               justifyContent: "space-between",
-              gap: "0.75rem",
+              gap: "0.5rem",
               flexWrap: "wrap",
               alignItems: "center",
             }}
@@ -846,10 +846,11 @@ export default async function ProcurementMissionControlPage() {
 
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2,minmax(90px,1fr))",
-                gap: "0.5rem",
-                minWidth: "220px",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "0.45rem",
+                minWidth: "240px",
+                alignContent: "flex-start",
               }}
             >
               {[
@@ -861,33 +862,36 @@ export default async function ProcurementMissionControlPage() {
                 <div
                   key={metric.label}
                   style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.4rem",
                     border: "1px solid #dbeafe",
-                    borderRadius: "0.85rem",
-                    padding: "0.7rem",
+                    borderRadius: "999px",
+                    padding: "0.45rem 0.7rem",
                     background: "#ffffff",
                   }}
                 >
-                  <div
+                  <span
                     style={{
-                      fontSize: "0.72rem",
+                      fontSize: "0.68rem",
                       textTransform: "uppercase",
                       letterSpacing: "0.08em",
                       color: "#64748b",
-                      marginBottom: "0.25rem",
+                      fontWeight: 700,
                     }}
                   >
                     {metric.label}
-                  </div>
+                  </span>
 
-                  <div
+                  <span
                     style={{
-                      fontSize: "1rem",
-                      fontWeight: 700,
+                      fontSize: "0.82rem",
+                      fontWeight: 800,
                       color: "#0f172a",
                     }}
                   >
                     {metric.value}
-                  </div>
+                  </span>
                 </div>
               ))}
             </div>
@@ -899,7 +903,7 @@ export default async function ProcurementMissionControlPage() {
                 marginTop: "0.9rem",
                 paddingTop: "0.8rem",
                 borderTop: "1px dashed #cbd5e1",
-                fontSize: "0.88rem",
+                fontSize: "0.78rem",
                 color: "#475569",
               }}
             >
@@ -911,22 +915,22 @@ export default async function ProcurementMissionControlPage() {
               Executive Continuity Intelligence
             </div>
 
-            <div className="mt-3 text-3xl font-black">
+            <div className="mt-2 text-2xl font-black">
               {continuityData?.continuity?.continuityMode || "continuity-stable"}
             </div>
 
-            <div className="mt-3 max-w-3xl text-sm font-semibold leading-6">
+            <div className="mt-2 max-w-3xl text-sm font-semibold leading-5">
               {continuityData?.executiveDirective ||
                 "Procurement ecosystem remains continuity-stable under supervised executive monitoring."}
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+          <div className="flex flex-wrap gap-1.5">
+            <div className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-xs font-black">
               Pressure {continuityData?.continuity?.continuityPressure || 0}
             </div>
 
-            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+            <div className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-xs font-black">
               Memory {continuityData?.continuity?.evolutionScore || 0}
             </div>
           </div>
@@ -934,21 +938,21 @@ export default async function ProcurementMissionControlPage() {
 
         {Array.isArray(continuityData?.directives) &&
         continuityData.directives.length > 0 ? (
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
             {continuityData.directives.slice(0, 4).map((directive: any) => (
               <div
                 key={directive.title}
-                className="rounded-2xl border border-white/30 bg-white/40 px-5 py-4"
+                className="rounded-xl border border-white/30 bg-white/40 px-3 py-2"
               >
                 <div className="text-sm font-black">
                   {directive.title}
                 </div>
 
-                <div className="mt-2 text-sm font-semibold leading-6">
+                <div className="mt-1.5 text-xs font-semibold leading-5">
                   {directive.directive}
                 </div>
 
-                <div className="mt-3 text-xs font-black uppercase tracking-[0.12em] opacity-70">
+                <div className="mt-2 text-[10px] font-black uppercase tracking-[0.12em] opacity-70">
                   {directive.continuityImpact}
                 </div>
               </div>
@@ -958,35 +962,35 @@ export default async function ProcurementMissionControlPage() {
       </div>
 
 
-      <div className={`rounded-[2rem] border p-6 ${
+      <div className={`rounded-2xl border p-4 ${
         resilienceData?.resilience?.resilienceMode === "resilience-focus"
           ? "border-rose-200 bg-rose-50 text-rose-900"
           : resilienceData?.resilience?.resilienceMode === "guided-compression"
             ? "border-amber-200 bg-amber-50 text-amber-900"
             : "border-emerald-200 bg-emerald-50 text-emerald-900"
       }`}>
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.14em]">
               Adaptive Executive Resilience
             </div>
 
-            <div className="mt-3 text-3xl font-black">
+            <div className="mt-2 text-2xl font-black">
               {resilienceData?.resilience?.resilienceMode || "normal-visibility"}
             </div>
 
-            <div className="mt-3 max-w-3xl text-sm font-semibold leading-6">
+            <div className="mt-2 max-w-3xl text-sm font-semibold leading-5">
               {resilienceData?.executiveDirective ||
                 "Executive operational visibility remains balanced and stable."}
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+          <div className="flex flex-wrap gap-1.5">
+            <div className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-xs font-black">
               Pressure {resilienceData?.resilience?.adaptivePressure || 0}
             </div>
 
-            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+            <div className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-xs font-black">
               Density {resilienceData?.resilience?.signalDensity || "full-context"}
             </div>
           </div>
@@ -994,21 +998,21 @@ export default async function ProcurementMissionControlPage() {
 
         {Array.isArray(resilienceData?.guidance) &&
         resilienceData.guidance.length > 0 ? (
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
             {resilienceData.guidance.slice(0, 4).map((item: any) => (
               <div
                 key={item.title}
-                className="rounded-2xl border border-white/30 bg-white/40 px-5 py-4"
+                className="rounded-xl border border-white/30 bg-white/40 px-3 py-2"
               >
                 <div className="text-sm font-black">
                   {item.title}
                 </div>
 
-                <div className="mt-2 text-sm font-semibold leading-6">
+                <div className="mt-1.5 text-xs font-semibold leading-5">
                   {item.recommendation}
                 </div>
 
-                <div className="mt-3 text-xs font-black uppercase tracking-[0.12em] opacity-70">
+                <div className="mt-2 text-[10px] font-black uppercase tracking-[0.12em] opacity-70">
                   {item.safety}
                 </div>
               </div>
@@ -1018,7 +1022,7 @@ export default async function ProcurementMissionControlPage() {
       </div>
 
 
-      <div className={`rounded-[2rem] border p-6 ${
+      <div className={`rounded-2xl border p-4 ${
         cognition.predictiveRisk === "critical"
           ? "border-rose-200 bg-rose-50 text-rose-900"
           : cognition.predictiveRisk === "high"
@@ -1027,34 +1031,34 @@ export default async function ProcurementMissionControlPage() {
               ? "border-blue-200 bg-blue-50 text-blue-900"
               : "border-emerald-200 bg-emerald-50 text-emerald-900"
       }`}>
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.14em]">
               Predictive Procurement Cognition
             </div>
 
-            <div className="mt-3 text-3xl font-black">
+            <div className="mt-2 text-2xl font-black">
               {cognition.trajectory || "stable"} • {cognition.predictiveRisk || "low"}
             </div>
 
-            <div className="mt-3 max-w-3xl text-sm font-semibold leading-6">
+            <div className="mt-2 max-w-3xl text-sm font-semibold leading-5">
               {cognitionData?.executiveSummary ||
                 "Procurement cognition stable."}
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+          <div className="flex flex-wrap gap-1.5">
+            <div className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-xs font-black">
               Cognition {cognition.cognitionScore || 0}
             </div>
 
-            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+            <div className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-xs font-black">
               Drift {cognition.operationalDrift || 0}
             </div>
           </div>
         </div>
 
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           {cognition.silentRiskDetected ? (
             <span className="inline-flex rounded-full border border-amber-200 bg-amber-100 px-3 py-1 text-xs font-black text-amber-800">
               Silent operational weakening detected
@@ -1074,14 +1078,14 @@ export default async function ProcurementMissionControlPage() {
           ) : null}
         </div>
 
-        <div className="mt-5 rounded-2xl border border-white/30 bg-white/40 px-5 py-4 text-sm font-bold">
+        <div className="mt-3 rounded-2xl border border-white/30 bg-white/40 px-3 py-2 text-sm font-bold">
           {cognitionData?.nextBestAction ||
             "Continue procurement operational monitoring."}
         </div>
 
         {Array.isArray(cognition.reasons) &&
         cognition.reasons.length > 0 ? (
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
             {cognition.reasons.slice(0, 4).map((reason: string) => (
               <div
                 key={reason}
@@ -1096,35 +1100,35 @@ export default async function ProcurementMissionControlPage() {
 
 
 
-      <div className={`rounded-[2rem] border p-6 ${
+      <div className={`rounded-2xl border p-4 ${
         stabilizationData?.stabilization?.stabilizationMode === "active-stabilization"
           ? "border-rose-200 bg-rose-50 text-rose-900"
           : stabilizationData?.stabilization?.stabilizationMode === "watch-stabilization"
             ? "border-amber-200 bg-amber-50 text-amber-900"
             : "border-emerald-200 bg-emerald-50 text-emerald-900"
       }`}>
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.14em]">
               Operational Self-Stabilization
             </div>
 
-            <div className="mt-3 text-3xl font-black">
+            <div className="mt-2 text-2xl font-black">
               {stabilizationData?.stabilization?.stabilizationMode || "stable-monitoring"}
             </div>
 
-            <div className="mt-3 max-w-3xl text-sm font-semibold leading-6">
+            <div className="mt-2 max-w-3xl text-sm font-semibold leading-5">
               {stabilizationData?.executiveDirective ||
                 "Procurement operations remain stable under supervised AI monitoring."}
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+          <div className="flex flex-wrap gap-1.5">
+            <div className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-xs font-black">
               Pressure {stabilizationData?.stabilization?.stabilizationPressure || 0}
             </div>
 
-            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+            <div className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-xs font-black">
               Fatigue {stabilizationData?.stabilization?.fatigue || 0}
             </div>
           </div>
@@ -1132,21 +1136,21 @@ export default async function ProcurementMissionControlPage() {
 
         {Array.isArray(stabilizationData?.actions) &&
         stabilizationData.actions.length > 0 ? (
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
             {stabilizationData.actions.slice(0, 4).map((action: any) => (
               <div
                 key={action.title}
-                className="rounded-2xl border border-white/30 bg-white/40 px-5 py-4"
+                className="rounded-xl border border-white/30 bg-white/40 px-3 py-2"
               >
                 <div className="text-sm font-black">
                   {action.title}
                 </div>
 
-                <div className="mt-2 text-sm font-semibold leading-6">
+                <div className="mt-1.5 text-xs font-semibold leading-5">
                   {action.recommendation}
                 </div>
 
-                <div className="mt-3 text-xs font-black uppercase tracking-[0.12em] opacity-70">
+                <div className="mt-2 text-[10px] font-black uppercase tracking-[0.12em] opacity-70">
                   {action.safety}
                 </div>
               </div>
@@ -1156,35 +1160,35 @@ export default async function ProcurementMissionControlPage() {
       </div>
 
 
-      <div className={`rounded-[2rem] border p-6 ${
+      <div className={`rounded-2xl border p-4 ${
         strategicData?.orchestration?.orchestrationMode === "strategic-intervention"
           ? "border-rose-200 bg-rose-50 text-rose-900"
           : strategicData?.orchestration?.orchestrationMode === "strategic-watch"
             ? "border-amber-200 bg-amber-50 text-amber-900"
             : "border-emerald-200 bg-emerald-50 text-emerald-900"
       }`}>
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.14em]">
               Strategic Procurement Orchestration
             </div>
 
-            <div className="mt-3 text-3xl font-black">
+            <div className="mt-2 text-2xl font-black">
               {strategicData?.orchestration?.orchestrationMode || "strategic-stable"}
             </div>
 
-            <div className="mt-3 max-w-3xl text-sm font-semibold leading-6">
+            <div className="mt-2 max-w-3xl text-sm font-semibold leading-5">
               {strategicData?.executiveDirective ||
                 "Strategic procurement ecosystem remains stable under supervised monitoring."}
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
-            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+          <div className="flex flex-wrap gap-1.5">
+            <div className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-xs font-black">
               Pressure {strategicData?.orchestration?.orchestrationPressure || 0}
             </div>
 
-            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+            <div className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-xs font-black">
               Weak Suppliers {strategicData?.orchestration?.weakSuppliers || 0}
             </div>
           </div>
@@ -1192,21 +1196,21 @@ export default async function ProcurementMissionControlPage() {
 
         {Array.isArray(strategicData?.directives) &&
         strategicData.directives.length > 0 ? (
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
             {strategicData.directives.slice(0, 4).map((directive: any) => (
               <div
                 key={directive.title}
-                className="rounded-2xl border border-white/30 bg-white/40 px-5 py-4"
+                className="rounded-xl border border-white/30 bg-white/40 px-3 py-2"
               >
                 <div className="text-sm font-black">
                   {directive.title}
                 </div>
 
-                <div className="mt-2 text-sm font-semibold leading-6">
+                <div className="mt-1.5 text-xs font-semibold leading-5">
                   {directive.recommendation}
                 </div>
 
-                <div className="mt-3 text-xs font-black uppercase tracking-[0.12em] opacity-70">
+                <div className="mt-2 text-[10px] font-black uppercase tracking-[0.12em] opacity-70">
                   {directive.strategicImpact}
                 </div>
               </div>
@@ -1216,24 +1220,24 @@ export default async function ProcurementMissionControlPage() {
       </div>
 
 
-      <div className={`rounded-[2rem] border p-6 ${statusClass(mission.crisisLevel)}`}>
+      <div className={`rounded-2xl border p-4 ${statusClass(mission.crisisLevel)}`}>
         <div className="text-xs font-black uppercase tracking-[0.14em]">
           Current Operating Condition
         </div>
-        <div className="mt-3 text-3xl font-black">
+        <div className="mt-2 text-2xl font-black">
           {mission.healthStatus || "Unknown"} • {mission.executionMode || "unknown"}
         </div>
-        <div className="mt-3 text-sm font-semibold leading-6">
+        <div className="mt-3 text-sm font-semibold leading-5">
           {data?.nextBestAction || "Open procurement inbox and review workflows."}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <Panel title="Top Operational Priorities" items={priorities} tone="amber" />
         <Panel title="Emergency Directives" items={directives} tone="rose" />
       </div>
 
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-black text-slate-950">
@@ -1245,7 +1249,7 @@ export default async function ProcurementMissionControlPage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-1.5">
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-black text-emerald-700">
               Readiness: {recoveryData?.readinessScore || 0}
             </div>
@@ -1256,11 +1260,11 @@ export default async function ProcurementMissionControlPage() {
           </div>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-violet-200 bg-violet-50 px-5 py-4 text-sm font-bold text-violet-800">
+        <div className="mt-4 rounded-2xl border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-bold text-violet-800">
           {recoveryData?.operationalRecovery}
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
           {recoveryItems.map((item: any) => (
             <div
               key={item.title}
@@ -1286,7 +1290,7 @@ export default async function ProcurementMissionControlPage() {
                 {item.title}
               </div>
 
-              <div className="mt-5">
+              <div className="mt-3">
                 <div className="flex items-center justify-between text-sm font-black text-slate-700">
                   <span>Recovery Probability</span>
                   <span>{item.probability}%</span>
@@ -1316,7 +1320,7 @@ export default async function ProcurementMissionControlPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
         <Shortcut href="/dashboard/procurement-crisis-center" icon="🚨" title="Issue Center" />
         <Shortcut href="/dashboard/procurement-os" icon="🧭" title="Procurement Workspace" />
         <Shortcut href="/dashboard/procurement-war-room" icon="🏛️" title="Priority Work" />
@@ -1340,7 +1344,7 @@ export default async function ProcurementMissionControlPage() {
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
         {label}
       </div>
@@ -1364,7 +1368,7 @@ function Panel({
       : "border-amber-200 bg-amber-50 text-amber-800";
 
   return (
-    <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="text-lg font-black text-slate-950">{title}</div>
       <div className="mt-4 space-y-2">
         {items.length === 0 ? (
@@ -1395,9 +1399,9 @@ function Shortcut({
   return (
     <Link
       href={href}
-      className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:bg-slate-50"
+      className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:bg-slate-50"
     >
-      <div className="text-3xl">{icon}</div>
+      <div className="text-2xl">{icon}</div>
       <div className="mt-3 text-sm font-black text-slate-950">{title}</div>
     </Link>
   );
