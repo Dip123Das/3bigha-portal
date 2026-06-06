@@ -22,7 +22,6 @@ export async function GET(req: Request) {
       health,
       anomaly,
       crisis,
-      execution,
       forecast,
       shortage,
       collapse,
@@ -32,7 +31,6 @@ export async function GET(req: Request) {
       safeJson(`${origin}/api/ai/procurement-health-score`),
       safeJson(`${origin}/api/ai/procurement-anomaly`),
       safeJson(`${origin}/api/ai/procurement-crisis-center`),
-      safeJson(`${origin}/api/ai/procurement-execution-engine`),
       safeJson(`${origin}/api/ai/procurement-forecast`),
       safeJson(`${origin}/api/ai/procurement-shortage-forecast`),
       safeJson(`${origin}/api/ai/procurement-supplier-collapse`),
@@ -55,8 +53,20 @@ export async function GET(req: Request) {
       0
     );
 
+
+    const healthScore = Number(health?.healthScore || 0);
+
+    const localExecutionMode =
+      healthScore >= 80
+        ? "optimized"
+        : healthScore >= 60
+          ? "stable"
+          : healthScore >= 40
+            ? "recovery"
+            : "critical-intervention";
+
     const cognition = evaluateUnifiedProcurementCognition({
-      healthScore: Number(health?.healthScore || 0),
+      healthScore,
       operationalLoad: Number(telemetryData?.operationalLoad || 0),
       recoveryPressure: Number(telemetryData?.recoveryPressure || 0),
       criticalSignals: Number(live?.summary?.critical || 0),
@@ -77,7 +87,7 @@ export async function GET(req: Request) {
       generatedAt: new Date().toISOString(),
       cognition,
       synthesis: {
-        healthScore: Number(health?.healthScore || 0),
+        healthScore,
         operationalLoad: Number(telemetryData?.operationalLoad || 0),
         recoveryPressure: Number(telemetryData?.recoveryPressure || 0),
         staleConversations: Number(telemetryData?.staleConversations || 0),
@@ -86,7 +96,7 @@ export async function GET(req: Request) {
           Number(anomalySummary?.high || 0) +
           Number(anomalySummary?.medium || 0),
         crisisLevel: crisis?.crisis?.level || "unknown",
-        executionMode: execution?.executionMode || "unknown",
+        executionMode: localExecutionMode,
         likelyClosures: Number(forecastSummary?.likelyClosures || 0),
         supplierCollapseRisk: maxCollapseRisk,
         shortageRisk: maxShortageRisk,

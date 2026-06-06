@@ -60,7 +60,6 @@ export async function GET(req: Request) {
       assist,
       cognition,
       executionReadiness,
-      executionEngine,
     ] = await Promise.all([
       safeJson(
         `${origin}/api/ai/procurement-autonomous-assist`
@@ -72,10 +71,6 @@ export async function GET(req: Request) {
 
       safeJson(
         `${origin}/api/ai/procurement-execution-readiness`
-      ),
-
-      safeJson(
-        `${origin}/api/ai/procurement-execution-engine`
       ),
     ]);
 
@@ -188,7 +183,8 @@ export async function GET(req: Request) {
         {},
 
       executionEngine:
-        executionEngine?.executionMode ||
+        executionReadiness?.executionReadiness?.mode ||
+        executionReadiness?.readinessMode ||
         "stable",
 
       governanceDirective:
