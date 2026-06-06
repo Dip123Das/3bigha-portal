@@ -76,42 +76,57 @@ export default function ProcurementCopilotClient() {
   }
 
   return (
-    <div className="space-y-5">
-      <div className={`rounded-[2rem] border p-5 shadow-sm ${
+    <div className="space-y-3">
+      <div className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white shadow-sm">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+              Executive Focus
+            </div>
+            <div className="mt-1 text-sm font-black">
+              Critical workflows • Recovery pressure • Governance load • AI supervision active
+            </div>
+          </div>
+          <div className="text-[11px] font-bold text-slate-300">
+            Calm supervised procurement intelligence
+          </div>
+        </div>
+      </div>
+      <div className={`rounded-2xl border p-4 shadow-sm ${
         briefing?.briefing?.operationalState === "critical"
           ? "border-rose-200 bg-rose-50 text-rose-900"
           : briefing?.briefing?.operationalState === "watch"
             ? "border-amber-200 bg-amber-50 text-amber-900"
             : "border-emerald-200 bg-emerald-50 text-emerald-900"
       }`}>
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
             <div className="text-xs font-black uppercase tracking-[0.14em]">
               Proactive Procurement Copilot
             </div>
 
-            <div className="mt-2 text-2xl font-black">
+            <div className="mt-1 text-xl font-black">
               {briefing?.briefing?.operationalState || "stable"} · {briefing?.briefing?.predictiveRisk || "low"}
             </div>
 
-            <div className="mt-3 text-sm font-semibold leading-6">
+            <div className="mt-2 text-sm font-semibold leading-5">
               {briefing?.briefing?.summary ||
                 "Procurement copilot is monitoring operations under supervised governance."}
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <span className="rounded-2xl border border-white/40 bg-white/50 px-4 py-2 text-xs font-black">
+          <div className="flex flex-wrap gap-1.5">
+            <span className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-[11px] font-black">
               Approvals {briefing?.briefing?.approvalRequired || 0}
             </span>
 
-            <span className="rounded-2xl border border-white/40 bg-white/50 px-4 py-2 text-xs font-black">
+            <span className="rounded-full border border-white/40 bg-white/50 px-3 py-1.5 text-[11px] font-black">
               Fatigue {briefing?.briefing?.fatigue || 0}
             </span>
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
           {(briefing?.briefing?.priorities || [
             "Continue supervised procurement monitoring.",
           ])
@@ -119,68 +134,68 @@ export default function ProcurementCopilotClient() {
             .map((priority: string) => (
               <div
                 key={priority}
-                className="rounded-2xl border border-white/40 bg-white/50 px-4 py-3 text-sm font-bold"
+                className="rounded-xl border border-white/40 bg-white/45 px-3 py-2 text-xs font-bold"
               >
                 {priority}
               </div>
             ))}
         </div>
 
-        <div className="mt-4 rounded-2xl border border-white/40 bg-white/50 px-4 py-3 text-sm font-black">
+        <div className="mt-3 rounded-xl border border-white/40 bg-white/45 px-3 py-2 text-xs font-black">
           {briefing?.executiveDirective ||
             "Continue supervised procurement monitoring."}
         </div>
       </div>
 
-      <div className="rounded-[2rem] border border-indigo-200 bg-indigo-50 p-5 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <div className="rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <div className="text-xs font-black uppercase tracking-[0.14em] text-indigo-700">
+            <div className="text-[11px] font-black uppercase tracking-[0.14em] text-indigo-700">
               Operator Intelligence
             </div>
 
-            <div className="mt-2 text-2xl font-black text-indigo-950">
+            <div className="mt-1 text-xl font-black text-indigo-950">
               {operator?.operatorIntelligence?.profile || "monitoring-focused"}
             </div>
 
-            <div className="mt-3 text-sm font-semibold leading-6 text-indigo-900">
+            <div className="mt-2 text-sm font-semibold leading-5 text-indigo-900">
               {operator?.operatorIntelligence?.operationalStyle ||
                 "Copilot is adapting to supervised procurement operations."}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white bg-white px-5 py-4 text-sm font-black text-indigo-700">
+          <div className="rounded-xl border border-white bg-white px-4 py-2 text-xs font-black text-indigo-700">
             {operator?.operatorIntelligence?.copilotMode || "supervised-assist"}
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-4">
-          <div className="rounded-2xl border border-white bg-white px-4 py-3 text-sm font-black text-slate-700">
+        <div className="mt-3 grid gap-2 md:grid-cols-4">
+          <div className="rounded-xl border border-white bg-white/80 px-3 py-2 text-xs font-black text-slate-700">
             Approvals {operator?.operatorIntelligence?.approvalRequired || 0}
           </div>
 
-          <div className="rounded-2xl border border-white bg-white px-4 py-3 text-sm font-black text-slate-700">
+          <div className="rounded-xl border border-white bg-white/80 px-3 py-2 text-xs font-black text-slate-700">
             Fatigue {operator?.operatorIntelligence?.fatigue || 0}
           </div>
 
-          <div className="rounded-2xl border border-white bg-white px-4 py-3 text-sm font-black text-slate-700">
+          <div className="rounded-xl border border-white bg-white/80 px-3 py-2 text-xs font-black text-slate-700">
             Risk {operator?.operatorIntelligence?.predictiveRisk || "low"}
           </div>
 
-          <div className="rounded-2xl border border-white bg-white px-4 py-3 text-sm font-black text-slate-700">
+          <div className="rounded-xl border border-white bg-white/80 px-3 py-2 text-xs font-black text-slate-700">
             Recovery {operator?.operatorIntelligence?.recoveryPressure || 0}
           </div>
         </div>
 
         {Array.isArray(operator?.operatorIntelligence?.explainability) &&
         operator.operatorIntelligence.explainability.length > 0 ? (
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
             {operator.operatorIntelligence.explainability
               .slice(0, 4)
               .map((reason: string) => (
                 <div
                   key={reason}
-                  className="rounded-2xl border border-white bg-white px-4 py-3 text-sm font-bold text-indigo-900"
+                  className="rounded-xl border border-white bg-white/80 px-3 py-2 text-xs font-bold text-indigo-900"
                 >
                   {reason}
                 </div>
@@ -190,16 +205,16 @@ export default function ProcurementCopilotClient() {
       </div>
 
 
-      <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <label className="text-sm font-black text-slate-900">
           Ask procurement question
         </label>
 
-        <div className="mt-3 flex flex-col gap-3 md:flex-row">
+        <div className="mt-2 flex flex-col gap-2 md:flex-row">
           <input
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            className="min-h-[48px] flex-1 rounded-2xl border border-slate-300 px-4 text-sm font-medium outline-none focus:border-blue-500"
+            className="min-h-[42px] flex-1 rounded-xl border border-slate-300 px-3 text-sm font-medium outline-none focus:border-blue-500"
             placeholder="Ask: What needs attention today?"
           />
 
@@ -207,19 +222,19 @@ export default function ProcurementCopilotClient() {
             type="button"
             onClick={() => askCopilot()}
             disabled={loading}
-            className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white disabled:opacity-60"
+            className="rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-black text-white disabled:opacity-60"
           >
             {loading ? "Thinking..." : "Ask Copilot"}
           </button>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-1.5">
           {EXAMPLES.map((item) => (
             <button
               key={item}
               type="button"
               onClick={() => askCopilot(item)}
-              className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700 transition hover:opacity-90"
+              className="rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 transition hover:opacity-90"
             >
               {item}
             </button>
@@ -228,39 +243,39 @@ export default function ProcurementCopilotClient() {
       </div>
 
       {data ? (
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           {data.ok ? (
             <>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 <span className="rounded-full border border-slate-900 bg-slate-900 px-3 py-1 text-xs font-black text-white">
                   Intent: {data.intent || "summary"}
                 </span>
               </div>
 
-              <div className="mt-4 rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
+              <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
                 <div className="text-sm font-black text-emerald-800">
                   Copilot Answer
                 </div>
-                <div className="mt-2 text-sm font-semibold leading-6 text-emerald-950">
+                <div className="mt-1.5 text-sm font-semibold leading-5 text-emerald-950">
                   {data.answer}
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <div className="rounded-3xl border border-blue-200 bg-blue-50 p-5">
+              <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
                   <div className="text-sm font-black text-blue-800">
                     Next Best Action
                   </div>
-                  <div className="mt-2 text-sm font-semibold leading-6 text-blue-950">
+                  <div className="mt-1.5 text-sm font-semibold leading-5 text-blue-950">
                     {data.recommendations?.nextBestAction || "Open inbox and review active procurement threads."}
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-violet-200 bg-violet-50 p-5">
+                <div className="rounded-2xl border border-violet-100 bg-violet-50 p-4">
                   <div className="text-sm font-black text-violet-800">
                     Forecast
                   </div>
-                  <div className="mt-2 text-sm font-semibold leading-6 text-violet-950">
+                  <div className="mt-1.5 text-sm font-semibold leading-5 text-violet-950">
                     {data.recommendations?.forecast || "Forecast unavailable."}
                   </div>
                 </div>
