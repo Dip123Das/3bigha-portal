@@ -4187,3 +4187,5 @@ a {
     border-radius: 16px !important;
   }
 }
+
+@import "../styles/procurement/executive-density.css";

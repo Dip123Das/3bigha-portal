@@ -104,7 +104,7 @@ export default async function ProcurementActionsPage() {
         </div>
       ) : null}
 
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="proc-shell-xl">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-black text-slate-950">
@@ -125,7 +125,7 @@ export default async function ProcurementActionsPage() {
           {decisions.map((item: any) => (
             <div
               key={item.title}
-              className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5"
+              className="proc-shell-muted"
             >
               <div className="flex flex-wrap gap-2">
                 <span
@@ -216,7 +216,7 @@ export default async function ProcurementActionsPage() {
         {actions.map((item: any, idx: number) => (
           <div
             key={`${item.action}-${idx}`}
-            className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm"
+            className="proc-shell-lg"
           >
             <div className="flex flex-wrap items-center gap-2">
               <span

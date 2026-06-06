@@ -205,7 +205,7 @@ export default function ProcurementCopilotClient() {
       </div>
 
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="proc-shell">
         <label className="text-sm font-black text-slate-900">
           Ask procurement question
         </label>
@@ -243,7 +243,7 @@ export default function ProcurementCopilotClient() {
       </div>
 
       {data ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="proc-shell">
           {data.ok ? (
             <>
               <div className="flex flex-wrap gap-1.5">

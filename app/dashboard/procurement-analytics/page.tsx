@@ -44,7 +44,7 @@ function StatCard({
   value: string | number;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="proc-shell-lg">
       <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
         {label}
       </div>
@@ -180,7 +180,7 @@ export default async function ProcurementAnalyticsPage() {
         </div>
       </div>
 
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="proc-shell-xl">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-black text-slate-950">
@@ -201,7 +201,7 @@ export default async function ProcurementAnalyticsPage() {
           {shortageRows.map((item: any) => (
             <div
               key={item.id}
-              className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5"
+              className="proc-shell-muted"
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-black text-rose-700">

@@ -169,7 +169,7 @@ export default function ProcurementCrisisCenterPage() {
             </div>
           </div>
 
-                    <div className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+                    <div className="mt-8 proc-shell-xl">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-black text-slate-950">
@@ -190,7 +190,7 @@ export default function ProcurementCrisisCenterPage() {
               {escalations.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5"
+                  className="proc-shell-muted"
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span

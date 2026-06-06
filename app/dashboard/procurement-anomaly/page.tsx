@@ -155,7 +155,7 @@ function StatCard({
   value: number;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="proc-shell-lg">
       <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
         {label}
       </div>

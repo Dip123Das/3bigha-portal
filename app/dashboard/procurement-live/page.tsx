@@ -80,6 +80,7 @@ import {
   resolveOperationalRecoveryMesh,
   forecastContinuityRisk,
 } from "@/lib/procurement/intelligence/recovery-forecast-intelligence";
+import ExecutiveIntelligenceCollapse from "@/components/procurement/ExecutiveIntelligenceCollapse";
 import {
   evaluateSituationalCollaborationIntelligence,
   resolveProcurementSituationalAwareness,
@@ -689,7 +690,14 @@ export default function ProcurementLivePage() {
               </div>
 
               <div className="mt-3 text-sm font-semibold leading-6 text-slate-700">
-                {executiveCognitiveState.explanation[0]}
+                <ExecutiveIntelligenceCollapse
+  title="Executive Intelligence"
+  preview={executiveCognitiveState.explanation[0]}
+>
+  <div className="text-sm text-slate-700 proc-shell-tight">
+    {executiveCognitiveState.explanation[0]}
+  </div>
+</ExecutiveIntelligenceCollapse>
               </div>
 
               <div className="mt-4 rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
@@ -706,13 +714,27 @@ export default function ProcurementLivePage() {
               <div className="mt-3 rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
                 Supervised assistance {supervisedAssistance.operationalAssistanceHealth} · {supervisedActionDraft.title}
                 <div className="mt-2 text-xs font-semibold leading-5 text-slate-500">
-                  {continuitySafeAction.recommendation}
+                  <ExecutiveIntelligenceCollapse
+  title="Executive Intelligence"
+  preview={continuitySafeAction.recommendation}
+>
+  <div className="text-sm text-slate-700 proc-shell-tight">
+    {continuitySafeAction.recommendation}
+  </div>
+</ExecutiveIntelligenceCollapse>
                 </div>
               </div>
               <div className="mt-3 rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
                 Trust stability {operationalTrust.operationalTrustStability} · reliability {executionReliability.reliabilityLevel}
                 <div className="mt-2 text-xs font-semibold leading-5 text-slate-500">
-                  {workflowPredictability.explanation}
+                  <ExecutiveIntelligenceCollapse
+  title="Executive Intelligence"
+  preview={workflowPredictability.explanation}
+>
+  <div className="text-sm text-slate-700 proc-shell-tight">
+    {workflowPredictability.explanation}
+  </div>
+</ExecutiveIntelligenceCollapse>
                 </div>
               </div>
               <div className="mt-3 rounded-2xl border border-violet-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
@@ -724,7 +746,14 @@ export default function ProcurementLivePage() {
               <div className="mt-3 rounded-2xl border border-fuchsia-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
                 Coordination network {coordinationNetwork.procurementNetworkHealth} · {workloadHarmonization.harmonizationMode}
                 <div className="mt-2 text-xs font-semibold leading-5 text-slate-500">
-                  {pressureRedistribution.explanation}
+                  <ExecutiveIntelligenceCollapse
+  title="Executive Intelligence"
+  preview={pressureRedistribution.explanation}
+>
+  <div className="text-sm text-slate-700 proc-shell-tight">
+    {pressureRedistribution.explanation}
+  </div>
+</ExecutiveIntelligenceCollapse>
                 </div>
               </div>
               <div className="mt-3 rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
@@ -882,7 +911,7 @@ export default function ProcurementLivePage() {
           </div>
         </div>
 
-        <div className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mt-8 proc-shell-xl">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-2xl font-black text-slate-950">
@@ -1033,7 +1062,7 @@ function CompressionZone({
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="proc-shell">
       <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
         {label}
       </div>

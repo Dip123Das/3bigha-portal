@@ -117,7 +117,7 @@ function ExecutionMetric({
   value: string | number;
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="proc-shell">
       <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
         {label}
       </div>

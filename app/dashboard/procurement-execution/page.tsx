@@ -155,7 +155,7 @@ export default async function ProcurementExecutionPage() {
         </a>
       </div>
 
-      <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="proc-shell-lg">
         <div className="text-lg font-black text-slate-950">
           Workflow Execution Plan
         </div>

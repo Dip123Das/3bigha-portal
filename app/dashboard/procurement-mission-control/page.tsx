@@ -75,6 +75,9 @@ import {
   resolveSupervisedAutomationReadiness,
   resolveUnifiedProcurementOsHealth,
 } from "@/lib/procurement/intelligence/procurement-os-stabilization";
+import StickyExecutiveActions from "@/components/procurement/StickyExecutiveActions";
+import ExecutivePrioritySurface from "@/components/procurement/ExecutivePrioritySurface";
+import { evaluateExecutivePriority } from "@/lib/procurement/executive/executive-priority-engine";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -496,6 +499,16 @@ export default async function ProcurementMissionControlPage() {
   const cognition =
     cognitionData?.cognition || {};
 
+
+const executivePriority = evaluateExecutivePriority({
+  critical: mission.criticalThreads ?? 0,
+  warning: mission.criticalSignals ?? 0,
+  recoveryPressure: mission.recoveryPressure ?? 0,
+  escalationPressure: cognition.escalationPressure ?? 0,
+  recoveryLikely: cognition.recoveryLikely,
+});
+
+
   const recoveryItems = Array.isArray(
     recoveryData?.recovery
   )
@@ -504,7 +517,7 @@ export default async function ProcurementMissionControlPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
-      <div className="rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-950 via-indigo-950 to-rose-950 p-4 text-white shadow-sm">
+      <div className="proc-density-hero border border-slate-200 bg-gradient-to-r from-slate-950 via-indigo-950 to-rose-950 text-white shadow-sm">
         <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]">
           Enterprise Procurement Work Desk
         </div>
@@ -518,7 +531,7 @@ export default async function ProcurementMissionControlPage() {
           execution urgency, live operations and autonomous AI directives.
         </p>
 
-        <div className="mt-3 rounded-2xl border border-white/10 bg-white/10 p-4 text-sm font-bold text-slate-100">
+        <div className="proc-density-stack rounded-2xl border border-white/10 bg-white/10 p-3 text-sm font-bold text-slate-100">
           {data?.executiveSummary || "Mission intelligence unavailable."}
         </div>
       </div>
@@ -531,7 +544,7 @@ export default async function ProcurementMissionControlPage() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-13">
+      <div className="grid grid-cols-1 proc-density-grid md:grid-cols-13">
         <Stat label="Health" value={`${mission.healthScore ?? 0}/100`} />
         <Stat label="Crisis" value={mission.crisisLevel || "unknown"} />
         <Stat label="Threat" value={mission.operationalThreat ?? 0} />
@@ -591,7 +604,7 @@ export default async function ProcurementMissionControlPage() {
 
         {Array.isArray(executiveData?.directives) &&
         executiveData.directives.length > 0 ? (
-          <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <div className="mt-3 grid proc-density-grid md:grid-cols-2">
             {executiveData.directives.slice(0, 4).map((directive: any) => (
               <div
                 key={directive.title}
@@ -938,7 +951,7 @@ export default async function ProcurementMissionControlPage() {
 
         {Array.isArray(continuityData?.directives) &&
         continuityData.directives.length > 0 ? (
-          <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <div className="mt-3 grid proc-density-grid md:grid-cols-2">
             {continuityData.directives.slice(0, 4).map((directive: any) => (
               <div
                 key={directive.title}
@@ -998,7 +1011,7 @@ export default async function ProcurementMissionControlPage() {
 
         {Array.isArray(resilienceData?.guidance) &&
         resilienceData.guidance.length > 0 ? (
-          <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <div className="mt-3 grid proc-density-grid md:grid-cols-2">
             {resilienceData.guidance.slice(0, 4).map((item: any) => (
               <div
                 key={item.title}
@@ -1085,7 +1098,7 @@ export default async function ProcurementMissionControlPage() {
 
         {Array.isArray(cognition.reasons) &&
         cognition.reasons.length > 0 ? (
-          <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <div className="mt-3 grid proc-density-grid md:grid-cols-2">
             {cognition.reasons.slice(0, 4).map((reason: string) => (
               <div
                 key={reason}
@@ -1136,7 +1149,7 @@ export default async function ProcurementMissionControlPage() {
 
         {Array.isArray(stabilizationData?.actions) &&
         stabilizationData.actions.length > 0 ? (
-          <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <div className="mt-3 grid proc-density-grid md:grid-cols-2">
             {stabilizationData.actions.slice(0, 4).map((action: any) => (
               <div
                 key={action.title}
@@ -1196,7 +1209,7 @@ export default async function ProcurementMissionControlPage() {
 
         {Array.isArray(strategicData?.directives) &&
         strategicData.directives.length > 0 ? (
-          <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <div className="mt-3 grid proc-density-grid md:grid-cols-2">
             {strategicData.directives.slice(0, 4).map((directive: any) => (
               <div
                 key={directive.title}
@@ -1232,12 +1245,12 @@ export default async function ProcurementMissionControlPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+      <div className="grid grid-cols-1 proc-density-grid lg:grid-cols-2">
         <Panel title="Top Operational Priorities" items={priorities} tone="amber" />
         <Panel title="Emergency Directives" items={directives} tone="rose" />
       </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="proc-density-shell border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-black text-slate-950">
@@ -1264,11 +1277,38 @@ export default async function ProcurementMissionControlPage() {
           {recoveryData?.operationalRecovery}
         </div>
 
-        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        
+<StickyExecutiveActions
+  title="Mission Command State"
+  items={[
+    {
+      label: "Critical Threads",
+      value: mission.criticalThreads ?? 0,
+      tone: (mission.criticalThreads ?? 0) > 0 ? "danger" : "safe",
+    },
+    {
+      label: "Critical Signals",
+      value: mission.criticalSignals ?? 0,
+      tone: (mission.criticalSignals ?? 0) > 0 ? "warning" : "safe",
+    },
+    {
+      label: "Recovery Pressure",
+      value: mission.recoveryPressure ?? 0,
+      tone: (mission.recoveryPressure ?? 0) > 65 ? "danger" : "info",
+    },
+    {
+      label: "Operational State",
+      value: cognition.recoveryLikely ? "Recovery Likely" : "Stable",
+      tone: cognition.recoveryLikely ? "warning" : "safe",
+    },
+  ]}
+/>
+
+<div className="proc-density-stack-lg grid proc-density-grid lg:grid-cols-2">
           {recoveryItems.map((item: any) => (
             <div
               key={item.title}
-              className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5"
+              className="proc-density-shell border border-slate-200 bg-slate-50"
             >
               <div className="flex flex-wrap gap-2">
                 <span
@@ -1320,7 +1360,7 @@ export default async function ProcurementMissionControlPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-6">
+      <div className="grid grid-cols-1 proc-density-grid md:grid-cols-6">
         <Shortcut href="/dashboard/procurement-crisis-center" icon="🚨" title="Issue Center" />
         <Shortcut href="/dashboard/procurement-os" icon="🧭" title="Procurement Workspace" />
         <Shortcut href="/dashboard/procurement-war-room" icon="🏛️" title="Priority Work" />
@@ -1344,7 +1384,7 @@ export default async function ProcurementMissionControlPage() {
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="proc-density-metric border border-slate-200 bg-white shadow-sm">
       <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
         {label}
       </div>
@@ -1368,7 +1408,7 @@ function Panel({
       : "border-amber-200 bg-amber-50 text-amber-800";
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="proc-density-shell border border-slate-200 bg-white shadow-sm">
       <div className="text-lg font-black text-slate-950">{title}</div>
       <div className="mt-4 space-y-2">
         {items.length === 0 ? (
@@ -1399,7 +1439,7 @@ function Shortcut({
   return (
     <Link
       href={href}
-      className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:bg-slate-50"
+      className="proc-density-metric border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50"
     >
       <div className="text-2xl">{icon}</div>
       <div className="mt-3 text-sm font-black text-slate-950">{title}</div>

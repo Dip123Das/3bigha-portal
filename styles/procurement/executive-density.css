@@ -1,0 +1,228 @@
+/* =========================================================
+   PROCUREMENT EXECUTIVE DENSITY ENGINE
+   Phase-3A.1
+========================================================= */
+
+.proc-density-shell {
+  border-radius: 1.5rem;
+  padding: 1.15rem;
+}
+
+.proc-density-shell-lg {
+  border-radius: 1.75rem;
+  padding: 1.35rem;
+}
+
+.proc-density-gap {
+  gap: 0.85rem;
+}
+
+.proc-density-stack {
+  margin-top: 0.85rem;
+}
+
+.proc-density-stack-lg {
+  margin-top: 1.15rem;
+}
+
+.proc-density-grid {
+  gap: 0.75rem;
+}
+
+.proc-density-metric {
+  border-radius: 1.1rem;
+  padding: 0.9rem 1rem;
+}
+
+.proc-density-hero {
+  padding: 1.35rem;
+  border-radius: 1.75rem;
+}
+
+.proc-density-tight-text {
+  line-height: 1.35;
+}
+
+.proc-density-section-title {
+  margin-bottom: 0.35rem;
+}
+
+.proc-density-scroll-zone {
+  scroll-margin-top: 110px;
+}
+
+@media (min-width: 1280px) {
+  .proc-density-shell {
+    padding: 1rem;
+  }
+
+  .proc-density-shell-lg {
+    padding: 1.2rem;
+  }
+
+  .proc-density-gap {
+    gap: 0.7rem;
+  }
+
+  .proc-density-stack {
+    margin-top: 0.7rem;
+  }
+
+  .proc-density-grid {
+    gap: 0.65rem;
+  }
+}
+
+/* =========================================================
+   PROCUREMENT EXECUTIVE SHELL SYSTEM
+   Phase-3A.2
+========================================================= */
+
+.proc-shell {
+  border-radius: 1.5rem;
+  border: 1px solid rgb(226 232 240);
+  background: white;
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.proc-shell-lg {
+  border-radius: 1.75rem;
+  border: 1px solid rgb(226 232 240);
+  background: white;
+  padding: 1.25rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.proc-shell-xl {
+  border-radius: 2rem;
+  border: 1px solid rgb(226 232 240);
+  background: white;
+  padding: 1.4rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.proc-shell-muted {
+  border-radius: 1.5rem;
+  border: 1px solid rgb(226 232 240);
+  background: rgb(248 250 252);
+  padding: 1rem;
+}
+
+.proc-shell-metric {
+  border-radius: 1.15rem;
+  border: 1px solid rgb(226 232 240);
+  background: white;
+  padding: 0.9rem 1rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.proc-shell-alert {
+  border-radius: 1.35rem;
+  padding: 0.9rem 1rem;
+}
+
+.proc-shell-section {
+  margin-top: 0.9rem;
+}
+
+.proc-shell-grid {
+  gap: 0.8rem;
+}
+
+.proc-shell-tight {
+  line-height: 1.35;
+}
+
+@media (min-width: 1280px) {
+  .proc-shell,
+  .proc-shell-muted {
+    padding: 0.95rem;
+  }
+
+  .proc-shell-lg {
+    padding: 1.1rem;
+  }
+
+  .proc-shell-xl {
+    padding: 1.25rem;
+  }
+
+  .proc-shell-grid {
+    gap: 0.7rem;
+  }
+}
+
+
+/* =========================================================
+   PROCUREMENT STICKY EXECUTIVE ACTION ENGINE
+   Phase-3A.4
+========================================================= */
+
+.proc-sticky-actions {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 30;
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  background: rgba(255,255,255,0.82);
+
+  border: 1px solid rgba(226,232,240,0.95);
+
+  box-shadow:
+    0 10px 30px rgba(15,23,42,0.06),
+    0 2px 8px rgba(15,23,42,0.04);
+}
+
+.proc-sticky-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.proc-sticky-pill {
+  border-radius: 999px;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.proc-sticky-danger {
+  background: rgb(254 226 226);
+  color: rgb(153 27 27);
+}
+
+.proc-sticky-warning {
+  background: rgb(254 249 195);
+  color: rgb(133 77 14);
+}
+
+.proc-sticky-safe {
+  background: rgb(220 252 231);
+  color: rgb(22 101 52);
+}
+
+.proc-sticky-info {
+  background: rgb(219 234 254);
+  color: rgb(30 64 175);
+}
+
+@media (max-width: 1024px) {
+  .proc-sticky-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .proc-sticky-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .proc-sticky-actions {
+    top: 0.5rem;
+  }
+}
+
