@@ -244,6 +244,34 @@ function filterCommands(query: string, list: any[]) {
   );
 }
 
+
+export async function GET() {
+  return NextResponse.json(
+    {
+      ok: true,
+      endpoint: "procurement-command-palette",
+      method: "GET",
+      status: "live",
+      message:
+        "Procurement Command Palette API is live. Use POST with { query: string } for filtered command results.",
+      availableCommands: STATIC_COMMANDS.map((cmd) => ({
+        title: cmd.title,
+        description: cmd.description,
+        href: cmd.href,
+        category: cmd.category || "General",
+        status: cmd.status || "healthy",
+      })),
+    },
+    {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store",
+        "Content-Type": "application/json; charset=utf-8",
+      },
+    }
+  );
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
