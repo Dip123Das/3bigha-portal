@@ -45,6 +45,52 @@ const STATIC_COMMANDS = [
     status: "healthy",
   },
   {
+    keywords: [
+      "adaptive",
+      "resilience",
+      "compress",
+      "compression",
+      "reduce noise",
+      "focus mode",
+      "critical only",
+      "critical-only",
+      "priority first",
+      "priority-first",
+      "signal density",
+      "overload",
+      "executive focus",
+    ],
+    title: "Adaptive Executive Resilience",
+    description:
+      "Open Mission Control adaptive resilience guidance for overload, focus routing and signal compression",
+    href: "/dashboard/procurement-mission-control",
+    category: "Adaptive Resilience",
+    status: "warning",
+  },
+
+
+  {
+    keywords: [
+      "stabilize",
+      "stabilization",
+      "overload",
+      "fatigue",
+      "pressure",
+      "rebalance",
+      "approval",
+      "queue",
+      "recovery pressure",
+    ],
+    title: "Operational Self-Stabilization",
+    description:
+      "Open Mission Control stabilization guidance for overload, fatigue and recovery pressure",
+    href: "/dashboard/procurement-mission-control",
+    category: "Stabilization",
+    status: "warning",
+  },
+
+
+  {
     keywords: ["copilot", "assistant", "ai"],
     title: "AI Procurement Copilot",
     description: "Ask procurement intelligence questions",
@@ -243,6 +289,46 @@ export async function POST(req: Request) {
               ? "warning"
               : "critical",
       },
+      {
+        keywords: [
+          "adaptive",
+          "resilience",
+          "compress view",
+          "reduce noise",
+          "focus mode",
+          "critical-only",
+          "priority-first",
+          "signal density",
+          "executive focus",
+        ],
+        title: "Open Adaptive Executive Resilience",
+        description:
+          "Review adaptive compression, signal density, executive focus and resilience routing",
+        href: "/dashboard/procurement-mission-control",
+        category: "Adaptive Resilience",
+        status: Number(summary.criticalThreads || 0) > 0 ? "critical" : "warning",
+      },
+
+
+      {
+        keywords: [
+          "stabilize",
+          "stabilization",
+          "overload",
+          "fatigue",
+          "pressure",
+          "rebalance",
+          "approval queue",
+        ],
+        title: "Open Operational Self-Stabilization",
+        description:
+          "Review procurement overload, fatigue, recovery pressure and stabilization guidance",
+        href: "/dashboard/procurement-mission-control",
+        category: "Stabilization",
+        status: Number(summary.criticalThreads || 0) > 0 ? "critical" : "warning",
+      },
+
+
       {
         keywords: ["mission", "control", "hq", "command"],
         title: "Open AI Procurement Mission Control",

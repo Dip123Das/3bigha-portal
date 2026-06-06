@@ -10,11 +10,87 @@ import { createClient } from "@supabase/supabase-js";
 import GlobalAiOperationalStatus from "@/components/ai-operational/GlobalAiOperationalStatus";
 import OperationalRecoveryFeed from "@/components/ai-operational/OperationalRecoveryFeed";
 import ProcurementDecayBadge from "@/components/procurement/intelligence/ProcurementDecayBadge";
+
+import {
+  evaluateExecutiveCognitiveState,
+  getExecutiveCognitiveLabel,
+  sequenceExecutiveSignals,
+  batchLowValueInterruptions,
+} from "@/lib/procurement/intelligence/executive-cognitive-os";
+
 import { normalizeOperationalUrgency } from "@/lib/procurement-live/procurementLiveAdapters";
 import {
-  calculateOperationalAttentionPriority,
+calculateOperationalAttentionPriority,
   sortByOperationalAttention,
 } from "@/lib/procurement/intelligence/operational-priority";
+import {
+  createSharedFocusState,
+  routeUnifiedInterruptions,
+  resolveCalmExecutionNetwork,
+} from "@/lib/procurement/intelligence/executive-attention-fabric";
+import {
+  evaluateProcurementStabilityIndex,
+  forecastExecutiveOverload,
+} from "@/lib/procurement/intelligence/strategic-executive-intelligence";
+import {
+  buildOperationalMemoryEntries,
+  evaluateOperationalMemoryHealth,
+  preserveContinuityContext,
+  evaluateSequencingHistory,
+  evaluateRecoveryEffectivenessMemory,
+} from "@/lib/procurement/intelligence/operational-memory-fabric";
+import {
+  evaluateSupervisedOperationalAssistance,
+  draftSupervisedOperationalAction,
+  generateContinuitySafeAction,
+  recommendRecoveryPacing,
+} from "@/lib/procurement/intelligence/autonomous-operational-assistance";
+import {
+  evaluateOperationalTrustIntelligence,
+  evaluateExecutionReliability,
+  evaluateWorkflowPredictability,
+  evaluateRecoveryConsistency,
+} from "@/lib/procurement/intelligence/operational-trust-intelligence";
+import {
+  evaluateProcurementMissionGrid,
+  resolveUnifiedMissionState,
+  evaluateCrossModuleSequencing,
+  coordinateMissionRecovery,
+} from "@/lib/procurement/intelligence/procurement-mission-intelligence-grid";
+import {
+  evaluateAdaptiveProcurementCoordinationNetwork,
+  evaluateWorkloadHarmonization,
+  evaluateContinuityLoadBalancing,
+  redistributeOperationalPressure,
+} from "@/lib/procurement/intelligence/adaptive-procurement-coordination-network";
+import {
+  evaluateProcurementContinuityNervousSystem,
+  evaluateContinuityPulse,
+  evaluateOperationalReflex,
+  evaluateContinuityAnomalyReflex,
+} from "@/lib/procurement/intelligence/procurement-continuity-nervous-system";
+import {
+  evaluateProcurementCognitiveExecutionMesh,
+  evaluateExecutionPropagation,
+  evaluateContinuityLinkedExecution,
+  evaluateAdaptiveExecutionTiming,
+} from "@/lib/procurement/intelligence/procurement-cognitive-execution-mesh";
+import {
+  evaluateRecoveryForecastIntelligence,
+  resolveOperationalRecoveryMesh,
+  forecastContinuityRisk,
+} from "@/lib/procurement/intelligence/recovery-forecast-intelligence";
+import {
+  evaluateSituationalCollaborationIntelligence,
+  resolveProcurementSituationalAwareness,
+  resolveHumanCollaborationGuidance,
+} from "@/lib/procurement/intelligence/situational-collaboration-intelligence";
+import {
+  evaluateProcurementOsStabilization,
+  simulateExecutionResilience,
+  resolveSupervisedAutomationReadiness,
+  resolveUnifiedProcurementOsHealth,
+} from "@/lib/procurement/intelligence/procurement-os-stabilization";
 
 type LiveEvent = {
   id: string;
@@ -218,6 +294,267 @@ export default function ProcurementLivePage() {
     ? Math.max(0, normalEvents.length - 8)
     : 0;
 
+  const executiveSignals = sortedEvents.slice(0, 24).map((event, index) => ({
+    id: String(event.id || index),
+    source: "procurement_live" as const,
+    title: event.title || "Live procurement event",
+    detail: event.description || event.signal,
+    severity:
+      (event.priority || event.tone) === "critical"
+        ? ("critical" as const)
+        : (event.priority || event.tone) === "high"
+          ? ("actionable" as const)
+          : (event.priority || event.tone) === "medium"
+            ? ("watch" as const)
+            : ("passive" as const),
+    workflowId:
+      (event as any).workflowId ||
+      (event as any).rfqId ||
+      event.module ||
+      `live-${index}`,
+  }));
+
+  const executiveCognitiveState =
+    evaluateExecutiveCognitiveState(executiveSignals);
+
+  const sequencedExecutiveSignals =
+    sequenceExecutiveSignals(executiveSignals);
+
+  const interruptionBatching =
+    batchLowValueInterruptions(sequencedExecutiveSignals);
+
+  const calmPriorityCount =
+    interruptionBatching.priority.length;
+
+  const compressedSignalCount =
+    interruptionBatching.batched.length;
+
+  const sharedFocusState = createSharedFocusState(
+    "procurement_live",
+    executiveSignals,
+    executiveCognitiveState
+  );
+
+  const unifiedInterruptions =
+    routeUnifiedInterruptions(executiveSignals);
+
+  const calmExecutionNetwork =
+    resolveCalmExecutionNetwork(sharedFocusState);
+
+  const procurementStability =
+    evaluateProcurementStabilityIndex(executiveCognitiveState);
+
+  const overloadForecast =
+    forecastExecutiveOverload(procurementStability);
+
+  const operationalMemoryEntries =
+    buildOperationalMemoryEntries(executiveSignals);
+
+  const operationalMemoryHealth =
+    evaluateOperationalMemoryHealth(operationalMemoryEntries);
+
+  const continuityPersistence =
+    preserveContinuityContext(operationalMemoryEntries);
+
+  const sequencingHistory =
+    evaluateSequencingHistory(operationalMemoryEntries);
+
+  const recoveryMemory =
+    evaluateRecoveryEffectivenessMemory(operationalMemoryEntries);
+
+  const supervisedAssistance =
+    evaluateSupervisedOperationalAssistance({
+      consciousness: {
+        unifiedMissionCoherence: procurementStability.overallStability,
+        globalOperationalRhythm: executiveCognitiveState.operationalRhythmStability,
+        synchronizedContinuityStability: executiveCognitiveState.continuityIntegrity,
+        executiveContextSynchronization: executiveCognitiveState.focusResilience,
+        calmNetworkHealth: procurementStability.calmSustainability,
+        sequencingCoordinationIntegrity: executiveCognitiveState.sequencingEfficiency,
+        operationalConsciousnessStability: procurementStability.overallStability,
+        consciousnessMode:
+          overloadForecast.probability === "high"
+            ? "recovery_sync"
+            : executiveCognitiveState.calmModeRecommended
+              ? "guided"
+              : "stable",
+        explanation: procurementStability.explanation[0],
+      },
+      learning: {
+        operationalLearningConfidence: operationalMemoryHealth.operationalMemoryConfidence,
+        continuityOptimizationScore: operationalMemoryHealth.continuityPersistenceHealth,
+        calmExecutionImprovement: executiveCognitiveState.operationalRhythmStability,
+        missionStabilityLearningHealth: procurementStability.overallStability,
+        recommendation:
+          executiveCognitiveState.calmModeRecommended
+            ? "increase_sequence_protection"
+            : "continue_current_rhythm",
+        explanation: operationalMemoryHealth.explanation[0],
+      },
+      memory: operationalMemoryHealth,
+    });
+
+  const supervisedActionDraft =
+    draftSupervisedOperationalAction(supervisedAssistance);
+
+  const continuitySafeAction =
+    generateContinuitySafeAction(supervisedAssistance);
+
+  const recoveryPacing =
+    recommendRecoveryPacing(supervisedAssistance);
+
+  const operationalTrust =
+    evaluateOperationalTrustIntelligence({
+      assistance: supervisedAssistance,
+      consciousness: {
+        unifiedMissionCoherence: procurementStability.overallStability,
+        globalOperationalRhythm: executiveCognitiveState.operationalRhythmStability,
+        synchronizedContinuityStability: executiveCognitiveState.continuityIntegrity,
+        executiveContextSynchronization: executiveCognitiveState.focusResilience,
+        calmNetworkHealth: procurementStability.calmSustainability,
+        sequencingCoordinationIntegrity: executiveCognitiveState.sequencingEfficiency,
+        operationalConsciousnessStability: procurementStability.overallStability,
+        consciousnessMode:
+          overloadForecast.probability === "high"
+            ? "recovery_sync"
+            : executiveCognitiveState.calmModeRecommended
+              ? "guided"
+              : "stable",
+        explanation: procurementStability.explanation[0],
+      },
+      stability: procurementStability,
+    });
+
+  const executionReliability =
+    evaluateExecutionReliability(operationalTrust);
+
+  const workflowPredictability =
+    evaluateWorkflowPredictability(operationalTrust);
+
+  const recoveryConsistency =
+    evaluateRecoveryConsistency(operationalTrust);
+
+  const missionGrid =
+    evaluateProcurementMissionGrid({
+      trust: operationalTrust,
+      consciousness: {
+        unifiedMissionCoherence: procurementStability.overallStability,
+        globalOperationalRhythm: executiveCognitiveState.operationalRhythmStability,
+        synchronizedContinuityStability: executiveCognitiveState.continuityIntegrity,
+        executiveContextSynchronization: executiveCognitiveState.focusResilience,
+        calmNetworkHealth: procurementStability.calmSustainability,
+        sequencingCoordinationIntegrity: executiveCognitiveState.sequencingEfficiency,
+        operationalConsciousnessStability: procurementStability.overallStability,
+        consciousnessMode:
+          overloadForecast.probability === "high"
+            ? "recovery_sync"
+            : executiveCognitiveState.calmModeRecommended
+              ? "guided"
+              : "stable",
+        explanation: procurementStability.explanation[0],
+      },
+      assistance: supervisedAssistance,
+    });
+
+  const unifiedMissionState =
+    resolveUnifiedMissionState(missionGrid);
+
+  const crossModuleSequencing =
+    evaluateCrossModuleSequencing(missionGrid);
+
+  const missionRecovery =
+    coordinateMissionRecovery(missionGrid);
+
+  const coordinationNetwork =
+    evaluateAdaptiveProcurementCoordinationNetwork({
+      missionGrid,
+      trust: operationalTrust,
+      assistance: supervisedAssistance,
+    });
+
+  const workloadHarmonization =
+    evaluateWorkloadHarmonization(coordinationNetwork);
+
+  const continuityLoadBalancing =
+    evaluateContinuityLoadBalancing(coordinationNetwork);
+
+  const pressureRedistribution =
+    redistributeOperationalPressure(coordinationNetwork);
+
+  const procurementCognitiveMesh =
+    evaluateProcurementCognitiveExecutionMesh({
+      coordination: coordinationNetwork,
+      missionGrid,
+      memory: operationalMemoryHealth,
+    });
+
+  const executionPropagation =
+    evaluateExecutionPropagation(procurementCognitiveMesh);
+
+  const continuityLinkedExecution =
+    evaluateContinuityLinkedExecution(procurementCognitiveMesh);
+
+  const adaptiveExecutionTiming =
+    evaluateAdaptiveExecutionTiming(procurementCognitiveMesh);
+
+  const procurementNervousSystem =
+    evaluateProcurementContinuityNervousSystem({
+      mesh: procurementCognitiveMesh,
+      coordination: coordinationNetwork,
+      missionGrid,
+    });
+
+  const continuityPulse =
+    evaluateContinuityPulse(procurementNervousSystem);
+
+  const operationalReflex =
+    evaluateOperationalReflex(procurementNervousSystem);
+
+  const continuityAnomalyReflex =
+    evaluateContinuityAnomalyReflex(procurementNervousSystem);
+
+  const recoveryForecast =
+    evaluateRecoveryForecastIntelligence({
+      nervousSystem: procurementNervousSystem,
+      mesh: procurementCognitiveMesh,
+      trust: operationalTrust,
+    });
+
+  const operationalRecoveryMesh =
+    resolveOperationalRecoveryMesh(recoveryForecast);
+
+  const continuityForecast =
+    forecastContinuityRisk(recoveryForecast);
+
+  const situationalCollaboration =
+    evaluateSituationalCollaborationIntelligence({
+      recoveryForecast,
+      missionGrid,
+      trust: operationalTrust,
+    });
+
+  const situationalAwareness =
+    resolveProcurementSituationalAwareness(situationalCollaboration);
+
+  const humanCollaboration =
+    resolveHumanCollaborationGuidance(situationalCollaboration);
+
+  const procurementOsStabilization =
+    evaluateProcurementOsStabilization({
+      collaboration: situationalCollaboration,
+      recoveryForecast,
+      nervousSystem: procurementNervousSystem,
+    });
+
+  const executionResilience =
+    simulateExecutionResilience(procurementOsStabilization);
+
+  const supervisedAutomation =
+    resolveSupervisedAutomationReadiness(procurementOsStabilization);
+
+  const unifiedOsHealth =
+    resolveUnifiedProcurementOsHealth(procurementOsStabilization);
+
   const summary = data?.summary || {};
 
   return (
@@ -247,7 +584,7 @@ export default function ProcurementLivePage() {
           </div>
 
           <h1 className="mt-6 text-5xl font-black">
-            AI Procurement Live Situation Feed
+            Procurement Live Situation Flow
           </h1>
 
           <p className="mt-4 max-w-3xl text-base font-medium text-slate-200">
@@ -336,6 +673,104 @@ export default function ProcurementLivePage() {
               "Continue live procurement monitoring."}
           </div>
         </div>
+
+        <div className="mt-6 rounded-[1.75rem] border border-blue-100 bg-blue-50/70 p-5 shadow-sm">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="max-w-3xl">
+              <div className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">
+                Executive Cognitive Orchestration
+              </div>
+
+              <div className="mt-2 text-2xl font-black text-slate-950">
+                {getExecutiveCognitiveLabel(executiveCognitiveState)}
+              </div>
+              <div className="mt-2 inline-flex rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-black text-blue-700">
+                {calmExecutionNetwork.visibleLabel}
+              </div>
+
+              <div className="mt-3 text-sm font-semibold leading-6 text-slate-700">
+                {executiveCognitiveState.explanation[0]}
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
+                {unifiedInterruptions.compressed.length > 0
+                  ? unifiedInterruptions.explanation
+                  : calmExecutionNetwork.instruction}
+              </div>
+              <div className="mt-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
+                Strategic stability {procurementStability.overallStability} · overload forecast {overloadForecast.probability}
+              </div>
+              <div className="mt-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
+                Memory health {operationalMemoryHealth.continuityPersistenceHealth} · preserved {continuityPersistence.preservedCount} · recovery {recoveryMemory.recoveryEffectivenessTrend}
+              </div>
+              <div className="mt-3 rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
+                Supervised assistance {supervisedAssistance.operationalAssistanceHealth} · {supervisedActionDraft.title}
+                <div className="mt-2 text-xs font-semibold leading-5 text-slate-500">
+                  {continuitySafeAction.recommendation}
+                </div>
+              </div>
+              <div className="mt-3 rounded-2xl border border-sky-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
+                Trust stability {operationalTrust.operationalTrustStability} · reliability {executionReliability.reliabilityLevel}
+                <div className="mt-2 text-xs font-semibold leading-5 text-slate-500">
+                  {workflowPredictability.explanation}
+                </div>
+              </div>
+              <div className="mt-3 rounded-2xl border border-violet-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
+                Mission grid {missionGrid.missionIntelligenceHealth} · {unifiedMissionState.summary}
+                <div className="mt-2 text-xs font-semibold leading-5 text-slate-500">
+                  {crossModuleSequencing.explanation}
+                </div>
+              </div>
+              <div className="mt-3 rounded-2xl border border-fuchsia-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
+                Coordination network {coordinationNetwork.procurementNetworkHealth} · {workloadHarmonization.harmonizationMode}
+                <div className="mt-2 text-xs font-semibold leading-5 text-slate-500">
+                  {pressureRedistribution.explanation}
+                </div>
+              </div>
+              <div className="mt-3 rounded-2xl border border-cyan-200 bg-white px-4 py-3 text-sm font-bold text-slate-700">
+                Continuity nervous system {procurementNervousSystem.procurementNervousSystemHealth} · {continuityPulse.pulseMode}
+                <div className="mt-2 text-xs font-semibold leading-5 text-slate-500">
+                  {operationalReflex.explanation}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid min-w-[240px] grid-cols-2 gap-3">
+              {[
+                {
+                  label: "Focus",
+                  value: executiveCognitiveState.focusResilience,
+                },
+                {
+                  label: "Pressure",
+                  value: executiveCognitiveState.cognitiveLoadPressure,
+                },
+                {
+                  label: "Continuity",
+                  value: executiveCognitiveState.continuityIntegrity,
+                },
+                {
+                  label: "Priority",
+                  value: calmPriorityCount,
+                },
+              ].map((metric) => (
+                <div
+                  key={metric.label}
+                  className="rounded-2xl border border-blue-100 bg-white p-3"
+                >
+                  <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+                    {metric.label}
+                  </div>
+
+                  <div className="mt-1 text-xl font-black text-slate-950">
+                    {metric.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
 
         <div className="mt-6">
           <ProcurementLiveTicker />
@@ -451,10 +886,10 @@ export default function ProcurementLivePage() {
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-2xl font-black text-slate-950">
-                Live Event Stream
+                Adaptive Live Event Stream
               </h2>
               <p className="mt-1 text-sm font-semibold text-slate-500">
-                Showing {visibleEvents.length} adaptively prioritized signals from {events.length} total procurement events.
+                Showing {visibleEvents.length} sequentially organized operational signals from {events.length} live procurement activities.
               </p>
             </div>
 

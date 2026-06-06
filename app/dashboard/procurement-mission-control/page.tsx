@@ -1,6 +1,80 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import ProcurementCommandCenterNav from "@/app/components/procurement/ProcurementCommandCenterNav";
+import {
+evaluateExecutiveCognitiveState,
+  getExecutiveCognitiveLabel,
+  sequenceExecutiveSignals,
+  batchLowValueInterruptions,
+} from "@/lib/procurement/intelligence/executive-cognitive-os";
+import {
+  createSharedFocusState,
+  routeUnifiedInterruptions,
+  resolveCalmExecutionNetwork,
+} from "@/lib/procurement/intelligence/executive-attention-fabric";
+import {
+  evaluateProcurementStabilityIndex,
+  forecastExecutiveOverload,
+} from "@/lib/procurement/intelligence/strategic-executive-intelligence";
+import {
+  buildOperationalMemoryEntries,
+  evaluateOperationalMemoryHealth,
+  preserveContinuityContext,
+  evaluateSequencingHistory,
+  evaluateRecoveryEffectivenessMemory,
+} from "@/lib/procurement/intelligence/operational-memory-fabric";
+import {
+  evaluateSupervisedOperationalAssistance,
+  draftSupervisedOperationalAction,
+  generateContinuitySafeAction,
+  recommendRecoveryPacing,
+} from "@/lib/procurement/intelligence/autonomous-operational-assistance";
+import {
+  evaluateOperationalTrustIntelligence,
+  evaluateExecutionReliability,
+  evaluateWorkflowPredictability,
+  evaluateRecoveryConsistency,
+} from "@/lib/procurement/intelligence/operational-trust-intelligence";
+import {
+  evaluateProcurementMissionGrid,
+  resolveUnifiedMissionState,
+  evaluateCrossModuleSequencing,
+  coordinateMissionRecovery,
+} from "@/lib/procurement/intelligence/procurement-mission-intelligence-grid";
+import {
+  evaluateAdaptiveProcurementCoordinationNetwork,
+  evaluateWorkloadHarmonization,
+  evaluateContinuityLoadBalancing,
+  redistributeOperationalPressure,
+} from "@/lib/procurement/intelligence/adaptive-procurement-coordination-network";
+import {
+  evaluateProcurementContinuityNervousSystem,
+  evaluateContinuityPulse,
+  evaluateOperationalReflex,
+  evaluateContinuityAnomalyReflex,
+} from "@/lib/procurement/intelligence/procurement-continuity-nervous-system";
+import {
+  evaluateProcurementCognitiveExecutionMesh,
+  evaluateExecutionPropagation,
+  evaluateContinuityLinkedExecution,
+  evaluateAdaptiveExecutionTiming,
+} from "@/lib/procurement/intelligence/procurement-cognitive-execution-mesh";
+import {
+  evaluateRecoveryForecastIntelligence,
+  resolveOperationalRecoveryMesh,
+  forecastContinuityRisk,
+} from "@/lib/procurement/intelligence/recovery-forecast-intelligence";
+import {
+  evaluateSituationalCollaborationIntelligence,
+  resolveProcurementSituationalAwareness,
+  resolveHumanCollaborationGuidance,
+} from "@/lib/procurement/intelligence/situational-collaboration-intelligence";
+import {
+  evaluateProcurementOsStabilization,
+  simulateExecutionResilience,
+  resolveSupervisedAutomationReadiness,
+  resolveUnifiedProcurementOsHealth,
+} from "@/lib/procurement/intelligence/procurement-os-stabilization";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -41,6 +115,11 @@ export default async function ProcurementMissionControlPage() {
 
   let recoveryData: any = null;
   let cognitionData: any = null;
+  let stabilizationData: any = null;
+  let strategicData: any = null;
+  let executiveData: any = null;
+  let continuityData: any = null;
+  let resilienceData: any = null;
 
   try {
     const origin = await getOrigin();
@@ -70,6 +149,348 @@ export default async function ProcurementMissionControlPage() {
     cognitionData = await cognitionRes.json();
   } catch {
     cognitionData = { ok: false };
+  }
+
+  try {
+    const origin = await getOrigin();
+
+    const stabilizationRes = await fetch(
+      `${origin}/api/ai/procurement-self-stabilization`,
+      {
+        cache: "no-store",
+      }
+    );
+
+    stabilizationData = await stabilizationRes.json();
+  } catch {
+    stabilizationData = { ok: false };
+  }
+
+  try {
+    const origin = await getOrigin();
+
+    const strategicRes = await fetch(
+      `${origin}/api/ai/procurement-strategic-orchestration`,
+      {
+        cache: "no-store",
+      }
+    );
+
+    strategicData = await strategicRes.json();
+  } catch {
+    strategicData = { ok: false };
+  }
+
+  try {
+    const origin = await getOrigin();
+
+    const executiveRes = await fetch(
+      `${origin}/api/ai/procurement-executive-synthesis`,
+      {
+        cache: "no-store",
+      }
+    );
+
+    executiveData = await executiveRes.json();
+  } catch {
+    executiveData = { ok: false };
+  }
+
+  try {
+    const origin = await getOrigin();
+
+    const continuityRes = await fetch(
+      `${origin}/api/ai/procurement-executive-continuity`,
+      {
+        cache: "no-store",
+      }
+    );
+
+    continuityData = await continuityRes.json();
+  } catch {
+    continuityData = { ok: false };
+  }
+
+  const executiveSignals = [
+    {
+      id: "continuity-primary",
+      source: "mission_control" as const,
+      title: "Executive continuity monitoring",
+      severity:
+        continuityData?.continuity?.continuityPressure >= 75
+          ? ("critical" as const)
+          : continuityData?.continuity?.continuityPressure >= 45
+            ? ("actionable" as const)
+            : ("watch" as const),
+      workflowId: continuityData?.continuity?.continuityMode || "continuity",
+    },
+    ...(Array.isArray(continuityData?.directives)
+      ? continuityData.directives.slice(0, 6).map((directive: any, index: number) => ({
+          id: `directive-${index}`,
+          source: "mission_control" as const,
+          title: directive.title || directive.directive || "Operational directive",
+          severity:
+            directive.priority === "critical"
+              ? ("critical" as const)
+              : directive.priority === "high"
+                ? ("actionable" as const)
+                : ("watch" as const),
+          workflowId:
+            directive.workflowId ||
+            directive.category ||
+            `workflow-${index}`,
+        }))
+      : []),
+  ];
+
+  const executiveCognitiveState =
+    evaluateExecutiveCognitiveState(executiveSignals);
+
+  const sequencedSignals =
+    sequenceExecutiveSignals(executiveSignals);
+
+  const interruptionBatching =
+    batchLowValueInterruptions(sequencedSignals);
+
+  const sharedFocusState = createSharedFocusState(
+    "mission_control",
+    executiveSignals,
+    executiveCognitiveState
+  );
+
+  const unifiedInterruptions =
+    routeUnifiedInterruptions(executiveSignals);
+
+  const calmExecutionNetwork =
+    resolveCalmExecutionNetwork(sharedFocusState);
+
+  const procurementStability =
+    evaluateProcurementStabilityIndex(executiveCognitiveState);
+
+  const overloadForecast =
+    forecastExecutiveOverload(procurementStability);
+
+  const operationalMemoryEntries =
+    buildOperationalMemoryEntries(executiveSignals);
+
+  const operationalMemoryHealth =
+    evaluateOperationalMemoryHealth(operationalMemoryEntries);
+
+  const continuityPersistence =
+    preserveContinuityContext(operationalMemoryEntries);
+
+  const sequencingHistory =
+    evaluateSequencingHistory(operationalMemoryEntries);
+
+  const recoveryMemory =
+    evaluateRecoveryEffectivenessMemory(operationalMemoryEntries);
+
+  const supervisedAssistance =
+    evaluateSupervisedOperationalAssistance({
+      consciousness: {
+        unifiedMissionCoherence: procurementStability.overallStability,
+        globalOperationalRhythm: executiveCognitiveState.operationalRhythmStability,
+        synchronizedContinuityStability: executiveCognitiveState.continuityIntegrity,
+        executiveContextSynchronization: executiveCognitiveState.focusResilience,
+        calmNetworkHealth: procurementStability.calmSustainability,
+        sequencingCoordinationIntegrity: executiveCognitiveState.sequencingEfficiency,
+        operationalConsciousnessStability: procurementStability.overallStability,
+        consciousnessMode:
+          overloadForecast.probability === "high"
+            ? "recovery_sync"
+            : executiveCognitiveState.calmModeRecommended
+              ? "guided"
+              : "stable",
+        explanation: procurementStability.explanation[0],
+      },
+      learning: {
+        operationalLearningConfidence: operationalMemoryHealth.operationalMemoryConfidence,
+        continuityOptimizationScore: operationalMemoryHealth.continuityPersistenceHealth,
+        calmExecutionImprovement: executiveCognitiveState.operationalRhythmStability,
+        missionStabilityLearningHealth: procurementStability.overallStability,
+        recommendation:
+          executiveCognitiveState.calmModeRecommended
+            ? "increase_sequence_protection"
+            : "continue_current_rhythm",
+        explanation: operationalMemoryHealth.explanation[0],
+      },
+      memory: operationalMemoryHealth,
+    });
+
+  const supervisedActionDraft =
+    draftSupervisedOperationalAction(supervisedAssistance);
+
+  const continuitySafeAction =
+    generateContinuitySafeAction(supervisedAssistance);
+
+  const recoveryPacing =
+    recommendRecoveryPacing(supervisedAssistance);
+
+  const operationalTrust =
+    evaluateOperationalTrustIntelligence({
+      assistance: supervisedAssistance,
+      consciousness: {
+        unifiedMissionCoherence: procurementStability.overallStability,
+        globalOperationalRhythm: executiveCognitiveState.operationalRhythmStability,
+        synchronizedContinuityStability: executiveCognitiveState.continuityIntegrity,
+        executiveContextSynchronization: executiveCognitiveState.focusResilience,
+        calmNetworkHealth: procurementStability.calmSustainability,
+        sequencingCoordinationIntegrity: executiveCognitiveState.sequencingEfficiency,
+        operationalConsciousnessStability: procurementStability.overallStability,
+        consciousnessMode:
+          overloadForecast.probability === "high"
+            ? "recovery_sync"
+            : executiveCognitiveState.calmModeRecommended
+              ? "guided"
+              : "stable",
+        explanation: procurementStability.explanation[0],
+      },
+      stability: procurementStability,
+    });
+
+  const executionReliability =
+    evaluateExecutionReliability(operationalTrust);
+
+  const workflowPredictability =
+    evaluateWorkflowPredictability(operationalTrust);
+
+  const recoveryConsistency =
+    evaluateRecoveryConsistency(operationalTrust);
+
+  const missionGrid =
+    evaluateProcurementMissionGrid({
+      trust: operationalTrust,
+      consciousness: {
+        unifiedMissionCoherence: procurementStability.overallStability,
+        globalOperationalRhythm: executiveCognitiveState.operationalRhythmStability,
+        synchronizedContinuityStability: executiveCognitiveState.continuityIntegrity,
+        executiveContextSynchronization: executiveCognitiveState.focusResilience,
+        calmNetworkHealth: procurementStability.calmSustainability,
+        sequencingCoordinationIntegrity: executiveCognitiveState.sequencingEfficiency,
+        operationalConsciousnessStability: procurementStability.overallStability,
+        consciousnessMode:
+          overloadForecast.probability === "high"
+            ? "recovery_sync"
+            : executiveCognitiveState.calmModeRecommended
+              ? "guided"
+              : "stable",
+        explanation: procurementStability.explanation[0],
+      },
+      assistance: supervisedAssistance,
+    });
+
+  const unifiedMissionState =
+    resolveUnifiedMissionState(missionGrid);
+
+  const crossModuleSequencing =
+    evaluateCrossModuleSequencing(missionGrid);
+
+  const missionRecovery =
+    coordinateMissionRecovery(missionGrid);
+
+  const coordinationNetwork =
+    evaluateAdaptiveProcurementCoordinationNetwork({
+      missionGrid,
+      trust: operationalTrust,
+      assistance: supervisedAssistance,
+    });
+
+  const workloadHarmonization =
+    evaluateWorkloadHarmonization(coordinationNetwork);
+
+  const continuityLoadBalancing =
+    evaluateContinuityLoadBalancing(coordinationNetwork);
+
+  const pressureRedistribution =
+    redistributeOperationalPressure(coordinationNetwork);
+
+  const procurementCognitiveMesh =
+    evaluateProcurementCognitiveExecutionMesh({
+      coordination: coordinationNetwork,
+      missionGrid,
+      memory: operationalMemoryHealth,
+    });
+
+  const executionPropagation =
+    evaluateExecutionPropagation(procurementCognitiveMesh);
+
+  const continuityLinkedExecution =
+    evaluateContinuityLinkedExecution(procurementCognitiveMesh);
+
+  const adaptiveExecutionTiming =
+    evaluateAdaptiveExecutionTiming(procurementCognitiveMesh);
+
+  const procurementNervousSystem =
+    evaluateProcurementContinuityNervousSystem({
+      mesh: procurementCognitiveMesh,
+      coordination: coordinationNetwork,
+      missionGrid,
+    });
+
+  const continuityPulse =
+    evaluateContinuityPulse(procurementNervousSystem);
+
+  const operationalReflex =
+    evaluateOperationalReflex(procurementNervousSystem);
+
+  const continuityAnomalyReflex =
+    evaluateContinuityAnomalyReflex(procurementNervousSystem);
+
+  const recoveryForecast =
+    evaluateRecoveryForecastIntelligence({
+      nervousSystem: procurementNervousSystem,
+      mesh: procurementCognitiveMesh,
+      trust: operationalTrust,
+    });
+
+  const operationalRecoveryMesh =
+    resolveOperationalRecoveryMesh(recoveryForecast);
+
+  const continuityForecast =
+    forecastContinuityRisk(recoveryForecast);
+
+  const situationalCollaboration =
+    evaluateSituationalCollaborationIntelligence({
+      recoveryForecast,
+      missionGrid,
+      trust: operationalTrust,
+    });
+
+  const situationalAwareness =
+    resolveProcurementSituationalAwareness(situationalCollaboration);
+
+  const humanCollaboration =
+    resolveHumanCollaborationGuidance(situationalCollaboration);
+
+  const procurementOsStabilization =
+    evaluateProcurementOsStabilization({
+      collaboration: situationalCollaboration,
+      recoveryForecast,
+      nervousSystem: procurementNervousSystem,
+    });
+
+  const executionResilience =
+    simulateExecutionResilience(procurementOsStabilization);
+
+  const supervisedAutomation =
+    resolveSupervisedAutomationReadiness(procurementOsStabilization);
+
+  const unifiedOsHealth =
+    resolveUnifiedProcurementOsHealth(procurementOsStabilization);
+
+  try {
+    const origin = await getOrigin();
+
+    const resilienceRes = await fetch(
+      `${origin}/api/ai/procurement-adaptive-resilience`,
+      {
+        cache: "no-store",
+      }
+    );
+
+    resilienceData = await resilienceRes.json();
+  } catch {
+    resilienceData = { ok: false };
   }
 
   const cognition =
@@ -133,6 +554,469 @@ export default async function ProcurementMissionControlPage() {
           value={mission.staleConversations ?? 0}
         />
       </div>
+
+      <div className={`rounded-[2rem] border p-6 ${
+        executiveData?.synthesis?.executiveMode === "executive-intervention"
+          ? "border-rose-200 bg-rose-50 text-rose-900"
+          : executiveData?.synthesis?.executiveMode === "executive-watch"
+            ? "border-amber-200 bg-amber-50 text-amber-900"
+            : "border-emerald-200 bg-emerald-50 text-emerald-900"
+      }`}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.14em]">
+              Executive Procurement Synthesis
+            </div>
+
+            <div className="mt-3 text-3xl font-black">
+              {executiveData?.synthesis?.executiveMode || "executive-stable"}
+            </div>
+
+            <div className="mt-3 max-w-3xl text-sm font-semibold leading-6">
+              {executiveData?.executiveDirective ||
+                "Procurement ecosystem remains operationally stable under supervised executive monitoring."}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+              Pressure {executiveData?.synthesis?.executivePressure || 0}
+            </div>
+
+            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+              Approvals {executiveData?.synthesis?.approvals || 0}
+            </div>
+          </div>
+        </div>
+
+        {Array.isArray(executiveData?.directives) &&
+        executiveData.directives.length > 0 ? (
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {executiveData.directives.slice(0, 4).map((directive: any) => (
+              <div
+                key={directive.title}
+                className="rounded-2xl border border-white/30 bg-white/40 px-5 py-4"
+              >
+                <div className="text-sm font-black">
+                  {directive.title}
+                </div>
+
+                <div className="mt-2 text-sm font-semibold leading-6">
+                  {directive.directive}
+                </div>
+
+                <div className="mt-3 text-xs font-black uppercase tracking-[0.12em] opacity-70">
+                  {directive.executiveImpact}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+
+      <div className={`rounded-[2rem] border p-6 ${
+        continuityData?.continuity?.continuityMode === "continuity-intervention"
+          ? "border-rose-200 bg-rose-50 text-rose-900"
+          : continuityData?.continuity?.continuityMode === "continuity-watch"
+            ? "border-amber-200 bg-amber-50 text-amber-900"
+            : "border-emerald-200 bg-emerald-50 text-emerald-900"
+      }`}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.14em]">
+
+        <div
+          style={{
+            border: "1px solid #dbeafe",
+            background: "#f8fbff",
+            borderRadius: "1rem",
+            padding: "1rem",
+            marginBottom: "1rem",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "0.75rem",
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: "0.78rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: "#1d4ed8",
+                  marginBottom: "0.3rem",
+                }}
+              >
+                Executive Cognitive State
+              </div>
+
+              <div
+                style={{
+                  fontSize: "1rem",
+                  fontWeight: 700,
+                  color: "#0f172a",
+                }}
+              >
+                {getExecutiveCognitiveLabel(executiveCognitiveState)}
+              </div>
+              <div
+                style={{
+                  display: "inline-flex",
+                  marginTop: "0.5rem",
+                  border: "1px solid #bfdbfe",
+                  background: "#ffffff",
+                  color: "#1d4ed8",
+                  borderRadius: "999px",
+                  padding: "0.3rem 0.7rem",
+                  fontSize: "0.72rem",
+                  fontWeight: 800,
+                }}
+              >
+                {calmExecutionNetwork.visibleLabel}
+              </div>
+
+              <div
+                style={{
+                  fontSize: "0.9rem",
+                  color: "#475569",
+                  marginTop: "0.45rem",
+                  maxWidth: "42rem",
+                  lineHeight: 1.6,
+                }}
+              >
+                {executiveCognitiveState.explanation[0]}
+              </div>
+              <div
+                style={{
+                  marginTop: "0.65rem",
+                  border: "1px solid #e2e8f0",
+                  background: "#ffffff",
+                  borderRadius: "0.9rem",
+                  padding: "0.7rem 0.85rem",
+                  fontSize: "0.86rem",
+                  fontWeight: 700,
+                  color: "#334155",
+                }}
+              >
+                Strategic stability {procurementStability.overallStability} · overload forecast {overloadForecast.probability}
+              </div>
+              <div
+                style={{
+                  marginTop: "0.55rem",
+                  border: "1px solid #e2e8f0",
+                  background: "#ffffff",
+                  borderRadius: "0.9rem",
+                  padding: "0.7rem 0.85rem",
+                  fontSize: "0.86rem",
+                  fontWeight: 700,
+                  color: "#334155",
+                }}
+              >
+                Memory health {operationalMemoryHealth.continuityPersistenceHealth} · preserved {continuityPersistence.preservedCount} · sequence {sequencingHistory.recommendedSequence}
+              </div>
+              <div
+                style={{
+                  marginTop: "0.55rem",
+                  border: "1px solid #bbf7d0",
+                  background: "#ffffff",
+                  borderRadius: "0.9rem",
+                  padding: "0.7rem 0.85rem",
+                  fontSize: "0.86rem",
+                  fontWeight: 700,
+                  color: "#166534",
+                }}
+              >
+                Supervised assistance {supervisedAssistance.operationalAssistanceHealth} · {supervisedActionDraft.title}
+                <div
+                  style={{
+                    marginTop: "0.35rem",
+                    fontSize: "0.78rem",
+                    lineHeight: 1.5,
+                    color: "#475569",
+                  }}
+                >
+                  {recoveryPacing.message}
+                </div>
+              </div>
+              <div
+                style={{
+                  marginTop: "0.55rem",
+                  border: "1px solid #bae6fd",
+                  background: "#ffffff",
+                  borderRadius: "0.9rem",
+                  padding: "0.7rem 0.85rem",
+                  fontSize: "0.86rem",
+                  fontWeight: 700,
+                  color: "#075985",
+                }}
+              >
+                Trust stability {operationalTrust.operationalTrustStability} · reliability {executionReliability.reliabilityLevel}
+                <div
+                  style={{
+                    marginTop: "0.35rem",
+                    fontSize: "0.78rem",
+                    lineHeight: 1.5,
+                    color: "#475569",
+                  }}
+                >
+                  {recoveryConsistency.explanation}
+                </div>
+              </div>
+              <div
+                style={{
+                  marginTop: "0.55rem",
+                  border: "1px solid #ddd6fe",
+                  background: "#ffffff",
+                  borderRadius: "0.9rem",
+                  padding: "0.7rem 0.85rem",
+                  fontSize: "0.86rem",
+                  fontWeight: 700,
+                  color: "#5b21b6",
+                }}
+              >
+                Mission grid {missionGrid.missionIntelligenceHealth} · {unifiedMissionState.summary}
+                <div
+                  style={{
+                    marginTop: "0.35rem",
+                    fontSize: "0.78rem",
+                    lineHeight: 1.5,
+                    color: "#475569",
+                  }}
+                >
+                  {missionRecovery.explanation}
+                </div>
+              </div>
+              <div
+                style={{
+                  marginTop: "0.55rem",
+                  border: "1px solid #a5f3fc",
+                  background: "#ffffff",
+                  borderRadius: "0.9rem",
+                  padding: "0.7rem 0.85rem",
+                  fontSize: "0.86rem",
+                  fontWeight: 700,
+                  color: "#155e75",
+                }}
+              >
+                Continuity nervous system {procurementNervousSystem.procurementNervousSystemHealth} · {continuityPulse.pulseMode}
+                <div
+                  style={{
+                    marginTop: "0.35rem",
+                    fontSize: "0.78rem",
+                    lineHeight: 1.5,
+                    color: "#475569",
+                  }}
+                >
+                  {continuityAnomalyReflex.explanation}
+                </div>
+              </div>
+              <div
+                style={{
+                  marginTop: "0.55rem",
+                  border: "1px solid #f5d0fe",
+                  background: "#ffffff",
+                  borderRadius: "0.9rem",
+                  padding: "0.7rem 0.85rem",
+                  fontSize: "0.86rem",
+                  fontWeight: 700,
+                  color: "#86198f",
+                }}
+              >
+                Coordination network {coordinationNetwork.procurementNetworkHealth} · {workloadHarmonization.harmonizationMode}
+                <div
+                  style={{
+                    marginTop: "0.35rem",
+                    fontSize: "0.78rem",
+                    lineHeight: 1.5,
+                    color: "#475569",
+                  }}
+                >
+                  {continuityLoadBalancing.explanation}
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2,minmax(90px,1fr))",
+                gap: "0.5rem",
+                minWidth: "220px",
+              }}
+            >
+              {[
+                { label: "Focus", value: executiveCognitiveState.focusResilience },
+                { label: "Continuity", value: executiveCognitiveState.continuityIntegrity },
+                { label: "Rhythm", value: executiveCognitiveState.operationalRhythmStability },
+                { label: "Pressure", value: executiveCognitiveState.cognitiveLoadPressure },
+              ].map((metric) => (
+                <div
+                  key={metric.label}
+                  style={{
+                    border: "1px solid #dbeafe",
+                    borderRadius: "0.85rem",
+                    padding: "0.7rem",
+                    background: "#ffffff",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "0.72rem",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      color: "#64748b",
+                      marginBottom: "0.25rem",
+                    }}
+                  >
+                    {metric.label}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: "1rem",
+                      fontWeight: 700,
+                      color: "#0f172a",
+                    }}
+                  >
+                    {metric.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {interruptionBatching.batched.length > 0 ? (
+            <div
+              style={{
+                marginTop: "0.9rem",
+                paddingTop: "0.8rem",
+                borderTop: "1px dashed #cbd5e1",
+                fontSize: "0.88rem",
+                color: "#475569",
+              }}
+            >
+              {unifiedInterruptions.explanation}
+            </div>
+          ) : null}
+        </div>
+
+              Executive Continuity Intelligence
+            </div>
+
+            <div className="mt-3 text-3xl font-black">
+              {continuityData?.continuity?.continuityMode || "continuity-stable"}
+            </div>
+
+            <div className="mt-3 max-w-3xl text-sm font-semibold leading-6">
+              {continuityData?.executiveDirective ||
+                "Procurement ecosystem remains continuity-stable under supervised executive monitoring."}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+              Pressure {continuityData?.continuity?.continuityPressure || 0}
+            </div>
+
+            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+              Memory {continuityData?.continuity?.evolutionScore || 0}
+            </div>
+          </div>
+        </div>
+
+        {Array.isArray(continuityData?.directives) &&
+        continuityData.directives.length > 0 ? (
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {continuityData.directives.slice(0, 4).map((directive: any) => (
+              <div
+                key={directive.title}
+                className="rounded-2xl border border-white/30 bg-white/40 px-5 py-4"
+              >
+                <div className="text-sm font-black">
+                  {directive.title}
+                </div>
+
+                <div className="mt-2 text-sm font-semibold leading-6">
+                  {directive.directive}
+                </div>
+
+                <div className="mt-3 text-xs font-black uppercase tracking-[0.12em] opacity-70">
+                  {directive.continuityImpact}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+
+      <div className={`rounded-[2rem] border p-6 ${
+        resilienceData?.resilience?.resilienceMode === "resilience-focus"
+          ? "border-rose-200 bg-rose-50 text-rose-900"
+          : resilienceData?.resilience?.resilienceMode === "guided-compression"
+            ? "border-amber-200 bg-amber-50 text-amber-900"
+            : "border-emerald-200 bg-emerald-50 text-emerald-900"
+      }`}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.14em]">
+              Adaptive Executive Resilience
+            </div>
+
+            <div className="mt-3 text-3xl font-black">
+              {resilienceData?.resilience?.resilienceMode || "normal-visibility"}
+            </div>
+
+            <div className="mt-3 max-w-3xl text-sm font-semibold leading-6">
+              {resilienceData?.executiveDirective ||
+                "Executive operational visibility remains balanced and stable."}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+              Pressure {resilienceData?.resilience?.adaptivePressure || 0}
+            </div>
+
+            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+              Density {resilienceData?.resilience?.signalDensity || "full-context"}
+            </div>
+          </div>
+        </div>
+
+        {Array.isArray(resilienceData?.guidance) &&
+        resilienceData.guidance.length > 0 ? (
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {resilienceData.guidance.slice(0, 4).map((item: any) => (
+              <div
+                key={item.title}
+                className="rounded-2xl border border-white/30 bg-white/40 px-5 py-4"
+              >
+                <div className="text-sm font-black">
+                  {item.title}
+                </div>
+
+                <div className="mt-2 text-sm font-semibold leading-6">
+                  {item.recommendation}
+                </div>
+
+                <div className="mt-3 text-xs font-black uppercase tracking-[0.12em] opacity-70">
+                  {item.safety}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
 
       <div className={`rounded-[2rem] border p-6 ${
         cognition.predictiveRisk === "critical"
@@ -210,6 +1094,126 @@ export default async function ProcurementMissionControlPage() {
         ) : null}
       </div>
 
+
+
+      <div className={`rounded-[2rem] border p-6 ${
+        stabilizationData?.stabilization?.stabilizationMode === "active-stabilization"
+          ? "border-rose-200 bg-rose-50 text-rose-900"
+          : stabilizationData?.stabilization?.stabilizationMode === "watch-stabilization"
+            ? "border-amber-200 bg-amber-50 text-amber-900"
+            : "border-emerald-200 bg-emerald-50 text-emerald-900"
+      }`}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.14em]">
+              Operational Self-Stabilization
+            </div>
+
+            <div className="mt-3 text-3xl font-black">
+              {stabilizationData?.stabilization?.stabilizationMode || "stable-monitoring"}
+            </div>
+
+            <div className="mt-3 max-w-3xl text-sm font-semibold leading-6">
+              {stabilizationData?.executiveDirective ||
+                "Procurement operations remain stable under supervised AI monitoring."}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+              Pressure {stabilizationData?.stabilization?.stabilizationPressure || 0}
+            </div>
+
+            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+              Fatigue {stabilizationData?.stabilization?.fatigue || 0}
+            </div>
+          </div>
+        </div>
+
+        {Array.isArray(stabilizationData?.actions) &&
+        stabilizationData.actions.length > 0 ? (
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {stabilizationData.actions.slice(0, 4).map((action: any) => (
+              <div
+                key={action.title}
+                className="rounded-2xl border border-white/30 bg-white/40 px-5 py-4"
+              >
+                <div className="text-sm font-black">
+                  {action.title}
+                </div>
+
+                <div className="mt-2 text-sm font-semibold leading-6">
+                  {action.recommendation}
+                </div>
+
+                <div className="mt-3 text-xs font-black uppercase tracking-[0.12em] opacity-70">
+                  {action.safety}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+
+      <div className={`rounded-[2rem] border p-6 ${
+        strategicData?.orchestration?.orchestrationMode === "strategic-intervention"
+          ? "border-rose-200 bg-rose-50 text-rose-900"
+          : strategicData?.orchestration?.orchestrationMode === "strategic-watch"
+            ? "border-amber-200 bg-amber-50 text-amber-900"
+            : "border-emerald-200 bg-emerald-50 text-emerald-900"
+      }`}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.14em]">
+              Strategic Procurement Orchestration
+            </div>
+
+            <div className="mt-3 text-3xl font-black">
+              {strategicData?.orchestration?.orchestrationMode || "strategic-stable"}
+            </div>
+
+            <div className="mt-3 max-w-3xl text-sm font-semibold leading-6">
+              {strategicData?.executiveDirective ||
+                "Strategic procurement ecosystem remains stable under supervised monitoring."}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+              Pressure {strategicData?.orchestration?.orchestrationPressure || 0}
+            </div>
+
+            <div className="rounded-2xl border border-white/40 bg-white/50 px-5 py-3 text-sm font-black">
+              Weak Suppliers {strategicData?.orchestration?.weakSuppliers || 0}
+            </div>
+          </div>
+        </div>
+
+        {Array.isArray(strategicData?.directives) &&
+        strategicData.directives.length > 0 ? (
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {strategicData.directives.slice(0, 4).map((directive: any) => (
+              <div
+                key={directive.title}
+                className="rounded-2xl border border-white/30 bg-white/40 px-5 py-4"
+              >
+                <div className="text-sm font-black">
+                  {directive.title}
+                </div>
+
+                <div className="mt-2 text-sm font-semibold leading-6">
+                  {directive.recommendation}
+                </div>
+
+                <div className="mt-3 text-xs font-black uppercase tracking-[0.12em] opacity-70">
+                  {directive.strategicImpact}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
 
 
       <div className={`rounded-[2rem] border p-6 ${statusClass(mission.crisisLevel)}`}>

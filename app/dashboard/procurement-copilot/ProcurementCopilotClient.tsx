@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 type CopilotResponse = {
@@ -29,6 +29,24 @@ export default function ProcurementCopilotClient() {
   const [question, setQuestion] = useState(EXAMPLES[0]);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<CopilotResponse | null>(null);
+  const [briefing, setBriefing] = useState<any>(null);
+  const [operator, setOperator] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/ai/procurement-copilot-briefing", {
+      cache: "no-store",
+    })
+      .then((r) => r.json())
+      .then(setBriefing)
+      .catch(() => setBriefing(null));
+
+    fetch("/api/ai/procurement-operator-intelligence", {
+      cache: "no-store",
+    })
+      .then((r) => r.json())
+      .then(setOperator)
+      .catch(() => setOperator(null));
+  }, []);
 
   async function askCopilot(q?: string) {
     const finalQuestion = String(q || question || "").trim();
@@ -59,6 +77,119 @@ export default function ProcurementCopilotClient() {
 
   return (
     <div className="space-y-5">
+      <div className={`rounded-[2rem] border p-5 shadow-sm ${
+        briefing?.briefing?.operationalState === "critical"
+          ? "border-rose-200 bg-rose-50 text-rose-900"
+          : briefing?.briefing?.operationalState === "watch"
+            ? "border-amber-200 bg-amber-50 text-amber-900"
+            : "border-emerald-200 bg-emerald-50 text-emerald-900"
+      }`}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.14em]">
+              Proactive Procurement Copilot
+            </div>
+
+            <div className="mt-2 text-2xl font-black">
+              {briefing?.briefing?.operationalState || "stable"} · {briefing?.briefing?.predictiveRisk || "low"}
+            </div>
+
+            <div className="mt-3 text-sm font-semibold leading-6">
+              {briefing?.briefing?.summary ||
+                "Procurement copilot is monitoring operations under supervised governance."}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <span className="rounded-2xl border border-white/40 bg-white/50 px-4 py-2 text-xs font-black">
+              Approvals {briefing?.briefing?.approvalRequired || 0}
+            </span>
+
+            <span className="rounded-2xl border border-white/40 bg-white/50 px-4 py-2 text-xs font-black">
+              Fatigue {briefing?.briefing?.fatigue || 0}
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {(briefing?.briefing?.priorities || [
+            "Continue supervised procurement monitoring.",
+          ])
+            .slice(0, 4)
+            .map((priority: string) => (
+              <div
+                key={priority}
+                className="rounded-2xl border border-white/40 bg-white/50 px-4 py-3 text-sm font-bold"
+              >
+                {priority}
+              </div>
+            ))}
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-white/40 bg-white/50 px-4 py-3 text-sm font-black">
+          {briefing?.executiveDirective ||
+            "Continue supervised procurement monitoring."}
+        </div>
+      </div>
+
+      <div className="rounded-[2rem] border border-indigo-200 bg-indigo-50 p-5 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.14em] text-indigo-700">
+              Operator Intelligence
+            </div>
+
+            <div className="mt-2 text-2xl font-black text-indigo-950">
+              {operator?.operatorIntelligence?.profile || "monitoring-focused"}
+            </div>
+
+            <div className="mt-3 text-sm font-semibold leading-6 text-indigo-900">
+              {operator?.operatorIntelligence?.operationalStyle ||
+                "Copilot is adapting to supervised procurement operations."}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white bg-white px-5 py-4 text-sm font-black text-indigo-700">
+            {operator?.operatorIntelligence?.copilotMode || "supervised-assist"}
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-4">
+          <div className="rounded-2xl border border-white bg-white px-4 py-3 text-sm font-black text-slate-700">
+            Approvals {operator?.operatorIntelligence?.approvalRequired || 0}
+          </div>
+
+          <div className="rounded-2xl border border-white bg-white px-4 py-3 text-sm font-black text-slate-700">
+            Fatigue {operator?.operatorIntelligence?.fatigue || 0}
+          </div>
+
+          <div className="rounded-2xl border border-white bg-white px-4 py-3 text-sm font-black text-slate-700">
+            Risk {operator?.operatorIntelligence?.predictiveRisk || "low"}
+          </div>
+
+          <div className="rounded-2xl border border-white bg-white px-4 py-3 text-sm font-black text-slate-700">
+            Recovery {operator?.operatorIntelligence?.recoveryPressure || 0}
+          </div>
+        </div>
+
+        {Array.isArray(operator?.operatorIntelligence?.explainability) &&
+        operator.operatorIntelligence.explainability.length > 0 ? (
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {operator.operatorIntelligence.explainability
+              .slice(0, 4)
+              .map((reason: string) => (
+                <div
+                  key={reason}
+                  className="rounded-2xl border border-white bg-white px-4 py-3 text-sm font-bold text-indigo-900"
+                >
+                  {reason}
+                </div>
+              ))}
+          </div>
+        ) : null}
+      </div>
+
+
       <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
         <label className="text-sm font-black text-slate-900">
           Ask procurement question
