@@ -40,6 +40,35 @@ type BillRow = {
   created_at: string;
 };
 
+type BillingLineItem = {
+  id: string;
+  itemType: string;
+  sourceId: string;
+  itemName: string;
+  quantity: string;
+  unit: string;
+  rate: string;
+  discount: string;
+  tax: string;
+};
+
+type RentalAssetRow = {
+  id: string;
+  asset_name: string;
+  asset_code: string | null;
+  daily_rate: number | null;
+  hourly_rate: number | null;
+  weekly_rate: number | null;
+  monthly_rate: number | null;
+};
+
+type ServiceWorkOrderRow = {
+  id: string;
+  service_title: string;
+  estimated_amount: number | null;
+  customer_name: string | null;
+};
+
 function asNumber(v: unknown) {
   const n = typeof v === "number" ? v : Number(String(v ?? "").replace(/,/g, ""));
   return Number.isFinite(n) ? n : 0;
@@ -68,6 +97,8 @@ export default function VendorBillingPage() {
   const [err, setErr] = useState<string | null>(null);
 
   const [materials, setMaterials] = useState<MaterialRow[]>([]);
+  const [rentalAssets, setRentalAssets] = useState<RentalAssetRow[]>([]);
+  const [serviceWorkOrders, setServiceWorkOrders] = useState<ServiceWorkOrderRow[]>([]);
   const [bills, setBills] = useState<BillRow[]>([]);
 
   const [selectedMaterial, setSelectedMaterial] = useState("");
@@ -83,6 +114,20 @@ export default function VendorBillingPage() {
   const [paymentStatus, setPaymentStatus] = useState("unpaid");
   const [paymentMode, setPaymentMode] = useState("");
   const [note, setNote] = useState("");
+
+  const [lineItems, setLineItems] = useState<BillingLineItem[]>([
+    {
+      id: crypto.randomUUID(),
+      itemType: "inventory",
+      sourceId: "",
+      itemName: "",
+      quantity: "",
+      unit: "",
+      rate: "",
+      discount: "",
+      tax: "",
+    },
+  ]);
 
   async function getUserId() {
     const {
@@ -108,10 +153,22 @@ export default function VendorBillingPage() {
       const userId = await getUserId();
       if (!userId) return;
 
-      const [materialRes, billRes] = await Promise.all([
+      const [materialRes, rentalAssetRes, serviceWorkOrderRes, billRes] = await Promise.all([
         supabase
           .from("material_listings")
           .select("id,title,local_name,attributes")
+          .eq("vendor_user_id", userId)
+          .order("created_at", { ascending: false }),
+
+        supabase
+          .from("rental_assets")
+          .select("id,asset_name,asset_code,daily_rate,hourly_rate,weekly_rate,monthly_rate")
+          .eq("vendor_user_id", userId)
+          .order("created_at", { ascending: false }),
+
+        supabase
+          .from("service_work_orders")
+          .select("id,service_title,estimated_amount,customer_name")
           .eq("vendor_user_id", userId)
           .order("created_at", { ascending: false }),
 
@@ -124,9 +181,13 @@ export default function VendorBillingPage() {
       ]);
 
       if (materialRes.error) throw materialRes.error;
+      if (rentalAssetRes.error) throw rentalAssetRes.error;
+      if (serviceWorkOrderRes.error) throw serviceWorkOrderRes.error;
       if (billRes.error) throw billRes.error;
 
       setMaterials((materialRes.data || []) as MaterialRow[]);
+      setRentalAssets((rentalAssetRes.data || []) as RentalAssetRow[]);
+      setServiceWorkOrders((serviceWorkOrderRes.data || []) as ServiceWorkOrderRow[]);
       setBills((billRes.data || []) as BillRow[]);
     } catch (e: any) {
       setErr(e?.message || "Failed to load billing center.");
@@ -135,19 +196,129 @@ export default function VendorBillingPage() {
     }
   }
 
-  async function createBill() {
-    if (!selectedMaterial) {
-      setErr("Please select a material.");
+
+  function addLineItem() {
+    setLineItems((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        itemType: "manual",
+        sourceId: "",
+        itemName: "",
+        quantity: "",
+        unit: "",
+        rate: "",
+        discount: "",
+        tax: "",
+      },
+    ]);
+  }
+
+  function removeLineItem(id: string) {
+    setLineItems((prev) => prev.filter((item) => item.id !== id));
+  }
+
+  function updateLineItem(
+    id: string,
+    field: keyof BillingLineItem,
+    value: string
+  ) {
+    setLineItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              [field]: value,
+            }
+          : item
+      )
+    );
+  }
+
+
+
+  function applyOperationalSource(
+    lineId: string,
+    sourceId: string
+  ) {
+    const currentItem = lineItems.find((item) => item.id === lineId);
+    if (!currentItem) return;
+
+    if (currentItem.itemType === "inventory") {
+      const material = materials.find((m) => m.id === sourceId);
+      if (!material) return;
+
+      const inventory = getInventory(material);
+
+      setLineItems((prev) =>
+        prev.map((item) =>
+          item.id === lineId
+            ? {
+                ...item,
+                sourceId,
+                itemName: getMaterialName(material),
+                unit: inventory?.stock_unit || item.unit,
+                rate: inventory?.selling_price || item.rate,
+              }
+            : item
+        )
+      );
+
       return;
     }
 
-    const qty = asNumber(quantity);
-    const price = asNumber(rate);
-    const discountAmount = asNumber(discount);
-    const taxAmount = asNumber(tax);
+    if (currentItem.itemType === "rental") {
+      const asset = rentalAssets.find((a) => a.id === sourceId);
+      if (!asset) return;
 
-    if (qty <= 0 || price <= 0) {
-      setErr("Quantity and rate must be greater than zero.");
+      setLineItems((prev) =>
+        prev.map((item) =>
+          item.id === lineId
+            ? {
+                ...item,
+                sourceId,
+                itemName: asset.asset_name,
+                unit: item.unit || "day",
+                rate: String(asset.daily_rate || asset.hourly_rate || asset.weekly_rate || asset.monthly_rate || ""),
+              }
+            : item
+        )
+      );
+
+      return;
+    }
+
+    if (currentItem.itemType === "service") {
+      const workOrder = serviceWorkOrders.find((w) => w.id === sourceId);
+      if (!workOrder) return;
+
+      setLineItems((prev) =>
+        prev.map((item) =>
+          item.id === lineId
+            ? {
+                ...item,
+                sourceId,
+                itemName: workOrder.service_title,
+                unit: item.unit || "job",
+                rate: String(workOrder.estimated_amount || ""),
+              }
+            : item
+        )
+      );
+    }
+  }
+
+  async function createBill() {
+
+    const validItems = lineItems.filter(
+      (item) =>
+        item.itemName.trim() &&
+        Number(item.quantity || 0) > 0 &&
+        Number(item.rate || 0) > 0
+    );
+
+    if (!validItems.length) {
+      setErr("Please add at least one valid billing item.");
       return;
     }
 
@@ -158,90 +329,167 @@ export default function VendorBillingPage() {
       const userId = await getUserId();
       if (!userId) return;
 
-      const material = materials.find((m) => m.id === selectedMaterial);
-      if (!material) throw new Error("Selected material not found.");
-
-      const inventory = getInventory(material);
-      const currentStock = asNumber(inventory?.current_stock);
-      const finalUnit = unit.trim() || inventory?.stock_unit || "";
-
-      if (inventory && currentStock < qty) {
-        throw new Error(`Insufficient stock. Available: ${currentStock} ${finalUnit}`);
-      }
-
-      const subtotal = qty * price;
-      const total = Math.max(0, subtotal - discountAmount + taxAmount);
       const billNo = `BILL-${Date.now()}`;
 
-      const billItems = [
-        {
-          material_listing_id: selectedMaterial,
-          material_name: getMaterialName(material),
-          quantity: qty,
-          unit: finalUnit,
-          rate: price,
-          amount: subtotal,
-        },
-      ];
+      const normalizedItems = validItems.map((item) => {
+        const qty = asNumber(item.quantity);
+        const rateValue = asNumber(item.rate);
+        const discountValue = asNumber(item.discount);
+        const taxValue = asNumber(item.tax);
 
-      const { error: billError } = await supabase.from("inventory_bills").insert({
-        vendor_user_id: userId,
-        bill_no: billNo,
-        bill_type: billType,
-        customer_name: customerName.trim() || null,
-        customer_phone: customerPhone.trim() || null,
-        customer_address: customerAddress.trim() || null,
-        subtotal,
-        discount_amount: discountAmount,
-        tax_amount: taxAmount,
-        total_amount: total,
-        payment_status: paymentStatus,
-        payment_mode: paymentMode.trim() || null,
-        bill_items: billItems,
-        note: note.trim() || null,
-        created_by: userId,
+        const subtotal = qty * rateValue;
+
+        const lineTotal =
+          subtotal - discountValue + taxValue;
+
+        return {
+          item_type: item.itemType,
+          source_id: item.sourceId || null,
+          item_name: item.itemName.trim(),
+          quantity: qty,
+          unit: item.unit.trim(),
+          rate: rateValue,
+          discount_amount: discountValue,
+          tax_amount: taxValue,
+          line_total: lineTotal,
+        };
       });
+
+      const subtotal = normalizedItems.reduce(
+        (sum, item) => sum + item.line_total,
+        0
+      );
+
+      const total = Math.max(0, subtotal);
+
+      const { data: billData, error: billError } =
+        await supabase
+          .from("inventory_bills")
+          .insert({
+            vendor_user_id: userId,
+            bill_no: billNo,
+            bill_type: billType,
+            customer_name: customerName.trim() || null,
+            customer_phone: customerPhone.trim() || null,
+            customer_address: customerAddress.trim() || null,
+            subtotal,
+            discount_amount: 0,
+            tax_amount: 0,
+            total_amount: total,
+            payment_status: paymentStatus,
+            payment_mode: paymentMode.trim() || null,
+            note: note.trim() || null,
+            bill_items: normalizedItems,
+          })
+          .select("id")
+          .single();
 
       if (billError) throw billError;
 
-      const { error: movementError } = await supabase.from("inventory_stock_movements").insert({
+      const billId = billData.id;
+
+      const detailedItems = normalizedItems.map((item) => ({
+        bill_id: billId,
         vendor_user_id: userId,
-        material_listing_id: selectedMaterial,
-        movement_type: billType === "online" ? "online_order" : "offline_bill",
-        quantity: -qty,
-        unit: finalUnit,
-        unit_price: price,
-        total_value: total,
-        reference_type: "inventory_bill",
-        note: `Stock deducted from ${billNo}`,
-        created_by: userId,
-      });
+        item_type: item.item_type,
+        inventory_entity_id: item.item_type === "inventory" ? item.source_id : null,
+        item_name: item.item_name,
+        quantity: item.quantity,
+        unit: item.unit,
+        rate: item.rate,
+        discount_amount: item.discount_amount,
+        tax_amount: item.tax_amount,
+        line_total: item.line_total,
+      }));
 
-      if (movementError) throw movementError;
+      const { error: itemError } =
+        await supabase
+          .from("inventory_bill_items")
+          .insert(detailedItems);
 
-      if (inventory) {
-        const nextStock = Math.max(0, currentStock - qty);
+      if (itemError) throw itemError;
 
-        const { error: updateError } = await supabase
+      const inventoryItems = normalizedItems.filter(
+        (item) => item.item_type === "inventory"
+      );
+
+      for (const item of inventoryItems) {
+
+        const material = materials.find(
+          (m) =>
+            getMaterialName(m).toLowerCase() ===
+            item.item_name.toLowerCase()
+        );
+
+        if (!material) continue;
+
+        const inventory = getInventory(material);
+
+        if (!inventory) continue;
+
+        const currentStock = asNumber(
+          inventory.current_stock
+        );
+
+        const updatedStock =
+          currentStock - item.quantity;
+
+        const updatedAttributes = {
+          ...(material.attributes || {}),
+          inventory: {
+            ...(inventory || {}),
+            current_stock: updatedStock,
+          },
+        };
+
+        await supabase
           .from("material_listings")
           .update({
-            attributes: {
-              ...material.attributes,
-              inventory: {
-                ...inventory,
-                current_stock: String(nextStock),
-                last_bill_no: billNo,
-                last_stock_out_at: new Date().toISOString(),
-              },
-            },
+            attributes: updatedAttributes,
           })
-          .eq("id", selectedMaterial);
+          .eq("id", material.id);
 
-        if (updateError) throw updateError;
+        await supabase
+          .from("inventory_stock_movements")
+          .insert({
+            vendor_user_id: userId,
+            material_listing_id: material.id,
+            movement_type: billType === "online" ? "online_order" : "offline_bill",
+            quantity: -item.quantity,
+            unit: item.unit,
+            note: `ERP billing ${billNo}`,
+          });
       }
 
+      await supabase
+        .from("customer_ledgers")
+        .insert({
+          vendor_user_id: userId,
+          customer_name: customerName.trim() || "Walk-in Customer",
+          customer_phone: customerPhone.trim() || null,
+          customer_address: customerAddress.trim() || null,
+          reference_type: "invoice",
+          reference_id: billId,
+          debit_amount: total,
+          credit_amount: 0,
+          balance_amount: total,
+          payment_status: paymentStatus,
+          notes: `ERP Invoice ${billNo}`,
+        });
+
+      await supabase
+        .from("operational_events")
+        .insert({
+          vendor_user_id: userId,
+          event_type: "bill_created",
+          module: "billing",
+          title: "ERP Invoice Created",
+          description: `${billNo} generated successfully`,
+          reference_type: "invoice",
+          reference_id: billId,
+        });
+
       setSelectedMaterial("");
-      setBillType("offline");
       setCustomerName("");
       setCustomerPhone("");
       setCustomerAddress("");
@@ -250,19 +498,33 @@ export default function VendorBillingPage() {
       setRate("");
       setDiscount("");
       setTax("");
-      setPaymentStatus("unpaid");
       setPaymentMode("");
       setNote("");
 
+      setLineItems([
+        {
+          id: crypto.randomUUID(),
+          itemType: "inventory",
+          sourceId: "",
+          itemName: "",
+          quantity: "",
+          unit: "",
+          rate: "",
+          discount: "",
+          tax: "",
+        },
+      ]);
+
       await load();
+
     } catch (e: any) {
-      setErr(e?.message || "Failed to create bill.");
+      setErr(e?.message || "Failed to create ERP invoice.");
     } finally {
       setSaving(false);
     }
   }
 
-  useEffect(() => {
+useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -277,6 +539,30 @@ export default function VendorBillingPage() {
     if (!unit) setUnit(selectedInventory.stock_unit || "");
     if (!rate) setRate(selectedInventory.selling_price || "");
   }, [selectedInventory, unit, rate]);
+
+
+  const billingCartTotals = useMemo(() => {
+    const subtotal = lineItems.reduce((sum, item) => {
+      return sum + asNumber(item.quantity) * asNumber(item.rate);
+    }, 0);
+
+    const discountAmount = lineItems.reduce((sum, item) => {
+      return sum + asNumber(item.discount);
+    }, 0);
+
+    const taxAmount = lineItems.reduce((sum, item) => {
+      return sum + asNumber(item.tax);
+    }, 0);
+
+    const grandTotal = Math.max(0, subtotal - discountAmount + taxAmount);
+
+    return {
+      subtotal,
+      discountAmount,
+      taxAmount,
+      grandTotal,
+    };
+  }, [lineItems]);
 
   const billingStats = useMemo(() => {
     const totalBilling = bills.reduce((sum, bill) => sum + asNumber(bill.total_amount), 0);
@@ -454,6 +740,236 @@ export default function VendorBillingPage() {
               <input value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} placeholder="Payment mode" style={inputStyle} />
             </div>
 
+
+            <div
+              style={{
+                marginTop: 14,
+                border: "1px solid #e5e7eb",
+                borderRadius: 16,
+                padding: 14,
+                background: "#f8fafc",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 12,
+                }}
+              >
+                <div style={{ fontSize: 16, fontWeight: 950 }}>
+                  ERP Billing Line Items
+                </div>
+
+                <button
+                  type="button"
+                  onClick={addLineItem}
+                  style={{
+                    border: "none",
+                    borderRadius: 10,
+                    padding: "8px 12px",
+                    background: "#0f172a",
+                    color: "#fff",
+                    fontWeight: 900,
+                    cursor: "pointer",
+                  }}
+                >
+                  + Add Item
+                </button>
+              </div>
+
+              <div style={{ display: "grid", gap: 12 }}>
+                {lineItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      border: "1px solid #dbeafe",
+                      borderRadius: 14,
+                      padding: 12,
+                      background: "#fff",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: 10,
+                      }}
+                    >
+                      <div style={{ fontWeight: 900 }}>
+                        Line Item #{index + 1}
+                      </div>
+
+                      {lineItems.length > 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => removeLineItem(item.id)}
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            color: "#dc2626",
+                            fontWeight: 900,
+                            cursor: "pointer",
+                          }}
+                        >
+                          Remove
+                        </button>
+                      ) : null}
+                    </div>
+
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fit,minmax(160px,1fr))",
+                        gap: 10,
+                      }}
+                    >
+                      <select
+                        value={item.itemType}
+                        onChange={(e) =>
+                          updateLineItem(
+                            item.id,
+                            "itemType",
+                            e.target.value
+                          )
+                        }
+                        style={inputStyle}
+                      >
+                        <option value="inventory">Inventory</option>
+                        <option value="rental">Rental</option>
+                        <option value="service">Service</option>
+                        <option value="transport">Transport</option>
+                        <option value="labour">Labour</option>
+                        <option value="manual">Manual</option>
+                      </select>
+
+                      {item.itemType === "inventory" ? (
+                        <select
+                          value={item.sourceId}
+                          onChange={(e) => applyOperationalSource(item.id, e.target.value)}
+                          style={inputStyle}
+                        >
+                          <option value="">Select inventory item</option>
+                          {materials.map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {getMaterialName(m)}
+                            </option>
+                          ))}
+                        </select>
+                      ) : item.itemType === "rental" ? (
+                        <select
+                          value={item.sourceId}
+                          onChange={(e) => applyOperationalSource(item.id, e.target.value)}
+                          style={inputStyle}
+                        >
+                          <option value="">Select rental asset</option>
+                          {rentalAssets.map((asset) => (
+                            <option key={asset.id} value={asset.id}>
+                              {asset.asset_name}
+                              {asset.asset_code ? ` (${asset.asset_code})` : ""}
+                            </option>
+                          ))}
+                        </select>
+                      ) : item.itemType === "service" ? (
+                        <select
+                          value={item.sourceId}
+                          onChange={(e) => applyOperationalSource(item.id, e.target.value)}
+                          style={inputStyle}
+                        >
+                          <option value="">Select service work</option>
+                          {serviceWorkOrders.map((work) => (
+                            <option key={work.id} value={work.id}>
+                              {work.service_title}
+                            </option>
+                          ))}
+                        </select>
+                      ) : null}
+
+                      <input
+                        value={item.itemName}
+                        onChange={(e) =>
+                          updateLineItem(
+                            item.id,
+                            "itemName",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Item name"
+                        style={inputStyle}
+                      />
+
+                      <input
+                        value={item.quantity}
+                        onChange={(e) =>
+                          updateLineItem(
+                            item.id,
+                            "quantity",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Quantity"
+                        style={inputStyle}
+                      />
+
+                      <input
+                        value={item.unit}
+                        onChange={(e) =>
+                          updateLineItem(
+                            item.id,
+                            "unit",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Unit"
+                        style={inputStyle}
+                      />
+
+                      <input
+                        value={item.rate}
+                        onChange={(e) =>
+                          updateLineItem(
+                            item.id,
+                            "rate",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Rate"
+                        style={inputStyle}
+                      />
+
+                      <input
+                        value={item.discount}
+                        onChange={(e) =>
+                          updateLineItem(
+                            item.id,
+                            "discount",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Discount"
+                        style={inputStyle}
+                      />
+
+                      <input
+                        value={item.tax}
+                        onChange={(e) =>
+                          updateLineItem(
+                            item.id,
+                            "tax",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Tax"
+                        style={inputStyle}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <textarea
               value={customerAddress}
               onChange={(e) => setCustomerAddress(e.target.value)}
@@ -469,6 +985,56 @@ export default function VendorBillingPage() {
               rows={2}
               style={{ ...inputStyle, width: "100%", resize: "vertical", marginTop: 10 }}
             />
+
+
+            <div
+              style={{
+                marginTop: 14,
+                border: "1px solid #fed7aa",
+                borderRadius: 16,
+                padding: 14,
+                background: "#fff7ed",
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
+                gap: 10,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 900, color: "#9a3412" }}>
+                  Subtotal
+                </div>
+                <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950 }}>
+                  {money(billingCartTotals.subtotal)}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 900, color: "#9a3412" }}>
+                  Discount
+                </div>
+                <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950 }}>
+                  {money(billingCartTotals.discountAmount)}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 900, color: "#9a3412" }}>
+                  Tax
+                </div>
+                <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950 }}>
+                  {money(billingCartTotals.taxAmount)}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 900, color: "#9a3412" }}>
+                  Grand Total
+                </div>
+                <div style={{ marginTop: 4, fontSize: 22, fontWeight: 950, color: "#ea580c" }}>
+                  {money(billingCartTotals.grandTotal)}
+                </div>
+              </div>
+            </div>
 
             {selectedInventory ? (
               <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>

@@ -166,8 +166,28 @@ export async function GET(_req: Request, ctx: RouteCtx) {
     borderWidth: 1,
   });
 
-  text("3Bigha", 48, y, 22, { bold: true, color: blue });
-  text("AI Construction Commerce + ERP Platform", 48, y - 18, 9, { color: muted });
+  const vendorBusinessName = clean((bill as any).vendor_business_name || "Vendor Business");
+  const vendorAddress = clean((bill as any).vendor_business_address || "");
+  const vendorPhone = clean((bill as any).vendor_phone || "");
+  const vendorGstin = clean((bill as any).vendor_gstin || "");
+
+  text(vendorBusinessName, 48, y, 22, { bold: true, color: blue });
+
+  if (vendorAddress !== "-") {
+    text(vendorAddress, 48, y - 18, 9, { color: muted });
+  }
+
+  const vendorMeta = [
+    vendorPhone !== "-" ? `Phone: ${vendorPhone}` : "",
+    vendorGstin !== "-" ? `GSTIN: ${vendorGstin}` : "",
+  ]
+    .filter(Boolean)
+    .join("   •   ");
+
+  if (vendorMeta) {
+    text(vendorMeta, 48, y - 32, 9, { color: muted });
+  }
+
   text(titleCase(row.bill_type), width - 205, y, 20, { bold: true, color: blue });
   text(`Bill No: ${row.bill_no}`, width - 205, y - 20, 10, { bold: true });
   text(`Date: ${safeDate(row.created_at)}`, width - 205, y - 36, 9, { color: muted });
@@ -205,11 +225,14 @@ export async function GET(_req: Request, ctx: RouteCtx) {
     color: blue,
   });
 
-  text("Item", 44, y - 15, 9, { bold: true, color: rgb(1, 1, 1) });
-  text("Qty", 285, y - 15, 9, { bold: true, color: rgb(1, 1, 1) });
-  text("Unit", 340, y - 15, 9, { bold: true, color: rgb(1, 1, 1) });
-  text("Rate", 395, y - 15, 9, { bold: true, color: rgb(1, 1, 1) });
-  text("Amount", 470, y - 15, 9, { bold: true, color: rgb(1, 1, 1) });
+  text("Type", 40, y - 15, 8, { bold: true, color: rgb(1, 1, 1) });
+  text("Item", 95, y - 15, 9, { bold: true, color: rgb(1, 1, 1) });
+  text("Qty", 295, y - 15, 8, { bold: true, color: rgb(1, 1, 1) });
+  text("Unit", 332, y - 15, 8, { bold: true, color: rgb(1, 1, 1) });
+  text("Rate", 382, y - 15, 8, { bold: true, color: rgb(1, 1, 1) });
+  text("Disc", 432, y - 15, 8, { bold: true, color: rgb(1, 1, 1) });
+  text("Tax", 472, y - 15, 8, { bold: true, color: rgb(1, 1, 1) });
+  text("Total", 520, y - 15, 8, { bold: true, color: rgb(1, 1, 1) });
 
   y -= 38;
 
@@ -218,17 +241,30 @@ export async function GET(_req: Request, ctx: RouteCtx) {
       ? items
       : [
           {
-            material_name: "Material",
+            item_type: "manual",
+            item_name: "ERP Item",
             quantity: 0,
             unit: "",
             rate: 0,
-            amount: 0,
+            discount_amount: 0,
+            tax_amount: 0,
+            line_total: 0,
           },
         ];
 
+
   for (const item of printableItems.slice(0, 16)) {
-    const itemLines = wrapText(clean(item.material_name || item.item || item.name || "Material"), 38).slice(0, 2);
-    const rowHeight = itemLines.length > 1 ? 36 : 24;
+
+    const itemName =
+      item.item_name ||
+      item.material_name ||
+      item.item ||
+      item.name ||
+      "ERP Item";
+
+    const itemLines = wrapText(clean(itemName), 28).slice(0, 2);
+
+    const rowHeight = itemLines.length > 1 ? 38 : 26;
 
     page.drawRectangle({
       x: 32,
@@ -239,13 +275,60 @@ export async function GET(_req: Request, ctx: RouteCtx) {
       borderWidth: 0.6,
     });
 
-    text(itemLines[0], 44, y, 9);
-    if (itemLines[1]) text(itemLines[1], 44, y - 13, 8, { color: muted });
+    const typeLabel = titleCase(
+      item.item_type || "manual"
+    );
 
-    text(String(item.quantity ?? "-"), 285, y, 9);
-    text(clean(item.unit), 340, y, 9);
-    text(money(item.rate), 395, y, 9);
-    text(money(item.amount), 470, y, 9, { bold: true });
+    page.drawRectangle({
+      x: 40,
+      y: y - 12,
+      width: 44,
+      height: 14,
+      color: light,
+      borderColor: border,
+      borderWidth: 0.5,
+    });
+
+    text(typeLabel.slice(0, 8), 44, y - 8, 6, {
+      bold: true,
+      color: blue,
+    });
+
+    text(itemLines[0], 95, y, 9);
+
+    if (itemLines[1]) {
+      text(itemLines[1], 95, y - 13, 8, {
+        color: muted,
+      });
+    }
+
+    text(String(item.quantity ?? "-"), 295, y, 8);
+
+    text(clean(item.unit), 332, y, 8);
+
+    text(money(item.rate), 382, y, 8);
+
+    text(
+      money(item.discount_amount || 0),
+      432,
+      y,
+      8
+    );
+
+    text(
+      money(item.tax_amount || 0),
+      472,
+      y,
+      8
+    );
+
+    text(
+      money(item.line_total || item.amount || 0),
+      520,
+      y,
+      8,
+      { bold: true }
+    );
 
     y -= rowHeight;
   }
@@ -277,6 +360,25 @@ export async function GET(_req: Request, ctx: RouteCtx) {
   text("Total", summaryX, y - 77, 12, { bold: true, color: blue });
   text(money(row.total_amount), width - 112, y - 77, 12, { bold: true, color: blue });
 
+  const vendorTerms = clean((bill as any).vendor_terms || "", "");
+
+  if (vendorTerms) {
+    const termLines = wrapText(vendorTerms, 90).slice(0, 4);
+
+    text("Terms & Conditions", 40, y - 18, 10, {
+      bold: true,
+      color: blue,
+    });
+
+    termLines.forEach((line, idx) => {
+      text(line, 40, y - 36 - idx * 14, 8, {
+        color: muted,
+      });
+    });
+
+    y -= 78;
+  }
+
   if (row.note) {
     const noteLines = wrapText(row.note, 90).slice(0, 3);
     text("Note", 40, y - 18, 10, { bold: true, color: blue });
@@ -286,10 +388,11 @@ export async function GET(_req: Request, ctx: RouteCtx) {
   y -= 126;
 
   line(32, 92, width - 32);
-  text("This is a computer-generated document from 3Bigha Vendor Billing System.", 40, 72, 8, {
+  text("This is a computer-generated invoice.", 40, 72, 8, {
     color: muted,
   });
-  text("For GST compliance, vendor GSTIN, tax breakup and legal invoice series can be added in the next phase.", 40, 58, 8, {
+
+  text("Powered by 3Bigha ERP OS • https://3bigha.com", 40, 58, 8, {
     color: muted,
   });
 

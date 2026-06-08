@@ -13,6 +13,31 @@ import { Grid } from "@/components/ui/Grid";
 import { Badge } from "@/components/ui/Badge";
 import { ActionButton } from "@/components/ui/ActionButton";
 
+
+type RentalAssetRow = {
+  id: string;
+  rental_listing_id: string | null;
+  asset_name: string;
+  asset_code: string | null;
+  asset_type: string;
+  quantity: number;
+  availability_status: string;
+  daily_rate: number;
+  operator_available: boolean;
+};
+
+type RentalBookingRow = {
+  id: string;
+  rental_asset_id: string | null;
+  customer_name: string;
+  customer_phone: string | null;
+  booking_status: string;
+  booking_start: string | null;
+  booking_end: string | null;
+  security_deposit: number | null;
+  operator_required: boolean | null;
+  transport_required: boolean | null;
+};
 type Row = {
   id: string;
   owner_id: string;
@@ -89,10 +114,226 @@ export default function RentalsMyPage() {
   const [err, setErr] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
 
+  const [assets, setAssets] = useState<RentalAssetRow[]>([]);
+  const [bookings, setBookings] = useState<RentalBookingRow[]>([]);
+
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
+  const [bookingAssetId, setBookingAssetId] = useState("");
+  const [bookingCustomer, setBookingCustomer] = useState("");
+  const [bookingPhone, setBookingPhone] = useState("");
+  const [bookingStart, setBookingStart] = useState("");
+  const [bookingEnd, setBookingEnd] = useState("");
+  const [bookingDeposit, setBookingDeposit] = useState("");
+  const [bookingOperator, setBookingOperator] = useState(false);
+  const [bookingTransport, setBookingTransport] = useState(false);
+  const [bookingSaving, setBookingSaving] = useState(false);
+
 
   // ---- auth guard ----
+
+  async function createBooking() {
+
+    if (!userId) return;
+
+    if (!bookingAssetId) {
+      setErr("Please select a rental asset.");
+      return;
+    }
+
+    if (!bookingCustomer.trim()) {
+      setErr("Please enter customer name.");
+      return;
+    }
+
+    if (!bookingStart || !bookingEnd) {
+      setErr("Please select booking dates.");
+      return;
+    }
+
+    setBookingSaving(true);
+    setErr(null);
+
+    try {
+
+      const asset = assets.find(
+        (a) => a.id === bookingAssetId
+      );
+
+      if (!asset) {
+        throw new Error("Rental asset not found.");
+      }
+
+      const { error: bookingError } =
+        await supabase
+          .from("rental_bookings")
+          .insert({
+            vendor_user_id: userId,
+            rental_asset_id: bookingAssetId,
+            customer_name: bookingCustomer.trim(),
+            customer_phone: bookingPhone.trim() || null,
+            booking_status: "booked",
+            booking_start: bookingStart,
+            booking_end: bookingEnd,
+            security_deposit:
+              Number(bookingDeposit || 0) || null,
+            operator_required: bookingOperator,
+            transport_required: bookingTransport,
+          });
+
+      if (bookingError) throw bookingError;
+
+      const { error: assetError } =
+        await supabase
+          .from("rental_assets")
+          .update({
+            availability_status: "booked",
+          })
+          .eq("id", bookingAssetId);
+
+      if (assetError) throw assetError;
+
+      await supabase
+        .from("operational_events")
+        .insert({
+          vendor_user_id: userId,
+          module: "rentals",
+          event_type: "rental_booking_created",
+          title: "Rental Booking Created",
+          description:
+            asset.asset_name +
+            " booked for " +
+            bookingCustomer.trim(),
+        });
+
+      setBookingAssetId("");
+      setBookingCustomer("");
+      setBookingPhone("");
+      setBookingStart("");
+      setBookingEnd("");
+      setBookingDeposit("");
+      setBookingOperator(false);
+      setBookingTransport(false);
+
+      await loadMine(userId);
+
+    } catch (e: any) {
+      setErr(
+        e?.message || "Failed to create booking."
+      );
+    } finally {
+      setBookingSaving(false);
+    }
+  }
+
+
+  async function markBookingReturned(
+    bookingId: string,
+    assetId: string | null
+  ) {
+
+    if (!userId || !assetId) return;
+
+    try {
+
+      await supabase
+        .from("rental_bookings")
+        .update({
+          booking_status: "returned",
+        })
+        .eq("id", bookingId);
+
+      await supabase
+        .from("rental_assets")
+        .update({
+          availability_status: "available",
+        })
+        .eq("id", assetId);
+
+      await supabase
+        .from("operational_events")
+        .insert({
+          vendor_user_id: userId,
+          module: "rentals",
+          event_type: "rental_returned",
+          title: "Rental Returned",
+          description:
+            "Rental asset returned successfully",
+        });
+
+      await loadMine(userId);
+
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function markAssetMaintenance(
+    assetId: string
+  ) {
+
+    if (!userId) return;
+
+    try {
+
+      await supabase
+        .from("rental_assets")
+        .update({
+          availability_status: "maintenance",
+        })
+        .eq("id", assetId);
+
+      await supabase
+        .from("operational_events")
+        .insert({
+          vendor_user_id: userId,
+          module: "rentals",
+          event_type: "rental_maintenance_started",
+          title: "Asset Under Maintenance",
+          description:
+            "Rental asset moved to maintenance",
+        });
+
+      await loadMine(userId);
+
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function markAssetAvailable(
+    assetId: string
+  ) {
+
+    if (!userId) return;
+
+    try {
+
+      await supabase
+        .from("rental_assets")
+        .update({
+          availability_status: "available",
+        })
+        .eq("id", assetId);
+
+      await supabase
+        .from("operational_events")
+        .insert({
+          vendor_user_id: userId,
+          module: "rentals",
+          event_type: "rental_maintenance_completed",
+          title: "Asset Available Again",
+          description:
+            "Rental asset restored from maintenance",
+        });
+
+      await loadMine(userId);
+
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   useEffect(() => {
     let alive = true;
 
@@ -129,7 +370,13 @@ export default function RentalsMyPage() {
     setLoading(true);
     setErr(null);
 
-    const { data, error } = await supabase
+    const [
+      listingsRes,
+      assetsRes,
+      bookingsRes,
+    ] = await Promise.all([
+
+      supabase
       .from("rental_listings")
       .select(
         [
@@ -154,18 +401,49 @@ export default function RentalsMyPage() {
       )
       .eq("owner_id", uid)
       .order("updated_at", { ascending: false })
-      .limit(400);
+      .limit(400),
 
-    if (error) {
-      setErr(error.message);
+      supabase
+        .from("rental_assets")
+        .select("*")
+        .eq("vendor_user_id", uid)
+        .order("created_at", { ascending: false }),
+
+      supabase
+        .from("rental_bookings")
+        .select("*")
+        .eq("vendor_user_id", uid)
+        .order("created_at", { ascending: false })
+
+    ]);
+
+    if (listingsRes.error) {
+      setErr(listingsRes.error.message);
       setRows([]);
       setLoading(false);
       return;
     }
 
-    setRows((data ?? []) as unknown as Row[]);
+    if (assetsRes.error) {
+      setErr(assetsRes.error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (bookingsRes.error) {
+      setErr(bookingsRes.error.message);
+      setLoading(false);
+      return;
+    }
+
+    setRows((listingsRes.data ?? []) as unknown as Row[]);
+    setAssets((assetsRes.data ?? []) as RentalAssetRow[]);
+    setBookings((bookingsRes.data ?? []) as RentalBookingRow[]);
+
     setLoading(false);
   }
+
+
 
   useEffect(() => {
     if (authLoading) return;
@@ -280,6 +558,438 @@ export default function RentalsMyPage() {
       </div>
 
       {err ? <div style={{ marginBottom: 12, color: "crimson", fontWeight: 800 }}>{err}</div> : null}
+
+
+
+      <div
+        style={{
+          border: "1px solid rgba(0,0,0,0.08)",
+          borderRadius: 18,
+          padding: 18,
+          background: "#fff",
+          marginBottom: 18,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 18,
+            fontWeight: 950,
+            marginBottom: 14,
+          }}
+        >
+          Rental Booking Execution
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit,minmax(180px,1fr))",
+            gap: 12,
+          }}
+        >
+          <select
+            value={bookingAssetId}
+            onChange={(e) =>
+              setBookingAssetId(e.target.value)
+            }
+            style={{
+              height: 42,
+              borderRadius: 12,
+              border: "1px solid rgba(0,0,0,0.12)",
+              padding: "0 12px",
+            }}
+          >
+            <option value="">
+              Select rental asset
+            </option>
+
+            {assets
+              .filter(
+                (a) =>
+                  a.availability_status ===
+                  "available"
+              )
+              .map((asset) => (
+                <option
+                  key={asset.id}
+                  value={asset.id}
+                >
+                  {asset.asset_name}
+                </option>
+              ))}
+          </select>
+
+          <input
+            value={bookingCustomer}
+            onChange={(e) =>
+              setBookingCustomer(e.target.value)
+            }
+            placeholder="Customer name"
+            style={{
+              height: 42,
+              borderRadius: 12,
+              border: "1px solid rgba(0,0,0,0.12)",
+              padding: "0 12px",
+            }}
+          />
+
+          <input
+            value={bookingPhone}
+            onChange={(e) =>
+              setBookingPhone(e.target.value)
+            }
+            placeholder="Customer phone"
+            style={{
+              height: 42,
+              borderRadius: 12,
+              border: "1px solid rgba(0,0,0,0.12)",
+              padding: "0 12px",
+            }}
+          />
+
+          <input
+            type="datetime-local"
+            value={bookingStart}
+            onChange={(e) =>
+              setBookingStart(e.target.value)
+            }
+            style={{
+              height: 42,
+              borderRadius: 12,
+              border: "1px solid rgba(0,0,0,0.12)",
+              padding: "0 12px",
+            }}
+          />
+
+          <input
+            type="datetime-local"
+            value={bookingEnd}
+            onChange={(e) =>
+              setBookingEnd(e.target.value)
+            }
+            style={{
+              height: 42,
+              borderRadius: 12,
+              border: "1px solid rgba(0,0,0,0.12)",
+              padding: "0 12px",
+            }}
+          />
+
+          <input
+            value={bookingDeposit}
+            onChange={(e) =>
+              setBookingDeposit(e.target.value)
+            }
+            placeholder="Security deposit"
+            style={{
+              height: 42,
+              borderRadius: 12,
+              border: "1px solid rgba(0,0,0,0.12)",
+              padding: "0 12px",
+            }}
+          />
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            gap: 18,
+            flexWrap: "wrap",
+            marginTop: 14,
+          }}
+        >
+          <label
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              fontWeight: 700,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={bookingOperator}
+              onChange={(e) =>
+                setBookingOperator(e.target.checked)
+              }
+            />
+            Operator Required
+          </label>
+
+          <label
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              fontWeight: 700,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={bookingTransport}
+              onChange={(e) =>
+                setBookingTransport(e.target.checked)
+              }
+            />
+            Transport Required
+          </label>
+        </div>
+
+        <button
+          type="button"
+          onClick={createBooking}
+          disabled={bookingSaving}
+          style={{
+            marginTop: 18,
+            height: 44,
+            padding: "0 18px",
+            borderRadius: 12,
+            border: "none",
+            background: "#0f172a",
+            color: "#fff",
+            fontWeight: 900,
+            cursor: "pointer",
+            opacity: bookingSaving ? 0.7 : 1,
+          }}
+        >
+          {bookingSaving
+            ? "Creating Booking..."
+            : "Create Rental Booking"}
+        </button>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+          gap: 12,
+          marginBottom: 18,
+        }}
+      >
+        {[
+          [
+            "Rental Assets",
+            String(assets.length),
+          ],
+          [
+            "Available",
+            String(
+              assets.filter(
+                (a) =>
+                  a.availability_status === "available"
+              ).length
+            ),
+          ],
+          [
+            "Booked",
+            String(
+              bookings.filter(
+                (b) =>
+                  b.booking_status === "booked"
+              ).length
+            ),
+          ],
+          [
+            "Maintenance",
+            String(
+              assets.filter(
+                (a) =>
+                  a.availability_status === "maintenance"
+              ).length
+            ),
+          ],
+        ].map(([label, value]) => (
+          <div
+            key={label}
+            style={{
+              border: "1px solid rgba(0,0,0,0.08)",
+              borderRadius: 18,
+              padding: 16,
+              background: "#fff",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                opacity: 0.7,
+              }}
+            >
+              {label}
+            </div>
+
+            <div
+              style={{
+                marginTop: 6,
+                fontSize: 26,
+                fontWeight: 950,
+              }}
+            >
+              {value}
+            </div>
+          </div>
+        ))}
+      </div>
+
+
+      <div
+        style={{
+          border: "1px solid rgba(0,0,0,0.08)",
+          borderRadius: 18,
+          padding: 18,
+          background: "#fff",
+          marginBottom: 18,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 18,
+            fontWeight: 950,
+            marginBottom: 14,
+          }}
+        >
+          Rental ERP Lifecycle
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gap: 12,
+          }}
+        >
+          {bookings.slice(0, 8).map((booking) => {
+
+            const asset = assets.find(
+              (a) => a.id === booking.rental_asset_id
+            );
+
+            return (
+              <div
+                key={booking.id}
+                style={{
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  borderRadius: 14,
+                  padding: 14,
+                  background: "#f8fafc",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontWeight: 900,
+                        fontSize: 16,
+                      }}
+                    >
+                      {asset?.asset_name || "Rental Asset"}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 4,
+                        fontSize: 13,
+                        opacity: 0.7,
+                      }}
+                    >
+                      Customer: {booking.customer_name}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 4,
+                        fontSize: 13,
+                        opacity: 0.7,
+                      }}
+                    >
+                      {fmt(booking.booking_start)}
+                      {" → "}
+                      {fmt(booking.booking_end)}
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    {booking.booking_status === "booked" ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          markBookingReturned(
+                            booking.id,
+                            booking.rental_asset_id
+                          )
+                        }
+                        style={{
+                          border: "none",
+                          borderRadius: 10,
+                          padding: "10px 14px",
+                          background: "#16a34a",
+                          color: "#fff",
+                          fontWeight: 900,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Mark Returned
+                      </button>
+                    ) : null}
+
+                    {asset && asset.availability_status !==
+                    "maintenance" ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          markAssetMaintenance(asset.id)
+                        }
+                        style={{
+                          border: "none",
+                          borderRadius: 10,
+                          padding: "10px 14px",
+                          background: "#ea580c",
+                          color: "#fff",
+                          fontWeight: 900,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Maintenance
+                      </button>
+                    ) : asset ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          markAssetAvailable(asset.id)
+                        }
+                        style={{
+                          border: "none",
+                          borderRadius: 10,
+                          padding: "10px 14px",
+                          background: "#2563eb",
+                          color: "#fff",
+                          fontWeight: 900,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Restore Asset
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {loading ? (
         <div style={{ opacity: 0.8 }}>Loading your rentals…</div>
