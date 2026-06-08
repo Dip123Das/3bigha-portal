@@ -349,12 +349,14 @@ export default function RentalsMyPage() {
       if (error || !uid) {
         setUserId(null);
         setAuthLoading(false);
+        setLoading(false);
         router.replace("/rentals");
         return;
       }
 
       setUserId(uid);
       setAuthLoading(false);
+      setLoading(false);
     }
 
     loadUser();
