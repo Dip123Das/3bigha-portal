@@ -82,10 +82,22 @@ import {
 } from "@/lib/procurement/intelligence/recovery-forecast-intelligence";
 import ExecutiveIntelligenceCollapse from "@/components/procurement/ExecutiveIntelligenceCollapse";
 import {
+  getAdaptiveDensity,
+  getAdaptiveVisibleLimit,
+  getAttentionPriority,
+  getExecutiveDisclosureLevel,
+  shouldSuppressLowValueSignals,
+} from "@/lib/procurement/intelligence/adaptive-collapse-engine";
+import {
+  resolveAttentionPacing,
+  evaluateExecutiveFatigue,
+} from "@/lib/procurement/intelligence/executive-calm-computing";
+import {
   evaluateSituationalCollaborationIntelligence,
   resolveProcurementSituationalAwareness,
   resolveHumanCollaborationGuidance,
 } from "@/lib/procurement/intelligence/situational-collaboration-intelligence";
+
 import {
   evaluateProcurementOsStabilization,
   simulateExecutionResilience,

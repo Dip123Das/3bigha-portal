@@ -52,8 +52,10 @@ import {
   getExecutiveDisclosureLevel,
   shouldSuppressLowValueSignals,
 } from "@/lib/procurement/intelligence/adaptive-collapse-engine";
-
-
+import {
+  resolveAttentionPacing,
+  evaluateExecutiveFatigue,
+} from "@/lib/procurement/intelligence/executive-calm-computing";
 import {
   buildBehaviorMemory,
   mergeBehaviorSignals,
@@ -2175,6 +2177,20 @@ export default async function DashboardInboxV2Page({
   const inboxSuppressLowValueSignals = shouldSuppressLowValueSignals({
     totalSignals: inboxOperationalSignalLoad,
     visibleCards: inboxOperationalSignalLoad,
+  });
+
+  const inboxExecutiveFatigue = evaluateExecutiveFatigue({
+    visibleCards: inboxOperationalSignalLoad,
+    interruptionCount: operationalEscalations.length + Number(procurementInboxStats.urgent || 0),
+    repeatedSignals: Number(procurementInboxStats.slowResponses || 0),
+    criticalCount: operationalEscalations.length + Number(autonomousOsStats.highRisk || 0),
+  });
+
+  const inboxAttentionPacing = resolveAttentionPacing({
+    attentionMode: inboxAdaptiveAttentionMode,
+    interruptionCount: operationalEscalations.length + Number(procurementInboxStats.urgent || 0),
+    visibleCards: inboxOperationalSignalLoad,
+    criticalCount: operationalEscalations.length + Number(autonomousOsStats.highRisk || 0),
   });
 
   const operationalWorkload = buildOperationalWorkload({

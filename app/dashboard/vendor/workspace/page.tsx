@@ -10,7 +10,10 @@ import {
   getExecutiveDisclosureLevel,
   shouldSuppressLowValueSignals,
 } from "@/lib/procurement/intelligence/adaptive-collapse-engine";
-
+import {
+  resolveAttentionPacing,
+  evaluateExecutiveFatigue,
+} from "@/lib/procurement/intelligence/executive-calm-computing";
 const operationalFeed = [
   {
     id: 1,
@@ -211,6 +214,20 @@ export default function VendorWorkspacePage() {
   const vendorSuppressLowValueSignals = shouldSuppressLowValueSignals({
     totalSignals: vendorSignalLoad,
     visibleCards: vendorSignalLoad,
+  });
+
+  const vendorExecutiveFatigue = evaluateExecutiveFatigue({
+    visibleCards: vendorSignalLoad,
+    interruptionCount: executiveAlerts.length + anomalySignals.length,
+    repeatedSignals: forecastSignals.length + recoveryActions.length,
+    criticalCount: executiveAlerts.length,
+  });
+
+  const vendorAttentionPacing = resolveAttentionPacing({
+    attentionMode: vendorAdaptiveAttentionMode,
+    interruptionCount: executiveAlerts.length + anomalySignals.length,
+    visibleCards: vendorSignalLoad,
+    criticalCount: executiveAlerts.length,
   });
 
   const compactExecutiveSignals = [
@@ -953,7 +970,7 @@ export default function VendorWorkspacePage() {
 
           <div className="mt-5 grid gap-2">
             {compactExecutiveSignals
-              .slice(0, vendorSuppressLowValueSignals ? 2 : Math.min(3, vendorAdaptiveVisibleLimit))
+              .slice(0, vendorSuppressLowValueSignals ? 2 : Math.min(3, vendorAdaptiveVisibleLimit, vendorAttentionPacing.maxVisibleInterruptions))
               .map((signal) => (
               <div
                 key={signal}
@@ -1069,7 +1086,7 @@ export default function VendorWorkspacePage() {
               <p className="mt-1 text-sm text-slate-600">
                 AI intelligence is active in the background. Stable signals are compressed to reduce operational fatigue.
                 <span className="ml-2 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
-                  {vendorAdaptiveAttentionMode} · {vendorAdaptiveDisclosureLevel} · {vendorAdaptiveDensityMode}
+                  {vendorAdaptiveAttentionMode} · {vendorAdaptiveDisclosureLevel} · {vendorAdaptiveDensityMode} · {vendorAttentionPacing.pace} · fatigue {vendorExecutiveFatigue.level}
                 </span>
               </p>
             </div>
