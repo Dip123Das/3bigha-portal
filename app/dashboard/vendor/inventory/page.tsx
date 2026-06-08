@@ -189,27 +189,21 @@ export default function VendorInventoryPage() {
         <VendorWorkMenu />
 
         <div
-          style={{
-            marginBottom: 16,
-            borderRadius: 22,
-            padding: 16,
-            border: "1px solid #dbeafe",
-            background: "linear-gradient(to bottom right,#eff6ff,#ffffff)",
-          }}
+          style={{ maxWidth: "100%", overflowX: "hidden", marginBottom: 16, borderRadius: 22, padding: 16, border: "1px solid #dbeafe", background: "linear-gradient(to bottom right, #eff6ff, #ffffff)" }}
         >
-          <div style={{ fontSize: 11, fontWeight: 950, letterSpacing: "0.14em", textTransform: "uppercase", color: "#2563eb" }}>
+          <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 11, fontWeight: 950, letterSpacing: "0.14em", textTransform: "uppercase", color: "#2563eb" }}>
             Daily Stock Work
           </div>
 
-          <h1 style={{ marginTop: 8, marginBottom: 0, fontSize: 26, lineHeight: 1.15, fontWeight: 950, color: "#0f172a" }}>
+          <h1 style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 8, marginBottom: 0, fontSize: 26, lineHeight: 1.15, fontWeight: 950, color: "#0f172a" }}>
             Start with your stock items
           </h1>
 
-          <p style={{ marginTop: 8, maxWidth: 780, fontSize: 14, lineHeight: 1.7, fontWeight: 700, color: "#475569" }}>
+          <p style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 8, fontSize: 14, lineHeight: 1.7, fontWeight: 700, color: "#475569" }}>
             Check available stock, add new stock, create bill, then move items to dispatch. This page is for shop owners, material suppliers and local vendors to manage daily inventory work easily.
           </p>
 
-          <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 10 }}>
+          <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 10 }}>
             {[
               ["1", "Stock Items", "See all stock records"],
               ["2", "Add Stock", "Add new material stock"],
@@ -219,22 +213,17 @@ export default function VendorInventoryPage() {
             ].map(([step, title, detail]) => (
               <div
                 key={title}
-                style={{
-                  border: "1px solid #bfdbfe",
-                  borderRadius: 16,
-                  padding: 12,
-                  background: "#ffffff",
-                }}
+                style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid #bfdbfe", borderRadius: 16, padding: 12, background: "#ffffff" }}
               >
-                <div style={{ fontSize: 12, fontWeight: 950, color: "#2563eb" }}>Step {step}</div>
-                <div style={{ marginTop: 4, fontSize: 15, fontWeight: 950, color: "#0f172a" }}>{title}</div>
-                <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#64748b" }}>{detail}</div>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 12, fontWeight: 950, color: "#2563eb" }}>Step {step}</div>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 15, fontWeight: 950, color: "#0f172a" }}>{title}</div>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 12, fontWeight: 700, color: "#64748b" }}>{detail}</div>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+        <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>
           <ActionButton href="/dashboard/vendor" variant="secondary">
             ← Vendor Dashboard
           </ActionButton>
@@ -250,38 +239,24 @@ export default function VendorInventoryPage() {
           <button
             type="button"
             onClick={() => load()}
-            style={{
-              height: 40,
-              padding: "0 14px",
-              borderRadius: 12,
-              border: "1px solid rgba(0,0,0,0.12)",
-              background: "white",
-              fontWeight: 900,
-              cursor: "pointer",
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", height: 40, padding: "0 14px", borderRadius: 12, border: "1px solid rgba(0, 0, 0.12)", background: "white", fontWeight: 900, cursor: "pointer" }}
           >
             Refresh
           </button>
         </div>
 
         <div
-          style={{
-            marginBottom: 16,
-            borderRadius: 22,
-            padding: 12,
-            border: "1px solid #c7d2fe",
-            background: "#ffffff",
-          }}
+          style={{ maxWidth: "100%", overflowX: "hidden", marginBottom: 16, borderRadius: 22, padding: 12, border: "1px solid #c7d2fe", background: "#ffffff" }}
         >
-          <div style={{ fontSize: 18, fontWeight: 950, color: "#3730a3" }}>
+          <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 18, fontWeight: 950, color: "#3730a3" }}>
             Daily Inventory Steps
           </div>
 
-          <div style={{ marginTop: 6, color: "#475569", fontSize: 13, fontWeight: 800, lineHeight: 1.6 }}>
+          <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 6, color: "#475569", fontSize: 13, fontWeight: 800, lineHeight: 1.6 }}>
             Use this area after checking your stock. Add inventory first, then create bill, assign vehicle and prepare dispatch only when required.
           </div>
 
-          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
+          <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
             <ActionButton href="/dashboard/vendor/inventory" variant="primary">
               📦 Stock Items
             </ActionButton>
@@ -413,10 +388,10 @@ export default function VendorInventoryPage() {
 
         <Card>
           <CardBody>
-            <div style={{ display: "flex", gap: 12, justifyContent: "space-between", flexWrap: "wrap", alignItems: "center" }}>
+            <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <div style={{ fontSize: 18, fontWeight: 950 }}>Stock Items</div>
-                <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 18, fontWeight: 950 }}>Stock Items</div>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 800 }}>
                   Search products by name, SKU, barcode, godown, room, rack or vehicle number.
                 </div>
               </div>
@@ -425,19 +400,11 @@ export default function VendorInventoryPage() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search inventory…"
-                style={{
-                  width: "min(360px, 100%)",
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  border: "1px solid rgba(0,0,0,0.15)",
-                  outline: "none",
-                  fontSize: 13,
-                  background: "#fff",
-                }}
+                style={{ maxWidth: "100%", overflowX: "hidden", width: "min(360px, 100%)", padding: "10px 12px", borderRadius: 12, border: "1px solid rgba(0, 0, 0.15)", outline: "none", fontSize: 13, background: "#fff" }}
               />
             </div>
 
-            <div style={{ marginTop: 14 }}>
+            <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 14 }}>
               {loading ? (
                 <EmptyState message="Loading inventory…" />
               ) : err ? (
@@ -447,7 +414,7 @@ export default function VendorInventoryPage() {
               ) : filteredRows.length === 0 ? (
                 <EmptyState message="No matching inventory item found." />
               ) : (
-                <div style={{ display: "grid", gap: 10 }}>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", display: "grid", gap: 10 }}>
                   {filteredRows.map((row) => {
                     const inv = getInventory(row);
                     const current = asNumber(inv?.current_stock);
@@ -458,22 +425,15 @@ export default function VendorInventoryPage() {
                     return (
                       <div
                         key={row.id}
-                        style={{
-                          border: "1px solid #e5e7eb",
-                          borderRadius: 12,
-                          padding: 12,
-                          background: "#fff",
-                          display: "grid",
-                          gap: 10,
-                        }}
+                        style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid #e5e7eb", borderRadius: 12, padding: 12, background: "#fff", display: "grid", gap: 10 }}
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                        <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 10 }}>
                           <div>
-                            <div style={{ fontSize: 16, fontWeight: 950, color: "#0f172a" }}>
+                            <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 16, fontWeight: 950, color: "#0f172a" }}>
                               {getTitle(row)}
                             </div>
 
-                            <div style={{ marginTop: 5, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                            <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 5, display: "flex", flexWrap: "wrap", gap: 8 }}>
                               <Badge>Status: {row.status || "draft"}</Badge>
                               {inv?.sku_code ? <Badge>SKU: {inv.sku_code}</Badge> : null}
                               {inv?.barcode ? <Badge>Barcode: {inv.barcode}</Badge> : null}
@@ -482,7 +442,7 @@ export default function VendorInventoryPage() {
                           </div>
 
                           <div
-                            style={{
+                            style={{ maxWidth: "100%", overflowX: "hidden",
                               border: `1px solid ${tone.border}`,
                               background: tone.bg,
                               color: tone.color,
@@ -497,33 +457,33 @@ export default function VendorInventoryPage() {
                           </div>
                         </div>
 
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
-                          <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
-                            <div style={{ fontSize: 12, fontWeight: 900, color: "#64748b" }}>Current Stock</div>
-                            <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950 }}>
+                        <div style={{ maxWidth: "100%", overflowX: "hidden", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8 }}>
+                          <div style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
+                            <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 12, fontWeight: 900, color: "#64748b" }}>Current Stock</div>
+                            <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 18, fontWeight: 950 }}>
                               {current} {inv?.stock_unit || ""}
                             </div>
                           </div>
 
-                          <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
-                            <div style={{ fontSize: 12, fontWeight: 900, color: "#64748b" }}>Selling Price</div>
-                            <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950 }}>
+                          <div style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
+                            <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 12, fontWeight: 900, color: "#64748b" }}>Selling Price</div>
+                            <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 18, fontWeight: 950 }}>
                               {selling > 0 ? money(selling) : "—"}
                             </div>
                           </div>
 
-                          <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
-                            <div style={{ fontSize: 12, fontWeight: 900, color: "#64748b" }}>Rack / Room / Godown</div>
-                            <div style={{ marginTop: 4, fontSize: 14, fontWeight: 950 }}>
+                          <div style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
+                            <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 12, fontWeight: 900, color: "#64748b" }}>Rack / Room / Godown</div>
+                            <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 14, fontWeight: 950 }}>
                               {[inv?.rack_no && `Rack ${inv.rack_no}`, inv?.room_no && `Room ${inv.room_no}`, inv?.godown_no && `Godown ${inv.godown_no}`]
                                 .filter(Boolean)
                                 .join(" • ") || "—"}
                             </div>
                           </div>
 
-                          <div style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
-                            <div style={{ fontSize: 12, fontWeight: 900, color: "#64748b" }}>Vehicle / Capacity</div>
-                            <div style={{ marginTop: 4, fontSize: 14, fontWeight: 950 }}>
+                          <div style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid #e5e7eb", borderRadius: 12, padding: 10 }}>
+                            <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 12, fontWeight: 900, color: "#64748b" }}>Vehicle / Capacity</div>
+                            <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 14, fontWeight: 950 }}>
                               {[inv?.vehicle_type, inv?.vehicle_number, inv?.load_capacity].filter(Boolean).join(" • ") || "—"}
                             </div>
                           </div>
@@ -537,12 +497,12 @@ export default function VendorInventoryPage() {
           </CardBody>
 
           <CardFooter>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
+            <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 10, width: "100%" }}>
               <ActionButton href="/materials/add?inventory=1" variant="primary">
                 Add New Stock Item →
               </ActionButton>
 
-              <Link href="/materials" style={{ fontWeight: 900, alignSelf: "center" }}>
+              <Link href="/materials" style={{ maxWidth: "100%", overflowX: "hidden", fontWeight: 900, alignSelf: "center" }}>
                 View public materials
               </Link>
             </div>

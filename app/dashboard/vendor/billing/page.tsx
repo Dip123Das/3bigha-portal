@@ -590,7 +590,7 @@ useEffect(() => {
 
         <VendorWorkMenu />
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+        <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>
           <ActionButton href="/dashboard/vendor" variant="secondary">
             ← Vendor Dashboard
           </ActionButton>
@@ -691,15 +691,10 @@ useEffect(() => {
 
         <Card>
           <CardBody>
-            <div style={{ fontSize: 18, fontWeight: 950 }}>Create Bill / Challan</div>
+            <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 18, fontWeight: 950 }}>Create Bill / Challan</div>
 
             <div
-              style={{
-                marginTop: 14,
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
-                gap: 10,
-              }}
+              style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 10 }}
             >
               <select value={selectedMaterial} onChange={(e) => setSelectedMaterial(e.target.value)} style={inputStyle}>
                 <option value="">Select Material</option>
@@ -742,62 +737,34 @@ useEffect(() => {
 
 
             <div
-              style={{
-                marginTop: 14,
-                border: "1px solid #e5e7eb",
-                borderRadius: 16,
-                padding: 14,
-                background: "#f8fafc",
-              }}
+              style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 14, border: "1px solid #e5e7eb", borderRadius: 16, padding: 14, background: "#f8fafc" }}
             >
               <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 12,
-                }}
+                style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}
               >
-                <div style={{ fontSize: 16, fontWeight: 950 }}>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 16, fontWeight: 950 }}>
                   ERP Billing Line Items
                 </div>
 
                 <button
                   type="button"
                   onClick={addLineItem}
-                  style={{
-                    border: "none",
-                    borderRadius: 10,
-                    padding: "8px 12px",
-                    background: "#0f172a",
-                    color: "#fff",
-                    fontWeight: 900,
-                    cursor: "pointer",
-                  }}
+                  style={{ maxWidth: "100%", overflowX: "hidden", border: "none", borderRadius: 10, padding: "8px 12px", background: "#0f172a", color: "#fff", fontWeight: 900, cursor: "pointer" }}
                 >
                   + Add Item
                 </button>
               </div>
 
-              <div style={{ display: "grid", gap: 12 }}>
+              <div style={{ maxWidth: "100%", overflowX: "hidden", display: "grid", gap: 12 }}>
                 {lineItems.map((item, index) => (
                   <div
                     key={item.id}
-                    style={{
-                      border: "1px solid #dbeafe",
-                      borderRadius: 14,
-                      padding: 12,
-                      background: "#fff",
-                    }}
+                    style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid #dbeafe", borderRadius: 14, padding: 12, background: "#fff" }}
                   >
                     <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginBottom: 10,
-                      }}
+                      style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", justifyContent: "space-between", marginBottom: 10 }}
                     >
-                      <div style={{ fontWeight: 900 }}>
+                      <div style={{ maxWidth: "100%", overflowX: "hidden", fontWeight: 900 }}>
                         Line Item #{index + 1}
                       </div>
 
@@ -805,13 +772,7 @@ useEffect(() => {
                         <button
                           type="button"
                           onClick={() => removeLineItem(item.id)}
-                          style={{
-                            border: "none",
-                            background: "transparent",
-                            color: "#dc2626",
-                            fontWeight: 900,
-                            cursor: "pointer",
-                          }}
+                          style={{ maxWidth: "100%", overflowX: "hidden", border: "none", background: "transparent", color: "#dc2626", fontWeight: 900, cursor: "pointer" }}
                         >
                           Remove
                         </button>
@@ -819,12 +780,8 @@ useEffect(() => {
                     </div>
 
                     <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns:
-                          "repeat(auto-fit,minmax(160px,1fr))",
-                        gap: 10,
-                      }}
+                      style={{ maxWidth: "100%", overflowX: "hidden", display: "grid", gridTemplateColumns:
+                          "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}
                     >
                       <select
                         value={item.itemType}
@@ -975,7 +932,7 @@ useEffect(() => {
               onChange={(e) => setCustomerAddress(e.target.value)}
               placeholder="Customer address"
               rows={2}
-              style={{ ...inputStyle, width: "100%", resize: "vertical", marginTop: 10 }}
+              style={{ maxWidth: "100%", overflowX: "hidden", ...inputStyle, width: "100%", resize: "vertical", marginTop: 10 }}
             />
 
             <textarea
@@ -983,61 +940,52 @@ useEffect(() => {
               onChange={(e) => setNote(e.target.value)}
               placeholder="Bill note"
               rows={2}
-              style={{ ...inputStyle, width: "100%", resize: "vertical", marginTop: 10 }}
+              style={{ maxWidth: "100%", overflowX: "hidden", ...inputStyle, width: "100%", resize: "vertical", marginTop: 10 }}
             />
 
 
             <div
-              style={{
-                marginTop: 14,
-                border: "1px solid #fed7aa",
-                borderRadius: 16,
-                padding: 14,
-                background: "#fff7ed",
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
-                gap: 10,
-              }}
+              style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 14, border: "1px solid #fed7aa", borderRadius: 16, padding: 14, background: "#fff7ed", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10 }}
             >
               <div>
-                <div style={{ fontSize: 11, fontWeight: 900, color: "#9a3412" }}>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 11, fontWeight: 900, color: "#9a3412" }}>
                   Subtotal
                 </div>
-                <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950 }}>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 18, fontWeight: 950 }}>
                   {money(billingCartTotals.subtotal)}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: 11, fontWeight: 900, color: "#9a3412" }}>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 11, fontWeight: 900, color: "#9a3412" }}>
                   Discount
                 </div>
-                <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950 }}>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 18, fontWeight: 950 }}>
                   {money(billingCartTotals.discountAmount)}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: 11, fontWeight: 900, color: "#9a3412" }}>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 11, fontWeight: 900, color: "#9a3412" }}>
                   Tax
                 </div>
-                <div style={{ marginTop: 4, fontSize: 18, fontWeight: 950 }}>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 18, fontWeight: 950 }}>
                   {money(billingCartTotals.taxAmount)}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: 11, fontWeight: 900, color: "#9a3412" }}>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 11, fontWeight: 900, color: "#9a3412" }}>
                   Grand Total
                 </div>
-                <div style={{ marginTop: 4, fontSize: 22, fontWeight: 950, color: "#ea580c" }}>
+                <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 22, fontWeight: 950, color: "#ea580c" }}>
                   {money(billingCartTotals.grandTotal)}
                 </div>
               </div>
             </div>
 
             {selectedInventory ? (
-              <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 10, display: "flex", flexWrap: "wrap", gap: 8 }}>
                 <Badge>
                   Available Stock: {selectedInventory.current_stock || 0} {selectedInventory.stock_unit || ""}
                 </Badge>
@@ -1047,7 +995,7 @@ useEffect(() => {
             ) : null}
 
             {err ? (
-              <div style={{ marginTop: 10, color: "#b91c1c", fontWeight: 900, fontSize: 13 }}>
+              <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 10, color: "#b91c1c", fontWeight: 900, fontSize: 13 }}>
                 {err}
               </div>
             ) : null}
@@ -1056,48 +1004,34 @@ useEffect(() => {
               type="button"
               onClick={() => void createBill()}
               disabled={saving}
-              style={{
-                marginTop: 12,
-                border: "none",
-                borderRadius: 12,
-                padding: "10px 14px",
-                background: saving ? "#94a3b8" : "#ea580c",
-                color: "#fff",
-                fontWeight: 950,
-                cursor: saving ? "not-allowed" : "pointer",
-              }}
+              style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 12, border: "none", borderRadius: 12, padding: "10px 14px", background: saving ? "#94a3b8" : "#ea580c", color: "#fff", fontWeight: 950, cursor: saving ? "not-allowed" : "pointer" }}
             >
               {saving ? "Creating..." : "Create Bill + Deduct Stock"}
             </button>
           </CardBody>
         </Card>
 
-        <div style={{ marginTop: 14 }}>
+        <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 14 }}>
           <Card>
             <CardBody>
-              <div style={{ fontSize: 18, fontWeight: 950 }}>Recent Bills</div>
+              <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 18, fontWeight: 950 }}>Recent Bills</div>
 
-              <div style={{ marginTop: 12 }}>
+              <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 12 }}>
                 {loading ? (
                   <EmptyState message="Loading bills…" />
                 ) : bills.length === 0 ? (
                   <EmptyState message="No bill created yet." />
                 ) : (
-                  <div style={{ display: "grid", gap: 10 }}>
+                  <div style={{ maxWidth: "100%", overflowX: "hidden", display: "grid", gap: 10 }}>
                     {bills.map((bill) => (
                       <div
                         key={bill.id}
-                        style={{
-                          border: "1px solid #e5e7eb",
-                          borderRadius: 12,
-                          padding: 12,
-                          background: "#fff",
-                        }}
+                        style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid #e5e7eb", borderRadius: 12, padding: 12, background: "#fff" }}
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                        <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 10 }}>
                           <div>
-                            <div style={{ fontSize: 16, fontWeight: 950 }}>{bill.bill_no}</div>
-                            <div style={{ marginTop: 5, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                            <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 16, fontWeight: 950 }}>{bill.bill_no}</div>
+                            <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 5, display: "flex", flexWrap: "wrap", gap: 8 }}>
                               <Badge>{bill.bill_type.replace(/_/g, " ")}</Badge>
                               <Badge>{bill.payment_status}</Badge>
                               {bill.customer_name ? <Badge>Customer: {bill.customer_name}</Badge> : null}
@@ -1105,8 +1039,8 @@ useEffect(() => {
                             </div>
                           </div>
 
-                          <div style={{ display: "grid", gap: 8, justifyItems: "flex-end" }}>
-                            <div style={{ fontSize: 18, fontWeight: 950, color: "#ea580c" }}>
+                          <div style={{ maxWidth: "100%", overflowX: "hidden", display: "grid", gap: 8, justifyItems: "flex-end" }}>
+                            <div style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 18, fontWeight: 950, color: "#ea580c" }}>
                               {money(asNumber(bill.total_amount))}
                             </div>
 
@@ -1114,15 +1048,7 @@ useEffect(() => {
                               href={`/api/vendor/billing/${encodeURIComponent(bill.bill_no)}/pdf`}
                               target="_blank"
                               rel="noreferrer"
-                              style={{
-                                borderRadius: 12,
-                                background: "#ffffff",
-                                color: "#111827",
-                                padding: "8px 11px",
-                                fontSize: 12,
-                                fontWeight: 950,
-                                textDecoration: "none",
-                              }}
+                              style={{ maxWidth: "100%", overflowX: "hidden", borderRadius: 12, background: "#ffffff", color: "#111827", padding: "8px 11px", fontSize: 12, fontWeight: 950, textDecoration: "none" }}
                             >
                               View / Download PDF
                             </a>

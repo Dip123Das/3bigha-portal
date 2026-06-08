@@ -367,7 +367,7 @@ export default function MyServicesPage() {
           subtitle="Manage your service listings — drafts, published, paused, archived."
         />
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+        <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
           <ActionButton href="/services/add" variant="primary">
             + Add Service
           </ActionButton>
@@ -376,38 +376,24 @@ export default function MyServicesPage() {
             Browse Public Services
           </ActionButton>
 
-          <Link href="/" style={{ fontWeight: 800, alignSelf: "center" }}>
+          <Link href="/" style={{ maxWidth: "100%", overflowX: "hidden", fontWeight: 800, alignSelf: "center" }}>
             ← Home
           </Link>
         </div>
 
 
         <div
-          style={{
-            border: "1px solid rgba(0,0,0,0.08)",
-            borderRadius: 18,
-            padding: 18,
-            background: "#fff",
-            marginBottom: 18,
-          }}
+          style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid rgba(0, 0, 0.08)", borderRadius: 18, padding: 18, background: "#fff", marginBottom: 18 }}
         >
           <div
-            style={{
-              fontSize: 20,
-              fontWeight: 950,
-              marginBottom: 14,
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 20, fontWeight: 950, marginBottom: 14 }}
           >
             Service ERP Execution
           </div>
 
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit,minmax(180px,1fr))",
-              gap: 12,
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", display: "grid", gridTemplateColumns:
+                "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}
           >
             <input
               value={workCustomer}
@@ -477,17 +463,7 @@ export default function MyServicesPage() {
             type="button"
             onClick={createWorkOrder}
             disabled={workSaving}
-            style={{
-              marginTop: 16,
-              border: "none",
-              borderRadius: 12,
-              padding: "12px 18px",
-              background: "#0f172a",
-              color: "#fff",
-              fontWeight: 900,
-              cursor: "pointer",
-              opacity: workSaving ? 0.7 : 1,
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 16, border: "none", borderRadius: 12, padding: "12px 18px", background: "#0f172a", color: "#fff", fontWeight: 900, cursor: "pointer", opacity: workSaving ? 0.7 : 1 }}
           >
             {workSaving
               ? "Creating..."
@@ -495,13 +471,8 @@ export default function MyServicesPage() {
           </button>
 
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit,minmax(180px,1fr))",
-              gap: 12,
-              marginTop: 18,
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", display: "grid", gridTemplateColumns:
+                "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginTop: 18 }}
           >
             {[
               [
@@ -541,30 +512,17 @@ export default function MyServicesPage() {
             ].map(([label, value]) => (
               <div
                 key={label}
-                style={{
-                  border:
-                    "1px solid rgba(0,0,0,0.08)",
-                  borderRadius: 14,
-                  padding: 14,
-                  background: "#f8fafc",
-                }}
+                style={{ maxWidth: "100%", overflowX: "hidden", border:
+                    "1px solid rgba(0, 0, 0.08)", borderRadius: 14, padding: 14, background: "#f8fafc" }}
               >
                 <div
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 800,
-                    opacity: 0.7,
-                  }}
+                  style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 12, fontWeight: 800, opacity: 0.7 }}
                 >
                   {label}
                 </div>
 
                 <div
-                  style={{
-                    marginTop: 6,
-                    fontSize: 24,
-                    fontWeight: 950,
-                  }}
+                  style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 6, fontSize: 24, fontWeight: 950 }}
                 >
                   {value}
                 </div>
@@ -575,65 +533,35 @@ export default function MyServicesPage() {
 
 
         <div
-          style={{
-            border: "1px solid rgba(0,0,0,0.08)",
-            borderRadius: 18,
-            padding: 18,
-            background: "#fff",
-            marginBottom: 18,
-          }}
+          style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid rgba(0, 0, 0.08)", borderRadius: 18, padding: 18, background: "#fff", marginBottom: 18 }}
         >
           <div
-            style={{
-              fontSize: 20,
-              fontWeight: 950,
-              marginBottom: 14,
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 20, fontWeight: 950, marginBottom: 14 }}
           >
             Service Lifecycle Execution
           </div>
 
           <div
-            style={{
-              display: "grid",
-              gap: 12,
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", display: "grid", gap: 12 }}
           >
             {workOrders.slice(0, 8).map((work) => (
               <div
                 key={work.id}
-                style={{
-                  border:
-                    "1px solid rgba(0,0,0,0.08)",
-                  borderRadius: 14,
-                  padding: 14,
-                  background: "#f8fafc",
-                }}
+                style={{ maxWidth: "100%", overflowX: "hidden", border:
+                    "1px solid rgba(0, 0, 0.08)", borderRadius: 14, padding: 14, background: "#f8fafc" }}
               >
                 <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    flexWrap: "wrap",
-                  }}
+                  style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 12 }}
                 >
                   <div>
                     <div
-                      style={{
-                        fontWeight: 950,
-                        fontSize: 16,
-                      }}
+                      style={{ maxWidth: "100%", overflowX: "hidden", fontWeight: 950, fontSize: 16 }}
                     >
                       {work.service_title}
                     </div>
 
                     <div
-                      style={{
-                        marginTop: 4,
-                        fontSize: 13,
-                        opacity: 0.7,
-                      }}
+                      style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 13, opacity: 0.7 }}
                     >
                       Customer:
                       {" "}
@@ -641,11 +569,7 @@ export default function MyServicesPage() {
                     </div>
 
                     <div
-                      style={{
-                        marginTop: 4,
-                        fontSize: 13,
-                        opacity: 0.7,
-                      }}
+                      style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 13, opacity: 0.7 }}
                     >
                       Team:
                       {" "}
@@ -653,12 +577,7 @@ export default function MyServicesPage() {
                     </div>
 
                     <div
-                      style={{
-                        marginTop: 4,
-                        fontSize: 13,
-                        opacity: 0.7,
-                        fontWeight: 800,
-                      }}
+                      style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 13, opacity: 0.7, fontWeight: 800 }}
                     >
                       Status:
                       {" "}
@@ -667,11 +586,7 @@ export default function MyServicesPage() {
                   </div>
 
                   <div
-                    style={{
-                      display: "flex",
-                      gap: 10,
-                      flexWrap: "wrap",
-                    }}
+                    style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 10 }}
                   >
                     {work.work_status ===
                     "approved" ? (
@@ -748,9 +663,9 @@ export default function MyServicesPage() {
         </div>
 
         {loading ? (
-          <div style={{ opacity: 0.8 }}>Loading your services…</div>
+          <div style={{ maxWidth: "100%", overflowX: "hidden", opacity: 0.8 }}>Loading your services…</div>
         ) : err ? (
-          <div style={{ color: "crimson", fontWeight: 800 }}>{err}</div>
+          <div style={{ maxWidth: "100%", overflowX: "hidden", color: "crimson", fontWeight: 800 }}>{err}</div>
         ) : rows.length === 0 ? (
           <EmptyState message="No service listings yet. Click “Add Service” to create your first listing." />
         ) : (
@@ -783,30 +698,30 @@ export default function MyServicesPage() {
   return (
                 <Card key={r.id}>
                   <CardBody>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
-                      <div style={{ fontWeight: 900, fontSize: 16, lineHeight: 1.2 }}>{title}</div>
+                    <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
+                      <div style={{ maxWidth: "100%", overflowX: "hidden", fontWeight: 900, fontSize: 16, lineHeight: 1.2 }}>{title}</div>
                       <Badge>{r.record_status}</Badge>
                     </div>
 
-                    <div style={{ marginTop: 8, color: "#5b6472", fontSize: 13 }}>
+                    <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 8, color: "#5b6472", fontSize: 13 }}>
                       Category: {catLine}
                     </div>
 
-                    <div style={{ marginTop: 10, display: "grid", gap: 6, color: "#5b6472", fontSize: 13 }}>
+                    <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 10, display: "grid", gap: 6, color: "#5b6472", fontSize: 13 }}>
                       <div>Created: {fmt(r.created_at)}</div>
                       <div>Updated: {fmt(r.updated_at)}</div>
                     </div>
 
-                    <div style={{ marginTop: 10, opacity: 0.7, fontSize: 12 }}>
+                    <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 10, opacity: 0.7, fontSize: 12 }}>
                       ID:{" "}
-                      <span style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
+                      <span style={{ maxWidth: "100%", overflowX: "hidden", fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
                         {r.id}
                       </span>
                     </div>
                   </CardBody>
 
                   <CardFooter>
-                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", width: "100%" }}>
+                    <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 10, width: "100%" }}>
                       <ActionButton href={`/services/${r.id}`} variant="secondary">
                         View →
                       </ActionButton>
@@ -841,13 +756,7 @@ export default function MyServicesPage() {
                         </ActionButton>
                       ) : (
                         <div
-                          style={{
-                            border: "1px solid rgba(0,0,0,0.12)",
-                            borderRadius: 12,
-                            padding: "10px 12px",
-                            fontWeight: 800,
-                            opacity: 0.55,
-                          }}
+                          style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid rgba(0, 0, 0.12)", borderRadius: 12, padding: "10px 12px", fontWeight: 800, opacity: 0.55 }}
                         >
                           Archived
                         </div>

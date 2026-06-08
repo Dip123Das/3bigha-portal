@@ -488,7 +488,7 @@ export default function RentalsMyPage() {
     return (
       <Container>
         <SectionHeader title="My Rentals" subtitle="Checking login..." />
-        <div style={{ opacity: 0.8 }}>Checking login…</div>
+        <div style={{ maxWidth: "100%", overflowX: "hidden", opacity: 0.8 }}>Checking login…</div>
       </Container>
     );
   }
@@ -500,7 +500,7 @@ export default function RentalsMyPage() {
     <Container>
       <SectionHeader title="My Rentals" subtitle="Manage your draft/published rental listings" />
 
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+      <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
         <ActionButton variant="primary" href="/rentals/add">
           + Add Rental Listing
         </ActionButton>
@@ -513,49 +513,26 @@ export default function RentalsMyPage() {
           type="button"
           onClick={() => userId && loadMine(userId)}
           disabled={loading}
-          style={{
-            height: 40,
-            padding: "0 14px",
-            borderRadius: 12,
-            border: "1px solid rgba(0,0,0,0.12)",
-            background: "white",
-            fontWeight: 800,
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.6 : 1,
-          }}
+          style={{ maxWidth: "100%", overflowX: "hidden", height: 40, padding: "0 14px", borderRadius: 12, border: "1px solid rgba(0, 0, 0.12)", background: "white", fontWeight: 800, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
         >
           Refresh
         </button>
       </div>
 
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-        <div style={{ flex: 1, minWidth: 220 }}>
+      <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
+        <div style={{ maxWidth: "100%", overflowX: "hidden", flex: 1, minWidth: 220 }}>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search my rentals (title, location, unit)…"
-            style={{
-              width: "100%",
-              height: 40,
-              borderRadius: 12,
-              border: "1px solid rgba(0,0,0,0.12)",
-              padding: "0 12px",
-              outline: "none",
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", width: "100%", height: 40, borderRadius: 12, border: "1px solid rgba(0, 0, 0.12)", padding: "0 12px", outline: "none" }}
           />
         </div>
 
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          style={{
-            height: 40,
-            borderRadius: 12,
-            border: "1px solid rgba(0,0,0,0.12)",
-            padding: "0 10px",
-            background: "white",
-            fontWeight: 700,
-          }}
+          style={{ maxWidth: "100%", overflowX: "hidden", height: 40, borderRadius: 12, border: "1px solid rgba(0, 0, 0.12)", padding: "0 10px", background: "white", fontWeight: 700 }}
         >
           {statuses.map((s) => (
             <option key={s} value={s}>
@@ -567,48 +544,29 @@ export default function RentalsMyPage() {
         <Badge>Total: {filtered.length}</Badge>
       </div>
 
-      {err ? <div style={{ marginBottom: 12, color: "crimson", fontWeight: 800 }}>{err}</div> : null}
+      {err ? <div style={{ maxWidth: "100%", overflowX: "hidden", marginBottom: 12, color: "crimson", fontWeight: 800 }}>{err}</div> : null}
 
 
 
       <div
-        style={{
-          border: "1px solid rgba(0,0,0,0.08)",
-          borderRadius: 18,
-          padding: 18,
-          background: "#fff",
-          marginBottom: 18,
-        }}
+        style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid rgba(0, 0, 0.08)", borderRadius: 18, padding: 18, background: "#fff", marginBottom: 18 }}
       >
         <div
-          style={{
-            fontSize: 18,
-            fontWeight: 950,
-            marginBottom: 14,
-          }}
+          style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 18, fontWeight: 950, marginBottom: 14 }}
         >
           Rental Booking Execution
         </div>
 
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit,minmax(180px,1fr))",
-            gap: 12,
-          }}
+          style={{ maxWidth: "100%", overflowX: "hidden", display: "grid", gridTemplateColumns:
+              "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}
         >
           <select
             value={bookingAssetId}
             onChange={(e) =>
               setBookingAssetId(e.target.value)
             }
-            style={{
-              height: 42,
-              borderRadius: 12,
-              border: "1px solid rgba(0,0,0,0.12)",
-              padding: "0 12px",
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", height: 42, borderRadius: 12, border: "1px solid rgba(0, 0, 0.12)", padding: "0 12px" }}
           >
             <option value="">
               Select rental asset
@@ -636,12 +594,7 @@ export default function RentalsMyPage() {
               setBookingCustomer(e.target.value)
             }
             placeholder="Customer name"
-            style={{
-              height: 42,
-              borderRadius: 12,
-              border: "1px solid rgba(0,0,0,0.12)",
-              padding: "0 12px",
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", height: 42, borderRadius: 12, border: "1px solid rgba(0, 0, 0.12)", padding: "0 12px" }}
           />
 
           <input
@@ -650,12 +603,7 @@ export default function RentalsMyPage() {
               setBookingPhone(e.target.value)
             }
             placeholder="Customer phone"
-            style={{
-              height: 42,
-              borderRadius: 12,
-              border: "1px solid rgba(0,0,0,0.12)",
-              padding: "0 12px",
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", height: 42, borderRadius: 12, border: "1px solid rgba(0, 0, 0.12)", padding: "0 12px" }}
           />
 
           <input
@@ -664,12 +612,7 @@ export default function RentalsMyPage() {
             onChange={(e) =>
               setBookingStart(e.target.value)
             }
-            style={{
-              height: 42,
-              borderRadius: 12,
-              border: "1px solid rgba(0,0,0,0.12)",
-              padding: "0 12px",
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", height: 42, borderRadius: 12, border: "1px solid rgba(0, 0, 0.12)", padding: "0 12px" }}
           />
 
           <input
@@ -678,12 +621,7 @@ export default function RentalsMyPage() {
             onChange={(e) =>
               setBookingEnd(e.target.value)
             }
-            style={{
-              height: 42,
-              borderRadius: 12,
-              border: "1px solid rgba(0,0,0,0.12)",
-              padding: "0 12px",
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", height: 42, borderRadius: 12, border: "1px solid rgba(0, 0, 0.12)", padding: "0 12px" }}
           />
 
           <input
@@ -692,30 +630,15 @@ export default function RentalsMyPage() {
               setBookingDeposit(e.target.value)
             }
             placeholder="Security deposit"
-            style={{
-              height: 42,
-              borderRadius: 12,
-              border: "1px solid rgba(0,0,0,0.12)",
-              padding: "0 12px",
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", height: 42, borderRadius: 12, border: "1px solid rgba(0, 0, 0.12)", padding: "0 12px" }}
           />
         </div>
 
         <div
-          style={{
-            display: "flex",
-            gap: 18,
-            flexWrap: "wrap",
-            marginTop: 14,
-          }}
+          style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 18, marginTop: 14 }}
         >
           <label
-            style={{
-              display: "flex",
-              gap: 8,
-              alignItems: "center",
-              fontWeight: 700,
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", fontWeight: 700 }}
           >
             <input
               type="checkbox"
@@ -728,12 +651,7 @@ export default function RentalsMyPage() {
           </label>
 
           <label
-            style={{
-              display: "flex",
-              gap: 8,
-              alignItems: "center",
-              fontWeight: 700,
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", fontWeight: 700 }}
           >
             <input
               type="checkbox"
@@ -750,18 +668,7 @@ export default function RentalsMyPage() {
           type="button"
           onClick={createBooking}
           disabled={bookingSaving}
-          style={{
-            marginTop: 18,
-            height: 44,
-            padding: "0 18px",
-            borderRadius: 12,
-            border: "none",
-            background: "#0f172a",
-            color: "#fff",
-            fontWeight: 900,
-            cursor: "pointer",
-            opacity: bookingSaving ? 0.7 : 1,
-          }}
+          style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 18, height: 44, padding: "0 18px", borderRadius: 12, border: "none", background: "#0f172a", color: "#fff", fontWeight: 900, cursor: "pointer", opacity: bookingSaving ? 0.7 : 1 }}
         >
           {bookingSaving
             ? "Creating Booking..."
@@ -770,12 +677,7 @@ export default function RentalsMyPage() {
       </div>
 
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
-          gap: 12,
-          marginBottom: 18,
-        }}
+        style={{ maxWidth: "100%", overflowX: "hidden", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 18 }}
       >
         {[
           [
@@ -812,29 +714,16 @@ export default function RentalsMyPage() {
         ].map(([label, value]) => (
           <div
             key={label}
-            style={{
-              border: "1px solid rgba(0,0,0,0.08)",
-              borderRadius: 18,
-              padding: 16,
-              background: "#fff",
-            }}
+            style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid rgba(0, 0, 0.08)", borderRadius: 18, padding: 16, background: "#fff" }}
           >
             <div
-              style={{
-                fontSize: 12,
-                fontWeight: 800,
-                opacity: 0.7,
-              }}
+              style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 12, fontWeight: 800, opacity: 0.7 }}
             >
               {label}
             </div>
 
             <div
-              style={{
-                marginTop: 6,
-                fontSize: 26,
-                fontWeight: 950,
-              }}
+              style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 6, fontSize: 26, fontWeight: 950 }}
             >
               {value}
             </div>
@@ -844,29 +733,16 @@ export default function RentalsMyPage() {
 
 
       <div
-        style={{
-          border: "1px solid rgba(0,0,0,0.08)",
-          borderRadius: 18,
-          padding: 18,
-          background: "#fff",
-          marginBottom: 18,
-        }}
+        style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid rgba(0, 0, 0.08)", borderRadius: 18, padding: 18, background: "#fff", marginBottom: 18 }}
       >
         <div
-          style={{
-            fontSize: 18,
-            fontWeight: 950,
-            marginBottom: 14,
-          }}
+          style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 18, fontWeight: 950, marginBottom: 14 }}
         >
           Rental ERP Lifecycle
         </div>
 
         <div
-          style={{
-            display: "grid",
-            gap: 12,
-          }}
+          style={{ maxWidth: "100%", overflowX: "hidden", display: "grid", gap: 12 }}
         >
           {bookings.slice(0, 8).map((booking) => {
 
@@ -877,47 +753,26 @@ export default function RentalsMyPage() {
             return (
               <div
                 key={booking.id}
-                style={{
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  borderRadius: 14,
-                  padding: 14,
-                  background: "#f8fafc",
-                }}
+                style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid rgba(0, 0, 0.08)", borderRadius: 14, padding: 14, background: "#f8fafc" }}
               >
                 <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    flexWrap: "wrap",
-                  }}
+                  style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 12 }}
                 >
                   <div>
                     <div
-                      style={{
-                        fontWeight: 900,
-                        fontSize: 16,
-                      }}
+                      style={{ maxWidth: "100%", overflowX: "hidden", fontWeight: 900, fontSize: 16 }}
                     >
                       {asset?.asset_name || "Rental Asset"}
                     </div>
 
                     <div
-                      style={{
-                        marginTop: 4,
-                        fontSize: 13,
-                        opacity: 0.7,
-                      }}
+                      style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 13, opacity: 0.7 }}
                     >
                       Customer: {booking.customer_name}
                     </div>
 
                     <div
-                      style={{
-                        marginTop: 4,
-                        fontSize: 13,
-                        opacity: 0.7,
-                      }}
+                      style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 13, opacity: 0.7 }}
                     >
                       {fmt(booking.booking_start)}
                       {" → "}
@@ -926,11 +781,7 @@ export default function RentalsMyPage() {
                   </div>
 
                   <div
-                    style={{
-                      display: "flex",
-                      gap: 10,
-                      flexWrap: "wrap",
-                    }}
+                    style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 10 }}
                   >
                     {booking.booking_status === "booked" ? (
                       <button
@@ -941,15 +792,7 @@ export default function RentalsMyPage() {
                             booking.rental_asset_id
                           )
                         }
-                        style={{
-                          border: "none",
-                          borderRadius: 10,
-                          padding: "10px 14px",
-                          background: "#16a34a",
-                          color: "#fff",
-                          fontWeight: 900,
-                          cursor: "pointer",
-                        }}
+                        style={{ maxWidth: "100%", overflowX: "hidden", border: "none", borderRadius: 10, padding: "10px 14px", background: "#16a34a", color: "#fff", fontWeight: 900, cursor: "pointer" }}
                       >
                         Mark Returned
                       </button>
@@ -962,15 +805,7 @@ export default function RentalsMyPage() {
                         onClick={() =>
                           markAssetMaintenance(asset.id)
                         }
-                        style={{
-                          border: "none",
-                          borderRadius: 10,
-                          padding: "10px 14px",
-                          background: "#ea580c",
-                          color: "#fff",
-                          fontWeight: 900,
-                          cursor: "pointer",
-                        }}
+                        style={{ maxWidth: "100%", overflowX: "hidden", border: "none", borderRadius: 10, padding: "10px 14px", background: "#ea580c", color: "#fff", fontWeight: 900, cursor: "pointer" }}
                       >
                         Maintenance
                       </button>
@@ -980,15 +815,7 @@ export default function RentalsMyPage() {
                         onClick={() =>
                           markAssetAvailable(asset.id)
                         }
-                        style={{
-                          border: "none",
-                          borderRadius: 10,
-                          padding: "10px 14px",
-                          background: "#2563eb",
-                          color: "#fff",
-                          fontWeight: 900,
-                          cursor: "pointer",
-                        }}
+                        style={{ maxWidth: "100%", overflowX: "hidden", border: "none", borderRadius: 10, padding: "10px 14px", background: "#2563eb", color: "#fff", fontWeight: 900, cursor: "pointer" }}
                       >
                         Restore Asset
                       </button>
@@ -1002,11 +829,11 @@ export default function RentalsMyPage() {
       </div>
 
       {loading ? (
-        <div style={{ opacity: 0.8 }}>Loading your rentals…</div>
+        <div style={{ maxWidth: "100%", overflowX: "hidden", opacity: 0.8 }}>Loading your rentals…</div>
       ) : filtered.length === 0 ? (
-        <div style={{ opacity: 0.8 }}>
+        <div style={{ maxWidth: "100%", overflowX: "hidden", opacity: 0.8 }}>
           No rentals found. Create one from{" "}
-          <Link href="/rentals/add" style={{ fontWeight: 800 }}>
+          <Link href="/rentals/add" style={{ maxWidth: "100%", overflowX: "hidden", fontWeight: 800 }}>
             /rentals/add
           </Link>
           .
@@ -1021,39 +848,33 @@ export default function RentalsMyPage() {
               <Card key={r.id}>
                 <CardBody>
                   {cover ? (
-                    <div style={{ marginBottom: 12 }}>
+                    <div style={{ maxWidth: "100%", overflowX: "hidden", marginBottom: 12 }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={cover}
                         alt={r.title ?? "Rental"}
-                        style={{
-                          width: "100%",
-                          height: 180,
-                          objectFit: "cover",
-                          borderRadius: 12,
-                          border: "1px solid rgba(0,0,0,0.08)",
-                        }}
+                        style={{ maxWidth: "100%", overflowX: "hidden", width: "100%", height: 180, objectFit: "cover", borderRadius: 12, border: "1px solid rgba(0, 0, 0.08)" }}
                       />
                     </div>
                   ) : null}
 
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 10 }}>
+                  <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center", marginBottom: 10 }}>
                     <Badge>{String(r.status ?? "draft").toLowerCase()}</Badge>
                     <Badge>Updated: {fmt(r.updated_at)}</Badge>
                     {r.pricing_unit ? <Badge>Unit: {r.pricing_unit}</Badge> : null}
                   </div>
 
-                  <div style={{ fontWeight: 900, marginBottom: 6 }}>{(r.title ?? "").trim() || "Untitled rental"}</div>
+                  <div style={{ maxWidth: "100%", overflowX: "hidden", fontWeight: 900, marginBottom: 6 }}>{(r.title ?? "").trim() || "Untitled rental"}</div>
 
-                  <div style={{ opacity: 0.85 }}>
+                  <div style={{ maxWidth: "100%", overflowX: "hidden", opacity: 0.85 }}>
                     {loc ? loc : "—"} • {fmtRate(r.rate, r.pricing_unit, r.rate_unit_label)}
                     {r.security_deposit != null ? ` • Deposit: ${money(r.security_deposit)}` : ""}
                   </div>
                 </CardBody>
 
                 <CardFooter>
-                  <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                    <Link href={`/rentals/${r.id}`} style={{ fontWeight: 800 }}>
+                  <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 12 }}>
+                    <Link href={`/rentals/${r.id}`} style={{ maxWidth: "100%", overflowX: "hidden", fontWeight: 800 }}>
                       Public view →
                     </Link>
                   </div>
