@@ -3,6 +3,13 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import {
+  getAdaptiveDensity,
+  getAdaptiveVisibleLimit,
+  getAttentionPriority,
+  getExecutiveDisclosureLevel,
+  shouldSuppressLowValueSignals,
+} from "@/lib/procurement/intelligence/adaptive-collapse-engine";
 
 const operationalFeed = [
   {
@@ -163,6 +170,48 @@ export default function VendorWorkspacePage() {
   const [automationSignals, setAutomationSignals] = useState<string[]>([]);
   const [stabilizationSignals, setStabilizationSignals] = useState<string[]>([]);
   const [momentumScore, setMomentumScore] = useState<number>(0);
+
+  const vendorSignalLoad =
+    executiveAlerts.length +
+    priorityActions.length +
+    anomalySignals.length +
+    forecastSignals.length +
+    recoveryActions.length;
+
+  const vendorAdaptiveAttentionMode = getAttentionPriority({
+    totalSignals: vendorSignalLoad,
+    visibleCards: vendorSignalLoad,
+    critical:
+      executiveAlerts.length > 0 ||
+      anomalySignals.some((signal) =>
+        String(signal).toLowerCase().includes("critical")
+      ),
+  });
+
+  const vendorAdaptiveDisclosureLevel = getExecutiveDisclosureLevel(
+    vendorAdaptiveAttentionMode,
+    {
+      totalSignals: vendorSignalLoad,
+    }
+  );
+
+  const vendorAdaptiveDensityMode = getAdaptiveDensity(
+    vendorAdaptiveAttentionMode,
+    {
+      totalSignals: vendorSignalLoad,
+      visibleCards: vendorSignalLoad,
+    }
+  );
+
+  const vendorAdaptiveVisibleLimit = getAdaptiveVisibleLimit({
+    totalSignals: vendorSignalLoad,
+    visibleCards: vendorSignalLoad,
+  });
+
+  const vendorSuppressLowValueSignals = shouldSuppressLowValueSignals({
+    totalSignals: vendorSignalLoad,
+    visibleCards: vendorSignalLoad,
+  });
 
   const compactExecutiveSignals = [
     ...clusterSignals,
@@ -800,6 +849,36 @@ export default function VendorWorkspacePage() {
 
 
 
+        <section className="sticky top-2 z-20 rounded-[1.25rem] border border-slate-200 bg-white/95 p-3 shadow-sm backdrop-blur">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                Executive Attention Routing
+              </p>
+              <p className="mt-1 text-sm font-bold text-slate-900">
+                {stats.unpaidInvoices || stats.overdueRentals || stats.overdueServices
+                  ? "Attention needed: finance, rental or service follow-up pending."
+                  : "Operations stable. Focus on adding stock, creating bills and closing RFQs."}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Link href="/dashboard/vendor/inventory" className="rounded-full bg-slate-900 px-3 py-2 text-xs font-black text-white">
+                Inventory
+              </Link>
+              <Link href="/dashboard/vendor/billing" className="rounded-full bg-orange-600 px-3 py-2 text-xs font-black text-white">
+                Billing
+              </Link>
+              <Link href="/rentals/my" className="rounded-full bg-blue-600 px-3 py-2 text-xs font-black text-white">
+                Rentals
+              </Link>
+              <Link href="/services/my" className="rounded-full bg-emerald-600 px-3 py-2 text-xs font-black text-white">
+                Services
+              </Link>
+            </div>
+          </div>
+        </section>
+
         <section className="rounded-[1.75rem] border border-slate-900 bg-slate-950 p-4 shadow-xl">
 
           <div className="flex gap-2 sm:items-center sm:justify-between flex-wrap gap-3">
@@ -873,7 +952,9 @@ export default function VendorWorkspacePage() {
           </div>
 
           <div className="mt-5 grid gap-2">
-            {compactExecutiveSignals.map((signal) => (
+            {compactExecutiveSignals
+              .slice(0, vendorSuppressLowValueSignals ? 2 : Math.min(3, vendorAdaptiveVisibleLimit))
+              .map((signal) => (
               <div
                 key={signal}
                 className="rounded-2xl bg-white/10 px-3 py-2 text-[13px] font-semibold text-slate-100"
@@ -979,666 +1060,86 @@ export default function VendorWorkspacePage() {
 
 
 
-        <section className="grid gap-3 sm:grid-cols-2 lg:sm:grid-cols-2 lg:grid-cols-3">
-
-          <div className="rounded-[1.75rem] border border-indigo-200 bg-indigo-50 p-4 shadow-sm">
-
-            <p className="text-xs font-bold uppercase tracking-wide text-indigo-700">
-              Throughput Score
-            </p>
-
-            <div className="mt-3 text-xl font-black text-indigo-900">
-              {throughputScore}
-            </div>
-
-            <p className="mt-3 text-sm text-indigo-700">
-              Unified operational execution throughput score.
-            </p>
-          </div>
-
-          <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
-
-            <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">
-              Profitability Forecast
-            </p>
-
-            <div className="mt-3 text-xl font-black text-emerald-900">
-              {profitabilityForecast}
-            </div>
-
-            <p className="mt-3 text-sm text-emerald-700">
-              Predicted operational profitability stability.
-            </p>
-          </div>
-
-          <div className="rounded-[1.75rem] border border-cyan-200 bg-cyan-50 p-4 shadow-sm">
-
-            <p className="text-xs font-bold uppercase tracking-wide text-cyan-700">
-              Orchestration Status
-            </p>
-
-            <div className="mt-3 text-xl font-black text-cyan-900">
-              {stats.forecastPressure}
-            </div>
-
-            <p className="mt-3 text-sm text-cyan-700">
-              Adaptive operational orchestration pressure.
-            </p>
-          </div>
-        </section>
-
-
-        <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-
-          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
-
-            <div className="flex gap-2 sm:items-center sm:justify-between flex-wrap gap-4">
-              <div>
-                <h2 className="text-xl font-bold text-slate-900">
-                  Adaptive Executive Cognition
-                </h2>
-
-                <p className="mt-2 text-sm text-slate-600">
-                  AI-compressed operational intelligence for executive readability.
-                </p>
-              </div>
-
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-slate-700">
-                Adaptive Cognition
-              </span>
-            </div>
-
-            <div className="mt-4 grid gap-2">
-              {collapsedSignals.map((signal) => (
-                <div
-                  key={signal}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] font-semibold text-slate-900"
-                >
-                  {signal}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-[1.75rem] border border-blue-200 bg-blue-50 p-4 shadow-sm">
-
-            <div className="flex gap-2 sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-blue-950">
-                  Throughput Analytics
-                </h2>
-
-                <p className="mt-2 text-sm text-blue-800">
-                  Workflow execution momentum and operational throughput analysis.
-                </p>
-              </div>
-
-              <span className="rounded-full bg-blue-200 px-3 py-1 text-xs font-bold uppercase tracking-wide text-blue-900">
-                Throughput AI
-              </span>
-            </div>
-
-            <div className="mt-4 grid gap-2">
-              {throughputSignals.map((signal) => (
-                <div
-                  key={signal}
-                  className="rounded-2xl border border-blue-200 bg-white px-3 py-2 text-[13px] font-semibold text-blue-900"
-                >
-                  {signal}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-
-
-
-        <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-
-          <div className="rounded-[1.75rem] border border-slate-300 bg-white p-4 shadow-sm">
-
-            <div className="flex gap-2 sm:items-center sm:justify-between flex-wrap gap-4">
-
-              <div>
-                <h2 className="text-xl font-bold text-slate-900">
-                  Executive Orchestration Cluster
-                </h2>
-
-                <p className="mt-2 text-sm text-slate-600">
-                  AI-clustered operational cognition for executive readability.
-                </p>
-              </div>
-
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-slate-700">
-                Cognition Cluster
-              </span>
-            </div>
-
-            <div className="mt-4 grid gap-2">
-              {clusterSignals.map((signal) => (
-                <div
-                  key={signal}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] font-semibold text-slate-900"
-                >
-                  {signal}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-[1.75rem] border border-violet-200 bg-violet-50 p-4 shadow-sm">
-
-            <div className="flex gap-2 sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-violet-950">
-                  Execution Momentum Engine
-                </h2>
-
-                <p className="mt-2 text-sm text-violet-800">
-                  Operational acceleration and recovery progression analytics.
-                </p>
-              </div>
-
-              <span className="rounded-full bg-violet-200 px-3 py-1 text-xs font-bold uppercase tracking-wide text-violet-900">
-                Momentum AI
-              </span>
-            </div>
-
-            <div className="mt-4 grid gap-2">
-              {momentumSignals.map((signal) => (
-                <div
-                  key={signal}
-                  className="rounded-2xl border border-violet-200 bg-white px-3 py-2 text-[13px] font-semibold text-violet-900"
-                >
-                  {signal}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-
-
-        <section className="grid gap-3 sm:grid-cols-2 lg:sm:grid-cols-2 lg:grid-cols-3">
-
-          <div className="rounded-[1.75rem] border border-fuchsia-200 bg-fuchsia-50 p-4 shadow-sm">
-
-            <p className="text-xs font-bold uppercase tracking-wide text-fuchsia-700">
-              Momentum Score
-            </p>
-
-            <div className="mt-3 text-xl font-black text-fuchsia-900">
-              {momentumScore}
-            </div>
-
-            <p className="mt-3 text-sm text-fuchsia-700">
-              Unified operational momentum intelligence score.
-            </p>
-          </div>
-
-          <div className="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-4 shadow-sm">
-
-            <p className="text-xs font-bold uppercase tracking-wide text-rose-700">
-              Automation Layer
-            </p>
-
-            <div className="mt-3 text-xl font-black text-rose-900">
-              Active
-            </div>
-
-            <p className="mt-3 text-sm text-rose-700">
-              Adaptive operational automation coordination.
-            </p>
-          </div>
-
-          <div className="rounded-[1.75rem] border border-lime-200 bg-lime-50 p-4 shadow-sm">
-
-            <p className="text-xs font-bold uppercase tracking-wide text-lime-700">
-              Stabilization Status
-            </p>
-
-            <div className="mt-3 text-xl font-black text-lime-900">
-              {stats.forecastPressure}
-            </div>
-
-            <p className="mt-3 text-sm text-lime-700">
-              Adaptive ERP continuity stabilization pressure.
-            </p>
-          </div>
-        </section>
-
-
-        <section className="rounded-[1.75rem] border border-sky-200 bg-sky-50 p-4 shadow-sm">
-
-          <div className="flex gap-2 sm:items-center sm:justify-between flex-wrap gap-4">
-
+        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold text-sky-950">
-                Executive Orchestration Engine
+              <h2 className="text-xl font-bold text-slate-900">
+                Executive Intelligence Summary
               </h2>
-
-              <p className="mt-2 text-sm text-sky-800">
-                Adaptive operational stabilization and workload coordination layer.
+              <p className="mt-1 text-sm text-slate-600">
+                AI intelligence is active in the background. Stable signals are compressed to reduce operational fatigue.
+                <span className="ml-2 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                  {vendorAdaptiveAttentionMode} · {vendorAdaptiveDisclosureLevel} · {vendorAdaptiveDensityMode}
+                </span>
               </p>
             </div>
 
-            <span className="rounded-full bg-sky-200 px-3 py-1 text-xs font-bold uppercase tracking-wide text-sky-900">
-              Orchestration AI
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-slate-600">
+              Compact Mode
             </span>
           </div>
 
-          <div className="mt-4 grid gap-2">
-            {orchestrationSignals.map((signal) => (
-              <div
-                key={signal}
-                className="rounded-2xl border border-sky-200 bg-white px-3 py-2 text-[13px] font-semibold text-sky-900"
-              >
-                {signal}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["Health", stats.healthScore],
+              ["Throughput", throughputScore],
+              ["Momentum", momentumScore],
+              ["Forecast", stats.forecastPressure],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                  {label}
+                </p>
+                <p className="mt-2 text-lg font-black text-slate-900">
+                  {value}
+                </p>
               </div>
             ))}
           </div>
-        </section>
-
-
-
-        <section className="grid gap-4 lg:grid-cols-2">
-
-          <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
-
-            <div className="flex gap-2 sm:items-center sm:justify-between flex-wrap gap-4">
-
-              <div>
-                <h2 className="text-xl font-bold text-emerald-950">
-                  Operational Automation Engine
-                </h2>
-
-                <p className="mt-2 text-sm text-emerald-800">
-                  AI-assisted workload redistribution and execution automation.
-                </p>
-              </div>
-
-              <span className="rounded-full bg-emerald-200 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-900">
-                Automation AI
-              </span>
-            </div>
-
-            <div className="mt-4 grid gap-2">
-              {automationSignals.map((signal) => (
-                <div
-                  key={signal}
-                  className="rounded-2xl border border-emerald-200 bg-white px-3 py-2 text-[13px] font-semibold text-emerald-900"
-                >
-                  {signal}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-[1.75rem] border border-red-200 bg-red-50 p-4 shadow-sm">
-
-            <div className="flex gap-2 sm:items-center sm:justify-between flex-wrap gap-4">
-
-              <div>
-                <h2 className="text-xl font-bold text-red-950">
-                  Stabilization Engine
-                </h2>
-
-                <p className="mt-2 text-sm text-red-800">
-                  Adaptive operational continuity and stabilization workflows.
-                </p>
-              </div>
-
-              <span className="rounded-full bg-red-200 px-3 py-1 text-xs font-bold uppercase tracking-wide text-red-900">
-                Stabilization AI
-              </span>
-            </div>
-
-            <div className="mt-4 grid gap-2">
-              {stabilizationSignals.map((signal) => (
-                <div
-                  key={signal}
-                  className="rounded-2xl border border-red-200 bg-white px-3 py-2 text-[13px] font-semibold text-red-900"
-                >
-                  {signal}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-
-        <section className="rounded-[1.75rem] border border-amber-200 bg-amber-50 p-4 shadow-sm">
-
-          <div className="flex gap-2 sm:items-center sm:justify-between">
-
-            <div>
-              <h2 className="text-xl font-bold text-amber-950">
-                Executive Attention Center
-              </h2>
-
-              <p className="mt-2 text-sm text-amber-800">
-                Operational alerts requiring immediate vendor attention.
-              </p>
-            </div>
-
-            <span className="rounded-full bg-amber-200 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-900">
-              Live ERP Intelligence
-            </span>
-          </div>
 
           <div className="mt-4 grid gap-2">
-            {(executiveAlerts.length
-              ? executiveAlerts
-              : [
-                  "Operations stable across ERP systems.",
-                ]).map((alert) => (
-              <div
-                key={alert}
-                className="rounded-2xl border border-amber-200 bg-white px-3 py-2 text-[13px] font-semibold text-amber-900"
-              >
+            {(executiveAlerts.length ? executiveAlerts : ["Operations stable across ERP systems."]).slice(0, 3).map((alert) => (
+              <div key={alert} className="rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] font-semibold text-amber-900">
                 {alert}
               </div>
             ))}
           </div>
-        </section>
 
+          <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <summary className="cursor-pointer text-sm font-black text-slate-900">
+              Open advanced AI intelligence layers
+            </summary>
 
-
-
-
-
-
-        <section className="grid gap-3 lg:sm:grid-cols-2 lg:grid-cols-3">
-
-          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-              Operational Health Score
-            </p>
-
-            <div className="mt-3 text-xl font-black text-slate-900">
-              {stats.healthScore}
-            </div>
-
-            <p className="mt-3 text-sm text-slate-600">
-              ERP continuity and execution stability indicator.
-            </p>
-          </div>
-
-          <div className="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-4 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wide text-rose-700">
-              Overdue Rentals
-            </p>
-
-            <div className="mt-3 text-xl font-black text-rose-900">
-              {stats.overdueRentals}
-            </div>
-
-            <p className="mt-3 text-sm text-rose-700">
-              Rental lifecycle interruptions detected.
-            </p>
-          </div>
-
-          <div className="rounded-[1.75rem] border border-violet-200 bg-violet-50 p-4 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wide text-violet-700">
-              Overdue Services
-            </p>
-
-            <div className="mt-3 text-xl font-black text-violet-900">
-              {stats.overdueServices}
-            </div>
-
-            <p className="mt-3 text-sm text-violet-700">
-              Service execution delays requiring action.
-            </p>
-          </div>
-        </section>
-
-
-
-
-        <section className="grid gap-4 md:grid-cols-2">
-
-          <div className="rounded-[1.75rem] border border-teal-200 bg-teal-50 p-4 shadow-sm">
-
-            <div className="flex gap-2 sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-teal-950">
-                  Executive Business Intelligence
-                </h2>
-
-                <p className="mt-2 text-sm text-teal-800">
-                  ERP financial efficiency and operational maturity analysis.
-                </p>
-              </div>
-
-              <span className="rounded-full bg-teal-200 px-3 py-1 text-xs font-bold uppercase tracking-wide text-teal-900">
-                Executive BI
-              </span>
-            </div>
-
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-
-              <div className="rounded-2xl border border-teal-200 bg-white p-4">
-                <p className="text-xs font-bold uppercase tracking-wide text-teal-700">
-                  Collection Efficiency
-                </p>
-
-                <div className="mt-3 text-xl font-black text-teal-900">
-                  {stats.collectionEfficiency}%
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-teal-200 bg-white p-4">
-                <p className="text-xs font-bold uppercase tracking-wide text-teal-700">
-                  Revenue Stability
-                </p>
-
-                <div className="mt-3 text-xl font-black text-teal-900">
-                  {stats.healthScore}%
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-2">
-              {workloadSignals.map((item) => (
-                <div
-                  key={item}
-                  className="rounded-2xl border border-teal-200 bg-white px-3 py-2 text-[13px] font-semibold text-teal-900"
-                >
-                  {item}
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {[
+                ["Cognition", collapsedSignals],
+                ["Cluster", clusterSignals],
+                ["Throughput", throughputSignals],
+                ["Momentum", momentumSignals],
+                ["Orchestration", orchestrationSignals],
+                ["Automation", automationSignals],
+                ["Stabilization", stabilizationSignals],
+                ["Recovery", recoveryActions],
+                ["Forecast", forecastSignals],
+                ["Anomaly", anomalySignals.length ? anomalySignals : ["No abnormal operational patterns detected."]],
+                ["Priority", priorityActions.length ? priorityActions : ["No operational bottlenecks detected."]],
+                ["Autonomous", autonomousRecommendations.length ? autonomousRecommendations : ["Operational efficiency remains stable."]],
+              ].map(([title, items]) => (
+                <div key={title as string} className="rounded-2xl border border-slate-200 bg-white p-3">
+                  <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                    {title as string}
+                  </p>
+                  <div className="mt-2 grid gap-2">
+                    {(items as string[]).slice(0, 3).map((item) => (
+                      <div key={item} className="rounded-xl bg-slate-50 px-3 py-2 text-[13px] font-semibold text-slate-700">
+                        {item}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="rounded-[1.75rem] border border-lime-200 bg-lime-50 p-4 shadow-sm">
-
-            <div className="flex gap-2 sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-lime-950">
-                  Recovery Orchestration Engine
-                </h2>
-
-                <p className="mt-2 text-sm text-lime-800">
-                  AI-assisted operational recovery coordination layer.
-                </p>
-              </div>
-
-              <span className="rounded-full bg-lime-200 px-3 py-1 text-xs font-bold uppercase tracking-wide text-lime-900">
-                Recovery AI
-              </span>
-            </div>
-
-            <div className="mt-4 grid gap-2">
-              {recoveryActions.map((item) => (
-                <div
-                  key={item}
-                  className="rounded-2xl border border-lime-200 bg-white px-3 py-2 text-[13px] font-semibold text-lime-900"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-
-        <section className="grid gap-4 md:grid-cols-2">
-
-          <div className="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-4 shadow-sm">
-
-            <div className="flex gap-2 sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-rose-950">
-                  Operational Anomaly Engine
-                </h2>
-
-                <p className="mt-2 text-sm text-rose-800">
-                  Predictive operational instability detection.
-                </p>
-              </div>
-
-              <span className="rounded-full bg-rose-200 px-3 py-1 text-xs font-bold uppercase tracking-wide text-rose-900">
-                Anomaly AI
-              </span>
-            </div>
-
-            <div className="mt-6">
-              <div className="text-xl font-black text-rose-900">
-                {stats.anomalyScore}
-              </div>
-
-              <p className="mt-2 text-sm font-semibold text-rose-700">
-                Composite operational anomaly score.
-              </p>
-            </div>
-
-            <div className="mt-4 grid gap-2">
-              {(anomalySignals.length
-                ? anomalySignals
-                : [
-                    "No abnormal operational patterns detected.",
-                  ]).map((item) => (
-                <div
-                  key={item}
-                  className="rounded-2xl border border-rose-200 bg-white px-3 py-2 text-[13px] font-semibold text-rose-900"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-[1.75rem] border border-indigo-200 bg-indigo-50 p-4 shadow-sm">
-
-            <div className="flex gap-2 sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-indigo-950">
-                  Forecasting Engine
-                </h2>
-
-                <p className="mt-2 text-sm text-indigo-800">
-                  Predictive ERP workload and recovery forecasting.
-                </p>
-              </div>
-
-              <span className="rounded-full bg-indigo-200 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-900">
-                Forecast AI
-              </span>
-            </div>
-
-            <div className="mt-6">
-              <div className="text-xl font-black text-indigo-900">
-                {stats.forecastPressure}
-              </div>
-
-              <p className="mt-2 text-sm font-semibold text-indigo-700">
-                Forecasted operational pressure level.
-              </p>
-            </div>
-
-            <div className="mt-4 grid gap-2">
-              {forecastSignals.map((item) => (
-                <div
-                  key={item}
-                  className="rounded-2xl border border-indigo-200 bg-white px-3 py-2 text-[13px] font-semibold text-indigo-900"
-                >
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-
-        <section className="rounded-[1.75rem] border border-fuchsia-200 bg-fuchsia-50 p-4 shadow-sm">
-
-          <div className="flex gap-2 sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-fuchsia-950">
-                Autonomous Operational Recommendations
-              </h2>
-
-              <p className="mt-2 text-sm text-fuchsia-800">
-                AI-assisted ERP operational optimization guidance.
-              </p>
-            </div>
-
-            <span className="rounded-full bg-fuchsia-200 px-3 py-1 text-xs font-bold uppercase tracking-wide text-fuchsia-900">
-              Autonomous Intelligence
-            </span>
-          </div>
-
-          <div className="mt-4 grid gap-2">
-            {(autonomousRecommendations.length
-              ? autonomousRecommendations
-              : [
-                  "Operational efficiency remains stable.",
-                ]).map((item) => (
-              <div
-                key={item}
-                className="rounded-2xl border border-fuchsia-200 bg-white px-3 py-2 text-[13px] font-semibold text-fuchsia-900"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
-        </section>
-
-
-        <section className="rounded-[1.75rem] border border-blue-200 bg-blue-50 p-4 shadow-sm">
-
-          <div className="flex gap-2 sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-blue-950">
-                Executive Priority Engine
-              </h2>
-
-              <p className="mt-2 text-sm text-blue-800">
-                AI-assisted operational prioritization layer.
-              </p>
-            </div>
-
-            <span className="rounded-full bg-blue-200 px-3 py-1 text-xs font-bold uppercase tracking-wide text-blue-900">
-              ERP Cognition
-            </span>
-          </div>
-
-          <div className="mt-4 grid gap-2">
-            {(priorityActions.length
-              ? priorityActions
-              : [
-                  "No operational bottlenecks detected.",
-                ]).map((item) => (
-              <div
-                key={item}
-                className="rounded-2xl border border-blue-200 bg-white px-3 py-2 text-[13px] font-semibold text-blue-900"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
+          </details>
         </section>
 
 
@@ -1656,8 +1157,8 @@ export default function VendorWorkspacePage() {
               </span>
             </div>
 
-            <div className="mt-6 space-y-4">
-              {(liveEvents.length ? liveEvents : operationalFeed).map((event: any) => (
+            <div className="mt-4 space-y-3">
+              {(liveEvents.length ? liveEvents : operationalFeed).slice(0, 6).map((event: any) => (
                 <div
                   key={event.id}
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-4"

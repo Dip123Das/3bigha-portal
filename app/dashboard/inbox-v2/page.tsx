@@ -45,6 +45,14 @@ import {
   buildOperationalOrchestration,
 } from "@/lib/operational-priority/orchestration-engine";
 import { resolveNextAction } from "@/lib/workflow/next-action-engine";
+import {
+  getAdaptiveDensity,
+  getAdaptiveVisibleLimit,
+  getAttentionPriority,
+  getExecutiveDisclosureLevel,
+  shouldSuppressLowValueSignals,
+} from "@/lib/procurement/intelligence/adaptive-collapse-engine";
+
 
 import {
   buildBehaviorMemory,
@@ -2128,6 +2136,47 @@ export default async function DashboardInboxV2Page({
     ...operationalOrchestration.stableFlows,
   ].slice(0, 5);
 
+  const inboxOperationalSignalLoad =
+    operationalPriorityItems.length +
+    operationalEscalations.length +
+    Number(procurementInboxStats.urgent || 0) +
+    Number(procurementInboxStats.slowResponses || 0) +
+    Number(autonomousOsStats.highRisk || 0);
+
+  const inboxAdaptiveAttentionMode = getAttentionPriority({
+    totalSignals: inboxOperationalSignalLoad,
+    visibleCards: inboxOperationalSignalLoad,
+    critical:
+      operationalEscalations.length > 0 ||
+      Number(procurementInboxStats.urgent || 0) > 0 ||
+      Number(autonomousOsStats.highRisk || 0) > 0,
+  });
+
+  const inboxAdaptiveDisclosureLevel = getExecutiveDisclosureLevel(
+    inboxAdaptiveAttentionMode,
+    {
+      totalSignals: inboxOperationalSignalLoad,
+    }
+  );
+
+  const inboxAdaptiveDensityMode = getAdaptiveDensity(
+    inboxAdaptiveAttentionMode,
+    {
+      totalSignals: inboxOperationalSignalLoad,
+      visibleCards: inboxOperationalSignalLoad,
+    }
+  );
+
+  const inboxAdaptiveVisibleLimit = getAdaptiveVisibleLimit({
+    totalSignals: inboxOperationalSignalLoad,
+    visibleCards: inboxOperationalSignalLoad,
+  });
+
+  const inboxSuppressLowValueSignals = shouldSuppressLowValueSignals({
+    totalSignals: inboxOperationalSignalLoad,
+    visibleCards: inboxOperationalSignalLoad,
+  });
+
   const operationalWorkload = buildOperationalWorkload({
     unread: procurementInboxStats.urgent,
     stale: procurementInboxStats.slowResponses,
@@ -2157,7 +2206,7 @@ export default async function DashboardInboxV2Page({
           updatedAt: Date.now(),
         }}
       />
-      <WorkflowContinuityBar />
+      {inboxAdaptiveDisclosureLevel !== "minimal" ? <WorkflowContinuityBar /> : null}
       <OperationalEventRecorder
         event={{
           id: "inbox-v2-opened",
@@ -2169,7 +2218,7 @@ export default async function DashboardInboxV2Page({
           createdAt: Date.now(),
         }}
       />
-      <OperationalEventStream title="Recent activity" limit={3} />
+      <OperationalEventStream title="Recent activity" limit={inboxSuppressLowValueSignals ? 2 : 3} />
 
       <NeedsAttentionStrip
         title="What needs attention"
