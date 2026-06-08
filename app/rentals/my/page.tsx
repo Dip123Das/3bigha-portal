@@ -360,10 +360,18 @@ export default function RentalsMyPage() {
     }
 
     loadUser();
+
+    const fallback = window.setTimeout(() => {
+      if (!alive) return;
+      setAuthLoading(false);
+      setLoading(false);
+    }, 2500);
+
     const { data: sub } = supabase.auth.onAuthStateChange(() => loadUser());
 
     return () => {
       alive = false;
+      window.clearTimeout(fallback);
       sub?.subscription?.unsubscribe();
     };
   }, [supabase, router]);
