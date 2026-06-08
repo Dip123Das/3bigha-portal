@@ -1,8 +1,9 @@
 // app/layout.tsx
+import AppWebViewViewportGuard from "@/components/mobile/AppWebViewViewportGuard";
 import "./globals.css";
 import "./ui-kit.css";
 import { createMetadata } from "@/lib/seo/metadata";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -92,6 +93,7 @@ export const manifest = "/site.webmanifest";
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en-IN">
+        <AppWebViewViewportGuard />
       <body>
         <PresenceHeartbeat currentPage="global" />
         <MobileMenuAutoClose />
