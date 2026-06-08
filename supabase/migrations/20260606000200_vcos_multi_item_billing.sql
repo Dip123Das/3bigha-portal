@@ -34,20 +34,28 @@ on public.inventory_bill_items(vendor_user_id);
 
 alter table public.inventory_bill_items enable row level security;
 
+drop policy if exists "inventory_bill_items_select_own" on public.inventory_bill_items;
+
 create policy "inventory_bill_items_select_own"
 on public.inventory_bill_items
 for select
 using (auth.uid() = vendor_user_id);
+
+drop policy if exists "inventory_bill_items_insert_own" on public.inventory_bill_items;
 
 create policy "inventory_bill_items_insert_own"
 on public.inventory_bill_items
 for insert
 with check (auth.uid() = vendor_user_id);
 
+drop policy if exists "inventory_bill_items_update_own" on public.inventory_bill_items;
+
 create policy "inventory_bill_items_update_own"
 on public.inventory_bill_items
 for update
 using (auth.uid() = vendor_user_id);
+
+drop policy if exists "inventory_bill_items_delete_own" on public.inventory_bill_items;
 
 create policy "inventory_bill_items_delete_own"
 on public.inventory_bill_items

@@ -750,11 +750,11 @@ export default function VendorWorkspacePage() {
     loadWorkspace();
   }, [supabase]);
   return (
-    <main className="min-h-screen bg-slate-50">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-3 py-4 md:px-6">
+    <main className="overflow-x-hidden min-h-screen bg-slate-50">
+      <div className="mx-auto flex w-full max-w-7xl overflow-x-hidden flex-col gap-4 px-3 py-4 md:px-6">
 
-        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex flex-col gap-3 md:flex-col sm:flex-row md:items-center md:justify-between">
 
             <div>
               <h1 className="text-xl font-bold tracking-tight text-slate-900">
@@ -773,7 +773,7 @@ export default function VendorWorkspacePage() {
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 sm:grid-cols-2 xl:sm:grid-cols-2 lg:grid-cols-4">
           {[
             ["Inventory Items", String(stats.inventoryCount)],
             ["Pending Dues", `₹${stats.pendingDue.toLocaleString()}`],
@@ -784,7 +784,7 @@ export default function VendorWorkspacePage() {
           ].map(([title, value]) => (
             <div
               key={title}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
             >
               <p className="text-sm font-medium text-slate-500">
                 {title}
@@ -799,10 +799,10 @@ export default function VendorWorkspacePage() {
 
 
 
-        
-        <section className="rounded-[1.75rem] border border-slate-900 bg-slate-950 p-5 shadow-xl">
 
-          <div className="flex items-center justify-between flex-wrap gap-3">
+        <section className="rounded-[1.75rem] border border-slate-900 bg-slate-950 p-4 shadow-xl">
+
+          <div className="flex gap-2 sm:items-center sm:justify-between flex-wrap gap-3">
 
             <div>
               <h2 className="text-xl font-black text-white">
@@ -819,7 +819,7 @@ export default function VendorWorkspacePage() {
             </div>
           </div>
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:sm:grid-cols-2 lg:grid-cols-5">
 
             <div className="rounded-2xl bg-white/10 p-2.5">
               <p className="text-[11px] font-bold uppercase tracking-wide text-slate-300">
@@ -887,9 +887,9 @@ export default function VendorWorkspacePage() {
 
 
 
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="grid gap-3 sm:grid-cols-2 lg:sm:grid-cols-2 lg:grid-cols-3">
 
-          <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">
               Total ERP Revenue
             </p>
@@ -903,7 +903,7 @@ export default function VendorWorkspacePage() {
             </p>
           </div>
 
-          <div className="rounded-[1.75rem] border border-cyan-200 bg-cyan-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-cyan-200 bg-cyan-50 p-4 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wide text-cyan-700">
               Realized Revenue
             </p>
@@ -917,7 +917,7 @@ export default function VendorWorkspacePage() {
             </p>
           </div>
 
-          <div className="rounded-[1.75rem] border border-orange-200 bg-orange-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-orange-200 bg-orange-50 p-4 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wide text-orange-700">
               Unpaid Invoices
             </p>
@@ -933,12 +933,12 @@ export default function VendorWorkspacePage() {
         </section>
 
 
-        <section className="grid gap-3 lg:grid-cols-3">
+        <section className="grid gap-3 lg:sm:grid-cols-2 lg:grid-cols-3">
           {workspaceModules.map((module) => (
             <Link
               key={module.title}
               href={module.href}
-              className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow"
+              className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -979,9 +979,9 @@ export default function VendorWorkspacePage() {
 
 
 
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="grid gap-3 sm:grid-cols-2 lg:sm:grid-cols-2 lg:grid-cols-3">
 
-          <div className="rounded-[1.75rem] border border-indigo-200 bg-indigo-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-indigo-200 bg-indigo-50 p-4 shadow-sm">
 
             <p className="text-xs font-bold uppercase tracking-wide text-indigo-700">
               Throughput Score
@@ -996,7 +996,7 @@ export default function VendorWorkspacePage() {
             </p>
           </div>
 
-          <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
 
             <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">
               Profitability Forecast
@@ -1011,7 +1011,7 @@ export default function VendorWorkspacePage() {
             </p>
           </div>
 
-          <div className="rounded-[1.75rem] border border-cyan-200 bg-cyan-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-cyan-200 bg-cyan-50 p-4 shadow-sm">
 
             <p className="text-xs font-bold uppercase tracking-wide text-cyan-700">
               Orchestration Status
@@ -1030,9 +1030,9 @@ export default function VendorWorkspacePage() {
 
         <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
 
-          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
 
-            <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex gap-2 sm:items-center sm:justify-between flex-wrap gap-4">
               <div>
                 <h2 className="text-xl font-bold text-slate-900">
                   Adaptive Executive Cognition
@@ -1060,9 +1060,9 @@ export default function VendorWorkspacePage() {
             </div>
           </div>
 
-          <div className="rounded-[1.75rem] border border-blue-200 bg-blue-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-blue-200 bg-blue-50 p-4 shadow-sm">
 
-            <div className="flex items-center justify-between">
+            <div className="flex gap-2 sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold text-blue-950">
                   Throughput Analytics
@@ -1096,9 +1096,9 @@ export default function VendorWorkspacePage() {
 
         <section className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
 
-          <div className="rounded-[1.75rem] border border-slate-300 bg-white p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-slate-300 bg-white p-4 shadow-sm">
 
-            <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex gap-2 sm:items-center sm:justify-between flex-wrap gap-4">
 
               <div>
                 <h2 className="text-xl font-bold text-slate-900">
@@ -1127,9 +1127,9 @@ export default function VendorWorkspacePage() {
             </div>
           </div>
 
-          <div className="rounded-[1.75rem] border border-violet-200 bg-violet-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-violet-200 bg-violet-50 p-4 shadow-sm">
 
-            <div className="flex items-center justify-between">
+            <div className="flex gap-2 sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold text-violet-950">
                   Execution Momentum Engine
@@ -1160,9 +1160,9 @@ export default function VendorWorkspacePage() {
 
 
 
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="grid gap-3 sm:grid-cols-2 lg:sm:grid-cols-2 lg:grid-cols-3">
 
-          <div className="rounded-[1.75rem] border border-fuchsia-200 bg-fuchsia-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-fuchsia-200 bg-fuchsia-50 p-4 shadow-sm">
 
             <p className="text-xs font-bold uppercase tracking-wide text-fuchsia-700">
               Momentum Score
@@ -1177,7 +1177,7 @@ export default function VendorWorkspacePage() {
             </p>
           </div>
 
-          <div className="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-4 shadow-sm">
 
             <p className="text-xs font-bold uppercase tracking-wide text-rose-700">
               Automation Layer
@@ -1192,7 +1192,7 @@ export default function VendorWorkspacePage() {
             </p>
           </div>
 
-          <div className="rounded-[1.75rem] border border-lime-200 bg-lime-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-lime-200 bg-lime-50 p-4 shadow-sm">
 
             <p className="text-xs font-bold uppercase tracking-wide text-lime-700">
               Stabilization Status
@@ -1209,9 +1209,9 @@ export default function VendorWorkspacePage() {
         </section>
 
 
-        <section className="rounded-[1.75rem] border border-sky-200 bg-sky-50 p-5 shadow-sm">
+        <section className="rounded-[1.75rem] border border-sky-200 bg-sky-50 p-4 shadow-sm">
 
-          <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex gap-2 sm:items-center sm:justify-between flex-wrap gap-4">
 
             <div>
               <h2 className="text-xl font-bold text-sky-950">
@@ -1244,9 +1244,9 @@ export default function VendorWorkspacePage() {
 
         <section className="grid gap-4 lg:grid-cols-2">
 
-          <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
 
-            <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex gap-2 sm:items-center sm:justify-between flex-wrap gap-4">
 
               <div>
                 <h2 className="text-xl font-bold text-emerald-950">
@@ -1275,9 +1275,9 @@ export default function VendorWorkspacePage() {
             </div>
           </div>
 
-          <div className="rounded-[1.75rem] border border-red-200 bg-red-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-red-200 bg-red-50 p-4 shadow-sm">
 
-            <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex gap-2 sm:items-center sm:justify-between flex-wrap gap-4">
 
               <div>
                 <h2 className="text-xl font-bold text-red-950">
@@ -1308,9 +1308,9 @@ export default function VendorWorkspacePage() {
         </section>
 
 
-        <section className="rounded-[1.75rem] border border-amber-200 bg-amber-50 p-5 shadow-sm">
+        <section className="rounded-[1.75rem] border border-amber-200 bg-amber-50 p-4 shadow-sm">
 
-          <div className="flex items-center justify-between">
+          <div className="flex gap-2 sm:items-center sm:justify-between">
 
             <div>
               <h2 className="text-xl font-bold text-amber-950">
@@ -1346,12 +1346,12 @@ export default function VendorWorkspacePage() {
 
 
 
-        
 
 
-        <section className="grid gap-3 lg:grid-cols-3">
 
-          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="grid gap-3 lg:sm:grid-cols-2 lg:grid-cols-3">
+
+          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
               Operational Health Score
             </p>
@@ -1365,7 +1365,7 @@ export default function VendorWorkspacePage() {
             </p>
           </div>
 
-          <div className="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-4 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wide text-rose-700">
               Overdue Rentals
             </p>
@@ -1379,7 +1379,7 @@ export default function VendorWorkspacePage() {
             </p>
           </div>
 
-          <div className="rounded-[1.75rem] border border-violet-200 bg-violet-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-violet-200 bg-violet-50 p-4 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wide text-violet-700">
               Overdue Services
             </p>
@@ -1399,9 +1399,9 @@ export default function VendorWorkspacePage() {
 
         <section className="grid gap-4 md:grid-cols-2">
 
-          <div className="rounded-[1.75rem] border border-teal-200 bg-teal-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-teal-200 bg-teal-50 p-4 shadow-sm">
 
-            <div className="flex items-center justify-between">
+            <div className="flex gap-2 sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold text-teal-950">
                   Executive Business Intelligence
@@ -1452,9 +1452,9 @@ export default function VendorWorkspacePage() {
             </div>
           </div>
 
-          <div className="rounded-[1.75rem] border border-lime-200 bg-lime-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-lime-200 bg-lime-50 p-4 shadow-sm">
 
-            <div className="flex items-center justify-between">
+            <div className="flex gap-2 sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold text-lime-950">
                   Recovery Orchestration Engine
@@ -1486,9 +1486,9 @@ export default function VendorWorkspacePage() {
 
         <section className="grid gap-4 md:grid-cols-2">
 
-          <div className="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-rose-200 bg-rose-50 p-4 shadow-sm">
 
-            <div className="flex items-center justify-between">
+            <div className="flex gap-2 sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold text-rose-950">
                   Operational Anomaly Engine
@@ -1530,9 +1530,9 @@ export default function VendorWorkspacePage() {
             </div>
           </div>
 
-          <div className="rounded-[1.75rem] border border-indigo-200 bg-indigo-50 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-indigo-200 bg-indigo-50 p-4 shadow-sm">
 
-            <div className="flex items-center justify-between">
+            <div className="flex gap-2 sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xl font-bold text-indigo-950">
                   Forecasting Engine
@@ -1572,9 +1572,9 @@ export default function VendorWorkspacePage() {
         </section>
 
 
-        <section className="rounded-[1.75rem] border border-fuchsia-200 bg-fuchsia-50 p-5 shadow-sm">
+        <section className="rounded-[1.75rem] border border-fuchsia-200 bg-fuchsia-50 p-4 shadow-sm">
 
-          <div className="flex items-center justify-between">
+          <div className="flex gap-2 sm:items-center sm:justify-between">
             <div>
               <h2 className="text-xl font-bold text-fuchsia-950">
                 Autonomous Operational Recommendations
@@ -1607,9 +1607,9 @@ export default function VendorWorkspacePage() {
         </section>
 
 
-        <section className="rounded-[1.75rem] border border-blue-200 bg-blue-50 p-5 shadow-sm">
+        <section className="rounded-[1.75rem] border border-blue-200 bg-blue-50 p-4 shadow-sm">
 
-          <div className="flex items-center justify-between">
+          <div className="flex gap-2 sm:items-center sm:justify-between">
             <div>
               <h2 className="text-xl font-bold text-blue-950">
                 Executive Priority Engine
@@ -1644,9 +1644,9 @@ export default function VendorWorkspacePage() {
 
         <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
 
-          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
 
-            <div className="flex items-center justify-between">
+            <div className="flex gap-2 sm:items-center sm:justify-between">
               <h2 className="text-xl font-semibold text-slate-900">
                 Operational Event Stream
               </h2>
@@ -1687,11 +1687,11 @@ export default function VendorWorkspacePage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
 
-            <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+            <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
 
-              <div className="flex items-center justify-between">
+              <div className="flex gap-2 sm:items-center sm:justify-between">
                 <h2 className="text-xl font-semibold text-slate-900">
                   Executive Operations
                 </h2>
@@ -1714,9 +1714,9 @@ export default function VendorWorkspacePage() {
               </div>
             </section>
 
-            <section className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm">
+            <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
 
-              <div className="flex items-center justify-between">
+              <div className="flex gap-2 sm:items-center sm:justify-between">
                 <h2 className="text-xl font-semibold text-slate-900">
                   AI Operational Copilot
                 </h2>

@@ -34,20 +34,36 @@ on public.inventory_entities(entity_type);
 
 alter table public.inventory_entities enable row level security;
 
+drop policy if exists "inventory_entities_select_own" on public.inventory_entities;
+
+drop policy if exists "inventory_entities_select_own" on public.inventory_entities;
+
 create policy "inventory_entities_select_own"
 on public.inventory_entities
 for select
 using (auth.uid() = vendor_user_id);
+
+drop policy if exists "inventory_entities_insert_own" on public.inventory_entities;
+
+drop policy if exists "inventory_entities_insert_own" on public.inventory_entities;
 
 create policy "inventory_entities_insert_own"
 on public.inventory_entities
 for insert
 with check (auth.uid() = vendor_user_id);
 
+drop policy if exists "inventory_entities_update_own" on public.inventory_entities;
+
+drop policy if exists "inventory_entities_update_own" on public.inventory_entities;
+
 create policy "inventory_entities_update_own"
 on public.inventory_entities
 for update
 using (auth.uid() = vendor_user_id);
+
+drop policy if exists "inventory_entities_delete_own" on public.inventory_entities;
+
+drop policy if exists "inventory_entities_delete_own" on public.inventory_entities;
 
 create policy "inventory_entities_delete_own"
 on public.inventory_entities

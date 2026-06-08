@@ -17,11 +17,15 @@ on public.operational_events(vendor_user_id, created_at desc);
 alter table public.operational_events enable row level security;
 
 drop policy if exists "operational_events_select_own" on public.operational_events;
+drop policy if exists "operational_events_select_own" on public.operational_events;
+
 create policy "operational_events_select_own"
 on public.operational_events for select
 using (auth.uid() = vendor_user_id);
 
 drop policy if exists "operational_events_insert_own" on public.operational_events;
+drop policy if exists "operational_events_insert_own" on public.operational_events;
+
 create policy "operational_events_insert_own"
 on public.operational_events for insert
 with check (auth.uid() = vendor_user_id);
@@ -83,6 +87,8 @@ on public.rental_bookings(vendor_user_id, created_at desc);
 alter table public.rental_bookings enable row level security;
 
 drop policy if exists "rental_bookings_manage_own" on public.rental_bookings;
+drop policy if exists "rental_bookings_manage_own" on public.rental_bookings;
+
 create policy "rental_bookings_manage_own"
 on public.rental_bookings for all
 using (auth.uid() = vendor_user_id)
@@ -114,6 +120,8 @@ on public.service_work_orders(vendor_user_id, created_at desc);
 alter table public.service_work_orders enable row level security;
 
 drop policy if exists "service_work_orders_manage_own" on public.service_work_orders;
+drop policy if exists "service_work_orders_manage_own" on public.service_work_orders;
+
 create policy "service_work_orders_manage_own"
 on public.service_work_orders for all
 using (auth.uid() = vendor_user_id)

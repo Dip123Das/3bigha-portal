@@ -40,7 +40,7 @@ type Row = {
   custom_category: string | null;
   custom_subcategory: string | null;
 
-  service_description: string | null;
+  description: string | null;
 
   pricing_kind: string | null;
   min_price: number | null;
@@ -141,7 +141,7 @@ export default function MyServicesPage() {
           "custom_service",
           "custom_category",
           "custom_subcategory",
-          "service_description",
+          "description",
           "pricing_kind",
           "min_price",
           "max_price",

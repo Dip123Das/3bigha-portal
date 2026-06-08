@@ -38,20 +38,36 @@ on public.rental_assets(vendor_user_id);
 
 alter table public.rental_assets enable row level security;
 
+drop policy if exists "rental_assets_select_own" on public.rental_assets;
+
+drop policy if exists "rental_assets_select_own" on public.rental_assets;
+
 create policy "rental_assets_select_own"
 on public.rental_assets
 for select
 using (auth.uid() = vendor_user_id);
+
+drop policy if exists "rental_assets_insert_own" on public.rental_assets;
+
+drop policy if exists "rental_assets_insert_own" on public.rental_assets;
 
 create policy "rental_assets_insert_own"
 on public.rental_assets
 for insert
 with check (auth.uid() = vendor_user_id);
 
+drop policy if exists "rental_assets_update_own" on public.rental_assets;
+
+drop policy if exists "rental_assets_update_own" on public.rental_assets;
+
 create policy "rental_assets_update_own"
 on public.rental_assets
 for update
 using (auth.uid() = vendor_user_id);
+
+drop policy if exists "rental_assets_delete_own" on public.rental_assets;
+
+drop policy if exists "rental_assets_delete_own" on public.rental_assets;
 
 create policy "rental_assets_delete_own"
 on public.rental_assets

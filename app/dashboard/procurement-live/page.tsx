@@ -559,7 +559,7 @@ export default function ProcurementLivePage() {
   const summary = data?.summary || {};
 
   return (
-    <main className="min-h-screen bg-[#f6f7fb] p-6">
+    <main className="min-h-screen bg-[#f6f7fb] p-4">
       <div className="mx-auto max-w-7xl">
         <CompressionZone
           title="Operational intelligence"
@@ -613,7 +613,7 @@ export default function ProcurementLivePage() {
         </div>
 
 
-        <div className={`mt-6 rounded-[1.5rem] border p-5 shadow-sm ${
+        <div className={`mt-6 rounded-[1.5rem] border p-4 shadow-sm ${
           cognition?.cognition?.predictiveRisk === "critical"
             ? "border-rose-200 bg-rose-50 text-rose-900"
             : cognition?.cognition?.predictiveRisk === "high"
@@ -622,7 +622,7 @@ export default function ProcurementLivePage() {
                 ? "border-blue-200 bg-blue-50 text-blue-900"
                 : "border-emerald-200 bg-emerald-50 text-emerald-900"
         }`}>
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-col sm:flex-row md:items-start md:justify-between">
             <div>
               <div className="text-xs font-black uppercase tracking-[0.14em]">
                 Live Predictive Cognition
@@ -675,8 +675,8 @@ export default function ProcurementLivePage() {
           </div>
         </div>
 
-        <div className="mt-6 rounded-[1.75rem] border border-blue-100 bg-blue-50/70 p-5 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="mt-6 rounded-[1.75rem] border border-blue-100 bg-blue-50/70 p-4 shadow-sm">
+          <div className="flex flex-col gap-4 md:flex-col sm:flex-row md:items-start md:justify-between">
             <div className="max-w-3xl">
               <div className="text-xs font-black uppercase tracking-[0.16em] text-blue-700">
                 Executive Cognitive Orchestration
@@ -764,7 +764,7 @@ export default function ProcurementLivePage() {
               </div>
             </div>
 
-            <div className="grid min-w-[240px] grid-cols-2 gap-3">
+            <div className="grid sm:min-w-[240px] grid-cols-2 gap-3">
               {[
                 {
                   label: "Focus",
@@ -817,7 +817,7 @@ export default function ProcurementLivePage() {
           />
         </CompressionZone>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-4">
+        <div className="mt-8 grid gap-4 md:sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="Total" value={summary.total || 0} />
           <Stat label="Critical" value={summary.critical || 0} />
           <Stat label="High" value={summary.high || 0} />
@@ -830,7 +830,7 @@ export default function ProcurementLivePage() {
           open={showTelemetryStats}
           onToggle={() => setShowTelemetryStats((v) => !v)}
         >
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:sm:grid-cols-2 lg:grid-cols-4">
             <Stat label="Medium" value={summary.medium || 0} />
             <Stat label="Memory" value={summary.memory || 0} />
             <Stat label="RFQ" value={summary.rfq || 0} />
@@ -912,7 +912,7 @@ export default function ProcurementLivePage() {
         </div>
 
         <div className="mt-8 proc-shell-xl">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-2 md:flex-col sm:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-2xl font-black text-slate-950">
                 Adaptive Live Event Stream
@@ -949,10 +949,10 @@ export default function ProcurementLivePage() {
                   key={`${event.id}-${event.eventType}`}
                   href={event.href || "/dashboard/procurement-live"}
                   className={`block rounded-[1.35rem] border border-slate-200 bg-slate-50 transition hover:border-slate-300 hover:bg-white ${
-                    compactEvents ? "p-4" : "p-5"
+                    compactEvents ? "p-4" : "p-4"
                   }`}
                 >
-                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div className="flex flex-col gap-3 md:flex-col sm:flex-row md:items-start md:justify-between">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span
@@ -996,7 +996,7 @@ export default function ProcurementLivePage() {
                       ) : null}
                     </div>
 
-                    <div className="min-w-[96px] text-left md:text-right">
+                    <div className="sm:min-w-[96px] text-left md:text-right">
                       <div className={`${compactEvents ? "text-xl" : "text-3xl"} font-black text-slate-950`}>
                         {eventAttention(event).attentionScore}
                       </div>
@@ -1043,7 +1043,7 @@ function CompressionZone({
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-4 text-left"
+        className="flex w-full gap-2 sm:items-center sm:justify-between gap-4 text-left"
       >
         <div>
           <div className="text-base font-black text-slate-950">{title}</div>
