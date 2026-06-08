@@ -1,5 +1,8 @@
 "use client";
 
+import ExecutiveFlowMemory from "@/components/flow/ExecutiveFlowMemory";
+
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import ProcurementCommandCenterNav from "@/app/components/procurement/ProcurementCommandCenterNav";
@@ -229,7 +232,7 @@ export default function ProcurementLivePage() {
     );
   }, [events, filter]);
 
-  function eventAttention(event: LiveEvent) {
+  function eventPriority(event: LiveEvent) {
     const activityAt = event.updated_at || event.createdAt;
     const activityAgeHours = activityAt
       ? Math.max(
@@ -288,7 +291,7 @@ export default function ProcurementLivePage() {
 
   const sortedEvents = sortByOperationalAttention(
     filteredEvents,
-    eventAttention
+    eventPriority
   );
 
   const priorityEvents = sortedEvents.filter((event) =>
@@ -572,6 +575,7 @@ export default function ProcurementLivePage() {
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] p-4">
+      <ExecutiveFlowMemory pageKey="procurement-live" />
       <div className="mx-auto max-w-7xl">
         <CompressionZone
           title="Operational intelligence"
@@ -591,12 +595,12 @@ export default function ProcurementLivePage() {
             <OperationalRecoveryFeed />
           </div>
         </CompressionZone>
-        <div className="overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-cyan-950 to-emerald-950 p-10 text-white shadow-2xl">
-          <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
+        <div className="overflow-hidden rounded-[2rem] bg-gradient-to-r from-slate-950 via-cyan-950 to-emerald-950 p-5 md:p-8 lg:p-10 text-white shadow-xl">
+          <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-[11px] font-bold uppercase tracking-[0.14em]">
             Live Procurement Event Feed
           </div>
 
-          <h1 className="mt-6 text-5xl font-black">
+          <h1 className="mt-4 text-2xl font-bold md:mt-6 md:text-4xl">
             Procurement Live Situation Flow
           </h1>
 
@@ -605,7 +609,7 @@ export default function ProcurementLivePage() {
             procurement-risk signals flowing into one operational command stream.
           </p>
 
-          <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 px-6 py-4 text-sm font-bold text-slate-100">
+          <div className="mt-4 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-[13px] font-bold leading-5 text-slate-100 md:mt-6 md:px-6 md:py-4 md:text-sm">
             {data?.executiveSignal || "Loading live procurement intelligence..."}
           </div>
 
@@ -620,7 +624,7 @@ export default function ProcurementLivePage() {
           ) : null}
         </div>
 
-        <div className="mt-8">
+        <div className="mt-5 md:mt-8">
           <ProcurementCommandCenterNav />
         </div>
 
@@ -640,7 +644,7 @@ export default function ProcurementLivePage() {
                 Live Predictive Cognition
               </div>
 
-              <div className="mt-2 text-2xl font-black">
+              <div className="mt-2 text-xl font-bold">
                 {(cognition?.cognition?.trajectory || "stable")} · {(cognition?.cognition?.predictiveRisk || "low")}
               </div>
 
@@ -694,7 +698,7 @@ export default function ProcurementLivePage() {
                 Executive Cognitive Orchestration
               </div>
 
-              <div className="mt-2 text-2xl font-black text-slate-950">
+              <div className="mt-2 text-xl font-bold text-slate-950">
                 {getExecutiveCognitiveLabel(executiveCognitiveState)}
               </div>
               <div className="mt-2 inline-flex rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-black text-blue-700">
@@ -829,7 +833,7 @@ export default function ProcurementLivePage() {
           />
         </CompressionZone>
 
-        <div className="mt-8 grid gap-4 md:sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-5 grid gap-3 md:mt-8 md:sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="Total" value={summary.total || 0} />
           <Stat label="Critical" value={summary.critical || 0} />
           <Stat label="High" value={summary.high || 0} />
@@ -870,7 +874,7 @@ export default function ProcurementLivePage() {
           </div>
         </CompressionZone>
 
-        <div className="mt-8 rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mt-5 rounded-[1.5rem] border border-slate-200 bg-white p-3 shadow-sm md:mt-8 md:rounded-[1.75rem] md:p-4">
           <div className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-slate-500">
             Operational filters
           </div>
@@ -889,7 +893,7 @@ export default function ProcurementLivePage() {
               key={key}
               type="button"
               onClick={() => setFilter(key)}
-              className={`rounded-full px-5 py-3 text-sm font-black transition ${
+              className={`rounded-full px-4 py-2.5 text-sm font-semibold transition ${
                 filter === key
                   ? "bg-slate-950 text-white"
                   : "border border-slate-300 bg-white text-slate-800"
@@ -902,44 +906,44 @@ export default function ProcurementLivePage() {
           <button
             type="button"
             onClick={() => setCompactEvents((v) => !v)}
-            className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+            className="rounded-full border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800"
           >
             {compactEvents ? "Expanded stream" : "Compact stream"}
           </button>
 
           <Link
             href="/dashboard/procurement-mission-control"
-            className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+            className="rounded-full border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800"
           >
             Work Desk
           </Link>
 
           <Link
             href="/dashboard/procurement-autonomous-tasks"
-            className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-black text-slate-800"
+            className="rounded-full border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800"
           >
             Pending Tasks
           </Link>
           </div>
         </div>
 
-        <div className="mt-8 proc-shell-xl">
+        <div className="mt-5 proc-shell-xl md:mt-8">
           <div className="flex flex-col gap-2 md:flex-col sm:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-2xl font-black text-slate-950">
+              <h2 className="text-xl font-bold text-slate-950">
                 Adaptive Live Event Stream
               </h2>
               <p className="mt-1 text-sm font-semibold text-slate-500">
-                Showing {visibleEvents.length} sequentially organized operational signals from {events.length} live procurement activities.
+                Showing {visibleEvents.length} prioritized live updates from {events.length} procurement activities.
               </p>
             </div>
 
             <LiveProcurementRefreshBadge label="Live feed auto-refresh" />
           </div>
 
-          <div className="mt-6 space-y-4">
+          <div className="mt-4 space-y-3 md:mt-6 md:space-y-4">
             {visibleEvents.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-sm font-bold text-slate-500">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm font-bold text-slate-500 md:p-8">
                 No live procurement events found for this filter.
               </div>
             ) : (
@@ -961,7 +965,7 @@ export default function ProcurementLivePage() {
                   key={`${event.id}-${event.eventType}`}
                   href={event.href || "/dashboard/procurement-live"}
                   className={`block rounded-[1.35rem] border border-slate-200 bg-slate-50 transition hover:border-slate-300 hover:bg-white ${
-                    compactEvents ? "p-4" : "p-4"
+                    compactEvents ? "p-3" : "p-4"
                   }`}
                 >
                   <div className="flex flex-col gap-3 md:flex-col sm:flex-row md:items-start md:justify-between">
@@ -972,13 +976,13 @@ export default function ProcurementLivePage() {
                             event.tone
                           )}`}
                         >
-                          {normalizedUrgency.label} · {event.module || "procurement"}
+                          {normalizedUrgency.label}
                         </span>
 
                         {!compactEvents ? (
                           <>
                             <span className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-slate-700">
-                              {String(event.eventType || "event").replace(/_/g, " ")}
+                              {compactEvents ? "Details" : String(event.eventType || "event").replace(/_/g, " ")}
                             </span>
 
                             <ProcurementDecayBadge
@@ -993,29 +997,29 @@ export default function ProcurementLivePage() {
                         ) : null}
                       </div>
 
-                      <div className={`${compactEvents ? "mt-2 text-base" : "mt-3 text-lg"} font-black text-slate-950`}>
+                      <div className={`${compactEvents ? "mt-1 text-[15px]" : "mt-2 text-lg"} leading-tight font-black text-slate-950`}>
                         {event.title}
                       </div>
 
-                      <div className="mt-1 text-sm font-semibold leading-6 text-slate-600">
-                        {event.description || event.signal || "Procurement event detected."}
+                      <div className="mt-1 text-[13px] font-medium leading-5 text-slate-600">
+                        {event.description || event.signal || "Live workflow update."}
                       </div>
 
                       {event.action ? (
-                        <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-800">
+                        <div className="mt-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12px] font-black text-emerald-800">
                           ðŸ¤– Next action: {event.action}
                         </div>
                       ) : null}
                     </div>
 
                     <div className="sm:min-w-[96px] text-left md:text-right">
-                      <div className={`${compactEvents ? "text-xl" : "text-3xl"} font-black text-slate-950`}>
-                        {eventAttention(event).attentionScore}
+                      <div className={`${compactEvents ? "text-lg" : "text-2xl"} leading-none font-black text-slate-950`}>
+                        {eventPriority(event).attentionScore}
                       </div>
-                      <div className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
-                        Attention
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.10em] text-slate-500">
+                        Priority
                       </div>
-                      <div className={`${compactEvents ? "mt-1" : "mt-3"} text-xs font-bold text-slate-500`}>
+                      <div className={`${compactEvents ? "mt-0.5" : "mt-2"} text-[11px] font-medium text-slate-400`}>
                         {fmt(event.updated_at || event.createdAt)}
                       </div>
                     </div>
@@ -1027,7 +1031,7 @@ export default function ProcurementLivePage() {
 
             {hiddenNormalCount > 0 ? (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-black text-slate-600">
-                {hiddenNormalCount} lower-attention operational signals compressed. Use Expanded stream to inspect all.
+                {hiddenNormalCount} low-priority updates compressed. Expand stream to inspect all.
               </div>
             ) : null}
           </div>

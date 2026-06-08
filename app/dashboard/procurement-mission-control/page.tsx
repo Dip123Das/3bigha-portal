@@ -518,11 +518,11 @@ const executivePriority = evaluateExecutivePriority({
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-6">
       <div className="proc-density-hero border border-slate-200 bg-gradient-to-r from-slate-950 via-indigo-950 to-rose-950 text-white shadow-sm">
-        <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]">
+        <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]">
           Enterprise Procurement Work Desk
         </div>
 
-        <h1 className="mt-4 text-4xl font-black">
+        <h1 className="mt-4 text-3xl font-bold">
           AI Procurement Work Desk
         </h1>
 
@@ -581,7 +581,7 @@ const executivePriority = evaluateExecutivePriority({
               Executive Procurement Synthesis
             </div>
 
-            <div className="mt-2 text-2xl font-black">
+            <div className="mt-2 text-xl font-bold">
               {executiveData?.synthesis?.executiveMode || "executive-stable"}
             </div>
 
@@ -610,7 +610,7 @@ const executivePriority = evaluateExecutivePriority({
                 key={directive.title}
                 className="rounded-xl border border-white/30 bg-white/40 px-3 py-2"
               >
-                <div className="text-sm font-black">
+                <div className="text-sm font-semibold">
                   {directive.title}
                 </div>
 
@@ -928,7 +928,7 @@ const executivePriority = evaluateExecutivePriority({
               Executive Continuity Intelligence
             </div>
 
-            <div className="mt-2 text-2xl font-black">
+            <div className="mt-2 text-xl font-bold">
               {continuityData?.continuity?.continuityMode || "continuity-stable"}
             </div>
 
@@ -957,7 +957,7 @@ const executivePriority = evaluateExecutivePriority({
                 key={directive.title}
                 className="rounded-xl border border-white/30 bg-white/40 px-3 py-2"
               >
-                <div className="text-sm font-black">
+                <div className="text-sm font-semibold">
                   {directive.title}
                 </div>
 
@@ -988,7 +988,7 @@ const executivePriority = evaluateExecutivePriority({
               Adaptive Executive Resilience
             </div>
 
-            <div className="mt-2 text-2xl font-black">
+            <div className="mt-2 text-xl font-bold">
               {resilienceData?.resilience?.resilienceMode || "normal-visibility"}
             </div>
 
@@ -1017,7 +1017,7 @@ const executivePriority = evaluateExecutivePriority({
                 key={item.title}
                 className="rounded-xl border border-white/30 bg-white/40 px-3 py-2"
               >
-                <div className="text-sm font-black">
+                <div className="text-sm font-semibold">
                   {item.title}
                 </div>
 
@@ -1050,7 +1050,7 @@ const executivePriority = evaluateExecutivePriority({
               Predictive Procurement Cognition
             </div>
 
-            <div className="mt-2 text-2xl font-black">
+            <div className="mt-2 text-xl font-bold">
               {cognition.trajectory || "stable"} • {cognition.predictiveRisk || "low"}
             </div>
 
@@ -1126,7 +1126,7 @@ const executivePriority = evaluateExecutivePriority({
               Operational Self-Stabilization
             </div>
 
-            <div className="mt-2 text-2xl font-black">
+            <div className="mt-2 text-xl font-bold">
               {stabilizationData?.stabilization?.stabilizationMode || "stable-monitoring"}
             </div>
 
@@ -1155,7 +1155,7 @@ const executivePriority = evaluateExecutivePriority({
                 key={action.title}
                 className="rounded-xl border border-white/30 bg-white/40 px-3 py-2"
               >
-                <div className="text-sm font-black">
+                <div className="text-sm font-semibold">
                   {action.title}
                 </div>
 
@@ -1186,7 +1186,7 @@ const executivePriority = evaluateExecutivePriority({
               Strategic Procurement Orchestration
             </div>
 
-            <div className="mt-2 text-2xl font-black">
+            <div className="mt-2 text-xl font-bold">
               {strategicData?.orchestration?.orchestrationMode || "strategic-stable"}
             </div>
 
@@ -1215,7 +1215,7 @@ const executivePriority = evaluateExecutivePriority({
                 key={directive.title}
                 className="rounded-xl border border-white/30 bg-white/40 px-3 py-2"
               >
-                <div className="text-sm font-black">
+                <div className="text-sm font-semibold">
                   {directive.title}
                 </div>
 
@@ -1237,7 +1237,7 @@ const executivePriority = evaluateExecutivePriority({
         <div className="text-xs font-black uppercase tracking-[0.14em]">
           Current Operating Condition
         </div>
-        <div className="mt-2 text-2xl font-black">
+        <div className="mt-2 text-xl font-bold">
           {mission.healthStatus || "Unknown"} • {mission.executionMode || "unknown"}
         </div>
         <div className="mt-3 text-sm font-semibold leading-5">
@@ -1253,7 +1253,7 @@ const executivePriority = evaluateExecutivePriority({
             <div className="proc-density-shell border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-2xl font-black text-slate-950">
+            <h2 className="text-xl font-bold text-slate-950">
               AI Procurement Recovery Work Desk
             </h2>
 
@@ -1263,11 +1263,11 @@ const executivePriority = evaluateExecutivePriority({
           </div>
 
           <div className="flex flex-wrap gap-1.5">
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-black text-emerald-700">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700">
               Readiness: {recoveryData?.readinessScore || 0}
             </div>
 
-            <div className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-black text-blue-700">
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-700">
               Stabilization: {recoveryData?.stabilizationScore || 0}
             </div>
           </div>
@@ -1326,12 +1326,12 @@ const executivePriority = evaluateExecutivePriority({
                 </span>
               </div>
 
-              <div className="mt-4 text-2xl font-black text-slate-950">
+              <div className="mt-4 text-xl font-bold text-slate-950">
                 {item.title}
               </div>
 
               <div className="mt-3">
-                <div className="flex items-center justify-between text-sm font-black text-slate-700">
+                <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
                   <span>Recovery Probability</span>
                   <span>{item.probability}%</span>
                 </div>
@@ -1388,7 +1388,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
       <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">
         {label}
       </div>
-      <div className="mt-2 text-2xl font-black text-slate-950">{value}</div>
+      <div className="mt-2 text-xl font-bold text-slate-950">{value}</div>
     </div>
   );
 }
@@ -1442,7 +1442,7 @@ function Shortcut({
       className="proc-density-metric border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50"
     >
       <div className="text-2xl">{icon}</div>
-      <div className="mt-3 text-sm font-black text-slate-950">{title}</div>
+      <div className="mt-3 text-sm font-semibold text-slate-950">{title}</div>
     </Link>
   );
 }

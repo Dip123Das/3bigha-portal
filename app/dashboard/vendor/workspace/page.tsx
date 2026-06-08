@@ -1,4 +1,6 @@
 "use client";
+import ExecutiveFlowMemory from "@/components/flow/ExecutiveFlowMemory";
+
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -531,7 +533,7 @@ export default function VendorWorkspacePage() {
 
       if (forecastPressure === "High") {
         forecasts.push(
-          "Operational workload escalation likely."
+          "Workload escalation likely."
         );
 
         forecasts.push(
@@ -547,7 +549,7 @@ export default function VendorWorkspacePage() {
 
       if (!forecasts.length) {
         forecasts.push(
-          "Operational forecasting remains stable."
+          "Forecast remains stable."
         );
       }
 
@@ -569,7 +571,7 @@ export default function VendorWorkspacePage() {
 
       if (!workloads.length) {
         workloads.push(
-          "Operational workload distribution stable."
+          "Workload distribution stable."
         );
       }
 
@@ -641,7 +643,7 @@ export default function VendorWorkspacePage() {
 
       if (executionVelocity === "Slow") {
         throughputs.push(
-          "Operational throughput degradation detected."
+          "Throughput degradation detected."
         );
       }
 
@@ -670,7 +672,7 @@ export default function VendorWorkspacePage() {
 
       if (throughputScore >= 85) {
         momentum.push(
-          "Operational momentum progressing strongly."
+          "Momentum progressing strongly."
         );
       }
 
@@ -710,7 +712,7 @@ export default function VendorWorkspacePage() {
 
       if (!orchestration.length) {
         orchestration.push(
-          "Operational orchestration remains stable."
+          "Execution orchestration stable."
         );
       }
 
@@ -748,7 +750,7 @@ export default function VendorWorkspacePage() {
 
       if (!automation.length) {
         automation.push(
-          "Operational automation remains stable."
+          "Automation remains stable."
         );
       }
 
@@ -776,7 +778,7 @@ export default function VendorWorkspacePage() {
 
       if (!stabilization.length) {
         stabilization.push(
-          "Operational stability maintained."
+          "Stability maintained."
         );
       }
 
@@ -818,6 +820,7 @@ export default function VendorWorkspacePage() {
   return (
     <main className="overflow-x-hidden min-h-screen bg-slate-50">
       <div className="mx-auto flex w-full max-w-7xl overflow-x-hidden flex-col gap-4 px-3 py-4 md:px-6">
+        <ExecutiveFlowMemory pageKey="vendor-workspace" />
 
         <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex flex-col gap-3 md:flex-col sm:flex-row md:items-center md:justify-between">
@@ -1038,7 +1041,7 @@ export default function VendorWorkspacePage() {
               href={module.href}
               className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow"
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-semibold text-slate-900">
                     {module.title}
@@ -1124,7 +1127,7 @@ export default function VendorWorkspacePage() {
 
           <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
             <summary className="cursor-pointer text-sm font-black text-slate-900">
-              Open advanced AI intelligence layers
+              Open advanced intelligence layers
             </summary>
 
             <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -1160,17 +1163,17 @@ export default function VendorWorkspacePage() {
         </section>
 
 
-        <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+        <section className="grid gap-3 lg:grid-cols-[1.15fr_0.85fr] lg:gap-4">
 
           <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
 
             <div className="flex gap-2 sm:items-center sm:justify-between">
               <h2 className="text-xl font-semibold text-slate-900">
-                Operational Event Stream
+                Live Event Stream
               </h2>
 
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-                Unified Operational Timeline
+                Unified Timeline
               </span>
             </div>
 
@@ -1178,13 +1181,13 @@ export default function VendorWorkspacePage() {
               {(liveEvents.length ? liveEvents : operationalFeed).slice(0, 6).map((event: any) => (
                 <div
                   key={event.id}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-3"
                 >
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-3 md:gap-4">
 
                     <div>
                       <p className="font-semibold text-slate-900">
-                        {event.title || event.event_type || "Operational Event"}
+                        {event.title || event.event_type || "Live Event"}
                       </p>
 
                       <p className="mt-1 text-sm text-slate-600">
@@ -1205,7 +1208,7 @@ export default function VendorWorkspacePage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3 md:gap-4">
 
             <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
 
@@ -1236,7 +1239,7 @@ export default function VendorWorkspacePage() {
 
               <div className="flex gap-2 sm:items-center sm:justify-between">
                 <h2 className="text-xl font-semibold text-slate-900">
-                  AI Operational Copilot
+                  AI Copilot
                 </h2>
 
                 <span className="rounded-full bg-indigo-100 px-3 py-1 text-xs font-semibold text-indigo-700">

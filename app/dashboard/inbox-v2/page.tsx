@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ExecutiveFlowMemory from "@/components/flow/ExecutiveFlowMemory";
 import InboxAutoFocus from "@/app/components/inbox/InboxAutoFocus";
 import FloatingUnreadButton from "@/app/components/inbox/FloatingUnreadButton";
 import ActiveSectionTracker from "@/app/components/inbox/ActiveSectionTracker";
@@ -945,7 +946,7 @@ function RecentActivityStrip({
         <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-slate-950">
-              Recent Activity
+              Live Activity
             </h2>
             <p className="mt-1 text-sm text-slate-500">
               Latest 5 threads across RFQ, direct conversations, and investment
@@ -964,12 +965,12 @@ function RecentActivityStrip({
           No recent activity found.
         </div>
       ) : (
-        <div className="grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 p-3 md:grid-cols-2 xl:grid-cols-4">
           {items.map((item) => (
             <Link
               key={`recent-${item.id}`}
               href={item.href}
-              className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-slate-300 hover:bg-white"
+              className="rounded-2xl border border-slate-200 bg-slate-50 p-3 transition hover:border-slate-300 hover:bg-white"
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span
@@ -994,7 +995,7 @@ function RecentActivityStrip({
 
                 {latestUnreadItem && item.id === latestUnreadItem.id ? (
                   <span className="inline-flex rounded-full border border-slate-900 bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-white">
-                    Latest Unread
+                    Latest
                   </span>
                 ) : null}
               </div>
@@ -1568,12 +1569,13 @@ export default async function DashboardInboxV2Page({
   if (userErr || !user) {
     return (
       <OperationalPageShell>
+      <ExecutiveFlowMemory pageKey="inbox-v2" />
         <div className="rounded-[2rem] border border-amber-200 bg-amber-50 p-6 shadow-sm">
-          <div className="text-xs font-black uppercase tracking-[0.14em] text-amber-700">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.10em] text-amber-700">
             Session Required
           </div>
 
-          <h1 className="mt-2 text-2xl font-black text-slate-950">
+          <h1 className="mt-2 text-xl font-bold text-slate-950">
             Please login to continue your inbox work
           </h1>
 
@@ -1585,14 +1587,14 @@ export default async function DashboardInboxV2Page({
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
               href="/login"
-              className="inline-flex rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-black text-white"
+              className="inline-flex rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white"
             >
               Login Again
             </Link>
 
             <Link
               href="/"
-              className="inline-flex rounded-2xl border border-amber-300 bg-white px-4 py-2.5 text-sm font-black text-amber-800"
+              className="inline-flex rounded-2xl border border-amber-300 bg-white px-4 py-2.5 text-sm font-semibold text-amber-800"
             >
               Back Home
             </Link>
@@ -2059,7 +2061,7 @@ export default async function DashboardInboxV2Page({
           title: "Open latest unread",
           detail: `${titleCase(latestUnreadItem.module)} • ${latestUnreadItem.counterpart}`,
           href: latestUnreadItem.href,
-          badge: "Unread priority",
+          badge: "Priority",
           tone: "rose",
         }
       : {
@@ -2081,7 +2083,7 @@ export default async function DashboardInboxV2Page({
           title: "Create new RFQ",
           detail: "Start a fresh procurement workflow from the inbox workflow.",
           href: "/rfq/general/new",
-          badge: "New workflow",
+          badge: "New",
           tone: "blue",
         },
     autonomousOsStats.highRisk > 0
@@ -2093,7 +2095,7 @@ export default async function DashboardInboxV2Page({
           tone: "amber",
         }
       : {
-          title: "Monitor stable workflow",
+          title: "Monitor stable flow",
           detail: autonomousOsAction,
           href: "/dashboard/procurement-live",
           badge: "Stable",
@@ -2256,7 +2258,7 @@ export default async function DashboardInboxV2Page({
       />
 
       <WorkflowNextStepBar
-        title="Recommended next operational step"
+        title="Recommended next step"
         nextStep={operationalNextStep}
         actions={[
           {
@@ -2311,7 +2313,7 @@ export default async function DashboardInboxV2Page({
               </span>
 
               <span className="inline-flex items-center rounded-full border border-slate-900 bg-slate-900 px-3 py-1 text-xs font-semibold text-white">
-                Latest Unread = newest unread thread in current view
+                Latest = newest unread thread in current view
               </span>
             </div>
           </div>
@@ -2323,7 +2325,7 @@ export default async function DashboardInboxV2Page({
                   href={latestUnreadItem.href}
                   className="inline-flex items-center rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
                 >
-                  Open Latest Unread Thread
+                  Open Latest Thread
                 </Link>
               ) : null}
 
@@ -2364,8 +2366,8 @@ export default async function DashboardInboxV2Page({
       <StickyWorkflowCommandBar
         stage={operationalNextAction.stage}
         risk={operationalNextAction.risk}
-        nextAction={latestUnreadItem ? "Continue with the latest unread conversation." : procurementNextAction}
-        primaryLabel={latestUnreadItem ? "Open Latest Unread" : "View Inbox"}
+        nextAction={latestUnreadItem ? "Continue latest conversation." : procurementNextAction}
+        primaryLabel={latestUnreadItem ? "Open Latest" : "View Inbox"}
         primaryHref={latestUnreadItem?.href ?? "/dashboard/inbox-v2"}
         secondaryHref="/dashboard/procurement-os"
         secondaryLabel="Procurement Workspace"
@@ -2375,7 +2377,7 @@ export default async function DashboardInboxV2Page({
         eyebrow="Inbox Workflow"
         title="You are in Unified Inbox"
         status={`${filteredItems.length} thread(s), ${stats.unread} unread, ${recoveryStats.total} attention item(s).`}
-        nextAction={latestUnreadItem ? "Continue with the latest unread conversation." : procurementNextAction}
+        nextAction={latestUnreadItem ? "Continue latest conversation." : procurementNextAction}
         steps={[
           { label: "Inbox", done: true },
           { label: "Needs Attention", active: stats.unread > 0 || recoveryStats.total > 0 },
@@ -2385,7 +2387,7 @@ export default async function DashboardInboxV2Page({
         ]}
         actions={[
           latestUnreadItem
-            ? { label: "Open Latest Unread", href: latestUnreadItem.href, primary: true }
+            ? { label: "Open Latest", href: latestUnreadItem.href, primary: true }
             : { label: "View All Threads", href: "/dashboard/inbox-v2", primary: true },
           { label: "Priority Deals", href: buildInboxHref(params, { sort: "unread" }) },
           { label: "New RFQ", href: "/rfq/general/new" },
@@ -2395,11 +2397,11 @@ export default async function DashboardInboxV2Page({
 
       <OperationalWorkspacePanel
         title="Inbox Work Space"
-        nextAction={latestUnreadItem ? "Continue with the latest unread conversation." : procurementNextAction}
+        nextAction={latestUnreadItem ? "Continue latest conversation." : procurementNextAction}
         status={`${stats.unread} unread • ${recoveryStats.total} attention item(s)`}
         actions={[
           latestUnreadItem
-            ? { label: "Open Latest Unread", href: latestUnreadItem.href, tone: "primary" }
+            ? { label: "Open Latest", href: latestUnreadItem.href, tone: "primary" }
             : { label: "View All Threads", href: "/dashboard/inbox-v2", tone: "primary" },
           { label: "Priority Deals", href: buildInboxHref(params, { sort: "unread" }), tone: "warning" },
           { label: "New RFQ", href: "/rfq/general/new", tone: "success" },
@@ -2450,7 +2452,7 @@ export default async function DashboardInboxV2Page({
                 <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
                   {icon} {label}
                 </div>
-                <div className="mt-2 text-2xl font-black text-slate-950">
+                <div className="mt-2 text-xl font-bold text-slate-950">
                   {value}
                 </div>
               </div>
@@ -2523,7 +2525,7 @@ export default async function DashboardInboxV2Page({
                 <div className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
                   {icon} {label}
                 </div>
-                <div className="mt-2 text-2xl font-black text-slate-950">
+                <div className="mt-2 text-xl font-bold text-slate-950">
                   {value}
                 </div>
               </div>
@@ -2585,7 +2587,7 @@ export default async function DashboardInboxV2Page({
 
             <Link
               href="/dashboard/procurement-live"
-              className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-black text-white transition hover:bg-white/15"
+              className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
             >
               Open Procurement Live →
             </Link>
@@ -2606,7 +2608,7 @@ export default async function DashboardInboxV2Page({
                   {action.badge}
                 </span>
 
-                <div className="mt-3 text-lg font-black">{action.title}</div>
+                <div className="mt-3 text-base font-semibold">{action.title}</div>
                 <div className="mt-2 text-sm font-semibold leading-6 text-white/70">
                   {action.detail}
                 </div>
@@ -2645,11 +2647,11 @@ export default async function DashboardInboxV2Page({
       <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm md:p-5">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <div className="text-xs font-black uppercase tracking-[0.14em] text-blue-700">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.10em] text-blue-700">
               Conversation overview
             </div>
-            <div className="mt-1 text-lg font-black text-slate-950">
-              Important buyer/vendor conversation activity
+            <div className="mt-1 text-base font-semibold text-slate-950">
+              Important conversation activity
             </div>
             <div className="mt-1 text-sm font-semibold text-slate-500">
               {dealHealthAction}
@@ -2658,7 +2660,7 @@ export default async function DashboardInboxV2Page({
 
           <Link
             href={buildInboxHref(params, { sort: "unread" })}
-            className="inline-flex rounded-2xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-black text-white transition hover:opacity-90"
+            className="inline-flex rounded-2xl border border-slate-900 bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
           >
             Open Priority Deals →
           </Link>
@@ -2692,7 +2694,7 @@ export default async function DashboardInboxV2Page({
               <div className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">
                 {label}
               </div>
-              <div className="mt-1 text-xl font-black text-slate-950">
+              <div className="mt-1 text-lg font-bold text-slate-950">
                 {value}
               </div>
             </div>
@@ -2703,10 +2705,10 @@ export default async function DashboardInboxV2Page({
             <div className="rounded-[1.75rem] border border-rose-200 bg-gradient-to-r from-rose-50 via-white to-amber-50 p-4 shadow-sm md:p-5">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
-            <div className="text-xs font-black uppercase tracking-[0.14em] text-rose-700">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.10em] text-rose-700">
               Deals Needing Follow-up
             </div>
-            <div className="mt-1 text-lg font-black text-slate-950">
+            <div className="mt-1 text-base font-semibold text-slate-950">
               Conversations that need action before they lose momentum
             </div>
             <div className="mt-1 text-sm font-semibold text-slate-600">
@@ -2777,7 +2779,7 @@ export default async function DashboardInboxV2Page({
           href="#recent-activity"
           className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
         >
-          Recent Activity
+          Live Activity
         </a>
 
         <a
@@ -3184,7 +3186,7 @@ export default async function DashboardInboxV2Page({
 
       <div
         id="filters-section"
-        className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm"
+        className="rounded-[1.5rem] border border-slate-200 bg-white p-3 shadow-sm md:rounded-[1.75rem] md:p-5"
       >
         <form className="space-y-4" method="GET">
           <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
@@ -3203,7 +3205,7 @@ export default async function DashboardInboxV2Page({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-5 md:gap-4">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Search
@@ -3300,7 +3302,7 @@ export default async function DashboardInboxV2Page({
       {grouped.investment.length === 0 &&
         grouped.rfq.length === 0 &&
         grouped.direct.length === 0 && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 text-center md:p-10">
             <div className="text-sm font-semibold text-slate-700">
               No conversations found
             </div>
