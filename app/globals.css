@@ -4543,3 +4543,26 @@ main,
     flex-shrink: 0 !important;
   }
 }
+
+
+/* ===== MOBILE APP SEARCH BELOW ORIGINAL HEADER ===== */
+@media (max-width: 768px) {
+  .mobile-app-search-bar--fixed {
+    top: 118px !important;
+    z-index: 9990 !important;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05) !important;
+  }
+
+  body:has(.mobile-app-search-bar--fixed) {
+    padding-top: 72px !important;
+  }
+
+  header,
+  .siteHeader,
+  .topHeader,
+  .globalHeader {
+    position: relative !important;
+    z-index: 9999 !important;
+    background: #fff !important;
+  }
+}
