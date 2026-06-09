@@ -5164,3 +5164,22 @@ main,
     z-index: 100071 !important;
   }
 }
+
+
+/* ===== MOBILE ACCOUNT DROPDOWN DETAILS ===== */
+.mobileAccountPanelRole {
+  padding: 10px 12px 2px;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.mobileAccountPanelEmail {
+  padding: 0 12px 10px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 750;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
