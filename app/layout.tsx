@@ -361,11 +361,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 </div>
               </div>
             </details>
-
-            <div className="mobileAccountStrip">
-              <AuthButtons />
-            </div>
-          </Container>
+</Container>
 
           <div className="topSubBar">
             <Container className="topSubBarInner">
