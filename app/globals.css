@@ -4566,3 +4566,66 @@ main,
     background: #fff !important;
   }
 }
+
+
+/* ===== COMPACT MOBILE APP HEADER LAYOUT ===== */
+@media (max-width: 768px) {
+  header,
+  .siteHeader,
+  .topHeader,
+  .globalHeader {
+    min-height: 76px !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+
+  header img,
+  .siteHeader img,
+  .topHeader img,
+  .globalHeader img {
+    max-height: 34px !important;
+  }
+
+  header a[href="/login"],
+  header a[href*="/login"],
+  header button:has(+ span),
+  header .loginButton,
+  header .authButton {
+    order: -2 !important;
+  }
+
+  header a[href="/"],
+  header a[href="https://www.3bigha.com"],
+  header .logo,
+  header .brand,
+  .siteHeader .logo,
+  .topHeader .logo,
+  .globalHeader .logo {
+    position: absolute !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin: 0 !important;
+  }
+
+  header button[aria-label*="menu" i],
+  header button[aria-label*="open menu" i],
+  header button[aria-label*="navigation" i] {
+    margin-left: auto !important;
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .mobile-app-search-bar--fixed {
+    top: 86px !important;
+    padding: 6px 10px !important;
+  }
+
+  .mobile-app-search-bar--fixed input,
+  .mobile-app-search-bar--fixed button {
+    height: 38px !important;
+  }
+
+  body:has(.mobile-app-search-bar--fixed) {
+    padding-top: 54px !important;
+  }
+}
