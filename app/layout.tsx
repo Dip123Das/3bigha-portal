@@ -100,7 +100,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AppOAuthReturnBridge />
         <AppOAuthBrowserBounce />
       <body>
-        <MobileAppSearchBar />
         <PresenceHeartbeat currentPage="global" />
         <MobileMenuAutoClose />
         <AutoTranslatePage />
@@ -484,6 +483,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             </Container>
           </div>
         </header>
+
+        <MobileAppSearchBar />
 
         <DesktopMegaNavClient />
 

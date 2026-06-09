@@ -4963,3 +4963,46 @@ main,
     border-bottom: 1px solid #e2e8f0 !important;
   }
 }
+
+
+/* ===== FINAL HEADER ORDER FIX: LOGIN LOGO MENU THEN SEARCH ===== */
+@media (max-width: 768px) {
+  body:has(.mobile-app-search-bar) .mobileAccountStrip {
+    display: flex !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    justify-self: start !important;
+    align-items: center !important;
+    z-index: 10003 !important;
+  }
+
+  body:has(.mobile-app-search-bar) .topMobileMenu {
+    display: block !important;
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    justify-self: end !important;
+    z-index: 10003 !important;
+  }
+
+  body:has(.mobile-app-search-bar) header a[href="/"],
+  body:has(.mobile-app-search-bar) header img {
+    justify-self: center !important;
+  }
+
+  .mobile-app-search-bar {
+    display: block !important;
+    position: relative !important;
+    top: auto !important;
+    z-index: 9998 !important;
+    width: 100% !important;
+    padding: 6px 10px !important;
+    background: #fff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+
+  .mobile-app-search-inner {
+    display: flex !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+}
