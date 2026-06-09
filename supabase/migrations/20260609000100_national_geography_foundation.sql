@@ -1,0 +1,17 @@
+-- Phase 6A.1 National Geography Foundation
+-- Applied manually in Supabase SQL Editor on 2026-06-09.
+-- Created:
+-- geo_countries
+-- geo_states
+-- geo_districts
+-- geo_subdivisions
+-- geo_blocks
+-- geo_places
+--
+-- Seeded:
+-- India
+-- 36 Indian States / Union Territories
+-- 23 West Bengal districts
+-- 5 Cooch Behar subdivisions
+-- 12 Cooch Behar blocks
+-- Mahishbathan, Battala, Khagrabari
