@@ -5034,3 +5034,55 @@ main,
     z-index: 100052 !important;
   }
 }
+
+
+/* ===== TRUE CENTER MOBILE LOGO FIX ===== */
+@media (max-width: 768px) {
+  body:has(.mobile-app-search-bar) .topHeaderInner {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 78px !important;
+    padding: 10px 14px !important;
+  }
+
+  body:has(.mobile-app-search-bar) .mobileAccountStrip {
+    position: relative !important;
+    z-index: 10003 !important;
+    display: flex !important;
+    order: 1 !important;
+    margin-right: auto !important;
+  }
+
+  body:has(.mobile-app-search-bar) .topMobileMenu {
+    position: relative !important;
+    z-index: 100050 !important;
+    display: block !important;
+    order: 3 !important;
+    margin-left: auto !important;
+  }
+
+  body:has(.mobile-app-search-bar) header a[href="/"] {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 10001 !important;
+    margin: 0 !important;
+    pointer-events: none !important;
+  }
+
+  body:has(.mobile-app-search-bar) header a[href="/"] img,
+  body:has(.mobile-app-search-bar) header img {
+    max-height: 34px !important;
+    width: auto !important;
+    object-fit: contain !important;
+    pointer-events: none !important;
+  }
+
+  body:has(.mobile-app-search-bar) .topHamburger {
+    pointer-events: auto !important;
+    z-index: 100051 !important;
+  }
+}
