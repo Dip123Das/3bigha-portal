@@ -5111,3 +5111,56 @@ main,
     text-overflow: ellipsis !important;
   }
 }
+
+
+/* ===== FINAL MOBILE HEADER: ACCOUNT LEFT, LOGO TRUE CENTER, MENU RIGHT ===== */
+@media (max-width: 768px) {
+  body:has(.mobile-app-search-bar) .topHeaderInner {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 78px !important;
+    padding: 10px 14px !important;
+  }
+
+  body:has(.mobile-app-search-bar) .mobileAccountStrip {
+    display: flex !important;
+    position: relative !important;
+    z-index: 100060 !important;
+    margin-right: auto !important;
+    max-width: 118px !important;
+    overflow: hidden !important;
+  }
+
+  body:has(.mobile-app-search-bar) .mobileAccountStrip .topBtn {
+    max-width: 112px !important;
+    height: 42px !important;
+    padding: 0 14px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  body:has(.mobile-app-search-bar) header a[href="/"] {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 10001 !important;
+    margin: 0 !important;
+    pointer-events: none !important;
+  }
+
+  body:has(.mobile-app-search-bar) .topMobileMenu {
+    display: block !important;
+    position: relative !important;
+    z-index: 100070 !important;
+    margin-left: auto !important;
+  }
+
+  body:has(.mobile-app-search-bar) .topHamburger {
+    pointer-events: auto !important;
+    z-index: 100071 !important;
+  }
+}

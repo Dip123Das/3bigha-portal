@@ -299,6 +299,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <AuthButtons />
             </div>
 
+            <div className="mobileAccountStrip">
+              <AuthButtons />
+            </div>
+
             <details className="topMobileMenu">
               <summary className="topHamburger" aria-label="Open menu">
                 <span />
