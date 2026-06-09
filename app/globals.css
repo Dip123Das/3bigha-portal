@@ -5086,3 +5086,28 @@ main,
     z-index: 100051 !important;
   }
 }
+
+
+/* ===== MOBILE ACCOUNT HEADER COMPACTION ===== */
+.desktopAccountBtn {
+  display: inline-flex;
+}
+
+.mobileAccountMainBtn {
+  display: inline-flex;
+}
+
+@media (max-width: 768px) {
+  .desktopAccountBtn {
+    display: none !important;
+  }
+
+  .mobileAccountMainBtn {
+    max-width: 108px !important;
+    height: 42px !important;
+    padding: 0 14px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+}
