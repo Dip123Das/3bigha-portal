@@ -4379,3 +4379,55 @@ main,
     padding-right: 0 !important;
   }
 }
+
+
+/* ===== MOBILE APP HEADER SEARCH BAR ===== */
+.mobile-app-search-bar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-app-search-bar {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 9997;
+    width: 100%;
+    max-width: 100%;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom: 1px solid #e2e8f0;
+    backdrop-filter: blur(10px);
+  }
+
+  .mobile-app-search-inner {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .mobile-app-search-inner input {
+    min-width: 0;
+    flex: 1;
+    height: 40px;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    outline: none;
+  }
+
+  .mobile-app-search-inner button {
+    height: 40px;
+    border-radius: 999px;
+    border: 0;
+    background: #0f172a;
+    color: white;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 900;
+  }
+}

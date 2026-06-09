@@ -6,6 +6,13 @@ import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
 type Msg = { type: "idle" | "info" | "success" | "error"; text: string };
 
+
+function isAndroidAppWebView() {
+  if (typeof window === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  return /wv|Version\/\d+\.\d+.*Chrome/i.test(ua) || ua.includes("; wv)");
+}
+
 function prettyError(e: any) {
   if (!e) return "Unknown error";
   if (typeof e === "string") return e;
@@ -312,6 +319,16 @@ export default function LoginClient() {
 
   const onGoogle = async () => {
     setMsg({ type: "idle", text: "" });
+
+    if (isAndroidAppWebView()) {
+      setTab("email");
+      setMsg({
+        type: "info",
+        text: "For the Android app, please use Email Magic Link or Phone OTP. Google login opens browser and cannot share the app session.",
+      });
+      return;
+    }
+
     if (loadingGoogle) return;
     setLoadingGoogle(true);
 
@@ -569,7 +586,7 @@ export default function LoginClient() {
                   borderRadius: 14,
                 }}
               >
-                {loadingGoogle ? "Opening Google…" : "Continue with Google"}
+                {isAndroidAppWebView() ? "Use Email / Phone in App" : loadingGoogle ? "Opening Google…" : "Continue with Google"}
               </button>
 
               <div style={{ margin: "18px 0", display: "flex", alignItems: "center", gap: 10 }}>
