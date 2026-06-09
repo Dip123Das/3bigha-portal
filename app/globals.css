@@ -4504,3 +4504,57 @@ main,
     padding-top: 58px !important;
   }
 }
+
+
+/* ===== PERMANENT MOBILE APP MENU BUTTON ===== */
+.mobile-app-menu-button,
+.mobile-app-menu-panel {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-app-menu-button {
+    display: flex !important;
+    position: fixed !important;
+    top: 64px !important;
+    right: 14px !important;
+    z-index: 100000 !important;
+    width: 52px !important;
+    height: 52px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 18px !important;
+    border: 1px solid #dbe3ef !important;
+    background: rgba(255,255,255,0.98) !important;
+    color: #0f172a !important;
+    font-size: 30px !important;
+    font-weight: 900 !important;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14) !important;
+  }
+
+  .mobile-app-menu-panel {
+    display: grid !important;
+    position: fixed !important;
+    top: 124px !important;
+    right: 14px !important;
+    z-index: 100000 !important;
+    width: min(280px, calc(100vw - 28px)) !important;
+    gap: 8px !important;
+    padding: 14px !important;
+    border-radius: 22px !important;
+    border: 1px solid #dbe3ef !important;
+    background: rgba(255,255,255,0.98) !important;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18) !important;
+  }
+
+  .mobile-app-menu-panel a {
+    display: block !important;
+    padding: 12px 14px !important;
+    border-radius: 14px !important;
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+  }
+}
