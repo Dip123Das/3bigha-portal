@@ -3,7 +3,6 @@ import AppWebViewViewportGuard from "@/components/mobile/AppWebViewViewportGuard
 import MobileAppSearchBar from "@/components/mobile/MobileAppSearchBar";
 import AppOAuthReturnBridge from "@/components/mobile/AppOAuthReturnBridge";
 import AppOAuthBrowserBounce from "@/components/mobile/AppOAuthBrowserBounce";
-import MobileAppMenuButton from "@/components/mobile/MobileAppMenuButton";
 import "./globals.css";
 import "./ui-kit.css";
 import { createMetadata } from "@/lib/seo/metadata";
@@ -101,7 +100,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AppOAuthReturnBridge />
         <AppOAuthBrowserBounce />
         <MobileAppSearchBar />
-        <MobileAppMenuButton />
       <body>
         <PresenceHeartbeat currentPage="global" />
         <MobileMenuAutoClose />
