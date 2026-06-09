@@ -4431,3 +4431,21 @@ main,
     font-weight: 900;
   }
 }
+
+
+/* ===== ALWAYS SHOW MOBILE SEARCH ENTRY ===== */
+@media (max-width: 768px) {
+  .mobile-app-search-bar {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .mobile-app-search-inner {
+    display: flex !important;
+  }
+
+  body:has(.mobile-app-search-bar) .mobile-app-search-bar {
+    display: block !important;
+  }
+}
