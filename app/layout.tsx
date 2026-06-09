@@ -1,6 +1,6 @@
 // app/layout.tsx
 import AppWebViewViewportGuard from "@/components/mobile/AppWebViewViewportGuard";
-import MobileAppHeader from "@/components/mobile/MobileAppHeader";
+import MobileAppSearchBar from "@/components/mobile/MobileAppSearchBar";
 import AppOAuthReturnBridge from "@/components/mobile/AppOAuthReturnBridge";
 import AppOAuthBrowserBounce from "@/components/mobile/AppOAuthBrowserBounce";
 import "./globals.css";
@@ -100,7 +100,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AppOAuthReturnBridge />
         <AppOAuthBrowserBounce />
       <body>
-        <MobileAppHeader />
+        <MobileAppSearchBar />
         <PresenceHeartbeat currentPage="global" />
         <MobileMenuAutoClose />
         <AutoTranslatePage />
