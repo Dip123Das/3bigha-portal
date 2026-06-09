@@ -290,13 +290,21 @@ export default function AuthButtons() {
 
   return (
     <>
-      <Link
-        href={dashboardHref}
-        className="topBtn topBtnGhost mobileAccountMainBtn"
-        title={email ?? undefined}
-      >
-        {roleLabel || "Buyer"}
-      </Link>
+      <details className="mobileAccountMenu">
+        <summary
+          className="topBtn topBtnGhost mobileAccountMainBtn"
+          title={email ?? undefined}
+        >
+          {roleLabel || "Buyer"}
+        </summary>
+
+        <div className="mobileAccountPanel">
+          <div className="mobileAccountPanelRole">{roleLabel || "Buyer"}</div>
+          <div className="mobileAccountPanelEmail">{shortEmail(email)}</div>
+          <Link href={dashboardHref}>My Dashboard</Link>
+          <button type="button" onClick={handleLogout}>Logout</button>
+        </div>
+      </details>
 
       <span
         className="topBtn topBtnGhost desktopAccountBtn"
