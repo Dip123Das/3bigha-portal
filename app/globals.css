@@ -5006,3 +5006,31 @@ main,
     gap: 8px !important;
   }
 }
+
+
+/* ===== FIX MOBILE MENU CLICK AREA / LOGO OVERLAP ===== */
+@media (max-width: 768px) {
+  body:has(.mobile-app-search-bar) .topMobileMenu {
+    position: relative !important;
+    z-index: 100050 !important;
+    pointer-events: auto !important;
+  }
+
+  body:has(.mobile-app-search-bar) .topHamburger {
+    position: relative !important;
+    z-index: 100051 !important;
+    pointer-events: auto !important;
+  }
+
+  body:has(.mobile-app-search-bar) header a[href="/"],
+  body:has(.mobile-app-search-bar) header img,
+  body:has(.mobile-app-search-bar) .topLogo,
+  body:has(.mobile-app-search-bar) .brandLogo {
+    pointer-events: none !important;
+    z-index: 10000 !important;
+  }
+
+  body:has(.mobile-app-search-bar) .topMobilePanel {
+    z-index: 100052 !important;
+  }
+}
