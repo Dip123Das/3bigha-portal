@@ -26,6 +26,10 @@ function shortEmail(email?: string | null) {
   return `${shortName}@${domain}`;
 }
 
+function isMasterAdminEmail(email?: string | null) {
+  return String(email ?? "").trim().toLowerCase() === "vivek.abek@gmail.com";
+}
+
 function prettyRole(profile?: ProfileLite | null): string {
   const r = String(profile?.role ?? "").trim().toLowerCase();
 
@@ -287,6 +291,8 @@ export default function AuthButtons() {
   }
 
   const email = session.user.email ?? null;
+  const displayRole = isMasterAdminEmail(email) ? "Master Admin" : (roleLabel || "Buyer");
+  const displayDashboardHref = isMasterAdminEmail(email) ? "/admin/dashboard" : dashboardHref;
 
   return (
     <>
@@ -295,13 +301,13 @@ export default function AuthButtons() {
           className="topBtn topBtnGhost mobileAccountMainBtn"
           title={email ?? undefined}
         >
-          {roleLabel || "Buyer"}
+          {displayRole}
         </summary>
 
         <div className="mobileAccountPanel">
-          <div className="mobileAccountPanelRole">{roleLabel || "Buyer"}</div>
+          <div className="mobileAccountPanelRole">{displayRole}</div>
           <div className="mobileAccountPanelEmail">{shortEmail(email)}</div>
-          <Link href={dashboardHref}>My Dashboard</Link>
+          <Link href={displayDashboardHref}>My Dashboard</Link>
           <button type="button" onClick={handleLogout}>Logout</button>
         </div>
       </details>
@@ -314,7 +320,7 @@ export default function AuthButtons() {
       </span>
 
       <Link
-        href={dashboardHref}
+        href={displayDashboardHref}
         className="topBtn topBtnGhost desktopAccountBtn"
       >
         My Dashboard
