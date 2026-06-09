@@ -320,22 +320,15 @@ export default function LoginClient() {
   const onGoogle = async () => {
     setMsg({ type: "idle", text: "" });
 
-    if (isAndroidAppWebView()) {
-      setTab("email");
-      setMsg({
-        type: "info",
-        text: "For the Android app, please use Email Magic Link or Phone OTP. Google login opens browser and cannot share the app session.",
-      });
-      return;
-    }
-
     if (loadingGoogle) return;
     setLoadingGoogle(true);
 
     try {
       setPhase("google-start");
       const supabase = getSupabaseBrowser();
-      const redirectTo = buildCallbackRedirectTo(nextWithOpen);
+      const redirectTo = isAndroidAppWebView()
+        ? `${window.location.origin}/auth/callback?app_oauth=1&next=${encodeURIComponent(nextWithOpen || "/auth/post-login")}`
+        : buildCallbackRedirectTo(nextWithOpen);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -586,7 +579,7 @@ export default function LoginClient() {
                   borderRadius: 14,
                 }}
               >
-                {isAndroidAppWebView() ? "Use Email / Phone in App" : loadingGoogle ? "Opening Google…" : "Continue with Google"}
+                {loadingGoogle ? "Opening Google…" : "Continue with Google"}
               </button>
 
               <div style={{ margin: "18px 0", display: "flex", alignItems: "center", gap: 10 }}>
