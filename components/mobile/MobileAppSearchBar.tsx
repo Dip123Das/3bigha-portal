@@ -5,11 +5,15 @@ import { usePathname, useRouter } from "next/navigation";
 
 export default function MobileAppSearchBar() {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
   const [q, setQ] = useState("");
 
-  if (pathname?.startsWith("/login")) return null;
-  if (pathname?.startsWith("/auth")) return null;
+  const isAuthScreen =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/logout");
+
+  if (isAuthScreen) return null;
 
   const submit = () => {
     const text = q.trim();
@@ -18,7 +22,7 @@ export default function MobileAppSearchBar() {
   };
 
   return (
-    <div className="mobile-app-search-bar">
+    <div className="mobile-app-search-bar mobile-app-search-bar--fixed">
       <div className="mobile-app-search-inner">
         <input
           value={q}
