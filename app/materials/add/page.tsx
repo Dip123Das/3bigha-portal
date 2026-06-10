@@ -1022,6 +1022,43 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
         })),
       };
 
+      let geography: any = null;
+
+      try {
+        const { data: vendorProfile } = await supabase
+          .from("business_profiles")
+          .select("state,district,city,locality,pincode,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id,geo_place_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (vendorProfile?.geo_state_id) {
+          geography = {
+            geo_state_id: vendorProfile.geo_state_id,
+            geo_district_id: vendorProfile.geo_district_id,
+            geo_subdivision_id: vendorProfile.geo_subdivision_id,
+            geo_block_id: vendorProfile.geo_block_id,
+            geo_place_id: vendorProfile.geo_place_id,
+          };
+        } else if (vendorProfile) {
+          const geoRes = await fetch("/api/admin/geography/resolve", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              state: vendorProfile.state,
+              district: vendorProfile.district,
+              city: vendorProfile.city,
+              locality: vendorProfile.locality,
+              pincode: vendorProfile.pincode,
+            }),
+          });
+
+          const geoJson = await geoRes.json().catch(() => null);
+          geography = geoJson?.result || null;
+        }
+      } catch {
+        geography = null;
+      }
+
       const { error: insErr } = await supabase.from("material_listings").insert({
         vendor_user_id: user.id,
         title: title.trim(),
@@ -1064,6 +1101,12 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
             created_at: new Date().toISOString(),
           },
         },
+
+        geo_state_id: geography?.geo_state_id || null,
+        geo_district_id: geography?.geo_district_id || null,
+        geo_subdivision_id: geography?.geo_subdivision_id || null,
+        geo_block_id: geography?.geo_block_id || null,
+        geo_place_id: geography?.geo_place_id || null,
 
         status: "draft",
       });

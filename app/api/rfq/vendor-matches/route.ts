@@ -114,6 +114,11 @@ type VendorMatchInput = {
   city: string;
   locality: string;
   pincode: string;
+  geo_state_id?: string | null;
+  geo_district_id?: string | null;
+  geo_subdivision_id?: string | null;
+  geo_block_id?: string | null;
+  geo_place_id?: string | null;
 };
 
 function detectBuyerIntentAI(input: VendorMatchInput) {
@@ -240,6 +245,62 @@ async function getLatestPriceSignal(admin: any, row: any, input: VendorMatchInpu
   };
 }
 
+function geographyScore(row: any, input: VendorMatchInput) {
+  const reasons: string[] = [];
+
+  const samePlace =
+    input.geo_place_id &&
+    row.geo_place_id &&
+    input.geo_place_id === row.geo_place_id;
+
+  const sameBlock =
+    input.geo_block_id &&
+    row.geo_block_id &&
+    input.geo_block_id === row.geo_block_id;
+
+  const sameSubdivision =
+    input.geo_subdivision_id &&
+    row.geo_subdivision_id &&
+    input.geo_subdivision_id === row.geo_subdivision_id;
+
+  const sameDistrict =
+    input.geo_district_id &&
+    row.geo_district_id &&
+    input.geo_district_id === row.geo_district_id;
+
+  const sameState =
+    input.geo_state_id &&
+    row.geo_state_id &&
+    input.geo_state_id === row.geo_state_id;
+
+  if (samePlace) {
+    reasons.push("same geography place");
+    return { score: 35, level: "place", reason: reasons.join(" • ") };
+  }
+
+  if (sameBlock) {
+    reasons.push("same block");
+    return { score: 25, level: "block", reason: reasons.join(" • ") };
+  }
+
+  if (sameSubdivision) {
+    reasons.push("same subdivision");
+    return { score: 18, level: "subdivision", reason: reasons.join(" • ") };
+  }
+
+  if (sameDistrict) {
+    reasons.push("same district");
+    return { score: 12, level: "district", reason: reasons.join(" • ") };
+  }
+
+  if (sameState) {
+    reasons.push("same state");
+    return { score: 6, level: "state", reason: reasons.join(" • ") };
+  }
+
+  return { score: 0, level: "none", reason: "" };
+}
+
 function scoreVendor(row: any, input: VendorMatchInput) {
   let score = 0;
   const reasons: string[] = [];
@@ -255,6 +316,13 @@ function scoreVendor(row: any, input: VendorMatchInput) {
   const rowLocality = clean(row.locality);
   const rowDistrict = clean(row.district);
   const rowPincode = clean(row.pincode);
+
+  const geoRank = geographyScore(row, input);
+
+  if (geoRank.score > 0) {
+    locationScore += geoRank.score;
+    reasons.push(geoRank.reason);
+  }
 
   if (input.pincode && rowPincode && input.pincode === rowPincode) {
     locationScore += 25;
@@ -468,6 +536,70 @@ function predictWinProbability(row: any, baseScore: number) {
   return Math.round((normalized / 100) * consistency * 100) / 100;
 }
 
+function getGeoExpansionLevel(row: any, input: VendorMatchInput) {
+  if (input.geo_place_id && row.geo_place_id === input.geo_place_id) {
+    return { level: "place", priority: 1 };
+  }
+
+  if (input.geo_block_id && row.geo_block_id === input.geo_block_id) {
+    return { level: "block", priority: 2 };
+  }
+
+  if (
+    input.geo_subdivision_id &&
+    row.geo_subdivision_id === input.geo_subdivision_id
+  ) {
+    return { level: "subdivision", priority: 3 };
+  }
+
+  if (input.geo_district_id && row.geo_district_id === input.geo_district_id) {
+    return { level: "district", priority: 4 };
+  }
+
+  if (input.geo_state_id && row.geo_state_id === input.geo_state_id) {
+    return { level: "state", priority: 5 };
+  }
+
+  return { level: "national", priority: 6 };
+}
+
+function chooseGeoExpandedMatches(rows: any[], minimum = 5) {
+  const eligible = rows.filter((row) => row.score >= 35);
+
+  const levels = ["place", "block", "subdivision", "district", "state", "national"];
+  const picked: any[] = [];
+  const seen = new Set<string>();
+  let expansion_level = "none";
+
+  for (const level of levels) {
+    const batch = eligible.filter((row) => row.geo_expansion_level === level);
+
+    for (const row of batch) {
+      if (!row.user_id || seen.has(row.user_id)) continue;
+      seen.add(row.user_id);
+      picked.push(row);
+      expansion_level = level;
+
+      if (picked.length >= minimum) {
+        return {
+          matches: picked,
+          expansion_level,
+          considered_levels: levels.slice(0, levels.indexOf(level) + 1),
+        };
+      }
+    }
+  }
+
+  return {
+    matches: picked,
+    expansion_level,
+    considered_levels:
+      expansion_level === "none"
+        ? []
+        : levels.slice(0, levels.indexOf(expansion_level) + 1),
+  };
+}
+
 export async function GET(req: Request) {
   try {
     if (!SUPABASE_URL || !SUPABASE_SERVICE) {
@@ -480,6 +612,11 @@ export async function GET(req: Request) {
     const city = clean(url.searchParams.get("city"));
     const locality = clean(url.searchParams.get("locality"));
     const pincode = clean(url.searchParams.get("pincode"));
+    const geo_state_id = clean(url.searchParams.get("geo_state_id")) || null;
+    const geo_district_id = clean(url.searchParams.get("geo_district_id")) || null;
+    const geo_subdivision_id = clean(url.searchParams.get("geo_subdivision_id")) || null;
+    const geo_block_id = clean(url.searchParams.get("geo_block_id")) || null;
+    const geo_place_id = clean(url.searchParams.get("geo_place_id")) || null;
 
     const buyerIntent = detectBuyerIntentAI({
       module,
@@ -487,6 +624,11 @@ export async function GET(req: Request) {
       city,
       locality,
       pincode,
+      geo_state_id,
+      geo_district_id,
+      geo_subdivision_id,
+      geo_block_id,
+      geo_place_id,
     });
 
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE, {
@@ -539,7 +681,18 @@ export async function GET(req: Request) {
 
     const scoredRows = await Promise.all(
       rows.map(async (row: any) => {
-        const input = { module, item, city, locality, pincode };
+        const input = {
+          module,
+          item,
+          city,
+          locality,
+          pincode,
+          geo_state_id,
+          geo_district_id,
+          geo_subdivision_id,
+          geo_block_id,
+          geo_place_id,
+        };
         const ranked = scoreVendor(row, input);
         const aiRanked = await aiVendorScore(row, input);
         const priceRanked = await getLatestPriceSignal(admin, row, input);
@@ -649,6 +802,7 @@ export async function GET(req: Request) {
           : `${ranked.reason}${boostReason} • Buyer intent: ${buyerIntent.reason}`;
 
         const winProbability = predictWinProbability(row, finalScore);
+        const geoExpansion = getGeoExpansionLevel(row, input);
 
         return {
           user_id: clean(row.user_id),
@@ -690,14 +844,28 @@ export async function GET(req: Request) {
           locality: clean(row.locality),
           district: clean(row.district),
           pincode: clean(row.pincode),
+          geo_state_id: row.geo_state_id || null,
+          geo_district_id: row.geo_district_id || null,
+          geo_subdivision_id: row.geo_subdivision_id || null,
+          geo_block_id: row.geo_block_id || null,
+          geo_place_id: row.geo_place_id || null,
+          geo_expansion_level: geoExpansion.level,
+          geo_expansion_priority: geoExpansion.priority,
           source: "business_profiles",
         };
         })
       );
 
-    const filtered = scoredRows
-      .filter((row) => row.score >= 45)
+    const geoExpanded = chooseGeoExpandedMatches(scoredRows, 5);
+
+    const filtered = (geoExpanded.matches.length ? geoExpanded.matches : scoredRows)
+      .filter((row) => row.score >= 35)
       .sort((a, b) => {
+      // 🌍 PRIORITY 0: Geography expansion closeness
+      if ((a.geo_expansion_priority || 99) !== (b.geo_expansion_priority || 99)) {
+        return (a.geo_expansion_priority || 99) - (b.geo_expansion_priority || 99);
+      }
+
       // 🔥 PRIORITY 1: Proven ready-to-close deal signals
       if ((b.ready_deal_signals || 0) !== (a.ready_deal_signals || 0)) {
         return (b.ready_deal_signals || 0) - (a.ready_deal_signals || 0);
@@ -813,6 +981,13 @@ export async function GET(req: Request) {
         city,
         locality,
         pincode,
+        geo_state_id,
+        geo_district_id,
+        geo_subdivision_id,
+        geo_block_id,
+        geo_place_id,
+        geo_expansion_level: geoExpanded.expansion_level,
+        geo_considered_levels: geoExpanded.considered_levels,
         source: "business_profiles",
       },
     });

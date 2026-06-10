@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { resolveLocation } from "@/lib/geography/resolveLocation";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -95,6 +96,18 @@ export async function POST(req: Request) {
       );
     }
 
+    const geography = await resolveLocation({
+      state: extraUpdate?.state || minimalInsert?.state,
+      district: extraUpdate?.district || minimalInsert?.district,
+      city: extraUpdate?.city || minimalInsert?.city || city,
+      locality:
+        extraUpdate?.locality ||
+        extraUpdate?.sub_locality ||
+        minimalInsert?.locality ||
+        minimalInsert?.sub_locality,
+      pincode: extraUpdate?.postal_code || minimalInsert?.postal_code,
+    });
+
     const insertPayload = {
       owner_id,
       listing_intent,
@@ -107,6 +120,11 @@ export async function POST(req: Request) {
       is_builder_listing: !!is_builder_listing,
       slug: slug || null,
       builder_project_id: builder_project_id || null,
+      geo_state_id: geography.geo_state_id,
+      geo_district_id: geography.geo_district_id,
+      geo_subdivision_id: geography.geo_subdivision_id,
+      geo_block_id: geography.geo_block_id,
+      geo_place_id: geography.geo_place_id,
     };
 
     const insertRes = await supabaseAdmin
@@ -163,6 +181,7 @@ export async function POST(req: Request) {
       data: {
         id: newId,
         status: insertRes.data.status || "draft",
+        geography,
       },
     });
   } catch (e: any) {

@@ -1130,6 +1130,43 @@ function TurnkeyToggle() {
 
     setSaving(true);
     try {
+      let geography: any = null;
+
+      try {
+        const { data: vendorProfile } = await supabase
+          .from("business_profiles")
+          .select("state,district,city,locality,pincode,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id,geo_place_id")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (vendorProfile?.geo_state_id) {
+          geography = {
+            geo_state_id: vendorProfile.geo_state_id,
+            geo_district_id: vendorProfile.geo_district_id,
+            geo_subdivision_id: vendorProfile.geo_subdivision_id,
+            geo_block_id: vendorProfile.geo_block_id,
+            geo_place_id: vendorProfile.geo_place_id,
+          };
+        } else if (vendorProfile) {
+          const geoRes = await fetch("/api/admin/geography/resolve", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              state: vendorProfile.state,
+              district: vendorProfile.district,
+              city: vendorProfile.city,
+              locality: vendorProfile.locality,
+              pincode: vendorProfile.pincode,
+            }),
+          });
+
+          const geoJson = await geoRes.json().catch(() => null);
+          geography = geoJson?.result || null;
+        }
+      } catch {
+        geography = null;
+      }
+
       // 1) Normal services → provider_services
       for (const d of dedupedDrafts) {
         const cat = d.pickMode === "catalog" ? findCatalogRow(d.service_id) : null;
@@ -1166,6 +1203,12 @@ function TurnkeyToggle() {
           headline: buildTitle(d),
           coverage_area: d.location?.trim() ? d.location.trim() : null,
           tags: d.tags?.trim() ? d.tags.trim() : null,
+
+          geo_state_id: geography?.geo_state_id || null,
+          geo_district_id: geography?.geo_district_id || null,
+          geo_subdivision_id: geography?.geo_subdivision_id || null,
+          geo_block_id: geography?.geo_block_id || null,
+          geo_place_id: geography?.geo_place_id || null,
         };
 
         try {

@@ -754,6 +754,37 @@ export default function BusinessOnboardingPageClient() {
       vendor_document_verification_json: documentVerification,
     };
 
+    try {
+      const geoRes = await fetch("/api/admin/geography/resolve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          state: payload.state,
+          district: payload.district,
+          city: payload.city,
+          locality:
+            payload.locality ||
+            payload.verified_locality ||
+            payload.address_line2 ||
+            payload.address_line1,
+          pincode: payload.pincode || payload.verified_postcode,
+        }),
+      });
+
+      const geoJson = await geoRes.json().catch(() => null);
+      const geography = geoJson?.result;
+
+      if (geography) {
+        payload.geo_state_id = geography.geo_state_id;
+        payload.geo_district_id = geography.geo_district_id;
+        payload.geo_subdivision_id = geography.geo_subdivision_id;
+        payload.geo_block_id = geography.geo_block_id;
+        payload.geo_place_id = geography.geo_place_id;
+      }
+    } catch {
+      // Geography resolver is best-effort and must not block business onboarding.
+    }
+
     Object.keys(payload).forEach((k) => {
       if (payload[k] === undefined) delete payload[k];
     });

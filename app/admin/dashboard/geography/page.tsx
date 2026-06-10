@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import GeographyOperationsPanel from "@/components/admin/geography/GeographyOperationsPanel";
+import GeographyEditorGrid from "@/components/admin/GeographyEditorGrid";
 
 export const dynamic = "force-dynamic";
 
@@ -180,6 +181,44 @@ West Bengal,Cooch Behar,Dinhata,Dinhata I,Dinhata,town,736135`}
             Recommended order: West Bengal complete → Assam → Bihar → Jharkhand
             → Odisha → all India.
           </p>
+        </div>
+
+
+        <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-black text-slate-950">
+            Geography Editor
+          </h2>
+
+          <p className="mt-2 text-sm font-semibold text-slate-600">
+            Review, search and manage geography records.
+          </p>
+
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <GeographyEditorGrid
+              title="States"
+              rows={hierarchy.states}
+            />
+
+            <GeographyEditorGrid
+              title="Districts"
+              rows={hierarchy.districts}
+            />
+
+            <GeographyEditorGrid
+              title="Subdivisions"
+              rows={hierarchy.subdivisions}
+            />
+
+            <GeographyEditorGrid
+              title="Blocks"
+              rows={hierarchy.blocks}
+            />
+
+            <GeographyEditorGrid
+              title="Places"
+              rows={hierarchy.places}
+            />
+          </div>
         </div>
 
 

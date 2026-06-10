@@ -1,5 +1,6 @@
 // app/api/rfq/create/route.ts
 import { NextResponse } from "next/server";
+import { resolveLocation } from "@/lib/geography/resolveLocation";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
@@ -240,6 +241,20 @@ export async function POST(req: Request) {
       return jsonError(rfqErr?.message || "RFQ insert failed.", 500);
     }
 
+    let geography: any = null;
+
+    try {
+      geography = await resolveLocation({
+        state: null,
+        district,
+        city,
+        locality,
+        pincode,
+      });
+    } catch {
+      geography = null;
+    }
+
     // 🚀 AI AUTOPILOT (SAFE NON-BLOCKING)
     try {
       const matchUrl = new URL("/api/rfq/vendor-matches", req.url);
@@ -249,6 +264,12 @@ export async function POST(req: Request) {
       matchUrl.searchParams.set("city", city);
       matchUrl.searchParams.set("locality", locality);
       matchUrl.searchParams.set("pincode", pincode);
+
+      if (geography?.geo_state_id) matchUrl.searchParams.set("geo_state_id", geography.geo_state_id);
+      if (geography?.geo_district_id) matchUrl.searchParams.set("geo_district_id", geography.geo_district_id);
+      if (geography?.geo_subdivision_id) matchUrl.searchParams.set("geo_subdivision_id", geography.geo_subdivision_id);
+      if (geography?.geo_block_id) matchUrl.searchParams.set("geo_block_id", geography.geo_block_id);
+      if (geography?.geo_place_id) matchUrl.searchParams.set("geo_place_id", geography.geo_place_id);
 
       const matchRes = await fetch(matchUrl.toString());
       const matchJson = await matchRes.json();
