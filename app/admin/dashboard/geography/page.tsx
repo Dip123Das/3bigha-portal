@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import GeographyOperationsPanel from "@/components/admin/geography/GeographyOperationsPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,25 @@ async function samplePlaces() {
     .limit(20);
 
   return data ?? [];
+}
+
+
+async function geographyHierarchy() {
+  const [states, districts, subdivisions, blocks, places] = await Promise.all([
+    supabase.from("geo_states").select("id,name,slug").order("name", { ascending: true }),
+    supabase.from("geo_districts").select("id,state_id,name,slug").order("name", { ascending: true }),
+    supabase.from("geo_subdivisions").select("id,district_id,name,slug").order("name", { ascending: true }),
+    supabase.from("geo_blocks").select("id,district_id,subdivision_id,name,slug").order("name", { ascending: true }),
+    supabase.from("geo_places").select("id,district_id,subdivision_id,block_id,name,slug,place_type,pincode").order("name", { ascending: true }).limit(500),
+  ]);
+
+  return {
+    states: states.data ?? [],
+    districts: districts.data ?? [],
+    subdivisions: subdivisions.data ?? [],
+    blocks: blocks.data ?? [],
+    places: places.data ?? [],
+  };
 }
 
 async function coverage(table: string) {
@@ -71,6 +91,8 @@ export default async function GeographyAdminPage() {
     coverage("business_profiles"),
   ]);
 
+  const hierarchy = await geographyHierarchy();
+
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8">
       <section className="mx-auto max-w-6xl">
@@ -88,6 +110,8 @@ export default async function GeographyAdminPage() {
             search, RFQ routing, vendor matching and SEO geography expansion.
           </p>
         </div>
+
+        <GeographyOperationsPanel />
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {counts.map((item) => (
@@ -116,6 +140,132 @@ export default async function GeographyAdminPage() {
           ))}
         </div>
 
+
+
+
+        <div className="mt-6 rounded-3xl border border-blue-200 bg-blue-50 p-6 shadow-sm">
+          <h2 className="text-xl font-black text-blue-950">
+            Bulk Geography Import
+          </h2>
+
+          <p className="mt-2 text-sm font-semibold leading-6 text-blue-900">
+            Use CSV import for large geography expansion. This is the safest way
+            to add districts, subdivisions, blocks and places without manually
+            entering thousands of records.
+          </p>
+
+          <div className="mt-4 rounded-2xl border border-blue-200 bg-white p-4">
+            <p className="text-xs font-black uppercase tracking-wider text-blue-700">
+              Required CSV Format
+            </p>
+
+            <pre className="mt-3 overflow-x-auto rounded-xl bg-slate-950 p-4 text-xs font-bold text-white">
+{`state,district,subdivision,block,place,place_type,pincode
+West Bengal,Cooch Behar,Cooch Behar Sadar,Cooch Behar II,Khagrabari,locality,736179
+West Bengal,Cooch Behar,Dinhata,Dinhata I,Dinhata,town,736135`}
+            </pre>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-blue-200 bg-white p-4">
+            <p className="text-xs font-black uppercase tracking-wider text-blue-700">
+              Git Bash Import Command
+            </p>
+
+            <pre className="mt-3 overflow-x-auto rounded-xl bg-slate-950 p-4 text-xs font-bold text-white">
+{`node scripts/geography/import-geography-csv.js data/geography/your-file.csv`}
+            </pre>
+          </div>
+
+          <p className="mt-4 text-xs font-bold text-blue-800">
+            Recommended order: West Bengal complete → Assam → Bihar → Jharkhand
+            → Odisha → all India.
+          </p>
+        </div>
+
+
+        <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-black text-slate-950">
+            Geography Hierarchy
+          </h2>
+
+          <p className="mt-2 text-sm font-semibold text-slate-600">
+            State → District → Subdivision → Block → Place structure currently available in the geography master database.
+          </p>
+
+          <div className="mt-5 space-y-4">
+            {hierarchy.states.map((state: any) => {
+              const stateDistricts = hierarchy.districts.filter((district: any) => district.state_id === state.id);
+
+              return (
+                <details key={state.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <summary className="cursor-pointer text-base font-black text-slate-950">
+                    {state.name} · {stateDistricts.length} districts
+                  </summary>
+
+                  <div className="mt-4 space-y-3">
+                    {stateDistricts.map((district: any) => {
+                      const districtSubdivisions = hierarchy.subdivisions.filter((subdivision: any) => subdivision.district_id === district.id);
+                      const districtBlocks = hierarchy.blocks.filter((block: any) => block.district_id === district.id);
+                      const districtPlaces = hierarchy.places.filter((place: any) => place.district_id === district.id);
+
+                      return (
+                        <details key={district.id} className="rounded-xl border border-slate-200 bg-white p-3">
+                          <summary className="cursor-pointer text-sm font-black text-slate-900">
+                            {district.name} · {districtSubdivisions.length} subdivisions · {districtBlocks.length} blocks · {districtPlaces.length} places
+                          </summary>
+
+                          <div className="mt-3 space-y-3">
+                            {districtSubdivisions.map((subdivision: any) => {
+                              const subdivisionBlocks = hierarchy.blocks.filter((block: any) => block.subdivision_id === subdivision.id);
+                              const subdivisionPlaces = hierarchy.places.filter((place: any) => place.subdivision_id === subdivision.id);
+
+                              return (
+                                <details key={subdivision.id} className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                                  <summary className="cursor-pointer text-xs font-black uppercase tracking-wide text-slate-700">
+                                    {subdivision.name} · {subdivisionBlocks.length} blocks · {subdivisionPlaces.length} places
+                                  </summary>
+
+                                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                                    {subdivisionBlocks.map((block: any) => {
+                                      const blockPlaces = hierarchy.places.filter((place: any) => place.block_id === block.id);
+
+                                      return (
+                                        <div key={block.id} className="rounded-xl border border-slate-200 bg-white p-3">
+                                          <div className="text-sm font-black text-slate-900">
+                                            {block.name}
+                                          </div>
+                                          <div className="mt-1 text-xs font-bold text-slate-500">
+                                            {blockPlaces.length} places
+                                          </div>
+
+                                          <div className="mt-3 flex flex-wrap gap-2">
+                                            {blockPlaces.length ? (
+                                              blockPlaces.slice(0, 20).map((place: any) => (
+                                                <span key={place.id} className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-800">
+                                                  {place.name}
+                                                </span>
+                                              ))
+                                            ) : (
+                                              <span className="text-xs font-bold text-slate-400">No places yet</span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </details>
+                              );
+                            })}
+                          </div>
+                        </details>
+                      );
+                    })}
+                  </div>
+                </details>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-xl font-black text-slate-950">
