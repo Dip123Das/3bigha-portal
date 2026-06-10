@@ -91,10 +91,29 @@ export async function getVendorRecommendationCandidates(
       business_type,
       description,
       category,
+
       city,
       district,
       state,
       locality,
+      pincode,
+
+      geo_state_id,
+      geo_district_id,
+      geo_subdivision_id,
+      geo_block_id,
+      geo_place_id,
+
+      delivery_radius_km,
+      preferred_service_area,
+      statewide_service,
+      nationwide_service,
+
+      preferred_geo_districts,
+      preferred_geo_subdivisions,
+      preferred_geo_blocks,
+      preferred_geo_places,
+
       subscription_plan,
       subscription_status,
       boost_expires_at,
@@ -130,6 +149,24 @@ export async function getVendorRecommendationCandidates(
         district: row.district || null,
         state: row.state || null,
         locality: row.locality || null,
+        pincode: row.pincode || null,
+
+        geo_state_id: row.geo_state_id || null,
+        geo_district_id: row.geo_district_id || null,
+        geo_subdivision_id: row.geo_subdivision_id || null,
+        geo_block_id: row.geo_block_id || null,
+        geo_place_id: row.geo_place_id || null,
+
+        delivery_radius_km: Number(row.delivery_radius_km || 0) || null,
+        preferred_service_area: row.preferred_service_area || null,
+        statewide_service: row.statewide_service === true,
+        nationwide_service: row.nationwide_service === true,
+
+        preferred_geo_districts: row.preferred_geo_districts || [],
+        preferred_geo_subdivisions: row.preferred_geo_subdivisions || [],
+        preferred_geo_blocks: row.preferred_geo_blocks || [],
+        preferred_geo_places: row.preferred_geo_places || [],
+
         category: expertise.category,
         services: expertise.services,
         materials: expertise.materials,

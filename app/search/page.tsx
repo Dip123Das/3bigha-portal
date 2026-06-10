@@ -21,6 +21,7 @@ import {
   getUnifiedMarketplaceSummary,
   scoreUnifiedMarketplaceResult,
 } from "@/lib/search/unified-marketplace-brain";
+import { computeMarketplaceGeoScore } from "@/lib/search/geo-marketplace-ranking";
 import {
   getSearchWorkflowCards,
   workflowCardToneStyle,
@@ -138,6 +139,14 @@ type ResultRow = {
   _lat?: number | null;
   _lng?: number | null;
 
+  _geo_state_id?: string | null;
+  _geo_district_id?: string | null;
+  _geo_subdivision_id?: string | null;
+  _geo_block_id?: string | null;
+  _geo_place_id?: string | null;
+  _geoScore?: number;
+  _geoLevel?: string;
+
   _aiScore?: number;
   _aiReason?: string;
 };
@@ -205,6 +214,16 @@ function searchTokens(input: string) {
 
 function safeText(x: any) {
   return String(x ?? "").trim();
+}
+
+function pickGeoFromQuery(sp: { get: (key: string) => string | null }) {
+  return {
+    buyerGeoStateId: safeText(sp.get("geo_state_id")) || null,
+    buyerGeoDistrictId: safeText(sp.get("geo_district_id")) || null,
+    buyerGeoSubdivisionId: safeText(sp.get("geo_subdivision_id")) || null,
+    buyerGeoBlockId: safeText(sp.get("geo_block_id")) || null,
+    buyerGeoPlaceId: safeText(sp.get("geo_place_id")) || null,
+  };
 }
 
 function fmtINR(n: any) {
@@ -1275,10 +1294,26 @@ if (want.includes("rentals")) {
               moduleFilter: modFromUrl,
             });
 
+            const geo = computeMarketplaceGeoScore({
+              ...pickGeoFromQuery(sp),
+              listingGeoStateId: row._geo_state_id,
+              listingGeoDistrictId: row._geo_district_id,
+              listingGeoSubdivisionId: row._geo_subdivision_id,
+              listingGeoBlockId: row._geo_block_id,
+              listingGeoPlaceId: row._geo_place_id,
+            });
+
             return {
               ...row,
-              _aiScore: ai.score + unified.score,
-              _aiReason: unified.score > 0 ? unified.reason : ai.reason,
+              _geoScore: geo.score,
+              _geoLevel: geo.level,
+              _aiScore: ai.score + unified.score + geo.score,
+              _aiReason:
+                geo.score > 0
+                  ? `geo ${geo.level} match`
+                  : unified.score > 0
+                  ? unified.reason
+                  : ai.reason,
             };
           })
           .sort((a, b) => {

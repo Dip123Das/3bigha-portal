@@ -301,6 +301,65 @@ function geographyScore(row: any, input: VendorMatchInput) {
   return { score: 0, level: "none", reason: "" };
 }
 
+function vendorCoverageScore(row: any, input: VendorMatchInput) {
+  const reasons: string[] = [];
+  let score = 0;
+  let level = "local";
+
+  const nationwide = row.nationwide_service === true;
+  const statewide = row.statewide_service === true;
+  const radiusKm = Number(row.delivery_radius_km || 0);
+  const preferredArea = clean(row.preferred_service_area).toLowerCase();
+
+  if (nationwide) {
+    score += 18;
+    level = "nationwide";
+    reasons.push("nationwide service");
+  } else if (
+    statewide &&
+    input.geo_state_id &&
+    row.geo_state_id === input.geo_state_id
+  ) {
+    score += 14;
+    level = "statewide";
+    reasons.push("statewide service");
+  }
+
+  if (Number.isFinite(radiusKm) && radiusKm > 0) {
+    if (radiusKm >= 100) {
+      score += 10;
+      reasons.push(`large service radius ${radiusKm} km`);
+    } else if (radiusKm >= 50) {
+      score += 8;
+      reasons.push(`regional service radius ${radiusKm} km`);
+    } else if (radiusKm >= 20) {
+      score += 6;
+      reasons.push(`local service radius ${radiusKm} km`);
+    } else {
+      score += 3;
+      reasons.push(`nearby service radius ${radiusKm} km`);
+    }
+  }
+
+  if (
+    preferredArea &&
+    (
+      (input.locality && preferredArea.includes(input.locality.toLowerCase())) ||
+      (input.city && preferredArea.includes(input.city.toLowerCase()))
+    )
+  ) {
+    score += 8;
+    reasons.push("preferred service area match");
+  }
+
+  return {
+    score: Math.min(score, 25),
+    level,
+    radius_km: Number.isFinite(radiusKm) && radiusKm > 0 ? radiusKm : null,
+    reason: reasons.join(" • "),
+  };
+}
+
 function scoreVendor(row: any, input: VendorMatchInput) {
   let score = 0;
   const reasons: string[] = [];
@@ -318,10 +377,16 @@ function scoreVendor(row: any, input: VendorMatchInput) {
   const rowPincode = clean(row.pincode);
 
   const geoRank = geographyScore(row, input);
+  const coverageRank = vendorCoverageScore(row, input);
 
   if (geoRank.score > 0) {
     locationScore += geoRank.score;
     reasons.push(geoRank.reason);
+  }
+
+  if (coverageRank.score > 0) {
+    locationScore += coverageRank.score;
+    reasons.push(coverageRank.reason);
   }
 
   if (input.pincode && rowPincode && input.pincode === rowPincode) {
@@ -443,6 +508,9 @@ return {
   risk_score: riskScore,
   reputation_score: reputationScore,
   revenue_score: revenueScore,
+  coverage_score: coverageRank.score,
+  coverage_level: coverageRank.level,
+  delivery_radius_km: coverageRank.radius_km,
     reason:
       reasons.length
         ? reasons.join(" • ")
@@ -566,25 +634,60 @@ function getGeoExpansionLevel(row: any, input: VendorMatchInput) {
 function chooseGeoExpandedMatches(rows: any[], minimum = 5) {
   const eligible = rows.filter((row) => row.score >= 35);
 
-  const levels = ["place", "block", "subdivision", "district", "state", "national"];
+  const levelPlan = [
+    { level: "place", target: 3 },
+    { level: "block", target: 5 },
+    { level: "subdivision", target: 7 },
+    { level: "district", target: 10 },
+    { level: "state", target: 12 },
+    { level: "national", target: minimum },
+  ];
+
   const picked: any[] = [];
   const seen = new Set<string>();
+  const considered_levels: string[] = [];
   let expansion_level = "none";
 
-  for (const level of levels) {
-    const batch = eligible.filter((row) => row.geo_expansion_level === level);
+  for (const plan of levelPlan) {
+    considered_levels.push(plan.level);
+
+    const batch = eligible
+      .filter((row) => row.geo_expansion_level === plan.level)
+      .sort((a, b) => {
+        if ((b.ready_deal_signals || 0) !== (a.ready_deal_signals || 0)) {
+          return (b.ready_deal_signals || 0) - (a.ready_deal_signals || 0);
+        }
+
+        if ((b.trust_score || 0) !== (a.trust_score || 0)) {
+          return (b.trust_score || 0) - (a.trust_score || 0);
+        }
+
+        return (b.score || 0) - (a.score || 0);
+      });
 
     for (const row of batch) {
       if (!row.user_id || seen.has(row.user_id)) continue;
+
+      // Keep national fallback limited unless there are no closer vendors.
+      if (
+        plan.level === "national" &&
+        picked.length > 0 &&
+        row.nationwide_service !== true
+      ) {
+        continue;
+      }
+
       seen.add(row.user_id);
       picked.push(row);
-      expansion_level = level;
+      expansion_level = plan.level;
 
-      if (picked.length >= minimum) {
+      if (picked.length >= plan.target) {
         return {
           matches: picked,
           expansion_level,
-          considered_levels: levels.slice(0, levels.indexOf(level) + 1),
+          considered_levels,
+          expansion_target: plan.target,
+          expansion_count: picked.length,
         };
       }
     }
@@ -593,10 +696,9 @@ function chooseGeoExpandedMatches(rows: any[], minimum = 5) {
   return {
     matches: picked,
     expansion_level,
-    considered_levels:
-      expansion_level === "none"
-        ? []
-        : levels.slice(0, levels.indexOf(expansion_level) + 1),
+    considered_levels: expansion_level === "none" ? [] : considered_levels,
+    expansion_target: minimum,
+    expansion_count: picked.length,
   };
 }
 
@@ -784,7 +886,8 @@ export async function GET(req: Request) {
             performanceBoost +
             dealSignalScore +
             buyerIntentScore +
-            trustBoost,
+            trustBoost +
+            (ranked.coverage_score || 0),
           99
         );
 
@@ -820,6 +923,12 @@ export async function GET(req: Request) {
           weighted_boost: weightedBoost,
           price_boost: priceBoost,
           deal_signal_score: dealSignalScore,
+          coverage_score: ranked.coverage_score || 0,
+          coverage_level: ranked.coverage_level || "local",
+          delivery_radius_km: ranked.delivery_radius_km || null,
+          statewide_service: row.statewide_service === true,
+          nationwide_service: row.nationwide_service === true,
+          preferred_service_area: row.preferred_service_area || null,
           buyer_intent: buyerIntent.intent,
           buyer_intent_score: buyerIntentScore,
           buyer_intent_reason: buyerIntent.reason,
@@ -837,6 +946,12 @@ export async function GET(req: Request) {
               ? "hot_buyer_best_match"
               : winProbability > 0.7
               ? "high_win_probability"
+              : row.nationwide_service === true
+              ? "nationwide_coverage"
+              : row.statewide_service === true
+              ? "statewide_coverage"
+              : (ranked.coverage_score || 0) >= 10
+              ? "radius_coverage"
               : weightedBoost > 0
               ? "paid_priority"
               : "standard",
@@ -988,6 +1103,8 @@ export async function GET(req: Request) {
         geo_place_id,
         geo_expansion_level: geoExpanded.expansion_level,
         geo_considered_levels: geoExpanded.considered_levels,
+        geo_expansion_target: geoExpanded.expansion_target,
+        geo_expansion_count: geoExpanded.expansion_count,
         source: "business_profiles",
       },
     });

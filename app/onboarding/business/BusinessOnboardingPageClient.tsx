@@ -71,6 +71,15 @@ type BusinessProfile = {
   verified_postcode: string | null;
   eligible_free: boolean | null;
 
+  delivery_radius_km: number | string | null;
+  preferred_service_area: string | null;
+  statewide_service: boolean | null;
+  nationwide_service: boolean | null;
+  preferred_geo_districts: string[] | null;
+  preferred_geo_subdivisions: string[] | null;
+  preferred_geo_blocks: string[] | null;
+  preferred_geo_places: string[] | null;
+
   is_complete: boolean;
   completion_score: number;
   missing_fields: string[];
@@ -97,6 +106,13 @@ type VendorDocumentVerification = {
   addressMatched?: boolean;
   summary?: string;
   warnings?: string[];
+};
+
+type GeoOption = {
+  id: string;
+  name: string;
+  district_id?: string | null;
+  block_id?: string | null;
 };
 
 type VendorCompletenessRow = {
@@ -363,6 +379,11 @@ export default function BusinessOnboardingPageClient() {
     nature_of_business: [],
   });
 
+  const [geoDistricts, setGeoDistricts] = useState<GeoOption[]>([]);
+  const [geoBlocks, setGeoBlocks] = useState<GeoOption[]>([]);
+  const [geoPlaces, setGeoPlaces] = useState<GeoOption[]>([]);
+
+
   const [vc, setVc] = useState<VendorCompletenessRow | null>(null);
   const [vcLoading, setVcLoading] = useState(false);
   const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
@@ -589,6 +610,46 @@ export default function BusinessOnboardingPageClient() {
   function setField<K extends keyof BusinessProfile>(key: K, value: any) {
     setBp((p) => ({ ...p, [key]: value }));
   }
+
+  function toggleArrayField(key: keyof BusinessProfile, id: string) {
+    setBp((p) => {
+      const current = Array.isArray((p as any)[key]) ? ((p as any)[key] as string[]) : [];
+      const next = current.includes(id)
+        ? current.filter((x) => x !== id)
+        : [...current, id];
+
+      return { ...p, [key]: next };
+    });
+  }
+
+  useEffect(() => {
+    let alive = true;
+
+    async function loadGeographyOptions() {
+      try {
+        const res = await fetch("/api/admin/geography");
+        const json = await res.json().catch(() => null);
+        const data = json?.data || {};
+
+        if (!alive) return;
+
+        setGeoDistricts(Array.isArray(data.districts) ? data.districts : []);
+        setGeoBlocks(Array.isArray(data.blocks) ? data.blocks : []);
+        setGeoPlaces(Array.isArray(data.places) ? data.places : []);
+      } catch {
+        if (!alive) return;
+        setGeoDistricts([]);
+        setGeoBlocks([]);
+        setGeoPlaces([]);
+      }
+    }
+
+    loadGeographyOptions();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   async function runVendorDocumentVerification() {
     const gstin = String(bp.gstin || "").trim();
@@ -1687,6 +1748,118 @@ export default function BusinessOnboardingPageClient() {
                 Location permission, reload this page, then try again.
               </div>
             ) : null}
+
+            <div
+              style={{
+                marginTop: 12,
+                padding: 12,
+                borderRadius: 10,
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              <h4 style={{ margin: "0 0 8px", fontSize: 15 }}>
+                Vendor Service Radius
+              </h4>
+
+              <p style={{ marginTop: 0, fontSize: 12, opacity: 0.75 }}>
+                This helps 3Bigha route RFQs to vendors who can actually serve the buyer location.
+              </p>
+
+              <div style={{ display: "grid", gap: 10 }}>
+                <Field label="Delivery / Service Radius in KM">
+                  <input
+                    type="number"
+                    min="0"
+                    value={bp.delivery_radius_km ?? ""}
+                    onChange={(e) => setField("delivery_radius_km", e.target.value)}
+                    placeholder="Example: 25"
+                    style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                  />
+                </Field>
+
+                <Field label="Preferred Service Area">
+                  <input
+                    value={bp.preferred_service_area ?? ""}
+                    onChange={(e) => setField("preferred_service_area", e.target.value)}
+                    placeholder="Example: Cooch Behar II, Khagrabari, Pundibari"
+                    style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                  />
+                </Field>
+
+                <label style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 700 }}>
+                  <input
+                    type="checkbox"
+                    checked={!!bp.statewide_service}
+                    onChange={(e) => setField("statewide_service", e.target.checked)}
+                  />
+                  I can serve across my state
+                </label>
+
+                <label style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 700 }}>
+                  <input
+                    type="checkbox"
+                    checked={!!bp.nationwide_service}
+                    onChange={(e) => setField("nationwide_service", e.target.checked)}
+                  />
+                  I can serve across India
+                </label>
+
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 6 }}>
+                    Preferred Districts
+                  </div>
+                  <div style={{ display: "grid", gap: 6, maxHeight: 160, overflow: "auto", padding: 8, border: "1px solid #e2e8f0", borderRadius: 8 }}>
+                    {geoDistricts.slice(0, 80).map((row) => (
+                      <label key={row.id} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13 }}>
+                        <input
+                          type="checkbox"
+                          checked={!!bp.preferred_geo_districts?.includes(row.id)}
+                          onChange={() => toggleArrayField("preferred_geo_districts", row.id)}
+                        />
+                        {row.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 6 }}>
+                    Preferred Blocks
+                  </div>
+                  <div style={{ display: "grid", gap: 6, maxHeight: 160, overflow: "auto", padding: 8, border: "1px solid #e2e8f0", borderRadius: 8 }}>
+                    {geoBlocks.slice(0, 120).map((row) => (
+                      <label key={row.id} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13 }}>
+                        <input
+                          type="checkbox"
+                          checked={!!bp.preferred_geo_blocks?.includes(row.id)}
+                          onChange={() => toggleArrayField("preferred_geo_blocks", row.id)}
+                        />
+                        {row.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 6 }}>
+                    Preferred Places
+                  </div>
+                  <div style={{ display: "grid", gap: 6, maxHeight: 180, overflow: "auto", padding: 8, border: "1px solid #e2e8f0", borderRadius: 8 }}>
+                    {geoPlaces.slice(0, 160).map((row) => (
+                      <label key={row.id} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13 }}>
+                        <input
+                          type="checkbox"
+                          checked={!!bp.preferred_geo_places?.includes(row.id)}
+                          onChange={() => toggleArrayField("preferred_geo_places", row.id)}
+                        />
+                        {row.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {!missingLocationVerification ? (
               <div

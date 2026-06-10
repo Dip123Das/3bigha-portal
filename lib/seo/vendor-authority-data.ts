@@ -22,6 +22,18 @@ export type VendorAuthorityData = {
   district: string | null;
   state: string | null;
   locality: string | null;
+
+  geo_state_id?: string | null;
+  geo_district_id?: string | null;
+  geo_subdivision_id?: string | null;
+  geo_block_id?: string | null;
+  geo_place_id?: string | null;
+
+  deliveryRadiusKm?: number | null;
+  preferredServiceArea?: string | null;
+  statewideService?: boolean;
+  nationwideService?: boolean;
+
   subscriptionPlan: string | null;
   subscriptionStatus: string | null;
   boostActive: boolean;
@@ -57,6 +69,18 @@ export async function getVendorAuthorityDataBySlug(
       district,
       state,
       locality,
+
+      geo_state_id,
+      geo_district_id,
+      geo_subdivision_id,
+      geo_block_id,
+      geo_place_id,
+
+      delivery_radius_km,
+      preferred_service_area,
+      statewide_service,
+      nationwide_service,
+
       subscription_plan,
       subscription_status,
       boost_expires_at,
@@ -89,6 +113,18 @@ export async function getVendorAuthorityDataBySlug(
     district: matched.district || null,
     state: matched.state || null,
     locality: matched.locality || null,
+
+    geo_state_id: matched.geo_state_id || null,
+    geo_district_id: matched.geo_district_id || null,
+    geo_subdivision_id: matched.geo_subdivision_id || null,
+    geo_block_id: matched.geo_block_id || null,
+    geo_place_id: matched.geo_place_id || null,
+
+    deliveryRadiusKm: Number(matched.delivery_radius_km || 0) || null,
+    preferredServiceArea: matched.preferred_service_area || null,
+    statewideService: matched.statewide_service === true,
+    nationwideService: matched.nationwide_service === true,
+
     subscriptionPlan: matched.subscription_plan || null,
     subscriptionStatus: matched.subscription_status || null,
     boostActive: boostExpiresAt > Date.now(),
