@@ -229,6 +229,21 @@ export default async function AdminDashboardPage() {
       badges: ["sitemap", "robots.txt", "AI SEO", "regional SEO"],
     },
     {
+      title: "Admin · Geography Control Center",
+      desc: "Manage states, districts, subdivisions, blocks, places, resolver health, coverage analytics and future nationwide geography expansion.",
+      href: "/admin/dashboard/geography",
+      show: isMaster(role),
+      badges: [
+        "states",
+        "districts",
+        "blocks",
+        "places",
+        "resolver",
+        "coverage",
+      ],
+    },
+
+    {
       title: "Admin · Measurement Master Data",
       desc: "Future control center for local land units, district-wise measurements, city practices and conversion values.",
       href: "/admin/dashboard/master-data/measurement",
