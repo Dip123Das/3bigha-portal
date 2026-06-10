@@ -83,11 +83,14 @@ function readInput(table, row) {
   }
 
   if (table === "material_listings") {
+    const serviceArea = row.attributes?.service_area;
+
     return {
-      state: null,
-      district: null,
-      city: row.attributes?.service_area,
-      locality: row.attributes?.service_area,
+      state: "West Bengal",
+      district: serviceArea,
+      city: serviceArea,
+      locality: serviceArea,
+      address: serviceArea,
       pincode: row.attributes?.pincode,
     };
   }
