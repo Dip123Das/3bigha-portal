@@ -244,6 +244,33 @@ export default async function AdminDashboardPage() {
     },
 
     {
+      title: "Admin · Marketplace Intelligence",
+      desc: "Monitor demand, supply, vendor shortage zones, oversupplied markets and opportunity signals across modules and geography.",
+      href: "/admin/dashboard/marketplace-intelligence",
+      show: isMaster(role),
+      badges: [
+        "demand",
+        "supply",
+        "gap analysis",
+        "opportunity zones",
+        "vendor shortage",
+      ],
+    },
+
+    {
+      title: "Admin · Vendor Recruitment",
+      desc: "AI-generated vendor acquisition targets by geography, shortage, priority and market expansion need.",
+      href: "/admin/dashboard/vendor-recruitment",
+      show: isMaster(role),
+      badges: [
+        "shortages",
+        "recruitment",
+        "growth",
+        "market expansion",
+      ],
+    },
+
+    {
       title: "Admin · Measurement Master Data",
       desc: "Future control center for local land units, district-wise measurements, city practices and conversion values.",
       href: "/admin/dashboard/master-data/measurement",

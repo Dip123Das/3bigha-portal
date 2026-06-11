@@ -214,6 +214,20 @@ export async function POST(req: Request) {
     const finalContactEmail = contact_email || (isAuthed ? user?.email || "" : "");
     const finalContactPhone = contact_phone;
 
+    let geography: any = null;
+
+    try {
+      geography = await resolveLocation({
+        state: null,
+        district,
+        city,
+        locality,
+        pincode,
+      });
+    } catch {
+      geography = null;
+    }
+
     // 1) Create RFQ (v2)
     const { data: rfq, error: rfqErr } = await supabaseAdmin
       .from("rfqs")
@@ -233,6 +247,11 @@ export async function POST(req: Request) {
         contact_phone: finalContactPhone || null,
         contact_email: finalContactEmail ? finalContactEmail : null,
         contact_whatsapp: contact_whatsapp || null,
+        geo_state_id: geography?.geo_state_id || null,
+        geo_district_id: geography?.geo_district_id || null,
+        geo_subdivision_id: geography?.geo_subdivision_id || null,
+        geo_block_id: geography?.geo_block_id || null,
+        geo_place_id: geography?.geo_place_id || null,
       })
       .select("id")
       .single();
@@ -241,19 +260,6 @@ export async function POST(req: Request) {
       return jsonError(rfqErr?.message || "RFQ insert failed.", 500);
     }
 
-    let geography: any = null;
-
-    try {
-      geography = await resolveLocation({
-        state: null,
-        district,
-        city,
-        locality,
-        pincode,
-      });
-    } catch {
-      geography = null;
-    }
 
     // 🚀 AI AUTOPILOT (SAFE NON-BLOCKING)
     try {
