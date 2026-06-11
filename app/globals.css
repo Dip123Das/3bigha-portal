@@ -5251,3 +5251,192 @@ main,
     display: none !important;
   }
 }
+
+/* Mobile header rearrangement: keep role dropdown style intact */
+@media (max-width: 768px) {
+  .stableHeader {
+    position: relative;
+    z-index: 60;
+  }
+
+  .stableHeaderMain {
+    min-height: 72px;
+    padding: 10px 12px;
+    display: grid !important;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .stableHeaderLogo,
+  .stableLogo,
+  .siteLogo {
+    justify-self: start;
+    min-width: 92px;
+    max-width: 112px;
+  }
+
+  .stableHeaderSearch,
+  .desktopHeaderSearch,
+  .headerSearchBox {
+    display: none !important;
+  }
+
+  .stableHeaderActions {
+    justify-self: end;
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .stableHeaderActions > * {
+    flex: 0 0 auto;
+  }
+
+  .stableHeaderActions a,
+  .stableHeaderActions button {
+    white-space: nowrap;
+  }
+
+  .stableHeaderActions .primaryAction,
+  .stableHeaderActions .postListButton {
+    display: none !important;
+  }
+
+  .stableMobileMenuButton,
+  .mobileMenuButton,
+  .hamburgerButton {
+    flex: 0 0 auto;
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+  }
+
+  .stableMobileSearchRow,
+  .mobileSearchRow {
+    display: grid !important;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding: 10px 12px;
+    border-top: 1px solid #e5e7eb;
+    background: #ffffff;
+  }
+
+  .stableMobileSearchRow input,
+  .mobileSearchRow input {
+    min-width: 0;
+    height: 48px;
+  }
+
+  .stableMobileSearchRow button,
+  .mobileSearchRow button {
+    height: 48px;
+    min-width: 86px;
+  }
+}
+
+/* Mobile header overlap fix - preserves role/account dropdown */
+@media (max-width: 768px) {
+  .topHeader,
+  .siteTopHeader,
+  .stableTopHeader {
+    overflow: visible !important;
+  }
+
+  .topBar,
+  .topHeaderInner,
+  .stableTopHeaderInner {
+    min-height: 74px !important;
+    padding: 10px 12px !important;
+    display: grid !important;
+    grid-template-columns: auto 1fr auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    overflow: visible !important;
+  }
+
+  .brandLogo,
+  .topLogo,
+  .siteLogo {
+    justify-self: start !important;
+    width: 86px !important;
+    max-width: 86px !important;
+    min-width: 86px !important;
+    overflow: hidden !important;
+  }
+
+  .brandLogo img,
+  .topLogo img,
+  .siteLogo img {
+    width: 86px !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  .topSearchWrap,
+  .desktopSearch,
+  .topDesktopSearch {
+    display: none !important;
+  }
+
+  .topActions,
+  .topHeaderActions,
+  .stableTopActions {
+    justify-self: end !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+  }
+
+  .topActions .topBtn,
+  .topHeaderActions .topBtn,
+  .stableTopActions .topBtn {
+    position: static !important;
+    white-space: nowrap !important;
+    flex: 0 0 auto !important;
+  }
+
+  .topActions .topBtnPrimary,
+  .topHeaderActions .topBtnPrimary,
+  .stableTopActions .topBtnPrimary {
+    display: none !important;
+  }
+
+  details.topMobileMenu {
+    position: static !important;
+    flex: 0 0 auto !important;
+    z-index: 80 !important;
+  }
+
+  .topHamburger {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 18px !important;
+    display: grid !important;
+    place-items: center !important;
+  }
+
+  .mobileSearchBar,
+  .mobileSearchRow,
+  .mobileAppSearchBar {
+    position: relative !important;
+    z-index: 20 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 10px !important;
+    padding: 10px 12px !important;
+    background: #ffffff !important;
+    border-top: 1px solid #e5e7eb !important;
+  }
+
+  .mobileSearchBar input,
+  .mobileSearchRow input,
+  .mobileAppSearchBar input {
+    min-width: 0 !important;
+  }
+}
