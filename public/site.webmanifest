@@ -1,19 +1,24 @@
 {
-  "name": "3bigha.com",
-  "short_name": "3bigha",
+  "name": "3Bigha",
+  "short_name": "3Bigha",
+  "description": "AI-powered property, construction, materials, services and rentals marketplace.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "icons": [
     {
-      "src": "/android-chrome-192x192.png",
+      "src": "/icons/logo-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/android-chrome-512x512.png",
+      "src": "/icons/logo-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ],
-  "theme_color": "#0b57d0",
-  "background_color": "#ffffff",
-  "display": "standalone"
+  ]
 }
