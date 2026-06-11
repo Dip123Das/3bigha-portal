@@ -536,6 +536,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <Link href="/materials">Materials Marketplace</Link>
               <Link href="/services">Construction Services</Link>
               <Link href="/rentals">Rental Marketplace</Link>
+              <Link href="/vendor-opportunities">🚀 Vendor Opportunities</Link>
               <Link href="/rfq/general/new">Submit RFQ</Link>
               <Link href="/ai-search-guide">Search Guide</Link>
               <Link href="/about">About Us</Link>

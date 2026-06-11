@@ -78,6 +78,7 @@ const categoryCards = [
   { title: "Materials", icon: "🧱", text: "Cement, steel, sand, bricks and construction materials", count: "Compare • Buy • RFQ", href: "/materials" },
   { title: "Services", icon: "🛠️", text: "Contractors, labour, plumbing, electrical and legal support", count: "Hire • Compare • Execute", href: "/services" },
   { title: "Rentals", icon: "🚜", text: "JCB, machinery, scaffolding and construction rentals", count: "Rent • Operate • Deliver", href: "/rentals" },
+  { title: "Vendor Opportunities", icon: "🚀", text: "Discover where buyers need suppliers, contractors and equipment owners", count: "Join • Grow • Expand", href: "/vendor-opportunities" },
   { title: "Submit Requirement", icon: "⚡", text: "Post material, service, rental or project requirements", count: "Post • Compare • Select", href: "/rfq/general/new" },
 ];
 const tools = [
@@ -445,6 +446,32 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="vendorOpportunityHomeStrip">
+        <div className="vendorOpportunityHomeHead">
+          <div>
+            <span>🚀 Vendor Growth Opportunities</span>
+            <h2>Buyers are looking for more vendors in active demand areas.</h2>
+            <p>Join 3Bigha where suppliers, contractors, service providers and equipment owners are needed.</p>
+          </div>
+          <a href="/vendor-opportunities">View All Opportunities →</a>
+        </div>
+
+        <div className="vendorOpportunityHomeGrid">
+          <a href="/vendor-opportunities">
+            <b>🔥 Need Cement Suppliers</b>
+            <small>Khagrabari</small>
+          </a>
+          <a href="/vendor-opportunities">
+            <b>⚡ Need Electricians</b>
+            <small>Cooch Behar Town</small>
+          </a>
+          <a href="/vendor-opportunities">
+            <b>🚜 Need JCB Rental Providers</b>
+            <small>Baneswar</small>
+          </a>
+        </div>
+      </section>
+
       <section className="aiBusinessCommand">
         <div className="aiBusinessCopy">
           <span>AI Business Work Desk</span>
@@ -699,6 +726,7 @@ export default function HomePage() {
           <a href="/materials">Materials</a>
           <a href="/services">Services</a>
           <a href="/rentals">Rentals</a>
+          <a href="/vendor-opportunities">Vendor Opportunities</a>
         </nav>
         <nav>
           <strong>Tools</strong>
@@ -744,6 +772,86 @@ export default function HomePage() {
         .homePage > div {
           position: relative;
           z-index: 1;
+        }
+
+
+        .vendorOpportunityHomeStrip{
+          max-width:1380px;
+          margin:0 auto 18px;
+          padding:0 68px;
+        }
+        .vendorOpportunityHomeHead{
+          border:1px solid #bbf7d0;
+          background:linear-gradient(135deg,#ecfdf5,#eff6ff);
+          border-radius:22px 22px 0 0;
+          padding:18px;
+          display:flex;
+          justify-content:space-between;
+          gap:16px;
+          align-items:flex-start;
+        }
+        .vendorOpportunityHomeHead span{
+          display:block;
+          color:#047857;
+          font-size:12px;
+          font-weight:1000;
+          letter-spacing:.14em;
+          text-transform:uppercase;
+        }
+        .vendorOpportunityHomeHead h2{
+          margin:7px 0 0;
+          font-size:22px;
+          font-weight:1000;
+          letter-spacing:-.03em;
+        }
+        .vendorOpportunityHomeHead p{
+          margin:5px 0 0;
+          color:#475569;
+          font-size:13px;
+          font-weight:750;
+          line-height:1.5;
+        }
+        .vendorOpportunityHomeHead a{
+          white-space:nowrap;
+          border-radius:999px;
+          background:#059669;
+          color:#fff;
+          padding:10px 14px;
+          text-decoration:none;
+          font-size:13px;
+          font-weight:950;
+        }
+        .vendorOpportunityHomeGrid{
+          display:grid;
+          grid-template-columns:repeat(3,1fr);
+          gap:10px;
+          border:1px solid #bbf7d0;
+          border-top:0;
+          background:#fff;
+          border-radius:0 0 22px 22px;
+          padding:14px;
+        }
+        .vendorOpportunityHomeGrid a{
+          text-decoration:none;
+          color:inherit;
+          border:1px solid #d1fae5;
+          border-radius:16px;
+          padding:14px;
+          background:#fff;
+          box-shadow:0 10px 24px rgba(15,23,42,.04);
+        }
+        .vendorOpportunityHomeGrid b{
+          display:block;
+          font-size:14px;
+          font-weight:1000;
+          color:#0f172a;
+        }
+        .vendorOpportunityHomeGrid small{
+          display:block;
+          margin-top:5px;
+          color:#047857;
+          font-size:12px;
+          font-weight:900;
         }
 
         .homePage{min-height:100vh;background:#fff;color:#0f172a;padding-bottom:24px}.heroShell{padding:38px 68px 28px;background:radial-gradient(circle at 18% 18%,#dbeafe 0,transparent 34%),radial-gradient(circle at 86% 12%,#ede9fe 0,transparent 30%),linear-gradient(180deg,#f8fbff,#fff)}.heroGrid{display:grid;grid-template-columns:1.03fr .97fr;gap:48px;align-items:center;max-width:1380px;margin:0 auto}.miniBadge{display:inline-flex;border-radius:999px;background:#eef4ff;color:#1d4ed8;padding:9px 14px;font-size:13px;font-weight:950}.heroCopy h1{margin:22px 0 0;font-size:clamp(44px,5.7vw,78px);line-height:1.02;letter-spacing:-.065em;font-weight:1000}.heroCopy h1 span{display:block;color:#2457d6}.heroCopy p{max-width:660px;margin:18px 0 0;color:#475569;font-size:18px;line-height:1.65;font-weight:650}.heroFeatureRow{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}.heroFeatureRow a{display:inline-flex;border-radius:999px;background:#fff;border:1px solid rgba(15,23,42,.08);box-shadow:0 10px 28px rgba(15,23,42,.05);padding:10px 14px;color:#0f172a;text-decoration:none;font-size:13px;font-weight:950}.searchCard{background:rgba(255,255,255,.92);border:1px solid rgba(15,23,42,.08);box-shadow:0 28px 80px rgba(15,23,42,.12);border-radius:28px;padding:24px}.searchTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-bottom:1px solid #e5e7eb;margin:-4px 0 18px;padding-bottom:10px}.searchTabs button{border:0;background:transparent;border-radius:14px;padding:12px 8px;font-weight:950;color:#475569;cursor:pointer}.searchTabs button.active{background:#eff6ff;color:#1d4ed8;box-shadow:inset 0 2px 0 #2563eb}.searchCard textarea{width:100%;min-height:126px;border:1px solid rgba(15,23,42,.14);border-radius:18px;padding: 14px;font-size:15px;line-height:1.7;resize:none;outline:none;color:#0f172a}.typeChips{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.typeChips button{border:1px solid rgba(15,23,42,.1);background:#fff;border-radius:999px;padding:9px 13px;font-size:13px;font-weight:950;cursor:pointer}.typeChips button.active{background:#eef4ff;color:#1d4ed8;border-color:#bfdbfe}.searchActions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.searchActions button{border:0;border-radius:18px;padding: 12px;font-weight:1000;cursor:pointer}.primaryAction{background:#1d4ed8;color:#fff;box-shadow:0 14px 34px rgba(29,78,216,.24)}.secondaryAction{background:#fff;border:1px solid rgba(15,23,42,.12)!important;color:#0f172a}.statsRail{max-width:1380px;margin:10px auto 14px;padding:0 68px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.statCard{background:#0f172a;color:#fff;border:1px solid rgba(255,255,255,.1);box-shadow:0 14px 34px rgba(15,23,42,.12);padding: 12px;display:flex;gap:11px;align-items:center;border-radius:16px}.statCard:first-child,.statCard:last-child{border-radius:16px}.statCard span{width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(37,99,235,.25)}.statCard strong{display:block;font-size:20px;font-weight:1000;color:#fff}.statCard small{display:block;color:#cbd5e1;font-size:11px;font-weight:850}.contentSection,.splitSection,.startBanner,.homeFooter{max-width:1380px;margin:0 auto 18px;padding:0 68px}.sectionHead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:14px}.sectionHead h2,.trustSection h2{margin:0;font-size:22px;letter-spacing:-.03em;font-weight:1000}.sectionHead p,.trustSection p{margin:4px 0 0;color:#64748b;font-size:13px;font-weight:700}.sectionHead a{color:#1d4ed8;text-decoration:none;font-weight:950}.categoryGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}.categoryCard{border:1px solid rgba(15,23,42,.09);border-radius:18px;background:#fff;text-align:center;text-decoration:none;color:inherit;padding: 14px 14px;box-shadow:0 10px 26px rgba(15,23,42,.04);transition:.16s ease}.categoryCard:hover,.listingCard:hover,.toolCard:hover{transform:translateY(-2px);box-shadow:0 16px 36px rgba(15,23,42,.08)}.categoryIcon{font-size:34px}.categoryCard h3{margin:10px 0 0;font-size:15px;font-weight:1000}.categoryCard p{min-height:34px;margin:6px 0 0;color:#64748b;font-size:12px;line-height:1.35}.categoryCard strong{display:block;margin-top:10px;color:#16a34a;font-size:12px}.personalFeedStrip{border:1px solid #dbeafe;background:linear-gradient(135deg,#eff6ff,#fff);border-radius:18px;padding:14px;margin-bottom:16px;display:grid;gap:12px}
@@ -910,6 +1018,17 @@ export default function HomePage() {
           .aiPanelGrid{
             grid-template-columns:1fr!important;
           }
+        }
+
+
+        @media (max-width: 760px){
+          .vendorOpportunityHomeStrip{padding:0 14px;margin-bottom:14px}
+          .vendorOpportunityHomeHead{display:block;padding:14px;border-radius:18px 18px 0 0}
+          .vendorOpportunityHomeHead h2{font-size:18px}
+          .vendorOpportunityHomeHead p{font-size:12px}
+          .vendorOpportunityHomeHead a{display:inline-flex;margin-top:12px}
+          .vendorOpportunityHomeGrid{grid-template-columns:1fr;padding:10px;border-radius:0 0 18px 18px}
+          .vendorOpportunityHomeGrid a:nth-child(n+3){display:none}
         }
 
       `}</style>

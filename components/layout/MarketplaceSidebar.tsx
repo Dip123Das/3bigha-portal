@@ -25,6 +25,12 @@ const marketplaceMenus = [
     href: "/rentals",
     preview: "JCB, tools, shuttering and machinery rentals.",
   },
+  {
+    title: "Vendor Opportunities",
+    icon: "🚀",
+    href: "/vendor-opportunities",
+    preview: "See where buyers need more suppliers and service providers.",
+  },
 ];
 
 const quickActions = [

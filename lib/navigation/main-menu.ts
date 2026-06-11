@@ -35,6 +35,7 @@ export const MENUS: MenuItem[] = [
           ["Materials", "/materials"],
           ["Services", "/services"],
           ["Rentals", "/rentals"],
+          ["🚀 Vendor Opportunities", "/vendor-opportunities"],
         ],
       },
       {
