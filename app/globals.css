@@ -5440,3 +5440,22 @@ main,
     min-width: 0 !important;
   }
 }
+
+/* Final mobile hamburger size tuning */
+@media (max-width: 768px) {
+  .topHamburger {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    min-height: 46px !important;
+    border-radius: 15px !important;
+    padding: 0 !important;
+  }
+
+  .topHamburger span {
+    width: 22px !important;
+    height: 2px !important;
+    margin: 3px 0 !important;
+    border-radius: 999px !important;
+  }
+}
