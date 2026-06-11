@@ -1,6 +1,7 @@
 // app/materials/page.tsx
 "use client";
 
+import PublicVendorOpportunityBanner from "@/components/marketplace/PublicVendorOpportunityBanner";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -493,6 +494,8 @@ export default function MaterialsPage() {
           title="Materials"
           subtitle="Start with a simple material group, then use search and filters for exact products."
         />
+
+        <PublicVendorOpportunityBanner module="materials" />
 
         <div
           style={{

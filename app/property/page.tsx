@@ -1,6 +1,7 @@
 // app/property/page.tsx  (PUBLIC)
 "use client";
 
+import PublicVendorOpportunityBanner from "@/components/marketplace/PublicVendorOpportunityBanner";
 import Link from "next/link";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getSupabasePublicBrowser } from "@/lib/supabasePublicBrowser";
@@ -765,6 +766,8 @@ export default function PropertyPublicListPage() {
           </Link>
         </div>
       </div>
+
+      <PublicVendorOpportunityBanner module="property" />
 
       <div
         style={{

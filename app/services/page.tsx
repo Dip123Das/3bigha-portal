@@ -1,6 +1,7 @@
 // app/services/page.tsx
 "use client";
 
+import PublicVendorOpportunityBanner from "@/components/marketplace/PublicVendorOpportunityBanner";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
@@ -445,6 +446,8 @@ export default function ServicesPage() {
           title="Services"
           subtitle="Discover and compare service providers across construction, real estate and legal support."
         />
+
+        <PublicVendorOpportunityBanner module="services" />
 
         <div
           style={{

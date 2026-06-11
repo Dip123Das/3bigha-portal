@@ -1,6 +1,7 @@
 // app/rentals/page.tsx  (PUBLIC - NO AUTH REQUIRED)
 "use client";
 
+import PublicVendorOpportunityBanner from "@/components/marketplace/PublicVendorOpportunityBanner";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
@@ -570,6 +571,8 @@ export default function RentalsPublicPage() {
 
       <Container>
         <SectionHeader title="Rentals" subtitle="Browse equipment & services available on rent (public listings)." />
+
+        <PublicVendorOpportunityBanner module="rentals" />
 
         <div
           style={{
