@@ -103,7 +103,7 @@ async function loadListingGeoCounts(
 
   const map = new Map<string, GeoKey & { listings: number }>();
 
-  for (const row of data as GeoKey[]) {
+  for (const row of (data as (GeoKey & { module?: string })[]).filter((item) => item.geo_state_id)) {
     const key = geoSignature(row);
     const existing = map.get(key);
 
@@ -164,9 +164,8 @@ async function loadRfqGeoCounts(
 ) {
   const { data, error } = await supabase
     .from("rfqs")
-    .select("geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id,geo_place_id")
+    .select("geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id,geo_place_id,module")
     .eq("module", module)
-    .not("geo_state_id", "is", null)
     .limit(1000);
 
   if (error || !data) {
@@ -176,20 +175,44 @@ async function loadRfqGeoCounts(
   const map = new Map<string, GeoKey & { rfqs: number }>();
 
   for (const row of data as GeoKey[]) {
-    const key = geoSignature(row);
-    const existing = map.get(key);
-
-    if (existing) {
-      existing.rfqs += 1;
-    } else {
-      map.set(key, {
+    const variants: GeoKey[] = [
+      {
         geo_state_id: row.geo_state_id || null,
         geo_district_id: row.geo_district_id || null,
         geo_subdivision_id: row.geo_subdivision_id || null,
         geo_block_id: row.geo_block_id || null,
         geo_place_id: row.geo_place_id || null,
-        rfqs: 1,
-      });
+      },
+      {
+        geo_state_id: row.geo_state_id || null,
+        geo_district_id: row.geo_district_id || null,
+        geo_subdivision_id: null,
+        geo_block_id: null,
+        geo_place_id: null,
+      },
+      {
+        geo_state_id: row.geo_state_id || null,
+        geo_district_id: null,
+        geo_subdivision_id: null,
+        geo_block_id: null,
+        geo_place_id: null,
+      },
+    ];
+
+    for (const variant of variants) {
+      if (!variant.geo_state_id) continue;
+
+      const key = geoSignature(variant);
+      const existing = map.get(key);
+
+      if (existing) {
+        existing.rfqs += 1;
+      } else {
+        map.set(key, {
+          ...variant,
+          rfqs: 1,
+        });
+      }
     }
   }
 
@@ -290,7 +313,14 @@ async function insertSignalSet(
     updated_at: now,
   });
 
-  const recruitmentRes = recruitment.shortageScore >= 20
+  const hasGeo =
+    !!geo.geo_state_id ||
+    !!geo.geo_district_id ||
+    !!geo.geo_subdivision_id ||
+    !!geo.geo_block_id ||
+    !!geo.geo_place_id;
+
+  const recruitmentRes = hasGeo && recruitment.shortageScore >= 1
     ? await supabase.from("marketplace_vendor_recruitment_queue").insert({
         ...geo,
         module: input.module,
@@ -407,18 +437,28 @@ export async function aggregateMarketplaceIntelligence(): Promise<MarketplaceInt
     const listingGeoCounts = await loadListingGeoCounts(supabase, item.listingTable);
     const rfqGeoCounts = await loadRfqGeoCounts(supabase, item.rfqModule);
 
-    for (const [key, geoListing] of listingGeoCounts.entries()) {
+    const geoKeys = new Set<string>([
+      ...Array.from(listingGeoCounts.keys()),
+      ...Array.from(rfqGeoCounts.keys()),
+    ]);
+
+    for (const key of geoKeys) {
+      const geoListing = listingGeoCounts.get(key);
+      const geoRfq = rfqGeoCounts.get(key);
       const vendorGeo = vendorGeoCounts.get(key);
+      const geo = geoListing || geoRfq;
+
+      if (!geo) continue;
 
       const geoLevel = await insertSignalSet(supabase, {
         module: item.module,
         category: "all",
-        geo: geoListing,
+        geo,
         searches: 0,
-        rfqs: rfqGeoCounts.get(key)?.rfqs || 0,
+        rfqs: geoRfq?.rfqs || 0,
         enquiries: 0,
         vendors: item.module === "property" ? 0 : vendorGeo?.vendors || 0,
-        listings: geoListing.listings,
+        listings: geoListing?.listings || 0,
       });
 
       demandSignals += geoLevel.demand;

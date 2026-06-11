@@ -24,9 +24,9 @@ export function buildDemandMetrics({
   const score = Math.min(
     100,
     Math.round(
-      searches * 0.3 +
-      rfqs * 0.5 +
-      enquiries * 0.2
+      searches * 1 +
+      rfqs * 10 +
+      enquiries * 4
     )
   );
 

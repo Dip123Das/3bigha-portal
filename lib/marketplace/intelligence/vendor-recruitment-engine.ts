@@ -11,28 +11,25 @@ export function buildVendorRecruitmentTarget(
   demandScore: number,
   supplyScore: number
 ): VendorRecruitmentTarget {
-  const shortageScore = Math.max(
-    0,
-    demandScore - supplyScore
-  );
+  const shortageScore = Math.max(0, demandScore - supplyScore);
 
   const recommendedVendorCount =
-    shortageScore >= 80
-      ? 12
-      : shortageScore >= 60
-        ? 8
-        : shortageScore >= 40
-          ? 5
-          : shortageScore >= 20
-            ? 3
-            : 1;
+    shortageScore >= 40
+      ? 10
+      : shortageScore >= 25
+        ? 6
+        : shortageScore >= 10
+          ? 3
+          : shortageScore >= 3
+            ? 1
+            : 0;
 
   const priority =
-    shortageScore >= 80
+    shortageScore >= 40
       ? "critical"
-      : shortageScore >= 60
+      : shortageScore >= 25
         ? "high"
-        : shortageScore >= 40
+        : shortageScore >= 10
           ? "medium"
           : "low";
 
