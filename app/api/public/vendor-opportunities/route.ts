@@ -28,7 +28,14 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, rows: [] });
   }
 
-  const [targetsRes, states, districts, places] = await Promise.all([
+  const [promotionRes, fallbackRes, states, districts, places] = await Promise.all([
+    supabase
+      .from("marketplace_promotion_intelligence")
+      .select("id,module,category,promotion_score,promotion_type,shortage_score,geo_state_id,geo_district_id,geo_place_id")
+      .eq("module", module)
+      .not("geo_state_id", "is", null)
+      .order("promotion_rank", { ascending: true })
+      .limit(3),
     supabase
       .from("marketplace_vendor_recruitment_queue")
       .select("id,module,category,recommended_vendor_count,priority,geo_state_id,geo_district_id,geo_place_id")
@@ -41,7 +48,28 @@ export async function GET(req: Request) {
     loadGeoNameMap("geo_places"),
   ]);
 
-  const rows = (targetsRes.data || []).map((row) => {
+  const sourceRows =
+    promotionRes.data && promotionRes.data.length
+      ? promotionRes.data.map((row: any) => ({
+          ...row,
+          vendorsNeeded: Math.max(1, Math.round(Number(row.shortage_score || 0) / 10)),
+          priority:
+            row.promotion_type === "featured"
+              ? "critical"
+              : row.promotion_type === "promoted"
+              ? "high"
+              : "medium",
+          promotionType: row.promotion_type,
+          promotionScore: row.promotion_score,
+        }))
+      : (fallbackRes.data || []).map((row: any) => ({
+          ...row,
+          vendorsNeeded: Number(row.recommended_vendor_count || 0),
+          promotionType: null,
+          promotionScore: null,
+        }));
+
+  const rows = sourceRows.map((row: any) => {
     const location =
       geoName(places, row.geo_place_id) ||
       geoName(districts, row.geo_district_id) ||
@@ -52,8 +80,10 @@ export async function GET(req: Request) {
       id: row.id,
       module: row.module,
       category: row.category,
-      vendorsNeeded: Number(row.recommended_vendor_count || 0),
+      vendorsNeeded: Number(row.vendorsNeeded || 0),
       priority: row.priority,
+      promotionType: row.promotionType,
+      promotionScore: row.promotionScore,
       location,
       district: geoName(districts, row.geo_district_id),
       state: geoName(states, row.geo_state_id),

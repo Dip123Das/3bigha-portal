@@ -35,12 +35,12 @@ export const metadata = {
 export default async function VendorOpportunitiesPage() {
   const [targetsRes, stateNames, districtNames, placeNames] = await Promise.all([
     supabase
-      .from("marketplace_vendor_recruitment_queue")
+      .from("marketplace_promotion_intelligence")
       .select(
-        "id,module,category,recommended_vendor_count,priority,status,geo_state_id,geo_district_id,geo_place_id"
+        "id,module,category,promotion_score,promotion_type,shortage_score,geo_state_id,geo_district_id,geo_place_id"
       )
       .in("module", ["property", "materials", "services", "rentals"])
-      .order("recommended_vendor_count", { ascending: false })
+      .order("promotion_rank", { ascending: true })
       .limit(24),
     loadGeoNameMap("geo_states"),
     loadGeoNameMap("geo_districts"),
@@ -48,7 +48,7 @@ export default async function VendorOpportunitiesPage() {
   ]);
 
   const targets = (targetsRes.data || []).filter(
-    (row) => Number(row.recommended_vendor_count || 0) > 0
+    (row) => Number(row.shortage_score || 0) > 0
   );
 
   return (
@@ -103,8 +103,16 @@ export default async function VendorOpportunitiesPage() {
                     location={place || district || state || "Active location"}
                     district={district}
                     state={state}
-                    vendorsNeeded={Number(row.recommended_vendor_count || 0)}
-                    priority={row.priority}
+                    vendorsNeeded={Math.max(1, Math.round(Number(row.shortage_score || 0) / 10))}
+                    priority={
+                      row.promotion_type === "featured"
+                        ? "critical"
+                        : row.promotion_type === "promoted"
+                        ? "high"
+                        : "medium"
+                    }
+                    promotionType={row.promotion_type}
+                    promotionScore={row.promotion_score}
                   />
                 );
               })}
