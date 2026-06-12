@@ -65,6 +65,23 @@ type RecruitmentRow = {
   geo_block_id: string | null;
 };
 
+type ExpansionAutomationRow = {
+  id: string;
+  module: string;
+  category: string | null;
+  expansion_score: number;
+  optimization_score: number;
+  shortage_score: number;
+  action_type: string;
+  action_priority: string;
+  recommendation: string;
+  reason: string | null;
+  geo_state_id: string | null;
+  geo_district_id: string | null;
+  geo_block_id: string | null;
+  geo_place_id: string | null;
+};
+
 async function countTable(table: string) {
   const { count, error } = await supabase
     .from(table)
@@ -129,6 +146,16 @@ async function recruitmentRows() {
   return (data ?? []) as RecruitmentRow[];
 }
 
+async function expansionAutomationRows() {
+  const { data } = await supabase
+    .from("marketplace_expansion_automation_actions")
+    .select("id,module,category,expansion_score,optimization_score,shortage_score,action_type,action_priority,recommendation,reason,geo_state_id,geo_district_id,geo_block_id,geo_place_id")
+    .order("optimization_score", { ascending: false })
+    .limit(18);
+
+  return (data ?? []) as ExpansionAutomationRow[];
+}
+
 function label(value: string | null | undefined) {
   return value && String(value).trim() ? value : "—";
 }
@@ -173,6 +200,7 @@ export default async function MarketplaceIntelligenceAdminPage() {
     growthLeaders,
     expansionLeaders,
     recruitmentTargets,
+    expansionAutomation,
     stateNames,
     districtNames,
     subdivisionNames,
@@ -193,6 +221,7 @@ export default async function MarketplaceIntelligenceAdminPage() {
       growthRows(),
       expansionRows(),
       recruitmentRows(),
+      expansionAutomationRows(),
       loadGeoNameMap("geo_states"),
       loadGeoNameMap("geo_districts"),
       loadGeoNameMap("geo_subdivisions"),
@@ -214,6 +243,18 @@ export default async function MarketplaceIntelligenceAdminPage() {
 
   const expandNow = expansionLeaders.filter(
     (row) => row.recommendation === "expand"
+  ).length;
+
+  const expandAutomationNow = expansionAutomation.filter(
+    (row) => row.action_type === "expand_now"
+  ).length;
+
+  const increaseRecruitmentAutomation = expansionAutomation.filter(
+    (row) => row.action_type === "increase_recruitment"
+  ).length;
+
+  const pauseWatchAutomation = expansionAutomation.filter(
+    (row) => row.action_type === "pause_or_watch"
   ).length;
 
   const watchZones = expansionLeaders.filter(
@@ -339,6 +380,75 @@ export default async function MarketplaceIntelligenceAdminPage() {
             </div>
           </div>
         </div>
+
+
+        <div className="mt-6 rounded-3xl border border-cyan-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-700">
+            Marketplace Expansion Automation
+          </p>
+          <h2 className="mt-2 text-2xl font-black text-slate-950">
+            Expansion Action Center
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
+            Combines expansion score, vendor shortage and autonomous recruitment intelligence to decide where 3Bigha should expand, strengthen recruitment or pause.
+          </p>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-4">
+            <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4">
+              <div className="text-xs font-black uppercase text-cyan-700">Expand Now</div>
+              <div className="mt-2 text-3xl font-black text-cyan-950">{expandAutomationNow}</div>
+            </div>
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+              <div className="text-xs font-black uppercase text-blue-700">Increase Recruitment</div>
+              <div className="mt-2 text-3xl font-black text-blue-950">{increaseRecruitmentAutomation}</div>
+            </div>
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <div className="text-xs font-black uppercase text-amber-700">Pause / Watch</div>
+              <div className="mt-2 text-3xl font-black text-amber-950">{pauseWatchAutomation}</div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-xs font-black uppercase text-slate-600">Automation Rows</div>
+              <div className="mt-2 text-3xl font-black text-slate-950">{expansionAutomation.length}</div>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 lg:grid-cols-3">
+            {expansionAutomation.length ? (
+              expansionAutomation.slice(0, 9).map((row) => (
+                <div key={row.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-black text-slate-950">
+                        {row.module} · {row.category || "all"}
+                      </div>
+                      <div className="mt-1 text-xs font-bold text-slate-500">
+                        {geoName(placeNames, row.geo_place_id)} · {geoName(districtNames, row.geo_district_id)}
+                      </div>
+                    </div>
+                    <div className="rounded-full bg-cyan-100 px-3 py-1 text-xs font-black text-cyan-800">
+                      {row.action_type?.replaceAll("_", " ")}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs font-black">
+                    <div>Expansion<br /><span className="text-slate-950">{Math.round(Number(row.expansion_score || 0))}</span></div>
+                    <div>Optimization<br /><span className="text-slate-950">{Math.round(Number(row.optimization_score || 0))}</span></div>
+                    <div>Shortage<br /><span className="text-cyan-700">{Math.round(Number(row.shortage_score || 0))}</span></div>
+                  </div>
+
+                  <p className="mt-3 text-xs font-bold leading-5 text-slate-600">
+                    {row.recommendation}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm font-bold text-slate-500">
+                No expansion automation actions yet. Run /api/system/marketplace-expansion-automation-refresh after marketplace intelligence refresh.
+              </div>
+            )}
+          </div>
+        </div>
+
 
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           <MiniRanking
