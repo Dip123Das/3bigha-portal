@@ -82,6 +82,24 @@ type ExpansionAutomationRow = {
   geo_place_id: string | null;
 };
 
+type LiquidityRow = {
+  id: string;
+  module: string;
+  category: string | null;
+  vendor_count: number;
+  listing_count: number;
+  rfq_count: number;
+  activation_count: number;
+  liquidity_score: number;
+  liquidity_level: string;
+  zone_type: string;
+  recommendation: string;
+  geo_state_id: string | null;
+  geo_district_id: string | null;
+  geo_block_id: string | null;
+  geo_place_id: string | null;
+};
+
 async function countTable(table: string) {
   const { count, error } = await supabase
     .from(table)
@@ -156,6 +174,16 @@ async function expansionAutomationRows() {
   return (data ?? []) as ExpansionAutomationRow[];
 }
 
+async function liquidityRows() {
+  const { data } = await supabase
+    .from("marketplace_liquidity_scores")
+    .select("*")
+    .order("liquidity_score", { ascending: false })
+    .limit(24);
+
+  return (data ?? []) as LiquidityRow[];
+}
+
 function label(value: string | null | undefined) {
   return value && String(value).trim() ? value : "—";
 }
@@ -201,6 +229,7 @@ export default async function MarketplaceIntelligenceAdminPage() {
     expansionLeaders,
     recruitmentTargets,
     expansionAutomation,
+    liquidityScores,
     stateNames,
     districtNames,
     subdivisionNames,
@@ -222,6 +251,7 @@ export default async function MarketplaceIntelligenceAdminPage() {
       expansionRows(),
       recruitmentRows(),
       expansionAutomationRows(),
+      liquidityRows(),
       loadGeoNameMap("geo_states"),
       loadGeoNameMap("geo_districts"),
       loadGeoNameMap("geo_subdivisions"),
@@ -266,6 +296,28 @@ export default async function MarketplaceIntelligenceAdminPage() {
       ? Math.round(
           growthLeaders.reduce((sum, row) => sum + row.growth_score, 0) /
             growthLeaders.length
+        )
+      : 0;
+
+  const hotZones = liquidityScores.filter(
+    (row) => row.zone_type === "hot_zone"
+  ).length;
+
+  const deadZones = liquidityScores.filter(
+    (row) => row.zone_type === "dead_zone"
+  ).length;
+
+  const activationGaps = liquidityScores.filter(
+    (row) => row.zone_type === "activation_gap"
+  ).length;
+
+  const liquidityHealth =
+    liquidityScores.length > 0
+      ? Math.round(
+          liquidityScores.reduce(
+            (sum, row) => sum + Number(row.liquidity_score || 0),
+            0
+          ) / liquidityScores.length
         )
       : 0;
 
@@ -444,6 +496,106 @@ export default async function MarketplaceIntelligenceAdminPage() {
             ) : (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm font-bold text-slate-500">
                 No expansion automation actions yet. Run /api/system/marketplace-expansion-automation-refresh after marketplace intelligence refresh.
+              </div>
+            )}
+          </div>
+        </div>
+
+
+
+        <div className="mt-6 rounded-3xl border border-emerald-200 bg-white p-6 shadow-sm">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">
+            Marketplace Liquidity Intelligence
+          </p>
+
+          <h2 className="mt-2 text-2xl font-black text-slate-950">
+            Liquidity Health: {liquidityHealth}/100
+          </h2>
+
+          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-600">
+            Measures whether buyers can find active vendors, listings and RFQ capacity in each module and geography.
+          </p>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-4">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+              <div className="text-xs font-black uppercase text-emerald-700">
+                Hot Zones
+              </div>
+              <div className="mt-2 text-3xl font-black text-emerald-950">
+                {hotZones}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+              <div className="text-xs font-black uppercase text-rose-700">
+                Dead Zones
+              </div>
+              <div className="mt-2 text-3xl font-black text-rose-950">
+                {deadZones}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <div className="text-xs font-black uppercase text-amber-700">
+                Activation Gaps
+              </div>
+              <div className="mt-2 text-3xl font-black text-amber-950">
+                {activationGaps}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4">
+              <div className="text-xs font-black uppercase text-cyan-700">
+                Liquidity Rows
+              </div>
+              <div className="mt-2 text-3xl font-black text-cyan-950">
+                {liquidityScores.length}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 lg:grid-cols-3">
+            {liquidityScores.length ? (
+              liquidityScores.slice(0, 9).map((row) => (
+                <div
+                  key={row.id}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-black text-slate-950">
+                        {row.module} · {row.category || "all"}
+                      </div>
+
+                      <div className="mt-1 text-xs font-bold text-slate-500">
+                        {geoName(placeNames, row.geo_place_id)} · {geoName(districtNames, row.geo_district_id)}
+                      </div>
+                    </div>
+
+                    <div className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-800">
+                      {row.zone_type?.replaceAll("_", " ")}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-4 gap-2 text-center text-xs font-black">
+                    <div>Vendors<br /><span className="text-slate-950">{Math.round(Number(row.vendor_count || 0))}</span></div>
+                    <div>Listings<br /><span className="text-slate-950">{Math.round(Number(row.listing_count || 0))}</span></div>
+                    <div>RFQs<br /><span className="text-slate-950">{Math.round(Number(row.rfq_count || 0))}</span></div>
+                    <div>Active<br /><span className="text-emerald-700">{Math.round(Number(row.activation_count || 0))}</span></div>
+                  </div>
+
+                  <div className="mt-3 text-2xl font-black text-emerald-700">
+                    {Math.round(Number(row.liquidity_score || 0))}
+                  </div>
+
+                  <p className="mt-2 text-xs font-semibold leading-5 text-slate-600">
+                    {row.recommendation}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm font-bold text-slate-500">
+                No liquidity scores yet. Run /api/system/marketplace-liquidity-refresh after marketplace intelligence refresh.
               </div>
             )}
           </div>
