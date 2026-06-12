@@ -19,6 +19,7 @@ import { Grid } from "@/components/ui/Grid";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ActionButton } from "@/components/ui/ActionButton";
+import { trackVendorConversionClient } from "@/components/marketplace/vendor-conversion-client";
 
 type CatalogRow = {
   category_id: string;
@@ -394,6 +395,11 @@ async function insertProviderServiceSafe(supabase: any, payload: Record<string, 
   let attemptPayload = { ...payload };
 
   for (let i = 0; i < 8; i++) {
+    const { count: existingServiceCount } = await supabase
+      .from("provider_services")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", attemptPayload.user_id);
+
     const { error } = await supabase.from("provider_services").insert(attemptPayload);
 
     if (!error) return;

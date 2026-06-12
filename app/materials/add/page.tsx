@@ -19,6 +19,7 @@ import {
 } from "@/lib/vendors/vendorSmartSuggestions";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import { trackVendorConversionClient } from "@/components/marketplace/vendor-conversion-client";
 
 type Kind = "type" | "category" | "subcategory" | "product_group";
 
@@ -1059,6 +1060,11 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
         geography = null;
       }
 
+      const { count: existingMaterialCount } = await supabase
+        .from("material_listings")
+        .select("id", { count: "exact", head: true })
+        .eq("vendor_user_id", user.id);
+
       const { error: insErr } = await supabase.from("material_listings").insert({
         vendor_user_id: user.id,
         title: title.trim(),
@@ -1112,6 +1118,21 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
       });
 
       if (insErr) throw insErr;
+
+      if (Number(existingMaterialCount || 0) === 0) {
+        trackVendorConversionClient({
+          eventType: "first_listing_created",
+          module: "materials",
+          source: "materials_add_page",
+          label: "First Material Listing Created",
+          metadata: {
+            title: title.trim(),
+            categoryId,
+            subcategoryId,
+            productGroupId,
+          },
+        });
+      }
 
 // ---------- Save reusable operational memory ----------
 try {

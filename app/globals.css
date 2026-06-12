@@ -5441,53 +5441,9 @@ main,
   }
 }
 
-/* Final mobile hamburger size tuning */
+
+/* Stable mobile hamburger sizing */
 @media (max-width: 768px) {
-  .topHamburger {
-    width: 46px !important;
-    height: 46px !important;
-    min-width: 46px !important;
-    min-height: 46px !important;
-    border-radius: 15px !important;
-    padding: 0 !important;
-  }
-
-  .topHamburger span {
-    width: 22px !important;
-    height: 2px !important;
-    margin: 3px 0 !important;
-    border-radius: 999px !important;
-  }
-}
-
-/* Force smaller mobile hamburger */
-@media (max-width: 768px) {
-  details.topMobileMenu > summary.topHamburger {
-    width: 38px !important;
-    height: 38px !important;
-    min-width: 38px !important;
-    min-height: 38px !important;
-    max-width: 38px !important;
-    max-height: 38px !important;
-    border-radius: 12px !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-  }
-
-  details.topMobileMenu > summary.topHamburger::-webkit-details-marker {
-    display: none !important;
-  }
-
-  details.topMobileMenu > summary.topHamburger span {
-    width: 18px !important;
-    height: 2px !important;
-    margin: 2px 0 !important;
-  }
-}
-
-/* FINAL MOBILE HAMBURGER OVERRIDE */
-@media (max-width: 768px) {
-
   .topHamburger,
   details.topMobileMenu > summary.topHamburger {
     width: 34px !important;
@@ -5498,6 +5454,7 @@ main,
     max-height: 34px !important;
     border-radius: 10px !important;
     padding: 0 !important;
+    box-sizing: border-box !important;
   }
 
   .topHamburger span,
@@ -5505,6 +5462,10 @@ main,
     width: 16px !important;
     height: 2px !important;
     margin: 2px 0 !important;
+    border-radius: 999px !important;
+  }
+
+  details.topMobileMenu > summary.topHamburger::-webkit-details-marker {
+    display: none !important;
   }
 }
-

@@ -1,12 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect } from "react";
 import {
   opportunityIcon,
   opportunityLevel,
   type PublicOpportunityModule,
   vendorTypeText,
 } from "./public-vendor-opportunity-utils";
+import { trackVendorConversionClient } from "./vendor-conversion-client";
 
 type Props = {
+  id?: string | null;
+  opportunityId?: string | null;
   module: PublicOpportunityModule;
   category?: string | null;
   location: string;
@@ -17,6 +23,8 @@ type Props = {
 };
 
 export default function PublicVendorOpportunityCard({
+  id,
+  opportunityId,
   module,
   category,
   location,
@@ -28,6 +36,28 @@ export default function PublicVendorOpportunityCard({
   const typeText = vendorTypeText(module, category);
   const level = opportunityLevel(priority);
   const icon = opportunityIcon(module, category);
+  const finalOpportunityId = opportunityId || id || null;
+
+  useEffect(() => {
+    trackVendorConversionClient({
+      eventType: "opportunity_viewed",
+      opportunityId: finalOpportunityId,
+      module,
+      category,
+      source: "public_vendor_opportunity_card",
+      acquisitionSource: "vendor_opportunities",
+      acquisitionMedium: "opportunity_card",
+      acquisitionCampaign: "vendor_opportunity_marketplace",
+      label: `Need ${typeText}${location ? ` in ${location}` : ""}`,
+      metadata: {
+        location,
+        district,
+        state,
+        vendorsNeeded,
+        priority,
+      },
+    });
+  }, [finalOpportunityId, module, category, typeText, location, district, state, vendorsNeeded, priority]);
 
   return (
     <article
@@ -84,6 +114,26 @@ export default function PublicVendorOpportunityCard({
 
       <Link
         href="/onboarding/business"
+        onClick={() =>
+          trackVendorConversionClient({
+            eventType: "opportunity_clicked",
+            opportunityId: finalOpportunityId,
+            module,
+            category,
+            source: "public_vendor_opportunity_card",
+            acquisitionSource: "vendor_opportunities",
+            acquisitionMedium: "opportunity_card_cta",
+            acquisitionCampaign: "vendor_opportunity_marketplace",
+            label: "Become a Vendor",
+            metadata: {
+              location,
+              district,
+              state,
+              vendorsNeeded,
+              priority,
+            },
+          })
+        }
         style={{
           marginTop: 14,
           display: "inline-flex",

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import { trackVendorApproved } from "@/lib/marketplace/vendor-conversion-analytics";
 
 export async function POST(req: Request) {
   const formData = await req.formData();
@@ -38,6 +39,22 @@ export async function POST(req: Request) {
       approved_at: new Date().toISOString(),
     })
     .eq("id", userId);
+
+  if (
+    role === "vendor" ||
+    role === "builder" ||
+    role === "hub_vendor" ||
+    role === "blogger"
+  ) {
+    await trackVendorApproved({
+      userId,
+      metadata: {
+        role,
+        approvedBy: user.id,
+        source: "admin_approve_user",
+      },
+    });
+  }
 
   return NextResponse.redirect(new URL("/admin/users", req.url));
 }

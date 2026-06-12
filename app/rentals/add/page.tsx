@@ -21,6 +21,7 @@ import {
 import { ensureBusinessProfileComplete } from "@/lib/ensureBusinessProfileComplete";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import { trackVendorConversionClient } from "@/components/marketplace/vendor-conversion-client";
 
 type Cat = {
   id: string;
@@ -653,6 +654,11 @@ export default function AddRentalPage() {
       is_active: true,
     };
 
+    const { count: existingRentalCount } = await supabase
+      .from("rental_listings")
+      .select("id", { count: "exact", head: true })
+      .eq("vendor_user_id", userId);
+
     const { data, error } = await supabase
       .from("rental_listings")
       .insert(payload)
@@ -663,6 +669,22 @@ export default function AddRentalPage() {
 
     const id = (data as any)?.id as string | undefined;
     if (!id) return { ok: false, message: "Saved but could not read new listing ID." };
+
+    if (Number(existingRentalCount || 0) === 0) {
+      trackVendorConversionClient({
+        eventType: "first_listing_created",
+        module: "rentals",
+        listingId: id,
+        source: "rentals_add_page",
+        label: "First Rental Listing Created",
+        metadata: {
+          title: title.trim(),
+          categoryId,
+          subcategoryId,
+          equipmentId,
+        },
+      });
+    }
 
     try {
       await saveVendorListingMemory({

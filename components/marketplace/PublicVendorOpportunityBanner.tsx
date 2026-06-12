@@ -9,6 +9,7 @@ import {
   type PublicOpportunityModule,
   vendorTypeText,
 } from "./public-vendor-opportunity-utils";
+import { trackVendorConversionClient } from "./vendor-conversion-client";
 
 type Row = {
   id: string;
@@ -28,6 +29,17 @@ export default function PublicVendorOpportunityBanner({
 }) {
   const [rows, setRows] = useState<Row[]>([]);
 
+  const acquisitionSource =
+    module === "materials"
+      ? "materials_banner"
+      : module === "services"
+      ? "services_banner"
+      : module === "rentals"
+      ? "rentals_banner"
+      : module === "property"
+      ? "property_banner"
+      : "module_banner";
+
   useEffect(() => {
     let live = true;
 
@@ -46,6 +58,30 @@ export default function PublicVendorOpportunityBanner({
       live = false;
     };
   }, [module]);
+
+
+  useEffect(() => {
+    rows.forEach((row) => {
+      trackVendorConversionClient({
+        eventType: "opportunity_viewed",
+        opportunityId: row.id,
+        module,
+        category: row.category,
+        source: "public_vendor_opportunity_banner",
+        acquisitionSource,
+        acquisitionMedium: "public_banner",
+        acquisitionCampaign: "vendor_opportunity_marketplace",
+        label: `Need ${vendorTypeText(module, row.category)} in ${row.location}`,
+        metadata: {
+          location: row.location,
+          district: row.district,
+          state: row.state,
+          vendorsNeeded: row.vendorsNeeded,
+          priority: row.priority,
+        },
+      });
+    });
+  }, [rows, module]);
 
   const totalNeed = useMemo(
     () => rows.reduce((sum, row) => sum + Number(row.vendorsNeeded || 0), 0),
@@ -105,11 +141,47 @@ export default function PublicVendorOpportunityBanner({
       </div>
 
       <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <Link href="/onboarding/business" style={{ borderRadius: 999, background: "#059669", color: "#ffffff", padding: "10px 14px", fontSize: 13, fontWeight: 900, textDecoration: "none" }}>
+        <Link
+          href="/onboarding/business"
+          onClick={() =>
+            trackVendorConversionClient({
+              eventType: "opportunity_clicked",
+              module,
+              source: "public_vendor_opportunity_banner",
+              acquisitionSource,
+              acquisitionMedium: "public_banner",
+              acquisitionCampaign: "vendor_opportunity_marketplace",
+              label: moduleCta(module),
+              metadata: {
+                visibleOpportunityCount: rows.length,
+                totalNeed,
+              },
+            })
+          }
+          style={{ borderRadius: 999, background: "#059669", color: "#ffffff", padding: "10px 14px", fontSize: 13, fontWeight: 900, textDecoration: "none" }}
+        >
           {moduleCta(module)} →
         </Link>
 
-        <Link href="/vendor-opportunities" style={{ borderRadius: 999, border: "1px solid #a7f3d0", background: "#ffffff", color: "#047857", padding: "10px 14px", fontSize: 13, fontWeight: 900, textDecoration: "none" }}>
+        <Link
+          href="/vendor-opportunities"
+          onClick={() =>
+            trackVendorConversionClient({
+              eventType: "opportunity_clicked",
+              module,
+              source: "public_vendor_opportunity_banner",
+              acquisitionSource,
+              acquisitionMedium: "public_banner",
+              acquisitionCampaign: "vendor_opportunity_marketplace",
+              label: "View Opportunities",
+              metadata: {
+                visibleOpportunityCount: rows.length,
+                totalNeed,
+              },
+            })
+          }
+          style={{ borderRadius: 999, border: "1px solid #a7f3d0", background: "#ffffff", color: "#047857", padding: "10px 14px", fontSize: 13, fontWeight: 900, textDecoration: "none" }}
+        >
           View Opportunities
         </Link>
       </div>

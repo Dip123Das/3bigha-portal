@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import { trackVendorConversionClient } from "@/components/marketplace/vendor-conversion-client";
 
 type PortalRole =
   | "buyer"
@@ -108,6 +109,18 @@ export default function RegisterRolePageClient() {
   const [useReason, setUseReason] = useState<UseReason | "">("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    trackVendorConversionClient({
+      eventType: "registration_started",
+      source: "register_role_page",
+      label: "Vendor Registration Started",
+      metadata: {
+        preselectedRole,
+      },
+    });
+  }, [preselectedRole]);
+
 
   if (isMasterAdminRequest) {
     return (
@@ -335,6 +348,18 @@ export default function RegisterRolePageClient() {
         const { error: businessError } = await supabase
           .from("business_profiles")
           .upsert(businessPayload, { onConflict: "user_id" });
+
+        if (!businessError) {
+          trackVendorConversionClient({
+            eventType: "registration_completed",
+            source: "register_role_page",
+            label: "Vendor Registration Completed",
+            metadata: {
+              role,
+              capabilities: caps,
+            },
+          });
+        }
 
         if (businessError) {
           setMsg(businessError.message || "Could not save business profile.");

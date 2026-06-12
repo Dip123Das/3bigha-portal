@@ -1,6 +1,21 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect } from "react";
+import { trackVendorConversionClient } from "./vendor-conversion-client";
 
 export default function PublicVendorOpportunityHero() {
+  useEffect(() => {
+    trackVendorConversionClient({
+      eventType: "opportunity_viewed",
+      source: "public_vendor_opportunity_hero",
+      acquisitionSource: "vendor_opportunities",
+      acquisitionMedium: "hero",
+      acquisitionCampaign: "vendor_opportunity_marketplace",
+      label: "Become a Vendor on 3Bigha",
+    });
+  }, []);
+
   return (
     <section
       style={{
@@ -53,6 +68,16 @@ export default function PublicVendorOpportunityHero() {
         <div style={{ marginTop: 22, display: "flex", gap: 12, flexWrap: "wrap" }}>
           <Link
             href="/onboarding/business"
+            onClick={() =>
+              trackVendorConversionClient({
+                eventType: "opportunity_clicked",
+                source: "public_vendor_opportunity_hero",
+                acquisitionSource: "vendor_opportunities",
+                acquisitionMedium: "hero_cta",
+                acquisitionCampaign: "vendor_opportunity_marketplace",
+                label: "Become a Vendor",
+              })
+            }
             style={{
               borderRadius: 999,
               background: "#ffffff",
