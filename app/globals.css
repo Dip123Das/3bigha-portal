@@ -1716,6 +1716,7 @@ linear-gradient(135deg, #0f172a 0%, #172554 100%);
   backdrop-filter: blur(10px) !important;
 }
 
+
   /* ===== SECTION SPACING ===== */
 
   .pageBody section {
@@ -1846,6 +1847,7 @@ linear-gradient(135deg, #0f172a 0%, #172554 100%);
   top: auto !important;
   z-index: 40 !important;
 }
+
 
 .aiPanel {
   position: fixed !important;
@@ -2423,6 +2425,7 @@ linear-gradient(135deg, #0f172a 0%, #172554 100%);
   }
 }
 
+
 @media (max-width: 768px) {
   .floatingAiCopilot,
   .floatingAi {
@@ -2730,6 +2733,7 @@ linear-gradient(135deg, #0f172a 0%, #172554 100%);
     gap: 12px;
   }
 }
+
 
 .cleanTrustGrid strong {
   color: #ffffff !important;
@@ -3094,6 +3098,7 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   }
 }
 
+
 /* HARD FIX - remove visible desktop mega menu gap */
 @media (min-width: 981px) {
   .megaMenuItem {
@@ -3388,648 +3393,6 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   }
 }
 
-.ui-skeleton-line-short {
-  width: 62%;
-}
-
-.ui-skeleton-title {
-  width: 46%;
-  height: 18px;
-  margin-bottom: 12px;
-}
-
-.ui-skeleton-card {
-  min-height: 118px;
-}
-
-.ui-section-skeleton {
-  display: grid;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.ui-operational-state {
-  display: grid;
-  gap: 10px;
-  border: 1px solid #dbeafe;
-  background: linear-gradient(180deg, #ffffff, #f8fbff);
-  border-radius: 18px;
-  padding: 16px;
-  color: #0f172a;
-  box-shadow: 0 8px 22px rgba(15,23,42,0.04);
-}
-
-.ui-operational-state-icon {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-size: 20px;
-}
-
-.ui-operational-state h3 {
-  margin: 0;
-  font-size: 17px;
-  line-height: 1.25;
-  font-weight: 950;
-  color: #0f172a;
-}
-
-.ui-operational-state p {
-  margin: 5px 0 0;
-  color: #475569;
-  font-size: 14px;
-  line-height: 1.55;
-  font-weight: 700;
-}
-
-.ui-operational-state-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.ui-operational-state-error {
-  border-color: #fed7aa;
-  background: linear-gradient(180deg, #ffffff, #fff7ed);
-}
-
-.ui-operational-state-error .ui-operational-state-icon {
-  background: #fff7ed;
-  color: #c2410c;
-}
-
-@media (max-width: 640px) {
-  .ui-empty-state,
-  .ui-operational-state {
-    border-radius: 16px;
-    padding: 14px;
-  }
-
-  .ui-operational-state-actions {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  .ui-operational-state-actions .ui-btn {
-    width: 100%;
-  }
-}
-
-/* =========================================================
-   PHASE 1D — Search Calmness & Rhythm
-========================================================= */
-
-.searchResultsGrid {
-  gap: 14px !important;
-}
-
-.searchCard,
-.marketplaceCard,
-.discoveryCard {
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    border-color 0.18s ease;
-}
-
-.searchCard:hover,
-.marketplaceCard:hover,
-.discoveryCard:hover {
-  transform: translateY(-1px);
-}
-
-@media (max-width: 640px) {
-  .searchResultsGrid {
-    gap: 12px !important;
-  }
-
-  .searchCard,
-  .marketplaceCard,
-  .discoveryCard {
-    border-radius: 16px !important;
-  }
-}
-
-/* =========================================================
-   PHASE 1F — Operational Breathing & Mobile Rhythm
-========================================================= */
-
-.workflowSurface,
-.operationalSurface,
-.procurementSurface {
-  border-radius: 18px;
-  padding: 16px;
-}
-
-@media (max-width: 640px) {
-  .workflowSurface,
-  .operationalSurface,
-  .procurementSurface {
-    border-radius: 16px;
-    padding: 14px;
-  }
-}
-
-/* calmer operational rhythm */
-
-.workflowCard,
-.procurementCard,
-.inboxCard {
-  transition:
-    box-shadow 0.18s ease,
-    transform 0.18s ease,
-    border-color 0.18s ease;
-}
-
-.workflowCard + .workflowCard,
-.procurementCard + .procurementCard,
-.inboxCard + .inboxCard {
-  margin-top: 14px;
-}
-
-@media (max-width: 640px) {
-  .workflowCard + .workflowCard,
-  .procurementCard + .procurementCard,
-  .inboxCard + .inboxCard {
-    margin-top: 12px;
-  }
-}
-
-/* calmer horizontal scrolling */
-
-.mobileChipScroll {
-  scrollbar-width: none;
-}
-
-.mobileChipScroll::-webkit-scrollbar {
-  display: none;
-}
-
-/* reduce operational visual aggression */
-
-.workflowMuted {
-  opacity: 0.82;
-}
-
-.workflowSecondary {
-  background: linear-gradient(180deg, #ffffff, #f8fafc);
-}
-
-/* mobile breathing */
-
-@media (max-width: 640px) {
-  .pageBody {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-}
-
-/* =========================================================
-   PHASE 1H — Buyer Decision Calmness
-========================================================= */
-
-.quoteCompareSurface {
-  border-radius: 18px;
-  padding: 16px;
-}
-
-.quoteCompareTable {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.quoteCompareTable table {
-  min-width: 720px;
-}
-
-.quoteCompareCard {
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
-}
-
-.quoteCompareCard + .quoteCompareCard {
-  margin-top: 14px;
-}
-
-@media (max-width: 640px) {
-  .quoteCompareSurface {
-    border-radius: 16px;
-    padding: 14px;
-  }
-
-  .quoteCompareCard + .quoteCompareCard {
-    margin-top: 12px;
-  }
-}
-
-/* =========================================================
-   PHASE 2A — Vendor RFQ Response Confidence
-========================================================= */
-
-.vendorResponseSurface {
-  border-radius: 18px;
-  padding: 16px;
-  background: linear-gradient(180deg, #ffffff, #fcfcfd);
-}
-
-.vendorResponseActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.vendorResponseHint {
-  font-size: 13px;
-  line-height: 1.55;
-  color: #64748b;
-  font-weight: 700;
-}
-
-.vendorResponseSoftCard {
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  border-radius: 16px;
-}
-
-@media (max-width: 640px) {
-  .vendorResponseSurface {
-    border-radius: 16px;
-    padding: 14px;
-  }
-
-  .vendorResponseActions {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-}
-
-/* =========================================================
-   PHASE 3A — Human Trust Signals
-========================================================= */
-
-.trustChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 10px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  font-size: 12px;
-  font-weight: 800;
-  color: #475569;
-}
-
-.trustInline {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 8px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  font-size: 11px;
-  font-weight: 800;
-  color: #64748b;
-}
-
-@media (max-width: 640px) {
-  .trustChip {
-    font-size: 11px;
-    height: 28px;
-    padding: 0 9px;
-  }
-}
-
-/* =========================================================
-   FAST NEXT UPGRADE — Marketplace Polish Pack
-   Header, cards, AI bubble and long-page comfort
-========================================================= */
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  background: #f8fafc;
-}
-
-main,
-.pageBody {
-  max-width: 1480px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-header,
-.siteHeader,
-.topHeader,
-.navbar {
-  backdrop-filter: blur(14px);
-}
-
-.topBtn,
-.ui-btn,
-button,
-a {
-  touch-action: manipulation;
-}
-
-.card,
-.ui-card,
-.searchCard,
-.marketplaceCard,
-.discoveryCard {
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.055);
-}
-
-.card:hover,
-.ui-card:hover,
-.searchCard:hover,
-.marketplaceCard:hover,
-.discoveryCard:hover {
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.085);
-}
-
-.categoryGrid,
-.premiumCategoryGrid,
-.searchResultsGrid {
-  align-items: stretch;
-}
-
-.floating-ai,
-.aiFloating,
-.aiAssistant,
-.askAi,
-[class*="FloatingAI"],
-[class*="AiFloating"],
-[class*="AIFloating"] {
-  z-index: 30 !important;
-}
-
-@media (min-width: 900px) {
-  .floating-ai,
-  .aiFloating,
-  .aiAssistant,
-  .askAi,
-  [class*="FloatingAI"],
-  [class*="AiFloating"],
-  [class*="AIFloating"] {
-    transform: scale(0.88);
-    transform-origin: left center;
-  }
-}
-
-@media (max-width: 768px) {
-  main,
-  .pageBody,
-  .container {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-
-  .topBtn,
-  .ui-btn,
-  button {
-    min-height: 42px;
-  }
-
-  .card,
-  .ui-card,
-  .searchCard,
-  .marketplaceCard,
-  .discoveryCard {
-    border-radius: 16px !important;
-  }
-}
-
-@media (max-width: 640px) {
-  .floating-ai,
-  .aiFloating,
-  .aiAssistant,
-  .askAi,
-  [class*="FloatingAI"],
-  [class*="AiFloating"],
-  [class*="AIFloating"] {
-    max-width: 112px !important;
-    font-size: 11px !important;
-  }
-}
-
-/* =========================================================
-   INBOX-V2 FAST DECLUTTER — Progressive Operational Comfort
-========================================================= */
-
-.inboxDeclutterHint {
-  font-size: 12px;
-  color: #64748b;
-  font-weight: 700;
-}
-
-@media (max-width: 768px) {
-  .inboxV2Compact,
-  .workflowSurface,
-  .operationalSurface {
-    padding: 12px !important;
-    border-radius: 16px !important;
-  }
-}
-
-@import "../styles/procurement/executive-density.css";
-
-/* 3Bigha mobile app full-width WebView correction */
-html,
-body {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-@media (max-width: 640px) {
-  html,
-  body,
-  #__next {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    overflow-x: hidden;
-  }
-
-  main,
-  section,
-  article {
-    max-width: 100%;
-  }
-
-  .mobile-app-full-width,
-  .app-mobile-full-width {
-    width: 100%;
-    max-width: 100%;
-    margin-left: 0;
-    margin-right: 0;
-  }
-
-  .max-w-7xl,
-  .max-w-6xl,
-  .max-w-5xl,
-  .max-w-4xl {
-    max-width: 100%;
-  }
-
-  .mx-auto {
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  body {
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-  }
-}
-
-/* Android WebView hard full-width lock */
-html,
-body {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  overflow-x: hidden !important;
-  overscroll-behavior-x: none;
-}
-
-body {
-  position: relative;
-}
-
-#__next,
-main,
-.page,
-.app,
-[data-nextjs-scroll-focus-boundary] {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  overflow-x: hidden !important;
-}
-
-@media (max-width: 768px) {
-  * {
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-
-  img,
-  video,
-  canvas,
-  svg {
-    max-width: 100%;
-    height: auto;
-  }
-
-  .fixed,
-  [class*="fixed"] {
-    max-width: 100vw;
-  }
-}
-
-/* ===== FINAL MOBILE WEBVIEW WIDTH FIX ===== */
-
-@media (max-width: 768px) {
-
-  html,
-  body,
-  #__next,
-  main,
-  section,
-  article,
-  div {
-    min-width: 0 !important;
-  }
-
-  body {
-    overflow-x: hidden !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    position: relative !important;
-  }
-
-  #__next {
-    overflow-x: hidden !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-  }
-
-  .mx-auto,
-  .max-w-7xl,
-  .max-w-6xl,
-  .max-w-5xl,
-  .max-w-4xl,
-  .max-w-3xl,
-  .max-w-2xl {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-  }
-
-  [style*="min-width: 760px"],
-  [style*="min-width:760px"],
-  [style*="min-width: 980px"],
-  [style*="min-width:980px"] {
-    min-width: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-}
-
-/* ===== MOBILE APP CONTENT WIDTH DENSITY FIX ===== */
-@media (max-width: 768px) {
-  .homepage,
-  .homePage,
-  .contentSection,
-  .premiumHero,
-  .premiumHeroInner,
-  .premiumSection,
-  .premiumCard,
-  .categoryGrid,
-  .premiumCategoryGrid {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-  }
-
-  .contentSection,
-  .premiumSection {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-
-  .premiumHero,
-  .premiumHeroInner,
-  .premiumCard {
-    padding-left: 18px !important;
-    padding-right: 18px !important;
-  }
-
-  .categoryGrid,
-  .premiumCategoryGrid {
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
-  }
-
-  body main {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-}
-
-
 /* =========================================================
    PERMANENT MOBILE HEADER AUTHORITY - DO NOT OVERRIDE ABOVE
    Row 1: Account/Login - Center Logo - Hamburger
@@ -4047,10 +3410,10 @@ main,
   }
 
   .topHeaderInner {
-    min-height: 66px !important;
-    height: 66px !important;
+    min-height: 68px !important;
+    height: 68px !important;
     display: grid !important;
-    grid-template-columns: 118px 1fr 44px !important;
+    grid-template-columns: 122px 1fr 46px !important;
     align-items: center !important;
     gap: 8px !important;
     padding: 8px 12px !important;
@@ -4058,68 +3421,119 @@ main,
   }
 
   .topNav,
-  .topSearch,
   .topSearchQuick,
   .topLanguageSelector,
   .topSubBar,
   .stableDesktopMegaNav,
   .desktopMegaNav,
-  .topActions .postMenu {
+  .topActions,
+  .desktopAuthSlot {
     display: none !important;
   }
 
+  .mobileAccountStrip {
+    display: flex !important;
+    grid-column: 1 !important;
+    justify-self: start !important;
+    align-self: center !important;
+    max-width: 122px !important;
+    min-width: 0 !important;
+    z-index: 5 !important;
+  }
+
+  .mobileAccountStrip .desktopAccountBtn {
+    display: none !important;
+  }
+
+  .mobileAccountStrip > a.topBtn,
+  .mobileAccountStrip > button.topBtn,
+  .mobileAccountStrip .mobileAccountMenu {
+    max-width: 122px !important;
+    min-width: 0 !important;
+  }
+
+  .mobileAccountStrip > a.topBtn,
+  .mobileAccountStrip > button.topBtn,
+  .mobileAccountStrip .mobileAccountMenu > summary {
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 12px !important;
+    font-size: 12px !important;
+    line-height: 40px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    border-radius: 999px !important;
+  }
+
+  .mobileAccountMenu:not([open]) .mobileAccountPanel {
+    display: none !important;
+  }
+
+  .mobileAccountPanel {
+    position: fixed !important;
+    top: 80px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    display: grid !important;
+    gap: 8px !important;
+    padding: 14px !important;
+    border-radius: 18px !important;
+    background: #ffffff !important;
+    border: 1px solid #dbe3ef !important;
+    box-shadow: 0 20px 60px rgba(15,23,42,0.18) !important;
+    z-index: 10095 !important;
+  }
+
+  .mobileAccountPanel a,
+  .mobileAccountPanel button {
+    width: 100% !important;
+    text-align: left !important;
+  }
+
   .topBrand {
+    display: flex !important;
     grid-column: 2 !important;
     justify-self: center !important;
     align-self: center !important;
     min-width: 0 !important;
-    max-width: 104px !important;
+    width: auto !important;
+    max-width: 118px !important;
+    height: 44px !important;
     z-index: 2 !important;
   }
 
   .topBrandLink {
     display: flex !important;
-    justify-content: center !important;
     align-items: center !important;
-    gap: 0 !important;
+    justify-content: center !important;
+    width: 118px !important;
+    height: 44px !important;
+    text-decoration: none !important;
+  }
+
+  .siteLogoFull {
+    display: block !important;
+    width: 118px !important;
+    height: 44px !important;
+    min-width: 118px !important;
+    overflow: visible !important;
+  }
+
+  .siteLogoFull img,
+  .topBrand img {
+    display: block !important;
+    width: 118px !important;
+    max-width: 118px !important;
+    height: 44px !important;
+    max-height: 44px !important;
+    object-fit: contain !important;
   }
 
   .topBrandTagline {
     display: none !important;
-  }
-
-  .siteLogoFull,
-  .topBrand img {
-    width: 94px !important;
-    max-width: 94px !important;
-    height: 34px !important;
-    max-height: 34px !important;
-    object-fit: contain !important;
-  }
-
-  .topActions {
-    display: contents !important;
-  }
-
-  .topActions > a.topBtn,
-  .topActions > button.topBtn,
-  .topActions .mobileAccountMenu,
-  .topActions .desktopAccountBtn,
-  .topActions .mobileAccountMainBtn {
-    grid-column: 1 !important;
-    justify-self: start !important;
-    align-self: center !important;
-    max-width: 116px !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    padding: 0 10px !important;
-    font-size: 12px !important;
-    line-height: 38px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    border-radius: 999px !important;
-    z-index: 3 !important;
   }
 
   .topMobileMenu {
@@ -4127,17 +3541,17 @@ main,
     justify-self: end !important;
     align-self: center !important;
     position: static !important;
-    width: 40px !important;
-    height: 40px !important;
-    z-index: 4 !important;
+    width: 42px !important;
+    height: 42px !important;
+    z-index: 5 !important;
   }
 
   .topHamburger,
   details.topMobileMenu > summary.topHamburger {
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
-    min-height: 40px !important;
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -4160,12 +3574,10 @@ main,
 
   .topMobilePanel {
     position: fixed !important;
-    top: 76px !important;
+    top: 80px !important;
     left: 12px !important;
     right: 12px !important;
-    width: auto !important;
-    max-width: calc(100vw - 24px) !important;
-    max-height: calc(100vh - 104px) !important;
+    max-height: calc(100vh - 108px) !important;
     overflow-y: auto !important;
     z-index: 10090 !important;
     border-radius: 18px !important;
@@ -4183,8 +3595,8 @@ main,
 
   .mobile-app-search-inner {
     display: flex !important;
-    width: 100% !important;
     gap: 8px !important;
+    width: 100% !important;
     align-items: center !important;
   }
 
@@ -4192,186 +3604,16 @@ main,
     flex: 1 1 auto !important;
     min-width: 0 !important;
     height: 40px !important;
-    border-radius: 999px !important;
   }
 
   .mobile-app-search-inner button {
     flex: 0 0 auto !important;
     height: 40px !important;
-    border-radius: 999px !important;
-    white-space: nowrap !important;
   }
 }
 
-/* =========================================================
-   PERMANENT MOBILE HEADER AUTHORITY - DO NOT OVERRIDE ABOVE
-   Row 1: Account/Login - Center Logo - Hamburger
-   Row 2: Full-width Search
-   Desktop untouched.
-   ========================================================= */
-
-@media (max-width: 980px) {
-  .topHeader {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 1000 !important;
-    background: #ffffff !important;
-    overflow: visible !important;
-  }
-
-  .topHeaderInner {
-    min-height: 66px !important;
-    height: 66px !important;
-    display: grid !important;
-    grid-template-columns: 118px 1fr 44px !important;
-    align-items: center !important;
-    gap: 8px !important;
-    padding: 8px 12px !important;
-    overflow: visible !important;
-  }
-
-  .topNav,
-  .topSearch,
-  .topSearchQuick,
-  .topLanguageSelector,
-  .topSubBar,
-  .stableDesktopMegaNav,
-  .desktopMegaNav,
-  .topActions .postMenu {
+@media (min-width: 981px) {
+  .mobileAccountStrip {
     display: none !important;
-  }
-
-  .topBrand {
-    grid-column: 2 !important;
-    justify-self: center !important;
-    align-self: center !important;
-    min-width: 0 !important;
-    max-width: 104px !important;
-    z-index: 2 !important;
-  }
-
-  .topBrandLink {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 0 !important;
-  }
-
-  .topBrandTagline {
-    display: none !important;
-  }
-
-  .siteLogoFull,
-  .topBrand img {
-    width: 94px !important;
-    max-width: 94px !important;
-    height: 34px !important;
-    max-height: 34px !important;
-    object-fit: contain !important;
-  }
-
-  .topActions {
-    display: contents !important;
-  }
-
-  .topActions > a.topBtn,
-  .topActions > button.topBtn,
-  .topActions .mobileAccountMenu,
-  .topActions .desktopAccountBtn,
-  .topActions .mobileAccountMainBtn {
-    grid-column: 1 !important;
-    justify-self: start !important;
-    align-self: center !important;
-    max-width: 116px !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    padding: 0 10px !important;
-    font-size: 12px !important;
-    line-height: 38px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    border-radius: 999px !important;
-    z-index: 3 !important;
-  }
-
-  .topMobileMenu {
-    grid-column: 3 !important;
-    justify-self: end !important;
-    align-self: center !important;
-    position: static !important;
-    width: 40px !important;
-    height: 40px !important;
-    z-index: 4 !important;
-  }
-
-  .topHamburger,
-  details.topMobileMenu > summary.topHamburger {
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
-    min-height: 40px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex-direction: column !important;
-    gap: 4px !important;
-    padding: 0 !important;
-    border-radius: 13px !important;
-    background: #ffffff !important;
-    border: 1px solid #dbe3ef !important;
-    box-shadow: 0 8px 18px rgba(15,23,42,0.10) !important;
-  }
-
-  .topHamburger span {
-    width: 18px !important;
-    height: 2px !important;
-    margin: 0 !important;
-    border-radius: 999px !important;
-    background: #0f172a !important;
-  }
-
-  .topMobilePanel {
-    position: fixed !important;
-    top: 76px !important;
-    left: 12px !important;
-    right: 12px !important;
-    width: auto !important;
-    max-width: calc(100vw - 24px) !important;
-    max-height: calc(100vh - 104px) !important;
-    overflow-y: auto !important;
-    z-index: 10090 !important;
-    border-radius: 18px !important;
-    background: #ffffff !important;
-    box-shadow: 0 20px 60px rgba(15,23,42,0.18) !important;
-  }
-
-  .mobile-app-search-bar {
-    display: block !important;
-    width: 100% !important;
-    padding: 8px 12px 10px !important;
-    background: #ffffff !important;
-    border-bottom: 1px solid #e2e8f0 !important;
-  }
-
-  .mobile-app-search-inner {
-    display: flex !important;
-    width: 100% !important;
-    gap: 8px !important;
-    align-items: center !important;
-  }
-
-  .mobile-app-search-inner input {
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
-    height: 40px !important;
-    border-radius: 999px !important;
-  }
-
-  .mobile-app-search-inner button {
-    flex: 0 0 auto !important;
-    height: 40px !important;
-    border-radius: 999px !important;
-    white-space: nowrap !important;
   }
 }

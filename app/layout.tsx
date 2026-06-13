@@ -296,7 +296,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 label="Alerts"
               />
 
-              <AuthButtons />
+              <div className="desktopAuthSlot">
+                <AuthButtons />
+              </div>
             </div>
 
             <div className="mobileAccountStrip">
