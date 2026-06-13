@@ -709,18 +709,22 @@ export default function LandAreaCalculatorPage() {
             </div>
 
             <div className="mb-4">
-              <div className="mb-2 text-sm font-semibold text-slate-700">
-                Shape / Measurement Type
-              </div>
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-6">
-                <ShapeButton current={shape} value="rectangle" label="Rectangle" icon="▭" onClick={setShape} />
-                <ShapeButton current={shape} value="average-rectangle" label="Avg Rect" icon="▰" onClick={setShape} />
-                <ShapeButton current={shape} value="triangle" label="Triangle" icon="△" onClick={setShape} />
-                <ShapeButton current={shape} value="circle" label="Circle" icon="○" onClick={setShape} />
-                <ShapeButton current={shape} value="trapezium" label="Trapezium" icon="▱" onClick={setShape} />
-                <ShapeButton current={shape} value="irregular" label="Irregular" icon="⬠" onClick={setShape} />
-                <ShapeButton current={shape} value="polygon" label="Polygon" icon="⬡" onClick={setShape} />
-              </div>
+              <label className="text-sm font-semibold text-slate-700">
+                Select Shape / Measurement Type
+                <select
+                  value={shape}
+                  onChange={(e) => setShape(e.target.value as AreaShape)}
+                  className="mt-2 w-full rounded-2xl border bg-white px-4 py-3 text-base font-black text-slate-950"
+                >
+                  <option value="rectangle">Rectangle</option>
+                  <option value="average-rectangle">Average Rectangle</option>
+                  <option value="triangle">Triangle</option>
+                  <option value="circle">Circle</option>
+                  <option value="trapezium">Trapezium</option>
+                  <option value="irregular">Irregular</option>
+                  <option value="polygon">Polygon</option>
+                </select>
+              </label>
             </div>
 
             <MeasurementGuide shape={shape} mode={mode} />
