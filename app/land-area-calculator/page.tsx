@@ -556,21 +556,21 @@ export default function LandAreaCalculatorPage() {
           </p>
         </div>
 
-        <section className="mb-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+        <details className="mb-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+          <summary className="flex cursor-pointer flex-wrap items-start justify-between gap-3 rounded-2xl bg-white/70 p-3">
             <div>
               <h2 className="text-lg font-black text-slate-950">
-                State & District Wise Land Unit Converter
+                State & District Wise Land Unit Converter ▼
               </h2>
               <p className="mt-1 text-sm leading-6 text-slate-700">
                 Convert sqft, sqm, acre, hectare, decimal and local units like katha, bigha, dhur, biswa etc. using the selected state/district practice.
               </p>
             </div>
 
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-emerald-800">
-              Universal sqft basis
+            <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+              Tap to expand
             </span>
-          </div>
+          </summary>
 
           <div className="mt-4 grid gap-3 md:grid-cols-6">
             <label className="text-sm font-semibold text-slate-700">
@@ -683,9 +683,9 @@ export default function LandAreaCalculatorPage() {
           <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
             Showing conversion for <b>{state}</b> · <b>{district}</b>. Regional units vary by state, district and local practice. For registry, mutation, deed or legal work, verify with local land/revenue office.
           </div>
-        </section>
+        </details>
 
-        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid items-start gap-4 lg:grid-cols-[0.9fr_1.35fr]">
           <div className="rounded-2xl border bg-slate-50 p-4">
             <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl bg-white p-1">
               <button
@@ -1127,19 +1127,70 @@ export default function LandAreaCalculatorPage() {
           </div>
 
           <div className="rounded-2xl border bg-white p-4">
-            <h2 className="text-lg font-bold text-slate-950">Universal Area</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Use these values first for property, construction, finance and legal discussion.
-            </p>
+                        <div className="grid gap-4 xl:grid-cols-2">
+              <div className="h-full rounded-2xl border border-slate-100 bg-white p-4">
+                <h2 className="text-lg font-bold text-slate-950">Universal Area</h2>
+                            <p className="mt-1 text-sm text-slate-600">
+                              Use these values first for property, construction, finance and legal discussion.
+                            </p>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <ResultCard label="Square Feet" value={`${formatNumber(roundArea(result.squareFeet))} sqft`} tone="emerald" />
-              <ResultCard label="Square Meter" value={`${formatNumber(roundArea(result.squareMeter))} sqm`} tone="blue" />
-              <ResultCard label="Acre" value={formatNumber(result.acre, 5)} />
-              <ResultCard label="Hectare" value={formatNumber(result.hectare, 5)} />
+                            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                              <ResultCard label="Square Feet" value={`${formatNumber(roundArea(result.squareFeet))} sqft`} tone="emerald" />
+                              <ResultCard label="Square Meter" value={`${formatNumber(roundArea(result.squareMeter))} sqm`} tone="blue" />
+                              <ResultCard label="Acre" value={formatNumber(result.acre, 5)} />
+                              <ResultCard label="Hectare" value={formatNumber(result.hectare, 5)} />
+                            </div>
+              </div>
+
+              {mode === "land" ? (
+                <section className="h-full rounded-2xl border bg-slate-50 p-4">
+                            <div className="mb-3">
+                              <h2 className="text-lg font-bold text-slate-950">
+                                Regional Land Conversion · {state} · {district}
+                              </h2>
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                <span className={`rounded-full px-3 py-1 text-xs font-bold ${
+                                  selectedLiveRegion
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : "bg-amber-100 text-amber-800"
+                                }`}>
+                                  {selectedLiveRegion ? "Using verified live master data" : "Using safe static fallback data"}
+                                </span>
+                                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                                  Universal sqft/sqm first · regional units second
+                                </span>
+                              </div>
+                              <p className="mt-2 text-sm text-slate-600">
+                                These are local-practice conversions from the universal square feet value.
+                              </p>
+                            </div>
+
+                            {result.districtRegion.warning ? (
+                              <div className="mb-3 rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900">
+                                {result.districtRegion.warning}
+                              </div>
+                            ) : null}
+
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                              {result.regional.map((unitItem) => (
+                                <div key={unitItem.key} className="rounded-2xl border bg-white p-4">
+                                  <div className="text-xs font-bold uppercase text-slate-500">{unitItem.label}</div>
+                                  <div className="mt-1 text-xl font-black text-slate-950">
+                                    {formatNumber(unitItem.value, 5)}
+                                  </div>
+                                  <div className="mt-1 text-xs text-slate-500">
+                                    1 {unitItem.label} = {formatNumber(unitItem.sqft)} sqft
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </section>
+              ) : null}
             </div>
 
-            <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+            <details className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+              <summary className="cursor-pointer text-base font-black text-slate-950">Property & Land Guidance ▼</summary>
+              <div className="mt-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h3 className="text-base font-black text-slate-950">
@@ -1170,9 +1221,12 @@ export default function LandAreaCalculatorPage() {
               <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-5 text-blue-900">
                 These are practical operational suggestions, not legal advice. Final verification should be done through architect, engineer, surveyor, registry office or local authority where applicable.
               </div>
-            </div>
+              </div>
+            </details>
 
-            <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+            <details className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+              <summary className="cursor-pointer text-base font-black text-slate-950">Use This Area for Next Work ▼</summary>
+              <div className="mt-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <h3 className="text-base font-black text-slate-950">
@@ -1214,8 +1268,12 @@ export default function LandAreaCalculatorPage() {
               <div className="mt-3 rounded-xl bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-600">
                 This keeps the workflow simple: calculate area first, then move to cost, materials, RFQ or listing when ready.
               </div>
-            </div>
+              </div>
+            </details>
 
+            <details className="mt-5 rounded-2xl border border-orange-100 bg-orange-50 p-4">
+              <summary className="cursor-pointer text-base font-black text-slate-950">Construction Intelligence ▼</summary>
+              <div className="mt-4">
             <ConstructionIntelligencePanel
               areaSqft={result.squareFeet}
               state={state}
@@ -1225,10 +1283,12 @@ export default function LandAreaCalculatorPage() {
               quality="standard"
               source="land-area-calculator"
             />
+              </div>
+            </details>
           </div>
         </div>
 
-                {parts.length > 0 ? (
+                {parts.length > 1 ? (
           <section className="mt-5 rounded-2xl border bg-white p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -1307,50 +1367,7 @@ export default function LandAreaCalculatorPage() {
           </section>
         ) : null}
 
-        {mode === "land" ? (
-          <section className="mt-5 rounded-2xl border bg-slate-50 p-4">
-            <div className="mb-3">
-              <h2 className="text-lg font-bold text-slate-950">
-                Regional Land Conversion · {state} · {district}
-              </h2>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${
-                  selectedLiveRegion
-                    ? "bg-emerald-100 text-emerald-800"
-                    : "bg-amber-100 text-amber-800"
-                }`}>
-                  {selectedLiveRegion ? "Using verified live master data" : "Using safe static fallback data"}
-                </span>
-                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
-                  Universal sqft/sqm first · regional units second
-                </span>
-              </div>
-              <p className="mt-2 text-sm text-slate-600">
-                These are local-practice conversions from the universal square feet value.
-              </p>
-            </div>
-
-            {result.districtRegion.warning ? (
-              <div className="mb-3 rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900">
-                {result.districtRegion.warning}
-              </div>
-            ) : null}
-
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {result.regional.map((unitItem) => (
-                <div key={unitItem.key} className="rounded-2xl border bg-white p-4">
-                  <div className="text-xs font-bold uppercase text-slate-500">{unitItem.label}</div>
-                  <div className="mt-1 text-xl font-black text-slate-950">
-                    {formatNumber(unitItem.value, 5)}
-                  </div>
-                  <div className="mt-1 text-xs text-slate-500">
-                    1 {unitItem.label} = {formatNumber(unitItem.sqft)} sqft
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : (
+        {mode !== "land" ? (
           <section className="mt-5 rounded-2xl border bg-slate-50 p-4">
             <h2 className="text-lg font-bold text-slate-950">Building / Roof Area Guidance</h2>
             <div className="mt-3 grid gap-3 md:grid-cols-3">
@@ -1359,12 +1376,13 @@ export default function LandAreaCalculatorPage() {
               <InfoCard title="Future BOQ Link" text="This area can later connect with material estimate, construction cost and RFQ." />
             </div>
           </section>
-        )}
+        ) : null}
 
-        <section className="mt-5 rounded-2xl border bg-white p-4">
-          <h2 className="text-lg font-bold text-slate-950">
-            Next Action After Measurement
-          </h2>
+        <details className="mt-5 rounded-2xl border bg-white p-4">
+          <summary className="cursor-pointer text-lg font-bold text-slate-950">
+            Next Action After Measurement ▼
+          </summary>
+          <div className="mt-4">
           <p className="mt-1 text-sm leading-6 text-slate-600">
             Use this calculated area for construction estimate, material planning, vendor RFQ,
             finance discussion or property comparison.
@@ -1407,12 +1425,14 @@ export default function LandAreaCalculatorPage() {
               </p>
             </a>
           </div>
-        </section>
+          </div>
+        </details>
 
-        <section className="mt-5 rounded-2xl border bg-slate-50 p-4">
-          <h2 className="text-lg font-bold text-slate-950">
-            Land Measurement FAQ
-          </h2>
+        <details className="mt-5 rounded-2xl border bg-slate-50 p-4">
+          <summary className="cursor-pointer text-lg font-bold text-slate-950">
+            Land Measurement FAQ ▼
+          </summary>
+          <div className="mt-4">
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <InfoCard
@@ -1432,7 +1452,8 @@ export default function LandAreaCalculatorPage() {
               text="Use polygon measurement for irregular plots where you can mark multiple corner points from a sketch, map or field measurement."
             />
           </div>
-        </section>
+          </div>
+        </details>
       </section>
     </main>
   );
