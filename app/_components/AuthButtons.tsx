@@ -307,8 +307,14 @@ export default function AuthButtons() {
         <div className="mobileAccountPanel">
           <div className="mobileAccountPanelRole">{displayRole}</div>
           <div className="mobileAccountPanelEmail">{shortEmail(email)}</div>
-          <Link href={displayDashboardHref}>My Dashboard</Link>
-          <button type="button" onClick={handleLogout}>Logout</button>
+          <Link href={displayDashboardHref}>
+            <span>My Dashboard</span>
+            <span aria-hidden="true">→</span>
+          </Link>
+          <button type="button" onClick={handleLogout}>
+            <span>Logout</span>
+            <span aria-hidden="true">→</span>
+          </button>
         </div>
       </details>
 
