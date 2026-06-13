@@ -3675,3 +3675,30 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     background: #eff6ff !important;
   }
 }
+
+/* Master Admin-only debug export tools */
+.masterAdminDebugTools {
+  position: fixed;
+  right: 12px;
+  bottom: 92px;
+  z-index: 99999;
+  display: grid;
+  gap: 8px;
+}
+
+.masterAdminDebugTools button {
+  border: 1px solid rgba(15,23,42,0.12);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 12px 30px rgba(15,23,42,0.16);
+}
+
+@media (min-width: 981px) {
+  .masterAdminDebugTools {
+    display: none;
+  }
+}
