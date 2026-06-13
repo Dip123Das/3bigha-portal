@@ -5469,3 +5469,168 @@ main,
     display: none !important;
   }
 }
+
+/* =========================================================
+   PERMANENT MOBILE HEADER AUTHORITY - DO NOT OVERRIDE ABOVE
+   Mobile-only. Desktop header must remain untouched.
+   This block is the final mobile header source of truth.
+   ========================================================= */
+
+@media (max-width: 768px) {
+  body:has(.mobile-app-search-bar) header,
+  body:has(.mobile-app-search-bar) .siteHeader,
+  body:has(.mobile-app-search-bar) .topHeader,
+  body:has(.mobile-app-search-bar) .globalHeader {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  body:has(.mobile-app-search-bar) .topHeaderInner,
+  body:has(.mobile-app-search-bar) .siteHeaderInner,
+  body:has(.mobile-app-search-bar) header > div:first-child {
+    width: 100% !important;
+    min-height: 56px !important;
+    height: 56px !important;
+    max-height: 56px !important;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 8px !important;
+    position: relative !important;
+    padding: 6px 10px !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+  }
+
+  body:has(.mobile-app-search-bar) .desktopNav,
+  body:has(.mobile-app-search-bar) .topActions,
+  body:has(.mobile-app-search-bar) .desktopMegaNav,
+  body:has(.mobile-app-search-bar) .topMegaNav,
+  body:has(.mobile-app-search-bar) .topSubBar,
+  body:has(.mobile-app-search-bar) .topSubLinks,
+  body:has(.mobile-app-search-bar) .topHint {
+    display: none !important;
+  }
+
+  body:has(.mobile-app-search-bar) header a[href="/"],
+  body:has(.mobile-app-search-bar) .topLogo,
+  body:has(.mobile-app-search-bar) .brandLogo {
+    position: static !important;
+    grid-column: 1 !important;
+    justify-self: start !important;
+    align-self: center !important;
+    margin: 0 !important;
+    transform: none !important;
+    z-index: 4 !important;
+    max-width: 132px !important;
+    min-width: 0 !important;
+  }
+
+  body:has(.mobile-app-search-bar) header img {
+    max-height: 36px !important;
+    width: auto !important;
+    object-fit: contain !important;
+  }
+
+  body:has(.mobile-app-search-bar) .mobileAccountStrip,
+  body:has(.mobile-app-search-bar) .mobileAccountMenu,
+  body:has(.mobile-app-search-bar) header a[href="/login"],
+  body:has(.mobile-app-search-bar) header a[href="/auth/login"],
+  body:has(.mobile-app-search-bar) header .loginButton,
+  body:has(.mobile-app-search-bar) header .authButton {
+    position: static !important;
+    grid-column: 2 !important;
+    justify-self: end !important;
+    align-self: center !important;
+    width: auto !important;
+    max-width: 145px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    transform: none !important;
+    z-index: 5 !important;
+    white-space: nowrap !important;
+  }
+
+  body:has(.mobile-app-search-bar) .mobileAccountStrip .topBtn,
+  body:has(.mobile-app-search-bar) header a[href="/login"],
+  body:has(.mobile-app-search-bar) header a[href="/auth/login"] {
+    min-height: 34px !important;
+    height: 34px !important;
+    padding: 0 10px !important;
+    font-size: 12px !important;
+    line-height: 34px !important;
+    border-radius: 999px !important;
+  }
+
+  body:has(.mobile-app-search-bar) .topMobileMenu {
+    position: static !important;
+    grid-column: 3 !important;
+    justify-self: end !important;
+    align-self: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    margin: 0 !important;
+    z-index: 6 !important;
+  }
+
+  body:has(.mobile-app-search-bar) .topHamburger,
+  body:has(.mobile-app-search-bar) details.topMobileMenu > summary.topHamburger {
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    width: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    z-index: 7 !important;
+  }
+
+  body:has(.mobile-app-search-bar) .topHamburger span,
+  body:has(.mobile-app-search-bar) details.topMobileMenu > summary.topHamburger span {
+    width: 16px !important;
+    height: 2px !important;
+    margin: 2px 0 !important;
+  }
+
+  body:has(.mobile-app-search-bar) .topMobilePanel {
+    top: 56px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-width: none !important;
+    z-index: 100 !important;
+  }
+
+  body:has(.mobile-app-search-bar) .mobile-app-search-bar {
+    width: calc(100% - 20px) !important;
+    max-width: calc(100% - 20px) !important;
+    margin: 8px 10px 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    position: relative !important;
+    z-index: 4 !important;
+    box-sizing: border-box !important;
+    clear: both !important;
+  }
+
+  body:has(.mobile-app-search-bar) .mobile-app-search-bar input {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  body:has(.mobile-app-search-bar) .mobile-app-search-bar button {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+}
