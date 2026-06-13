@@ -301,7 +301,7 @@ export default function AuthButtons() {
           className="topBtn topBtnGhost mobileAccountMainBtn"
           title={email ?? undefined}
         >
-          {displayRole}
+          {displayRole} <span aria-hidden="true">▾</span>
         </summary>
 
         <div className="mobileAccountPanel">
