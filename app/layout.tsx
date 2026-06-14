@@ -70,7 +70,11 @@ export const metadata = createMetadata({
   ],
 });
 
-export const viewport = {
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
   themeColor: "#0b57d0",
 };
 
