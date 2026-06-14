@@ -199,10 +199,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </Link>
             </div>
 
-            <div className="topNav desktopHeaderOnly" aria-label="Primary navigation">
-              <DesktopMegaNavClient />
-            </div>
-
             <form className="topSearchQuick desktopHeaderOnly" action="/search" method="get">
               <input
                 className="topSearchInput"
