@@ -1,17 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
-export default function MasterAdminDebugTools({
-  email,
-}: {
-  email?: string | null;
-}) {
+const MASTER_ADMIN_EMAIL = "vivek.abek@gmail.com";
+
+export default function MasterAdminDebugTools() {
   const [busy, setBusy] = useState(false);
+  const [allowed, setAllowed] = useState(false);
 
-  if (String(email ?? "").trim().toLowerCase() !== "vivek.abek@gmail.com") {
+  useEffect(() => {
+    let alive = true;
+    const supabase = getSupabaseBrowser();
+
+    async function checkUser() {
+      try {
+        const { data } = await supabase.auth.getUser();
+        const email = String(data.user?.email ?? "").trim().toLowerCase();
+
+        if (alive) {
+          setAllowed(email === MASTER_ADMIN_EMAIL);
+        }
+      } catch {
+        if (alive) {
+          setAllowed(false);
+        }
+      }
+    }
+
+    checkUser();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      const email = String(session?.user?.email ?? "").trim().toLowerCase();
+      setAllowed(email === MASTER_ADMIN_EMAIL);
+    });
+
+    return () => {
+      alive = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  if (!allowed) {
     return null;
   }
 
@@ -50,7 +82,6 @@ export default function MasterAdminDebugTools({
       const pdf = new jsPDF("p", "mm", "a4");
       const pdfWidth = 210;
       const pdfHeight = 297;
-
       const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
       let heightLeft = imgHeight;

@@ -575,7 +575,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </Container>
         </footer>
 
-        <MasterAdminDebugTools email="vivek.abek@gmail.com" />
+        <MasterAdminDebugTools />
 
       </body>
     </html>
