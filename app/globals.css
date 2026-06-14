@@ -1049,12 +1049,58 @@ linear-gradient(135deg, #0f172a 0%, #172554 100%);
     overflow: visible !important;
   }
 
-  .topHeaderInner,
+  .topHeaderInner {
+    display: grid !important;
+    grid-template-columns: 220px minmax(320px, 1fr) 150px auto !important;
+    align-items: center !important;
+    gap: 18px !important;
+    min-height: 92px !important;
+    padding: 18px 24px !important;
+    overflow: visible !important;
+    z-index: 900 !important;
+  }
+
   .topActions,
   .postMenu,
   .postMenuPanel {
     overflow: visible !important;
     z-index: 900 !important;
+  }
+
+  .topBrand.desktopHeaderOnly {
+    justify-self: start !important;
+    align-self: center !important;
+  }
+
+  .topSearchQuick.desktopHeaderOnly {
+    justify-self: center !important;
+    align-self: center !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: min(460px, 100%) !important;
+  }
+
+  .topLanguageSelector.desktopHeaderOnly {
+    justify-self: center !important;
+    align-self: center !important;
+  }
+
+  .topActions.desktopHeaderOnly {
+    justify-self: end !important;
+    align-self: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+  }
+
+  .desktopAuthSlot {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
   }
 
   .postMenuPanel,
@@ -1143,7 +1189,6 @@ linear-gradient(135deg, #0f172a 0%, #172554 100%);
   }
 
   .container,
-  .topHeaderInner,
   .desktopMegaNavInner,
   .pageBody,
   .footerInner {
