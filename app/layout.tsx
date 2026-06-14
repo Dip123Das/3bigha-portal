@@ -100,7 +100,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AppWebViewViewportGuard />
         <AppOAuthReturnBridge />
         <AppOAuthBrowserBounce />
-      <body>
+      <body className="threebigha-app-body">
         <PresenceHeartbeat currentPage="global" />
         <MobileMenuAutoClose />
         <AutoTranslatePage />
