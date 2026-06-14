@@ -120,7 +120,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         >
           <Container className="topHeaderInner">
             <div
-              className="topBrand"
+              className="topBrand mobileHeaderOnly"
               style={{
                 minWidth: 0,
                 flex: "0 1 auto",
@@ -159,11 +159,51 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </Link>
             </div>
 
-            <div className="topNav" aria-label="Primary navigation">
+            <div
+              className="topBrand desktopHeaderOnly"
+              style={{
+                minWidth: 0,
+                flex: "0 1 auto",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <Link
+                className="topBrandLink"
+                href="/"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0,
+                  textDecoration: "none",
+                  minWidth: 0,
+                  width: "fit-content",
+                  flexWrap: "nowrap",
+                }}
+              >
+                <div className="siteLogoFull">
+                  <Image
+                    src="/logo.png"
+                    alt="3bigha.com AI-powered property construction materials and vendor marketplace logo"
+                    width={360}
+                    height={120}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                      display: "block",
+                    }}
+                    priority
+                  />
+                </div>
+              </Link>
+            </div>
+
+            <div className="topNav desktopHeaderOnly" aria-label="Primary navigation">
               <DesktopMegaNavClient />
             </div>
 
-            <form className="topSearchQuick" action="/search" method="get">
+            <form className="topSearchQuick desktopHeaderOnly" action="/search" method="get">
               <input
                 className="topSearchInput"
                 name="q"
@@ -174,11 +214,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </button>
             </form>
 
-            <div data-no-translate="true" className="topLanguageSelector">
+            <div data-no-translate="true" className="topLanguageSelector desktopHeaderOnly">
               <LanguageSwitcher />
             </div>
 
-            <div className="topActions">
+            <div className="topActions desktopHeaderOnly">
               <details className="postMenu">
                 <summary className="topBtn topBtnPrimary">
                   Post / List <span className="postMenuCaret">▾</span>
@@ -306,11 +346,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
 
-            <div className="mobileAccountStrip">
+            <div className="mobileAccountStrip mobileHeaderOnly">
               <AuthButtons />
             </div>
 
-            <details className="topMobileMenu">
+            <details className="topMobileMenu mobileHeaderOnly">
               <summary className="topHamburger" aria-label="Open menu">
                 <span />
                 <span />
