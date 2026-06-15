@@ -48,29 +48,16 @@ export default function MasterAdminDebugTools() {
   }
 
   async function captureCanvas() {
-    const exportWidth = Math.max(
-      document.documentElement.scrollWidth,
-      document.body.scrollWidth,
-      window.innerWidth,
-      1280
-    );
-
-    const exportHeight = Math.max(
-      document.documentElement.scrollHeight,
-      document.body.scrollHeight,
-      window.innerHeight
-    );
-
-    return html2canvas(document.body, {
+    return html2canvas(document.documentElement, {
       scale: 2,
       useCORS: true,
       backgroundColor: "#ffffff",
-      width: exportWidth,
-      height: exportHeight,
-      windowWidth: exportWidth,
-      windowHeight: exportHeight,
-      scrollX: 0,
-      scrollY: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight,
+      scrollX: window.scrollX,
+      scrollY: window.scrollY,
     });
   }
 
@@ -91,26 +78,67 @@ export default function MasterAdminDebugTools() {
     try {
       setBusy(true);
 
-      const canvas = await captureCanvas();
-      const imgData = canvas.toDataURL("image/png");
+      const fullCanvas = await html2canvas(document.body, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: document.documentElement.scrollWidth,
+        windowHeight: document.documentElement.scrollHeight,
+      });
 
-      const isTallCapture = canvas.height > canvas.width * 1.35;
-      const pdf = new jsPDF(isTallCapture ? "p" : "l", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
 
-      let heightLeft = imgHeight;
-      let position = 0;
+      const pageCanvas = document.createElement("canvas");
+      const pageCtx = pageCanvas.getContext("2d");
 
-      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
-      heightLeft -= pdfHeight;
+      if (!pageCtx) {
+        throw new Error("Could not prepare PDF canvas.");
+      }
 
-      while (heightLeft > 0) {
-        position -= pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
-        heightLeft -= pdfHeight;
+      const pagePixelHeight = Math.floor(
+        (fullCanvas.width * pageHeight) / pageWidth
+      );
+
+      let renderedHeight = 0;
+      let firstPage = true;
+
+      while (renderedHeight < fullCanvas.height) {
+        pageCanvas.width = fullCanvas.width;
+        pageCanvas.height = Math.min(
+          pagePixelHeight,
+          fullCanvas.height - renderedHeight
+        );
+
+        pageCtx.clearRect(0, 0, pageCanvas.width, pageCanvas.height);
+
+        pageCtx.drawImage(
+          fullCanvas,
+          0,
+          renderedHeight,
+          fullCanvas.width,
+          pageCanvas.height,
+          0,
+          0,
+          fullCanvas.width,
+          pageCanvas.height
+        );
+
+        const imgData = pageCanvas.toDataURL("image/png");
+        const imgHeight = (pageCanvas.height * imgWidth) / pageCanvas.width;
+
+        if (!firstPage) {
+          pdf.addPage();
+        }
+
+        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+
+        renderedHeight += pageCanvas.height;
+        firstPage = false;
       }
 
       pdf.save("3bigha-page-capture.pdf");
