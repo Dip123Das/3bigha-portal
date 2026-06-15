@@ -677,6 +677,89 @@ async function trySelectAny(
   return { data: null, error: lastErr };
 }
 
+
+function CompactSearchPanel({
+  title,
+  subtitle,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div
+      style={{
+        border: "1px solid #e2e8f0",
+        borderRadius: 16,
+        background: "#ffffff",
+        overflow: "hidden",
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          width: "100%",
+          border: 0,
+          background: open ? "#f8fafc" : "#ffffff",
+          padding: "12px 14px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+          cursor: "pointer",
+          textAlign: "left",
+        }}
+      >
+        <span style={{ minWidth: 0 }}>
+          <span style={{ display: "block", fontSize: 14, fontWeight: 950, color: "#0f172a" }}>
+            {title}
+          </span>
+          {subtitle ? (
+            <span
+              style={{
+                display: "block",
+                marginTop: 3,
+                fontSize: 12,
+                fontWeight: 750,
+                color: "#64748b",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {subtitle}
+            </span>
+          ) : null}
+        </span>
+
+        <span
+          style={{
+            flex: "0 0 auto",
+            borderRadius: 999,
+            border: "1px solid #e2e8f0",
+            padding: "4px 8px",
+            fontSize: 12,
+            fontWeight: 950,
+            color: "#334155",
+            background: "#ffffff",
+          }}
+        >
+          {open ? "Hide" : "More"}
+        </span>
+      </button>
+
+      {open ? <div style={{ padding: 12, borderTop: "1px solid #e2e8f0" }}>{children}</div> : null}
+    </div>
+  );
+}
+
+
 function SearchPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
@@ -727,10 +810,13 @@ function SearchPageInner() {
   const [autocompleteOpen, setAutocompleteOpen] = useState(false);
   const aiAutoAppliedRef = useRef<string>("");
   const [isCompactSearchLayout, setIsCompactSearchLayout] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     function updateSearchLayout() {
-      setIsCompactSearchLayout(window.innerWidth < 980);
+      const compact = window.innerWidth < 980;
+      setIsCompactSearchLayout(compact);
+      if (!compact) setFiltersOpen(true);
     }
 
     updateSearchLayout();
@@ -1823,72 +1909,91 @@ if (want.includes("rentals")) {
               </button>
             </div>
 
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-              <div style={{ fontWeight: 900, opacity: 0.8 }}>Filters</div>
-
-              <select
-                value={intentInput}
-                onChange={(e) => setIntentInput(e.target.value as PropertyIntent)}
+            <div style={{ display: "grid", gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => setFiltersOpen((v) => !v)}
                 style={{
-                  height: 40,
-                  borderRadius: 12,
-                  border: "1px solid #e5e7eb",
-                  padding: "0 10px",
-                  fontWeight: 850,
-                  minWidth: 160,
+                  width: "fit-content",
+                  borderRadius: 999,
+                  border: "1px solid #e2e8f0",
+                  background: "#ffffff",
+                  padding: "8px 12px",
+                  fontSize: 13,
+                  fontWeight: 950,
+                  cursor: "pointer",
                 }}
-                title="Property intent"
               >
-                <option value="all">Property: Any</option>
-                <option value="sell">Sell</option>
-                <option value="rent">Rent</option>
-                <option value="lease">Lease</option>
-                <option value="pg">PG</option>
-              </select>
+                ⚙ Filters {filtersOpen ? "Hide" : "More"}
+              </button>
 
-              <input
-                value={minInput}
-                onChange={(e) => setMinInput(e.target.value)}
-                placeholder="Min price"
-                style={{
-                  height: 40,
-                  borderRadius: 12,
-                  border: "1px solid #e5e7eb",
-                  padding: "0 10px",
-                  width: 130,
-                }}
-              />
+              {filtersOpen ? (
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                  <select
+                    value={intentInput}
+                    onChange={(e) => setIntentInput(e.target.value as PropertyIntent)}
+                    style={{
+                      height: 40,
+                      borderRadius: 12,
+                      border: "1px solid #e5e7eb",
+                      padding: "0 10px",
+                      fontWeight: 850,
+                      minWidth: 160,
+                    }}
+                    title="Property intent"
+                  >
+                    <option value="all">Property: Any</option>
+                    <option value="sell">Sell</option>
+                    <option value="rent">Rent</option>
+                    <option value="lease">Lease</option>
+                    <option value="pg">PG</option>
+                  </select>
 
-              <input
-                value={maxInput}
-                onChange={(e) => setMaxInput(e.target.value)}
-                placeholder="Max price"
-                style={{
-                  height: 40,
-                  borderRadius: 12,
-                  border: "1px solid #e5e7eb",
-                  padding: "0 10px",
-                  width: 130,
-                }}
-              />
+                  <input
+                    value={minInput}
+                    onChange={(e) => setMinInput(e.target.value)}
+                    placeholder="Min price"
+                    style={{
+                      height: 40,
+                      borderRadius: 12,
+                      border: "1px solid #e5e7eb",
+                      padding: "0 10px",
+                      width: 130,
+                    }}
+                  />
 
-              <input
-                value={nearKm}
-                onChange={(e) => setNearKm(e.target.value)}
-                placeholder="Near km"
-                style={{
-                  height: 40,
-                  borderRadius: 12,
-                  border: "1px solid #e5e7eb",
-                  padding: "0 10px",
-                  width: 110,
-                }}
-                title="Near Me radius (km)"
-              />
+                  <input
+                    value={maxInput}
+                    onChange={(e) => setMaxInput(e.target.value)}
+                    placeholder="Max price"
+                    style={{
+                      height: 40,
+                      borderRadius: 12,
+                      border: "1px solid #e5e7eb",
+                      padding: "0 10px",
+                      width: 130,
+                    }}
+                  />
 
-              <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 700 }}>
-                Tip: Start typing — auto-search runs. Press <b>Enter</b> to search instantly.
-              </div>
+                  <input
+                    value={nearKm}
+                    onChange={(e) => setNearKm(e.target.value)}
+                    placeholder="Near km"
+                    style={{
+                      height: 40,
+                      borderRadius: 12,
+                      border: "1px solid #e5e7eb",
+                      padding: "0 10px",
+                      width: 110,
+                    }}
+                    title="Near Me radius (km)"
+                  />
+
+                  <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 700 }}>
+                    Tip: Start typing — auto-search runs. Press <b>Enter</b> to search instantly.
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -2242,7 +2347,7 @@ if (want.includes("rentals")) {
 
       {hasQuery && conversationalSuggestions.length > 0 ? (
         <>
-          <SearchInsightSection
+          <CompactSearchPanel
             title="✨ Suggested next steps for this workflow"
             subtitle="Optional next-step prompts for procurement, vendors, RFQ and pricing"
           >
@@ -2312,7 +2417,7 @@ if (want.includes("rentals")) {
                   })}
                 </div>
               </div>
-          </SearchInsightSection>
+          </CompactSearchPanel>
 
           <div style={{ height: 12 }} />
         </>
@@ -2386,57 +2491,57 @@ if (want.includes("rentals")) {
                 </div>
 
                 {procurementDecision.show ? (
-                  <SearchInsightSection
+                  <CompactSearchPanel
                     title="🧠 Procurement Decision"
                     subtitle="Readiness, complexity, vendor count and RFQ probability"
                   >
                     <ProcurementDecisionPanel insight={procurementDecision} />
-                  </SearchInsightSection>
+                  </CompactSearchPanel>
                 ) : null}
 
                 {rfqConversion.show ? (
-                  <SearchInsightSection
+                  <CompactSearchPanel
                     title="⚡ Search-to-RFQ Conversion"
                     subtitle="Convert this search into a structured requirement"
                   >
                     <SearchToRfqConversionCard conversion={rfqConversion} />
-                  </SearchInsightSection>
+                  </CompactSearchPanel>
                 ) : null}
 
                 {vendorLiquidity.show ? (
-                  <SearchInsightSection
+                  <CompactSearchPanel
                     title="🎯 Vendor Liquidity"
                     subtitle="Active vendors, fast responders and response expectation"
                   >
                     <VendorLiquidityPanel insight={vendorLiquidity} />
-                  </SearchInsightSection>
+                  </CompactSearchPanel>
                 ) : null}
 
                 {vendorIntelligence.show ? (
-                  <SearchInsightSection
+                  <CompactSearchPanel
                     title="🏅 Vendor Insights"
                     subtitle="Vendor quality, fit, locality and procurement suitability"
                   >
                     <VendorIntelligencePanel insight={vendorIntelligence} />
-                  </SearchInsightSection>
+                  </CompactSearchPanel>
                 ) : null}
 
                 {vendorNegotiation.show ? (
-                  <SearchInsightSection
+                  <CompactSearchPanel
                     title="🤝 Negotiation Intelligence"
                     subtitle="RFQ acceptance, risk and best negotiation strategy"
                   >
                     <VendorNegotiationPanel insight={vendorNegotiation} />
-                  </SearchInsightSection>
+                  </CompactSearchPanel>
                 ) : null}
 
                 {procurementActionCopilot.show ? (
-                  <SearchInsightSection
+                  <CompactSearchPanel
                     title="🚀 Workflow Suggestions"
                     subtitle="RFQ strengthening and next best actions"
                   >
                     <ProcurementActionCopilot insight={procurementActionCopilot} />
-                  </SearchInsightSection>
+                  </CompactSearchPanel>
                 ) : null}
               </div>
             </CardBody>
@@ -2508,7 +2613,7 @@ if (want.includes("rentals")) {
 
       {hasQuery && rows.length > 0 && aiRecommendations.length > 0 ? (
         <>
-          <SearchInsightSection
+          <CompactSearchPanel
             title="✨ Marketplace Recommendations"
             subtitle="Related vendors, categories and next-step actions"
           >
@@ -2583,7 +2688,7 @@ if (want.includes("rentals")) {
                   ))}
                 </div>
               </div>
-          </SearchInsightSection>
+          </CompactSearchPanel>
 
           <div style={{ height: 12 }} />
         </>
