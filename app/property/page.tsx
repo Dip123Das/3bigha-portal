@@ -314,7 +314,7 @@ function chipStyle(active: boolean) {
     color: active ? "#1d4ed8" : "#111827",
     cursor: "pointer",
     fontWeight: 800 as const,
-    fontSize: 13,
+    fontSize: 12,
   };
 }
 
@@ -348,6 +348,7 @@ export default function PropertyPublicListPage() {
   const [subtypeMap, setSubtypeMap] = useState<SubtypeMap>({});
 
   const [q, setQ] = useState("");
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -799,7 +800,7 @@ export default function PropertyPublicListPage() {
               border: "1px solid rgba(0,0,0,0.1)",
               borderRadius: 16,
               background: "#fff",
-              padding: 14,
+              padding: 11,
               cursor: "pointer",
             }}
           >
@@ -809,7 +810,7 @@ export default function PropertyPublicListPage() {
 
             <div
               style={{
-                fontSize: 13,
+                fontSize: 12,
                 opacity: 0.75,
                 lineHeight: 1.45,
               }}
@@ -831,7 +832,7 @@ export default function PropertyPublicListPage() {
       >
         <span
           style={{
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: 900,
             opacity: 0.75,
           }}
@@ -846,8 +847,8 @@ export default function PropertyPublicListPage() {
             style={{
               border: "1px solid rgba(0,0,0,0.1)",
               borderRadius: 999,
-              padding: "8px 10px",
-              fontSize: 13,
+              padding: "6px 9px",
+              fontSize: 12,
               fontWeight: 800,
               textDecoration: "none",
               color: "inherit",
@@ -1014,28 +1015,85 @@ export default function PropertyPublicListPage() {
                         </div>
                       </div>
 
-                      <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <div
+                        style={{
+                          marginTop: 8,
+                          display: "flex",
+                          gap: 8,
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                        }}
+                      >
                         <Link
-                          href={propertyPriceTodayHref(p, typeName, subtypeName, title)}
-                          style={{ fontWeight: 900, color: "#2563eb" }}
+                          href={`/property/${p.id}`}
+                          style={{ fontWeight: 900 }}
                         >
-                          Compare Price →
-                        </Link>
-
-                        <Link
-                          href={financeHref(finalPrice, title, p.city)}
-                          style={{ fontWeight: 900, color: "#16a34a" }}
-                        >
-                          Check EMI →
-                        </Link>
-
-                        <Link href={`/property/${p.id}`} style={{ fontWeight: 900 }}>
                           View →
                         </Link>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedCard(
+                              expandedCard === String(p.id)
+                                ? null
+                                : String(p.id)
+                            )
+                          }
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            cursor: "pointer",
+                            fontWeight: 900,
+                          }}
+                        >
+                          {expandedCard === String(p.id)
+                            ? "Less ▲"
+                            : "More ▼"}
+                        </button>
                       </div>
 
-                      {/* ✅ NEW: Send Enquiry on listing card (public browsing, login required only when sending) */}
-                                            <div style={{ marginTop: 12 }}>
+                      {expandedCard === String(p.id) ? (
+                        <div
+                          style={{
+                            marginTop: 8,
+                            display: "flex",
+                            gap: 10,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <Link
+                            href={propertyPriceTodayHref(
+                              p,
+                              typeName,
+                              subtypeName,
+                              title
+                            )}
+                            style={{
+                              fontWeight: 900,
+                              color: "#2563eb",
+                            }}
+                          >
+                            Compare Price →
+                          </Link>
+
+                          <Link
+                            href={financeHref(
+                              finalPrice,
+                              title,
+                              p.city
+                            )}
+                            style={{
+                              fontWeight: 900,
+                              color: "#16a34a",
+                            }}
+                          >
+                            Check EMI →
+                          </Link>
+                        </div>
+                      ) : null}
+
+                      <div style={{ marginTop: 8 }}>
                         <SendEnquiryButton
                           module="property"
                           refId={String(p.id)}
