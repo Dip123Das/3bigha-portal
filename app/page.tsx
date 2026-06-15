@@ -548,9 +548,6 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-        <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("featured")}>
-          {mobileExpandedSections.featured ? "Show Less" : "See More Listings"}
-        </button>
 
       <section className="contentSection">
         <div className="sectionHead">
@@ -574,9 +571,6 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-        <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("discovery")}>
-          {mobileExpandedSections.discovery ? "Show Less" : "See More AI Suggestions"}
-        </button>
 
       <section className="contentSection utilitySection">
         <div className="sectionHead">
@@ -616,9 +610,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-        <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("tools")}>
-          {mobileExpandedSections.tools ? "Show Less" : "See More Tools"}
-        </button>
 
       <section className="contentSection">
         <div className="sectionHead"><div><h2>Today's Market Prices</h2><p>Live price updates from local markets</p></div><a href="/price-today">View all prices →</a></div>
@@ -628,9 +619,6 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-        <button className="mobileSeeMoreButton" type="button" onClick={() => toggleMobileSection("prices")}>
-          {mobileExpandedSections.prices ? "Show Less" : "See More Prices"}
-        </button>
 
       <section className="homeBottomGrid">
         <div className="bottomPanel compactNewsPanel">
