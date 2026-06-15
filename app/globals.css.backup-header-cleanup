@@ -3438,6 +3438,250 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   }
 }
 
+/* =========================================================
+   PERMANENT MOBILE HEADER AUTHORITY - DO NOT OVERRIDE ABOVE
+   Row 1: Account/Login - Center Logo - Hamburger
+   Row 2: Full-width Search
+   Desktop untouched.
+   ========================================================= */
+
+.desktopHeaderOnly {
+  visibility: hidden !important;
+}
+
+.mobileHeaderOnly {
+  visibility: visible !important;
+}
+
+@media (min-width: 981px) {
+  .mobileHeaderOnly {
+    display: none !important;
+  }
+
+  .desktopHeaderOnly {
+    display: revert !important;
+    visibility: visible !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .desktopHeaderOnly {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  .mobileHeaderOnly {
+    display: flex !important;
+  }
+
+  .topHeader {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  .topHeaderInner {
+    min-height: 68px !important;
+    height: 68px !important;
+    display: grid !important;
+    grid-template-columns: 122px 1fr 46px !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 8px 12px !important;
+    overflow: visible !important;
+    position: relative !important;
+  }
+
+  .mobileAccountStrip {
+    grid-column: 1 !important;
+    justify-self: start !important;
+    align-self: center !important;
+    max-width: 122px !important;
+    min-width: 0 !important;
+    z-index: 5 !important;
+  }
+
+  .mobileAccountStrip .desktopAccountBtn {
+    display: none !important;
+  }
+
+  .mobileAccountStrip > a.topBtn,
+  .mobileAccountStrip > button.topBtn,
+  .mobileAccountStrip .mobileAccountMenu {
+    max-width: 122px !important;
+    min-width: 0 !important;
+  }
+
+  .mobileAccountStrip > a.topBtn,
+  .mobileAccountStrip > button.topBtn,
+  .mobileAccountStrip .mobileAccountMenu > summary {
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 12px !important;
+    font-size: 12px !important;
+    line-height: 40px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    border-radius: 999px !important;
+  }
+
+  .mobileAccountMenu:not([open]) .mobileAccountPanel {
+    display: none !important;
+  }
+
+  .mobileAccountPanel {
+    position: fixed !important;
+    top: 80px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    display: grid !important;
+    gap: 8px !important;
+    padding: 14px !important;
+    border-radius: 18px !important;
+    background: #ffffff !important;
+    border: 1px solid #dbe3ef !important;
+    box-shadow: 0 20px 60px rgba(15,23,42,0.18) !important;
+    z-index: 10095 !important;
+  }
+
+  .mobileAccountPanel a,
+  .mobileAccountPanel button {
+    width: 100% !important;
+    text-align: left !important;
+  }
+
+  .topBrand.mobileHeaderOnly {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    justify-self: center !important;
+    align-self: center !important;
+    position: static !important;
+    transform: none !important;
+    min-width: 0 !important;
+    width: 132px !important;
+    max-width: 132px !important;
+    height: 52px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 20 !important;
+  }
+
+  .topBrandLink {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 132px !important;
+    height: 52px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-decoration: none !important;
+  }
+
+  .siteLogoFull {
+    display: block !important;
+    width: 132px !important;
+    height: 52px !important;
+    min-width: 132px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .siteLogoFull img,
+  .topBrand img {
+    display: block !important;
+    width: 132px !important;
+    max-width: 132px !important;
+    height: 52px !important;
+    max-height: 52px !important;
+    object-fit: contain !important;
+  }
+
+  .topBrandTagline {
+    display: none !important;
+  }
+
+  .topMobileMenu {
+    grid-column: 3 !important;
+    justify-self: end !important;
+    align-self: center !important;
+    position: static !important;
+    width: 42px !important;
+    height: 42px !important;
+    z-index: 5 !important;
+  }
+
+  .topHamburger,
+  details.topMobileMenu > summary.topHamburger {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    padding: 0 !important;
+    border-radius: 13px !important;
+    background: #ffffff !important;
+    border: 1px solid #dbe3ef !important;
+    box-shadow: 0 8px 18px rgba(15,23,42,0.10) !important;
+  }
+
+  .topHamburger span {
+    width: 18px !important;
+    height: 2px !important;
+    margin: 0 !important;
+    border-radius: 999px !important;
+    background: #0f172a !important;
+  }
+
+  .topMobilePanel {
+    position: fixed !important;
+    top: 80px !important;
+    left: 12px !important;
+    right: 12px !important;
+    max-height: calc(100vh - 108px) !important;
+    overflow-y: auto !important;
+    z-index: 10090 !important;
+    border-radius: 18px !important;
+    background: #ffffff !important;
+    box-shadow: 0 20px 60px rgba(15,23,42,0.18) !important;
+  }
+
+  .mobile-app-search-bar {
+    display: block !important;
+    width: 100% !important;
+    padding: 8px 12px 10px !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+
+  .mobile-app-search-inner {
+    display: flex !important;
+    gap: 8px !important;
+    width: 100% !important;
+    align-items: center !important;
+  }
+
+  .mobile-app-search-inner input {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    height: 40px !important;
+  }
+
+  .mobile-app-search-inner button {
+    flex: 0 0 auto !important;
+    height: 40px !important;
+  }
+}
+
 /* Mobile account button affordance */
 @media (max-width: 980px) {
   .mobileAccountMainBtn {
@@ -3921,25 +4165,5 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     max-width: 96px !important;
     height: 40px !important;
     max-height: 40px !important;
-  }
-}
-
-
-@media (max-width: 720px) {
-  .propertyPublicHeroRow {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    gap: 10px !important;
-  }
-
-  .propertyPublicHeroActions {
-    justify-content: flex-start !important;
-    padding-top: 0 !important;
-  }
-
-  .propertyPublicHeroActions a {
-    height: 36px !important;
-    padding: 0 12px !important;
-    font-size: 13px !important;
   }
 }
