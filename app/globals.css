@@ -3979,3 +3979,71 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     grid-column: 3 !important;
   }
 }
+
+/* =========================================================
+   HOMEPAGE MOBILE PRIORITY ORDER
+   Mobile order: Hero → Categories → Featured → Stats → AI/Vendor/Tools.
+   Desktop untouched.
+   ========================================================= */
+@media (max-width: 720px) {
+  .homePage {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .homePage .heroShell {
+    order: 1 !important;
+  }
+
+  .homePage .contentSection:has(.premiumCategoryGrid) {
+    order: 2 !important;
+  }
+
+  .homePage .contentSection:has(.premiumListingsGrid) {
+    order: 3 !important;
+  }
+
+  .homePage .statsRail {
+    order: 4 !important;
+  }
+
+  .homePage .aiLiveOpsStrip {
+    order: 5 !important;
+  }
+
+  .homePage .vendorOpportunityHomeStrip {
+    order: 6 !important;
+  }
+
+  .homePage .aiBusinessCommand {
+    order: 7 !important;
+  }
+
+  .homePage .contentSection:has(.premiumDiscoveryGrid) {
+    order: 8 !important;
+  }
+
+  .homePage .utilitySection {
+    order: 9 !important;
+  }
+
+  .homePage .contentSection:has(.premiumPriceGrid) {
+    order: 10 !important;
+  }
+
+  .homePage .homeBottomGrid {
+    order: 11 !important;
+  }
+
+  .homePage .cleanTrustSection {
+    order: 12 !important;
+  }
+
+  .homePage .cleanStartBanner {
+    order: 13 !important;
+  }
+
+  .homePage .cleanHomeFooter {
+    order: 14 !important;
+  }
+}
