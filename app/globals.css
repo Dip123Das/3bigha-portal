@@ -4083,3 +4083,62 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     pointer-events: auto !important;
   }
 }
+
+/* =========================================================
+   HOMEPAGE MOBILE COMPRESSION H1
+   Keep hero/categories/listings/prices visible.
+   Compress secondary sections on mobile.
+   ========================================================= */
+@media (max-width: 720px) {
+  .homePage .aiLiveOpsStrip,
+  .homePage .vendorOpportunityHomeStrip,
+  .homePage .aiBusinessCommand,
+  .homePage .contentSection:has(.premiumDiscoveryGrid),
+  .homePage .utilitySection,
+  .homePage .homeBottomGrid {
+    display: none !important;
+  }
+
+  .homePage .statsRail {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+    padding: 0 12px !important;
+    margin: 8px 0 10px !important;
+  }
+
+  .homePage .statsRail .statCard:nth-child(n+4) {
+    display: none !important;
+  }
+
+  .homePage .categoryGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .homePage .categoryGrid > *:nth-child(n+5) {
+    display: none !important;
+  }
+
+  .homePage .listingGrid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .homePage .listingGrid > *:nth-child(n+5) {
+    display: none !important;
+  }
+
+  .homePage .priceGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .homePage .priceGrid > *:nth-child(n+5) {
+    display: none !important;
+  }
+
+  .homePage .cleanStartBanner {
+    display: none !important;
+  }
+}
