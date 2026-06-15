@@ -4090,9 +4090,6 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
    Compress secondary sections on mobile.
    ========================================================= */
 @media (max-width: 720px) {
-  .homePage .aiLiveOpsStrip,
-  .homePage .vendorOpportunityHomeStrip,
-  .homePage .aiBusinessCommand,
   .homePage .contentSection:has(.premiumDiscoveryGrid),
   .homePage .utilitySection,
   .homePage .homeBottomGrid {
