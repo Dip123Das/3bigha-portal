@@ -210,6 +210,8 @@ export default function HomePage() {
       [section]: !prev[section],
     }));
   }
+
+  const mobileSectionOpen = (section: string) => Boolean(mobileExpandedSections[section]);
   const [featuredItems, setFeaturedItems] = useState<MarketplaceItem[]>(fallbackFeatured);
   const [recentDiscovery, setRecentDiscovery] = useState<DiscoveryMemoryItem[]>([]);
   const [activeTab, setActiveTab] = useState<"search" | "ai" | "post">("search");
@@ -403,113 +405,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="statsRail">
-        {[
-          ["18", "RFQs Posted Today", "🧾"],
-          ["14 min", "Avg. Vendor Response", "⏱️"],
-          ["42", "Active Suppliers Nearby", "🚚"],
-          ["129", "Buyer-Vendor Chats", "🤝"],
-          ["2.8K+", "Listings This Week", "📋"],
-          ["4.9/5", "User Rating", "⭐"],
-        ].map(([value, label, icon]) => (
-          <div className="statCard" key={label}>
-            <span>{icon}</span>
-            <div><strong>{value}</strong><small>{label}</small></div>
-          </div>
-        ))}
-      </section>
-
-      <section className="aiLiveOpsStrip">
-        <div className="aiLiveOpsHead">
-          <div>
-            <span>🤖 Live AI Operations</span>
-            <h2>3Bigha is working in the background for buyers, vendors and suppliers.</h2>
-          </div>
-          <a href="/dashboard/vendor/inventory">Open Vendor OS →</a>
-        </div>
-
-        <div className="aiLiveOpsGrid">
-          {[
-            ["📦", "8", "Low stock alerts", "Cement, TMT and electrical items need attention"],
-            ["🚚", "32", "Deliveries tracked", "Fleet and dispatch workflows are ready"],
-            ["🧾", "54", "Bills processed", "Online + offline billing with stock deduction"],
-            ["📈", "12%", "Demand movement", "Sand and brick demand rising in local markets"],
-            ["🧠", "418", "AI decisions", "Procurement, pricing and vendor routing signals"],
-          ].map(([icon, value, label, text]) => (
-            <div className="aiLiveOpsCard" key={label}>
-              <span>{icon}</span>
-              <strong>{value}</strong>
-              <b>{label}</b>
-              <small>{text}</small>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="vendorOpportunityHomeStrip">
-        <div className="vendorOpportunityHomeHead">
-          <div>
-            <span>🚀 Vendor Growth Opportunities</span>
-            <h2>Buyers are looking for more vendors in active demand areas.</h2>
-            <p>Join 3Bigha where suppliers, contractors, service providers and equipment owners are needed.</p>
-          </div>
-          <a href="/vendor-opportunities">View All Opportunities →</a>
-        </div>
-
-        <div className="vendorOpportunityHomeGrid">
-          <a href="/vendor-opportunities">
-            <b>🔥 Need Cement Suppliers</b>
-            <small>Khagrabari</small>
-          </a>
-          <a href="/vendor-opportunities">
-            <b>⚡ Need Electricians</b>
-            <small>Cooch Behar Town</small>
-          </a>
-          <a href="/vendor-opportunities">
-            <b>🚜 Need JCB Rental Providers</b>
-            <small>Baneswar</small>
-          </a>
-        </div>
-      </section>
-
-      <section className="aiBusinessCommand">
-        <div className="aiBusinessCopy">
-          <span>AI Business Work Desk</span>
-          <h2>Inventory, billing, fleet and dispatch — now connected with marketplace intelligence.</h2>
-          <p>
-            Vendors can manage stock, create bills, assign vehicles, track dispatches and use AI signals
-            to understand demand, pricing and operational risks.
-          </p>
-        </div>
-
-        <div className="aiBusinessActions">
-          <a href="/dashboard/vendor/inventory">📦 Inventory</a>
-          <a href="/dashboard/vendor/billing">🧾 Billing</a>
-          <a href="/dashboard/vendor/fleet">🚚 Fleet</a>
-          <a href="/dashboard/vendor/dispatch">📍 Dispatch</a>
-          <a href="/materials/add?inventory=1">➕ Add Stock</a>
-        </div>
-      </section>
-
-      <section className="contentSection">
-        <div className="sectionHead">
-          <div>
-            <h2>Browse by Category</h2>
-            <p>Explore all popular categories</p>
-          </div>
-
-        </div>
-        <div className={`categoryGrid premiumCategoryGrid ${mobileExpandedSections.categories ? "isMobileExpanded" : ""}`}>
-          {categoryCards.map((item) => (
-            <a href={item.href} className="categoryCard" key={item.title}>
-              <div className="categoryIcon">{item.icon}</div>
-              <h3>{item.title}</h3>
-              <p>{item.text}</p>
-              <strong>{item.count}</strong>
-            </a>
-          ))}
-        </div>
-      </section>
       <section className="contentSection">
         <div className="sectionHead"><div><h2>Featured Listings</h2><p>Fresh opportunities from our marketplace</p></div><a href="/search">View all listings →</a></div>
         {recentDiscovery.length ? (
@@ -549,6 +444,178 @@ export default function HomePage() {
         </div>
       </section>
 
+
+      <section className="contentSection">
+        <div className="sectionHead"><div><h2>Today's Market Prices</h2><p>Live price updates from local markets</p></div><a href="/price-today">View all prices →</a></div>
+        <div className={`priceGrid premiumPriceGrid ${mobileExpandedSections.prices ? "isMobileExpanded" : ""}`}>
+          {marketPrices.map(([name, price, change]) => (
+            <a href="/price-today" className="priceCard" key={name}><span>{name}</span><strong>{price}</strong><small>{change}</small></a>
+          ))}
+        </div>
+      </section>
+
+
+      <section className={`mobileCollapsibleSection ${mobileSectionOpen("stats") ? "isMobileExpanded" : ""}`}>
+        <div className="mobileToggleHead">
+          <div>
+            <h2>Marketplace Activity</h2>
+            <p>RFQ, vendor response and supplier activity</p>
+          </div>
+          <button type="button" className="mobileToggleBtn" onClick={() => toggleMobileSection("stats")}>
+            {mobileSectionOpen("stats") ? "▲ Less" : "▼ Show"}
+          </button>
+        </div>
+
+        <div className="statsRail">
+          {[
+            ["18", "RFQs Posted Today", "🧾"],
+            ["14 min", "Avg. Vendor Response", "⏱️"],
+            ["42", "Active Suppliers Nearby", "🚚"],
+            ["129", "Buyer-Vendor Chats", "🤝"],
+            ["2.8K+", "Listings This Week", "📋"],
+            ["4.9/5", "User Rating", "⭐"],
+          ].map(([value, label, icon]) => (
+            <div className="statCard" key={label}>
+              <span>{icon}</span>
+              <div><strong>{value}</strong><small>{label}</small></div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className={`mobileCollapsibleSection ${mobileSectionOpen("liveai") ? "isMobileExpanded" : ""}`}>
+        <div className="mobileToggleHead">
+          <div>
+            <h2>Live AI Operations</h2>
+            <p>Low stock, deliveries, billing and AI decisions</p>
+          </div>
+          <button type="button" className="mobileToggleBtn" onClick={() => toggleMobileSection("liveai")}>
+            {mobileSectionOpen("liveai") ? "▲ Less" : "▼ Show"}
+          </button>
+        </div>
+
+        <div className="aiLiveOpsStrip">
+          <div className="aiLiveOpsHead">
+            <div>
+              <span>🤖 Live AI Operations</span>
+              <h2>3Bigha is working in the background for buyers, vendors and suppliers.</h2>
+            </div>
+            <a href="/dashboard/vendor/inventory">Open Vendor OS →</a>
+          </div>
+
+          <div className="aiLiveOpsGrid">
+            {[
+              ["📦", "8", "Low stock alerts", "Cement, TMT and electrical items need attention"],
+              ["🚚", "32", "Deliveries tracked", "Fleet and dispatch workflows are ready"],
+              ["🧾", "54", "Bills processed", "Online + offline billing with stock deduction"],
+              ["📈", "12%", "Demand movement", "Sand and brick demand rising in local markets"],
+              ["🧠", "418", "AI decisions", "Procurement, pricing and vendor routing signals"],
+            ].map(([icon, value, label, text]) => (
+              <div className="aiLiveOpsCard" key={label}>
+                <span>{icon}</span>
+                <strong>{value}</strong>
+                <b>{label}</b>
+                <small>{text}</small>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={`mobileCollapsibleSection ${mobileSectionOpen("opportunities") ? "isMobileExpanded" : ""}`}>
+        <div className="mobileToggleHead">
+          <div>
+            <h2>Vendor Growth Opportunities</h2>
+            <p>Places where buyers need more vendors</p>
+          </div>
+          <button type="button" className="mobileToggleBtn" onClick={() => toggleMobileSection("opportunities")}>
+            {mobileSectionOpen("opportunities") ? "▲ Less" : "▼ Show"}
+          </button>
+        </div>
+
+        <div className="vendorOpportunityHomeStrip">
+          <div className="vendorOpportunityHomeHead">
+            <div>
+              <span>🚀 Vendor Growth Opportunities</span>
+              <h2>Buyers are looking for more vendors in active demand areas.</h2>
+              <p>Join 3Bigha where suppliers, contractors, service providers and equipment owners are needed.</p>
+            </div>
+            <a href="/vendor-opportunities">View All Opportunities →</a>
+          </div>
+
+          <div className="vendorOpportunityHomeGrid">
+            <a href="/vendor-opportunities">
+              <b>🔥 Need Cement Suppliers</b>
+              <small>Khagrabari</small>
+            </a>
+            <a href="/vendor-opportunities">
+              <b>⚡ Need Electricians</b>
+              <small>Cooch Behar Town</small>
+            </a>
+            <a href="/vendor-opportunities">
+              <b>🚜 Need JCB Rental Providers</b>
+              <small>Baneswar</small>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section className={`mobileCollapsibleSection ${mobileSectionOpen("workdesk") ? "isMobileExpanded" : ""}`}>
+        <div className="mobileToggleHead">
+          <div>
+            <h2>AI Business Workdesk</h2>
+            <p>Inventory, billing, fleet and dispatch actions</p>
+          </div>
+          <button type="button" className="mobileToggleBtn" onClick={() => toggleMobileSection("workdesk")}>
+            {mobileSectionOpen("workdesk") ? "▲ Less" : "▼ Show"}
+          </button>
+        </div>
+
+        <div className="aiBusinessCommand">
+          <div className="aiBusinessCopy">
+            <span>AI Business Work Desk</span>
+            <h2>Inventory, billing, fleet and dispatch — now connected with marketplace intelligence.</h2>
+            <p>
+              Vendors can manage stock, create bills, assign vehicles, track dispatches and use AI signals
+              to understand demand, pricing and operational risks.
+            </p>
+          </div>
+
+          <div className="aiBusinessActions">
+            <a href="/dashboard/vendor/inventory">📦 Inventory</a>
+            <a href="/dashboard/vendor/billing">🧾 Billing</a>
+            <a href="/dashboard/vendor/fleet">🚚 Fleet</a>
+            <a href="/dashboard/vendor/dispatch">📍 Dispatch</a>
+            <a href="/materials/add?inventory=1">➕ Add Stock</a>
+          </div>
+        </div>
+      </section>
+
+      <section className="contentSection">
+        <div className="sectionHead mobileToggleHead">
+          <div>
+            <h2>Browse by Category</h2>
+            <p>Explore all popular categories</p>
+          </div>
+          <button
+            type="button"
+            className="mobileToggleBtn"
+            onClick={() => toggleMobileSection("categories")}
+          >
+            {mobileSectionOpen("categories") ? "▲ Less" : "▼ See More"}
+          </button>
+        </div>
+        <div className={`categoryGrid premiumCategoryGrid ${mobileExpandedSections.categories ? "isMobileExpanded" : ""}`}>
+          {categoryCards.map((item) => (
+            <a href={item.href} className="categoryCard" key={item.title}>
+              <div className="categoryIcon">{item.icon}</div>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+              <strong>{item.count}</strong>
+            </a>
+          ))}
+        </div>
+      </section>
       <section className="contentSection">
         <div className="sectionHead">
           <div>
@@ -608,15 +675,6 @@ export default function HomePage() {
               Post Requirement Now →
             </button>
           </div>
-        </div>
-      </section>
-
-      <section className="contentSection">
-        <div className="sectionHead"><div><h2>Today's Market Prices</h2><p>Live price updates from local markets</p></div><a href="/price-today">View all prices →</a></div>
-        <div className={`priceGrid premiumPriceGrid ${mobileExpandedSections.prices ? "isMobileExpanded" : ""}`}>
-          {marketPrices.map(([name, price, change]) => (
-            <a href="/price-today" className="priceCard" key={name}><span>{name}</span><strong>{price}</strong><small>{change}</small></a>
-          ))}
         </div>
       </section>
 
