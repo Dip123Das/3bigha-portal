@@ -3943,3 +3943,39 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     font-size: 13px !important;
   }
 }
+
+/* =========================================================
+   ABSOLUTE MOBILE HEADER CHILD LOCK
+   Only these 3 children may appear in mobile header row:
+   account strip, logo, hamburger.
+   ========================================================= */
+@media (max-width: 980px) {
+  .topHeaderInner > *:not(.mobileAccountStrip):not(.topBrand):not(.topMobileMenu) {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .topHeaderInner {
+    grid-template-columns: 112px 1fr 42px !important;
+  }
+
+  .mobileAccountStrip {
+    grid-column: 1 !important;
+    max-width: 112px !important;
+  }
+
+  .topBrand.mobileHeaderOnly {
+    grid-column: 2 !important;
+    justify-self: center !important;
+  }
+
+  .topMobileMenu {
+    grid-column: 3 !important;
+  }
+}
