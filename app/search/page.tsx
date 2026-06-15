@@ -811,10 +811,10 @@ function SearchPageInner() {
   const aiAutoAppliedRef = useRef<string>("");
   const [isCompactSearchLayout, setIsCompactSearchLayout] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [visibleResultCount, setVisibleResultCount] = useState(8);
+  const [visibleResultCount, setVisibleResultCount] = useState(12);
 
   useEffect(() => {
-    setVisibleResultCount(8);
+    setVisibleResultCount(12);
   }, [qFromUrl, modFromUrl]);
 
   useEffect(() => {
@@ -2045,51 +2045,51 @@ if (want.includes("rentals")) {
         <EmptyState message={err} />
       ) : hasQuery && rows.length > 0 ? (
         <>
-          <div style={{ marginBottom: 10, fontWeight: 950, color: "#0f172a" }}>
+          <div style={{ marginBottom: 6, fontWeight: 950, color: "#0f172a" }}>
             Matching results: {rows.length}
           </div>
 
-          <div style={{ display: "grid", gap: 8 }}>
+          <div style={{ display: "grid", gap: 5 }}>
             {rows.slice(0, visibleResultCount).map((r) => (
               <Card key={`quick:${r.module}:${r.id}`}>
-                <CardBody style={{ padding: isCompactSearchLayout ? 10 : 12 }}>
-                  <div style={{ display: "grid", gap: 7 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
+                <CardBody style={{ padding: isCompactSearchLayout ? 6 : 8 }}>
+                  <div style={{ display: "grid", gap: 2 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 6, alignItems: "center" }}>
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-                          <span style={{ fontSize: 16 }}>{moduleEmoji(r.module)}</span>
-                          <span style={{ borderRadius: 999, background: "#eef6ff", color: "#0b57d0", padding: "4px 8px", fontSize: 10, fontWeight: 950 }}>
+                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", alignItems: "center" }}>
+                          <span style={{ fontSize: 13 }}>{moduleEmoji(r.module)}</span>
+                          <span style={{ borderRadius: 999, background: "#eef6ff", color: "#0b57d0", padding: "2px 6px", fontSize: 9, fontWeight: 950 }}>
                             {moduleLabel(r.module)}
                           </span>
                           {(r._aiScore || 0) > 0 ? (
-                            <span style={{ borderRadius: 999, background: "#fef3c7", color: "#92400e", padding: "4px 8px", fontSize: 10, fontWeight: 950 }}>
+                            <span style={{ borderRadius: 999, background: "#fef3c7", color: "#92400e", padding: "2px 6px", fontSize: 9, fontWeight: 950 }}>
                               Best match
                             </span>
                           ) : null}
                         </div>
 
-                        <div style={{ marginTop: 4, fontSize: 15, fontWeight: 950, color: "#020617", lineHeight: 1.25 }}>
+                        <div style={{ marginTop: 1, fontSize: 12.8, fontWeight: 950, color: "#020617", lineHeight: 1.12 }}>
                           {r.title}
                         </div>
 
                         {r.subtitle ? (
-                          <div style={{ marginTop: 2, color: "#475569", fontSize: 12, fontWeight: 800, lineHeight: 1.35 }}>
+                          <div style={{ marginTop: 0, color: "#475569", fontSize: 10.5, fontWeight: 800, lineHeight: 1.15 }}>
                             📍 {r.subtitle}
                           </div>
                         ) : null}
 
                         {r.meta ? (
-                          <div style={{ marginTop: 2, color: "#64748b", fontSize: 11, fontWeight: 850, lineHeight: 1.35 }}>
+                          <div style={{ marginTop: 0, color: "#64748b", fontSize: 10, fontWeight: 850, lineHeight: 1.1 }}>
                             {r.meta}
                           </div>
                         ) : null}
                       </div>
 
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                        <Link href={r.href} className="topBtn topBtnGhost" style={{ textDecoration: "none", fontSize: 11, padding: "6px 9px", minHeight: 30 }}>
+                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                        <Link href={r.href} className="topBtn topBtnGhost" style={{ textDecoration: "none", fontSize: 10, padding: "4px 7px", minHeight: 24 }}>
                           View
                         </Link>
-                        <Link href={resultActionHref(r, qFromUrl)} className="topBtn" style={{ textDecoration: "none", fontSize: 11, padding: "6px 9px", minHeight: 30 }}>
+                        <Link href={resultActionHref(r, qFromUrl)} className="topBtn" style={{ textDecoration: "none", fontSize: 10, padding: "4px 7px", minHeight: 24 }}>
                           {r.module === "materials" ? "RFQ" : r.module === "services" ? "Vendors" : r.module === "rentals" ? "Rental" : "Next"}
                         </Link>
                       </div>
@@ -2103,7 +2103,7 @@ if (want.includes("rentals")) {
           {visibleResultCount < rows.length ? (
             <button
               type="button"
-              onClick={() => setVisibleResultCount((v) => Math.min(v + 8, rows.length))}
+              onClick={() => setVisibleResultCount((v) => Math.min(v + 12, rows.length))}
               style={{
                 marginTop: 12,
                 width: "100%",
@@ -2117,7 +2117,7 @@ if (want.includes("rentals")) {
                 cursor: "pointer",
               }}
             >
-              Show more results ({Math.min(visibleResultCount + 8, rows.length)} of {rows.length})
+              Show more results ({Math.min(visibleResultCount + 12, rows.length)} of {rows.length})
             </button>
           ) : null}
 
@@ -2361,7 +2361,7 @@ if (want.includes("rentals")) {
         </>
       ) : null}
 
-      {hasQuery ? (
+      {false && hasQuery ? (
         <>
           <AIExecutionDrawer
             input={{
@@ -3127,7 +3127,7 @@ if (want.includes("rentals")) {
 
       <div style={{ height: 12 }} />
 
-      {hasQuery ? (
+      {false && hasQuery ? (
         <Card>
           <CardBody>
             <div style={{ display: "flex", gap: 10, alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap" }}>
