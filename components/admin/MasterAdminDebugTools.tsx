@@ -48,12 +48,27 @@ export default function MasterAdminDebugTools() {
   }
 
   async function captureCanvas() {
+    const exportWidth = Math.max(
+      document.documentElement.scrollWidth,
+      document.body.scrollWidth,
+      window.innerWidth,
+      1280
+    );
+
+    const exportHeight = Math.max(
+      document.documentElement.scrollHeight,
+      document.body.scrollHeight,
+      window.innerHeight
+    );
+
     return html2canvas(document.body, {
       scale: 2,
       useCORS: true,
       backgroundColor: "#ffffff",
-      windowWidth: document.documentElement.scrollWidth,
-      windowHeight: document.documentElement.scrollHeight,
+      width: exportWidth,
+      height: exportHeight,
+      windowWidth: exportWidth,
+      windowHeight: exportHeight,
       scrollX: 0,
       scrollY: 0,
     });
@@ -79,9 +94,10 @@ export default function MasterAdminDebugTools() {
       const canvas = await captureCanvas();
       const imgData = canvas.toDataURL("image/png");
 
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = 210;
-      const pdfHeight = 297;
+      const isTallCapture = canvas.height > canvas.width * 1.35;
+      const pdf = new jsPDF(isTallCapture ? "p" : "l", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
       const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
       let heightLeft = imgHeight;
