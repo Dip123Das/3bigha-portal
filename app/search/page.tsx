@@ -811,6 +811,11 @@ function SearchPageInner() {
   const aiAutoAppliedRef = useRef<string>("");
   const [isCompactSearchLayout, setIsCompactSearchLayout] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [visibleResultCount, setVisibleResultCount] = useState(8);
+
+  useEffect(() => {
+    setVisibleResultCount(8);
+  }, [qFromUrl, modFromUrl]);
 
   useEffect(() => {
     function updateSearchLayout() {
@@ -2034,7 +2039,156 @@ if (want.includes("rentals")) {
 
       <div style={{ height: 12 }} />
 
-      {hasQuery ? (
+      {loading && rows.length === 0 ? (
+        <EmptyState message="Searching…" />
+      ) : err ? (
+        <EmptyState message={err} />
+      ) : hasQuery && rows.length > 0 ? (
+        <>
+          <div style={{ marginBottom: 10, fontWeight: 950, color: "#0f172a" }}>
+            Matching results: {rows.length}
+          </div>
+
+          <div style={{ display: "grid", gap: 8 }}>
+            {rows.slice(0, visibleResultCount).map((r) => (
+              <Card key={`quick:${r.module}:${r.id}`}>
+                <CardBody style={{ padding: isCompactSearchLayout ? 10 : 12 }}>
+                  <div style={{ display: "grid", gap: 7 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                          <span style={{ fontSize: 16 }}>{moduleEmoji(r.module)}</span>
+                          <span style={{ borderRadius: 999, background: "#eef6ff", color: "#0b57d0", padding: "4px 8px", fontSize: 10, fontWeight: 950 }}>
+                            {moduleLabel(r.module)}
+                          </span>
+                          {(r._aiScore || 0) > 0 ? (
+                            <span style={{ borderRadius: 999, background: "#fef3c7", color: "#92400e", padding: "4px 8px", fontSize: 10, fontWeight: 950 }}>
+                              Best match
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <div style={{ marginTop: 4, fontSize: 15, fontWeight: 950, color: "#020617", lineHeight: 1.25 }}>
+                          {r.title}
+                        </div>
+
+                        {r.subtitle ? (
+                          <div style={{ marginTop: 2, color: "#475569", fontSize: 12, fontWeight: 800, lineHeight: 1.35 }}>
+                            📍 {r.subtitle}
+                          </div>
+                        ) : null}
+
+                        {r.meta ? (
+                          <div style={{ marginTop: 2, color: "#64748b", fontSize: 11, fontWeight: 850, lineHeight: 1.35 }}>
+                            {r.meta}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                        <Link href={r.href} className="topBtn topBtnGhost" style={{ textDecoration: "none", fontSize: 11, padding: "6px 9px", minHeight: 30 }}>
+                          View
+                        </Link>
+                        <Link href={resultActionHref(r, qFromUrl)} className="topBtn" style={{ textDecoration: "none", fontSize: 11, padding: "6px 9px", minHeight: 30 }}>
+                          {r.module === "materials" ? "RFQ" : r.module === "services" ? "Vendors" : r.module === "rentals" ? "Rental" : "Next"}
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            ))}
+          </div>
+
+          {visibleResultCount < rows.length ? (
+            <button
+              type="button"
+              onClick={() => setVisibleResultCount((v) => Math.min(v + 8, rows.length))}
+              style={{
+                marginTop: 12,
+                width: "100%",
+                border: "1px solid #dbeafe",
+                background: "#eff6ff",
+                color: "#1d4ed8",
+                borderRadius: 14,
+                padding: "11px 14px",
+                fontSize: 13,
+                fontWeight: 950,
+                cursor: "pointer",
+              }}
+            >
+              Show more results ({Math.min(visibleResultCount + 8, rows.length)} of {rows.length})
+            </button>
+          ) : null}
+
+          <div style={{ height: 12 }} />
+
+          <CompactSearchPanel
+            title="Related Options"
+            subtitle="RFQ, vendors, price, construction cost, EMI, investment and AI insights"
+          >
+            <div style={{ display: "grid", gap: 8 }}>
+              <CompactSearchPanel title="⚡ RFQ" subtitle="Create requirement from this search">
+                <Link href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`} className="topBtn" style={{ textDecoration: "none" }}>
+                  Create RFQ
+                </Link>
+              </CompactSearchPanel>
+
+              <CompactSearchPanel title="🎯 Vendors" subtitle="Find vendors for this requirement">
+                <Link href={`/vendor/discovery?q=${encodeURIComponent(qFromUrl)}${modFromUrl !== "all" ? `&module=${encodeURIComponent(modFromUrl)}` : ""}`} className="topBtn" style={{ textDecoration: "none" }}>
+                  Find Vendors
+                </Link>
+              </CompactSearchPanel>
+
+              <CompactSearchPanel title="📊 Price" subtitle="Check current market price">
+                <Link href={`/price-today?q=${encodeURIComponent(qFromUrl)}`} className="topBtn" style={{ textDecoration: "none" }}>
+                  Check Price
+                </Link>
+              </CompactSearchPanel>
+
+              {(modFromUrl === "property" || modFromUrl === "all") ? (
+                <>
+                  <CompactSearchPanel title="🏗️ Construction Cost" subtitle="Estimate house/building cost">
+                    <Link href={`/construction-cost?q=${encodeURIComponent(qFromUrl)}`} className="topBtn" style={{ textDecoration: "none" }}>
+                      Open Construction Cost
+                    </Link>
+                  </CompactSearchPanel>
+
+                  <CompactSearchPanel title="🏦 EMI" subtitle="Calculate loan EMI">
+                    <Link href={`/emi-calculator?q=${encodeURIComponent(qFromUrl)}`} className="topBtn" style={{ textDecoration: "none" }}>
+                      Open EMI Calculator
+                    </Link>
+                  </CompactSearchPanel>
+
+                  <CompactSearchPanel title="📈 Investment" subtitle="Explore investment opportunity context">
+                    <Link href={`/investment/opportunities?q=${encodeURIComponent(qFromUrl)}`} className="topBtn" style={{ textDecoration: "none" }}>
+                      Explore Investment
+                    </Link>
+                  </CompactSearchPanel>
+                </>
+              ) : null}
+
+              <CompactSearchPanel title="🧠 AI Insights" subtitle="Open detailed marketplace intelligence only if needed">
+                <div style={{ display: "grid", gap: 8 }}>
+                  <div style={{ fontWeight: 900 }}>Results: {rows.length}</div>
+                  <div style={{ color: "#64748b", fontWeight: 750 }}>
+                    Use RFQ, vendor discovery and price tools when you want to continue from this search.
+                  </div>
+                </div>
+              </CompactSearchPanel>
+            </div>
+          </CompactSearchPanel>
+
+          <div style={{ height: 12 }} />
+        </>
+      ) : hasQuery && !loading && rows.length === 0 ? (
+        <>
+          <EmptyState message="No results found. Try a broader keyword or choose All category." />
+          <div style={{ height: 12 }} />
+        </>
+      ) : null}
+
+      {false && hasQuery ? (
         <>
           <UniversalWorkflowHeader
             eyebrow="Search Workflow"
@@ -2338,14 +2492,14 @@ if (want.includes("rentals")) {
         </>
       ) : null}
 
-      {hasQuery && !loading && rows.length === 0 ? (
+      {false && hasQuery && !loading && rows.length === 0 ? (
         <>
           <EmptyState message="No results found. Try a broader keyword or choose All category." />
           <div style={{ height: 12 }} />
         </>
       ) : null}
 
-      {hasQuery && conversationalSuggestions.length > 0 ? (
+      {false && hasQuery && conversationalSuggestions.length > 0 ? (
         <>
           <CompactSearchPanel
             title="✨ Suggested next steps for this workflow"
@@ -2423,7 +2577,7 @@ if (want.includes("rentals")) {
         </>
       ) : null}
 
-      {hasQuery && currentJourneyActions.length > 0 ? (
+      {false && hasQuery && currentJourneyActions.length > 0 ? (
         <>
           <ProcurementJourneyBar actions={currentJourneyActions} />
 
@@ -2431,7 +2585,7 @@ if (want.includes("rentals")) {
         </>
       ) : null}
 
-      {hasQuery && rows.length > 0 ? (
+      {false && hasQuery && rows.length > 0 ? (
         <>
           <Card>
             <CardBody>
@@ -2551,7 +2705,7 @@ if (want.includes("rentals")) {
         </>
       ) : null}
 
-      {hasQuery && lastAiIntent ? (
+      {false && hasQuery && lastAiIntent ? (
         <>
           <Card>
             <CardBody>
@@ -2572,19 +2726,19 @@ if (want.includes("rentals")) {
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div>
                     <div style={{ fontSize: 18, fontWeight: 950 }}>
-                      {moduleEmoji((lastAiIntent.module === "all" ? "property" : lastAiIntent.module) as SearchModule)}{" "}
-                      {lastAiIntent.module === "all" ? "All Marketplace" : moduleLabel(lastAiIntent.module as SearchModule)}
+                      {moduleEmoji((lastAiIntent?.module === "all" ? "property" : lastAiIntent?.module) as SearchModule)}{" "}
+                      {lastAiIntent?.module === "all" ? "All Marketplace" : moduleLabel(lastAiIntent?.module as SearchModule)}
                     </div>
                     <div style={{ marginTop: 6, color: "rgba(255,255,255,0.78)", fontWeight: 750 }}>
-                      {lastAiIntent.explanation || "3Bigha selected the best search workflow for this query."}
+                      {lastAiIntent?.explanation || "3Bigha selected the best search workflow for this query."}
                     </div>
                   </div>
 
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                     <span style={{ borderRadius: 12, background: "rgba(255,255,255,0.12)", padding: "8px 10px", fontWeight: 950 }}>
-                      {Math.round(Number(lastAiIntent.confidence || 0.75) * 100)}% confidence
+                      {Math.round(Number(lastAiIntent?.confidence || 0.75) * 100)}% confidence
                     </span>
-                    {lastAiIntent.near ? (
+                    {lastAiIntent?.near ? (
                       <span style={{ borderRadius: 12, background: "rgba(34,197,94,0.20)", padding: "8px 10px", fontWeight: 950 }}>
                         📍 Near me
                       </span>
@@ -2611,7 +2765,7 @@ if (want.includes("rentals")) {
         </>
       ) : null}
 
-      {hasQuery && rows.length > 0 && aiRecommendations.length > 0 ? (
+      {false && hasQuery && rows.length > 0 && aiRecommendations.length > 0 ? (
         <>
           <CompactSearchPanel
             title="✨ Marketplace Recommendations"
@@ -2694,7 +2848,7 @@ if (want.includes("rentals")) {
         </>
       ) : null}
 
-      {hasQuery ? (
+      {false && hasQuery ? (
         <Card>
           <CardBody>
             <div style={{ display: "grid", gap: 14 }}>
@@ -3004,7 +3158,7 @@ if (want.includes("rentals")) {
         </Card>
       ) : null}
 
-            {hasQuery ? (
+            {false && hasQuery ? (
         <div
           style={{
             position: "sticky",
@@ -3100,7 +3254,7 @@ if (want.includes("rentals")) {
         <EmptyState message="Searching…" />
       ) : err ? (
         <EmptyState message={err} />
-      ) : !hasQuery ? null : rows.length === 0 ? null : (
+      ) : true ? null : !hasQuery ? null : rows.length === 0 ? null : (
         <>
           <div style={{ marginBottom: 10, fontWeight: 900, opacity: 0.8 }}>Matching results: {rows.length}</div>
 
