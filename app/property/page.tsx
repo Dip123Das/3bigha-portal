@@ -711,6 +711,7 @@ export default function PropertyPublicListPage() {
 
   return (
     <Container>
+
       <JsonLd
         data={breadcrumbSchema([
           { name: "Home", url: "https://www.3bigha.com" },
@@ -768,9 +769,31 @@ export default function PropertyPublicListPage() {
         </div>
       </div>
 
-      <PublicVendorOpportunityBanner module="property" />
+      <div className="propertyMobileOnly propertyMobileFirst">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search property by location, type or keyword..."
+          className="propertyMobileSearchInput"
+        />
+
+        <div className="propertyMobileFilterChips">
+          <button type="button" onClick={() => setTypeKey("all")} style={chipStyle(typeKey === "all")}>
+            All
+          </button>
+          <button type="button" onClick={() => setTypeKey("land")} style={chipStyle(typeKey === "land")}>
+            Land
+          </button>
+          <button type="button" onClick={() => setTypeKey("house")} style={chipStyle(typeKey === "house")}>
+            House
+          </button>
+        </div>
+      </div>
+
+      <div className="propertyMobileDeferred"><PublicVendorOpportunityBanner module="property" /></div>
 
       <div
+        className="propertyMobileDeferred"
         style={{
           marginTop: 14,
           display: "grid",
@@ -822,6 +845,7 @@ export default function PropertyPublicListPage() {
       </div>
 
       <div
+        className="propertyMobileDeferred"
         style={{
           marginTop: 12,
           display: "flex",
@@ -860,7 +884,7 @@ export default function PropertyPublicListPage() {
         ))}
       </div>
 
-      <div style={{ marginTop: 14 }}>
+      <div className="propertyDesktopOnly" style={{ marginTop: 14 }}>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -1109,6 +1133,26 @@ export default function PropertyPublicListPage() {
                 );
               })}
             </Grid>
+
+            <div className="propertyMobileOnly propertyMobileAfterResults">
+              <details className="propertyMobilePanel">
+                <summary>⚡ Property Actions</summary>
+                <div className="propertyMobilePanelBody">
+                  {PROPERTY_WORKFLOWS.map(([label, href]) => (
+                    <Link key={href} href={href} className="propertyMobilePanelLink">
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+              </details>
+
+              <details className="propertyMobilePanel">
+                <summary>🚀 Vendor Opportunities</summary>
+                <div className="propertyMobilePanelBody">
+                  <PublicVendorOpportunityBanner module="property" />
+                </div>
+              </details>
+            </div>
 
             {/* Infinite scroll sentinel */}
             <div ref={sentinelRef} style={{ height: 10 }} />

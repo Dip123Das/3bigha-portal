@@ -3756,3 +3756,107 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     display: none;
   }
 }
+
+
+/* Property marketplace mobile compression */
+.propertyMobileOnly {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .propertyMobileDeferred {
+    display: none !important;
+  }
+
+  .propertyMobileOnly {
+    display: block !important;
+  }
+
+  .propertyMobileAfterResults {
+    margin-top: 12px;
+    display: grid !important;
+    gap: 8px;
+  }
+
+  .propertyMobilePanel {
+    border: 1px solid rgba(0,0,0,0.10);
+    border-radius: 14px;
+    background: #ffffff;
+    padding: 10px 12px;
+  }
+
+  .propertyMobilePanel summary {
+    cursor: pointer;
+    font-weight: 900;
+    font-size: 13px;
+  }
+
+  .propertyMobilePanelBody {
+    margin-top: 10px;
+    display: grid;
+    gap: 8px;
+  }
+
+  .propertyMobilePanelLink {
+    display: block;
+    border: 1px solid rgba(0,0,0,0.10);
+    border-radius: 12px;
+    padding: 8px 10px;
+    text-decoration: none;
+    color: inherit;
+    font-size: 12px;
+    font-weight: 850;
+    background: rgba(0,0,0,0.02);
+  }
+}
+
+
+/* Property mobile hierarchy: show search/results before promotional sections */
+@media (max-width: 720px) {
+  .propertyMobileStack {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .propertyMobilePriority {
+    order: -1;
+  }
+
+  .propertyMobilePriority input {
+    height: 38px !important;
+    font-size: 13px !important;
+  }
+}
+
+
+/* Property mobile first ordering */
+.propertyDesktopOnly {
+  display: block;
+}
+
+@media (max-width: 720px) {
+  .propertyDesktopOnly {
+    display: none !important;
+  }
+
+  .propertyMobileFirst {
+    margin-top: 10px;
+  }
+
+  .propertyMobileSearchInput {
+    width: 100%;
+    height: 38px;
+    border-radius: 12px;
+    padding: 0 12px;
+    border: 1px solid rgba(0,0,0,0.12);
+    outline: none;
+    font-size: 13px;
+  }
+
+  .propertyMobileFilterChips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+}
