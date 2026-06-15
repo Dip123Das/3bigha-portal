@@ -4047,3 +4047,39 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     order: 14 !important;
   }
 }
+
+/* =========================================================
+   ABSOLUTE DESKTOP HEADER LOCK
+   Desktop must never show mobile header/account/logo/menu.
+   ========================================================= */
+@media (min-width: 981px) {
+  .mobileHeaderOnly,
+  .mobileAccountStrip,
+  .topBrand.mobileHeaderOnly,
+  .topMobileMenu,
+  .mobile-app-search-bar {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .desktopHeaderOnly,
+  .topActions.desktopHeaderOnly,
+  .topSearchQuick.desktopHeaderOnly,
+  .topLanguageSelector.desktopHeaderOnly,
+  .desktopAccountBtn.desktopHeaderOnly {
+    display: flex !important;
+    visibility: visible !important;
+    width: auto !important;
+    min-width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    pointer-events: auto !important;
+  }
+}
