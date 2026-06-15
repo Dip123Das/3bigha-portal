@@ -349,6 +349,9 @@ export default function PropertyPublicListPage() {
 
   const [q, setQ] = useState("");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
+  const [isMobileProperty, setIsMobileProperty] = useState(false);
+  const [visibleMobilePropertyCount, setVisibleMobilePropertyCount] = useState(6);
+  const [mobileAdvancedFiltersOpen, setMobileAdvancedFiltersOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -900,7 +903,7 @@ export default function PropertyPublicListPage() {
         />
       </div>
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+      <div className="propertyDesktopOnly" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
         <button type="button" onClick={() => setTypeKey("all")} style={chipStyle(typeKey === "all")}>
           All
         </button>
@@ -912,7 +915,7 @@ export default function PropertyPublicListPage() {
         </button>
       </div>
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+      <div className="propertyDesktopOnly" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
         <button type="button" onClick={() => setSubKey("all")} style={chipStyle(subKey === "all")}>
           All
         </button>
@@ -927,6 +930,32 @@ export default function PropertyPublicListPage() {
         })}
       </div>
 
+      <div className="propertyMobileOnly propertyMobileAdvancedFilters">
+        <button
+          type="button"
+          onClick={() => setMobileAdvancedFiltersOpen((v) => !v)}
+          className="propertyMobileAdvancedButton"
+        >
+          Advanced Filters {mobileAdvancedFiltersOpen ? "▲" : "▼"}
+        </button>
+
+        {mobileAdvancedFiltersOpen ? (
+          <div className="propertyMobileAdvancedBody">
+            <button type="button" onClick={() => setSubKey("all")} style={chipStyle(subKey === "all")}>
+              All
+            </button>
+            {subtypeList(typeKey).map((s) => {
+              const key = `sub:${s}` as SubKey;
+              return (
+                <button key={s} type="button" onClick={() => setSubKey(key)} style={chipStyle(subKey === key)}>
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
+      </div>
+
       <div style={{ marginTop: 14 }}>
         {err ? (
           <MessageBox title="Could not load" description={err} />
@@ -939,7 +968,7 @@ export default function PropertyPublicListPage() {
         ) : (
           <>
             <Grid>
-              {filtered.map((p: ListingRow) => {
+              {(isMobileProperty ? filtered.slice(0, visibleMobilePropertyCount) : filtered).map((p: ListingRow) => {
                 const typeName = p.type_id ? typeMap[p.type_id]?.name : "";
                 const subtypeName = p.subtype_id ? subtypeMap[p.subtype_id]?.name : "";
 
@@ -963,15 +992,15 @@ export default function PropertyPublicListPage() {
                 return (
                   <Card key={p.id}>
                     <CardBody>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 10 }}>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}>
                         <Badge>Published</Badge>
                         {typeName ? <Badge>{typeName}</Badge> : null}
-                        {subtypeName ? <Badge>{subtypeName}</Badge> : null}
-                        <Badge>Updated: {fmt(p.updated_at)}</Badge>
-                        <Badge>{financeBadgeLabel(p.expected_price ?? p.price ?? null)}</Badge>
-                        <Badge>AI Invest {investmentIntel.investmentScore}/99</Badge>
-                        <Badge>{investmentIntel.hotDealLabel}</Badge>
-                        <Badge>{investmentIntel.recommendationLabel}</Badge>
+                        <span className="propertyMobileHiddenInline">{subtypeName ? <Badge>{subtypeName}</Badge> : null}</span>
+                        <span className="propertyMobileHiddenInline"><Badge>Updated: {fmt(p.updated_at)}</Badge></span>
+                        <span className="propertyMobileHiddenInline"><Badge>{financeBadgeLabel(p.expected_price ?? p.price ?? null)}</Badge></span>
+                        <Badge>AI {investmentIntel.investmentScore}/99</Badge>
+                        <span className="propertyMobileHiddenInline"><Badge>{investmentIntel.hotDealLabel}</Badge></span>
+                        <span className="propertyMobileHiddenInline"><Badge>{investmentIntel.recommendationLabel}</Badge></span>
                       </div>
 
                       <div style={{ fontWeight: 900, marginBottom: 6 }}>{title}</div>
@@ -1133,6 +1162,31 @@ export default function PropertyPublicListPage() {
                 );
               })}
             </Grid>
+
+            {isMobileProperty && visibleMobilePropertyCount < filtered.length ? (
+              <button
+                type="button"
+                onClick={() =>
+                  setVisibleMobilePropertyCount((v) =>
+                    Math.min(v + 6, filtered.length)
+                  )
+                }
+                style={{
+                  width: "100%",
+                  marginTop: 12,
+                  border: "1px solid #dbeafe",
+                  background: "#eff6ff",
+                  color: "#1d4ed8",
+                  borderRadius: 14,
+                  padding: "10px 12px",
+                  fontSize: 13,
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                Show more properties ({Math.min(visibleMobilePropertyCount + 6, filtered.length)} of {filtered.length})
+              </button>
+            ) : null}
 
             <div className="propertyMobileOnly propertyMobileAfterResults">
               <details className="propertyMobilePanel">
