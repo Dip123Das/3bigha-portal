@@ -722,7 +722,7 @@ export default function PropertyPublicListPage() {
         ])}
       />
 
-      <div style={{ display: "flex", gap: 14, alignItems: "flex-start", justifyContent: "space-between" }}>
+      <div className="propertyPublicHeroRow" style={{ display: "flex", gap: 14, alignItems: "flex-start", justifyContent: "space-between" }}>
         <div style={{ flex: 1 }}>
           <SectionHeader
             title="Property Listings"
@@ -731,7 +731,7 @@ export default function PropertyPublicListPage() {
         </div>
 
         {/* ✅ Header actions: Browse Projects + Post Property */}
-        <div style={{ paddingTop: 8, display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+        <div className="propertyPublicHeroActions" style={{ paddingTop: 8, display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
           <Link
             href="/property/projects"
             style={{

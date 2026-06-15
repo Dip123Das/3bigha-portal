@@ -3923,3 +3923,60 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     max-height: 40px !important;
   }
 }
+
+/* =========================================================
+   MOBILE HEADER LEAK STOPPER + PROPERTY MOBILE HERO FIX
+   Keep this after the mobile header lock.
+   ========================================================= */
+
+@media (max-width: 980px) {
+  .topHeaderInner > .topActions,
+  .topHeaderInner > .topSearchQuick,
+  .topHeaderInner > .topLanguageSelector,
+  .topHeaderInner > .desktopHeaderOnly,
+  .topActions.desktopHeaderOnly,
+  .topSearchQuick.desktopHeaderOnly,
+  .topLanguageSelector.desktopHeaderOnly {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .topHeaderInner {
+    grid-template-columns: minmax(104px, 118px) 1fr 42px !important;
+  }
+
+  .mobileAccountStrip {
+    max-width: 118px !important;
+  }
+
+  .mobileAccountStrip > a.topBtn,
+  .mobileAccountStrip > button.topBtn,
+  .mobileAccountStrip .mobileAccountMenu > summary {
+    max-width: 118px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .propertyPublicHeroRow {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .propertyPublicHeroActions {
+    justify-content: flex-start !important;
+    padding-top: 0 !important;
+  }
+
+  .propertyPublicHeroActions a {
+    height: 36px !important;
+    padding: 0 12px !important;
+    font-size: 13px !important;
+  }
+}
