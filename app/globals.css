@@ -4322,3 +4322,121 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     gap: 7px;
   }
 }
+
+/* FINAL HOMEPAGE MOBILE ORDER + FOOTER ALIGNMENT FIX */
+@media (max-width: 640px) {
+  .homePage {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .homePage .heroShell {
+    order: 1 !important;
+  }
+
+  .homePage .contentSection:has(.premiumListingsGrid) {
+    order: 2 !important;
+  }
+
+  .homePage .contentSection:has(.premiumPriceGrid) {
+    order: 3 !important;
+  }
+
+  .homePage .mobileCollapsibleSection:has(.statsRail) {
+    order: 4 !important;
+  }
+
+  .homePage .mobileCollapsibleSection:has(.aiLiveOpsStrip) {
+    order: 5 !important;
+  }
+
+  .homePage .mobileCollapsibleSection:has(.vendorOpportunityHomeStrip) {
+    order: 6 !important;
+  }
+
+  .homePage .mobileCollapsibleSection:has(.aiBusinessCommand) {
+    order: 7 !important;
+  }
+
+  .homePage .contentSection:has(.premiumCategoryGrid) {
+    order: 8 !important;
+  }
+
+  .homePage .contentSection:has(.premiumDiscoveryGrid) {
+    order: 9 !important;
+  }
+
+  .homePage .utilitySection {
+    order: 10 !important;
+  }
+
+  .homePage .homeBottomGrid {
+    order: 11 !important;
+  }
+
+  .homePage .cleanTrustSection {
+    order: 12 !important;
+  }
+
+  .homePage .cleanStartBanner {
+    order: 13 !important;
+  }
+
+  .homePage .cleanHomeFooter {
+    order: 14 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 18px 22px 26px !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 22px !important;
+    text-align: left !important;
+    align-items: start !important;
+  }
+
+  .homePage .cleanHomeFooter > div,
+  .homePage .cleanHomeFooter > nav {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    display: grid !important;
+    justify-items: start !important;
+    text-align: left !important;
+  }
+
+  .homePage .cleanHomeFooter > div {
+    gap: 8px !important;
+  }
+
+  .homePage .cleanHomeFooter > div strong {
+    font-size: 22px !important;
+    line-height: 1.2 !important;
+  }
+
+  .homePage .cleanHomeFooter > div p {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    font-size: 18px !important;
+    line-height: 1.45 !important;
+    color: #64748b !important;
+  }
+
+  .homePage .cleanHomeFooter nav {
+    gap: 10px !important;
+  }
+
+  .homePage .cleanHomeFooter nav strong {
+    font-size: 20px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .homePage .cleanHomeFooter nav a {
+    display: block !important;
+    width: 100% !important;
+    font-size: 16px !important;
+    line-height: 1.45 !important;
+    text-align: left !important;
+  }
+}
