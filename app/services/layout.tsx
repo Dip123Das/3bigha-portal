@@ -6,7 +6,7 @@ export const metadata = createMetadata({
   description:
     "Find construction services on 3bigha.com including contractors, architects, engineers, electricians, plumbers, labour, turnkey construction and building service providers.",
   path: "/services",
-  image: "/og/services.svg",
+  image: "/og/services.png",
   keywords: [
     "construction services",
     "building contractor",

@@ -6,7 +6,7 @@ export const metadata = createMetadata({
   description:
     "Read 3bigha.com blog articles on real estate, land, construction materials, building services, rentals, investment, market prices and AI-powered marketplace insights.",
   path: "/blog",
-  image: "/og/blog.svg",
+  image: "/og/blog.png",
   keywords: [
     "real estate blog",
     "construction blog",

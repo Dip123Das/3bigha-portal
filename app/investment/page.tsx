@@ -9,7 +9,7 @@ export const metadata = createMetadata({
   description:
     "Explore property, construction and marketplace-backed investment opportunities on 3Bigha.",
   path: "/investment",
-  image: "/og/investment.svg",
+  image: "/og/investment.png",
 });
 
 export const dynamic = "force-dynamic";

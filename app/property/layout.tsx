@@ -7,7 +7,7 @@ export const metadata = createMetadata({
   description:
     "Explore land, houses, commercial property, investment property and real estate listings on 3bigha.com. Search, compare, enquire and connect with verified property sellers, builders and agents.",
   path: "/property",
-  image: "/og/property.svg",
+  image: "/og/property.png",
   keywords: [
     "property marketplace",
     "land for sale",
