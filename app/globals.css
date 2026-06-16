@@ -4460,3 +4460,37 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     min-height: 38px !important;
   }
 }
+
+/* Vendor chat mobile compression - safe CSS only */
+@media (max-width: 640px) {
+  body:has(a[href="/vendor/inbox-v2"]) [style*="Agent Score"],
+  body:has(a[href="/vendor/inbox-v2"]) [style*="heat score"],
+  body:has(a[href="/vendor/inbox-v2"]) [style*="AI Reply Suggestions"] {
+    font-size: 12px !important;
+  }
+
+  body:has(a[href="/vendor/inbox-v2"]) [style*="box-shadow"] {
+    box-shadow: none !important;
+  }
+
+  body:has(a[href="/vendor/inbox-v2"]) [style*="grid-template-columns: repeat(auto-fit, minmax(145px, 1fr))"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* Vendor chat mobile compression - safe CSS only */
+@media (max-width: 640px) {
+  body:has(a[href="/vendor/inbox-v2"]) [style*="Agent Score"],
+  body:has(a[href="/vendor/inbox-v2"]) [style*="heat score"],
+  body:has(a[href="/vendor/inbox-v2"]) [style*="AI Reply Suggestions"] {
+    font-size: 12px !important;
+  }
+
+  body:has(a[href="/vendor/inbox-v2"]) [style*="box-shadow"] {
+    box-shadow: none !important;
+  }
+
+  body:has(a[href="/vendor/inbox-v2"]) [style*="grid-template-columns: repeat(auto-fit, minmax(145px, 1fr))"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}

@@ -840,20 +840,25 @@ export default function BuilderAddProjectPage() {
             <div style={{ height: 14 }} />
 
             {recentProjectMemory.length > 0 ? (
-              <details style={{ marginBottom: 14 }}>
-                <summary style={{ cursor: "pointer", fontWeight: 900, color: "#1d4ed8" }}>
-                  🏗️ Recently Used Project Setups
-                </summary>
-
+              <div
+                style={{
+                  marginBottom: 14,
+                  border: "1px solid #dbeafe",
+                  background: "#f8fbff",
+                  borderRadius: 12,
+                  padding: 10,
+                }}
+              >
                 <div
                   style={{
-                    marginTop: 10,
-                    border: "1px solid #dbeafe",
-                    background: "#f8fbff",
-                    borderRadius: 12,
-                    padding: 10,
+                    fontSize: 13,
+                    fontWeight: 800,
+                    marginBottom: 8,
+                    color: "#1d4ed8",
                   }}
                 >
+                  Recently Used Project Setups
+                </div>
 
                 <div
                   style={{
@@ -891,8 +896,7 @@ export default function BuilderAddProjectPage() {
                 >
                   Quickly reuse your previously used builder project setup.
                 </div>
-                </div>
-              </details>
+              </div>
             ) : null}
 
             <div style={{ fontWeight: 900, marginBottom: 10 }}>Project basics</div>
@@ -955,12 +959,10 @@ export default function BuilderAddProjectPage() {
               </div>
             </div>
 
-            <details style={{ marginTop: 18 }}>
-              <summary style={{ cursor: "pointer", fontWeight: 900 }}>
-                📈 Investment Plan (Optional)
-              </summary>
+            <div style={{ height: 18 }} />
+            <div style={{ fontWeight: 900, marginBottom: 10 }}>Investment plan (optional now, project-level)</div>
 
-              <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
               <div>
                 <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>
                   Select approved investment plan
@@ -1022,16 +1024,12 @@ export default function BuilderAddProjectPage() {
                   );
                 })()
               ) : null}
-              </div>
-            </details>
+            </div>
 
-            <details style={{ marginTop: 18 }}>
-              <summary style={{ cursor: "pointer", fontWeight: 900 }}>
-                🏡 Project Amenities
-              </summary>
+            <div style={{ height: 18 }} />
+            <div style={{ fontWeight: 900, marginBottom: 10 }}>Project amenities (defaults for all listings)</div>
 
-              <div style={{ marginTop: 12 }}>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
               <ActionButton
                 variant="secondary"
                 onClick={() => setSelectedProjectAmenityIds(amenities.map((a) => a.id))}
@@ -1108,8 +1106,6 @@ export default function BuilderAddProjectPage() {
             <div style={{ fontSize: 12, opacity: 0.7, marginTop: 8 }}>
               These will be used as defaults when creating multiple listings under this project.
             </div>
-              </div>
-            </details>
 
             <div style={{ height: 18 }} />
             <div style={{ fontWeight: 900, marginBottom: 10 }}>Project media / gallery</div>
