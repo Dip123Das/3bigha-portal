@@ -819,10 +819,10 @@ export default function VendorWorkspacePage() {
   }, [supabase]);
   return (
     <main className="overflow-x-hidden min-h-screen bg-slate-50">
-      <div className="mx-auto flex w-full max-w-7xl overflow-x-hidden flex-col gap-4 px-3 py-4 md:px-6">
+      <div className="mx-auto flex w-full max-w-7xl overflow-x-hidden flex-col gap-3 px-2 py-3 sm:px-3 md:px-6">
         <ExecutiveFlowMemory pageKey="vendor-workspace" />
 
-        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="rounded-[1.25rem] border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
           <div className="flex flex-col gap-3 md:flex-col sm:flex-row md:items-center md:justify-between">
 
             <div>
@@ -869,7 +869,7 @@ export default function VendorWorkspacePage() {
 
 
 
-        <section className="sticky top-2 z-20 rounded-[1.25rem] border border-slate-200 bg-white/95 p-3 shadow-sm backdrop-blur">
+        <section className="sticky top-2 z-20 order-first rounded-[1rem] border border-slate-200 bg-white/95 p-2.5 shadow-sm backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-wide text-slate-500">
@@ -899,9 +899,9 @@ export default function VendorWorkspacePage() {
           </div>
         </section>
 
-        <section className="rounded-[1.75rem] border border-slate-900 bg-slate-950 p-4 shadow-xl">
+        <details className="rounded-[1.25rem] border border-slate-900 bg-slate-950 p-3 shadow-xl sm:p-4">
 
-          <div className="flex gap-2 sm:items-center sm:justify-between flex-wrap gap-3">
+          <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-3">
 
             <div>
               <h2 className="text-xl font-black text-white">
@@ -916,11 +916,11 @@ export default function VendorWorkspacePage() {
             <div className="rounded-2xl bg-white/10 px-3 py-2 text-xs font-bold uppercase tracking-wide text-white">
               Adaptive Executive OS · Mobile Optimized
             </div>
-          </div>
+          </summary>
 
-          <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-5">
 
-            <div className="rounded-2xl bg-white/10 p-2.5">
+            <div className="rounded-xl bg-white/10 p-2">
               <p className="text-[11px] font-bold uppercase tracking-wide text-slate-300">
                 ERP
               </p>
@@ -930,7 +930,7 @@ export default function VendorWorkspacePage() {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white/10 p-2.5">
+            <div className="rounded-xl bg-white/10 p-2">
               <p className="text-[11px] font-bold uppercase tracking-wide text-slate-300">
                 Momentum
               </p>
@@ -940,7 +940,7 @@ export default function VendorWorkspacePage() {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white/10 p-2.5">
+            <div className="rounded-xl bg-white/10 p-2">
               <p className="text-[11px] font-bold uppercase tracking-wide text-slate-300">
                 Throughput
               </p>
@@ -950,7 +950,7 @@ export default function VendorWorkspacePage() {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white/10 p-2.5">
+            <div className="rounded-xl bg-white/10 p-2">
               <p className="text-[11px] font-bold uppercase tracking-wide text-slate-300">
                 Forecast
               </p>
@@ -960,7 +960,7 @@ export default function VendorWorkspacePage() {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white/10 p-2.5">
+            <div className="rounded-xl bg-white/10 p-2">
               <p className="text-[11px] font-bold uppercase tracking-wide text-slate-300">
                 Health
               </p>
@@ -971,7 +971,7 @@ export default function VendorWorkspacePage() {
             </div>
           </div>
 
-          <div className="mt-5 grid gap-2">
+          <div className="mt-3 grid gap-2">
             {compactExecutiveSignals
               .slice(0, vendorSuppressLowValueSignals ? 2 : Math.min(3, vendorAdaptiveVisibleLimit, vendorAttentionPacing.maxVisibleInterruptions))
               .map((signal) => (
@@ -983,14 +983,14 @@ export default function VendorWorkspacePage() {
               </div>
             ))}
           </div>
-        </section>
+        </details>
 
 
 
 
         <section className="grid gap-3 sm:grid-cols-2 lg:sm:grid-cols-2 lg:grid-cols-3">
 
-          <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+          <div className="rounded-[1.25rem] border border-emerald-200 bg-emerald-50 p-3 sm:p-4 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">
               Total ERP Revenue
             </p>
@@ -1004,7 +1004,7 @@ export default function VendorWorkspacePage() {
             </p>
           </div>
 
-          <div className="rounded-[1.75rem] border border-cyan-200 bg-cyan-50 p-4 shadow-sm">
+          <div className="rounded-[1.25rem] border border-cyan-200 bg-cyan-50 p-3 sm:p-4 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wide text-cyan-700">
               Realized Revenue
             </p>
@@ -1018,7 +1018,7 @@ export default function VendorWorkspacePage() {
             </p>
           </div>
 
-          <div className="rounded-[1.75rem] border border-orange-200 bg-orange-50 p-4 shadow-sm">
+          <div className="rounded-[1.25rem] border border-orange-200 bg-orange-50 p-3 sm:p-4 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wide text-orange-700">
               Unpaid Invoices
             </p>
@@ -1039,7 +1039,7 @@ export default function VendorWorkspacePage() {
             <Link
               key={module.title}
               href={module.href}
-              className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow"
+              className="rounded-[1.25rem] border border-slate-200 bg-white p-3 shadow-sm sm:p-4 transition hover:border-slate-300 hover:shadow"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -1080,7 +1080,7 @@ export default function VendorWorkspacePage() {
 
 
 
-        <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+        <section className="rounded-[1.25rem] border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-bold text-slate-900">
@@ -1099,25 +1099,7 @@ export default function VendorWorkspacePage() {
             </span>
           </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              ["Health", stats.healthScore],
-              ["Throughput", throughputScore],
-              ["Momentum", momentumScore],
-              ["Forecast", stats.forecastPressure],
-            ].map(([label, value]) => (
-              <div key={label} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                  {label}
-                </p>
-                <p className="mt-2 text-lg font-black text-slate-900">
-                  {value}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-4 grid gap-2">
+          <div className="mt-3 grid gap-2">
             {(executiveAlerts.length ? executiveAlerts : ["Operations stable across ERP systems."]).slice(0, 3).map((alert) => (
               <div key={alert} className="rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] font-semibold text-amber-900">
                 {alert}
@@ -1125,12 +1107,30 @@ export default function VendorWorkspacePage() {
             ))}
           </div>
 
-          <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+          <details className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <summary className="cursor-pointer text-sm font-black text-slate-900">
-              Open advanced intelligence layers
+              Open executive intelligence details
             </summary>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                ["Health", stats.healthScore],
+                ["Throughput", throughputScore],
+                ["Momentum", momentumScore],
+                ["Forecast", stats.forecastPressure],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-xl border border-slate-200 bg-white p-3">
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    {label}
+                  </p>
+                  <p className="mt-2 text-lg font-black text-slate-900">
+                    {value}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-3 grid gap-2 md:grid-cols-2">
               {[
                 ["Cognition", collapsedSignals],
                 ["Cluster", clusterSignals],
@@ -1145,7 +1145,7 @@ export default function VendorWorkspacePage() {
                 ["Priority", priorityActions.length ? priorityActions : ["No operational bottlenecks detected."]],
                 ["Autonomous", autonomousRecommendations.length ? autonomousRecommendations : ["Operational efficiency remains stable."]],
               ].map(([title, items]) => (
-                <div key={title as string} className="rounded-2xl border border-slate-200 bg-white p-3">
+                <div key={title as string} className="rounded-xl border border-slate-200 bg-white p-3">
                   <p className="text-xs font-black uppercase tracking-wide text-slate-500">
                     {title as string}
                   </p>
@@ -1165,7 +1165,7 @@ export default function VendorWorkspacePage() {
 
         <section className="grid gap-3 lg:grid-cols-[1.15fr_0.85fr] lg:gap-4">
 
-          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="rounded-[1.25rem] border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
 
             <div className="flex gap-2 sm:items-center sm:justify-between">
               <h2 className="text-xl font-semibold text-slate-900">
@@ -1181,7 +1181,7 @@ export default function VendorWorkspacePage() {
               {(liveEvents.length ? liveEvents : operationalFeed).slice(0, 6).map((event: any) => (
                 <div
                   key={event.id}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-3"
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-3"
                 >
                   <div className="flex items-start justify-between gap-3 md:gap-4">
 
@@ -1210,7 +1210,7 @@ export default function VendorWorkspacePage() {
 
           <div className="flex flex-col gap-3 md:gap-4">
 
-            <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+            <section className="rounded-[1.25rem] border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
 
               <div className="flex gap-2 sm:items-center sm:justify-between">
                 <h2 className="text-xl font-semibold text-slate-900">
@@ -1227,7 +1227,7 @@ export default function VendorWorkspacePage() {
                   <Link
                     key={action.title}
                     href={action.href}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
+                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
                   >
                     {action.title}
                   </Link>
@@ -1235,7 +1235,7 @@ export default function VendorWorkspacePage() {
               </div>
             </section>
 
-            <section className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm">
+            <section className="rounded-[1.25rem] border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
 
               <div className="flex gap-2 sm:items-center sm:justify-between">
                 <h2 className="text-xl font-semibold text-slate-900">
@@ -1256,7 +1256,7 @@ export default function VendorWorkspacePage() {
                 ].map((item) => (
                   <div
                     key={item}
-                    className="rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-slate-700"
+                    className="rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2.5 text-sm text-slate-700"
                   >
                     {item}
                   </div>
