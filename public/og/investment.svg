@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#581c87"/><stop offset=".55" stop-color="#0f172a"/><stop offset="1" stop-color="#14532d"/></linearGradient></defs>
+  <rect width="1200" height="630" fill="url(#g)"/>
+  <text x="70" y="105" fill="white" font-family="Arial" font-size="54" font-weight="900">3Bigha</text>
+  <text x="70" y="145" fill="#d1fae5" font-family="Arial" font-size="26" font-weight="700">Investment Opportunities</text>
+  <text x="70" y="300" fill="white" font-family="Arial" font-size="68" font-weight="900">Property &amp; Construction</text>
+  <text x="70" y="378" fill="white" font-family="Arial" font-size="68" font-weight="900">Investment</text>
+  <text x="70" y="440" fill="#fef3c7" font-family="Arial" font-size="32" font-weight="700">Marketplace-backed opportunities and growth projects.</text>
+  <text x="70" y="560" fill="#d1fae5" font-family="Arial" font-size="26" font-weight="800">Invest • Property • Growth • Deal Room • www.3bigha.com</text>
+  <rect x="870" y="180" width="240" height="240" rx="44" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.3)" stroke-width="4"/>
+  <text x="910" y="320" fill="white" font-family="Arial" font-size="42" font-weight="900">INVEST</text>
+</svg>

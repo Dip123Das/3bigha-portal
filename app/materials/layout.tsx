@@ -6,7 +6,7 @@ export const metadata = createMetadata({
   description:
     "Buy and compare building materials on 3bigha.com including cement, steel, sand, bricks, plumbing, electrical, roofing, flooring and construction supplies from verified vendors.",
   path: "/materials",
-  image: "/og-image-new.jpg",
+  image: "/og/materials.svg",
   keywords: [
     "building materials",
     "cement supplier",

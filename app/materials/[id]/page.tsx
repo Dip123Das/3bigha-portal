@@ -132,7 +132,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       desc.slice(0, 155) ||
       `Explore ${title} on 3bigha.com. Compare building material vendors, price, availability and quality.`,
     path: `/materials/${encodeURIComponent(id)}`,
-    image: "/og-image-new.jpg",
+    image: "/og/materials.svg",
     keywords: [
       title,
       "building material",

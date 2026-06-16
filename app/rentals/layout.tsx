@@ -6,7 +6,7 @@ export const metadata = createMetadata({
   description:
     "Explore rentals on 3bigha.com including construction equipment, machinery, tools, vehicles, property rentals and local rental services for real estate and construction needs.",
   path: "/rentals",
-  image: "/og-image-new.jpg",
+  image: "/og/rentals.svg",
   keywords: [
     "construction equipment rental",
     "machinery rental",
