@@ -4440,3 +4440,23 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     text-align: left !important;
   }
 }
+
+/* Vendor enquiries mobile compression */
+@media (max-width: 640px) {
+  body:has(a[href="/dashboard/vendor/enquiries"]) main,
+  body:has(a[href="/dashboard/vendor/enquiries"]) .container {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  body:has(a[href="/dashboard/vendor/enquiries"]) .card,
+  body:has(a[href="/dashboard/vendor/enquiries"]) [class*="Card"] {
+    border-radius: 14px !important;
+  }
+
+  body:has(a[href="/dashboard/vendor/enquiries"]) input,
+  body:has(a[href="/dashboard/vendor/enquiries"]) select,
+  body:has(a[href="/dashboard/vendor/enquiries"]) button {
+    min-height: 38px !important;
+  }
+}

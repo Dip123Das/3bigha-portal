@@ -2123,11 +2123,12 @@ if (want.includes("rentals")) {
 
           <div style={{ height: 12 }} />
 
-          <CompactSearchPanel
-            title="Related Options"
-            subtitle="RFQ, vendors, price, construction cost, EMI, investment and AI insights"
-          >
-            <div style={{ display: "grid", gap: 8 }}>
+          <details style={{ border: "1px solid #e2e8f0", borderRadius: 14, background: "#ffffff", padding: 10 }}>
+            <summary style={{ cursor: "pointer", fontWeight: 950, color: "#0f172a" }}>
+              Continue Your Search
+            </summary>
+
+            <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
               <CompactSearchPanel title="⚡ RFQ" subtitle="Create requirement from this search">
                 <Link href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`} className="topBtn" style={{ textDecoration: "none" }}>
                   Create RFQ
@@ -2177,7 +2178,7 @@ if (want.includes("rentals")) {
                 </div>
               </CompactSearchPanel>
             </div>
-          </CompactSearchPanel>
+          </details>
 
           <div style={{ height: 12 }} />
         </>

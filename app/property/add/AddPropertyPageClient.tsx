@@ -3701,7 +3701,6 @@ async function loadBuilderProjects() {
     const res = await supabase
       .from("builder_projects")
       .select("id,name,slug,status")
-      .eq("owner_id", userId)
       .order("created_at", { ascending: false });
 
     if (res.error) throw res.error;

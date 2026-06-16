@@ -1927,14 +1927,20 @@ return;
           />
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-            gap: 8,
-          }}
-        >
-          {RFQ_PROGRESS_STEPS.map((step, idx) => {
+        <details style={{ marginTop: 10 }}>
+          <summary style={{ cursor: "pointer", fontWeight: 900, color: "#1d4ed8" }}>
+            View Progress Stages
+          </summary>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+              gap: 8,
+              marginTop: 10,
+            }}
+          >
+            {RFQ_PROGRESS_STEPS.map((step, idx) => {
             const active = idx + 1 <= smartProgress.current;
 
             return (
@@ -1960,8 +1966,9 @@ return;
                 {step}
               </div>
             );
-          })}
-        </div>
+            })}
+          </div>
+        </details>
       </div>
 
       {aiAutoFillApplied ? (

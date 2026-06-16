@@ -112,7 +112,7 @@ export default function VendorRFQInboxPage() {
 
       <VendorWorkMenu />
 
-      <div style={{ marginBottom: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
+      <div style={{ marginBottom: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
         <Link href="/vendor/inbox-v2" className="topBtn topBtnGhost" style={{ textDecoration: "none" }}>
           ← Back to Vendor Inbox
         </Link>
@@ -154,7 +154,7 @@ export default function VendorRFQInboxPage() {
       ) : rows.length === 0 ? (
         <EmptyState message="No open RFQs right now." />
       ) : (
-        <div style={{ display: "grid", gap: 12 }}>
+        <div style={{ display: "grid", gap: 10 }}>
           {rows.map((r) => {
             const loc = [r.locality_name, r.city, r.district, r.pincode].map(safeText).filter(Boolean).join(", ");
             const who = safeText(r.buyer_name) || "Customer";
@@ -168,13 +168,13 @@ export default function VendorRFQInboxPage() {
             return (
               <Card key={r.rfq_id}>
                 <CardBody>
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "flex-start" }}>
                     <div>
-                      <div style={{ fontWeight: 950, fontSize: 16 }}>
+                      <div style={{ fontWeight: 950, fontSize: 15, lineHeight: 1.35 }}>
                         {who} {loc ? <span style={{ opacity: 0.7 }}>• {loc}</span> : null}
                       </div>
 
-                      <div style={{ opacity: 0.75, fontSize: 13, marginTop: 8 }}>
+                      <div style={{ opacity: 0.78, fontSize: 12.5, marginTop: 6, lineHeight: 1.6 }}>
                         RFQ:{" "}
                         <strong style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
                           {rfqLabel}
@@ -192,16 +192,21 @@ export default function VendorRFQInboxPage() {
                         ) : null}
                       </div>
 
-                      <div style={{ opacity: 0.7, fontSize: 12, marginTop: 8 }}>
-                        RFQ ID:{" "}
-                        <span style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
-                          {r.rfq_id}
-                        </span>
-                      </div>
+                      <details style={{ marginTop: 6 }}>
+                        <summary style={{ cursor: "pointer", opacity: 0.7, fontSize: 12, fontWeight: 800 }}>
+                          RFQ details
+                        </summary>
+                        <div style={{ opacity: 0.7, fontSize: 12, marginTop: 6, wordBreak: "break-all" }}>
+                          RFQ ID:{" "}
+                          <span style={{ fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" }}>
+                            {r.rfq_id}
+                          </span>
+                        </div>
+                      </details>
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ fontWeight: 900, opacity: 0.75 }}>{r.rfq_status ?? "open"}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <div style={{ fontWeight: 900, opacity: 0.75, fontSize: 12, textTransform: "uppercase" }}>{r.rfq_status ?? "open"}</div>
 
                       <Link
                         href={`/vendor/inbox-v2/${r.rfq_id}`}

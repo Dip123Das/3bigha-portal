@@ -1060,7 +1060,11 @@ export default function BuyerRfqsPage() {
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 10, marginTop: 14 }}>
+          <details style={{ marginTop: 12 }}>
+            <summary style={{ cursor: "pointer", fontWeight: 900, color: "#1e3a8a" }}>
+              Command Center Metrics
+            </summary>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 10, marginTop: 10 }}>
             {[
               ["Total RFQs", commandCenterStats.total, "📄"],
               ["Urgent", commandCenterStats.urgent, "🚨"],
@@ -1085,7 +1089,8 @@ export default function BuyerRfqsPage() {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          </details>
 
           <div
             style={{
@@ -1102,9 +1107,13 @@ export default function BuyerRfqsPage() {
             Next best action: {commandCenterFocus}
           </div>
 
-                    <div
+          <details style={{ marginTop: 12 }}>
+            <summary style={{ cursor: "pointer", fontWeight: 900, color: "#6b21a8" }}>
+              RFQ Behavior Memory
+            </summary>
+            <div
             style={{
-              marginTop: 12,
+              marginTop: 10,
               border: "1px solid #ddd6fe",
               background: "#faf5ff",
               borderRadius: 12,
@@ -1156,7 +1165,8 @@ export default function BuyerRfqsPage() {
                 Hot Location: {normalizedRfqBehaviorMemory.hotLocations[0] || "Learning"}
               </Pill>
             </div>
-          </div>
+            </div>
+          </details>
 
           <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
             {[
