@@ -73,8 +73,7 @@ function getRoleDisplayLabel(
       if (c === "investor") return "Investor";
     }
 
-    if (caps.includes("investor") && caps.length === 1) return "Investor";
-    return "Multi-Service Vendor";
+    return caps.includes("investor") ? "Multi-Service Vendor / Investor" : "Multi-Service Vendor";
   }
 
   return "User";
@@ -169,7 +168,7 @@ export default function RegisterRolePageClient() {
     if (!trimmedCity) return "Please enter your city.";
     if (!trimmedState) return "Please enter your state.";
     if (!useReason) return "Please tell us why you want to use 3bigha.";
-    if (role === "vendor" && caps.length === 0)
+    if (role === "vendor" && caps.filter((x) => x !== "investor").length === 0)
       return "Please choose at least one vendor capability.";
 
     return "";
@@ -480,28 +479,52 @@ export default function RegisterRolePageClient() {
               {[
                 {
                   value: "buyer",
-                  label: "Buyer",
-                  desc: "I want to browse, enquire, submit requirements, and compare offers.",
+                  label: "🏠 Buy Property / Materials",
+                  desc: "Browse property, materials, services and rentals. Post RFQs and compare offers.",
+                  caps: [],
+                  reason: "buy_property_or_materials",
                 },
                 {
                   value: "vendor",
-                  label: "Vendor",
-                  desc: "I want to sell materials, offer services, provide rentals, list property, or invest.",
+                  label: "🛒 Sell Materials",
+                  desc: "List materials, receive buyer requirements and send quotations.",
+                  caps: ["materials"],
+                  reason: "sell_materials",
+                },
+                {
+                  value: "vendor",
+                  label: "👷 Provide Services",
+                  desc: "Offer construction, repair, labour, technical or professional services.",
+                  caps: ["services"],
+                  reason: "offer_services",
+                },
+                {
+                  value: "vendor",
+                  label: "🚜 Offer Rentals",
+                  desc: "List equipment, tools, vehicles or rental assets.",
+                  caps: ["rentals"],
+                  reason: "provide_rentals",
                 },
                 {
                   value: "builder",
-                  label: "Builder / Developer",
-                  desc: "I want to list builder projects, manage inventory, and receive buyer or investor interest.",
-                },
-                {
-                  value: "hub_vendor",
-                  label: "Vendor Hub",
-                  desc: "I want to operate multiple businesses on 3bigha from one account.",
+                  label: "🏗 Builder / Developer",
+                  desc: "List builder projects, manage inventory and receive buyer interest.",
+                  caps: ["property_builder"],
+                  reason: "manage_builder_projects",
                 },
                 {
                   value: "blogger",
-                  label: "Blogger / Author",
-                  desc: "I want to publish blog or news content on the portal.",
+                  label: "📰 Blogger / Publisher",
+                  desc: "Publish blog, news, guides or marketplace content.",
+                  caps: ["blog_author"],
+                  reason: "publish_blog_or_news",
+                },
+                {
+                  value: "hub_vendor",
+                  label: "🏢 Multi-Business Vendor",
+                  desc: "Operate property, materials, services, rentals and content from one account.",
+                  caps: ["materials", "services", "rentals", "property_owner", "property_builder", "blog_author"],
+                  reason: "operate_multiple_businesses",
                 },
               ].map((item) => (
                 <label
@@ -523,7 +546,13 @@ export default function RegisterRolePageClient() {
                       name="role"
                       value={item.value}
                       checked={role === item.value}
-                      onChange={() => setRole(item.value as PortalRole)}
+                      onChange={() => {
+                        const nextCaps = (item.caps as VendorCapability[]) || [];
+                        const keepInvestor = caps.includes("investor");
+                        setRole(item.value as PortalRole);
+                        setCaps(keepInvestor ? [...nextCaps, "investor"] : nextCaps);
+                        setUseReason(item.reason as UseReason);
+                      }}
                     />
                     <span style={{ fontWeight: 700 }}>{item.label}</span>
                   </div>
@@ -536,6 +565,29 @@ export default function RegisterRolePageClient() {
                 </label>
               ))}
             </div>
+
+            <label
+              style={{
+                marginTop: 12,
+                display: "flex",
+                gap: 10,
+                alignItems: "center",
+                border: "1px solid #fde68a",
+                background: "#fffbeb",
+                borderRadius: 12,
+                padding: 12,
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={caps.includes("investor")}
+                onChange={() => toggleCap("investor")}
+              />
+              <span style={{ fontWeight: 800 }}>
+                💰 I also want to explore investment opportunities
+              </span>
+            </label>
           </div>
 
           <div>
@@ -593,7 +645,6 @@ export default function RegisterRolePageClient() {
                   ["property_owner", "Property Vendor / Seller"],
                   ["property_builder", "Builder / Developer"],
                   ["blog_author", "Blogger / Author"],
-                  ["investor", "Investor"],
                 ].map(([value, label]) => (
                   <label
                     key={value}
