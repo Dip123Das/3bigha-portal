@@ -11,7 +11,6 @@ export default function Image() {
     title: "Construction Equipment Rentals",
     subtitle: "JCB, mixer machine, scaffolding, tools and equipment rental marketplace.",
     footer: "JCB • Mixer • Tools • Rentals",
-    icon: "🚜",
-    theme: "rentals",
+    segment: "RENTALS",
   });
 }

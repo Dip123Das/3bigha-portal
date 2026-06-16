@@ -11,7 +11,6 @@ export default function Image() {
     title: "Building Materials Near You",
     subtitle: "Cement, sand, steel, bricks, stone chips and local suppliers.",
     footer: "Cement • Sand • Steel • Bricks",
-    icon: "🧱",
-    theme: "materials",
+    segment: "MATERIALS",
   });
 }

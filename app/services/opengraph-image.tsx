@@ -11,7 +11,6 @@ export default function Image() {
     title: "Hire Local Service Providers",
     subtitle: "Rajmistri, electrician, plumber, painter, engineer and contractors.",
     footer: "Services • Labour • Contractor • Experts",
-    icon: "👷",
-    theme: "services",
+    segment: "SERVICES",
   });
 }

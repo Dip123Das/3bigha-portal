@@ -11,7 +11,6 @@ export default function Image() {
     title: "Property & Construction Insights",
     subtitle: "Guides, market updates, property tips and construction knowledge.",
     footer: "Learn • Compare • Build • Invest",
-    icon: "📰",
-    theme: "blog",
+    segment: "BLOG",
   });
 }

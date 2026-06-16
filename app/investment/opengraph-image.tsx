@@ -11,7 +11,6 @@ export default function Image() {
     title: "Property & Construction Investment",
     subtitle: "Discover marketplace-backed investment opportunities and growth projects.",
     footer: "Invest • Property • Growth • Deal Room",
-    icon: "📈",
-    theme: "investment",
+    segment: "INVEST",
   });
 }

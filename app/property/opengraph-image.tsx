@@ -11,7 +11,6 @@ export default function Image() {
     title: "Buy & Sell Property Across India",
     subtitle: "Residential plots, land, houses and real estate listings by location.",
     footer: "Property • Land • Plot • House",
-    icon: "🏡",
-    theme: "property",
+    segment: "PROPERTY",
   });
 }
