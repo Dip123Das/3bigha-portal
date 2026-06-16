@@ -2,6 +2,15 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import BuyerWorkMenu from "@/components/buyer/BuyerWorkMenu";
+import { createMetadata } from "@/lib/seo/metadata";
+
+export const metadata = createMetadata({
+  title: "Investment Opportunities",
+  description:
+    "Explore property, construction and marketplace-backed investment opportunities on 3Bigha.",
+  path: "/investment",
+  image: "/og/investment.svg",
+});
 
 export const dynamic = "force-dynamic";
 
