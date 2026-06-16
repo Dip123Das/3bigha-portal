@@ -7,10 +7,11 @@ export const contentType = "image/png";
 
 export default function Image() {
   return createOgImage({
-    badge: "3Bigha Blog",
+    badge: "Knowledge & Updates",
     title: "Property & Construction Insights",
     subtitle: "Guides, market updates, property tips and construction knowledge.",
     footer: "Learn • Compare • Build • Invest",
-    theme: "slate",
+    icon: "📰",
+    theme: "blog",
   });
 }

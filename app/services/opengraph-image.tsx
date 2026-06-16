@@ -7,10 +7,11 @@ export const contentType = "image/png";
 
 export default function Image() {
   return createOgImage({
-    badge: "3Bigha Services",
-    title: "Hire Construction Service Providers",
-    subtitle: "Rajmistri, electrician, plumber, painter, engineer and local workers.",
+    badge: "Construction Services",
+    title: "Hire Local Service Providers",
+    subtitle: "Rajmistri, electrician, plumber, painter, engineer and contractors.",
     footer: "Services • Labour • Contractor • Experts",
-    theme: "blue",
+    icon: "👷",
+    theme: "services",
   });
 }

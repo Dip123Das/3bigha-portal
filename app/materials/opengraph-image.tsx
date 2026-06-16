@@ -7,10 +7,11 @@ export const contentType = "image/png";
 
 export default function Image() {
   return createOgImage({
-    badge: "3Bigha Materials",
+    badge: "Building Materials",
     title: "Building Materials Near You",
-    subtitle: "Cement, sand, stone chips, steel, bricks and construction suppliers.",
+    subtitle: "Cement, sand, steel, bricks, stone chips and local suppliers.",
     footer: "Cement • Sand • Steel • Bricks",
-    theme: "orange",
+    icon: "🧱",
+    theme: "materials",
   });
 }

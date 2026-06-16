@@ -7,10 +7,11 @@ export const contentType = "image/png";
 
 export default function Image() {
   return createOgImage({
-    badge: "3Bigha Property",
+    badge: "Property Marketplace",
     title: "Buy & Sell Property Across India",
     subtitle: "Residential plots, land, houses and real estate listings by location.",
     footer: "Property • Land • Plot • House",
-    theme: "green",
+    icon: "🏡",
+    theme: "property",
   });
 }

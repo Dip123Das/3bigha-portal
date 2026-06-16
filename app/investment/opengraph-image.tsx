@@ -7,10 +7,11 @@ export const contentType = "image/png";
 
 export default function Image() {
   return createOgImage({
-    badge: "3Bigha Investment",
-    title: "Property & Construction Investment Opportunities",
+    badge: "Investment Opportunities",
+    title: "Property & Construction Investment",
     subtitle: "Discover marketplace-backed investment opportunities and growth projects.",
     footer: "Invest • Property • Growth • Deal Room",
-    theme: "purple",
+    icon: "📈",
+    theme: "investment",
   });
 }

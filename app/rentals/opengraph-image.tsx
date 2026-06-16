@@ -7,10 +7,11 @@ export const contentType = "image/png";
 
 export default function Image() {
   return createOgImage({
-    badge: "3Bigha Rentals",
+    badge: "Equipment Rentals",
     title: "Construction Equipment Rentals",
     subtitle: "JCB, mixer machine, scaffolding, tools and equipment rental marketplace.",
     footer: "JCB • Mixer • Tools • Rentals",
-    theme: "amber",
+    icon: "🚜",
+    theme: "rentals",
   });
 }
