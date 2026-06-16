@@ -780,7 +780,7 @@ export default function RentalsPublicPage() {
               </div>
             ) : (
               <>
-              <Grid min={viewMode === "detailed" ? 520 : 320} gap={viewMode === "detailed" ? 18 : 16}>
+              <Grid min={viewMode === "detailed" ? 560 : 380} gap={viewMode === "detailed" ? 20 : 18}>
                 {filtered.slice(0, visibleCount).map((r: Row) => {
                   const loc = [r.locality, r.city, r.district, r.state, r.country, r.pincode].filter(Boolean).join(", ");
                   const cover = firstPhotoUrl(r.photos);
