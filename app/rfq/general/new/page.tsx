@@ -2882,18 +2882,20 @@ return;
         </div>
       ) : null}
 
-            <div
+            <details style={{ marginBottom: 22 }}>
+        <summary style={{ cursor: "pointer", fontSize: 18, fontWeight: 900, color: "#1e40af" }}>
+          ✍️ Need Help Writing?
+        </summary>
+
+        <div
         style={{
+          marginTop: 12,
           border: "1px solid #dbeafe",
           background: "#eff6ff",
           borderRadius: 18,
           padding: 14,
-          marginBottom: 22,
         }}
       >
-        <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 8 }}>
-          Need Help Writing?
-        </div>
 
         <div style={{ fontSize: 14, color: "#334155", marginBottom: 14 }}>
           Describe your requirement naturally and get help preparing the RFQ.
@@ -2938,14 +2940,23 @@ return;
           {aiDrafting ? "Preparing RFQ..." : "Prepare Requirement Draft"}
         </button>
       </div>
+      </details>
 
-      <ProcurementCopilotBox
-        defaultMessage={aiRequirement}
-        module={module}
-        city={city}
-        district=""
-        locality={locality}
-      />
+      <details style={{ marginBottom: 18 }}>
+        <summary style={{ cursor: "pointer", fontWeight: 900, color: "#7c3aed", fontSize: 18 }}>
+          🤖 AI Procurement Copilot
+        </summary>
+
+        <div style={{ marginTop: 12 }}>
+          <ProcurementCopilotBox
+            defaultMessage={aiRequirement}
+            module={module}
+            city={city}
+            district=""
+            locality={locality}
+          />
+        </div>
+      </details>
 
       <div
         style={{
