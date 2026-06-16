@@ -100,7 +100,21 @@ export default function AuthCallbackPageClient() {
         setMsg("Signed in. Redirecting…");
         router.replace(`/auth/post-login${next ? `?next=${encodeURIComponent(next)}` : ""}`);
       } catch (e) {
-        console.error("AUTH_CALLBACK_FAIL", e);
+        console.error("AUTH_CALLBACK_FAIL", {
+          error: e,
+          href:
+            typeof window !== "undefined"
+              ? window.location.href
+              : "(server)",
+          search:
+            typeof window !== "undefined"
+              ? window.location.search
+              : "(server)",
+          userAgent:
+            typeof navigator !== "undefined"
+              ? navigator.userAgent
+              : "(server)",
+        });
         if (!alive) return;
         setMsg("Unexpected error. Redirecting…");
         setTimeout(() => {
