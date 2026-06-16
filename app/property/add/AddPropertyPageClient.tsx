@@ -4281,26 +4281,20 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                 </div>
 
                 {recentPropertyMemory.length > 0 ? (
-                  <div
-                    style={{
-                      marginTop: 14,
-                      marginBottom: 12,
-                      border: "1px solid #dbeafe",
-                      background: "#f8fbff",
-                      borderRadius: 12,
-                      padding: 10,
-                    }}
-                  >
+                  <details style={{ marginTop: 14, marginBottom: 12 }}>
+                    <summary style={{ cursor: "pointer", fontWeight: 900, color: "#1d4ed8" }}>
+                      📍 Smart Location Suggestions
+                    </summary>
+
                     <div
                       style={{
-                        fontSize: 13,
-                        fontWeight: 800,
-                        marginBottom: 8,
-                        color: "#1d4ed8",
+                        marginTop: 10,
+                        border: "1px solid #dbeafe",
+                        background: "#f8fbff",
+                        borderRadius: 12,
+                        padding: 10,
                       }}
                     >
-                      Suggested For You
-                    </div>
 
                     <div
                       style={{
@@ -4356,7 +4350,8 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                     >
                       Smart suggestions based on your frequently reused property location and pricing workflows.
                     </div>
-                  </div>
+                    </div>
+                  </details>
                 ) : null}
 
 
