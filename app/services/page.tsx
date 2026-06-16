@@ -277,6 +277,8 @@ export default function ServicesPage() {
   const [group, setGroup] = useState<ServiceGroup>("Professional / Skilled");
   const [active, setActive] = useState<string>("all");
   const [q, setQ] = useState<string>("");
+  const [visibleCount, setVisibleCount] = useState(24);
+  const [viewMode, setViewMode] = useState<"compact" | "detailed">("compact");
 
   const [rows, setRows] = useState<ServiceRow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -392,6 +394,10 @@ export default function ServicesPage() {
     const activeSlug = slugify(active);
     return base.filter((r) => norm(r.custom_category) === norm(active) || norm(r.category_slug) === activeSlug);
   }, [rows, group, active]);
+
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [q, group, active]);
 
   const filtered = useMemo(() => {
     const query = norm(q);
@@ -571,6 +577,40 @@ export default function ServicesPage() {
               />
             </div>
 
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <Badge>Total: {filtered.length}</Badge>
+              <button
+                type="button"
+                onClick={() => setViewMode("compact")}
+                style={{
+                  border: "1px solid rgba(0,0,0,0.12)",
+                  borderRadius: 999,
+                  padding: "8px 10px",
+                  background: viewMode === "compact" ? "#111827" : "#fff",
+                  color: viewMode === "compact" ? "#fff" : "#111827",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                ☰ Compact
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("detailed")}
+                style={{
+                  border: "1px solid rgba(0,0,0,0.12)",
+                  borderRadius: 999,
+                  padding: "8px 10px",
+                  background: viewMode === "detailed" ? "#111827" : "#fff",
+                  color: viewMode === "detailed" ? "#fff" : "#111827",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                ⊞ Detailed
+              </button>
+            </div>
+
             <div style={{ flex: "0 1 320px", display: "flex", justifyContent: "flex-end" }}>
               <input
                 value={q}
@@ -596,8 +636,8 @@ export default function ServicesPage() {
               <EmptyState message={`Service load failed: ${loadErr}`} />
             ) : (
               <>
-                <Grid min={260} gap={14}>
-                  {filtered.map((r: ServiceRow) => {
+                <Grid min={viewMode === "detailed" ? 520 : 320} gap={viewMode === "detailed" ? 18 : 16}>
+                  {filtered.slice(0, visibleCount).map((r: ServiceRow) => {
                     const name =
                       r.custom_service?.trim() ||
                       (r.service_slug ? r.service_slug.replace(/-/g, " ") : "") ||
@@ -626,7 +666,43 @@ export default function ServicesPage() {
                             <Badge>{badge}</Badge>
                           </div>
 
-                          <p style={{ margin: "10px 0 0", color: "#5b6472" }}>{desc}</p>
+                          <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                            <Badge>{r.provider_kind ?? "Service Provider"}</Badge>
+                            <Badge>{r.segment ?? "Service"}</Badge>
+                            <Badge>{location ?? "Location Pending"}</Badge>
+                          </div>
+
+                          <p style={{ margin: "10px 0 0", color: "#5b6472" }}>
+                            {viewMode === "compact" && desc.length > 160 ? `${desc.slice(0, 160)}...` : desc}
+                          </p>
+
+                          <div
+                            style={{
+                              marginTop: 10,
+                              display: "grid",
+                              gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))",
+                              gap: 8,
+                            }}
+                          >
+                            {[
+                              ["Provider", r.provider_name ? "Listed" : "Pending"],
+                              ["Location", location ? "Available" : "Pending"],
+                              ["Pricing", priceText ? "Available" : "Ask provider"],
+                            ].map(([label, value]) => (
+                              <div
+                                key={label}
+                                style={{
+                                  border: "1px solid rgba(37,99,235,0.18)",
+                                  borderRadius: 12,
+                                  background: "rgba(239,246,255,0.72)",
+                                  padding: "8px 10px",
+                                }}
+                              >
+                                <div style={{ fontSize: 11, fontWeight: 900, color: "#1d4ed8" }}>{label}</div>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: "#1e3a8a" }}>{value}</div>
+                              </div>
+                            ))}
+                          </div>
 
                           <div
                             style={{
@@ -676,6 +752,26 @@ export default function ServicesPage() {
                     );
                   })}
                 </Grid>
+
+                {visibleCount < filtered.length ? (
+                  <button
+                    type="button"
+                    onClick={() => setVisibleCount((v) => Math.min(v + 24, filtered.length))}
+                    style={{
+                      marginTop: 14,
+                      width: "100%",
+                      border: "1px solid #bfdbfe",
+                      background: "#eff6ff",
+                      color: "#1d4ed8",
+                      borderRadius: 14,
+                      padding: "12px 14px",
+                      fontWeight: 950,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Load more services ({Math.min(visibleCount + 24, filtered.length)} of {filtered.length})
+                  </button>
+                ) : null}
 
                 {filtered.length === 0 ? (
                   <EmptyState

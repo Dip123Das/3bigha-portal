@@ -299,6 +299,8 @@ export default function RentalsPublicPage() {
 
   const [typeId, setTypeId] = useState<string>("all");
   const [q, setQ] = useState("");
+  const [visibleCount, setVisibleCount] = useState(24);
+  const [viewMode, setViewMode] = useState<"compact" | "detailed">("compact");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -522,6 +524,10 @@ export default function RentalsPublicPage() {
     return ["all", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
   }, [rows]);
 
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [q, city, typeId]);
+
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
 
@@ -709,6 +715,36 @@ export default function RentalsPublicPage() {
               </select>
 
               <Badge>Total: {filtered.length}</Badge>
+              <button
+                type="button"
+                onClick={() => setViewMode("compact")}
+                style={{
+                  border: "1px solid rgba(0,0,0,0.12)",
+                  borderRadius: 999,
+                  padding: "8px 10px",
+                  background: viewMode === "compact" ? "#111827" : "#fff",
+                  color: viewMode === "compact" ? "#fff" : "#111827",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                ☰ Compact
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("detailed")}
+                style={{
+                  border: "1px solid rgba(0,0,0,0.12)",
+                  borderRadius: 999,
+                  padding: "8px 10px",
+                  background: viewMode === "detailed" ? "#111827" : "#fff",
+                  color: viewMode === "detailed" ? "#fff" : "#111827",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                ⊞ Detailed
+              </button>
             </div>
 
             <div style={{ flex: "0 1 320px", display: "flex", justifyContent: "flex-end" }}>
@@ -743,8 +779,9 @@ export default function RentalsPublicPage() {
                 .
               </div>
             ) : (
-              <Grid>
-                {filtered.map((r: Row) => {
+              <>
+              <Grid min={viewMode === "detailed" ? 520 : 320} gap={viewMode === "detailed" ? 18 : 16}>
+                {filtered.slice(0, visibleCount).map((r: Row) => {
                   const loc = [r.locality, r.city, r.district, r.state, r.country, r.pincode].filter(Boolean).join(", ");
                   const cover = firstPhotoUrl(r.photos);
                   const title = (r.title ?? "").trim() || "Rental listing";
@@ -790,7 +827,7 @@ export default function RentalsPublicPage() {
                               alt={title}
                               style={{
                                 width: "100%",
-                                height: 180,
+                                height: viewMode === "detailed" ? 260 : 180,
                                 objectFit: "cover",
                                 borderRadius: 12,
                                 border: "1px solid rgba(0,0,0,0.08)",
@@ -804,9 +841,45 @@ export default function RentalsPublicPage() {
                           <Badge>{String(r.status ?? "published").toLowerCase()}</Badge>
                         </div>
 
+                        <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          <Badge>Available for Rent</Badge>
+                          <Badge>{equipmentName || categoryName || "Equipment"}</Badge>
+                          <Badge>{r.city || r.locality || "Location Pending"}</Badge>
+                        </div>
+
                         <p style={{ margin: "10px 0 0", color: "#5b6472" }}>
-                          {aiDescription}
+                          {viewMode === "compact" && aiDescription.length > 180
+                            ? `${aiDescription.slice(0, 180)}...`
+                            : aiDescription}
                         </p>
+
+                        <div
+                          style={{
+                            marginTop: 10,
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))",
+                            gap: 8,
+                          }}
+                        >
+                          {[
+                            ["Rate", hasRate ? "Available" : "Ask vendor"],
+                            ["Deposit", hasDeposit ? "Available" : "Confirm"],
+                            ["Location", loc ? "Available" : "Pending"],
+                          ].map(([label, value]) => (
+                            <div
+                              key={label}
+                              style={{
+                                border: "1px solid rgba(16,185,129,0.22)",
+                                borderRadius: 12,
+                                background: "rgba(236,253,245,0.65)",
+                                padding: "8px 10px",
+                              }}
+                            >
+                              <div style={{ fontSize: 11, fontWeight: 900, color: "#047857" }}>{label}</div>
+                              <div style={{ fontSize: 12, fontWeight: 800, color: "#065f46" }}>{value}</div>
+                            </div>
+                          ))}
+                        </div>
 
                         <div
                           style={{
@@ -892,6 +965,27 @@ export default function RentalsPublicPage() {
                   );
                 })}
               </Grid>
+
+              {visibleCount < filtered.length ? (
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((v) => Math.min(v + 24, filtered.length))}
+                  style={{
+                    marginTop: 14,
+                    width: "100%",
+                    border: "1px solid #bbf7d0",
+                    background: "#ecfdf5",
+                    color: "#047857",
+                    borderRadius: 14,
+                    padding: "12px 14px",
+                    fontWeight: 950,
+                    cursor: "pointer",
+                  }}
+                >
+                  Load more rentals ({Math.min(visibleCount + 24, filtered.length)} of {filtered.length})
+                </button>
+              ) : null}
+              </>
             )}
           </div>
         </div>
