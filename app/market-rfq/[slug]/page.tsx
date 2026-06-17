@@ -4,6 +4,7 @@ import {
   getPublicRfqBySlug,
   getPublicRfqMetadata,
   getPublicRfqSchema,
+  getPublicRfqViewModel,
 } from "@/lib/seo/rfq-public-seo";
 
 export const revalidate = 3600;
@@ -22,6 +23,7 @@ export default async function PublicMarketRfqPage({ params }: PageProps) {
   const rfq = await getPublicRfqBySlug(params.slug);
   if (!rfq) notFound();
 
+  const vm = getPublicRfqViewModel(rfq);
   const schema = getPublicRfqSchema(rfq);
 
   return (
@@ -37,11 +39,53 @@ export default async function PublicMarketRfqPage({ params }: PageProps) {
         </p>
 
         <h1 className="mt-3 text-2xl font-black leading-tight text-slate-950 sm:text-4xl">
-          {rfq.seo_title}
+          {vm.title}
         </h1>
 
         <p className="mt-4 text-base font-semibold leading-7 text-slate-700">
-          {rfq.seo_description}
+          {vm.description}
+        </p>
+      </section>
+
+      <section className="mt-5 grid gap-4 sm:grid-cols-3">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5">
+          <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+            Requirement
+          </p>
+          <p className="mt-2 text-lg font-black text-slate-950">{vm.item}</p>
+        </div>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-5">
+          <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+            Location
+          </p>
+          <p className="mt-2 text-lg font-black text-slate-950">{vm.location}</p>
+        </div>
+
+        <div className="rounded-3xl border border-slate-200 bg-white p-5">
+          <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+            Category
+          </p>
+          <p className="mt-2 text-lg font-black text-slate-950">{vm.module}</p>
+        </div>
+      </section>
+
+      <section className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 sm:p-7">
+        <h2 className="text-xl font-black text-slate-950">
+          Local marketplace demand in {vm.location}
+        </h2>
+
+        <p className="mt-3 text-sm font-semibold leading-7 text-slate-700">
+          3Bigha is tracking public marketplace demand for {vm.item} in {vm.location}.
+          This page is designed to help nearby suppliers, contractors, rental owners,
+          service providers and property businesses understand where buyer-side demand
+          is emerging.
+        </p>
+
+        <p className="mt-3 text-sm font-semibold leading-7 text-slate-700">
+          Vendors operating near {vm.location} can use this signal to prepare listings,
+          improve marketplace visibility and discover similar buyer requirements through
+          the 3Bigha platform.
         </p>
       </section>
 
@@ -79,7 +123,8 @@ export default async function PublicMarketRfqPage({ params }: PageProps) {
 
         <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
           This page shows only marketplace demand information. Buyer identity,
-          contact details, private chats and workflow data are not displayed.
+          contact details, private chats, private addresses and workflow data are
+          not displayed.
         </p>
       </section>
     </main>

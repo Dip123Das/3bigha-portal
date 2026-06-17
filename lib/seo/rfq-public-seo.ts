@@ -9,6 +9,19 @@ type PublicRfqSeoRow = {
   seo_description: string;
   is_indexable: boolean;
   created_at: string;
+  rfqs?: {
+    module?: string | null;
+    title?: string | null;
+    city?: string | null;
+    district?: string | null;
+    locality?: string | null;
+    needed_by?: string | null;
+    budget_min?: number | null;
+    budget_max?: number | null;
+    currency?: string | null;
+    description?: string | null;
+    notes?: string | null;
+  } | null;
 };
 
 function getSupabase() {
@@ -31,6 +44,50 @@ function clean(value: unknown) {
     .trim();
 }
 
+function titleCase(value: string) {
+  return clean(value)
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => {
+      const lower = word.toLowerCase();
+      if (["tmt", "rcc", "pvc", "cpvc", "jcb"].includes(lower)) return lower.toUpperCase();
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(" ");
+}
+
+function locationFrom(row: PublicRfqSeoRow) {
+  const rfq = row.rfqs;
+  return clean(rfq?.locality || rfq?.city || rfq?.district || extractLocation(row.seo_title) || "India");
+}
+
+function extractLocation(title: string) {
+  const parts = clean(title).split(/\s+in\s+/i);
+  return parts.length > 1 ? parts[1] : "";
+}
+
+function itemFrom(row: PublicRfqSeoRow) {
+  const raw = clean(row.rfqs?.title || row.seo_title.replace(/^Need\s+/i, "").split(/\s+in\s+/i)[0]);
+  const item = raw
+    .replace(/^properties$/i, "Property Sellers")
+    .replace(/^materials$/i, "Building Material Suppliers")
+    .replace(/^aggregate$/i, "Aggregate Suppliers")
+    .replace(/^tmt bar$/i, "TMT Bar Suppliers");
+
+  return titleCase(item);
+}
+
+function improvedTitle(row: PublicRfqSeoRow) {
+  return `Need ${itemFrom(row)} in ${titleCase(locationFrom(row))}`;
+}
+
+function improvedDescription(row: PublicRfqSeoRow) {
+  const item = itemFrom(row);
+  const location = titleCase(locationFrom(row));
+
+  return `A public marketplace demand signal is active for ${item} in ${location}. Local vendors, suppliers, service providers and marketplace businesses can explore similar buyer requirements through 3Bigha.`;
+}
+
 export function getPublicRfqCanonical(slug: string) {
   return `${siteConfig.url}/market-rfq/${encodeURIComponent(slug)}`;
 }
@@ -44,7 +101,27 @@ export async function getPublicRfqBySlug(slug: string) {
 
   const { data, error } = await supabase
     .from("rfq_public_seo")
-    .select("rfq_id, slug, seo_title, seo_description, is_indexable, created_at")
+    .select(`
+      rfq_id,
+      slug,
+      seo_title,
+      seo_description,
+      is_indexable,
+      created_at,
+      rfqs:rfq_id (
+        module,
+        title,
+        city,
+        district,
+        locality,
+        needed_by,
+        budget_min,
+        budget_max,
+        currency,
+        description,
+        notes
+      )
+    `)
     .eq("slug", safeSlug)
     .eq("is_indexable", true)
     .maybeSingle();
@@ -52,6 +129,23 @@ export async function getPublicRfqBySlug(slug: string) {
   if (error || !data) return null;
 
   return data as PublicRfqSeoRow;
+}
+
+export function getPublicRfqViewModel(row: PublicRfqSeoRow) {
+  const rfq = row.rfqs;
+  const location = titleCase(locationFrom(row));
+  const item = itemFrom(row);
+  const module = titleCase(clean(rfq?.module || "Marketplace"));
+
+  return {
+    title: improvedTitle(row),
+    description: improvedDescription(row),
+    item,
+    location,
+    module,
+    neededBy: clean(rfq?.needed_by),
+    publicSummary: clean(rfq?.description || rfq?.notes || row.seo_description),
+  };
 }
 
 export async function getPublicRfqMetadata(slug: string): Promise<Metadata> {
@@ -66,16 +160,16 @@ export async function getPublicRfqMetadata(slug: string): Promise<Metadata> {
     };
   }
 
-  const title = `${clean(row.seo_title)} | 3Bigha Marketplace RFQ`;
-  const description = clean(row.seo_description);
+  const vm = getPublicRfqViewModel(row);
+  const title = `${vm.title} | 3Bigha Marketplace RFQ`;
 
   return {
     title,
-    description,
+    description: vm.description,
     alternates: { canonical },
     openGraph: {
       title,
-      description,
+      description: vm.description,
       url: canonical,
       type: "website",
       siteName: siteConfig.name,
@@ -83,19 +177,26 @@ export async function getPublicRfqMetadata(slug: string): Promise<Metadata> {
     twitter: {
       card: "summary_large_image",
       title,
-      description,
+      description: vm.description,
     },
   };
 }
 
 export function getPublicRfqSchema(row: PublicRfqSeoRow) {
+  const vm = getPublicRfqViewModel(row);
+
   return {
     "@context": "https://schema.org",
     "@type": "Demand",
-    name: clean(row.seo_title),
-    description: clean(row.seo_description),
+    name: vm.title,
+    description: vm.description,
     url: getPublicRfqCanonical(row.slug),
-    category: "Marketplace Requirement",
+    areaServed: vm.location,
+    category: vm.module,
+    itemOffered: {
+      "@type": "Service",
+      name: vm.item,
+    },
     provider: {
       "@type": "Organization",
       name: siteConfig.name,
