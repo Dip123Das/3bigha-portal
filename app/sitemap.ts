@@ -5,6 +5,7 @@ import { siteConfig } from "@/lib/seo/site";
 import { seoModules } from "@/lib/geo/india-geo";
 import { getAllSeoUrlsFromDb } from "@/lib/geography/seoAdapter";
 import { getVendorOpportunityUrls } from "@/lib/seo/vendor-opportunity-seo";
+import { getPublicRfqSitemapEntries } from "@/lib/seo/rfq-public-seo";
 import { isIndexableStaticPath, hasSeoMinimumQuality, isSafePublicId } from "@/lib/seo/url-policy";
 
 type SitemapRow = {
@@ -35,6 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .filter((path) => !path.includes("/category/"));
 
   const vendorOpportunityRoutes = await getVendorOpportunityUrls();
+  const publicRfqPages = await getPublicRfqSitemapEntries();
 
 const staticRoutes = [
   "",
@@ -105,7 +107,7 @@ const staticRoutes = [
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    return staticPages;
+    return [...staticPages, ...publicRfqPages];
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -247,5 +249,6 @@ const staticRoutes = [
     });
   }
 
-  return [...staticPages, ...dynamicPages];
+  return [
+    ...publicRfqPages,...staticPages, ...dynamicPages];
 }
