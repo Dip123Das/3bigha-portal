@@ -2,7 +2,8 @@ import type { MetadataRoute } from "next";
 
 import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/lib/seo/site";
-import { getAllSeoUrls } from "@/lib/geo/india-geo";
+import { seoModules } from "@/lib/geo/india-geo";
+import { getAllSeoUrlsFromDb } from "@/lib/geography/seoAdapter";
 import { isIndexableStaticPath, hasSeoMinimumQuality, isSafePublicId } from "@/lib/seo/url-policy";
 
 type SitemapRow = {
@@ -28,10 +29,9 @@ function safeId(value: unknown) {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  const regionalSeoRoutes = getAllSeoUrls()
+  const regionalSeoRoutes = (await getAllSeoUrlsFromDb(seoModules))
     .filter((path) => path.startsWith("/seo/"))
-    .filter((path) => !path.includes("/category/"))
-    .slice(0, 120);
+    .filter((path) => !path.includes("/category/"));
 
 const staticRoutes = [
   "",

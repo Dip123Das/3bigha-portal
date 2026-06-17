@@ -138,3 +138,56 @@ export async function getSeoRegionalPathsFromDb(
       }))
   );
 }
+
+
+export async function getSeoStatePathsFromDb(modules: readonly SeoModule[]) {
+  const cities = await getSeoGeoCities();
+
+  const states = new Map<string, string>();
+  for (const geo of cities) {
+    if (geo.stateSlug) states.set(geo.stateSlug, geo.stateSlug);
+  }
+
+  return modules.flatMap((module) =>
+    Array.from(states.values()).map((state) => ({
+      module,
+      state,
+    }))
+  );
+}
+
+export async function getSeoDistrictPathsFromDb(modules: readonly SeoModule[]) {
+  const cities = await getSeoGeoCities();
+
+  const districts = new Map<string, { state: string; district: string }>();
+  for (const geo of cities) {
+    if (geo.stateSlug && geo.districtSlug) {
+      districts.set(`${geo.stateSlug}/${geo.districtSlug}`, {
+        state: geo.stateSlug,
+        district: geo.districtSlug,
+      });
+    }
+  }
+
+  return modules.flatMap((module) =>
+    Array.from(districts.values()).map((item) => ({
+      module,
+      state: item.state,
+      district: item.district,
+    }))
+  );
+}
+
+export async function getAllSeoUrlsFromDb(modules: readonly SeoModule[]) {
+  const [states, districts, cities] = await Promise.all([
+    getSeoStatePathsFromDb(modules),
+    getSeoDistrictPathsFromDb(modules),
+    getSeoRegionalPathsFromDb(modules),
+  ]);
+
+  return [
+    ...states.map((item) => `/seo/${item.module}/${item.state}`),
+    ...districts.map((item) => `/seo/${item.module}/${item.state}/${item.district}`),
+    ...cities.map((item) => `/seo/${item.module}/${item.state}/${item.district}/${item.city}`),
+  ];
+}

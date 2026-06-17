@@ -5,32 +5,13 @@ import Link from "next/link";
 
 import { siteConfig } from "@/lib/seo/site";
 import { buildSeoSchemaGraph } from "@/lib/seo/structured-data";
-import {
-  geoCities,
-  seoModules,
-  isSeoModule,
-  type SeoModule,
-} from "@/lib/geo/india-geo";
+import { seoModules, isSeoModule, type SeoModule } from "@/lib/geo/india-geo";
+import { getSeoGeoCities, getSeoDistrictPathsFromDb } from "@/lib/geography/seoAdapter";
 
 export const dynamic = "force-static";
 
-export function generateStaticParams() {
-  const districts = new Map<string, { state: string; district: string }>();
-
-  geoCities.forEach((geo) => {
-    districts.set(`${geo.stateSlug}/${geo.districtSlug}`, {
-      state: geo.stateSlug,
-      district: geo.districtSlug,
-    });
-  });
-
-  return seoModules.flatMap((module) =>
-    Array.from(districts.values()).map((item) => ({
-      module,
-      state: item.state,
-      district: item.district,
-    }))
-  );
+export async function generateStaticParams() {
+  return getSeoDistrictPathsFromDb(seoModules);
 }
 
 type PageProps = {
@@ -86,7 +67,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const module = isSeoModule(params.module) ? params.module : "property";
-  const districtGeo = geoCities.find(
+  const districtGeo = (await getSeoGeoCities()).find(
     (geo) => geo.stateSlug === params.state && geo.districtSlug === params.district
   );
 
@@ -118,10 +99,10 @@ export async function generateMetadata({
   };
 }
 
-export default function DistrictSeoPage({ params }: PageProps) {
+export default async function DistrictSeoPage({ params }: PageProps) {
   const module = isSeoModule(params.module) ? params.module : "property";
 
-  const districtGeo = geoCities.find(
+  const districtGeo = (await getSeoGeoCities()).find(
     (geo) => geo.stateSlug === params.state && geo.districtSlug === params.district
   );
 
@@ -131,7 +112,7 @@ export default function DistrictSeoPage({ params }: PageProps) {
   const title = moduleTitle(module);
   const description = districtDescription(module, district, state);
 
-  const districtCities = geoCities.filter(
+  const districtCities = (await getSeoGeoCities()).filter(
     (geo) => geo.stateSlug === params.state && geo.districtSlug === params.district
   );
 

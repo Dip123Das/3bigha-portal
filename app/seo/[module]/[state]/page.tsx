@@ -4,28 +4,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { siteConfig } from "@/lib/seo/site";
-import {
-  geoCities,
-  seoModules,
-  isSeoModule,
-  type SeoModule,
-} from "@/lib/geo/india-geo";
+import { seoModules, isSeoModule, type SeoModule } from "@/lib/geo/india-geo";
+import { getSeoGeoCities, getSeoStatePathsFromDb } from "@/lib/geography/seoAdapter";
 
 export const dynamic = "force-static";
 
-export function generateStaticParams() {
-  const states = new Map<string, string>();
-
-  geoCities.forEach((geo) => {
-    states.set(geo.stateSlug, geo.stateSlug);
-  });
-
-  return seoModules.flatMap((module) =>
-    Array.from(states.values()).map((state) => ({
-      module,
-      state,
-    }))
-  );
+export async function generateStaticParams() {
+  return getSeoStatePathsFromDb(seoModules);
 }
 
 type PageProps = {
@@ -77,7 +62,7 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const module = isSeoModule(params.module) ? params.module : "property";
 
-  const stateGeo = geoCities.find((geo) => geo.stateSlug === params.state);
+  const stateGeo = (await getSeoGeoCities()).find((geo) => geo.stateSlug === params.state);
   const state = stateGeo?.state || normalize(params.state);
 
   const title = `${moduleTitle(module)} in ${state} | 3Bigha`;
@@ -105,18 +90,22 @@ export async function generateMetadata({
   };
 }
 
-export default function StateSeoPage({ params }: PageProps) {
+export default async function StateSeoPage({ params }: PageProps) {
   const module = isSeoModule(params.module) ? params.module : "property";
 
-  const stateGeo = geoCities.find((geo) => geo.stateSlug === params.state);
+  const stateGeo = (await getSeoGeoCities()).find((geo) => geo.stateSlug === params.state);
   const state = stateGeo?.state || normalize(params.state);
 
   const title = moduleTitle(module);
   const description = stateDescription(module, state);
 
-  const stateDistricts = Array.from(
+  const stateDistricts: Array<{
+    district: string;
+    districtSlug: string;
+    stateSlug: string;
+  }> = Array.from(
     new Map(
-      geoCities
+      (await getSeoGeoCities())
         .filter((geo) => geo.stateSlug === params.state)
         .map((geo) => [
           geo.districtSlug,
