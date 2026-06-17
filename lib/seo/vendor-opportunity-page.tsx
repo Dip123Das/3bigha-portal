@@ -3,6 +3,7 @@ import { siteConfig } from "@/lib/seo/site";
 import {
   getVendorOpportunityRows,
   opportunityTitle,
+  opportunityDescription,
 } from "@/lib/seo/vendor-opportunity-seo";
 
 function labelFromSlug(value: string) {
@@ -110,8 +111,10 @@ export async function VendorOpportunitySeoPage({
                   {opportunityTitle(row)}
                 </h2>
                 <p style={{ margin: "8px 0 0", color: "#475569" }}>
-                  Module: {row.module}. Recommended vendors needed:{" "}
-                  {row.recommended_vendor_count || 1}.
+                  {opportunityDescription(row)}
+                </p>
+                <p style={{ margin: "8px 0 0", color: "#64748b", fontSize: 14 }}>
+                  Recommended vendors needed: {row.recommended_vendor_count || 1}.
                 </p>
                 <Link
                   href="/signup"

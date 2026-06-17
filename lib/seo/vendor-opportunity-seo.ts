@@ -12,6 +12,8 @@ export type VendorOpportunitySeoRow = {
   category: string | null;
   recommended_vendor_count: number | null;
   priority: string | null;
+  opportunity_title?: string | null;
+  opportunity_description?: string | null;
   state: string;
   stateSlug: string;
   district: string;
@@ -48,7 +50,7 @@ export async function getVendorOpportunityRows(
     supabase
       .from("marketplace_vendor_recruitment_queue")
       .select(
-        "id,module,category,recommended_vendor_count,priority,geo_state_id,geo_district_id,geo_place_id"
+        "id,module,category,recommended_vendor_count,priority,opportunity_title,opportunity_description,geo_state_id,geo_district_id,geo_place_id"
       )
       .not("geo_state_id", "is", null)
       .order("recommended_vendor_count", { ascending: false })
@@ -72,6 +74,8 @@ export async function getVendorOpportunityRows(
         category: row.category,
         recommended_vendor_count: row.recommended_vendor_count,
         priority: row.priority,
+        opportunity_title: row.opportunity_title,
+        opportunity_description: row.opportunity_description,
         state: state?.name || "",
         stateSlug: state?.slug || "",
         district: district?.name || "",
@@ -117,6 +121,16 @@ function categoryLabel(row: VendorOpportunitySeoRow) {
 }
 
 export function opportunityTitle(row: VendorOpportunitySeoRow) {
+  if (row.opportunity_title) return row.opportunity_title;
+
   const location = row.place || row.district || row.state;
   return `Need ${categoryLabel(row)} vendors in ${location}`;
+}
+
+export function opportunityDescription(row: VendorOpportunitySeoRow) {
+  if (row.opportunity_description) return row.opportunity_description;
+
+  return `Local demand is active for ${categoryLabel(row).toLowerCase()} vendors in ${
+    row.place || row.district || row.state
+  }. Register your business on 3Bigha to receive local enquiries.`;
 }
