@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/lib/seo/site";
 import { seoModules } from "@/lib/geo/india-geo";
 import { getAllSeoUrlsFromDb } from "@/lib/geography/seoAdapter";
+import { getVendorOpportunityUrls } from "@/lib/seo/vendor-opportunity-seo";
 import { isIndexableStaticPath, hasSeoMinimumQuality, isSafePublicId } from "@/lib/seo/url-policy";
 
 type SitemapRow = {
@@ -32,6 +33,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const regionalSeoRoutes = (await getAllSeoUrlsFromDb(seoModules))
     .filter((path) => path.startsWith("/seo/"))
     .filter((path) => !path.includes("/category/"));
+
+  const vendorOpportunityRoutes = await getVendorOpportunityUrls();
 
 const staticRoutes = [
   "",
