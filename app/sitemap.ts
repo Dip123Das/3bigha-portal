@@ -250,5 +250,8 @@ const staticRoutes = [
   }
 
   return [
-    ...publicRfqPages,...staticPages, ...dynamicPages];
+    ...publicRfqPages,
+    ...staticPages,
+    ...dynamicPages,
+  ];
 }
