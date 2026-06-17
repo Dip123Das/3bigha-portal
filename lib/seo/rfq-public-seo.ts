@@ -101,34 +101,25 @@ export async function getPublicRfqBySlug(slug: string) {
 
   const { data, error } = await supabase
     .from("rfq_public_seo")
-    .select(`
-      rfq_id,
-      slug,
-      seo_title,
-      seo_description,
-      is_indexable,
-      created_at,
-      rfqs:rfq_id (
-        module,
-        title,
-        city,
-        district,
-        locality,
-        needed_by,
-        budget_min,
-        budget_max,
-        currency,
-        description,
-        notes
-      )
-    `)
+    .select("rfq_id, slug, seo_title, seo_description, is_indexable, created_at")
     .eq("slug", safeSlug)
     .eq("is_indexable", true)
     .maybeSingle();
 
   if (error || !data) return null;
 
-  return data as PublicRfqSeoRow;
+  const seoRow = data as PublicRfqSeoRow;
+
+  const { data: rfqData } = await supabase
+    .from("rfqs")
+    .select("module, title, city, district, locality, needed_by, budget_min, budget_max, currency, description, notes")
+    .eq("id", seoRow.rfq_id)
+    .maybeSingle();
+
+  return {
+    ...seoRow,
+    rfqs: rfqData || null,
+  } as PublicRfqSeoRow;
 }
 
 export function getPublicRfqViewModel(row: PublicRfqSeoRow) {
