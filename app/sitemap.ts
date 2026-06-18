@@ -36,8 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const regionalSeoRoutes = (await getAllSeoUrlsFromDb(seoModules))
-    .filter((path) => path.startsWith("/seo/"))
-    .filter((path) => !path.includes("/category/"));
+    .filter((path) => path.startsWith("/seo/"));
 
   const vendorOpportunityRoutes = await getVendorOpportunityUrls();
   const publicRfqPages = await getPublicRfqSitemapEntries();
