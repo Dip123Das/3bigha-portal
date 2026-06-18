@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { generateDemandContent } from "@/lib/seo/ai-content-generator";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
@@ -112,6 +113,7 @@ export default async function NeedSlugPage({ params }: PageProps) {
   const location = title.split(" in ").slice(1).join(" in ") || "India";
   const requirement = title.replace(/^Need\s+/i, "").split(" in ")[0];
   const marketPath = marketPathFromNeedSlug(data.slug);
+  const aiContent = generateDemandContent(requirement, location);
 
   const schema = {
     "@context": "https://schema.org",
@@ -166,6 +168,23 @@ export default async function NeedSlugPage({ params }: PageProps) {
           <p className="mt-2 text-lg font-black text-slate-950">
             {location}
           </p>
+        </div>
+      </section>
+
+      <section className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 sm:p-7">
+        <h2 className="text-xl font-black text-slate-950">
+          {aiContent.heading}
+        </h2>
+
+        <div className="mt-3 grid gap-3">
+          {aiContent.paragraphs.map((paragraph) => (
+            <p
+              key={paragraph}
+              className="text-sm font-semibold leading-7 text-slate-700"
+            >
+              {paragraph}
+            </p>
+          ))}
         </div>
       </section>
 
