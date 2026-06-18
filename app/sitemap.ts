@@ -6,6 +6,7 @@ import { seoModules } from "@/lib/geo/india-geo";
 import { getAllSeoUrlsFromDb } from "@/lib/geography/seoAdapter";
 import { getVendorOpportunityUrls } from "@/lib/seo/vendor-opportunity-seo";
 import { getPublicRfqSitemapEntries } from "@/lib/seo/rfq-public-seo";
+import { getVendorDemandSitemapEntries } from "@/lib/seo/vendor-demand-seo";
 import { isIndexableStaticPath, hasSeoMinimumQuality, isSafePublicId } from "@/lib/seo/url-policy";
 
 type SitemapRow = {
@@ -37,6 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const vendorOpportunityRoutes = await getVendorOpportunityUrls();
   const publicRfqPages = await getPublicRfqSitemapEntries();
+  const vendorDemandPages = await getVendorDemandSitemapEntries();
 
 const staticRoutes = [
   "",
@@ -62,6 +64,7 @@ const staticRoutes = [
   "/investment",
   "/search",
   "/market-rfq",
+  "/need",
   "/about",
   "/contact",
   "/privacy-policy",
@@ -252,6 +255,7 @@ const staticRoutes = [
 
   return [
     ...publicRfqPages,
+    ...vendorDemandPages,
     ...staticPages,
     ...dynamicPages,
   ];
