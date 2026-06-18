@@ -41,6 +41,46 @@ function modulePath(module: SeoModule) {
   return "/rentals";
 }
 
+function popularSearches(module: SeoModule, location: string) {
+  if (module === "materials") {
+    return [
+      `Cement Suppliers in ${location}`,
+      `Steel Suppliers in ${location}`,
+      `Sand Suppliers in ${location}`,
+      `Brick Suppliers in ${location}`,
+      `Construction Materials in ${location}`,
+    ];
+  }
+
+  if (module === "services") {
+    return [
+      `Electrical Services in ${location}`,
+      `Plumbing Services in ${location}`,
+      `Contractors in ${location}`,
+      `Architects in ${location}`,
+      `Construction Labour in ${location}`,
+    ];
+  }
+
+  if (module === "rentals") {
+    return [
+      `JCB Rental in ${location}`,
+      `Bulldozer Rental in ${location}`,
+      `Excavator Rental in ${location}`,
+      `Concrete Mixer Rental in ${location}`,
+      `Construction Equipment Rental in ${location}`,
+    ];
+  }
+
+  return [
+    `Property for Sale in ${location}`,
+    `Residential Plots in ${location}`,
+    `Land for Sale in ${location}`,
+    `Commercial Property in ${location}`,
+    `Builders in ${location}`,
+  ];
+}
+
 function stateDescription(module: SeoModule, state: string) {
   if (module === "property") {
     return `Explore land, plots, flats, houses, commercial property and builder projects across ${state}. 3Bigha helps buyers, sellers, builders and agents connect through an AI-powered regional property marketplace.`;
@@ -119,6 +159,7 @@ export default async function StateSeoPage({ params }: PageProps) {
   );
 
   const relatedModules = seoModules.filter((item) => item !== module);
+  const searches = popularSearches(module, state);
 
   const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}`;
 
