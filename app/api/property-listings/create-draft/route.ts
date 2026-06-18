@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { resolveLocation } from "@/lib/geography/resolveLocation";
 import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
@@ -87,6 +88,15 @@ export async function POST(req: Request) {
       );
     }
 
+    const geography = await resolveLocation({
+      city,
+      district: body?.district,
+      state: body?.state,
+      locality: body?.locality,
+      place: body?.place,
+      pincode: body?.pincode,
+    });
+
     const insertPayload = {
       owner_id,
       listing_intent,
@@ -94,6 +104,11 @@ export async function POST(req: Request) {
       subtype_id,
       title,
       city,
+      geo_state_id: geography.geo_state_id,
+      geo_district_id: geography.geo_district_id,
+      geo_subdivision_id: geography.geo_subdivision_id,
+      geo_block_id: geography.geo_block_id,
+      geo_place_id: geography.geo_place_id,
       status: status || "draft",
       is_public: !!is_public,
       is_builder_listing: !!is_builder_listing,
