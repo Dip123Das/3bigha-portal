@@ -17,6 +17,7 @@ import {
   getCrossModuleSeoLinks,
   getIntentSeoLinks,
 } from "@/lib/seo/internal-links";
+import { getSeoGeoCities } from "@/lib/geography/seoAdapter";
 import { getAiMarketContent } from "@/lib/seo/ai-market-content";
 
 import {
@@ -37,22 +38,20 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  const geoPaths = [
-    { state: "west-bengal", district: "cooch-behar", city: "cooch-behar-town" },
-    { state: "west-bengal", district: "cooch-behar", city: "khagrabari" },
-    { state: "west-bengal", district: "cooch-behar", city: "tufanganj" },
-  ];
+  const geoPaths = await getSeoGeoCities(500);
 
   return seoModules.flatMap((module) =>
-    geoPaths.flatMap((geo) =>
-      getSeoCategories(module).map((category) => ({
-        module,
-        state: geo.state,
-        district: geo.district,
-        city: geo.city,
-        category: category.slug,
-      }))
-    )
+    geoPaths
+      .filter((geo) => geo.stateSlug && geo.districtSlug && geo.citySlug)
+      .flatMap((geo) =>
+        getSeoCategories(module).map((category) => ({
+          module,
+          state: geo.stateSlug,
+          district: geo.districtSlug,
+          city: geo.citySlug,
+          category: category.slug,
+        }))
+      )
   );
 }
 
