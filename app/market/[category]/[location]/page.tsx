@@ -226,6 +226,19 @@ export default async function MarketCategoryLocationPage({ params }: PageProps) 
           </Link>
 
           <Link
+            href="/seo/materials/west-bengal/cooch-behar"
+            className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-black text-slate-900 no-underline"
+          >
+            Explore Regional Marketplace
+          </Link>
+          <Link
+            href="/vendor-opportunities"
+            className="rounded-2xl bg-slate-950 px-5 py-3 text-center text-sm font-black text-white no-underline"
+          >
+            View Vendor Opportunities
+          </Link>
+
+          <Link
             href="/need"
             className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-black text-slate-900 no-underline"
           >

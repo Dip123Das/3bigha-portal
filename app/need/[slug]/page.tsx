@@ -30,6 +30,25 @@ function clean(value: unknown) {
     .trim();
 }
 
+function marketPathFromNeedSlug(slug: string) {
+  const prefixes = [
+    "building-material-supplier",
+    "property-seller",
+    "service-provider",
+    "rental-provider",
+  ];
+
+  for (const prefix of prefixes) {
+    if (slug.startsWith(`${prefix}-`)) {
+      const location = slug.slice(prefix.length + 1);
+      if (!location) return null;
+      return `/market/${prefix}/${location}`;
+    }
+  }
+
+  return null;
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const supabase = getSupabase();
 
@@ -92,6 +111,7 @@ export default async function NeedSlugPage({ params }: PageProps) {
   const description = clean(data.seo_description);
   const location = title.split(" in ").slice(1).join(" in ") || "India";
   const requirement = title.replace(/^Need\s+/i, "").split(" in ")[0];
+  const marketPath = marketPathFromNeedSlug(data.slug);
 
   const schema = {
     "@context": "https://schema.org",
@@ -184,6 +204,22 @@ export default async function NeedSlugPage({ params }: PageProps) {
             className="rounded-2xl bg-slate-950 px-5 py-3 text-center text-sm font-black text-white no-underline"
           >
             View Vendor Opportunities
+          </Link>
+
+          {marketPath && (
+            <Link
+              href={marketPath}
+              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-black text-slate-900 no-underline"
+            >
+              View Local Marketplace
+            </Link>
+          )}
+
+          <Link
+            href="/seo/materials/west-bengal"
+            className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-black text-slate-900 no-underline"
+          >
+            Explore West Bengal Market
           </Link>
 
           <Link
