@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { SeoModule } from "@/lib/geo/india-geo";
+import { getSeoCategories } from "@/lib/seo/category-slugs";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -139,6 +140,26 @@ export async function getSeoRegionalPathsFromDb(
   );
 }
 
+export async function getSeoCategoryPathsFromDb(
+  modules: readonly SeoModule[]
+) {
+  const cities = await getSeoGeoCities(500);
+
+  return modules.flatMap((module) =>
+    cities
+      .filter((geo) => geo.stateSlug && geo.districtSlug && geo.citySlug)
+      .flatMap((geo) =>
+        getSeoCategories(module).map((category) => ({
+          module,
+          state: geo.stateSlug,
+          district: geo.districtSlug,
+          city: geo.citySlug,
+          category: category.slug,
+        }))
+      )
+  );
+}
+
 
 export async function getSeoStatePathsFromDb(modules: readonly SeoModule[]) {
   const { data, error } = await supabase
@@ -193,15 +214,17 @@ export async function getSeoDistrictPathsFromDb(modules: readonly SeoModule[]) {
 }
 
 export async function getAllSeoUrlsFromDb(modules: readonly SeoModule[]) {
-  const [states, districts, cities] = await Promise.all([
+  const [states, districts, cities, categories] = await Promise.all([
     getSeoStatePathsFromDb(modules),
     getSeoDistrictPathsFromDb(modules),
     getSeoRegionalPathsFromDb(modules),
+    getSeoCategoryPathsFromDb(modules),
   ]);
 
   return [
     ...states.map((item) => `/seo/${item.module}/${item.state}`),
     ...districts.map((item) => `/seo/${item.module}/${item.state}/${item.district}`),
     ...cities.map((item) => `/seo/${item.module}/${item.state}/${item.district}/${item.city}`),
+    ...categories.map((item) => `/seo/${item.module}/${item.state}/${item.district}/${item.city}/category/${item.category}`),
   ];
 }
