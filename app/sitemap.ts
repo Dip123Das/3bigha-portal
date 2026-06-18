@@ -6,7 +6,7 @@ import { seoModules } from "@/lib/geo/india-geo";
 import { getAllSeoUrlsFromDb } from "@/lib/geography/seoAdapter";
 import { getVendorOpportunityUrls } from "@/lib/seo/vendor-opportunity-seo";
 import { getPublicRfqSitemapEntries } from "@/lib/seo/rfq-public-seo";
-import { getVendorDemandSitemapEntries } from "@/lib/seo/vendor-demand-seo";
+import { getVendorDemandSitemapEntries, getMarketDemandSitemapEntries } from "@/lib/seo/vendor-demand-seo";
 import { isIndexableStaticPath, hasSeoMinimumQuality, isSafePublicId } from "@/lib/seo/url-policy";
 
 type SitemapRow = {
@@ -39,6 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const vendorOpportunityRoutes = await getVendorOpportunityUrls();
   const publicRfqPages = await getPublicRfqSitemapEntries();
   const vendorDemandPages = await getVendorDemandSitemapEntries();
+  const marketDemandPages = await getMarketDemandSitemapEntries();
 
 const staticRoutes = [
   "",
@@ -111,7 +112,7 @@ const staticRoutes = [
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    return [...staticPages, ...publicRfqPages];
+    return [...staticPages, ...publicRfqPages, ...vendorDemandPages, ...marketDemandPages];
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey, {
@@ -256,6 +257,7 @@ const staticRoutes = [
   return [
     ...publicRfqPages,
     ...vendorDemandPages,
+    ...marketDemandPages,
     ...staticPages,
     ...dynamicPages,
   ];
