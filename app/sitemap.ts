@@ -61,6 +61,7 @@ const staticRoutes = [
   "/blog",
   "/investment",
   "/search",
+  "/market-rfq",
   "/about",
   "/contact",
   "/privacy-policy",
