@@ -2,6 +2,11 @@ import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/lib/seo/site";
 
+type VendorSeoRow = {
+  slug: string | null;
+  created_at: string | null;
+};
+
 function clean(value: unknown) {
   return String(value || "").trim();
 }
@@ -19,33 +24,54 @@ function getSupabase() {
   });
 }
 
+async function getAllVendorSeoRows(): Promise<VendorSeoRow[]> {
+  const supabase = getSupabase();
+  if (!supabase) return [];
+
+  const pageSize = 1000;
+  const rows: VendorSeoRow[] = [];
+
+  for (let from = 0; from < 10000; from += pageSize) {
+    const to = from + pageSize - 1;
+
+    const { data, error } = await supabase
+      .from("vendor_opportunity_seo")
+      .select("slug, created_at")
+      .eq("is_indexable", true)
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (error || !Array.isArray(data) || data.length === 0) break;
+
+    rows.push(...data);
+
+    if (data.length < pageSize) break;
+  }
+
+  return rows;
+}
+
 export function getVendorDemandCanonical(slug: string) {
   return `${siteConfig.url}/need/${encodeURIComponent(slug)}`;
 }
 
 export async function getVendorDemandSitemapEntries(): Promise<MetadataRoute.Sitemap> {
-  const supabase = getSupabase();
-  if (!supabase) return [];
-
-  const { data, error } = await supabase
-    .from("vendor_opportunity_seo")
-    .select("slug, created_at")
-    .eq("is_indexable", true)
-    .order("created_at", { ascending: false })
-    .range(0, 9999);
-
-  if (error || !Array.isArray(data)) return [];
+  const data = await getAllVendorSeoRows();
 
   return data
-    .filter((row) => clean(row.slug))
-    .map((row) => ({
-      url: getVendorDemandCanonical(row.slug),
-      lastModified: row.created_at || new Date(),
-      changeFrequency: "daily" as const,
-      priority: 0.83,
-    }));
-}
+    .map((row) => {
+      const slug = clean(row.slug);
+      if (!slug) return null;
 
+      return {
+        url: getVendorDemandCanonical(slug),
+        lastModified: row.created_at || new Date(),
+        changeFrequency: "daily" as const,
+        priority: 0.83,
+      };
+    })
+    .filter(Boolean) as MetadataRoute.Sitemap;
+}
 
 function stripShortId(slug: string) {
   return slug.replace(/-[a-f0-9]{8}$/i, "");
@@ -74,23 +100,15 @@ function marketPathFromNeedSlug(slug: string) {
 }
 
 export async function getMarketDemandSitemapEntries(): Promise<MetadataRoute.Sitemap> {
-  const supabase = getSupabase();
-  if (!supabase) return [];
-
-  const { data, error } = await supabase
-    .from("vendor_opportunity_seo")
-    .select("slug, created_at")
-    .eq("is_indexable", true)
-    .order("created_at", { ascending: false })
-    .range(0, 9999);
-
-  if (error || !Array.isArray(data)) return [];
-
+  const data = await getAllVendorSeoRows();
   const seen = new Set<string>();
 
   return data
     .map((row) => {
-      const path = marketPathFromNeedSlug(row.slug);
+      const slug = clean(row.slug);
+      if (!slug) return null;
+
+      const path = marketPathFromNeedSlug(slug);
       if (!path || seen.has(path)) return null;
       seen.add(path);
 
