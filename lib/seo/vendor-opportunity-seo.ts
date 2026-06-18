@@ -44,7 +44,7 @@ async function loadGeoMap(table: string) {
 }
 
 export async function getVendorOpportunityRows(
-  limit = 1000
+  limit = 10000
 ): Promise<VendorOpportunitySeoRow[]> {
   const [queueRes, states, districts, places] = await Promise.all([
     supabase
