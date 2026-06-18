@@ -157,20 +157,28 @@ export async function getSeoStatePathsFromDb(modules: readonly SeoModule[]) {
 }
 
 export async function getSeoDistrictPathsFromDb(modules: readonly SeoModule[]) {
-  const cities = await getSeoGeoCities();
+  const { data, error } = await supabase
+    .from("geo_districts")
+    .select("slug, geo_states:state_id(slug)")
+    .eq("is_active", true)
+    .order("name", { ascending: true })
+    .limit(500);
 
-  const districts = new Map<string, { state: string; district: string }>();
-  for (const geo of cities) {
-    if (geo.stateSlug && geo.districtSlug) {
-      districts.set(`${geo.stateSlug}/${geo.districtSlug}`, {
-        state: geo.stateSlug,
-        district: geo.districtSlug,
-      });
-    }
-  }
+  if (error || !Array.isArray(data)) return [];
+
+  const districts = data
+    .map((row: any) => {
+      const state = Array.isArray(row.geo_states) ? row.geo_states[0] : row.geo_states;
+
+      return {
+        state: state?.slug || "",
+        district: row.slug || "",
+      };
+    })
+    .filter((row) => row.state && row.district);
 
   return modules.flatMap((module) =>
-    Array.from(districts.values()).map((item) => ({
+    districts.map((item) => ({
       module,
       state: item.state,
       district: item.district,
