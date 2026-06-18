@@ -31,7 +31,7 @@ export async function getVendorDemandSitemapEntries(): Promise<MetadataRoute.Sit
     .from("vendor_opportunity_seo")
     .select("slug, created_at")
     .eq("is_indexable", true)
-    .limit(1000);
+    .limit(10000);
 
   if (error || !Array.isArray(data)) return [];
 
@@ -80,7 +80,7 @@ export async function getMarketDemandSitemapEntries(): Promise<MetadataRoute.Sit
     .from("vendor_opportunity_seo")
     .select("slug, created_at")
     .eq("is_indexable", true)
-    .limit(1000);
+    .limit(10000);
 
   if (error || !Array.isArray(data)) return [];
 
