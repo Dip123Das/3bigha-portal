@@ -258,6 +258,12 @@ const staticRoutes = [
     ...publicRfqPages,
     ...vendorDemandPages,
     ...marketDemandPages,
+    ...vendorOpportunityRoutes.map((path) => ({
+      url: route(path),
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.82,
+    })),
     ...staticPages,
     ...dynamicPages,
   ];
