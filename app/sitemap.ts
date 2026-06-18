@@ -9,6 +9,9 @@ import { getPublicRfqSitemapEntries } from "@/lib/seo/rfq-public-seo";
 import { getVendorDemandSitemapEntries, getMarketDemandSitemapEntries } from "@/lib/seo/vendor-demand-seo";
 import { isIndexableStaticPath, hasSeoMinimumQuality, isSafePublicId } from "@/lib/seo/url-policy";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type SitemapRow = {
   id?: string | null;
   slug?: string | null;
