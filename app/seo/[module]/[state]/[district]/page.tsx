@@ -7,6 +7,7 @@ import { siteConfig } from "@/lib/seo/site";
 import { buildSeoSchemaGraph } from "@/lib/seo/structured-data";
 import { seoModules, isSeoModule, type SeoModule } from "@/lib/geo/india-geo";
 import { getSeoGeoCities, getSeoDistrictPathsFromDb } from "@/lib/geography/seoAdapter";
+import { getSeoCategories } from "@/lib/seo/category-slugs";
 
 export const dynamic = "force-static";
 
@@ -157,6 +158,13 @@ export default async function DistrictSeoPage({ params }: PageProps) {
   );
 
   const relatedModules = seoModules.filter((item) => item !== module);
+  const relatedCategories = getSeoCategories(module).slice(0, 12);
+  const categoryBaseGeo = (await getSeoGeoCities(500)).find(
+    (geo) =>
+      geo.stateSlug === params.state &&
+      geo.districtSlug === params.district &&
+      geo.citySlug
+  );
   const searches = popularSearches(module, district);
 
   const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}/${params.district}`;
@@ -490,6 +498,28 @@ return (
           </div>
         </div>
       </section>
+      {categoryBaseGeo && relatedCategories.length > 0 && (
+        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "10px 16px 18px" }}>
+          <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 24, padding: 26, boxShadow: "0 10px 28px rgba(15,23,42,0.05)" }}>
+            <h2 style={{ margin: 0, color: "#0f172a", fontSize: 24 }}>
+              Popular {title} Categories in {district}
+            </h2>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginTop: 18 }}>
+              {relatedCategories.map((item) => (
+                <Link
+                  key={item.slug}
+                  href={`/seo/${module}/${categoryBaseGeo.stateSlug}/${categoryBaseGeo.districtSlug}/${categoryBaseGeo.citySlug}/category/${item.slug}`}
+                  style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12, padding: "12px 14px", color: "#0f172a", fontWeight: 900, textDecoration: "none" }}
+                >
+                  {item.label} in {district}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
     </main>
   );
 }

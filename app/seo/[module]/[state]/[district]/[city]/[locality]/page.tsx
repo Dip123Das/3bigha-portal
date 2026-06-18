@@ -20,6 +20,7 @@ import {
   isSeoModule,
   type SeoModule,
 } from "@/lib/geo/india-geo";
+import { getSeoCategories } from "@/lib/seo/category-slugs";
 
 export const dynamic = "force-static";
 
