@@ -141,15 +141,21 @@ export async function getSeoRegionalPathsFromDb(
 
 
 export async function getSeoStatePathsFromDb(modules: readonly SeoModule[]) {
-  const cities = await getSeoGeoCities();
+  const { data, error } = await supabase
+    .from("geo_states")
+    .select("slug")
+    .eq("is_active", true)
+    .order("name", { ascending: true })
+    .limit(100);
 
-  const states = new Map<string, string>();
-  for (const geo of cities) {
-    if (geo.stateSlug) states.set(geo.stateSlug, geo.stateSlug);
-  }
+  if (error || !Array.isArray(data)) return [];
+
+  const states = data
+    .map((row: any) => String(row.slug || "").trim())
+    .filter(Boolean);
 
   return modules.flatMap((module) =>
-    Array.from(states.values()).map((state) => ({
+    states.map((state) => ({
       module,
       state,
     }))
