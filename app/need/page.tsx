@@ -71,6 +71,10 @@ export default async function NeedIndexPage() {
               <p className="mt-2 text-sm font-semibold leading-6 text-slate-600">
                 {row.seo_description}
               </p>
+
+              <p className="mt-3 text-sm font-black text-emerald-700">
+                View opportunity →
+              </p>
             </Link>
           ))
         ) : (
