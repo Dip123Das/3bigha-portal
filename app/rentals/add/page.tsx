@@ -583,6 +583,27 @@ export default function AddRentalPage() {
       return { ok: false, message: "You must be logged in to add a rental listing." };
     }
 
+    let geography: any = null;
+
+    try {
+      const geoRes = await fetch("/api/admin/geography/resolve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          state: stateName,
+          district,
+          city,
+          locality,
+          pincode,
+        }),
+      });
+
+      const geoJson = await geoRes.json().catch(() => null);
+      geography = geoJson?.result || null;
+    } catch {
+      geography = null;
+    }
+
     const payload = {
       owner_id: userId,
 
@@ -636,6 +657,12 @@ export default function AddRentalPage() {
       city: city.trim() || null,
       locality: locality.trim() || null,
       pincode: pincode.trim() || null,
+
+      geo_state_id: geography?.geo_state_id || null,
+      geo_district_id: geography?.geo_district_id || null,
+      geo_subdivision_id: geography?.geo_subdivision_id || null,
+      geo_block_id: geography?.geo_block_id || null,
+      geo_place_id: geography?.geo_place_id || null,
 
       photos: [
         ...mediaAssets.map((asset) => ({

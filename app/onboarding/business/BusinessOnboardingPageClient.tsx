@@ -948,6 +948,27 @@ export default function BusinessOnboardingPageClient() {
             return;
           }
 
+          let geography: any = null;
+
+          try {
+            const geoRes = await fetch("/api/admin/geography/resolve", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                state: json.state || bp.state,
+                district: json.district || bp.district,
+                city: json.locality || bp.city,
+                locality: json.locality || bp.city,
+                pincode: json.postcode || bp.pincode,
+              }),
+            });
+
+            const geoJson = await geoRes.json().catch(() => null);
+            geography = geoJson?.result || null;
+          } catch {
+            geography = null;
+          }
+
           const nextBp = {
             ...bp,
             location_verification_status: "verified",
@@ -961,6 +982,11 @@ export default function BusinessOnboardingPageClient() {
             state: json.state || bp.state || null,
             city: json.locality || bp.city || null,
             pincode: json.postcode || bp.pincode || null,
+            geo_state_id: geography?.geo_state_id || null,
+            geo_district_id: geography?.geo_district_id || null,
+            geo_subdivision_id: geography?.geo_subdivision_id || null,
+            geo_block_id: geography?.geo_block_id || null,
+            geo_place_id: geography?.geo_place_id || null,
           };
 
           setBp(nextBp);
@@ -981,6 +1007,11 @@ export default function BusinessOnboardingPageClient() {
               state: json.state || bp.state || null,
               city: json.locality || bp.city || null,
               pincode: json.postcode || bp.pincode || null,
+              geo_state_id: geography?.geo_state_id || null,
+              geo_district_id: geography?.geo_district_id || null,
+              geo_subdivision_id: geography?.geo_subdivision_id || null,
+              geo_block_id: geography?.geo_block_id || null,
+              geo_place_id: geography?.geo_place_id || null,
               is_complete: completion.isComplete,
               completion_score: completion.score,
               missing_fields: completion.missing,
