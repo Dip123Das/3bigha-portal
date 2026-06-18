@@ -56,6 +56,24 @@ function categoryLabel(category: string) {
   return label;
 }
 
+function marketSlugToNeedSlug(category: string, location: string) {
+  const cleanCategory = clean(category);
+  const cleanLocation = clean(location);
+
+  if (!cleanCategory || !cleanLocation) return null;
+
+  return `${cleanCategory}-${cleanLocation}`;
+}
+
+function getLocationTail(category: string, location: string) {
+  const cleanCategory = clean(category);
+  const cleanLocation = clean(location);
+
+  if (!cleanLocation.startsWith(`${cleanCategory}-`)) return cleanLocation;
+
+  return cleanLocation.slice(cleanCategory.length + 1);
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const category = categoryLabel(params.category);
   const location = titleCaseSlug(params.location);
@@ -87,15 +105,31 @@ export default async function MarketCategoryLocationPage({ params }: PageProps) 
   const category = categoryLabel(params.category);
   const location = titleCaseSlug(params.location);
   const aiContent = generateMarketContent(category, location);
+  const exactNeedSlug = marketSlugToNeedSlug(params.category, params.location);
+  const locationTail = getLocationTail(params.category, params.location);
+  const locationLabel = titleCaseSlug(locationTail);
 
-  const { data } = await supabase
+  const { data: exactRows } = exactNeedSlug
+    ? await supabase
+        .from("vendor_opportunity_seo")
+        .select("slug, seo_title, seo_description")
+        .eq("is_indexable", true)
+        .eq("slug", exactNeedSlug)
+        .limit(1)
+    : { data: [] };
+
+  const { data: nearbyRows } = await supabase
     .from("vendor_opportunity_seo")
     .select("slug, seo_title, seo_description")
     .eq("is_indexable", true)
-    .ilike("seo_title", `%${location}%`)
+    .ilike("seo_title", `%${locationLabel}%`)
     .limit(20);
 
-  const related = (data || []).filter((row) =>
+  const data = [...(exactRows || []), ...(nearbyRows || [])].filter(
+    (row, index, arr) => arr.findIndex((item) => item.slug === row.slug) === index
+  );
+
+  const related = data.filter((row) =>
     clean(row.seo_title).toLowerCase().includes(category.toLowerCase().split(" ")[0])
   );
 
