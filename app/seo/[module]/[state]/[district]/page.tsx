@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { siteConfig } from "@/lib/seo/site";
+import { buildInternalLinks } from "@/lib/seo/graph/internal-link-graph";
 import { buildSeoSchemaGraph } from "@/lib/seo/structured-data";
 import { seoModules, isSeoModule, type SeoModule } from "@/lib/geo/india-geo";
 import { getSeoGeoCities, getSeoDistrictPathsFromDb } from "@/lib/geography/seoAdapter";
@@ -159,6 +160,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
 
   const relatedModules = seoModules.filter((item) => item !== module);
   const relatedCategories = getSeoCategories(module).slice(0, 12);
+const internalLinks = buildInternalLinks({ state: params.state, district: params.district });
   const categoryBaseGeo = (await getSeoGeoCities(5000)).find(
     (geo) =>
       geo.stateSlug === params.state &&
@@ -697,7 +699,25 @@ return (
                 </Link>
               ))}
             </div>
+
+<div className="seoInternalLinks">
+<h3>Related Market Opportunities</h3>
+<ul>
+{internalLinks.map((item) => (
+<li key={item.href}><a href={item.href}>{item.label}</a></li>
+))}
+</ul>
+</div>
           </div>
+
+<div className="seoInternalLinks">
+<h3>Related Market Opportunities</h3>
+<ul>
+{internalLinks.map((item) => (
+<li key={item.href}><a href={item.href}>{item.label}</a></li>
+))}
+</ul>
+</div>
         </section>
       )}
 

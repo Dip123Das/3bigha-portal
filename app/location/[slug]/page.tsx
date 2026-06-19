@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/lib/seo/site";
+import { buildInternalLinks } from "@/lib/seo/graph/internal-link-graph";
 
 export const dynamic = "force-dynamic";
 
@@ -78,10 +79,12 @@ async function getOpportunityGroup(prefix: string, placeSlug: string) {
 
 export async function generateMetadata({ params }: PageProps) {
   const location = titleCaseSlug(params.slug);
+const internalLinks = buildInternalLinks({ city: params.slug });
   const title = `Construction, Property & Vendor Marketplace in ${location} | 3Bigha`;
   const description = `Explore property, building materials, services, rentals and local vendor opportunities in ${location} on 3Bigha.`;
 
   const canonical = `${siteConfig.url}/location/${encodeURIComponent(params.slug)}`;
+const internalLinks = buildInternalLinks({ city: params.slug });
 
   return {
     title,
@@ -135,6 +138,14 @@ function OpportunityList({
           </p>
         )}
       </div>
+
+<div className="seoInternalLinks">
+<h3>Related Market Opportunities</h3>
+<ul>
+{internalLinks.map((item) => (
+<li key={item.href}><a href={item.href}>{item.label}</a></li>
+))}</ul>
+</div>
     </section>
   );
 }
@@ -147,19 +158,26 @@ export default async function LocationHubPage({ params }: PageProps) {
     .from("geo_places")
     .select("id,name,slug,place_type,pincode")
     .eq("slug", params.slug)
+const internalLinks = buildInternalLinks({ city: params.slug });
     .limit(1)
     .maybeSingle();
 
   if (!place) notFound();
 
   const location = clean(place.name) || titleCaseSlug(params.slug);
+const internalLinks = buildInternalLinks({ city: params.slug });
   const canonicalUrl = `${siteConfig.url}/location/${encodeURIComponent(params.slug)}`;
+const internalLinks = buildInternalLinks({ city: params.slug });
 
   const [propertyRows, materialRows, serviceRows, rentalRows] = await Promise.all([
     getOpportunityGroup("property-seller", params.slug),
+const internalLinks = buildInternalLinks({ city: params.slug });
     getOpportunityGroup("building-material-supplier", params.slug),
+const internalLinks = buildInternalLinks({ city: params.slug });
     getOpportunityGroup("service-provider", params.slug),
+const internalLinks = buildInternalLinks({ city: params.slug });
     getOpportunityGroup("rental-provider", params.slug),
+const internalLinks = buildInternalLinks({ city: params.slug });
   ]);
 
   const schema = [
@@ -228,18 +246,50 @@ export default async function LocationHubPage({ params }: PageProps) {
           <p className="text-xs font-black uppercase text-slate-500">Property</p>
           <p className="mt-2 text-2xl font-black text-slate-950">{propertyRows.length}+</p>
         </div>
+
+<div className="seoInternalLinks">
+<h3>Related Market Opportunities</h3>
+<ul>
+{internalLinks.map((item) => (
+<li key={item.href}><a href={item.href}>{item.label}</a></li>
+))}</ul>
+</div>
         <div className="rounded-3xl border border-slate-200 bg-white p-5">
           <p className="text-xs font-black uppercase text-slate-500">Materials</p>
           <p className="mt-2 text-2xl font-black text-slate-950">{materialRows.length}+</p>
         </div>
+
+<div className="seoInternalLinks">
+<h3>Related Market Opportunities</h3>
+<ul>
+{internalLinks.map((item) => (
+<li key={item.href}><a href={item.href}>{item.label}</a></li>
+))}</ul>
+</div>
         <div className="rounded-3xl border border-slate-200 bg-white p-5">
           <p className="text-xs font-black uppercase text-slate-500">Services</p>
           <p className="mt-2 text-2xl font-black text-slate-950">{serviceRows.length}+</p>
         </div>
+
+<div className="seoInternalLinks">
+<h3>Related Market Opportunities</h3>
+<ul>
+{internalLinks.map((item) => (
+<li key={item.href}><a href={item.href}>{item.label}</a></li>
+))}</ul>
+</div>
         <div className="rounded-3xl border border-slate-200 bg-white p-5">
           <p className="text-xs font-black uppercase text-slate-500">Rentals</p>
           <p className="mt-2 text-2xl font-black text-slate-950">{rentalRows.length}+</p>
         </div>
+
+<div className="seoInternalLinks">
+<h3>Related Market Opportunities</h3>
+<ul>
+{internalLinks.map((item) => (
+<li key={item.href}><a href={item.href}>{item.label}</a></li>
+))}</ul>
+</div>
       </section>
 
       <section className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 sm:p-7">
@@ -265,6 +315,14 @@ export default async function LocationHubPage({ params }: PageProps) {
         <OpportunityList title={`Service provider opportunities in ${location}`} rows={serviceRows} />
         <OpportunityList title={`Rental provider opportunities in ${location}`} rows={rentalRows} />
       </div>
+
+<div className="seoInternalLinks">
+<h3>Related Market Opportunities</h3>
+<ul>
+{internalLinks.map((item) => (
+<li key={item.href}><a href={item.href}>{item.label}</a></li>
+))}</ul>
+</div>
 
       <section className="mt-5 rounded-3xl border border-emerald-200 bg-emerald-50 p-5 sm:p-7">
         <h2 className="text-xl font-black text-slate-950">
@@ -295,6 +353,14 @@ export default async function LocationHubPage({ params }: PageProps) {
             Browse Marketplace
           </Link>
         </div>
+
+<div className="seoInternalLinks">
+<h3>Related Market Opportunities</h3>
+<ul>
+{internalLinks.map((item) => (
+<li key={item.href}><a href={item.href}>{item.label}</a></li>
+))}</ul>
+</div>
       </section>
     </main>
   );
