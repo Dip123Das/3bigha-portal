@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/lib/seo/site";
 import { seoModules } from "@/lib/geo/india-geo";
-import { getAllSeoUrlsFromDb } from "@/lib/geography/seoAdapter";
+import { getAllSeoUrlsFromDb, getSeoGeoCities } from "@/lib/geography/seoAdapter";
 import { getVendorOpportunityUrls } from "@/lib/seo/vendor-opportunity-seo";
 import { getPublicRfqSitemapEntries } from "@/lib/seo/rfq-public-seo";
 import { getVendorDemandSitemapEntries, getMarketDemandSitemapEntries } from "@/lib/seo/vendor-demand-seo";
@@ -37,6 +37,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const regionalSeoRoutes = (await getAllSeoUrlsFromDb(seoModules))
     .filter((path) => path.startsWith("/seo/"));
+
+  const locationHubRoutes = (await getSeoGeoCities(500))
+    .filter((geo) => geo.citySlug)
+    .map((geo) => `/location/${geo.citySlug}`);
 
   const vendorOpportunityRoutes = await getVendorOpportunityUrls();
   const publicRfqPages = await getPublicRfqSitemapEntries();
@@ -74,10 +78,11 @@ const staticRoutes = [
   "/terms-and-conditions",
   "/refund-cancellation-policy",
   ...regionalSeoRoutes,
+  ...locationHubRoutes,
 ];
 
   const staticPages: MetadataRoute.Sitemap = staticRoutes
-    .filter((path) => path.startsWith("/seo/") || isIndexableStaticPath(path))
+    .filter((path) => path.startsWith("/seo/") || path.startsWith("/location/") || isIndexableStaticPath(path))
     .map((path) => ({
     url: route(path),
     lastModified: now,
