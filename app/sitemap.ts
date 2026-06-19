@@ -38,9 +38,52 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const regionalSeoRoutes = (await getAllSeoUrlsFromDb(seoModules))
     .filter((path) => path.startsWith("/seo/"));
 
-  const locationHubRoutes = (await getSeoGeoCities(500))
+  const dbLocationHubRoutes = (await getSeoGeoCities(500))
     .filter((geo) => geo.citySlug)
     .map((geo) => `/location/${geo.citySlug}`);
+
+  const fallbackLocationSlugs = [
+    "andaran-fulbari",
+    "balabhut",
+    "balarampur",
+    "baneswar",
+    "barokodali",
+    "battala",
+    "bhetaguri",
+    "boxirhat",
+    "changrabandha",
+    "chowdhurihat",
+    "cooch-behar-town",
+    "dewanhat",
+    "dinhata",
+    "dinhata-road",
+    "ghoksadanga",
+    "gopalpur",
+    "gosanimari",
+    "guriahati",
+    "haldibari",
+    "haribhanga",
+    "khagrabari",
+    "kuchlibari",
+    "mahishbathan",
+    "mathabhanga",
+    "mekhliganj",
+    "natabari",
+    "new-town",
+    "nishiganj",
+    "pilkhana",
+    "pundibari",
+    "rail-ghumti",
+    "sahebganj",
+    "sitai",
+    "sitalkuchi",
+    "tufanganj",
+  ];
+
+  const locationHubRoutes =
+    dbLocationHubRoutes.length > 0
+      ? dbLocationHubRoutes
+      : fallbackLocationSlugs.map((slug) => `/location/${slug}`);
 
   const vendorOpportunityRoutes = await getVendorOpportunityUrls();
   const publicRfqPages = await getPublicRfqSitemapEntries();
