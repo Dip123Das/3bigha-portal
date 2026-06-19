@@ -145,6 +145,7 @@ const staticRoutes = [
   "/search",
   "/market-rfq",
   "/need",
+  "/founding-vendors",
   "/about",
   "/contact",
   "/privacy-policy",
