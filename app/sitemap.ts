@@ -256,7 +256,7 @@ const staticRoutes = [
     });
   }
 
-  return [
+  const allPages: MetadataRoute.Sitemap = [
     ...publicRfqPages,
     ...vendorDemandPages,
     ...marketDemandPages,
@@ -269,4 +269,12 @@ const staticRoutes = [
     ...staticPages,
     ...dynamicPages,
   ];
+
+  const seenUrls = new Set<string>();
+
+  return allPages.filter((page) => {
+    if (!page.url || seenUrls.has(page.url)) return false;
+    seenUrls.add(page.url);
+    return true;
+  });
 }
