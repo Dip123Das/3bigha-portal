@@ -1,531 +1,276 @@
-// app/services/[id]/page.tsx
-"use client";
-
-import React, { useEffect, useMemo, useState } from "react";
-import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
-
-import { Container } from "@/components/layout/Container";
-import { SectionHeader } from "@/components/layout/SectionHeader";
-import { Card, CardBody, CardFooter } from "@/components/ui/Card";
-import { ActionButton } from "@/components/ui/ActionButton";
-import { Badge } from "@/components/ui/Badge";
-import { EmptyState } from "@/components/ui/EmptyState";
-
-import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
-import ProcurementKnowledgeGraphBlock from "@/app/components/ai/ProcurementKnowledgeGraphBlock";
-import { buildProcurementKnowledgeGraph } from "@/lib/seo/procurement-knowledge-graph";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
 import JsonLd from "@/components/seo/JsonLd";
-import { breadcrumbSchema } from "@/lib/seo/schema";
 import { siteConfig } from "@/lib/seo/site";
-
+import { breadcrumbSchema } from "@/lib/seo/schema";
 import {
   buildAiSeoContent,
   buildFaqSchema,
 } from "@/lib/seo/ai-search-content";
 
-import { buildRelatedContent } from "@/lib/seo/related-content";
-import { buildRelatedListings } from "@/lib/seo/related-listings";
-import { buildRecommendations } from "@/lib/ai/recommendation-engine";
-import MemoryEventTracker from "@/app/components/ai/MemoryEventTracker";
-
-import { Link } from "lucide-react";
+type PageProps = {
+  params: {
+    id: string;
+  };
+};
 
 type ServiceRow = {
   provider_service_id: string;
-
   provider_id: string | null;
   provider_name: string | null;
   provider_slug: string | null;
   provider_kind: string | null;
   provider_phone: string | null;
   provider_email: string | null;
-
   city: string | null;
   district: string | null;
   state: string | null;
-
   provider_status: string | null;
-
   custom_category: string | null;
   custom_subcategory: string | null;
   custom_service: string | null;
-
   service_description: string | null;
   service_is_active: boolean | null;
-
   pricing_kind: string | null;
   min_price: number | null;
   max_price: number | null;
   currency: string | null;
 };
 
-function isUuid(v: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+export const dynamic = "force-dynamic";
+
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key) return null;
+
+  return createClient(url, key, {
+    auth: { persistSession: false },
+  });
 }
 
-function safeText(x: any) {
-  return String(x ?? "").trim();
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
+function clean(value: unknown) {
+  return String(value || "")
+    .replace(/[<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function fmtMoney(currency: string | null, amount: number | null) {
-  if (amount == null) return null;
-  const cur = safeText(currency || "INR").toUpperCase();
+  if (amount == null) return "";
+  const cur = clean(currency || "INR").toUpperCase();
   const symbol = cur === "INR" ? "₹" : `${cur} `;
-  // keep it simple (no decimals); you can enhance later
-  return `${symbol}${amount}`;
+  return `${symbol}${Number(amount).toLocaleString("en-IN")}`;
 }
 
-export default function ServiceDetailsPage({ params }: { params: { id: string } }) {
-  const supabase = useMemo(() => getSupabaseBrowser(), []);
-  const id = safeText(params?.id);
+function getServiceName(row: ServiceRow) {
+  return (
+    clean(row.custom_service) ||
+    clean(row.custom_subcategory) ||
+    clean(row.custom_category) ||
+    "Construction Service"
+  );
+}
 
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
-  const [row, setRow] = useState<ServiceRow | null>(null);
+function getLocation(row: ServiceRow) {
+  return [row.city, row.district, row.state].map(clean).filter(Boolean).join(", ");
+}
 
-  useEffect(() => {
-    let alive = true;
+function getPriceText(row: ServiceRow) {
+  const min = row.min_price ?? null;
+  const max = row.max_price ?? null;
 
-    (async () => {
-      setLoading(true);
-      setErr(null);
-      setRow(null);
+  if (min === null && max === null) return "Contact for quote";
 
-      if (!id || !isUuid(id)) {
-        if (!alive) return;
-        setErr(`Invalid service id in URL: "${id || "—"}".`);
-        setLoading(false);
-        return;
-      }
+  const minText = fmtMoney(row.currency, min);
+  const maxText = fmtMoney(row.currency, max);
 
-      try {
-        const { data, error } = await (supabase as any)
-          .from("v_service_listings")
-          .select(
-            [
-              "provider_service_id",
-              "provider_id",
-              "provider_name",
-              "provider_slug",
-              "provider_kind",
-              "provider_phone",
-              "provider_email",
-              "city",
-              "district",
-              "state",
-              "provider_status",
-              "custom_category",
-              "custom_subcategory",
-              "custom_service",
-              "service_description",
-              "service_is_active",
-              "pricing_kind",
-              "min_price",
-              "max_price",
-              "currency",
-            ].join(",")
-          )
-          .eq("provider_service_id", id)
-          .maybeSingle();
+  const range =
+    min !== null && max !== null && min !== max
+      ? `${minText} – ${maxText}`
+      : minText || maxText;
 
-        if (!alive) return;
+  return `${range}${row.pricing_kind ? ` / ${row.pricing_kind}` : ""}`;
+}
 
-        if (error) {
-          setErr(error.message || "Failed to load service details.");
-          setLoading(false);
-          return;
-        }
+async function getService(id: string) {
+  const supabase = getSupabase();
+  if (!supabase) return null;
 
-        if (!data) {
-          setErr("Service not found.");
-          setLoading(false);
-          return;
-        }
+  const { data, error } = await supabase
+    .from("v_service_listings")
+    .select(
+      [
+        "provider_service_id",
+        "provider_id",
+        "provider_name",
+        "provider_slug",
+        "provider_kind",
+        "provider_phone",
+        "provider_email",
+        "city",
+        "district",
+        "state",
+        "provider_status",
+        "custom_category",
+        "custom_subcategory",
+        "custom_service",
+        "service_description",
+        "service_is_active",
+        "pricing_kind",
+        "min_price",
+        "max_price",
+        "currency",
+      ].join(",")
+    )
+    .eq("provider_service_id", id)
+    .maybeSingle();
 
-        setRow(data as ServiceRow);
-        setLoading(false);
-      } catch (e: any) {
-        if (!alive) return;
-        setErr(e?.message || "Failed to load service details.");
-        setLoading(false);
-      }
-    })();
+  if (error || !data) return null;
 
-    return () => {
-      alive = false;
+  return data as unknown as ServiceRow;
+}
+
+export async function generateMetadata({ params }: PageProps) {
+  const id = clean(params.id);
+
+  if (!id || !isUuid(id)) {
+    return {
+      title: "Service Not Found | 3Bigha",
+      robots: { index: false, follow: false },
     };
-  }, [id, supabase]);
+  }
 
-  const name = useMemo(() => {
-    const s1 = safeText(row?.custom_service);
-    const s2 = safeText(row?.custom_subcategory);
-    return s1 || s2 || "Service";
-  }, [row]);
+  const row = await getService(id);
 
-  const location = useMemo(() => {
-    if (!row) return "";
-    return [row.city, row.district, row.state].filter(Boolean).join(", ");
-  }, [row]);
+  if (!row || row.service_is_active === false) {
+    return {
+      title: "Service Not Found | 3Bigha",
+      robots: { index: false, follow: false },
+    };
+  }
 
-  // ✅ TS FIX: always pass string|null and number|null
-  const minText = fmtMoney(row?.currency ?? null, row?.min_price ?? null);
-  const maxText = fmtMoney(row?.currency ?? null, row?.max_price ?? null);
+  const name = getServiceName(row);
+  const location = getLocation(row);
+  const title = `${name}${location ? ` in ${location}` : ""} | 3Bigha`;
+  const description =
+    clean(row.service_description) ||
+    `Find ${name.toLowerCase()}${location ? ` in ${location}` : ""} on 3Bigha. Connect with local service providers and submit requirements.`;
 
-  const priceText = useMemo(() => {
-    if (!row) return "";
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `${siteConfig.url}/services/${encodeURIComponent(id)}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${siteConfig.url}/services/${encodeURIComponent(id)}`,
+      type: "website",
+      siteName: siteConfig.name,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  };
+}
 
-    const min = row.min_price ?? null;
-    const max = row.max_price ?? null;
+export default async function ServiceDetailsPage({ params }: PageProps) {
+  const id = clean(params.id);
 
-    // handle 0 properly (0 is valid price)
-    const hasMin = min !== null;
-    const hasMax = max !== null;
+  if (!id || !isUuid(id)) {
+    notFound();
+  }
 
-    if (!hasMin && !hasMax) return "";
+  const row = await getService(id);
 
-    const range =
-      hasMin && hasMax && max !== min
-        ? `${minText ?? ""} – ${maxText ?? ""}`
-        : `${(hasMin ? minText : maxText) ?? ""}`;
+  if (!row || row.service_is_active === false) {
+    notFound();
+  }
 
-    return `${range}${row.pricing_kind ? ` / ${row.pricing_kind}` : ""}`;
-  }, [row, minText, maxText]);
-
+  const name = getServiceName(row);
+  const location = getLocation(row);
+  const priceText = getPriceText(row);
   const canonicalUrl = `${siteConfig.url}/services/${encodeURIComponent(id)}`;
 
   const aiSeo = buildAiSeoContent({
     module: "services",
-
     title: name,
-
-    category:
-      row?.custom_category ||
-      row?.custom_subcategory ||
-      "Service",
-
-    type:
-      row?.custom_service ||
-      row?.provider_kind ||
-      "Service Provider",
-
-    city: row?.city || "",
-    district: row?.district || "",
+    category: row.custom_category || row.custom_subcategory || "Service",
+    type: row.custom_service || row.provider_kind || "Service Provider",
+    city: row.city || "",
+    district: row.district || "",
     locality: "",
-
-    price:
-      row?.min_price ||
-      row?.max_price ||
-      null,
-
-    listingType:
-      row?.pricing_kind ||
-      "Service",
+    price: row.min_price || row.max_price || null,
+    listingType: row.pricing_kind || "Service",
   });
 
   const faqSchema = buildFaqSchema(aiSeo.faq);
 
-  const relatedContent = buildRelatedContent({
-  module: "services",
+  const serviceSchema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name,
+    description:
+      clean(row.service_description) ||
+      "Construction and real estate service listing on 3Bigha.",
+    url: canonicalUrl,
+    areaServed: location || "India",
+    provider: {
+      "@type": "Organization",
+      name: clean(row.provider_name) || "3Bigha Service Provider",
+      email: clean(row.provider_email) || undefined,
+      telephone: clean(row.provider_phone) || undefined,
+    },
+    offers:
+      row.min_price !== null || row.max_price !== null
+        ? {
+            "@type": "Offer",
+            priceCurrency: clean(row.currency) || "INR",
+            price:
+              row.min_price !== null
+                ? row.min_price
+                : row.max_price !== null
+                ? row.max_price
+                : undefined,
+            description: priceText,
+            url: canonicalUrl,
+          }
+        : undefined,
+  };
 
-  title: name,
-
-  category:
-    row?.custom_category ||
-    row?.custom_subcategory ||
-    "Service",
-
-  type:
-    row?.custom_service ||
-    row?.provider_kind ||
-    "Service Provider",
-
-  city: row?.city || "",
-  district: row?.district || "",
-  locality: "",
-});
-
-const relatedRows: any[] = [];
-
-const relatedListings = buildRelatedListings({
-  module: "services",
-  currentId: id,
-  rows: relatedRows,
-  city: row?.city || "",
-  district: row?.district || "",
-  locality: "",
-  category:
-    row?.custom_category ||
-    row?.custom_subcategory ||
-    "Service",
-});
-
-const aiRecommendations = buildRecommendations({
-  module: "services",
-
-  currentId: id,
-
-  rows: relatedRows,
-
-  city: row?.city || "",
-  district: row?.district || "",
-  locality: "",
-
-  category:
-    row?.custom_category ||
-    row?.custom_subcategory ||
-    "Service",
-
-  type:
-    row?.custom_service ||
-    row?.provider_kind ||
-    "Service Provider",
-
-  minPrice:
-    row?.min_price
-      ? Number(row.min_price) * 0.7
-      : null,
-
-  maxPrice:
-    row?.max_price
-      ? Number(row.max_price) * 1.3
-      : null,
-
-  userIntent: "service discovery",
-});
-
-  const serviceSchema = row
-    ? {
-        "@context": "https://schema.org",
-        "@type": "Service",
-        name,
-        description:
-          safeText(row.service_description) ||
-          "Construction and real estate service listing on 3bigha.com.",
-        url: canonicalUrl,
-        areaServed: location || "India",
-        provider: {
-          "@type": "Organization",
-          name: safeText(row.provider_name) || "3bigha Service Provider",
-          email: safeText(row.provider_email) || undefined,
-          telephone: safeText(row.provider_phone) || undefined,
-        },
-        offers:
-          row.min_price !== null || row.max_price !== null
-            ? {
-                "@type": "Offer",
-                priceCurrency: safeText(row.currency) || "INR",
-                price:
-                  row.min_price !== null
-                    ? row.min_price
-                    : row.max_price !== null
-                    ? row.max_price
-                    : undefined,
-                description: priceText || "Contact for quote",
-                url: canonicalUrl,
-              }
-            : undefined,
-      }
-    : null;
-
-    <div
-  style={{
-    marginTop: 14,
-    padding: 14,
-    borderRadius: 12,
-    background: "#f8fafc",
-    border: "1px solid #e2e8f0",
-  }}
->
-  <div
-    style={{
-      fontWeight: 900,
-      fontSize: 18,
-      marginBottom: 14,
-    }}
-  >
-    Related Rental Discovery
-  </div>
-
-  <div
-    style={{
-      display: "grid",
-      gap: 12,
-    }}
-  >
-    {relatedContent.map((item, index) => (
-      <Link
-        key={index}
-        href={item.href}
-        style={{
-          display: "block",
-          padding: 14,
-          borderRadius: 12,
-          background: "#fff",
-          border: "1px solid #e5e7eb",
-          textDecoration: "none",
-          color: "inherit",
-        }}
-      >
-        <div style={{ fontWeight: 900, marginBottom: 4 }}>
-          {item.label}
-        </div>
-
-        <div
-          style={{
-            fontSize: 13,
-            opacity: 0.75,
-            lineHeight: 1.5,
-          }}
-        >
-          {item.description}
-        </div>
-      </Link>
-    ))}
-  </div>
-</div>
-
-{relatedListings.length ? (
-  <div
-    style={{
-      marginTop: 14,
-      padding: 14,
-      borderRadius: 12,
-      background: "#fff",
-      border: "1px solid #e5e7eb",
-    }}
-  >
-    <div
-      style={{
-        fontWeight: 900,
-        fontSize: 18,
-        marginBottom: 14,
-      }}
-    >
-      Similar Rentals Nearby
-    </div>
-
-    <div style={{ display: "grid", gap: 12 }}>
-      {relatedListings.map((item) => (
-        <Link
-          key={item.id}
-          href={item.href}
-          style={{
-            display: "block",
-            padding: 14,
-            borderRadius: 12,
-            background: "#f8fafc",
-            border: "1px solid #e5e7eb",
-            textDecoration: "none",
-            color: "inherit",
-          }}
-        >
-          <div style={{ fontWeight: 900, marginBottom: 4 }}>
-            {item.title}
-          </div>
-
-          <div
-            style={{
-              fontSize: 13,
-              opacity: 0.75,
-              lineHeight: 1.5,
-            }}
-          >
-            {[item.location, item.priceText].filter(Boolean).join(" • ")}
-          </div>
-        </Link>
-      ))}
-    </div>
-  </div>
-) : null}
-
-{aiRecommendations.length ? (
-  <div
-    style={{
-      marginTop: 14,
-      padding: 14,
-      borderRadius: 12,
-      background: "#fff",
-      border: "1px solid #e5e7eb",
-    }}
-  >
-    <div
-      style={{
-        fontWeight: 900,
-        fontSize: 18,
-        marginBottom: 14,
-      }}
-    >
-      AI Recommended Rental Opportunities
-    </div>
-
-    <div style={{ display: "grid", gap: 12 }}>
-      {aiRecommendations.map((item) => (
-        <Link
-          key={item.id}
-          href={item.href}
-          style={{
-            display: "block",
-            padding: 14,
-            borderRadius: 12,
-            background: "#f8fafc",
-            border: "1px solid #e5e7eb",
-            textDecoration: "none",
-            color: "inherit",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 12,
-              alignItems: "center",
-            }}
-          >
-            <div style={{ fontWeight: 900 }}>
-              {item.title}
-            </div>
-
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 800,
-                color: "#2563eb",
-              }}
-            >
-              AI Score {item.score}
-            </div>
-          </div>
-
-          <div
-            style={{
-              marginTop: 6,
-              fontSize: 13,
-              opacity: 0.8,
-              lineHeight: 1.5,
-            }}
-          >
-            {item.reason}
-          </div>
-
-          <div
-            style={{
-              marginTop: 6,
-              fontSize: 12,
-              opacity: 0.7,
-            }}
-          >
-            {[item.locality, item.city, item.district]
-              .filter(Boolean)
-              .join(", ")}
-          </div>
-        </Link>
-      ))}
-    </div>
-  </div>
-) : null}
+  const relatedLinks = [
+    {
+      label: `Search more services${location ? ` in ${location}` : ""}`,
+      href: `/services?q=${encodeURIComponent(location || name)}`,
+    },
+    {
+      label: `Submit service requirement${location ? ` in ${location}` : ""}`,
+      href: `/rfq/general/new?module=services&q=${encodeURIComponent(name)}`,
+    },
+    {
+      label: `Find vendors${location ? ` near ${location}` : ""}`,
+      href: `/vendor/discovery?q=${encodeURIComponent(name)}${
+        row.district ? `&district=${encodeURIComponent(row.district)}` : ""
+      }`,
+    },
+  ];
 
   return (
-    <main>
+    <main style={{ background: "#f8fafc", minHeight: "100vh" }}>
       <JsonLd
         data={[
           breadcrumbSchema([
@@ -533,304 +278,200 @@ const aiRecommendations = buildRecommendations({
             { name: "Services", url: `${siteConfig.url}/services` },
             { name, url: canonicalUrl },
           ]),
-          ...(serviceSchema ? [serviceSchema] : []),
-
+          serviceSchema,
           faqSchema,
         ]}
       />
 
-      <MemoryEventTracker
-        eventType="listing_view"
-        module="services"
-        entityId={id}
-        entityTitle={name}
-        category={
-          row?.custom_category ||
-          row?.custom_subcategory ||
-          "Service"
-        }
-        type={
-          row?.custom_service ||
-          row?.provider_kind ||
-          "Service Provider"
-        }
-        city={row?.city || ""}
-        district={row?.district || ""}
-        locality=""
-        metadata={{
-        source: "service_detail_page",
-        pricing_kind:
-          row?.pricing_kind ||
-          null,
-        min_price:
-          row?.min_price ||
-          null,
-        max_price:
-          row?.max_price ||
-          null,
-      }}
-      />
-
-      <Container>
-        <SectionHeader title={name} subtitle="Service details" />
-
-        <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <ActionButton href="/services" variant="secondary">
+      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "34px 16px" }}>
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 24,
+            padding: 28,
+            boxShadow: "0 16px 40px rgba(15,23,42,0.06)",
+          }}
+        >
+          <Link
+            href="/services"
+            style={{
+              color: "#2563eb",
+              fontWeight: 900,
+              textDecoration: "none",
+            }}
+          >
             ← Back to Services
-          </ActionButton>
+          </Link>
 
-          {row?.custom_category ? <Badge>{row.custom_category}</Badge> : null}
-          {priceText ? <Badge>{priceText}</Badge> : null}
-        </div>
+          <div
+            style={{
+              display: "inline-flex",
+              marginTop: 18,
+              background: "#dcfce7",
+              color: "#166534",
+              borderRadius: 999,
+              padding: "7px 12px",
+              fontSize: 12,
+              fontWeight: 900,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
+            Verified Service Listing
+          </div>
 
-        <div style={{ marginTop: 14 }}>
-          {loading ? (
-            <EmptyState message="Loading service…" />
-          ) : err ? (
-            <Card>
-              <CardBody>
-                <div style={{ color: "crimson", fontWeight: 900, marginBottom: 6 }}>Could not load</div>
-                <div style={{ opacity: 0.85 }}>{err}</div>
-              </CardBody>
-              <CardFooter>
-                <ActionButton href="/services" variant="primary">
-                  Go to Services →
-                </ActionButton>
-              </CardFooter>
-            </Card>
-          ) : !row ? (
-            <EmptyState message="Service not found." />
-          ) : (
-            <div className="srvGrid">
-              <Card>
-                <CardBody>
-                  <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-                    <div>
-                      <h2 style={{ margin: 0 }}>{name}</h2>
+          <h1
+            style={{
+              margin: "16px 0 0",
+              fontSize: "clamp(30px, 5vw, 52px)",
+              lineHeight: 1.05,
+              color: "#0f172a",
+              letterSpacing: "-0.04em",
+            }}
+          >
+            {name}
+          </h1>
 
-                      <div style={{ marginTop: 6, color: "#5b6472" }}>
-                        Provider: <b>{row.provider_name ?? "—"}</b>{" "}
-                        {row.provider_kind ? <span style={{ opacity: 0.85 }}>• {row.provider_kind}</span> : null}
-                      </div>
-                    </div>
+          <p
+            style={{
+              marginTop: 14,
+              color: "#475569",
+              fontSize: 17,
+              fontWeight: 700,
+            }}
+          >
+            {location || "India"} · {priceText}
+          </p>
 
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-                      <Badge>{row.provider_status ?? "active"}</Badge>
-                      {row.service_is_active === false ? <Badge>Inactive</Badge> : null}
-                    </div>
-                  </div>
+          <p
+            style={{
+              marginTop: 20,
+              color: "#334155",
+              lineHeight: 1.8,
+              fontSize: 16,
+              fontWeight: 600,
+              maxWidth: 860,
+            }}
+          >
+            {clean(row.service_description) ||
+              `${name} service available through 3Bigha. Connect with local providers, compare options and submit your requirement for faster vendor response.`}
+          </p>
 
-                  <div
-                    style={{
-                      marginTop: 14,
-                      lineHeight: 1.65,
-                      opacity: 0.92,
-                      whiteSpace: "pre-wrap",
-                    }}
-                  >
-                    {safeText(row.service_description) || "No description provided."}
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 14,
-                      padding: 14,
-                      borderRadius: 12,
-                      background: "#f8fafc",
-                      border: "1px solid #e2e8f0",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontWeight: 900,
-                        fontSize: 18,
-                        marginBottom: 12,
-                      }}
-                    >
-                      AI Service Market Insight
-                    </div>
-
-                    <div
-                      style={{
-                        whiteSpace: "pre-wrap",
-                        lineHeight: 1.7,
-                        marginBottom: 16,
-                      }}
-                    >
-                      {aiSeo.summary}
-                    </div>
-
-                    <div
-                      style={{
-                        whiteSpace: "pre-wrap",
-                        lineHeight: 1.7,
-                        marginBottom: 16,
-                      }}
-                    >
-                      {aiSeo.investmentInsight}
-                    </div>
-
-                    <div
-                      style={{
-                        whiteSpace: "pre-wrap",
-                        lineHeight: 1.7,
-                      }}
-                    >
-                      {aiSeo.demandInsight}
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 14,
-                      padding: 14,
-                      borderRadius: 12,
-                      background: "#fff",
-                      border: "1px solid #e5e7eb",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontWeight: 900,
-                        fontSize: 18,
-                        marginBottom: 14,
-                      }}
-                    >
-                      Frequently Asked Questions
-                    </div>
-
-                    <div
-                      style={{
-                        display: "grid",
-                        gap: 14,
-                      }}
-                    >
-                      {aiSeo.faq.map((item, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            paddingBottom: 12,
-                            borderBottom: "1px solid #f1f5f9",
-                          }}
-                        >
-                          <div
-                            style={{
-                              fontWeight: 800,
-                              marginBottom: 6,
-                            }}
-                          >
-                            {item.question}
-                          </div>
-
-                          <div
-                            style={{
-                              opacity: 0.85,
-                              lineHeight: 1.6,
-                            }}
-                          >
-                            {item.answer}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 12,
-                      fontSize: 13,
-                      color: "#5b6472",
-                      display: "flex",
-                      gap: 12,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    {location ? <span>Location: {location}</span> : null}
-                    {row.provider_phone ? <span>Phone: {row.provider_phone}</span> : null}
-                    {row.provider_email ? <span>Email: {row.provider_email}</span> : null}
-                  </div>
-                </CardBody>
-
-                <CardFooter>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "space-between", width: "100%" }}>
-                    <ActionButton href="/services" variant="secondary">
-                      ← Back
-                    </ActionButton>
-
-                    {row.provider_slug ? (
-                      <ActionButton href={`/services/providers/${row.provider_slug}`} variant="primary">
-                        View Provider →
-                      </ActionButton>
-                    ) : (
-                      <ActionButton href="/services" variant="primary">
-                        Explore more services →
-                      </ActionButton>
-                    )}
-                  </div>
-                </CardFooter>
-              </Card>
-
-          <Card>
-            <CardBody>
-
-              <div style={{ fontWeight: 950, marginBottom: 8 }}>
-                Send Enquiry
-              </div>
-
-              {!row.provider_id && (
-                <div style={{ fontSize:12, opacity:.6, marginBottom:8 }}>
-                  Provider account not linked to this service.
-                </div>
-              )}
-
-              <SendEnquiryButton
-                module="service"
-                refId={String(row.provider_service_id)}
-                title={name}
-                priceText={priceText}
-                vendorUserId={row.provider_id ?? null}
-                nextUrl={`/services/${encodeURIComponent(String(id))}`}
-              />
-
-              <Link
-                href={`/vendor/discovery?q=${encodeURIComponent(
-                  name || "service provider"
-                )}`}
-                className="topBtn topBtnGhost"
-                style={{ textDecoration: "none", marginTop: 10 }}
+          <div
+            style={{
+              marginTop: 22,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 12,
+            }}
+          >
+            {[
+              ["Provider", clean(row.provider_name) || "3Bigha Provider"],
+              ["Category", clean(row.custom_category) || "Service"],
+              ["Subcategory", clean(row.custom_subcategory) || name],
+              ["Status", clean(row.provider_status) || "Active"],
+            ].map(([label, value]) => (
+              <div
+                key={label}
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 16,
+                  padding: 14,
+                }}
               >
-                AI Recommended Vendors →
-              </Link>
+                <div
+                  style={{
+                    color: "#64748b",
+                    fontSize: 12,
+                    fontWeight: 900,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {label}
+                </div>
+                <div style={{ marginTop: 6, color: "#0f172a", fontWeight: 900 }}>
+                  {value}
+                </div>
+              </div>
+            ))}
+          </div>
 
-              <ProcurementKnowledgeGraphBlock
-                graph={buildProcurementKnowledgeGraph({
-                  title: name,
-                  module: "services",
-                  category: row.provider_kind || "Service Provider",
-                  city: row.city || "Cooch Behar",
-                  district: row.district || "Cooch Behar",
-                  locality: "Khagrabari",
-                })}
-              />
+          <div style={{ marginTop: 22, display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <Link
+              href={`/rfq/general/new?module=services&q=${encodeURIComponent(name)}`}
+              style={{
+                background: "#0f172a",
+                color: "#ffffff",
+                padding: "13px 18px",
+                borderRadius: 14,
+                fontWeight: 900,
+                textDecoration: "none",
+              }}
+            >
+              Submit Requirement
+            </Link>
 
-            </CardBody>
-          </Card>
-            </div>
-          )}
+            <Link
+              href={`/vendor/discovery?q=${encodeURIComponent(name)}`}
+              style={{
+                background: "#ffffff",
+                color: "#0f172a",
+                border: "1px solid #cbd5e1",
+                padding: "13px 18px",
+                borderRadius: 14,
+                fontWeight: 900,
+                textDecoration: "none",
+              }}
+            >
+              Find Similar Vendors
+            </Link>
+          </div>
         </div>
+      </section>
 
-        <style>{`
-          .srvGrid{
-            display:grid;
-            gap:14px;
-            grid-template-columns:2fr 1fr;
-            align-items:start;
-          }
-          @media (max-width: 980px){
-            .srvGrid{ grid-template-columns:1fr; }
-          }
-        `}</style>
-      </Container>
+      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "0 16px 40px" }}>
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 22,
+            padding: 24,
+          }}
+        >
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 24 }}>
+            Related Market Links
+          </h2>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 12,
+              marginTop: 16,
+            }}
+          >
+            {relatedLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 14,
+                  padding: "13px 14px",
+                  color: "#0f172a",
+                  fontWeight: 900,
+                  textDecoration: "none",
+                }}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
