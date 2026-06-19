@@ -38,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const regionalSeoRoutes = (await getAllSeoUrlsFromDb(seoModules))
     .filter((path) => path.startsWith("/seo/"));
 
-  const dbLocationHubRoutes = (await getSeoGeoCities(500))
+  const dbLocationHubRoutes = (await getSeoGeoCities(5000))
     .filter((geo) => geo.citySlug)
     .map((geo) => `/location/${geo.citySlug}`);
 

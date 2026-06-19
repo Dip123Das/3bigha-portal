@@ -80,7 +80,7 @@ export async function getSeoGeoBySlugs(
   };
 }
 
-export async function getSeoGeoCities(limit = 500): Promise<SeoGeoCity[]> {
+export async function getSeoGeoCities(limit = 5000): Promise<SeoGeoCity[]> {
   const { data, error } = await supabase
     .from("geo_places")
     .select(`
@@ -143,7 +143,7 @@ export async function getSeoRegionalPathsFromDb(
 export async function getSeoCategoryPathsFromDb(
   modules: readonly SeoModule[]
 ) {
-  const cities = await getSeoGeoCities(500);
+  const cities = await getSeoGeoCities(5000);
 
   return modules.flatMap((module) =>
     cities
@@ -189,7 +189,7 @@ export async function getSeoDistrictPathsFromDb(modules: readonly SeoModule[]) {
     .select("slug, geo_states:state_id(slug)")
     .eq("is_active", true)
     .order("name", { ascending: true })
-    .limit(500);
+    .limit(5000);
 
   if (error || !Array.isArray(data)) return [];
 

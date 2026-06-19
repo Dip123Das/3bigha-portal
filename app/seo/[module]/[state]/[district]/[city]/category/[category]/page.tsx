@@ -38,7 +38,7 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  const geoPaths = await getSeoGeoCities(500);
+  const geoPaths = await getSeoGeoCities(5000);
 
   return seoModules.flatMap((module) =>
     geoPaths

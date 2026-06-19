@@ -159,7 +159,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
 
   const relatedModules = seoModules.filter((item) => item !== module);
   const relatedCategories = getSeoCategories(module).slice(0, 12);
-  const categoryBaseGeo = (await getSeoGeoCities(500)).find(
+  const categoryBaseGeo = (await getSeoGeoCities(5000)).find(
     (geo) =>
       geo.stateSlug === params.state &&
       geo.districtSlug === params.district &&
