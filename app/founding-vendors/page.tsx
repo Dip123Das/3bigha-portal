@@ -4,24 +4,27 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Become a Founding Vendor | 3Bigha",
   description:
-    "Join 3Bigha as a founding vendor. Free onboarding for manufacturers, suppliers, contractors, builders, rental providers and service professionals.",
+    "Join 3Bigha as a founding vendor. Free registration and free listing access for BuildCon vendors, subject to 3Bigha approval.",
   alternates: {
     canonical: "https://www.3bigha.com/founding-vendors",
   },
 };
 
 const benefits = [
-  "Free early registration",
-  "Founding vendor recognition",
-  "AI-powered discovery",
-  "District-level visibility",
-  "RFQ opportunities",
-  "Priority marketplace exposure",
+  "Free vendor registration",
+  "Free product / service / rental listing access",
+  "Founding Vendor recognition",
+  "Priority marketplace visibility",
+  "District-level buyer discovery",
+  "RFQ and enquiry opportunities",
 ];
 
 const categories = [
   "Manufacturers",
   "Dealers",
+  "Cement Suppliers",
+  "Steel Dealers",
+  "Brick Manufacturers",
   "Building Material Suppliers",
   "Contractors",
   "Builders",
@@ -32,88 +35,89 @@ const categories = [
   "Service Providers",
 ];
 
+const opportunities = [
+  "Need Cement Suppliers in Khagrabari",
+  "Need Electricians in Cooch Behar Town",
+  "Need Building Material Suppliers in Battala",
+  "Need JCB Rentals in Baneswar",
+  "Need Property Sellers in Tufanganj",
+];
+
 export default function FoundingVendorsPage() {
   return (
-    <main className="pageShell">
-      <section className="heroPanel">
-        <p className="eyebrow">BuildCon Early Access</p>
+    <main className="foundingVendorPage">
+      <section className="foundingHero">
+        <p className="foundingEyebrow">🎉 BuildCon Special Early Access</p>
         <h1>Become a Founding Vendor on 3Bigha</h1>
-        <p className="heroLead">
-          AI-powered marketplace for Construction, Property, Building Materials,
-          Services and Equipment Rentals.
+        <p>
+          Free registration and free listing access for construction, property,
+          building materials, contractors, services and equipment rental businesses.
         </p>
-        <p className="heroLead">
-          Join free during our early growth phase and get priority visibility as
-          3Bigha expands district by district.
-        </p>
-        <div className="actionRow">
-          <Link className="primaryButton" href="/vendor/register">
-            Join Free
+
+        <div className="foundingActions">
+          <Link className="foundingPrimaryBtn" href="/vendor/register?source=buildcon&program=founding-vendor">
+            🚀 Register Free as Founding Vendor
           </Link>
-          <Link className="secondaryButton" href="/vendor-opportunities">
-            View Opportunities
+          <Link className="foundingSecondaryBtn" href="/post-list?source=buildcon&program=founding-vendor">
+            🧾 List Products / Services Free
           </Link>
-          <a className="secondaryButton" href="tel:+919614657110">
-            Contact Founder
+          <a className="foundingSecondaryBtn" href="https://wa.me/919614657110?text=Hello%20Dipankar%20Da%2C%20I%20want%20to%20join%203Bigha%20as%20a%20Founding%20Vendor.">
+            💬 Join Through WhatsApp
           </a>
         </div>
       </section>
 
-      <section className="contentSection">
+      <section className="foundingCard foundingImportant">
+        <h2>Free Joining + Free Listing Access</h2>
+        <p>
+          BuildCon vendors can register free and add their products, services,
+          rentals or business details on 3Bigha.
+        </p>
+        <p>
+          <strong>Important:</strong> Founding Vendor profiles and listings will
+          be reviewed and approved by 3Bigha before becoming publicly visible.
+        </p>
+      </section>
+
+      <section className="foundingCard">
         <h2>Why Join 3Bigha Early?</h2>
-        <div className="featureGrid">
+        <div className="foundingGrid">
           {benefits.map((item) => (
-            <article className="featureCard" key={item}>
-              <strong>✓ {item}</strong>
-            </article>
+            <div className="foundingMiniCard" key={item}>✓ {item}</div>
           ))}
         </div>
       </section>
 
-      <section className="contentSection">
+      <section className="foundingCard">
         <h2>Who Can Join?</h2>
-        <div className="tagGrid">
+        <div className="foundingTags">
           {categories.map((item) => (
-            <span className="tagPill" key={item}>
-              {item}
-            </span>
+            <span className="foundingTag" key={item}>{item}</span>
           ))}
         </div>
       </section>
 
-      <section className="contentSection highlightPanel">
-        <h2>BuildCon Special Vendor Access</h2>
-        <p>
-          Visitors meeting us at BuildCon can join 3Bigha with free onboarding,
-          early vendor recognition, priority activation and future featured
-          placement opportunities.
-        </p>
-      </section>
-
-      <section className="contentSection">
-        <h2>Live Marketplace Demand</h2>
-        <p>
-          3Bigha is already mapping local vendor demand such as cement suppliers,
-          electricians, building material dealers, JCB rentals, contractors and
-          property sellers.
-        </p>
-        <Link className="secondaryButton" href="/vendor-opportunities">
-          Explore Vendor Demand
+      <section className="foundingCard">
+        <h2>Current Vendor Opportunities</h2>
+        <div className="foundingGrid">
+          {opportunities.map((item) => (
+            <div className="foundingMiniCard" key={item}>🔎 {item}</div>
+          ))}
+        </div>
+        <Link className="foundingPrimaryBtn foundingInlineBtn" href="/vendor-opportunities">
+          Explore More Vendor Demand
         </Link>
       </section>
 
-      <section className="contentSection founderPanel">
+      <section className="foundingCard">
         <h2>Talk to the Founder</h2>
         <p>
-          <strong>Dipankar Das</strong>
-          <br />
+          <strong>Dipankar Das</strong><br />
           Founder, 3Bigha
         </p>
         <p>
-          📞 <a href="tel:+919614657110">+91 9614657110</a>
-          <br />
-          ✉️ <a href="mailto:vivek.abek@gmail.com">vivek.abek@gmail.com</a>
-          <br />
+          📞 <a href="tel:+919614657110">+91 9614657110</a><br />
+          ✉️ <a href="mailto:vivek.abek@gmail.com">vivek.abek@gmail.com</a><br />
           🌐 <a href="https://www.3bigha.com">www.3bigha.com</a>
         </p>
       </section>

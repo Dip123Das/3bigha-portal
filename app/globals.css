@@ -4494,3 +4494,128 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     grid-template-columns: 1fr 1fr !important;
   }
 }
+
+/* Founding Vendors BuildCon landing page */
+.foundingVendorPage {
+  background: #fff7f1;
+  color: #2b1535;
+  padding: 24px;
+}
+
+.foundingHero {
+  border-radius: 28px;
+  padding: 36px 28px;
+  background: linear-gradient(135deg, #ff4b1f, #8e168f);
+  color: #fff;
+  box-shadow: 0 18px 50px rgba(80, 20, 90, 0.22);
+}
+
+.foundingEyebrow {
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.foundingHero h1 {
+  font-size: clamp(34px, 6vw, 68px);
+  line-height: 1.04;
+  margin: 12px 0;
+}
+
+.foundingHero p {
+  font-size: 20px;
+  max-width: 940px;
+}
+
+.foundingActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.foundingPrimaryBtn,
+.foundingSecondaryBtn {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 14px 18px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.foundingPrimaryBtn {
+  background: #ff4b1f;
+  color: #fff;
+}
+
+.foundingSecondaryBtn {
+  background: #fff;
+  color: #7b167d;
+}
+
+.foundingInlineBtn {
+  margin-top: 18px;
+}
+
+.foundingCard {
+  background: #fff;
+  border-radius: 24px;
+  padding: 26px;
+  margin-top: 22px;
+  box-shadow: 0 12px 36px rgba(70, 20, 80, 0.10);
+  border: 1px solid rgba(142, 22, 143, 0.12);
+}
+
+.foundingImportant {
+  background: linear-gradient(135deg, #fff, #ffe8dc);
+  border: 2px solid #ff8a4c;
+}
+
+.foundingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.foundingMiniCard {
+  padding: 18px;
+  border-radius: 18px;
+  background: #fff7f1;
+  font-weight: 800;
+}
+
+.foundingTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.foundingTag {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: #fff0e7;
+  border: 1px solid #ffb48e;
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .foundingVendorPage {
+    padding: 14px;
+  }
+
+  .foundingHero,
+  .foundingCard {
+    border-radius: 18px;
+    padding: 20px;
+  }
+
+  .foundingHero p {
+    font-size: 16px;
+  }
+
+  .foundingPrimaryBtn,
+  .foundingSecondaryBtn {
+    width: 100%;
+    text-align: center;
+  }
+}
