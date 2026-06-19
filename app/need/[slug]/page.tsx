@@ -50,6 +50,115 @@ function marketPathFromNeedSlug(slug: string) {
   return null;
 }
 
+function humanizeSlug(value: string) {
+  return clean(value)
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function parseNeedSlug(slug: string) {
+  const prefixes = [
+    "building-material-supplier",
+    "property-seller",
+    "service-provider",
+    "rental-provider",
+  ];
+
+  for (const prefix of prefixes) {
+    if (!slug.startsWith(`${prefix}-`)) continue;
+
+    const rest = slug.slice(prefix.length + 1);
+    const knownPlaces = [
+      "cooch-behar-town",
+      "andaran-fulbari",
+      "dinhata-road",
+      "rail-ghumti",
+      "new-town",
+      "mahishbathan",
+      "khagrabari",
+      "battala",
+      "baneswar",
+      "tufanganj",
+      "dinhata",
+      "mathabhanga",
+      "mekhliganj",
+      "haldibari",
+      "pundibari",
+      "sitalkuchi",
+      "sitai",
+      "sahebganj",
+      "pilkhana",
+      "nishiganj",
+      "natabari",
+      "guriahati",
+      "gosanimari",
+      "gopalpur",
+      "ghoksadanga",
+      "dewanhat",
+      "chowdhurihat",
+      "changrabandha",
+      "boxirhat",
+      "bhetaguri",
+      "barokodali",
+      "balarampur",
+      "balabhut",
+      "kuchlibari",
+    ];
+
+    const placeSlug =
+      knownPlaces.find((place) => rest.endsWith(`-${place}`)) || "";
+    const itemSlug = placeSlug
+      ? rest.slice(0, -placeSlug.length - 1)
+      : rest;
+
+    return {
+      prefix,
+      itemSlug,
+      placeSlug,
+      itemLabel: humanizeSlug(itemSlug),
+      placeLabel: humanizeSlug(placeSlug),
+    };
+  }
+
+  return null;
+}
+
+function buildRelatedNeedLinks(slug: string) {
+  const parsed = parseNeedSlug(slug);
+  if (!parsed?.itemSlug || !parsed?.placeSlug) return [];
+
+  const nearbyPlaces = ["battala", "khagrabari", "cooch-behar-town", "pundibari", "baneswar"]
+    .filter((place) => place !== parsed.placeSlug)
+    .slice(0, 3);
+
+  const relatedItems =
+    parsed.prefix === "service-provider"
+      ? ["electrician", "plumber", "civil-contractor", "raj-mistri"]
+      : parsed.prefix === "building-material-supplier"
+      ? ["cement", "tmt-bar", "bricks", "sand"]
+      : parsed.prefix === "rental-provider"
+      ? ["jcb", "excavator", "concrete-mixer", "scaffolding"]
+      : ["residential-plot", "commercial-land", "house", "ready-to-register-land"];
+
+  const links = [
+    ...nearbyPlaces.map((place) => ({
+      href: `/need/${parsed.prefix}-${parsed.itemSlug}-${place}`,
+      label: `${parsed.itemLabel} in ${humanizeSlug(place)}`,
+    })),
+    ...relatedItems
+      .filter((item) => item !== parsed.itemSlug)
+      .slice(0, 3)
+      .map((item) => ({
+        href: `/need/${parsed.prefix}-${item}-${parsed.placeSlug}`,
+        label: `${humanizeSlug(item)} in ${parsed.placeLabel}`,
+      })),
+  ];
+
+  return links.slice(0, 6);
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const supabase = getSupabase();
 
@@ -115,20 +224,65 @@ export default async function NeedSlugPage({ params }: PageProps) {
   const marketPath = marketPathFromNeedSlug(data.slug);
   const aiContent = generateDemandContent(requirement, location);
 
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "Demand",
-    name: title,
-    description,
-    url: `https://www.3bigha.com/need/${encodeURIComponent(data.slug)}`,
-    areaServed: location,
-    category: "Vendor Demand Opportunity",
-    provider: {
-      "@type": "Organization",
-      name: "3Bigha",
-      url: "https://www.3bigha.com",
+  const canonicalUrl = `https://www.3bigha.com/need/${encodeURIComponent(data.slug)}`;
+  const relatedLinks = buildRelatedNeedLinks(data.slug);
+
+  const faqItems = [
+    {
+      question: `How can I find ${requirement} in ${location}?`,
+      answer: `You can use 3Bigha to discover local demand, marketplace options and vendor opportunities for ${requirement} in ${location}.`,
     },
-  };
+    {
+      question: `Can ${requirement} providers register on 3Bigha?`,
+      answer: `Yes. Local businesses and vendors can register on 3Bigha to improve visibility and receive relevant buyer enquiries.`,
+    },
+    {
+      question: `Does 3Bigha support RFQ and buyer enquiries?`,
+      answer: `Yes. 3Bigha supports marketplace discovery, RFQ workflows and buyer-vendor connection features for construction and property needs.`,
+    },
+    {
+      question: `Is this demand signal public?`,
+      answer: `Yes. This page shows public, privacy-safe vendor demand intelligence without exposing private buyer details, chats or RFQ information.`,
+    },
+  ];
+
+  const schema = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Demand",
+      name: title,
+      description,
+      url: canonicalUrl,
+      areaServed: location,
+      category: "Vendor Demand Opportunity",
+      provider: {
+        "@type": "Organization",
+        name: "3Bigha",
+        url: "https://www.3bigha.com",
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://www.3bigha.com" },
+        { "@type": "ListItem", position: 2, name: "Need Vendors", item: "https://www.3bigha.com/need" },
+        { "@type": "ListItem", position: 3, name: title, item: canonicalUrl },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqItems.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      })),
+    },
+  ];
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
@@ -247,6 +401,45 @@ export default async function NeedSlugPage({ params }: PageProps) {
           >
             Browse Marketplace
           </Link>
+        </div>
+      </section>
+
+      {relatedLinks.length > 0 && (
+        <section className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 sm:p-7">
+          <h2 className="text-xl font-black text-slate-950">
+            Related local opportunities
+          </h2>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {relatedLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-900 no-underline hover:bg-white"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 sm:p-7">
+        <h2 className="text-xl font-black text-slate-950">
+          Frequently asked questions
+        </h2>
+
+        <div className="mt-4 grid gap-3">
+          {faqItems.map((item) => (
+            <div key={item.question} className="rounded-2xl bg-slate-50 p-4">
+              <h3 className="text-sm font-black text-slate-950">
+                {item.question}
+              </h3>
+              <p className="mt-2 text-sm font-semibold leading-6 text-slate-700">
+                {item.answer}
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 
