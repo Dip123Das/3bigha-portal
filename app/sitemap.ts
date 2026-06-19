@@ -32,15 +32,45 @@ function safeId(value: unknown) {
   return encodeURIComponent(String(value || "").trim());
 }
 
+async function getLocationHubRoutesFromDb() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) return [];
+
+  const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: { persistSession: false },
+  });
+
+  const { data, error } = await supabase
+    .from("geo_places")
+    .select("slug")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("name", { ascending: true })
+    .limit(5000);
+
+  if (error || !Array.isArray(data)) return [];
+
+  return Array.from(
+    new Set(
+      data
+        .map((row: any) => String(row.slug || "").trim())
+        .filter(Boolean)
+        .map((slug) => `/location/${slug}`)
+    )
+  );
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const regionalSeoRoutes = (await getAllSeoUrlsFromDb(seoModules))
     .filter((path) => path.startsWith("/seo/"));
 
-  const dbLocationHubRoutes = (await getSeoGeoCities(5000))
-    .filter((geo) => geo.citySlug)
-    .map((geo) => `/location/${geo.citySlug}`);
+  const dbLocationHubRoutes = await getLocationHubRoutesFromDb();
 
   const fallbackLocationSlugs = [
     "andaran-fulbari",
