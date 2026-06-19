@@ -167,6 +167,27 @@ export default async function DistrictSeoPage({ params }: PageProps) {
   );
   const searches = popularSearches(module, district);
 
+  const marketplaceStats = [
+    { label: "Cities Covered", value: `${districtCities.length}+` },
+    { label: "Marketplace Module", value: title },
+    { label: "Popular Searches", value: `${searches.length}+` },
+    { label: "District Coverage", value: "India" },
+  ];
+
+  const districtIntentLinks = [
+    { label: `Search ${title} in ${district}`, href: `/search?module=${module}&q=${encodeURIComponent(district)}` },
+    { label: `Post ${title} Requirement`, href: `/rfq/general/new?module=${module}&q=${encodeURIComponent(district)}` },
+    { label: `Browse Vendors in ${district}`, href: `/vendor/discovery?q=${encodeURIComponent(title)}&district=${encodeURIComponent(district)}` },
+    { label: `Local Market Demand in ${district}`, href: `/need` },
+  ];
+
+  const localHubLinks = districtCities
+    .slice(0, 16)
+    .map((city) => ({
+      label: `${city.city} Local Marketplace`,
+      href: `/location/${city.citySlug}`,
+    }));
+
   const canonicalUrl = `${siteConfig.url}/seo/${module}/${params.state}/${params.district}`;
 
   const schemaGraph = buildSeoSchemaGraph({
@@ -232,7 +253,7 @@ export default async function DistrictSeoPage({ params }: PageProps) {
   const seoQualityDescription =
     `Explore ${seoQualityTitle} on 3bigha.com. Find property, materials, services, rentals, vendors, rates and local marketplace information for ${seoQualityLocation || "India"}. This page is created to help users discover useful local marketplace opportunities with clear route-level context.`;
 
-  const seoQualityCount = 3;
+  const seoQualityCount = Math.max(3, districtCities.length);
 
   const seoPass = passesSeoQuality({
     title: seoQualityTitle,
@@ -309,6 +330,34 @@ return (
             {description}
           </p>
 
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: 12,
+              marginTop: 22,
+            }}
+          >
+            {marketplaceStats.map((item) => (
+              <div
+                key={item.label}
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 16,
+                  padding: 14,
+                }}
+              >
+                <div style={{ color: "#64748b", fontSize: 12, fontWeight: 900, textTransform: "uppercase" }}>
+                  {item.label}
+                </div>
+                <div style={{ color: "#0f172a", fontSize: 20, fontWeight: 950, marginTop: 6 }}>
+                  {item.value}
+                </div>
+              </div>
+            ))}
+          </div>
+
           <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 16 }}>
             <Link
               href={modulePath(module)}
@@ -355,6 +404,138 @@ return (
           </div>
         </div>
       </section>
+
+      <section
+        style={{
+          maxWidth: 1180,
+          margin: "0 auto",
+          padding: "10px 16px 18px",
+        }}
+      >
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 24,
+            padding: 26,
+            boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+          }}
+        >
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 26 }}>
+            Popular searches in {district}
+          </h2>
+
+          <p style={{ color: "#475569", lineHeight: 1.7, fontSize: 15, fontWeight: 600 }}>
+            These district-level search intents help buyers, sellers, suppliers and service providers discover local marketplace demand across {district}.
+          </p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginTop: 18 }}>
+            {searches.map((item) => (
+              <Link
+                key={item}
+                href={`/search?q=${encodeURIComponent(item)}`}
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 12,
+                  padding: "12px 14px",
+                  color: "#0f172a",
+                  fontWeight: 900,
+                  textDecoration: "none",
+                }}
+              >
+                {item}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section
+        style={{
+          maxWidth: 1180,
+          margin: "0 auto",
+          padding: "0 16px 18px",
+        }}
+      >
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e2e8f0",
+            borderRadius: 24,
+            padding: 26,
+            boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+          }}
+        >
+          <h2 style={{ margin: 0, color: "#0f172a", fontSize: 26 }}>
+            District marketplace actions in {district}
+          </h2>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginTop: 18 }}>
+            {districtIntentLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: 12,
+                  padding: "12px 14px",
+                  color: "#0f172a",
+                  fontWeight: 900,
+                  textDecoration: "none",
+                }}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {localHubLinks.length > 0 && (
+        <section
+          style={{
+            maxWidth: 1180,
+            margin: "0 auto",
+            padding: "0 16px 18px",
+          }}
+        >
+          <div
+            style={{
+              background: "#ffffff",
+              border: "1px solid #e2e8f0",
+              borderRadius: 24,
+              padding: 26,
+              boxShadow: "0 10px 28px rgba(15,23,42,0.05)",
+            }}
+          >
+            <h2 style={{ margin: 0, color: "#0f172a", fontSize: 26 }}>
+              Related local markets in {district}
+            </h2>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginTop: 18 }}>
+              {localHubLinks.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  style={{
+                    background: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: 12,
+                    padding: "12px 14px",
+                    color: "#0f172a",
+                    fontWeight: 900,
+                    textDecoration: "none",
+                  }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section
         style={{
