@@ -14,6 +14,7 @@ import Image from "next/image";
 import { Container } from "@/components/layout/Container";
 
 // confirmed existing files
+import BuildConVendorPopup from "@/app/_components/BuildConVendorPopup";
 import AuthButtons from "./_components/AuthButtons";
 import ActiveLink from "./_components/ActiveLink";
 import GlobalNotificationBell from "./_components/GlobalNotificationBell";
@@ -617,6 +618,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
         <MasterAdminDebugTools />
 
+              <BuildConVendorPopup />
       </body>
     </html>
   );

@@ -55,11 +55,11 @@ export default function FoundingVendorsPage() {
         </p>
 
         <div className="foundingActions">
-          <Link className="foundingPrimaryBtn" href="/vendor/register?source=buildcon&program=founding-vendor">
+          <Link className="foundingPrimaryBtn" href="/onboarding/business?source=buildcon&program=founding-vendor">
             🚀 Register Free as Founding Vendor
           </Link>
-          <Link className="foundingSecondaryBtn" href="/post-list?source=buildcon&program=founding-vendor">
-            🧾 List Products / Services Free
+          <Link className="foundingSecondaryBtn" href="/onboarding/business?source=buildcon&program=founding-vendor&intent=start-listing">
+            🧾 Create Business Profile & Start Listing
           </Link>
           <a className="foundingSecondaryBtn" href="https://wa.me/919614657110?text=Hello%20Dipankar%20Da%2C%20I%20want%20to%20join%203Bigha%20as%20a%20Founding%20Vendor.">
             💬 Join Through WhatsApp
@@ -67,15 +67,36 @@ export default function FoundingVendorsPage() {
         </div>
       </section>
 
+
       <section className="foundingCard foundingImportant">
-        <h2>Free Joining + Free Listing Access</h2>
+        <h2>100 Founding Vendor Seats</h2>
+        <div className="foundingGrid">
+          <div className="foundingMiniCard">🏗 Bharat BuildCon Outreach</div>
+          <div className="foundingMiniCard">📍 Yashobhoomi, New Delhi</div>
+          <div className="foundingMiniCard">📅 Valid until 15 July 2026</div>
+          <div className="foundingMiniCard">✅ Approval-based public visibility</div>
+        </div>
+      </section>
+
+      <section className="foundingCard">
+        <h2>What Happens Next?</h2>
+        <div className="foundingGrid">
+          <div className="foundingMiniCard">1. Register free</div>
+          <div className="foundingMiniCard">2. Complete business profile</div>
+          <div className="foundingMiniCard">3. Add products, services or rentals</div>
+          <div className="foundingMiniCard">4. Submit for verification</div>
+          <div className="foundingMiniCard">5. Approved by 3Bigha</div>
+          <div className="foundingMiniCard">6. Public visibility activated</div>
+        </div>
+      </section>
+
+      <section className="foundingCard foundingImportant">
+        <h2>Free Joining + Approval-Based Listing Access</h2>
         <p>
-          BuildCon vendors can register free and add their products, services,
-          rentals or business details on 3Bigha.
+          BuildCon vendors can register free, complete business onboarding and start adding products, services, rentals or business details on 3Bigha.
         </p>
         <p>
-          <strong>Important:</strong> Founding Vendor profiles and listings will
-          be reviewed and approved by 3Bigha before becoming publicly visible.
+          <strong>Important:</strong> Free Founding Vendor access starts after 3Bigha approval. Profiles and listings will be reviewed before becoming publicly visible. No automatic public publishing.
         </p>
       </section>
 
