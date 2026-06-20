@@ -4816,3 +4816,28 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     z-index: 100000 !important;
   }
 }
+
+/* Final desktop header clickability fix */
+@media (min-width: 769px) {
+  .topSubBar,
+  .topSubBarInner,
+  .topSubLinks,
+  .topSubLink,
+  .topSubLinks a {
+    position: relative !important;
+    z-index: 200000 !important;
+    pointer-events: auto !important;
+  }
+
+  .desktopMegaNav {
+    z-index: 100 !important;
+  }
+
+  .desktopMegaNavInner {
+    pointer-events: auto !important;
+  }
+
+  .rfqTogglePanel {
+    z-index: 200001 !important;
+  }
+}

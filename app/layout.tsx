@@ -419,98 +419,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </div>
 
               <div className="topSubLinks">
-                <details className="rfqToggle">
-                  <summary className="rfqToggleBtn">
-                    🧑‍💼 My Dashboard <span className="rfqToggleCaret">▾</span>
-                  </summary>
+                <Link className="topSubLink" href="/dashboard/buyer">
+                  My Dashboard
+                </Link>
 
-                  <div className="rfqTogglePanel" role="dialog" aria-label="My Dashboard menu">
-                    <div className="rfqToggleTitle">My Dashboard</div>
-
-                    <div className="rfqToggleDesc">
-                      Everything you need in one place: submit requirements,
-                      track vendor responses, compare quotes, and continue
-                      messages.
-                    </div>
-
-                    <div className="rfqToggleActions" style={{ display: "grid", gap: 8 }}>
-                      <Link className="rfqTogglePrimary" href="/rfq/general/new">
-                        ✍️ Submit Requirement →
-                      </Link>
-
-                      <Link className="rfqToggleSecondary" href="/dashboard/buyer/rfqs">
-                        📄 My RFQs (View vendor responses + Compare quotes) →
-                      </Link>
-
-                      <Link className="rfqToggleSecondary" href="/dashboard/inbox-v2">
-                        📥 Unified Inbox (All Chats) →
-                      </Link>
-
-                      <Link className="rfqToggleSecondary" href="/dashboard/buyer">
-                        🧾 Buyer Dashboard →
-                      </Link>
-
-                      <Link className="rfqToggleSecondary" href="/dashboard/vendor">
-                        🏪 Vendor Hub Dashboard →
-                      </Link>
-                    </div>
-                  </div>
-                </details>
-
-                <details className="rfqToggle">
-                  <summary className="rfqToggleBtn">
-                    💼 Investment <span className="rfqToggleCaret">▾</span>
-                  </summary>
-
-                  <div className="rfqTogglePanel" role="dialog" aria-label="Investment menu">
-                    <div className="rfqToggleTitle">Investment Hub</div>
-
-                    <div className="rfqToggleDesc">
-                      Manage investment conversations and deal execution from one
-                      place. Open investor or builder deal rooms and continue
-                      document-sharing, stage tracking, and protected
-                      discussions.
-                    </div>
-
-                    <div className="rfqToggleActions" style={{ display: "grid", gap: 8 }}>
-                      <Link
-                        className="rfqTogglePrimary"
-                        href="/dashboard/investor/deal-rooms"
-                      >
-                        🤝 Investor Deal Rooms →
-                      </Link>
-
-                      <Link
-                        className="rfqToggleSecondary"
-                        href="/dashboard/builder/deal-rooms"
-                      >
-                        🏗️ Builder Deal Rooms →
-                      </Link>
-                    </div>
-                  </div>
-                </details>
-
-                <details className="rfqToggle">
-                  <summary className="rfqToggleBtn">
-                    ✍️ Submit Requirement <span className="rfqToggleCaret">▾</span>
-                  </summary>
-
-                  <div className="rfqTogglePanel" role="dialog" aria-label="Submit Requirement menu">
-                    <div className="rfqToggleTitle">Submit Requirement</div>
-
-                    <div className="rfqToggleDesc">
-                      Submit your requirement for <b>Materials, Property, Services</b>{" "}
-                      or <b>Rentals</b>. Upload a PDF / handwritten list or type
-                      items. Nearby vendors will send competitive quotations.
-                    </div>
-
-                    <div className="rfqToggleActions" style={{ display: "grid", gap: 8 }}>
-                      <Link className="rfqTogglePrimary" href="/rfq/general/new">
-                        Start RFQ (Property / Materials / Services / Rentals) →
-                      </Link>
-                    </div>
-                  </div>
-                </details>
+                <Link className="topSubLink" href="/rfq/general/new">
+                  Submit Requirement
+                </Link>
 
                 <Link className="topSubLink" href="/investment">
                   Investment

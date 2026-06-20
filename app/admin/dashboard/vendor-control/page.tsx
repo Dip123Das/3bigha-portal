@@ -57,7 +57,7 @@ export default function AdminVendorControlPage() {
     setLoading(false);
   }
 
-  async function updateBoost(vendorUserId: string, action: "boost" | "reset") {
+  async function updateBoost(vendorUserId: string, action: "boost" | "reset" | "soft_ban" | "restore" | "founding_vendor") {
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -151,6 +151,9 @@ export default function AdminVendorControlPage() {
 
               <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap", fontSize: 12, fontWeight: 900 }}>
                 <span>Plan: {row.subscription_plan || "free"}</span>
+                {row.subscription_plan === "founding_vendor" ? (
+                  <span style={{ color: "#8e168f" }}>🎉 Founding Vendor Approved</span>
+                ) : null}
                 <span>Status: {row.subscription_status || "free"}</span>
                 <span>Boost: +{row.boost_priority || 0}</span>
                 <span
@@ -179,6 +182,22 @@ export default function AdminVendorControlPage() {
               </div>
 
               <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => updateBoost(row.user_id, "founding_vendor")}
+                  style={{
+                    border: "none",
+                    borderRadius: 10,
+                    padding: "8px 12px",
+                    background: "#8e168f",
+                    color: "white",
+                    fontWeight: 950,
+                    cursor: "pointer",
+                  }}
+                >
+                  🎉 Approve Founding Vendor
+                </button>
+
                 <button
                   type="button"
                   onClick={() => updateBoost(row.user_id, "boost")}

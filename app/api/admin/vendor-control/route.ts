@@ -103,6 +103,38 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Missing vendor_user_id" }, { status: 400 });
   }
 
+  if (action === "founding_vendor") {
+    const expiresAt = new Date("2026-07-15T23:59:59+05:30").toISOString();
+
+    const { error } = await auth.supabase
+      .from("business_profiles")
+      .update({
+        subscription_plan: "founding_vendor",
+        subscription_status: "approved",
+        boost_priority: 20,
+        boost_expires_at: expiresAt,
+        ai_visibility_status: "normal",
+        ai_visibility_reason:
+          "Approved as BuildCon / WhatsApp Founding Vendor by 3Bigha admin",
+      })
+      .eq("user_id", vendorUserId);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    await auth.supabase.from("vendor_notifications").insert({
+      user_id: vendorUserId,
+      type: "founding_vendor_approved",
+      title: "Founding Vendor access approved",
+      message:
+        "🎉 Your 3Bigha Founding Vendor free access has been approved. You can now complete your profile and add listings. Public visibility remains subject to 3Bigha listing review.",
+      is_read: false,
+    });
+
+    return NextResponse.json({ ok: true });
+  }
+
   if (action === "boost" || action === "reset" || action === "soft_ban" || action === "restore") {
     const boostPriority = action === "boost" ? Number(body?.boost_priority || 20) : 0;
     const expiresAt =
