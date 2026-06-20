@@ -4779,65 +4779,120 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   }
 }
 
-/* Desktop sub-nav overlap fix: keep dashboard/RFQ/investment actions in one safe scroll row */
+/* Stable desktop subbar action dropdowns */
 @media (min-width: 769px) {
   .topSubBar {
+    position: relative !important;
+    z-index: 9000 !important;
     overflow: visible !important;
+    background: #fff !important;
   }
 
   .topSubBarInner {
-    min-width: 0 !important;
+    position: relative !important;
+    z-index: 9001 !important;
+    overflow: visible !important;
   }
 
   .topSubLinks {
+    position: relative !important;
+    z-index: 9002 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    gap: 8px !important;
-    flex-wrap: nowrap !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    overflow-y: visible !important;
-    scrollbar-width: thin;
-    padding-bottom: 4px;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+    overflow: visible !important;
   }
 
-  .topSubLinks > *,
-  .rfqToggle,
+  .rfqToggle {
+    position: relative !important;
+    display: inline-flex !important;
+    z-index: 9010 !important;
+  }
+
   .rfqToggleBtn,
   .topSubLink {
-    flex: 0 0 auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 34px !important;
+    padding: 8px 12px !important;
+    border-radius: 999px !important;
+    border: 1px solid #e5e7eb !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-weight: 900 !important;
+    font-size: 13px !important;
+    text-decoration: none !important;
     white-space: nowrap !important;
+    cursor: pointer !important;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06) !important;
+  }
+
+  .rfqToggle[open] .rfqToggleBtn,
+  .rfqToggleBtn:hover,
+  .topSubLink:hover {
+    background: #eff6ff !important;
+    color: #0b63ce !important;
+    border-color: #bfdbfe !important;
   }
 
   .rfqTogglePanel {
     position: absolute !important;
-    z-index: 100000 !important;
+    top: calc(100% + 8px) !important;
+    right: 0 !important;
+    z-index: 10050 !important;
+    width: min(360px, 90vw) !important;
+    border-radius: 18px !important;
+    padding: 16px !important;
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18) !important;
+    color: #0f172a !important;
   }
-}
 
-/* Final desktop header clickability fix */
-@media (min-width: 769px) {
-  .topSubBar,
-  .topSubBarInner,
-  .topSubLinks,
-  .topSubLink,
-  .topSubLinks a {
-    position: relative !important;
-    z-index: 200000 !important;
-    pointer-events: auto !important;
+  .rfqToggleTitle {
+    font-size: 16px !important;
+    font-weight: 950 !important;
+    margin-bottom: 6px !important;
+  }
+
+  .rfqToggleDesc {
+    font-size: 13px !important;
+    color: #64748b !important;
+    font-weight: 700 !important;
+    line-height: 1.45 !important;
+    margin-bottom: 12px !important;
+  }
+
+  .rfqToggleActions {
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  .rfqTogglePrimary,
+  .rfqToggleSecondary {
+    display: block !important;
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    text-decoration: none !important;
+    font-weight: 900 !important;
+  }
+
+  .rfqTogglePrimary {
+    background: #0b63ce !important;
+    color: #ffffff !important;
+  }
+
+  .rfqToggleSecondary {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    border: 1px solid #e5e7eb !important;
   }
 
   .desktopMegaNav {
-    z-index: 100 !important;
-  }
-
-  .desktopMegaNavInner {
-    pointer-events: auto !important;
-  }
-
-  .rfqTogglePanel {
-    z-index: 200001 !important;
+    position: relative !important;
+    z-index: 1000 !important;
   }
 }
