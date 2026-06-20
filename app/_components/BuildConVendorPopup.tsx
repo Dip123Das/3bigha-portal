@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
-const STORAGE_KEY = "buildcon_founding_vendor_popup_closed";
 const VALID_UNTIL = new Date("2026-07-16T00:00:00+05:30").getTime();
 
 export default function BuildConVendorPopup() {
@@ -19,17 +18,12 @@ export default function BuildConVendorPopup() {
       pathname?.startsWith("/auth");
 
     const expired = Date.now() >= VALID_UNTIL;
-    const closed =
-      typeof window !== "undefined" &&
-      window.localStorage.getItem(STORAGE_KEY) === "1";
-
-    setShow(!blocked && !expired && !closed);
+    setShow(!blocked && !expired);
   }, [pathname]);
 
   if (!show) return null;
 
   function closePopup() {
-    window.localStorage.setItem(STORAGE_KEY, "1");
     setShow(false);
   }
 
