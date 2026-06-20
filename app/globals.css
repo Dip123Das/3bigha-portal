@@ -4778,3 +4778,41 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     font-size: 22px;
   }
 }
+
+/* Desktop sub-nav overlap fix: keep dashboard/RFQ/investment actions in one safe scroll row */
+@media (min-width: 769px) {
+  .topSubBar {
+    overflow: visible !important;
+  }
+
+  .topSubBarInner {
+    min-width: 0 !important;
+  }
+
+  .topSubLinks {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    scrollbar-width: thin;
+    padding-bottom: 4px;
+  }
+
+  .topSubLinks > *,
+  .rfqToggle,
+  .rfqToggleBtn,
+  .topSubLink {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+
+  .rfqTogglePanel {
+    position: absolute !important;
+    z-index: 100000 !important;
+  }
+}
