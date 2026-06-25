@@ -3197,3 +3197,58 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   }
 }
 
+
+/* LIVE FIX: homepage full width + header dropdown containment */
+@media (min-width: 981px) {
+  .pageBody:has(.homePage) {
+    width: 100% !important;
+    max-width: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .topHeader,
+  .topHeaderInner,
+  .topActions,
+  .desktopAuthSlot {
+    overflow: visible !important;
+  }
+
+  .topActions details,
+  .desktopAuthSlot details {
+    position: relative !important;
+  }
+
+  .topActions details > div,
+  .desktopAuthSlot details > div,
+  .topActions [role="menu"],
+  .desktopAuthSlot [role="menu"],
+  .topActions [role="dialog"],
+  .desktopAuthSlot [role="dialog"] {
+    position: absolute !important;
+    top: calc(100% + 8px) !important;
+    right: 0 !important;
+    left: auto !important;
+    z-index: 10080 !important;
+    min-width: 260px !important;
+    max-width: min(380px, calc(100vw - 32px)) !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(15,23,42,0.12) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 24px 70px rgba(15,23,42,0.18) !important;
+    padding: 12px !important;
+  }
+}
+
+/* LIVE FIX: founding partner popup must float, not sit in footer */
+.foundingVendorPopup,
+.buildConVendorPopup,
+.founderVendorPopup {
+  position: fixed !important;
+  right: 22px !important;
+  bottom: 92px !important;
+  z-index: 10040 !important;
+  width: 340px !important;
+  max-width: calc(100vw - 28px) !important;
+}
+

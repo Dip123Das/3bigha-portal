@@ -792,9 +792,8 @@ export default function HomePage() {
 
         .homePage {
           position: relative;
-          width: 100vw;
-          margin-left: calc(50% - 50vw);
-          margin-right: calc(50% - 50vw);
+          width: 100%;
+          margin: 0;
           overflow-x: hidden;
           background:
             radial-gradient(circle at 8% 6%, rgba(37, 99, 235, 0.12), transparent 30%),
@@ -946,6 +945,26 @@ export default function HomePage() {
 
         .mobileSeeMoreButton {
           display: none;
+        }
+
+
+        .homeBottomGrid,
+        .cleanTrustSection,
+        .cleanStartBanner,
+        .cleanHomeFooter {
+          width: 100%;
+          max-width: none;
+          margin-left: 0;
+          margin-right: 0;
+          padding-left: 12px;
+          padding-right: 12px;
+          box-sizing: border-box;
+        }
+
+        .homeBottomGrid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
         }
 
         @media (max-width: 640px) {
