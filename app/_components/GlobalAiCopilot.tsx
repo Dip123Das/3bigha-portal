@@ -1,53 +1,83 @@
 "use client";
 
-import { useState } from "react";
-import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 export default function GlobalAiCopilot() {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
 
-  const isFinanceWorkflowPage =
-    pathname === "/emi-calculator" ||
-    pathname === "/banker/apply" ||
-    pathname.startsWith("/admin/dashboard/finance-leads") ||
-    pathname.startsWith("/admin/dashboard/banker-verification");
-  const [aiOpen, setAiOpen] = useState(false);
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  const links = [
+    ["🔍 AI Smart Search", "/search"],
+    ["📝 Draft RFQ", "/rfq/general/new"],
+    ["📈 Price Prediction", "/price-today"],
+    ["🔎 Find Vendors", "/vendor-opportunities"],
+    ["📐 Cost Calculator", "/cost-calculator"],
+    ["📏 Land Area Calculator", "/land-area-calculator"],
+    ["🏦 EMI Calculator", "/emi-calculator"],
+    ["🧱 Material RFQ", "/materials/rfq/new"],
+    ["🏠 Turnkey Package", "/services/turnkey"],
+    ["💬 AI Inbox", "/dashboard/inbox-v2"],
+    ["🛡️ Support AI", "/support/new"],
+  ];
 
   return (
-    <>
+    <div className={open ? "globalAiShell globalAiShellOpen" : "globalAiShell"}>
       <button
-        className={`floatingAi ${isFinanceWorkflowPage ? "financeAiCompact" : ""}`}
         type="button"
-        onClick={() => setAiOpen((v) => !v)}
-        aria-expanded={aiOpen}
-        aria-label="Open 3Bigha AI Assistant"
+        className="globalAiButton"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-label={open ? "Close 3Bigha AI" : "Open 3Bigha AI"}
       >
-        🤖 <span>3Bigha AI</span>
+        <span className="globalAiIcon">🤖</span>
+        <span className="globalAiText">
+          <strong>3Bigha AI</strong>
+          <small>{open ? "Close" : "Ask AI"}</small>
+        </span>
       </button>
 
-      {aiOpen ? (
-        <div className={`aiPanel ${isFinanceWorkflowPage ? "financeAiPanelCompact" : ""}`}>
-          <div className="aiPanelHeader">
-            <strong>3Bigha AI Assistant</strong>
-            <small>Choose what you want AI to help with</small>
-          </div>
+      {open ? (
+        <>
+          <button
+            type="button"
+            className="globalAiBackdrop"
+            onClick={() => setOpen(false)}
+            aria-label="Close AI Assistant"
+          />
 
-          <div className="aiPanelGrid">
-            <Link href="/search">🔍 AI Smart Search</Link>
-            <Link href="/rfq/general/new">📝 Draft RFQ</Link>
-            <Link href="/price-today">📈 Price Prediction</Link>
-            <Link href="/vendor/discovery">🤝 Find Vendors</Link>
-            <Link href="/construction-cost">🏗️ Cost Calculator</Link>
-            <Link href="/land-area-calculator">📐 Land Area Calculator</Link>
-            <Link href="/emi-calculator">🏦 EMI Calculator</Link>
-            <Link href="/materials/rfq/new">🧱 Material RFQ</Link>
-            <Link href="/services/turnkey">🏠 Turnkey Package</Link>
-            <Link href="/dashboard/inbox-v2">💬 AI Inbox</Link>
-            <Link href="/support/new">🛡️ Support AI</Link>
-          </div>
-        </div>
+          <section className="globalAiPanel" role="dialog" aria-label="3Bigha AI Assistant">
+            <div className="globalAiPanelHeader">
+              <div>
+                <strong>3Bigha AI Assistant</strong>
+                <span>Choose one action</span>
+              </div>
+
+              <button
+                type="button"
+                className="globalAiClose"
+                onClick={() => setOpen(false)}
+                aria-label="Close AI Assistant"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="globalAiLinks">
+              {links.map(([label, href]) => (
+                <Link key={href} href={href} onClick={() => setOpen(false)}>
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </section>
+        </>
       ) : null}
-    </>
+    </div>
   );
 }

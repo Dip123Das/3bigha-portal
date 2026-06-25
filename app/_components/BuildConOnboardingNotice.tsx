@@ -7,21 +7,30 @@ export default function BuildConOnboardingNotice() {
   const program = searchParams.get("program");
   const source = searchParams.get("source");
 
-  if (program !== "founding-vendor" && source !== "buildcon") return null;
+  if (
+    program !== "district-founding-vendor" &&
+    program !== "founding-vendor" &&
+    source !== "district-founder" &&
+    source !== "whatsapp"
+  ) {
+    return null;
+  }
 
   return (
-    <section className="buildconOnboardingNotice">
-      <p className="buildconNoticeKicker">🎉 Bharat BuildCon 2026 Founding Vendor Program</p>
-      <h2>Free Registration + Free Listing Access</h2>
+    <section className="foundingPartnerOnboardingNotice">
+      <p className="foundingPartnerNoticeKicker">🏆 3Bigha Founding Partners Programme</p>
+      <h2>Free First-Year Access + Lifetime Founder Benefits</h2>
       <p>
-        Complete your business onboarding now. Your Founding Vendor access will
-        be reviewed by 3Bigha before public visibility is activated.
+        Complete your business onboarding now. One selected business from each
+        segment in every district may receive first-year free listing access,
+        subject to 3Bigha approval.
       </p>
-      <div className="buildconNoticeSteps">
-        <span>1. Register</span>
+      <div className="foundingPartnerNoticeSteps">
+        <span>1. Apply</span>
         <span>2. Complete Profile</span>
-        <span>3. Add Listings</span>
-        <span>4. 3Bigha Approval</span>
+        <span>3. Choose Segment</span>
+        <span>4. Founder Review</span>
+        <span>5. Founder Access</span>
       </div>
     </section>
   );

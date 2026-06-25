@@ -459,11 +459,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
                 <details className="rfqToggle">
                   <summary className="rfqToggleBtn">
-                    💼 Investment <span className="rfqToggleCaret">▾</span>
+                    🧰 Workspace <span className="rfqToggleCaret">▾</span>
                   </summary>
 
                   <div className="rfqTogglePanel" role="dialog" aria-label="Investment menu">
-                    <div className="rfqToggleTitle">Investment Hub</div>
+                    <div className="rfqToggleTitle">Workspace</div>
 
                     <div className="rfqToggleDesc">
                       Manage investment conversations and deal execution from one
@@ -485,6 +485,27 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                         href="/dashboard/builder/deal-rooms"
                       >
                         🏗️ Builder Deal Rooms →
+                      </Link>
+
+                      <Link
+                        className="rfqToggleSecondary"
+                        href="/dashboard/procurement-health"
+                      >
+                        ⚙️ Procurement Workspace →
+                      </Link>
+
+                      <Link
+                        className="rfqToggleSecondary"
+                        href="/support/my"
+                      >
+                        🛟 Support →
+                      </Link>
+
+                      <Link
+                        className="rfqToggleSecondary"
+                        href="/founding-vendors"
+                      >
+                        🏆 Founding Partners →
                       </Link>
                     </div>
                   </div>
@@ -511,19 +532,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     </div>
                   </div>
                 </details>
-
-                <Link className="topSubLink" href="/investment">
-                  Investment
-                </Link>
-
-                <Link className="topSubLink" href="/dashboard/procurement-health">
-                  Procurement Workspace
-                </Link>
-
-                <Link className="topSubLink" href="/support/my">
-                  Support
-                </Link>
-              </div>
+</div>
             </Container>
           </div>
         </header>
