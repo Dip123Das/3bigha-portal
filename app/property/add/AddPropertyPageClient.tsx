@@ -1,5 +1,7 @@
 "use client";
 
+import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
+
 
 
 import type React from "react";
@@ -4276,7 +4278,7 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
               <>
                 <div style={{ fontWeight: 800, marginBottom: 6 }}>Location Details</div>
                 <div style={{ color: "#5b6472", fontSize: 13 }}>
-                  Where is your property located? (You can type any new city/locality.)
+                  Select State, District, Block and City / Place from 3Bigha geography database. Type only landmark or society if needed.
                 </div>
 
                 {recentPropertyMemory.length > 0 ? (
@@ -4354,19 +4356,25 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                 ) : null}
 
 
-                <FieldLabel title="City" required />
-                <TextInput value={city} onChange={setCity} placeholder="e.g., Cooch Behar" />
-
-                <FieldLabel title="District" />
-                <TextInput value={district} onChange={setDistrict} placeholder="e.g., Cooch Behar" />
+                <GeoSelector
+                  includeSubdivision
+                  includeBlock
+                  includePlace
+                  onChange={(geo: GeoSelection) => {
+                    setStateName(geo.state?.name || "");
+                    setDistrict(geo.district?.name || "");
+                    setCity(geo.place?.name || "");
+                    if (geo.place?.name && !locality.trim()) setLocality(geo.place.name);
+                  }}
+                />
 
                 <FieldLabel title="Apartment / Society (optional)" />
                 <TextInput value={apartmentSociety} onChange={setApartmentSociety} placeholder="e.g., ABC Society" />
 
-                <FieldLabel title="Locality" required hint="(Add option available: just type a new place name)" />
-                <TextInput value={locality} onChange={setLocality} placeholder="e.g., Khagrabari" />
+                <FieldLabel title="Locality / Landmark" required hint="If your exact locality is not listed above, type it here." />
+                <TextInput value={locality} onChange={setLocality} placeholder="e.g., Khagrabari, Near Station, Ward No. 5" />
 
-                <FieldLabel title="Sub Locality" hint="(Add option available: just type a new place name)" />
+                <FieldLabel title="Sub Locality" hint="Optional nearby detail" />
                 <TextInput value={subLocality} onChange={setSubLocality} placeholder="e.g., Near NH-17" />
 
                 <FieldLabel title="Plot No. (optional)" />
@@ -4457,14 +4465,10 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                   }}
                 />
 
-                <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr 1fr", marginTop: 12 }}>
+                <div style={{ display: "grid", gap: 12, gridTemplateColumns: "1fr", marginTop: 12 }}>
                   <div>
                     <FieldLabel title="Postal / Zip Code (optional)" />
                     <TextInput value={postalCode} onChange={setPostalCode} placeholder="e.g., 736101" />
-                  </div>
-                  <div>
-                    <FieldLabel title="State / Province (optional)" />
-                    <TextInput value={stateName} onChange={setStateName} placeholder="e.g., West Bengal" />
                   </div>
                 </div>
               </>

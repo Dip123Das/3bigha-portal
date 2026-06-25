@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
 import ConstructionIntelligencePanel from "@/components/construction/ConstructionIntelligencePanel";
 import ProjectWorkflowHub from "@/components/project/ProjectWorkflowHub";
 import {
@@ -108,6 +109,7 @@ export default function LandAreaCalculatorPage() {
   const [unit, setUnit] = useState<InputUnit>("feet");
   const [state, setState] = useState("West Bengal");
   const [district, setDistrict] = useState("All districts / local practice");
+  const [geoSelection, setGeoSelection] = useState<GeoSelection>({});
   const [parts, setParts] = useState<MeasurementPart[]>([]);
   const [liveRegions, setLiveRegions] = useState<LiveMeasurementRegion[]>([]);
   const [liveUnits, setLiveUnits] = useState<LiveMeasurementUnit[]>([]);
@@ -286,6 +288,19 @@ export default function LandAreaCalculatorPage() {
       setConverterToUnit(converterRegionalUnits[0]?.key || "decimal");
     }
   }, [converterUnits, converterRegionalUnits, converterFromUnit, converterToUnit]);
+
+  useEffect(() => {
+    if (!geoSelection.state?.name && !geoSelection.district?.name && !geoSelection.place?.name) {
+      return;
+    }
+
+    setState(geoSelection.state?.name || "West Bengal");
+    setDistrict(
+      geoSelection.place?.name ||
+        geoSelection.district?.name ||
+        "All districts / local practice"
+    );
+  }, [geoSelection]);
 
   const converterResult = useMemo(() => {
     const fromUnit = converterUnits.find((unitItem) => unitItem.key === converterFromUnit);
@@ -572,49 +587,23 @@ export default function LandAreaCalculatorPage() {
             </span>
           </summary>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-6">
-            <label className="text-sm font-semibold text-slate-700">
-              State / UT
-              <select
-                value={state}
-                onChange={(e) => {
-                  const nextState = e.target.value;
-                  setState(nextState);
-                  const firstLiveDistrict = liveRegions
-                    .filter((region) => region.state === nextState)
-                    .map((region) => liveRegionLabel(region))[0];
+          <div className="mt-4">
+            <GeoSelector
+              includeSubdivision
+              includeBlock
+              includePlace
+              value={geoSelection}
+              onChange={setGeoSelection}
+            />
 
-                  setDistrict(
-                    firstLiveDistrict ||
-                      getDistrictOptions(nextState)[0]?.name ||
-                      "All districts / local practice"
-                  );
-                }}
-                className="mt-2 w-full rounded-xl border px-3 py-3 text-base"
-              >
-                {stateOptions.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="mt-3 rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-xs font-bold leading-5 text-emerald-900">
+              📍 Local unit practice:
+              {" "}
+              {[district, state].filter(Boolean).join(", ")}
+            </div>
+          </div>
 
-            <label className="text-sm font-semibold text-slate-700">
-              District / Local Practice
-              <select
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
-                className="mt-2 w-full rounded-xl border px-3 py-3 text-base"
-              >
-                {districtOptions.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </label>
-
+          <div className="mt-4 grid gap-3 md:grid-cols-4">
             <label className="text-sm font-semibold text-slate-700">
               Value
               <input
@@ -1063,48 +1052,20 @@ export default function LandAreaCalculatorPage() {
             ) : null}
 
             {mode === "land" ? (
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <label className="block text-sm font-semibold text-slate-700">
-                  State / Union Territory
-                  <select
-                    value={state}
-                    onChange={(e) => {
-                      const nextState = e.target.value;
-                      setState(nextState);
-                      const firstLiveDistrict = liveRegions
-                        .filter((region) => region.state === nextState)
-                        .map((region) => liveRegionLabel(region))[0];
+              <div className="mt-4">
+                <GeoSelector
+                  includeSubdivision
+                  includeBlock
+                  includePlace
+                  value={geoSelection}
+                  onChange={setGeoSelection}
+                />
 
-                      setDistrict(
-                        firstLiveDistrict ||
-                          getDistrictOptions(nextState)[0]?.name ||
-                          "All districts / local practice"
-                      );
-                    }}
-                    className="mt-2 w-full rounded-xl border px-3 py-3 text-base"
-                  >
-                    {stateOptions.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="block text-sm font-semibold text-slate-700">
-                  District / City / Local Practice
-                  <select
-                    value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                    className="mt-2 w-full rounded-xl border px-3 py-3 text-base"
-                  >
-                    {districtOptions.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs font-bold leading-5 text-emerald-900">
+                  📍 Calculator using:
+                  {" "}
+                  {[district, state].filter(Boolean).join(", ")}
+                </div>
               </div>
             ) : null}
 

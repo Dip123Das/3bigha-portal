@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
 
 import {
   estimateConstructionCost,
@@ -21,9 +22,6 @@ import DrawingUploadPanel from "@/components/construction-cost/DrawingUploadPane
 import ExportDprButton from "@/components/construction-cost/ExportDprButton";
 import ExportExcelButton from "@/components/construction-cost/ExportExcelButton";
 import {
-  INDIA_STATE_OPTIONS,
-  getDefaultCityForState,
-  getIndiaStateOption,
   normalizeManualLocation,
 } from "@/lib/construction-cost/india-location-data";
 import { generatePwdScheduleEstimate } from "@/lib/construction-cost/pwd-cost-engine";
@@ -111,6 +109,7 @@ export default function ConstructionCostCalculator({
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("price_today");
 
   const [selectedState, setSelectedState] = useState("west_bengal");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedCity, setSelectedCity] = useState(
     defaultRegion === "default" ? "cooch_behar" : defaultRegion,
   );
@@ -157,9 +156,10 @@ export default function ConstructionCostCalculator({
         floorCount: legacyFloorCount,
         grade,
         region:
-          selectedCity === "other"
-            ? normalizeManualLocation(manualDistrictCity) || selectedState
-            : selectedCity,
+          normalizeManualLocation(selectedCity) ||
+          normalizeManualLocation(selectedDistrict) ||
+          normalizeManualLocation(manualDistrictCity) ||
+          selectedState,
         roomCount,
         bathroomCount,
         kitchenCount,
@@ -170,6 +170,7 @@ export default function ConstructionCostCalculator({
       legacyFloorCount,
       grade,
       selectedCity,
+      selectedDistrict,
       selectedState,
       manualDistrictCity,
       roomCount,
@@ -199,7 +200,7 @@ export default function ConstructionCostCalculator({
   )}`;
 
   const pwdDistrictKey = getUiPwdDistrictKey(
-    String(selectedCity),
+    String(selectedCity || selectedDistrict),
     String(selectedState),
   );
 
@@ -254,68 +255,30 @@ export default function ConstructionCostCalculator({
         Price Today market intelligence.
       </div>
 
+      <div className="mt-6">
+        <GeoSelector
+          includeSubdivision
+          includeBlock
+          includePlace
+          onChange={(geo: GeoSelection) => {
+            setSelectedState(normalizeManualLocation(geo.state?.name || "") || "west_bengal");
+            setSelectedDistrict(geo.district?.name || "");
+            setSelectedCity(
+              (normalizeManualLocation(geo.place?.name || geo.district?.name || "") ||
+                "cooch_behar") as ConstructionRegionKey,
+            );
+            setManualDistrictCity("");
+          }}
+        />
+
+        <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs font-bold leading-5 text-emerald-900">
+          📍 Using selected geography for local estimate context:
+          {" "}
+          {[selectedCity, selectedDistrict, selectedState].filter(Boolean).join(", ")}
+        </div>
+      </div>
+
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <label className="block">
-          <span className="text-xs font-black uppercase text-slate-500">
-            State / Union Territory
-          </span>
-          <select
-            value={selectedState}
-            onChange={(event) => {
-              const nextState = event.target.value;
-              setSelectedState(nextState);
-              setSelectedCity(
-                getDefaultCityForState(nextState) as ConstructionRegionKey,
-              );
-              setManualDistrictCity("");
-            }}
-            className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500"
-          >
-            {INDIA_STATE_OPTIONS.map((state) => (
-              <option key={state.value} value={state.value}>
-                {state.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="block">
-          <span className="text-xs font-black uppercase text-slate-500">
-            District / City
-          </span>
-          <select
-            value={selectedCity}
-            onChange={(event) => {
-              setSelectedCity(event.target.value as ConstructionRegionKey);
-              if (event.target.value !== "other") {
-                setManualDistrictCity("");
-              }
-            }}
-            className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500"
-          >
-            {getIndiaStateOption(selectedState).cities.map((city) => (
-              <option key={city.value} value={city.value}>
-                {city.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {selectedCity === "other" ? (
-          <label className="block">
-            <span className="text-xs font-black uppercase text-slate-500">
-              Type District / City
-            </span>
-            <input
-              type="text"
-              value={manualDistrictCity}
-              onChange={(event) => setManualDistrictCity(event.target.value)}
-              placeholder="Example: Jalgaon, Morbi, Bankura"
-              className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold outline-none focus:border-emerald-500"
-            />
-          </label>
-        ) : null}
-
         <label className="block">
           <span className="text-xs font-black uppercase text-slate-500">
             Typical Floor Area

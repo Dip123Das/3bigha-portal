@@ -1,6 +1,8 @@
 // app/property/builder/projects/add/page.tsx
 "use client";
 
+import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
+
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -1125,6 +1127,21 @@ export default function BuilderAddProjectPage() {
             <div style={{ height: 18 }} />
             <div style={{ fontWeight: 900, marginBottom: 10 }}>Location & address</div>
 
+            <GeoSelector
+              includeSubdivision
+              includeBlock
+              includePlace
+              disabled={saving}
+              onChange={(geo: GeoSelection) => {
+                setStateName(geo.state?.name || "");
+                setDistrict(geo.district?.name || "");
+                setCity(geo.place?.name || "");
+                if (geo.place?.name && !locality.trim()) setLocality(geo.place.name);
+              }}
+            />
+
+            <div style={{ height: 12 }} />
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
                 <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Address line</div>
@@ -1136,43 +1153,12 @@ export default function BuilderAddProjectPage() {
                 />
               </div>
               <div>
-                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Locality</div>
+                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Locality / Landmark</div>
                 <input
                   value={locality}
                   onChange={(e) => setLocality(e.target.value)}
                   disabled={saving}
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd" }}
-                />
-              </div>
-            </div>
-
-            <div style={{ height: 12 }} />
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-              <div>
-                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>City</div>
-                <input
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  disabled={saving}
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd" }}
-                />
-              </div>
-              <div>
-                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>District</div>
-                <input
-                  value={district}
-                  onChange={(e) => setDistrict(e.target.value)}
-                  disabled={saving}
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd" }}
-                />
-              </div>
-              <div>
-                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>State</div>
-                <input
-                  value={stateName}
-                  onChange={(e) => setStateName(e.target.value)}
-                  disabled={saving}
+                  placeholder="Optional locality, landmark, society or road"
                   style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd" }}
                 />
               </div>
