@@ -96,8 +96,19 @@ export default function GeoSelector({
   const [blocks, setBlocks] = useState<GeoOption[]>([]);
   const [places, setPlaces] = useState<GeoOption[]>([]);
   const [loading, setLoading] = useState(false);
+  const [internalSelection, setInternalSelection] = useState<GeoSelection>({});
 
-  const selection = useMemo<GeoSelection>(() => value || {}, [value]);
+  const selection = useMemo<GeoSelection>(
+    () => value || internalSelection,
+    [value, internalSelection]
+  );
+
+  function updateSelection(nextSelection: GeoSelection) {
+    if (!value) {
+      setInternalSelection(nextSelection);
+    }
+    onChange(nextSelection);
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -254,7 +265,7 @@ export default function GeoSelector({
           options={states}
           disabled={disabled}
           onChange={(state) =>
-            onChange({
+            updateSelection({
               state,
               district: null,
               subdivision: null,
@@ -271,7 +282,7 @@ export default function GeoSelector({
           options={districts}
           disabled={disabled || !selection.state}
           onChange={(district) =>
-            onChange({
+            updateSelection({
               ...selection,
               district,
               subdivision: null,
@@ -289,7 +300,7 @@ export default function GeoSelector({
             options={subdivisions}
             disabled={disabled || !selection.district}
             onChange={(subdivision) =>
-              onChange({
+              updateSelection({
                 ...selection,
                 subdivision,
                 block: null,
@@ -307,7 +318,7 @@ export default function GeoSelector({
             options={blocks}
             disabled={disabled || !selection.district}
             onChange={(block) =>
-              onChange({
+              updateSelection({
                 ...selection,
                 block,
                 place: null,
@@ -324,7 +335,7 @@ export default function GeoSelector({
             options={places}
             disabled={disabled || !selection.district}
             onChange={(place) =>
-              onChange({
+              updateSelection({
                 ...selection,
                 place,
               })
@@ -336,11 +347,13 @@ export default function GeoSelector({
       <style jsx>{`
         .geoSelectorCard {
           margin-top: 14px;
-          border: 1px solid #dbeafe;
-          background: linear-gradient(180deg, #ffffff, #f8fbff);
-          border-radius: 18px;
-          padding: 14px;
-          box-shadow: 0 12px 30px rgba(37, 99, 235, 0.06);
+          border: 1px solid rgba(16, 185, 129, 0.18);
+          background:
+            radial-gradient(circle at 12% 10%, rgba(16, 185, 129, 0.14), transparent 34%),
+            linear-gradient(180deg, #ffffff, #f0fdf4);
+          border-radius: 20px;
+          padding: 16px;
+          box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
         }
 
         .geoSelectorHead {
@@ -380,15 +393,22 @@ export default function GeoSelector({
 
         .geoSelectorField select {
           width: 100%;
-          height: 44px;
-          border-radius: 12px;
-          border: 1px solid #dbe3ef;
+          height: 48px;
+          border-radius: 14px;
+          border: 1px solid rgba(15, 23, 42, 0.12);
           background: #ffffff;
           color: #0f172a;
-          padding: 0 12px;
-          font-size: 13px;
-          font-weight: 800;
+          padding: 0 14px;
+          font-size: 14px;
+          font-weight: 900;
           outline: none;
+          box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+          cursor: pointer;
+        }
+
+        .geoSelectorField select:focus {
+          border-color: #10b981;
+          box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
         }
 
         .geoSelectorField select:disabled {

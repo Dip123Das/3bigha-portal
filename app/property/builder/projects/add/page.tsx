@@ -132,6 +132,7 @@ export default function BuilderAddProjectPage() {
   }, []);
 
   const [loading, setLoading] = useState(true);
+  const [geoSelection, setGeoSelection] = useState<GeoSelection>({});
   const [globalError, setGlobalError] = useState("");
 
   const [flash, setFlash] = useState<Flash>(null);
@@ -1128,11 +1129,13 @@ export default function BuilderAddProjectPage() {
             <div style={{ fontWeight: 900, marginBottom: 10 }}>Location & address</div>
 
             <GeoSelector
+                  value={geoSelection}
               includeSubdivision
               includeBlock
               includePlace
               disabled={saving}
               onChange={(geo: GeoSelection) => {
+                    setGeoSelection(geo);
                 setStateName(geo.state?.name || "");
                 setDistrict(geo.district?.name || "");
                 setCity(geo.place?.name || "");

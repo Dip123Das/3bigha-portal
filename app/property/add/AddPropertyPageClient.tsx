@@ -1519,6 +1519,7 @@ const isBuilderListing = listingMode === "builder_project";
   const [postalCode, setPostalCode] = useState("");
 
   const [stateName, setStateName] = useState("");
+  const [geoSelection, setGeoSelection] = useState<GeoSelection>({});
 
   const [googleMapsUrl, setGoogleMapsUrl] = useState("");
 
@@ -4357,13 +4358,15 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
 
 
                 <GeoSelector
+                  value={geoSelection}
                   includeSubdivision
                   includeBlock
                   includePlace
                   onChange={(geo: GeoSelection) => {
+                    setGeoSelection(geo);
                     setStateName(geo.state?.name || "");
                     setDistrict(geo.district?.name || "");
-                    setCity(geo.place?.name || "");
+                    setCity(geo.place?.name || geo.district?.name || "");
                     if (geo.place?.name && !locality.trim()) setLocality(geo.place.name);
                   }}
                 />

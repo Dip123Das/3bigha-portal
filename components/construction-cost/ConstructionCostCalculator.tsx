@@ -109,6 +109,7 @@ export default function ConstructionCostCalculator({
   const [scheduleMode, setScheduleMode] = useState<ScheduleMode>("price_today");
 
   const [selectedState, setSelectedState] = useState("west_bengal");
+  const [geoSelection, setGeoSelection] = useState<GeoSelection>({});
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedCity, setSelectedCity] = useState(
     defaultRegion === "default" ? "cooch_behar" : defaultRegion,
@@ -257,10 +258,12 @@ export default function ConstructionCostCalculator({
 
       <div className="mt-6">
         <GeoSelector
+          value={geoSelection}
           includeSubdivision
           includeBlock
           includePlace
           onChange={(geo: GeoSelection) => {
+            setGeoSelection(geo);
             setSelectedState(normalizeManualLocation(geo.state?.name || "") || "west_bengal");
             setSelectedDistrict(geo.district?.name || "");
             setSelectedCity(
