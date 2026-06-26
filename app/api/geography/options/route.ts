@@ -82,12 +82,11 @@ export async function GET(req: Request) {
     if (type === "places") {
       let query = supabase
         .from("geo_places")
-        .select("id,name,slug,state_id,district_id,subdivision_id,block_id,pincode")
+        .select("id,name,slug,district_id,subdivision_id,block_id,pincode")
         .eq("is_active", true)
         .order("name", { ascending: true })
         .limit(5000);
 
-      if (stateId) query = query.eq("state_id", stateId);
       if (districtId) query = query.eq("district_id", districtId);
       if (subdivisionId) query = query.eq("subdivision_id", subdivisionId);
       if (blockId) query = query.eq("block_id", blockId);
