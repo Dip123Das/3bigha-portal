@@ -95,6 +95,7 @@ export default function GeoSelector({
   const [subdivisions, setSubdivisions] = useState<GeoOption[]>([]);
   const [blocks, setBlocks] = useState<GeoOption[]>([]);
   const [places, setPlaces] = useState<GeoOption[]>([]);
+  const [placeQuery, setPlaceQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [internalSelection, setInternalSelection] = useState<GeoSelection>({});
 
@@ -166,6 +167,8 @@ export default function GeoSelector({
         ? loadOptions("places", {
             stateId: selection.state?.id,
             districtId: selection.district.id,
+            q: placeQuery,
+            limit: "200",
           })
         : Promise.resolve([]),
     ]).then(([subdivisionItems, blockItems, placeItems]) => {
@@ -204,6 +207,8 @@ export default function GeoSelector({
             stateId: selection.state?.id,
             districtId: selection.district.id,
             subdivisionId: selection.subdivision.id,
+            q: placeQuery,
+            limit: "200",
           })
         : Promise.resolve([]),
     ]).then(([blockItems, placeItems]) => {
@@ -235,6 +240,8 @@ export default function GeoSelector({
       districtId: selection.district.id,
       subdivisionId: selection.subdivision?.id,
       blockId: selection.block.id,
+      q: placeQuery,
+      limit: "200",
     }).then((items) => {
       if (mounted) setPlaces(items);
     });
@@ -328,19 +335,37 @@ export default function GeoSelector({
         ) : null}
 
         {includePlace ? (
-          <SelectBox
-            label="City / Place"
-            placeholder={selection.district ? "Select city / place" : "Select district first"}
-            value={selection.place?.id}
-            options={places}
-            disabled={disabled || !selection.district}
-            onChange={(place) =>
-              updateSelection({
-                ...selection,
-                place,
-              })
-            }
-          />
+          <div className="geoSelectorPlaceSearch">
+            <label className="geoSelectorField">
+              <span>Search City / Place</span>
+              <input
+                value={placeQuery}
+                disabled={disabled || !selection.district}
+                onChange={(event) => {
+                  setPlaceQuery(event.target.value);
+                  updateSelection({
+                    ...selection,
+                    place: null,
+                  });
+                }}
+                placeholder={selection.district ? "Type city, town, village, locality..." : "Select district first"}
+              />
+            </label>
+
+            <SelectBox
+              label="City / Place"
+              placeholder={selection.district ? "Select city / place" : "Select district first"}
+              value={selection.place?.id}
+              options={places}
+              disabled={disabled || !selection.district}
+              onChange={(place) =>
+                updateSelection({
+                  ...selection,
+                  place,
+                })
+              }
+            />
+          </div>
         ) : null}
       </div>
 
@@ -391,7 +416,8 @@ export default function GeoSelector({
           font-weight: 900;
         }
 
-        .geoSelectorField select {
+        .geoSelectorField select,
+        .geoSelectorField input {
           width: 100%;
           height: 48px;
           border-radius: 14px;
@@ -406,18 +432,31 @@ export default function GeoSelector({
           cursor: pointer;
         }
 
-        .geoSelectorField select:focus {
+        .geoSelectorField select:focus,
+        .geoSelectorField input:focus {
           border-color: #10b981;
           box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
         }
 
-        .geoSelectorField select:disabled {
+        .geoSelectorField select:disabled,
+        .geoSelectorField input:disabled {
           background: #f1f5f9;
           color: #94a3b8;
           cursor: not-allowed;
         }
 
+        .geoSelectorPlaceSearch {
+          display: grid;
+          grid-column: 1 / -1;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
         @media (max-width: 720px) {
+          .geoSelectorPlaceSearch {
+            grid-template-columns: 1fr;
+          }
+
           .geoSelectorGrid {
             grid-template-columns: 1fr;
           }

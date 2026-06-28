@@ -19,6 +19,8 @@ export async function GET(req: Request) {
   const districtId = clean(searchParams.get("districtId"));
   const subdivisionId = clean(searchParams.get("subdivisionId"));
   const blockId = clean(searchParams.get("blockId"));
+  const q = clean(searchParams.get("q"));
+  const limit = Math.min(Number(searchParams.get("limit") || 200), 1000);
 
   try {
     if (type === "states") {
@@ -82,14 +84,15 @@ export async function GET(req: Request) {
     if (type === "places") {
       let query = supabase
         .from("geo_places")
-        .select("id,name,slug,district_id,subdivision_id,block_id,pincode")
+        .select("id,name,slug,district_id,subdivision_id,block_id,pincode,place_type")
         .eq("is_active", true)
         .order("name", { ascending: true })
-        .limit(5000);
+        .limit(limit);
 
       if (districtId) query = query.eq("district_id", districtId);
       if (subdivisionId) query = query.eq("subdivision_id", subdivisionId);
       if (blockId) query = query.eq("block_id", blockId);
+      if (q) query = query.ilike("name", `%${q}%`);
 
       const { data, error } = await query;
       if (error) throw error;
