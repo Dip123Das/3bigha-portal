@@ -456,9 +456,9 @@ export default function GeoSelector({
               <SearchableGeoSelect
                 type="blocks"
                 label="Development Block"
-                placeholder={selection.district ? "Search development block" : "Select district first"}
+                placeholder={selection.subdivision ? "Search development block" : "Select sub district first"}
                 value={selection.block}
-                disabled={disabled || !selection.district}
+                disabled={disabled || !selection.subdivision}
                 params={{ districtId: selection.district?.id }}
                 onChange={(block) =>
                   updateSelection({
@@ -475,9 +475,9 @@ export default function GeoSelector({
                 <SearchableGeoSelect
                   type="villages"
                   label="Village"
-                  placeholder={selection.district ? "Search village" : "Select district first"}
+                  placeholder={selection.block ? "Search village" : "Select development block first"}
                   value={selection.place}
-                  disabled={disabled || !selection.district}
+                  disabled={disabled || !selection.block}
                   params={{
                     districtId: selection.district?.id,
                     subdivisionId: selection.subdivision?.id,

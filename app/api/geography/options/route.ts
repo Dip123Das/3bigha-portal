@@ -113,6 +113,43 @@ export async function GET(req: Request) {
     }
 
     if (type === "blocks") {
+      let blockCodes: number[] | null = null;
+
+      if (subdivisionId) {
+        const { data: villageRows, error: villageError } = await supabase
+          .from("geo_lgd_villages")
+          .select("lgd_village_code")
+          .eq("is_active", true)
+          .eq("lgd_subdistrict_code", Number(subdivisionId))
+          .limit(20000);
+
+        if (villageError) throw villageError;
+
+        const villageCodes = (villageRows || [])
+          .map((r) => r.lgd_village_code)
+          .filter(Boolean);
+
+        if (!villageCodes.length) {
+          return pagedResponse([], limit, offset);
+        }
+
+        const { data: linkRows, error: linkError } = await supabase
+          .from("geo_lgd_block_villages")
+          .select("lgd_block_code")
+          .in("lgd_village_code", villageCodes)
+          .limit(20000);
+
+        if (linkError) throw linkError;
+
+        blockCodes = Array.from(
+          new Set((linkRows || []).map((r) => r.lgd_block_code).filter(Boolean))
+        );
+
+        if (!blockCodes.length) {
+          return pagedResponse([], limit, offset);
+        }
+      }
+
       let query = supabase
         .from("geo_lgd_blocks")
         .select("lgd_block_code,lgd_district_code,name_en,slug")
@@ -121,6 +158,7 @@ export async function GET(req: Request) {
         .range(offset, offset + limit);
 
       if (districtId) query = query.eq("lgd_district_code", Number(districtId));
+      if (blockCodes) query = query.in("lgd_block_code", blockCodes);
       if (q) query = query.ilike("name_en", `%${q}%`);
 
       const { data, error } = await query;
@@ -140,6 +178,37 @@ export async function GET(req: Request) {
 
 
     if (type === "localBodies") {
+      let localBodyCodes: number[] | null = null;
+
+      if (districtId) {
+        const { data: districtRows, error: districtError } = await supabase
+          .from("geo_lgd_districts")
+          .select("name_en")
+          .eq("lgd_district_code", Number(districtId))
+          .limit(1);
+
+        if (districtError) throw districtError;
+
+        const districtName = districtRows?.[0]?.name_en;
+
+        if (districtName) {
+          const { data: wardRows, error: wardError } = await supabase
+            .from("geo_lgd_wards")
+            .select("lgd_local_body_code")
+            .eq("is_active", true)
+            .eq("district_level_parent_name", districtName)
+            .limit(20000);
+
+          if (wardError) throw wardError;
+
+          localBodyCodes = Array.from(
+            new Set((wardRows || []).map((r) => r.lgd_local_body_code).filter(Boolean))
+          );
+
+          if (!localBodyCodes.length) return pagedResponse([], limit, offset);
+        }
+      }
+
       let query = supabase
         .from("geo_lgd_local_bodies")
         .select("lgd_local_body_code,name_en,slug,local_body_type_name,local_body_category")
@@ -148,6 +217,7 @@ export async function GET(req: Request) {
         .order("name_en", { ascending: true })
         .range(offset, offset + limit);
 
+      if (localBodyCodes) query = query.in("lgd_local_body_code", localBodyCodes);
       if (q) query = query.ilike("name_en", `%${q}%`);
 
       const { data, error } = await query;
@@ -193,16 +263,36 @@ export async function GET(req: Request) {
     }
 
     if (type === "villages") {
+      let villageCodes: number[] | null = null;
+
+      if (blockId) {
+        const { data: linkRows, error: linkError } = await supabase
+          .from("geo_lgd_block_villages")
+          .select("lgd_village_code")
+          .eq("lgd_block_code", Number(blockId))
+          .limit(20000);
+
+        if (linkError) throw linkError;
+
+        villageCodes = (linkRows || [])
+          .map((r) => r.lgd_village_code)
+          .filter(Boolean);
+
+        if (!villageCodes.length) {
+          return pagedResponse([], limit, offset);
+        }
+      }
+
       let query = supabase
         .from("geo_lgd_villages")
-        .select("lgd_village_code,lgd_district_code,lgd_subdistrict_code,lgd_block_code,name_en,slug,village_status")
+        .select("lgd_village_code,lgd_district_code,lgd_subdistrict_code,name_en,slug,village_status")
         .eq("is_active", true)
         .order("name_en", { ascending: true })
         .range(offset, offset + limit);
 
       if (districtId) query = query.eq("lgd_district_code", Number(districtId));
       if (subdivisionId) query = query.eq("lgd_subdistrict_code", Number(subdivisionId));
-      if (blockId) query = query.eq("lgd_block_code", Number(blockId));
+      if (villageCodes) query = query.in("lgd_village_code", villageCodes);
       if (q) query = query.ilike("name_en", `%${q}%`);
 
       const { data, error } = await query;
@@ -215,7 +305,7 @@ export async function GET(req: Request) {
           slug: r.slug,
           district_id: String(r.lgd_district_code),
           subdivision_id: String(r.lgd_subdistrict_code),
-          block_id: r.lgd_block_code ? String(r.lgd_block_code) : null,
+          block_id: blockId || null,
           place_type: r.village_status || "VILLAGE",
         })) ?? [],
         limit,
