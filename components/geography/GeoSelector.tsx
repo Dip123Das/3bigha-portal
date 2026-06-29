@@ -134,7 +134,6 @@ function SearchableGeoSelect({
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
 
   const parentKey = JSON.stringify(params || {});
@@ -168,7 +167,6 @@ function SearchableGeoSelect({
       );
       setOffset(result.nextOffset ?? nextOffset + result.options.length);
       setHasMore(Boolean(result.hasMore));
-      setActiveIndex(0);
     } catch (error: any) {
       if (error?.name !== "AbortError") {
         setOptions([]);
@@ -184,7 +182,6 @@ function SearchableGeoSelect({
     setOptions([]);
     setOffset(0);
     setHasMore(false);
-    setActiveIndex(0);
   }, [type, parentKey]);
 
   useEffect(() => {
@@ -192,7 +189,7 @@ function SearchableGeoSelect({
 
     const timer = window.setTimeout(() => {
       fetchPage(true, query);
-    }, 220);
+    }, 180);
 
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -202,13 +199,14 @@ function SearchableGeoSelect({
     onChange(option);
     setOpen(false);
     setQuery("");
+    setOptions([]);
   }
 
   return (
-    <div className="geoSearchField">
+    <div className="geoSearchField" style={{ position: "relative", minWidth: 0 }}>
       <label>{label}</label>
 
-      <div className="geoSearchCombo">
+      <div style={{ position: "relative", width: "100%" }}>
         <input
           value={displayValue}
           disabled={disabled}
@@ -223,29 +221,10 @@ function SearchableGeoSelect({
             onChange(null);
           }}
           onKeyDown={(event) => {
-            if (!open && ["ArrowDown", "Enter"].includes(event.key)) {
-              setOpen(true);
-              return;
-            }
-
-            if (event.key === "ArrowDown") {
-              event.preventDefault();
-              setActiveIndex((idx) => Math.min(idx + 1, options.length - 1));
-            }
-
-            if (event.key === "ArrowUp") {
-              event.preventDefault();
-              setActiveIndex((idx) => Math.max(idx - 1, 0));
-            }
-
-            if (event.key === "Enter" && open) {
-              event.preventDefault();
-              selectOption(options[activeIndex] || null);
-            }
-
             if (event.key === "Escape") {
               setOpen(false);
               setQuery("");
+              setOptions([]);
             }
           }}
         />
@@ -253,6 +232,7 @@ function SearchableGeoSelect({
         {value ? (
           <button
             type="button"
+            className="geoSearchClear"
             disabled={disabled}
             onClick={() => selectOption(null)}
             aria-label={`Clear ${label}`}
@@ -264,31 +244,57 @@ function SearchableGeoSelect({
 
       {open && !disabled ? (
         <div
-          className="geoSearchMenu"
           role="listbox"
-          onMouseDown={(event) => event.preventDefault()}
-          onScroll={(event) => {
-            const el = event.currentTarget;
-            const nearBottom =
-              el.scrollTop + el.clientHeight >= el.scrollHeight - 24;
-
-            if (nearBottom && hasMore && !loading) {
-              fetchPage(false);
-            }
+          style={{
+            marginTop: 6,
+            width: "100%",
+            maxHeight: 260,
+            overflowY: "auto",
+            padding: 8,
+            borderRadius: 14,
+            border: "1px solid rgba(15, 23, 42, 0.12)",
+            background: "#ffffff",
+            boxShadow: "0 18px 38px rgba(15, 23, 42, 0.14)",
           }}
         >
-          {options.map((option, index) => (
-            <button
-              type="button"
+          {options.map((option) => (
+            <div
               key={option.id}
               role="option"
               aria-selected={value?.id === option.id}
-              className={index === activeIndex ? "active" : ""}
-              onClick={() => selectOption(option)}
+              tabIndex={0}
+              onMouseDown={(event) => {
+                event.preventDefault();
+                selectOption(option);
+              }}
+              style={{
+                display: "block",
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: 10,
+                cursor: "pointer",
+                color: "#0f172a",
+                background:
+                  value?.id === option.id ? "#ecfdf5" : "transparent",
+              }}
             >
-              <strong>{option.name}</strong>
-              {optionMeta(option) ? <small>{optionMeta(option)}</small> : null}
-            </button>
+              <div style={{ display: "block", fontSize: 13, fontWeight: 900 }}>
+                {option.name}
+              </div>
+              {optionMeta(option) ? (
+                <div
+                  style={{
+                    display: "block",
+                    marginTop: 2,
+                    color: "#64748b",
+                    fontSize: 11,
+                    fontWeight: 700,
+                  }}
+                >
+                  {optionMeta(option)}
+                </div>
+              ) : null}
+            </div>
           ))}
 
           {!loading && options.length === 0 ? (
@@ -482,7 +488,7 @@ export default function GeoSelector({
         <span>{selectedParts.length ? selectedParts.join(" → ") : "No location selected yet"}</span>
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
         .geoSelectorCard {
           margin-top: 14px;
           border: 1px solid rgba(16, 185, 129, 0.18);
@@ -563,7 +569,7 @@ export default function GeoSelector({
           cursor: not-allowed;
         }
 
-        .geoSearchCombo button {
+        .geoSearchCombo .geoSearchClear {
           position: absolute;
           top: 9px;
           right: 9px;
@@ -594,16 +600,22 @@ export default function GeoSelector({
         }
 
         .geoSearchMenu button {
+          position: static;
           width: 100%;
-          display: grid;
+          min-height: 42px;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          justify-content: center;
           gap: 2px;
-          padding: 10px;
+          padding: 10px 12px;
           border: 0;
           border-radius: 12px;
           background: transparent;
           text-align: left;
           color: #0f172a;
           cursor: pointer;
+          white-space: normal;
         }
 
         .geoSearchMenu button:hover,
