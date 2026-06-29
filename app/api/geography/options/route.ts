@@ -30,6 +30,7 @@ export async function GET(req: Request) {
   const districtId = clean(searchParams.get("districtId"));
   const subdivisionId = clean(searchParams.get("subdivisionId"));
   const blockId = clean(searchParams.get("blockId"));
+  const localBodyId = clean(searchParams.get("localBodyId"));
   const q = clean(searchParams.get("q"));
   const limit = Math.min(Math.max(Number(searchParams.get("limit") || 50), 1), 100);
   const offset = Math.max(Number(searchParams.get("offset") || 0), 0);
@@ -131,6 +132,91 @@ export async function GET(req: Request) {
           name: r.name_en,
           slug: r.slug,
           district_id: String(r.lgd_district_code),
+        })) ?? [],
+        limit,
+        offset
+      );
+    }
+
+
+    if (type === "localBodies") {
+      let query = supabase
+        .from("geo_lgd_local_bodies")
+        .select("lgd_local_body_code,name_en,slug,local_body_type_name,local_body_category")
+        .eq("is_active", true)
+        .eq("local_body_category", "URBAN")
+        .order("name_en", { ascending: true })
+        .range(offset, offset + limit);
+
+      if (q) query = query.ilike("name_en", `%${q}%`);
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return pagedResponse(
+        data?.map((r) => ({
+          id: String(r.lgd_local_body_code),
+          name: r.name_en,
+          slug: r.slug,
+          place_type: r.local_body_type_name,
+        })) ?? [],
+        limit,
+        offset
+      );
+    }
+
+    if (type === "wards") {
+      let query = supabase
+        .from("geo_lgd_wards")
+        .select("lgd_ward_code,lgd_local_body_code,ward_name_en,ward_number,slug")
+        .eq("is_active", true)
+        .order("ward_number", { ascending: true })
+        .range(offset, offset + limit);
+
+      if (localBodyId) query = query.eq("lgd_local_body_code", Number(localBodyId));
+      if (q) query = query.ilike("ward_name_en", `%${q}%`);
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return pagedResponse(
+        data?.map((r) => ({
+          id: String(r.lgd_ward_code),
+          name: r.ward_name_en,
+          slug: r.slug,
+          block_id: String(r.lgd_local_body_code),
+          place_type: "WARD",
+        })) ?? [],
+        limit,
+        offset
+      );
+    }
+
+    if (type === "villages") {
+      let query = supabase
+        .from("geo_lgd_villages")
+        .select("lgd_village_code,lgd_district_code,lgd_subdistrict_code,lgd_block_code,name_en,slug,village_status")
+        .eq("is_active", true)
+        .order("name_en", { ascending: true })
+        .range(offset, offset + limit);
+
+      if (districtId) query = query.eq("lgd_district_code", Number(districtId));
+      if (subdivisionId) query = query.eq("lgd_subdistrict_code", Number(subdivisionId));
+      if (blockId) query = query.eq("lgd_block_code", Number(blockId));
+      if (q) query = query.ilike("name_en", `%${q}%`);
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return pagedResponse(
+        data?.map((r) => ({
+          id: String(r.lgd_village_code),
+          name: r.name_en,
+          slug: r.slug,
+          district_id: String(r.lgd_district_code),
+          subdivision_id: String(r.lgd_subdistrict_code),
+          block_id: r.lgd_block_code ? String(r.lgd_block_code) : null,
+          place_type: r.village_status || "VILLAGE",
         })) ?? [],
         limit,
         offset

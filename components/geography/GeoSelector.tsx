@@ -33,13 +33,22 @@ type GeoSelectorProps = {
   disabled?: boolean;
 };
 
-type GeoType = "states" | "districts" | "subdivisions" | "blocks" | "places";
+type GeoType =
+  | "states"
+  | "districts"
+  | "subdivisions"
+  | "blocks"
+  | "villages"
+  | "localBodies"
+  | "wards"
+  | "places";
 
 type GeoParams = {
   stateId?: string;
   districtId?: string;
   subdivisionId?: string;
   blockId?: string;
+  localBodyId?: string;
   q?: string;
   offset?: number;
   limit?: number;
@@ -60,6 +69,7 @@ function cacheKey(type: GeoType, params: GeoParams) {
     districtId: params.districtId || "",
     subdivisionId: params.subdivisionId || "",
     blockId: params.blockId || "",
+    localBodyId: params.localBodyId || "",
     q: params.q || "",
     offset: params.offset || 0,
     limit: params.limit || 50,
@@ -84,6 +94,7 @@ async function loadOptions(
   if (merged.districtId) url.searchParams.set("districtId", merged.districtId);
   if (merged.subdivisionId) url.searchParams.set("subdivisionId", merged.subdivisionId);
   if (merged.blockId) url.searchParams.set("blockId", merged.blockId);
+  if (merged.localBodyId) url.searchParams.set("localBodyId", merged.localBodyId);
   if (merged.q) url.searchParams.set("q", merged.q);
   url.searchParams.set("limit", String(merged.limit));
   url.searchParams.set("offset", String(merged.offset));
@@ -348,12 +359,7 @@ export default function GeoSelector({
     resolved.pincode ? `PIN ${resolved.pincode}` : "",
   ].filter(Boolean);
 
-  const adminLevels = hierarchy.levels.filter((level) => {
-    if (level.key === "admin1") return includeSubdivision;
-    if (level.key === "admin2") return includeBlock;
-    if (level.key === "place") return includePlace;
-    return false;
-  });
+  const [geoMode, setGeoMode] = useState<"rural" | "urban">("rural");
 
   return (
     <div className="geoSelectorCard">
@@ -400,16 +406,38 @@ export default function GeoSelector({
           }
         />
 
-        {adminLevels.map((level) => {
-          if (level.key === "admin1") {
-            return (
+        <div className="geoModeSwitch">
+          <button
+            type="button"
+            className={geoMode === "rural" ? "active" : ""}
+            onClick={() => {
+              setGeoMode("rural");
+              updateSelection({ ...selection, block: null, place: null });
+            }}
+            disabled={disabled || !selection.district}
+          >
+            🌾 Rural
+          </button>
+          <button
+            type="button"
+            className={geoMode === "urban" ? "active" : ""}
+            onClick={() => {
+              setGeoMode("urban");
+              updateSelection({ ...selection, subdivision: null, block: null, place: null });
+            }}
+            disabled={disabled || !selection.district}
+          >
+            🏙 Urban
+          </button>
+        </div>
+
+        {geoMode === "rural" ? (
+          <>
+            {includeSubdivision ? (
               <SearchableGeoSelect
-                key={level.key}
                 type="subdivisions"
-                label={level.label}
-                placeholder={
-                  selection.district ? `Search ${level.label.toLowerCase()}` : "Select district first"
-                }
+                label="Sub District / Tehsil / Taluk"
+                placeholder={selection.district ? "Search sub district" : "Select district first"}
                 value={selection.subdivision}
                 disabled={disabled || !selection.district}
                 params={{ districtId: selection.district?.id }}
@@ -422,24 +450,16 @@ export default function GeoSelector({
                   })
                 }
               />
-            );
-          }
+            ) : null}
 
-          if (level.key === "admin2") {
-            return (
+            {includeBlock ? (
               <SearchableGeoSelect
-                key={level.key}
                 type="blocks"
-                label={level.label}
-                placeholder={
-                  selection.district ? `Search ${level.label.toLowerCase()}` : "Select district first"
-                }
+                label="Development Block"
+                placeholder={selection.district ? "Search development block" : "Select district first"}
                 value={selection.block}
                 disabled={disabled || !selection.district}
-                params={{
-                  districtId: selection.district?.id,
-                  subdivisionId: selection.subdivision?.id,
-                }}
+                params={{ districtId: selection.district?.id }}
                 onChange={(block) =>
                   updateSelection({
                     ...selection,
@@ -448,22 +468,17 @@ export default function GeoSelector({
                   })
                 }
               />
-            );
-          }
+            ) : null}
 
-          if (level.key === "place") {
-            return (
-              <div key={level.key} className="geoSelectorPlaceSearch">
+            {includePlace ? (
+              <div className="geoSelectorPlaceSearch">
                 <SearchableGeoSelect
-                  type="places"
-                  label={level.label}
-                  placeholder={
-                    selection.district ? "Search place, village, ward, town or PIN" : "Select district first"
-                  }
+                  type="villages"
+                  label="Village"
+                  placeholder={selection.district ? "Search village" : "Select district first"}
                   value={selection.place}
                   disabled={disabled || !selection.district}
                   params={{
-                    stateId: selection.state?.id,
                     districtId: selection.district?.id,
                     subdivisionId: selection.subdivision?.id,
                     blockId: selection.block?.id,
@@ -476,11 +491,48 @@ export default function GeoSelector({
                   }
                 />
               </div>
-            );
-          }
+            ) : null}
+          </>
+        ) : (
+          <>
+            {includeBlock ? (
+              <SearchableGeoSelect
+                type="localBodies"
+                label="Urban Local Body / Municipality"
+                placeholder={selection.district ? "Search municipality or corporation" : "Select district first"}
+                value={selection.block}
+                disabled={disabled || !selection.district}
+                params={{ districtId: selection.district?.id }}
+                onChange={(block) =>
+                  updateSelection({
+                    ...selection,
+                    block,
+                    place: null,
+                  })
+                }
+              />
+            ) : null}
 
-          return null;
-        })}
+            {includePlace ? (
+              <div className="geoSelectorPlaceSearch">
+                <SearchableGeoSelect
+                  type="wards"
+                  label="Ward"
+                  placeholder={selection.block ? "Search ward" : "Select urban local body first"}
+                  value={selection.place}
+                  disabled={disabled || !selection.block}
+                  params={{ localBodyId: selection.block?.id }}
+                  onChange={(place) =>
+                    updateSelection({
+                      ...selection,
+                      place,
+                    })
+                  }
+                />
+              </div>
+            ) : null}
+          </>
+        )}
       </div>
 
       <div className="geoSelectionPreview">
@@ -489,6 +541,38 @@ export default function GeoSelector({
       </div>
 
       <style jsx global>{`
+
+        .geoModeSwitch {
+          grid-column: 1 / -1;
+          display: inline-flex;
+          gap: 8px;
+          padding: 4px;
+          background: rgba(255, 255, 255, 0.75);
+          border: 1px solid rgba(16, 185, 129, 0.16);
+          border-radius: 999px;
+          width: fit-content;
+        }
+
+        .geoModeSwitch button {
+          border: 0;
+          border-radius: 999px;
+          padding: 8px 14px;
+          font-weight: 800;
+          background: transparent;
+          color: #334155;
+          cursor: pointer;
+        }
+
+        .geoModeSwitch button.active {
+          background: #0f172a;
+          color: #ffffff;
+        }
+
+        .geoModeSwitch button:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+        }
+
         .geoSelectorCard {
           margin-top: 14px;
           border: 1px solid rgba(16, 185, 129, 0.18);
