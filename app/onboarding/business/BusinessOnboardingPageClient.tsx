@@ -7,6 +7,8 @@ import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
 import { validateGstin } from "@/lib/vendor-verification/gstin";
+import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
+import { addressEngineToBusinessPayload, legacyBusinessToAddressEngine } from "@/lib/geography/addressAdapters";
 
 async function ensureSessionOrRedirect(
   supabase: any,
@@ -378,6 +380,7 @@ export default function BusinessOnboardingPageClient() {
   const [bp, setBp] = useState<Partial<BusinessProfile>>({
     nature_of_business: [],
   });
+  const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
 
   const [geoDistricts, setGeoDistricts] = useState<GeoOption[]>([]);
   const [geoBlocks, setGeoBlocks] = useState<GeoOption[]>([]);
@@ -1916,56 +1919,29 @@ export default function BusinessOnboardingPageClient() {
               </div>
             ) : null}
 
-            <Field label="Address Line 1 (optional)">
-              <input
-                value={bp.address_line1 ?? ""}
-                onChange={(e) => setField("address_line1", e.target.value)}
-                style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-              />
-            </Field>
+            <AddressEngine
+              value={
+                Object.keys(addressEngineValue || {}).length
+                  ? addressEngineValue
+                  : legacyBusinessToAddressEngine(bp)
+              }
+              disabled={saving}
+              onChange={(nextAddress) => {
+                setAddressEngineValue(nextAddress);
 
-            <Field label="Address Line 2 (optional)">
-              <input
-                value={bp.address_line2 ?? ""}
-                onChange={(e) => setField("address_line2", e.target.value)}
-                style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-              />
-            </Field>
+                const mapped = addressEngineToBusinessPayload(nextAddress);
+                const {
+                  formatted_address,
+                  short_address,
+                  ...businessAddressPayload
+                } = mapped;
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <Field label="City (optional)">
-                <input
-                  value={bp.city ?? ""}
-                  onChange={(e) => setField("city", e.target.value)}
-                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-                />
-              </Field>
-
-              <Field label="District">
-                <input
-                  value={bp.district ?? ""}
-                  onChange={(e) => setField("district", e.target.value)}
-                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-                />
-              </Field>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <Field label="State">
-                <input
-                  value={bp.state ?? ""}
-                  onChange={(e) => setField("state", e.target.value)}
-                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-                />
-              </Field>
-              <Field label="Pincode (optional)">
-                <input
-                  value={bp.pincode ?? ""}
-                  onChange={(e) => setField("pincode", e.target.value)}
-                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-                />
-              </Field>
-            </div>
+                setBp((prev) => ({
+                  ...prev,
+                  ...businessAddressPayload,
+                }));
+              }}
+            />
           </div>
         </section>
 

@@ -354,19 +354,32 @@ export default function GeoSelector({
 
   const resolved = resolveGeography(selection);
   const hierarchy = getNationalGeoHierarchy(selection.state?.slug || undefined);
-  const selectedParts = [
-    ...resolved.displayPath,
-    resolved.pincode ? `PIN ${resolved.pincode}` : "",
-  ].filter(Boolean);
-
   const [geoMode, setGeoMode] = useState<"rural" | "urban">("rural");
+
+  const selectedParts = [
+    selection.state?.name ? `State: ${selection.state.name}` : "",
+    selection.district?.name ? `District: ${selection.district.name}` : "",
+    geoMode === "rural" && selection.subdivision?.name
+      ? `Sub District: ${selection.subdivision.name}`
+      : "",
+    geoMode === "rural" && selection.block?.name
+      ? `Development Block: ${selection.block.name}`
+      : "",
+    geoMode === "urban" && selection.block?.name
+      ? `Urban Local Body: ${selection.block.name}`
+      : "",
+    selection.place?.name
+      ? `${geoMode === "urban" ? "Ward" : "Village"}: ${selection.place.name}`
+      : "",
+    resolved.pincode ? `PIN: ${resolved.pincode}` : "",
+  ].filter(Boolean);
 
   return (
     <div className="geoSelectorCard">
       <div className="geoSelectorHead">
         <strong>📍 Select Location</strong>
         <small>
-          Search national geography by administrative hierarchy, place, village, ward or PIN
+          Select official LGD rural or urban address hierarchy
         </small>
       </div>
 
@@ -412,7 +425,7 @@ export default function GeoSelector({
             className={geoMode === "rural" ? "active" : ""}
             onClick={() => {
               setGeoMode("rural");
-              updateSelection({ ...selection, block: null, place: null });
+              updateSelection({ ...selection, subdivision: null, block: null, place: null });
             }}
             disabled={disabled || !selection.district}
           >
@@ -536,7 +549,7 @@ export default function GeoSelector({
       </div>
 
       <div className="geoSelectionPreview">
-        <strong>Selected hierarchy</strong>
+        <strong>Official LGD Address</strong>
         <span>{selectedParts.length ? selectedParts.join(" → ") : "No location selected yet"}</span>
       </div>
 

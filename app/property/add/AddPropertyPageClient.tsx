@@ -1,6 +1,7 @@
 "use client";
 
-import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
+import type { GeoSelection } from "@/components/geography/GeoSelector";
+import AddressEngine from "@/components/geography/AddressEngine";
 
 
 
@@ -4357,17 +4358,28 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                 ) : null}
 
 
-                <GeoSelector
-                  value={geoSelection}
-                  includeSubdivision
-                  includeBlock
-                  includePlace
-                  onChange={(geo: GeoSelection) => {
-                    setGeoSelection(geo);
+                <AddressEngine
+                  value={{
+                    geography: geoSelection,
+                    house_flat_plot_no: plotNo,
+                    building_market_name: apartmentSociety,
+                    street_road_locality: streetAddress,
+                    landmark: locality || subLocality || "",
+                  }}
+                  disabled={saving}
+                  onChange={(nextAddress) => {
+                    const geo = nextAddress.geography || {};
+                    setGeoSelection(geo as GeoSelection);
+
                     setStateName(geo.state?.name || "");
                     setDistrict(geo.district?.name || "");
                     setCity(geo.place?.name || geo.district?.name || "");
-                    if (geo.place?.name && !locality.trim()) setLocality(geo.place.name);
+
+                    if (geo.place?.pincode) setPostalCode(geo.place.pincode);
+                    if (nextAddress.house_flat_plot_no !== undefined) setPlotNo(nextAddress.house_flat_plot_no || "");
+                    if (nextAddress.building_market_name !== undefined) setApartmentSociety(nextAddress.building_market_name || "");
+                    if (nextAddress.street_road_locality !== undefined) setStreetAddress(nextAddress.street_road_locality || "");
+                    if (nextAddress.landmark !== undefined) setLocality(nextAddress.landmark || "");
                   }}
                 />
 
