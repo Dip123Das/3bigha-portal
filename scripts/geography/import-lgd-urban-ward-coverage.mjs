@@ -31,9 +31,50 @@ const unique = Array.from(
   new Map(updates.map((row) => [row.lgd_ward_code, row])).values()
 );
 
+const localBodyDistricts = Array.from(
+  new Map(
+    rows
+      .map((row) => {
+        const localBodyCode = toInt(pick(row, ["local_body_code"]));
+        const districtCode = toInt(pick(row, ["district_code"]));
+
+        if (!localBodyCode || !districtCode) return null;
+
+        return [
+          `${localBodyCode}:${districtCode}`,
+          {
+            lgd_local_body_code: localBodyCode,
+            lgd_district_code: districtCode,
+          },
+        ];
+      })
+      .filter(Boolean)
+  ).values()
+);
+
 console.log(`State: ${state.name}`);
 console.log(`Source rows: ${rows.length}`);
 console.log(`Prepared ward coverage updates: ${unique.length}`);
+console.log(`Prepared local body district mappings: ${localBodyDistricts.length}`);
+
+for (let i = 0; i < localBodyDistricts.length; i += 500) {
+  const chunk = localBodyDistricts.slice(i, i + 500);
+  const values = chunk
+    .map((row) => `(${row.lgd_local_body_code}, ${row.lgd_district_code})`)
+    .join(",");
+
+  const sql = `
+    insert into public.geo_lgd_local_body_districts
+      (lgd_local_body_code, lgd_district_code)
+    values ${values}
+    on conflict do nothing;
+  `;
+
+  const { error } = await supabase.rpc("exec_sql", { sql });
+  if (error) throw new Error(`Local body district mapping insert failed: ${error.message}`);
+
+  console.log(`Mapped local body districts ${Math.min(i + 500, localBodyDistricts.length)} / ${localBodyDistricts.length}`);
+}
 
 for (let i = 0; i < unique.length; i += 500) {
   const chunk = unique.slice(i, i + 500);
@@ -57,10 +98,7 @@ for (let i = 0; i < unique.length; i += 500) {
   `;
 
   const { error } = await supabase.rpc("exec_sql", { sql });
-
-  if (error) {
-    throw new Error(`Batch update failed: ${error.message}`);
-  }
+  if (error) throw new Error(`Batch update failed: ${error.message}`);
 
   console.log(`Updated ${Math.min(i + 500, unique.length)} / ${unique.length}`);
 }
