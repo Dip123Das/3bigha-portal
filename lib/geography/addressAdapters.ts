@@ -24,6 +24,7 @@ export function addressEngineToBusinessPayload(value: AddressEngineValue) {
     building_name: value.building_market_name,
     street_locality: value.street_road_locality,
     landmark: value.landmark,
+    pincode: value.pincode,
   });
 
   return {
@@ -74,6 +75,7 @@ export function addressEngineToBuilderProjectPayload(value: AddressEngineValue) 
     building_name: value.building_market_name,
     street_locality: value.street_road_locality,
     landmark: value.landmark,
+    pincode: value.pincode,
   });
 
   return {
@@ -108,6 +110,7 @@ export function addressEngineToRentalPayload(value: AddressEngineValue) {
     building_name: value.building_market_name,
     street_locality: value.street_road_locality,
     landmark: value.landmark,
+    pincode: value.pincode,
   });
 
   return {

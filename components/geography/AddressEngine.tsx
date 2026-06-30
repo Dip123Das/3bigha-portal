@@ -10,6 +10,7 @@ export type AddressEngineValue = {
   building_market_name?: string | null;
   street_road_locality?: string | null;
   landmark?: string | null;
+  pincode?: string | null;
 };
 
 type AddressEngineProps = {
@@ -55,7 +56,7 @@ export default function AddressEngine({
     admin1: current.geography?.subdivision?.name,
     district: current.geography?.district?.name,
     state: current.geography?.state?.name,
-    pincode: current.geography?.place?.pincode,
+    pincode: current.pincode || current.geography?.place?.pincode,
   });
 
   return (
@@ -66,7 +67,15 @@ export default function AddressEngine({
         includeSubdivision
         includeBlock
         includePlace
-        onChange={(geography) => update({ geography })}
+        onChange={(geography) =>
+          update({
+            geography,
+            pincode:
+              current.pincode ||
+              geography?.place?.pincode ||
+              null,
+          })
+        }
       />
 
       <div className="addressManualCard">
@@ -125,6 +134,16 @@ export default function AddressEngine({
             disabled={disabled}
             onChange={(event) => update({ landmark: event.target.value })}
             placeholder="Example: Near SBI ATM"
+          />
+        </label>
+
+        <label>
+          <span>Pincode</span>
+          <input
+            value={current.pincode || current.geography?.place?.pincode || ""}
+            disabled={disabled}
+            onChange={(event) => update({ pincode: event.target.value })}
+            placeholder="Example: 736101"
           />
         </label>
       </div>

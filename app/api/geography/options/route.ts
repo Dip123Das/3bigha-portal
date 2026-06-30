@@ -272,7 +272,7 @@ export async function GET(req: Request) {
 
       let query = supabase
         .from("geo_lgd_villages")
-        .select("lgd_village_code,lgd_district_code,lgd_subdistrict_code,name_en,slug,village_status")
+        .select("lgd_village_code,lgd_district_code,lgd_subdistrict_code,name_en,slug,village_status,pincode")
         .eq("is_active", true)
         .order("name_en", { ascending: true })
         .range(offset, offset + limit);
@@ -294,6 +294,7 @@ export async function GET(req: Request) {
           subdivision_id: String(r.lgd_subdistrict_code),
           block_id: blockId || null,
           place_type: r.village_status || "VILLAGE",
+          pincode: r.pincode || null,
         })) ?? [],
         limit,
         offset
@@ -303,7 +304,7 @@ export async function GET(req: Request) {
     if (type === "places") {
       let query = supabase
         .from("geo_lgd_settlements")
-        .select("settlement_key,name_en,slug,settlement_type,lgd_district_code,lgd_subdistrict_code,lgd_block_code")
+        .select("settlement_key,name_en,slug,settlement_type,lgd_district_code,lgd_subdistrict_code,lgd_block_code,pincode")
         .eq("is_active", true)
         .order("name_en", { ascending: true })
         .range(offset, offset + limit);
@@ -325,6 +326,7 @@ export async function GET(req: Request) {
           subdivision_id: r.lgd_subdistrict_code ? String(r.lgd_subdistrict_code) : null,
           block_id: r.lgd_block_code ? String(r.lgd_block_code) : null,
           place_type: r.settlement_type,
+          pincode: r.pincode || null,
         })) ?? [],
         limit,
         offset

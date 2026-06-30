@@ -32,8 +32,10 @@ export function buildNationalAddress(input: {
   building_name?: string | null;
   street_locality?: string | null;
   landmark?: string | null;
+  pincode?: string | null;
 }): NationalAddressValue {
   const g = input.geography || {};
+  const resolvedPincode = input.pincode || g.place?.pincode || null;
 
   const formatted_address = formatAddress({
     premisesType: input.premises_type,
@@ -46,14 +48,14 @@ export function buildNationalAddress(input: {
     admin1: g.subdivision?.name,
     district: g.district?.name,
     state: g.state?.name,
-    pincode: g.place?.pincode,
+    pincode: resolvedPincode,
   });
 
   const short_address = [
     g.place?.name,
     g.district?.name,
     g.state?.name,
-    g.place?.pincode,
+    resolvedPincode,
   ]
     .filter(Boolean)
     .join(", ");
@@ -70,7 +72,7 @@ export function buildNationalAddress(input: {
     admin_level_1_name: g.subdivision?.name || null,
     admin_level_2_name: g.block?.name || null,
     place_name: g.place?.name || null,
-    pincode: g.place?.pincode || null,
+    pincode: resolvedPincode,
 
     premises_type: input.premises_type || null,
     house_plot_flat_no: input.house_plot_flat_no || null,
