@@ -6,7 +6,7 @@ export const LGD_STATES = [
   { slug: "bihar", name: "Bihar", lgdCode: 10 },
   { slug: "chandigarh", name: "Chandigarh", lgdCode: 4 },
   { slug: "chhattisgarh", name: "Chhattisgarh", lgdCode: 22 },
-  { slug: "dadra-and-nagar-haveli-and-daman-and-diu", name: "Dadra and Nagar Haveli and Daman and Diu", lgdCode: 26 },
+  { slug: "dadra-and-nagar-haveli-and-daman-and-diu", name: "Dadra and Nagar Haveli and Daman and Diu", lgdCode: 38 },
   { slug: "delhi", name: "Delhi", lgdCode: 7 },
   { slug: "goa", name: "Goa", lgdCode: 30 },
   { slug: "gujarat", name: "Gujarat", lgdCode: 24 },

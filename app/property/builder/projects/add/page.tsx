@@ -1,7 +1,8 @@
 // app/property/builder/projects/add/page.tsx
 "use client";
 
-import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
+import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
+import { addressEngineToBuilderProjectPayload } from "@/lib/geography/addressAdapters";
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -44,6 +45,12 @@ type BuilderProjectInsert = {
   district?: string | null;
   state?: string | null;
   pincode?: string | null;
+
+  geo_state_id?: string | null;
+  geo_district_id?: string | null;
+  geo_subdivision_id?: string | null;
+  geo_block_id?: string | null;
+  geo_place_id?: string | null;
 
   latitude?: number | null;
   longitude?: number | null;
@@ -132,7 +139,7 @@ export default function BuilderAddProjectPage() {
   }, []);
 
   const [loading, setLoading] = useState(true);
-  const [geoSelection, setGeoSelection] = useState<GeoSelection>({});
+  const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
   const [globalError, setGlobalError] = useState("");
 
   const [flash, setFlash] = useState<Flash>(null);
@@ -636,6 +643,8 @@ export default function BuilderAddProjectPage() {
             : `Nearby & connectivity: ${nearbyDesc}`
           : baseDesc;
 
+      const addressPayload = addressEngineToBuilderProjectPayload(addressEngineValue);
+
       const payloadBase: BuilderProjectInsert = {
         builder_profile_id: builder.id,
         name: projectName,
@@ -647,12 +656,18 @@ export default function BuilderAddProjectPage() {
         project_kind: projectKind || null,
         description: finalDesc ? finalDesc : null,
 
-        address_line: addressLine.trim() ? addressLine.trim() : null,
-        locality: locality.trim() ? locality.trim() : null,
-        city: city.trim() ? city.trim() : null,
-        district: district.trim() ? district.trim() : null,
-        state: stateName.trim() ? stateName.trim() : null,
-        pincode: pincode.trim() ? pincode.trim() : null,
+        address_line: addressPayload.address_line || (addressLine.trim() ? addressLine.trim() : null),
+        locality: addressPayload.locality || (locality.trim() ? locality.trim() : null),
+        city: addressPayload.city || (city.trim() ? city.trim() : null),
+        district: addressPayload.district || (district.trim() ? district.trim() : null),
+        state: addressPayload.state || (stateName.trim() ? stateName.trim() : null),
+        pincode: addressPayload.pincode || (pincode.trim() ? pincode.trim() : null),
+
+        geo_state_id: addressPayload.geo_state_id || null,
+        geo_district_id: addressPayload.geo_district_id || null,
+        geo_subdivision_id: addressPayload.geo_subdivision_id || null,
+        geo_block_id: addressPayload.geo_block_id || null,
+        geo_place_id: addressPayload.geo_place_id || null,
 
         latitude: lat,
         longitude: lng,
@@ -1128,57 +1143,31 @@ export default function BuilderAddProjectPage() {
             <div style={{ height: 18 }} />
             <div style={{ fontWeight: 900, marginBottom: 10 }}>Location & address</div>
 
-            <GeoSelector
-                  value={geoSelection}
-              includeSubdivision
-              includeBlock
-              includePlace
+            <AddressEngine
+              value={{
+                ...addressEngineValue,
+                house_flat_plot_no: addressLine || addressEngineValue.house_flat_plot_no || "",
+                street_road_locality: locality || addressEngineValue.street_road_locality || "",
+                landmark: addressEngineValue.landmark || "",
+              }}
               disabled={saving}
-              onChange={(geo: GeoSelection) => {
-                    setGeoSelection(geo);
-                setStateName(geo.state?.name || "");
-                setDistrict(geo.district?.name || "");
-                setCity(geo.place?.name || "");
-                if (geo.place?.name && !locality.trim()) setLocality(geo.place.name);
+              onChange={(nextAddress) => {
+                setAddressEngineValue(nextAddress);
+
+                const mapped = addressEngineToBuilderProjectPayload(nextAddress);
+
+                setAddressLine(mapped.address_line || "");
+                setLocality(mapped.locality || "");
+                setCity(mapped.city || "");
+                setDistrict(mapped.district || "");
+                setStateName(mapped.state || "");
+                setPincode(mapped.pincode || "");
               }}
             />
 
             <div style={{ height: 12 }} />
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div>
-                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Address line</div>
-                <input
-                  value={addressLine}
-                  onChange={(e) => setAddressLine(e.target.value)}
-                  disabled={saving}
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd" }}
-                />
-              </div>
-              <div>
-                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Locality / Landmark</div>
-                <input
-                  value={locality}
-                  onChange={(e) => setLocality(e.target.value)}
-                  disabled={saving}
-                  placeholder="Optional locality, landmark, society or road"
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd" }}
-                />
-              </div>
-            </div>
-
-            <div style={{ height: 12 }} />
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-              <div>
-                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Pincode</div>
-                <input
-                  value={pincode}
-                  onChange={(e) => setPincode(e.target.value)}
-                  disabled={saving}
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd" }}
-                />
-              </div>
               <div>
                 <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Latitude</div>
                 <input

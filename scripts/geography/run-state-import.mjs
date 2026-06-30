@@ -17,6 +17,8 @@ const steps = [
   ["Villages", "scripts/geography/import-lgd-villages.mjs"],
   ["Block-village links", "scripts/geography/import-lgd-block-villages.mjs"],
   ["Urban local bodies", "scripts/geography/import-lgd-local-bodies.mjs"],
+  ["Urban wards", "scripts/geography/import-lgd-wards.mjs"],
+  ["Urban ward coverage", "scripts/geography/import-lgd-urban-ward-coverage.mjs"],
 ];
 
 console.log(`\n=== LGD State Import: ${state.name} (${state.slug}) ===`);

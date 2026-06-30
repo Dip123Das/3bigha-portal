@@ -21,7 +21,7 @@ const supabase = getSupabase();
 
 const sourceRows = readLgdRows("blocks", state.slug);
 
-const rows = sourceRows
+const preparedRows = sourceRows
   .map((row) => {
     const lgdCode = toInt(pick(row, ["block_code"]));
     const districtCode = toInt(pick(row, ["district_code"]));
@@ -48,9 +48,14 @@ const rows = sourceRows
   })
   .filter(Boolean);
 
+const rows = Array.from(
+  new Map(preparedRows.map((row) => [row.lgd_block_code, row])).values()
+);
+
 console.log(`State: ${state.name}`);
 console.log(`Source rows: ${sourceRows.length}`);
-console.log(`Prepared blocks: ${rows.length}`);
+console.log(`Prepared blocks: ${preparedRows.length}`);
+console.log(`Unique blocks: ${rows.length}`);
 
 const inserted = await upsertRows({
   supabase,

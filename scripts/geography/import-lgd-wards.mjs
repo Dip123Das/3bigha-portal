@@ -19,9 +19,77 @@ if (!stateSlug) {
 const state = requireState(stateSlug);
 const supabase = getSupabase();
 
-const sourceRows = readLgdRows("urban-local-body-wards", state.slug);
+let sourceRows = [];
 
-const rows = sourceRows
+try {
+  sourceRows = readLgdRows("urban-local-body-wards", state.slug);
+} catch (error) {
+  sourceRows = readLgdRows("urban-local-body-wards-covered", state.slug);
+}
+
+
+const localBodySeedRows = Array.from(
+  new Map(
+    sourceRows
+      .map((row) => {
+        const localBodyCode = toInt(pick(row, ["local_body_code"]));
+        const localBodyName = clean(pick(row, ["local_body_name"]));
+
+        if (!localBodyCode || !localBodyName) return null;
+
+        return [
+          localBodyCode,
+          {
+            lgd_local_body_code: localBodyCode,
+            local_body_version: 1,
+            local_body_type_code: 0,
+            local_body_type_name: "Urban Local Body",
+            local_body_category: "URBAN",
+            parent_local_body_code: null,
+            name_en: localBodyName,
+            name_local: "",
+            slug: slugify(localBodyName),
+            is_active: true,
+            source: "LGD",
+          },
+        ];
+      })
+      .filter(Boolean)
+  ).values()
+);
+
+if (localBodySeedRows.length) {
+  const { data: existingBodies, error: existingBodiesError } = await supabase
+    .from("geo_lgd_local_bodies")
+    .select("lgd_local_body_code")
+    .in(
+      "lgd_local_body_code",
+      localBodySeedRows.map((row) => row.lgd_local_body_code)
+    );
+
+  if (existingBodiesError) throw existingBodiesError;
+
+  const existingCodes = new Set(
+    (existingBodies || []).map((row) => row.lgd_local_body_code)
+  );
+
+  const missingBodies = localBodySeedRows.filter(
+    (row) => !existingCodes.has(row.lgd_local_body_code)
+  );
+
+  if (missingBodies.length) {
+    const insertedBodies = await upsertRows({
+      supabase,
+      table: "geo_lgd_local_bodies",
+      rows: missingBodies,
+      onConflict: "lgd_local_body_code",
+    });
+
+    console.log(`Seeded missing local bodies: ${insertedBodies}`);
+  }
+}
+
+const preparedRows = sourceRows
   .map((row) => {
     const wardCode = toInt(pick(row, ["ward_code"]));
     const localBodyCode = toInt(pick(row, ["local_body_code"]));
@@ -49,9 +117,14 @@ const rows = sourceRows
   })
   .filter(Boolean);
 
+const rows = Array.from(
+  new Map(preparedRows.map((row) => [row.lgd_ward_code, row])).values()
+);
+
 console.log(`State: ${state.name}`);
 console.log(`Source rows: ${sourceRows.length}`);
-console.log(`Prepared wards: ${rows.length}`);
+console.log(`Prepared wards: ${preparedRows.length}`);
+console.log(`Unique wards: ${rows.length}`);
 
 const inserted = await upsertRows({
   supabase,
