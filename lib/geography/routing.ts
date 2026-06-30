@@ -1,102 +1,30 @@
-import { haversineDistanceKm } from "./distance";
+import { LatLng } from "./coordinates";
+import { distanceKm } from "./distance";
 
-export type VendorCoverage = {
-  vendorId: string;
+export interface RouteEstimate {
 
-  latitude: number | null;
-  longitude: number | null;
+  distanceKm: number;
 
-  deliveryRadiusKm: number;
+  averageSpeed: number;
 
-  statewideService?: boolean;
+  durationMinutes: number;
+}
 
-  nationwideService?: boolean;
+export function estimateRoadRoute(
+  from: LatLng,
+  to: LatLng,
+  averageSpeed = 40
+): RouteEstimate {
 
-  geoStateId?: string | null;
-
-  geoDistrictId?: string | null;
-
-  geoSubdivisionId?: string | null;
-
-  geoBlockId?: string | null;
-
-  geoPlaceId?: string | null;
-};
-
-export type TargetLocation = {
-  latitude: number | null;
-  longitude: number | null;
-
-  geoStateId?: string | null;
-
-  geoDistrictId?: string | null;
-
-  geoSubdivisionId?: string | null;
-
-  geoBlockId?: string | null;
-
-  geoPlaceId?: string | null;
-};
-
-export type RoutingDecision = {
-  matched: boolean;
-
-  reason: string;
-
-  distanceKm: number | null;
-};
-
-export function shouldRouteVendor(
-  vendor: VendorCoverage,
-  target: TargetLocation
-): RoutingDecision {
-
-  if (vendor.nationwideService) {
-    return {
-      matched: true,
-      reason: "nationwide",
-      distanceKm: null,
-    };
-  }
-
-  if (
-    vendor.statewideService &&
-    vendor.geoStateId &&
-    vendor.geoStateId === target.geoStateId
-  ) {
-    return {
-      matched: true,
-      reason: "statewide",
-      distanceKm: null,
-    };
-  }
-
-  const distance = haversineDistanceKm(
-    {
-      latitude: vendor.latitude,
-      longitude: vendor.longitude,
-    },
-    {
-      latitude: target.latitude,
-      longitude: target.longitude,
-    }
-  );
-
-  if (
-    distance.valid &&
-    distance.distanceKm !== null &&
-    distance.distanceKm <= vendor.deliveryRadiusKm
-  ) {
-    return {
-      matched: true,
-      reason: "delivery-radius",
-      distanceKm: distance.distanceKm,
-    };
-  }
+  const km = distanceKm(from, to);
 
   return {
-    matched: false,
-    reason: "outside-radius",
-    distanceKm: distance.distanceKm,
+
+    distanceKm: km,
+
+    averageSpeed,
+
+    durationMinutes:
+      (km / averageSpeed) * 60,
   };
 }
