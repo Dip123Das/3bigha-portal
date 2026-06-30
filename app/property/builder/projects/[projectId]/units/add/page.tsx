@@ -29,6 +29,13 @@ type BuilderProjectRow = {
   state: string | null;
   status: string | null;
   investment_plan_master_id: string | null;
+  formatted_address?: string | null;
+  short_address?: string | null;
+  geo_state_id?: string | null;
+  geo_district_id?: string | null;
+  geo_subdivision_id?: string | null;
+  geo_block_id?: string | null;
+  geo_place_id?: string | null;
 };
 
 type CatalogRow = {
@@ -770,7 +777,7 @@ const emiPreview = useMemo(() => {
 
     const projRes = await supabase
     .from("builder_projects")
-    .select("id,name,project_kind,city,district,state,status,investment_plan_master_id")
+    .select("id,name,project_kind,city,district,state,status,investment_plan_master_id,formatted_address,short_address,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id,geo_place_id")
     .eq("id", projectId)
     .maybeSingle();
 
@@ -1177,7 +1184,11 @@ if (priceNum !== null) {
     }
   }
 
-  const loc = project ? [project.city, project.district, project.state].filter(Boolean).join(", ") : "";
+  const loc = project
+    ? project.formatted_address ||
+      project.short_address ||
+      [project.city, project.district, project.state].filter(Boolean).join(", ")
+    : "";
 
   return (
     <Container>

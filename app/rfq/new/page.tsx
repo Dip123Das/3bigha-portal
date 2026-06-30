@@ -5,6 +5,8 @@ import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
+import { addressEngineToBusinessPayload } from "@/lib/geography/addressAdapters";
 
 type ItemRow = {
   material_name: string;
@@ -60,6 +62,7 @@ export default function RfqNewPage() {
   const [address, setAddress] = useState("");
   const [pincode, setPincode] = useState("");
   const [neededBy, setNeededBy] = useState("");
+  const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
   const [aiItems, setAiItems] = useState<any[]>([]);
 
   const [contactName, setContactName] = useState("");
@@ -97,6 +100,8 @@ export default function RfqNewPage() {
     if (!city.trim() || !locality.trim() || !pincode.trim()) {
       return fail("Location is required: City, Locality and Pincode.");
     }
+
+    const addressPayload = addressEngineToBusinessPayload(addressEngineValue);
 
     const hasTyped = items.some((x) => x.material_name.trim() !== "");
     const hasFiles = files.length > 0;
@@ -170,6 +175,11 @@ export default function RfqNewPage() {
           locality: locality.trim(),
           address: address.trim() || null,
           pincode: pincode.trim(),
+          geo_state_id: addressPayload.geo_state_id,
+          geo_district_id: addressPayload.geo_district_id,
+          geo_subdivision_id: addressPayload.geo_subdivision_id,
+          geo_block_id: addressPayload.geo_block_id,
+          geo_place_id: addressPayload.geo_place_id,
           needed_by: neededBy ? neededBy : null,
 
           contact_name: contactName.trim() || null,
@@ -335,35 +345,35 @@ export default function RfqNewPage() {
           </div>
         </label>
 
-        {/* Manual location */}
+        {/* AddressEngine location */}
         <div style={{ border: "1px solid rgba(0,0,0,0.12)", borderRadius: 12, padding: 12, background: "rgba(11,87,208,0.03)" }}>
-          <div style={{ fontWeight: 900, marginBottom: 6 }}>Location (required)</div>
-          <div style={{ opacity: 0.8, marginBottom: 10 }}>Enter City, Locality, Pincode so nearby vendors can quote.</div>
+          <div style={{ fontWeight: 900, marginBottom: 8 }}>
+            Project / Delivery Location
+          </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <label>
-              <div style={{ fontWeight: 700 }}>City *</div>
-              <input className="searchInput" value={city} onChange={(e) => setCity(e.target.value)} />
-            </label>
+          <AddressEngine
+            value={addressEngineValue}
+            onChange={(next) => {
+              setAddressEngineValue(next);
 
-            <label>
-              <div style={{ fontWeight: 700 }}>Locality *</div>
-              <input className="searchInput" value={locality} onChange={(e) => setLocality(e.target.value)} />
-            </label>
+              const mapped = addressEngineToBusinessPayload(next);
 
-            <label>
-              <div style={{ fontWeight: 700 }}>Pincode *</div>
-              <input className="searchInput" value={pincode} onChange={(e) => setPincode(e.target.value)} />
-            </label>
+              setCity(mapped.city || "");
+              setLocality(mapped.landmark || "");
+              setAddress(mapped.formatted_address || "");
+              setPincode(mapped.pincode || "");
+            }}
+          />
 
-            <label>
-              <div style={{ fontWeight: 700 }}>Address (optional)</div>
-              <input className="searchInput" value={address} onChange={(e) => setAddress(e.target.value)} />
-            </label>
-
+          <div style={{ marginTop: 12 }}>
             <label>
               <div style={{ fontWeight: 700 }}>Needed by</div>
-              <input className="searchInput" type="date" value={neededBy} onChange={(e) => setNeededBy(e.target.value)} />
+              <input
+                className="searchInput"
+                type="date"
+                value={neededBy}
+                onChange={(e) => setNeededBy(e.target.value)}
+              />
             </label>
           </div>
         </div>

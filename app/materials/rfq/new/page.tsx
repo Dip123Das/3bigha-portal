@@ -6,6 +6,8 @@ import ProjectWorkflowHub from "@/components/project/ProjectWorkflowHub";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
+import { addressEngineToBusinessPayload } from "@/lib/geography/addressAdapters";
 import {
   loadVendorListingMemory,
   saveVendorListingMemory,
@@ -40,6 +42,7 @@ export default function NewMaterialRFQPage() {
   const [deliveryCity, setDeliveryCity] = useState("");
   const [deliveryPincode, setDeliveryPincode] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
 
   const [notes, setNotes] = useState("");
 
@@ -434,13 +437,19 @@ export default function NewMaterialRFQPage() {
 
             <div style={{ fontWeight: 950, marginBottom: 8 }}>Delivery location</div>
 
-            <input value={deliveryDistrict} onChange={(e) => setDeliveryDistrict(e.target.value)} placeholder="District" style={{ height: 44, borderRadius: 12, border: "1px solid #e5e7eb", padding: "0 12px", width: "100%" }} />
-            <div style={{ height: 8 }} />
-            <input value={deliveryCity} onChange={(e) => setDeliveryCity(e.target.value)} placeholder="City" style={{ height: 44, borderRadius: 12, border: "1px solid #e5e7eb", padding: "0 12px", width: "100%" }} />
-            <div style={{ height: 8 }} />
-            <input value={deliveryPincode} onChange={(e) => setDeliveryPincode(e.target.value)} placeholder="Pincode" style={{ height: 44, borderRadius: 12, border: "1px solid #e5e7eb", padding: "0 12px", width: "100%" }} />
-            <div style={{ height: 8 }} />
-            <textarea value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} placeholder="Delivery address (optional)" style={{ minHeight: 90, borderRadius: 12, border: "1px solid #e5e7eb", padding: 12, width: "100%" }} />
+            <AddressEngine
+              value={addressEngineValue}
+              onChange={(next) => {
+                setAddressEngineValue(next);
+
+                const mapped = addressEngineToBusinessPayload(next);
+
+                setDeliveryDistrict(mapped.district || "");
+                setDeliveryCity(mapped.city || "");
+                setDeliveryPincode(mapped.pincode || "");
+                setDeliveryAddress(mapped.formatted_address || "");
+              }}
+            />
 
             <div style={{ height: 14 }} />
 

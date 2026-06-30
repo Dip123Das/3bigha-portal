@@ -7,6 +7,8 @@ import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
+import { addressEngineToBusinessPayload } from "@/lib/geography/addressAdapters";
 import ProcurementCopilotBox from "@/app/components/ai/ProcurementCopilotBox";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
@@ -261,6 +263,7 @@ function RfqGeneralNewPageInner() {
   const [address, setAddress] = useState("");
   const [pincode, setPincode] = useState("");
   const [neededBy, setNeededBy] = useState("");
+  const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
 
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
@@ -1050,6 +1053,8 @@ ${items
     e.preventDefault();
     setErr("");
 
+    const addressPayload = addressEngineToBusinessPayload(addressEngineValue);
+
     const cleanTitle = title.trim();
     if (!cleanTitle) {
   const msg = "Title is required.";
@@ -1058,8 +1063,12 @@ ${items
   return;
 }
 
-    if (!city.trim() || !locality.trim() || !pincode.trim()) {
-    const msg = "Location is required: City, Locality and Pincode.";
+    if (
+      !addressPayload.geo_state_id ||
+      !addressPayload.geo_district_id ||
+      !addressPayload.pincode
+    ) {
+    const msg = "Please select State, District and PIN using the Location section.";
 setErr(msg);
 showPopup(msg, "error");
 return;
@@ -1116,10 +1125,17 @@ return;
           module,
           title: cleanTitle,
           description: description.trim() || null,
-          city: city.trim(),
-          locality: locality.trim(),
-          address: address.trim() || null,
-          pincode: pincode.trim(),
+          city: addressPayload.city || city.trim(),
+          district: addressPayload.district || null,
+          locality: addressPayload.landmark || locality.trim(),
+          address: addressPayload.formatted_address || address.trim() || null,
+          pincode: addressPayload.pincode || pincode.trim(),
+
+          geo_state_id: addressPayload.geo_state_id,
+          geo_district_id: addressPayload.geo_district_id,
+          geo_subdivision_id: addressPayload.geo_subdivision_id,
+          geo_block_id: addressPayload.geo_block_id,
+          geo_place_id: addressPayload.geo_place_id,
           needed_by: neededBy ? neededBy : null,
 
           contact_name: contactName.trim() || null,
@@ -3600,39 +3616,38 @@ return;
             background: "rgba(11,87,208,0.03)",
           }}
         >
-          <div style={{ fontWeight: 900, marginBottom: 6 }}>Location (required)</div>
-          <div style={{ opacity: 0.8, marginBottom: 10 }}>
-            Enter City, Locality, Pincode so nearby vendors can quote.
+          <div style={{ fontWeight: 900, marginBottom: 8 }}>
+            Project / Delivery Location
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns:
-            typeof window !== "undefined" && window.innerWidth < 768
-              ? "1fr"
-              : "1fr 1fr", gap: 12 }}>
-            <label>
-              <div style={{ fontWeight: 700 }}>City *</div>
-              <input className="searchInput" value={city} onChange={(e) => setCity(e.target.value)} />
-            </label>
+          <AddressEngine
+            value={addressEngineValue}
+            onChange={(next) => {
+              setAddressEngineValue(next);
 
-            <label>
-              <div style={{ fontWeight: 700 }}>Locality *</div>
-              <input className="searchInput" value={locality} onChange={(e) => setLocality(e.target.value)} />
-            </label>
+              const mapped = addressEngineToBusinessPayload(next);
 
-            <label>
-              <div style={{ fontWeight: 700 }}>Pincode *</div>
-              <input className="searchInput" value={pincode} onChange={(e) => setPincode(e.target.value)} />
-            </label>
+              setCity(mapped.city || "");
+              setLocality(mapped.landmark || "");
+              setAddress(mapped.formatted_address || "");
+              setPincode(mapped.pincode || "");
+            }}
+          />
 
-            <label>
-              <div style={{ fontWeight: 700 }}>Address (optional)</div>
-              <input className="searchInput" value={address} onChange={(e) => setAddress(e.target.value)} />
-            </label>
-
+          <div style={{ marginTop: 12 }}>
             <label>
               <div style={{ fontWeight: 700 }}>Needed by</div>
-              <input className="searchInput" type="date" value={neededBy} onChange={(e) => setNeededBy(e.target.value)} />
+              <input
+                className="searchInput"
+                type="date"
+                value={neededBy}
+                onChange={(e) => setNeededBy(e.target.value)}
+              />
             </label>
+          </div>
+
+          <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
+            Vendors will be matched using official LGD geography.
           </div>
         </div>
 
