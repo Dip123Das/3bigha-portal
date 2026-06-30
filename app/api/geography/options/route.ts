@@ -181,32 +181,19 @@ export async function GET(req: Request) {
       let localBodyCodes: number[] | null = null;
 
       if (districtId) {
-        const { data: districtRows, error: districtError } = await supabase
-          .from("geo_lgd_districts")
-          .select("name_en")
+        const { data: mappingRows, error: mappingError } = await supabase
+          .from("geo_lgd_local_body_districts")
+          .select("lgd_local_body_code")
           .eq("lgd_district_code", Number(districtId))
-          .limit(1);
+          .limit(20000);
 
-        if (districtError) throw districtError;
+        if (mappingError) throw mappingError;
 
-        const districtName = districtRows?.[0]?.name_en;
+        localBodyCodes = Array.from(
+          new Set((mappingRows || []).map((r) => r.lgd_local_body_code).filter(Boolean))
+        );
 
-        if (districtName) {
-          const { data: wardRows, error: wardError } = await supabase
-            .from("geo_lgd_wards")
-            .select("lgd_local_body_code")
-            .eq("is_active", true)
-            .eq("district_level_parent_name", districtName)
-            .limit(20000);
-
-          if (wardError) throw wardError;
-
-          localBodyCodes = Array.from(
-            new Set((wardRows || []).map((r) => r.lgd_local_body_code).filter(Boolean))
-          );
-
-          if (!localBodyCodes.length) return pagedResponse([], limit, offset);
-        }
+        if (!localBodyCodes.length) return pagedResponse([], limit, offset);
       }
 
       let query = supabase
