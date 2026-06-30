@@ -301,6 +301,34 @@ export async function GET(req: Request) {
       );
     }
 
+    if (type === "post-offices") {
+      let query = supabase
+        .from("geo_post_offices")
+        .select("id,pincode,office_name,office_type,delivery_status,district_name,state_name")
+        .order("office_name", { ascending: true })
+        .range(offset, offset + limit);
+
+      if (q) query = query.ilike("office_name", `%${q}%`);
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return pagedResponse(
+        data?.map((r) => ({
+          id: String(r.id),
+          name: `${r.office_name}${r.pincode ? ` - ${r.pincode}` : ""}`,
+          slug: String(r.id),
+          district_id: null,
+          subdivision_id: null,
+          block_id: null,
+          place_type: r.office_type || "POST_OFFICE",
+          pincode: r.pincode || null,
+        })) ?? [],
+        limit,
+        offset
+      );
+    }
+
     if (type === "places") {
       let query = supabase
         .from("geo_lgd_settlements")
