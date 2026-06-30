@@ -143,7 +143,7 @@ export default function AddressEngine({
             value={current.pincode || current.geography?.place?.pincode || ""}
             disabled={disabled}
             onChange={(event) => update({ pincode: event.target.value })}
-            placeholder="Example: 736101"
+            placeholder="Enter correct PIN code manually if not auto-filled"
           />
         </label>
       </div>

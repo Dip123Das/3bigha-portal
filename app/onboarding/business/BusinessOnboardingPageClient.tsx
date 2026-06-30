@@ -1839,57 +1839,58 @@ export default function BusinessOnboardingPageClient() {
                   I can serve across India
                 </label>
 
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 6 }}>
-                    Preferred Districts
+                <div
+                  style={{
+                    padding: 12,
+                    borderRadius: 10,
+                    background: "#ecfdf5",
+                    border: "1px solid #bbf7d0",
+                  }}
+                >
+                  <div style={{ fontSize: 14, fontWeight: 950, marginBottom: 6 }}>
+                    Service Coverage
                   </div>
-                  <div style={{ display: "grid", gap: 6, maxHeight: 160, overflow: "auto", padding: 8, border: "1px solid #e2e8f0", borderRadius: 8 }}>
-                    {geoDistricts.slice(0, 80).map((row) => (
-                      <label key={row.id} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13 }}>
-                        <input
-                          type="checkbox"
-                          checked={!!bp.preferred_geo_districts?.includes(row.id)}
-                          onChange={() => toggleArrayField("preferred_geo_districts", row.id)}
-                        />
-                        {row.name}
-                      </label>
-                    ))}
-                  </div>
-                </div>
 
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 6 }}>
-                    Preferred Blocks
-                  </div>
-                  <div style={{ display: "grid", gap: 6, maxHeight: 160, overflow: "auto", padding: 8, border: "1px solid #e2e8f0", borderRadius: 8 }}>
-                    {geoBlocks.slice(0, 120).map((row) => (
-                      <label key={row.id} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13 }}>
-                        <input
-                          type="checkbox"
-                          checked={!!bp.preferred_geo_blocks?.includes(row.id)}
-                          onChange={() => toggleArrayField("preferred_geo_blocks", row.id)}
-                        />
-                        {row.name}
-                      </label>
-                    ))}
-                  </div>
-                </div>
+                  <p style={{ margin: "0 0 10px", fontSize: 12, opacity: 0.78, lineHeight: 1.5 }}>
+                    Your primary service area is linked with the official LGD location selected below.
+                    Use radius for nearby RFQs, or select Statewide / Nationwide service above.
+                    Detailed multi-location service coverage will be added through a clean hierarchy in the next data phase.
+                  </p>
 
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 6 }}>
-                    Preferred Places
-                  </div>
-                  <div style={{ display: "grid", gap: 6, maxHeight: 180, overflow: "auto", padding: 8, border: "1px solid #e2e8f0", borderRadius: 8 }}>
-                    {geoPlaces.slice(0, 160).map((row) => (
-                      <label key={row.id} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13 }}>
-                        <input
-                          type="checkbox"
-                          checked={!!bp.preferred_geo_places?.includes(row.id)}
-                          onChange={() => toggleArrayField("preferred_geo_places", row.id)}
-                        />
-                        {row.name}
-                      </label>
-                    ))}
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: 8,
+                      padding: 10,
+                      borderRadius: 8,
+                      background: "#fff",
+                      border: "1px solid #d1fae5",
+                      fontSize: 13,
+                    }}
+                  >
+                    <div>
+                      <b>Primary service area:</b>{" "}
+                      {bp.preferred_service_area ||
+                        bp.city ||
+                        bp.district ||
+                        "Select your official location below"}
+                    </div>
+
+                    <div>
+                      <b>Coverage mode:</b>{" "}
+                      {bp.nationwide_service
+                        ? "Across India"
+                        : bp.statewide_service
+                        ? "Across my state"
+                        : bp.delivery_radius_km
+                        ? `Within ${bp.delivery_radius_km} KM radius`
+                        : "Local service area"}
+                    </div>
+
+                    <div style={{ opacity: 0.75 }}>
+                      To add multiple districts, blocks or places, use the service area text field for now.
+                      Avoid selecting from long unfiltered lists.
+                    </div>
                   </div>
                 </div>
               </div>
