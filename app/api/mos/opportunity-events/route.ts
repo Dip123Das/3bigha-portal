@@ -8,6 +8,16 @@ import {
 
 export const runtime = "nodejs";
 
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    name: "Marketplace Opportunity Events API",
+    method: "POST",
+    authentication: "Required",
+    status: "Available",
+  });
+}
+
 export async function POST() {
   try {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
