@@ -1,3 +1,4 @@
+import type { ExecutiveContext } from "../context";
 import type { AmeSignal } from "../types";
 
 export type ExecutiveAdapterHealth = {
@@ -11,7 +12,7 @@ export interface ExecutiveSignalAdapter {
   name: string;
   enabled: boolean;
   priority: number;
-  collect(): Promise<AmeSignal[]>;
+  collect(context: ExecutiveContext): Promise<AmeSignal[]>;
   health(): Promise<ExecutiveAdapterHealth>;
 }
 

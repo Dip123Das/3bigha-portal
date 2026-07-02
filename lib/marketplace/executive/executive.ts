@@ -1,4 +1,5 @@
 import { prepareAmeAction } from "./action-engine";
+import { createExecutiveContext, type ExecutiveContext } from "./context";
 import { makeAmeDecision } from "./decision-engine";
 import { learnFromAmeDecision } from "./learning-engine";
 import { rememberAmeDecision } from "./memory-engine";
@@ -13,8 +14,9 @@ import type { AmeDecision, AmeSignal } from "./types";
 
 export async function runMarketplaceExecutive(
   externalSignals: AmeSignal[] = [],
+  context: ExecutiveContext = createExecutiveContext(),
 ): Promise<AmeDecision> {
-  const collectedSignals = await collectMarketplaceSignals();
+  const collectedSignals = await collectMarketplaceSignals(context);
 
   const signals = [
     ...collectedSignals,
@@ -37,6 +39,7 @@ export async function runMarketplaceExecutive(
 }
 
 export * from "./types";
+export * from "./context";
 
 export {
   registerSignalProvider,

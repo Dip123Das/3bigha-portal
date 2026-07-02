@@ -1,4 +1,5 @@
 import type { ExecutiveSignalAdapter } from "./adapters/base";
+import { createExecutiveContext, type ExecutiveContext } from "./context";
 import type { AmeSignal } from "./types";
 
 const adapters = new Map<string, ExecutiveSignalAdapter>();
@@ -7,7 +8,9 @@ export function registerSignalProvider(adapter: ExecutiveSignalAdapter) {
   adapters.set(adapter.name, adapter);
 }
 
-export async function collectMarketplaceSignals(): Promise<AmeSignal[]> {
+export async function collectMarketplaceSignals(
+  context: ExecutiveContext = createExecutiveContext(),
+): Promise<AmeSignal[]> {
   const allSignals: AmeSignal[] = [];
 
   const sortedAdapters = [...adapters.values()]
@@ -16,13 +19,13 @@ export async function collectMarketplaceSignals(): Promise<AmeSignal[]> {
 
   for (const adapter of sortedAdapters) {
     try {
-      const signals = await adapter.collect();
+      const signals = await adapter.collect(context);
 
       if (Array.isArray(signals)) {
         allSignals.push(...signals);
       }
     } catch (error) {
-      console.error(`[AME] Adapter '${adapter.name}' failed:`, error);
+      context.logger.error(`[AME] Adapter '${adapter.name}' failed:`, error);
     }
   }
 

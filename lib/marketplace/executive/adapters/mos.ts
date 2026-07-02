@@ -1,3 +1,4 @@
+import type { ExecutiveContext } from "../context";
 import type { ExecutiveSignalAdapter } from "./base";
 import { createHealthyAdapterStatus } from "./base";
 import { getMosOpportunitySignals } from "@/lib/marketplace/services/mos";
@@ -9,10 +10,13 @@ export const mosAdapter: ExecutiveSignalAdapter = {
 
   priority: 100,
 
-  async collect() {
-    // G16.5 keeps this adapter read-only.
-    // A Supabase client will be injected in the next milestone.
-    return [];
+  async collect(context: ExecutiveContext) {
+    if (!context.supabase) return [];
+
+    return getMosOpportunitySignals({
+      supabase: context.supabase,
+      limit: context.config.signalLimit,
+    });
   },
 
   async health() {
