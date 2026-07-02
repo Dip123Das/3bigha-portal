@@ -1,49 +1,42 @@
+import type { ExecutiveSignalAdapter } from "./adapters/base";
 import type { AmeSignal } from "./types";
 
-export interface SignalProvider {
-  name: string;
-  collect(): Promise<AmeSignal[]>;
+const adapters = new Map<string, ExecutiveSignalAdapter>();
+
+export function registerSignalProvider(adapter: ExecutiveSignalAdapter) {
+  adapters.set(adapter.name, adapter);
 }
 
-const providers: SignalProvider[] = [];
-
-/**
- * Registers a marketplace intelligence provider.
- * G16.2 keeps registration in-memory only.
- */
-export function registerSignalProvider(provider: SignalProvider) {
-  providers.push(provider);
-}
-
-/**
- * Collects normalized signals from all registered providers.
- * This function is completely read-only.
- */
 export async function collectMarketplaceSignals(): Promise<AmeSignal[]> {
   const allSignals: AmeSignal[] = [];
 
-  for (const provider of providers) {
+  const sortedAdapters = [...adapters.values()]
+    .filter((adapter) => adapter.enabled)
+    .sort((a, b) => b.priority - a.priority);
+
+  for (const adapter of sortedAdapters) {
     try {
-      const signals = await provider.collect();
+      const signals = await adapter.collect();
 
       if (Array.isArray(signals)) {
         allSignals.push(...signals);
       }
     } catch (error) {
-      console.error(
-        `[AME] Signal provider '${provider.name}' failed:`,
-        error,
-      );
+      console.error(`[AME] Adapter '${adapter.name}' failed:`, error);
     }
   }
 
   return allSignals;
 }
 
-/**
- * Returns currently registered providers.
- * Useful for diagnostics.
- */
 export function getRegisteredSignalProviders(): string[] {
-  return providers.map((provider) => provider.name);
+  return [...adapters.keys()];
+}
+
+export async function getSignalProviderHealth() {
+  const healthChecks = await Promise.all(
+    [...adapters.values()].map((adapter) => adapter.health()),
+  );
+
+  return healthChecks.sort((a, b) => a.name.localeCompare(b.name));
 }

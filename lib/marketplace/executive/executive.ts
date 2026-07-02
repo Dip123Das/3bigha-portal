@@ -6,6 +6,7 @@ import { estimateSignalValue } from "./prediction-engine";
 import {
   collectMarketplaceSignals,
   getRegisteredSignalProviders,
+  getSignalProviderHealth,
   registerSignalProvider,
 } from "./signal-aggregator";
 import type { AmeDecision, AmeSignal } from "./types";
@@ -40,6 +41,7 @@ export * from "./types";
 export {
   registerSignalProvider,
   getRegisteredSignalProviders,
+  getSignalProviderHealth,
 };
 
 export { getRecentAmeDecisions } from "./memory-engine";
