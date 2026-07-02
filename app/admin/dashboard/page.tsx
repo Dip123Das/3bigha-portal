@@ -258,6 +258,14 @@ export default async function AdminDashboardPage() {
     },
 
     {
+      title: "Admin · Production Operations",
+      desc: "Monitor Hostinger VPS, PM2, Nginx, deployments, health logs, backups and production status.",
+      href: "/admin/dashboard/operations",
+      show: isMaster(role),
+      badges: ["VPS", "PM2", "Nginx", "deployments", "health monitor"],
+    },
+
+    {
       title: "Admin · Vendor Recruitment",
       desc: "AI-generated vendor acquisition targets by geography, shortage, priority and market expansion need.",
       href: "/admin/dashboard/vendor-recruitment",
