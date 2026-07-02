@@ -58,6 +58,36 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
   }
 
+  const supabase = getSupabaseAdmin();
+
+  async function count(table: string) {
+    const { count } = await supabase
+      .from(table)
+      .select("*", { head: true, count: "exact" });
+
+    return count || 0;
+  }
+
+  const [
+    users,
+    vendors,
+    properties,
+    materials,
+    servicesCount,
+    rentals,
+    rfqs,
+    tickets,
+  ] = await Promise.all([
+    count("profiles"),
+    count("business_profiles"),
+    count("property_listings"),
+    count("material_listings"),
+    count("service_listings"),
+    count("rental_listings"),
+    count("rfqs"),
+    count("support_tickets"),
+  ]);
+
   const pm2Raw = run("pm2 jlist");
   let pm2: any[] = [];
 
@@ -93,6 +123,17 @@ export async function GET(req: Request) {
       commit: run("git rev-parse --short HEAD"),
       message: run("git log -1 --pretty=%s"),
     },
+    marketplace: {
+      users,
+      vendors,
+      properties,
+      materials,
+      services: servicesCount,
+      rentals,
+      rfqs,
+      tickets,
+    },
+
     pm2,
     deployHistory: run("tail -20 deployment-history.log 2>/dev/null")
       .split("\n")

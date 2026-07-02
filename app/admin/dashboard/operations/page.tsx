@@ -82,6 +82,52 @@ export default function ProductionOperationsPage() {
 
         {data ? (
           <>
+
+
+            <section
+              style={{
+                display:"grid",
+                gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",
+                gap:14,
+                marginBottom:20
+              }}
+            >
+              {[
+                ["Users",data.marketplace.users],
+                ["Vendors",data.marketplace.vendors],
+                ["Properties",data.marketplace.properties],
+                ["Materials",data.marketplace.materials],
+                ["Services",data.marketplace.services],
+                ["Rentals",data.marketplace.rentals],
+                ["RFQs",data.marketplace.rfqs],
+                ["Support",data.marketplace.tickets],
+              ].map(([title,value])=>(
+                <div
+                  key={String(title)}
+                  style={{
+                    background:"#0f172a",
+                    color:"#fff",
+                    borderRadius:18,
+                    padding:20
+                  }}
+                >
+                  <div style={{opacity:.8,fontSize:13}}>
+                    {title}
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize:34,
+                      fontWeight:800,
+                      marginTop:10
+                    }}
+                  >
+                    {value}
+                  </div>
+                </div>
+              ))}
+            </section>
+
             <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14, marginBottom: 14 }}>
               <div style={card}><b>Server</b><p>{data.server.hostname}</p><p>{data.server.uptime}</p></div>
               <div style={card}><b>Memory</b><p>{data.server.memory}</p></div>
