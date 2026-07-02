@@ -3,10 +3,25 @@ import { makeAmeDecision } from "./decision-engine";
 import { learnFromAmeDecision } from "./learning-engine";
 import { rememberAmeDecision } from "./memory-engine";
 import { estimateSignalValue } from "./prediction-engine";
+import {
+  collectMarketplaceSignals,
+  getRegisteredSignalProviders,
+  registerSignalProvider,
+} from "./signal-aggregator";
 import type { AmeDecision, AmeSignal } from "./types";
 
-export function runMarketplaceExecutive(signals: AmeSignal[]): AmeDecision {
+export async function runMarketplaceExecutive(
+  externalSignals: AmeSignal[] = [],
+): Promise<AmeDecision> {
+  const collectedSignals = await collectMarketplaceSignals();
+
+  const signals = [
+    ...collectedSignals,
+    ...externalSignals,
+  ];
+
   const decision = makeAmeDecision(signals);
+
   const estimatedValue = estimateSignalValue(signals);
 
   const enrichedDecision: AmeDecision = {
@@ -21,4 +36,10 @@ export function runMarketplaceExecutive(signals: AmeSignal[]): AmeDecision {
 }
 
 export * from "./types";
+
+export {
+  registerSignalProvider,
+  getRegisteredSignalProviders,
+};
+
 export { getRecentAmeDecisions } from "./memory-engine";
