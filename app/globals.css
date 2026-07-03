@@ -3197,10 +3197,155 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   }
 }
 
-/* UI FLOATING + DROPDOWN AUTHORITY — desktop nav conflict removed.
-   Desktop menu/dropdown rules now live only in:
-   CLEAN SINGLE DESKTOP HEADER + NAV AUTHORITY.
-   Mobile hamburger authority below is preserved. */
+/* SAFE RESTORE — desktop mega menu readability + homepage width.
+   Does not change mobile header/account/logo/hamburger. */
+
+.pageBody:has(.homePage) {
+  width: 100% !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.homePage,
+.homePage .heroShell,
+.homePage .heroGrid,
+.homePage .heroCopy,
+.homePage .searchCard,
+.homePage .statsRail,
+.homePage .contentSection,
+.homePage .mobileCollapsibleSection,
+.homePage .aiLiveOpsStrip,
+.homePage .vendorOpportunityHomeStrip,
+.homePage .aiBusinessCommand,
+.homePage .splitSection,
+.homePage .homeBottomGrid,
+.homePage .cleanTrustSection,
+.homePage .cleanStartBanner,
+.homePage .cleanHomeFooter {
+  max-width: none !important;
+}
+
+@media (min-width: 981px) {
+  .homePage,
+  .homePage .heroShell,
+  .homePage .contentSection,
+  .homePage .mobileCollapsibleSection,
+  .homePage .statsRail,
+  .homePage .aiLiveOpsStrip,
+  .homePage .vendorOpportunityHomeStrip,
+  .homePage .aiBusinessCommand,
+  .homePage .splitSection {
+    width: calc(100vw - 32px) !important;
+    margin-left: calc(50% - 50vw + 16px) !important;
+    margin-right: calc(50% - 50vw + 16px) !important;
+  }
+
+  .stableMegaPanel {
+    align-items: start !important;
+  }
+
+  .stableMegaPanel > * {
+    min-width: 0 !important;
+    display: grid !important;
+    gap: 8px !important;
+    align-content: start !important;
+  }
+
+  .stableMegaPanel a,
+  .stableMegaPanel button,
+  .stableMegaMainLink {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    padding: 10px 12px !important;
+    border-radius: 13px !important;
+    background: #f8fafc !important;
+    border: 1px solid rgba(15, 23, 42, 0.08) !important;
+    color: #0f172a !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    line-height: 1.25 !important;
+    text-decoration: none !important;
+    white-space: normal !important;
+    cursor: pointer !important;
+  }
+
+  .stableMegaPanel a:hover,
+  .stableMegaPanel button:hover,
+  .stableMegaMainLink:hover {
+    background: #eef6ff !important;
+    border-color: rgba(37, 99, 235, 0.22) !important;
+    color: #1d4ed8 !important;
+  }
+
+  .stableMegaPanel p,
+  .stableMegaPanel span,
+  .stableMegaPanel small {
+    line-height: 1.35 !important;
+  }
+
+  .stableMegaPanel strong,
+  .stableMegaPanel b {
+    display: block !important;
+    margin-bottom: 4px !important;
+    color: #475569 !important;
+    font-size: 13px !important;
+    font-weight: 1000 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .homePage {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  .homePage .heroShell,
+  .homePage .heroGrid,
+  .homePage .heroCopy,
+  .homePage .searchCard,
+  .homePage .contentSection,
+  .homePage .mobileCollapsibleSection,
+  .homePage .statsRail,
+  .homePage .aiLiveOpsStrip,
+  .homePage .vendorOpportunityHomeStrip,
+  .homePage .aiBusinessCommand,
+  .homePage .splitSection,
+  .homePage .homeBottomGrid,
+  .homePage .cleanTrustSection,
+  .homePage .cleanStartBanner,
+  .homePage .cleanHomeFooter {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .homePage .heroGrid {
+    grid-template-columns: 1fr !important;
+    overflow: hidden !important;
+  }
+
+  .homePage .listingGrid,
+  .homePage .categoryGrid,
+  .homePage .discoveryRailGrid,
+  .homePage .toolsGrid,
+  .homePage .priceGrid,
+  .homePage .aiLiveOpsGrid,
+  .homePage .vendorOpportunityHomeGrid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 
 /* =========================================================
    FINAL MOBILE HAMBURGER PANEL AUTHORITY
