@@ -3697,3 +3697,54 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     display: none !important;
   }
 }
+
+/* DESKTOP DROPDOWN STABILITY PATCH — keep menus clickable */
+@media (min-width: 769px) {
+  .topHeader,
+  .topSubBar,
+  .stableDesktopMegaNav {
+    position: relative;
+    z-index: 9000;
+    overflow: visible !important;
+  }
+
+  .topHeaderInner,
+  .topSubBarInner,
+  .stableDesktopMegaNavInner,
+  .topActions,
+  .topSubLinks,
+  .postMenu,
+  .rfqToggle,
+  .stableMegaItem {
+    overflow: visible !important;
+  }
+
+  .postMenuPanel,
+  .rfqTogglePanel,
+  .stableMegaPanel {
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+  }
+
+  .postMenu::after,
+  .rfqToggle::after,
+  .stableMegaItem::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 14px;
+  }
+
+  .postMenu[open] > .postMenuPanel,
+  .postMenu:hover > .postMenuPanel,
+  .rfqToggle[open] > .rfqTogglePanel,
+  .rfqToggle:hover > .rfqTogglePanel,
+  .stableMegaItem:hover > .stableMegaPanel {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+}
