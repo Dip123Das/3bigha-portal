@@ -77,6 +77,15 @@ function getLocaleFromPath(pathname: string) {
 
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
+
+  // Supabase may return auth code to root if redirect URL is misconfigured.
+  // Move it to the server callback route to avoid client-side crashes.
+  if (pathname === "/" && req.nextUrl.searchParams.has("code")) {
+    const callbackUrl = req.nextUrl.clone();
+    callbackUrl.pathname = "/auth/callback";
+    return NextResponse.redirect(callbackUrl);
+  }
+
   const locale = getLocaleFromPath(pathname);
 
   const requestHeaders = new Headers(req.headers);
