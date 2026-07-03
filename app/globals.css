@@ -3698,7 +3698,7 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   }
 }
 
-/* DESKTOP DROPDOWN STABILITY PATCH — keep menus clickable */
+/* DESKTOP MENU STABILITY FINAL PATCH — no hover gap, no cross-menu capture */
 @media (min-width: 769px) {
   .topHeader,
   .topSubBar,
@@ -3712,10 +3712,14 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   .topSubBarInner,
   .stableDesktopMegaNavInner,
   .topActions,
-  .topSubLinks,
+  .topSubLinks {
+    overflow: visible !important;
+  }
+
   .postMenu,
   .rfqToggle,
   .stableMegaItem {
+    position: relative !important;
     overflow: visible !important;
   }
 
@@ -3726,40 +3730,23 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     pointer-events: auto !important;
   }
 
-  .postMenu::after,
-  .rfqToggle::after,
-  .stableMegaItem::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 100%;
-    height: 14px;
+  .postMenuPanel,
+  .rfqTogglePanel {
+    margin-top: -2px !important;
   }
 
-  .postMenu[open] > .postMenuPanel,
+  .stableMegaPanel {
+    margin-top: -1px !important;
+  }
+
   .postMenu:hover > .postMenuPanel,
-  .rfqToggle[open] > .rfqTogglePanel,
+  .postMenu[open] > .postMenuPanel,
   .rfqToggle:hover > .rfqTogglePanel,
+  .rfqToggle[open] > .rfqTogglePanel,
   .stableMegaItem:hover > .stableMegaPanel {
     display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
-  }
-}
-
-/* DESKTOP MENU HOVER SCOPE FIX — prevent Help menu capturing other menus */
-@media (min-width: 769px) {
-  .postMenu,
-  .rfqToggle,
-  .stableMegaItem {
-    position: relative !important;
-  }
-
-  .postMenu::after,
-  .rfqToggle::after,
-  .stableMegaItem::after {
-    pointer-events: none !important;
   }
 }
