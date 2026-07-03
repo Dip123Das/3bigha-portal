@@ -3750,3 +3750,52 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     pointer-events: auto !important;
   }
 }
+
+/* DESKTOP MENU INSTANT OPEN AUTHORITY PATCH */
+@media (min-width: 769px) {
+  .postMenuPanel,
+  .rfqTogglePanel,
+  .stableMegaPanel {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+    transition-delay: 0s !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .postMenu:hover > .postMenuPanel,
+  .postMenu:focus-within > .postMenuPanel,
+  .postMenu[open] > .postMenuPanel,
+  .rfqToggle:hover > .rfqTogglePanel,
+  .rfqToggle:focus-within > .rfqTogglePanel,
+  .rfqToggle[open] > .rfqTogglePanel,
+  .stableMegaItem:hover > .stableMegaPanel,
+  .stableMegaItem:focus-within > .stableMegaPanel {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transform: none !important;
+  }
+
+  .postMenu,
+  .rfqToggle,
+  .stableMegaItem {
+    position: relative !important;
+  }
+
+  .postMenuPanel,
+  .rfqTogglePanel,
+  .stableMegaPanel {
+    z-index: 2147483647 !important;
+    margin-top: 0 !important;
+  }
+
+  .postMenu > summary,
+  .rfqToggle > summary,
+  .stableMegaButton {
+    cursor: pointer !important;
+  }
+}
