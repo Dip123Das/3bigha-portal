@@ -74,21 +74,27 @@ const allLocalBodies = await fetchAll(
   { is_active: true }
 );
 
-const currentUlbCodes = new Set(
-  (await fetchAll(
-    "geo_lgd_wards",
-    "lgd_local_body_code",
-    { is_active: true }
-  )).map((w) => w.lgd_local_body_code)
-);
-
-const localBodies = allLocalBodies.filter((b) => currentUlbCodes.has(b.lgd_local_body_code));
-
-const wards = await fetchAll(
+const allWards = await fetchAll(
   "geo_lgd_wards",
-  "lgd_ward_code,lgd_local_body_code,ward_name_en,ward_name_local,local_body_name_en",
+  "lgd_ward_code,lgd_local_body_code,ward_name_en,ward_name_local,local_body_name_en,district_level_parent_name",
   { is_active: true }
 );
+
+const stateDistrictNames = new Set(
+  (await fetchAll(
+    "geo_lgd_districts",
+    "name_en",
+    { lgd_state_code: state.lgdCode, is_active: true }
+  )).map((d) => String(d.name_en || "").trim().toLowerCase())
+);
+
+const wards = allWards.filter((w) =>
+  stateDistrictNames.has(String(w.district_level_parent_name || "").trim().toLowerCase())
+);
+
+const currentUlbCodes = new Set(wards.map((w) => w.lgd_local_body_code));
+
+const localBodies = allLocalBodies.filter((b) => currentUlbCodes.has(b.lgd_local_body_code));
 
 const rows = [];
 
@@ -116,7 +122,7 @@ for (const village of villages) {
 for (const body of localBodies) {
   rows.push({
     settlement_key: `local_body:${body.lgd_local_body_code}`,
-    settlement_type: body.local_body_category === "URBAN" ? "URBAN_LOCAL_BODY" : "LOCAL_BODY",
+    settlement_type: "LOCAL_BODY",
     name_en: body.name_en,
     name_local: body.name_local || "",
     display_name: body.name_en,
@@ -137,7 +143,7 @@ for (const body of localBodies) {
 for (const ward of wards) {
   rows.push({
     settlement_key: `ward:${ward.lgd_ward_code}`,
-    settlement_type: "WARD",
+    settlement_type: ward.ward_category === "URBAN" ? "URBAN_WARD" : "PRI_WARD",
     name_en: ward.ward_name_en,
     name_local: ward.ward_name_local || "",
     display_name: ward.local_body_name_en
@@ -161,8 +167,14 @@ console.log(`State: ${state.name}`);
 console.log(`Village settlements: ${villages.length}`);
 console.log(`Local body settlements: ${localBodies.length}`);
 console.log(`Ward settlements: ${wards.length}`);
-console.log(`Prepared settlements: ${rows.length}`);
+console.log(`Prepared settlements before dedupe: ${rows.length}`);
 
-const inserted = await upsertChunks(rows);
+const uniqueRows = Array.from(
+  new Map(rows.map((row) => [row.settlement_key, row])).values()
+);
+
+console.log(`Prepared settlements after dedupe: ${uniqueRows.length}`);
+
+const inserted = await upsertChunks(uniqueRows);
 
 console.log(`Upserted settlements: ${inserted}`);
