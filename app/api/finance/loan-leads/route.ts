@@ -57,6 +57,11 @@ export async function POST(request: Request) {
       loan_purpose: loanPurpose,
       state,
       district: String(body.district || "").trim() || null,
+      geo_state_id: String(body.geo_state_id || "").trim() || null,
+      geo_district_id: String(body.geo_district_id || "").trim() || null,
+      geo_subdivision_id: String(body.geo_subdivision_id || "").trim() || null,
+      geo_block_id: String(body.geo_block_id || "").trim() || null,
+      geo_place_id: String(body.geo_place_id || "").trim() || null,
 
       monthly_income: Number(body.monthlyIncome || 0),
       co_applicant_income: Number(body.coApplicantIncome || 0),
