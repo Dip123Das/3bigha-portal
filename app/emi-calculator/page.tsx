@@ -33,6 +33,7 @@ const Tooltip = nextDynamic(
   { ssr: false }
 );
 import type { LiveLenderOffer } from "@/lib/finance/lenderOffer";
+import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
 
 type TenureMode = "years" | "months";
 
@@ -157,6 +158,7 @@ export default function EmiCalculatorPage() {
   const [monthlyAgricultureIncome, setMonthlyAgricultureIncome] = useState(0);
   const [coApplicantIncome, setCoApplicantIncome] = useState(0);
   const [selectedBankState, setSelectedBankState] = useState("West Bengal");
+  const [financeGeoSelection, setFinanceGeoSelection] = useState<GeoSelection>({});
   const [selectedBankName, setSelectedBankName] = useState("");
 
   const [liveLenderOffers, setLiveLenderOffers] = useState<
@@ -490,6 +492,12 @@ async function submitFinanceLead() {
 
           loanPurpose,
           state: selectedBankState,
+          district: financeGeoSelection.district?.name || null,
+          geo_state_id: financeGeoSelection.state?.id || null,
+          geo_district_id: financeGeoSelection.district?.id || null,
+          geo_subdivision_id: financeGeoSelection.subdivision?.id || null,
+          geo_block_id: financeGeoSelection.block?.id || null,
+          geo_place_id: financeGeoSelection.place?.id || null,
 
           monthlyIncome,
           coApplicantIncome,
@@ -1367,6 +1375,30 @@ const result = useMemo(() => {
                       : "Plot Purchase"}
                 </strong>
               </div>
+
+              <div className="fieldTop">
+                <label>Property / Loan Location</label>
+                <strong>
+                  {[
+                    financeGeoSelection.place?.name,
+                    financeGeoSelection.district?.name,
+                    financeGeoSelection.state?.name || selectedBankState,
+                  ]
+                    .filter(Boolean)
+                    .join(", ") || "Select location"}
+                </strong>
+              </div>
+
+              <GeoSelector
+                value={financeGeoSelection}
+                includeSubdivision
+                includeBlock
+                includePlace
+                onChange={(geo) => {
+                  setFinanceGeoSelection(geo);
+                  setSelectedBankState(geo.state?.name || "West Bengal");
+                }}
+              />
 
               <select
                 className="stateSelect"
