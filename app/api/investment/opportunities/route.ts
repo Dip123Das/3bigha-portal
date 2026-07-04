@@ -95,6 +95,11 @@ export async function POST(req: Request) {
     const city = normalizeString(body?.city);
     const state = normalizeString(body?.state);
     const country = normalizeString(body?.country);
+    const geoStateId = isUuid(body?.geo_state_id) ? String(body.geo_state_id) : null;
+    const geoDistrictId = isUuid(body?.geo_district_id) ? String(body.geo_district_id) : null;
+    const geoSubdivisionId = isUuid(body?.geo_subdivision_id) ? String(body.geo_subdivision_id) : null;
+    const geoBlockId = isUuid(body?.geo_block_id) ? String(body.geo_block_id) : null;
+    const geoPlaceId = isUuid(body?.geo_place_id) ? String(body.geo_place_id) : null;
 
     const visibility =
       body?.visibility === "private" ? "private" : "public";
@@ -162,6 +167,11 @@ export async function POST(req: Request) {
             city,
             state,
             country,
+            geo_state_id: geoStateId,
+            geo_district_id: geoDistrictId,
+            geo_subdivision_id: geoSubdivisionId,
+            geo_block_id: geoBlockId,
+            geo_place_id: geoPlaceId,
             visibility,
             status,
             min_investment: minInvestment,
@@ -207,6 +217,11 @@ export async function POST(req: Request) {
         city,
         state,
         country,
+        geo_state_id: geoStateId,
+        geo_district_id: geoDistrictId,
+        geo_subdivision_id: geoSubdivisionId,
+        geo_block_id: geoBlockId,
+        geo_place_id: geoPlaceId,
         visibility,
         status,
         min_investment: minInvestment,
