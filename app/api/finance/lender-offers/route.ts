@@ -106,6 +106,11 @@ export async function POST(request: Request) {
       lender_type: String(body.lenderType || "bank"),
       state: String(body.state || "West Bengal").trim(),
       district: String(body.district || "").trim() || null,
+      geo_state_id: String(body.geo_state_id || "").trim() || null,
+      geo_district_id: String(body.geo_district_id || "").trim() || null,
+      geo_subdivision_id: String(body.geo_subdivision_id || "").trim() || null,
+      geo_block_id: String(body.geo_block_id || "").trim() || null,
+      geo_place_id: String(body.geo_place_id || "").trim() || null,
       product_type: String(body.productType || "home").trim(),
 
       min_roi: Number(body.minRoi || 0),

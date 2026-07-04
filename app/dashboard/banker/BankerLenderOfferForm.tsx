@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
 
 type Props = {
   lenderName: string;
@@ -10,6 +11,7 @@ export default function BankerLenderOfferForm({ lenderName }: Props) {
   const [productType, setProductType] = useState("home");
   const [state, setState] = useState("West Bengal");
   const [district, setDistrict] = useState("");
+  const [geoSelection, setGeoSelection] = useState<GeoSelection>({});
   const [minRoi, setMinRoi] = useState("8.5");
   const [maxRoi, setMaxRoi] = useState("9.5");
   const [processingFee, setProcessingFee] = useState("0.5");
@@ -36,6 +38,11 @@ export default function BankerLenderOfferForm({ lenderName }: Props) {
           productType,
           state,
           district,
+          geo_state_id: geoSelection.state?.id || null,
+          geo_district_id: geoSelection.district?.id || null,
+          geo_subdivision_id: geoSelection.subdivision?.id || null,
+          geo_block_id: geoSelection.block?.id || null,
+          geo_place_id: geoSelection.place?.id || null,
           minRoi: Number(minRoi),
           maxRoi: Number(maxRoi),
           processingFeePercent: Number(processingFee),
@@ -98,19 +105,19 @@ export default function BankerLenderOfferForm({ lenderName }: Props) {
           <option value="plot">Plot / Land Loan</option>
         </select>
 
-        <input
-          value={state}
-          onChange={(e) => setState(e.target.value)}
-          placeholder="State"
-          className="rounded-2xl border px-4 py-3 text-sm"
-        />
-
-        <input
-          value={district}
-          onChange={(e) => setDistrict(e.target.value)}
-          placeholder="District optional"
-          className="rounded-2xl border px-4 py-3 text-sm"
-        />
+        <div className="md:col-span-2">
+          <GeoSelector
+            value={geoSelection}
+            includeSubdivision
+            includeBlock
+            includePlace
+            onChange={(geo) => {
+              setGeoSelection(geo);
+              setState(geo.state?.name || "West Bengal");
+              setDistrict(geo.district?.name || "");
+            }}
+          />
+        </div>
 
         <input
           value={minCibil}
