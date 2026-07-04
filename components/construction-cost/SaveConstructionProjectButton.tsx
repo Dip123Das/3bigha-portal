@@ -9,6 +9,11 @@ type Props = {
   city?: string;
   locality?: string;
   pincode?: string;
+  geoStateId?: string | null;
+  geoDistrictId?: string | null;
+  geoSubdivisionId?: string | null;
+  geoBlockId?: string | null;
+  geoPlaceId?: string | null;
 
   builtUpAreaSqFt: number;
   floorCount: number;
@@ -25,6 +30,11 @@ export default function SaveConstructionProjectButton({
   city,
   locality,
   pincode,
+  geoStateId,
+  geoDistrictId,
+  geoSubdivisionId,
+  geoBlockId,
+  geoPlaceId,
   builtUpAreaSqFt,
   floorCount,
   grade,
@@ -54,6 +64,11 @@ export default function SaveConstructionProjectButton({
           city,
           locality,
           pincode,
+          geoStateId,
+          geoDistrictId,
+          geoSubdivisionId,
+          geoBlockId,
+          geoPlaceId,
           builtUpAreaSqFt,
           floorCount,
           grade,
