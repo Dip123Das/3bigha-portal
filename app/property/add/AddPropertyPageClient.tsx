@@ -3037,6 +3037,11 @@ const extraUpdate: Record<string, any> = {
   city: params.city,
   state: params.state,
   address_text: params.address_text,
+  geo_state_id: geoSelection.state?.id || null,
+  geo_district_id: geoSelection.district?.id || null,
+  geo_subdivision_id: geoSelection.subdivision?.id || null,
+  geo_block_id: geoSelection.block?.id || null,
+  geo_place_id: geoSelection.place?.id || null,
 };
   Object.keys(extraUpdate).forEach((k) => {
     if (extraUpdate[k] === undefined) delete extraUpdate[k];
@@ -3117,6 +3122,11 @@ const extraUpdate: Record<string, any> = {
     address_text: params.address_text,
     cover_image_url: params.cover_image_url,
     google_maps_url: params.google_maps_url,
+    geo_state_id: geoSelection.state?.id || null,
+    geo_district_id: geoSelection.district?.id || null,
+    geo_subdivision_id: geoSelection.subdivision?.id || null,
+    geo_block_id: geoSelection.block?.id || null,
+    geo_place_id: geoSelection.place?.id || null,
 
     // ✅ JSON blobs (best effort — will be auto-dropped if missing)
     location_json: payload.location,
