@@ -35,15 +35,13 @@ export async function GET(request: NextRequest) {
   const box = nearbyBoundingBox(center, radiusKm);
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("geo_places")
-    .select("id,name,slug,latitude,longitude,pincode,is_active")
-    .eq("is_active", true)
-    .gte("latitude", box.minLatitude)
-    .lte("latitude", box.maxLatitude)
-    .gte("longitude", box.minLongitude)
-    .lte("longitude", box.maxLongitude)
-    .limit(500);
+  const { data, error } = await supabase.rpc("nearby_geo_places_box", {
+    min_lat: box.minLatitude,
+    max_lat: box.maxLatitude,
+    min_lng: box.minLongitude,
+    max_lng: box.maxLongitude,
+    row_limit: 2000,
+  });
 
   if (error) {
     return NextResponse.json(
