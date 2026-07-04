@@ -329,6 +329,66 @@ export async function GET(req: Request) {
       );
     }
 
+    if (type === "search") {
+      const searchLimit = Math.min(limit, 25);
+      const term = q.replace(/\s+/g, " ").trim();
+
+      if (!term) {
+        return pagedResponse([], searchLimit, offset);
+      }
+
+      let query = supabase
+        .from("geo_settlement_intelligence")
+        .select("settlement_key,settlement_type,name_en,display_name,slug,lgd_state_code,state_name,lgd_district_code,district_name,lgd_subdistrict_code,subdistrict_name,lgd_block_code,block_name,lgd_village_code,lgd_local_body_code,local_body_name,lgd_ward_code,ward_name,primary_pincode,search_text")
+        .order("name_en", { ascending: true })
+        .range(offset, offset + searchLimit);
+
+      if (/^\d{6}$/.test(term)) {
+        query = query.eq("primary_pincode", term);
+      } else {
+        query = query.ilike("search_text", `%${term}%`);
+      }
+
+      if (stateId) query = query.eq("lgd_state_code", Number(stateId));
+      if (districtId) query = query.eq("lgd_district_code", Number(districtId));
+      if (subdivisionId) query = query.eq("lgd_subdistrict_code", Number(subdivisionId));
+      if (blockId) query = query.eq("lgd_block_code", Number(blockId));
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return pagedResponse(
+        data?.map((r) => ({
+          id: r.settlement_key,
+          name: r.display_name || r.name_en,
+          slug: r.slug,
+          state_id: r.lgd_state_code ? String(r.lgd_state_code) : null,
+          state_name: r.state_name || null,
+          district_id: r.lgd_district_code ? String(r.lgd_district_code) : null,
+          district_name: r.district_name || null,
+          subdivision_id: r.lgd_subdistrict_code ? String(r.lgd_subdistrict_code) : null,
+          subdivision_name: r.subdistrict_name || null,
+          block_id: r.lgd_block_code ? String(r.lgd_block_code) : null,
+          block_name: r.block_name || null,
+          village_id: r.lgd_village_code ? String(r.lgd_village_code) : null,
+          local_body_id: r.lgd_local_body_code ? String(r.lgd_local_body_code) : null,
+          local_body_name: r.local_body_name || null,
+          ward_id: r.lgd_ward_code ? String(r.lgd_ward_code) : null,
+          ward_name: r.ward_name || null,
+          place_type: r.settlement_type,
+          pincode: r.primary_pincode || null,
+          label: [
+            r.display_name || r.name_en,
+            r.district_name,
+            r.state_name,
+            r.primary_pincode,
+          ].filter(Boolean).join(", "),
+        })) ?? [],
+        searchLimit,
+        offset
+      );
+    }
+
     if (type === "places") {
       let query = supabase
         .from("geo_lgd_settlements")
