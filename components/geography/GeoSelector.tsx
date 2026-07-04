@@ -14,6 +14,16 @@ type GeoOption = {
   block_id?: string | null;
   pincode?: string | null;
   place_type?: string | null;
+  label?: string | null;
+  state_name?: string | null;
+  district_name?: string | null;
+  subdivision_name?: string | null;
+  block_name?: string | null;
+  village_id?: string | null;
+  local_body_id?: string | null;
+  local_body_name?: string | null;
+  ward_id?: string | null;
+  ward_name?: string | null;
 };
 
 export type GeoSelection = {
@@ -41,7 +51,8 @@ type GeoType =
   | "villages"
   | "localBodies"
   | "wards"
-  | "places";
+  | "places"
+  | "search";
 
 type GeoParams = {
   stateId?: string;
@@ -356,6 +367,57 @@ export default function GeoSelector({
   const hierarchy = getNationalGeoHierarchy(selection.state?.slug || undefined);
   const [geoMode, setGeoMode] = useState<"rural" | "urban">("rural");
 
+  function applyIntelligentSearch(option: GeoOption | null) {
+    if (!option) return;
+
+    const isUrban =
+      option.place_type === "URBAN_WARD" ||
+      option.place_type === "LOCAL_BODY" ||
+      Boolean(option.local_body_id || option.ward_id);
+
+    setGeoMode(isUrban ? "urban" : "rural");
+
+    updateSelection({
+      state: option.state_id
+        ? { id: option.state_id, name: option.state_name || "", slug: null }
+        : null,
+      district: option.district_id
+        ? { id: option.district_id, name: option.district_name || "", slug: null }
+        : null,
+      subdivision: option.subdivision_id
+        ? { id: option.subdivision_id, name: option.subdivision_name || "", slug: null }
+        : null,
+      block: isUrban
+        ? option.local_body_id
+          ? {
+              id: option.local_body_id,
+              name: option.local_body_name || option.block_name || "",
+              slug: null,
+              place_type: "LOCAL_BODY",
+            }
+          : null
+        : option.block_id
+          ? {
+              id: option.block_id,
+              name: option.block_name || "",
+              slug: null,
+            }
+          : null,
+      place: {
+        id: isUrban
+          ? option.ward_id || option.local_body_id || option.id
+          : option.village_id || option.id,
+        name: option.ward_name || option.name,
+        slug: option.slug,
+        district_id: option.district_id,
+        subdivision_id: option.subdivision_id,
+        block_id: isUrban ? option.local_body_id || option.block_id : option.block_id,
+        pincode: option.pincode,
+        place_type: option.place_type,
+      },
+    });
+  }
+
   const selectedParts = [
     selection.state?.name ? `State: ${selection.state.name}` : "",
     selection.district?.name ? `District: ${selection.district.name}` : "",
@@ -381,6 +443,17 @@ export default function GeoSelector({
         <small>
           Select official LGD rural or urban address hierarchy
         </small>
+      </div>
+
+      <div className="geoSelectorSmartSearch">
+        <SearchableGeoSelect
+          type="search"
+          label="Intelligent Location Search"
+          placeholder="Search village, ward, municipality, town or PIN"
+          value={null}
+          disabled={disabled}
+          onChange={applyIntelligentSearch}
+        />
       </div>
 
       <div className="geoSelectorGrid">
@@ -613,6 +686,10 @@ export default function GeoSelector({
           color: #64748b;
           font-size: 12px;
           font-weight: 750;
+        }
+
+        .geoSelectorSmartSearch {
+          margin-bottom: 12px;
         }
 
         .geoSelectorGrid {
