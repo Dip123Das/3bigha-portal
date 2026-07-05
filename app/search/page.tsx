@@ -22,6 +22,7 @@ import {
   scoreUnifiedMarketplaceResult,
 } from "@/lib/search/unified-marketplace-brain";
 import { computeMarketplaceGeoScore } from "@/lib/search/geo-marketplace-ranking";
+import { computeMarketplaceRanking } from "@/lib/marketplace/marketplace-ranking";
 import {
   getSearchWorkflowCards,
   workflowCardToneStyle,
@@ -1394,7 +1395,7 @@ if (want.includes("rentals")) {
               listingGeoPlaceId: row._geo_place_id,
             });
 
-            let distanceBonus = 0;
+            let distanceKm: number | null = null;
 
             if (
               latFromUrl != null &&
@@ -1402,23 +1403,26 @@ if (want.includes("rentals")) {
               row._lat != null &&
               row._lng != null
             ) {
-              const km = haversineKm(
+              distanceKm = haversineKm(
                 latFromUrl,
                 lngFromUrl,
                 row._lat,
                 row._lng
               );
-
-              if (km <= 5) distanceBonus = 30;
-              else if (km <= 15) distanceBonus = 20;
-              else if (km <= 30) distanceBonus = 10;
             }
+
+            const ranking = computeMarketplaceRanking({
+              aiScore: ai.score,
+              unifiedScore: unified.score,
+              geoScore: geo.score,
+              distanceKm,
+            });
 
             return {
               ...row,
-              _geoScore: geo.score + distanceBonus,
+              _geoScore: geo.score + ranking.distanceScore,
               _geoLevel: geo.level,
-              _aiScore: ai.score + unified.score + geo.score + distanceBonus,
+              _aiScore: ranking.score,
               _aiReason:
                 geo.score > 0
                   ? `geo ${geo.level} match`
