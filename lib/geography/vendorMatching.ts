@@ -10,6 +10,13 @@ export type VendorMatchingInput = {
   boost_priority?: number | string | null;
   subscription_plan?: string | null;
   subscription_status?: string | null;
+  reputation_score?: number | string | null;
+  authority_score?: number | string | null;
+  conversion_rate?: number | string | null;
+  response_rate?: number | string | null;
+  activity_score?: number | string | null;
+  demand_score?: number | string | null;
+  liquidity_score?: number | string | null;
   is_complete?: boolean | null;
   registration_complete?: boolean | null;
 };
@@ -76,6 +83,13 @@ export function vendorPriorityScore(vendor: NearbyVendorLike): number {
     distanceKm: vendor.distanceKm,
     boostScore: boostPriority * 100,
     verificationScore: subscriptionWeight,
+    reputationScore: toNumber(vendor.reputation_score),
+    authorityScore: toNumber(vendor.authority_score),
+    conversionRate: toNumber(vendor.conversion_rate),
+    responseRate: toNumber(vendor.response_rate),
+    activityScore: toNumber(vendor.activity_score),
+    demandScore: toNumber(vendor.demand_score),
+    liquidityScore: toNumber(vendor.liquidity_score),
   });
 
   return ranking.score;
