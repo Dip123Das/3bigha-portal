@@ -6,6 +6,12 @@ export type MarketplaceRankingInput = {
   verificationScore?: number | null;
   boostScore?: number | null;
   freshnessScore?: number | null;
+
+  reputationScore?: number | null;
+  authorityScore?: number | null;
+  conversionRate?: number | null;
+  responseRate?: number | null;
+  activityScore?: number | null;
 };
 
 export function computeDistanceScore(distanceKm?: number | null) {
@@ -16,8 +22,30 @@ export function computeDistanceScore(distanceKm?: number | null) {
   return 0;
 }
 
+
+function normalizePercentage(value?: number | null, maxWeight = 10) {
+  const n = Number(value || 0);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return Math.min(maxWeight, Math.round((Math.min(n, 100) / 100) * maxWeight));
+}
+
 export function computeMarketplaceRanking(input: MarketplaceRankingInput) {
   const distanceScore = computeDistanceScore(input.distanceKm);
+
+  const reputationScore =
+    normalizePercentage(input.reputationScore, 10);
+
+  const authorityScore =
+    normalizePercentage(input.authorityScore, 8);
+
+  const conversionScore =
+    normalizePercentage(input.conversionRate, 8);
+
+  const responseScore =
+    normalizePercentage(input.responseRate, 8);
+
+  const activityScore =
+    Number(input.activityScore || 0);
 
   const score =
     Number(input.aiScore || 0) +
@@ -26,10 +54,20 @@ export function computeMarketplaceRanking(input: MarketplaceRankingInput) {
     distanceScore +
     Number(input.verificationScore || 0) +
     Number(input.boostScore || 0) +
-    Number(input.freshnessScore || 0);
+    Number(input.freshnessScore || 0) +
+    reputationScore +
+    authorityScore +
+    conversionScore +
+    responseScore +
+    activityScore;
 
   return {
     score,
     distanceScore,
+    reputationScore,
+    authorityScore,
+    conversionScore,
+    responseScore,
+    activityScore,
   };
 }
