@@ -12,6 +12,9 @@ export type MarketplaceRankingInput = {
   conversionRate?: number | null;
   responseRate?: number | null;
   activityScore?: number | null;
+
+  demandScore?: number | null;
+  liquidityScore?: number | null;
 };
 
 export function computeDistanceScore(distanceKm?: number | null) {
@@ -47,6 +50,12 @@ export function computeMarketplaceRanking(input: MarketplaceRankingInput) {
   const activityScore =
     Number(input.activityScore || 0);
 
+  const demandScore =
+    normalizePercentage(input.demandScore, 8);
+
+  const liquidityScore =
+    normalizePercentage(input.liquidityScore, 8);
+
   const score =
     Number(input.aiScore || 0) +
     Number(input.unifiedScore || 0) +
@@ -59,7 +68,9 @@ export function computeMarketplaceRanking(input: MarketplaceRankingInput) {
     authorityScore +
     conversionScore +
     responseScore +
-    activityScore;
+    activityScore +
+    demandScore +
+    liquidityScore;
 
   return {
     score,
@@ -69,5 +80,7 @@ export function computeMarketplaceRanking(input: MarketplaceRankingInput) {
     conversionScore,
     responseScore,
     activityScore,
+    demandScore,
+    liquidityScore,
   };
 }
