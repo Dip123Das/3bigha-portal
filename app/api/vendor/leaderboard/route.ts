@@ -6,7 +6,7 @@ export const revalidate = 60;
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
 function clean(v: unknown) {
@@ -17,13 +17,15 @@ export async function GET() {
   try {
     const { data: vendors, error: vendorError } = await supabase
       .from("business_profiles")
-      .select("user_id,business_name,company_name,owner_name,city,locality,subscription_plan,boost_priority,approval_status")
+      .select(
+        "user_id,business_name,company_name,owner_name,city,locality,subscription_plan,boost_priority,approval_status",
+      )
       .limit(100);
 
     if (vendorError) {
       return NextResponse.json(
         { ok: false, error: vendorError.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -42,7 +44,7 @@ export async function GET() {
     if (dealError) {
       return NextResponse.json(
         { ok: false, error: dealError.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -70,7 +72,10 @@ export async function GET() {
 
         const score = Math.min(
           100,
-          stats.ready * 12 + stats.total * 3 + Math.min(boost, 20) + (verified ? 10 : 0)
+          stats.ready * 12 +
+            stats.total * 3 +
+            Math.min(boost, 20) +
+            (verified ? 10 : 0),
         );
 
         return {
@@ -90,10 +95,10 @@ export async function GET() {
             stats.ready >= 5
               ? "🔥 Top Closer"
               : stats.ready >= 2
-              ? "⚡ Rising Closer"
-              : boost > 0
-              ? "⭐ Boosted Vendor"
-              : "Active Vendor",
+                ? "⚡ Rising Closer"
+                : boost > 0
+                  ? "⭐ Boosted Vendor"
+                  : "Active Vendor",
         };
       })
       .filter((row: any) => row.score > 0)
@@ -111,7 +116,7 @@ export async function GET() {
   } catch (err: any) {
     return NextResponse.json(
       { ok: false, error: err?.message || "Unknown error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
