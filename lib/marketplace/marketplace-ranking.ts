@@ -1,3 +1,5 @@
+import { computeMarketplaceIntelligence } from "@/lib/marketplace/marketplace-intelligence-ranking";
+
 export type MarketplaceRankingInput = {
   aiScore?: number | null;
   unifiedScore?: number | null;
@@ -33,54 +35,33 @@ function normalizePercentage(value?: number | null, maxWeight = 10) {
 }
 
 export function computeMarketplaceRanking(input: MarketplaceRankingInput) {
-  const distanceScore = computeDistanceScore(input.distanceKm);
-
-  const reputationScore =
-    normalizePercentage(input.reputationScore, 10);
-
-  const authorityScore =
-    normalizePercentage(input.authorityScore, 8);
-
-  const conversionScore =
-    normalizePercentage(input.conversionRate, 8);
-
-  const responseScore =
-    normalizePercentage(input.responseRate, 8);
-
-  const activityScore =
-    Number(input.activityScore || 0);
-
-  const demandScore =
-    normalizePercentage(input.demandScore, 8);
-
-  const liquidityScore =
-    normalizePercentage(input.liquidityScore, 8);
-
-  const score =
-    Number(input.aiScore || 0) +
-    Number(input.unifiedScore || 0) +
-    Number(input.geoScore || 0) +
-    distanceScore +
-    Number(input.verificationScore || 0) +
-    Number(input.boostScore || 0) +
-    Number(input.freshnessScore || 0) +
-    reputationScore +
-    authorityScore +
-    conversionScore +
-    responseScore +
-    activityScore +
-    demandScore +
-    liquidityScore;
+  const intelligence = computeMarketplaceIntelligence({
+    distanceKm: input.distanceKm,
+    geoScore: input.geoScore,
+    demandScore: input.demandScore,
+    liquidityScore: input.liquidityScore,
+    reputationScore: input.reputationScore,
+    authorityScore: input.authorityScore,
+    conversionRate: input.conversionRate,
+    responseRate: input.responseRate,
+    activityScore: input.activityScore,
+    boostPriority: Number(input.boostScore || 0),
+    verified: Number(input.verificationScore || 0) > 0,
+  });
 
   return {
-    score,
-    distanceScore,
-    reputationScore,
-    authorityScore,
-    conversionScore,
-    responseScore,
-    activityScore,
-    demandScore,
-    liquidityScore,
+    score:
+      Number(input.aiScore || 0) +
+      Number(input.unifiedScore || 0) +
+      Number(input.freshnessScore || 0) +
+      intelligence.score,
+    distanceScore: intelligence.signals.distanceScore,
+    reputationScore: intelligence.signals.reputationScore,
+    authorityScore: intelligence.signals.authorityScore,
+    conversionScore: intelligence.signals.conversionScore,
+    responseScore: intelligence.signals.responseScore,
+    activityScore: intelligence.signals.activityScore,
+    demandScore: intelligence.signals.demandScore,
+    liquidityScore: intelligence.signals.liquidityScore,
   };
 }
