@@ -264,6 +264,8 @@ function RfqGeneralNewPageInner() {
   const [pincode, setPincode] = useState("");
   const [neededBy, setNeededBy] = useState("");
   const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
+  const [deliveryLat, setDeliveryLat] = useState<number | null>(null);
+  const [deliveryLng, setDeliveryLng] = useState<number | null>(null);
 
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
@@ -1201,14 +1203,48 @@ return;
   useEffect(() => {
     const item = normalizePickedText(primaryItem);
     const place = normalizePickedText(locality || city || pincode);
+    const hasCoordinates = deliveryLat != null && deliveryLng != null;
 
-    if (!item && !place) {
+    if (!item && !place && !hasCoordinates) {
       setAiVendorMatches([]);
       return;
     }
 
     const t = window.setTimeout(async () => {
       try {
+        if (hasCoordinates) {
+          const nearbyParams = new URLSearchParams();
+          nearbyParams.set("lat", String(deliveryLat));
+          nearbyParams.set("lng", String(deliveryLng));
+          nearbyParams.set("radiusKm", "50");
+          nearbyParams.set("limit", "5");
+          if (item) nearbyParams.set("category", item);
+
+          const nearbyRes = await fetch(`/api/rfq/nearby-vendor-recommendations?${nearbyParams.toString()}`, {
+            method: "GET",
+            cache: "no-store",
+          });
+
+          const nearbyJson = await nearbyRes.json().catch(() => null);
+
+          if (nearbyRes.ok && Array.isArray(nearbyJson?.recommendations)) {
+            const nearbyRows = nearbyJson.recommendations.map((v: any) => ({
+              user_id: v.user_id,
+              name: v.business_name || v.name || v.contact_person || "Nearby vendor",
+              reason: v.reason || v.matchReason || "Nearby vendor match",
+              score: Number(v.score || v.matchScore || 0),
+              city: v.city,
+              locality: v.locality,
+              district: v.district,
+              pincode: v.pincode,
+              source: "nearby_geo",
+            }));
+
+            setAiVendorMatches(nearbyRows.slice(0, 5));
+            return;
+          }
+        }
+
         const params = new URLSearchParams();
         params.set("module", module);
         if (item) params.set("item", item);
@@ -1236,7 +1272,7 @@ return;
     }, 300);
 
     return () => window.clearTimeout(t);
-  }, [module, primaryItem, city, locality, pincode]);
+  }, [module, primaryItem, city, locality, pincode, deliveryLat, deliveryLng]);
 
   useEffect(() => {
     const hasUsefulInput =
@@ -3631,6 +3667,14 @@ return;
               setLocality(mapped.landmark || "");
               setAddress(mapped.formatted_address || "");
               setPincode(mapped.pincode || "");
+
+              const lat =
+                Number((mapped as any).latitude ?? (mapped as any).lat ?? (next as any).latitude ?? (next as any).lat);
+              const lng =
+                Number((mapped as any).longitude ?? (mapped as any).lng ?? (next as any).longitude ?? (next as any).lng);
+
+              setDeliveryLat(Number.isFinite(lat) ? lat : null);
+              setDeliveryLng(Number.isFinite(lng) ? lng : null);
             }}
           />
 
@@ -3647,7 +3691,7 @@ return;
           </div>
 
           <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
-            Vendors will be matched using official LGD geography.
+            Vendors will be matched using official LGD geography and nearby verified coordinates where available.
           </div>
         </div>
 
