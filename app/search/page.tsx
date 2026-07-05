@@ -1394,11 +1394,31 @@ if (want.includes("rentals")) {
               listingGeoPlaceId: row._geo_place_id,
             });
 
+            let distanceBonus = 0;
+
+            if (
+              latFromUrl != null &&
+              lngFromUrl != null &&
+              row._lat != null &&
+              row._lng != null
+            ) {
+              const km = haversineKm(
+                latFromUrl,
+                lngFromUrl,
+                row._lat,
+                row._lng
+              );
+
+              if (km <= 5) distanceBonus = 30;
+              else if (km <= 15) distanceBonus = 20;
+              else if (km <= 30) distanceBonus = 10;
+            }
+
             return {
               ...row,
-              _geoScore: geo.score,
+              _geoScore: geo.score + distanceBonus,
               _geoLevel: geo.level,
-              _aiScore: ai.score + unified.score + geo.score,
+              _aiScore: ai.score + unified.score + geo.score + distanceBonus,
               _aiReason:
                 geo.score > 0
                   ? `geo ${geo.level} match`
