@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import JsonLd from "@/components/seo/JsonLd";
+import NearbyMarketplace from "@/components/geography/NearbyMarketplace";
 import { siteConfig } from "@/lib/seo/site";
 import { breadcrumbSchema } from "@/lib/seo/schema";
 import {
@@ -36,6 +37,8 @@ type ServiceRow = {
   min_price: number | null;
   max_price: number | null;
   currency: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 export const dynamic = "force-dynamic";
@@ -138,7 +141,20 @@ async function getService(id: string) {
 
   if (error || !data) return null;
 
-  return data as unknown as ServiceRow;
+  const row = data as any;
+
+  if (row.provider_id) {
+    const { data: bp } = await supabase
+      .from("business_profiles")
+      .select("verified_lat,verified_lng")
+      .eq("user_id", row.provider_id)
+      .maybeSingle();
+
+    row.latitude = bp?.verified_lat ?? null;
+    row.longitude = bp?.verified_lng ?? null;
+  }
+
+  return row as ServiceRow;
 }
 
 export async function generateMetadata({ params }: PageProps) {
@@ -430,6 +446,18 @@ export default async function ServiceDetailsPage({ params }: PageProps) {
           </div>
         </div>
       </section>
+
+      {row.latitude !== null && row.longitude !== null ? (
+        <section style={{ maxWidth: 1100, margin: "0 auto", padding: "0 16px 24px" }}>
+          <NearbyMarketplace
+            latitude={Number(row.latitude)}
+            longitude={Number(row.longitude)}
+            radiusKm={25}
+            limit={5}
+            title="Around this Service"
+          />
+        </section>
+      ) : null}
 
       <section style={{ maxWidth: 1100, margin: "0 auto", padding: "0 16px 40px" }}>
         <div
