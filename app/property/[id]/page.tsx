@@ -34,6 +34,8 @@ import MemoryEventTracker from "@/app/components/ai/MemoryEventTracker";
 import MemoryLink from "@/app/components/ai/MemoryLink";
 import PropertyDiscoveryMemoryTracker from "./PropertyDiscoveryMemoryTracker";
 import FinanceAssistanceCta from "@/components/finance/FinanceAssistanceCta";
+import NearbyMarketplace from "@/components/geography/NearbyMarketplace";
+import { resolveGeoCoordinates } from "@/lib/geography/resolveCoordinates";
 
 type AnyRow = Record<string, any>;
 
@@ -268,6 +270,15 @@ export default async function PropertyPublicDetailPage({
   if (!row) {
     notFound();
   }
+
+  const nearbyCoordinates = await resolveGeoCoordinates({
+    supabase,
+    geo_place_id: row.geo_place_id,
+    geo_block_id: row.geo_block_id,
+    geo_subdivision_id: row.geo_subdivision_id,
+    geo_district_id: row.geo_district_id,
+    geo_state_id: row.geo_state_id,
+  });
 
   const titleQuality = safeText(row.title);
   const locationQuality = [row.locality, row.city, row.district, row.state]
@@ -1875,7 +1886,17 @@ const aiSimilarMatches = (relatedRes.data || [])
               </div>
             ) : null}
 
-            <div style={{ fontWeight: 950, marginBottom: 8 }}>
+            {nearbyCoordinates ? (
+              <NearbyMarketplace
+                latitude={nearbyCoordinates.latitude}
+                longitude={nearbyCoordinates.longitude}
+                radiusKm={25}
+                limit={5}
+                title="Around this Property"
+              />
+            ) : null}
+
+            <div style={{ fontWeight: 950, marginBottom: 8, marginTop: 18 }}>
               Send Enquiry
             </div>
 
