@@ -16,7 +16,12 @@ async function fetchNearbyModule(
   moduleName: NearbyModule,
   params: URLSearchParams
 ) {
-  const url = new URL(`/api/nearby/${moduleName}`, request.url);
+  const baseUrl =
+    process.env.NEARBY_INTERNAL_BASE_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    "http://127.0.0.1:3000";
+
+  const url = new URL(`/api/nearby/${moduleName}`, baseUrl);
   url.search = params.toString();
 
   const res = await fetch(url.toString(), {
