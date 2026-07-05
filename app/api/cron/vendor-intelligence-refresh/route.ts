@@ -9,9 +9,8 @@ export async function GET() {
 
   return NextResponse.json(
     {
-      ok: result.ok,
-      job: "vendor-intelligence-refresh",
       ...result,
+      job: "vendor-intelligence-refresh",
       refreshed_at: new Date().toISOString(),
     },
     { status: result.ok ? 200 : 500 },
