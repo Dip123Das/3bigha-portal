@@ -163,13 +163,16 @@ export function calculateVendorRecommendationScore(
 
   const recommendationScore = Math.min(100, ranking.score);
 
+  const rankingReasons = Array.isArray(ranking.reasons) ? ranking.reasons : [];
+  const combinedSignals = Array.from(new Set([...rankingReasons, ...matchSignals]));
+
   return {
     ...input,
     recommendationScore,
-    matchSignals,
+    matchSignals: combinedSignals,
     recommendationReason:
-      matchSignals.length > 0
-        ? `Recommended because of ${matchSignals.join(", ")}.`
+      combinedSignals.length > 0
+        ? `Recommended because of ${combinedSignals.join(", ")}.`
         : "Recommended from general marketplace availability.",
   };
 }
