@@ -1,3 +1,5 @@
+import { computeMarketplaceRanking } from "@/lib/marketplace/marketplace-ranking";
+
 export type VendorMatchingInput = {
   business_type?: string | null;
   nature_of_business?: string[] | null;
@@ -70,9 +72,13 @@ export function vendorPriorityScore(vendor: NearbyVendorLike): number {
         : 10
       : 0;
 
-  const distancePenalty = Math.min(vendor.distanceKm, 250) / 10;
+  const ranking = computeMarketplaceRanking({
+    distanceKm: vendor.distanceKm,
+    boostScore: boostPriority * 100,
+    verificationScore: subscriptionWeight,
+  });
 
-  return boostPriority * 100 + subscriptionWeight - distancePenalty;
+  return ranking.score;
 }
 
 export function sortNearbyVendors<T extends NearbyVendorLike>(vendors: T[]): T[] {
