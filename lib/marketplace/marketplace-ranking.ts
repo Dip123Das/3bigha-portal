@@ -63,5 +63,6 @@ export function computeMarketplaceRanking(input: MarketplaceRankingInput) {
     activityScore: intelligence.signals.activityScore,
     demandScore: intelligence.signals.demandScore,
     liquidityScore: intelligence.signals.liquidityScore,
+    reasons: intelligence.reasons,
   };
 }

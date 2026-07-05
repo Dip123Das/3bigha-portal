@@ -1424,11 +1424,9 @@ if (want.includes("rentals")) {
               _geoLevel: geo.level,
               _aiScore: ranking.score,
               _aiReason:
-                geo.score > 0
-                  ? `geo ${geo.level} match`
-                  : unified.score > 0
-                  ? unified.reason
-                  : ai.reason,
+                ranking.reasons?.join(" • ") ||
+                unified.reason ||
+                ai.reason,
             };
           })
           .sort((a, b) => {
