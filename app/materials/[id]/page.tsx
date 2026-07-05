@@ -28,6 +28,8 @@ import { buildRelatedListings } from "@/lib/seo/related-listings";
 import { buildRecommendations } from "@/lib/ai/recommendation-engine";
 import MemoryEventTracker from "@/app/components/ai/MemoryEventTracker";
 import MemoryLink from "@/app/components/ai/MemoryLink";
+import NearbyMarketplace from "@/components/geography/NearbyMarketplace";
+import { resolveGeoCoordinates } from "@/lib/geography/resolveCoordinates";
 
 
 type AnyRow = Record<string, any>;
@@ -185,6 +187,13 @@ export default async function MaterialPublicDetailPage({ params }: { params: { i
     "created_at",
     "updated_at",
     "published_at",
+    "latitude",
+    "longitude",
+    "geo_state_id",
+    "geo_district_id",
+    "geo_subdivision_id",
+    "geo_block_id",
+    "geo_place_id",
   ].join(",");
 
   const res = await supabase.from("material_listings").select(selectCols).eq("id", id).maybeSingle();
@@ -223,6 +232,45 @@ export default async function MaterialPublicDetailPage({ params }: { params: { i
         </div>
       </Container>
     );
+  }
+
+  let nearbyLat = row?.latitude ?? null;
+  let nearbyLng = row?.longitude ?? null;
+
+  if (!nearbyLat || !nearbyLng) {
+    try {
+      const { data: profile } = await supabase
+        .from("business_profiles")
+        .select(`
+          verified_lat,
+          verified_lng,
+          geo_state_id,
+          geo_district_id,
+          geo_subdivision_id,
+          geo_block_id,
+          geo_place_id
+        `)
+        .eq("user_id", row?.vendor_user_id)
+        .maybeSingle();
+
+      if (profile) {
+        if (profile.verified_lat && profile.verified_lng) {
+          nearbyLat = profile.verified_lat;
+          nearbyLng = profile.verified_lng;
+        } else {
+          const resolved = await resolveGeoCoordinates({
+            supabase,
+            geo_place_id: profile.geo_place_id,
+            geo_block_id: profile.geo_block_id,
+            geo_subdivision_id: profile.geo_subdivision_id,
+            geo_district_id: profile.geo_district_id,
+            geo_state_id: profile.geo_state_id,
+          });
+          nearbyLat = resolved?.latitude ?? null;
+          nearbyLng = resolved?.longitude ?? null;
+        }
+      }
+    } catch {}
   }
 
   let media: AnyRow[] = [];
