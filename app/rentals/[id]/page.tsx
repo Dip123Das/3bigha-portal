@@ -12,7 +12,6 @@ import { Card, CardBody, CardFooter } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
-import NearbyMarketplace from "@/components/geography/NearbyMarketplace";
 import ProcurementKnowledgeGraphBlock from "@/app/components/ai/ProcurementKnowledgeGraphBlock";
 import { buildProcurementKnowledgeGraph } from "@/lib/seo/procurement-knowledge-graph";
 import JsonLd from "@/components/seo/JsonLd";
@@ -55,8 +54,6 @@ type Row = {
   updated_at: string | null;
   photos: any | null;
   vendor_user_id: string | null;
-  latitude: number | null;
-  longitude: number | null;
 };
 
 function fmt(iso: string | null | undefined) {
@@ -95,8 +92,6 @@ function normalizeRow(x: any): Row | null {
     updated_at: x.updated_at == null ? null : String(x.updated_at),
     photos: x.photos ?? null,
     vendor_user_id: x.vendor_user_id == null ? null : String(x.vendor_user_id),
-    latitude: x.latitude == null ? null : Number(x.latitude),
-    longitude: x.longitude == null ? null : Number(x.longitude),
   };
 }
 
@@ -173,8 +168,6 @@ export default function RentalPublicDetailPage() {
             "status",
             "updated_at",
             "photos",
-            "latitude",
-            "longitude",
           ].join(",")
         )
         .eq("id", id)
@@ -758,19 +751,8 @@ const aiRecommendations = buildRecommendations({
         <CardBody>
 
           <div style={{ fontWeight: 950, marginBottom: 8 }}>
-            {row.latitude !== null && row.longitude !== null ? (
-              <NearbyMarketplace
-                latitude={row.latitude}
-                longitude={row.longitude}
-                radiusKm={25}
-                limit={5}
-                title="Around this Rental"
-              />
-            ) : null}
-
-            <div style={{ fontWeight: 950, marginBottom: 8, marginTop: 18 }}>
-              Send Enquiry
-            </div>
+            Send Enquiry
+          </div>
 
           {!row.vendor_user_id && (
             <div style={{ fontSize:12, opacity:.6, marginBottom:8 }}>
