@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await supabase
     .from("business_profiles")
     .select(
-      "user_id,business_name,business_type,nature_of_business,contact_person,phone_primary,phone_whatsapp,city,district,state,pincode,locality,service_radius_km,delivery_radius_km,statewide_service,nationwide_service,verified_lat,verified_lng,location_verification_status,subscription_plan,subscription_status,boost_priority,is_complete,registration_complete",
+      "user_id,business_name,business_type,nature_of_business,contact_person,phone_primary,phone_whatsapp,city,district,state,pincode,locality,service_radius_km,delivery_radius_km,statewide_service,nationwide_service,verified_lat,verified_lng,location_verification_status,subscription_plan,subscription_status,boost_priority,reputation_score,authority_score,conversion_rate,response_rate,activity_score,demand_score,liquidity_score,is_complete,registration_complete",
     )
     .not("verified_lat", "is", null)
     .not("verified_lng", "is", null)
