@@ -156,6 +156,9 @@ export function calculateVendorRecommendationScore(
     aiScore: score,
     verificationScore: input.isVerified ? 6 : 0,
     boostScore: input.boostActive ? 4 : 0,
+    reputationScore: input.reputationScore,
+    authorityScore: input.authorityScore,
+    conversionRate: input.conversionRate,
   });
 
   const recommendationScore = Math.min(100, ranking.score);
