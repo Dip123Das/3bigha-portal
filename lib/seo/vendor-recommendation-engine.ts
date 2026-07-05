@@ -1,3 +1,5 @@
+import { computeMarketplaceRanking } from "@/lib/marketplace/marketplace-ranking";
+
 export type VendorRecommendationInput = {
   vendorId: string;
   businessName: string;
@@ -143,16 +145,20 @@ export function calculateVendorRecommendationScore(
   }
 
   if (input.isVerified) {
-    score += 6;
     matchSignals.push("Verified vendor");
   }
 
   if (input.boostActive) {
-    score += 4;
     matchSignals.push("Boost active");
   }
 
-  const recommendationScore = Math.min(100, score);
+  const ranking = computeMarketplaceRanking({
+    aiScore: score,
+    verificationScore: input.isVerified ? 6 : 0,
+    boostScore: input.boostActive ? 4 : 0,
+  });
+
+  const recommendationScore = Math.min(100, ranking.score);
 
   return {
     ...input,
