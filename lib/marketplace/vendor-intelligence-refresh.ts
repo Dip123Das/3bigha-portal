@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { computeMarketplaceRanking } from "@/lib/marketplace/marketplace-ranking";
 
 type VendorRow = {
   user_id: string;
@@ -229,6 +230,57 @@ function applyProfileDefaults(vendors: VendorRow[], map: Map<string, Patch>) {
   }
 }
 
+async function recordVendorRankHistory(
+  supabase: any,
+  rows: VendorRow[],
+  map: Map<string, Patch>,
+) {
+  try {
+    const ranked = rows
+      .map((vendor) => {
+        const patch = map.get(vendor.user_id) || emptyPatch();
+        const ranking = computeMarketplaceRanking({
+          boostScore: Number(vendor.boost_priority || 0) * 100,
+          verificationScore:
+            vendor.subscription_status === "active"
+              ? vendor.subscription_plan === "premium"
+                ? 20
+                : 10
+              : 0,
+          reputationScore: patch.reputation_score,
+          authorityScore: patch.authority_score,
+          conversionRate: patch.conversion_rate,
+          responseRate: patch.response_rate,
+          activityScore: patch.activity_score,
+          demandScore: patch.demand_score,
+          liquidityScore: patch.liquidity_score,
+        });
+
+        return {
+          user_id: vendor.user_id,
+          score: Math.round(ranking.score),
+        };
+      })
+      .sort((a, b) => b.score - a.score)
+      .map((row, index) => ({
+        user_id: row.user_id,
+        rank: index + 1,
+        score: row.score,
+        alert_message: "Scheduled marketplace intelligence snapshot.",
+      }));
+
+    if (!ranked.length) return { inserted: 0 };
+
+    const { error } = await supabase.from("vendor_rank_history").insert(ranked);
+
+    if (error) return { inserted: 0, error: error.message };
+
+    return { inserted: ranked.length };
+  } catch (error: any) {
+    return { inserted: 0, error: error?.message || "Rank history skipped" };
+  }
+}
+
 export async function refreshVendorMarketplaceIntelligence() {
   const supabase = getSupabaseAdmin();
   const now = new Date().toISOString();
@@ -274,9 +326,13 @@ export async function refreshVendorMarketplaceIntelligence() {
     if (!updateError) updated += 1;
   }
 
+  const rankHistory = await recordVendorRankHistory(supabase, rows, map);
+
   return {
     ok: true,
     scanned: rows.length,
     updated,
+    rankHistoryInserted: rankHistory.inserted,
+    rankHistoryError: rankHistory.error || null,
   };
 }
