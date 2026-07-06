@@ -443,7 +443,7 @@ const closedDeals =
 
         <div style={{ marginTop: 12 }}>
           <ActionButton href="/dashboard" variant="secondary">
-            ‚Ü All Dashboards
+            ‚Üê All Dashboards
           </ActionButton>
         </div>
 
@@ -698,7 +698,7 @@ const closedDeals =
               flexWrap: "wrap",
             }}
           >
-            <ActionButton href="/rfq" variant="primary">
+            <ActionButton href="/rfq/general/new" variant="primary">
               Submit Requirement ‚Üí
             </ActionButton>
 
@@ -922,7 +922,7 @@ const closedDeals =
         
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
           <ActionButton href="/dashboard" variant="secondary">
-            ‚Ü All Dashboards
+            ‚Üê All Dashboards
           </ActionButton>
 
           <ActionButton href="/" variant="secondary">

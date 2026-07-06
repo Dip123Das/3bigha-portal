@@ -25,7 +25,7 @@ export default function ConstructionCostFreeEntry() {
         </Link>
 
         <Link
-          href="/rfq"
+          href="/rfq/general/new"
           className="rounded-2xl border border-emerald-200 bg-white px-5 py-3 text-sm font-black text-emerald-800 hover:bg-emerald-50"
         >
           Create Construction RFQ

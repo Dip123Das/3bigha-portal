@@ -375,7 +375,7 @@ return (
             </Link>
 
             <Link
-              href="/rfq"
+              href="/rfq/general/new"
               style={{
                 background: "#ffffff",
                 border: "1px solid #cbd5e1",

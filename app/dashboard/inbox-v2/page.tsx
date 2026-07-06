@@ -2443,7 +2443,7 @@ export default async function DashboardInboxV2Page({
               ["RFQ Threads", procurementInboxStats.rfq, "📦"],
               ["Needs Attention", procurementInboxStats.urgent, "🚨"],
               ["High Closure", procurementInboxStats.highClosure, "✅"],
-              ["Slow Responses", procurementInboxStats.slowResponses, "�"],
+              ["Slow Responses", procurementInboxStats.slowResponses, "⏳"],
             ].map(([label, value, icon]) => (
               <div
                 key={String(label)}
@@ -2479,7 +2479,7 @@ export default async function DashboardInboxV2Page({
             </Link>
 
             <Link
-              href="/rfq"
+              href="/rfq/general/new"
               className="inline-flex rounded-full border border-slate-900 bg-slate-900 px-3 py-1.5 text-xs font-bold text-white transition hover:opacity-90"
             >
               + New Requirement
@@ -2513,8 +2513,8 @@ export default async function DashboardInboxV2Page({
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {[
               ["High Risk", autonomousOsStats.highRisk, "🚨"],
-              ["Medium Risk", autonomousOsStats.mediumRisk, "⚠�"],
-              ["Strong Suppliers", autonomousOsStats.strongSupplier, "�"],
+              ["Medium Risk", autonomousOsStats.mediumRisk, "⚠️"],
+              ["Strong Suppliers", autonomousOsStats.strongSupplier, "🏆"],
               ["Follow-ups", autonomousOsStats.followups, "📨"],
               ["Replies", autonomousOsStats.replies, "💬"],
             ].map(([label, value, icon]) => (
@@ -2758,7 +2758,7 @@ export default async function DashboardInboxV2Page({
                 </div>
 
                 <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-2 text-xs font-bold leading-5 text-amber-800">
-                  ⚙� {item.recoveryAction}
+                  ⚙️ {item.recoveryAction}
                 </div>
 
                 <div className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">

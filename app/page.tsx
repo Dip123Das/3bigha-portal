@@ -74,9 +74,9 @@ function clipText(value: any, max = 86) {
 }
 
 const categoryCards = [
-  { title: "Property", icon: "�", text: "Land, plots, houses and commercial property", count: "Buy • Sell • Invest", href: "/property" },
+  { title: "Property", icon: "🏠", text: "Land, plots, houses and commercial property", count: "Buy • Sell • Invest", href: "/property" },
   { title: "Materials", icon: "🧱", text: "Cement, steel, sand, bricks and construction materials", count: "Compare • Buy • RFQ", href: "/materials" },
-  { title: "Services", icon: "🛠�", text: "Contractors, labour, plumbing, electrical and legal support", count: "Hire • Compare • Execute", href: "/services" },
+  { title: "Services", icon: "🛠️", text: "Contractors, labour, plumbing, electrical and legal support", count: "Hire • Compare • Execute", href: "/services" },
   { title: "Rentals", icon: "🚜", text: "JCB, machinery, scaffolding and construction rentals", count: "Rent • Operate • Deliver", href: "/rentals" },
   { title: "Vendor Opportunities", icon: "🚀", text: "Discover where buyers need suppliers, contractors and equipment owners", count: "Join • Grow • Expand", href: "/vendor-opportunities" },
   { title: "Submit Requirement", icon: "⚡", text: "Post material, service, rental or project requirements", count: "Post • Compare • Select", href: "/rfq/general/new" },
@@ -112,8 +112,8 @@ const fallbackFeatured: MarketplaceItem[] = [
 ];
 
 function moduleIcon(module: MarketplaceItem["module"]) {
-  if (module === "Property") return "�";
-  if (module === "Material") return "��";
+  if (module === "Property") return "🏡";
+  if (module === "Material") return "🏗️";
   if (module === "Service") return "👷";
   return "🚜";
 }
@@ -144,7 +144,7 @@ function buildHomepageDiscoveryRails(
       title: `Trending near ${location}`,
       subtitle: "Explore property, materials, services and rentals around this area.",
       href: `/search?q=${encodedLocation}`,
-      icon: "�",
+      icon: "📍",
       tone: "Local Pulse",
     },
     {
@@ -158,7 +158,7 @@ function buildHomepageDiscoveryRails(
       title: "Plan your construction",
       subtitle: "Plan house construction cost, materials and contractor requirements.",
       href: `/house-construction-cost?location=${encodedLocation}`,
-      icon: "��",
+      icon: "🏗️",
       tone: "Construction",
     },
     {
@@ -172,7 +172,7 @@ function buildHomepageDiscoveryRails(
       title: "Services you may need",
       subtitle: "Mason, architect, plumber, electrician, painter and legal support.",
       href: `/services?q=${encodedLocation}`,
-      icon: "🛠�",
+      icon: "🛠️",
       tone: "Services",
     },
     {
@@ -190,7 +190,7 @@ function buildHomepageDiscoveryRails(
       title: "Browse latest property listings",
       subtitle: "See homes, plots, land and commercial spaces available now.",
       href: "/property",
-      icon: "�",
+      icon: "🏡",
       tone: "Property",
     });
   }
@@ -369,10 +369,10 @@ export default function HomePage() {
               Compare, connect and get the best deal — all in one place.
             </p>
             <div className="heroFeatureRow">
-              <a href="/search">� Marketplace Search</a>
+              <a href="/search">🔍 Marketplace Search</a>
               <a href="/vendor/discovery">🧠 Smart Matching</a>
               <a href="/price-today">💰 Best Prices</a>
-              <a href="/support/new">🛡� Secure Deals</a>
+              <a href="/support/new">🛡️ Secure Deals</a>
             </div>
           </div>
 
@@ -387,9 +387,9 @@ export default function HomePage() {
 
             <div className="typeChips">
               {[
-                ["property", "� Property"],
+                ["property", "🏠 Property"],
                 ["materials", "🧱 Materials"],
-                ["services", "🛠� Services"],
+                ["services", "🛠️ Services"],
                 ["rentals", "🚜 Rentals"],
                 ["investment", "📊 Price Today"],
               ].map(([key, label]) => (
@@ -398,7 +398,7 @@ export default function HomePage() {
             </div>
 
             <div className="searchActions">
-              <button type="button" className="primaryAction" onClick={runSearch}>� Search Marketplace</button>
+              <button type="button" className="primaryAction" onClick={runSearch}>🔍 Search Marketplace</button>
               <button type="button" className="secondaryAction" onClick={submitRequirement}>⚡ Submit Requirement</button>
             </div>
           </div>
@@ -435,7 +435,7 @@ export default function HomePage() {
               </div>
               <div className="listingBody">
                 <h3>{item.title}</h3>
-                <p>� {item.subtitle}</p>
+                <p>📍 {item.subtitle}</p>
                 <strong>{item.price}</strong>
                 <small>{item.meta}</small>
               </div>
@@ -469,11 +469,11 @@ export default function HomePage() {
         <div className="statsRail">
           {[
             ["18", "RFQs Posted Today", "🧾"],
-            ["14 min", "Avg. Vendor Response", "��"],
+            ["14 min", "Avg. Vendor Response", "⏱️"],
             ["42", "Active Suppliers Nearby", "🚚"],
-            ["129", "Buyer-Vendor Chats", "�"],
+            ["129", "Buyer-Vendor Chats", "🤝"],
             ["2.8K+", "Listings This Week", "📋"],
-            ["4.9/5", "User Rating", "�"],
+            ["4.9/5", "User Rating", "⭐"],
           ].map(([value, label, icon]) => (
             <div className="statCard" key={label}>
               <span>{icon}</span>
@@ -585,7 +585,7 @@ export default function HomePage() {
             <a href="/dashboard/vendor/inventory">📦 Inventory</a>
             <a href="/dashboard/vendor/billing">🧾 Billing</a>
             <a href="/dashboard/vendor/fleet">🚚 Fleet</a>
-            <a href="/dashboard/vendor/dispatch">� Dispatch</a>
+            <a href="/dashboard/vendor/dispatch">📍 Dispatch</a>
             <a href="/materials/add?inventory=1">➕ Add Stock</a>
           </div>
         </div>
@@ -645,7 +645,7 @@ export default function HomePage() {
             <h2>Marketplace Utility Engine</h2>
             <p>Tools, RFQ and pricing actions in one compact workspace</p>
           </div>
-          <a href="/rfq">Post RFQ →</a>
+          <a href="/rfq/general/new">Post RFQ →</a>
         </div>
 
         <div className="utilityLayout">
@@ -719,7 +719,7 @@ export default function HomePage() {
               </div>
             </a>
             <a href="/investment/opportunities">
-              <span>�</span>
+              <span>🏢</span>
               <div>
                 <strong>Royal Enclave Project</strong>
                 <small>₹22 Lakh onwards • ROI 20–25%</small>
@@ -758,12 +758,12 @@ export default function HomePage() {
         </div>
         <div>
           <a href="/login?next=/auth/register-role">Create Account</a>
-          <a href="/rfq">Post Requirement</a>
+          <a href="/rfq/general/new">Post Requirement</a>
         </div>
       </section>
       <footer className="cleanHomeFooter">
         <div>
-          <strong>� 3bigha</strong>
+          <strong>🏠 3bigha</strong>
           <p>Marketplace for property, construction, materials, services and rentals.</p>
         </div>
         <nav>
