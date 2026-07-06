@@ -1,144 +1,226 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
 import { SahajLayout } from "@/components/sahaj";
 
 type ModuleChoice = "materials" | "services" | "rentals" | "properties";
 type InputMode = "type" | "photo" | "document" | "voice" | "guided";
 
-const modules: Array<{
-  value: ModuleChoice;
-  icon: string;
-  title: string;
-  text: string;
-}> = [
-  {
-    value: "materials",
-    icon: "🧱",
-    title: "I need materials",
-    text: "Cement, sand, bricks, steel, tiles, paint and other supplies.",
-  },
-  {
-    value: "services",
-    icon: "🛠️",
-    title: "I need a service",
-    text: "Electrician, plumber, architect, mason, engineer or contractor.",
-  },
-  {
-    value: "rentals",
-    icon: "🚜",
-    title: "I need machinery / rentals",
-    text: "JCB, mixer, scaffolding, tools, vehicles or equipment.",
-  },
-  {
-    value: "properties",
-    icon: "🏡",
-    title: "I need property help",
-    text: "Land, house, flat, project, seller, buyer or property service.",
-  },
-];
-
-const modes: Array<{
-  value: InputMode;
-  icon: string;
-  title: string;
-  text: string;
-}> = [
-  {
-    value: "type",
-    icon: "✍️",
-    title: "Type it",
-    text: "Write one line or a full requirement.",
-  },
-  {
-    value: "photo",
-    icon: "📷",
-    title: "Upload handwritten note / photo",
-    text: "Use a notebook page, contractor list or item photo.",
-  },
-  {
-    value: "document",
-    icon: "📄",
-    title: "Upload PDF / BOQ / drawing",
-    text: "Use an existing file, estimate, BOQ, Excel or drawing.",
-  },
-  {
-    value: "voice",
-    icon: "🎤",
-    title: "Speak it",
-    text: "Describe your requirement in your own words.",
-  },
-  {
-    value: "guided",
-    icon: "🤝",
-    title: "Help me step by step",
-    text: "3Bigha will ask simple questions.",
-  },
-];
+const moduleLabels: Record<ModuleChoice, string> = {
+  materials: "Materials",
+  services: "Services",
+  rentals: "Machinery / Rentals",
+  properties: "Property",
+};
 
 export default function SahajRfqClient() {
-  const router = useRouter();
+  const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const initialModule = (params.get("module") as ModuleChoice) || null;
+  const initialMode = (params.get("mode") as InputMode) || null;
 
-  function start(module: ModuleChoice, mode: InputMode) {
-    router.push(`/rfq/general/new?module=${module}&mode=${mode}`);
+  const [module, setModule] = useState<ModuleChoice | null>(initialModule);
+  const [mode, setMode] = useState<InputMode | null>(initialMode);
+  const [geo, setGeo] = useState<GeoSelection>({});
+  const [form, setForm] = useState({
+    item: params.get("q") || params.get("query") || "",
+    qty: "",
+    unit: "",
+    neededBy: "",
+    notes: "",
+    name: "",
+    phone: "",
+    email: "",
+  });
+
+  const canSubmit = useMemo(
+    () => form.item.trim() && form.qty.trim() && form.unit.trim(),
+    [form.item, form.qty, form.unit]
+  );
+
+  function update(k: keyof typeof form, v: string) {
+    setForm((prev) => ({ ...prev, [k]: v }));
+  }
+
+  function openAdvanced() {
+    const sp = new URLSearchParams();
+    if (module) sp.set("module", module);
+    if (mode) sp.set("mode", mode);
+    if (form.item) sp.set("query", form.item);
+    if (form.qty || form.unit) sp.set("qty", `${form.qty} ${form.unit}`.trim());
+    window.location.href = `/rfq/general/new?${sp.toString()}`;
+  }
+
+  if (!module) {
+    return (
+      <SahajLayout
+        title="Tell us your requirement"
+        subtitle="Choose what you need. 3Bigha will keep the professional RFQ engine behind the scenes."
+      >
+        <div className="grid gap-3 md:grid-cols-2">
+          {([
+            ["materials", "🧱", "I need materials", "Cement, sand, bricks, steel, tiles, paint"],
+            ["services", "🛠️", "I need a service", "Electrician, plumber, architect, mason, engineer"],
+            ["rentals", "🚜", "I need machinery / rentals", "JCB, mixer, scaffolding, tools, equipment"],
+            ["properties", "🏡", "I need property help", "Land, house, flat, project, seller or buyer"],
+          ] as const).map(([value, icon, title, text]) => (
+            <button
+              key={value}
+              onClick={() => setModule(value)}
+              className="rounded-3xl border bg-white p-6 text-left hover:border-emerald-500 hover:bg-emerald-50"
+            >
+              <div className="text-3xl">{icon}</div>
+              <h2 className="mt-3 text-xl font-black">{title}</h2>
+              <p className="mt-1 text-sm font-bold text-slate-600">{text}</p>
+            </button>
+          ))}
+        </div>
+      </SahajLayout>
+    );
+  }
+
+  if (!mode) {
+    return (
+      <SahajLayout
+        title={`How will you tell us about ${moduleLabels[module]}?`}
+        subtitle="Choose the easiest method. You can type, upload, speak, or let 3Bigha guide you."
+      >
+        <div className="grid gap-3 md:grid-cols-2">
+          {([
+            ["type", "✍️", "Type it", "Write one line or a full requirement."],
+            ["photo", "📷", "Upload handwritten note / photo", "Notebook page, contractor list or product photo."],
+            ["document", "📄", "Upload PDF / BOQ / drawing", "PDF, BOQ, Excel, estimate or drawing."],
+            ["voice", "🎤", "Speak it", "Describe your need in your own words."],
+            ["guided", "🤝", "Help me step by step", "3Bigha will ask simple questions."],
+          ] as const).map(([value, icon, title, text]) => (
+            <button
+              key={value}
+              onClick={() => setMode(value)}
+              className="rounded-3xl border bg-white p-6 text-left hover:border-emerald-500 hover:bg-emerald-50"
+            >
+              <div className="text-3xl">{icon}</div>
+              <h2 className="mt-3 text-xl font-black">{title}</h2>
+              <p className="mt-1 text-sm font-bold text-slate-600">{text}</p>
+            </button>
+          ))}
+        </div>
+
+        <button onClick={() => setModule(null)} className="mt-5 rounded-2xl border px-5 py-3 font-black">
+          Back
+        </button>
+      </SahajLayout>
+    );
   }
 
   return (
     <SahajLayout
-      title="Tell us your requirement"
-      subtitle="Choose what you need, then choose the easiest way to tell us. 3Bigha will prepare the professional RFQ."
+      title="Create your requirement"
+      subtitle="Only fill the essentials. Advanced RFQ intelligence stays hidden unless you need it."
     >
-      <div className="grid gap-6">
-        <section>
-          <h2 className="text-2xl font-black text-slate-950">
-            What do you need?
-          </h2>
-          <p className="mt-2 text-sm font-bold text-slate-600">
-            Start with your real-world need. No technical knowledge required.
-          </p>
+      <div className="grid gap-5">
+        <div className="rounded-3xl bg-emerald-50 p-4 font-black text-emerald-800">
+          {moduleLabels[module]} · {mode}
+        </div>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {modules.map((module) => (
-              <div
-                key={module.value}
-                className="rounded-3xl border bg-white p-5"
-              >
-                <div className="text-3xl">{module.icon}</div>
-                <h3 className="mt-3 text-xl font-black text-slate-950">
-                  {module.title}
-                </h3>
-                <p className="mt-1 text-sm font-bold text-slate-600">
-                  {module.text}
-                </p>
+        <section className="grid gap-3">
+          <label className="font-black">What do you need?</label>
+          <input
+            className="rounded-2xl border p-4 font-bold"
+            placeholder="Example: Cement, electrician, JCB, land survey"
+            value={form.item}
+            onChange={(e) => update("item", e.target.value)}
+          />
 
-                <div className="mt-4 grid gap-2">
-                  {modes.map((mode) => (
-                    <button
-                      key={`${module.value}-${mode.value}`}
-                      type="button"
-                      onClick={() => start(module.value, mode.value)}
-                      className="rounded-2xl border bg-slate-50 px-4 py-3 text-left font-black hover:border-emerald-500 hover:bg-emerald-50"
-                    >
-                      <span className="mr-2">{mode.icon}</span>
-                      {mode.title}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
+          <div className="grid gap-3 md:grid-cols-2">
+            <input
+              className="rounded-2xl border p-4 font-bold"
+              placeholder="Quantity"
+              value={form.qty}
+              onChange={(e) => update("qty", e.target.value)}
+            />
+            <input
+              className="rounded-2xl border p-4 font-bold"
+              placeholder="Unit: bags, ton, days, sqft"
+              value={form.unit}
+              onChange={(e) => update("unit", e.target.value)}
+            />
           </div>
         </section>
 
-        <section className="rounded-3xl bg-emerald-50 p-5">
-          <h2 className="text-xl font-black text-slate-950">
-            You can upload instead of typing
-          </h2>
-          <p className="mt-2 text-sm font-bold text-slate-600">
-            Handwritten list, photo, BOQ, PDF, drawing, Excel or voice note —
-            all can start the requirement. The existing RFQ engine continues
-            after this screen.
-          </p>
+        {(mode === "photo" || mode === "document" || mode === "voice") && (
+          <section className="rounded-3xl border p-4">
+            <h2 className="font-black">Upload or record</h2>
+            <input
+              type="file"
+              multiple
+              accept={mode === "voice" ? "audio/*" : "image/*,application/pdf,.xls,.xlsx,.csv,.dwg,.dxf"}
+              className="mt-3 w-full rounded-2xl border p-3"
+            />
+            <p className="mt-2 text-xs font-bold text-slate-500">
+              You can submit even with a handwritten note or file. AI will prepare the professional version.
+            </p>
+          </section>
+        )}
+
+        <section className="rounded-3xl border bg-slate-50 p-4">
+          <h2 className="mb-3 text-xl font-black">Delivery / Work Location</h2>
+          <GeoSelector value={geo} onChange={setGeo} />
         </section>
+
+        <section className="grid gap-3">
+          <label className="font-black">When do you need it?</label>
+          <select
+            className="rounded-2xl border p-4 font-bold"
+            value={form.neededBy}
+            onChange={(e) => update("neededBy", e.target.value)}
+          >
+            <option value="">Select timeline</option>
+            <option>Today</option>
+            <option>Tomorrow</option>
+            <option>Within 3 days</option>
+            <option>Within 1 week</option>
+            <option>Flexible</option>
+          </select>
+
+          <textarea
+            className="min-h-28 rounded-2xl border p-4 font-bold"
+            placeholder="Anything else? Brand preference, delivery instruction, GST, unloading, payment terms..."
+            value={form.notes}
+            onChange={(e) => update("notes", e.target.value)}
+          />
+        </section>
+
+        <section className="rounded-3xl border p-4">
+          <h2 className="font-black">Contact</h2>
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            <input className="rounded-2xl border p-4 font-bold" placeholder="Name" value={form.name} onChange={(e) => update("name", e.target.value)} />
+            <input className="rounded-2xl border p-4 font-bold" placeholder="Phone" value={form.phone} onChange={(e) => update("phone", e.target.value)} />
+            <input className="rounded-2xl border p-4 font-bold" placeholder="Email" value={form.email} onChange={(e) => update("email", e.target.value)} />
+          </div>
+        </section>
+
+        <details className="rounded-3xl border p-4">
+          <summary className="cursor-pointer font-black">Advanced RFQ editor</summary>
+          <p className="mt-3 text-sm font-bold text-slate-600">
+            Open the full RFQ engine only if you want budget estimate, procurement copilot,
+            technical checks, progress score and advanced AI tools.
+          </p>
+          <button onClick={openAdvanced} className="mt-4 rounded-2xl border px-5 py-3 font-black">
+            Open advanced RFQ editor
+          </button>
+        </details>
+
+        <button
+          disabled={!canSubmit}
+          onClick={openAdvanced}
+          className="rounded-2xl bg-emerald-600 px-5 py-4 font-black text-white disabled:opacity-40"
+        >
+          Submit Requirement
+        </button>
+
+        <button onClick={() => setMode(null)} className="rounded-2xl border px-5 py-3 font-black">
+          Back
+        </button>
       </div>
     </SahajLayout>
   );
