@@ -155,7 +155,7 @@ export default async function ProcurementControlTowerPage() {
           </Link>
 
           <Link
-            href="/rfq/general/new"
+            href="/rfq"
             className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs font-black text-white"
           >
             + New Procurement RFQ

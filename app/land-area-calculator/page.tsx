@@ -597,7 +597,7 @@ export default function LandAreaCalculatorPage() {
             />
 
             <div className="mt-3 rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-xs font-bold leading-5 text-emerald-900">
-              ğŸ“ Local unit practice:
+              ğŸ“ Local unit practice:
               {" "}
               {[district, state].filter(Boolean).join(", ")}
             </div>
@@ -1062,7 +1062,7 @@ export default function LandAreaCalculatorPage() {
                 />
 
                 <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs font-bold leading-5 text-emerald-900">
-                  ğŸ“ Calculator using:
+                  ğŸ“ Calculator using:
                   {" "}
                   {[district, state].filter(Boolean).join(", ")}
                 </div>
@@ -1363,7 +1363,7 @@ export default function LandAreaCalculatorPage() {
             </a>
 
             <a
-              href="/rfq/general/new"
+              href="/rfq"
               className="rounded-2xl border bg-slate-50 p-4 hover:border-emerald-300"
             >
               <div className="text-sm font-black text-slate-950">

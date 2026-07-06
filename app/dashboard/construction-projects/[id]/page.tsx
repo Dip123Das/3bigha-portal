@@ -78,7 +78,7 @@ export default function ConstructionProjectDetailPage() {
             </Link>
 
             <Link
-              href="/rfq/general/new"
+              href="/rfq"
               className="rounded-2xl bg-emerald-700 px-5 py-3 text-sm font-black text-white hover:bg-emerald-800"
             >
               Create RFQ

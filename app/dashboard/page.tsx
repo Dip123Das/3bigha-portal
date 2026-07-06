@@ -495,9 +495,9 @@ export default function DashboardPage() {
 
             <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
               {[
-                ["Buyer Behavior", procurementMemory.buyerBehavior || "—", "🧑‍💼"],
-                ["Vendor Reliability", procurementMemory.vendorReliability || "—", "🏆"],
-                ["Anomaly", procurementMemory.anomalySignal || "—", "⚠️"],
+                ["Buyer Behavior", procurementMemory.buyerBehavior || "—", "🧑�💼"],
+                ["Vendor Reliability", procurementMemory.vendorReliability || "—", "�"],
+                ["Anomaly", procurementMemory.anomalySignal || "—", "⚠�"],
               ].map(([label, value, icon]) => (
                 <div
                   key={label}
@@ -574,7 +574,7 @@ export default function DashboardPage() {
           <Link href="/price-today" className="topBtn topBtnGhost">
             Predictive Prices →
           </Link>
-          <Link href="/rfq/general/new" className="topBtn topBtnGhost">
+          <Link href="/rfq" className="topBtn topBtnGhost">
             + New RFQ →
           </Link>
         </div>

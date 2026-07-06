@@ -721,7 +721,7 @@ export default async function UniversalThreadPage({
           href={backHref}
           className="text-sm font-semibold text-slate-600 hover:underline"
         >
-          â† Back
+          â† Back
         </Link>
       </div>
 
@@ -806,7 +806,7 @@ export default async function UniversalThreadPage({
 
                 {isBuyer ? (
                   <span className="rounded-full border border-amber-200 bg-amber-100 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-amber-800">
-                    â­ Premium visibility ready
+                    â­ Premium visibility ready
                   </span>
                 ) : null}
 
@@ -841,7 +841,7 @@ export default async function UniversalThreadPage({
                 )}
 
                 <span className="rounded-full border border-slate-200 bg-white px-3 py-1">
-                  ğŸ” Only participants can view this chat
+                  ğŸ” Only participants can view this chat
                 </span>
 
                 {isBuyer ? (
@@ -892,7 +892,7 @@ export default async function UniversalThreadPage({
           {[
             ["Closure", negotiationAi.closurePrediction, "âœ…"],
             ["Urgency", negotiationAi.urgency, "ğŸš¨"],
-            ["Stage", negotiationAi.stage, "ğŸ“"],
+            ["Stage", negotiationAi.stage, "ğŸ“"],
             ["Messages", messages.length, "ğŸ’¬"],
           ].map(([label, value, icon]) => (
             <div key={String(label)} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -915,7 +915,7 @@ export default async function UniversalThreadPage({
           </div>
 
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-            <div className="font-black text-amber-800">ğŸ¤ Negotiation Leverage</div>
+            <div className="font-black text-amber-800">ğŸ¤ Negotiation Leverage</div>
             <div className="mt-2 text-sm font-semibold leading-6 text-amber-900">
               {negotiationAi.leverage}
             </div>
@@ -954,7 +954,7 @@ export default async function UniversalThreadPage({
           </Link>
 
           <Link
-            href="/rfq/general/new"
+            href="/rfq"
             className="inline-flex rounded-full border border-slate-900 bg-slate-900 px-3 py-1.5 text-xs font-black text-white transition hover:opacity-90"
           >
             + New Requirement
@@ -999,7 +999,7 @@ export default async function UniversalThreadPage({
 
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-              ğŸ† Supplier Signal
+              ğŸ† Supplier Signal
             </div>
             <div
               className={`mt-2 inline-flex rounded-full border px-3 py-1 text-sm font-black ${supplierSignalClass(
@@ -1012,7 +1012,7 @@ export default async function UniversalThreadPage({
 
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-              ğŸ“ Milestone
+              ğŸ“ Milestone
             </div>
             <div className="mt-2 text-sm font-black text-slate-950">
               {negotiationAi.milestone}
@@ -1161,7 +1161,7 @@ export default async function UniversalThreadPage({
 
         <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2">
           <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
-            <div className="font-black text-blue-800">ğŸ“ Next Timeline Milestone</div>
+            <div className="font-black text-blue-800">ğŸ“ Next Timeline Milestone</div>
             <div className="mt-2 text-sm font-semibold leading-6 text-blue-900">
               {procurementAi.timeline.nextMilestone || negotiationAi.milestone}
             </div>

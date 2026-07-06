@@ -65,7 +65,7 @@ function UnifiedRfqStartPageInner() {
                   <p style={{ margin: 0, color: "#475569", fontWeight: 700 }}>
                     Cement, steel, sand, bricks, tiles, fittings and other construction materials.
                   </p>
-                  <Link className="ui-btn ui-btn--primary" href="/rfq/new">
+                  <Link className="ui-btn ui-btn--primary" href="/rfq">
                     Start Materials RFQ
                   </Link>
                 </div>
@@ -79,7 +79,7 @@ function UnifiedRfqStartPageInner() {
                   <p style={{ margin: 0, color: "#475569", fontWeight: 700 }}>
                     Services, rentals, labour, machines, mixed requirements and custom needs.
                   </p>
-                  <Link className="ui-btn ui-btn--secondary" href="/rfq/general/new">
+                  <Link className="ui-btn ui-btn--secondary" href="/rfq">
                     Start General RFQ
                   </Link>
                 </div>

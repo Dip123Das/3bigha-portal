@@ -232,7 +232,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
                   <div className="postMenuGrid">
                     <div className="postCard">
-                      <div className="postCardIcon">🏠</div>
+                      <div className="postCardIcon">�</div>
                       <div>
                         <div className="postCardTitle">Property</div>
                         <div className="postCardDesc">
@@ -268,7 +268,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     </div>
 
                     <div className="postCard">
-                      <div className="postCardIcon">🛠️</div>
+                      <div className="postCardIcon">🛠�</div>
                       <div>
                         <div className="postCardTitle">Services</div>
                         <div className="postCardDesc">
@@ -381,7 +381,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     label="Notifications"
                   />
 
-                  <ActiveLink className="topMobileLink" href="/rfq/general/new">
+                  <ActiveLink className="topMobileLink" href="/rfq">
                     Submit Requirement
                   </ActiveLink>
 
@@ -421,7 +421,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <div className="topSubLinks">
                 <details className="rfqToggle">
                   <summary className="rfqToggleBtn">
-                    🧑‍💼 My Dashboard <span className="rfqToggleCaret">▾</span>
+                    🧑�💼 My Dashboard <span className="rfqToggleCaret">▾</span>
                   </summary>
 
                   <div className="rfqTogglePanel" role="dialog" aria-label="My Dashboard menu">
@@ -434,8 +434,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     </div>
 
                     <div className="rfqToggleActions" style={{ display: "grid", gap: 8 }}>
-                      <Link className="rfqTogglePrimary" href="/rfq/general/new">
-                        ✍️ Submit Requirement →
+                      <Link className="rfqTogglePrimary" href="/rfq">
+                        �� Submit Requirement →
                       </Link>
 
                       <Link className="rfqToggleSecondary" href="/dashboard/buyer/rfqs">
@@ -451,7 +451,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                       </Link>
 
                       <Link className="rfqToggleSecondary" href="/dashboard/vendor">
-                        🏪 Vendor Hub Dashboard →
+                        � Vendor Hub Dashboard →
                       </Link>
                     </div>
                   </div>
@@ -477,21 +477,21 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                         className="rfqTogglePrimary"
                         href="/dashboard/investor/deal-rooms"
                       >
-                        🤝 Investor Deal Rooms →
+                        � Investor Deal Rooms →
                       </Link>
 
                       <Link
                         className="rfqToggleSecondary"
                         href="/dashboard/builder/deal-rooms"
                       >
-                        🏗️ Builder Deal Rooms →
+                        �� Builder Deal Rooms →
                       </Link>
 
                       <Link
                         className="rfqToggleSecondary"
                         href="/dashboard/procurement-health"
                       >
-                        ⚙️ Procurement Workspace →
+                        ⚙� Procurement Workspace →
                       </Link>
 
                       <Link
@@ -505,7 +505,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                         className="rfqToggleSecondary"
                         href="/founding-vendors"
                       >
-                        🏆 Founding Partners →
+                        � Founding Partners →
                       </Link>
                     </div>
                   </div>
@@ -513,7 +513,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
                 <details className="rfqToggle">
                   <summary className="rfqToggleBtn">
-                    ✍️ Submit Requirement <span className="rfqToggleCaret">▾</span>
+                    �� Submit Requirement <span className="rfqToggleCaret">▾</span>
                   </summary>
 
                   <div className="rfqTogglePanel" role="dialog" aria-label="Submit Requirement menu">
@@ -526,7 +526,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     </div>
 
                     <div className="rfqToggleActions" style={{ display: "grid", gap: 8 }}>
-                      <Link className="rfqTogglePrimary" href="/rfq/general/new">
+                      <Link className="rfqTogglePrimary" href="/rfq">
                         Start RFQ (Property / Materials / Services / Rentals) →
                       </Link>
                     </div>
@@ -590,7 +590,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <Link href="/services">Construction Services</Link>
               <Link href="/rentals">Rental Marketplace</Link>
               <Link href="/vendor-opportunities">🚀 Vendor Opportunities</Link>
-              <Link href="/rfq/general/new">Submit RFQ</Link>
+              <Link href="/rfq">Submit RFQ</Link>
               <Link href="/ai-search-guide">Search Guide</Link>
               <Link href="/about">About Us</Link>
               <Link href="/contact">Contact Us</Link>

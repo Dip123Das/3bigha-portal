@@ -374,7 +374,7 @@ return (
             </Link>
 
             <Link
-              href="/rfq/general/new"
+              href="/rfq"
               style={{
                 background: "#ffffff",
                 border: "1px solid #cbd5e1",
@@ -444,7 +444,7 @@ return (
                   marginBottom: 10,
                 }}
               >
-                ğŸ“
+                ğŸ“
               </div>
 
               <h2
@@ -757,7 +757,7 @@ return (
                   lineHeight: 1.45,
                 }}
               >
-                ğŸ“ {item.keyword}
+                ğŸ“ {item.keyword}
               </Link>
             ))}
           </div>
@@ -808,12 +808,12 @@ return (
                 }}
               >
                 {item.intent === "rfq"
-                  ? "ğŸ“ "
+                  ? "ğŸ“ "
                   : item.intent === "search"
                     ? "ğŸ” "
                     : item.intent === "module"
                       ? "ğŸ”— "
-                      : "ğŸ“ "}
+                      : "ğŸ“ "}
                 {item.label}
               </Link>
             ))}

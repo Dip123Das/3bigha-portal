@@ -69,7 +69,7 @@ export default function ConstructionCostPage({ params }: PageProps) {
               </Link>
 
               <Link
-                href="/rfq/general/new"
+                href="/rfq"
                 className="rounded-2xl border border-emerald-200 bg-white px-5 py-3 text-sm font-black text-emerald-800 shadow-sm hover:bg-emerald-50"
               >
                 Create Construction RFQ
@@ -184,7 +184,7 @@ export default function ConstructionCostPage({ params }: PageProps) {
               </p>
 
               <Link
-                href="/rfq/general/new"
+                href="/rfq"
                 className="mt-5 inline-flex rounded-2xl bg-white px-5 py-3 text-sm font-black text-slate-950"
               >
                 Start RFQ

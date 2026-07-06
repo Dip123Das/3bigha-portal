@@ -286,7 +286,7 @@ export default function GlobalHeaderClient() {
             onClick={() => (geo.status === "ready" ? clearLocation() : useMyLocation())}
             title="Use my location to find nearby listings"
           >
-            ğŸ“ {nearLabel || "Near me"}
+            ğŸ“ {nearLabel || "Near me"}
           </button>
 
           {/* Voice */}
@@ -316,7 +316,7 @@ export default function GlobalHeaderClient() {
             Support
           </Link>
 
-          <Link className="btnPrimary" href="/rfq/general/new">
+          <Link className="btnPrimary" href="/rfq">
             Post Requirement
           </Link>
 

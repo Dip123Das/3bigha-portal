@@ -95,7 +95,7 @@ export default function HouseConstructionCostPage({ params }: PageProps) {
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              href="/rfq/general/new"
+              href="/rfq"
               className="rounded-2xl bg-white px-5 py-3 text-sm font-black text-slate-950"
             >
               Get Contractor Quote
@@ -181,7 +181,7 @@ export default function HouseConstructionCostPage({ params }: PageProps) {
               </p>
 
               <Link
-                href="/rfq/general/new"
+                href="/rfq"
                 className="mt-5 inline-flex rounded-2xl bg-emerald-700 px-5 py-3 text-sm font-black text-white"
               >
                 Create Free RFQ

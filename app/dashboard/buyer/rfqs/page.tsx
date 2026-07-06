@@ -997,7 +997,7 @@ export default function BuyerRfqsPage() {
           <div style={{ marginTop: 12, color: "crimson", fontWeight: 800 }}>{err}</div>
           <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
             <ActionButton href="/dashboard" variant="secondary">
-              ← Back to Dashboard
+              � Back to Dashboard
             </ActionButton>
           </div>
         </Container>
@@ -1069,7 +1069,7 @@ export default function BuyerRfqsPage() {
               ["Total RFQs", commandCenterStats.total, "📄"],
               ["Urgent", commandCenterStats.urgent, "🚨"],
               ["Needs Reply", commandCenterStats.needsReply, "💬"],
-              ["Compare Ready", commandCenterStats.compareReady, "⚖️"],
+              ["Compare Ready", commandCenterStats.compareReady, "⚖�"],
               ["Closed", commandCenterStats.closed, "✅"],
             ].map(([label, value, icon]) => (
               <div
@@ -1195,7 +1195,7 @@ export default function BuyerRfqsPage() {
               </button>
             ))}
 
-            <ActionButton href="/rfq/general/new" variant="primary">
+            <ActionButton href="/rfq" variant="primary">
               + New AI RFQ
             </ActionButton>
           </div>
@@ -1203,7 +1203,7 @@ export default function BuyerRfqsPage() {
 
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
           <ActionButton href="/dashboard" variant="secondary">
-            ← Dashboard
+            � Dashboard
           </ActionButton>
 
           <button
@@ -1438,7 +1438,7 @@ export default function BuyerRfqsPage() {
                             <Pill>Created: {fmtDate(r.created_at)}</Pill>
                             {r.needed_by ? <Pill>Needed by: {r.needed_by}</Pill> : null}
                             <Pill>
-                              📍 {[(r.locality || "").trim(), (r.city || "").trim()].filter(Boolean).join(", ") || "—"}
+                              � {[(r.locality || "").trim(), (r.city || "").trim()].filter(Boolean).join(", ") || "—"}
                               {r.pincode ? `, ${r.pincode}` : ""}
                             </Pill>
                             {unreadChatCount > 0 ? (
@@ -1625,7 +1625,7 @@ export default function BuyerRfqsPage() {
                                       </div>
 
                                       <div style={{ marginTop: 8, fontSize: 13, color: "#065f46" }}>
-                                        📍 {[selected.vendor_locality, selected.vendor_city].filter(Boolean).join(", ") || "—"}
+                                        � {[selected.vendor_locality, selected.vendor_city].filter(Boolean).join(", ") || "—"}
                                       </div>
 
                                       <div
