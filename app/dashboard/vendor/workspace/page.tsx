@@ -16,6 +16,7 @@ import {
   resolveAttentionPacing,
   evaluateExecutiveFatigue,
 } from "@/lib/procurement/intelligence/executive-calm-computing";
+import { ExecutiveStatGrid } from "@/components/ui/ExecutiveStatGrid";
 const operationalFeed = [
   {
     id: 1,
@@ -819,7 +820,7 @@ export default function VendorWorkspacePage() {
   }, [supabase]);
   return (
     <main className="overflow-x-hidden min-h-screen bg-slate-50">
-      <div className="mx-auto flex w-full max-w-7xl overflow-x-hidden flex-col gap-3 px-2 py-3 sm:px-3 md:px-6">
+      <div className="flex w-full overflow-x-hidden flex-col gap-3 px-2 py-3 sm:px-3 md:px-6">
         <ExecutiveFlowMemory pageKey="vendor-workspace" />
 
         <section className="rounded-[1.25rem] border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
@@ -842,29 +843,52 @@ export default function VendorWorkspacePage() {
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            ["Inventory Items", String(stats.inventoryCount)],
-            ["Pending Dues", `₹${stats.pendingDue.toLocaleString()}`],
-            ["Rental Bookings", String(stats.rentalCount)],
-            ["Service Jobs", String(stats.serviceCount)],
-            ["RFQs Awaiting", String(stats.rfqCount)],
-            ["Dispatch Today", String(stats.dispatchCount)],
-          ].map(([title, value]) => (
-            <div
-              key={title}
-              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-            >
-              <p className="text-sm font-medium text-slate-500">
-                {title}
-              </p>
-
-              <p className="mt-3 text-xl font-bold text-slate-900">
-                {value}
-              </p>
-            </div>
-          ))}
-        </section>
+        <ExecutiveStatGrid
+          items={[
+            {
+              label: "Inventory Items",
+              value: String(stats.inventoryCount),
+              icon: "📦",
+              description: "Active stock records",
+              tone: "blue",
+            },
+            {
+              label: "Pending Dues",
+              value: `₹${stats.pendingDue.toLocaleString()}`,
+              icon: "💳",
+              description: "Unpaid ERP amount",
+              tone: "amber",
+            },
+            {
+              label: "Rental Bookings",
+              value: String(stats.rentalCount),
+              icon: "🚜",
+              description: "Rental operations",
+              tone: "violet",
+            },
+            {
+              label: "Service Jobs",
+              value: String(stats.serviceCount),
+              icon: "🛠️",
+              description: "Service workflow",
+              tone: "green",
+            },
+            {
+              label: "RFQs Awaiting",
+              value: String(stats.rfqCount),
+              icon: "🧾",
+              description: "Procurement leads",
+              tone: "light",
+            },
+            {
+              label: "Dispatch Today",
+              value: String(stats.dispatchCount),
+              icon: "🚚",
+              description: "Delivery movement",
+              tone: "blue",
+            },
+          ]}
+        />
 
 
 

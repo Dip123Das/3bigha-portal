@@ -39,7 +39,7 @@ export default async function PublicRfqIndexPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
+    <main className="w-full px-4 py-6">
       <section className="rounded-3xl border bg-white p-6">
         <h1 className="text-3xl font-black">
           Public Marketplace RFQs

@@ -222,7 +222,7 @@ export default function AdminPriceUpdatesPage() {
 
   return (
     <main className="min-h-screen bg-[#f8faf7] p-6">
-      <div className="mx-auto max-w-6xl">
+      <div className="w-full">
         <div className="mb-5">
           <Link
             href="/admin/dashboard"

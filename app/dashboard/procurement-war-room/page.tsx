@@ -41,7 +41,7 @@ export default function ProcurementWarRoomPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl p-4 md:p-5">
+      <div className="w-full p-4 md:p-5">
       <div className="mb-6 space-y-4">
         <GlobalAiOperationalStatus
           battlefieldPulse="strained"
@@ -59,7 +59,7 @@ export default function ProcurementWarRoomPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl p-4 md:p-5">
+    <div className="w-full p-4 md:p-5">
       <div className="rounded-[1.75rem] bg-gradient-to-r from-slate-950 via-rose-950 to-indigo-950 p-4 md:p-7 text-white shadow-xl">
         <div className="text-xs font-black uppercase tracking-[0.14em] text-rose-200">
           Executive Procurement Priority Work

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function VendorLandingPage() {
   return (
-    <main className="mx-auto max-w-5xl px-4 py-12">
+    <main className="w-full px-4 py-12">
       <section className="rounded-2xl border p-8">
         <h1 className="text-3xl font-bold">
           3Bigha Vendor Marketplace

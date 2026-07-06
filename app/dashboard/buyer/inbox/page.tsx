@@ -138,7 +138,7 @@ export default async function BuyerInboxPage({
   const totalUnread = listingChats.reduce((sum, row) => sum + Number(row.unread_count ?? 0), 0);
 
   return (
-    <div style={{ padding: 12, maxWidth: 1200, margin: "0 auto" }}>
+    <div style={{ width: "100%", padding: "16px clamp(14px,2vw,32px)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Buyer Inbox</h1>

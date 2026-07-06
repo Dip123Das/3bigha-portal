@@ -15,18 +15,48 @@ html, body {
 a { color: inherit; text-decoration: none; }
 
 .container {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding-left: clamp(14px, 2vw, 32px);
-  padding-right: clamp(14px, 2vw, 32px);
+  width: min(96vw, 1680px);
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 0 18px;
 }
 
 .layout-container {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: clamp(16px, 2vw, 32px);
+  width: min(96vw, 1680px);
+  max-width: 1680px;
+  margin: 0 auto;
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+/* Header */
+.siteHeader { border-bottom: 1px solid #e6e6e6; }
+.headerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+}
+.brandName { font-weight: 700; font-size: 18px; }
+.brandTagline { font-size: 13px; color: #666; }
+.nav { display: flex; gap: 14px; flex-wrap: wrap; }
+.nav a { padding: 6px 8px; border-radius: 6px; font-size: 14px; }
+.nav a:hover { background: #f4f4f4; }
+
+/* Page */
+.pageBody {
+  padding: 16px 0 32px;
+}
+
+/* Footer */
+.siteFooter { border-top: 1px solid #e6e6e6; margin-top: 40px; }
+.footerInner {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 0;
+  font-size: 13px;
+  color: #666;
 }
 
 @media (max-width: 700px) {
@@ -3167,116 +3197,294 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   }
 }
 
-/* SAFE RESTORE — desktop mega menu readability + homepage width.
-   Does not change mobile header/account/logo/hamburger. */
-
+/* UI FLOATING + DROPDOWN AUTHORITY — single source, no blind duplicate overrides */
 .pageBody:has(.homePage) {
   width: 100% !important;
   max-width: none !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
+  margin: 0 !important;
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
 
 .homePage,
 .homePage .heroShell,
-.homePage .heroGrid,
-.homePage .heroCopy,
-.homePage .searchCard,
 .homePage .statsRail,
 .homePage .contentSection,
-.homePage .mobileCollapsibleSection,
-.homePage .aiLiveOpsStrip,
-.homePage .vendorOpportunityHomeStrip,
-.homePage .aiBusinessCommand,
 .homePage .splitSection,
-.homePage .homeBottomGrid,
-.homePage .cleanTrustSection,
-.homePage .cleanStartBanner,
-.homePage .cleanHomeFooter {
+.homePage .startBanner,
+.homePage .homeFooter {
+  width: 100% !important;
   max-width: none !important;
 }
 
-@media (min-width: 981px) {
-  .homePage,
-  .homePage .heroShell,
-  .homePage .contentSection,
-  .homePage .mobileCollapsibleSection,
-  .homePage .statsRail,
-  .homePage .aiLiveOpsStrip,
-  .homePage .vendorOpportunityHomeStrip,
-  .homePage .aiBusinessCommand,
-  .homePage .splitSection {
-    width: calc(100vw - 32px) !important;
-    margin-left: calc(50% - 50vw + 16px) !important;
-    margin-right: calc(50% - 50vw + 16px) !important;
-  }
+.topHeader,
+.topHeaderInner,
+.topActions,
+.desktopAuthSlot,
+.stableDesktopMegaNav,
+.stableDesktopMegaNavInner,
+.stableMegaItem {
+  overflow: visible !important;
+}
 
-  .stableMegaPanel {
-    align-items: start !important;
-  }
+.topActions details,
+.desktopAuthSlot details,
+.stableMegaItem {
+  position: relative !important;
+}
 
-  .stableMegaPanel > * {
-    min-width: 0 !important;
-    display: grid !important;
-    gap: 8px !important;
-    align-content: start !important;
-  }
+.topActions details > div,
+.desktopAuthSlot details > div,
+.topActions [role="menu"],
+.desktopAuthSlot [role="menu"],
+.desktopAuthSlot [role="dialog"],
+.stableMegaPanel {
+  position: absolute !important;
+  top: calc(100% + 10px) !important;
+  right: 0 !important;
+  left: auto !important;
+  z-index: 10080 !important;
+  min-width: 260px !important;
+  max-width: min(420px, calc(100vw - 32px)) !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  background: #ffffff !important;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18) !important;
+  padding: 12px !important;
+}
 
-  .stableMegaPanel a,
-  .stableMegaPanel button,
-  .stableMegaMainLink {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 10px !important;
-    width: 100% !important;
-    min-height: 42px !important;
-    padding: 10px 12px !important;
-    border-radius: 13px !important;
-    background: #f8fafc !important;
-    border: 1px solid rgba(15, 23, 42, 0.08) !important;
-    color: #0f172a !important;
-    font-size: 14px !important;
-    font-weight: 900 !important;
-    line-height: 1.25 !important;
-    text-decoration: none !important;
-    white-space: normal !important;
-    cursor: pointer !important;
-  }
+.stableMegaPanel {
+  right: auto !important;
+  left: 0 !important;
+  min-width: 340px !important;
+}
 
-  .stableMegaPanel a:hover,
-  .stableMegaPanel button:hover,
-  .stableMegaMainLink:hover {
-    background: #eef6ff !important;
-    border-color: rgba(37, 99, 235, 0.22) !important;
-    color: #1d4ed8 !important;
-  }
+.topActions details > div a,
+.topActions details > div button,
+.desktopAuthSlot details > div a,
+.desktopAuthSlot details > div button,
+.stableMegaPanel a,
+.stableMegaPanel button,
+.aiPanelGrid a,
+.foundingPartnerPopupActions a {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 42px !important;
+  border-radius: 12px !important;
+  padding: 10px 12px !important;
+  text-decoration: none !important;
+  font-weight: 850 !important;
+  cursor: pointer !important;
+}
 
-  .stableMegaPanel p,
-  .stableMegaPanel span,
-  .stableMegaPanel small {
-    line-height: 1.35 !important;
-  }
+.topActions details > div a:hover,
+.topActions details > div button:hover,
+.desktopAuthSlot details > div a:hover,
+.desktopAuthSlot details > div button:hover,
+.stableMegaPanel a:hover,
+.stableMegaPanel button:hover,
+.aiPanelGrid a:hover {
+  background: #f1f5f9 !important;
+}
 
-  .stableMegaPanel strong,
-  .stableMegaPanel b {
-    display: block !important;
-    margin-bottom: 4px !important;
-    color: #475569 !important;
-    font-size: 13px !important;
-    font-weight: 1000 !important;
-  }
+.floatingAi,
+.floatingAiCopilot {
+  position: fixed !important;
+  left: 18px !important;
+  right: auto !important;
+  bottom: 18px !important;
+  z-index: 10030 !important;
+}
+
+.aiPanel {
+  position: fixed !important;
+  left: 18px !important;
+  right: auto !important;
+  bottom: 82px !important;
+  z-index: 10031 !important;
+  width: min(360px, calc(100vw - 32px)) !important;
+  border-radius: 22px !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  background: #ffffff !important;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18) !important;
+  padding: 14px !important;
+}
+
+.aiPanelGrid {
+  display: grid !important;
+  gap: 8px !important;
+}
+
+.aiPanelGrid a {
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  background: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.foundingPartnerPopup {
+  position: fixed !important;
+  right: 18px !important;
+  left: auto !important;
+  bottom: 18px !important;
+  z-index: 10040 !important;
+  width: min(370px, calc(100vw - 32px)) !important;
+  margin: 0 !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  background: linear-gradient(135deg, #ff4b1f, #8e168f) !important;
+  color: #ffffff !important;
+  box-shadow: 0 24px 75px rgba(60, 10, 75, 0.35) !important;
+  padding: 20px !important;
+}
+
+.foundingPartnerPopupActions {
+  display: grid !important;
+  gap: 10px !important;
+  margin-top: 14px !important;
+}
+
+.foundingPartnerPopupPrimary,
+.foundingPartnerPopupSecondary {
+  justify-content: center !important;
+  text-align: center !important;
+  border-radius: 999px !important;
+}
+
+.foundingPartnerPopupPrimary {
+  background: #ffffff !important;
+  color: #8e168f !important;
+}
+
+.foundingPartnerPopupSecondary {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
 }
 
 @media (max-width: 760px) {
-  .homePage {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
+  .floatingAi,
+  .floatingAiCopilot {
+    left: 12px !important;
+    bottom: 12px !important;
   }
 
+  .aiPanel {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 72px !important;
+    width: auto !important;
+  }
+
+  .foundingPartnerPopup {
+    right: 12px !important;
+    left: 12px !important;
+    bottom: 78px !important;
+    width: auto !important;
+  }
+
+  .topActions details > div,
+  .desktopAuthSlot details > div,
+  .stableMegaPanel {
+    max-width: calc(100vw - 24px) !important;
+  }
+}
+
+/* UI REPAIR 2 — desktop wide middle sections only; mobile keeps natural page flow */
+@media (min-width: 761px) {
+  .homePage .statsRail,
+  .homePage .aiLiveOpsStrip,
+  .homePage .aiBusinessCommand,
+  .homePage .mobileCollapsibleSection,
+  .homePage .contentSection,
+  .homePage .splitSection {
+    width: calc(100vw - 32px) !important;
+    max-width: none !important;
+    margin-left: calc(50% - 50vw + 16px) !important;
+    margin-right: calc(50% - 50vw + 16px) !important;
+  }
+}
+
+.stableDesktopMegaNavInner {
+  position: relative !important;
+}
+
+.stableMegaItem {
+  position: static !important;
+}
+
+.stableMegaPanel {
+  position: absolute !important;
+  top: calc(100% + 10px) !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  width: min(1180px, calc(100vw - 40px)) !important;
+  max-width: calc(100vw - 40px) !important;
+  min-width: 0 !important;
+  z-index: 10090 !important;
+  display: grid !important;
+  gap: 12px !important;
+  border-radius: 20px !important;
+  padding: 16px !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.2) !important;
+}
+
+.stableMegaPanel a,
+.stableMegaMainLink {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 44px !important;
+  border-radius: 14px !important;
+  padding: 11px 13px !important;
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+  font-weight: 850 !important;
+}
+
+.stableMegaPanel a:hover,
+.stableMegaMainLink:hover {
+  background: #eef4ff !important;
+  border-color: #bfdbfe !important;
+}
+
+.aiPanelGrid a,
+.aiPanelGrid button,
+.aiPanel a,
+.aiPanel button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 46px !important;
+  border-radius: 14px !important;
+  padding: 12px 14px !important;
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05) !important;
+  color: #0f172a !important;
+  font-weight: 900 !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+}
+
+.aiPanelGrid a:hover,
+.aiPanelGrid button:hover,
+.aiPanel a:hover,
+.aiPanel button:hover {
+  background: #eef4ff !important;
+  border-color: #bfdbfe !important;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 760px) {
+  .homePage,
   .homePage .heroShell,
   .homePage .heroGrid,
   .homePage .heroCopy,
@@ -3287,17 +3495,12 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   .homePage .aiLiveOpsStrip,
   .homePage .vendorOpportunityHomeStrip,
   .homePage .aiBusinessCommand,
-  .homePage .splitSection,
-  .homePage .homeBottomGrid,
-  .homePage .cleanTrustSection,
-  .homePage .cleanStartBanner,
-  .homePage .cleanHomeFooter {
+  .homePage .splitSection {
     width: 100% !important;
     max-width: 100% !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
     min-width: 0 !important;
-    box-sizing: border-box !important;
   }
 
   .homePage .heroGrid {
@@ -3309,13 +3512,96 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   .homePage .categoryGrid,
   .homePage .discoveryRailGrid,
   .homePage .toolsGrid,
-  .homePage .priceGrid,
-  .homePage .aiLiveOpsGrid,
-  .homePage .vendorOpportunityHomeGrid {
+  .homePage .priceGrid {
     grid-template-columns: 1fr !important;
   }
 }
 
+/* UI REPAIR 3 — stronger main menu + clickable AI inner actions */
+.stableDesktopMegaNav {
+  border-top: 1px solid rgba(15, 23, 42, 0.06) !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
+  background: linear-gradient(180deg, #ffffff, #f8fafc) !important;
+}
+
+.stableDesktopMegaNavInner {
+  justify-content: center !important;
+  gap: 18px !important;
+  min-height: 54px !important;
+}
+
+.stableMegaButton {
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  padding: 11px 16px !important;
+  color: #0f172a !important;
+  font-size: 15px !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.02em !important;
+  background: transparent !important;
+  cursor: pointer !important;
+}
+
+.stableMegaButton:hover,
+.stableMegaItem:hover .stableMegaButton {
+  background: #eef4ff !important;
+  border-color: #bfdbfe !important;
+  color: #1d4ed8 !important;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12) !important;
+}
+
+.stableMegaButton::after {
+  font-size: 12px !important;
+  opacity: 0.85 !important;
+}
+
+.aiPanelGrid a,
+.aiPanel a,
+.aiPanelGrid button,
+.aiPanel button {
+  position: relative !important;
+  border: 1px solid rgba(37, 99, 235, 0.16) !important;
+  background: linear-gradient(180deg, #ffffff, #f1f5ff) !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+  font-size: 13px !important;
+  font-weight: 950 !important;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease !important;
+}
+
+.aiPanelGrid a::after,
+.aiPanel a::after,
+.aiPanelGrid button::after,
+.aiPanel button::after {
+  content: "›" !important;
+  margin-left: auto !important;
+  font-size: 18px !important;
+  font-weight: 1000 !important;
+  color: #2563eb !important;
+}
+
+.aiPanelGrid a:hover,
+.aiPanel a:hover,
+.aiPanelGrid button:hover,
+.aiPanel button:hover {
+  transform: translateY(-2px) !important;
+  border-color: #93c5fd !important;
+  background: linear-gradient(180deg, #eef4ff, #ffffff) !important;
+  box-shadow: 0 16px 34px rgba(37, 99, 235, 0.16) !important;
+}
+
+.aiPanelHeader {
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #0f172a, #1d4ed8) !important;
+  color: #ffffff !important;
+  padding: 12px !important;
+  margin-bottom: 10px !important;
+}
+
+.aiPanelHeader strong,
+.aiPanelHeader small {
+  color: #ffffff !important;
+}
 
 /* =========================================================
    FINAL MOBILE HAMBURGER PANEL AUTHORITY
@@ -3409,224 +3695,5 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   body:has(details.topMobileMenu[open]) .globalAiShell,
   body:has(details.topMobileMenu[open]) .foundingPartnerPopup {
     display: none !important;
-  }
-}
-
-/* UX-1A — Unified Executive Page System Foundation */
-.ui-section-header {
-  width: 100%;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: clamp(14px, 2vw, 28px);
-  margin: 18px 0 16px;
-  padding: 18px clamp(16px, 2vw, 28px);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at top left, rgba(219, 234, 254, 0.85), transparent 34%),
-    linear-gradient(135deg, #f8fafc, #ffffff);
-  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
-}
-
-.ui-section-header__copy {
-  min-width: 0;
-}
-
-.ui-section-header__eyebrow {
-  margin-bottom: 8px;
-  color: #2563eb;
-  font-size: 11px;
-  font-weight: 950;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.ui-section-header__title {
-  margin: 0;
-  color: #0f172a;
-  font-size: clamp(26px, 3vw, 42px);
-  line-height: 1.08;
-  letter-spacing: -0.045em;
-  font-weight: 1000;
-}
-
-.ui-section-header__subtitle {
-  max-width: 860px;
-  margin: 10px 0 0;
-  color: #475569;
-  font-size: 14px;
-  line-height: 1.7;
-  font-weight: 650;
-}
-
-.ui-section-header__children {
-  margin-top: 14px;
-}
-
-.ui-section-header__actions {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.ui-empty-state {
-  width: 100%;
-  border: 1px dashed rgba(15, 23, 42, 0.16);
-  border-radius: 24px;
-  background: linear-gradient(135deg, #f8fafc, #ffffff);
-  padding: 28px 18px;
-  text-align: center;
-  color: #475569;
-}
-
-.ui-empty-state__icon {
-  width: 46px;
-  height: 46px;
-  margin: 0 auto 12px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: #eef4ff;
-  font-size: 22px;
-}
-
-.ui-empty-state__title {
-  margin: 0;
-  color: #0f172a;
-  font-size: 20px;
-  font-weight: 1000;
-  letter-spacing: -0.03em;
-}
-
-.ui-empty-state__description {
-  max-width: 560px;
-  margin: 8px auto 0;
-  font-size: 14px;
-  line-height: 1.7;
-  font-weight: 650;
-}
-
-.ui-empty-state__actions {
-  margin-top: 16px;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-@media (max-width: 700px) {
-  .ui-section-header {
-    flex-direction: column;
-    border-radius: 20px;
-    padding: 16px;
-  }
-
-  .ui-section-header__actions {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-}
-
-/* UX-1C — Executive KPI System */
-.executive-stat-grid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 10px;
-}
-
-.executive-stat-card {
-  min-height: 74px;
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  border-radius: 16px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  padding: 12px;
-  background: #ffffff;
-  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.045);
-}
-
-.executive-stat-card--dark {
-  background: #0f172a;
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.executive-stat-card--blue {
-  background: linear-gradient(135deg, #eff6ff, #ffffff);
-}
-
-.executive-stat-card--green {
-  background: linear-gradient(135deg, #ecfdf5, #ffffff);
-}
-
-.executive-stat-card--amber {
-  background: linear-gradient(135deg, #fffbeb, #ffffff);
-}
-
-.executive-stat-card--violet {
-  background: linear-gradient(135deg, #f5f3ff, #ffffff);
-}
-
-.executive-stat-card__icon {
-  width: 36px;
-  height: 36px;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: rgba(37, 99, 235, 0.16);
-  font-size: 18px;
-}
-
-.executive-stat-card--dark .executive-stat-card__icon {
-  background: rgba(37, 99, 235, 0.25);
-}
-
-.executive-stat-card__body {
-  min-width: 0;
-}
-
-.executive-stat-card__body strong {
-  display: block;
-  color: #0f172a;
-  font-size: 20px;
-  font-weight: 1000;
-  line-height: 1.05;
-}
-
-.executive-stat-card--dark .executive-stat-card__body strong {
-  color: #ffffff;
-}
-
-.executive-stat-card__body small {
-  display: block;
-  margin-top: 4px;
-  color: #64748b;
-  font-size: 11px;
-  font-weight: 850;
-  line-height: 1.25;
-}
-
-.executive-stat-card--dark .executive-stat-card__body small {
-  color: #cbd5e1;
-}
-
-.executive-stat-card__body em {
-  display: block;
-  margin-top: 4px;
-  color: #64748b;
-  font-size: 11px;
-  font-style: normal;
-  font-weight: 750;
-  line-height: 1.35;
-}
-
-@media (max-width: 640px) {
-  .executive-stat-grid {
-    grid-template-columns: 1fr;
   }
 }

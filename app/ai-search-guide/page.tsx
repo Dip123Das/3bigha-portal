@@ -19,8 +19,8 @@ export default function AiSearchGuidePage() {
   return (
     <main
       style={{
-        maxWidth: 1100,
-        margin: "0 auto",
+        width: "100%",
+        paddingInline: "clamp(16px,2vw,32px)",
         padding: "48px 16px 72px",
       }}
     >

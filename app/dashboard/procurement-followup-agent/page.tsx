@@ -19,7 +19,7 @@ export default function ProcurementFollowupAgentPage() {
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] p-6">
-      <div className="mx-auto max-w-7xl">
+      <div className="w-full">
         <div className="overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-slate-950 via-blue-950 to-violet-950 p-10 text-white shadow-2xl">
           <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
             Autonomous Procurement Follow-up AI

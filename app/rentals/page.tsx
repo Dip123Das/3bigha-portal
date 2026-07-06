@@ -576,7 +576,7 @@ export default function RentalsPublicPage() {
       />
 
       <Container>
-        <SectionHeader title="Rentals" subtitle="Browse equipment & services available on rent (public listings)." />
+        <SectionHeader eyebrow="Rental Marketplace" title="Rentals" subtitle="Browse equipment & services available on rent (public listings)." />
 
         <PublicVendorOpportunityBanner module="rentals" />
 
@@ -664,7 +664,7 @@ export default function RentalsPublicPage() {
         </div>
 
         <div style={{ marginTop: 18 }}>
-          <SectionHeader title="Public Listings" subtitle="Choose a simple rental group above, then filter by type, city and search." />
+          <SectionHeader eyebrow="Live Listings" title="Public Listings" subtitle="Choose a simple rental group above, then filter by type, city and search." />
 
           <div style={{ marginTop: 12 }}>
             {taxLoading ? (

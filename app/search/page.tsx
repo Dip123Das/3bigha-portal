@@ -1767,7 +1767,7 @@ if (want.includes("rentals")) {
 
   return (
     <Container>
-      <SectionHeader title="Marketplace Search" subtitle="Start with what you need. 3Bigha will guide discovery, comparison, RFQ and vendor workflow." />
+      <SectionHeader eyebrow="AI Search" title="Marketplace Search" subtitle="Start with what you need. 3Bigha will guide discovery, comparison, RFQ and vendor workflow." />
 
       <Card>
         <CardBody>

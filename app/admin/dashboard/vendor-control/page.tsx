@@ -93,7 +93,7 @@ export default function AdminVendorControlPage() {
   }, []);
 
   return (
-    <main style={{ padding: 14, maxWidth: 1100, margin: "0 auto" }}>
+    <main style={{ width: "100%", padding: "16px clamp(14px,2vw,32px)" }}>
       <h1 style={{ fontSize: 26, fontWeight: 950 }}>🧠 Admin Vendor Control AI</h1>
 
       <div style={{ marginTop: 8, color: "#64748b", fontWeight: 800 }}>

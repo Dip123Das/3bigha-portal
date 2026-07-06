@@ -316,7 +316,7 @@ export default function MaterialsPage() {
   }
 
   return (
-    <main style={{ maxWidth: 1100, margin: "26px auto", padding: "0 16px" }}>
+    <main style={{ width: "100%", padding: "26px clamp(14px,2vw,32px)" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 30, marginBottom: 6 }}>Materials</h1>

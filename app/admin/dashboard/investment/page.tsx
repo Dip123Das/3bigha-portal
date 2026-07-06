@@ -115,7 +115,7 @@ export default async function AdminInvestmentDashboardPage() {
 
   if (!isInvestmentAdminRole(role)) {
     return (
-      <main className="mx-auto max-w-7xl px-4 py-8">
+      <main className="w-full px-4 py-8">
         <div className="rounded-3xl border border-red-200 bg-red-50 p-6">
           <h1 className="text-2xl font-bold text-red-700">
             Access denied for Investment Admin
@@ -156,7 +156,7 @@ export default async function AdminInvestmentDashboardPage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8">
+    <main className="w-full px-4 py-8">
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">

@@ -46,7 +46,7 @@ export default function ConstructionCostPage({ params }: PageProps) {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="border-b border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-lime-50">
-        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full px-4 py-12 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">
               AI Construction Cost Intelligence
@@ -118,11 +118,11 @@ export default function ConstructionCostPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 lg:px-8">
+      <section className="w-full px-4 pt-10 sm:px-6 lg:px-8">
         <ConstructionCostCalculator />
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <section className="w-full px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="space-y-6">
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">

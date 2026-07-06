@@ -131,7 +131,7 @@ export default async function ProcurementControlTowerPage() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 px-4 py-5">
+    <div className="w-full space-y-5 px-4 py-5">
       <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 p-5 md:p-6 text-white shadow-sm">
         <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-blue-100">
           AI Procurement Operations Desk

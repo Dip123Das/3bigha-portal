@@ -82,7 +82,7 @@ export default async function ProcurementOSPage() {
         }}
       />
 
-      <div className="mx-auto max-w-7xl">
+      <div className="w-full">
         <WorkflowContinuityBar />
         <OperationalEventStream
           title="Recent procurement activity"

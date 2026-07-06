@@ -15,7 +15,7 @@ export default function UniversalDashboardShell({
   children: React.ReactNode;
 }) {
   return (
-    <main>
+    <main className="w-full">
       <Container>
         <WorkflowContinuityBar />
 

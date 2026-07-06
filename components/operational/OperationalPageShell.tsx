@@ -8,7 +8,7 @@ export default function OperationalPageShell({
   className?: string;
 }) {
   return (
-    <main className={`mx-auto w-full max-w-7xl space-y-4 px-3 py-4 md:px-6 md:py-6 ${className}`}>
+    <main className={`w-full space-y-4 px-3 py-4 md:px-6 md:py-6 xl:px-8 ${className}`}>
       {children}
     </main>
   );

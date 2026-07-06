@@ -558,7 +558,7 @@ export default function LandAreaCalculatorPage() {
   const propertyAddHref = `/property/add?${areaWorkflowParams.toString()}`;
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
+    <main className="w-full px-4 py-6">
       <section className="rounded-3xl border bg-white p-5 shadow-sm md:p-7">
         <div className="mb-5">
           <p className="text-sm font-semibold text-emerald-700">3bigha Calculator</p>

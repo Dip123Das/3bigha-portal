@@ -10,7 +10,7 @@ return (
 
     <main className="min-h-screen bg-slate-50">
       <section className="border-b border-blue-100 bg-gradient-to-br from-blue-50 via-white to-orange-50">
-        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full px-4 py-12 sm:px-6 lg:px-8">
           <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-700">
             AI Construction Cost Calculator
           </p>
@@ -50,7 +50,7 @@ return (
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <section className="w-full px-4 py-10 sm:px-6 lg:px-8">
         <ConstructionCostCalculator />
       </section>
     </main>

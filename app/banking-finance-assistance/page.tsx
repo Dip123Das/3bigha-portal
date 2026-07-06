@@ -93,7 +93,7 @@ export default function BankingFinanceAssistancePage() {
       <JsonLd data={financeSchema} />
       <JsonLd data={faqSchema} />
 
-      <section className="mx-auto max-w-6xl">
+      <section className="w-full">
         <div className="rounded-3xl border bg-white p-6 shadow-sm">
           <p className="text-xs font-black uppercase tracking-wide text-blue-600">
             Banking Finance Assistance

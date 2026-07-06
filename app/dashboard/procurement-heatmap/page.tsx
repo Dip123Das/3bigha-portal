@@ -45,7 +45,7 @@ export default function ProcurementHeatmapPage() {
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] p-4 md:p-5">
-      <div className="mx-auto max-w-7xl">
+      <div className="w-full">
         <div className="overflow-hidden rounded-[2rem] bg-gradient-to-r from-slate-950 via-orange-950 to-rose-950 p-6 md:p-8 text-white shadow-xl">
           <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-5 py-2 text-xs font-black uppercase tracking-[0.18em]">
             AI Procurement Heatmap Intelligence

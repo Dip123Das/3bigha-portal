@@ -9,7 +9,7 @@ export const metadata = {
 export default function SettingsPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8">
-      <div className="mx-auto max-w-6xl space-y-5">
+      <div className="w-full space-y-5">
         <ExperienceModeSettings />
 
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">

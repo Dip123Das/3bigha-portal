@@ -80,7 +80,7 @@ export default async function VendorDiscoveryPage({
   const topVendor = rankedVendors[0] || null;
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
+    <main className="w-full px-4 py-10">
       <section className="rounded-2xl border p-6">
         <div className="inline-flex rounded-full border px-3 py-1 text-xs font-semibold">
           AI Workflow Assistant

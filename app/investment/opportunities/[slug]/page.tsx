@@ -310,7 +310,7 @@ export default async function InvestmentOpportunityDetailPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
-      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <section className="w-full px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
           <Link
             href="/investment/opportunities"

@@ -221,7 +221,7 @@ export default function AdminInvestmentOpportunityDetailPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-8">
+      <div className="w-full px-4 py-8">
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <p className="text-sm text-gray-600">Loading opportunity...</p>
         </div>
@@ -231,7 +231,7 @@ export default function AdminInvestmentOpportunityDetailPage() {
 
   if (error && !record) {
     return (
-      <div className="mx-auto max-w-6xl px-4 py-8">
+      <div className="w-full px-4 py-8">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-6">
           <h1 className="text-lg font-semibold text-red-700">
             Unable to load opportunity
@@ -261,7 +261,7 @@ export default function AdminInvestmentOpportunityDetailPage() {
   const status = getStatus(record);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="w-full px-4 py-8">
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="mb-2">

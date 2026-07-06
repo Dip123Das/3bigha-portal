@@ -7,7 +7,7 @@ type PageShellProps = {
 
 export function PageShell({ children }: PageShellProps) {
   return (
-    <main>
+    <main className="w-full">
       <Container>{children}</Container>
     </main>
   );

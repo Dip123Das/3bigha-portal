@@ -70,7 +70,7 @@ const futureFeatures = [
 
 export default function AdminSeoPage() {
   return (
-    <main style={{ padding: 24, maxWidth: 1200, margin: "0 auto" }}>
+    <main style={{ width: "100%", padding: "24px clamp(14px,2vw,32px)" }}>
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontSize: 28, fontWeight: 900, marginBottom: 8 }}>
           SEO Control Center

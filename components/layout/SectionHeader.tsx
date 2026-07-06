@@ -3,40 +3,31 @@ import React from "react";
 type SectionHeaderProps = {
   title: string;
   subtitle?: string;
+  eyebrow?: string;
   right?: React.ReactNode;
+  children?: React.ReactNode;
 };
 
-export function SectionHeader({ title, subtitle, right }: SectionHeaderProps) {
+export function SectionHeader({
+  title,
+  subtitle,
+  eyebrow,
+  right,
+  children,
+}: SectionHeaderProps) {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "flex-start",
-        justifyContent: "space-between",
-        gap: 16,
-        margin: "18px 0 14px",
-      }}
-    >
-      <div style={{ minWidth: 0 }}>
-        <h1
-          style={{
-            margin: 0,
-            fontSize: 34,
-            lineHeight: 1.15,
-            letterSpacing: "-0.01em",
-          }}
-        >
-          {title}
-        </h1>
+    <section className="ui-section-header">
+      <div className="ui-section-header__copy">
+        {eyebrow ? <div className="ui-section-header__eyebrow">{eyebrow}</div> : null}
 
-        {subtitle ? (
-          <p style={{ margin: "10px 0 0", color: "#5b6472", maxWidth: 860 }}>
-            {subtitle}
-          </p>
-        ) : null}
+        <h1 className="ui-section-header__title">{title}</h1>
+
+        {subtitle ? <p className="ui-section-header__subtitle">{subtitle}</p> : null}
+
+        {children ? <div className="ui-section-header__children">{children}</div> : null}
       </div>
 
-      {right ? <div style={{ flex: "0 0 auto" }}>{right}</div> : null}
-    </div>
+      {right ? <div className="ui-section-header__actions">{right}</div> : null}
+    </section>
   );
 }

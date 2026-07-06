@@ -138,7 +138,7 @@ export default async function MeasurementMasterDataPage() {
     .order("unit_name", { ascending: true });
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
+    <main className="w-full px-4 py-6">
       <section className="rounded-3xl border bg-white p-5 shadow-sm md:p-7">
         <p className="text-sm font-semibold text-emerald-700">Master Data</p>
         <h1 className="mt-2 text-2xl font-bold text-slate-950 md:text-4xl">

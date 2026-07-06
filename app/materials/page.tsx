@@ -595,7 +595,7 @@ export default function MaterialsPage() {
         </div>
 
         <div style={{ marginTop: 18 }}>
-          <SectionHeader title="Public Listings" subtitle="Filter by type and search across title, brand, price and category path." />
+          <SectionHeader eyebrow="Live Listings" title="Public Listings" subtitle="Filter by type and search across title, brand, price and category path." />
 
           <div style={{ marginTop: 12 }}>
             <FilterBar

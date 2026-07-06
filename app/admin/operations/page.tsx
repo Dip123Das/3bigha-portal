@@ -61,7 +61,7 @@ export default function ProductionOperationsPage() {
 
   return (
     <main style={{ padding: 24, background: "#f8fafc", minHeight: "100vh" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <div style={{ width: "100%", padding: "0 clamp(14px,2vw,32px)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 20 }}>
           <div>
             <h1 style={{ margin: 0, fontSize: 28 }}>3Bigha Production Operations</h1>

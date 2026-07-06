@@ -83,14 +83,14 @@ export default function ProcurementCrisisCenterPage() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="w-full p-6">
         Loading procurement crisis center...
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-7xl p-6">
+    <div className="w-full p-6">
       <div className="rounded-[2rem] bg-gradient-to-r from-rose-950 via-slate-950 to-indigo-950 p-8 text-white shadow-2xl">
         <div className="text-xs font-black uppercase tracking-[0.14em] text-rose-200">
           Enterprise Procurement Issue Center

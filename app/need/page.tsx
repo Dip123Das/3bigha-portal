@@ -39,7 +39,7 @@ export default async function NeedIndexPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
+    <main className="w-full px-4 py-6">
       <section className="rounded-3xl border bg-white p-6 shadow-sm">
         <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">
           Vendor Demand SEO

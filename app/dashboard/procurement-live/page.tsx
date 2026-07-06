@@ -576,7 +576,7 @@ export default function ProcurementLivePage() {
   return (
     <main className="min-h-screen bg-[#f6f7fb] p-4">
       <ExecutiveFlowMemory pageKey="procurement-live" />
-      <div className="mx-auto max-w-7xl">
+      <div className="w-full">
         <CompressionZone
           title="Operational intelligence"
           subtitle="AI status and recovery feed"

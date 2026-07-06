@@ -14,6 +14,7 @@ import { ActionButton } from "@/components/ui/ActionButton";
 import { Grid } from "@/components/ui/Grid";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionSkeleton } from "@/components/ui/Skeleton";
+import { ExecutiveStatGrid } from "@/components/ui/ExecutiveStatGrid";
 import { OperationalErrorState } from "@/components/ui/OperationalErrorState";
 import { OperationalEmptyState } from "@/components/ui/OperationalEmptyState";
 import BuyerWorkMenu from "@/components/buyer/BuyerWorkMenu";
@@ -640,82 +641,39 @@ const closedDeals =
             Manage requirements, compare quotations, continue vendor conversations and complete procurement decisions from one operational workspace.
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
-              gap: 14,
-              marginBottom: 20,
-            }}
-          >
-            {[
-              [
-                "Total RFQs",
-                procurementStats.totalRfqs,
-                "#ffffff",
-                "All submitted requirements",
-              ],
-              [
-                "Active RFQs",
-                procurementStats.activeRfqs,
-                "#eff6ff",
-                "Needs review or negotiation",
-              ],
-              [
-                "Closed Deals",
-                procurementStats.closedRfqs,
-                "#f0fdf4",
-                "Completed procurement",
-              ],
-              [
-                "Needs Attention",
-                procurementStats.urgentRfqs,
-                "#fffbeb",
-                "Requires immediate attention",
-              ],
-            ].map(([label, value, bg, note]) => (
-              <div
-                key={String(label)}
-                style={{
-                  background: String(bg),
-                  border: "1px solid rgba(15,23,42,0.06)",
-                  borderRadius: 18,
-                  padding: 12,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 900,
-                    color: "#64748b",
-                  }}
-                >
-                  {label}
-                </div>
-
-                <div
-                  style={{
-                    marginTop: 6,
-                    fontSize: 34,
-                    fontWeight: 800,
-                    color: "#0f172a",
-                  }}
-                >
-                  {value}
-                </div>
-
-                <div
-                  style={{
-                    marginTop: 6,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: "#64748b",
-                  }}
-                >
-                  {note}
-                </div>
-              </div>
-            ))}
+          <div style={{ marginBottom: 20 }}>
+            <ExecutiveStatGrid
+              items={[
+                {
+                  label: "Total RFQs",
+                  value: procurementStats.totalRfqs,
+                  icon: "🧾",
+                  description: "All submitted requirements",
+                  tone: "light",
+                },
+                {
+                  label: "Active RFQs",
+                  value: procurementStats.activeRfqs,
+                  icon: "⚡",
+                  description: "Needs review or negotiation",
+                  tone: "blue",
+                },
+                {
+                  label: "Closed Deals",
+                  value: procurementStats.closedRfqs,
+                  icon: "✅",
+                  description: "Completed procurement",
+                  tone: "green",
+                },
+                {
+                  label: "Needs Attention",
+                  value: procurementStats.urgentRfqs,
+                  icon: "🚨",
+                  description: "Requires immediate attention",
+                  tone: "amber",
+                },
+              ]}
+            />
           </div>
 
           {procurementStats.totalRfqs === 0 ? (

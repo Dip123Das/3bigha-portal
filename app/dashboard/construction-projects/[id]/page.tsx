@@ -54,7 +54,7 @@ export default function ConstructionProjectDetailPage() {
   return (
     <main className="min-h-screen bg-slate-50">
       <section className="border-b border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-lime-50">
-        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="w-full px-4 py-10 sm:px-6 lg:px-8">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">
             Saved AI Construction Project
           </p>
@@ -87,7 +87,7 @@ export default function ConstructionProjectDetailPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <section className="w-full px-4 py-10 sm:px-6 lg:px-8">
         <ConstructionCostCalculator />
       </section>
     </main>

@@ -49,7 +49,7 @@ export default function HouseConstructionCostPage({ params }: PageProps) {
   return (
     <main className="min-h-screen bg-white">
       <section className="bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-900 text-white">
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+        <div className="w-full px-4 py-14 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-300">
               House Building Budget Calculator
@@ -111,11 +111,11 @@ export default function HouseConstructionCostPage({ params }: PageProps) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 lg:px-8">
+      <section className="w-full px-4 pt-10 sm:px-6 lg:px-8">
         <ConstructionCostCalculator />
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <section className="w-full px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <div className="space-y-6">
             <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
