@@ -107,7 +107,7 @@ export function buildProcurementDecisionInsight(input: {
 
   const bestActionHref =
     readinessScore >= 68
-      ? `/rfq/general/new?query=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`
+      ? `/rfq?query=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`
       : module === "property"
         ? `/house-construction-cost?location=${encodeURIComponent(brain.locationHint || "")}`
         : `/vendor/discovery?q=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`;

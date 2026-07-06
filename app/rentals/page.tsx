@@ -111,7 +111,7 @@ const RENTAL_DISCOVERY = [
 ] as const;
 
 const RENTAL_WORKFLOWS = [
-  ["Submit Rental Requirement", "/rfq/general/new?module=rentals"],
+  ["Submit Rental Requirement", "/rfq?module=rentals"],
   ["Add Rental Item", "/rentals/add"],
   ["Browse Rental Catalog", "/rentals/catalog"],
   ["Check Rental Rates", "/price-today?type=Rentals"],

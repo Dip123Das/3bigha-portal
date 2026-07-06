@@ -32,7 +32,7 @@ export function buildWorkflowRecommendations(input: {
       label: "Create RFQ",
       description:
         "Create clear requirement with quantity, location and timeline.",
-      href: "/rfq/general/new",
+      href: "/rfq",
       priority: "high",
     });
   }

@@ -48,7 +48,7 @@ export function resolveNextAction(context: WorkflowContext): NextActionResult {
       return {
         label: "Complete the requirement and send RFQ",
         description: "Write what you need, quantity, location, delivery time, and expected response.",
-        href: "/rfq/general/new",
+        href: "/rfq",
         stage: "Requirement creation",
         risk: "Low",
       };

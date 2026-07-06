@@ -63,7 +63,7 @@ export function buildRelatedContent(input: RelatedContentInput) {
     },
     {
       label: `Start a fresh RFQ`,
-      href: `/rfq/general/new`,
+      href: `/rfq`,
       description: `Create a new requirement and receive matched vendor responses.`,
     },
   ];

@@ -97,7 +97,7 @@ const PROPERTY_WORKFLOWS = [
   ["Post Property", "/property/add"],
   ["Check EMI", "/emi-calculator"],
   ["Investment Opportunities", "/investment/opportunities"],
-  ["Submit Requirement", "/rfq/general/new?module=property"],
+  ["Submit Requirement", "/rfq?module=property"],
 ] as const;
 
 

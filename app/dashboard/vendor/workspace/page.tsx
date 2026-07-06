@@ -124,7 +124,7 @@ const quickActions = [
   },
   {
     title: "Create RFQ",
-    href: "/rfq/new",
+    href: "/rfq",
   },
   {
     title: "Dispatch Center",

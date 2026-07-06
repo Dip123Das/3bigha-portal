@@ -335,7 +335,7 @@ return (
             </Link>
 
             <Link
-              href="/rfq/general/new"
+              href="/rfq"
               style={{
                 background: "#ffffff",
                 border: "1px solid #cbd5e1",
@@ -634,7 +634,7 @@ return (
                   {
                     title: `Post requirement in ${city}`,
                     subtitle: "Submit your requirement and let local vendors respond through RFQ workflow.",
-                    href: `/rfq/general/new?module=${module}&q=${encodeURIComponent(city)}`,
+                    href: `/rfq?module=${module}&q=${encodeURIComponent(city)}`,
                   },
                   {
                     title: `Browse ${title.toLowerCase()} marketplace`,
@@ -930,7 +930,7 @@ return (
             ].map((item) => (
               <Link
                 key={item.keyword}
-                href={`/rfq/general/new?module=${module}&q=${encodeURIComponent(item.keyword)}`}
+                href={`/rfq?module=${module}&q=${encodeURIComponent(item.keyword)}`}
                 style={{
                   background: "#ffffff",
                   border: "1px solid #ddd6fe",

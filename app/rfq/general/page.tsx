@@ -11,7 +11,7 @@ export default function GeneralRfqPlaceholderPage() {
       </div>
 
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <Link className="topBtn topBtnPrimary" href="/rfq/new">
+        <Link className="topBtn topBtnPrimary" href="/rfq">
           Start Material RFQ →
         </Link>
         <Link className="topBtn topBtnGhost" href="/">

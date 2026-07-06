@@ -574,7 +574,7 @@ export default function DashboardPage() {
           <Link href="/price-today" className="topBtn topBtnGhost">
             Predictive Prices →
           </Link>
-          <Link href="/rfq/general/new" className="topBtn topBtnGhost">
+          <Link href="/rfq" className="topBtn topBtnGhost">
             + New RFQ →
           </Link>
         </div>

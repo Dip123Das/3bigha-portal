@@ -71,7 +71,7 @@ export function buildProcurementRecommendations(input: {
       {
         title: "Send bulk RFQ",
         description: "Create a structured RFQ for multiple suppliers.",
-        href: `/rfq/general/new?query=${clean}`,
+        href: `/rfq?query=${clean}`,
         icon: "⚡",
         module: "materials",
         tone: "amber",

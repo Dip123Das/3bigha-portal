@@ -31,7 +31,7 @@ export function getSearchWorkflowCards(input: {
         text: brain.quantityHint
           ? `Detected ${brain.quantityHint}. Send this to suppliers as an RFQ.`
           : "This material search is ready for supplier quotation.",
-        href: `/rfq/general/new?query=${clean}`,
+        href: `/rfq?query=${clean}`,
         icon: "🏗️",
         tone: "purple",
       });
@@ -67,7 +67,7 @@ export function getSearchWorkflowCards(input: {
       cards.push({
         label: "Quick Hiring Recommended",
         text: "Send your requirement to service providers for faster response.",
-        href: `/rfq/general/new?query=${clean}`,
+        href: `/rfq?query=${clean}`,
         icon: "⚡",
         tone: "amber",
       });

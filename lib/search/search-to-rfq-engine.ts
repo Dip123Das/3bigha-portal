@@ -80,7 +80,7 @@ export function buildSearchToRfqConversion(input: {
     detectedQuantity: brain.quantityHint,
     detectedLocation: brain.locationHint,
     recommendedModule,
-    rfqHref: `/rfq/general/new?query=${clean}${
+    rfqHref: `/rfq?query=${clean}${
       recommendedModule !== "all" ? `&module=${encodeURIComponent(recommendedModule)}` : ""
     }`,
     vendorHref: `/vendor/discovery?q=${clean}${

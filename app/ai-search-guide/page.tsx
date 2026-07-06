@@ -103,7 +103,7 @@ export default function AiSearchGuidePage() {
             ["Materials Marketplace", "/materials"],
             ["Construction Services", "/services"],
             ["Rental Marketplace", "/rentals"],
-            ["Submit RFQ Requirement", "/rfq/general/new"],
+            ["Submit RFQ Requirement", "/rfq"],
             ["Find Vendors", "/vendor/discovery"],
             ["Price Today", "/price-today"],
             ["Cement Price Cooch Behar", "/search/cement-price-cooch-behar"],

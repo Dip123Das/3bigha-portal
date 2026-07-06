@@ -774,7 +774,7 @@ export default function ConstructionCostCalculator({
 
       <div className="mt-6 flex flex-wrap gap-3">
         <Link
-          href={`/rfq/general/new?query=${encodeURIComponent(
+          href={`/rfq?query=${encodeURIComponent(
             `construction project ${totalProjectAreaSqFt} sq ft ${safeBasementCount} basement ${safeAboveGroundFloors} floors`,
           )}`}
           className="rounded-2xl bg-emerald-700 px-5 py-3 text-sm font-black text-white hover:bg-emerald-800"

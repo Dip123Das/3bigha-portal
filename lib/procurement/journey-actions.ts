@@ -48,7 +48,7 @@ export function buildSearchJourneyActions(query: string, module: string): Procur
       id: `rfq:${q}:${module}`,
       label: "Continue RFQ",
       description: "Convert this search into a vendor-ready requirement.",
-      href: `/rfq/general/new?query=${encoded}${mod}`,
+      href: `/rfq?query=${encoded}${mod}`,
       tone: "primary",
       updatedAt: Date.now(),
     },

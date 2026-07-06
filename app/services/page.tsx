@@ -148,7 +148,7 @@ const SERVICE_DISCOVERY = [
 
 const SERVICE_WORKFLOWS = [
   ["Turnkey House Construction", "/services/turnkey"],
-  ["Submit Service Requirement", "/rfq/general/new?module=services"],
+  ["Submit Service Requirement", "/rfq?module=services"],
   ["Compare Service Rates", "/price-today?category=Services"],
   ["Post Your Service", "/services/add"],
 ] as const;

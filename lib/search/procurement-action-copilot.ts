@@ -47,7 +47,7 @@ export function buildProcurementActionCopilot(input: {
       description: brain.quantityHint
         ? `Quantity is detected as ${brain.quantityHint}. Add brand, delivery location and payment terms.`
         : "Add quantity, preferred brand, delivery location and expected timeline before sending RFQ.",
-      href: `/rfq/general/new?query=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`,
+      href: `/rfq?query=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`,
       icon: "⚡",
       priority: "High",
     });
@@ -75,7 +75,7 @@ export function buildProcurementActionCopilot(input: {
     actions.push({
       title: "Mark timeline clearly",
       description: "This looks urgent. Mention delivery or service deadline in the RFQ to get faster replies.",
-      href: `/rfq/general/new?query=${clean}%20urgent`,
+      href: `/rfq?query=${clean}%20urgent`,
       icon: "⏱️",
       priority: "High",
     });
@@ -95,7 +95,7 @@ export function buildProcurementActionCopilot(input: {
     actions.push({
       title: "Add project size",
       description: "Mention square feet, work type and timeline so contractors can quote accurately.",
-      href: `/rfq/general/new?query=${clean}`,
+      href: `/rfq?query=${clean}`,
       icon: "👷",
       priority: "Medium",
     });

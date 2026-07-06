@@ -236,7 +236,7 @@ export function buildUnifiedMarketplaceRecommendations(
       text: brain.quantityHint
         ? `Detected quantity: ${brain.quantityHint}. Send this as a structured requirement to vendors.`
         : "Convert this search into a structured requirement and collect vendor responses.",
-      href: `/rfq/general/new?query=${clean}`,
+      href: `/rfq?query=${clean}`,
       badge: "Procurement workflow",
       icon: "⚡",
       priority: 100,

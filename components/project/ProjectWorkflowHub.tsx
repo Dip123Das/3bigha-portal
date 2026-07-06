@@ -48,11 +48,11 @@ function getNextHref(workflow: ProjectWorkflowData) {
   }
 
   if (workflow.currentStage === "construction-estimation") {
-    return `/materials/rfq/new?${params.toString()}`;
+    return `/materials/rfq?${params.toString()}`;
   }
 
   if (workflow.currentStage === "material-planning") {
-    return `/materials/rfq/new?${params.toString()}`;
+    return `/materials/rfq?${params.toString()}`;
   }
 
   if (workflow.currentStage === "rfq") {

@@ -282,7 +282,7 @@ export default async function VendorDiscoveryPage({
                 </Link>
 
                 <Link
-                  href={`/rfq/general/new?query=${encodeURIComponent(query)}&vendor=${encodeURIComponent(vendor.vendorId)}`}
+                  href={`/rfq?query=${encodeURIComponent(query)}&vendor=${encodeURIComponent(vendor.vendorId)}`}
                   className="rounded-xl border px-4 py-3 text-center text-sm font-black text-slate-900 no-underline"
                 >
                   Start RFQ with this vendor

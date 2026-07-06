@@ -62,7 +62,7 @@ export function buildDiscoverySections(input?: {
       title: "Create RFQ",
       description:
         "Receive supplier quotations with workflow-driven procurement support.",
-      href: "/rfq/general/new",
+      href: "/rfq",
       priority: "high",
     },
   ];

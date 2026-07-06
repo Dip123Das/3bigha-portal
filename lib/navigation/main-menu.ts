@@ -18,7 +18,7 @@ export const MENUS: MenuItem[] = [
         title: "Start Here",
         links: [
           ["Search Marketplace", "/search"],
-          ["Post Requirement", "/rfq/general/new"],
+          ["Post Requirement", "/rfq"],
           ["Continue My Work", "/dashboard"],
         ],
       },
@@ -72,7 +72,7 @@ export const MENUS: MenuItem[] = [
       {
         title: "Work Actions",
         links: [
-          ["Post Requirement / RFQ", "/rfq/general/new"],
+          ["Post Requirement / RFQ", "/rfq"],
           ["My RFQs", "/dashboard/buyer/rfqs"],
           ["Inbox", "/dashboard/inbox-v2"],
           ["Purchase & Procurement", "/dashboard/procurement-os"],

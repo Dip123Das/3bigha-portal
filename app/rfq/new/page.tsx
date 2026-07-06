@@ -1,4 +1,4 @@
-// app/rfq/new/page.tsx
+// app/rfq/page.tsx
 "use client";
 
 import React, { useMemo, useState } from "react";

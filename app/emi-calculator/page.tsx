@@ -966,7 +966,7 @@ const result = useMemo(() => {
     return {
       property: `/property?minBudget=${minBudget}&maxBudget=${maxBudget}`,
       projects: `/property/projects?minBudget=${minBudget}&maxBudget=${maxBudget}`,
-      rfq: `/rfq/general/new?budget=${safeBudget}&source=emi-calculator`,
+      rfq: `/rfq?budget=${safeBudget}&source=emi-calculator`,
     };
   }, [safePropertyBudget.recommendedPropertyBudget]);
 

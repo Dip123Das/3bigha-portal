@@ -61,7 +61,7 @@ export default function ConversationContextBanner() {
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
         <Link
-          href={`/rfq/general/new?query=${encodeURIComponent(context.query)}`}
+          href={`/rfq?query=${encodeURIComponent(context.query)}`}
           className="topBtn"
           style={{ textDecoration: "none", fontSize: 12, padding: "8px 11px" }}
         >

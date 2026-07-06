@@ -262,7 +262,7 @@ function moduleTrustLabel(m: SearchModule) {
 }
 
 function resultActionHref(r: ResultRow, q: string) {
-  if (r.module === "materials") return `/rfq/general/new?query=${encodeURIComponent(q || r.title)}`;
+  if (r.module === "materials") return `/rfq?query=${encodeURIComponent(q || r.title)}`;
   if (r.module === "services") return `/vendor/discovery?q=${encodeURIComponent(q || r.title)}&module=services`;
   if (r.module === "rentals") return `/rentals?search=${encodeURIComponent(q || r.title)}`;
   if (r.module === "property") return `/search?module=property&q=${encodeURIComponent(q || r.title)}`;
@@ -277,7 +277,7 @@ function fallbackRecommendations(q: string, module: ModFilter): AiRecommendation
     {
       title: "Create a smart RFQ",
       text: "Convert this search into a requirement and get vendor responses.",
-      href: `/rfq/general/new?query=${clean}`,
+      href: `/rfq?query=${clean}`,
       badge: "Procurement action",
       icon: "⚡",
     },
@@ -338,7 +338,7 @@ function buildConversationalMarketplaceSuggestions(input: {
       },
       {
         label: "Create bulk RFQ",
-        href: `/rfq/general/new?query=${encoded}`,
+        href: `/rfq?query=${encoded}`,
         tone: "amber",
       }
     );
@@ -368,7 +368,7 @@ function buildConversationalMarketplaceSuggestions(input: {
     suggestions.push(
       {
         label: "Create hiring RFQ",
-        href: `/rfq/general/new?query=${encoded}`,
+        href: `/rfq?query=${encoded}`,
         tone: "amber",
       },
       {
@@ -403,7 +403,7 @@ function buildConversationalMarketplaceSuggestions(input: {
     suggestions.push(
       {
         label: "Create smart RFQ",
-        href: `/rfq/general/new?query=${encoded}`,
+        href: `/rfq?query=${encoded}`,
         tone: "blue",
       },
       {
@@ -854,7 +854,7 @@ function SearchPageInner() {
         href: `/search?q=${encodeURIComponent(qFromUrl)}${
           modFromUrl !== "all" ? `&module=${encodeURIComponent(modFromUrl)}` : ""
         }`,
-        rfqHref: `/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`,
+        rfqHref: `/rfq?query=${encodeURIComponent(qFromUrl)}`,
         vendorHref: `/vendor/discovery?q=${encodeURIComponent(qFromUrl)}${
           modFromUrl !== "all" ? `&module=${encodeURIComponent(modFromUrl)}` : ""
         }`,
@@ -1523,7 +1523,7 @@ if (want.includes("rentals")) {
           {
             title: "Turn search into RFQ",
             text: "If this is a buying or service requirement, send it to vendors as an RFQ.",
-            href: `/rfq/general/new?query=${encodeURIComponent(q)}`,
+            href: `/rfq?query=${encodeURIComponent(q)}`,
             badge: "Next best action",
             icon: "⚡",
           },
@@ -1737,7 +1737,7 @@ if (want.includes("rentals")) {
   const executionRailActions = [
     {
       label: "Create RFQ",
-      href: `/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`,
+      href: `/rfq?query=${encodeURIComponent(qFromUrl)}`,
       icon: "⚡",
       primary: true,
     },
@@ -2152,7 +2152,7 @@ if (want.includes("rentals")) {
 
             <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
               <CompactSearchPanel title="⚡ RFQ" subtitle="Create requirement from this search">
-                <Link href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`} className="topBtn" style={{ textDecoration: "none" }}>
+                <Link href={`/rfq?query=${encodeURIComponent(qFromUrl)}`} className="topBtn" style={{ textDecoration: "none" }}>
                   Create RFQ
                 </Link>
               </CompactSearchPanel>
@@ -2459,7 +2459,7 @@ if (want.includes("rentals")) {
                   }}
                 >
                   <Link
-                    href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`}
+                    href={`/rfq?query=${encodeURIComponent(qFromUrl)}`}
                     style={{
                       textDecoration: "none",
                       borderRadius: 12,
@@ -2770,7 +2770,7 @@ if (want.includes("rentals")) {
                 </div>
 
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                  <Link href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`} className="topBtn" style={{ textDecoration: "none" }}>
+                  <Link href={`/rfq?query=${encodeURIComponent(qFromUrl)}`} className="topBtn" style={{ textDecoration: "none" }}>
                     ⚡ Create RFQ
                   </Link>
                   <Link href={`/price-today?q=${encodeURIComponent(qFromUrl)}`} className="topBtn topBtnGhost" style={{ textDecoration: "none", background: "rgba(255,255,255,0.12)", color: "#ffffff" }}>
@@ -2809,7 +2809,7 @@ if (want.includes("rentals")) {
                   </div>
 
                   <Link
-                    href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`}
+                    href={`/rfq?query=${encodeURIComponent(qFromUrl)}`}
                     className="topBtn"
                     style={{ textDecoration: "none", alignSelf: "flex-start" }}
                   >
@@ -2963,7 +2963,7 @@ if (want.includes("rentals")) {
                 {searchKeywordClusters.rfq.slice(0, 3).map((item) => (
                   <Link
                     key={item}
-                    href={`/rfq/general/new?q=${encodeURIComponent(item)}${
+                    href={`/rfq?q=${encodeURIComponent(item)}${
                       localSearchIntent.module ? `&module=${localSearchIntent.module}` : ""
                     }`}
                     style={{
@@ -3018,7 +3018,7 @@ if (want.includes("rentals")) {
                     ["👷 Need rajmistri", "/search?q=rajmistri for house&module=services"],
                     ["🚜 JCB rental", "/search?q=jcb rental&module=rentals"],
                     ["📊 Cement price", "/price-today?q=cement"],
-                    ["⚡ Create RFQ", "/rfq/general/new"],
+                    ["⚡ Create RFQ", "/rfq"],
                   ].map(([label, href]) => (
                     <Link
                       key={label}
@@ -3162,7 +3162,7 @@ if (want.includes("rentals")) {
               </div>
 
               <Link
-                href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`}
+                href={`/rfq?query=${encodeURIComponent(qFromUrl)}`}
                 style={{
                   textDecoration: "none",
                   border: "1px solid #bfdbfe",
@@ -3200,7 +3200,7 @@ if (want.includes("rentals")) {
           }}
         >
           <Link
-            href={`/rfq/general/new?query=${encodeURIComponent(qFromUrl)}`}
+            href={`/rfq?query=${encodeURIComponent(qFromUrl)}`}
             style={{
               textDecoration: "none",
               borderRadius: 12,

@@ -40,7 +40,7 @@ export function getSearchInternalGraph({
     },
     {
       label: `Post requirement for ${query}`,
-      href: `/rfq/general/new?q=${encodeURIComponent(query)}${
+      href: `/rfq?q=${encodeURIComponent(query)}${
         module ? `&module=${module}` : ""
       }`,
       intent: "rfq",

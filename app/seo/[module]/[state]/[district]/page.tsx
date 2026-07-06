@@ -178,7 +178,7 @@ const internalLinks = buildInternalLinks({ state: params.state, district: params
 
   const districtIntentLinks = [
     { label: `Search ${title} in ${district}`, href: `/search?module=${module}&q=${encodeURIComponent(district)}` },
-    { label: `Post ${title} Requirement`, href: `/rfq/general/new?module=${module}&q=${encodeURIComponent(district)}` },
+    { label: `Post ${title} Requirement`, href: `/rfq?module=${module}&q=${encodeURIComponent(district)}` },
     { label: `Browse Vendors in ${district}`, href: `/vendor/discovery?q=${encodeURIComponent(title)}&district=${encodeURIComponent(district)}` },
     { label: `Local Market Demand in ${district}`, href: `/need` },
   ];
@@ -375,7 +375,7 @@ return (
             </Link>
 
             <Link
-              href="/rfq/general/new"
+              href="/rfq"
               style={{
                 background: "#ffffff",
                 border: "1px solid #cbd5e1",

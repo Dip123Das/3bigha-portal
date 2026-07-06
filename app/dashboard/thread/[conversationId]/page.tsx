@@ -750,7 +750,7 @@ export default async function UniversalThreadPage({
                 href: `/dashboard/buyer/quote-compare/${encodeURIComponent(rfqId)}`,
                 tone: "warning",
               }
-            : { label: "New RFQ", href: "/rfq/general/new", tone: "success" },
+            : { label: "New RFQ", href: "/rfq", tone: "success" },
         ]}
       />
 
@@ -954,7 +954,7 @@ export default async function UniversalThreadPage({
           </Link>
 
           <Link
-            href="/rfq/general/new"
+            href="/rfq"
             className="inline-flex rounded-full border border-slate-900 bg-slate-900 px-3 py-1.5 text-xs font-black text-white transition hover:opacity-90"
           >
             + New Requirement

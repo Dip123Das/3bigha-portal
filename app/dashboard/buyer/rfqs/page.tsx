@@ -273,7 +273,7 @@ function getAiRfqCommandInsight(args: {
   const nextActionHref =
     stage === "Closed" || vendorCount > 0
       ? `/dashboard/buyer/quote-compare/${encodeURIComponent(rfq.id)}`
-      : "/rfq/general/new";
+      : "/rfq";
 
   const alertText =
     dueDays != null && dueDays <= 0
@@ -1195,7 +1195,7 @@ export default function BuyerRfqsPage() {
               </button>
             ))}
 
-            <ActionButton href="/rfq/general/new" variant="primary">
+            <ActionButton href="/rfq" variant="primary">
               + New AI RFQ
             </ActionButton>
           </div>

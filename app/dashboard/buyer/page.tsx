@@ -383,7 +383,7 @@ const closedDeals =
           ? "You have no RFQs yet. Start with the AI Procurement Copilot to get matched vendors faster."
           : "Use the RFQ workspace for structured procurement, vendor discovery and readiness checking.",
       tone: procurementStats.totalRfqs === 0 ? "warn" : "ok",
-      href: "/rfq/general/new",
+      href: "/rfq",
       cta: "Open RFQ Workspace",
     },
     {
@@ -411,7 +411,7 @@ const closedDeals =
           ? `${procurementStats.memoryCount} procurement memory item(s) found from previous RFQ drafting.`
           : "Procurement memory will grow as you save RFQ drafts and repeat requirements.",
       tone: procurementStats.memoryCount > 0 ? "ok" : "neutral",
-      href: "/rfq/general/new",
+      href: "/rfq",
       cta: "Reuse Memory",
     },
   ];
@@ -683,7 +683,7 @@ const closedDeals =
                 title="No RFQ created yet"
                 message="Start with one simple requirement. Vendors can respond after your RFQ is posted."
                 actionLabel="Submit First Requirement"
-                actionHref="/rfq/general/new"
+                actionHref="/rfq"
                 secondaryLabel="Search Marketplace"
                 secondaryHref="/search"
               />
@@ -698,7 +698,7 @@ const closedDeals =
               flexWrap: "wrap",
             }}
           >
-            <ActionButton href="/rfq/general/new" variant="primary">
+            <ActionButton href="/rfq" variant="primary">
               Submit Requirement →
             </ActionButton>
 

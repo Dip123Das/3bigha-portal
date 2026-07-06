@@ -91,7 +91,7 @@ export default function ConstructionAutoRfqPanel({
               </div>
 
               <Link
-                href={`/rfq/general/new?module=${encodeURIComponent(
+                href={`/rfq?module=${encodeURIComponent(
                   draft.module,
                 )}&query=${encodeURIComponent(draft.title)}`}
                 className="rounded-2xl bg-emerald-700 px-4 py-3 text-center text-sm font-black text-white hover:bg-emerald-800"

@@ -1,4 +1,4 @@
-// app/materials/rfq/new/page.tsx
+// app/materials/rfq/page.tsx
 "use client";
 
 import ProjectWorkflowHub from "@/components/project/ProjectWorkflowHub";

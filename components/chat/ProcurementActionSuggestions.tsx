@@ -39,7 +39,7 @@ function buildSuggestions(query: string, module: string) {
     suggestions.push({
       label: "Create procurement RFQ",
       description: "Convert this discussion into structured vendor comparison.",
-      href: `/rfq/general/new?query=${encodeURIComponent(query)}`,
+      href: `/rfq?query=${encodeURIComponent(query)}`,
     });
   }
 

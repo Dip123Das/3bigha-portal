@@ -48,7 +48,7 @@ export function buildUnifiedSearchAutocomplete(input: {
       {
         label: "Post material requirement",
         query: "need cement and TMT for house construction",
-        href: "/rfq/general/new?query=need%20cement%20and%20TMT%20for%20house%20construction",
+        href: "/rfq?query=need%20cement%20and%20TMT%20for%20house%20construction",
         icon: "⚡",
         badge: "RFQ",
         module: "materials",
@@ -99,7 +99,7 @@ export function buildUnifiedSearchAutocomplete(input: {
       {
         label: brain.quantityHint ? `Create RFQ for ${brain.quantityHint}` : `Create RFQ for ${query}`,
         query,
-        href: `/rfq/general/new?query=${clean}`,
+        href: `/rfq?query=${clean}`,
         icon: "⚡",
         badge: "RFQ",
         module: brain.primaryModule,

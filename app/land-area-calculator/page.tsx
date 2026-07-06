@@ -554,7 +554,7 @@ export default function LandAreaCalculatorPage() {
   });
 
   const constructionEstimateHref = `/construction-cost?${areaWorkflowParams.toString()}`;
-  const materialRfqHref = `/materials/rfq/new?${areaWorkflowParams.toString()}`;
+  const materialRfqHref = `/materials/rfq?${areaWorkflowParams.toString()}`;
   const propertyAddHref = `/property/add?${areaWorkflowParams.toString()}`;
 
   return (
@@ -1363,7 +1363,7 @@ export default function LandAreaCalculatorPage() {
             </a>
 
             <a
-              href="/rfq/general/new"
+              href="/rfq"
               className="rounded-2xl border bg-slate-50 p-4 hover:border-emerald-300"
             >
               <div className="text-sm font-black text-slate-950">

@@ -2129,7 +2129,7 @@ if (userData.user) {
 
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
-              href={`/rfq/general/new?module=${encodeURIComponent(category.toLowerCase())}&q=${encodeURIComponent(searchText)}`}
+              href={`/rfq?module=${encodeURIComponent(category.toLowerCase())}&q=${encodeURIComponent(searchText)}`}
               className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-slate-900"
             >
               Create AI Procurement RFQ →

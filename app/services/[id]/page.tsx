@@ -275,7 +275,7 @@ export default async function ServiceDetailsPage({ params }: PageProps) {
     },
     {
       label: `Submit service requirement${location ? ` in ${location}` : ""}`,
-      href: `/rfq/general/new?module=services&q=${encodeURIComponent(name)}`,
+      href: `/rfq?module=services&q=${encodeURIComponent(name)}`,
     },
     {
       label: `Find vendors${location ? ` near ${location}` : ""}`,
@@ -416,7 +416,7 @@ export default async function ServiceDetailsPage({ params }: PageProps) {
 
           <div style={{ marginTop: 22, display: "flex", gap: 12, flexWrap: "wrap" }}>
             <Link
-              href={`/rfq/general/new?module=services&q=${encodeURIComponent(name)}`}
+              href={`/rfq?module=services&q=${encodeURIComponent(name)}`}
               style={{
                 background: "#0f172a",
                 color: "#ffffff",

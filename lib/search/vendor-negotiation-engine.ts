@@ -147,7 +147,7 @@ export function buildVendorNegotiationInsight(input: {
     recommendedVendorType,
     priceStrategy,
     chips: chips.length ? chips.slice(0, 6) : ["Vendor negotiation", "RFQ acceptance", "Procurement confidence"],
-    rfqHref: `/rfq/general/new?query=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`,
+    rfqHref: `/rfq?query=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`,
     vendorHref: `/vendor/discovery?q=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`,
   };
 }

@@ -169,7 +169,7 @@ export default function ConstructionIntelligencePanel({
         </Link>
 
         <Link
-          href={`/materials/rfq/new?${params.toString()}`}
+          href={`/materials/rfq?${params.toString()}`}
           className="rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-center text-sm font-bold text-emerald-800 hover:bg-emerald-50"
         >
           Create Material RFQ

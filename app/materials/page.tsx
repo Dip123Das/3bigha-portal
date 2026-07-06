@@ -107,7 +107,7 @@ const MATERIAL_DISCOVERY: MaterialDiscoveryItem[] = [
 
 const MATERIAL_WORKFLOWS = [
   ["Check today’s rate", "/price-today"],
-  ["Send bulk requirement", "/materials/rfq/new"],
+  ["Send bulk requirement", "/materials/rfq"],
   ["Find nearby vendors", "/vendor/discovery"],
   ["Add your material", "/materials/add"],
 ] as const;

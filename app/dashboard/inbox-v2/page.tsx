@@ -2082,7 +2082,7 @@ export default async function DashboardInboxV2Page({
       : {
           title: "Create new RFQ",
           detail: "Start a fresh procurement workflow from the inbox workflow.",
-          href: "/rfq/general/new",
+          href: "/rfq",
           badge: "New",
           tone: "blue",
         },
@@ -2268,7 +2268,7 @@ export default async function DashboardInboxV2Page({
           },
           {
             label: "Create RFQ",
-            href: "/rfq/general/new",
+            href: "/rfq",
           },
         ]}
       />
@@ -2390,7 +2390,7 @@ export default async function DashboardInboxV2Page({
             ? { label: "Open Latest", href: latestUnreadItem.href, primary: true }
             : { label: "View All Threads", href: "/dashboard/inbox-v2", primary: true },
           { label: "Priority Deals", href: buildInboxHref(params, { sort: "unread" }) },
-          { label: "New RFQ", href: "/rfq/general/new" },
+          { label: "New RFQ", href: "/rfq" },
           { label: "Procurement Live", href: "/dashboard/procurement-live" },
         ]}
       />
@@ -2404,7 +2404,7 @@ export default async function DashboardInboxV2Page({
             ? { label: "Open Latest", href: latestUnreadItem.href, tone: "primary" }
             : { label: "View All Threads", href: "/dashboard/inbox-v2", tone: "primary" },
           { label: "Priority Deals", href: buildInboxHref(params, { sort: "unread" }), tone: "warning" },
-          { label: "New RFQ", href: "/rfq/general/new", tone: "success" },
+          { label: "New RFQ", href: "/rfq", tone: "success" },
           { label: "Procurement Live", href: "/dashboard/procurement-live", tone: "neutral" },
         ]}
       />
@@ -2479,7 +2479,7 @@ export default async function DashboardInboxV2Page({
             </Link>
 
             <Link
-              href="/rfq/general/new"
+              href="/rfq"
               className="inline-flex rounded-full border border-slate-900 bg-slate-900 px-3 py-1.5 text-xs font-bold text-white transition hover:opacity-90"
             >
               + New Requirement

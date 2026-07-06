@@ -56,7 +56,7 @@ export function getIntentSeoLinks({
     },
     {
       label: `Post requirement in ${areaLabel}`,
-      href: `/rfq/general/new?module=${module}&q=${encodeURIComponent(areaLabel)}`,
+      href: `/rfq?module=${module}&q=${encodeURIComponent(areaLabel)}`,
       intent: "rfq",
     },
   ];

@@ -118,7 +118,7 @@ export function buildAiExecutionPlan(input: AiExecutionInput): AiExecutionPlan {
         description: intent.bulk
           ? "Convert this bulk material requirement into vendor quotations."
           : "Convert this material search into a structured RFQ.",
-        href: `/rfq/general/new?query=${encoded}&module=materials`,
+        href: `/rfq?query=${encoded}&module=materials`,
         icon: "⚡",
         type: "rfq",
         priority: "high",
@@ -204,7 +204,7 @@ export function buildAiExecutionPlan(input: AiExecutionInput): AiExecutionPlan {
         id: "hire-rfq",
         title: "Create hiring RFQ",
         description: "Send work scope to local service providers.",
-        href: `/rfq/general/new?query=${encoded}&module=services`,
+        href: `/rfq?query=${encoded}&module=services`,
         icon: "📝",
         type: "rfq",
         priority: "high",

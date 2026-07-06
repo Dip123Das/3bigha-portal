@@ -53,5 +53,5 @@ export function getRegionalSearchUrl(query: string, module: SeoModule) {
 }
 
 export function getRegionalRfqUrl(query: string, module: SeoModule) {
-  return `/rfq/general/new?module=${module}&q=${encodeURIComponent(query)}`;
+  return `/rfq?module=${module}&q=${encodeURIComponent(query)}`;
 }

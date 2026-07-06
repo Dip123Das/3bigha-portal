@@ -37,7 +37,7 @@ const quickActions = [
   {
     title: "Post Requirement",
     icon: "⚡",
-    href: "/rfq/general/new",
+    href: "/rfq",
     preview: "Tell vendors what you need and get responses.",
   },
   {

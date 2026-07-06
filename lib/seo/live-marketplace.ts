@@ -60,7 +60,7 @@ function fallbackData(
       {
         title: `Post requirement in ${area}`,
         subtitle: "Submit your need and connect with relevant local vendors.",
-        href: `/rfq/general/new?module=${module}&q=${encodeURIComponent(area)}`,
+        href: `/rfq?module=${module}&q=${encodeURIComponent(area)}`,
       },
       {
         title: `Search local ${module}`,

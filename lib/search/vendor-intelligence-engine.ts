@@ -143,6 +143,6 @@ export function buildVendorIntelligenceInsight(input: {
     localityStrength,
     badges: badges.length ? badges.slice(0, 6) : ["Vendor discovery", "RFQ routing", "Marketplace intelligence"],
     vendorHref: `/vendor/discovery?q=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`,
-    rfqHref: `/rfq/general/new?query=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`,
+    rfqHref: `/rfq?query=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`,
   };
 }

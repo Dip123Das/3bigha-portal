@@ -124,6 +124,6 @@ export function buildVendorLiquidityInsight(input: {
     module,
     chips: chips.slice(0, 5),
     vendorHref: `/vendor/discovery?q=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`,
-    rfqHref: `/rfq/general/new?query=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`,
+    rfqHref: `/rfq?query=${clean}${module !== "all" ? `&module=${encodeURIComponent(module)}` : ""}`,
   };
 }

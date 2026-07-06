@@ -31,14 +31,14 @@ const tools: AiTool[] = [
     icon: "📝",
     title: "Draft RFQ",
     detail: "Create a requirement and collect vendor quotes.",
-    href: "/rfq/general/new",
+    href: "/rfq",
     group: "RFQ & Procurement",
   },
   {
     icon: "🧱",
     title: "Material RFQ",
     detail: "Request cement, steel, bricks and other materials.",
-    href: "/materials/rfq/new",
+    href: "/materials/rfq",
     group: "RFQ & Procurement",
   },
   {
