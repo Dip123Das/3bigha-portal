@@ -33,11 +33,21 @@ export default function SahajRfqClient() {
   }
 
   function useCurrentLocation() {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition((pos) => {
-      update("lat", String(pos.coords.latitude));
-      update("lng", String(pos.coords.longitude));
-    });
+    if (!navigator.geolocation) {
+      alert("Location is not supported on this device. Please enter latitude and longitude manually.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        update("lat", String(pos.coords.latitude));
+        update("lng", String(pos.coords.longitude));
+      },
+      () => {
+        alert("Could not get your location. Please allow location access or enter latitude and longitude manually.");
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
   }
 
   const canStep1 = form.need.trim() && form.quantity.trim() && form.unit.trim();
@@ -95,6 +105,14 @@ export default function SahajRfqClient() {
           <div className="grid gap-4">
             <h2 className="text-2xl font-black">Exact delivery point</h2>
             <button onClick={useCurrentLocation} className="rounded-2xl bg-slate-950 px-5 py-4 font-black text-white">Use my current location</button>
+            <a
+              href="https://www.google.com/maps"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-2xl border px-5 py-4 text-center font-black"
+            >
+              Open Google Maps and copy location
+            </a>
             <div className="grid gap-4 md:grid-cols-2">
               <input className="rounded-2xl border p-4 font-bold" placeholder="Latitude" value={form.lat} onChange={(e) => update("lat", e.target.value)} />
               <input className="rounded-2xl border p-4 font-bold" placeholder="Longitude" value={form.lng} onChange={(e) => update("lng", e.target.value)} />
