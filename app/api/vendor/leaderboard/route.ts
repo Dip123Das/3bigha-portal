@@ -44,11 +44,7 @@ export async function GET() {
         const ranking = computeMarketplaceRanking({
           boostScore: Number(vendor.boost_priority || 0) * 100,
           verificationScore:
-            clean(vendor.approval_status).toLowerCase() === "approved"
-              ? 20
-              : clean(vendor.subscription_status).toLowerCase() === "active"
-                ? 10
-                : 0,
+            clean(vendor.subscription_status).toLowerCase() === "active" ? 10 : 0,
           reputationScore: vendor.reputation_score,
           authorityScore: vendor.authority_score,
           conversionRate: vendor.conversion_rate,
