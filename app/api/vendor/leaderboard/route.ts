@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { computeMarketplaceRanking } from "@/lib/marketplace/marketplace-ranking";
 
 export const runtime = "nodejs";
 export const revalidate = 60;
@@ -13,97 +14,74 @@ function clean(v: unknown) {
   return String(v ?? "").trim();
 }
 
+function scoreBadge(score: number) {
+  if (score >= 85) return "🏆 Marketplace Leader";
+  if (score >= 70) return "🔥 High Visibility Vendor";
+  if (score >= 55) return "⚡ Rising Vendor";
+  return "Active Vendor";
+}
+
 export async function GET() {
   try {
-    const { data: vendors, error: vendorError } = await supabase
+    const { data: vendors, error } = await supabase
       .from("business_profiles")
       .select(
-        "user_id,business_name,company_name,owner_name,city,locality,subscription_plan,boost_priority,approval_status",
+        "user_id,business_name,city,locality,subscription_plan,subscription_status,approval_status,boost_priority,reputation_score,authority_score,conversion_rate,response_rate,activity_score,demand_score,liquidity_score,marketplace_intelligence_updated_at",
       )
+      .not("user_id", "is", null)
       .limit(100);
 
-    if (vendorError) {
+    if (error) {
       return NextResponse.json(
-        { ok: false, error: vendorError.message },
+        { ok: false, error: error.message },
         { status: 500 },
       );
     }
-
-    const vendorIds = (vendors || [])
-      .map((v: any) => clean(v.user_id))
-      .filter(Boolean);
-
-    const { data: dealEvents, error: dealError } =
-      vendorIds.length > 0
-        ? await supabase
-            .from("ai_deal_events")
-            .select("vendor_user_id,ready")
-            .in("vendor_user_id", vendorIds)
-        : { data: [], error: null };
-
-    if (dealError) {
-      return NextResponse.json(
-        { ok: false, error: dealError.message },
-        { status: 500 },
-      );
-    }
-
-    const statsByVendor = new Map<string, { total: number; ready: number }>();
-
-    (dealEvents || []).forEach((event: any) => {
-      const vendorId = clean(event.vendor_user_id);
-      if (!vendorId) return;
-
-      const current = statsByVendor.get(vendorId) || { total: 0, ready: 0 };
-      statsByVendor.set(vendorId, {
-        total: current.total + 1,
-        ready: current.ready + (event.ready === true ? 1 : 0),
-      });
-    });
 
     const rows = (vendors || [])
       .map((vendor: any) => {
         const vendorId = clean(vendor.user_id);
-        const stats = statsByVendor.get(vendorId) || { total: 0, ready: 0 };
-
-        const boost = Math.max(0, Number(vendor.boost_priority || 0));
-        const verified =
-          clean(vendor.approval_status).toLowerCase() === "approved";
-
-        const score = Math.min(
-          100,
-          stats.ready * 12 +
-            stats.total * 3 +
-            Math.min(boost, 20) +
-            (verified ? 10 : 0),
-        );
+        const ranking = computeMarketplaceRanking({
+          boostScore: Number(vendor.boost_priority || 0) * 100,
+          verificationScore:
+            clean(vendor.approval_status).toLowerCase() === "approved"
+              ? 20
+              : clean(vendor.subscription_status).toLowerCase() === "active"
+                ? 10
+                : 0,
+          reputationScore: vendor.reputation_score,
+          authorityScore: vendor.authority_score,
+          conversionRate: vendor.conversion_rate,
+          responseRate: vendor.response_rate,
+          activityScore: vendor.activity_score,
+          demandScore: vendor.demand_score,
+          liquidityScore: vendor.liquidity_score,
+        });
 
         return {
           vendorUserId: vendorId,
-          name:
-            clean(vendor.business_name) ||
-            clean(vendor.company_name) ||
-            clean(vendor.owner_name) ||
-            "Local Vendor",
+          name: clean(vendor.business_name) || "Local Vendor",
           city: clean(vendor.city),
           locality: clean(vendor.locality),
           plan: clean(vendor.subscription_plan) || "free",
-          totalSignals: stats.total,
-          readySignals: stats.ready,
-          score,
-          badge:
-            stats.ready >= 5
-              ? "🔥 Top Closer"
-              : stats.ready >= 2
-                ? "⚡ Rising Closer"
-                : boost > 0
-                  ? "⭐ Boosted Vendor"
-                  : "Active Vendor",
+          score: Math.round(ranking.score),
+          badge: scoreBadge(ranking.score),
+          reasons: ranking.reasons || [],
+          intelligence: {
+            reputationScore: Number(vendor.reputation_score || 0),
+            authorityScore: Number(vendor.authority_score || 0),
+            conversionRate: Number(vendor.conversion_rate || 0),
+            responseRate: Number(vendor.response_rate || 0),
+            activityScore: Number(vendor.activity_score || 0),
+            demandScore: Number(vendor.demand_score || 0),
+            liquidityScore: Number(vendor.liquidity_score || 0),
+            updatedAt: vendor.marketplace_intelligence_updated_at,
+          },
         };
       })
-      .filter((row: any) => row.score > 0)
+      .filter((row: any) => row.vendorUserId)
       .sort((a: any, b: any) => b.score - a.score)
-      .slice(0, 5)
+      .slice(0, 25)
       .map((row: any, index: number) => ({
         ...row,
         rank: index + 1,
@@ -111,6 +89,7 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
+      source: "unified_marketplace_ranking",
       rows,
     });
   } catch (err: any) {
