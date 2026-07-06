@@ -381,7 +381,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     label="Notifications"
                   />
 
-                  <ActiveLink className="topMobileLink" href="/rfq/general/new">
+                  <ActiveLink className="topMobileLink" href="/rfq">
                     Submit Requirement
                   </ActiveLink>
 
@@ -434,7 +434,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     </div>
 
                     <div className="rfqToggleActions" style={{ display: "grid", gap: 8 }}>
-                      <Link className="rfqTogglePrimary" href="/rfq/general/new">
+                      <Link className="rfqTogglePrimary" href="/rfq">
                         ✍️ Submit Requirement →
                       </Link>
 
@@ -526,7 +526,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     </div>
 
                     <div className="rfqToggleActions" style={{ display: "grid", gap: 8 }}>
-                      <Link className="rfqTogglePrimary" href="/rfq/general/new">
+                      <Link className="rfqTogglePrimary" href="/rfq">
                         Start RFQ (Property / Materials / Services / Rentals) →
                       </Link>
                     </div>
@@ -590,7 +590,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <Link href="/services">Construction Services</Link>
               <Link href="/rentals">Rental Marketplace</Link>
               <Link href="/vendor-opportunities">🚀 Vendor Opportunities</Link>
-              <Link href="/rfq/general/new">Submit RFQ</Link>
+              <Link href="/rfq">Submit RFQ</Link>
               <Link href="/ai-search-guide">Search Guide</Link>
               <Link href="/about">About Us</Link>
               <Link href="/contact">Contact Us</Link>

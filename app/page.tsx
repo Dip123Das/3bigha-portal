@@ -79,7 +79,7 @@ const categoryCards = [
   { title: "Services", icon: "🛠️", text: "Contractors, labour, plumbing, electrical and legal support", count: "Hire • Compare • Execute", href: "/services" },
   { title: "Rentals", icon: "🚜", text: "JCB, machinery, scaffolding and construction rentals", count: "Rent • Operate • Deliver", href: "/rentals" },
   { title: "Vendor Opportunities", icon: "🚀", text: "Discover where buyers need suppliers, contractors and equipment owners", count: "Join • Grow • Expand", href: "/vendor-opportunities" },
-  { title: "Submit Requirement", icon: "⚡", text: "Post material, service, rental or project requirements", count: "Post • Compare • Select", href: "/rfq/general/new" },
+  { title: "Submit Requirement", icon: "⚡", text: "Post material, service, rental or project requirements", count: "Post • Compare • Select", href: "/rfq" },
 ];
 const tools = [
   { title: "Construction Cost", text: "Estimate house construction cost and materials", href: "/construction-cost", action: "Open" },
@@ -352,7 +352,7 @@ export default function HomePage() {
 
   function submitRequirement() {
     const clean = query.trim();
-    router.push(clean ? `/rfq/general/new?query=${encodeURIComponent(clean)}` : "/rfq/general/new");
+    router.push(clean ? `/rfq?query=${encodeURIComponent(clean)}` : "/rfq");
   }
 
   return (
@@ -645,7 +645,7 @@ export default function HomePage() {
             <h2>Marketplace Utility Engine</h2>
             <p>Tools, RFQ and pricing actions in one compact workspace</p>
           </div>
-          <a href="/rfq/general/new">Post RFQ →</a>
+          <a href="/rfq">Post RFQ →</a>
         </div>
 
         <div className="utilityLayout">
@@ -758,7 +758,7 @@ export default function HomePage() {
         </div>
         <div>
           <a href="/login?next=/auth/register-role">Create Account</a>
-          <a href="/rfq/general/new">Post Requirement</a>
+          <a href="/rfq">Post Requirement</a>
         </div>
       </section>
       <footer className="cleanHomeFooter">

@@ -316,7 +316,7 @@ export default function GlobalHeaderClient() {
             Support
           </Link>
 
-          <Link className="btnPrimary" href="/rfq/general/new">
+          <Link className="btnPrimary" href="/rfq">
             Post Requirement
           </Link>
 
