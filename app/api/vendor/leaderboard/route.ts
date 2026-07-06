@@ -26,7 +26,7 @@ export async function GET() {
     const { data: vendors, error } = await supabase
       .from("business_profiles")
       .select(
-        "user_id,business_name,city,locality,subscription_plan,subscription_status,approval_status,boost_priority,reputation_score,authority_score,conversion_rate,response_rate,activity_score,demand_score,liquidity_score,marketplace_intelligence_updated_at",
+        "user_id,business_name,city,locality,subscription_plan,subscription_status,boost_priority,reputation_score,authority_score,conversion_rate,response_rate,activity_score,demand_score,liquidity_score,marketplace_intelligence_updated_at",
       )
       .not("user_id", "is", null)
       .limit(100);
