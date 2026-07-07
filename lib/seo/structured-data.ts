@@ -123,12 +123,18 @@ export function buildModuleSchema({
   if (module === "materials") {
     return {
       "@context": "https://schema.org",
-      "@type": "Product",
+      "@type": "CollectionPage",
       name: `Building Materials in ${area}`,
       url,
       description: `Find cement, steel, sand, stone chips, bricks, doors, windows, plumbing, electrical and construction materials in ${area}.`,
-      category: "Building Materials",
-      areaServed: area,
+      about: {
+        "@type": "Thing",
+        name: "Building Materials",
+      },
+      areaServed: {
+        "@type": "Place",
+        name: area,
+      },
     };
   }
 
