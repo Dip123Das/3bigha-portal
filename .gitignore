@@ -63,3 +63,6 @@ data/postal/
 data/geography/coordinates/raw/geo-place-coordinate-candidates.json
 data/geography/coordinates/import/geo-place-coordinate-import.json
 data/geography/coordinates/raw/*.tmp
+
+# Local audit outputs
+audits/
