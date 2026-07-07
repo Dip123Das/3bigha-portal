@@ -1,0 +1,20 @@
+[
+  {
+    "entity_type": "state",
+    "entity_id": "6611fcaf-2d94-49c8-b729-67ccb93e85f5",
+    "latitude": 22.9868,
+    "longitude": 87.855,
+    "match_method": "slug",
+    "source_name": "West Bengal",
+    "source_code": null
+  },
+  {
+    "entity_type": "district",
+    "entity_id": "f1030b6b-2734-4be9-b449-ad97826f93b0",
+    "latitude": 26.3452,
+    "longitude": 89.4482,
+    "match_method": "slug",
+    "source_name": "Cooch Behar",
+    "source_code": null
+  }
+]

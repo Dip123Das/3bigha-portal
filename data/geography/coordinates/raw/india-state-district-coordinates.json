@@ -1,0 +1,14 @@
+[
+  {
+    "entity_type": "state",
+    "name": "West Bengal",
+    "latitude": 22.9868,
+    "longitude": 87.855
+  },
+  {
+    "entity_type": "district",
+    "name": "Cooch Behar",
+    "latitude": 26.3452,
+    "longitude": 89.4482
+  }
+]

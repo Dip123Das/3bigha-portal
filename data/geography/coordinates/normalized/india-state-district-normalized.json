@@ -1,0 +1,28 @@
+[
+  {
+    "source_entity_type": "state",
+    "source_code": null,
+    "source_name": "West Bengal",
+    "latitude": 22.9868,
+    "longitude": 87.855,
+    "raw": {
+      "entity_type": "state",
+      "name": "West Bengal",
+      "latitude": 22.9868,
+      "longitude": 87.855
+    }
+  },
+  {
+    "source_entity_type": "district",
+    "source_code": null,
+    "source_name": "Cooch Behar",
+    "latitude": 26.3452,
+    "longitude": 89.4482,
+    "raw": {
+      "entity_type": "district",
+      "name": "Cooch Behar",
+      "latitude": 26.3452,
+      "longitude": 89.4482
+    }
+  }
+]

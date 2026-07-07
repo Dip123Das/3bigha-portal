@@ -56,3 +56,10 @@ android/app/google-services.json
 
 # ATLAS cleanup temporary folders
 .tmp-pre-h2-untracked/
+
+# ATLAS national data lake - keep large raw datasets outside Git
+data/lgd/
+data/postal/
+data/geography/coordinates/raw/geo-place-coordinate-candidates.json
+data/geography/coordinates/import/geo-place-coordinate-import.json
+data/geography/coordinates/raw/*.tmp
