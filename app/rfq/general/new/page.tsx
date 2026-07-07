@@ -2592,7 +2592,7 @@ return;
                       color: "#0f172a",
                     }}
                   >
-                    📈 Requirement Progress Tracker
+                    📈 Review progress after input
                   </div>
 
                   <div
@@ -2996,7 +2996,7 @@ return;
 
       <details style={{ marginBottom: 18 }}>
         <summary style={{ cursor: "pointer", fontWeight: 900, color: "#7c3aed", fontSize: 18 }}>
-          🤖 AI Procurement Copilot
+          Optional AI help
         </summary>
 
         <div style={{ marginTop: 12 }}>
@@ -3035,7 +3035,7 @@ return;
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
             <div>
               <div style={{ fontSize: 18, fontWeight: 800, color: "#166534" }}>
-                🏗 Budget Estimate
+                Optional budget estimate
               </div>
               <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 4 }}>
                 Estimate possible house construction cost before submitting the requirement.
@@ -3213,7 +3213,7 @@ return;
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#075985", marginBottom: 6 }}>
-              🧠 Step-by-Step Requirement Builder
+              Optional guidance after input
             </div>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#075985" }}>
               {showProgressiveBuilder ? "−" : "+"}
@@ -3350,6 +3350,117 @@ return;
             </div>
           </div>
         ) : null}
+      </div>
+
+
+      <section
+        style={{
+          border: "1px solid rgba(37,99,235,0.16)",
+          background: "linear-gradient(135deg,#eff6ff,#ffffff)",
+          borderRadius: 22,
+          padding: 18,
+          marginBottom: 18,
+          boxShadow: "0 14px 36px rgba(15,23,42,0.06)",
+        }}
+      >
+        <div style={{ display: "grid", gap: 8 }}>
+          <div
+            style={{
+              display: "inline-flex",
+              width: "fit-content",
+              borderRadius: 999,
+              background: "#dbeafe",
+              color: "#1d4ed8",
+              padding: "7px 12px",
+              fontSize: 12,
+              fontWeight: 1000,
+            }}
+          >
+            Human First. AI Second. Precision Always.
+          </div>
+
+          <h1
+            style={{
+              margin: 0,
+              color: "#0f172a",
+              fontSize: "clamp(26px,4vw,42px)",
+              lineHeight: 1.08,
+              letterSpacing: "-0.04em",
+              fontWeight: 1000,
+            }}
+          >
+            Tell us what you need
+          </h1>
+
+          <p
+            style={{
+              margin: 0,
+              color: "#475569",
+              fontSize: 15,
+              lineHeight: 1.6,
+              fontWeight: 700,
+              maxWidth: 820,
+            }}
+          >
+            Start with your actual requirement. Add title, description, quantity, date, location and files.
+            AI help is available only where useful, after your basic input.
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                typeof window !== "undefined" && window.innerWidth < 760
+                  ? "1fr"
+                  : "repeat(3,minmax(0,1fr))",
+              gap: 10,
+              marginTop: 8,
+            }}
+          >
+            {[
+              ["1", "What do you need?", "Title, description, item or work details"],
+              ["2", "Where do you need it?", "LGD location, PIN and exact address"],
+              ["3", "Submit confidently", "AI improves only if you ask"],
+            ].map(([n, title, text]) => (
+              <div
+                key={n}
+                style={{
+                  border: "1px solid rgba(37,99,235,0.14)",
+                  background: "#fff",
+                  borderRadius: 16,
+                  padding: 12,
+                }}
+              >
+                <div style={{ color: "#1d4ed8", fontWeight: 1000, fontSize: 12 }}>
+                  Step {n}
+                </div>
+                <div style={{ marginTop: 4, fontWeight: 1000, color: "#0f172a" }}>
+                  {title}
+                </div>
+                <div style={{ marginTop: 3, fontSize: 12, color: "#64748b", fontWeight: 700 }}>
+                  {text}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div
+        style={{
+          border: "1px solid rgba(15,23,42,0.10)",
+          background: "#ffffff",
+          borderRadius: 20,
+          padding: 14,
+          marginBottom: 16,
+        }}
+      >
+        <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 4 }}>
+          Main input starts here
+        </div>
+        <div style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+          Fill these fields first. The AI, budget and progress tools are kept below as optional helpers.
+        </div>
       </div>
 
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
