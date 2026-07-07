@@ -53,3 +53,6 @@ key.properties
 android/key.properties.save
 android/app/*.jks
 android/app/google-services.json
+
+# ATLAS cleanup temporary folders
+.tmp-pre-h2-untracked/

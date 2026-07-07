@@ -1,0 +1,346 @@
+app/admin/dashboard/geography/page.tsx:61:    .not("geo_state_id", "is", null);
+app/admin/dashboard/marketplace-intelligence/page.tsx:20:  geo_state_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:21:  geo_district_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:22:  geo_subdivision_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:23:  geo_block_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:24:  geo_place_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:34:  geo_state_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:35:  geo_district_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:36:  geo_block_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:48:  geo_state_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:49:  geo_district_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:50:  geo_block_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:63:  geo_state_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:64:  geo_district_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:65:  geo_block_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:79:  geo_state_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:80:  geo_district_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:81:  geo_block_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:82:  geo_place_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:97:  geo_state_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:98:  geo_district_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:99:  geo_block_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:100:  geo_place_id: string | null;
+app/admin/dashboard/marketplace-intelligence/page.tsx:119:      "id,module,category,opportunity_score,priority,kind,recommendation,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id,geo_place_id,created_at"
+app/admin/dashboard/marketplace-intelligence/page.tsx:140:    .select("id,module,category,growth_score,growth_level,geo_state_id,geo_district_id,geo_block_id")
+app/admin/dashboard/marketplace-intelligence/page.tsx:150:    .select("id,module,category,growth_score,shortage_score,expansion_score,recommendation,reason,geo_state_id,geo_district_id,geo_block_id")
+app/admin/dashboard/marketplace-intelligence/page.tsx:160:    .select("id,module,category,opportunity_score,shortage_score,recommended_vendor_count,priority,status,reason,geo_state_id,geo_district_id,geo_block_id")
+app/admin/dashboard/marketplace-intelligence/page.tsx:170:    .select("id,module,category,expansion_score,optimization_score,shortage_score,action_type,action_priority,recommendation,reason,geo_state_id,geo_district_id,geo_block_id,geo_place_id")
+app/admin/dashboard/marketplace-intelligence/page.tsx:477:                        {geoName(placeNames, row.geo_place_id)} · {geoName(districtNames, row.geo_district_id)}
+app/admin/dashboard/marketplace-intelligence/page.tsx:571:                        {geoName(placeNames, row.geo_place_id)} · {geoName(districtNames, row.geo_district_id)}
+app/admin/dashboard/marketplace-intelligence/page.tsx:643:                    district: {geoName(districtNames, row.geo_district_id)}
+app/admin/dashboard/marketplace-intelligence/page.tsx:645:                    block: {geoName(blockNames, row.geo_block_id)}
+app/admin/dashboard/marketplace-intelligence/page.tsx:704:                      state: {geoName(stateNames, row.geo_state_id)}
+app/admin/dashboard/marketplace-intelligence/page.tsx:706:                      district: {geoName(districtNames, row.geo_district_id)}
+app/admin/dashboard/marketplace-intelligence/page.tsx:708:                      block: {geoName(blockNames, row.geo_block_id)}
+app/admin/dashboard/marketplace-intelligence/page.tsx:764:                    district: {geoName(districtNames, row.geo_district_id)} · block: {geoName(blockNames, row.geo_block_id)}
+app/admin/dashboard/vendor-recruitment/page.tsx:47:      .select("event_type,module,category,opportunity_id,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id,geo_place_id,created_at")
+app/admin/dashboard/vendor-recruitment/page.tsx:101:      event.geo_state_id || "",
+app/admin/dashboard/vendor-recruitment/page.tsx:102:      event.geo_district_id || "",
+app/admin/dashboard/vendor-recruitment/page.tsx:103:      event.geo_subdivision_id || "",
+app/admin/dashboard/vendor-recruitment/page.tsx:104:      event.geo_block_id || "",
+app/admin/dashboard/vendor-recruitment/page.tsx:105:      event.geo_place_id || "",
+app/admin/dashboard/vendor-recruitment/page.tsx:117:        geo_state_id: event.geo_state_id,
+app/admin/dashboard/vendor-recruitment/page.tsx:118:        geo_district_id: event.geo_district_id,
+app/admin/dashboard/vendor-recruitment/page.tsx:119:        geo_subdivision_id: event.geo_subdivision_id,
+app/admin/dashboard/vendor-recruitment/page.tsx:120:        geo_block_id: event.geo_block_id,
+app/admin/dashboard/vendor-recruitment/page.tsx:121:        geo_place_id: event.geo_place_id,
+app/admin/dashboard/vendor-recruitment/page.tsx:164:      item.geo_state_id || "",
+app/admin/dashboard/vendor-recruitment/page.tsx:165:      item.geo_district_id || "",
+app/admin/dashboard/vendor-recruitment/page.tsx:166:      item.geo_subdivision_id || "",
+app/admin/dashboard/vendor-recruitment/page.tsx:167:      item.geo_block_id || "",
+app/admin/dashboard/vendor-recruitment/page.tsx:168:      item.geo_place_id || "",
+app/admin/dashboard/vendor-recruitment/page.tsx:175:        geo_state_id: item.geo_state_id,
+app/admin/dashboard/vendor-recruitment/page.tsx:176:        geo_district_id: item.geo_district_id,
+app/admin/dashboard/vendor-recruitment/page.tsx:177:        geo_subdivision_id: item.geo_subdivision_id,
+app/admin/dashboard/vendor-recruitment/page.tsx:178:        geo_block_id: item.geo_block_id,
+app/admin/dashboard/vendor-recruitment/page.tsx:179:        geo_place_id: item.geo_place_id,
+app/admin/dashboard/vendor-recruitment/page.tsx:206:          (item.geo_state_id || "") === (row.geo_state_id || "") &&
+app/admin/dashboard/vendor-recruitment/page.tsx:207:          (item.geo_district_id || "") === (row.geo_district_id || "") &&
+app/admin/dashboard/vendor-recruitment/page.tsx:208:          (item.geo_subdivision_id || "") === (row.geo_subdivision_id || "") &&
+app/admin/dashboard/vendor-recruitment/page.tsx:209:          (item.geo_block_id || "") === (row.geo_block_id || "") &&
+app/admin/dashboard/vendor-recruitment/page.tsx:210:          (item.geo_place_id || "") === (row.geo_place_id || "")
+app/admin/dashboard/vendor-recruitment/page.tsx:379:                        {geoName(placeNames, row.geo_place_id)} · {geoName(districtNames, row.geo_district_id)}
+app/admin/dashboard/vendor-recruitment/page.tsx:433:                        {geoName(placeNames, item.geo_place_id)} · {geoName(districtNames, item.geo_district_id)}
+app/admin/dashboard/vendor-recruitment/page.tsx:464:                        {geoName(placeNames, item.geo_place_id)} · {geoName(districtNames, item.geo_district_id)}
+app/admin/dashboard/vendor-recruitment/page.tsx:495:                        {geoName(placeNames, item.geo_place_id)} · {geoName(districtNames, item.geo_district_id)}
+app/admin/dashboard/vendor-recruitment/page.tsx:535:                          {geoName(placeNames, item.geo_place_id)} · {geoName(districtNames, item.geo_district_id)}
+app/admin/dashboard/vendor-recruitment/page.tsx:574:                      {geoName(placeNames, item.geo_place_id)} · {geoName(districtNames, item.geo_district_id)}
+app/admin/dashboard/vendor-recruitment/page.tsx:660:                        {geoName(stateNames, row.geo_state_id)}
+app/admin/dashboard/vendor-recruitment/page.tsx:663:                        {geoName(districtNames, row.geo_district_id)}
+app/admin/dashboard/vendor-recruitment/page.tsx:666:                        {geoName(subdivisionNames, row.geo_subdivision_id)}
+app/admin/dashboard/vendor-recruitment/page.tsx:669:                        {geoName(blockNames, row.geo_block_id)}
+app/admin/dashboard/vendor-recruitment/page.tsx:672:                        {geoName(placeNames, row.geo_place_id)}
+app/api/finance/lender-offers/route.ts:109:      geo_state_id: String(body.geo_state_id || "").trim() || null,
+app/api/finance/lender-offers/route.ts:110:      geo_district_id: String(body.geo_district_id || "").trim() || null,
+app/api/finance/lender-offers/route.ts:111:      geo_subdivision_id: String(body.geo_subdivision_id || "").trim() || null,
+app/api/finance/lender-offers/route.ts:112:      geo_block_id: String(body.geo_block_id || "").trim() || null,
+app/api/finance/lender-offers/route.ts:113:      geo_place_id: String(body.geo_place_id || "").trim() || null,
+app/api/finance/loan-leads/route.ts:60:      geo_state_id: String(body.geo_state_id || "").trim() || null,
+app/api/finance/loan-leads/route.ts:61:      geo_district_id: String(body.geo_district_id || "").trim() || null,
+app/api/finance/loan-leads/route.ts:62:      geo_subdivision_id: String(body.geo_subdivision_id || "").trim() || null,
+app/api/finance/loan-leads/route.ts:63:      geo_block_id: String(body.geo_block_id || "").trim() || null,
+app/api/finance/loan-leads/route.ts:64:      geo_place_id: String(body.geo_place_id || "").trim() || null,
+app/api/geography/learn-pincode/route.ts:30:    const geoPlaceId = String(body.geo_place_id || body.geoPlaceId || "").trim();
+app/api/geography/learn-pincode/route.ts:35:        { error: "geo_place_id and valid 6-digit pincode are required" },
+app/api/investment/opportunities/route.ts:98:    const geoStateId = isUuid(body?.geo_state_id) ? String(body.geo_state_id) : null;
+app/api/investment/opportunities/route.ts:99:    const geoDistrictId = isUuid(body?.geo_district_id) ? String(body.geo_district_id) : null;
+app/api/investment/opportunities/route.ts:100:    const geoSubdivisionId = isUuid(body?.geo_subdivision_id) ? String(body.geo_subdivision_id) : null;
+app/api/investment/opportunities/route.ts:101:    const geoBlockId = isUuid(body?.geo_block_id) ? String(body.geo_block_id) : null;
+app/api/investment/opportunities/route.ts:102:    const geoPlaceId = isUuid(body?.geo_place_id) ? String(body.geo_place_id) : null;
+app/api/investment/opportunities/route.ts:170:            geo_state_id: geoStateId,
+app/api/investment/opportunities/route.ts:171:            geo_district_id: geoDistrictId,
+app/api/investment/opportunities/route.ts:172:            geo_subdivision_id: geoSubdivisionId,
+app/api/investment/opportunities/route.ts:173:            geo_block_id: geoBlockId,
+app/api/investment/opportunities/route.ts:174:            geo_place_id: geoPlaceId,
+app/api/investment/opportunities/route.ts:220:        geo_state_id: geoStateId,
+app/api/investment/opportunities/route.ts:221:        geo_district_id: geoDistrictId,
+app/api/investment/opportunities/route.ts:222:        geo_subdivision_id: geoSubdivisionId,
+app/api/investment/opportunities/route.ts:223:        geo_block_id: geoBlockId,
+app/api/investment/opportunities/route.ts:224:        geo_place_id: geoPlaceId,
+app/api/marketplace/vendor-conversion/route.ts:36:      geoStateId: body?.geoStateId || body?.geo_state_id || null,
+app/api/marketplace/vendor-conversion/route.ts:37:      geoDistrictId: body?.geoDistrictId || body?.geo_district_id || null,
+app/api/marketplace/vendor-conversion/route.ts:38:      geoSubdivisionId: body?.geoSubdivisionId || body?.geo_subdivision_id || null,
+app/api/marketplace/vendor-conversion/route.ts:39:      geoBlockId: body?.geoBlockId || body?.geo_block_id || null,
+app/api/marketplace/vendor-conversion/route.ts:40:      geoPlaceId: body?.geoPlaceId || body?.geo_place_id || null,
+app/api/property-listings/create-draft/route.ts:107:      geo_state_id: geography.geo_state_id,
+app/api/property-listings/create-draft/route.ts:108:      geo_district_id: geography.geo_district_id,
+app/api/property-listings/create-draft/route.ts:109:      geo_subdivision_id: geography.geo_subdivision_id,
+app/api/property-listings/create-draft/route.ts:110:      geo_block_id: geography.geo_block_id,
+app/api/property-listings/create-draft/route.ts:111:      geo_place_id: geography.geo_place_id,
+app/api/property-listings/create-draft-full/route.ts:123:      geo_state_id: geography.geo_state_id,
+app/api/property-listings/create-draft-full/route.ts:124:      geo_district_id: geography.geo_district_id,
+app/api/property-listings/create-draft-full/route.ts:125:      geo_subdivision_id: geography.geo_subdivision_id,
+app/api/property-listings/create-draft-full/route.ts:126:      geo_block_id: geography.geo_block_id,
+app/api/property-listings/create-draft-full/route.ts:127:      geo_place_id: geography.geo_place_id,
+app/api/public/vendor-opportunities/route.ts:34:      .select("id,module,category,promotion_score,promotion_type,shortage_score,geo_state_id,geo_district_id,geo_place_id")
+app/api/public/vendor-opportunities/route.ts:36:      .not("geo_state_id", "is", null)
+app/api/public/vendor-opportunities/route.ts:41:      .select("id,module,category,recommended_vendor_count,priority,geo_state_id,geo_district_id,geo_place_id")
+app/api/public/vendor-opportunities/route.ts:43:      .not("geo_state_id", "is", null)
+app/api/public/vendor-opportunities/route.ts:74:      geoName(places, row.geo_place_id) ||
+app/api/public/vendor-opportunities/route.ts:75:      geoName(districts, row.geo_district_id) ||
+app/api/public/vendor-opportunities/route.ts:76:      geoName(states, row.geo_state_id) ||
+app/api/public/vendor-opportunities/route.ts:88:      district: geoName(districts, row.geo_district_id),
+app/api/public/vendor-opportunities/route.ts:89:      state: geoName(states, row.geo_state_id),
+app/api/rfq/create/route.ts:250:        geo_state_id: geography?.geo_state_id || null,
+app/api/rfq/create/route.ts:251:        geo_district_id: geography?.geo_district_id || null,
+app/api/rfq/create/route.ts:252:        geo_subdivision_id: geography?.geo_subdivision_id || null,
+app/api/rfq/create/route.ts:253:        geo_block_id: geography?.geo_block_id || null,
+app/api/rfq/create/route.ts:254:        geo_place_id: geography?.geo_place_id || null,
+app/api/rfq/create/route.ts:274:      if (geography?.geo_state_id) matchUrl.searchParams.set("geo_state_id", geography.geo_state_id);
+app/api/rfq/create/route.ts:275:      if (geography?.geo_district_id) matchUrl.searchParams.set("geo_district_id", geography.geo_district_id);
+app/api/rfq/create/route.ts:276:      if (geography?.geo_subdivision_id) matchUrl.searchParams.set("geo_subdivision_id", geography.geo_subdivision_id);
+app/api/rfq/create/route.ts:277:      if (geography?.geo_block_id) matchUrl.searchParams.set("geo_block_id", geography.geo_block_id);
+app/api/rfq/create/route.ts:278:      if (geography?.geo_place_id) matchUrl.searchParams.set("geo_place_id", geography.geo_place_id);
+app/api/rfq/vendor-matches/route.ts:117:  geo_state_id?: string | null;
+app/api/rfq/vendor-matches/route.ts:118:  geo_district_id?: string | null;
+app/api/rfq/vendor-matches/route.ts:119:  geo_subdivision_id?: string | null;
+app/api/rfq/vendor-matches/route.ts:120:  geo_block_id?: string | null;
+app/api/rfq/vendor-matches/route.ts:121:  geo_place_id?: string | null;
+app/api/rfq/vendor-matches/route.ts:252:    input.geo_place_id &&
+app/api/rfq/vendor-matches/route.ts:253:    row.geo_place_id &&
+app/api/rfq/vendor-matches/route.ts:254:    input.geo_place_id === row.geo_place_id;
+app/api/rfq/vendor-matches/route.ts:257:    input.geo_block_id &&
+app/api/rfq/vendor-matches/route.ts:258:    row.geo_block_id &&
+app/api/rfq/vendor-matches/route.ts:259:    input.geo_block_id === row.geo_block_id;
+app/api/rfq/vendor-matches/route.ts:262:    input.geo_subdivision_id &&
+app/api/rfq/vendor-matches/route.ts:263:    row.geo_subdivision_id &&
+app/api/rfq/vendor-matches/route.ts:264:    input.geo_subdivision_id === row.geo_subdivision_id;
+app/api/rfq/vendor-matches/route.ts:267:    input.geo_district_id &&
+app/api/rfq/vendor-matches/route.ts:268:    row.geo_district_id &&
+app/api/rfq/vendor-matches/route.ts:269:    input.geo_district_id === row.geo_district_id;
+app/api/rfq/vendor-matches/route.ts:272:    input.geo_state_id &&
+app/api/rfq/vendor-matches/route.ts:273:    row.geo_state_id &&
+app/api/rfq/vendor-matches/route.ts:274:    input.geo_state_id === row.geo_state_id;
+app/api/rfq/vendor-matches/route.ts:320:    input.geo_state_id &&
+app/api/rfq/vendor-matches/route.ts:321:    row.geo_state_id === input.geo_state_id
+app/api/rfq/vendor-matches/route.ts:608:  if (input.geo_place_id && row.geo_place_id === input.geo_place_id) {
+app/api/rfq/vendor-matches/route.ts:612:  if (input.geo_block_id && row.geo_block_id === input.geo_block_id) {
+app/api/rfq/vendor-matches/route.ts:617:    input.geo_subdivision_id &&
+app/api/rfq/vendor-matches/route.ts:618:    row.geo_subdivision_id === input.geo_subdivision_id
+app/api/rfq/vendor-matches/route.ts:623:  if (input.geo_district_id && row.geo_district_id === input.geo_district_id) {
+app/api/rfq/vendor-matches/route.ts:627:  if (input.geo_state_id && row.geo_state_id === input.geo_state_id) {
+app/api/rfq/vendor-matches/route.ts:717:    const geo_state_id = clean(url.searchParams.get("geo_state_id")) || null;
+app/api/rfq/vendor-matches/route.ts:718:    const geo_district_id = clean(url.searchParams.get("geo_district_id")) || null;
+app/api/rfq/vendor-matches/route.ts:719:    const geo_subdivision_id = clean(url.searchParams.get("geo_subdivision_id")) || null;
+app/api/rfq/vendor-matches/route.ts:720:    const geo_block_id = clean(url.searchParams.get("geo_block_id")) || null;
+app/api/rfq/vendor-matches/route.ts:721:    const geo_place_id = clean(url.searchParams.get("geo_place_id")) || null;
+app/api/rfq/vendor-matches/route.ts:729:      geo_state_id,
+app/api/rfq/vendor-matches/route.ts:730:      geo_district_id,
+app/api/rfq/vendor-matches/route.ts:731:      geo_subdivision_id,
+app/api/rfq/vendor-matches/route.ts:732:      geo_block_id,
+app/api/rfq/vendor-matches/route.ts:733:      geo_place_id,
+app/api/rfq/vendor-matches/route.ts:792:          geo_state_id,
+app/api/rfq/vendor-matches/route.ts:793:          geo_district_id,
+app/api/rfq/vendor-matches/route.ts:794:          geo_subdivision_id,
+app/api/rfq/vendor-matches/route.ts:795:          geo_block_id,
+app/api/rfq/vendor-matches/route.ts:796:          geo_place_id,
+app/api/rfq/vendor-matches/route.ts:962:          geo_state_id: row.geo_state_id || null,
+app/api/rfq/vendor-matches/route.ts:963:          geo_district_id: row.geo_district_id || null,
+app/api/rfq/vendor-matches/route.ts:964:          geo_subdivision_id: row.geo_subdivision_id || null,
+app/api/rfq/vendor-matches/route.ts:965:          geo_block_id: row.geo_block_id || null,
+app/api/rfq/vendor-matches/route.ts:966:          geo_place_id: row.geo_place_id || null,
+app/api/rfq/vendor-matches/route.ts:1099:        geo_state_id,
+app/api/rfq/vendor-matches/route.ts:1100:        geo_district_id,
+app/api/rfq/vendor-matches/route.ts:1101:        geo_subdivision_id,
+app/api/rfq/vendor-matches/route.ts:1102:        geo_block_id,
+app/api/rfq/vendor-matches/route.ts:1103:        geo_place_id,
+app/dashboard/banker/BankerLenderOfferForm.tsx:4:import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
+app/dashboard/banker/BankerLenderOfferForm.tsx:41:          geo_state_id: geoSelection.state?.id || null,
+app/dashboard/banker/BankerLenderOfferForm.tsx:42:          geo_district_id: geoSelection.district?.id || null,
+app/dashboard/banker/BankerLenderOfferForm.tsx:43:          geo_subdivision_id: geoSelection.subdivision?.id || null,
+app/dashboard/banker/BankerLenderOfferForm.tsx:44:          geo_block_id: geoSelection.block?.id || null,
+app/dashboard/banker/BankerLenderOfferForm.tsx:45:          geo_place_id: geoSelection.place?.id || null,
+app/dashboard/banker/BankerLenderOfferForm.tsx:109:          <GeoSelector
+app/emi-calculator/page.tsx:36:import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
+app/emi-calculator/page.tsx:496:          geo_state_id: financeGeoSelection.state?.id || null,
+app/emi-calculator/page.tsx:497:          geo_district_id: financeGeoSelection.district?.id || null,
+app/emi-calculator/page.tsx:498:          geo_subdivision_id: financeGeoSelection.subdivision?.id || null,
+app/emi-calculator/page.tsx:499:          geo_block_id: financeGeoSelection.block?.id || null,
+app/emi-calculator/page.tsx:500:          geo_place_id: financeGeoSelection.place?.id || null,
+app/emi-calculator/page.tsx:1392:              <GeoSelector
+app/land-area-calculator/page.tsx:4:import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
+app/land-area-calculator/page.tsx:591:            <GeoSelector
+app/land-area-calculator/page.tsx:1056:                <GeoSelector
+app/materials/add/page.tsx:1031:          .select("state,district,city,locality,pincode,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id,geo_place_id")
+app/materials/add/page.tsx:1035:        if (vendorProfile?.geo_state_id) {
+app/materials/add/page.tsx:1037:            geo_state_id: vendorProfile.geo_state_id,
+app/materials/add/page.tsx:1038:            geo_district_id: vendorProfile.geo_district_id,
+app/materials/add/page.tsx:1039:            geo_subdivision_id: vendorProfile.geo_subdivision_id,
+app/materials/add/page.tsx:1040:            geo_block_id: vendorProfile.geo_block_id,
+app/materials/add/page.tsx:1041:            geo_place_id: vendorProfile.geo_place_id,
+app/materials/add/page.tsx:1111:        geo_state_id: geography?.geo_state_id || null,
+app/materials/add/page.tsx:1112:        geo_district_id: geography?.geo_district_id || null,
+app/materials/add/page.tsx:1113:        geo_subdivision_id: geography?.geo_subdivision_id || null,
+app/materials/add/page.tsx:1114:        geo_block_id: geography?.geo_block_id || null,
+app/materials/add/page.tsx:1115:        geo_place_id: geography?.geo_place_id || null,
+app/materials/rfq/new/page.tsx:9:import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
+app/materials/rfq/new/page.tsx:45:  const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
+app/materials/rfq/new/page.tsx:440:            <AddressEngine
+app/onboarding/business/BusinessOnboardingPageClient.tsx:10:import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
+app/onboarding/business/BusinessOnboardingPageClient.tsx:11:import { addressEngineToBusinessPayload, legacyBusinessToAddressEngine } from "@/lib/geography/addressAdapters";
+app/onboarding/business/BusinessOnboardingPageClient.tsx:383:  const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
+app/onboarding/business/BusinessOnboardingPageClient.tsx:842:        payload.geo_state_id = geography.geo_state_id;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:843:        payload.geo_district_id = geography.geo_district_id;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:844:        payload.geo_subdivision_id = geography.geo_subdivision_id;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:845:        payload.geo_block_id = geography.geo_block_id;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:846:        payload.geo_place_id = geography.geo_place_id;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:988:            geo_state_id: geography?.geo_state_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:989:            geo_district_id: geography?.geo_district_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:990:            geo_subdivision_id: geography?.geo_subdivision_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:991:            geo_block_id: geography?.geo_block_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:992:            geo_place_id: geography?.geo_place_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1013:              geo_state_id: geography?.geo_state_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1014:              geo_district_id: geography?.geo_district_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1015:              geo_subdivision_id: geography?.geo_subdivision_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1016:              geo_block_id: geography?.geo_block_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1017:              geo_place_id: geography?.geo_place_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1923:            <AddressEngine
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1927:                  : legacyBusinessToAddressEngine(bp)
+app/property/add/AddPropertyPageClient.tsx:3:import type { GeoSelection } from "@/components/geography/GeoSelector";
+app/property/add/AddPropertyPageClient.tsx:4:import AddressEngine from "@/components/geography/AddressEngine";
+app/property/add/AddPropertyPageClient.tsx:3040:  geo_state_id: geoSelection.state?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3041:  geo_district_id: geoSelection.district?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3042:  geo_subdivision_id: geoSelection.subdivision?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3043:  geo_block_id: geoSelection.block?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3044:  geo_place_id: geoSelection.place?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3125:    geo_state_id: geoSelection.state?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3126:    geo_district_id: geoSelection.district?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3127:    geo_subdivision_id: geoSelection.subdivision?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3128:    geo_block_id: geoSelection.block?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3129:    geo_place_id: geoSelection.place?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3882:      geo_state_id: geoSelection.state?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3883:      geo_district_id: geoSelection.district?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3884:      geo_subdivision_id: geoSelection.subdivision?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3885:      geo_block_id: geoSelection.block?.id || null,
+app/property/add/AddPropertyPageClient.tsx:3886:      geo_place_id: geoSelection.place?.id || null,
+app/property/add/AddPropertyPageClient.tsx:4376:                <AddressEngine
+app/property/builder/projects/add/page.tsx:4:import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
+app/property/builder/projects/add/page.tsx:49:  geo_state_id?: string | null;
+app/property/builder/projects/add/page.tsx:50:  geo_district_id?: string | null;
+app/property/builder/projects/add/page.tsx:51:  geo_subdivision_id?: string | null;
+app/property/builder/projects/add/page.tsx:52:  geo_block_id?: string | null;
+app/property/builder/projects/add/page.tsx:53:  geo_place_id?: string | null;
+app/property/builder/projects/add/page.tsx:142:  const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
+app/property/builder/projects/add/page.tsx:666:        geo_state_id: addressPayload.geo_state_id || null,
+app/property/builder/projects/add/page.tsx:667:        geo_district_id: addressPayload.geo_district_id || null,
+app/property/builder/projects/add/page.tsx:668:        geo_subdivision_id: addressPayload.geo_subdivision_id || null,
+app/property/builder/projects/add/page.tsx:669:        geo_block_id: addressPayload.geo_block_id || null,
+app/property/builder/projects/add/page.tsx:670:        geo_place_id: addressPayload.geo_place_id || null,
+app/property/builder/projects/add/page.tsx:1146:            <AddressEngine
+app/property/builder/projects/[projectId]/units/add/page.tsx:34:  geo_state_id?: string | null;
+app/property/builder/projects/[projectId]/units/add/page.tsx:35:  geo_district_id?: string | null;
+app/property/builder/projects/[projectId]/units/add/page.tsx:36:  geo_subdivision_id?: string | null;
+app/property/builder/projects/[projectId]/units/add/page.tsx:37:  geo_block_id?: string | null;
+app/property/builder/projects/[projectId]/units/add/page.tsx:38:  geo_place_id?: string | null;
+app/property/builder/projects/[projectId]/units/add/page.tsx:780:    .select("id,name,project_kind,city,district,state,status,investment_plan_master_id,formatted_address,short_address,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id,geo_place_id")
+app/rentals/add/page.tsx:661:      geo_state_id: geography?.geo_state_id || null,
+app/rentals/add/page.tsx:662:      geo_district_id: geography?.geo_district_id || null,
+app/rentals/add/page.tsx:663:      geo_subdivision_id: geography?.geo_subdivision_id || null,
+app/rentals/add/page.tsx:664:      geo_block_id: geography?.geo_block_id || null,
+app/rentals/add/page.tsx:665:      geo_place_id: geography?.geo_place_id || null,
+app/rfq/general/new/page.tsx:10:import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
+app/rfq/general/new/page.tsx:266:  const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
+app/rfq/general/new/page.tsx:1067:      !addressPayload.geo_state_id ||
+app/rfq/general/new/page.tsx:1068:      !addressPayload.geo_district_id ||
+app/rfq/general/new/page.tsx:1134:          geo_state_id: addressPayload.geo_state_id,
+app/rfq/general/new/page.tsx:1135:          geo_district_id: addressPayload.geo_district_id,
+app/rfq/general/new/page.tsx:1136:          geo_subdivision_id: addressPayload.geo_subdivision_id,
+app/rfq/general/new/page.tsx:1137:          geo_block_id: addressPayload.geo_block_id,
+app/rfq/general/new/page.tsx:1138:          geo_place_id: addressPayload.geo_place_id,
+app/rfq/general/new/page.tsx:3623:          <AddressEngine
+app/rfq/new/page.tsx:8:import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
+app/rfq/new/page.tsx:65:  const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
+app/rfq/new/page.tsx:178:          geo_state_id: addressPayload.geo_state_id,
+app/rfq/new/page.tsx:179:          geo_district_id: addressPayload.geo_district_id,
+app/rfq/new/page.tsx:180:          geo_subdivision_id: addressPayload.geo_subdivision_id,
+app/rfq/new/page.tsx:181:          geo_block_id: addressPayload.geo_block_id,
+app/rfq/new/page.tsx:182:          geo_place_id: addressPayload.geo_place_id,
+app/rfq/new/page.tsx:348:        {/* AddressEngine location */}
+app/rfq/new/page.tsx:354:          <AddressEngine
+app/search/page.tsx:142:  _geo_state_id?: string | null;
+app/search/page.tsx:143:  _geo_district_id?: string | null;
+app/search/page.tsx:144:  _geo_subdivision_id?: string | null;
+app/search/page.tsx:145:  _geo_block_id?: string | null;
+app/search/page.tsx:146:  _geo_place_id?: string | null;
+app/search/page.tsx:221:    buyerGeoStateId: safeText(sp.get("geo_state_id")) || null,
+app/search/page.tsx:222:    buyerGeoDistrictId: safeText(sp.get("geo_district_id")) || null,
+app/search/page.tsx:223:    buyerGeoSubdivisionId: safeText(sp.get("geo_subdivision_id")) || null,
+app/search/page.tsx:224:    buyerGeoBlockId: safeText(sp.get("geo_block_id")) || null,
+app/search/page.tsx:225:    buyerGeoPlaceId: safeText(sp.get("geo_place_id")) || null,
+app/search/page.tsx:1390:              listingGeoStateId: row._geo_state_id,
+app/search/page.tsx:1391:              listingGeoDistrictId: row._geo_district_id,
+app/search/page.tsx:1392:              listingGeoSubdivisionId: row._geo_subdivision_id,
+app/search/page.tsx:1393:              listingGeoBlockId: row._geo_block_id,
+app/search/page.tsx:1394:              listingGeoPlaceId: row._geo_place_id,
+app/services/add/page.tsx:1144:          .select("state,district,city,locality,pincode,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id,geo_place_id")
+app/services/add/page.tsx:1148:        if (vendorProfile?.geo_state_id) {
+app/services/add/page.tsx:1150:            geo_state_id: vendorProfile.geo_state_id,
+app/services/add/page.tsx:1151:            geo_district_id: vendorProfile.geo_district_id,
+app/services/add/page.tsx:1152:            geo_subdivision_id: vendorProfile.geo_subdivision_id,
+app/services/add/page.tsx:1153:            geo_block_id: vendorProfile.geo_block_id,
+app/services/add/page.tsx:1154:            geo_place_id: vendorProfile.geo_place_id,
+app/services/add/page.tsx:1213:          geo_state_id: geography?.geo_state_id || null,
+app/services/add/page.tsx:1214:          geo_district_id: geography?.geo_district_id || null,
+app/services/add/page.tsx:1215:          geo_subdivision_id: geography?.geo_subdivision_id || null,
+app/services/add/page.tsx:1216:          geo_block_id: geography?.geo_block_id || null,
+app/services/add/page.tsx:1217:          geo_place_id: geography?.geo_place_id || null,
+app/vendor-opportunities/page.tsx:40:        "id,module,category,promotion_score,promotion_type,shortage_score,geo_state_id,geo_district_id,geo_place_id"
+app/vendor-opportunities/page.tsx:94:                const district = geoName(districtNames, row.geo_district_id);
+app/vendor-opportunities/page.tsx:95:                const place = geoName(placeNames, row.geo_place_id);
+app/vendor-opportunities/page.tsx:96:                const state = geoName(stateNames, row.geo_state_id);
+components/construction-cost/ConstructionCostCalculator.tsx:5:import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
+components/construction-cost/ConstructionCostCalculator.tsx:260:        <GeoSelector
+components/geography/AddressEngine.tsx:3:import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
+components/geography/AddressEngine.tsx:6:export type AddressEngineValue = {
+components/geography/AddressEngine.tsx:16:type AddressEngineProps = {
+components/geography/AddressEngine.tsx:17:  value?: AddressEngineValue;
+components/geography/AddressEngine.tsx:18:  onChange: (value: AddressEngineValue) => void;
+components/geography/AddressEngine.tsx:37:export default function AddressEngine({
+components/geography/AddressEngine.tsx:41:}: AddressEngineProps) {
+components/geography/AddressEngine.tsx:42:  const current: AddressEngineValue = value || {};
+components/geography/AddressEngine.tsx:44:  function update(patch: Partial<AddressEngineValue>) {
+components/geography/AddressEngine.tsx:64:      <GeoSelector
+components/geography/GeoSelector.tsx:37:type GeoSelectorProps = {
+components/geography/GeoSelector.tsx:343:export default function GeoSelector({
+components/geography/GeoSelector.tsx:350:}: GeoSelectorProps) {

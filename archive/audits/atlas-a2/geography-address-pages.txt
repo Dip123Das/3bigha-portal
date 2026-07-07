@@ -1,0 +1,1852 @@
+app/about/page.tsx:    "3Bigha is an AI-assisted real estate and construction workflow platform for property, materials, services, rentals, RFQ, local vendors and investment opportunities.",
+app/admin/dashboard/master-data/materials/attributes/page.tsx:                    <b>{selectedAttr.name}</b> • <span style={{ opacity: 0.8 }}>{selectedAttr.slug}</span>
+app/admin/dashboard/master-data/materials/attributes/page.tsx:                  <div style={{ marginTop: 6, opacity: 0.85 }}>
+app/admin/dashboard/master-data/materials/attributes/page.tsx:              <div style={{ marginTop: 8, opacity: 0.85 }}>
+app/admin/dashboard/master-data/materials/attributes/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/materials/attributes/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/materials/attributes/page.tsx:            opacity: 0.9;
+app/admin/dashboard/master-data/materials/attributes/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/materials/attributes/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/materials/attributes/page.tsx:            opacity: 0.55;
+app/admin/dashboard/master-data/materials/mapping/page.tsx:                <div style={{ marginTop: 8, opacity: 0.85 }}>
+app/admin/dashboard/master-data/materials/mapping/page.tsx:                  <div style={{ marginTop: 8, opacity: 0.85 }}>
+app/admin/dashboard/master-data/materials/mapping/page.tsx:              <div style={{ marginTop: 8, opacity: 0.85 }}>
+app/admin/dashboard/master-data/materials/mapping/page.tsx:              <div style={{ marginTop: 8, opacity: 0.85 }}>
+app/admin/dashboard/master-data/materials/mapping/page.tsx:              <div style={{ marginTop: 8, opacity: 0.85 }}>This prevents “Slug already exists” product-group duplication for variants.</div>
+app/admin/dashboard/master-data/materials/mapping/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/materials/mapping/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/materials/mapping/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/materials/mapping/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/materials/mapping/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/materials/mapping/page.tsx:            opacity: 0.55;
+app/admin/dashboard/master-data/materials/mapping/page.tsx:            opacity: 0.9;
+app/admin/dashboard/master-data/materials/mapping/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/materials/mapping/page.tsx:            opacity: 0.55;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:                  <div style={{ marginTop: 6, opacity: 0.85 }}>
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.9;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.85;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.55;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.55;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/materials/taxonomy/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/property/attributes/page.tsx:  { name: "Electricity Available", slug: "electricity-available", input_type: "boolean", unit: null, sort_order: 170 },
+app/admin/dashboard/master-data/property/attributes/page.tsx:      {props.hint ? <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>{props.hint}</div> : null}
+app/admin/dashboard/master-data/property/attributes/page.tsx:            <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>Define what the attribute means. Values are managed separately.</div>
+app/admin/dashboard/master-data/property/attributes/page.tsx:  // modal state
+app/admin/dashboard/master-data/property/attributes/page.tsx:  // form state
+app/admin/dashboard/master-data/property/attributes/page.tsx:                <div style={{ marginTop: 6, opacity: 0.85, lineHeight: 1.5 }}>
+app/admin/dashboard/master-data/property/attributes/page.tsx:              <div style={{ marginTop: 8, fontSize: 12, opacity: 0.85 }}>
+app/admin/dashboard/master-data/property/attributes/page.tsx:              <div style={{ opacity: 0.7, marginTop: 10 }}>No attributes yet. Add your first attribute or seed recommended.</div>
+app/admin/dashboard/master-data/property/attributes/page.tsx:              <div style={{ fontSize: 12, opacity: 0.75, marginTop: 6 }}>
+app/admin/dashboard/master-data/property/attributes/page.tsx:              <div style={{ marginTop: 8, fontSize: 12, opacity: 0.85, lineHeight: 1.4 }}>
+app/admin/dashboard/master-data/property/attributes/page.tsx:            <div style={{ fontSize: 12, opacity: 0.8 }}>
+app/admin/dashboard/master-data/property/attributes/page.tsx:          <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)", paddingTop: 10, marginTop: 6, fontSize: 12, opacity: 0.85, lineHeight: 1.5 }}>
+app/admin/dashboard/master-data/property/mapping/page.tsx:            <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75, lineHeight: 1.5 }}>
+app/admin/dashboard/master-data/property/mapping/page.tsx:                <div style={{ opacity: 0.7, marginTop: 10 }}>Select a subtype to see mapped attributes.</div>
+app/admin/dashboard/master-data/property/mapping/page.tsx:                <div style={{ opacity: 0.7, marginTop: 10 }}>
+app/admin/dashboard/master-data/property/mapping/page.tsx:                <div style={{ opacity: 0.7, marginTop: 10 }}>Select a subtype to add attributes.</div>
+app/admin/dashboard/master-data/property/mapping/page.tsx:                <div style={{ opacity: 0.7, marginTop: 10 }}>All attributes are already mapped.</div>
+app/admin/dashboard/master-data/property/mapping/page.tsx:                  {panelAttr ? <span style={{ opacity: 0.8 }}>— {panelAttr.name}</span> : null}
+app/admin/dashboard/master-data/property/mapping/page.tsx:                  <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75 }}>
+app/admin/dashboard/master-data/property/mapping/page.tsx:                  <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75 }}>
+app/admin/dashboard/master-data/property/mapping/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75 }}>
+app/admin/dashboard/master-data/property/mapping/page.tsx:              <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
+app/admin/dashboard/master-data/property/taxonomy/page.tsx:              <div style={{ opacity: 0.7, marginTop: 10 }}>No types yet.</div>
+app/admin/dashboard/master-data/property/taxonomy/page.tsx:              <div style={{ marginTop: 8, fontSize: 12, opacity: 0.75 }}>
+app/admin/dashboard/master-data/property/taxonomy/page.tsx:              <div style={{ opacity: 0.7, marginTop: 12 }}>Select a type to manage its subtypes.</div>
+app/admin/dashboard/master-data/property/taxonomy/page.tsx:              <div style={{ opacity: 0.7, marginTop: 12 }}>No subtypes yet.</div>
+app/admin/dashboard/master-data/property/taxonomy/page.tsx:                <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
+app/admin/dashboard/master-data/property/values/page.tsx:              <div style={{ marginTop: 12, opacity: 0.7 }}>No values yet.</div>
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:                  <span style={{ marginLeft: 10, opacity: 0.8 }}>(PG-specific values supported)</span>
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:                  <span style={{ marginLeft: 10, opacity: 0.8 }}>(Global values only)</span>
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:                                <span style={{ opacity: 0.75 }}>GLOBAL</span>
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:          opacity: 0.75;
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:          opacity: 0.75;
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:          opacity: 0.6;
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:          opacity: 0.9;
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:          opacity: 0.45;
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:          opacity: 0.75;
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:          opacity: 0.9;
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/attributes/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/mapping/page.tsx:          opacity: 0.75;
+app/admin/dashboard/master-data/rentals/mapping/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/mapping/page.tsx:          opacity: 0.75;
+app/admin/dashboard/master-data/rentals/mapping/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/mapping/page.tsx:          opacity: 0.9;
+app/admin/dashboard/master-data/rentals/mapping/page.tsx:          opacity: 0.6;
+app/admin/dashboard/master-data/rentals/mapping/page.tsx:          opacity: 0.75;
+app/admin/dashboard/master-data/rentals/mapping/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/mapping/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/mapping/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/taxonomy/page.tsx:          opacity: 0.75;
+app/admin/dashboard/master-data/rentals/taxonomy/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/taxonomy/page.tsx:          opacity: 0.75;
+app/admin/dashboard/master-data/rentals/taxonomy/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/taxonomy/page.tsx:          opacity: 0.6;
+app/admin/dashboard/master-data/rentals/taxonomy/page.tsx:          opacity: 0.75;
+app/admin/dashboard/master-data/rentals/taxonomy/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/taxonomy/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/taxonomy/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/values/page.tsx:                  <span style={{ opacity: 0.8 }}>(PG-specific values supported)</span>
+app/admin/dashboard/master-data/rentals/values/page.tsx:                  <span style={{ opacity: 0.8 }}>(Global values only)</span>
+app/admin/dashboard/master-data/rentals/values/page.tsx:                                <span style={{ opacity: 0.75 }}>GLOBAL</span>
+app/admin/dashboard/master-data/rentals/values/page.tsx:          opacity: 0.75;
+app/admin/dashboard/master-data/rentals/values/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/values/page.tsx:          opacity: 0.75;
+app/admin/dashboard/master-data/rentals/values/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/values/page.tsx:          opacity: 0.6;
+app/admin/dashboard/master-data/rentals/values/page.tsx:          opacity: 0.45;
+app/admin/dashboard/master-data/rentals/values/page.tsx:          opacity: 0.75;
+app/admin/dashboard/master-data/rentals/values/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/rentals/values/page.tsx:          opacity: 0.7;
+app/admin/dashboard/master-data/services/attributes/page.tsx:                  <div style={{ marginTop: 6, opacity: 0.85 }}>
+app/admin/dashboard/master-data/services/attributes/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/services/attributes/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/services/attributes/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/services/attributes/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/services/attributes/page.tsx:            opacity: 0.55;
+app/admin/dashboard/master-data/services/attributes/page.tsx:            opacity: 0.9;
+app/admin/dashboard/master-data/services/mapping/page.tsx:                <div style={{ marginTop: 8, opacity: 0.85 }}>
+app/admin/dashboard/master-data/services/mapping/page.tsx:                  <div style={{ marginTop: 8, opacity: 0.85 }}>
+app/admin/dashboard/master-data/services/mapping/page.tsx:              <div style={{ marginTop: 8, opacity: 0.85 }}>
+app/admin/dashboard/master-data/services/mapping/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/services/mapping/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/services/mapping/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/services/mapping/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/services/mapping/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/services/mapping/page.tsx:            opacity: 0.55;
+app/admin/dashboard/master-data/services/mapping/page.tsx:            opacity: 0.9;
+app/admin/dashboard/master-data/services/mapping/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/services/mapping/page.tsx:            opacity: 0.55;
+app/admin/dashboard/master-data/services/taxonomy/page.tsx:                  <div style={{ marginTop: 6, opacity: 0.85 }}>
+app/admin/dashboard/master-data/services/taxonomy/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/services/taxonomy/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/services/taxonomy/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/services/taxonomy/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/services/taxonomy/page.tsx:            opacity: 0.9;
+app/admin/dashboard/master-data/services/taxonomy/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/services/taxonomy/page.tsx:            opacity: 0.85;
+app/admin/dashboard/master-data/services/taxonomy/page.tsx:            opacity: 0.9;
+app/admin/dashboard/master-data/services/taxonomy/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/services/taxonomy/page.tsx:            opacity: 0.75;
+app/admin/dashboard/master-data/services/taxonomy/page.tsx:            opacity: 0.7;
+app/admin/dashboard/master-data/services/taxonomy/page.tsx:            opacity: 0.55;
+app/admin/dashboard/seo/page.tsx:            "Inspect state SEO page: /seo/property/west-bengal.",
+app/admin/dashboard/seo/page.tsx:            "Inspect district SEO page: /seo/property/west-bengal/cooch-behar.",
+app/admin/dashboard/seo/page.tsx:            "Inspect city SEO page: /seo/property/west-bengal/cooch-behar/cooch-behar-town.",
+app/admin/materials/page.tsx:  pincode: string | null;
+app/admin/materials/page.tsx:          .select("id,product_group_id,title,description,brand,price,unit,service_area,pincode,created_at")
+app/admin/materials/page.tsx:        l.pincode,
+app/admin/materials/page.tsx:            opacity: checkingAdd ? 0.75 : 1,
+app/admin/property/inventory/page.tsx:      label: { fontSize: 12, opacity: 0.75, marginBottom: 6 } as React.CSSProperties,
+app/admin/property/inventory/page.tsx:      hint: { fontSize: 12, opacity: 0.75, lineHeight: 1.35 } as React.CSSProperties,
+app/admin/property/inventory/page.tsx:      sectionTitle: { fontSize: 12, fontWeight: 800, opacity: 0.85, marginBottom: 8 } as React.CSSProperties,
+app/admin/property/inventory/page.tsx:        opacity: 0.92,
+app/admin/property/inventory/page.tsx:      arrow: { fontSize: 12, opacity: 0.55, padding: "0 4px", whiteSpace: "nowrap", lineHeight: 1.1 } as React.CSSProperties,
+app/admin/property/inventory/page.tsx:      helperValue: { marginTop: 6, fontSize: 12, opacity: 0.7 } as React.CSSProperties,
+app/admin/property/inventory/page.tsx:      amenityCatTitle: { fontSize: 12, fontWeight: 900, opacity: 0.85, marginBottom: 8 } as React.CSSProperties,
+app/admin/property/inventory/page.tsx:  // ✅ amenities states
+app/admin/property/inventory/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75 }}>Page size</div>
+app/admin/property/inventory/page.tsx:                          <div style={{ fontSize: 12, opacity: 0.75 }}>Bulk price (₹)</div>
+app/admin/property/inventory/page.tsx:                    <div style={{ marginTop: 10, fontSize: 12, opacity: 0.8 }}>
+app/admin/property/inventory/page.tsx:                <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75 }}>
+app/admin/property/inventory/page.tsx:              <div style={{ marginTop: 10, fontSize: 13, opacity: 0.8 }}>Loading amenities…</div>
+app/admin/property/inventory/page.tsx:                <div style={{ opacity: 0.9 }}>
+app/admin/property/inventory/page.tsx:            <div style={{ marginTop: 6, opacity: 0.8 }}>
+app/admin/property/inventory/page.tsx:                            <span style={{ marginLeft: 8, fontWeight: 600, opacity: 0.7 }}>• Linked listing</span>
+app/admin/property/inventory/page.tsx:                            <span style={{ marginLeft: 8, fontWeight: 600, opacity: 0.7 }}>• No listing</span>
+app/admin/property/inventory/page.tsx:    <div style={{ fontSize: 12, opacity: 0.75 }}>No unit amenities linked.</div>
+app/admin/property/inventory/page.tsx:                      <div style={{ marginTop: 8, fontSize: 12, opacity: 0.85 }}>
+app/admin/property/inventory/page.tsx:                        <div style={{ marginTop: 8, fontSize: 12, opacity: 0.75 }}>
+app/admin/property/inventory/page.tsx:                      <div style={{ marginTop: 6, opacity: 0.8 }}>This is the DB trigger/guard message (exact).</div>
+app/admin/property/listings/page.tsx:  city?: string | null;
+app/admin/property/listings/page.tsx:  state?: string | null;
+app/admin/property/listings/page.tsx:  const city = String(l.city ?? "").trim();
+app/admin/property/listings/page.tsx:  const state = String(l.state ?? "").trim();
+app/admin/property/listings/page.tsx:  if (city && state) return `${city}, ${state}`;
+app/admin/property/listings/page.tsx:  if (city) return city;
+app/admin/property/listings/page.tsx:  if (state) return state;
+app/admin/property/listings/page.tsx:            "id,status,title,slug,created_at,updated_at,owner_id,owner_user_id,is_builder_listing,builder_project_id,published_at,is_public,price,expected_price,city,state,listing_intent"
+app/admin/property/listings/page.tsx:            "id,status,title,slug,created_at,updated_at,owner_id,owner_user_id,is_builder_listing,builder_project_id,published_at,is_public,price,expected_price,city,state,listing_intent"
+app/admin/property/listings/page.tsx:          "id,status,title,slug,created_at,updated_at,owner_id,owner_user_id,is_builder_listing,builder_project_id,published_at,is_public,price,expected_price,city,state,listing_intent"
+app/admin/property/listings/page.tsx:            "id,status,title,slug,created_at,updated_at,owner_id,owner_user_id,is_builder_listing,builder_project_id,published_at,is_public,price,expected_price,city,state,listing_intent"
+app/admin/property/listings/page.tsx:              <div style={{ fontSize: 12, opacity: 0.82, marginBottom: 10 }}>
+app/admin/property/listings/page.tsx:              <div style={{ fontSize: 13, opacity: 0.88, marginBottom: 10 }}>
+app/admin/property/listings/page.tsx:              <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Builder project</div>
+app/admin/property/listings/page.tsx:                <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75 }}>Source: {projectTable}</div>
+app/admin/property/page.tsx:                  <div className="mt-1 text-sm opacity-80">
+app/admin/property/page.tsx:                  <div className="mt-1 text-sm opacity-80">
+app/admin/property/page.tsx:                  <div className="mt-1 text-sm opacity-80">
+app/admin/property/page.tsx:      <div className="mt-6 text-sm opacity-70">
+app/admin/property/preview/page.tsx:              <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Listing UUID</div>
+app/admin/property/preview/page.tsx:              <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75 }}>
+app/admin/property/preview/page.tsx:            <div style={{ marginTop: 6, opacity: 0.8 }}>Paste a listing UUID above and click Load.</div>
+app/admin/property/preview/page.tsx:            <div style={{ marginTop: 14, fontSize: 13, opacity: 0.85 }}>
+app/admin/property/preview/page.tsx:                {!projectId ? <span style={{ opacity: 0.7 }}>• (no linked inventory rows found)</span> : null}
+app/admin/property/preview/page.tsx:              <div style={{ opacity: 0.8 }}>No inventory linked.</div>
+app/admin/property/preview/page.tsx:                        <span style={{ fontWeight: 600, opacity: 0.7 }}>• {r.title ?? "(no title)"}</span>
+app/admin/property/preview/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.7 }}>inv_id: {r.id}</div>
+app/admin/property/projects/page.tsx:  city: string | null;
+app/admin/property/projects/page.tsx:  district: string | null;
+app/admin/property/projects/page.tsx:  state: string | null;
+app/admin/property/projects/page.tsx:      {props.description ? <div style={{ opacity: 0.8, lineHeight: 1.5 }}>{props.description}</div> : null}
+app/admin/property/projects/page.tsx:      .select("id,owner_user_id,name,slug,description,city,district,state,country,is_active,updated_at")
+app/admin/property/projects/page.tsx:    const city = (window.prompt("City (optional):", "") ?? "").trim() || null;
+app/admin/property/projects/page.tsx:    const district = (window.prompt("District (optional):", "") ?? "").trim() || null;
+app/admin/property/projects/page.tsx:    const state = (window.prompt("State (optional):", "") ?? "").trim() || null;
+app/admin/property/projects/page.tsx:      city,
+app/admin/property/projects/page.tsx:      district,
+app/admin/property/projects/page.tsx:      state,
+app/admin/property/projects/page.tsx:    const city = (window.prompt("City (optional):", p.city ?? "") ?? "").trim() || null;
+app/admin/property/projects/page.tsx:    const district = (window.prompt("District (optional):", p.district ?? "") ?? "").trim() || null;
+app/admin/property/projects/page.tsx:    const state = (window.prompt("State (optional):", p.state ?? "") ?? "").trim() || null;
+app/admin/property/projects/page.tsx:      .update({ name, slug, city, district, state, country, description, is_active })
+app/admin/property/projects/page.tsx:                            {p.name} {!p.is_active ? <span style={{ opacity: 0.6 }}>(inactive)</span> : null}
+app/admin/property/projects/page.tsx:                          <div style={{ opacity: 0.75, fontSize: 13 }}>
+app/admin/property/projects/page.tsx:                          <div style={{ opacity: 0.75, fontSize: 13 }}>
+app/admin/property/projects/page.tsx:                            {(p.city ?? "—")}
+app/admin/property/projects/page.tsx:                            {p.district ? `, ${p.district}` : ""}
+app/admin/property/projects/page.tsx:                            {p.state ? `, ${p.state}` : ""}
+app/admin/property/projects/page.tsx:                <div style={{ marginBottom: 10, opacity: 0.85 }}>
+app/admin/property/projects/page.tsx:                  <b>Project:</b> {selectedProject.name} <span style={{ opacity: 0.7 }}>({selectedProject.slug})</span>
+app/admin/property/projects/page.tsx:                              {c.name} {!c.is_active ? <span style={{ opacity: 0.6 }}>(inactive)</span> : null}
+app/admin/property/projects/page.tsx:            <div style={{ width: "100%", fontSize: 12, opacity: 0.8, lineHeight: 1.5 }}>
+app/admin/property/[id]/page.tsx:  city: string | null;
+app/admin/property/[id]/page.tsx:  state: string | null;
+app/admin/property/[id]/page.tsx:      {props.description ? <div style={{ opacity: 0.8, lineHeight: 1.5 }}>{props.description}</div> : null}
+app/admin/property/[id]/page.tsx:        "id,owner_id,title,slug,status,created_at,updated_at,published_at,price,city,state,admin_note,rejected_reason,decision_at,approved_by,rejected_by"
+app/admin/property/[id]/page.tsx:          <div style={{ opacity: 0.85 }}>
+app/admin/property/[id]/page.tsx:            {row.city ? row.city : "—"}
+app/admin/property/[id]/page.tsx:            {row.state ? `, ${row.state}` : ""}
+app/admin/property/[id]/page.tsx:          <div style={{ marginTop: 10, opacity: 0.75, fontSize: 13, lineHeight: 1.5 }}>
+app/admin/rentals/page.tsx:  city: string | null;
+app/admin/rentals/page.tsx:  state: string | null;
+app/admin/rentals/page.tsx:      {props.description ? <div style={{ opacity: 0.8, lineHeight: 1.5 }}>{props.description}</div> : null}
+app/admin/rentals/page.tsx:      "id,owner_id,title,status,created_at,updated_at,published_at,pricing_unit,rate,city,state";
+app/admin/rentals/page.tsx:            opacity: loading ? 0.6 : 1,
+app/admin/rentals/page.tsx:                <div style={{ opacity: 0.8 }}>
+app/admin/rentals/page.tsx:                  {p.city ? p.city : "—"}
+app/admin/rentals/page.tsx:                  {p.state ? `, ${p.state}` : ""}
+app/admin/rentals/page.tsx:                <div style={{ opacity: 0.8 }}>
+app/admin/rentals/page.tsx:                  {p.city ? p.city : "—"}
+app/admin/rentals/page.tsx:                  {p.state ? `, ${p.state}` : ""}
+app/admin/rentals/page.tsx:                <div style={{ opacity: 0.8 }}>
+app/admin/rentals/page.tsx:                  {p.city ? p.city : "—"}
+app/admin/rentals/page.tsx:                  {p.state ? `, ${p.state}` : ""}
+app/admin/rentals/[id]/page.tsx:  city: string | null;
+app/admin/rentals/[id]/page.tsx:  state: string | null;
+app/admin/rentals/[id]/page.tsx:      {props.description ? <div style={{ opacity: 0.8, lineHeight: 1.5 }}>{props.description}</div> : null}
+app/admin/rentals/[id]/page.tsx:          "city",
+app/admin/rentals/[id]/page.tsx:          "state",
+app/admin/rentals/[id]/page.tsx:          <div style={{ opacity: 0.85 }}>
+app/admin/rentals/[id]/page.tsx:            {row.city ? row.city : "—"}
+app/admin/rentals/[id]/page.tsx:            {row.state ? `, ${row.state}` : ""}
+app/admin/rentals/[id]/page.tsx:          <div style={{ marginTop: 10, opacity: 0.7, fontSize: 13 }}>
+app/admin/services/page.tsx:  city: string | null;
+app/admin/services/page.tsx:  state: string | null;
+app/admin/services/page.tsx:          "city",
+app/admin/services/page.tsx:          "state",
+app/admin/services/page.tsx:          <div style={{ opacity: 0.8 }}>Fetching service listings…</div>
+app/admin/services/page.tsx:                const location = [r.city, r.state].filter(Boolean).join(", ");
+app/admin/services/page.tsx:                      <div style={{ marginTop: 10, opacity: 0.7, fontSize: 12 }}>
+app/admin/services/[id]/page.tsx:  state: string | null;
+app/admin/services/[id]/page.tsx:  district: string | null;
+app/admin/services/[id]/page.tsx:  city: string | null;
+app/admin/services/[id]/page.tsx:  locality: string | null;
+app/admin/services/[id]/page.tsx:  pincode: string | null;
+app/admin/services/[id]/page.tsx:          "state",
+app/admin/services/[id]/page.tsx:          "district",
+app/admin/services/[id]/page.tsx:          "city",
+app/admin/services/[id]/page.tsx:          "locality",
+app/admin/services/[id]/page.tsx:          "pincode",
+app/admin/services/[id]/page.tsx:        <div style={{ opacity: 0.8 }}>Fetching service listing…</div>
+app/admin/services/[id]/page.tsx:        <div style={{ opacity: 0.85, marginBottom: 10 }}>Not found.</div>
+app/admin/services/[id]/page.tsx:  const location = [row.locality, row.city, row.district, row.state, row.country].filter(Boolean).join(", ");
+app/admin/services/[id]/page.tsx:            <div style={{ opacity: 0.85, marginBottom: 10 }}>
+app/admin/services/[id]/page.tsx:              {row.pincode ? ` • ${row.pincode}` : ""}
+app/admin/services/[id]/page.tsx:              <div style={{ lineHeight: 1.6, opacity: 0.9, whiteSpace: "pre-wrap" }}>{row.description}</div>
+app/admin/services/[id]/page.tsx:              <div style={{ opacity: 0.75 }}>No description provided.</div>
+app/admin/services/[id]/page.tsx:                <span style={{ opacity: 0.75 }}>Unit</span>
+app/admin/services/[id]/page.tsx:                <span style={{ opacity: 0.75 }}>Rate</span>
+app/admin/services/[id]/page.tsx:            <div style={{ marginTop: 12, opacity: 0.7, fontSize: 13 }}>
+app/admin/services/[id]/page.tsx:      <div style={{ marginTop: 14, opacity: 0.65, fontSize: 12 }}>
+app/api/ai/price-prediction/route.ts:The platform covers Indian real estate, building materials, construction services and rentals.
+app/api/ai/rfq-intelligence/route.ts:  const city = txt(body?.city);
+app/api/ai/rfq-intelligence/route.ts:  const locality = txt(body?.locality);
+app/api/ai/rfq-intelligence/route.ts:  const pincode = txt(body?.pincode);
+app/api/ai/rfq-intelligence/route.ts:  if (!city && !locality && !pincode) missingInformation.push("Delivery/service location is missing.");
+app/api/ai/rfq-intelligence/route.ts:  if (!city && !pincode) score -= 8;
+app/api/ai/rfq-intelligence/route.ts:    !city && !pincode ? "Add delivery/service location with pincode." : "",
+app/api/ai/rfq-intelligence/route.ts:- Be practical for Indian construction and real-estate marketplace users.
+app/api/ai/smart-decision/route.ts:You are Smart Decision AI for 3bigha.com, an Indian real-estate, materials, services, rentals and RFQ marketplace.
+app/api/ai/smart-fill/route.ts:You are the AI Smart-Fill Assistant for 3bigha.com, an Indian real estate, materials, services, rentals, turnkey, builder project, and blog/news platform.
+app/api/construction-cost/create-rfq/route.ts:      city: typeof body.city === "string" ? body.city : undefined,
+app/api/construction-cost/create-rfq/route.ts:      locality: typeof body.locality === "string" ? body.locality : undefined,
+app/api/construction-cost/create-rfq/route.ts:      pincode: typeof body.pincode === "string" ? body.pincode : undefined,
+app/api/investment/opportunities/[id]/route.ts:            city: propertyRow.city ?? null,
+app/api/investment/opportunities/[id]/route.ts:            state: propertyRow.state ?? null,
+app/api/onboarding/verify-location/route.ts:  state: string;
+app/api/onboarding/verify-location/route.ts:  district: string;
+app/api/onboarding/verify-location/route.ts:    let district = "";
+app/api/onboarding/verify-location/route.ts:    let state = "";
+app/api/onboarding/verify-location/route.ts:    let locality = "";
+app/api/onboarding/verify-location/route.ts:      if (c.types.includes("administrative_area_level_2") && !district) {
+app/api/onboarding/verify-location/route.ts:        district = c.long_name;
+app/api/onboarding/verify-location/route.ts:      if (c.types.includes("administrative_area_level_1") && !state) {
+app/api/onboarding/verify-location/route.ts:        state = c.long_name;
+app/api/onboarding/verify-location/route.ts:        (c.types.includes("locality") ||
+app/api/onboarding/verify-location/route.ts:          c.types.includes("sublocality") ||
+app/api/onboarding/verify-location/route.ts:        !locality
+app/api/onboarding/verify-location/route.ts:        locality = c.long_name;
+app/api/onboarding/verify-location/route.ts:      if (c.types.includes("postal_code") && !postcode) {
+app/api/onboarding/verify-location/route.ts:      .from("district_policies")
+app/api/onboarding/verify-location/route.ts:      console.error("district_policies fetch error:", policyErr);
+app/api/onboarding/verify-location/route.ts:        const stateOk = placeMatches(policy.state, state);
+app/api/onboarding/verify-location/route.ts:        // 🔥 PRIORITY: locality first (most accurate)
+app/api/onboarding/verify-location/route.ts:        const districtOk =
+app/api/onboarding/verify-location/route.ts:          placeMatches(policy.district, locality) || // primary
+app/api/onboarding/verify-location/route.ts:          placeMatches(policy.district, district);   // fallback
+app/api/onboarding/verify-location/route.ts:        return countryOk && stateOk && districtOk;
+app/api/onboarding/verify-location/route.ts:        verified_state: state || null,
+app/api/onboarding/verify-location/route.ts:        verified_district: district || null,
+app/api/onboarding/verify-location/route.ts:        verified_locality: locality || null,
+app/api/onboarding/verify-location/route.ts:          ? "allowed_district"
+app/api/onboarding/verify-location/route.ts:          : "outside_allowed_district",
+app/api/onboarding/verify-location/route.ts:      district,
+app/api/onboarding/verify-location/route.ts:      state,
+app/api/onboarding/verify-location/route.ts:      locality,
+app/api/onboarding/verify-location/route.ts:      matched_policy_district: matchedPolicy?.district ?? null,
+app/api/property/public-listings/route.ts:      "city",
+app/api/property/public-listings/route.ts:      "state",
+app/api/property-listings/create-draft/route.ts:      city,
+app/api/property-listings/create-draft/route.ts:    if (!city) {
+app/api/property-listings/create-draft/route.ts:        { error: "city is required" },
+app/api/property-listings/create-draft/route.ts:      city,
+app/api/property-listings/create-draft/route.ts:      district: body?.district,
+app/api/property-listings/create-draft/route.ts:      state: body?.state,
+app/api/property-listings/create-draft/route.ts:      locality: body?.locality,
+app/api/property-listings/create-draft/route.ts:      pincode: body?.pincode,
+app/api/property-listings/create-draft/route.ts:      city,
+app/api/property-listings/create-draft/route.ts:      geo_state_id: geography.geo_state_id,
+app/api/property-listings/create-draft/route.ts:      geo_district_id: geography.geo_district_id,
+app/api/property-listings/create-draft-full/route.ts:      city,
+app/api/property-listings/create-draft-full/route.ts:    if (!city) {
+app/api/property-listings/create-draft-full/route.ts:        { error: "city is required" },
+app/api/property-listings/create-draft-full/route.ts:      state: extraUpdate?.state || minimalInsert?.state,
+app/api/property-listings/create-draft-full/route.ts:      district: extraUpdate?.district || minimalInsert?.district,
+app/api/property-listings/create-draft-full/route.ts:      city: extraUpdate?.city || minimalInsert?.city || city,
+app/api/property-listings/create-draft-full/route.ts:      locality:
+app/api/property-listings/create-draft-full/route.ts:        extraUpdate?.locality ||
+app/api/property-listings/create-draft-full/route.ts:        extraUpdate?.sub_locality ||
+app/api/property-listings/create-draft-full/route.ts:        minimalInsert?.locality ||
+app/api/property-listings/create-draft-full/route.ts:        minimalInsert?.sub_locality,
+app/api/property-listings/create-draft-full/route.ts:      pincode: extraUpdate?.postal_code || minimalInsert?.postal_code,
+app/api/property-listings/create-draft-full/route.ts:      city,
+app/api/property-listings/create-draft-full/route.ts:      geo_state_id: geography.geo_state_id,
+app/api/property-listings/create-draft-full/route.ts:      geo_district_id: geography.geo_district_id,
+app/api/property-listings/route.ts:      "city",
+app/api/property-listings/route.ts:      "state",
+app/api/rfq/create/route.ts:    const city = String(body?.city ?? "").trim();
+app/api/rfq/create/route.ts:    const locality = String(body?.locality ?? "").trim();
+app/api/rfq/create/route.ts:    const pincode = String(body?.pincode ?? "").trim();
+app/api/rfq/create/route.ts:    if (!city || !locality || !pincode) {
+app/api/rfq/create/route.ts:    const district = String(body?.district ?? "").trim(); // optional
+app/api/rfq/create/route.ts:        state: null,
+app/api/rfq/create/route.ts:        district,
+app/api/rfq/create/route.ts:        city,
+app/api/rfq/create/route.ts:        locality,
+app/api/rfq/create/route.ts:        pincode,
+app/api/rfq/create/route.ts:        city,
+app/api/rfq/create/route.ts:        district: district || null,
+app/api/rfq/create/route.ts:        locality,
+app/api/rfq/create/route.ts:        pincode,
+app/api/rfq/create/route.ts:        geo_state_id: geography?.geo_state_id || null,
+app/api/rfq/create/route.ts:        geo_district_id: geography?.geo_district_id || null,
+app/api/rfq/create/route.ts:      matchUrl.searchParams.set("city", city);
+app/api/rfq/create/route.ts:      matchUrl.searchParams.set("locality", locality);
+app/api/rfq/create/route.ts:      matchUrl.searchParams.set("pincode", pincode);
+app/api/rfq/create/route.ts:      if (geography?.geo_state_id) matchUrl.searchParams.set("geo_state_id", geography.geo_state_id);
+app/api/rfq/create/route.ts:      if (geography?.geo_district_id) matchUrl.searchParams.set("geo_district_id", geography.geo_district_id);
+app/api/rfq/create/route.ts:            Location: ${locality}, ${city} (${pincode})
+app/api/rfq/create/route.ts:        city,
+app/api/rfq/create/route.ts:        district: district || null,
+app/api/rfq/create/route.ts:        locality,
+app/api/rfq/create/route.ts:          pincode,
+app/api/rfq/create/route.ts:    // - Match vendors by pincode first
+app/api/rfq/create/route.ts:    // - fallback to city/locality (ilike)
+app/api/rfq/create/route.ts:      if (pincode) ors.push(`pincode.eq.${pincode}`);
+app/api/rfq/create/route.ts:      if (city) ors.push(`city.ilike.%${city}%`);
+app/api/rfq/create/route.ts:      if (locality) ors.push(`locality.ilike.%${locality}%`);
+app/api/rfq/create/route.ts:                `📢 New RFQ Received!\n\n${title}\n📍 ${locality}, ${city}\n\n👉 Open: ${rfqLink}`
+app/api/rfq/create/route.ts:                message: `${title} enquiry received from ${locality}, ${city}`,
+app/api/rfq/create/route.ts:                    body: `${title} enquiry from ${locality}, ${city}`,
+app/api/rfq/create/route.ts:                      city,
+app/api/rfq/create/route.ts:                      locality,
+app/api/rfq/create/route.ts:                      pincode,
+app/api/rfq/create/route.ts:📍 ${locality}, ${city}
+app/api/rfq/create/route.ts:                    locality || city
+app/api/rfq/create/route.ts:                      ? ` in ${[locality, city].filter(Boolean).join(", ")}`
+app/api/rfq/create/route.ts:                      city,
+app/api/rfq/create/route.ts:                      locality,
+app/api/rfq/create/route.ts:                      pincode,
+app/api/rfq/vendor-matches/route.ts:city=${input.city}
+app/api/rfq/vendor-matches/route.ts:locality=${input.locality}
+app/api/rfq/vendor-matches/route.ts:pincode=${input.pincode}
+app/api/rfq/vendor-matches/route.ts:city=${clean(row.city)}
+app/api/rfq/vendor-matches/route.ts:locality=${clean(row.locality)}
+app/api/rfq/vendor-matches/route.ts:district=${clean(row.district)}
+app/api/rfq/vendor-matches/route.ts:pincode=${clean(row.pincode)}
+app/api/rfq/vendor-matches/route.ts:  city: string;
+app/api/rfq/vendor-matches/route.ts:  locality: string;
+app/api/rfq/vendor-matches/route.ts:  pincode: string;
+app/api/rfq/vendor-matches/route.ts:  geo_state_id?: string | null;
+app/api/rfq/vendor-matches/route.ts:  geo_district_id?: string | null;
+app/api/rfq/vendor-matches/route.ts:  if (input.pincode) {
+app/api/rfq/vendor-matches/route.ts:    reasons.push("pincode-level intent");
+app/api/rfq/vendor-matches/route.ts:  } else if (input.locality) {
+app/api/rfq/vendor-matches/route.ts:    reasons.push("locality-level intent");
+app/api/rfq/vendor-matches/route.ts:  } else if (input.city) {
+app/api/rfq/vendor-matches/route.ts:    reasons.push("city-level intent");
+app/api/rfq/vendor-matches/route.ts:  if (input.city) {
+app/api/rfq/vendor-matches/route.ts:    query = query.ilike("location", `%${input.city}%`);
+app/api/rfq/vendor-matches/route.ts:    input.geo_district_id &&
+app/api/rfq/vendor-matches/route.ts:    row.geo_district_id &&
+app/api/rfq/vendor-matches/route.ts:    input.geo_district_id === row.geo_district_id;
+app/api/rfq/vendor-matches/route.ts:    input.geo_state_id &&
+app/api/rfq/vendor-matches/route.ts:    row.geo_state_id &&
+app/api/rfq/vendor-matches/route.ts:    input.geo_state_id === row.geo_state_id;
+app/api/rfq/vendor-matches/route.ts:    reasons.push("same district");
+app/api/rfq/vendor-matches/route.ts:    return { score: 12, level: "district", reason: reasons.join(" • ") };
+app/api/rfq/vendor-matches/route.ts:    reasons.push("same state");
+app/api/rfq/vendor-matches/route.ts:    return { score: 6, level: "state", reason: reasons.join(" • ") };
+app/api/rfq/vendor-matches/route.ts:  const statewide = row.statewide_service === true;
+app/api/rfq/vendor-matches/route.ts:    statewide &&
+app/api/rfq/vendor-matches/route.ts:    input.geo_state_id &&
+app/api/rfq/vendor-matches/route.ts:    row.geo_state_id === input.geo_state_id
+app/api/rfq/vendor-matches/route.ts:    level = "statewide";
+app/api/rfq/vendor-matches/route.ts:    reasons.push("statewide service");
+app/api/rfq/vendor-matches/route.ts:      (input.locality && preferredArea.includes(input.locality.toLowerCase())) ||
+app/api/rfq/vendor-matches/route.ts:      (input.city && preferredArea.includes(input.city.toLowerCase()))
+app/api/rfq/vendor-matches/route.ts:  const rowCity = clean(row.city);
+app/api/rfq/vendor-matches/route.ts:  const rowLocality = clean(row.locality);
+app/api/rfq/vendor-matches/route.ts:  const rowDistrict = clean(row.district);
+app/api/rfq/vendor-matches/route.ts:  const rowPincode = clean(row.pincode);
+app/api/rfq/vendor-matches/route.ts:  if (input.pincode && rowPincode && input.pincode === rowPincode) {
+app/api/rfq/vendor-matches/route.ts:    reasons.push("same pincode");
+app/api/rfq/vendor-matches/route.ts:  if (input.locality && rowLocality && includesLoose(rowLocality, input.locality)) {
+app/api/rfq/vendor-matches/route.ts:    reasons.push("locality match");
+app/api/rfq/vendor-matches/route.ts:  if (input.city && rowCity && includesLoose(rowCity, input.city)) {
+app/api/rfq/vendor-matches/route.ts:    reasons.push("city match");
+app/api/rfq/vendor-matches/route.ts:  if (input.city && rowDistrict && includesLoose(rowDistrict, input.city)) {
+app/api/rfq/vendor-matches/route.ts:    reasons.push("district relevance");
+app/api/rfq/vendor-matches/route.ts:const scarcityBoost =
+app/api/rfq/vendor-matches/route.ts:  score: Math.min(100, finalScore + scarcityBoost),
+app/api/rfq/vendor-matches/route.ts:  if (!row.city && !row.locality) {
+app/api/rfq/vendor-matches/route.ts:  if (input.geo_district_id && row.geo_district_id === input.geo_district_id) {
+app/api/rfq/vendor-matches/route.ts:    return { level: "district", priority: 4 };
+app/api/rfq/vendor-matches/route.ts:  if (input.geo_state_id && row.geo_state_id === input.geo_state_id) {
+app/api/rfq/vendor-matches/route.ts:    return { level: "state", priority: 5 };
+app/api/rfq/vendor-matches/route.ts:    { level: "district", target: 10 },
+app/api/rfq/vendor-matches/route.ts:    { level: "state", target: 12 },
+app/api/rfq/vendor-matches/route.ts:    const city = clean(url.searchParams.get("city"));
+app/api/rfq/vendor-matches/route.ts:    const locality = clean(url.searchParams.get("locality"));
+app/api/rfq/vendor-matches/route.ts:    const pincode = clean(url.searchParams.get("pincode"));
+app/api/rfq/vendor-matches/route.ts:    const geo_state_id = clean(url.searchParams.get("geo_state_id")) || null;
+app/api/rfq/vendor-matches/route.ts:    const geo_district_id = clean(url.searchParams.get("geo_district_id")) || null;
+app/api/rfq/vendor-matches/route.ts:      city,
+app/api/rfq/vendor-matches/route.ts:      locality,
+app/api/rfq/vendor-matches/route.ts:      pincode,
+app/api/rfq/vendor-matches/route.ts:      geo_state_id,
+app/api/rfq/vendor-matches/route.ts:      geo_district_id,
+app/api/rfq/vendor-matches/route.ts:          city,
+app/api/rfq/vendor-matches/route.ts:          locality,
+app/api/rfq/vendor-matches/route.ts:          pincode,
+app/api/rfq/vendor-matches/route.ts:          geo_state_id,
+app/api/rfq/vendor-matches/route.ts:          geo_district_id,
+app/api/rfq/vendor-matches/route.ts:          city: row.city,
+app/api/rfq/vendor-matches/route.ts:          locality: row.locality,
+app/api/rfq/vendor-matches/route.ts:          district: row.district,
+app/api/rfq/vendor-matches/route.ts:          statewide_service: row.statewide_service === true,
+app/api/rfq/vendor-matches/route.ts:              : row.statewide_service === true
+app/api/rfq/vendor-matches/route.ts:              ? "statewide_coverage"
+app/api/rfq/vendor-matches/route.ts:          city: clean(row.city),
+app/api/rfq/vendor-matches/route.ts:          locality: clean(row.locality),
+app/api/rfq/vendor-matches/route.ts:          district: clean(row.district),
+app/api/rfq/vendor-matches/route.ts:          pincode: clean(row.pincode),
+app/api/rfq/vendor-matches/route.ts:          geo_state_id: row.geo_state_id || null,
+app/api/rfq/vendor-matches/route.ts:          geo_district_id: row.geo_district_id || null,
+app/api/rfq/vendor-matches/route.ts:        city,
+app/api/rfq/vendor-matches/route.ts:        locality,
+app/api/rfq/vendor-matches/route.ts:        pincode,
+app/api/rfq/vendor-matches/route.ts:        geo_state_id,
+app/api/rfq/vendor-matches/route.ts:        geo_district_id,
+app/api/vendor/rfqs/route.ts:  city?: string | null;
+app/api/vendor/rfqs/route.ts:  locality?: string | null;
+app/api/vendor/rfqs/route.ts:  district?: string | null;
+app/api/vendor/rfqs/route.ts:  pincode?: string | null;
+app/api/vendor/rfqs/route.ts:      .select("user_id, city, locality, district, pincode")
+app/api/vendor/rfqs/route.ts:    const vCity = String(vendor.city ?? "").trim();
+app/api/vendor/rfqs/route.ts:    const vLocality = String(vendor.locality ?? "").trim();
+app/api/vendor/rfqs/route.ts:    const vDistrict = String(vendor.district ?? "").trim();
+app/api/vendor/rfqs/route.ts:    const vPincode = String(vendor.pincode ?? "").trim();
+app/api/vendor/rfqs/route.ts:          city,
+app/api/vendor/rfqs/route.ts:          locality,
+app/api/vendor/rfqs/route.ts:          pincode
+app/api/vendor/rfqs/route.ts:          delivery_city: rfq.city
+app/api/vendor/rfqs/route.ts:            ? [rfq.locality, rfq.city].filter(Boolean).join(", ")
+app/api/vendor/rfqs/route.ts:            : (rfq.locality ?? null),
+app/api/vendor/rfqs/route.ts:          delivery_district: null,
+app/api/vendor/rfqs/route.ts:          delivery_pincode: rfq.pincode ?? null,
+app/api/vendor/rfqs/route.ts:        filtered_by: { city: vCity, locality: vLocality, district: vDistrict, pincode: vPincode },
+app/api/vendor/rfqs/[id]/route.ts:      .select("id,name,phone,whatsapp,email,delivery_city,delivery_district,delivery_pincode,status,created_at")
+app/api/vendor/rfqs/[id]/route.ts:      .select("id,status,created_at,contact_name,contact_phone,contact_email,contact_whatsapp,city,locality,pincode")
+app/api/vendor/rfqs/[id]/route.ts:      delivery_city: [d.locality, d.city].filter(Boolean).join(", ") || null,
+app/api/vendor/rfqs/[id]/route.ts:      delivery_district: null,
+app/api/vendor/rfqs/[id]/route.ts:      delivery_pincode: d.pincode ?? null,
+app/auth/post-login/PostLoginPageClient.tsx:          hasValue(profile.city) &&
+app/auth/post-login/PostLoginPageClient.tsx:          hasValue(profile.state);
+app/banking-finance-assistance/page.tsx:                "Plan home loan EMI, eligibility, CIBIL requirement and repayment capacity before buying property.",
+app/blog/layout.tsx:    "Read 3bigha.com blog articles on real estate, land, construction materials, building services, rentals, investment, market prices and AI-powered marketplace insights.",
+app/blog/[slug]/page.tsx:      "Real estate, construction, materials, rentals and investment article from 3bigha.com.",
+app/dashboard/builder/deal-rooms/page.tsx:    row.city ||
+app/dashboard/builder/deal-rooms/page.tsx:    row.state ||
+app/dashboard/builder/deal-rooms/page.tsx:              className="inline-flex items-center rounded-xl bg-black px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+app/dashboard/builder/deal-rooms/page.tsx:                          className="inline-flex items-center rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+app/dashboard/buyer/enquiries/[rfqId]/quotes/page.tsx:        <div style={{ marginTop: 8, opacity: 0.7 }}>
+app/dashboard/buyer/enquiries/[rfqId]/quotes/quote-compare-client.tsx:        <div style={{ marginTop: 12, opacity: 0.75 }}>
+app/dashboard/buyer/enquiries/[rfqId]/quotes/quote-compare-client.tsx:            <div style={{ opacity: 0.75 }}>
+app/dashboard/buyer/enquiries/[rfqId]/quotes/quote-compare-client.tsx:              <span style={{ fontSize: 12, opacity: 0.7, marginRight: 6 }}>
+app/dashboard/buyer/enquiries/[rfqId]/quotes/quote-compare-client.tsx:                        <div style={{ fontSize: 12, opacity: 0.7 }}>
+app/dashboard/buyer/enquiries/[rfqId]/quotes/quote-compare-client.tsx:                        <div style={{ fontSize: 12, opacity: 0.7 }}>{it.description}</div>
+app/dashboard/buyer/enquiries/[rfqId]/quotes/quote-compare-client.tsx:                            <span style={{ opacity: 0.6 }}>—</span>
+app/dashboard/buyer/enquiries/[rfqId]/quotes/quote-compare-client.tsx:                              <div style={{ fontSize: 12, opacity: 0.75 }}>Unit</div>
+app/dashboard/buyer/enquiries/[rfqId]/quotes/quote-compare-client.tsx:                              <div style={{ fontSize: 12, opacity: 0.75 }}>Line Total</div>
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:            <div style={{ fontSize: 12, opacity: 0.7 }}>Preparing audio...</div>
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:          <div style={{ marginTop: 6, fontSize: 12, opacity: 0.78 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:          <div style={{ marginTop: 6, fontSize: 12, opacity: 0.78 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:        <div style={{ marginTop: 4, fontSize: 12, opacity: 0.78 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:          <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>Preparing file link...</div>
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:          <div style={{ fontSize: 12, opacity: 0.7 }}>Vendor</div>
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:          <div style={{ opacity: 0.7 }}>No messages yet.</div>
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:                    style={{ marginTop: 4, fontSize: 11, opacity: 0.6 }}
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:  <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 4, opacity: 0.8 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:                          opacity: 0.8,
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:      opacity: 0.65,
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:    opacity: 0.72,
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:              <div style={{ fontSize: 12, opacity: 0.7 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:          <div style={{ fontSize: 12, opacity: 0.7 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:                        <div style={{ fontSize: 12, opacity: 0.72 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/chat/page.tsx:        <div style={{ marginTop: 10, opacity: 0.75 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/chat/page.tsx:    .select("user_id,business_name,city,locality")
+app/dashboard/buyer/quote-compare/[rfqId]/chat/page.tsx:          <div style={{ marginTop: 6, opacity: 0.75 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:    city: rfq?.city ?? null,
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:    locality: rfq?.locality ?? null,
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:    district: rfq?.district ?? null,
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:    pincode: rfq?.pincode ?? null,
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:      city: v.vendor_city,
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:      locality: v.vendor_locality,
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:        state={{
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:          <div style={{ marginTop: 6, opacity: 0.8 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:            {[(rfq?.locality ?? "").trim(), (rfq?.city ?? "").trim(), (rfq?.district ?? "").trim()]
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:            {rfq?.pincode ? `, ${rfq.pincode}` : ""}
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:            <strong>Created:</strong> {fmtDateTime(rfq?.created_at)} <span style={{ opacity: 0.7 }}>•</span>{" "}
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:              <div style={{ marginTop: 8, fontSize: 13, opacity: 0.85 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                📍 {[selectedVendor.vendor_locality, selectedVendor.vendor_city].filter(Boolean).join(", ") || "—"}
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                {selectedVendor.vendor_city ? (
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:              <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 900 }}>Final Total</div>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:          <div style={{ marginTop: 10, opacity: 0.75 }}>No vendor quotations received yet. Vendors usually respond after viewing the requirement.</div>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                          if (!card) return <span style={{ opacity: 0.6 }}>—</span>;
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:          <div style={{ marginTop: 10, opacity: 0.75 }}>No items found for this RFQ.</div>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:          <div style={{ marginTop: 10, opacity: 0.75 }}>No quotes received yet.</div>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:              const place = [v.vendor_locality, v.vendor_city].filter(Boolean).join(", ");
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                    <div style={{ marginTop: 4, fontSize: 13, opacity: 0.8 }}>{place ? `📍 ${place}` : null}</div>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                      <div style={{ fontSize: 12, opacity: 0.7, fontWeight: 900 }}>Grand Total</div>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                      <div style={{ fontSize: 12, opacity: 0.8 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                      <div style={{ fontSize: 12, opacity: 0.8 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                      <div style={{ fontSize: 12, opacity: 0.8 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                      <div style={{ fontSize: 12, opacity: 0.8 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:          <div style={{ marginTop: 10, opacity: 0.75 }}>Nothing to compare yet.</div>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                      <div style={{ marginTop: 4, fontSize: 12, opacity: 0.8 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                        <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75 }}>{it.description}</div>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                            <span style={{ opacity: 0.6 }}>—</span>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                            <span style={{ opacity: 0.7 }}>No quote</span>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                              <div style={{ fontSize: 12, opacity: 0.8 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                              <div style={{ fontSize: 12, opacity: 0.8 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                              <div style={{ fontSize: 12, opacity: 0.8 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:                      <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/page.tsx:      <div style={{ marginTop: 16, opacity: 0.75, fontSize: 13 }}>
+app/dashboard/buyer/quote-compare/[rfqId]/PricePredictionToggle.tsx:          city: payload?.city,
+app/dashboard/buyer/quote-compare/[rfqId]/PricePredictionToggle.tsx:          locality: payload?.locality,
+app/dashboard/buyer/quote-compare/[rfqId]/print/page.tsx:    .select("id,public_id,meta,city,district,locality,pincode")
+app/dashboard/buyer/quote-compare/[rfqId]/print/page.tsx:    .select("user_id,business_name,city,locality")
+app/dashboard/buyer/quote-compare/[rfqId]/print/page.tsx:            <div style={{ marginTop: 6, opacity: 0.8 }}>RFQ #{rfqNo}</div>
+app/dashboard/buyer/quote-compare/[rfqId]/print/page.tsx:            {[(rfq as any)?.locality, (rfq as any)?.city, (rfq as any)?.district].filter(Boolean).join(", ") || "—"}
+app/dashboard/buyer/quote-compare/[rfqId]/print/page.tsx:            {(rfq as any)?.pincode ? `, ${(rfq as any).pincode}` : ""}
+app/dashboard/buyer/quote-compare/[rfqId]/print/page.tsx:                        <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>{item.description}</div>
+app/dashboard/buyer/rfqs/page.tsx:  city: string | null;
+app/dashboard/buyer/rfqs/page.tsx:  district: string | null;
+app/dashboard/buyer/rfqs/page.tsx:  locality: string | null;
+app/dashboard/buyer/rfqs/page.tsx:  pincode: string | null;
+app/dashboard/buyer/rfqs/page.tsx:  city: string | null;
+app/dashboard/buyer/rfqs/page.tsx:  locality: string | null;
+app/dashboard/buyer/rfqs/page.tsx:  vendor_city: string | null;
+app/dashboard/buyer/rfqs/page.tsx:  vendor_locality: string | null;
+app/dashboard/buyer/rfqs/page.tsx:          r.locality ?? "",
+app/dashboard/buyer/rfqs/page.tsx:          r.city ?? "",
+app/dashboard/buyer/rfqs/page.tsx:          r.district ?? "",
+app/dashboard/buyer/rfqs/page.tsx:          r.pincode ?? "",
+app/dashboard/buyer/rfqs/page.tsx:          "city",
+app/dashboard/buyer/rfqs/page.tsx:          "district",
+app/dashboard/buyer/rfqs/page.tsx:          "locality",
+app/dashboard/buyer/rfqs/page.tsx:          "pincode",
+app/dashboard/buyer/rfqs/page.tsx:          r.locality ?? "",
+app/dashboard/buyer/rfqs/page.tsx:          r.city ?? "",
+app/dashboard/buyer/rfqs/page.tsx:          r.district ?? "",
+app/dashboard/buyer/rfqs/page.tsx:          r.pincode ?? "",
+app/dashboard/buyer/rfqs/page.tsx:        .select("user_id,business_name,city,locality")
+app/dashboard/buyer/rfqs/page.tsx:        vendor_city: bp?.city ?? null,
+app/dashboard/buyer/rfqs/page.tsx:        vendor_locality: bp?.locality ?? null,
+app/dashboard/buyer/rfqs/page.tsx:      city: r.city || "",
+app/dashboard/buyer/rfqs/page.tsx:      district: r.district || "",
+app/dashboard/buyer/rfqs/page.tsx:      locality: r.locality || "",
+app/dashboard/buyer/rfqs/page.tsx:    city: "",
+app/dashboard/buyer/rfqs/page.tsx:          <div style={{ opacity: 0.8 }}>Preparing your RFQ list…</div>
+app/dashboard/buyer/rfqs/page.tsx:                <div style={{ fontSize: 12, fontWeight: 900, opacity: 0.7, marginBottom: 6 }}>Status</div>
+app/dashboard/buyer/rfqs/page.tsx:                <div style={{ fontSize: 12, fontWeight: 900, opacity: 0.7, marginBottom: 6 }}>Module</div>
+app/dashboard/buyer/rfqs/page.tsx:                <div style={{ fontSize: 12, fontWeight: 900, opacity: 0.7, marginBottom: 6 }}>Search</div>
+app/dashboard/buyer/rfqs/page.tsx:                  placeholder="Search by title / city / pincode / module…"
+app/dashboard/buyer/rfqs/page.tsx:            <div style={{ opacity: 0.8 }}>Loading your RFQs…</div>
+app/dashboard/buyer/rfqs/page.tsx:                              📍 {[(r.locality || "").trim(), (r.city || "").trim()].filter(Boolean).join(", ") || "—"}
+app/dashboard/buyer/rfqs/page.tsx:                              {r.pincode ? `, ${r.pincode}` : ""}
+app/dashboard/buyer/rfqs/page.tsx:                                        📍 {[selected.vendor_locality, selected.vendor_city].filter(Boolean).join(", ") || "—"}
+app/dashboard/buyer/rfqs/page.tsx:                                      <div style={{ fontSize: 12, fontWeight: 900, color: "#065f46", opacity: 0.85 }}>
+app/dashboard/buyer/rfqs/[id]/page.tsx:            <div style={{ marginTop: 10, opacity: 0.85, fontSize: 13 }}>
+app/dashboard/buyer/rfqs/[id]/page.tsx:          state={buildProcurementWorkflowContinuity(procurementTimelineInput)}
+app/dashboard/buyer/rfqs/[id]/page.tsx:                {[rfq?.locality, rfq?.city, rfq?.district, rfq?.pincode]
+app/dashboard/buyer/rfqs/[id]/page.tsx:                style={{ marginLeft: "auto", opacity: 0.75, fontSize: 13 }}
+app/dashboard/buyer/rfqs/[id]/page.tsx:                        {(v.vendor_locality || v.vendor_city) ? (
+app/dashboard/buyer/rfqs/[id]/page.tsx:                            {[v.vendor_locality, v.vendor_city]
+app/dashboard/thread/[conversationId]/rfq-unified-reply-box.tsx:          className="inline-flex items-center rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+app/dashboard/vendor/master-data/rentals/page.tsx:      subtitle="Add machine, equipment, capacity, rental unit and operator options in simple local language."
+app/dashboard/vendor/rfqs/page.tsx:  city?: string | null;
+app/dashboard/vendor/rfqs/page.tsx:  district?: string | null;
+app/dashboard/vendor/rfqs/page.tsx:  locality_name?: string | null;
+app/dashboard/vendor/rfqs/page.tsx:  pincode?: string | null;
+app/dashboard/vendor/rfqs/page.tsx:            const loc = [r.locality_name, r.city, r.district, r.pincode].map(safeText).filter(Boolean).join(", ");
+app/dashboard/vendor/rfqs/page.tsx:                        {who} {loc ? <span style={{ opacity: 0.7 }}>• {loc}</span> : null}
+app/dashboard/vendor/rfqs/page.tsx:                      <div style={{ opacity: 0.78, fontSize: 12.5, marginTop: 6, lineHeight: 1.6 }}>
+app/dashboard/vendor/rfqs/page.tsx:                        <summary style={{ cursor: "pointer", opacity: 0.7, fontSize: 12, fontWeight: 800 }}>
+app/dashboard/vendor/rfqs/page.tsx:                        <div style={{ opacity: 0.7, fontSize: 12, marginTop: 6, wordBreak: "break-all" }}>
+app/dashboard/vendor/rfqs/page.tsx:                      <div style={{ fontWeight: 900, opacity: 0.75, fontSize: 12, textTransform: "uppercase" }}>{r.rfq_status ?? "open"}</div>
+app/dashboard/vendor/rfqs/[id]/page.tsx:  delivery_city: string | null;
+app/dashboard/vendor/rfqs/[id]/page.tsx:  delivery_district: string | null;
+app/dashboard/vendor/rfqs/[id]/page.tsx:  delivery_pincode: string | null;
+app/dashboard/vendor/rfqs/[id]/page.tsx:  const locationText = [safeText(row?.delivery_city), safeText(row?.delivery_district), safeText(row?.delivery_pincode)]
+app/dashboard/vendor/rfqs/[id]/page.tsx:      text: `Hi ${buyerName}, materials for RFQ (${rfqId}) are available. I can deliver quickly in ${safeText(row?.delivery_city) || "your area"}. Shall I call you for confirmation?`,
+app/dashboard/vendor/rfqs/[id]/page.tsx:            state={buildProcurementWorkflowContinuity(procurementTimelineInput)}
+app/dashboard/vendor/rfqs/[id]/page.tsx:                <div style={{ marginTop: 6, opacity: 0.85 }}>📍 {locationText || "Location not specified"}</div>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                <div style={{ marginTop: 6, opacity: 0.85 }}>🕒 {fmtDate(row.created_at)}</div>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                      <div style={{ opacity: 0.9, marginBottom: 6 }}>Phone: {buyerPhoneRaw || buyerPhoneDigits}</div>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                      <div style={{ opacity: 0.7, marginBottom: 6 }}>Phone: —</div>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                      <div style={{ opacity: 0.9, marginBottom: 10 }}>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                          <span style={{ opacity: 0.6, marginLeft: 8, fontSize: 12 }}>(same as phone)</span>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                      <div style={{ opacity: 0.7, marginBottom: 10 }}>WhatsApp: —</div>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                      <div style={{ opacity: 0.9, marginBottom: 10 }}>Email: {buyerEmail}</div>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                      <div style={{ opacity: 0.7, marginBottom: 10 }}>Email: —</div>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                        <span className="topBtn topBtnGhost" style={{ opacity: 0.5 }}>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                        <span className="topBtn topBtnGhost" style={{ opacity: 0.5 }}>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                        <span className="topBtn topBtnGhost" style={{ opacity: 0.5 }}>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                        <span style={{ fontWeight: 600, opacity: 0.6, marginLeft: 8, fontSize: 12 }}>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                      <div style={{ marginTop: 8, fontSize: 12, opacity: 0.65 }}>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(0,0,0,0.1)", opacity: 0.7 }}>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                  <div style={{ marginTop: 10, opacity: 0.65, fontSize: 12 }}>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                <div style={{ marginTop: 10, opacity: 0.7, fontSize: 12 }}>
+app/dashboard/vendor/rfqs/[id]/page.tsx:                <div style={{ fontWeight: 900, opacity: 0.75 }}>{row.status ?? "open"}</div>
+app/founding-vendors/page.tsx:          <Link className="foundingPrimaryBtn" href="/onboarding/business?source=district-founder&program=district-founding-vendor">
+app/founding-vendors/page.tsx:          <Link className="foundingSecondaryBtn" href="/onboarding/business?source=district-founder&program=district-founding-vendor&intent=start-listing">
+app/founding-vendors/page.tsx:          <Link className="foundingPrimaryBtn" href="/onboarding/business?source=district-founder&program=district-founding-vendor">
+app/layout.tsx:    "3bigha.com is India's AI-powered real estate, construction, RFQ, materials, rentals and vendor marketplace platform. Search property, compare vendors, submit procurement RFQs, discover local services and track AI-powered price intelligence across regional marketplaces.",
+app/manifest.ts:      "AI-powered real estate, construction, materials, RFQ and procurement platform for India.",
+app/materials/add/page.tsx:  const [loadCapacity, setLoadCapacity] = useState("");
+app/materials/add/page.tsx:    setLoadCapacity(inv.load_capacity ?? "");
+app/materials/add/page.tsx:          .select("state,district,city,locality,pincode,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id,geo_place_id")
+app/materials/add/page.tsx:        if (vendorProfile?.geo_state_id) {
+app/materials/add/page.tsx:            geo_state_id: vendorProfile.geo_state_id,
+app/materials/add/page.tsx:            geo_district_id: vendorProfile.geo_district_id,
+app/materials/add/page.tsx:              state: vendorProfile.state,
+app/materials/add/page.tsx:              district: vendorProfile.district,
+app/materials/add/page.tsx:              city: vendorProfile.city,
+app/materials/add/page.tsx:              locality: vendorProfile.locality,
+app/materials/add/page.tsx:              pincode: vendorProfile.pincode,
+app/materials/add/page.tsx:            load_capacity: loadCapacity.trim() || null,
+app/materials/add/page.tsx:        geo_state_id: geography?.geo_state_id || null,
+app/materials/add/page.tsx:        geo_district_id: geography?.geo_district_id || null,
+app/materials/add/page.tsx:        load_capacity: loadCapacity.trim() || null,
+app/materials/add/page.tsx:        <div style={{ fontSize: 12, opacity: 0.7 }}>
+app/materials/add/page.tsx:                  Step 1 — Select Group <span style={{ opacity: 0.6 }}>(required)</span>
+app/materials/add/page.tsx:                  Step 2 — Select Type <span style={{ opacity: 0.6 }}>(required)</span>
+app/materials/add/page.tsx:                <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75, lineHeight: 1.4 }}>
+app/materials/add/page.tsx:                  Step 3A — Select Category <span style={{ opacity: 0.6 }}>(required)</span>
+app/materials/add/page.tsx:                  Step 3B — Select Subcategory <span style={{ opacity: 0.6 }}>(required)</span>
+app/materials/add/page.tsx:                <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75, lineHeight: 1.4 }}>
+app/materials/add/page.tsx:                  Step 3C — Select Product Group <span style={{ opacity: 0.6 }}>(required)</span>
+app/materials/add/page.tsx:                <div style={{ marginTop: 6, fontSize: 12, opacity: 0.75, lineHeight: 1.4 }}>
+app/materials/add/page.tsx:              <div style={{ fontSize: 13, opacity: 0.9, lineHeight: 1.55 }}>
+app/materials/add/page.tsx:                    Title <span style={{ opacity: 0.6 }}>(required)</span>
+app/materials/add/page.tsx:                    Local / Regional Name <span style={{ opacity: 0.6 }}>(optional)</span>
+app/materials/add/page.tsx:                  <div style={{ marginTop: 6, fontSize: 12, opacity: 0.72, lineHeight: 1.4 }}>
+app/materials/add/page.tsx:                                  opacity: 0.72,
+app/materials/add/page.tsx:                          opacity: 0.72,
+app/materials/add/page.tsx:                          <div style={{ fontSize: 10, opacity: 0.65 }}>
+app/materials/add/page.tsx:                      <input value={loadCapacity} onChange={(e) => setLoadCapacity(e.target.value)} placeholder="Load Capacity: 300 cft / 10 ton" style={{ padding: 10, borderRadius: 10, border: "1px solid #ddd" }} />
+app/materials/add/page.tsx:                  <div style={{ marginTop: 6, fontSize: 12, opacity: 0.72, lineHeight: 1.4 }}>
+app/materials/add/page.tsx:                <div style={{ fontSize: 13, opacity: 0.8 }}>Select a product group to load attributes.</div>
+app/materials/add/page.tsx:                <div style={{ fontSize: 13, opacity: 0.8 }}>Loading attributes...</div>
+app/materials/add/page.tsx:                <div style={{ fontSize: 13, opacity: 0.8 }}>
+app/materials/add/page.tsx:              <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75, lineHeight: 1.4 }}>
+app/materials/my/page.tsx:      {props.description ? <div style={{ opacity: 0.8, lineHeight: 1.5 }}>{props.description}</div> : null}
+app/materials/my/page.tsx:            opacity: loading ? 0.6 : 1,
+app/materials/my/page.tsx:                  <div style={{ opacity: 0.8 }}>
+app/materials/page.tsx:              <div style={{ fontSize: 13, opacity: 0.75, lineHeight: 1.45 }}>{item.note}</div>
+app/materials/page.tsx:          <span style={{ fontSize: 13, fontWeight: 900, opacity: 0.75 }}>
+app/materials/page.tsx:              opacity: checkingAdd ? 0.75 : 1,
+app/materials/rfq/new/page.tsx:    setDeliveryDistrict(payload.delivery_district ?? "");
+app/materials/rfq/new/page.tsx:    setDeliveryCity(payload.delivery_city ?? "");
+app/materials/rfq/new/page.tsx:    setDeliveryPincode(payload.delivery_pincode ?? "");
+app/materials/rfq/new/page.tsx:          delivery_district: safeText(deliveryDistrict) || null,
+app/materials/rfq/new/page.tsx:          delivery_city: safeText(deliveryCity) || null,
+app/materials/rfq/new/page.tsx:          delivery_pincode: safeText(deliveryPincode) || null,
+app/materials/rfq/new/page.tsx:              delivery_district: safeText(deliveryDistrict),
+app/materials/rfq/new/page.tsx:              delivery_city: safeText(deliveryCity),
+app/materials/rfq/new/page.tsx:              delivery_pincode: safeText(deliveryPincode),
+app/materials/rfq/new/page.tsx:                    opacity: 0.72,
+app/materials/rfq/new/page.tsx:                    <div style={{ fontWeight: 800, opacity: 0.75 }}>Item #{i + 1}</div>
+app/materials/[id]/page.tsx:    city: "Cooch Behar",
+app/materials/[id]/page.tsx:    district: "Cooch Behar",
+app/materials/[id]/page.tsx:    locality: "Khagrabari",
+app/materials/[id]/page.tsx:  city: "Cooch Behar",
+app/materials/[id]/page.tsx:  district: "Cooch Behar",
+app/materials/[id]/page.tsx:  locality: "Khagrabari",
+app/materials/[id]/page.tsx:  city: "Cooch Behar",
+app/materials/[id]/page.tsx:  district: "Cooch Behar",
+app/materials/[id]/page.tsx:  locality: "Khagrabari",
+app/materials/[id]/page.tsx:  city: "Cooch Behar",
+app/materials/[id]/page.tsx:  district: "Cooch Behar",
+app/materials/[id]/page.tsx:  locality: "Khagrabari",
+app/materials/[id]/page.tsx:          city={row?.city || ""}
+app/materials/[id]/page.tsx:          district={row?.district || ""}
+app/materials/[id]/page.tsx:          locality={row?.locality || ""}
+app/materials/[id]/page.tsx:                      opacity: 0.92,
+app/materials/[id]/page.tsx:                  <div style={{ opacity: 0.7 }}>
+app/materials/[id]/page.tsx:                            opacity: 0.85,
+app/materials/[id]/page.tsx:                          opacity: 0.75,
+app/materials/[id]/page.tsx:                            opacity: 0.75,
+app/materials/[id]/page.tsx:                        city={item.city}
+app/materials/[id]/page.tsx:                        district={item.district}
+app/materials/[id]/page.tsx:                        locality={item.locality}
+app/materials/[id]/page.tsx:                            opacity: 0.8,
+app/materials/[id]/page.tsx:                            opacity: 0.7,
+app/materials/[id]/page.tsx:                          {[item.locality, item.city, item.district]
+app/materials/[id]/page.tsx:              <div style={{ marginTop: 12, opacity: 0.7, fontSize: 12 }}>
+app/materials/[id]/page.tsx:                <div style={{ fontSize:12, opacity:.6, marginBottom:8 }}>
+app/materials/[id]/page.tsx:                  city: row.city || "Cooch Behar",
+app/materials/[id]/page.tsx:                  district: row.district || "Cooch Behar",
+app/materials/[id]/page.tsx:                  locality: row.locality || "Khagrabari",
+app/onboarding/business/BusinessOnboardingPageClient.tsx:  city: string | null;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:  district: string | null;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:  state: string | null;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:  pincode: string | null;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:  rera_state: string | null;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:  verified_state: string | null;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:  verified_district: string | null;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:  verified_locality: string | null;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:  statewide_service: boolean | null;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:  preferred_geo_districts: string[] | null;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:  district_id?: string | null;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:      s.includes("city") ||
+app/onboarding/business/BusinessOnboardingPageClient.tsx:      s.includes("district") ||
+app/onboarding/business/BusinessOnboardingPageClient.tsx:      s.includes("state") ||
+app/onboarding/business/BusinessOnboardingPageClient.tsx:      s.includes("pincode") ||
+app/onboarding/business/BusinessOnboardingPageClient.tsx:          {hint ? <div style={{ opacity: 0.7, fontSize: 12 }}>{hint}</div> : null}
+app/onboarding/business/BusinessOnboardingPageClient.tsx:        setGeoDistricts(Array.isArray(data.districts) ? data.districts : []);
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            bp.city,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            bp.district,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            bp.state,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            bp.pincode,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:          state: payload.state,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:          district: payload.district,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:          city: payload.city,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:          locality:
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            payload.locality ||
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            payload.verified_locality ||
+app/onboarding/business/BusinessOnboardingPageClient.tsx:          pincode: payload.pincode || payload.verified_postcode,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:        payload.geo_state_id = geography.geo_state_id;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:        payload.geo_district_id = geography.geo_district_id;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                state: json.state || bp.state,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                district: json.district || bp.district,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                city: json.locality || bp.city,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                locality: json.locality || bp.city,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                pincode: json.postcode || bp.pincode,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            verified_state: json.state ?? null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            verified_district: json.district ?? null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            verified_locality: json.locality ?? null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            district: json.district || bp.district || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            state: json.state || bp.state || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            city: json.locality || bp.city || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            pincode: json.postcode || bp.pincode || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            geo_state_id: geography?.geo_state_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            geo_district_id: geography?.geo_district_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:              verified_state: json.state ?? null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:              verified_district: json.district ?? null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:              verified_locality: json.locality ?? null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:              district: json.district || bp.district || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:              state: json.state || bp.state || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:              city: json.locality || bp.city || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:              pincode: json.postcode || bp.pincode || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:              geo_state_id: geography?.geo_state_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:              geo_district_id: geography?.geo_district_id || null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:              json.locality || json.district || "Location detected"
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            }${json.eligible_free ? " • Free district eligible" : ""}`
+app/onboarding/business/BusinessOnboardingPageClient.tsx:      city: bp.city ?? null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:      state: bp.state ?? null,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:      <p style={{ opacity: 0.8 }}>
+app/onboarding/business/BusinessOnboardingPageClient.tsx:              {vcLoading && <span style={{ marginLeft: 10, opacity: 0.7 }}>(updating…)</span>}
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            <div style={{ marginTop: 6, opacity: 0.8 }}>
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                <span style={{ marginLeft: 10, opacity: 0.7 }}>
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                  opacity: saving || !isCompleteUI ? 0.8 : 1,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                <span style={{ opacity: 0.8 }}>
+app/onboarding/business/BusinessOnboardingPageClient.tsx:          <p style={{ marginTop: 0, opacity: 0.8 }}>Select all that apply.</p>
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                ? "Device live location verification is mandatory. Manual address or copied district will not activate dashboard access."
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                    bp.verified_locality ||
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                    bp.verified_district ||
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                  }${bp.eligible_free ? " • Free district eligible" : ""}`}
+app/onboarding/business/BusinessOnboardingPageClient.tsx:              <p style={{ marginTop: 0, fontSize: 12, opacity: 0.75 }}>
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                    checked={!!bp.statewide_service}
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                    onChange={(e) => setField("statewide_service", e.target.checked)}
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                  I can serve across my state
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                          checked={!!bp.preferred_geo_districts?.includes(row.id)}
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                          onChange={() => toggleArrayField("preferred_geo_districts", row.id)}
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                District: <b>{bp.verified_locality || bp.verified_district || "Detected"}</b>
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                Locality: <b>{bp.verified_locality || "Detected"}</b>
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                State: <b>{bp.verified_state || "Detected"}</b>
+app/onboarding/business/BusinessOnboardingPageClient.tsx:            <p style={{ marginTop: 0, opacity: 0.8 }}>
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                  value={bp.rera_state ?? ""}
+app/onboarding/business/BusinessOnboardingPageClient.tsx:                  onChange={(e) => setField("rera_state", e.target.value)}
+app/property/add/AddPropertyPageClient.tsx:      // IMPORTANT: do not depend on current React state here
+app/property/add/AddPropertyPageClient.tsx:  setCity(String(loc.city ?? ""));
+app/property/add/AddPropertyPageClient.tsx:  setDistrict(String(loc.district ?? ""));
+app/property/add/AddPropertyPageClient.tsx:  setLocality(String(loc.locality ?? ""));
+app/property/add/AddPropertyPageClient.tsx:  setPostalCode(String(loc.postalCode ?? ""));
+app/property/add/AddPropertyPageClient.tsx:  setStateName(String(loc.stateName ?? ""));
+app/property/add/AddPropertyPageClient.tsx:  setCity(String((row as any).city ?? ""));
+app/property/add/AddPropertyPageClient.tsx:  setStateName(String((row as any).state ?? ""));
+app/property/add/AddPropertyPageClient.tsx:  const [city, setCity] = useState("");
+app/property/add/AddPropertyPageClient.tsx:  const [district, setDistrict] = useState("");
+app/property/add/AddPropertyPageClient.tsx:  const [locality, setLocality] = useState("");
+app/property/add/AddPropertyPageClient.tsx:  const [postalCode, setPostalCode] = useState("");
+app/property/add/AddPropertyPageClient.tsx:  const [stateName, setStateName] = useState("");
+app/property/add/AddPropertyPageClient.tsx:      // 2) Initialize value state (and hydrate from saved listing if available)
+app/property/add/AddPropertyPageClient.tsx:    setCity(String(p.city ?? ""));
+app/property/add/AddPropertyPageClient.tsx:    setDistrict(String(p.district ?? ""));
+app/property/add/AddPropertyPageClient.tsx:    setLocality(String(p.locality ?? ""));
+app/property/add/AddPropertyPageClient.tsx:    setStateName(String(p.stateName ?? ""));
+app/property/add/AddPropertyPageClient.tsx:    setPostalCode(String(p.postalCode ?? ""));
+app/property/add/AddPropertyPageClient.tsx:  const canContinueStep2 = Boolean(city.trim() && locality.trim());
+app/property/add/AddPropertyPageClient.tsx:    return [plotNo, apartmentSociety, streetAddress, subLocality, locality, district, city, stateName, postalCode]
+app/property/add/AddPropertyPageClient.tsx:    [plotNo, apartmentSociety, streetAddress, subLocality, locality, city, district, stateName, postalCode]
+app/property/add/AddPropertyPageClient.tsx:      city,
+app/property/add/AddPropertyPageClient.tsx:      district,
+app/property/add/AddPropertyPageClient.tsx:      locality,
+app/property/add/AddPropertyPageClient.tsx:      postalCode,
+app/property/add/AddPropertyPageClient.tsx:      stateName,
+app/property/add/AddPropertyPageClient.tsx:      locality ? `- ${locality}` : "",
+app/property/add/AddPropertyPageClient.tsx:      city ? `, ${city}` : "",
+app/property/add/AddPropertyPageClient.tsx:      locality ? `Locality: ${locality}` : "",
+app/property/add/AddPropertyPageClient.tsx:      city ? `City: ${city}` : "",
+app/property/add/AddPropertyPageClient.tsx:      district ? `District: ${district}` : "",
+app/property/add/AddPropertyPageClient.tsx:          location: addressPreview || [locality, city, district, stateName].filter(Boolean).join(", "),
+app/property/add/AddPropertyPageClient.tsx:            city,
+app/property/add/AddPropertyPageClient.tsx:            district,
+app/property/add/AddPropertyPageClient.tsx:            locality,
+app/property/add/AddPropertyPageClient.tsx:      locality ? `Locality: ${locality}` : "",
+app/property/add/AddPropertyPageClient.tsx:      city ? `City: ${city}` : "",
+app/property/add/AddPropertyPageClient.tsx:      district ? `District: ${district}` : "",
+app/property/add/AddPropertyPageClient.tsx:          location: addressPreview || [locality, city, district, stateName].filter(Boolean).join(", "),
+app/property/add/AddPropertyPageClient.tsx:  const base = `${type}-${subtype}-${locality}-${city}`.trim();
+app/property/add/AddPropertyPageClient.tsx:  "city",
+app/property/add/AddPropertyPageClient.tsx:  "district",
+app/property/add/AddPropertyPageClient.tsx:  "state",
+app/property/add/AddPropertyPageClient.tsx:  "address_text",
+app/property/add/AddPropertyPageClient.tsx:  city: string | null;
+app/property/add/AddPropertyPageClient.tsx:  state: string | null;
+app/property/add/AddPropertyPageClient.tsx:  address_text: string | null;
+app/property/add/AddPropertyPageClient.tsx:    city: params.city || "",
+app/property/add/AddPropertyPageClient.tsx:  city: params.city,
+app/property/add/AddPropertyPageClient.tsx:  state: params.state,
+app/property/add/AddPropertyPageClient.tsx:  address_text: params.address_text,
+app/property/add/AddPropertyPageClient.tsx:    city: string | null;
+app/property/add/AddPropertyPageClient.tsx:    state: string | null;
+app/property/add/AddPropertyPageClient.tsx:    address_text: string | null;
+app/property/add/AddPropertyPageClient.tsx:    city: params.city,
+app/property/add/AddPropertyPageClient.tsx:    state: params.state,
+app/property/add/AddPropertyPageClient.tsx:    address_text: params.address_text,
+app/property/add/AddPropertyPageClient.tsx:      city: city.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:      state: stateName.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:      address_text: addressText || null,
+app/property/add/AddPropertyPageClient.tsx:            city: city.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:            state: stateName.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:              [type, subtype, locality, city]
+app/property/add/AddPropertyPageClient.tsx:              city,
+app/property/add/AddPropertyPageClient.tsx:              district,
+app/property/add/AddPropertyPageClient.tsx:              locality,
+app/property/add/AddPropertyPageClient.tsx:              stateName,
+app/property/add/AddPropertyPageClient.tsx:              postalCode,
+app/property/add/AddPropertyPageClient.tsx:          city: city.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:          state: stateName.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:          address_text: addressText || null,
+app/property/add/AddPropertyPageClient.tsx:            city: city.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:            state: stateName.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:        city: city.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:        state: stateName.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:        address_text: addressText || null,
+app/property/add/AddPropertyPageClient.tsx:          city: city.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:          state: stateName.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:        city: city.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:        state: stateName.trim() || null,
+app/property/add/AddPropertyPageClient.tsx:  city: string | null;
+app/property/add/AddPropertyPageClient.tsx:  state: string | null;
+app/property/add/AddPropertyPageClient.tsx:      city: args.city,
+app/property/add/AddPropertyPageClient.tsx:      state: args.state,
+app/property/add/AddPropertyPageClient.tsx:          const autoCity = a.city || a.town || a.village || a.hamlet || a.suburb || a.municipality || a.county || "";
+app/property/add/AddPropertyPageClient.tsx:          const autoDistrict = a.county || a.state_district || a.city_district || a.district || a.region || "";
+app/property/add/AddPropertyPageClient.tsx:          const autoState = a.state || "";
+app/property/add/AddPropertyPageClient.tsx:const villageOrLocality = a.village || a.hamlet || a.town || a.suburb || a.city_district || "";
+app/property/add/AddPropertyPageClient.tsx:if (villageOrLocality && !locality.trim()) setLocality(String(villageOrLocality));
+app/property/add/AddPropertyPageClient.tsx:if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
+app/property/add/AddPropertyPageClient.tsx:                                opacity: 0.72,
+app/property/add/AddPropertyPageClient.tsx:                        opacity: 0.72,
+app/property/add/AddPropertyPageClient.tsx:                    street_road_locality: streetAddress,
+app/property/add/AddPropertyPageClient.tsx:                    landmark: locality || subLocality || "",
+app/property/add/AddPropertyPageClient.tsx:                    setStateName(geo.state?.name || "");
+app/property/add/AddPropertyPageClient.tsx:                    setDistrict(geo.district?.name || "");
+app/property/add/AddPropertyPageClient.tsx:                    setCity(geo.place?.name || geo.district?.name || "");
+app/property/add/AddPropertyPageClient.tsx:                    if (geo.place?.pincode) setPostalCode(geo.place.pincode);
+app/property/add/AddPropertyPageClient.tsx:                    if (nextAddress.street_road_locality !== undefined) setStreetAddress(nextAddress.street_road_locality || "");
+app/property/add/AddPropertyPageClient.tsx:                <FieldLabel title="Locality / Landmark" required hint="If your exact locality is not listed above, type it here." />
+app/property/add/AddPropertyPageClient.tsx:                <TextInput value={locality} onChange={setLocality} placeholder="e.g., Khagrabari, Near Station, Ward No. 5" />
+app/property/add/AddPropertyPageClient.tsx:                  hint="This is what will be saved as address_text in Supabase."
+app/property/add/AddPropertyPageClient.tsx:                    <TextInput value={postalCode} onChange={setPostalCode} placeholder="e.g., 736101" />
+app/property/add/AddPropertyPageClient.tsx:              <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+app/property/add/AddPropertyPageClient.tsx:                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+app/property/add/AddPropertyPageClient.tsx:              <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+app/property/add/AddPropertyPageClient.tsx:                      <div style={{ fontSize: 12, opacity: 0.7 }}>Count</div>
+app/property/add/AddPropertyPageClient.tsx:                              <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+app/property/add/AddPropertyPageClient.tsx:              <div style={{ fontSize: 12, opacity: 0.7, marginTop: 10 }}>
+app/property/add/AddPropertyPageClient.tsx:        <div style={{ opacity: 0.7 }}>Loading specifications…</div>
+app/property/add/AddPropertyPageClient.tsx:        <div style={{ opacity: 0.7 }}>No additional specifications configured for this property type.</div>
+app/property/add/AddPropertyPageClient.tsx:        <div style={{ fontSize: 12, opacity: 0.75 }}>
+app/property/add/AddPropertyPageClient.tsx:        <div style={{ opacity: 0.7 }}>Loading amenities…</div>
+app/property/add/AddPropertyPageClient.tsx:        <div style={{ fontSize: 13, opacity: 0.75 }}>
+app/property/add/AddPropertyPageClient.tsx:      <div style={{ fontSize: 12, opacity: 0.7, marginTop: 8 }}>
+app/property/add/AddPropertyPageClient.tsx:                      opacity: saving || aiSmartFillLoading ? 0.7 : 1,
+app/property/add/AddPropertyPageClient.tsx:                      opacity: aiSmartFillLoading || saving ? 0.7 : 1,
+app/property/add/AddPropertyPageClient.tsx:                      opacity:
+app/property/add/AddPropertyPageClient.tsx:                        opacity: saving ? 0.6 : 1,
+app/property/add/AddPropertyPageClient.tsx:                      opacity: saving ? 0.6 : 1,
+app/property/builder/projects/add/page.tsx:  locality?: string | null;
+app/property/builder/projects/add/page.tsx:  city?: string | null;
+app/property/builder/projects/add/page.tsx:  district?: string | null;
+app/property/builder/projects/add/page.tsx:  state?: string | null;
+app/property/builder/projects/add/page.tsx:  pincode?: string | null;
+app/property/builder/projects/add/page.tsx:  // ✅ moved to bottom UI, but state stays here
+app/property/builder/projects/add/page.tsx:  const [locality, setLocality] = useState("");
+app/property/builder/projects/add/page.tsx:  const [city, setCity] = useState("");
+app/property/builder/projects/add/page.tsx:  const [district, setDistrict] = useState("");
+app/property/builder/projects/add/page.tsx:  const [stateName, setStateName] = useState("");
+app/property/builder/projects/add/page.tsx:  const [pincode, setPincode] = useState("");
+app/property/builder/projects/add/page.tsx:    const hasLocationText = Boolean(city.trim() || locality.trim() || district.trim() || stateName.trim());
+app/property/builder/projects/add/page.tsx:  }, [name, projectKind, selectedProjectAmenityIds, city, locality, district, stateName, latitude, longitude]);
+app/property/builder/projects/add/page.tsx:    setLocality(payload.locality ?? "");
+app/property/builder/projects/add/page.tsx:    setCity(payload.city ?? "");
+app/property/builder/projects/add/page.tsx:    setDistrict(payload.district ?? "");
+app/property/builder/projects/add/page.tsx:    setStateName(payload.state ?? "");
+app/property/builder/projects/add/page.tsx:    setPincode(payload.pincode ?? "");
+app/property/builder/projects/add/page.tsx:    const locationParts = [addressLine, locality, city, district, stateName, pincode]
+app/property/builder/projects/add/page.tsx:        locality: locality.trim() ? locality.trim() : null,
+app/property/builder/projects/add/page.tsx:        city: city.trim() ? city.trim() : null,
+app/property/builder/projects/add/page.tsx:        district: district.trim() ? district.trim() : null,
+app/property/builder/projects/add/page.tsx:        state: stateName.trim() ? stateName.trim() : null,
+app/property/builder/projects/add/page.tsx:        pincode: pincode.trim() ? pincode.trim() : null,
+app/property/builder/projects/add/page.tsx:                locality,
+app/property/builder/projects/add/page.tsx:                city,
+app/property/builder/projects/add/page.tsx:                district,
+app/property/builder/projects/add/page.tsx:                state: stateName,
+app/property/builder/projects/add/page.tsx:                pincode,
+app/property/builder/projects/add/page.tsx:            <div style={{ whiteSpace: "pre-wrap", opacity: 0.9 }}>{globalError}</div>
+app/property/builder/projects/add/page.tsx:                    opacity: 0.72,
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Project name *</div>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Slug *</div>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>We auto-fix duplicates by appending a suffix.</div>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Project kind</div>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>RERA ID (optional)</div>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+app/property/builder/projects/add/page.tsx:                      <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>
+app/property/builder/projects/add/page.tsx:              <div style={{ fontSize: 12, opacity: 0.75 }}>
+app/property/builder/projects/add/page.tsx:              <div style={{ fontSize: 13, opacity: 0.75 }}>No amenities loaded yet. (If this persists, check RLS on amenities_master.)</div>
+app/property/builder/projects/add/page.tsx:              <div style={{ fontSize: 13, opacity: 0.75 }}>
+app/property/builder/projects/add/page.tsx:            <div style={{ fontSize: 12, opacity: 0.7, marginTop: 8 }}>
+app/property/builder/projects/add/page.tsx:                setStateName(geo.state?.name || "");
+app/property/builder/projects/add/page.tsx:                setDistrict(geo.district?.name || "");
+app/property/builder/projects/add/page.tsx:                if (geo.place?.name && !locality.trim()) setLocality(geo.place.name);
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Address line</div>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Locality / Landmark</div>
+app/property/builder/projects/add/page.tsx:                  value={locality}
+app/property/builder/projects/add/page.tsx:                  placeholder="Optional locality, landmark, society or road"
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Pincode</div>
+app/property/builder/projects/add/page.tsx:                  value={pincode}
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Latitude</div>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Longitude</div>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Location confirmation</div>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 6 }}>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Paste Google Maps link (optional)</div>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>We extract lat/lng from the link (no IP-based guesses).</div>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Launch date</div>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Possession date</div>
+app/property/builder/projects/add/page.tsx:            <div style={{ marginTop: 6, fontSize: 12, opacity: 0.7 }}>
+app/property/builder/projects/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.7, fontWeight: 700 }}>
+app/property/builder/projects/add/page.tsx:            <div style={{ marginTop: 6, fontSize: 12, opacity: 0.7 }}>
+app/property/builder/projects/add/page.tsx:            <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
+app/property/builder/projects/BuilderProjectsPageClient.tsx:  city: string | null;
+app/property/builder/projects/BuilderProjectsPageClient.tsx:  district: string | null;
+app/property/builder/projects/BuilderProjectsPageClient.tsx:  state: string | null;
+app/property/builder/projects/BuilderProjectsPageClient.tsx:            city,
+app/property/builder/projects/BuilderProjectsPageClient.tsx:            district,
+app/property/builder/projects/BuilderProjectsPageClient.tsx:            state,
+app/property/builder/projects/BuilderProjectsPageClient.tsx:        city,
+app/property/builder/projects/BuilderProjectsPageClient.tsx:        district,
+app/property/builder/projects/BuilderProjectsPageClient.tsx:        state,
+app/property/builder/projects/BuilderProjectsPageClient.tsx:        city,
+app/property/builder/projects/BuilderProjectsPageClient.tsx:        district,
+app/property/builder/projects/BuilderProjectsPageClient.tsx:        state,
+app/property/builder/projects/BuilderProjectsPageClient.tsx:            <div style={{ whiteSpace: "pre-wrap", opacity: 0.9 }}>{globalError}</div>
+app/property/builder/projects/BuilderProjectsPageClient.tsx:                <div style={{ opacity: 0.8, marginTop: 6 }}>
+app/property/builder/projects/BuilderProjectsPageClient.tsx:                        const loc = [r.city, r.district, r.state].filter(Boolean).join(", ");
+app/property/builder/projects/BuilderProjectsPageClient.tsx:                              <div style={{ fontSize: 12, opacity: 0.75 }}>{r.slug}</div>
+app/property/builder/projects/BuilderProjectsPageClient.tsx:                                    <div style={{ fontSize: 12, opacity: 0.75 }}>
+app/property/builder/projects/BuilderProjectsPageClient.tsx:                                  <span style={{ opacity: 0.7 }}>No plan</span>
+app/property/builder/projects/BuilderProjectsPageClient.tsx:                                  <div style={{ fontSize: 12, opacity: 0.7, fontWeight: 700 }}>Saving…</div>
+app/property/builder/projects/BuilderProjectsPageClient.tsx:                <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:  city: string | null;
+app/property/builder/projects/[projectId]/units/add/page.tsx:  district: string | null;
+app/property/builder/projects/[projectId]/units/add/page.tsx:  state: string | null;
+app/property/builder/projects/[projectId]/units/add/page.tsx:    .select("id,name,project_kind,city,district,state,status,investment_plan_master_id")
+app/property/builder/projects/[projectId]/units/add/page.tsx:  const loc = project ? [project.city, project.district, project.state].filter(Boolean).join(", ") : "";
+app/property/builder/projects/[projectId]/units/add/page.tsx:            <div style={{ whiteSpace: "pre-wrap", opacity: 0.9 }}>{globalError}</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>BHK</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Built-up size (sqft)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Carpet area (sqft)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:      <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Floor</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:      <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Total floors in Tower</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:  <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:  <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Tower / Block (optional)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Plot area (sqft)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Facing (optional)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>BHK</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Built-up size (sqft)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Carpet area (sqft)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>No. of floors</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    {kind === "duplex" ? <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>Duplex is fixed as 2 floors.</div> : null}
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Plot area (sqft) (optional)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Facing</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Age of property (years)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Furnishing</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Ready to move</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Unit Code (required)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>Manual mode works only with Quantity = 1.</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Preview</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Prefix (Tower letter / Plot / House)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Start No</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Digits (01 / 001)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Preview (first 10)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                        <span style={{ opacity: 0.7 }}>—</span>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Count</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>Auto-creates blocks</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    opacity: n <= 0 ? 0.5 : 1,
+app/property/builder/projects/[projectId]/units/add/page.tsx:            <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                {t.label} Details <span style={{ opacity: 0.65 }}>({blocks.length})</span>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                    opacity: blocks.length === 0 ? 0.5 : 1,
+app/property/builder/projects/[projectId]/units/add/page.tsx:                      <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Length (ft)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                      <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Width (ft)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                      <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Area (sqft)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                      <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Notes (optional)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                      <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Room Photos (max 5)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                      <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:  <div style={{ fontSize: 13, opacity: 0.75 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                  <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Unit photos (multiple)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>Recommended: 5–20 photos.</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                  <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Unit video (single, optional)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>Recommended: 30–120 seconds.</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:              <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                <div style={{ fontSize: 13, opacity: 0.75 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                  <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Custom Title (optional)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>If empty, we auto-generate from your wizard inputs.</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                  <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Quantity</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>Max 200</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                  <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Price (optional)</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Catalog</div>
+app/property/builder/projects/[projectId]/units/add/page.tsx:                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+app/property/builder/projects/[projectId]/units/add/page.tsx:              <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
+app/property/builder/projects/[projectId]/units/page.tsx:  city: string | null;
+app/property/builder/projects/[projectId]/units/page.tsx:  state: string | null;
+app/property/builder/projects/[projectId]/units/page.tsx:            city,
+app/property/builder/projects/[projectId]/units/page.tsx:            state,
+app/property/builder/projects/[projectId]/units/page.tsx:  const loc = project ? [project.city, project.state].filter(Boolean).join(", ") : "";
+app/property/builder/projects/[projectId]/units/page.tsx:            <div style={{ whiteSpace: "pre-wrap", opacity: 0.9 }}>{globalError}</div>
+app/property/builder/projects/[projectId]/units/page.tsx:                <div style={{ opacity: 0.8, marginTop: 6 }}>
+app/property/builder/projects/[projectId]/units/page.tsx:                                    <div style={{ fontSize: 12, opacity: 0.75 }}>
+app/property/builder/projects/[projectId]/units/page.tsx:                                    <div style={{ fontSize: 12, opacity: 0.75 }}>
+app/property/builder/projects/[projectId]/units/page.tsx:                                  <span style={{ opacity: 0.7 }}>No plan</span>
+app/property/builder/projects/[projectId]/units/page.tsx:                                  <div style={{ fontSize: 12, opacity: 0.7, fontWeight: 700 }}>Saving…</div>
+app/property/builder/projects/[projectId]/units/page.tsx:                              <span style={{ opacity: 0.7 }}>—</span>
+app/property/builder/projects/[projectId]/units/page.tsx:                              <span style={{ opacity: 0.7 }}>—</span>
+app/property/builder/projects/[projectId]/units/page.tsx:                <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
+app/property/inventory/PublicInventoryPageClient.tsx:                <span style={{ opacity: 0.6 }}>→</span>
+app/property/inventory/PublicInventoryPageClient.tsx:            <span style={{ opacity: 0.6 }}>→</span>
+app/property/inventory/PublicInventoryPageClient.tsx:              <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Published listing</div>
+app/property/inventory/PublicInventoryPageClient.tsx:            <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
+app/property/inventory/PublicInventoryPageClient.tsx:            <div style={{ marginTop: 6, opacity: 0.8 }}>
+app/property/inventory/PublicInventoryPageClient.tsx:            <div style={{ marginTop: 6, opacity: 0.8 }}>
+app/property/inventory/PublicInventoryPageClient.tsx:                      <div style={{ marginTop: 6, opacity: 0.85 }}>{row.title ?? ""}</div>
+app/property/inventory/PublicInventoryPageClient.tsx:                    <div style={{ marginTop: 10, fontSize: 12, opacity: 0.7 }}>Updated: {row.updated_at}</div>
+app/property/inventory/[slug]/page.tsx:  city?: string | null;
+app/property/inventory/[slug]/page.tsx:  state?: string | null;
+app/property/inventory/[slug]/page.tsx:        .select("id,status,title,slug,listing_intent,city,state,country,created_at,updated_at")
+app/property/inventory/[slug]/page.tsx:            <div style={{ marginTop: 6, opacity: 0.85 }}>
+app/property/inventory/[slug]/page.tsx:              {(listing.city || listing.state || listing.country) ? (
+app/property/inventory/[slug]/page.tsx:                <div style={{ marginTop: 10, opacity: 0.85 }}>
+app/property/inventory/[slug]/page.tsx:                  {[listing.city, listing.state, listing.country].filter(Boolean).join(", ")}
+app/property/inventory/[slug]/page.tsx:              <div style={{ marginTop: 12, fontSize: 12, opacity: 0.7 }}>
+app/property/inventory/[slug]/page.tsx:              <div style={{ fontSize: 13, opacity: 0.85, lineHeight: 1.7 }}>
+app/property/layout.tsx:    "Explore land, houses, commercial property, investment property and real estate listings on 3bigha.com. Search, compare, enquire and connect with verified property sellers, builders and agents.",
+app/property/layout.tsx:    "real estate India",
+app/property/my/page.tsx:  city: string | null;
+app/property/my/page.tsx:  state: string | null;
+app/property/my/page.tsx:      {props.description ? <div style={{ opacity: 0.8, lineHeight: 1.5 }}>{props.description}</div> : null}
+app/property/my/page.tsx:    city: x.city == null ? null : String(x.city),
+app/property/my/page.tsx:    state: x.state == null ? null : String(x.state),
+app/property/my/page.tsx:      "city",
+app/property/my/page.tsx:      "state",
+app/property/my/page.tsx:            opacity: loading ? 0.6 : 1,
+app/property/my/page.tsx:                  <div style={{ opacity: 0.8 }}>
+app/property/my/page.tsx:                    {p.city ? p.city : "—"}
+app/property/my/page.tsx:                    {p.state ? `, ${p.state}` : ""}
+app/property/my/page.tsx:                      <span style={{ opacity: 0.7, fontWeight: 700 }}>Not public yet</span>
+app/property/page.tsx:      {props.description ? <div style={{ opacity: 0.8, lineHeight: 1.5 }}>{props.description}</div> : null}
+app/property/page.tsx:function financeHref(price: number | null | undefined, title: string, city?: string | null) {
+app/property/page.tsx:  if (city) params.set("location", city);
+app/property/page.tsx:  if (p.city || p.state) params.set("location", p.city || p.state || "");
+app/property/page.tsx:  city: string | null;
+app/property/page.tsx:  district?: string | null;
+app/property/page.tsx:  locality?: string | null;
+app/property/page.tsx:  state: string | null;
+app/property/page.tsx:    city: x.city == null ? null : String(x.city),
+app/property/page.tsx:    district: x.district == null ? null : String(x.district),
+app/property/page.tsx:    locality: x.locality == null ? null : String(x.locality),
+app/property/page.tsx:    state: x.state == null ? null : String(x.state),
+app/property/page.tsx:  // pagination state
+app/property/page.tsx:    "city",
+app/property/page.tsx:    "district",
+app/property/page.tsx:    "locality",
+app/property/page.tsx:    "state",
+app/property/page.tsx:        const hay = `${p.title ?? ""} ${p.locality ?? ""} ${p.city ?? ""} ${p.district ?? ""} ${p.state ?? ""} ${typeName} ${subtypeName}`.toLowerCase();
+app/property/page.tsx:          city: a.city,
+app/property/page.tsx:          district: a.district,
+app/property/page.tsx:          locality: a.locality,
+app/property/page.tsx:          city: b.city,
+app/property/page.tsx:          district: b.district,
+app/property/page.tsx:          locality: b.locality,
+app/property/page.tsx:            city: a.city,
+app/property/page.tsx:            district: a.district,
+app/property/page.tsx:            locality: a.locality,
+app/property/page.tsx:            city: b.city,
+app/property/page.tsx:            district: b.district,
+app/property/page.tsx:            locality: b.locality,
+app/property/page.tsx:                opacity: 0.75,
+app/property/page.tsx:            opacity: 0.75,
+app/property/page.tsx:          <div style={{ opacity: 0.75, marginTop: 8 }}>
+app/property/page.tsx:                const place = `${p.city ?? "—"}${p.state ? `, ${p.state}` : ""}`;
+app/property/page.tsx:                  city: p.city,
+app/property/page.tsx:                  district: p.district,
+app/property/page.tsx:                  locality: p.locality,
+app/property/page.tsx:                      <div style={{ opacity: 0.8 }}>
+app/property/page.tsx:                              p.city
+app/property/page.tsx:              <div style={{ marginTop: 12, opacity: 0.7, fontWeight: 700 }}>You have reached the end.</div>
+app/property/projects/page.tsx:  city: string | null;
+app/property/projects/page.tsx:  district: string | null;
+app/property/projects/page.tsx:  state: string | null;
+app/property/projects/page.tsx:  pincode: string | null;
+app/property/projects/page.tsx:  if (p.city) params.set("location", p.city);
+app/property/projects/page.tsx:          .select("id,name,slug,city,district,state,pincode,status,updated_at")
+app/property/projects/page.tsx:                <div style={{ opacity: 0.8, fontSize: 13, marginBottom: 10 }}>
+app/property/projects/page.tsx:                  {p.city ?? "—"}
+app/property/projects/page.tsx:                  {p.district ? `, ${p.district}` : ""}
+app/property/projects/page.tsx:                  {p.state ? `, ${p.state}` : ""}
+app/property/projects/page.tsx:                  {p.pincode ? ` — ${p.pincode}` : ""}
+app/property/projects/[slug]/page.tsx:  city: string | null;
+app/property/projects/[slug]/page.tsx:  district: string | null;
+app/property/projects/[slug]/page.tsx:  state: string | null;
+app/property/projects/[slug]/page.tsx:  city: string | null;
+app/property/projects/[slug]/page.tsx:  state: string | null;
+app/property/projects/[slug]/page.tsx:    city: txt(r.city),
+app/property/projects/[slug]/page.tsx:    state: txt(r.state),
+app/property/projects/[slug]/page.tsx:        .select("id,name,slug,description,city,district,state,status,updated_at")
+app/property/projects/[slug]/page.tsx:          <div style={{ opacity: 0.6, fontSize: 12, marginTop: 4 }}>
+app/property/projects/[slug]/page.tsx:                opacity: 0.85,
+app/property/projects/[slug]/page.tsx:                {(linked.city ?? "—")}
+app/property/projects/[slug]/page.tsx:                {linked.state ? `, ${linked.state}` : ""} • {money(linked.price)}
+app/property/projects/[slug]/page.tsx:            <div style={{ marginTop: 10, opacity: 0.7, fontSize: 13 }}>
+app/property/projects/[slug]/page.tsx:            <div style={{ marginTop: 12, opacity: 0.7, fontSize: 13 }}>
+app/property/projects/[slug]/page.tsx:          <span style={{ fontWeight: 900, opacity: 0.75 }}>Filter:</span>
+app/property/projects/[slug]/page.tsx:              <div style={{ opacity: 0.85, marginBottom: 10, fontSize: 15 }}>
+app/property/projects/[slug]/page.tsx:                {project.city ?? "—"}
+app/property/projects/[slug]/page.tsx:                {project.district ? `, ${project.district}` : ""}
+app/property/projects/[slug]/page.tsx:                {project.state ? `, ${project.state}` : ""}
+app/property/projects/[slug]/page.tsx:                    opacity: 0.9,
+app/property/projects/[slug]/page.tsx:                        <div style={{ opacity: 0.75 }}>No items match the selected filter.</div>
+app/property/projects/[slug]/page.tsx:                            <div style={{ opacity: 0.8, fontSize: 13, lineHeight: 1.6 }}>
+app/property/projects/[slug]/page.tsx:                              {(it.city ?? "—")}
+app/property/projects/[slug]/page.tsx:                              {it.state ? `, ${it.state}` : ""}
+app/property/[id]/page.tsx:  const location = [row.city, row.district, row.state]
+app/property/[id]/page.tsx:    city: safeText(row.city),
+app/property/[id]/page.tsx:    district: safeText(row.district),
+app/property/[id]/page.tsx:    locality: safeText(row.locality),
+app/property/[id]/page.tsx:      "real estate",
+app/property/[id]/page.tsx:      safeText(row.city),
+app/property/[id]/page.tsx:      safeText(row.locality),
+app/property/[id]/page.tsx:      safeText(row.district),
+app/property/[id]/page.tsx:      `${safeText(row.property_type || "property")} in ${safeText(row.city)}`,
+app/property/[id]/page.tsx:      `${safeText(row.property_type || "property")} in ${safeText(row.locality || row.city)}`,
+app/property/[id]/page.tsx:  const locationQuality = [row.locality, row.city, row.district, row.state]
+app/property/[id]/page.tsx:  const location = [row.city, row.district, row.state]
+app/property/[id]/page.tsx:  city: safeText(row.city),
+app/property/[id]/page.tsx:  district: safeText(row.district),
+app/property/[id]/page.tsx:  locality: safeText(row.locality),
+app/property/[id]/page.tsx:  city: safeText(row.city),
+app/property/[id]/page.tsx:  district: safeText(row.district),
+app/property/[id]/page.tsx:  locality: safeText(row.locality),
+app/property/[id]/page.tsx:    "id,title,city,district,locality,property_type,category,listing_type,price,expected_price,updated_at,created_at"
+app/property/[id]/page.tsx:      `city.eq.${safeText(row.city)}`,
+app/property/[id]/page.tsx:      `district.eq.${safeText(row.district)}`,
+app/property/[id]/page.tsx:      `locality.eq.${safeText(row.locality)}`,
+app/property/[id]/page.tsx:  city: safeText(row.city),
+app/property/[id]/page.tsx:  district: safeText(row.district),
+app/property/[id]/page.tsx:  locality: safeText(row.locality),
+app/property/[id]/page.tsx:  city:
+app/property/[id]/page.tsx:    safeText(row.city),
+app/property/[id]/page.tsx:  district:
+app/property/[id]/page.tsx:    safeText(row.district),
+app/property/[id]/page.tsx:  locality:
+app/property/[id]/page.tsx:    safeText(row.locality),
+app/property/[id]/page.tsx:  city:
+app/property/[id]/page.tsx:    safeText(row.city),
+app/property/[id]/page.tsx:  district:
+app/property/[id]/page.tsx:    safeText(row.district),
+app/property/[id]/page.tsx:  locality:
+app/property/[id]/page.tsx:    safeText(row.locality),
+app/property/[id]/page.tsx:          opacity: 0.82,
+app/property/[id]/page.tsx:        <div style={{ fontSize: 11, opacity: 0.7, marginTop: 7 }}>
+app/property/[id]/page.tsx:  city: safeText(row.city),
+app/property/[id]/page.tsx:  district: safeText(row.district),
+app/property/[id]/page.tsx:  locality: safeText(row.locality),
+app/property/[id]/page.tsx:      city: safeText(item.city),
+app/property/[id]/page.tsx:      district: safeText(item.district),
+app/property/[id]/page.tsx:      locality: safeText(item.locality),
+app/property/[id]/page.tsx:      location: [item.locality, item.city, item.district].filter(Boolean).join(", "),
+app/property/[id]/page.tsx:    "@type": "RealEstateListing",
+app/property/[id]/page.tsx:      addressLocality: safeText(row.city) || undefined,
+app/property/[id]/page.tsx:      addressRegion: safeText(row.state) || undefined,
+app/property/[id]/page.tsx:            city={item.city}
+app/property/[id]/page.tsx:            district={item.district}
+app/property/[id]/page.tsx:            locality={item.locality}
+app/property/[id]/page.tsx:              opacity: 0.8,
+app/property/[id]/page.tsx:              opacity: 0.7,
+app/property/[id]/page.tsx:            {[item.locality, item.city, item.district]
+app/property/[id]/page.tsx:              opacity: 0.75,
+app/property/[id]/page.tsx:        city={safeText(row.city)}
+app/property/[id]/page.tsx:        district={safeText(row.district)}
+app/property/[id]/page.tsx:        locality={safeText(row.locality)}
+app/property/[id]/page.tsx:        city={safeText(row.city)}
+app/property/[id]/page.tsx:        district={safeText(row.district)}
+app/property/[id]/page.tsx:        locality={safeText(row.locality)}
+app/property/[id]/page.tsx:              <div style={{ opacity: 0.7 }}>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 800 }}>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 13, opacity: 0.82 }}>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 800 }}>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 12, opacity: 0.82 }}>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Appreciation</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Rent Yield</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Rent Est.</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Rent vs EMI</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Locality Growth</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Growth Type</div>
+app/property/[id]/page.tsx:                  <div style={{ fontWeight: 900 }}>{investmentIntel.localityGrowthRating}</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Price Signal</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Bargain Index</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Liquidity</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Asset Type</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Market Pulse</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Timing</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Hyperlocal</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Locality Type</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>AI Match</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Best For</div>
+app/property/[id]/page.tsx:                        opacity: 0.75,
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Overall Match</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Investor Fit</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>End-user Fit</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Budget Fit</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Family Fit</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Rental Income Fit</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Lifestyle Fit</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Recommendation</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>School Access</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Hospital Access</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Market Access</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Transport</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Livability</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Family Settlement</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Student Rental</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Smart Growth</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Area Heat</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Demand Imbalance</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Buyer Momentum</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Seller Pressure</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Market Timing</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Inventory Saturation</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Price Momentum</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Negotiation Leverage</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Buyer Demand</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Resale Liquidity</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Exit Probability</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Rental Absorption</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Family Demand</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Commercial Activity</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Growth Velocity</div>
+app/property/[id]/page.tsx:                  <div style={{ fontWeight: 900 }}>{investmentIntel.appreciationVelocityScore}/95</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Holding Strength</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Fair Value</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Price Gap</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Fast Selling</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Confidence</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Highway Access</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Railway Access</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Demand Hotspot</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Urban Expansion</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Infrastructure</div>
+app/property/[id]/page.tsx:                  <div style={{ fontSize: 11, opacity: 0.65 }}>Emerging Area</div>
+app/property/[id]/page.tsx:                        opacity: 0.85,
+app/property/[id]/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>
+app/property/[id]/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>
+app/property/[id]/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>
+app/property/[id]/page.tsx:                    <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 4 }}>
+app/property/[id]/page.tsx:                            opacity: 0.75,
+app/property/[id]/page.tsx:                <div style={{ fontSize: 13, opacity: 0.82 }}>
+app/property/[id]/page.tsx:              <div style={{ fontSize: 12, opacity: 0.6 }}>
+app/property/[id]/page.tsx:                city: row.city || "Cooch Behar",
+app/property/[id]/page.tsx:                district: row.district || "Cooch Behar",
+app/property/[id]/page.tsx:                locality: row.locality || "Khagrabari",
+app/property/[id]/PropertyDiscoveryMemoryTracker.tsx:  city,
+app/property/[id]/PropertyDiscoveryMemoryTracker.tsx:  district,
+app/property/[id]/PropertyDiscoveryMemoryTracker.tsx:  locality,
+app/property/[id]/PropertyDiscoveryMemoryTracker.tsx:  city?: string | null;
+app/property/[id]/PropertyDiscoveryMemoryTracker.tsx:  district?: string | null;
+app/property/[id]/PropertyDiscoveryMemoryTracker.tsx:  locality?: string | null;
+app/property/[id]/PropertyDiscoveryMemoryTracker.tsx:      city,
+app/property/[id]/PropertyDiscoveryMemoryTracker.tsx:      district,
+app/property/[id]/PropertyDiscoveryMemoryTracker.tsx:      locality,
+app/property/[id]/PropertyDiscoveryMemoryTracker.tsx:  }, [id, title, city, district, locality, type, category, price]);
+app/rentals/add/page.tsx:  city: string;
+app/rentals/add/page.tsx:  locality: string;
+app/rentals/add/page.tsx:  const place = compactText([input.locality, input.city]);
+app/rentals/add/page.tsx:  const [stateName, setStateName] = useState("");
+app/rentals/add/page.tsx:  const [district, setDistrict] = useState("");
+app/rentals/add/page.tsx:  const [city, setCity] = useState("");
+app/rentals/add/page.tsx:  const [locality, setLocality] = useState("");
+app/rentals/add/page.tsx:  const [pincode, setPincode] = useState("");
+app/rentals/add/page.tsx:    if (isNonEmpty(pincode) && !/^\d{6}$/.test(pincode.trim())) {
+app/rentals/add/page.tsx:      city,
+app/rentals/add/page.tsx:      locality,
+app/rentals/add/page.tsx:    setStateName(payload.state ?? "");
+app/rentals/add/page.tsx:    setDistrict(payload.district ?? "");
+app/rentals/add/page.tsx:    setCity(payload.city ?? "");
+app/rentals/add/page.tsx:    setLocality(payload.locality ?? "");
+app/rentals/add/page.tsx:    setPincode(payload.pincode ?? "");
+app/rentals/add/page.tsx:          state: stateName,
+app/rentals/add/page.tsx:          district,
+app/rentals/add/page.tsx:          city,
+app/rentals/add/page.tsx:          locality,
+app/rentals/add/page.tsx:          pincode,
+app/rentals/add/page.tsx:          city,
+app/rentals/add/page.tsx:          locality,
+app/rentals/add/page.tsx:      state: stateName.trim() || null,
+app/rentals/add/page.tsx:      district: district.trim() || null,
+app/rentals/add/page.tsx:      city: city.trim() || null,
+app/rentals/add/page.tsx:      locality: locality.trim() || null,
+app/rentals/add/page.tsx:      pincode: pincode.trim() || null,
+app/rentals/add/page.tsx:      geo_state_id: geography?.geo_state_id || null,
+app/rentals/add/page.tsx:      geo_district_id: geography?.geo_district_id || null,
+app/rentals/add/page.tsx:          state: stateName.trim(),
+app/rentals/add/page.tsx:          district: district.trim(),
+app/rentals/add/page.tsx:          city: city.trim(),
+app/rentals/add/page.tsx:          locality: locality.trim(),
+app/rentals/add/page.tsx:          pincode: pincode.trim(),
+app/rentals/add/page.tsx:          <div className="state">Checking login…</div>
+app/rentals/add/page.tsx:          <div className="state">
+app/rentals/add/page.tsx:        {loadingMaster ? <div className="state">Loading rental master data…</div> : null}
+app/rentals/add/page.tsx:          <div className="state stateErr">
+app/rentals/add/page.tsx:            <div className="stateTitle">Master data error</div>
+app/rentals/add/page.tsx:            <div className="stateHint">
+app/rentals/add/page.tsx:                            opacity: 0.72,
+app/rentals/add/page.tsx:                    opacity: 0.72,
+app/rentals/add/page.tsx:                    value={stateName}
+app/rentals/add/page.tsx:                    value={district}
+app/rentals/add/page.tsx:                    value={city}
+app/rentals/add/page.tsx:                    value={locality}
+app/rentals/add/page.tsx:                    value={pincode}
+app/rentals/add/page.tsx:        opacity: 0.92;
+app/rentals/add/page.tsx:        opacity: 0.6;
+app/rentals/add/page.tsx:      .rentalAdd .state {
+app/rentals/add/page.tsx:      .rentalAdd .stateErr {
+app/rentals/add/page.tsx:      .rentalAdd .stateTitle {
+app/rentals/add/page.tsx:      .rentalAdd .stateHint {
+app/rentals/catalog/RentalsCatalogPageClient.tsx:        {loading ? <div className="state">Loading rental catalog…</div> : null}
+app/rentals/catalog/RentalsCatalogPageClient.tsx:          <div className="state stateErr">
+app/rentals/catalog/RentalsCatalogPageClient.tsx:            <div className="stateTitle">Error</div>
+app/rentals/catalog/RentalsCatalogPageClient.tsx:            <div className="stateHint">
+app/rentals/catalog/RentalsCatalogPageClient.tsx:              <div className="state">No results found. Try another category or clear the search.</div>
+app/rentals/catalog/RentalsCatalogPageClient.tsx:          opacity: 0.95;
+app/rentals/catalog/RentalsCatalogPageClient.tsx:          opacity: 0.92;
+app/rentals/catalog/RentalsCatalogPageClient.tsx:        .state {
+app/rentals/catalog/RentalsCatalogPageClient.tsx:        .stateErr {
+app/rentals/catalog/RentalsCatalogPageClient.tsx:        .stateTitle {
+app/rentals/catalog/RentalsCatalogPageClient.tsx:        .stateHint {
+app/rentals/catalog/[id]/page.tsx:      {props.description ? <div style={{ opacity: 0.8, lineHeight: 1.5 }}>{props.description}</div> : null}
+app/rentals/catalog/[id]/page.tsx:        <div style={{ marginBottom: 12, fontSize: 14, opacity: 0.85 }}>
+app/rentals/catalog/[id]/page.tsx:          <span style={{ opacity: 0.8 }}>Details</span>
+app/rentals/layout.tsx:    "Explore rentals on 3bigha.com including construction equipment, machinery, tools, vehicles, property rentals and local rental services for real estate and construction needs.",
+app/rentals/my/page.tsx:  state: string | null;
+app/rentals/my/page.tsx:  district: string | null;
+app/rentals/my/page.tsx:  city: string | null;
+app/rentals/my/page.tsx:  locality: string | null;
+app/rentals/my/page.tsx:  pincode: string | null;
+app/rentals/my/page.tsx:          "state",
+app/rentals/my/page.tsx:          "district",
+app/rentals/my/page.tsx:          "city",
+app/rentals/my/page.tsx:          "locality",
+app/rentals/my/page.tsx:          "pincode",
+app/rentals/my/page.tsx:        const loc = [r.locality, r.city, r.district, r.state, r.country].filter(Boolean).join(", ");
+app/rentals/my/page.tsx:        <div style={{ maxWidth: "100%", overflowX: "hidden", opacity: 0.8 }}>Checking login…</div>
+app/rentals/my/page.tsx:          style={{ maxWidth: "100%", overflowX: "hidden", height: 40, padding: "0 14px", borderRadius: 12, border: "1px solid rgba(0, 0, 0.12)", background: "white", fontWeight: 800, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1 }}
+app/rentals/my/page.tsx:          style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 18, height: 44, padding: "0 18px", borderRadius: 12, border: "none", background: "#0f172a", color: "#fff", fontWeight: 900, cursor: "pointer", opacity: bookingSaving ? 0.7 : 1 }}
+app/rentals/my/page.tsx:              style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 12, fontWeight: 800, opacity: 0.7 }}
+app/rentals/my/page.tsx:                      style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 13, opacity: 0.7 }}
+app/rentals/my/page.tsx:                      style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 13, opacity: 0.7 }}
+app/rentals/my/page.tsx:        <div style={{ maxWidth: "100%", overflowX: "hidden", opacity: 0.8 }}>Loading your rentals…</div>
+app/rentals/my/page.tsx:        <div style={{ maxWidth: "100%", overflowX: "hidden", opacity: 0.8 }}>
+app/rentals/my/page.tsx:            const loc = [r.locality, r.city, r.district, r.state, r.country].filter(Boolean).join(", ");
+app/rentals/my/page.tsx:                  <div style={{ maxWidth: "100%", overflowX: "hidden", opacity: 0.85 }}>
+app/rentals/page.tsx:  state: string | null;
+app/rentals/page.tsx:  district: string | null;
+app/rentals/page.tsx:  city: string | null;
+app/rentals/page.tsx:  locality: string | null;
+app/rentals/page.tsx:  pincode: string | null;
+app/rentals/page.tsx:  city: string | null;
+app/rentals/page.tsx:  locality: string | null;
+app/rentals/page.tsx:        localName: compactText([input.locality, input.city]),
+app/rentals/page.tsx:  city: string | null;
+app/rentals/page.tsx:  locality: string | null;
+app/rentals/page.tsx:  const place = compactText([input.locality, input.city]);
+app/rentals/page.tsx:  const [city, setCity] = useState<string>("all");
+app/rentals/page.tsx:          "state",
+app/rentals/page.tsx:          "district",
+app/rentals/page.tsx:          "city",
+app/rentals/page.tsx:          "locality",
+app/rentals/page.tsx:          "pincode",
+app/rentals/page.tsx:    for (const r of rows) if (r.city) set.add(String(r.city));
+app/rentals/page.tsx:  }, [q, city, typeId]);
+app/rentals/page.tsx:        if (city === "all") return true;
+app/rentals/page.tsx:        return String(r.city ?? "") === city;
+app/rentals/page.tsx:        const loc = [r.locality, r.city, r.district, r.state, r.country, r.pincode].filter(Boolean).join(", ");
+app/rentals/page.tsx:  }, [rows, q, city, typeId, taxonById]);
+app/rentals/page.tsx:              <div style={{ fontSize: 13, opacity: 0.75, lineHeight: 1.45 }}>{item.note}</div>
+app/rentals/page.tsx:          <span style={{ fontSize: 13, fontWeight: 900, opacity: 0.75 }}>
+app/rentals/page.tsx:          <SectionHeader title="Public Listings" subtitle="Choose a simple rental group above, then filter by type, city and search." />
+app/rentals/page.tsx:                value={city}
+app/rentals/page.tsx:              <div style={{ opacity: 0.8 }}>
+app/rentals/page.tsx:                  const loc = [r.locality, r.city, r.district, r.state, r.country, r.pincode].filter(Boolean).join(", ");
+app/rentals/page.tsx:                    city: r.city,
+app/rentals/page.tsx:                    locality: r.locality,
+app/rentals/page.tsx:                  const isHotRentalLead = hasRate && Boolean(r.city || r.locality);
+app/rentals/page.tsx:                          <Badge>{r.city || r.locality || "Location Pending"}</Badge>
+app/rentals/page.tsx:                                city: r.city,
+app/rentals/page.tsx:                                locality: r.locality,
+app/rentals/[id]/page.tsx:  state: string | null;
+app/rentals/[id]/page.tsx:  district: string | null;
+app/rentals/[id]/page.tsx:  city: string | null;
+app/rentals/[id]/page.tsx:  locality: string | null;
+app/rentals/[id]/page.tsx:    state: x.state == null ? null : String(x.state),
+app/rentals/[id]/page.tsx:    district: x.district == null ? null : String(x.district),
+app/rentals/[id]/page.tsx:    city: x.city == null ? null : String(x.city),
+app/rentals/[id]/page.tsx:    locality: x.locality == null ? null : String(x.locality),
+app/rentals/[id]/page.tsx:      {props.description ? <div style={{ opacity: 0.8, lineHeight: 1.5 }}>{props.description}</div> : null}
+app/rentals/[id]/page.tsx:            "state",
+app/rentals/[id]/page.tsx:            "district",
+app/rentals/[id]/page.tsx:            "city",
+app/rentals/[id]/page.tsx:            "locality",
+app/rentals/[id]/page.tsx:    return [row.locality, row.city, row.district, row.state, row.country].filter(Boolean).join(", ") || "—";
+app/rentals/[id]/page.tsx:    city: row?.city || "",
+app/rentals/[id]/page.tsx:    district: row?.district || "",
+app/rentals/[id]/page.tsx:    locality: row?.locality || "",
+app/rentals/[id]/page.tsx:  city: row?.city || "",
+app/rentals/[id]/page.tsx:  district: row?.district || "",
+app/rentals/[id]/page.tsx:  locality: row?.locality || "",
+app/rentals/[id]/page.tsx:  city: row?.city || "",
+app/rentals/[id]/page.tsx:  district: row?.district || "",
+app/rentals/[id]/page.tsx:  locality: row?.locality || "",
+app/rentals/[id]/page.tsx:  city: row?.city || "",
+app/rentals/[id]/page.tsx:  district: row?.district || "",
+app/rentals/[id]/page.tsx:  locality: row?.locality || "",
+app/rentals/[id]/page.tsx:            opacity: 0.75,
+app/rentals/[id]/page.tsx:              opacity: 0.75,
+app/rentals/[id]/page.tsx:          city={item.city}
+app/rentals/[id]/page.tsx:          district={item.district}
+app/rentals/[id]/page.tsx:          locality={item.locality}
+app/rentals/[id]/page.tsx:              opacity: 0.8,
+app/rentals/[id]/page.tsx:              opacity: 0.7,
+app/rentals/[id]/page.tsx:            {[item.locality, item.city, item.district]
+app/rentals/[id]/page.tsx:        city={row?.city || ""}
+app/rentals/[id]/page.tsx:        district={row?.district || ""}
+app/rentals/[id]/page.tsx:        locality={row?.locality || ""}
+app/rentals/[id]/page.tsx:              <div style={{ opacity: 0.85, marginBottom: 10 }}>
+app/rentals/[id]/page.tsx:                    opacity: 0.9,
+app/rentals/[id]/page.tsx:                    opacity: 0.7,
+app/rentals/[id]/page.tsx:                          opacity: 0.85,
+app/rentals/[id]/page.tsx:            <div style={{ fontSize:12, opacity:.6, marginBottom:8 }}>
+app/rentals/[id]/page.tsx:              city: row.city || "Cooch Behar",
+app/rentals/[id]/page.tsx:              district: row.district || "Cooch Behar",
+app/rentals/[id]/page.tsx:              locality: row.locality || "Khagrabari",
+app/rfq/browse/[module]/page.tsx:    { title: "Property Requirements (special)", items: ["Need plot near a specific locality", "Need property within budget range", "Need urgent requirement"] },
+app/rfq/browse/[module]/page.tsx:  // ✅ Multi-select state (stores exact item text)
+app/rfq/browse/[module]/page.tsx:      <div style={{ opacity: 0.8, marginTop: 8, lineHeight: 1.5 }}>
+app/rfq/browse/[module]/page.tsx:          <div style={{ opacity: 0.75, marginTop: 8, lineHeight: 1.5 }}>
+app/rfq/general/browse/[module]/page.tsx:  // ✅ MULTI-SELECT state
+app/rfq/general/browse/[module]/page.tsx:  // ✅ Materials states
+app/rfq/general/browse/[module]/page.tsx:          <div style={{ opacity: 0.8, marginTop: 6 }}>
+app/rfq/general/browse/[module]/page.tsx:          <div style={{ opacity: 0.75, fontSize: 13 }}>
+app/rfq/general/browse/[module]/page.tsx:          <div style={{ opacity: 0.75, fontSize: 13 }}>Curated RFQ list.</div>
+app/rfq/general/browse/[module]/page.tsx:          {selectedCount ? <span style={{ opacity: 0.7, fontWeight: 800 }}> (use bulk add)</span> : null}
+app/rfq/general/browse/[module]/page.tsx:          {loading ? <div style={{ opacity: 0.85 }}>Loading materials taxonomy…</div> : null}
+app/rfq/general/browse/[module]/page.tsx:              <div style={{ marginTop: 8, opacity: 0.85 }}>
+app/rfq/general/browse/[module]/page.tsx:                        <span style={{ opacity: 0.65, fontWeight: 800, fontSize: 12 }}>({catCount} categories)</span>
+app/rfq/general/browse/[module]/page.tsx:                      <span style={{ opacity: 0.7 }}>{isOpen ? "▴" : "▾"}</span>
+app/rfq/general/browse/[module]/page.tsx:                              <div style={{ opacity: 0.75 }}>No categories found (try clearing search).</div>
+app/rfq/general/browse/[module]/page.tsx:                                      <span style={{ opacity: 0.7 }}>Open →</span>
+app/rfq/general/browse/[module]/page.tsx:                            <div style={{ marginTop: 10, opacity: 0.75, fontSize: 12 }}>
+app/rfq/general/browse/[module]/page.tsx:                              <div style={{ marginTop: 10, opacity: 0.75 }}>Choose a category from the left panel.</div>
+app/rfq/general/browse/[module]/page.tsx:                                  <div style={{ opacity: 0.75 }}>No subcategories/product groups found (try clearing search).</div>
+app/rfq/general/browse/[module]/page.tsx:                                              <span style={{ marginLeft: 8, opacity: 0.65, fontSize: 12 }}>({x.kind})</span>
+app/rfq/general/browse/[module]/page.tsx:                                <div style={{ opacity: 0.7, fontSize: 12 }}>
+app/rfq/general/browse/[module]/page.tsx:                <div style={{ opacity: 0.8, marginTop: 8 }}>
+app/rfq/general/browse/[module]/page.tsx:                  <span style={{ opacity: 0.65, fontWeight: 800, fontSize: 12 }}>({g.items.length} options)</span>
+app/rfq/general/new/page.tsx:  city?: string;
+app/rfq/general/new/page.tsx:  locality?: string;
+app/rfq/general/new/page.tsx:  district?: string;
+app/rfq/general/new/page.tsx:  pincode?: string;
+app/rfq/general/new/page.tsx:  city?: string;
+app/rfq/general/new/page.tsx:  locality?: string;
+app/rfq/general/new/page.tsx:  pincode?: string;
+app/rfq/general/new/page.tsx:  const [city, setCity] = useState("");
+app/rfq/general/new/page.tsx:  const [locality, setLocality] = useState("");
+app/rfq/general/new/page.tsx:  const [pincode, setPincode] = useState("");
+app/rfq/general/new/page.tsx:      if (typeof d?.city === "string") setCity(d.city);
+app/rfq/general/new/page.tsx:      if (typeof d?.locality === "string") setLocality(d.locality);
+app/rfq/general/new/page.tsx:      if (typeof d?.pincode === "string") setPincode(d.pincode);
+app/rfq/general/new/page.tsx:      if (!pincode.trim()) {
+app/rfq/general/new/page.tsx:          "Please mention machine capacity, operator availability, diesel inclusion and working hours.";
+app/rfq/general/new/page.tsx:  pincode,
+app/rfq/general/new/page.tsx:    if (!city.trim() || !locality.trim() || !pincode.trim()) {
+app/rfq/general/new/page.tsx:        value: "City, locality and pincode improve nearby vendor discovery.",
+app/rfq/general/new/page.tsx:  }, [aiRequirement, title, description, items, module, city, locality, pincode, neededBy]);
+app/rfq/general/new/page.tsx:      city: city.trim() || undefined,
+app/rfq/general/new/page.tsx:      locality: locality.trim() || undefined,
+app/rfq/general/new/page.tsx:      pincode: pincode.trim() || undefined,
+app/rfq/general/new/page.tsx:    if (row.city) setCity(row.city);
+app/rfq/general/new/page.tsx:    if (row.locality) setLocality(row.locality);
+app/rfq/general/new/page.tsx:    if (row.pincode) setPincode(row.pincode);
+app/rfq/general/new/page.tsx:  // ✅ Save draft whenever form state changes (debounced)
+app/rfq/general/new/page.tsx:          city,
+app/rfq/general/new/page.tsx:          locality,
+app/rfq/general/new/page.tsx:          pincode,
+app/rfq/general/new/page.tsx:    city,
+app/rfq/general/new/page.tsx:    locality,
+app/rfq/general/new/page.tsx:    pincode,
+app/rfq/general/new/page.tsx:    if (location && !city.trim() && !locality.trim()) {
+app/rfq/general/new/page.tsx:    if (!city.trim() || !locality.trim() || !pincode.trim()) {
+app/rfq/general/new/page.tsx:          city: city.trim(),
+app/rfq/general/new/page.tsx:          locality: locality.trim(),
+app/rfq/general/new/page.tsx:          pincode: pincode.trim(),
+app/rfq/general/new/page.tsx:    const place = normalizePickedText(locality || city || pincode);
+app/rfq/general/new/page.tsx:        if (city) params.set("city", city);
+app/rfq/general/new/page.tsx:        if (locality) params.set("locality", locality);
+app/rfq/general/new/page.tsx:        if (pincode) params.set("pincode", pincode);
+app/rfq/general/new/page.tsx:  }, [module, primaryItem, city, locality, pincode]);
+app/rfq/general/new/page.tsx:      city.trim() ||
+app/rfq/general/new/page.tsx:      locality.trim() ||
+app/rfq/general/new/page.tsx:      pincode.trim() ||
+app/rfq/general/new/page.tsx:            city,
+app/rfq/general/new/page.tsx:            locality,
+app/rfq/general/new/page.tsx:            pincode,
+app/rfq/general/new/page.tsx:  }, [module, title, description, city, locality, pincode, neededBy, items, primaryItem]);
+app/rfq/general/new/page.tsx:      const hasNearbyLocation = Boolean(v.locality || v.city || v.pincode);
+app/rfq/general/new/page.tsx:      city.trim() &&
+app/rfq/general/new/page.tsx:      locality.trim() &&
+app/rfq/general/new/page.tsx:      pincode.trim();
+app/rfq/general/new/page.tsx:    city,
+app/rfq/general/new/page.tsx:    locality,
+app/rfq/general/new/page.tsx:    pincode,
+app/rfq/general/new/page.tsx:    const hasLocation = Boolean(city.trim() && locality.trim() && pincode.trim());
+app/rfq/general/new/page.tsx:      !hasLocation ? "City, locality and pincode" : "",
+app/rfq/general/new/page.tsx:    city,
+app/rfq/general/new/page.tsx:    locality,
+app/rfq/general/new/page.tsx:    pincode,
+app/rfq/general/new/page.tsx:      city,
+app/rfq/general/new/page.tsx:      locality,
+app/rfq/general/new/page.tsx:      pincode,
+app/rfq/general/new/page.tsx:      technicalRequirements.push("Confirm brick type, size, quality and delivery vehicle capacity.");
+app/rfq/general/new/page.tsx:    city,
+app/rfq/general/new/page.tsx:    locality,
+app/rfq/general/new/page.tsx:    pincode,
+app/rfq/general/new/page.tsx:        region: city.toLowerCase().includes("cooch") ? "cooch_behar" : "default",
+app/rfq/general/new/page.tsx:    [constructionAreaSqFt, constructionFloorCount, constructionGrade, city],
+app/rfq/general/new/page.tsx:        state={{
+app/rfq/general/new/page.tsx:      <div style={{ opacity: 0.8, marginBottom: 16 }}>
+app/rfq/general/new/page.tsx:                        {[v.locality, v.city, v.district, v.pincode].filter(Boolean).length > 0 ? (
+app/rfq/general/new/page.tsx:                            📍 {[v.locality, v.city, v.district, v.pincode].filter(Boolean).join(", ")}
+app/rfq/general/new/page.tsx:            city={city}
+app/rfq/general/new/page.tsx:            district=""
+app/rfq/general/new/page.tsx:            locality={locality}
+app/rfq/general/new/page.tsx:                      {[row.locality, row.city, row.pincode].filter(Boolean).length > 0
+app/rfq/general/new/page.tsx:                        ? ` • ${[row.locality, row.city, row.pincode].filter(Boolean).join(", ")}`
+app/rfq/general/new/page.tsx:          <div style={{ opacity: 0.8, marginBottom: 10 }}>
+app/rfq/general/new/page.tsx:            <div style={{ opacity: 0.85, fontWeight: 800 }}>Selected: {moduleLabel(module)}</div>
+app/rfq/general/new/page.tsx:          <div style={{ marginTop: 8, opacity: 0.7, fontSize: 13 }}>
+app/rfq/general/new/page.tsx:          <div style={{ marginTop: 8, opacity: 0.75, fontSize: 13 }}>
+app/rfq/general/new/page.tsx:          <div style={{ opacity: 0.8, marginBottom: 10 }}>
+app/rfq/general/new/page.tsx:              <input className="searchInput" value={city} onChange={(e) => setCity(e.target.value)} />
+app/rfq/general/new/page.tsx:              <input className="searchInput" value={locality} onChange={(e) => setLocality(e.target.value)} />
+app/rfq/general/new/page.tsx:              <input className="searchInput" value={pincode} onChange={(e) => setPincode(e.target.value)} />
+app/rfq/general/new/page.tsx:              <div style={{ opacity: 0.8, marginTop: 4 }}>
+app/rfq/general/new/page.tsx:              <div style={{ opacity: 0.8, marginBottom: 8 }}>
+app/rfq/general/new/page.tsx:                <div style={{ opacity: 0.85, fontWeight: 800 }}>Selected: {moduleLabel(module)}</div>
+app/rfq/general/page.tsx:      <div style={{ opacity: 0.85, marginBottom: 14 }}>
+app/rfq/new/page.tsx:  const [city, setCity] = useState("");
+app/rfq/new/page.tsx:  const [locality, setLocality] = useState("");
+app/rfq/new/page.tsx:  const [pincode, setPincode] = useState("");
+app/rfq/new/page.tsx:    if (!city.trim() || !locality.trim() || !pincode.trim()) {
+app/rfq/new/page.tsx:          city: city.trim(),
+app/rfq/new/page.tsx:          locality: locality.trim(),
+app/rfq/new/page.tsx:          pincode: pincode.trim(),
+app/rfq/new/page.tsx:      <div style={{ opacity: 0.8, marginBottom: 16 }}>
+app/rfq/new/page.tsx:          <div style={{ opacity: 0.8, marginBottom: 10 }}>Enter City, Locality, Pincode so nearby vendors can quote.</div>
+app/rfq/new/page.tsx:              <input className="searchInput" value={city} onChange={(e) => setCity(e.target.value)} />
+app/rfq/new/page.tsx:              <input className="searchInput" value={locality} onChange={(e) => setLocality(e.target.value)} />
+app/rfq/new/page.tsx:              <input className="searchInput" value={pincode} onChange={(e) => setPincode(e.target.value)} />
+app/rfq/new/page.tsx:              <div style={{ opacity: 0.8, marginTop: 4 }}>You can type freely OR select names from our materials listing.</div>
+app/rfq/new/page.tsx:          <div style={{ opacity: 0.75, marginTop: 6 }}>Tip: take a clear photo of the handwritten list.</div>
+app/rfq/start/page.tsx:          <p style={{ marginTop: 8, opacity: 0.8 }}>
+app/rfq/success/page.tsx:      <div style={{ opacity: 0.85, marginBottom: 14 }}>
+app/seo/[module]/[state]/page.tsx:    return `Explore land, plots, flats, houses, commercial property and builder projects across ${state}. 3Bigha helps buyers, sellers, builders and agents connect through an AI-powered regional property marketplace.`;
+app/seo/[module]/[state]/page.tsx:  return `Find construction equipment rentals, machinery rentals, tool rentals, property rentals and local rental providers across ${state}.`;
+app/seo/[module]/[state]/[district]/page.tsx:    return `Explore land, plots, flats, houses, commercial property and builder projects across ${district}, ${state}. 3Bigha helps buyers, sellers, builders and local agents connect through an AI-powered regional property marketplace.`;
+app/seo/[module]/[state]/[district]/page.tsx:  return `Find construction equipment rentals, machinery rentals, tool rentals, property rentals and local rental providers across ${district}, ${state}.`;
+app/seo/[module]/[state]/[district]/page.tsx:    { label: `Post ${title} Requirement`, href: `/rfq/general/new?module=${module}&q=${encodeURIComponent(district)}` },
+app/seo/[module]/[state]/[district]/[city]/page.tsx:    return `Find land, plots, flats, houses, commercial property, builder projects and real estate opportunities in ${city}, ${district}, ${state}. 3Bigha helps local buyers, sellers, builders and agents connect through an AI-assisted regional marketplace.`;
+app/seo/[module]/[state]/[district]/[city]/page.tsx:  return `Find rental services, construction equipment rentals, machinery rentals, tools, vehicles and property rentals in ${city}, ${district}, ${state}.`;
+app/seo/[module]/[state]/[district]/[city]/page.tsx:                    href: `/rfq/general/new?module=${module}&q=${encodeURIComponent(city)}`,
+app/seo/[module]/[state]/[district]/[city]/[locality]/page.tsx:            RFQs, builders, suppliers and marketplace activity in {locality},{" "}
+app/seo/[module]/[state]/[district]/[city]/[locality]/page.tsx:                    href: `/rfq/general/new?module=${module}&q=${encodeURIComponent(locality)}`,
+app/services/add/page.tsx:          : "Write a short refund and cancellation policy for a local service provider. Keep it fair, practical, and legally safe. Do not promise refunds unless conditions are stated.";
+app/services/add/page.tsx:          .select("state,district,city,locality,pincode,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id,geo_place_id")
+app/services/add/page.tsx:        if (vendorProfile?.geo_state_id) {
+app/services/add/page.tsx:            geo_state_id: vendorProfile.geo_state_id,
+app/services/add/page.tsx:            geo_district_id: vendorProfile.geo_district_id,
+app/services/add/page.tsx:              state: vendorProfile.state,
+app/services/add/page.tsx:              district: vendorProfile.district,
+app/services/add/page.tsx:              city: vendorProfile.city,
+app/services/add/page.tsx:              locality: vendorProfile.locality,
+app/services/add/page.tsx:              pincode: vendorProfile.pincode,
+app/services/add/page.tsx:          geo_state_id: geography?.geo_state_id || null,
+app/services/add/page.tsx:          geo_district_id: geography?.geo_district_id || null,
+app/services/add/page.tsx:                                  opacity: bulkSelectedServiceIds.size ? 1 : 0.6,
+app/services/add/page.tsx:                                      opacity: alreadyListed ? 0.55 : 1,
+app/services/add/page.tsx:                                        placeholder='e.g. "Real Estate Website Development"'
+app/services/add/page.tsx:                                      opacity: enabled ? 1 : 0.6,
+app/services/add/page.tsx:                          opacity: saving ? 0.6 : 1,
+app/services/add/page.tsx:                          opacity: saving ? 0.6 : 1,
+app/services/my/page.tsx:            style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 16, border: "none", borderRadius: 12, padding: "12px 18px", background: "#0f172a", color: "#fff", fontWeight: 900, cursor: "pointer", opacity: workSaving ? 0.7 : 1 }}
+app/services/my/page.tsx:                  style={{ maxWidth: "100%", overflowX: "hidden", fontSize: 12, fontWeight: 800, opacity: 0.7 }}
+app/services/my/page.tsx:                      style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 13, opacity: 0.7 }}
+app/services/my/page.tsx:                      style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 13, opacity: 0.7 }}
+app/services/my/page.tsx:                      style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 4, fontSize: 13, opacity: 0.7, fontWeight: 800 }}
+app/services/my/page.tsx:          <div style={{ maxWidth: "100%", overflowX: "hidden", opacity: 0.8 }}>Loading your services…</div>
+app/services/my/page.tsx:                    <div style={{ maxWidth: "100%", overflowX: "hidden", marginTop: 10, opacity: 0.7, fontSize: 12 }}>
+app/services/my/page.tsx:                          style={{ maxWidth: "100%", overflowX: "hidden", border: "1px solid rgba(0, 0, 0.12)", borderRadius: 12, padding: "10px 12px", fontWeight: 800, opacity: 0.55 }}
+app/services/page.tsx:  city: string | null;
+app/services/page.tsx:  district: string | null;
+app/services/page.tsx:  state: string | null;
+app/services/page.tsx:  primary_pincode: string | null;
+app/services/page.tsx:  if (r.city || r.district) params.set("location", r.city || r.district || "");
+app/services/page.tsx:        "city",
+app/services/page.tsx:        "district",
+app/services/page.tsx:        "state",
+app/services/page.tsx:        "primary_pincode",
+app/services/page.tsx:        r.city ?? "",
+app/services/page.tsx:        r.district ?? "",
+app/services/page.tsx:        r.state ?? "",
+app/services/page.tsx:        r.primary_pincode ?? "",
+app/services/page.tsx:      : "Find verified professionals, skilled workers, contractors, operators and service providers related to real estate and construction.";
+app/services/page.tsx:          subtitle="Discover and compare service providers across construction, real estate and legal support."
+app/services/page.tsx:              <div style={{ fontSize: 13, opacity: 0.75, lineHeight: 1.45 }}>{item.note}</div>
+app/services/page.tsx:          <span style={{ fontSize: 13, fontWeight: 900, opacity: 0.75 }}>
+app/services/page.tsx:                    const location = [r.city, r.district, r.state].filter(Boolean).join(", ") || null;
+app/services/providers/page.tsx:  city: string | null;
+app/services/providers/page.tsx:  district: string | null;
+app/services/providers/page.tsx:  state: string | null;
+app/services/providers/page.tsx:  primary_pincode: string | null;
+app/services/providers/page.tsx:  city: string | null;
+app/services/providers/page.tsx:  district: string | null;
+app/services/providers/page.tsx:  state: string | null;
+app/services/providers/page.tsx:  primary_pincode: string | null;
+app/services/providers/page.tsx:            "city",
+app/services/providers/page.tsx:            "district",
+app/services/providers/page.tsx:            "state",
+app/services/providers/page.tsx:            "primary_pincode",
+app/services/providers/page.tsx:          city: r.city,
+app/services/providers/page.tsx:          district: r.district,
+app/services/providers/page.tsx:          state: r.state,
+app/services/providers/page.tsx:          primary_pincode: r.primary_pincode,
+app/services/providers/page.tsx:          city: existing.city ?? r.city,
+app/services/providers/page.tsx:          district: existing.district ?? r.district,
+app/services/providers/page.tsx:          state: existing.state ?? r.state,
+app/services/providers/page.tsx:          primary_pincode: existing.primary_pincode ?? r.primary_pincode,
+app/services/providers/page.tsx:        p.city ?? "",
+app/services/providers/page.tsx:        p.district ?? "",
+app/services/providers/page.tsx:        p.state ?? "",
+app/services/providers/page.tsx:        p.primary_pincode ?? "",
+app/services/providers/page.tsx:                    const location = [p.city, p.district, p.state].filter(Boolean).join(", ") || null;
+app/services/providers/page.tsx:                            {p.primary_pincode ? <div>Pincode: {p.primary_pincode}</div> : null}
+app/services/providers/[slug]/page.tsx:  city: string | null;
+app/services/providers/[slug]/page.tsx:  district: string | null;
+app/services/providers/[slug]/page.tsx:  state: string | null;
+app/services/providers/[slug]/page.tsx:  primary_pincode: string | null;
+app/services/providers/[slug]/page.tsx:            "city",
+app/services/providers/[slug]/page.tsx:            "district",
+app/services/providers/[slug]/page.tsx:            "state",
+app/services/providers/[slug]/page.tsx:            "primary_pincode",
+app/services/providers/[slug]/page.tsx:    const location = [r.city, r.district, r.state].filter(Boolean).join(", ") || null;
+app/services/providers/[slug]/page.tsx:      pincode: r.primary_pincode,
+app/services/providers/[slug]/page.tsx:                        {provider.pincode ? <div>Pincode: {provider.pincode}</div> : null}
+app/services/providers/[slug]/page.tsx:                      const location = [r.city, r.district, r.state].filter(Boolean).join(", ") || null;
+app/services/turnkey/add/page.tsx:                      opacity: enabledCount() ? 1 : 0.6,
+app/services/turnkey/add/page.tsx:                        opacity: enabledCount() ? 1 : 0.6,
+app/services/turnkey/add/page.tsx:                        opacity: saving || enabledCount() === 0 ? 0.6 : 1,
+app/services/turnkey/add/page.tsx:                        opacity: saving || enabledCount() === 0 ? 0.6 : 1,
+app/services/turnkey/page.tsx:  city: string | null;
+app/services/turnkey/page.tsx:  district: string | null;
+app/services/turnkey/page.tsx:  state: string | null;
+app/services/turnkey/page.tsx:  const parts = [p?.city, p?.district, p?.state].filter(Boolean);
+app/services/turnkey/page.tsx:            "service_providers!inner(display_name,slug,city,district,state,photo_url,status)",
+app/services/turnkey/[packageID]/page.tsx:                      {row.provider_kind ? <span style={{ opacity: 0.85 }}>• {row.provider_kind}</span> : null}
+app/services/[id]/page.tsx:  city: string | null;
+app/services/[id]/page.tsx:  district: string | null;
+app/services/[id]/page.tsx:  state: string | null;
+app/services/[id]/page.tsx:  return [row.city, row.district, row.state].map(clean).filter(Boolean).join(", ");
+app/services/[id]/page.tsx:        "city",
+app/services/[id]/page.tsx:        "district",
+app/services/[id]/page.tsx:        "state",
+app/services/[id]/page.tsx:    city: row.city || "",
+app/services/[id]/page.tsx:    district: row.district || "",
+app/services/[id]/page.tsx:    locality: "",
+app/services/[id]/page.tsx:      "Construction and real estate service listing on 3Bigha.",
+app/services/[id]/page.tsx:        row.district ? `&district=${encodeURIComponent(row.district)}` : ""
+app/vendor/inbox-v2/[rfqId]/chat/page.tsx:        <div style={{ marginTop: 10, opacity: 0.75 }}>
+app/vendor/inbox-v2/[rfqId]/chat/page.tsx:          <div style={{ marginTop: 6, opacity: 0.75 }}>
+app/vendor/inbox-v2/[rfqId]/chat/vendor-rfq-chat-box.tsx:    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+app/vendor/inbox-v2/[rfqId]/chat/vendor-rfq-chat-box.tsx:            <div style={{ fontSize: 12, opacity: 0.7 }}>Preparing audio...</div>
+app/vendor/inbox-v2/[rfqId]/chat/vendor-rfq-chat-box.tsx:          <div style={{ marginTop: 6, fontSize: 12, opacity: 0.78 }}>
+app/vendor/inbox-v2/[rfqId]/chat/vendor-rfq-chat-box.tsx:          <div style={{ marginTop: 6, fontSize: 12, opacity: 0.78 }}>
+app/vendor/inbox-v2/[rfqId]/chat/vendor-rfq-chat-box.tsx:        <div style={{ marginTop: 4, fontSize: 12, opacity: 0.78 }}>
+app/vendor/inbox-v2/[rfqId]/chat/vendor-rfq-chat-box.tsx:          <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>Preparing file link...</div>
+app/vendor/inbox-v2/[rfqId]/chat/vendor-rfq-chat-box.tsx:          <div style={{ fontSize: 12, opacity: 0.7 }}>{counterpartRoleLabel}</div>
+app/vendor/inbox-v2/[rfqId]/chat/vendor-rfq-chat-box.tsx:          <div style={{ opacity: 0.7 }}>No messages yet.</div>
+app/vendor/inbox-v2/[rfqId]/delivery-update-form.tsx:          <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Status</div>
+app/vendor/inbox-v2/[rfqId]/delivery-update-form.tsx:          <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>
+app/vendor/inbox-v2/[rfqId]/delivery-update-form.tsx:          <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>
+app/vendor/inbox-v2/[rfqId]/delivery-update-form.tsx:        <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Update Note</div>
+app/vendor/inbox-v2/[rfqId]/page.tsx:          <div style={{ marginTop: 6, fontSize: 12, opacity: 0.9, fontWeight: 800 }}>
+app/vendor/inbox-v2/[rfqId]/page.tsx:          <div style={{ marginTop: 6, fontSize: 12, opacity: 0.9, fontWeight: 800 }}>
+app/vendor/inbox-v2/[rfqId]/page.tsx:            {((header as any).locality_name ?? "—") +
+app/vendor/inbox-v2/[rfqId]/page.tsx:              ((header as any).pincode ? `, ${(header as any).pincode}` : "")}
+app/vendor/inbox-v2/[rfqId]/page.tsx:          <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
+app/vendor/inbox-v2/[rfqId]/page.tsx:          <div style={{ marginTop: 12, opacity: 0.7 }}>No items found.</div>
+app/vendor/inbox-v2/[rfqId]/page.tsx:        <div style={{ marginTop: 14, opacity: 0.7 }}>No quotation submitted yet.</div>
+app/vendor/inbox-v2/[rfqId]/page.tsx:            <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
+app/vendor/inbox-v2/[rfqId]/page.tsx:            <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
+app/vendor/inbox-v2/[rfqId]/page.tsx:          <div style={{ marginTop: 10, opacity: 0.7 }}>No quotation items available in this RFQ.</div>
+app/vendor/inbox-v2/[rfqId]/print/page.tsx:            <div style={{ marginTop: 6, opacity: 0.8 }}>RFQ #{rfqNo}</div>
+app/vendor/inbox-v2/[rfqId]/print/page.tsx:            {((header as any).locality_name ?? "—") +
+app/vendor/inbox-v2/[rfqId]/print/page.tsx:              ((header as any).pincode ? `, ${(header as any).pincode}` : "")}
+app/vendor/inbox-v2/[rfqId]/print/page.tsx:                        <div style={{ fontSize: 12, opacity: 0.75, marginTop: 4 }}>{item.description}</div>
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:          <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Delivery days</div>
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:          <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Valid till</div>
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:          <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Notes</div>
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:          <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>GST Mode</div>
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:          <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Default GST (%)</div>
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:          <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Preview Totals (per-item GST)</div>
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:                    <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Item title (required)</div>
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:                    <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Description</div>
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:                    <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>Qty</div>
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:                    <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 6 }}>UOM</div>
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:                <div style={{ marginTop: 8, fontSize: 12, opacity: 0.7 }}>
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:          <div style={{ marginTop: 10, fontSize: 13, opacity: 0.75 }}>
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:                    {it.isExtra && <div style={{ fontSize: 11, opacity: 0.6 }}>(extra)</div>}
+app/vendor/inbox-v2/[rfqId]/quote-form.tsx:      <div style={{ marginTop: 10, opacity: 0.7, fontSize: 12 }}>
+app/vendor/inbox-v2/[rfqId]/quote-history.tsx:          <div style={{ fontSize: 13, opacity: 0.8 }}>View version:</div>
+app/vendor/inbox-v2/[rfqId]/quote-history.tsx:        <div style={{ marginTop: 10, opacity: 0.7 }}>No quote found.</div>
+app/vendor/inbox-v2/[rfqId]/quote-history.tsx:          <div style={{ marginTop: 8, display: "grid", gap: 4, fontSize: 13, opacity: 0.9 }}>
+app/vendor/inbox-v2/[rfqId]/quote-history.tsx:              <div style={{ opacity: 0.7 }}>Loading quote items…</div>
+app/vendor/inbox-v2/[rfqId]/quote-history.tsx:              <span style={{ opacity: 0.85 }}>Subtotal (excl.)</span>
+app/vendor/inbox-v2/[rfqId]/quote-history.tsx:              <span style={{ opacity: 0.85 }}>GST (sum of items)</span>
+app/vendor/inbox-v2/[rfqId]/quote-history.tsx:              <span style={{ opacity: 0.85 }}>Grand Total</span>
+app/vendor/inbox-v2/[rfqId]/quote-history.tsx:          <div style={{ marginTop: 10, fontSize: 13, opacity: 0.85 }}>
+app/_components/BuildConVendorPopup.tsx:        <Link className="foundingPartnerPopupPrimary" href="/onboarding/business?source=district-founder&program=district-founding-vendor">
