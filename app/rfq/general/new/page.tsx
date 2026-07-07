@@ -2419,7 +2419,9 @@ return;
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#1e3a8a" }}>
+            <div style={{
+          display: "none",
+ fontSize: 18, fontWeight: 800, color: "#1e3a8a" }}>
               Quick Requirement Mode
             </div>
             <div style={{ marginTop: 4, color: "#475569", fontSize: 13, fontWeight: 700 }}>
@@ -2587,6 +2589,8 @@ return;
                 >
                   <div
                     style={{
+          display: "none",
+
                       fontSize: 18,
                       fontWeight: 800,
                       color: "#0f172a",
@@ -2995,7 +2999,9 @@ return;
       </details>
 
       <details style={{ marginBottom: 18 }}>
-        <summary style={{ cursor: "pointer", fontWeight: 900, color: "#7c3aed", fontSize: 18 }}>
+        <summary style={{
+          display: "none",
+ cursor: "pointer", fontWeight: 900, color: "#7c3aed", fontSize: 18 }}>
           Optional AI help
         </summary>
 
@@ -3034,7 +3040,9 @@ return;
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#166534" }}>
+              <div style={{
+          display: "none",
+ fontSize: 18, fontWeight: 800, color: "#166534" }}>
                 Optional budget estimate
               </div>
               <div style={{ color: "#475569", fontSize: 13, fontWeight: 700, marginTop: 4 }}>
@@ -3212,7 +3220,9 @@ return;
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#075985", marginBottom: 6 }}>
+            <div style={{
+          display: "none",
+ fontSize: 18, fontWeight: 800, color: "#075985", marginBottom: 6 }}>
               Optional guidance after input
             </div>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#075985" }}>
@@ -3456,10 +3466,10 @@ return;
         }}
       >
         <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 4 }}>
-          Main input starts here
+          Start here: fill your requirement
         </div>
         <div style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
-          Fill these fields first. The AI, budget and progress tools are kept below as optional helpers.
+          First add what you need, where you need it, photos if any, and your contact details. AI help will come later only if required.
         </div>
       </div>
 
