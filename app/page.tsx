@@ -362,17 +362,17 @@ export default function HomePage() {
       <section className="heroShell">
         <div className="heroGrid">
           <div className="heroCopy">
-            <div className="miniBadge">🔎 Construction & Property Marketplace</div>
-            <h1><span>One Marketplace.</span> All Your Construction & Property Needs.</h1>
+            <div className="miniBadge">🌱 Human-first marketplace</div>
+            <h1><span>What would you like to do today?</span> 3Bigha will guide you.</h1>
             <p>
-              Search properties, materials, services, rentals, vendors, prices and more.
-              Compare, connect and get the best deal — all in one place.
+              Choose your real need. 3Bigha will connect property, materials, services,
+              vendors, prices and requirements quietly in the background.
             </p>
             <div className="heroFeatureRow">
-              <a href="/search">🔍 Marketplace Search</a>
-              <a href="/vendor/discovery">🧠 Smart Matching</a>
-              <a href="/price-today">💰 Best Prices</a>
-              <a href="/support/new">🛡️ Secure Deals</a>
+              <a href="/search">🔍 Search</a>
+              <a href="/rfq/start">📮 Submit Requirement</a>
+              <a href="/construction-cost">🏗️ Build</a>
+              <a href="/vendor-opportunities">📈 Grow</a>
             </div>
           </div>
 
@@ -402,6 +402,37 @@ export default function HomePage() {
               <button type="button" className="secondaryAction" onClick={submitRequirement}>⚡ Submit Requirement</button>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="contentSection sahajJourneySection">
+        <div className="sectionHead">
+          <div>
+            <h2>Start with your real need</h2>
+            <p>No technical terms. Choose what you want to do and 3Bigha will prepare the right path.</p>
+          </div>
+          <a href="/rfq/start">Post requirement →</a>
+        </div>
+
+        <div className="sahajJourneyGrid">
+          {[
+            ["🏗️", "Build", "Plan construction, estimate cost, find contractors, materials and equipment.", "/construction-cost"],
+            ["🏠", "Buy", "Search property, materials, rentals and services near your location.", "/search"],
+            ["💰", "Sell", "List property, materials, services or business offerings.", "/property/add"],
+            ["👷", "Hire", "Find contractors, architects, engineers, labour and service providers.", "/services"],
+            ["🚜", "Rent", "Find JCB, machines, tools and construction equipment.", "/rentals"],
+            ["📋", "Manage", "Track RFQs, vendors, bills, dispatch and project work.", "/dashboard"],
+            ["📈", "Grow", "Join as vendor, supplier, contractor or service provider.", "/vendor-opportunities"],
+            ["📮", "Submit Requirement", "Tell us what you need. We will prepare the request.", "/rfq/start"],
+          ].map(([icon, title, text, href]) => (
+            <a key={title} href={href} className="sahajJourneyCard">
+              <div className="sahajJourneyIcon">{icon}</div>
+              <div>
+                <strong>{title}</strong>
+                <p>{text}</p>
+              </div>
+            </a>
+          ))}
         </div>
       </section>
 
@@ -902,7 +933,7 @@ export default function HomePage() {
           font-weight:900;
         }
 
-        .homePage{min-height:100vh;background:#fff;color:#0f172a;padding-bottom:24px}.heroShell{padding:34px 12px 26px;background:radial-gradient(circle at 18% 18%,#dbeafe 0,transparent 34%),radial-gradient(circle at 86% 12%,#ede9fe 0,transparent 30%),linear-gradient(180deg,#f8fbff,#fff)}.heroGrid{display:grid;grid-template-columns:1fr 1.45fr;gap:32px;align-items:center;width:100%;margin:0 auto}.miniBadge{display:inline-flex;border-radius:999px;background:#eef4ff;color:#1d4ed8;padding:9px 14px;font-size:13px;font-weight:950}.heroCopy h1{margin:22px 0 0;font-size:clamp(44px,5.7vw,78px);line-height:1.02;letter-spacing:-.065em;font-weight:1000}.heroCopy h1 span{display:block;color:#2457d6}.heroCopy p{max-width:780px;margin:18px 0 0;color:#475569;font-size:18px;line-height:1.65;font-weight:650}.heroFeatureRow{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}.heroFeatureRow a{display:inline-flex;border-radius:999px;background:#fff;border:1px solid rgba(15,23,42,.08);box-shadow:0 10px 28px rgba(15,23,42,.05);padding:10px 14px;color:#0f172a;text-decoration:none;font-size:13px;font-weight:950}.searchCard{background:rgba(255,255,255,.92);border:1px solid rgba(15,23,42,.08);box-shadow:0 28px 80px rgba(15,23,42,.12);border-radius:28px;padding:26px}.searchTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-bottom:1px solid #e5e7eb;margin:-4px 0 18px;padding-bottom:10px}.searchTabs button{border:0;background:transparent;border-radius:14px;padding:12px 8px;font-weight:950;color:#475569;cursor:pointer}.searchTabs button.active{background:#eff6ff;color:#1d4ed8;box-shadow:inset 0 2px 0 #2563eb}.searchCard textarea{width:100%;min-height:148px;border:1px solid rgba(15,23,42,.14);border-radius:18px;padding: 14px;font-size:15px;line-height:1.7;resize:none;outline:none;color:#0f172a}.typeChips{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.typeChips button{border:1px solid rgba(15,23,42,.1);background:#fff;border-radius:999px;padding:9px 13px;font-size:13px;font-weight:950;cursor:pointer}.typeChips button.active{background:#eef4ff;color:#1d4ed8;border-color:#bfdbfe}.searchActions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.searchActions button{border:0;border-radius:18px;padding: 12px;font-weight:1000;cursor:pointer}.primaryAction{background:#1d4ed8;color:#fff;box-shadow:0 14px 34px rgba(29,78,216,.24)}.secondaryAction{background:#fff;border:1px solid rgba(15,23,42,.12)!important;color:#0f172a}.statsRail{width:100%;margin:10px auto 14px;padding:0 12px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.statCard{background:#0f172a;color:#fff;border:1px solid rgba(255,255,255,.1);box-shadow:0 14px 34px rgba(15,23,42,.12);padding: 12px;display:flex;gap:11px;align-items:center;border-radius:16px}.statCard:first-child,.statCard:last-child{border-radius:16px}.statCard span{width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(37,99,235,.25)}.statCard strong{display:block;font-size:20px;font-weight:1000;color:#fff}.statCard small{display:block;color:#cbd5e1;font-size:11px;font-weight:850}.contentSection,.splitSection,.startBanner,.homeFooter{width:100%;margin:0 auto 18px;padding:0 12px}.sectionHead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:14px}.sectionHead h2,.trustSection h2{margin:0;font-size:22px;letter-spacing:-.03em;font-weight:1000}.sectionHead p,.trustSection p{margin:4px 0 0;color:#64748b;font-size:13px;font-weight:700}.sectionHead a{color:#1d4ed8;text-decoration:none;font-weight:950}.categoryGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.categoryCard{border:1px solid rgba(15,23,42,.09);border-radius:18px;background:#fff;text-align:center;text-decoration:none;color:inherit;padding: 14px 14px;box-shadow:0 10px 26px rgba(15,23,42,.04);transition:.16s ease}.categoryCard:hover,.listingCard:hover,.toolCard:hover{transform:translateY(-2px);box-shadow:0 16px 36px rgba(15,23,42,.08)}.categoryIcon{font-size:34px}.categoryCard h3{margin:10px 0 0;font-size:15px;font-weight:1000}.categoryCard p{min-height:34px;margin:6px 0 0;color:#64748b;font-size:12px;line-height:1.35}.categoryCard strong{display:block;margin-top:10px;color:#16a34a;font-size:12px}.personalFeedStrip{border:1px solid #dbeafe;background:linear-gradient(135deg,#eff6ff,#fff);border-radius:18px;padding:14px;margin-bottom:16px;display:grid;gap:12px}
+        .homePage{min-height:100vh;background:#fff;color:#0f172a;padding-bottom:24px}.heroShell{padding:34px 12px 26px;background:radial-gradient(circle at 18% 18%,#dbeafe 0,transparent 34%),radial-gradient(circle at 86% 12%,#ede9fe 0,transparent 30%),linear-gradient(180deg,#f8fbff,#fff)}.heroGrid{display:grid;grid-template-columns:1fr 1.45fr;gap:32px;align-items:center;width:100%;margin:0 auto}.miniBadge{display:inline-flex;border-radius:999px;background:#eef4ff;color:#1d4ed8;padding:9px 14px;font-size:13px;font-weight:950}.heroCopy h1{margin:22px 0 0;font-size:clamp(44px,5.7vw,78px);line-height:1.02;letter-spacing:-.065em;font-weight:1000}.heroCopy h1 span{display:block;color:#2457d6}.heroCopy p{max-width:780px;margin:18px 0 0;color:#475569;font-size:18px;line-height:1.65;font-weight:650}.heroFeatureRow{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}.heroFeatureRow a{display:inline-flex;border-radius:999px;background:#fff;border:1px solid rgba(15,23,42,.08);box-shadow:0 10px 28px rgba(15,23,42,.05);padding:10px 14px;color:#0f172a;text-decoration:none;font-size:13px;font-weight:950}.searchCard{background:rgba(255,255,255,.92);border:1px solid rgba(15,23,42,.08);box-shadow:0 28px 80px rgba(15,23,42,.12);border-radius:28px;padding:26px}.searchTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-bottom:1px solid #e5e7eb;margin:-4px 0 18px;padding-bottom:10px}.searchTabs button{border:0;background:transparent;border-radius:14px;padding:12px 8px;font-weight:950;color:#475569;cursor:pointer}.searchTabs button.active{background:#eff6ff;color:#1d4ed8;box-shadow:inset 0 2px 0 #2563eb}.searchCard textarea{width:100%;min-height:148px;border:1px solid rgba(15,23,42,.14);border-radius:18px;padding: 14px;font-size:15px;line-height:1.7;resize:none;outline:none;color:#0f172a}.typeChips{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.typeChips button{border:1px solid rgba(15,23,42,.1);background:#fff;border-radius:999px;padding:9px 13px;font-size:13px;font-weight:950;cursor:pointer}.typeChips button.active{background:#eef4ff;color:#1d4ed8;border-color:#bfdbfe}.searchActions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.searchActions button{border:0;border-radius:18px;padding: 12px;font-weight:1000;cursor:pointer}.primaryAction{background:#1d4ed8;color:#fff;box-shadow:0 14px 34px rgba(29,78,216,.24)}.secondaryAction{background:#fff;border:1px solid rgba(15,23,42,.12)!important;color:#0f172a}.statsRail{width:100%;margin:10px auto 14px;padding:0 12px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.statCard{background:#0f172a;color:#fff;border:1px solid rgba(255,255,255,.1);box-shadow:0 14px 34px rgba(15,23,42,.12);padding: 12px;display:flex;gap:11px;align-items:center;border-radius:16px}.statCard:first-child,.statCard:last-child{border-radius:16px}.statCard span{width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(37,99,235,.25)}.statCard strong{display:block;font-size:20px;font-weight:1000;color:#fff}.statCard small{display:block;color:#cbd5e1;font-size:11px;font-weight:850}.contentSection,.splitSection,.startBanner,.homeFooter{width:100%;margin:0 auto 18px;padding:0 12px}.sahajJourneySection{padding:18px 12px}.sahajJourneyGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.sahajJourneyCard{display:flex;gap:12px;align-items:flex-start;min-height:112px;padding:14px;border:1px solid rgba(15,23,42,.08);border-radius:18px;background:#fff;color:#0f172a;text-decoration:none;box-shadow:0 10px 26px rgba(15,23,42,.04);transition:.16s ease}.sahajJourneyCard:hover{transform:translateY(-2px);box-shadow:0 16px 36px rgba(37,99,235,.10);border-color:rgba(37,99,235,.24)}.sahajJourneyIcon{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:14px;background:#eff6ff;font-size:20px}.sahajJourneyCard strong{display:block;font-size:14px;font-weight:1000}.sahajJourneyCard p{margin:5px 0 0;color:#64748b;font-size:12px;line-height:1.45;font-weight:700}.sectionHead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:14px}.sectionHead h2,.trustSection h2{margin:0;font-size:22px;letter-spacing:-.03em;font-weight:1000}.sectionHead p,.trustSection p{margin:4px 0 0;color:#64748b;font-size:13px;font-weight:700}.sectionHead a{color:#1d4ed8;text-decoration:none;font-weight:950}.categoryGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.categoryCard{border:1px solid rgba(15,23,42,.09);border-radius:18px;background:#fff;text-align:center;text-decoration:none;color:inherit;padding: 14px 14px;box-shadow:0 10px 26px rgba(15,23,42,.04);transition:.16s ease}.categoryCard:hover,.listingCard:hover,.toolCard:hover{transform:translateY(-2px);box-shadow:0 16px 36px rgba(15,23,42,.08)}.categoryIcon{font-size:34px}.categoryCard h3{margin:10px 0 0;font-size:15px;font-weight:1000}.categoryCard p{min-height:34px;margin:6px 0 0;color:#64748b;font-size:12px;line-height:1.35}.categoryCard strong{display:block;margin-top:10px;color:#16a34a;font-size:12px}.personalFeedStrip{border:1px solid #dbeafe;background:linear-gradient(135deg,#eff6ff,#fff);border-radius:18px;padding:14px;margin-bottom:16px;display:grid;gap:12px}
         .personalFeedStrip strong{display:block;font-weight:1000;color:#0f172a}
         .personalFeedStrip span{display:block;margin-top:3px;color:#64748b;font-size:12px;font-weight:800}
         .personalFeedItems{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
