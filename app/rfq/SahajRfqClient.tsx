@@ -131,8 +131,11 @@ export default function SahajRfqClient() {
       subtitle=""
     >
       <div className="grid gap-5">
-        <div className="rounded-3xl bg-emerald-50 p-4 font-black text-emerald-800">
-          {moduleLabels[module]} · {mode}
+        <div className="rounded-3xl bg-emerald-50 p-4">
+          <h1 className="text-2xl font-black text-slate-950">Tell us what you need</h1>
+          <p className="mt-1 text-sm font-bold text-slate-600">
+            Just describe your requirement. 3Bigha will prepare the professional RFQ automatically.
+          </p>
         </div>
 
         <section className="grid gap-3">
@@ -253,9 +256,9 @@ export default function SahajRfqClient() {
         )}
 
         <details className="rounded-3xl border p-4">
-          <summary className="cursor-pointer font-black">Expert mode: Advanced RFQ editor</summary>
+          <summary className="cursor-pointer font-black">Professional RFQ Options</summary>
           <p className="mt-3 text-sm font-bold text-slate-600">
-            Open only if you want procurement AI, budget estimate, technical checks,
+            Open only if you want professional tools like budget estimate, technical checks,
             progress score and advanced RFQ tools.
           </p>
           <button onClick={openAdvanced} className="mt-4 rounded-2xl border px-5 py-3 font-black">
