@@ -40,6 +40,7 @@ export default function SahajRfqClient() {
 
   const [prepared, setPrepared] = useState(false);
   const [preparing, setPreparing] = useState(false);
+  const [simpleFlowStarted, setSimpleFlowStarted] = useState(false);
 
   function submitSimpleRequirement() {
     setPreparing(true);
@@ -131,34 +132,50 @@ export default function SahajRfqClient() {
       subtitle=""
     >
       <div className="grid gap-5">
-        <div className="rounded-3xl bg-emerald-50 p-4">
-          <h1 className="text-2xl font-black text-slate-950">Tell us what you need</h1>
-          <p className="mt-1 text-sm font-bold text-slate-600">
-            Choose the simple form, or open the professional RFQ workspace if you want advanced tools.
-          </p>
+        {!simpleFlowStarted ? (
+          <div className="rounded-3xl bg-emerald-50 p-5">
+            <h1 className="text-2xl font-black text-slate-950">How would you like to create your requirement?</h1>
+            <p className="mt-1 text-sm font-bold text-slate-600">
+              Choose the easy path or open the full professional RFQ workspace.
+            </p>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <div className="rounded-2xl border border-emerald-200 bg-white p-4">
-              <h2 className="font-black text-emerald-900">Simple Requirement</h2>
-              <p className="mt-1 text-sm font-bold text-slate-600">
-                Best for most users. Fill only basic details.
-              </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setSimpleFlowStarted(true)}
+                className="rounded-2xl border border-emerald-200 bg-white p-5 text-left hover:bg-emerald-50"
+              >
+                <h2 className="text-lg font-black text-emerald-900">Simple Requirement</h2>
+                <p className="mt-2 text-sm font-bold text-slate-600">
+                  Recommended for most users. Answer simple questions. 3Bigha prepares the professional RFQ automatically.
+                </p>
+                <b className="mt-3 block text-emerald-700">Continue with Simple Form →</b>
+              </button>
+
+              <button
+                type="button"
+                onClick={openAdvanced}
+                className="rounded-2xl border border-blue-200 bg-blue-50 p-5 text-left hover:bg-blue-100"
+              >
+                <h2 className="text-lg font-black text-blue-900">Professional RFQ Workspace</h2>
+                <p className="mt-2 text-sm font-bold text-slate-600">
+                  For engineers, contractors and procurement teams who want budget, BOQ, technical checks and advanced tools.
+                </p>
+                <b className="mt-3 block text-blue-700">Open Professional Workspace →</b>
+              </button>
             </div>
-
-            <button
-              type="button"
-              onClick={openAdvanced}
-              className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-left hover:bg-blue-100"
-            >
-              <h2 className="font-black text-blue-900">Professional RFQ Workspace</h2>
-              <p className="mt-1 text-sm font-bold text-slate-600">
-                Use budget estimate, technical checks, progress score and advanced RFQ tools.
-              </p>
-              <b className="mt-2 block text-blue-700">Open Professional RFQ →</b>
-            </button>
           </div>
-        </div>
+        ) : (
+          <div className="rounded-3xl bg-emerald-50 p-4">
+            <h1 className="text-2xl font-black text-slate-950">Tell us what you need</h1>
+            <p className="mt-1 text-sm font-bold text-slate-600">
+              Answer a few simple questions. 3Bigha will prepare the professional RFQ automatically.
+            </p>
+          </div>
+        )}
 
+        {simpleFlowStarted ? (
+          <>
         <section className="grid gap-3">
           <label className="font-black">What do you need?</label>
           <input
@@ -279,6 +296,8 @@ export default function SahajRfqClient() {
         <button onClick={() => setMode(null)} className="rounded-2xl border px-5 py-3 font-black">
           Back
         </button>
+          </>
+        ) : null}
       </div>
     </SahajLayout>
   );
