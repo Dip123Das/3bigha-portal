@@ -134,8 +134,29 @@ export default function SahajRfqClient() {
         <div className="rounded-3xl bg-emerald-50 p-4">
           <h1 className="text-2xl font-black text-slate-950">Tell us what you need</h1>
           <p className="mt-1 text-sm font-bold text-slate-600">
-            Just describe your requirement. 3Bigha will prepare the professional RFQ automatically.
+            Choose the simple form, or open the professional RFQ workspace if you want advanced tools.
           </p>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div className="rounded-2xl border border-emerald-200 bg-white p-4">
+              <h2 className="font-black text-emerald-900">Simple Requirement</h2>
+              <p className="mt-1 text-sm font-bold text-slate-600">
+                Best for most users. Fill only basic details.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={openAdvanced}
+              className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-left hover:bg-blue-100"
+            >
+              <h2 className="font-black text-blue-900">Professional RFQ Workspace</h2>
+              <p className="mt-1 text-sm font-bold text-slate-600">
+                Use budget estimate, technical checks, progress score and advanced RFQ tools.
+              </p>
+              <b className="mt-2 block text-blue-700">Open Professional RFQ →</b>
+            </button>
+          </div>
         </div>
 
         <section className="grid gap-3">
@@ -254,17 +275,6 @@ export default function SahajRfqClient() {
             {preparing ? "Preparing professional RFQ..." : "Submit Requirement"}
           </button>
         )}
-
-        <details className="rounded-3xl border p-4">
-          <summary className="cursor-pointer font-black">Professional RFQ Options</summary>
-          <p className="mt-3 text-sm font-bold text-slate-600">
-            Open only if you want professional tools like budget estimate, technical checks,
-            progress score and advanced RFQ tools.
-          </p>
-          <button onClick={openAdvanced} className="mt-4 rounded-2xl border px-5 py-3 font-black">
-            Open advanced RFQ editor
-          </button>
-        </details>
 
         <button onClick={() => setMode(null)} className="rounded-2xl border px-5 py-3 font-black">
           Back
