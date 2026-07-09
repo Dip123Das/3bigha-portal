@@ -114,8 +114,9 @@ export default function SahajRfqClient() {
 
   return (
     <SahajLayout
+      eyebrow=""
       title=""
-      subtitle="Only fill the essentials. Advanced RFQ intelligence stays hidden unless you need it."
+      subtitle=""
     >
       <div className="grid gap-5">
         <div className="rounded-3xl bg-emerald-50 p-4 font-black text-emerald-800">
@@ -199,7 +200,7 @@ export default function SahajRfqClient() {
           </div>
         </section>
 
-        <details className="rounded-3xl border p-4">
+        <details open className="rounded-3xl border p-4">
           <summary className="cursor-pointer font-black">Advanced RFQ editor</summary>
           <p className="mt-3 text-sm font-bold text-slate-600">
             Open the full RFQ engine only if you want budget estimate, procurement copilot,
