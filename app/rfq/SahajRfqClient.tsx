@@ -56,11 +56,11 @@ export default function SahajRfqClient() {
 
   function openAdvanced() {
     const sp = new URLSearchParams();
-    if (module) sp.set("module", module);
-    if (mode) sp.set("mode", mode);
     if (form.item) sp.set("query", form.item);
     if (form.qty || form.unit) sp.set("qty", `${form.qty} ${form.unit}`.trim());
-    window.location.href = `/rfq/general/new?${sp.toString()}`;
+
+    const qs = sp.toString();
+    window.location.href = qs ? `/rfq/general/new?${qs}` : "/rfq/general/new";
   }
 
   if (!module) {
