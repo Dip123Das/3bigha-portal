@@ -3712,3 +3712,68 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     position: static;
   }
 }
+
+/* SAHAJ mobile homepage order + more options */
+.mobileSahajMoreButton {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .homePage {
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  .homePage .heroShell {
+    order: 1;
+  }
+
+  .homePage .sahajJourneySection {
+    order: 2;
+  }
+
+  .homePage .sahajJourneyGrid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  .homePage .sahajJourneyCard {
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid !important;
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+    align-items: start !important;
+  }
+
+  .homePage .sahajJourneyCard strong,
+  .homePage .sahajJourneyCard p {
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  .homePage .sahajJourneyCard.mobileSahajExtra {
+    display: none !important;
+  }
+
+  .homePage .sahajJourneySection.isSahajExpanded .sahajJourneyCard.mobileSahajExtra {
+    display: grid !important;
+  }
+
+  .mobileSahajMoreButton {
+    display: inline-flex;
+    width: 100%;
+    margin-top: 12px;
+    justify-content: center;
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-weight: 900;
+  }
+}
+

@@ -216,6 +216,17 @@ export default function HomePage() {
   const [recentDiscovery, setRecentDiscovery] = useState<DiscoveryMemoryItem[]>([]);
   const [activeTab, setActiveTab] = useState<"search" | "ai" | "post">("search");
 
+  const sahajNeedCards = [
+    ["🏗️", "Build", "Plan construction, estimate cost, find contractors, materials and equipment.", "/construction-cost"],
+    ["🏠", "Buy", "Search property, materials, rentals and services near your location.", "/search"],
+    ["💰", "Sell", "List property, materials, services or business offerings.", "/property/add"],
+    ["👷", "Hire", "Find contractors, architects, engineers, labour and service providers.", "/services"],
+    ["🚜", "Rent", "Find JCB, machines, tools and construction equipment.", "/rentals"],
+    ["📋", "Manage", "Track RFQs, vendors, bills, dispatch and project work.", "/dashboard"],
+    ["📈", "Grow", "Join as vendor, supplier, contractor or service provider.", "/vendor-opportunities"],
+    ["📮", "Submit Requirement", "Tell us what you need. We will prepare the request.", "/rfq/start"],
+  ];
+
   const placeholder = useMemo(() => {
     
     if (activeTab === "post") return "Describe your requirement clearly. Example: Need 500 bags cement in Cooch Behar within 7 days.";
@@ -403,9 +414,17 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+        <button
+          type="button"
+          className="mobileSahajMoreButton"
+          onClick={() => toggleMobileSection("sahajNeeds")}
+        >
+          {mobileSectionOpen("sahajNeeds") ? "Show fewer options" : "More options"}
+        </button>
       </section>
 
-      <section className="contentSection sahajJourneySection">
+      <section className={`contentSection sahajJourneySection ${mobileSectionOpen("sahajNeeds") ? "isSahajExpanded" : ""}`}>
         <div className="sectionHead">
           <div>
             <h2>Start with your real need</h2>
@@ -415,17 +434,8 @@ export default function HomePage() {
         </div>
 
         <div className="sahajJourneyGrid">
-          {[
-            ["🏗️", "Build", "Plan construction, estimate cost, find contractors, materials and equipment.", "/construction-cost"],
-            ["🏠", "Buy", "Search property, materials, rentals and services near your location.", "/search"],
-            ["💰", "Sell", "List property, materials, services or business offerings.", "/property/add"],
-            ["👷", "Hire", "Find contractors, architects, engineers, labour and service providers.", "/services"],
-            ["🚜", "Rent", "Find JCB, machines, tools and construction equipment.", "/rentals"],
-            ["📋", "Manage", "Track RFQs, vendors, bills, dispatch and project work.", "/dashboard"],
-            ["📈", "Grow", "Join as vendor, supplier, contractor or service provider.", "/vendor-opportunities"],
-            ["📮", "Submit Requirement", "Tell us what you need. We will prepare the request.", "/rfq/start"],
-          ].map(([icon, title, text, href]) => (
-            <a key={title} href={href} className="sahajJourneyCard">
+          {sahajNeedCards.map(([icon, title, text, href], index) => (
+            <a key={title} href={href} className={`sahajJourneyCard ${index > 3 ? "mobileSahajExtra" : ""}`}>
               <div className="sahajJourneyIcon">{icon}</div>
               <div>
                 <strong>{title}</strong>
