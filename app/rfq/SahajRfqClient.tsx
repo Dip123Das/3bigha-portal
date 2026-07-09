@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useEffect, useState } from "react";
 import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
 import { SahajLayout } from "@/components/sahaj";
 
@@ -41,6 +41,13 @@ export default function SahajRfqClient() {
   function update(k: keyof typeof form, v: string) {
     setForm((prev) => ({ ...prev, [k]: v }));
   }
+
+
+  useEffect(() => {
+    if (module && mode) {
+      openAdvanced();
+    }
+  }, [module, mode]);
 
   function openAdvanced() {
     const sp = new URLSearchParams();
