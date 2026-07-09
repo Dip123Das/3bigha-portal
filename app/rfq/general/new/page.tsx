@@ -10,6 +10,11 @@ import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
 import { addressEngineToBusinessPayload } from "@/lib/geography/addressAdapters";
 import ProcurementCopilotBox from "@/app/components/ai/ProcurementCopilotBox";
+import {
+  SahajWorkspace,
+  SahajMainPanel,
+  SahajAssistantPanel,
+} from "@/components/sahaj/workspace";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
 import {
@@ -3473,6 +3478,8 @@ return;
         </div>
       </div>
 
+      <SahajWorkspace>
+        <SahajMainPanel>
       <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
         {/* ✅ Module */}
         <div
@@ -4027,6 +4034,58 @@ return;
       />
 
       </form>
+        </SahajMainPanel>
+
+        <SahajAssistantPanel>
+          <div style={{ display: "grid", gap: 12 }}>
+            <div>
+              <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                RFQ Progress
+              </div>
+              <div style={{ marginTop: 6, color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                {procurementInsight.completionPercent}% complete
+              </div>
+              <div style={{ marginTop: 8, height: 8, borderRadius: 999, background: "#e2e8f0", overflow: "hidden" }}>
+                <div
+                  style={{
+                    width: `${procurementInsight.completionPercent}%`,
+                    height: "100%",
+                    background: "#2563eb",
+                  }}
+                />
+              </div>
+            </div>
+
+            <details>
+              <summary style={{ cursor: "pointer", fontWeight: 900, color: "#1d4ed8" }}>
+                Show missing details
+              </summary>
+              <div style={{ marginTop: 8, display: "grid", gap: 6 }}>
+                {procurementInsight.missingFields.length > 0 ? (
+                  procurementInsight.missingFields.slice(0, 6).map((x, idx) => (
+                    <div key={idx} style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                      • {x}
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ color: "#166534", fontSize: 13, fontWeight: 800 }}>
+                    Basic RFQ details look complete.
+                  </div>
+                )}
+              </div>
+            </details>
+
+            <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 12 }}>
+              <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                AI help
+              </div>
+              <div style={{ marginTop: 5, color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                Writing, budget, vendor and procurement AI will be consolidated here next.
+              </div>
+            </div>
+          </div>
+        </SahajAssistantPanel>
+      </SahajWorkspace>
     </div>
   );
 }
