@@ -1875,7 +1875,9 @@ return;
   const browseLink = `${browseHref(module)}?returnTo=${encodeURIComponent("/rfq/general/new")}&module=${encodeURIComponent(module)}`;
 
   return (
-    <div className="container pageBody" style={{ paddingTop: 16 }}>
+    <div className="container pageBody" style={{
+          display: "none",
+ paddingTop: 16 }}>
       <WorkflowContinuityRecorder
         state={{
           id: "rfq-general-new",
@@ -1932,6 +1934,8 @@ return;
           <div>
             <div
               style={{
+          display: "none",
+
                 fontSize: 18,
                 fontWeight: 800,
                 color: "#0f172a",
@@ -1985,7 +1989,9 @@ return;
         </div>
 
         <details style={{ marginTop: 10 }}>
-          <summary style={{ cursor: "pointer", fontWeight: 900, color: "#1d4ed8" }}>
+          <summary style={{
+          display: "none",
+ cursor: "pointer", fontWeight: 900, color: "#1d4ed8" }}>
             View Progress Stages
           </summary>
 
@@ -3398,6 +3404,8 @@ return;
 
           <h1
             style={{
+          display: "none",
+
               margin: 0,
               color: "#0f172a",
               fontSize: "clamp(26px,4vw,42px)",
@@ -3472,7 +3480,9 @@ return;
           marginBottom: 16,
         }}
       >
-        <div style={{ fontWeight: 1000, color: "#0f172a", marginBottom: 4 }}>
+        <div style={{
+          display: "none",
+ fontWeight: 1000, color: "#0f172a", marginBottom: 4 }}>
           Start here: fill your requirement
         </div>
         <div style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
@@ -3480,9 +3490,64 @@ return;
         </div>
       </div>
 
+
+      <section
+        style={{
+          border: "2px solid rgba(37,99,235,0.22)",
+          borderLeft: "8px solid #2563eb",
+          background: "linear-gradient(135deg,#eff6ff,#ffffff)",
+          borderRadius: 22,
+          padding: 18,
+          marginBottom: 16,
+          boxShadow: "0 16px 40px rgba(37,99,235,0.08)",
+        }}
+      >
+        <div
+          style={{
+            display: "inline-flex",
+            borderRadius: 999,
+            background: "#dbeafe",
+            color: "#1d4ed8",
+            padding: "7px 12px",
+            fontSize: 12,
+            fontWeight: 1000,
+            marginBottom: 10,
+          }}
+        >
+          Main RFQ Work Area
+        </div>
+
+        <h1
+          style={{
+            margin: 0,
+            color: "#0f172a",
+            fontSize: "clamp(26px,4vw,42px)",
+            lineHeight: 1.08,
+            letterSpacing: "-0.04em",
+            fontWeight: 1000,
+          }}
+        >
+          ✍️ Create your requirement here
+        </h1>
+
+        <p
+          style={{
+            margin: "8px 0 0",
+            color: "#475569",
+            fontSize: 15,
+            lineHeight: 1.55,
+            fontWeight: 750,
+            maxWidth: 880,
+          }}
+        >
+          Fill this section only. Title, description, location, items, photos and contact are the real RFQ inputs.
+          AI, progress and advanced tools stay in the assistant panel.
+        </p>
+      </section>
+
       <SahajWorkspace>
         <SahajMainPanel>
-      <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
+      <form onSubmit={onSubmit} style={{ display: "grid", gap: 12, border: "2px solid rgba(15,23,42,0.08)", borderRadius: 22, padding: 14, background: "#ffffff", boxShadow: "0 12px 34px rgba(15,23,42,0.05)" }}>
         {/* ✅ Module */}
         <div
           ref={moduleBoxRef}
