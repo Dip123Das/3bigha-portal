@@ -114,7 +114,7 @@ export default function SahajRfqClient() {
 
   return (
     <SahajLayout
-      title="Create your requirement"
+      title=""
       subtitle="Only fill the essentials. Advanced RFQ intelligence stays hidden unless you need it."
     >
       <div className="grid gap-5">
