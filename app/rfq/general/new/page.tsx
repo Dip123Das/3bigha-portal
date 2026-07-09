@@ -2944,7 +2944,9 @@ return;
       ) : null}
 
             <details style={{ marginBottom: 22 }}>
-        <summary style={{ cursor: "pointer", fontSize: 18, fontWeight: 900, color: "#1e40af" }}>
+        <summary style={{
+          display: "none",
+ cursor: "pointer", fontSize: 18, fontWeight: 900, color: "#1e40af" }}>
           ✍️ Need Help Writing?
         </summary>
 
@@ -4037,8 +4039,9 @@ return;
         </SahajMainPanel>
 
         <SahajAssistantPanel>
-          <div style={{ display: "grid", gap: 12 }}>
-            <div>
+          <div style={{ display: "grid", gap: 14 }}>
+
+            <section>
               <div style={{ fontWeight: 1000, color: "#0f172a" }}>
                 RFQ Progress
               </div>
@@ -4054,35 +4057,133 @@ return;
                   }}
                 />
               </div>
-            </div>
 
-            <details>
-              <summary style={{ cursor: "pointer", fontWeight: 900, color: "#1d4ed8" }}>
-                Show missing details
-              </summary>
-              <div style={{ marginTop: 8, display: "grid", gap: 6 }}>
-                {procurementInsight.missingFields.length > 0 ? (
-                  procurementInsight.missingFields.slice(0, 6).map((x, idx) => (
-                    <div key={idx} style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
-                      • {x}
+              <details style={{ marginTop: 8 }}>
+                <summary style={{ cursor: "pointer", fontWeight: 900, color: "#1d4ed8", fontSize: 13 }}>
+                  Show details
+                </summary>
+                <div style={{ marginTop: 8, display: "grid", gap: 6 }}>
+                  {procurementInsight.missingFields.length > 0 ? (
+                    procurementInsight.missingFields.slice(0, 6).map((x, idx) => (
+                      <div key={idx} style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                        • {x}
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ color: "#166534", fontSize: 13, fontWeight: 800 }}>
+                      Basic RFQ details look complete.
                     </div>
-                  ))
-                ) : (
-                  <div style={{ color: "#166534", fontSize: 13, fontWeight: 800 }}>
-                    Basic RFQ details look complete.
-                  </div>
-                )}
-              </div>
-            </details>
+                  )}
+                </div>
+              </details>
+            </section>
 
-            <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: 12 }}>
+            <section style={{ borderTop: "1px solid #e2e8f0", paddingTop: 12 }}>
               <div style={{ fontWeight: 1000, color: "#0f172a" }}>
-                AI help
+                Improve Writing
               </div>
               <div style={{ marginTop: 5, color: "#64748b", fontSize: 13, fontWeight: 700 }}>
-                Writing, budget, vendor and procurement AI will be consolidated here next.
+                Use this only if you want help making your requirement clearer.
               </div>
-            </div>
+              <textarea
+                value={aiRequirement}
+                onChange={(e) => setAiRequirement(e.target.value)}
+                placeholder="Write naturally. Example: Need 500 bags cement in Cooch Behar within 7 days."
+                rows={3}
+                style={{
+                  width: "100%",
+                  marginTop: 8,
+                  border: "1px solid #cbd5e1",
+                  borderRadius: 12,
+                  padding: 10,
+                  fontSize: 13,
+                  resize: "vertical",
+                }}
+              />
+              <button
+                type="button"
+                onClick={generateAiRfqDraft}
+                disabled={aiDrafting}
+                style={{
+                  width: "100%",
+                  marginTop: 8,
+                  border: 0,
+                  borderRadius: 12,
+                  background: aiDrafting ? "#93c5fd" : "#2563eb",
+                  color: "#ffffff",
+                  padding: "10px 12px",
+                  fontWeight: 900,
+                  cursor: aiDrafting ? "not-allowed" : "pointer",
+                }}
+              >
+                {aiDrafting ? "Improving..." : "Improve / Prepare Draft"}
+              </button>
+            </section>
+
+            <section style={{ borderTop: "1px solid #e2e8f0", paddingTop: 12 }}>
+              <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                Budget
+              </div>
+              <div style={{ marginTop: 5, color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                {estimatedBudget || "Add item and quantity to see rough budget guidance."}
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowConstructionBudget((prev) => !prev)}
+                style={{
+                  marginTop: 8,
+                  border: "1px solid #bbf7d0",
+                  borderRadius: 12,
+                  background: "#f0fdf4",
+                  color: "#166534",
+                  padding: "8px 10px",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                {showConstructionBudget ? "Hide budget details" : "Show budget details"}
+              </button>
+            </section>
+
+            <section style={{ borderTop: "1px solid #e2e8f0", paddingTop: 12 }}>
+              <div style={{ fontWeight: 1000, color: "#0f172a" }}>
+                Nearby Vendors
+              </div>
+              <div style={{ marginTop: 5, color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                {supplierRecommendationCards.length > 0
+                  ? `${supplierRecommendationCards.length} suitable vendor suggestions available.`
+                  : "Add location and requirement details to activate vendor matching."}
+              </div>
+            </section>
+
+            <details style={{ borderTop: "1px solid #e2e8f0", paddingTop: 12 }}>
+              <summary style={{ cursor: "pointer", fontWeight: 1000, color: "#7c3aed" }}>
+                Advanced AI
+              </summary>
+              <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+                <div style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                  Procurement intelligence, commercial readiness, vendor expectations, memory and risk analysis are kept here for advanced users.
+                </div>
+
+                {rfqAi ? (
+                  <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 10 }}>
+                    <div style={{ fontWeight: 900, color: "#0f172a" }}>RFQ Quality</div>
+                    <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                      Clarity {rfqAi.rfqHealthScore ?? "—"}/100
+                    </div>
+                  </div>
+                ) : null}
+
+                {procurementInsight.nextMilestone ? (
+                  <div style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 10 }}>
+                    <div style={{ fontWeight: 900, color: "#0f172a" }}>Next Step</div>
+                    <div style={{ marginTop: 4, color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                      {procurementInsight.nextMilestone}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </details>
           </div>
         </SahajAssistantPanel>
       </SahajWorkspace>
