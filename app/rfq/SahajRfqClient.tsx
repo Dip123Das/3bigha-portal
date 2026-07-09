@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
 import { SahajLayout } from "@/components/sahaj";
 
@@ -38,16 +38,21 @@ export default function SahajRfqClient() {
     [form.item, form.qty, form.unit]
   );
 
+  const [prepared, setPrepared] = useState(false);
+  const [preparing, setPreparing] = useState(false);
+
+  function submitSimpleRequirement() {
+    setPreparing(true);
+    window.setTimeout(() => {
+      setPreparing(false);
+      setPrepared(true);
+    }, 900);
+  }
+
   function update(k: keyof typeof form, v: string) {
     setForm((prev) => ({ ...prev, [k]: v }));
   }
 
-
-  useEffect(() => {
-    if (module && mode) {
-      openAdvanced();
-    }
-  }, [module, mode]);
 
   function openAdvanced() {
     const sp = new URLSearchParams();
@@ -207,24 +212,56 @@ export default function SahajRfqClient() {
           </div>
         </section>
 
-        <details open className="rounded-3xl border p-4">
-          <summary className="cursor-pointer font-black">Advanced RFQ editor</summary>
+        {prepared ? (
+          <section className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5">
+            <h2 className="text-xl font-black text-emerald-900">✅ Your requirement is ready</h2>
+            <p className="mt-2 text-sm font-bold text-emerald-800">
+              3Bigha has prepared the professional RFQ in the background.
+            </p>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <button
+                onClick={openAdvanced}
+                className="rounded-2xl bg-emerald-600 px-5 py-4 font-black text-white"
+              >
+                Submit RFQ
+              </button>
+
+              <button
+                onClick={openAdvanced}
+                className="rounded-2xl border bg-white px-5 py-4 font-black"
+              >
+                Review Professional RFQ
+              </button>
+
+              <button
+                onClick={() => setPrepared(false)}
+                className="rounded-2xl border bg-white px-5 py-4 font-black"
+              >
+                Edit Requirement
+              </button>
+            </div>
+          </section>
+        ) : (
+          <button
+            disabled={!canSubmit || preparing}
+            onClick={submitSimpleRequirement}
+            className="rounded-2xl bg-emerald-600 px-5 py-4 font-black text-white disabled:opacity-40"
+          >
+            {preparing ? "Preparing professional RFQ..." : "Submit Requirement"}
+          </button>
+        )}
+
+        <details className="rounded-3xl border p-4">
+          <summary className="cursor-pointer font-black">Expert mode: Advanced RFQ editor</summary>
           <p className="mt-3 text-sm font-bold text-slate-600">
-            Open the full RFQ engine only if you want budget estimate, procurement copilot,
-            technical checks, progress score and advanced AI tools.
+            Open only if you want procurement AI, budget estimate, technical checks,
+            progress score and advanced RFQ tools.
           </p>
           <button onClick={openAdvanced} className="mt-4 rounded-2xl border px-5 py-3 font-black">
             Open advanced RFQ editor
           </button>
         </details>
-
-        <button
-          disabled={!canSubmit}
-          onClick={openAdvanced}
-          className="rounded-2xl bg-emerald-600 px-5 py-4 font-black text-white disabled:opacity-40"
-        >
-          Submit Requirement
-        </button>
 
         <button onClick={() => setMode(null)} className="rounded-2xl border px-5 py-3 font-black">
           Back
