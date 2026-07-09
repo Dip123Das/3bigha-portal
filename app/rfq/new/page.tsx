@@ -211,10 +211,35 @@ export default function RfqNewPage() {
 
   return (
     <div className="container pageBody" style={{ paddingTop: 16 }}>
-      <h1 style={{ fontSize: 18, marginBottom: 8 }}>Submit Requirement (RFQ)</h1>
-      <div style={{ opacity: 0.8, marginBottom: 16 }}>
-        Type your items or upload a handwritten/PDF list. Vendors will send competitive quotations.
-      </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 70%) minmax(280px, 30%)",
+          gap: 18,
+          alignItems: "start",
+        }}
+      >
+        <main>
+          <div
+            style={{
+              border: "1px solid #bfdbfe",
+              background: "linear-gradient(135deg,#eff6ff,#ffffff)",
+              borderRadius: 18,
+              padding: 16,
+              marginBottom: 16,
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 900, color: "#1d4ed8" }}>
+              PROFESSIONAL RFQ WORKSPACE
+            </div>
+            <h1 style={{ fontSize: 26, margin: "6px 0 8px", color: "#0f172a" }}>
+              Prepare a detailed RFQ
+            </h1>
+            <div style={{ opacity: 0.85, fontWeight: 700 }}>
+              Use this workspace when you want technical details, item rows, uploads,
+              AI writing help and vendor-ready procurement information.
+            </div>
+          </div>
 
       {err ? (
         <div
@@ -231,7 +256,7 @@ export default function RfqNewPage() {
         </div>
       ) : null}
 
-      <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
+          <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
         <label>
           <div style={{ fontWeight: 700 }}>Title *</div>
           <input className="searchInput" value={title} onChange={(e) => setTitle(e.target.value)} />
@@ -442,7 +467,95 @@ export default function RfqNewPage() {
             Cancel
           </button>
         </div>
-      </form>
+          </form>
+        </main>
+
+        <aside
+          style={{
+            position: "sticky",
+            top: 110,
+            border: "1px solid #e2e8f0",
+            background: "#ffffff",
+            borderRadius: 18,
+            padding: 14,
+            boxShadow: "0 10px 30px rgba(15,23,42,0.08)",
+          }}
+        >
+          <div style={{ fontWeight: 1000, fontSize: 18, color: "#0f172a" }}>
+            RFQ Assistant
+          </div>
+          <div style={{ marginTop: 4, color: "#64748b", fontWeight: 700, fontSize: 13 }}>
+            Professional tools stay here, separate from the form.
+          </div>
+
+          <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+            <div style={{ border: "1px solid #dbeafe", background: "#eff6ff", borderRadius: 14, padding: 12 }}>
+              <b>RFQ Quality</b>
+              <div style={{ marginTop: 6, height: 8, background: "#dbeafe", borderRadius: 999, overflow: "hidden" }}>
+                <div style={{ width: title && description ? "55%" : "20%", height: "100%", background: "#2563eb" }} />
+              </div>
+              <div style={{ marginTop: 6, fontSize: 12, fontWeight: 800, color: "#1d4ed8" }}>
+                {title && description ? "Details are improving" : "Add title and description first"}
+              </div>
+            </div>
+
+            <details style={{ border: "1px solid #e2e8f0", borderRadius: 14, padding: 12 }}>
+              <summary style={{ cursor: "pointer", fontWeight: 900 }}>Improve writing</summary>
+              <p style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                Use AI Generate beside the description to make the RFQ clearer.
+              </p>
+            </details>
+
+            <details style={{ border: "1px solid #e2e8f0", borderRadius: 14, padding: 12 }}>
+              <summary style={{ cursor: "pointer", fontWeight: 900 }}>Budget estimate</summary>
+              <p style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                Add quantity and item rows to prepare rough budget guidance.
+              </p>
+            </details>
+
+            <details style={{ border: "1px solid #e2e8f0", borderRadius: 14, padding: 12 }}>
+              <summary style={{ cursor: "pointer", fontWeight: 900 }}>Vendor matching</summary>
+              <p style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                Add LGD location and PIN to identify nearby vendors.
+              </p>
+            </details>
+
+            <details style={{ border: "1px solid #e2e8f0", borderRadius: 14, padding: 12 }}>
+              <summary style={{ cursor: "pointer", fontWeight: 900 }}>Technical checks</summary>
+              <p style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
+                Mention grade, size, brand, delivery and payment terms for a stronger RFQ.
+              </p>
+            </details>
+
+            <Link
+              href="/rfq"
+              style={{
+                display: "block",
+                textAlign: "center",
+                border: "1px solid #bfdbfe",
+                borderRadius: 14,
+                padding: 12,
+                fontWeight: 900,
+                color: "#1d4ed8",
+                textDecoration: "none",
+              }}
+            >
+              Back to Simple RFQ
+            </Link>
+          </div>
+        </aside>
+      </div>
+
+      <style jsx>{`
+        @media (max-width: 900px) {
+          .pageBody > div {
+            grid-template-columns: 1fr !important;
+          }
+          aside {
+            position: static !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
