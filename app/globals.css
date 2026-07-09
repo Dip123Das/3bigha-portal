@@ -3671,3 +3671,44 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     max-width: none !important;
   }
 }
+
+/* Project SAHAJ shared workspace */
+.sahajWorkspace {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(280px, 3fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.sahajMainPanel {
+  min-width: 0;
+}
+
+.sahajAssistantPanel {
+  position: sticky;
+  top: 88px;
+  min-width: 0;
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  border-radius: 20px;
+  background: #ffffff;
+  padding: 14px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+}
+
+.sahajAssistantTitle {
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 1000;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 980px) {
+  .sahajWorkspace {
+    grid-template-columns: 1fr;
+  }
+
+  .sahajAssistantPanel {
+    position: static;
+  }
+}
