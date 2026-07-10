@@ -14,6 +14,41 @@ type AiTool = {
 
 const tools: AiTool[] = [
   {
+    icon: "▶️",
+    title: "Resume Previous Work",
+    detail: "Continue your last search, requirement or marketplace activity.",
+    href: "/search",
+    group: "Continue Your Work",
+  },
+  {
+    icon: "🏗️",
+    title: "Estimate Construction",
+    detail: "Estimate construction cost, materials and project requirements.",
+    href: "/construction-cost",
+    group: "Continue Your Work",
+  },
+  {
+    icon: "👷",
+    title: "Find Builders",
+    detail: "Find builders, contractors and construction professionals.",
+    href: "/services",
+    group: "Continue Your Work",
+  },
+  {
+    icon: "📈",
+    title: "Investment Check",
+    detail: "Explore property and investment opportunities.",
+    href: "/investment/opportunities",
+    group: "Continue Your Work",
+  },
+  {
+    icon: "⚖️",
+    title: "Legal Verification",
+    detail: "Find legal and property verification services.",
+    href: "/services?q=legal%20verification",
+    group: "Continue Your Work",
+  },
+  {
     icon: "🔍",
     title: "AI Smart Search",
     detail: "Search property, materials, services and rentals.",
