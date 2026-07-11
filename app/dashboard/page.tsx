@@ -57,6 +57,7 @@ export default function DashboardPage() {
   const [message, setMessage] = useState("Preparing your marketplace workspace...");
   const [fatalError, setFatalError] = useState<string | null>(null);
   const [signedOut, setSignedOut] = useState(false);
+  const [redirectingToWork, setRedirectingToWork] = useState(false);
   const [stats, setStats] = useState<AnalyticsStats>({
     rfqs: 0,
     vendorAlerts: 0,
@@ -131,6 +132,29 @@ export default function DashboardPage() {
           session.user.id,
           session.user.email ?? null
         );
+
+        if (!alive) return;
+
+        const resolvedWorkPath =
+          getDefaultPostLoginPath(access);
+
+        /*
+         * ROLE_BASED_USER_OPENS_ONLY_RESOLVED_WORKSPACE
+         *
+         * /dashboard is an entry resolver.
+         * A person with a resolved work area must continue directly
+         * to that existing protected workspace.
+         */
+        if (
+          resolvedWorkPath &&
+          resolvedWorkPath !== "/dashboard"
+        ) {
+          setRedirectingToWork(true);
+          setMessage("Opening your work...");
+          setLoading(false);
+          router.replace(resolvedWorkPath);
+          return;
+        }
 
         const [
           profileRes,
@@ -225,13 +249,7 @@ export default function DashboardPage() {
           latestRole: String(profile?.role || profile?.requested_role || "user"),
         });
 
-        const target = getDefaultPostLoginPath(access);
-
-        if (target && target !== "/dashboard") {
-          setMessage(`Your work is ready. Your usual work area is ${target}.`);
-        } else {
-          setMessage("Your work is ready.");
-        }
+        setMessage("Your work is ready.");
 
         /*
          * DASHBOARD_CORE_READY_BEFORE_OPTIONAL_AI
@@ -338,6 +356,54 @@ export default function DashboardPage() {
     return (
       <div className="container pageBody" style={{ paddingTop: 16, paddingBottom: 32 }}>
         <SectionSkeleton cards={4} />
+      </div>
+    );
+  }
+
+  if (redirectingToWork) {
+    return (
+      <div
+        className="container pageBody"
+        style={{
+          paddingTop: 24,
+          paddingBottom: 40,
+        }}
+      >
+        <section
+          aria-live="polite"
+          style={{
+            maxWidth: 620,
+            margin: "0 auto",
+            border: "1px solid #dbeafe",
+            borderRadius: 18,
+            padding: 20,
+            background: "#ffffff",
+            boxShadow:
+              "0 8px 24px rgba(15,23,42,0.06)",
+          }}
+        >
+          <h1
+            style={{
+              margin: 0,
+              color: "#0f172a",
+              fontSize: 24,
+              fontWeight: 950,
+            }}
+          >
+            Opening your work
+          </h1>
+
+          <p
+            style={{
+              margin: "10px 0 0",
+              color: "#475569",
+              lineHeight: 1.6,
+            }}
+          >
+            3Bigha has identified your work area and
+            is taking you there now.
+          </p>
+        </section>
       </div>
     );
   }
