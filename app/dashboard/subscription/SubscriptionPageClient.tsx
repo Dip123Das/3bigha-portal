@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import { getGrowthPlanPresentation } from "@/lib/3bos/capability";
 
 type SessionUser = {
   id: string;
@@ -212,6 +213,7 @@ export default function SubscriptionPageClient() {
   const listingIdMissing = !listingId || String(listingId).trim().length < 6;
 
   const activeDisplayPlan = normalizePlanKey(activePlan);
+  const activeGrowthPlan = getGrowthPlanPresentation(activePlan);
   const activePrediction = planLeadPrediction(activePlan);
   const goldPrediction = planLeadPrediction("gold_vendor");
   const platinumPrediction = planLeadPrediction("platinum_vendor");
@@ -370,12 +372,12 @@ export default function SubscriptionPageClient() {
       setExpiresAt(null);
 
       setMsg(
-        "✅ Plan request submitted. Online payment is coming soon. Admin can now manually activate this plan after payment confirmation."
+        "Your Growth Plan request has been recorded. Online payment is not active yet; the team can activate the requested plan after payment confirmation."
       );
     } catch (e: any) {
       console.warn("subscription purchase intent tracking failed:", e?.message || e);
       setMsg(
-        "Payment is coming soon. Please contact admin for manual activation of this plan."
+        "Online payment is not active yet. Please contact the 3Bigha team for plan activation support."
       );
     } finally {
       setSaving(false);
@@ -392,7 +394,7 @@ export default function SubscriptionPageClient() {
     try {
       if (plan !== "free") {
         setMsg(
-          "Paid subscription checkout is not connected yet. Please contact admin to activate this vendor plan."
+          "Online payment is not active yet. Please contact the 3Bigha team to activate this Growth Plan."
         );
         setSaving(false);
         return;
@@ -414,7 +416,7 @@ export default function SubscriptionPageClient() {
       setActivePlan("free");
       setIsActive(true);
       setExpiresAt(null);
-      setMsg("✅ FREE plan is active. Continuing…");
+      setMsg("Start — Essential is active. Continuing…");
 
       router.replace(returnTo);
     } catch (e: any) {
@@ -429,8 +431,8 @@ export default function SubscriptionPageClient() {
       <div className="wrap">
         <div className="head">
           <div>
-            <div className="kicker">Subscription</div>
-            <h1 className="h1">Subscription & Plans</h1>
+            <div className="kicker">Business Growth</div>
+            <h1 className="h1">Business Growth Plans</h1>
             <p className="p">
               {focus === "boost"
                 ? "Recover missed leads by boosting your visibility in AI vendor matching."
@@ -438,16 +440,16 @@ export default function SubscriptionPageClient() {
                 ? "Improve deal closing with AI-powered replies and smarter follow-ups."
                 : focus === "premium"
                 ? "Maintain top vendor position with maximum visibility and priority ranking."
-                : "3Bigha is a listing & discovery platform. Vendors sell directly to buyers. We charge only subscription (no commission)."}
+                : "3Bigha is a Business Operating System with an integrated Marketplace. Customers pay businesses directly; Growth Plans support business tools, visibility and operations without commission."}
             </p>
           </div>
 
           <div className="actions">
             <Link className="btn btnOutline" href={returnTo}>
-              Go to your listing
+              Return to My Work
             </Link>
             <Link className="btn btnOutline" href="/dashboard">
-              Back to Dashboard
+              Back to Workspace
             </Link>
           </div>
         </div>
@@ -465,30 +467,30 @@ export default function SubscriptionPageClient() {
           <>
             {focus === "boost" ? (
               <div className="alert alertWarn" style={{ borderColor: "#f97316", background: "#fff7ed" }}>
-                <b>⚠️ You are missing potential leads.</b>
+                <b>Your business may benefit from broader visibility.</b>
                 <div style={{ marginTop: 6 }}>
-                  Upgrade visibility so more buyer RFQs reach you first.
+                  Review the Growth Plans and choose the visibility support appropriate for your business.
                 </div>
               </div>
             ) : focus === "ai" ? (
               <div className="alert" style={{ borderColor: "#2563eb", background: "#ffffff", color: "#1e3a8a" }}>
-                <b>⚠️ Your deal conversion needs improvement.</b>
+                <b>Additional customer follow-up tools are available.</b>
                 <div style={{ marginTop: 6 }}>
-                  Use AI-powered replies and better follow-ups to close more deals.
+                  Use prepared response suggestions and organised follow-ups while keeping every decision in your hands.
                 </div>
               </div>
             ) : focus === "premium" ? (
               <div className="alert" style={{ borderColor: "#059669", background: "#ecfdf5", color: "#064e3b" }}>
-                <b>🏆 Premium visibility recommended.</b>
+                <b>Advanced business support is available.</b>
                 <div style={{ marginTop: 6 }}>
-                  Maintain stronger ranking and stay ahead of competing vendors.
+                  Review tools for larger teams, stronger operations and wider marketplace reach.
                 </div>
               </div>
             ) : listingIdMissing ? (
               <div className="alert alertWarn">
-                <b>Missing listingId:</b> This page was opened without a valid listing id.
+                <b>No specific listing selected.</b>
                 <div style={{ marginTop: 6 }}>
-                  You can still choose a plan, but the system won’t be able to link it to a specific listing.
+                  You can still review and request a Growth Plan for your business.
                 </div>
               </div>
             ) : null}
@@ -526,8 +528,8 @@ export default function SubscriptionPageClient() {
                 </div>
               ) : null}
               <div className="pill">
-                <b>Current plan:</b>{" "}
-                {PLAN_META[activeDisplayPlan].title}{" "}
+                <b>Current Growth Plan:</b>{" "}
+                {activeGrowthPlan.offerLabel}{" "}
                 {isActive ? "✅" : "⚠️"}
               </div>
               {expiresAt ? (
@@ -539,7 +541,7 @@ export default function SubscriptionPageClient() {
 
             <div className="revenueHero">
               <div>
-                <div className="revenueKicker">AI Boost Monetization</div>
+                <div className="revenueKicker">Business Growth Guidance</div>
                 <div className="revenueTitle">
                   {focus === "boost"
                     ? "Recover missed leads with stronger AI boost visibility"
@@ -547,28 +549,28 @@ export default function SubscriptionPageClient() {
                     ? "Improve deal closing with AI-assisted vendor growth"
                     : focus === "premium"
                     ? "Stay ahead with premium vendor visibility"
-                    : "Get more buyer RFQs with AI-powered vendor ranking"}
+                    : "Choose tools that match the present stage of your business"}
                 </div>
                 <div className="revenueText">
                   {focus === "boost"
-                    ? "Your vendor dashboard found missed lead opportunities. Upgrade visibility so more buyer RFQs reach you first."
+                    ? "Your vendor dashboard found missed lead opportunities. Review the Growth Plans and choose the visibility support appropriate for your business."
                     : focus === "ai"
                     ? "Use AI-powered visibility and smarter follow-ups to convert more conversations into completed deals."
                     : focus === "premium"
                     ? "Keep your ranking strong with higher boost power, premium trust signals, and maximum buyer visibility."
-                    : "3Bigha now ranks vendors using AI price accuracy, buyer matching intelligence, and subscription boost power. Higher plans unlock AI VERIFIED status and dominate buyer visibility."}
+                    : "Every Growth Plan supports a different stage of business. Choose according to the tools, team size and operating support you currently need."}
                 </div>
               </div>
 
               <div className="revenueScore">
-                <div className="scoreLabel">Your Visibility score</div>
-                <div className="scoreValue">+{planAiBoostPower(activePlan)}</div>
+                <div className="scoreLabel">Current growth stage</div>
+                <div className="scoreValue" style={{ fontSize: 28 }}>{activeGrowthPlan.stageLabel}</div>
 
                 <div style={{ marginTop: 8, fontWeight: 900, fontSize: 14 }}>
-                  {planAiTrustLevel(activePlan)}
+                  {activeGrowthPlan.badge}
                 </div>
                 <div className="scoreHint">
-                  Vendors with higher AI trust level get significantly more RFQs and appear earlier in buyer matching.
+                  Plan level affects included business tools and promotional support. Trust and verification remain based on evidence.
                 </div>
               </div>
             </div>
@@ -584,11 +586,11 @@ export default function SubscriptionPageClient() {
               }}
             >
               <div style={{ fontSize: 18, fontWeight: 950, color: "#92400e" }}>
-                📈 Predictive Revenue Engine
+                Business Growth Comparison
               </div>
 
               <div style={{ marginTop: 6, fontSize: 13, color: "#475569", fontWeight: 800, lineHeight: 1.6 }}>
-                Estimate how your visibility may improve when your vendor plan is upgraded.
+                Compare the commercial offers currently available while the new Growth Plan system is introduced.
               </div>
 
               <div
@@ -631,20 +633,20 @@ export default function SubscriptionPageClient() {
               </div>
 
               <div style={{ marginTop: 10, fontSize: 12, color: "#78716c", fontWeight: 800 }}>
-                Prediction is an estimate based on AI boost power, ranking priority, and buyer visibility logic.
+                These visibility ranges are illustrative and are not a promise of enquiries, sales or business results.
               </div>
             </div>
 
             <div className="alert alertWarn">
-              <b>Payment Safe Mode:</b> Online payment is not active yet. Plan requests are recorded now, and Razorpay checkout will be enabled only after GST, current bank account, and legal setup are complete.
+              <b>Payment update:</b> Online payment is not active yet. Plan requests are recorded safely, and activation is completed after payment confirmation.
             </div>
 
             <div className="comparisonBox">
               <div className="comparisonHead">
                 <div>
-                  <div className="comparisonKicker">Vendor Premium Dashboard</div>
+                  <div className="comparisonKicker">Business Growth Plans</div>
                   <div className="comparisonTitle">
-                    Free shows alerts. Paid plans unlock WhatsApp + priority lead advantage.
+                    Choose the communication, visibility and business support suitable for your present stage.
                   </div>
                 </div>
               </div>
@@ -659,12 +661,12 @@ export default function SubscriptionPageClient() {
                       className={`compareCol ${active ? "compareActive" : ""}`}
                       key={plan}
                     >
-                      <div className="comparePlan">{meta.title}</div>
+                      <div className="comparePlan">{getGrowthPlanPresentation(plan).offerLabel}</div>
                       <div className="comparePrice">{meta.price}</div>
                       <div className="compareBadge">{meta.badge}</div>
 
                       <div className="compareRow">
-                        <b>AI Alert Strength</b>
+                        <b>Business Alerts</b>
                         <span>{meta.alertStrength}</span>
                       </div>
                       <div className="compareRow">
@@ -672,15 +674,15 @@ export default function SubscriptionPageClient() {
                         <span>{meta.whatsapp}</span>
                       </div>
                       <div className="compareRow">
-                        <b>Priority Lead Access</b>
+                        <b>Requirement Access</b>
                         <span>{meta.priorityLead}</span>
                       </div>
                       <div className="compareRow">
-                        <b>Boost Visibility</b>
+                        <b>Marketplace Visibility</b>
                         <span>{meta.visibility}</span>
                       </div>
                       <div className="compareRow">
-                        <b>Conversion Advantage</b>
+                        <b>Business Support</b>
                         <span>{meta.conversion}</span>
                       </div>
                     </div>
@@ -698,7 +700,7 @@ export default function SubscriptionPageClient() {
                 return (
                   <PlanCard
                     key={plan}
-                    title={meta.title}
+                    title={getGrowthPlanPresentation(plan).offerLabel}
                     price={meta.price}
                     boost={meta.boost}
                     alertStrength={meta.alertStrength}
@@ -737,7 +739,7 @@ export default function SubscriptionPageClient() {
                         ? "Please wait…"
                         : isFree
                         ? "Activate FREE"
-                        : `Request ${meta.title} Upgrade`
+                        : `Request ${getGrowthPlanPresentation(plan).offerLabel}`
                     }
                     disabled={saving || active}
                     onClick={() =>
