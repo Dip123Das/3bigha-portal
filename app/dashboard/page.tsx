@@ -171,10 +171,18 @@ export default function DashboardPage() {
         const target = getDefaultPostLoginPath(access);
 
         if (target && target !== "/dashboard") {
-          setMessage(`AI analytics ready. Your default workspace is ${target}.`);
+          setMessage(`Your work is ready. Your usual work area is ${target}.`);
         } else {
-          setMessage("AI procurement analytics ready.");
+          setMessage("Your work is ready.");
         }
+
+        /*
+         * DASHBOARD_CORE_READY_BEFORE_OPTIONAL_AI
+         *
+         * Core dashboard information is already available.
+         * Optional intelligence must never keep the human waiting.
+         */
+        setLoading(false);
 
         try {
           const rfqCount =
@@ -235,7 +243,6 @@ export default function DashboardPage() {
           setProcurementMemory(null);
         }
 
-        setLoading(false);
       } catch (e: any) {
         if (!alive) return;
         setFatalError(e?.message || "Something went wrong while loading your dashboard.");
