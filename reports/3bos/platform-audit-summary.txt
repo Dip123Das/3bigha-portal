@@ -1,0 +1,52 @@
+PROJECT NEEV — PHASE 5 — 3BOS PLATFORM AUDIT
+================================================
+Generated: 2026-07-11T09:35:12.648Z
+Files scanned: 1273
+Total references: 9257
+Migration findings: 8737
+Existing 3BOS foundation references: 520
+High risk references: 1219
+Medium risk: 3257
+Low risk: 4781
+
+CATEGORY COUNTS
+---------------
+Human Identity: 4534
+Module-Oriented Architecture: 1553
+Workspace: 1366
+Business Growth Plan: 1181
+Capability and Permission: 333
+Onboarding: 217
+Visible AI Terminology: 73
+
+TOP FILES
+---------
+  211  lib/3bos/workspace/registry.ts
+  182  lib/3bos/identity/registry.ts
+  167  app/dashboard/vendor/page.tsx
+  153  app/dashboard/inbox-v2/page.tsx
+  149  app/search/page.tsx
+  141  app/admin/dashboard/page.tsx
+  119  app/onboarding/business/BusinessOnboardingPageClient.tsx
+  114  app/dashboard/subscription/SubscriptionPageClient.tsx
+  101  app/auth/register-role/RegisterRolePageClient.tsx
+   89  app/dashboard/buyer/page.tsx
+   88  app/dashboard/buyer/quote-compare/[rfqId]/page.tsx
+   86  app/dashboard/vendor/chat/[conversationId]/vendor-conversation-chat-box.tsx
+   79  app/property/add/AddPropertyPageClient.tsx
+   73  app/price-today/PriceTodayClient.tsx
+   68  app/admin/dashboard/investment/plans/page.tsx
+   65  app/dashboard/thread/[conversationId]/page.tsx
+   65  app/page.tsx
+   64  lib/access/resolveAccess.ts
+   60  app/admin/dashboard/investment/plans/[id]/page.tsx
+   60  app/seo/[module]/[state]/[district]/[city]/page.tsx
+   59  app/layout.tsx
+   58  components/layout/TopHeaderClient.tsx
+   55  app/_components/AuthButtons.tsx
+   55  app/auth/post-login/PostLoginPageClient.tsx
+   53  app/api/rfq/vendor-matches/route.ts
+
+No database connection was made.
+No source file was modified by the audit.
+No runtime behavior was changed.
