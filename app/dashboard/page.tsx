@@ -56,6 +56,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("Preparing your marketplace workspace...");
   const [fatalError, setFatalError] = useState<string | null>(null);
+  const [signedOut, setSignedOut] = useState(false);
   const [stats, setStats] = useState<AnalyticsStats>({
     rfqs: 0,
     vendorAlerts: 0,
@@ -70,6 +71,25 @@ export default function DashboardPage() {
 
   const [procurementMemory, setProcurementMemory] =
     useState<ProcurementMemoryGraph | null>(null);
+
+  function withDashboardTimeout<T>(
+    request: PromiseLike<T>,
+    milliseconds: number,
+    label: string
+  ): Promise<T> {
+    return Promise.race([
+      Promise.resolve(request),
+      new Promise<never>((_, reject) => {
+        window.setTimeout(() => {
+          reject(
+            new Error(
+              `${label} timed out after ${milliseconds}ms`
+            )
+          );
+        }, milliseconds);
+      }),
+    ]);
+  }
 
   useEffect(() => {
     let alive = true;
@@ -91,9 +111,20 @@ export default function DashboardPage() {
         const session = sessionRes.session;
 
         if (!session?.user?.id) {
+          /*
+           * DASHBOARD_SIGNED_OUT_MUST_NOT_SKELETON
+           *
+           * Client navigation can occasionally be delayed.
+           * Never leave a signed-out person inside an endless skeleton.
+           */
+          setSignedOut(true);
+          setMessage("Please sign in to open your work.");
+          setLoading(false);
           router.replace("/login?next=/dashboard");
           return;
         }
+
+        setSignedOut(false);
 
         const access = await resolveAccessForUser(
           supabase,
@@ -109,36 +140,62 @@ export default function DashboardPage() {
           conversationRes,
           priceRes,
         ] = await Promise.allSettled([
-          supabase
-            .from("profiles")
-            .select("role,requested_role")
-            .eq("id", session.user.id)
-            .maybeSingle(),
+          withDashboardTimeout(
+            supabase
+              .from("profiles")
+              .select("role,requested_role")
+              .eq("id", session.user.id)
+              .maybeSingle(),
+            5000,
+            "Dashboard profile"
+          ),
 
-          supabase
-            .from("rfqs")
-            .select("id", { count: "exact", head: true }),
+          withDashboardTimeout(
+            supabase
+              .from("rfqs")
+              .select("id", { count: "exact", head: true }),
+            5000,
+            "Dashboard RFQ count"
+          ),
 
-          supabase
-            .from("vendor_notifications")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", session.user.id),
+          withDashboardTimeout(
+            supabase
+              .from("vendor_notifications")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", session.user.id),
+            5000,
+            "Dashboard notification count"
+          ),
 
-          supabase
-            .from("vendor_notifications")
-            .select("id", { count: "exact", head: true })
-            .eq("user_id", session.user.id)
-            .eq("is_read", false),
+          withDashboardTimeout(
+            supabase
+              .from("vendor_notifications")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", session.user.id)
+              .eq("is_read", false),
+            5000,
+            "Dashboard unread notification count"
+          ),
 
-          supabase
-            .from("conversations")
-            .select("id", { count: "exact", head: true })
-            .or(`buyer_user_id.eq.${session.user.id},vendor_user_id.eq.${session.user.id}`),
+          withDashboardTimeout(
+            supabase
+              .from("conversations")
+              .select("id", { count: "exact", head: true })
+              .or(
+                `buyer_user_id.eq.${session.user.id},vendor_user_id.eq.${session.user.id}`
+              ),
+            5000,
+            "Dashboard conversation count"
+          ),
 
-          supabase
-            .from("material_price_updates")
-            .select("id", { count: "exact", head: true })
-            .eq("verified", true),
+          withDashboardTimeout(
+            supabase
+              .from("material_price_updates")
+              .select("id", { count: "exact", head: true })
+              .eq("verified", true),
+            5000,
+            "Dashboard price signal count"
+          ),
         ]);
 
         const profile =
@@ -281,6 +338,72 @@ export default function DashboardPage() {
     return (
       <div className="container pageBody" style={{ paddingTop: 16, paddingBottom: 32 }}>
         <SectionSkeleton cards={4} />
+      </div>
+    );
+  }
+
+  if (signedOut) {
+    return (
+      <div
+        className="container pageBody"
+        style={{
+          paddingTop: 24,
+          paddingBottom: 40,
+        }}
+      >
+        <section
+          style={{
+            maxWidth: 620,
+            margin: "0 auto",
+            border: "1px solid #dbeafe",
+            borderRadius: 18,
+            padding: 20,
+            background: "#ffffff",
+            boxShadow:
+              "0 8px 24px rgba(15,23,42,0.06)",
+          }}
+        >
+          <h1
+            style={{
+              margin: 0,
+              color: "#0f172a",
+              fontSize: 24,
+              fontWeight: 950,
+            }}
+          >
+            Sign in to open your work
+          </h1>
+
+          <p
+            style={{
+              margin: "10px 0 0",
+              color: "#475569",
+              lineHeight: 1.6,
+            }}
+          >
+            Your dashboard is private. Sign in and
+            3Bigha will take you back to your work.
+          </p>
+
+          <Link
+            href="/login?next=/dashboard"
+            style={{
+              display: "inline-flex",
+              marginTop: 16,
+              minHeight: 42,
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "10px 16px",
+              borderRadius: 12,
+              background: "#1d4ed8",
+              color: "#ffffff",
+              textDecoration: "none",
+              fontWeight: 900,
+            }}
+          >
+            Sign In →
+          </Link>
+        </section>
       </div>
     );
   }
