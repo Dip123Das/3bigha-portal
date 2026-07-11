@@ -30,6 +30,7 @@ import OperationalEventRecorder from "@/components/operational-events/Operationa
 import { buildVendorSmartNotifications } from "@/lib/notifications/smart-reengagement";
 import GlobalAiOperationalStatus from "@/components/ai-operational/GlobalAiOperationalStatus";
 import OperationalRecoveryFeed from "@/components/ai-operational/OperationalRecoveryFeed";
+import ThreeBOSBusinessWorkSummary from "./ThreeBOSBusinessWorkSummary";
 
 type CompletenessRow = {
   user_id?: string;
@@ -1350,6 +1351,8 @@ const aiDealUpgradeTarget =
       />
 
       <Container>
+        <ThreeBOSBusinessWorkSummary />
+
         <div style={{ marginBottom: 16 }}>
           <GlobalAiOperationalStatus
             battlefieldPulse="active"
