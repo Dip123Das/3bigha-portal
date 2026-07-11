@@ -1,0 +1,81 @@
+# PROJECT NEEV — Phase 5.5A
+
+## Human-First Vendor Profile Audit
+
+Generated: 2026-07-11T13:35:53.272Z
+
+Source:
+
+`app/vendor/[slug]/page.tsx`
+
+## Audit result
+
+- Visible presentation terms reviewed: 16
+- Present in current page: 16
+- Existing intelligence engines detected: 13/13
+- Database mutation introduced: No
+- Route changed: No
+- URL changed: No
+- Query changed: No
+- Metadata changed: No
+- JSON-LD changed: No
+
+## Presentation migration map
+
+| Status | Current visible term | Human-first replacement | Category |
+|---|---|---|---|
+| Found | Explore AI Recommended Vendors | Find Similar Businesses Nearby | Visible AI terminology |
+| Found | Vendor Authority Score | Business Reputation | Technical score terminology |
+| Found | AI Vendor Trust | Customer Trust | Visible AI terminology |
+| Found | AI Recommendation Intelligence | Marketplace Visibility | Visible AI terminology |
+| Found | Recommendation Score | How Easily Customers Can Find This Business | Technical score terminology |
+| Found | AI Marketplace Rank | Business Reach | Visible AI terminology |
+| Found | Leaderboard Score | Marketplace Presence | Technical score terminology |
+| Found | Reputation Intelligence | Business Activity | Visible technical terminology |
+| Found | AI Reputation Score | Business Reputation | Visible AI terminology |
+| Found | Trust Intelligence | Why Customers Can Trust This Business | Visible technical terminology |
+| Found | Marketplace Trust Score | Customer Trust | Technical score terminology |
+| Found | authority points | trust contribution | Technical score terminology |
+| Found | Recommended Vendor Clusters | Similar Businesses Nearby | Technical grouping terminology |
+| Found | AI-generated supplier clusters | Related businesses based on location and work | Visible AI terminology |
+| Found | Related Marketplace Intelligence | Nearby Products and Services | Visible technical terminology |
+| Found | Related Vendor Intelligence | Other Businesses You May Need | Visible technical terminology |
+
+## Intelligence that must remain underneath
+
+- buildVendorTrustSignals — present
+- buildRelatedVendorEntities — present
+- getVendorAuthorityDataBySlug — present
+- getVendorReputationData — present
+- calculateVendorLeaderboardScore — present
+- calculateVendorRecommendationScore — present
+- buildVendorRecommendationClusters — present
+- getVendorRecommendationCandidates — present
+- buildVendorInternalLinks — present
+- buildVendorAuthorityGraph — present
+- getVendorAuthoritySummary — present
+- buildVendorAuthorityJsonLd — present
+- buildVendorTrustReputation — present
+
+## Human-first presentation order
+
+1. Business name and plain-language summary
+2. What this business provides
+3. Areas served
+4. Why customers can trust this business
+5. Business reputation
+6. Marketplace visibility
+7. Nearby products and services
+8. Similar businesses nearby
+9. Detailed business insights in a collapsed section
+
+## Non-negotiable compatibility rules
+
+- Keep `/vendor/[slug]`
+- Keep metadata generation
+- Keep JSON-LD
+- Keep all scoring engines
+- Keep all internal links
+- Keep recommendation clusters
+- Keep all existing data sources
+- Change presentation only
