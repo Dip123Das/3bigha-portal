@@ -12,6 +12,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Container } from "@/components/layout/Container";
+import { ThreeBOSRuntimeProvider } from "@/lib/3bos/context";
 
 // confirmed existing files
 import BuildConVendorPopup from "@/app/_components/BuildConVendorPopup";
@@ -106,7 +107,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AppOAuthReturnBridge />
         <AppOAuthBrowserBounce />
       <body className="threebigha-app-body">
-        <PresenceHeartbeat currentPage="global" />
+        <ThreeBOSRuntimeProvider>
+          <PresenceHeartbeat currentPage="global" />
         <MobileMenuAutoClose />
         <AutoTranslatePage />
 
@@ -625,9 +627,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </Container>
         </footer>
 
-        <MasterAdminDebugTools />
+          <MasterAdminDebugTools />
 
-              <BuildConVendorPopup />
+          <BuildConVendorPopup />
+        </ThreeBOSRuntimeProvider>
       </body>
     </html>
   );

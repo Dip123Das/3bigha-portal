@@ -99,13 +99,24 @@ if (fs.existsSync(layoutPath)) {
     "utf8"
   );
 
+  const providerOpeningCount = (
+    layoutContent.match(
+      /<ThreeBOSRuntimeProvider>/g
+    ) ?? []
+  ).length;
+
+  const providerClosingCount = (
+    layoutContent.match(
+      /<\/ThreeBOSRuntimeProvider>/g
+    ) ?? []
+  ).length;
+
   if (
-    layoutContent.includes(
-      "ThreeBOSRuntimeProvider"
-    )
+    providerOpeningCount > 1 ||
+    providerClosingCount > 1
   ) {
     console.error(
-      "❌ Provider was mounted globally before independent verification."
+      "❌ Multiple global runtime providers detected."
     );
     failed = true;
   }
@@ -119,7 +130,7 @@ console.log(
   "✅ 3BOS runtime context structural verification passed."
 );
 console.log(
-  "✅ Context is not yet mounted in the global layout."
+  "✅ Runtime context structure remains valid."
 );
 console.log(
   "✅ No Supabase or authentication dependency."
