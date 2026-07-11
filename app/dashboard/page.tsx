@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { SectionSkeleton } from "@/components/ui/Skeleton";
 import { OperationalErrorState } from "@/components/ui/OperationalErrorState";
+import ThreeBOSWorkSummary from "./ThreeBOSWorkSummary";
 import {
   getDefaultPostLoginPath,
   resolveAccessForUser,
@@ -291,6 +292,8 @@ export default function DashboardPage() {
 
   return (
     <div className="container pageBody" style={{ paddingTop: 16, paddingBottom: 32 }}>
+      <ThreeBOSWorkSummary />
+
       <div
         style={{
           border: "1px solid rgba(79,70,229,0.25)",
