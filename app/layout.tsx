@@ -20,6 +20,7 @@ import AuthButtons from "./_components/AuthButtons";
 import ActiveLink from "./_components/ActiveLink";
 import GlobalNotificationBell from "./_components/GlobalNotificationBell";
 import PresenceHeartbeat from "./_components/PresenceHeartbeat";
+import ThreeBOSAuthenticatedBootstrap from "./_components/ThreeBOSAuthenticatedBootstrap";
 import MobileMenuAutoClose from "./_components/MobileMenuAutoClose";
 import DesktopMegaNavClient from "@/components/layout/DesktopMegaNavClient";
 import MobileMegaNavClient from "@/components/layout/MobileMegaNavClient";
@@ -108,6 +109,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AppOAuthBrowserBounce />
       <body className="threebigha-app-body">
         <ThreeBOSRuntimeProvider>
+          <ThreeBOSAuthenticatedBootstrap />
           <PresenceHeartbeat currentPage="global" />
         <MobileMenuAutoClose />
         <AutoTranslatePage />
