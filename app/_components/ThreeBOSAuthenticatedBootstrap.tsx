@@ -136,6 +136,7 @@ export default function ThreeBOSAuthenticatedBootstrap() {
                   [
                     "business_type",
                     "nature_of_business",
+                    "subscription_plan",
                   ].join(",")
                 )
                 .eq("user_id", userId)
@@ -194,14 +195,17 @@ export default function ThreeBOSAuthenticatedBootstrap() {
             businessProfile,
 
             /*
-             * Commercial access remains controlled by the
-             * existing subscription/access system.
+             * N-4A2.2 — Commercial Runtime Provider bridge.
              *
-             * Until its authoritative source is connected,
-             * the adapter maps this compatibility value to Start.
+             * The existing subscription_plan value is supplied only as
+             * compatibility input to the observe-only 3BOS runtime.
+             * Existing subscription status, expiry, payment, renewal,
+             * admin activation and feature-gate logic remain authoritative.
              */
             access: {
-              plan: "free",
+              plan:
+                businessProfile?.subscription_plan ??
+                "free",
             },
           });
 
