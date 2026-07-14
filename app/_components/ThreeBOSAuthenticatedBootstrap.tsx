@@ -51,6 +51,7 @@ export default function ThreeBOSAuthenticatedBootstrap() {
 
   const {
     setRuntimeInput,
+    setCommercialContextInput,
     clearRuntime,
   } = use3BOSRuntime();
 
@@ -137,6 +138,8 @@ export default function ThreeBOSAuthenticatedBootstrap() {
                     "business_type",
                     "nature_of_business",
                     "subscription_plan",
+                    "subscription_status",
+                    "subscription_expires_at",
                   ].join(",")
                 )
                 .eq("user_id", userId)
@@ -210,6 +213,24 @@ export default function ThreeBOSAuthenticatedBootstrap() {
           });
 
         setRuntimeInput(bootstrap.input);
+
+        /*
+         * N-4A2.3 — Resolve the complete commercial observation
+         * separately from legacy authorization and payment logic.
+         */
+        setCommercialContextInput({
+          humanId: userId,
+          subscriptionPlan:
+            businessProfile?.subscription_plan ??
+            "free",
+          subscriptionStatus:
+            businessProfile?.subscription_status ??
+            "free",
+          subscriptionExpiresAt:
+            businessProfile
+              ?.subscription_expires_at ??
+            null,
+        });
       } catch (error) {
         /*
          * Runtime bootstrap must never disrupt the application.
@@ -305,6 +326,7 @@ export default function ThreeBOSAuthenticatedBootstrap() {
   }, [
     supabase,
     setRuntimeInput,
+    setCommercialContextInput,
     clearRuntime,
   ]);
 

@@ -15,6 +15,12 @@ import type {
 } from "../capability";
 
 import {
+  resolveSubscriptionAccessContext,
+  type SubscriptionAccessContext,
+  type SubscriptionAccessContextInput,
+} from "../commercial";
+
+import {
   create3BOSRuntime,
   has3BOSCapability,
   type ThreeBOSRuntime,
@@ -60,11 +66,50 @@ export function ThreeBOSRuntimeProvider({
   const [input, setInput] =
     useState<ThreeBOSRuntimeInput | null>(initialInput);
 
+  const [
+    commercialInput,
+    setCommercialInput,
+  ] = useState<SubscriptionAccessContextInput | null>(
+    null
+  );
+
   const runtime = useMemo<ThreeBOSRuntime | null>(() => {
     if (!input) return null;
 
     return create3BOSRuntime(input);
   }, [input]);
+
+  const commercialContext =
+    useMemo<SubscriptionAccessContext | null>(() => {
+      if (!commercialInput) return null;
+
+      return resolveSubscriptionAccessContext({
+        ...commercialInput,
+        humanId:
+          runtime?.userId ??
+          commercialInput.humanId ??
+          null,
+        identityKey:
+          runtime?.identity.primary?.key ??
+          commercialInput.identityKey ??
+          null,
+        workspaceKey:
+          runtime?.workspaces.primary?.key ??
+          commercialInput.workspaceKey ??
+          null,
+      });
+    }, [commercialInput, runtime]);
+
+  const setCommercialContextInput = useCallback(
+    (
+      nextInput:
+        | SubscriptionAccessContextInput
+        | null
+    ) => {
+      setCommercialInput(nextInput);
+    },
+    []
+  );
 
   const setRuntimeInput = useCallback(
     (nextInput: ThreeBOSRuntimeInput | null) => {
@@ -85,6 +130,7 @@ export function ThreeBOSRuntimeProvider({
 
   const clearRuntime = useCallback(() => {
     setInput(null);
+    setCommercialInput(null);
   }, []);
 
   const getCapability = useCallback(
@@ -116,7 +162,9 @@ export function ThreeBOSRuntimeProvider({
     () => ({
       runtime,
       input,
+      commercialContext,
       status: resolveRuntimeStatus(runtime),
+      setCommercialContextInput,
       setRuntimeInput,
       updateRuntimeInput,
       clearRuntime,
@@ -128,6 +176,8 @@ export function ThreeBOSRuntimeProvider({
     [
       runtime,
       input,
+      commercialContext,
+      setCommercialContextInput,
       setRuntimeInput,
       updateRuntimeInput,
       clearRuntime,
