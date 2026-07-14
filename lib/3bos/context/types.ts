@@ -4,6 +4,11 @@ import type {
 } from "../capability";
 
 import type {
+  SubscriptionAccessContext,
+  SubscriptionAccessContextInput,
+} from "../commercial";
+
+import type {
   ThreeBOSAvailableAction,
   ThreeBOSRuntime,
   ThreeBOSRuntimeInput,
@@ -27,6 +32,21 @@ export type ThreeBOSRuntimeContextValue = {
    * Compatibility inputs used to create the current runtime.
    */
   input: ThreeBOSRuntimeInput | null;
+
+  /**
+   * N-4A2 commercial context.
+   *
+   * Observe-only interpretation of existing subscription information.
+   * It is not an authorization or payment source.
+   */
+  commercialContext: SubscriptionAccessContext | null;
+
+  /**
+   * Supply read-only commercial compatibility signals.
+   */
+  setCommercialContextInput: (
+    input: SubscriptionAccessContextInput | null
+  ) => void;
 
   /**
    * Context lifecycle state.

@@ -18,6 +18,8 @@ export type LegacyBusinessProfileRuntimeSource = {
   plan?: string | null;
   plan_key?: string | null;
   subscription_plan?: string | null;
+  subscription_status?: string | null;
+  subscription_expires_at?: string | null;
   current_plan?: string | null;
   growth_plan?: string | null;
 };
