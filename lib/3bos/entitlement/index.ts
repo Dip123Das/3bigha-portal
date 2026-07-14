@@ -5,3 +5,5 @@ export * from "./resolve-entitlement";
 export * from "./action-catalogue";
 
 export * from "./action-policy-matrix";
+
+export * from "./access-presentation";
