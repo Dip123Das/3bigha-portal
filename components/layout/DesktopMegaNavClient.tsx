@@ -7,6 +7,7 @@ import { useExperienceMode } from "@/components/experience/ExperienceModeProvide
 import { useOptional3BOSRuntime } from "@/lib/3bos/context";
 import { resolveShellNavigation } from "@/lib/3bos/navigation";
 import { MENUS } from "@/lib/navigation/main-menu";
+import ThreeBOSWorkContextChooser from "@/components/layout/ThreeBOSWorkContextChooser";
 
 export default function DesktopMegaNavClient() {
   const [active, setActive] = useState<string | null>(null);
@@ -51,6 +52,10 @@ export default function DesktopMegaNavClient() {
             className="stableMegaPanel"
             onMouseEnter={() => setActive(activeMenu.label)}
           >
+            {activeMenu.label === "My Work" ? (
+              <ThreeBOSWorkContextChooser />
+            ) : null}
+
             <div className="stableMegaGroup stableMegaMainGroup">
               <div className="stableMegaTitle">Main Page</div>
               <Link className="stableMegaMainLink" href={activeMenu.href}>

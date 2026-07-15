@@ -6,6 +6,7 @@ import { useExperienceMode } from "@/components/experience/ExperienceModeProvide
 import { useOptional3BOSRuntime } from "@/lib/3bos/context";
 import { resolveShellNavigation } from "@/lib/3bos/navigation";
 import { MENUS } from "@/lib/navigation/main-menu";
+import ThreeBOSWorkContextChooser from "@/components/layout/ThreeBOSWorkContextChooser";
 
 export default function MobileMegaNavClient() {
   const [open, setOpen] = useState<string | null>(null);
@@ -60,6 +61,10 @@ export default function MobileMegaNavClient() {
 
             {isOpen ? (
               <div className="mobileMegaPanel">
+                {menu.label === "My Work" ? (
+                  <ThreeBOSWorkContextChooser />
+                ) : null}
+
                 <Link
                   className="mobileMegaMainLink"
                   href={menu.href}

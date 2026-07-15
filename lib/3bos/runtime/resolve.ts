@@ -104,8 +104,43 @@ function resolveWorkspaces(input: {
 function resolvePrimaryWorkspace(input: {
   workspaces: WorkspaceDefinition[];
   preferredWorkspaceKey?: string | null;
+  activeIdentity?: HumanIdentityDefinition | null;
 }): WorkspaceDefinition | null {
   const preferredKey = normalize(input.preferredWorkspaceKey);
+
+  if (input.activeIdentity) {
+    const identityWorkspaces = input.workspaces.filter(
+      (workspace) =>
+        workspace.status !== "future" &&
+        workspace.identities.includes(
+          input.activeIdentity!.key
+        )
+    );
+
+    if (preferredKey) {
+      const preferredIdentityWorkspace =
+        identityWorkspaces.find(
+          (workspace) => workspace.key === preferredKey
+        );
+
+      if (preferredIdentityWorkspace) {
+        return preferredIdentityWorkspace;
+      }
+    }
+
+    const productionIdentityWorkspace =
+      identityWorkspaces.find(
+        (workspace) => workspace.status === "production"
+      );
+
+    if (productionIdentityWorkspace) {
+      return productionIdentityWorkspace;
+    }
+
+    if (identityWorkspaces[0]) {
+      return identityWorkspaces[0];
+    }
+  }
 
   if (preferredKey) {
     const preferred = input.workspaces.find(
@@ -193,8 +228,28 @@ export function create3BOSRuntime(
   const primaryIdentitySuggestion =
     getPrimaryLegacyIdentitySuggestion(input);
 
+  const activeIdentityKey = normalize(
+    input.activeIdentityKey
+  );
+
+  const humanConfirmedIdentity =
+    identitySuggestions.find(
+      (suggestion) =>
+        suggestion.identity.key === activeIdentityKey &&
+        suggestion.identity.status !== "future" &&
+        Object.values(WORKSPACE_REGISTRY).some(
+          (workspace) =>
+            workspace.status !== "future" &&
+            workspace.identities.includes(
+              suggestion.identity.key
+            )
+        )
+    )?.identity ?? null;
+
   const primaryIdentity =
-    primaryIdentitySuggestion?.identity ?? null;
+    humanConfirmedIdentity ??
+    primaryIdentitySuggestion?.identity ??
+    null;
 
   const availableWorkspaces = resolveWorkspaces({
     identity: primaryIdentity,
@@ -204,6 +259,7 @@ export function create3BOSRuntime(
   const primaryWorkspace = resolvePrimaryWorkspace({
     workspaces: availableWorkspaces,
     preferredWorkspaceKey: input.preferredWorkspaceKey,
+    activeIdentity: humanConfirmedIdentity,
   });
 
   const growthPlanResolution =
@@ -232,6 +288,7 @@ export function create3BOSRuntime(
       suggestions: identitySuggestions,
       requiresHumanSelection:
         identitySuggestions.length > 0 && primaryIdentity === null,
+      humanConfirmed: Boolean(humanConfirmedIdentity),
     },
 
     workspaces: {
