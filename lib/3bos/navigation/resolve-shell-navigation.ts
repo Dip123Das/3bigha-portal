@@ -65,11 +65,19 @@ export function resolveShellNavigation({
     workspaceLinks.map(([, href]) => href)
   );
 
+  const confirmedWorkspaceLandingPath =
+    runtime.identity.humanConfirmed &&
+    primaryWorkspace.status !== "future" &&
+    primaryWorkspace.landingPath.startsWith("/")
+      ? primaryWorkspace.landingPath
+      : null;
+
   return legacyVisibleMenus.map((menu) => {
     if (menu.label !== "My Work") return menu;
 
     return {
       ...menu,
+      href: confirmedWorkspaceLandingPath ?? menu.href,
       groups: [
         {
           title: primaryWorkspace.shortLabel,
