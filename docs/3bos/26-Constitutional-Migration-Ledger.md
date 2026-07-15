@@ -89,7 +89,7 @@ updates a module grant.
 - [x] Type check passed
 - [x] Desktop verified
 - [x] Mobile verified
-- [ ] Production verified
+- [x] Production verified
 - [x] Regression checked
 
 ### Implementation evidence
@@ -120,6 +120,24 @@ updates a module grant.
   menu preserved every legacy group and action because the evidence remained
   intentionally multi-identity and ambiguous; the runtime did not force a
   primary identity or replace the human workflow.
+- Pull request #1 was merged into `main` at commit `1ce8038`. The two reported
+  checks were obsolete external Vercel deployment contexts for a blocked Vercel
+  account; Hostinger is the approved publisher and its isolated verification
+  completed successfully.
+- Production was promoted through a validated Nginx upstream switch from port
+  3000 to the already healthy F02A process on port 3200. The previous F01
+  process remained online throughout the route switch, so no production
+  interruption was introduced.
+- After cutover, `/`, `/login`, `/property`, `/materials`, `/services`,
+  `/rentals` and `/rfq` all returned HTTP 200. The F02A process remained online
+  with zero restarts and an empty error log.
+- Authenticated production preserved the complete legacy My Work menu for the
+  observed multi-business account. F01 was then retained in a stopped rollback
+  state, F02A was saved as the persistent PM2 startup process, and only port
+  3200 remained listening.
+- The pre-cutover Nginx configuration is retained at
+  `/etc/nginx/sites-available/3bigha.neev-f02a.rollback` for immediate routing
+  rollback.
 
 ### Files
 
