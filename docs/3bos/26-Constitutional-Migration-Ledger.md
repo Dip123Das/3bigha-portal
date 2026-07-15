@@ -20,10 +20,10 @@ authoritative and unchanged.
 - [x] Implementation completed
 - [x] Build passed
 - [x] Type check passed
-- [ ] Desktop verified
-- [ ] Mobile verified
+- [x] Desktop verified
+- [x] Mobile verified
 - [ ] Production verified
-- [ ] Regression checked
+- [x] Regression checked
 
 ### Verification evidence
 
@@ -32,9 +32,17 @@ authoritative and unchanged.
   configuration. It compiled successfully, completed TypeScript validation,
   generated all 293 static pages and completed build traces. No production
   credentials or production files were used.
-- Desktop and mobile browser verification remain pending because the local
-  in-app browser runtime could not start in the current Windows permission
-  environment.
+- Isolated Hostinger staging built successfully with the production-compatible
+  environment and returned HTTP 200 on port 3100.
+- Anonymous desktop and mobile shell rendering were verified through a private
+  SSH tunnel. Mobile header, menu, actions, content stacking and footer rendered
+  without visible horizontal overflow.
+- Four programmatic shell resolver assertions passed: anonymous fallback,
+  legacy menu preservation, ready workspace context and ambiguous-runtime
+  fallback.
+- Authenticated visual staging verification could not be completed because the
+  existing OAuth callback correctly returned to the configured production
+  origin. Production authentication settings were not weakened or modified.
 - Production verification remains pending; no deployment was attempted.
 
 ### Files
