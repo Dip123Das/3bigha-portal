@@ -326,3 +326,60 @@ Remove the compatibility marker and secondary presentation, then restore the
 resolver to append the unchanged legacy groups directly after contextual
 actions. No authentication, database, permission, API or route rollback is
 required because this migration creates no persistent institutional state.
+
+## NEEV-F03A — Context-aligned Open My Work bridge
+
+**Approval:** Approved by the repository owner on 15 July 2026.
+
+**Scope:** After a person explicitly confirms a Human Work Context, make the
+existing Open My Work entry lead to that registered workspace's existing
+landing page.
+
+**Compatibility boundary:** This is presentation-only navigation resolution.
+The `/dashboard` route, authentication, post-login redirects, legacy roles,
+grants, permissions, APIs, database records and every workspace route remain
+unchanged. Any unconfirmed, ambiguous, unavailable, future or invalid context
+continues to use `/dashboard`.
+
+- [x] Audit completed
+- [x] Constitutional mapping completed
+- [x] Design approved
+- [x] Implementation completed
+- [x] Build passed
+- [x] Type check passed
+- [x] Desktop verified
+- [x] Mobile verified
+- [ ] Production verified
+- [x] Regression checked
+
+### Implementation evidence
+
+- The existing shell resolver changes only the My Work menu item's displayed
+  destination after explicit Human Work Context confirmation.
+- The destination must be a non-future registered workspace landing path that
+  begins with `/`; otherwise the unchanged legacy `/dashboard` destination is
+  retained.
+- The existing workspace actions, compatibility groups and destination-page
+  authorization remain unchanged.
+- Five focused navigation assertions passed for confirmed, unconfirmed,
+  future, invalid-path and uninitialized runtime states.
+- TypeScript completed with no errors. The Next.js production build compiled,
+  validated types and generated all 293 static pages using non-production
+  placeholder service configuration.
+- Isolated Hostinger staging at port `3500` built successfully with the real
+  environment and generated all 3,897 static pages.
+- The repository owner verified on desktop and mobile that a confirmed Rental
+  Business context makes Open My Work lead to the existing `/rentals/my`
+  workspace. Production remained on the prior F02B2A process during testing.
+
+### Files
+
+- `lib/3bos/navigation/resolve-shell-navigation.ts`
+- `scripts/verify-neev-f03a-navigation.mjs`
+- `docs/3bos/26-Constitutional-Migration-Ledger.md`
+
+### Rollback
+
+Remove the conditional My Work `href` override from the shell resolver. The
+existing `/dashboard` entry immediately becomes authoritative again. No data,
+authentication, permission, route or infrastructure rollback is required.
