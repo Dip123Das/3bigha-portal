@@ -87,8 +87,8 @@ updates a module grant.
 - [x] Implementation completed
 - [x] Build passed
 - [x] Type check passed
-- [ ] Desktop verified
-- [ ] Mobile verified
+- [x] Desktop verified
+- [x] Mobile verified
 - [ ] Production verified
 - [x] Regression checked
 
@@ -110,6 +110,16 @@ updates a module grant.
 - Source regression inspection confirmed that the new grant bridge contains no
   insert, update, upsert or delete operation. Existing ambiguous-runtime and
   legacy-navigation fallbacks remain unchanged.
+- Isolated Hostinger staging built successfully with the production-compatible
+  environment, passed an independent server-side type check and returned HTTP
+  200 on port 3200. The PM2 staging process remained online with zero restarts.
+- Anonymous desktop and mobile staging rendered the complete homepage, shell,
+  marketplace content and footer without visible horizontal overflow.
+- Authenticated staging remained on the isolated origin and loaded the existing
+  completed onboarding record for a multi-business `hub_vendor`. The My Work
+  menu preserved every legacy group and action because the evidence remained
+  intentionally multi-identity and ambiguous; the runtime did not force a
+  primary identity or replace the human workflow.
 
 ### Files
 
