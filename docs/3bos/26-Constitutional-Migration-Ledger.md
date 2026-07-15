@@ -149,3 +149,86 @@ updates a module grant.
 Remove the optional active-grant read and stop supplying `moduleKeys` to the
 bootstrap adapter. No database, authentication, permission, API or route
 rollback is required because this migration creates no persistent state.
+
+## NEEV-F02B1 — Session-based Human Work Context confirmation
+
+**Approval:** Approved by the repository owner on 15 July 2026.
+
+**Scope:** Allow an authenticated person with several valid Human Identity
+suggestions to choose what they want to work on for the current browser session.
+
+**Compatibility boundary:** The choice is non-authoritative browser-session
+context. Existing authentication, roles, grants, Growth Plans, permissions,
+routes, database records, onboarding and legacy menu actions remain unchanged.
+
+- [x] Audit completed
+- [x] Constitutional mapping completed
+- [x] Design approved
+- [x] Implementation completed
+- [x] Build passed
+- [x] Type check passed
+- [x] Desktop verified
+- [x] Mobile verified
+- [ ] Production verified
+- [x] Regression checked
+
+### Implementation evidence
+
+- The My Work menu asks “What would you like to work on now?” only when current
+  compatibility evidence produces multiple valid identity suggestions.
+- A choice is accepted only when it remains present in current suggestions and
+  has a non-future workspace. A mismatched stored workspace is not accepted as
+  the primary workspace for that identity.
+- Session context is versioned, scoped to the authenticated user id, cleared on
+  logout and never written to the database.
+- Choosing or changing a work context does not modify authorization. Existing
+  legacy My Work groups and actions remain visible beneath contextual help.
+- `npx tsc --noEmit --pretty false` passed on 15 July 2026.
+- `next build` passed on 15 July 2026 with non-production placeholder service
+  configuration. It compiled successfully, validated types, generated all 293
+  static pages and completed build traces.
+- Focused runtime regression assertions confirmed that ambiguous compatibility
+  evidence remains unselected, a valid human choice activates its matching
+  workspace, and an identity absent from current suggestions is rejected.
+- Initial Hostinger staging showed that a multi-identity account with one
+  higher-scoring legacy suggestion remained runtime-ready and therefore did not
+  see the confirmation prompt. The chooser condition was narrowed to depend on
+  two or more valid work choices while retaining the inferred identity as the
+  non-blocking fallback until the person confirms a choice.
+- Corrected Hostinger staging at commit `4bb455f` passed an independent type
+  check and production build with the production-compatible environment. The
+  build generated all 3,897 static pages; the isolated PM2 process on port 3300
+  remained online with zero restarts and an empty error log.
+- Authenticated desktop staging displayed nine human-readable work choices at
+  the top of My Work while preserving all existing menu groups beneath them.
+  Selecting Materials changed the session context to Material Business without
+  redirecting, changing authorization or hiding legacy actions, and Change
+  restored the complete choice list.
+- Mobile staging displayed both the choice list and confirmed-context state in
+  the existing hamburger menu without visible horizontal overflow. Remaining
+  on the current page after a choice was confirmed as intentional, non-blocking
+  behavior; navigation continues only when the person selects an existing link.
+- Separate 404 responses observed for historical Site Work and Activity Feed
+  links pre-exist F02B1 and were not altered by this identity migration. They
+  are retained for a future route-continuity audit rather than silently changed
+  inside this scope.
+
+### Files
+
+- `app/_components/ThreeBOSAuthenticatedBootstrap.tsx`
+- `app/globals.css`
+- `components/layout/DesktopMegaNavClient.tsx`
+- `components/layout/MobileMegaNavClient.tsx`
+- `components/layout/ThreeBOSWorkContextChooser.tsx`
+- `lib/3bos/identity/active-work-context.ts`
+- `lib/3bos/identity/index.ts`
+- `lib/3bos/runtime/resolve.ts`
+- `lib/3bos/runtime/types.ts`
+- `docs/3bos/26-Constitutional-Migration-Ledger.md`
+
+### Rollback
+
+Remove the chooser, active-context session utility and optional runtime input.
+Restore the desktop and mobile My Work panels to rendering only resolved menu
+groups. No database, authentication, permission, API or route rollback is
+required because this migration creates no persistent institutional state.

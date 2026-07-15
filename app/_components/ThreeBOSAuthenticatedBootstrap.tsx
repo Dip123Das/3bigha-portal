@@ -11,6 +11,10 @@ import {
 } from "@/lib/3bos/bootstrap";
 
 import { use3BOSRuntime } from "@/lib/3bos/context";
+import {
+  clearActiveWorkContext,
+  readActiveWorkContext,
+} from "@/lib/3bos/identity";
 
 type BootstrapProfileRow = LegacyProfileRuntimeSource;
 
@@ -279,7 +283,16 @@ export default function ThreeBOSAuthenticatedBootstrap() {
             },
           });
 
-        setRuntimeInput(bootstrap.input);
+        const activeWorkContext =
+          readActiveWorkContext(userId);
+
+        setRuntimeInput({
+          ...bootstrap.input,
+          activeIdentityKey:
+            activeWorkContext?.identityKey ?? null,
+          preferredWorkspaceKey:
+            activeWorkContext?.workspaceKey ?? null,
+        });
 
         /*
          * N-4A2.3 — Resolve the complete commercial observation
@@ -324,6 +337,7 @@ export default function ThreeBOSAuthenticatedBootstrap() {
       if (!userId) {
         activeUserIdRef.current = null;
         requestSequence += 1;
+        clearActiveWorkContext();
         clearRuntime();
         return;
       }
@@ -360,6 +374,7 @@ export default function ThreeBOSAuthenticatedBootstrap() {
         if (!session?.user?.id) {
           activeUserIdRef.current = null;
           requestSequence += 1;
+          clearActiveWorkContext();
           clearRuntime();
           return;
         }

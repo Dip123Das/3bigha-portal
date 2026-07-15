@@ -2035,6 +2035,90 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   }
 }
 
+.threeBOSWorkContextChooser {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #bfdbfe;
+  border-radius: 16px;
+  background: #f8fbff;
+  color: #0f172a;
+}
+
+.stableMegaPanel > .threeBOSWorkContextChooser {
+  grid-column: 1 / -1;
+}
+
+.threeBOSWorkContextHeading {
+  display: grid;
+  gap: 4px;
+}
+
+.threeBOSWorkContextHeading strong,
+.threeBOSWorkContextActive strong {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.threeBOSWorkContextHeading span,
+.threeBOSWorkContextChooser small,
+.threeBOSWorkContextActive span {
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.threeBOSWorkContextChoices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.threeBOSWorkContextChoices button,
+.threeBOSWorkContextActive button {
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1e3a8a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: left;
+  cursor: pointer;
+}
+
+.threeBOSWorkContextChoices button:hover,
+.threeBOSWorkContextChoices button:focus-visible,
+.threeBOSWorkContextActive button:hover,
+.threeBOSWorkContextActive button:focus-visible {
+  border-color: #60a5fa;
+  outline: 2px solid transparent;
+  background: #eff6ff;
+}
+
+.threeBOSWorkContextActive {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.threeBOSWorkContextActive > div {
+  display: grid;
+  gap: 2px;
+}
+
+@media (max-width: 980px) {
+  .threeBOSWorkContextChooser {
+    margin-bottom: 10px;
+  }
+
+  .threeBOSWorkContextChoices {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 /* =========================================================
    FINAL MOBILE HEADER STABILITY LOCK
