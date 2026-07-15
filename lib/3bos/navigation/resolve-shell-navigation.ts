@@ -28,12 +28,18 @@ export function resolveShellNavigation({
   );
 
   const primaryWorkspace = runtime?.workspaces.primary ?? null;
+  const awaitsHumanConfirmation = Boolean(
+    runtime &&
+      runtime.identity.suggestions.length > 1 &&
+      !runtime.identity.humanConfirmed
+  );
 
   if (
     runtimeStatus !== "ready" ||
     !runtime ||
     !primaryWorkspace ||
-    runtime.identity.requiresHumanSelection
+    runtime.identity.requiresHumanSelection ||
+    awaitsHumanConfirmation
   ) {
     return legacyVisibleMenus;
   }
@@ -55,6 +61,10 @@ export function resolveShellNavigation({
     return legacyVisibleMenus;
   }
 
+  const workspaceHrefs = new Set(
+    workspaceLinks.map(([, href]) => href)
+  );
+
   return legacyVisibleMenus.map((menu) => {
     if (menu.label !== "My Work") return menu;
 
@@ -65,7 +75,15 @@ export function resolveShellNavigation({
           title: primaryWorkspace.shortLabel,
           links: workspaceLinks,
         },
-        ...menu.groups,
+        ...menu.groups
+          .map((group) => ({
+            ...group,
+            compatibility: true,
+            links: group.links.filter(
+              ([, href]) => !workspaceHrefs.has(href)
+            ),
+          }))
+          .filter((group) => group.links.length > 0),
       ],
     };
   });
