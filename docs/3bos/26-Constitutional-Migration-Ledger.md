@@ -167,8 +167,8 @@ routes, database records, onboarding and legacy menu actions remain unchanged.
 - [x] Implementation completed
 - [x] Build passed
 - [x] Type check passed
-- [ ] Desktop verified
-- [ ] Mobile verified
+- [x] Desktop verified
+- [x] Mobile verified
 - [ ] Production verified
 - [x] Regression checked
 
@@ -195,6 +195,23 @@ routes, database records, onboarding and legacy menu actions remain unchanged.
   see the confirmation prompt. The chooser condition was narrowed to depend on
   two or more valid work choices while retaining the inferred identity as the
   non-blocking fallback until the person confirms a choice.
+- Corrected Hostinger staging at commit `4bb455f` passed an independent type
+  check and production build with the production-compatible environment. The
+  build generated all 3,897 static pages; the isolated PM2 process on port 3300
+  remained online with zero restarts and an empty error log.
+- Authenticated desktop staging displayed nine human-readable work choices at
+  the top of My Work while preserving all existing menu groups beneath them.
+  Selecting Materials changed the session context to Material Business without
+  redirecting, changing authorization or hiding legacy actions, and Change
+  restored the complete choice list.
+- Mobile staging displayed both the choice list and confirmed-context state in
+  the existing hamburger menu without visible horizontal overflow. Remaining
+  on the current page after a choice was confirmed as intentional, non-blocking
+  behavior; navigation continues only when the person selects an existing link.
+- Separate 404 responses observed for historical Site Work and Activity Feed
+  links pre-exist F02B1 and were not altered by this identity migration. They
+  are retained for a future route-continuity audit rather than silently changed
+  inside this scope.
 
 ### Files
 
