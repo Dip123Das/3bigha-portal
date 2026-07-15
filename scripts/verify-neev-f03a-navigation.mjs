@@ -17,6 +17,14 @@ const legacyMenus = [
 ];
 
 function runtime(overrides = {}) {
+  const primaryWorkspace = {
+    key: "rental_business",
+    shortLabel: "Rental Business",
+    status: "production",
+    landingPath: "/rentals/my",
+    ...overrides.workspace,
+  };
+
   return {
     identity: {
       suggestions: [{ identity: { key: "rental_business" } }],
@@ -25,13 +33,8 @@ function runtime(overrides = {}) {
       ...overrides.identity,
     },
     workspaces: {
-      primary: {
-        key: "rental_business",
-        shortLabel: "Rental Business",
-        status: "production",
-        landingPath: "/rentals/my",
-        ...overrides.workspace,
-      },
+      primary: primaryWorkspace,
+      available: [primaryWorkspace],
     },
     availableActions: [
       {
