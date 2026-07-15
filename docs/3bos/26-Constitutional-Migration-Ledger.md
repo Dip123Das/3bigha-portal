@@ -347,8 +347,8 @@ continues to use `/dashboard`.
 - [x] Implementation completed
 - [x] Build passed
 - [x] Type check passed
-- [ ] Desktop verified
-- [ ] Mobile verified
+- [x] Desktop verified
+- [x] Mobile verified
 - [ ] Production verified
 - [x] Regression checked
 
@@ -366,6 +366,11 @@ continues to use `/dashboard`.
 - TypeScript completed with no errors. The Next.js production build compiled,
   validated types and generated all 293 static pages using non-production
   placeholder service configuration.
+- Isolated Hostinger staging at port `3500` built successfully with the real
+  environment and generated all 3,897 static pages.
+- The repository owner verified on desktop and mobile that a confirmed Rental
+  Business context makes Open My Work lead to the existing `/rentals/my`
+  workspace. Production remained on the prior F02B2A process during testing.
 
 ### Files
 
