@@ -22,7 +22,7 @@ authoritative and unchanged.
 - [x] Type check passed
 - [x] Desktop verified
 - [x] Mobile verified
-- [ ] Production verified
+- [x] Production verified
 - [x] Regression checked
 
 ### Verification evidence
@@ -43,7 +43,16 @@ authoritative and unchanged.
 - Authenticated visual staging verification could not be completed because the
   existing OAuth callback correctly returned to the configured production
   origin. Production authentication settings were not weakened or modified.
-- Production verification remains pending; no deployment was attempted.
+- Production was promoted on 15 July 2026 through an isolated, health-checked
+  Hostinger build. Critical public routes returned HTTP 200, the new PM2 process
+  remained online with zero restarts and the previous process was retained in a
+  stopped state for rollback.
+- Authenticated production navigation preserved the complete legacy My Work
+  menu. The observed account did not receive a contextual workspace group,
+  indicating that its runtime context was not sufficiently ready and
+  unambiguous. The constitutional fallback operated correctly instead of
+  guessing identity; activation evidence is carried forward to the next
+  identity-runtime audit.
 
 ### Files
 
