@@ -383,3 +383,59 @@ continues to use `/dashboard`.
 Remove the conditional My Work `href` override from the shell resolver. The
 existing `/dashboard` entry immediately becomes authoritative again. No data,
 authentication, permission, route or infrastructure rollback is required.
+
+## NEEV-F03B — Multi-workspace Vendor Hub continuity
+
+**Approval:** Approved by the repository owner on 15 July 2026 after live F03A
+verification exposed that selecting a current work focus did not clearly retain
+the Vendor Hub's other registered work in the My Work menu.
+
+**Scope:** Keep the confirmed workspace as the person's current focus while
+presenting every other non-future workspace already resolved from existing
+registration, role, module-grant and business-activity evidence.
+
+**Compatibility boundary:** This is presentation-only navigation composition.
+It does not create access, infer new identities, change the current focus,
+replace route guards, or modify authentication, roles, grants, permissions,
+APIs, database records, URLs or post-login behavior. Unconfirmed and
+uninitialized states retain the unchanged legacy menu.
+
+- [x] Audit completed
+- [x] Constitutional mapping completed
+- [x] Design approved
+- [x] Implementation completed
+- [x] Build passed
+- [x] Type check passed
+- [ ] Desktop verified
+- [ ] Mobile verified
+- [ ] Production verified
+- [x] Regression checked
+
+### Implementation evidence
+
+- The confirmed workspace remains the first My Work group and remains the
+  destination of Open My Work.
+- A separate `Other registered work` group uses only existing, non-future,
+  valid registered workspace landing paths already resolved by the runtime.
+- Duplicate landing paths are removed, while existing legacy groups remain as
+  compatibility fallbacks.
+- F03A continuity assertions and five focused F03B assertions passed, covering
+  registered workspace retention, focus order, duplicate removal, unconfirmed
+  fallback and uninitialized fallback.
+- TypeScript completed with no errors.
+- The Next.js production build compiled, validated types and generated all 293
+  static pages using non-production placeholder service configuration.
+
+### Files
+
+- `lib/3bos/navigation/resolve-shell-navigation.ts`
+- `scripts/verify-neev-f03a-navigation.mjs`
+- `scripts/verify-neev-f03b-navigation.mjs`
+- `docs/3bos/26-Constitutional-Migration-Ledger.md`
+
+### Rollback
+
+Remove the `Other registered work` group and its landing-path composition from
+the shell resolver. The confirmed focus, F03A Open My Work destination and all
+legacy menu groups immediately retain their prior behavior. No data,
+authentication, permission, route or infrastructure rollback is required.

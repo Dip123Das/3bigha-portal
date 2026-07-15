@@ -65,6 +65,29 @@ export function resolveShellNavigation({
     workspaceLinks.map(([, href]) => href)
   );
 
+  const otherRegisteredWorkspaceLinks = runtime.workspaces.available
+    .filter(
+      (workspace) =>
+        workspace.key !== primaryWorkspace.key &&
+        workspace.status !== "future" &&
+        workspace.landingPath.startsWith("/") &&
+        !workspaceHrefs.has(workspace.landingPath)
+    )
+    .map(
+      (workspace): [string, string] => [
+        workspace.shortLabel,
+        workspace.landingPath,
+      ]
+    )
+    .filter(([, href], index, links) =>
+      links.findIndex(([, candidateHref]) => candidateHref === href) === index
+    );
+
+  const presentedWorkspaceHrefs = new Set([
+    ...workspaceHrefs,
+    ...otherRegisteredWorkspaceLinks.map(([, href]) => href),
+  ]);
+
   const confirmedWorkspaceLandingPath =
     runtime.identity.humanConfirmed &&
     primaryWorkspace.status !== "future" &&
@@ -83,12 +106,20 @@ export function resolveShellNavigation({
           title: primaryWorkspace.shortLabel,
           links: workspaceLinks,
         },
+        ...(otherRegisteredWorkspaceLinks.length > 0
+          ? [
+              {
+                title: "Other registered work",
+                links: otherRegisteredWorkspaceLinks,
+              },
+            ]
+          : []),
         ...menu.groups
           .map((group) => ({
             ...group,
             compatibility: true,
             links: group.links.filter(
-              ([, href]) => !workspaceHrefs.has(href)
+              ([, href]) => !presentedWorkspaceHrefs.has(href)
             ),
           }))
           .filter((group) => group.links.length > 0),
