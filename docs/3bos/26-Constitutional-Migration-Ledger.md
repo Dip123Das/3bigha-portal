@@ -68,3 +68,56 @@ authoritative and unchanged.
 Remove the experience provider wrapper and restore both menu clients to their
 legacy `MENUS.filter(...)` selection. Delete the presentation resolver. No
 database, authentication, API, permission or route rollback is required.
+
+## NEEV-F02A — Read-only Human Identity signal activation
+
+**Approval:** Approved by the repository owner on 15 July 2026.
+
+**Scope:** Supply existing active vendor module grants as compatibility
+evidence to the authenticated Human Identity Runtime bootstrap.
+
+**Compatibility boundary:** Existing authentication, registration, onboarding,
+grant ownership, RLS, permissions, routes and legacy access resolution remain
+authoritative and unchanged. This bridge never creates, repairs, deletes or
+updates a module grant.
+
+- [x] Audit completed
+- [x] Constitutional mapping completed
+- [x] Design approved
+- [x] Implementation completed
+- [x] Build passed
+- [x] Type check passed
+- [ ] Desktop verified
+- [ ] Mobile verified
+- [ ] Production verified
+- [x] Regression checked
+
+### Implementation evidence
+
+- The authenticated bootstrap reads only active `vendor_module_grants` rows for
+  the current user and supplies their module keys to the existing legacy
+  compatibility adapter.
+- A denied, failed or timed-out grant read is non-blocking and preserves the
+  previous profile-based runtime behavior.
+- Ambiguous and multi-identity evidence continues to require human selection;
+  this migration does not assign a person's identity.
+- The legacy access resolver and its historical auto-heal write path are not
+  called by the 3BOS bootstrap.
+- `npx tsc --noEmit --pretty false` passed on 15 July 2026.
+- `next build` passed on 15 July 2026 with non-production placeholder service
+  configuration. It compiled successfully, validated types, generated all 293
+  static pages and completed build traces.
+- Source regression inspection confirmed that the new grant bridge contains no
+  insert, update, upsert or delete operation. Existing ambiguous-runtime and
+  legacy-navigation fallbacks remain unchanged.
+
+### Files
+
+- `app/_components/ThreeBOSAuthenticatedBootstrap.tsx`
+- `docs/3bos/26-Constitutional-Migration-Ledger.md`
+
+### Rollback
+
+Remove the optional active-grant read and stop supplying `moduleKeys` to the
+bootstrap adapter. No database, authentication, permission, API or route
+rollback is required because this migration creates no persistent state.
