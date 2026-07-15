@@ -259,8 +259,8 @@ changed.
 - [x] Implementation completed
 - [x] Build passed
 - [x] Type check passed
-- [ ] Desktop verified
-- [ ] Mobile verified
+- [x] Desktop verified
+- [x] Mobile verified
 - [ ] Production verified
 - [x] Regression checked
 
@@ -283,8 +283,18 @@ changed.
   while every fallback returns the unchanged legacy menu.
 - Anonymous desktop and 390-pixel mobile verification confirmed that the
   unchanged fallback shell renders without document-level horizontal overflow.
-  Authenticated contextual desktop and mobile verification remains reserved for
-  the isolated Hostinger staging gate.
+  Authenticated contextual desktop and mobile verification was then completed
+  on isolated Hostinger staging at commit `66fc147` on port 3400.
+- A multi-identity authenticated account retained the complete familiar My Work
+  menu until the person selected a context. Selecting Rental Business opened
+  the existing My Rentals workspace without changing its rental management,
+  booking or lifecycle functionality.
+- A clear Buyer identity presented My Requirements as the primary My Work group
+  with requirement, conversation and marketplace actions first. Remaining
+  legacy actions stayed available in the collapsed Other existing work section.
+- The repository owner confirmed the same context-aligned behavior on mobile.
+  The staging PM2 process remained online with zero restarts, returned HTTP 200
+  on port 3400 and had an empty error log.
 
 ### Files
 
