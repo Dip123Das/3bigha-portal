@@ -102,7 +102,7 @@ export default function ThreeBOSWorkContextChooser() {
     );
   }
 
-  if (context.status !== "ambiguous" || choices.length === 0) {
+  if (choices.length < 2) {
     return null;
   }
 

@@ -190,6 +190,11 @@ routes, database records, onboarding and legacy menu actions remain unchanged.
 - Focused runtime regression assertions confirmed that ambiguous compatibility
   evidence remains unselected, a valid human choice activates its matching
   workspace, and an identity absent from current suggestions is rejected.
+- Initial Hostinger staging showed that a multi-identity account with one
+  higher-scoring legacy suggestion remained runtime-ready and therefore did not
+  see the confirmation prompt. The chooser condition was narrowed to depend on
+  two or more valid work choices while retaining the inferred identity as the
+  non-blocking fallback until the person confirms a choice.
 
 ### Files
 
