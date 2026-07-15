@@ -169,7 +169,7 @@ routes, database records, onboarding and legacy menu actions remain unchanged.
 - [x] Type check passed
 - [x] Desktop verified
 - [x] Mobile verified
-- [ ] Production verified
+- [x] Production verified
 - [x] Regression checked
 
 ### Implementation evidence
@@ -212,6 +212,13 @@ routes, database records, onboarding and legacy menu actions remain unchanged.
   links pre-exist F02B1 and were not altered by this identity migration. They
   are retained for a future route-continuity audit rather than silently changed
   inside this scope.
+- Pull request #2 was merged into `main` at commit `7a8bd3b`. Production was
+  promoted through a validated Nginx upstream switch from port 3200 to the
+  healthy F02B1 process on port 3300.
+- After cutover, `/`, `/login`, `/property`, `/materials`, `/services`,
+  `/rentals` and `/rfq` all returned HTTP 200. The F02B1 process remained
+  online with zero restarts and an empty error log; F02A was retained as the
+  immediate rollback process during verification.
 
 ### Files
 
@@ -231,4 +238,66 @@ routes, database records, onboarding and legacy menu actions remain unchanged.
 Remove the chooser, active-context session utility and optional runtime input.
 Restore the desktop and mobile My Work panels to rendering only resolved menu
 groups. No database, authentication, permission, API or route rollback is
+required because this migration creates no persistent institutional state.
+
+## NEEV-F02B2A — Context-aligned My Work presentation
+
+**Approval:** Approved by the repository owner on 15 July 2026.
+
+**Scope:** Present the actions belonging to the person's confirmed Human Work
+Context first in My Work, while retaining all non-duplicate existing work
+actions in an explicitly secondary compatibility section.
+
+**Compatibility boundary:** This is presentation-only navigation resolution.
+Authentication, legacy roles, grants, capabilities, permissions, routes,
+Growth Plans, APIs, database records and session-context semantics are not
+changed.
+
+- [x] Audit completed
+- [x] Constitutional mapping completed
+- [x] Design approved
+- [x] Implementation completed
+- [x] Build passed
+- [x] Type check passed
+- [ ] Desktop verified
+- [ ] Mobile verified
+- [ ] Production verified
+- [x] Regression checked
+
+### Implementation evidence
+
+- A ready runtime with one clear Human Identity presents its matching workspace
+  actions first in My Work.
+- A person with several valid identities continues to see the complete familiar
+  menu until they explicitly confirm what they want to work on.
+- After confirmation, remaining non-duplicate legacy actions are retained under
+  “Other existing work”; no route is deleted or silently reassigned.
+- Runtime failure, ambiguity, an empty contextual action set or uninitialized
+  context returns the legacy menu unchanged.
+- `npx tsc --noEmit --pretty false` passed on 15 July 2026.
+- `next build` passed on 15 July 2026 with non-production placeholder service
+  configuration. It compiled successfully, validated types, generated all 293
+  static pages and completed build traces.
+- Source regression inspection confirmed that contextual presentation is gated
+  by ready runtime state and explicit confirmation for multi-identity people,
+  while every fallback returns the unchanged legacy menu.
+- Anonymous desktop and 390-pixel mobile verification confirmed that the
+  unchanged fallback shell renders without document-level horizontal overflow.
+  Authenticated contextual desktop and mobile verification remains reserved for
+  the isolated Hostinger staging gate.
+
+### Files
+
+- `app/globals.css`
+- `components/layout/DesktopMegaNavClient.tsx`
+- `components/layout/MobileMegaNavClient.tsx`
+- `lib/3bos/navigation/resolve-shell-navigation.ts`
+- `lib/navigation/main-menu.ts`
+- `docs/3bos/26-Constitutional-Migration-Ledger.md`
+
+### Rollback
+
+Remove the compatibility marker and secondary presentation, then restore the
+resolver to append the unchanged legacy groups directly after contextual
+actions. No authentication, database, permission, API or route rollback is
 required because this migration creates no persistent institutional state.

@@ -2049,6 +2049,43 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   grid-column: 1 / -1;
 }
 
+.stableMegaCompatibility {
+  grid-column: 1 / -1;
+  padding-top: 10px;
+  border-top: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.stableMegaCompatibility > summary,
+.mobileMegaCompatibility > summary {
+  cursor: pointer;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.stableMegaCompatibilityGroups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 10px;
+}
+
+.mobileMegaCompatibility {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.mobileMegaCompatibility[open] > summary {
+  margin-bottom: 10px;
+}
+
+.mobileMegaCompatibility .mobileMegaGroup + .mobileMegaGroup {
+  margin-top: 12px;
+}
+
 .threeBOSWorkContextHeading {
   display: grid;
   gap: 4px;

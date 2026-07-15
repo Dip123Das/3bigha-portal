@@ -73,21 +73,45 @@ export default function MobileMegaNavClient() {
                   Open {menu.label}
                 </Link>
 
-                {menu.groups.map((group) => (
-                  <div className="mobileMegaGroup" key={group.title}>
-                    <div className="mobileMegaTitle">{group.title}</div>
+                {menu.groups
+                  .filter((group) => !group.compatibility)
+                  .map((group) => (
+                    <div className="mobileMegaGroup" key={group.title}>
+                      <div className="mobileMegaTitle">{group.title}</div>
 
-                    {group.links.map(([label, href]) => (
-                      <Link
-                        key={href + label}
-                        href={href}
-                        onClick={() => setOpen(null)}
-                      >
-                        {label}
-                      </Link>
-                    ))}
-                  </div>
-                ))}
+                      {group.links.map(([label, href]) => (
+                        <Link
+                          key={href + label}
+                          href={href}
+                          onClick={() => setOpen(null)}
+                        >
+                          {label}
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+
+                {menu.groups.some((group) => group.compatibility) ? (
+                  <details className="mobileMegaCompatibility">
+                    <summary>Other existing work</summary>
+                    {menu.groups
+                      .filter((group) => group.compatibility)
+                      .map((group) => (
+                        <div className="mobileMegaGroup" key={group.title}>
+                          <div className="mobileMegaTitle">{group.title}</div>
+                          {group.links.map(([label, href]) => (
+                            <Link
+                              key={href + label}
+                              href={href}
+                              onClick={() => setOpen(null)}
+                            >
+                              {label}
+                            </Link>
+                          ))}
+                        </div>
+                      ))}
+                  </details>
+                ) : null}
               </div>
             ) : null}
           </div>

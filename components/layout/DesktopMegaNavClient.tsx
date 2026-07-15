@@ -63,16 +63,38 @@ export default function DesktopMegaNavClient() {
               </Link>
             </div>
 
-            {activeMenu.groups.map((group) => (
-              <div className="stableMegaGroup" key={group.title}>
-                <div className="stableMegaTitle">{group.title}</div>
-                {group.links.map(([label, href]) => (
-                  <Link key={href + label} href={href}>
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            ))}
+            {activeMenu.groups
+              .filter((group) => !group.compatibility)
+              .map((group) => (
+                <div className="stableMegaGroup" key={group.title}>
+                  <div className="stableMegaTitle">{group.title}</div>
+                  {group.links.map(([label, href]) => (
+                    <Link key={href + label} href={href}>
+                      {label}
+                    </Link>
+                  ))}
+                </div>
+              ))}
+
+            {activeMenu.groups.some((group) => group.compatibility) ? (
+              <details className="stableMegaCompatibility">
+                <summary>Other existing work</summary>
+                <div className="stableMegaCompatibilityGroups">
+                  {activeMenu.groups
+                    .filter((group) => group.compatibility)
+                    .map((group) => (
+                      <div className="stableMegaGroup" key={group.title}>
+                        <div className="stableMegaTitle">{group.title}</div>
+                        {group.links.map(([label, href]) => (
+                          <Link key={href + label} href={href}>
+                            {label}
+                          </Link>
+                        ))}
+                      </div>
+                    ))}
+                </div>
+              </details>
+            ) : null}
           </div>
         ) : null}
       </Container>
