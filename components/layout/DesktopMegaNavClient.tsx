@@ -4,15 +4,24 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Container } from "@/components/layout/Container";
 import { useExperienceMode } from "@/components/experience/ExperienceModeProvider";
+import { useOptional3BOSRuntime } from "@/lib/3bos/context";
+import { resolveShellNavigation } from "@/lib/3bos/navigation";
 import { MENUS } from "@/lib/navigation/main-menu";
 
 export default function DesktopMegaNavClient() {
   const [active, setActive] = useState<string | null>(null);
   const { showSmart } = useExperienceMode();
+  const runtimeContext = useOptional3BOSRuntime();
 
   const visibleMenus = useMemo(
-    () => MENUS.filter((menu) => showSmart || menu.label !== "Business"),
-    [showSmart]
+    () =>
+      resolveShellNavigation({
+        menus: MENUS,
+        showSmart,
+        runtime: runtimeContext?.runtime ?? null,
+        runtimeStatus: runtimeContext?.status ?? "uninitialized",
+      }),
+    [runtimeContext?.runtime, runtimeContext?.status, showSmart]
   );
 
   const activeMenu = visibleMenus.find((m) => m.label === active) || null;

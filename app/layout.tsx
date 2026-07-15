@@ -13,6 +13,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Container } from "@/components/layout/Container";
 import { ThreeBOSRuntimeProvider } from "@/lib/3bos/context";
+import ExperienceModeProvider from "@/components/experience/ExperienceModeProvider";
 
 // confirmed existing files
 import BuildConVendorPopup from "@/app/_components/BuildConVendorPopup";
@@ -109,6 +110,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AppOAuthBrowserBounce />
       <body className="threebigha-app-body">
         <ThreeBOSRuntimeProvider>
+          <ExperienceModeProvider>
           <ThreeBOSAuthenticatedBootstrap />
           <PresenceHeartbeat currentPage="global" />
         <MobileMenuAutoClose />
@@ -632,6 +634,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <MasterAdminDebugTools />
 
           <BuildConVendorPopup />
+          </ExperienceModeProvider>
         </ThreeBOSRuntimeProvider>
       </body>
     </html>
