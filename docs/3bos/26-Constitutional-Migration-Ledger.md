@@ -261,7 +261,7 @@ changed.
 - [x] Type check passed
 - [x] Desktop verified
 - [x] Mobile verified
-- [ ] Production verified
+- [x] Production verified
 - [x] Regression checked
 
 ### Implementation evidence
@@ -295,6 +295,21 @@ changed.
 - The repository owner confirmed the same context-aligned behavior on mobile.
   The staging PM2 process remained online with zero restarts, returned HTTP 200
   on port 3400 and had an empty error log.
+- Production promotion was completed on Hostinger from the exact merged `main`
+  commit `8b3f9ea`. Type checking and the production build passed; the build
+  generated all 3,897 static pages.
+- Nginx was switched from the retained F02B1 runtime on port 3300 to the F02B2A
+  runtime on port 3400 only after the new process was independently healthy.
+  The rollback configuration is preserved at
+  `/etc/nginx/sites-available/3bigha.neev-f02b2a.rollback`.
+- Production regression checks returned HTTP 200 for `/`, `/login`,
+  `/property`, `/materials`, `/services`, `/rentals` and `/rfq`. Authenticated
+  desktop verification covered buyer, multi-identity, administrative and
+  logged-out compatibility behavior. Authenticated mobile verification covered
+  the Buyer Dashboard and My RFQs experience without broken navigation or 404s.
+- After verification, the previous F02B1 process was stopped, the PM2 startup
+  state was saved, only port 3400 remained listening, the F02B2A process stayed
+  online with zero restarts and its error log remained empty.
 
 ### Files
 
