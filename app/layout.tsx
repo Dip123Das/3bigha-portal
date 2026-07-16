@@ -37,10 +37,10 @@ import MobileOperationalDock from "@/components/mobile/MobileOperationalDock";
 
 export const metadata = createMetadata({
   title:
-    "3bigha.com | AI-Powered Property, Construction, RFQ, Materials & Vendor Marketplace India",
+    "3bigha.com | Property and Construction Business Operating System",
 
   description:
-    "3bigha.com is India's AI-powered real estate, construction, RFQ, materials, rentals and vendor marketplace platform. Search property, compare vendors, submit procurement RFQs, discover local services and track AI-powered price intelligence across regional marketplaces.",
+    "3bigha connects property, construction, materials, services, rentals and daily business work in one human-first operating system.",
 
   path: "/",
 
@@ -58,9 +58,9 @@ export const metadata = createMetadata({
     "RFQ marketplace",
     "vendor marketplace",
 
-    "AI marketplace",
-    "AI procurement platform",
-    "AI RFQ system",
+    "business operating system",
+    "property and construction platform",
+    "human-first business platform",
 
     "building materials marketplace",
     "construction services",
@@ -151,7 +151,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <div className="siteLogoFull">
                   <Image
                     src="/logo.png"
-                    alt="3bigha.com AI-powered property construction materials and vendor marketplace logo"
+                    alt="3bigha.com property and construction business operating system"
                     width={360}
                     height={120}
                     style={{
@@ -191,7 +191,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <div className="siteLogoFull">
                   <Image
                     src="/logo.png"
-                    alt="3bigha.com AI-powered property construction materials and vendor marketplace logo"
+                    alt="3bigha.com property and construction business operating system"
                     width={360}
                     height={120}
                     style={{
@@ -557,10 +557,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             whiteSpace: "nowrap",
           }}
         >
-          3bigha.com is an AI-powered property marketplace, construction marketplace,
-          RFQ procurement platform, materials marketplace, rental marketplace and
-          vendor discovery platform serving India with regional language support,
-          AI procurement workflows, vendor comparison and local marketplace search.
+          3bigha.com connects property, construction, materials, services, rentals,
+          requirements and daily business work in one human-first operating system.
         </div>
 
         <main style={{ marginTop: 8 }}>

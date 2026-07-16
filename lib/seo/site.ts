@@ -1,9 +1,9 @@
 export const siteConfig = {
   name: "3bigha",
   title:
-  "3bigha.com | AI-Powered Property, Construction, RFQ, Materials & Vendor Marketplace India",
+  "3bigha.com | Property and Construction Business Operating System",
   description:
-  "3bigha.com is India's AI-powered real estate, construction, RFQ, materials, rentals and vendor marketplace platform. Search property, compare vendors, submit procurement RFQs, discover local services and track AI-powered price intelligence across regional marketplaces.",
+  "3bigha connects property, construction, materials, services, rentals and daily business work in one human-first operating system.",
 
   domain: "3bigha.com",
   url: "https://www.3bigha.com",

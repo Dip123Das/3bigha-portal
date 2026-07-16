@@ -137,6 +137,10 @@ export default function GlobalAiCopilot() {
     setOpen(false);
   }, [pathname]);
 
+  // The constitutional homepage begins with the person's need. AI remains
+  // available inside the working experience, but does not compete for attention here.
+  if (pathname === "/") return null;
+
   return (
     <div className={open ? "globalAiShell globalAiShellOpen" : "globalAiShell"}>
       <button

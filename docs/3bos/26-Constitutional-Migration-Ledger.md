@@ -383,3 +383,67 @@ continues to use `/dashboard`.
 Remove the conditional My Work `href` override from the shell resolver. The
 existing `/dashboard` entry immediately becomes authoritative again. No data,
 authentication, permission, route or infrastructure rollback is required.
+
+## NEEV-H01 — Constitutional Human-First homepage
+
+**Approval:** Approved by the repository owner on 16 July 2026.
+
+**Scope:** Replace only the public homepage presentation with the homepage
+experience established by the 3Bigha Business Operating System handbooks:
+human purpose first, natural-language entry, canonical journeys, honest
+marketplace evidence and quiet access to existing business work.
+
+**Compatibility boundary:** Authentication, Human Identity, workspaces,
+capabilities, Growth, marketplace modules, LGD geography, RFQ, Property,
+Materials, Services, Rentals, Admin, Vendor, APIs, URLs and database behavior
+remain unchanged. Existing public listing reads and destinations are reused.
+
+- [x] Audit completed
+- [x] Constitutional mapping completed
+- [x] Design approved
+- [x] Implementation completed
+- [x] Build passed
+- [x] Type check passed
+- [x] Desktop verified
+- [x] Mobile verified
+- [ ] Production verified
+- [x] Regression checked
+
+### Implementation evidence
+
+- The homepage now begins with the human question “What would you like to do
+  today?” and accepts the need in ordinary language before offering any
+  software structure.
+- Build, Buy, Sell, Hire, Manage, Learn and Grow are presented as the seven
+  canonical human journeys. Property, Materials, Services and Rentals remain
+  familiar marketplace domains and retain their existing URLs.
+- Real published Property, Material, Service and Rental data continues to be
+  read from the existing production-compatible sources. Empty states are
+  stated honestly; fabricated listings, prices, scores, activity totals and
+  AI decision claims are no longer used on the homepage.
+- AI remains silent on the homepage. The existing global AI launcher, founding
+  promotion and install prompt are suppressed only at `/` and remain unchanged
+  elsewhere in the application.
+- TypeScript completed with no errors. The Next.js production build compiled,
+  validated types and generated all 293 static pages using non-production
+  placeholder service configuration.
+- Desktop and mobile homepage layouts were inspected locally. Existing
+  destination URLs, authentication behavior, APIs and database interactions
+  were not modified. Production remains unchanged pending staging approval.
+
+### Files
+
+- `app/page.tsx`
+- `app/homepage.module.css`
+- `app/layout.tsx`
+- `app/_components/GlobalAiCopilot.tsx`
+- `app/_components/BuildConVendorPopup.tsx`
+- `components/pwa/PWAInstallPrompt.tsx`
+- `lib/seo/site.ts`
+- `docs/3bos/26-Constitutional-Migration-Ledger.md`
+
+### Rollback
+
+Restore the prior homepage component and homepage metadata, then remove the
+root-path-only suppression conditions from the three global overlays. No
+authentication, route, API, database or infrastructure rollback is required.

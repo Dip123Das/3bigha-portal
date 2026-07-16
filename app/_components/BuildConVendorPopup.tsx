@@ -10,6 +10,7 @@ export default function BuildConVendorPopup() {
 
   useEffect(() => {
     const blocked =
+      pathname === "/" ||
       pathname?.startsWith("/admin") ||
       pathname?.startsWith("/dashboard") ||
       pathname?.startsWith("/onboarding") ||
