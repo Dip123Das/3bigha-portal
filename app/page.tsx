@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import JsonLd from "@/components/seo/JsonLd";
 import { organizationSchema, websiteSchema } from "@/lib/seo/schema";
+import "./homepage-shell-recovery.css";
 import styles from "./homepage.module.css";
 
 type SearchScope = "property" | "materials" | "services" | "rentals";

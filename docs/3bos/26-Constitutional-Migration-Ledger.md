@@ -430,11 +430,23 @@ remain unchanged. Existing public listing reads and destinations are reused.
 - Desktop and mobile homepage layouts were inspected locally. Existing
   destination URLs, authentication behavior, APIs and database interactions
   were not modified. Production remains unchanged pending staging approval.
+- Hostinger staging exposed a shell delivery regression: the homepage module
+  CSS rendered while the legacy global shell chunk did not activate in Edge,
+  leaving duplicate responsive brand elements and unstyled navigation/footer
+  controls. The clean-browser reproduction confirmed this was not cache state.
+- The correction consolidates the responsive brand into one semantic logo and
+  delivers a homepage-scoped compatibility stylesheet alongside the working
+  homepage bundle. This restores the existing shell presentation without
+  changing authentication, navigation destinations, permissions or data.
+- The corrected CSS dependency graph compiled successfully. Final desktop and
+  mobile staging verification remains required after the updated commit is
+  rebuilt on Hostinger.
 
 ### Files
 
 - `app/page.tsx`
 - `app/homepage.module.css`
+- `app/homepage-shell-recovery.css`
 - `app/layout.tsx`
 - `app/_components/GlobalAiCopilot.tsx`
 - `app/_components/BuildConVendorPopup.tsx`

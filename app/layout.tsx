@@ -127,47 +127,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         >
           <Container className="topHeaderInner">
             <div
-              className="topBrand mobileHeaderOnly"
-              style={{
-                minWidth: 0,
-                flex: "0 1 auto",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <Link
-                className="topBrandLink"
-                href="/"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                    gap: 0,
-                  textDecoration: "none",
-                  minWidth: 0,
-                  width: "fit-content",
-                  flexWrap: "nowrap",
-                }}
-              >
-                <div className="siteLogoFull">
-                  <Image
-                    src="/logo.png"
-                    alt="3bigha.com property and construction business operating system"
-                    width={360}
-                    height={120}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                      display: "block",
-                    }}
-                    priority
-                  />
-                </div>
-              </Link>
-            </div>
-
-            <div
-              className="topBrand desktopHeaderOnly"
+              className="topBrand constitutionalShellBrand"
               style={{
                 minWidth: 0,
                 flex: "0 1 auto",
