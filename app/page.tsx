@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import JsonLd from "@/components/seo/JsonLd";
+import { useOptional3BOSRuntime } from "@/lib/3bos/context";
+import { resolveHomepageProjection } from "@/lib/3bos/homepage";
 import {
   aiMarketplaceSchema,
   marketplaceFaqSchema,
@@ -200,6 +202,7 @@ function buildHomepageDiscoveryRails(
 
 export default function HomePage() {
   const router = useRouter();
+  const threeBOSContext = useOptional3BOSRuntime();
   const [scope, setScope] = useState<SearchScope>("property");
   const [query, setQuery] = useState("");
   const [mobileExpandedSections, setMobileExpandedSections] = useState<Record<string, boolean>>({});
@@ -228,10 +231,19 @@ export default function HomePage() {
   ];
 
   const placeholder = useMemo(() => {
-    
     if (activeTab === "post") return "Describe your requirement clearly. Example: Need 500 bags cement in Cooch Behar within 7 days.";
+    if (activeTab === "ai") return "Tell 3Bigha what you need. Review the prepared options before you choose.";
     return "Search property, materials, services, rentals or construction needs...";
   }, [activeTab]);
+
+  const homepageProjection = useMemo(
+    () => resolveHomepageProjection(
+      threeBOSContext
+        ? { status: threeBOSContext.status, runtime: threeBOSContext.runtime }
+        : null,
+    ),
+    [threeBOSContext],
+  );
 
   const homepageDiscoveryRails = useMemo(
     () => buildHomepageDiscoveryRails(recentDiscovery, featuredItems),
@@ -527,8 +539,8 @@ export default function HomePage() {
       <section className={`mobileCollapsibleSection ${mobileSectionOpen("liveai") ? "isMobileExpanded" : ""}`}>
         <div className="mobileToggleHead">
           <div>
-            <h2>Live AI Operations</h2>
-            <p>Low stock, deliveries, billing and AI decisions</p>
+            <h2>Business Activity</h2>
+            <p>Stock, deliveries, billing and demand signals that may need attention</p>
           </div>
           <button type="button" className="mobileToggleBtn" onClick={() => toggleMobileSection("liveai")}>
             {mobileSectionOpen("liveai") ? "▲ Less" : "▼ Show"}
@@ -538,10 +550,10 @@ export default function HomePage() {
         <div className="aiLiveOpsStrip">
           <div className="aiLiveOpsHead">
             <div>
-              <span>🤖 Live AI Operations</span>
-              <h2>3Bigha is working in the background for buyers, vendors and suppliers.</h2>
+              <span>Business Activity</span>
+              <h2>3Bigha keeps connected work visible for buyers, vendors and suppliers.</h2>
             </div>
-            <a href="/dashboard/vendor/inventory">Open Vendor OS →</a>
+            <a href={homepageProjection.primaryWorkspaceHref}>{homepageProjection.primaryWorkspaceActionLabel}</a>
           </div>
 
           <div className="aiLiveOpsGrid">
@@ -550,7 +562,7 @@ export default function HomePage() {
               ["🚚", "32", "Deliveries tracked", "Fleet and dispatch workflows are ready"],
               ["🧾", "54", "Bills processed", "Online + offline billing with stock deduction"],
               ["📈", "12%", "Demand movement", "Sand and brick demand rising in local markets"],
-              ["🧠", "418", "AI decisions", "Procurement, pricing and vendor routing signals"],
+              ["🧭", "Review", "Prepared guidance", "Compare the available signals before you decide"],
             ].map(([icon, value, label, text]) => (
               <div className="aiLiveOpsCard" key={label}>
                 <span>{icon}</span>
@@ -604,7 +616,7 @@ export default function HomePage() {
       <section className={`mobileCollapsibleSection ${mobileSectionOpen("workdesk") ? "isMobileExpanded" : ""}`}>
         <div className="mobileToggleHead">
           <div>
-            <h2>AI Business Workdesk</h2>
+            <h2>Business Workdesk</h2>
             <p>Inventory, billing, fleet and dispatch actions</p>
           </div>
           <button type="button" className="mobileToggleBtn" onClick={() => toggleMobileSection("workdesk")}>
@@ -614,20 +626,25 @@ export default function HomePage() {
 
         <div className="aiBusinessCommand">
           <div className="aiBusinessCopy">
-            <span>AI Business Work Desk</span>
-            <h2>Inventory, billing, fleet and dispatch — now connected with marketplace intelligence.</h2>
-            <p>
-              Vendors can manage stock, create bills, assign vehicles, track dispatches and use AI signals
-              to understand demand, pricing and operational risks.
-            </p>
+            <span>{homepageProjection.workdeskLabel}</span>
+            <h2>{homepageProjection.workdeskTitle}</h2>
+            <p>{homepageProjection.workdeskDescription}</p>
           </div>
 
           <div className="aiBusinessActions">
-            <a href="/dashboard/vendor/inventory">📦 Inventory</a>
-            <a href="/dashboard/vendor/billing">🧾 Billing</a>
-            <a href="/dashboard/vendor/fleet">🚚 Fleet</a>
-            <a href="/dashboard/vendor/dispatch">📍 Dispatch</a>
-            <a href="/materials/add?inventory=1">➕ Add Stock</a>
+            {homepageProjection.workspaceActions.length ? (
+              homepageProjection.workspaceActions.map((action) => (
+                <a href={action.href} key={action.key}>{action.label}</a>
+              ))
+            ) : (
+              <>
+                <a href="/dashboard/vendor/inventory">📦 Inventory</a>
+                <a href="/dashboard/vendor/billing">🧾 Billing</a>
+                <a href="/dashboard/vendor/fleet">🚚 Fleet</a>
+                <a href="/dashboard/vendor/dispatch">📍 Dispatch</a>
+                <a href="/materials/add?inventory=1">➕ Add Stock</a>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -660,8 +677,8 @@ export default function HomePage() {
       <section className="contentSection">
         <div className="sectionHead">
           <div>
-            <h2>AI Discovery Rails</h2>
-            <p>Personalized next steps across property, materials, services and rentals</p>
+            <h2>Helpful Discovery</h2>
+            <p>Relevant next steps across property, materials, services and rentals</p>
           </div>
           <a href="/search">Explore all →</a>
         </div>

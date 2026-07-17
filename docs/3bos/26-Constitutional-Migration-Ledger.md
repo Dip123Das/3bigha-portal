@@ -383,3 +383,63 @@ continues to use `/dashboard`.
 Remove the conditional My Work `href` override from the shell resolver. The
 existing `/dashboard` entry immediately becomes authoritative again. No data,
 authentication, permission, route or infrastructure rollback is required.
+
+## NEEV-H02A — Homepage internal constitutional alignment
+
+**Approval:** Approved by the repository owner on 17 July 2026.
+
+**Scope:** Align the existing production homepage's internal meaning with the
+3BOS constitution while preserving its proven visual structure, journeys,
+navigation, URLs and mobile/desktop behavior.
+
+**Compatibility boundary:** No layout, CSS, shell, navigation, authentication,
+middleware, API, database or route changes. Confirmed workspace evidence is
+read-only and presentation-only. Missing, ambiguous, unconfirmed, invalid or
+future evidence preserves the existing public fallback.
+
+- [x] Audit completed
+- [x] Constitutional mapping completed
+- [x] Design approved
+- [x] Implementation completed
+- [x] Build passed
+- [x] Type check passed
+- [ ] Desktop verified
+- [ ] Mobile verified
+- [ ] Production verified
+- [x] Regression checked
+
+### Implementation evidence
+
+- The eight existing human journeys and their legacy destinations remain
+  present.
+- AI remains an optional assistant. Human-facing operational language now
+  describes business activity, prepared guidance and human review instead of
+  presenting AI as the decision maker.
+- The existing Business Workdesk can present actions from a confirmed,
+  non-future workspace without granting access or changing authorization.
+- Public, ambiguous and unconfirmed visitors retain the generic homepage
+  workdesk and existing links.
+- Focused homepage assertions passed for runtime fallback, confirmed workspace
+  projection, all eight human journeys, legacy destinations and Human First AI
+  language.
+- TypeScript completed with no errors. The Next.js production build compiled,
+  validated types and generated all 293 static pages using non-production
+  placeholder service configuration.
+- Desktop, mobile and production verification remain approval-controlled
+  staging steps; they are not claimed by this local implementation record.
+
+### Files
+
+- `app/page.tsx`
+- `lib/3bos/homepage/types.ts`
+- `lib/3bos/homepage/resolve-homepage-projection.ts`
+- `lib/3bos/homepage/index.ts`
+- `scripts/verify-neev-h02a-homepage.mjs`
+- `docs/3bos/26-Constitutional-Migration-Ledger.md`
+
+### Rollback
+
+Restore the homepage's previous internal labels and static workdesk actions,
+then remove the homepage projection module and focused verification script.
+No data, authentication, permission, route, CSS, shell or infrastructure
+rollback is required.
