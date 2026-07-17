@@ -470,3 +470,60 @@ remain unchanged. Existing public listing reads and destinations are reused.
 Restore the prior homepage component and homepage metadata, then remove the
 root-path-only suppression conditions from the three global overlays. No
 authentication, route, API, database or infrastructure rollback is required.
+
+## NEEV-H01R — Homepage institutional recovery
+
+**Approval:** Approved by the repository owner on 17 July 2026.
+
+**Scope:** Recover the proven production homepage as the institutional base,
+then make only the smallest handbook-aligned clarification to the existing
+business-workspace entry. This reverses the H01 wholesale homepage replacement
+without reversing the constitutional direction.
+
+**Constitutional basis:** The handbooks require a shared customer-first entrance
+for Build, Buy, Sell, Hire, Rent, Submit Requirement and Manage My Business,
+while registered businesses continue through contextual 3BOS workspaces.
+
+**Compatibility boundary:** Existing authentication, Human Identity, shell,
+navigation, marketplace reads, operational sections, 3Bigha AI launcher,
+routes, APIs and database behavior are preserved.
+
+- [x] Audit completed
+- [x] Constitutional mapping completed
+- [x] Design approved
+- [x] Implementation completed
+- [ ] Build passed
+- [x] Type check passed
+- [ ] Desktop verified
+- [ ] Mobile verified
+- [ ] Production verified
+- [x] Regression checked
+
+### Implementation evidence
+
+- Restored the proven homepage implementation from the pre-H01 production
+  baseline instead of attempting another redesign.
+- Preserved the existing real marketplace listings, market prices, human-need
+  journeys, operational information, mobile collapsibles, URLs and global
+  3Bigha AI entry.
+- Clarified the existing business workdesk as “3BOS Business Workspaces” and
+  added “Open My Business” using the established `/dashboard` compatibility
+  route. Existing Inventory, Billing, Fleet and Dispatch routes remain intact.
+- TypeScript completed with no errors after the Next.js type metadata was
+  regenerated.
+- The production build compiled and completed lint/type validation. Local page
+  data collection then stopped because the local workspace does not contain the
+  production Supabase URL; final build and responsive verification therefore
+  remain staging requirements using the existing protected environment file.
+- The older H01 process still serving local port `3700` was identified as stale
+  and was not accepted as verification evidence for this recovery.
+
+### Files
+
+- `app/page.tsx`
+- `docs/3bos/26-Constitutional-Migration-Ledger.md`
+
+### Rollback
+
+Revert the H01R commit to return to the previous H01 homepage. No authentication,
+route, permission, API, database or infrastructure rollback is required.
