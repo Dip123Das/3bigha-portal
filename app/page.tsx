@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import JsonLd from "@/components/seo/JsonLd";
+import ConstitutionalHero from "@/components/home/ConstitutionalHero";
 import {
   aiMarketplaceSchema,
   marketplaceFaqSchema,
@@ -370,59 +371,19 @@ export default function HomePage() {
     <main className="homePage">
       <JsonLd data={[organizationSchema(), websiteSchema(), aiMarketplaceSchema(), marketplaceFaqSchema()]} />
 
-      <section className="heroShell">
-        <div className="heroGrid">
-          <div className="heroCopy">
-            <div className="miniBadge">🌱 Human-first marketplace</div>
-            <h1><span>What would you like to do today?</span> 3Bigha will guide you.</h1>
-            <p>
-              Choose your real need. 3Bigha will connect property, materials, services,
-              vendors, prices and requirements quietly in the background.
-            </p>
-            <div className="heroFeatureRow">
-              <a href="/search">🔍 Search</a>
-              <a href="/rfq/start">📮 Submit Requirement</a>
-              <a href="/construction-cost">🏗️ Build</a>
-              <a href="/vendor-opportunities">📈 Grow</a>
-            </div>
-          </div>
-
-          <div className="searchCard">
-            <div className="searchTabs">
-              <button type="button" className={activeTab === "search" ? "active" : ""} onClick={() => setActiveTab("search")}>⌕ Search</button>
-              <button type="button" className={activeTab === "ai" ? "active" : ""} onClick={() => setActiveTab("ai")}>🤖 AI Assistant</button>
-              <button type="button" className={activeTab === "post" ? "active" : ""} onClick={() => setActiveTab("post")}>📮 Post Requirement</button>
-            </div>
-
-            <textarea value={query} onChange={(e) => setQuery(e.target.value)} placeholder={placeholder} />
-
-            <div className="typeChips">
-              {[
-                ["property", "🏠 Property"],
-                ["materials", "🧱 Materials"],
-                ["services", "🛠️ Services"],
-                ["rentals", "🚜 Rentals"],
-                ["investment", "📊 Price Today"],
-              ].map(([key, label]) => (
-                <button key={key} type="button" className={scope === key ? "active" : ""} onClick={() => setScope(key as SearchScope)}>{label}</button>
-              ))}
-            </div>
-
-            <div className="searchActions">
-              <button type="button" className="primaryAction" onClick={runSearch}>🔍 Search Marketplace</button>
-              <button type="button" className="secondaryAction" onClick={submitRequirement}>⚡ Submit Requirement</button>
-            </div>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="mobileSahajMoreButton"
-          onClick={() => toggleMobileSection("sahajNeeds")}
-        >
-          {mobileSectionOpen("sahajNeeds") ? "Show fewer options" : "More options"}
-        </button>
-      </section>
+      <ConstitutionalHero
+        activeTab={activeTab}
+        placeholder={placeholder}
+        query={query}
+        scope={scope}
+        sahajNeedsExpanded={mobileSectionOpen("sahajNeeds")}
+        onActiveTabChange={setActiveTab}
+        onQueryChange={setQuery}
+        onScopeChange={setScope}
+        onRunSearch={runSearch}
+        onSubmitRequirement={submitRequirement}
+        onToggleSahajNeeds={() => toggleMobileSection("sahajNeeds")}
+      />
 
       <section className={`contentSection sahajJourneySection ${mobileSectionOpen("sahajNeeds") ? "isSahajExpanded" : ""}`}>
         <div className="sectionHead">
@@ -1061,6 +1022,135 @@ export default function HomePage() {
             box-shadow: 0 10px 22px rgba(37, 99, 235, 0.08);
           }
         }
+
+
+        /* Constitutional homepage identity layer */
+        .constitutionalHero .heroCopy{
+          min-width:0;
+        }
+
+        .constitutionalHeroLead{
+          max-width:760px!important;
+        }
+
+        .constitutionalHeroPromise{
+          max-width:760px!important;
+          margin-top:10px!important;
+          color:#334155!important;
+          font-size:15px!important;
+          line-height:1.6!important;
+          font-weight:750!important;
+        }
+
+        .constitutionalPillars{
+          display:flex;
+          flex-wrap:wrap;
+          gap:8px;
+          margin-top:20px;
+        }
+
+        .constitutionalPillars span{
+          display:inline-flex;
+          align-items:center;
+          min-height:32px;
+          border:1px solid #dbeafe;
+          border-radius:999px;
+          background:linear-gradient(180deg,#ffffff,#eff6ff);
+          color:#1e40af;
+          padding:7px 11px;
+          font-size:11px;
+          font-weight:950;
+          box-shadow:0 8px 20px rgba(37,99,235,.05);
+        }
+
+        .searchCardIdentity{
+          display:flex;
+          align-items:flex-end;
+          justify-content:space-between;
+          gap:12px;
+          margin:0 0 14px;
+        }
+
+        .searchCardIdentity span{
+          color:#0f172a;
+          font-size:17px;
+          font-weight:1000;
+          letter-spacing:-.025em;
+        }
+
+        .searchCardIdentity small{
+          color:#64748b;
+          font-size:11px;
+          font-weight:850;
+          text-align:right;
+        }
+
+        .heroInputLabel{
+          display:block;
+          margin:0 0 8px;
+          color:#334155;
+          font-size:12px;
+          font-weight:950;
+        }
+
+        .heroAssistanceNote{
+          margin:12px 2px 0!important;
+          color:#64748b!important;
+          font-size:11px!important;
+          line-height:1.5!important;
+          font-weight:750!important;
+        }
+
+        @media(max-width:900px){
+          .constitutionalHero .heroGrid{
+            grid-template-columns:1fr;
+          }
+
+          .constitutionalHero .heroCopy h1{
+            max-width:900px;
+          }
+        }
+
+        @media(max-width:640px){
+          .constitutionalHero{
+            padding-top:22px;
+          }
+
+          .constitutionalHero .heroCopy h1{
+            font-size:clamp(35px,11vw,52px);
+            line-height:1.04;
+          }
+
+          .constitutionalHeroPromise{
+            font-size:14px!important;
+          }
+
+          .constitutionalPillars{
+            gap:6px;
+            margin-top:16px;
+          }
+
+          .constitutionalPillars span{
+            min-height:29px;
+            padding:6px 9px;
+            font-size:10px;
+          }
+
+          .searchCardIdentity{
+            display:block;
+          }
+
+          .searchCardIdentity small{
+            display:block;
+            margin-top:4px;
+            text-align:left;
+          }
+
+          .searchTabs{
+            grid-template-columns:1fr;
+          }
+        }
+
 
         /* FINAL 3BIGHA AI FLOATING PANEL OVERRIDE */
         
