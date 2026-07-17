@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import JsonLd from "@/components/seo/JsonLd";
 import ConstitutionalHero from "@/components/home/ConstitutionalHero";
+import SahajJourney from "@/components/home/SahajJourney";
 import {
   aiMarketplaceSchema,
   marketplaceFaqSchema,
@@ -217,17 +218,6 @@ export default function HomePage() {
   const [recentDiscovery, setRecentDiscovery] = useState<DiscoveryMemoryItem[]>([]);
   const [activeTab, setActiveTab] = useState<"search" | "ai" | "post">("search");
 
-  const sahajNeedCards = [
-    ["🏗️", "Build", "Plan construction, estimate cost, find contractors, materials and equipment.", "/construction-cost"],
-    ["🏠", "Buy", "Search property, materials, rentals and services near your location.", "/search"],
-    ["💰", "Sell", "List property, materials, services or business offerings.", "/property/add"],
-    ["👷", "Hire", "Find contractors, architects, engineers, labour and service providers.", "/services"],
-    ["🚜", "Rent", "Find JCB, machines, tools and construction equipment.", "/rentals"],
-    ["📋", "Manage", "Track RFQs, vendors, bills, dispatch and project work.", "/dashboard"],
-    ["📈", "Grow", "Join as vendor, supplier, contractor or service provider.", "/vendor-opportunities"],
-    ["📮", "Submit Requirement", "Tell us what you need. We will prepare the request.", "/rfq/start"],
-  ];
-
   const placeholder = useMemo(() => {
     
     if (activeTab === "post") return "Describe your requirement clearly. Example: Need 500 bags cement in Cooch Behar within 7 days.";
@@ -385,27 +375,9 @@ export default function HomePage() {
         onToggleSahajNeeds={() => toggleMobileSection("sahajNeeds")}
       />
 
-      <section className={`contentSection sahajJourneySection ${mobileSectionOpen("sahajNeeds") ? "isSahajExpanded" : ""}`}>
-        <div className="sectionHead">
-          <div>
-            <h2>Start with your real need</h2>
-            <p>No technical terms. Choose what you want to do and 3Bigha will prepare the right path.</p>
-          </div>
-          <a href="/rfq/start">Post requirement →</a>
-        </div>
-
-        <div className="sahajJourneyGrid">
-          {sahajNeedCards.map(([icon, title, text, href], index) => (
-            <a key={title} href={href} className={`sahajJourneyCard ${index > 3 ? "mobileSahajExtra" : ""}`}>
-              <div className="sahajJourneyIcon">{icon}</div>
-              <div>
-                <strong>{title}</strong>
-                <p>{text}</p>
-              </div>
-            </a>
-          ))}
-        </div>
-      </section>
+      <SahajJourney
+        expanded={mobileSectionOpen("sahajNeeds")}
+      />
 
       <section className="contentSection">
         <div className="sectionHead"><div><h2>Featured Listings</h2><p>Fresh opportunities from our marketplace</p></div><a href="/search">View all listings →</a></div>
