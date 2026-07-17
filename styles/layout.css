@@ -1,0 +1,54 @@
+/* =====================================================
+   UNIVERSAL LAYOUT ENGINE
+   ===================================================== */
+
+*,
+*::before,
+*::after{
+    box-sizing:border-box;
+}
+
+html,
+body{
+    margin:0;
+    padding:0;
+    width:100%;
+    overflow-x:hidden;
+}
+
+body{
+    background:#fff;
+    color:#111827;
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+.threebigha-app-body{
+    width:100%;
+}
+
+main{
+    width:100%;
+}
+
+.layout-container,
+.container,
+.pageBody,
+.page-shell,
+.page-content{
+
+    width:100%;
+
+    max-width:none;
+
+    margin:0;
+
+    padding-left:clamp(16px,2vw,32px);
+
+    padding-right:clamp(16px,2vw,32px);
+}
