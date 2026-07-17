@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -8,6 +9,7 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 export default function PWAInstallPrompt() {
+  const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [show, setShow] = useState(false);
@@ -61,7 +63,7 @@ export default function PWAInstallPrompt() {
     setShow(false);
   }
 
-  if (!show) return null;
+  if (!show || pathname === "/") return null;
 
   return (
     <div className="fixed bottom-4 left-3 right-3 z-[9999] mx-auto max-w-xl rounded-2xl border border-green-200 bg-white p-4 shadow-2xl">

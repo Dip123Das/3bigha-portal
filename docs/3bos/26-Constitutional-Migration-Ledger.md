@@ -383,3 +383,147 @@ continues to use `/dashboard`.
 Remove the conditional My Work `href` override from the shell resolver. The
 existing `/dashboard` entry immediately becomes authoritative again. No data,
 authentication, permission, route or infrastructure rollback is required.
+
+## NEEV-H01 — Constitutional Human-First homepage
+
+**Approval:** Approved by the repository owner on 16 July 2026.
+
+**Scope:** Replace only the public homepage presentation with the homepage
+experience established by the 3Bigha Business Operating System handbooks:
+human purpose first, natural-language entry, canonical journeys, honest
+marketplace evidence and quiet access to existing business work.
+
+**Compatibility boundary:** Authentication, Human Identity, workspaces,
+capabilities, Growth, marketplace modules, LGD geography, RFQ, Property,
+Materials, Services, Rentals, Admin, Vendor, APIs, URLs and database behavior
+remain unchanged. Existing public listing reads and destinations are reused.
+
+- [x] Audit completed
+- [x] Constitutional mapping completed
+- [x] Design approved
+- [x] Implementation completed
+- [x] Build passed
+- [x] Type check passed
+- [x] Desktop verified
+- [x] Mobile verified
+- [ ] Production verified
+- [x] Regression checked
+
+### Implementation evidence
+
+- The homepage now begins with the human question “What would you like to do
+  today?” and accepts the need in ordinary language before offering any
+  software structure.
+- Build, Buy, Sell, Hire, Manage, Learn and Grow are presented as the seven
+  canonical human journeys. Property, Materials, Services and Rentals remain
+  familiar marketplace domains and retain their existing URLs.
+- Real published Property, Material, Service and Rental data continues to be
+  read from the existing production-compatible sources. Empty states are
+  stated honestly; fabricated listings, prices, scores, activity totals and
+  AI decision claims are no longer used on the homepage.
+- AI remains an optional assistant rather than the workflow. The existing
+  global AI launcher remains available on the homepage when a person chooses
+  it; promotional and install overlays stay suppressed only at `/`.
+- TypeScript completed with no errors. The Next.js production build compiled,
+  validated types and generated all 293 static pages using non-production
+  placeholder service configuration.
+- Desktop and mobile homepage layouts were inspected locally. Existing
+  destination URLs, authentication behavior, APIs and database interactions
+  were not modified. Production remains unchanged pending staging approval.
+- Hostinger staging exposed a shell delivery regression: the homepage module
+  CSS rendered while the legacy global shell chunk did not activate in Edge,
+  leaving duplicate responsive brand elements and unstyled navigation/footer
+  controls. The clean-browser reproduction confirmed this was not cache state.
+- The correction consolidates the responsive brand into one semantic logo and
+  delivers a homepage-scoped compatibility stylesheet alongside the working
+  homepage bundle. This restores the existing shell presentation without
+  changing authentication, navigation destinations, permissions or data.
+- The corrected CSS dependency graph compiled successfully. Final desktop and
+  mobile staging verification remains required after the updated commit is
+  rebuilt on Hostinger.
+- Staging interaction verification then exposed that desktop menu headings
+  remained hover-only and the recovered mobile shell lacked nested navigation
+  presentation rules. The compatibility correction adds explicit desktop
+  click-to-toggle behavior and restores readable mobile submenu panels while
+  preserving every existing navigation destination.
+- A second staging interaction audit found that the click-only correction still
+  depended on client hydration, while the homepage AI launcher had been
+  explicitly hidden. Desktop and mobile navigation disclosures now use native
+  browser semantics so their registered links remain accessible even before
+  hydration. The existing AI launcher is restored at `/`; no AI authority,
+  automatic decision, route, permission, API or data behavior is introduced.
+
+### Files
+
+- `app/page.tsx`
+- `app/homepage.module.css`
+- `app/homepage-shell-recovery.css`
+- `app/layout.tsx`
+- `app/_components/GlobalAiCopilot.tsx`
+- `app/_components/BuildConVendorPopup.tsx`
+- `components/pwa/PWAInstallPrompt.tsx`
+- `lib/seo/site.ts`
+- `docs/3bos/26-Constitutional-Migration-Ledger.md`
+
+### Rollback
+
+Restore the prior homepage component and homepage metadata, then remove the
+root-path-only suppression conditions from the three global overlays. No
+authentication, route, API, database or infrastructure rollback is required.
+
+## NEEV-H01R — Homepage institutional recovery
+
+**Approval:** Approved by the repository owner on 17 July 2026.
+
+**Scope:** Recover the proven production homepage as the institutional base,
+then make only the smallest handbook-aligned clarification to the existing
+business-workspace entry. This reverses the H01 wholesale homepage replacement
+without reversing the constitutional direction.
+
+**Constitutional basis:** The handbooks require a shared customer-first entrance
+for Build, Buy, Sell, Hire, Rent, Submit Requirement and Manage My Business,
+while registered businesses continue through contextual 3BOS workspaces.
+
+**Compatibility boundary:** Existing authentication, Human Identity, shell,
+navigation, marketplace reads, operational sections, 3Bigha AI launcher,
+routes, APIs and database behavior are preserved.
+
+- [x] Audit completed
+- [x] Constitutional mapping completed
+- [x] Design approved
+- [x] Implementation completed
+- [ ] Build passed
+- [x] Type check passed
+- [ ] Desktop verified
+- [ ] Mobile verified
+- [ ] Production verified
+- [x] Regression checked
+
+### Implementation evidence
+
+- Restored the proven homepage implementation from the pre-H01 production
+  baseline instead of attempting another redesign.
+- Preserved the existing real marketplace listings, market prices, human-need
+  journeys, operational information, mobile collapsibles, URLs and global
+  3Bigha AI entry.
+- Clarified the existing business workdesk as “3BOS Business Workspaces” and
+  added “Open My Business” using the established `/dashboard` compatibility
+  route. Existing Inventory, Billing, Fleet and Dispatch routes remain intact.
+- TypeScript completed with no errors after the Next.js type metadata was
+  regenerated.
+- The production build compiled and completed lint/type validation. Local page
+  data collection then stopped because the local workspace does not contain the
+  production Supabase URL; final build and responsive verification therefore
+  remain staging requirements using the existing protected environment file.
+- The older H01 process still serving local port `3700` was identified as stale
+  and was not accepted as verification evidence for this recovery.
+
+### Files
+
+- `app/page.tsx`
+- `docs/3bos/26-Constitutional-Migration-Ledger.md`
+
+### Rollback
+
+Revert the H01R commit to return to the previous H01 homepage. No authentication,
+route, permission, API, database or infrastructure rollback is required.

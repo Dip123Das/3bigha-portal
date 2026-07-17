@@ -228,7 +228,6 @@ export default function HomePage() {
   ];
 
   const placeholder = useMemo(() => {
-    
     if (activeTab === "post") return "Describe your requirement clearly. Example: Need 500 bags cement in Cooch Behar within 7 days.";
     return "Search property, materials, services, rentals or construction needs...";
   }, [activeTab]);
@@ -604,8 +603,8 @@ export default function HomePage() {
       <section className={`mobileCollapsibleSection ${mobileSectionOpen("workdesk") ? "isMobileExpanded" : ""}`}>
         <div className="mobileToggleHead">
           <div>
-            <h2>AI Business Workdesk</h2>
-            <p>Inventory, billing, fleet and dispatch actions</p>
+            <h2>3BOS Business Workspaces</h2>
+            <p>Continue the daily work connected to your registered business</p>
           </div>
           <button type="button" className="mobileToggleBtn" onClick={() => toggleMobileSection("workdesk")}>
             {mobileSectionOpen("workdesk") ? "▲ Less" : "▼ Show"}
@@ -614,15 +613,16 @@ export default function HomePage() {
 
         <div className="aiBusinessCommand">
           <div className="aiBusinessCopy">
-            <span>AI Business Work Desk</span>
-            <h2>Inventory, billing, fleet and dispatch — now connected with marketplace intelligence.</h2>
+            <span>For businesses and professionals</span>
+            <h2>Your business work, marketplace presence and operations stay connected.</h2>
             <p>
-              Vendors can manage stock, create bills, assign vehicles, track dispatches and use AI signals
-              to understand demand, pricing and operational risks.
+              Open your own workspace first. 3Bigha uses your registered business context to prepare
+              the relevant work while existing inventory, billing, fleet and dispatch tools remain available.
             </p>
           </div>
 
           <div className="aiBusinessActions">
+            <a href="/dashboard">🏢 Open My Business</a>
             <a href="/dashboard/vendor/inventory">📦 Inventory</a>
             <a href="/dashboard/vendor/billing">🧾 Billing</a>
             <a href="/dashboard/vendor/fleet">🚚 Fleet</a>
@@ -1063,7 +1063,6 @@ export default function HomePage() {
         }
 
         /* FINAL 3BIGHA AI FLOATING PANEL OVERRIDE */
-        
 
         .aiPanel{
           position:fixed!important;
