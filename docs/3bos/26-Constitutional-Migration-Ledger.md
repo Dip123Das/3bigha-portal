@@ -421,9 +421,9 @@ remain unchanged. Existing public listing reads and destinations are reused.
   read from the existing production-compatible sources. Empty states are
   stated honestly; fabricated listings, prices, scores, activity totals and
   AI decision claims are no longer used on the homepage.
-- AI remains silent on the homepage. The existing global AI launcher, founding
-  promotion and install prompt are suppressed only at `/` and remain unchanged
-  elsewhere in the application.
+- AI remains an optional assistant rather than the workflow. The existing
+  global AI launcher remains available on the homepage when a person chooses
+  it; promotional and install overlays stay suppressed only at `/`.
 - TypeScript completed with no errors. The Next.js production build compiled,
   validated types and generated all 293 static pages using non-production
   placeholder service configuration.
@@ -446,6 +446,12 @@ remain unchanged. Existing public listing reads and destinations are reused.
   presentation rules. The compatibility correction adds explicit desktop
   click-to-toggle behavior and restores readable mobile submenu panels while
   preserving every existing navigation destination.
+- A second staging interaction audit found that the click-only correction still
+  depended on client hydration, while the homepage AI launcher had been
+  explicitly hidden. Desktop and mobile navigation disclosures now use native
+  browser semantics so their registered links remain accessible even before
+  hydration. The existing AI launcher is restored at `/`; no AI authority,
+  automatic decision, route, permission, API or data behavior is introduced.
 
 ### Files
 
