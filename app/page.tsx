@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import JsonLd from "@/components/seo/JsonLd";
 import ConstitutionalHero from "@/components/home/ConstitutionalHero";
 import SahajJourney from "@/components/home/SahajJourney";
+import FeaturedListings from "@/components/home/FeaturedListings";
 import {
   aiMarketplaceSchema,
   marketplaceFaqSchema,
@@ -112,13 +113,6 @@ const fallbackFeatured: MarketplaceItem[] = [
   { id: "jcb", module: "Rental", title: "JCB 3DX Rental", subtitle: "Cooch Behar, WB", meta: "With Operator", price: "₹1,800 / Hour", href: "/rentals", badge: "Rental", image: null },
   { id: "house", module: "Property", title: "3 BHK Independent House", subtitle: "Cooch Behar, WB", meta: "3 BHK · 1200 sqft", price: "₹35 Lakh", href: "/property", badge: "Property", image: null },
 ];
-
-function moduleIcon(module: MarketplaceItem["module"]) {
-  if (module === "Property") return "🏡";
-  if (module === "Material") return "🏗️";
-  if (module === "Service") return "👷";
-  return "🚜";
-}
 
 type DiscoveryRail = {
   title: string;
@@ -379,45 +373,11 @@ export default function HomePage() {
         expanded={mobileSectionOpen("sahajNeeds")}
       />
 
-      <section className="contentSection">
-        <div className="sectionHead"><div><h2>Featured Listings</h2><p>Fresh opportunities from our marketplace</p></div><a href="/search">View all listings →</a></div>
-        {recentDiscovery.length ? (
-          <div className="personalFeedStrip">
-            <div>
-              <strong>Recommended for you</strong>
-              <span>Based on recently viewed property interest</span>
-            </div>
-
-            <div className="personalFeedItems">
-              {recentDiscovery.slice(0, 4).map((item) => (
-                <a key={`${item.module}:${item.id}`} href={item.href}>
-                  <b>✨ {item.module}</b>
-                  <strong>{item.title}</strong>
-                  <small>{[item.locality, item.city, item.district].filter(Boolean).join(", ") || "Continue browsing"}</small>
-                </a>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        <div className={`listingGrid premiumListingsGrid ${mobileExpandedSections.featured ? "isMobileExpanded" : ""}`}>
-          {featuredItems.map((item) => (
-            <a href={item.href} className="listingCard" key={`${item.module}-${item.id}`}>
-              <div className="listingImage">
-                {item.image ? <img src={item.image} alt={item.title} /> : <b>{moduleIcon(item.module)}</b>}
-                <span>{item.badge}</span>
-              </div>
-              <div className="listingBody">
-                <h3>{item.title}</h3>
-                <p>📍 {item.subtitle}</p>
-                <strong>{item.price}</strong>
-                <small>{item.meta}</small>
-              </div>
-            </a>
-          ))}
-        </div>
-      </section>
-
+      <FeaturedListings
+        featuredItems={featuredItems}
+        recentDiscovery={recentDiscovery}
+        mobileExpanded={Boolean(mobileExpandedSections.featured)}
+      />
 
       <section className="contentSection">
         <div className="sectionHead"><div><h2>Today's Market Prices</h2><p>Live price updates from local markets</p></div><a href="/price-today">View all prices →</a></div>
