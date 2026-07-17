@@ -441,6 +441,11 @@ remain unchanged. Existing public listing reads and destinations are reused.
 - The corrected CSS dependency graph compiled successfully. Final desktop and
   mobile staging verification remains required after the updated commit is
   rebuilt on Hostinger.
+- Staging interaction verification then exposed that desktop menu headings
+  remained hover-only and the recovered mobile shell lacked nested navigation
+  presentation rules. The compatibility correction adds explicit desktop
+  click-to-toggle behavior and restores readable mobile submenu panels while
+  preserving every existing navigation destination.
 
 ### Files
 

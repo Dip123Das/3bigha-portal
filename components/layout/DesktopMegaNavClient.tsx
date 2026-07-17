@@ -40,10 +40,19 @@ export default function DesktopMegaNavClient() {
             key={menu.label}
             onMouseEnter={() => setActive(menu.label)}
           >
-            <Link className="stableMegaButton" href={menu.href}>
+            <button
+              type="button"
+              className="stableMegaButton"
+              aria-expanded={active === menu.label}
+              onClick={() =>
+                setActive((current) =>
+                  current === menu.label ? null : menu.label
+                )
+              }
+            >
               <span>{menu.label}</span>
               <span className="stableMegaChevron">⌄</span>
-            </Link>
+            </button>
           </div>
         ))}
 
