@@ -1,5 +1,6 @@
 import type {
   HumanIdentityDefinition,
+  HumanIdentityKey,
   IdentitySuggestion,
   LegacyIdentitySignals,
 } from "../identity";
@@ -20,6 +21,7 @@ export type ThreeBOSRuntimeInput = LegacyIdentitySignals & {
   userId?: string | null;
   legacyPlan?: string | null;
   preferredWorkspaceKey?: string | null;
+  activeIdentityKey?: HumanIdentityKey | null;
 };
 
 export type ThreeBOSAvailableAction = WorkspaceNavigationItem & {
@@ -50,6 +52,7 @@ export type ThreeBOSRuntime = {
     primary: HumanIdentityDefinition | null;
     suggestions: IdentitySuggestion[];
     requiresHumanSelection: boolean;
+    humanConfirmed: boolean;
   };
 
   workspaces: {

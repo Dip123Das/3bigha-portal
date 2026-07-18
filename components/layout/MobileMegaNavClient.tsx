@@ -3,16 +3,26 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useExperienceMode } from "@/components/experience/ExperienceModeProvider";
+import { useOptional3BOSRuntime } from "@/lib/3bos/context";
+import { resolveShellNavigation } from "@/lib/3bos/navigation";
 import { MENUS } from "@/lib/navigation/main-menu";
+import ThreeBOSWorkContextChooser from "@/components/layout/ThreeBOSWorkContextChooser";
 
 export default function MobileMegaNavClient() {
   const [open, setOpen] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const { showSmart } = useExperienceMode();
+  const runtimeContext = useOptional3BOSRuntime();
 
   const visibleMenus = useMemo(
-    () => MENUS.filter((menu) => showSmart || menu.label !== "Business"),
-    [showSmart]
+    () =>
+      resolveShellNavigation({
+        menus: MENUS,
+        showSmart,
+        runtime: runtimeContext?.runtime ?? null,
+        runtimeStatus: runtimeContext?.status ?? "uninitialized",
+      }),
+    [runtimeContext?.runtime, runtimeContext?.status, showSmart]
   );
 
   useEffect(() => {
@@ -51,6 +61,10 @@ export default function MobileMegaNavClient() {
 
             {isOpen ? (
               <div className="mobileMegaPanel">
+                {menu.label === "My Work" ? (
+                  <ThreeBOSWorkContextChooser />
+                ) : null}
+
                 <Link
                   className="mobileMegaMainLink"
                   href={menu.href}
@@ -59,21 +73,45 @@ export default function MobileMegaNavClient() {
                   Open {menu.label}
                 </Link>
 
-                {menu.groups.map((group) => (
-                  <div className="mobileMegaGroup" key={group.title}>
-                    <div className="mobileMegaTitle">{group.title}</div>
+                {menu.groups
+                  .filter((group) => !group.compatibility)
+                  .map((group) => (
+                    <div className="mobileMegaGroup" key={group.title}>
+                      <div className="mobileMegaTitle">{group.title}</div>
 
-                    {group.links.map(([label, href]) => (
-                      <Link
-                        key={href + label}
-                        href={href}
-                        onClick={() => setOpen(null)}
-                      >
-                        {label}
-                      </Link>
-                    ))}
-                  </div>
-                ))}
+                      {group.links.map(([label, href]) => (
+                        <Link
+                          key={href + label}
+                          href={href}
+                          onClick={() => setOpen(null)}
+                        >
+                          {label}
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+
+                {menu.groups.some((group) => group.compatibility) ? (
+                  <details className="mobileMegaCompatibility">
+                    <summary>Other existing work</summary>
+                    {menu.groups
+                      .filter((group) => group.compatibility)
+                      .map((group) => (
+                        <div className="mobileMegaGroup" key={group.title}>
+                          <div className="mobileMegaTitle">{group.title}</div>
+                          {group.links.map(([label, href]) => (
+                            <Link
+                              key={href + label}
+                              href={href}
+                              onClick={() => setOpen(null)}
+                            >
+                              {label}
+                            </Link>
+                          ))}
+                        </div>
+                      ))}
+                  </details>
+                ) : null}
               </div>
             ) : null}
           </div>

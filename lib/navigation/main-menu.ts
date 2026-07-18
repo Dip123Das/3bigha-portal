@@ -1,6 +1,7 @@
 export type MenuGroup = {
   title: string;
   links: [string, string][];
+  compatibility?: boolean;
 };
 
 export type MenuItem = {

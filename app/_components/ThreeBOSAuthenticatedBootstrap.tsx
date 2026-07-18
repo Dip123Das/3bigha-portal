@@ -11,11 +11,19 @@ import {
 } from "@/lib/3bos/bootstrap";
 
 import { use3BOSRuntime } from "@/lib/3bos/context";
+import {
+  clearActiveWorkContext,
+  readActiveWorkContext,
+} from "@/lib/3bos/identity";
 
 type BootstrapProfileRow = LegacyProfileRuntimeSource;
 
 type BootstrapBusinessProfileRow =
   LegacyBusinessProfileRuntimeSource;
+
+type BootstrapModuleGrantRow = {
+  module_key?: string | null;
+};
 
 function timeoutAfter(
   milliseconds: number,
@@ -128,6 +136,8 @@ export default function ThreeBOSAuthenticatedBootstrap() {
           | BootstrapBusinessProfileRow
           | null = null;
 
+        let moduleKeys: string[] = [];
+
         try {
           const businessProfileResponse =
             await Promise.race([
@@ -184,6 +194,66 @@ export default function ThreeBOSAuthenticatedBootstrap() {
           );
         }
 
+        try {
+          const moduleGrantResponse =
+            await Promise.race([
+              supabase
+                .from("vendor_module_grants")
+                .select("module_key")
+                .eq("user_id", userId)
+                .eq("is_active", true),
+
+              timeoutAfter(
+                5000,
+                "3BOS module grant bootstrap"
+              ),
+            ]);
+
+          if (
+            !alive ||
+            currentSequence !== requestSequence
+          ) {
+            return;
+          }
+
+          const moduleGrantError =
+            (moduleGrantResponse as any)?.error ??
+            null;
+
+          if (moduleGrantError) {
+            console.warn(
+              "THREE_BOS_MODULE_GRANT_BOOTSTRAP_READ_FAILED",
+              moduleGrantError
+            );
+          } else {
+            const moduleGrantRows =
+              (((moduleGrantResponse as any)
+                ?.data ?? []) as BootstrapModuleGrantRow[]);
+
+            moduleKeys = Array.from(
+              new Set(
+                moduleGrantRows
+                  .map((row) =>
+                    row.module_key?.trim()
+                  )
+                  .filter(
+                    (moduleKey): moduleKey is string =>
+                      Boolean(moduleKey)
+                  )
+              )
+            );
+          }
+        } catch (moduleGrantError) {
+          /*
+           * Module grants are compatibility evidence only. A failed read
+           * must preserve the existing profile-based runtime behavior.
+           */
+          console.warn(
+            "THREE_BOS_MODULE_GRANT_BOOTSTRAP_FAILED",
+            moduleGrantError
+          );
+        }
+
         if (
           !alive ||
           currentSequence !== requestSequence
@@ -209,10 +279,20 @@ export default function ThreeBOSAuthenticatedBootstrap() {
               plan:
                 businessProfile?.subscription_plan ??
                 "free",
+              moduleKeys,
             },
           });
 
-        setRuntimeInput(bootstrap.input);
+        const activeWorkContext =
+          readActiveWorkContext(userId);
+
+        setRuntimeInput({
+          ...bootstrap.input,
+          activeIdentityKey:
+            activeWorkContext?.identityKey ?? null,
+          preferredWorkspaceKey:
+            activeWorkContext?.workspaceKey ?? null,
+        });
 
         /*
          * N-4A2.3 — Resolve the complete commercial observation
@@ -257,6 +337,7 @@ export default function ThreeBOSAuthenticatedBootstrap() {
       if (!userId) {
         activeUserIdRef.current = null;
         requestSequence += 1;
+        clearActiveWorkContext();
         clearRuntime();
         return;
       }
@@ -293,6 +374,7 @@ export default function ThreeBOSAuthenticatedBootstrap() {
         if (!session?.user?.id) {
           activeUserIdRef.current = null;
           requestSequence += 1;
+          clearActiveWorkContext();
           clearRuntime();
           return;
         }
