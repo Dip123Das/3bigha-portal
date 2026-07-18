@@ -1,0 +1,16 @@
+@media (min-width:1024px){
+
+.layout-container,
+.pageBody{
+
+    width:100%;
+
+    max-width:none;
+
+    padding-left:28px;
+
+    padding-right:28px;
+
+}
+
+}

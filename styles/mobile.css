@@ -1,0 +1,14 @@
+@media (max-width:1023px){
+
+.layout-container,
+.pageBody{
+
+    width:100%;
+
+    padding-left:14px;
+
+    padding-right:14px;
+
+}
+
+}
