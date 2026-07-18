@@ -159,6 +159,58 @@ export type ThreeBOSWorkspaceActionProjection = {
   totalActionCount: number;
 };
 
+export type ThreeBOSJourneySelectionSource =
+  | "none"
+  | "human";
+
+export type ThreeBOSJourneyEntry = {
+  /**
+   * Stable bridge key combining workspace and navigation action.
+   */
+  key: string;
+  actionKey: string;
+  label: string;
+  description: string;
+  href: string;
+  workspaceKey: string;
+  workspaceLabel: string;
+  capability: ThreeBOSAvailableAction["capability"];
+  status: ThreeBOSAvailableAction["status"];
+
+  /**
+   * Original resolved action retained for capability and
+   * entitlement inspection.
+   */
+  action: ThreeBOSAvailableAction;
+};
+
+export type ThreeBOSJourneyContext = {
+  /**
+   * Human-selected journey when one is currently active.
+   */
+  activeJourney: ThreeBOSJourneyEntry | null;
+  activeJourneyKey: string | null;
+  selectionSource: ThreeBOSJourneySelectionSource;
+
+  /**
+   * Journey entry points available in the active workspace.
+   */
+  primaryWorkspaceJourneys: ThreeBOSJourneyEntry[];
+
+  /**
+   * Journey entry points available from other workspaces.
+   */
+  crossWorkspaceJourneys: ThreeBOSJourneyEntry[];
+
+  /**
+   * Complete journey projection retained for discovery.
+   */
+  availableJourneys: ThreeBOSJourneyEntry[];
+
+  journeyCount: number;
+  hasActiveJourney: boolean;
+};
+
 export type ThreeBOSRuntimeContextValue = {
   /**
    * Current resolved runtime.
@@ -275,4 +327,20 @@ export type ThreeBOSRuntimeContextValue = {
    * Usable actions resolved from other available workspaces.
    */
   crossWorkspaceActions: ThreeBOSAvailableAction[];
+
+  /**
+   * Read-only journey projection over already resolved actions.
+   */
+  journeyContext: ThreeBOSJourneyContext;
+
+  /**
+   * Select a journey entry point for the current runtime
+   * session. This does not navigate or write to the database.
+   */
+  selectJourney: (journeyKey: string) => void;
+
+  /**
+   * Clear the current journey selection.
+   */
+  clearJourney: () => void;
 };

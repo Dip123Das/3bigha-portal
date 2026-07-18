@@ -31,6 +31,8 @@ import {
 import type {
   ThreeBOSRuntimeContextStatus,
   ThreeBOSRuntimeContextValue,
+  ThreeBOSJourneyContext,
+  ThreeBOSJourneyEntry,
   ThreeBOSRuntimeDiagnostics,
   ThreeBOSRuntimeReadiness,
   ThreeBOSWorkspaceActionProjection,
@@ -438,12 +440,75 @@ function resolveWorkspaceActionProjection(
   };
 }
 
+function createJourneyEntry(
+  action: ThreeBOSAvailableAction
+): ThreeBOSJourneyEntry {
+  return {
+    key: `${action.workspaceKey}:${action.key}`,
+    actionKey: action.key,
+    label: action.label,
+    description: action.description,
+    href: action.href,
+    workspaceKey: action.workspaceKey,
+    workspaceLabel: action.workspaceLabel,
+    capability: action.capability,
+    status: action.status,
+    action,
+  };
+}
+
+function resolveJourneyContext(
+  actionProjection: ThreeBOSWorkspaceActionProjection,
+  selectedJourneyKey: string | null
+): ThreeBOSJourneyContext {
+  const primaryWorkspaceJourneys =
+    actionProjection.primaryWorkspaceActions.map(
+      createJourneyEntry
+    );
+
+  const crossWorkspaceJourneys =
+    actionProjection.crossWorkspaceActions.map(
+      createJourneyEntry
+    );
+
+  const availableJourneys = [
+    ...primaryWorkspaceJourneys,
+    ...crossWorkspaceJourneys,
+  ];
+
+  const activeJourney =
+    selectedJourneyKey
+      ? availableJourneys.find(
+          (journey) =>
+            journey.key === selectedJourneyKey
+        ) ?? null
+      : null;
+
+  return {
+    activeJourney,
+    activeJourneyKey:
+      activeJourney?.key ?? null,
+    selectionSource:
+      activeJourney ? "human" : "none",
+    primaryWorkspaceJourneys,
+    crossWorkspaceJourneys,
+    availableJourneys,
+    journeyCount: availableJourneys.length,
+    hasActiveJourney: activeJourney !== null,
+  };
+}
+
 export function ThreeBOSRuntimeProvider({
   children,
   initialInput = null,
 }: ThreeBOSRuntimeProviderProps) {
   const [input, setInput] =
     useState<ThreeBOSRuntimeInput | null>(initialInput);
+
+  const [
+    selectedJourneyKey,
+    setSelectedJourneyKey,
+  ] = useState<string | null>(null);
 
   const [
     commercialInput,
@@ -503,6 +568,27 @@ export function ThreeBOSRuntimeProvider({
       [runtime]
     );
 
+  const journeyContext =
+    useMemo<ThreeBOSJourneyContext>(
+      () =>
+        resolveJourneyContext(
+          actionProjection,
+          selectedJourneyKey
+        ),
+      [actionProjection, selectedJourneyKey]
+    );
+
+  const selectJourney = useCallback(
+    (journeyKey: string) => {
+      setSelectedJourneyKey(journeyKey);
+    },
+    []
+  );
+
+  const clearJourney = useCallback(() => {
+    setSelectedJourneyKey(null);
+  }, []);
+
   const setCommercialContextInput = useCallback(
     (
       nextInput:
@@ -534,6 +620,7 @@ export function ThreeBOSRuntimeProvider({
   const clearRuntime = useCallback(() => {
     setInput(null);
     setCommercialInput(null);
+    setSelectedJourneyKey(null);
   }, []);
 
   const getCapability = useCallback(
@@ -574,6 +661,9 @@ export function ThreeBOSRuntimeProvider({
         actionProjection.primaryWorkspaceActions,
       crossWorkspaceActions:
         actionProjection.crossWorkspaceActions,
+      journeyContext,
+      selectJourney,
+      clearJourney,
       setCommercialContextInput,
       setRuntimeInput,
       updateRuntimeInput,
@@ -590,6 +680,9 @@ export function ThreeBOSRuntimeProvider({
       readiness,
       diagnostics,
       actionProjection,
+      journeyContext,
+      selectJourney,
+      clearJourney,
       setCommercialContextInput,
       setRuntimeInput,
       updateRuntimeInput,
