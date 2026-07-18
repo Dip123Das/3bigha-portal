@@ -127,6 +127,38 @@ export type ThreeBOSRuntimeDiagnostics = {
   };
 };
 
+export type ThreeBOSWorkspaceActionProjection = {
+  /**
+   * Workspace selected as the human's current operating context.
+   */
+  primaryWorkspaceKey: string | null;
+  primaryWorkspaceLabel: string | null;
+
+  /**
+   * Actions belonging to the current primary workspace.
+   */
+  primaryWorkspaceActions: ThreeBOSAvailableAction[];
+
+  /**
+   * Usable actions belonging to other resolved workspaces.
+   */
+  crossWorkspaceActions: ThreeBOSAvailableAction[];
+
+  /**
+   * Complete action collection retained for compatibility and inspection.
+   */
+  allAvailableActions: ThreeBOSAvailableAction[];
+
+  /**
+   * Actions grouped by workspace without changing their original order.
+   */
+  actionsByWorkspace: Record<string, ThreeBOSAvailableAction[]>;
+
+  primaryActionCount: number;
+  crossWorkspaceActionCount: number;
+  totalActionCount: number;
+};
+
 export type ThreeBOSRuntimeContextValue = {
   /**
    * Current resolved runtime.
@@ -224,6 +256,23 @@ export type ThreeBOSRuntimeContextValue = {
 
   /**
    * Human actions already filtered by identity, workspace and plan.
+   *
+   * Retained as the original backward-compatible action collection.
    */
   availableActions: ThreeBOSAvailableAction[];
+
+  /**
+   * Human-first projection of available actions around the active workspace.
+   */
+  actionProjection: ThreeBOSWorkspaceActionProjection;
+
+  /**
+   * Convenience projection for the active workspace.
+   */
+  primaryWorkspaceActions: ThreeBOSAvailableAction[];
+
+  /**
+   * Usable actions resolved from other available workspaces.
+   */
+  crossWorkspaceActions: ThreeBOSAvailableAction[];
 };

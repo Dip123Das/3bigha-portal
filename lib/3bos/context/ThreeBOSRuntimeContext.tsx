@@ -23,6 +23,7 @@ import {
 import {
   create3BOSRuntime,
   has3BOSCapability,
+  type ThreeBOSAvailableAction,
   type ThreeBOSRuntime,
   type ThreeBOSRuntimeInput,
 } from "../runtime";
@@ -32,6 +33,7 @@ import type {
   ThreeBOSRuntimeContextValue,
   ThreeBOSRuntimeDiagnostics,
   ThreeBOSRuntimeReadiness,
+  ThreeBOSWorkspaceActionProjection,
   ThreeBOSRuntimeReadinessReason,
 } from "./types";
 
@@ -376,6 +378,66 @@ function resolveRuntimeDiagnostics(
   };
 }
 
+function resolveWorkspaceActionProjection(
+  runtime: ThreeBOSRuntime | null
+): ThreeBOSWorkspaceActionProjection {
+  const allAvailableActions =
+    runtime?.availableActions ?? [];
+
+  const primaryWorkspaceKey =
+    runtime?.workspaces.primary?.key ?? null;
+
+  const primaryWorkspaceLabel =
+    runtime?.workspaces.primary?.label ?? null;
+
+  const primaryWorkspaceActions =
+    primaryWorkspaceKey
+      ? allAvailableActions.filter(
+          (action) =>
+            action.workspaceKey ===
+            primaryWorkspaceKey
+        )
+      : [];
+
+  const crossWorkspaceActions =
+    primaryWorkspaceKey
+      ? allAvailableActions.filter(
+          (action) =>
+            action.workspaceKey !==
+            primaryWorkspaceKey
+        )
+      : allAvailableActions;
+
+  const actionsByWorkspace =
+    allAvailableActions.reduce<
+      Record<string, ThreeBOSAvailableAction[]>
+    >((groups, action) => {
+      const workspaceKey = action.workspaceKey;
+
+      if (!groups[workspaceKey]) {
+        groups[workspaceKey] = [];
+      }
+
+      groups[workspaceKey].push(action);
+      return groups;
+    }, {});
+
+  return {
+    primaryWorkspaceKey,
+    primaryWorkspaceLabel,
+    primaryWorkspaceActions,
+    crossWorkspaceActions,
+    allAvailableActions,
+    actionsByWorkspace,
+    primaryActionCount:
+      primaryWorkspaceActions.length,
+    crossWorkspaceActionCount:
+      crossWorkspaceActions.length,
+    totalActionCount:
+      allAvailableActions.length,
+  };
+}
+
 export function ThreeBOSRuntimeProvider({
   children,
   initialInput = null,
@@ -432,6 +494,13 @@ export function ThreeBOSRuntimeProvider({
           readiness
         ),
       [input, runtime, readiness]
+    );
+
+  const actionProjection =
+    useMemo<ThreeBOSWorkspaceActionProjection>(
+      () =>
+        resolveWorkspaceActionProjection(runtime),
+      [runtime]
     );
 
   const setCommercialContextInput = useCallback(
@@ -500,6 +569,11 @@ export function ThreeBOSRuntimeProvider({
       status: resolveRuntimeStatus(runtime),
       readiness,
       diagnostics,
+      actionProjection,
+      primaryWorkspaceActions:
+        actionProjection.primaryWorkspaceActions,
+      crossWorkspaceActions:
+        actionProjection.crossWorkspaceActions,
       setCommercialContextInput,
       setRuntimeInput,
       updateRuntimeInput,
@@ -515,6 +589,7 @@ export function ThreeBOSRuntimeProvider({
       commercialContext,
       readiness,
       diagnostics,
+      actionProjection,
       setCommercialContextInput,
       setRuntimeInput,
       updateRuntimeInput,
