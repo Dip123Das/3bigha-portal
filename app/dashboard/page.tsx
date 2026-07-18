@@ -488,7 +488,14 @@ export default function DashboardPage() {
 
   return (
     <div className="container pageBody" style={{ paddingTop: 16, paddingBottom: 32 }}>
-      <ThreeBOSWorkSummary />
+      <ThreeBOSWorkSummary
+        signals={{
+          pendingWorkCount: stats.unreadVendorAlerts,
+          openRequirementCount: stats.rfqs,
+          alertCount: stats.unreadVendorAlerts,
+          recommendedActionLimit: 6,
+        }}
+      />
 
       <div
         style={{
