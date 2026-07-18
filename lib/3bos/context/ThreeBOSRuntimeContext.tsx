@@ -30,6 +30,7 @@ import {
 import type {
   ThreeBOSRuntimeContextStatus,
   ThreeBOSRuntimeContextValue,
+  ThreeBOSRuntimeDiagnostics,
   ThreeBOSRuntimeReadiness,
   ThreeBOSRuntimeReadinessReason,
 } from "./types";
@@ -173,6 +174,208 @@ function resolveRuntimeReadiness(
   };
 }
 
+function resolveRuntimeDiagnostics(
+  input: ThreeBOSRuntimeInput | null,
+  runtime: ThreeBOSRuntime | null,
+  readiness: ThreeBOSRuntimeReadiness
+): ThreeBOSRuntimeDiagnostics {
+  const messages: ThreeBOSRuntimeDiagnostics["health"]["messages"] = [];
+
+  if (!input) {
+    messages.push({
+      code: "runtime_input_missing",
+      severity: "info",
+      message:
+        "Runtime compatibility signals have not yet been supplied.",
+    });
+  }
+
+  if (
+    runtime?.identity.requiresHumanSelection
+  ) {
+    messages.push({
+      code: "identity_confirmation_required",
+      severity: "warning",
+      message:
+        "Multiple possible identities were detected and human confirmation is required.",
+    });
+  }
+
+  if (
+    runtime &&
+    runtime.identity.primary &&
+    !runtime.workspaces.primary
+  ) {
+    messages.push({
+      code: "workspace_unresolved",
+      severity: "warning",
+      message:
+        "An identity was resolved, but no primary workspace could be selected.",
+    });
+  }
+
+  const blockedByIdentity =
+    runtime?.capabilities.filter(
+      (capability) =>
+        capability.identityLevel === "none"
+    ).length ?? 0;
+
+  const blockedByPlan =
+    runtime?.capabilities.filter(
+      (capability) =>
+        capability.identityLevel !== "none" &&
+        capability.planLevel === "none"
+    ).length ?? 0;
+
+  const usableCapabilities =
+    runtime?.capabilities.filter(
+      (capability) =>
+        capability.eligible &&
+        capability.effectiveLevel !== "none"
+    ).length ?? 0;
+
+  if (
+    runtime &&
+    runtime.identity.primary &&
+    usableCapabilities === 0
+  ) {
+    messages.push({
+      code: "no_usable_capabilities",
+      severity: "warning",
+      message:
+        "The resolved identity currently has no usable capabilities.",
+    });
+  }
+
+  const actionWorkspaceKeys = Array.from(
+    new Set(
+      runtime?.availableActions.map(
+        (action) => action.workspaceKey
+      ) ?? []
+    )
+  );
+
+  return {
+    identity: {
+      selectedKey:
+        runtime?.identity.primary?.key ?? null,
+      selectedLabel:
+        runtime?.identity.primary?.label ?? null,
+      humanConfirmed:
+        runtime?.identity.humanConfirmed ?? false,
+      requiresHumanSelection:
+        runtime?.identity.requiresHumanSelection ?? false,
+      suggestionCount:
+        runtime?.identity.suggestions.length ?? 0,
+      suggestions:
+        runtime?.identity.suggestions.map(
+          (suggestion) => ({
+            key: suggestion.identity.key,
+            confidence: null,
+          })
+        ) ?? [],
+    },
+
+    workspace: {
+      primaryKey:
+        runtime?.workspaces.primary?.key ?? null,
+      primaryLabel:
+        runtime?.workspaces.primary?.label ?? null,
+      preferredWorkspaceKey:
+        input?.preferredWorkspaceKey ?? null,
+      preferredWorkspaceMatched:
+        Boolean(
+          input?.preferredWorkspaceKey &&
+          runtime?.workspaces.primary?.key ===
+            input.preferredWorkspaceKey
+        ),
+      availableCount:
+        runtime?.workspaces.available.length ?? 0,
+      availableKeys:
+        runtime?.workspaces.available.map(
+          (workspace) => workspace.key
+        ) ?? [],
+    },
+
+    growthPlan: {
+      legacyPlan:
+        input?.legacyPlan ?? null,
+      resolvedKey:
+        runtime?.growthPlan.definition.key ?? null,
+      resolvedLabel:
+        runtime?.growthPlan.definition.label ?? null,
+      isLegacyAlias:
+        runtime?.growthPlan.resolution.isLegacyAlias ??
+        false,
+      notes:
+        runtime?.growthPlan.resolution.notes ?? [],
+    },
+
+    capabilities: {
+      total:
+        runtime?.capabilities.length ?? 0,
+      eligible:
+        runtime?.capabilities.filter(
+          (capability) => capability.eligible
+        ).length ?? 0,
+      usable: usableCapabilities,
+      blockedByIdentity,
+      blockedByPlan,
+      items:
+        runtime?.capabilities.map(
+          (capability) => ({
+            capability: capability.capability,
+            eligible: capability.eligible,
+            identityLevel:
+              capability.identityLevel,
+            planLevel:
+              capability.planLevel,
+            effectiveLevel:
+              capability.effectiveLevel,
+            reason: capability.reason,
+          })
+        ) ?? [],
+    },
+
+    actions: {
+      total:
+        runtime?.availableActions.length ?? 0,
+      workspaceCount:
+        actionWorkspaceKeys.length,
+      workspaceKeys:
+        actionWorkspaceKeys,
+    },
+
+    compatibility: {
+      legacyRolePreserved:
+        runtime?.compatibility
+          .legacyRolePreserved ?? true,
+      legacyPlanPreserved:
+        runtime?.compatibility
+          .legacyPlanPreserved ?? true,
+      routesPreserved:
+        runtime?.compatibility.routesPreserved ??
+        true,
+      permissionsReplaced:
+        runtime?.compatibility
+          .permissionsReplaced ?? false,
+      databaseMutation:
+        runtime?.compatibility.databaseMutation ??
+        false,
+    },
+
+    health: {
+      healthy:
+        readiness.operational &&
+        !messages.some(
+          (message) =>
+            message.severity === "error"
+        ),
+      messages,
+    },
+  };
+}
+
 export function ThreeBOSRuntimeProvider({
   children,
   initialInput = null,
@@ -218,6 +421,17 @@ export function ThreeBOSRuntimeProvider({
     useMemo<ThreeBOSRuntimeReadiness>(
       () => resolveRuntimeReadiness(input, runtime),
       [input, runtime]
+    );
+
+  const diagnostics =
+    useMemo<ThreeBOSRuntimeDiagnostics>(
+      () =>
+        resolveRuntimeDiagnostics(
+          input,
+          runtime,
+          readiness
+        ),
+      [input, runtime, readiness]
     );
 
   const setCommercialContextInput = useCallback(
@@ -285,6 +499,7 @@ export function ThreeBOSRuntimeProvider({
       commercialContext,
       status: resolveRuntimeStatus(runtime),
       readiness,
+      diagnostics,
       setCommercialContextInput,
       setRuntimeInput,
       updateRuntimeInput,
@@ -299,6 +514,7 @@ export function ThreeBOSRuntimeProvider({
       input,
       commercialContext,
       readiness,
+      diagnostics,
       setCommercialContextInput,
       setRuntimeInput,
       updateRuntimeInput,

@@ -50,6 +50,83 @@ export type ThreeBOSRuntimeReadiness = {
   availableActionCount: number;
 };
 
+export type ThreeBOSRuntimeDiagnosticSeverity =
+  | "info"
+  | "warning"
+  | "error";
+
+export type ThreeBOSRuntimeDiagnosticMessage = {
+  code: string;
+  severity: ThreeBOSRuntimeDiagnosticSeverity;
+  message: string;
+};
+
+export type ThreeBOSRuntimeDiagnostics = {
+  identity: {
+    selectedKey: string | null;
+    selectedLabel: string | null;
+    humanConfirmed: boolean;
+    requiresHumanSelection: boolean;
+    suggestionCount: number;
+    suggestions: Array<{
+      key: string;
+      confidence: number | null;
+    }>;
+  };
+
+  workspace: {
+    primaryKey: string | null;
+    primaryLabel: string | null;
+    preferredWorkspaceKey: string | null;
+    preferredWorkspaceMatched: boolean;
+    availableCount: number;
+    availableKeys: string[];
+  };
+
+  growthPlan: {
+    legacyPlan: string | null;
+    resolvedKey: string | null;
+    resolvedLabel: string | null;
+    isLegacyAlias: boolean;
+    notes: string[];
+  };
+
+  capabilities: {
+    total: number;
+    eligible: number;
+    usable: number;
+    blockedByIdentity: number;
+    blockedByPlan: number;
+    items: Array<{
+      capability: CapabilityKey;
+      eligible: boolean;
+      identityLevel: CapabilityResolution["identityLevel"];
+      planLevel: CapabilityResolution["planLevel"];
+      effectiveLevel: CapabilityResolution["effectiveLevel"];
+      reason: string;
+    }>;
+  };
+
+  actions: {
+    total: number;
+    workspaceCount: number;
+    workspaceKeys: string[];
+  };
+
+  compatibility: {
+    legacyRolePreserved: boolean;
+    legacyPlanPreserved: boolean;
+    routesPreserved: boolean;
+    permissionsReplaced: boolean;
+    databaseMutation: boolean;
+  };
+
+  health: {
+    healthy: boolean;
+    messages: ThreeBOSRuntimeDiagnosticMessage[];
+  };
+};
+
 export type ThreeBOSRuntimeContextValue = {
   /**
    * Current resolved runtime.
@@ -100,6 +177,14 @@ export type ThreeBOSRuntimeContextValue = {
    * This supplements the legacy status field. It does not replace it.
    */
   readiness: ThreeBOSRuntimeReadiness;
+
+  /**
+   * Read-only explanation of how the current runtime was resolved.
+   *
+   * Diagnostics never grant access and never replace authoritative
+   * authentication, permissions, subscriptions or database rules.
+   */
+  diagnostics: ThreeBOSRuntimeDiagnostics;
 
   /**
    * Supply or replace compatibility inputs.
