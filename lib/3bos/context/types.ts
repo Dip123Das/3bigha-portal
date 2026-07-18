@@ -19,6 +19,37 @@ export type ThreeBOSRuntimeContextStatus =
   | "ready"
   | "ambiguous";
 
+export type ThreeBOSRuntimeReadinessState =
+  | "idle"
+  | "anonymous"
+  | "needs_identity_confirmation"
+  | "needs_workspace"
+  | "operational"
+  | "degraded";
+
+export type ThreeBOSRuntimeReadinessReason =
+  | "runtime_input_missing"
+  | "authenticated_user_missing"
+  | "identity_confirmation_required"
+  | "identity_unresolved"
+  | "workspace_unresolved"
+  | "capabilities_unavailable"
+  | "actions_unavailable";
+
+export type ThreeBOSRuntimeReadiness = {
+  state: ThreeBOSRuntimeReadinessState;
+  operational: boolean;
+  reasons: ThreeBOSRuntimeReadinessReason[];
+  authenticated: boolean;
+  hasIdentity: boolean;
+  identityHumanConfirmed: boolean;
+  hasWorkspace: boolean;
+  hasGrowthPlan: boolean;
+  capabilityCount: number;
+  eligibleCapabilityCount: number;
+  availableActionCount: number;
+};
+
 export type ThreeBOSRuntimeContextValue = {
   /**
    * Current resolved runtime.
@@ -62,6 +93,13 @@ export type ThreeBOSRuntimeContextValue = {
    * Signals produced possible identities but require human selection.
    */
   status: ThreeBOSRuntimeContextStatus;
+
+  /**
+   * Explainable runtime readiness.
+   *
+   * This supplements the legacy status field. It does not replace it.
+   */
+  readiness: ThreeBOSRuntimeReadiness;
 
   /**
    * Supply or replace compatibility inputs.

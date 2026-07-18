@@ -30,6 +30,8 @@ import {
 import type {
   ThreeBOSRuntimeContextStatus,
   ThreeBOSRuntimeContextValue,
+  ThreeBOSRuntimeReadiness,
+  ThreeBOSRuntimeReadinessReason,
 } from "./types";
 
 const ThreeBOSRuntimeContext =
@@ -57,6 +59,118 @@ function resolveRuntimeStatus(
   }
 
   return "ready";
+}
+
+function resolveRuntimeReadiness(
+  input: ThreeBOSRuntimeInput | null,
+  runtime: ThreeBOSRuntime | null
+): ThreeBOSRuntimeReadiness {
+  const reasons: ThreeBOSRuntimeReadinessReason[] = [];
+
+  if (!input) {
+    reasons.push("runtime_input_missing");
+
+    return {
+      state: "idle",
+      operational: false,
+      reasons,
+      authenticated: false,
+      hasIdentity: false,
+      identityHumanConfirmed: false,
+      hasWorkspace: false,
+      hasGrowthPlan: false,
+      capabilityCount: 0,
+      eligibleCapabilityCount: 0,
+      availableActionCount: 0,
+    };
+  }
+
+  const authenticated = Boolean(runtime?.userId);
+  const hasIdentity = Boolean(runtime?.identity.primary);
+  const identityHumanConfirmed =
+    Boolean(runtime?.identity.humanConfirmed);
+  const hasWorkspace =
+    Boolean(runtime?.workspaces.primary);
+  const hasGrowthPlan =
+    Boolean(runtime?.growthPlan.definition);
+
+  const capabilityCount =
+    runtime?.capabilities.length ?? 0;
+
+  const eligibleCapabilityCount =
+    runtime?.capabilities.filter(
+      (capability) =>
+        capability.eligible &&
+        capability.effectiveLevel !== "none"
+    ).length ?? 0;
+
+  const availableActionCount =
+    runtime?.availableActions.length ?? 0;
+
+  if (!authenticated) {
+    reasons.push("authenticated_user_missing");
+  }
+
+  if (runtime?.identity.requiresHumanSelection) {
+    reasons.push("identity_confirmation_required");
+  } else if (!hasIdentity) {
+    reasons.push("identity_unresolved");
+  }
+
+  if (hasIdentity && !hasWorkspace) {
+    reasons.push("workspace_unresolved");
+  }
+
+  if (hasIdentity && capabilityCount === 0) {
+    reasons.push("capabilities_unavailable");
+  }
+
+  if (
+    hasIdentity &&
+    hasWorkspace &&
+    availableActionCount === 0
+  ) {
+    reasons.push("actions_unavailable");
+  }
+
+  let state: ThreeBOSRuntimeReadiness["state"];
+
+  if (runtime?.identity.requiresHumanSelection) {
+    state = "needs_identity_confirmation";
+  } else if (hasIdentity && !hasWorkspace) {
+    state = "needs_workspace";
+  } else if (
+    hasIdentity &&
+    hasWorkspace &&
+    hasGrowthPlan
+  ) {
+    state =
+      reasons.length === 0 ||
+      (
+        reasons.length === 1 &&
+        reasons[0] === "authenticated_user_missing"
+      )
+        ? "operational"
+        : "degraded";
+  } else if (!authenticated && !hasIdentity) {
+    state = "anonymous";
+  } else {
+    state = "degraded";
+  }
+
+  return {
+    state,
+    operational: state === "operational",
+    reasons,
+    authenticated,
+    hasIdentity,
+    identityHumanConfirmed,
+    hasWorkspace,
+    hasGrowthPlan,
+    capabilityCount,
+    eligibleCapabilityCount,
+    availableActionCount,
+  };
 }
 
 export function ThreeBOSRuntimeProvider({
@@ -99,6 +213,12 @@ export function ThreeBOSRuntimeProvider({
           null,
       });
     }, [commercialInput, runtime]);
+
+  const readiness =
+    useMemo<ThreeBOSRuntimeReadiness>(
+      () => resolveRuntimeReadiness(input, runtime),
+      [input, runtime]
+    );
 
   const setCommercialContextInput = useCallback(
     (
@@ -164,6 +284,7 @@ export function ThreeBOSRuntimeProvider({
       input,
       commercialContext,
       status: resolveRuntimeStatus(runtime),
+      readiness,
       setCommercialContextInput,
       setRuntimeInput,
       updateRuntimeInput,
@@ -177,6 +298,7 @@ export function ThreeBOSRuntimeProvider({
       runtime,
       input,
       commercialContext,
+      readiness,
       setCommercialContextInput,
       setRuntimeInput,
       updateRuntimeInput,
