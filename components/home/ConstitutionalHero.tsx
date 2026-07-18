@@ -24,13 +24,41 @@ type ConstitutionalHeroProps = {
 };
 
 const constitutionalPillars = [
-  "Marketplace",
-  "Business Workspace",
-  "Sahaj AI",
-  "RFQ",
-  "Local Geography",
-  "Operations",
-  "Business Growth",
+  {
+    label: "Marketplace",
+    href: "/search",
+    description: "Search property, materials, services, rentals and vendors",
+  },
+  {
+    label: "Business Workspace",
+    href: "/dashboard/vendor/workspace",
+    description: "Open your connected business workspace",
+  },
+  {
+    label: "Sahaj AI",
+    href: "/need",
+    description: "Describe what you need in ordinary language",
+  },
+  {
+    label: "RFQ",
+    href: "/rfq/start",
+    description: "Create and submit a requirement",
+  },
+  {
+    label: "Local Geography",
+    href: "/search",
+    description: "Discover nearby marketplace opportunities",
+  },
+  {
+    label: "Operations",
+    href: "/dashboard/vendor",
+    description: "Manage business operations and activity",
+  },
+  {
+    label: "Business Growth",
+    href: "/vendor-opportunities",
+    description: "Explore demand and growth opportunities",
+  },
 ];
 
 const searchScopes: Array<{
@@ -87,7 +115,14 @@ export default function ConstitutionalHero({
             aria-label="3Bigha Business Operating System capabilities"
           >
             {constitutionalPillars.map((pillar) => (
-              <span key={pillar}>{pillar}</span>
+              <a
+                key={pillar.label}
+                href={pillar.href}
+                title={pillar.description}
+                aria-label={`${pillar.label}: ${pillar.description}`}
+              >
+                {pillar.label}
+              </a>
             ))}
           </div>
 
