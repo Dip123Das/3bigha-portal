@@ -280,55 +280,79 @@ export function WorkspaceNotificationCenter({
     []
   );
 
-  const refresh = useCallback(() => {
-    resolveWorkspaceNotifications({
-      workspaceKey:
-        workspaceKey ?? null,
-      eventLimit: 100,
-      notificationLimit: 30,
-      persist: true,
-    });
+  const synchronizeStoredNotifications =
+    useCallback(() => {
+      setNotifications(
+        getStoredWorkspaceNotifications()
+      );
+    }, []);
 
-    setNotifications(
-      getStoredWorkspaceNotifications()
-    );
-  }, [workspaceKey]);
+  const projectNotifications =
+    useCallback(() => {
+      resolveWorkspaceNotifications({
+        workspaceKey:
+          workspaceKey ?? null,
+        eventLimit: 100,
+        notificationLimit: 30,
+        persist: true,
+      });
+
+      synchronizeStoredNotifications();
+    }, [
+      workspaceKey,
+      synchronizeStoredNotifications,
+    ]);
 
   useEffect(() => {
-    refresh();
+    projectNotifications();
+
+    const handleEventUpdate = () => {
+      projectNotifications();
+    };
+
+    const handleNotificationUpdate = () => {
+      synchronizeStoredNotifications();
+    };
+
+    const handleStorageUpdate = () => {
+      synchronizeStoredNotifications();
+    };
 
     window.addEventListener(
       THREE_BOS_EVENT_BUS_UPDATE,
-      refresh
+      handleEventUpdate
     );
 
     window.addEventListener(
       THREE_BOS_NOTIFICATION_UPDATE,
-      refresh
+      handleNotificationUpdate
     );
 
     window.addEventListener(
       "storage",
-      refresh
+      handleStorageUpdate
     );
 
     return () => {
       window.removeEventListener(
         THREE_BOS_EVENT_BUS_UPDATE,
-        refresh
+        handleEventUpdate
       );
 
       window.removeEventListener(
         THREE_BOS_NOTIFICATION_UPDATE,
-        refresh
+        handleNotificationUpdate
       );
 
       window.removeEventListener(
         "storage",
-        refresh
+        handleStorageUpdate
       );
     };
-  }, [refresh]);
+  }, [
+    projectNotifications,
+    synchronizeStoredNotifications,
+  ]);
 
   const projection = useMemo(
     () =>
