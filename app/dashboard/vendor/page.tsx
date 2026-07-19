@@ -30,7 +30,7 @@ import OperationalEventRecorder from "@/components/operational-events/Operationa
 import { buildVendorSmartNotifications } from "@/lib/notifications/smart-reengagement";
 import GlobalAiOperationalStatus from "@/components/ai-operational/GlobalAiOperationalStatus";
 import OperationalRecoveryFeed from "@/components/ai-operational/OperationalRecoveryFeed";
-import ThreeBOSBusinessWorkSummary from "./ThreeBOSBusinessWorkSummary";
+import WorkspaceHome from "@/components/3bos/workspace-home/WorkspaceHome";
 
 type CompletenessRow = {
   user_id?: string;
@@ -1351,7 +1351,52 @@ const aiDealUpgradeTarget =
       />
 
       <Container>
-        <ThreeBOSBusinessWorkSummary />
+        <WorkspaceHome
+          greeting="Your business workspace"
+          signals={{
+            pendingWorkCount:
+              leadStats.newLeadCount,
+            unreadConversationCount:
+              recentEnquiries.filter(
+                (item) =>
+                  String(item.status).toLowerCase() ===
+                  "new"
+              ).length,
+            openRequirementCount:
+              leadStats.leadsLast30Days,
+            activeListingCount:
+              priceIntelligenceStats.totalUpdates,
+            alertCount:
+              missedLeads,
+            recentActivity:
+              recentEnquiries.slice(0, 5).map(
+                (item) => ({
+                  id: item.id,
+                  label:
+                    item.buyer_name ||
+                    "Customer enquiry",
+                  description:
+                    item.message ||
+                    "New customer activity",
+                  href:
+                    "/dashboard/vendor/enquiries",
+                  occurredAt:
+                    item.created_at,
+                  category:
+                    item.subject_type,
+                })
+              ),
+            recentActionKeys: [
+              "business_overview",
+              "requirements",
+            ],
+            attentionActionKeys:
+              missedLeads > 0
+                ? ["requirements"]
+                : [],
+            recommendedActionLimit: 6,
+          }}
+        />
 
         <div style={{ marginBottom: 16 }}>
           <GlobalAiOperationalStatus

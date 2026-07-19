@@ -18,6 +18,8 @@ import { ExecutiveStatGrid } from "@/components/ui/ExecutiveStatGrid";
 import { OperationalErrorState } from "@/components/ui/OperationalErrorState";
 import { OperationalEmptyState } from "@/components/ui/OperationalEmptyState";
 import BuyerWorkMenu from "@/components/buyer/BuyerWorkMenu";
+import WorkspaceHome from "@/components/3bos/workspace-home/WorkspaceHome";
+
 import UniversalDashboardShell from "@/components/operational/UniversalDashboardShell";
 import {
   normalizeBehaviorMemory,
@@ -457,6 +459,43 @@ const closedDeals =
       title="Buyer Work Desk"
       subtitle="Manage RFQs, compare quotations, continue vendor conversations and complete buying decisions."
     >
+        <WorkspaceHome
+          greeting="Your buying workspace"
+          signals={{
+            pendingWorkCount:
+              procurementStats.activeRfqs,
+            openRequirementCount:
+              procurementStats.activeRfqs,
+            alertCount:
+              procurementStats.urgentRfqs,
+            recentActivity:
+              procurementStats.recentRfqs.map(
+                (rfq) => ({
+                  id: rfq.id,
+                  label: readableRfqTitle(rfq),
+                  description:
+                    rfq.status
+                      ? `Status: ${rfq.status}`
+                      : "Buyer requirement",
+                  href:
+                    `/dashboard/buyer/rfqs/${rfq.id}`,
+                  occurredAt:
+                    rfq.created_at ?? null,
+                  category:
+                    rfq.module ?? "rfq",
+                })
+              ),
+            recentActionKeys: [
+              "requirements",
+              "inbox",
+            ],
+            attentionActionKeys:
+              procurementStats.urgentRfqs > 0
+                ? ["requirements"]
+                : [],
+            recommendedActionLimit: 6,
+          }}
+        />
 
         <BuyerWorkMenu />
 
