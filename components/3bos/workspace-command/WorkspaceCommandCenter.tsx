@@ -1,3 +1,4 @@
+import WorkspaceNotificationCenter from "@/components/3bos/workspace-notifications";
 import WorkspaceContinuePanel from "./WorkspaceContinuePanel";
 import WorkspacePriorityPanel from "./WorkspacePriorityPanel";
 import WorkspaceQuickActions from "./WorkspaceQuickActions";
@@ -43,6 +44,8 @@ export function WorkspaceCommandCenter({
           actions={continueActions}
         />
       </section>
+
+      <WorkspaceNotificationCenter />
 
       <div className={styles.commandColumns}>
         <section className={styles.commandPanel}>
