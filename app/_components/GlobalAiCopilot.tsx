@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
+import {
+  useThreeBOSAiContext,
+} from "@/lib/3bos/ai-context";
+
 type AiTool = {
   icon: string;
   title: string;
@@ -131,7 +135,42 @@ const groups = Array.from(new Set(tools.map((tool) => tool.group)));
 
 export default function GlobalAiCopilot() {
   const pathname = usePathname();
+  const aiContext = useThreeBOSAiContext();
   const [open, setOpen] = useState(false);
+
+  const projectedActions = [
+    ...(aiContext.actions.recommended ?? []),
+    ...(aiContext.actions.continueWork ?? []),
+    ...(aiContext.actions.fallback ?? []),
+  ];
+
+  const recommendedTools: AiTool[] =
+    projectedActions
+      .filter(
+        (action): action is typeof projectedActions[number] =>
+          Boolean(action?.href)
+      )
+      .slice(0, 6)
+      .map((action) => ({
+        icon: action.icon || "✨",
+        title: action.title,
+        detail:
+          action.description ||
+          "Continue with the recommended next step.",
+        href: action.href || "/",
+        group: "Recommended for You",
+      }));
+
+  const visibleTools =
+    recommendedTools.length > 0
+      ? [...recommendedTools, ...tools]
+      : tools;
+
+  const visibleGroups = Array.from(
+    new Set(
+      visibleTools.map((tool) => tool.group)
+    )
+  );
 
   useEffect(() => {
     setOpen(false);
@@ -165,8 +204,12 @@ export default function GlobalAiCopilot() {
           <section className="globalAiPanel" role="dialog" aria-label="3Bigha AI Tools">
             <div className="globalAiPanelHeader">
               <div>
-                <strong>🤖 3Bigha AI Tools</strong>
-                <span>AI-powered tools for construction, property and procurement.</span>
+                <strong>🤖 3Bigha AI Copilot</strong>
+                <span>
+                  {aiContext.workspace
+                    ? `${aiContext.workspace.title} · ${aiContext.page.title}`
+                    : aiContext.page.description}
+                </span>
               </div>
 
               <button
@@ -180,11 +223,11 @@ export default function GlobalAiCopilot() {
             </div>
 
             <div className="globalAiToolGroups">
-              {groups.map((group) => (
+              {visibleGroups.map((group) => (
                 <div className="globalAiToolGroup" key={group}>
                   <p>{group}</p>
                   <div className="globalAiTools">
-                    {tools
+                    {visibleTools
                       .filter((tool) => tool.group === group)
                       .map((tool) => (
                         <Link
