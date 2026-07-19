@@ -15,8 +15,12 @@ import {
 
 import {
   WorkspaceHealthBadge,
-  WorkspaceMetricsGrid,
 } from "@/components/3bos/workspace";
+
+import {
+  WorkspaceCommandCenter,
+  type WorkspaceCommandAction,
+} from "@/components/3bos/workspace-command";
 
 import styles from "./workspace-home.module.css";
 
@@ -85,7 +89,57 @@ export function WorkspaceHome({
         workspace.status !== "future"
     );
 
-  const hasJourneys = journeys.length > 0;
+  const journeyActions: WorkspaceCommandAction[] =
+    journeys.map((journey) => ({
+      key: journey.key,
+      label: journey.label,
+      description: journey.description,
+      href: journey.href,
+      reason: "continue_work",
+      priority: 70,
+      onSelect: () =>
+        context.selectJourney(journey.key),
+    }));
+
+  const runtimeActions: WorkspaceCommandAction[] =
+    fallbackActions.map((action) => ({
+      key:
+        `${action.workspaceKey}:` +
+        `${action.key}:` +
+        action.href,
+      label: action.label,
+      description: action.description,
+      href: action.href,
+      reason: "primary",
+      priority: 50,
+    }));
+
+  const summaryActions: WorkspaceCommandAction[] =
+    summary.recommendedActions
+      .filter(
+        (action) =>
+          action.status !== "future"
+      )
+      .map((action) => ({
+        key: `summary:${action.key}`,
+        label: action.label,
+        description: action.description,
+        href: action.href,
+        reason: action.reason,
+        priority: action.priority,
+      }));
+
+  const continueActions =
+    journeyActions.length > 0
+      ? journeyActions
+      : summaryActions.length > 0
+        ? summaryActions
+        : runtimeActions;
+
+  const quickActions =
+    summaryActions.length > 0
+      ? summaryActions
+      : runtimeActions;
 
   return (
     <section
@@ -165,108 +219,15 @@ export function WorkspaceHome({
         </nav>
       ) : null}
 
-      <div className={styles.metricsSection}>
-        <div className={styles.sectionHeading}>
-          <div>
-            <div className={styles.sectionEyebrow}>
-              Today
-            </div>
-
-            <h2 className={styles.sectionTitle}>
-              Your important work
-            </h2>
-          </div>
-        </div>
-
-        <WorkspaceMetricsGrid
-          metrics={summary.metrics}
-          hideZeroMetrics
-        />
-      </div>
-
-      <div className={styles.continueSection}>
-        <div className={styles.sectionHeading}>
-          <div>
-            <div className={styles.sectionEyebrow}>
-              Continue
-            </div>
-
-            <h2 className={styles.sectionTitle}>
-              Continue your work
-            </h2>
-
-            <p className={styles.sectionDescription}>
-              Open the task you need without searching
-              through different modules.
-            </p>
-          </div>
-        </div>
-
-        <div className={styles.actionGrid}>
-          {hasJourneys
-            ? journeys.map((journey) => (
-                <Link
-                  key={journey.key}
-                  href={journey.href}
-                  className={styles.actionCard}
-                  onClick={() =>
-                    context.selectJourney(
-                      journey.key
-                    )
-                  }
-                >
-                  <div>
-                    <div className={styles.actionLabel}>
-                      {journey.label}
-                    </div>
-
-                    <p
-                      className={
-                        styles.actionDescription
-                      }
-                    >
-                      {journey.description}
-                    </p>
-                  </div>
-
-                  <span
-                    className={styles.actionArrow}
-                    aria-hidden="true"
-                  >
-                    →
-                  </span>
-                </Link>
-              ))
-            : fallbackActions.map((action) => (
-                <Link
-                  key={`${action.workspaceKey}:${action.key}:${action.href}`}
-                  href={action.href}
-                  className={styles.actionCard}
-                >
-                  <div>
-                    <div className={styles.actionLabel}>
-                      {action.label}
-                    </div>
-
-                    <p
-                      className={
-                        styles.actionDescription
-                      }
-                    >
-                      {action.description}
-                    </p>
-                  </div>
-
-                  <span
-                    className={styles.actionArrow}
-                    aria-hidden="true"
-                  >
-                    →
-                  </span>
-                </Link>
-              ))}
-        </div>
-      </div>
+      <WorkspaceCommandCenter
+        summary={summary}
+        continueActions={continueActions}
+        quickActions={quickActions}
+        priorities={summary.recommendedActions}
+        metrics={summary.metrics}
+        recentActivity={summary.recentActivity}
+        activityLimit={5}
+      />
     </section>
   );
 }
