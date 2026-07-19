@@ -458,3 +458,227 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* P-03C.C Intelligent Timeline Presentation */
+
+.timelineSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.timelineSummary > div {
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  padding: 10px 12px;
+  background: #f8fafc;
+}
+
+.timelineSummaryValue {
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.timelineSummaryLabel {
+  margin-top: 2px;
+  color: #64748b;
+  font-size: 0.65rem;
+  font-weight: 750;
+}
+
+.timelineGroups {
+  display: grid;
+  gap: 16px;
+}
+
+.timelineGroup {
+  min-width: 0;
+}
+
+.timelineGroupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: #475569;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.timelineGroupCount {
+  display: inline-flex;
+  min-width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 0.66rem;
+  letter-spacing: normal;
+}
+
+.timelineTitleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.timelineRelativeTime {
+  flex-shrink: 0;
+  color: #94a3b8;
+  font-size: 0.65rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.timelineCategoryBadge,
+.timelineToneBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 0.61rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.timelineCategoryBadge {
+  border: 1px solid #dbeafe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.timelineToneBadge {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  text-transform: capitalize;
+}
+
+.timelineToneSuccess {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.timelineToneAttention {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #a16207;
+}
+
+.timelineToneWarning {
+  border-color: #fecaca;
+  background: #fff7f7;
+  color: #b91c1c;
+}
+
+.timelineToneInformation {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.timelineDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 0.55rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.timelineDotNeutral {
+  background: #64748b;
+  box-shadow: 0 0 0 2px #cbd5e1;
+}
+
+.timelineDotInformation {
+  background: #2563eb;
+  box-shadow: 0 0 0 2px #bfdbfe;
+}
+
+.timelineDotSuccess {
+  background: #16a34a;
+  box-shadow: 0 0 0 2px #bbf7d0;
+}
+
+.timelineDotAttention {
+  background: #d97706;
+  box-shadow: 0 0 0 2px #fde68a;
+}
+
+.timelineDotWarning {
+  background: #dc2626;
+  box-shadow: 0 0 0 2px #fecaca;
+}
+
+.timelineItem {
+  border-radius: 12px;
+  padding: 5px 6px;
+  transition:
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+.timelineItem:hover {
+  background: #f8fafc;
+  transform: translateX(2px);
+}
+
+.timelineEmpty {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.timelineEmptyIcon {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.timelineEmptyTitle {
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.timelineEmptyDescription {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .timelineSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .timelineTitleRow {
+    display: block;
+  }
+
+  .timelineRelativeTime {
+    display: block;
+    margin-top: 3px;
+  }
+}
