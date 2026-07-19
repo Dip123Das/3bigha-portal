@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
+import { runThreeBOSAiRouter } from "@/lib/3bos/ai-router";
+
 type CopilotResponse = {
   ok?: boolean;
   question?: string;
@@ -56,15 +58,12 @@ export default function ProcurementCopilotClient() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/ai/procurement-copilot-command", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        cache: "no-store",
-        body: JSON.stringify({ question: finalQuestion }),
+      const result = await runThreeBOSAiRouter({
+        agentId: "procurement-command",
+        question: finalQuestion,
       });
 
-      const json = await res.json();
-      setData(json);
+      setData(result.content as CopilotResponse);
     } catch {
       setData({
         ok: false,
