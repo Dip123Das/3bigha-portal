@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { runThreeBOSAiRouter } from "@/lib/3bos/ai-router";
+
 type CopilotMessage = {
   role: "buyer" | "ai";
   body: string;
@@ -41,22 +43,20 @@ export default function ProcurementCopilotBox({
         },
       ]);
 
-      const res = await fetch("/api/ai/procurement-copilot", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      
+        const result = await runThreeBOSAiRouter({
+          agentId: "procurement-copilot",
           message,
           module,
           city,
           district,
           locality,
-        }),
-      });
+        });
 
-      const json = await res.json();
-      const copilot = json?.copilot;
+        const copilot =
+          (result.content as any)?.copilot ??
+          result.content;
+
 
       setLastResult(copilot || null);
 
