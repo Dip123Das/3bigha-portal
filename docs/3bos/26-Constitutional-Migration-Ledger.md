@@ -443,3 +443,16 @@ Restore the homepage's previous internal labels and static workdesk actions,
 then remove the homepage projection module and focused verification script.
 No data, authentication, permission, route, CSS, shell or infrastructure
 rollback is required.
+
+## P04-A — Preferred unified 3BOS workspace entry
+
+- Added `/dashboard/workspace` as a preferred human-first operating hub.
+- Composes canonical runtime-resolved actions into Marketplace, Procurement,
+  Business, Finance, Projects and Assistance; it does not duplicate business
+  logic or introduce a parallel permission system.
+- Preserves `/dashboard` as the legacy role resolver and preserves every
+  existing module route, API, database contract and workflow.
+- Ambiguous identities remain explicitly human-selected through the existing
+  work-context chooser.
+- Database migration: none.
+- Rollback: remove `app/dashboard/workspace` and the focused P04 audit script.
