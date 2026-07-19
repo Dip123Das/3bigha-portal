@@ -1,5 +1,10 @@
 import type { OperationalEvent } from "./types";
 
+import {
+  operationalEventToThreeBOSEvent,
+  publishThreeBOSEvent,
+} from "@/lib/3bos/events";
+
 const STORAGE_KEY = "3bigha_operational_events_v1";
 const MAX_EVENTS = 12;
 
@@ -39,6 +44,11 @@ export function saveOperationalEvent(event: OperationalEvent) {
       .slice(0, MAX_EVENTS);
 
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+
+    publishThreeBOSEvent(
+      operationalEventToThreeBOSEvent(event)
+    );
+
     window.dispatchEvent(new Event("operational-events-updated"));
   } catch {
     // Ignore storage failures silently.
