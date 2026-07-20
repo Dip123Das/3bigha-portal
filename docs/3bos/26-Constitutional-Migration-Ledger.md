@@ -551,3 +551,14 @@ rollback is required.
   catalogue; the existing production routes remain responsible for permission,
   subscription-limit and verification enforcement.
 - Database migration: none.
+
+## P04-C8 — Human-first hub workspace hierarchy
+
+- Shows one representative action for every resolved business workspace before
+  secondary actions, ensuring no hub-vendor segment disappears from the first
+  decision surface.
+- Places additional actions behind a native, accessible “Show more” disclosure
+  inside the relevant operating area rather than removing or rerouting them.
+- Keeps focused single-business workspaces compact and preserves all existing
+  action destinations, permissions and saved work.
+- Database migration: none.

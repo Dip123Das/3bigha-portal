@@ -256,9 +256,23 @@ export default function UnifiedWorkspacePage() {
             (action, index, collection) =>
               collection.findIndex((candidate) => candidate.href === action.href) === index
           );
-          const displayedActions = isMultiBusinessWorkspace
-            ? uniqueActions
-            : uniqueActions.slice(0, 4);
+          const representativeActions = uniqueActions.filter(
+            (action, index, collection) =>
+              collection.findIndex(
+                (candidate) => candidate.workspaceKey === action.workspaceKey
+              ) === index
+          );
+          const additionalActions = uniqueActions.filter(
+            (action) => !representativeActions.includes(action)
+          );
+          const orderedActions = isMultiBusinessWorkspace
+            ? [...representativeActions, ...additionalActions]
+            : uniqueActions;
+          const previewLimit = isMultiBusinessWorkspace
+            ? representativeActions.length
+            : 4;
+          const displayedActions = orderedActions.slice(0, previewLimit);
+          const disclosedActions = orderedActions.slice(previewLimit);
 
           return (
             <article key={area.key} className={styles.areaCard}>
@@ -289,6 +303,25 @@ export default function UnifiedWorkspacePage() {
                   </div>
                 )}
               </div>
+
+              {disclosedActions.length > 0 ? (
+                <details className={styles.moreActions}>
+                  <summary>
+                    Show {disclosedActions.length} more {area.label.toLowerCase()} {disclosedActions.length === 1 ? "action" : "actions"}
+                  </summary>
+                  <div className={`${styles.actionList} ${styles.additionalActionList}`}>
+                    {disclosedActions.map((action) => (
+                      <Link key={`${action.workspaceKey}:${action.key}:${action.href}`} href={action.href}>
+                        <span>
+                          <strong>{action.label}</strong>
+                          <small>{action.workspaceLabel}</small>
+                        </span>
+                        <span aria-hidden="true">→</span>
+                      </Link>
+                    ))}
+                  </div>
+                </details>
+              ) : null}
             </article>
           );
         })}
