@@ -18,7 +18,7 @@ const checks = [
   ["shell retains legacy ordering by default", shell.includes("workFirst = false")],
   ["work-first hierarchy is opt in", shell.includes("{workFirst ? (")],
   ["workspace opts into work-first hierarchy", workspace.match(/workFirst/g)?.length === 3],
-  ["recent activity moves after work", shell.indexOf("{children}\n            <OperationalEventStream") > -1],
+  ["recent activity moves after work", /\{children\}\r?\n\s*<OperationalEventStream/.test(shell)],
   ["stale workspace preference cannot override identity", runtime.includes("preferredWorkspaceKey: humanConfirmedIdentity")],
   ["displayed identity determines displayed workspace", runtime.includes("activeIdentity: primaryIdentity")],
   ["hub vendor resolves multi-business workspace", runtime.includes('normalize(input.role) === "hub_vendor"') && runtime.includes('workspace.key === "multi_business"')],
