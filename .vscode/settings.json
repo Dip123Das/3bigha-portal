@@ -2,5 +2,14 @@
   "css.lint.unknownAtRules": "ignore",
   "scss.lint.unknownAtRules": "ignore",
   "less.lint.unknownAtRules": "ignore",
-  "js/ts.tsserver.experimental.enableProjectDiagnostics": false
+  "js/ts.tsserver.experimental.enableProjectDiagnostics": false,
+  "java.import.exclusions": [
+    "**/node_modules/**",
+    "**/.next/**"
+  ],
+  "java.project.resourceFilters": [
+    "node_modules",
+    ".git",
+    ".next"
+  ]
 }
