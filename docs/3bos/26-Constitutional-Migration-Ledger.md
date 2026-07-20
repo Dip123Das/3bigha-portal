@@ -586,6 +586,51 @@ Apply the inverse of the isolated NEEV-R01 patch. The pre-milestone rollback
 point is commit `86c5faa`. No database, permission, API or infrastructure
 rollback is required.
 
+## NEEV-R02 — Contextual requirement and precise location
+
+**Scope:** Extend the verified simple requirement entry with category-aware
+questions and optional exact-location assistance while keeping LGD authoritative
+and retaining the existing RFQ persistence contract.
+
+**Compatibility boundary:** No API, database, permission, authentication,
+matching, notification, attachment or route contract is replaced. Coordinates
+and the confirmed Google Maps link travel through the existing address field;
+official matching continues to use the existing LGD identifiers and PIN code.
+
+- [x] Category rules implemented
+- [x] LGD authority preserved
+- [x] Optional GPS and Google Maps confirmation implemented
+- [x] Human review extended
+- [x] Authenticated contact requirement corrected
+- [x] Focused source assertions added
+- [ ] Type check passed
+- [ ] Production build passed
+- [ ] Desktop verified
+- [ ] Mobile verified
+- [ ] Production verified
+
+### Implementation evidence
+
+- Quantity and unit remain required for materials and rentals but are optional
+  for services and property help.
+- Official LGD selection remains the required administrative source. Exact
+  premises, address, landmark, device coordinates and a readable Google Maps
+  point are optional secondary precision aids.
+- Exact address and map evidence are carried into the existing review handoff
+  and displayed for human confirmation before submission.
+- Empty optional quantities now remain `null` instead of being converted to
+  zero.
+- Signed-in people are no longer incorrectly told to provide contact details;
+  the existing server rule remains authoritative for signed-out submissions.
+- User-facing confirmation language now says “send requirement,” while all
+  internal RFQ routes and contracts remain intact.
+
+### Rollback
+
+Apply the inverse of the isolated NEEV-R02 patch. The pre-milestone rollback
+point is the NEEV-R01 commit applied above `86c5faa`. No database or
+infrastructure rollback is required.
+
 ## P04-A — Preferred unified 3BOS workspace entry
 
 - Added `/dashboard/workspace` as a preferred human-first operating hub.

@@ -34,6 +34,15 @@ type RfqHandoff = {
     placeName?: string;
     pincode?: string;
   };
+  exact?: {
+    premises?: string;
+    addressLine?: string;
+    landmark?: string;
+    formattedAddress?: string;
+    mapLink?: string;
+    latitude?: string;
+    longitude?: string;
+  };
 };
 
 const moduleLabels: Record<ModuleChoice, string> = {
@@ -47,11 +56,12 @@ const modeLabels: Record<string, string> = {
   type: "Typed requirement",
   photo: "Photo / handwritten note",
   document: "Document / BOQ / drawing",
-  voice: "Voice description",
+  voice: "Existing audio recording",
   guided: "Guided assistance",
 };
 
 function safeNumber(value: string) {
+  if (!value.trim()) return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 }
@@ -88,6 +98,7 @@ export default function RfqReviewPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     try {
@@ -104,6 +115,16 @@ export default function RfqReviewPage() {
       );
     }
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (active) setIsAuthenticated(Boolean(data.user?.id));
+    });
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
 
   useEffect(() => {
     if (!handoff) return;
@@ -168,11 +189,13 @@ export default function RfqReviewPage() {
       return setError("Please enter what you need.");
     }
 
-    if (!handoff.qty.trim()) {
+    const needsMeasurement = handoff.module === "materials" || handoff.module === "rentals";
+
+    if (needsMeasurement && !handoff.qty.trim()) {
       return setError("Please enter the quantity.");
     }
 
-    if (!handoff.unit.trim()) {
+    if (needsMeasurement && !handoff.unit.trim()) {
       return setError("Please enter the unit.");
     }
 
@@ -180,7 +203,7 @@ export default function RfqReviewPage() {
       return setError("Please return and select a location with a PIN code.");
     }
 
-    if (!handoff.phone.trim() && !handoff.email.trim()) {
+    if (!isAuthenticated && !handoff.phone.trim() && !handoff.email.trim()) {
       return setError("Please provide a phone number or email address.");
     }
 
@@ -238,10 +261,12 @@ export default function RfqReviewPage() {
           district: handoff.geo.districtName || null,
           locality,
           address: [
-            handoff.geo.placeName,
-            handoff.geo.blockName,
-            handoff.geo.districtName,
-            handoff.geo.stateName,
+            handoff.exact?.formattedAddress,
+            handoff.exact?.mapLink,
+            !handoff.exact?.formattedAddress ? handoff.geo.placeName : null,
+            !handoff.exact?.formattedAddress ? handoff.geo.blockName : null,
+            !handoff.exact?.formattedAddress ? handoff.geo.districtName : null,
+            !handoff.exact?.formattedAddress ? handoff.geo.stateName : null,
           ]
             .filter(Boolean)
             .join(", "),
@@ -320,12 +345,14 @@ export default function RfqReviewPage() {
   }
 
   const locationText = [
-    handoff.geo.placeName,
-    handoff.geo.blockName,
-    handoff.geo.subdivisionName,
-    handoff.geo.districtName,
-    handoff.geo.stateName,
-    handoff.geo.pincode,
+    handoff.exact?.formattedAddress,
+    handoff.exact?.mapLink,
+    !handoff.exact?.formattedAddress ? handoff.geo.placeName : null,
+    !handoff.exact?.formattedAddress ? handoff.geo.blockName : null,
+    !handoff.exact?.formattedAddress ? handoff.geo.subdivisionName : null,
+    !handoff.exact?.formattedAddress ? handoff.geo.districtName : null,
+    !handoff.exact?.formattedAddress ? handoff.geo.stateName : null,
+    !handoff.exact?.formattedAddress ? handoff.geo.pincode : null,
   ]
     .filter(Boolean)
     .join(", ");
@@ -400,7 +427,7 @@ export default function RfqReviewPage() {
 
           <div className="rfqReviewGrid">
             <label>
-              <b>Quantity *</b>
+              <b>Quantity {handoff.module === "materials" || handoff.module === "rentals" ? "*" : "(optional)"}</b>
               <input
                 className="searchInput"
                 value={handoff.qty}
@@ -408,7 +435,7 @@ export default function RfqReviewPage() {
               />
             </label>
             <label>
-              <b>Unit *</b>
+              <b>Unit {handoff.module === "materials" || handoff.module === "rentals" ? "*" : "(optional)"}</b>
               <input
                 className="searchInput"
                 value={handoff.unit}
@@ -455,6 +482,16 @@ export default function RfqReviewPage() {
           <p style={{ margin: 0, fontWeight: 700 }}>
             {locationText || "No location has been selected."}
           </p>
+          {handoff.exact?.latitude && handoff.exact?.longitude ? (
+            <a
+              className="inlineAction"
+              href={`https://www.google.com/maps?q=${handoff.exact.latitude},${handoff.exact.longitude}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Confirm exact point in Google Maps
+            </a>
+          ) : null}
           <Link className="inlineAction" href="/rfq">
             Change location in simple form
           </Link>
@@ -536,7 +573,9 @@ export default function RfqReviewPage() {
             </label>
           </div>
           <p style={{ marginBottom: 0, color: "#64748b", fontWeight: 700 }}>
-            A phone number or email address is required.
+            {isAuthenticated
+              ? "Your signed-in account can receive responses. Contact details are optional."
+              : "A phone number or email address is required when you are not signed in."}
           </p>
         </section>
 
@@ -553,8 +592,8 @@ export default function RfqReviewPage() {
             />
             <span>
               I have reviewed this requirement and confirm that the information
-              is correct. I understand that clicking “Submit RFQ” will send it
-              to the existing 3Bigha marketplace workflow.
+              is correct. I understand that sending it will make it available
+              to relevant businesses through 3Bigha.
             </span>
           </label>
         </section>
@@ -566,7 +605,7 @@ export default function RfqReviewPage() {
             disabled={loading || !confirmed}
             onClick={submit}
           >
-            {loading ? "Submitting RFQ..." : "Confirm and Submit RFQ"}
+            {loading ? "Sending requirement..." : "Confirm and send requirement"}
           </button>
 
           <Link className="topBtn topBtnGhost" href="/rfq" aria-disabled={loading}>
@@ -585,7 +624,7 @@ export default function RfqReviewPage() {
         </div>
 
         <p className="submissionNote">
-          AI does not submit this RFQ. Submission happens only through your confirmation above.
+          Assistance does not send this requirement. It is sent only through your confirmation above.
         </p>
       </div>
 

@@ -31,7 +31,7 @@ assert.ok(!entry.includes("Help me step by step"));
 assert.ok(!entry.includes("professional RFQ engine"));
 
 assert.ok(review.includes("FINAL HUMAN CONFIRMATION"));
-assert.ok(review.includes("AI does not submit this RFQ"));
+assert.ok(review.includes("Assistance does not send this requirement"));
 assert.ok(createRoute.includes('export async function POST(req: Request)'));
 assert.ok(createRoute.includes('.from("rfqs")'));
 assert.ok(createRoute.includes('.from("rfq_targets")'));
