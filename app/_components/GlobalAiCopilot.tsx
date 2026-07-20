@@ -135,6 +135,7 @@ const groups = Array.from(new Set(tools.map((tool) => tool.group)));
 
 export default function GlobalAiCopilot() {
   const pathname = usePathname();
+  const isHomepage = pathname === "/";
   const aiContext = useThreeBOSAiContext();
   const [open, setOpen] = useState(false);
 
@@ -177,18 +178,18 @@ export default function GlobalAiCopilot() {
   }, [pathname]);
 
   return (
-    <div className={open ? "globalAiShell globalAiShellOpen" : "globalAiShell"}>
+    <div className={`${open ? "globalAiShell globalAiShellOpen" : "globalAiShell"}${isHomepage ? " globalAiShellHomepage" : ""}`}>
       <button
         type="button"
         className="globalAiButton"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        aria-label={open ? "Close 3Bigha AI Tools" : "Open 3Bigha AI Tools"}
+        aria-label={open ? "Close optional assistance" : "Open optional assistance"}
       >
         <span className="globalAiIcon">🤖</span>
         <span className="globalAiText">
-          <strong>3Bigha AI</strong>
-          <small>{open ? "Close Tools" : "AI Tools"}</small>
+          <strong>{isHomepage ? "Need help?" : "3Bigha AI"}</strong>
+          <small>{open ? "Close" : isHomepage ? "Optional" : "AI Tools"}</small>
         </span>
       </button>
 
@@ -275,6 +276,12 @@ export default function GlobalAiCopilot() {
           box-shadow: 0 18px 42px rgba(37, 99, 235, 0.34);
           cursor: pointer;
           font-weight: 1000;
+        }
+
+        .globalAiShellHomepage:not(.globalAiShellOpen) .globalAiButton {
+          padding: 8px 11px;
+          background: #334155;
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
         }
 
         .globalAiText {

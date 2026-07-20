@@ -38,10 +38,10 @@ import MobileOperationalDock from "@/components/mobile/MobileOperationalDock";
 
 export const metadata = createMetadata({
   title:
-    "3bigha.com | AI-Powered Property, Construction, RFQ, Materials & Vendor Marketplace India",
+    "3bigha.com | India's Human-First Business Operating System",
 
   description:
-    "3bigha.com is India's AI-powered real estate, construction, RFQ, materials, rentals and vendor marketplace platform. Search property, compare vendors, submit procurement RFQs, discover local services and track AI-powered price intelligence across regional marketplaces.",
+    "3bigha.com is India's Human-First Business Operating System with an integrated marketplace for property, construction, materials, services, rentals, requirements, local discovery and business work.",
 
   path: "/",
 
@@ -51,6 +51,9 @@ export const metadata = createMetadata({
     "3bigha",
     "3 bigha",
     "3bigha.com",
+
+    "business operating system India",
+    "human-first business platform",
 
     "property marketplace",
     "real estate marketplace India",
@@ -558,10 +561,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             whiteSpace: "nowrap",
           }}
         >
-          3bigha.com is an AI-powered property marketplace, construction marketplace,
-          RFQ procurement platform, materials marketplace, rental marketplace and
-          vendor discovery platform serving India with regional language support,
-          AI procurement workflows, vendor comparison and local marketplace search.
+          3bigha.com is India&apos;s Human-First Business Operating System with an
+          integrated marketplace for property, construction, materials, services,
+          rentals, requirements, local discovery and connected business work.
         </div>
 
         <main style={{ marginTop: 8 }}>

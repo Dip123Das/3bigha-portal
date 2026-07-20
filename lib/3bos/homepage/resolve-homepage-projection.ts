@@ -6,13 +6,13 @@ import type {
 
 const PUBLIC_PROJECTION: HomepageProjection = {
   mode: "public",
-  workdeskLabel: "Business Work Desk",
-  workdeskTitle: "Inventory, billing, fleet and dispatch — connected with your marketplace work.",
+  workdeskLabel: "Manage My Business",
+  workdeskTitle: "Keep your daily business work together.",
   workdeskDescription:
-    "Manage stock, create bills, assign vehicles, track dispatches and review demand, pricing and operational signals before you decide.",
+    "After signing in, continue listings, requirements, messages, stock, billing, delivery and other work available to your business.",
   primaryWorkspaceLabel: null,
-  primaryWorkspaceHref: "/dashboard/vendor",
-  primaryWorkspaceActionLabel: "Open Vendor OS →",
+  primaryWorkspaceHref: "/dashboard",
+  primaryWorkspaceActionLabel: "Manage My Business →",
   workspaceActions: [],
 };
 

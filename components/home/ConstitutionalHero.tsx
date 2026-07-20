@@ -5,9 +5,9 @@ type SearchScope =
   | "materials"
   | "services"
   | "rentals"
-  | "investment";
+  | "price_today";
 
-type HeroTab = "search" | "ai" | "post";
+type HeroTab = "search" | "post";
 
 type ConstitutionalHeroProps = {
   activeTab: HeroTab;
@@ -23,44 +23,6 @@ type ConstitutionalHeroProps = {
   onToggleSahajNeeds: () => void;
 };
 
-const constitutionalPillars = [
-  {
-    label: "Marketplace",
-    href: "/search",
-    description: "Search property, materials, services, rentals and vendors",
-  },
-  {
-    label: "Business Workspace",
-    href: "/dashboard/vendor/workspace",
-    description: "Open your connected business workspace",
-  },
-  {
-    label: "Sahaj AI",
-    href: "/need",
-    description: "Describe what you need in ordinary language",
-  },
-  {
-    label: "RFQ",
-    href: "/rfq/start",
-    description: "Create and submit a requirement",
-  },
-  {
-    label: "Local Geography",
-    href: "/search",
-    description: "Discover nearby marketplace opportunities",
-  },
-  {
-    label: "Operations",
-    href: "/dashboard/vendor",
-    description: "Manage business operations and activity",
-  },
-  {
-    label: "Business Growth",
-    href: "/vendor-opportunities",
-    description: "Explore demand and growth opportunities",
-  },
-];
-
 const searchScopes: Array<{
   key: SearchScope;
   label: string;
@@ -69,7 +31,7 @@ const searchScopes: Array<{
   { key: "materials", label: "🧱 Materials" },
   { key: "services", label: "🛠️ Services" },
   { key: "rentals", label: "🚜 Rentals" },
-  { key: "investment", label: "📊 Price Today" },
+  { key: "price_today", label: "📊 Price Today" },
 ];
 
 export default function ConstitutionalHero({
@@ -110,29 +72,9 @@ export default function ConstitutionalHero({
             background.
           </p>
 
-          <div
-            className="constitutionalPillars"
-            aria-label="3Bigha Business Operating System capabilities"
-          >
-            {constitutionalPillars.map((pillar) => (
-              <a
-                key={pillar.label}
-                href={pillar.href}
-                title={pillar.description}
-                aria-label={`${pillar.label}: ${pillar.description}`}
-              >
-                {pillar.label}
-              </a>
-            ))}
-          </div>
-
-          <div className="heroFeatureRow">
-            <a href="/search">🔍 Search</a>
-            <a href="/rfq/start">📮 Submit Requirement</a>
-            <a href="/construction-cost">🏗️ Build</a>
-            <a href="/dashboard">📋 Manage</a>
-            <a href="/vendor-opportunities">📈 Grow</a>
-          </div>
+          <a className="heroManageBusiness" href="/dashboard">
+            Manage My Business →
+          </a>
         </div>
 
         <div className="searchCard">
@@ -148,14 +90,6 @@ export default function ConstitutionalHero({
               onClick={() => onActiveTabChange("search")}
             >
               ⌕ Search
-            </button>
-
-            <button
-              type="button"
-              className={activeTab === "ai" ? "active" : ""}
-              onClick={() => onActiveTabChange("ai")}
-            >
-              ✨ Get Guidance
             </button>
 
             <button
@@ -194,7 +128,7 @@ export default function ConstitutionalHero({
           <div className="searchActions">
             <button
               type="button"
-              className="primaryAction"
+              className={activeTab === "search" ? "primaryAction" : "secondaryAction"}
               onClick={onRunSearch}
             >
               🔍 Search Marketplace
@@ -202,7 +136,7 @@ export default function ConstitutionalHero({
 
             <button
               type="button"
-              className="secondaryAction"
+              className={activeTab === "post" ? "primaryAction" : "secondaryAction"}
               onClick={onSubmitRequirement}
             >
               ⚡ Submit Requirement

@@ -485,3 +485,53 @@
     padding: 8px 11px;
   }
 }
+
+/* NEEV homepage completion: one primary task, quiet assistance, clear work entry. */
+.constitutionalHero .searchTabs {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.heroManageBusiness {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 20px;
+  border-radius: 14px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 11px 15px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 950;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+}
+
+.manageBusinessSection .aiBusinessCommand {
+  margin: 0;
+}
+
+.homePanelAction {
+  display: flex;
+  align-items: center;
+  min-height: 74px;
+  margin-top: 14px;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+  color: #1d4ed8;
+  padding: 14px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+@media (max-width: 768px) {
+  .constitutionalHero .searchTabs {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .heroManageBusiness {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+}

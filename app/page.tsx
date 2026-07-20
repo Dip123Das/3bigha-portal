@@ -10,38 +10,22 @@ import FeaturedListings from "@/components/home/FeaturedListings";
 import { useOptional3BOSRuntime } from "@/lib/3bos/context";
 import { resolveHomepageProjection } from "@/lib/3bos/homepage";
 import {
+  readDiscoveryMemory,
+  type DiscoveryMemoryItem,
+} from "@/lib/personalized-discovery/discovery-memory";
+import {
   aiMarketplaceSchema,
   marketplaceFaqSchema,
   organizationSchema,
   websiteSchema,
 } from "@/lib/seo/schema";
 
-type SearchScope = "property" | "materials" | "services" | "rentals" | "investment";
+type SearchScope = "property" | "materials" | "services" | "rentals" | "price_today";
 
-type DiscoveryMemoryItem = {
+type LgdHomepageLocation = {
   id: string;
-  module: "property" | "materials" | "services" | "rentals";
-  title: string;
-  href: string;
-  city?: string | null;
-  district?: string | null;
-  locality?: string | null;
-  type?: string | null;
-  category?: string | null;
-  price?: number | null;
-  viewedAt: number;
+  name: string;
 };
-
-function readDiscoveryMemory(): DiscoveryMemoryItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem("3bigha.discovery.memory.v1");
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.slice(0, 8) : [];
-  } catch {
-    return [];
-  }
-}
 
 type MarketplaceItem = {
   id: string;
@@ -93,21 +77,6 @@ const tools = [
   { title: "EMI Calculator", text: "Calculate property EMI and loan estimate", href: "/emi-calculator", action: "Calculate" },
 ];
 
-const marketPrices = [
-  ["Cement (53 Grade)", "₹425 / Bag", "↓ 2.3%"],
-  ["Steel (TMT 12mm)", "₹58,500 / Ton", "↑ 1.2%"],
-  ["Sand (River)", "₹1,600 / CFT", "↑ 0.5%"],
-  ["Bricks (1st Class)", "₹8.50 / Pcs", "↓ 1.8%"],
-  ["Coarse Aggregate", "₹1,250 / CFT", "→ 0.0%"],
-  ["Fine Aggregate", "₹1,100 / CFT", "↑ 0.9%"],
-];
-
-const blogItems = [
-  { title: "Cement Price Trend: May 2025 Update", meta: "Market Analysis · May 15, 2025" },
-  { title: "Top 10 Construction Mistakes to Avoid", meta: "Construction Tips · May 14, 2025" },
-  { title: "Best Investment Zones in Cooch Behar", meta: "Investment Guide · May 13, 2025" },
-];
-
 const fallbackFeatured: MarketplaceItem[] = [
   { id: "plot", module: "Property", title: "2 Katha Residential Plot", subtitle: "Cooch Behar, WB", meta: "2 Katha · North Facing", price: "₹12.5 Lakh", href: "/property", badge: "Plot", image: null },
   { id: "cement", module: "Material", title: "UltraTech Cement 53 Grade", subtitle: "Cooch Behar, WB", meta: "Bulk Available", price: "₹425 / Bag", href: "/materials", badge: "Material", image: null },
@@ -124,59 +93,103 @@ type DiscoveryRail = {
   tone: string;
 };
 
-function buildHomepageDiscoveryRails(
+async function resolveLgdLocation(
   recentDiscovery: DiscoveryMemoryItem[],
+): Promise<LgdHomepageLocation | null> {
+  const latest = recentDiscovery.find(
+    (item) => item.locality || item.city || item.district,
+  );
+  const candidate = latest?.locality || latest?.city || latest?.district;
+  if (!candidate) return null;
+
+  try {
+    const params = new URLSearchParams({
+      type: "search",
+      q: candidate,
+      limit: "10",
+      offset: "0",
+    });
+    const response = await fetch(`/api/geography/options?${params.toString()}`, {
+      cache: "no-store",
+    });
+    if (!response.ok) return null;
+
+    const payload = await response.json();
+    const options = Array.isArray(payload?.options) ? payload.options : [];
+    const normalizedCandidate = candidate.trim().toLowerCase();
+    const verified = options.find((option: any) => {
+      const names = [option?.name, option?.label, option?.district_name, option?.state_name]
+        .filter(Boolean)
+        .map((value) => String(value).trim().toLowerCase());
+      return names.some(
+        (value) =>
+          value === normalizedCandidate || value.includes(normalizedCandidate),
+      );
+    });
+
+    if (!verified?.id) return null;
+    return {
+      id: String(verified.id),
+      name: String(verified.name || candidate),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function buildHomepageDiscoveryRails(
+  lgdLocation: LgdHomepageLocation | null,
   featuredItems: MarketplaceItem[]
 ): DiscoveryRail[] {
-  const latest = recentDiscovery[0];
-  const location =
-    latest?.locality ||
-    latest?.city ||
-    latest?.district ||
-    "Cooch Behar";
-
-  const encodedLocation = encodeURIComponent(location);
+  const location = lgdLocation?.name || "your area";
+  const locationQuery = lgdLocation
+    ? `?q=${encodeURIComponent(lgdLocation.name)}`
+    : "";
 
   const rails: DiscoveryRail[] = [
     {
       title: `Trending near ${location}`,
       subtitle: "Explore property, materials, services and rentals around this area.",
-      href: `/search?q=${encodedLocation}`,
+      href: `/search${locationQuery}`,
       icon: "📍",
       tone: "Local Pulse",
     },
     {
       title: "Popular property opportunities",
       subtitle: "Browse land, plots and property opportunities with strong local demand.",
-      href: `/property?sort=growth&q=${encodedLocation}`,
+      href: lgdLocation
+        ? `/property?sort=growth&q=${encodeURIComponent(lgdLocation.name)}`
+        : "/property?sort=growth",
       icon: "📈",
       tone: "Popular",
     },
     {
       title: "Plan your construction",
       subtitle: "Plan house construction cost, materials and contractor requirements.",
-      href: `/house-construction-cost?location=${encodedLocation}`,
+      href: lgdLocation
+        ? `/house-construction-cost?location=${encodeURIComponent(lgdLocation.name)}`
+        : "/house-construction-cost",
       icon: "🏗️",
       tone: "Construction",
     },
     {
       title: "Materials for your project",
       subtitle: "Cement, TMT, sand, bricks, tiles and finishing materials.",
-      href: `/materials?q=${encodedLocation}`,
+      href: `/materials${locationQuery}`,
       icon: "🧱",
       tone: "Materials",
     },
     {
       title: "Services you may need",
       subtitle: "Mason, architect, plumber, electrician, painter and legal support.",
-      href: `/services?q=${encodedLocation}`,
+      href: `/services${locationQuery}`,
       icon: "🛠️",
       tone: "Services",
     },
     {
       title: "Rent construction equipment",
       subtitle: "JCB, mixer, scaffolding and site equipment near your area.",
-      href: `/rentals?q=${encodedLocation}`,
+      href: `/rentals${locationQuery}`,
       icon: "🚜",
       tone: "Rentals",
     },
@@ -213,12 +226,12 @@ export default function HomePage() {
   const mobileSectionOpen = (section: string) => Boolean(mobileExpandedSections[section]);
   const [featuredItems, setFeaturedItems] = useState<MarketplaceItem[]>(fallbackFeatured);
   const [recentDiscovery, setRecentDiscovery] = useState<DiscoveryMemoryItem[]>([]);
-  const [activeTab, setActiveTab] = useState<"search" | "ai" | "post">("search");
+  const [lgdLocation, setLgdLocation] = useState<LgdHomepageLocation | null>(null);
+  const [activeTab, setActiveTab] = useState<"search" | "post">("search");
 
   const placeholder = useMemo(() => {
     if (activeTab === "post") return "Describe your requirement clearly. Example: Need 500 bags cement in Cooch Behar within 7 days.";
-    if (activeTab === "ai") return "Tell 3Bigha what you need. Review the prepared options before you choose.";
-    return "Search property, materials, services, rentals or construction needs...";
+    return "Search property, materials, services, rentals or construction needs. Review the prepared options before you choose.";
   }, [activeTab]);
 
   const homepageProjection = useMemo(
@@ -231,12 +244,20 @@ export default function HomePage() {
   );
 
   const homepageDiscoveryRails = useMemo(
-    () => buildHomepageDiscoveryRails(recentDiscovery, featuredItems),
-    [recentDiscovery, featuredItems]
+    () => buildHomepageDiscoveryRails(lgdLocation, featuredItems),
+    [lgdLocation, featuredItems]
   );
 
   useEffect(() => {
-    setRecentDiscovery(readDiscoveryMemory());
+    const memory = readDiscoveryMemory().slice(0, 8);
+    setRecentDiscovery(memory);
+    let active = true;
+    resolveLgdLocation(memory).then((location) => {
+      if (active) setLgdLocation(location);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -351,8 +372,12 @@ export default function HomePage() {
 
   function runSearch() {
     const clean = query.trim();
+    if (scope === "price_today") {
+      router.push(clean ? `/price-today?q=${encodeURIComponent(clean)}` : "/price-today");
+      return;
+    }
     if (!clean) {
-      router.push(scope === "investment" ? "/investment/opportunities" : `/${scope}`);
+      router.push(`/${scope}`);
       return;
     }
     router.push(`/search?module=${scope}&q=${encodeURIComponent(clean)}`);
@@ -391,135 +416,10 @@ export default function HomePage() {
         mobileExpanded={Boolean(mobileExpandedSections.featured)}
       />
 
-      <section className="contentSection">
-        <div className="sectionHead"><div><h2>Today's Market Prices</h2><p>Live price updates from local markets</p></div><a href="/price-today">View all prices →</a></div>
-        <div className={`priceGrid premiumPriceGrid ${mobileExpandedSections.prices ? "isMobileExpanded" : ""}`}>
-          {marketPrices.map(([name, price, change]) => (
-            <a href="/price-today" className="priceCard" key={name}><span>{name}</span><strong>{price}</strong><small>{change}</small></a>
-          ))}
-        </div>
-      </section>
-
-
-      <section className={`mobileCollapsibleSection ${mobileSectionOpen("stats") ? "isMobileExpanded" : ""}`}>
-        <div className="mobileToggleHead">
-          <div>
-            <h2>Marketplace Activity</h2>
-            <p>RFQ, vendor response and supplier activity</p>
-          </div>
-          <button type="button" className="mobileToggleBtn" onClick={() => toggleMobileSection("stats")}>
-            {mobileSectionOpen("stats") ? "▲ Less" : "▼ Show"}
-          </button>
-        </div>
-
-        <div className="statsRail">
-          {[
-            ["18", "RFQs Posted Today", "🧾"],
-            ["14 min", "Avg. Vendor Response", "⏱️"],
-            ["42", "Active Suppliers Nearby", "🚚"],
-            ["129", "Buyer-Vendor Chats", "🤝"],
-            ["2.8K+", "Listings This Week", "📋"],
-            ["4.9/5", "User Rating", "⭐"],
-          ].map(([value, label, icon]) => (
-            <div className="statCard" key={label}>
-              <span>{icon}</span>
-              <div><strong>{value}</strong><small>{label}</small></div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className={`mobileCollapsibleSection ${mobileSectionOpen("liveai") ? "isMobileExpanded" : ""}`}>
-        <div className="mobileToggleHead">
-          <div>
-            <h2>Business Activity</h2>
-            <p>Stock, deliveries, billing and demand signals that may need attention</p>
-          </div>
-          <button type="button" className="mobileToggleBtn" onClick={() => toggleMobileSection("liveai")}>
-            {mobileSectionOpen("liveai") ? "▲ Less" : "▼ Show"}
-          </button>
-        </div>
-
-        <div className="aiLiveOpsStrip">
-          <div className="aiLiveOpsHead">
-            <div>
-              <span>Business Activity</span>
-              <h2>3Bigha keeps connected work visible for buyers, vendors and suppliers.</h2>
-            </div>
-            <a href={homepageProjection.primaryWorkspaceHref}>{homepageProjection.primaryWorkspaceActionLabel}</a>
-          </div>
-
-          <div className="aiLiveOpsGrid">
-            {[
-              ["📦", "8", "Low stock alerts", "Cement, TMT and electrical items need attention"],
-              ["🚚", "32", "Deliveries tracked", "Fleet and dispatch workflows are ready"],
-              ["🧾", "54", "Bills processed", "Online + offline billing with stock deduction"],
-              ["📈", "12%", "Demand movement", "Sand and brick demand rising in local markets"],
-              ["🧭", "Review", "Prepared guidance", "Compare the available signals before you decide"],
-            ].map(([icon, value, label, text]) => (
-              <div className="aiLiveOpsCard" key={label}>
-                <span>{icon}</span>
-                <strong>{value}</strong>
-                <b>{label}</b>
-                <small>{text}</small>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className={`mobileCollapsibleSection ${mobileSectionOpen("opportunities") ? "isMobileExpanded" : ""}`}>
-        <div className="mobileToggleHead">
-          <div>
-            <h2>Vendor Growth Opportunities</h2>
-            <p>Places where buyers need more vendors</p>
-          </div>
-          <button type="button" className="mobileToggleBtn" onClick={() => toggleMobileSection("opportunities")}>
-            {mobileSectionOpen("opportunities") ? "▲ Less" : "▼ Show"}
-          </button>
-        </div>
-
-        <div className="vendorOpportunityHomeStrip">
-          <div className="vendorOpportunityHomeHead">
-            <div>
-              <span>🚀 Vendor Growth Opportunities</span>
-              <h2>Buyers are looking for more vendors in active demand areas.</h2>
-              <p>Join 3Bigha where suppliers, contractors, service providers and equipment owners are needed.</p>
-            </div>
-            <a href="/vendor-opportunities">View All Opportunities →</a>
-          </div>
-
-          <div className="vendorOpportunityHomeGrid">
-            <a href="/vendor-opportunities">
-              <b>🔥 Need Cement Suppliers</b>
-              <small>Khagrabari</small>
-            </a>
-            <a href="/vendor-opportunities">
-              <b>⚡ Need Electricians</b>
-              <small>Cooch Behar Town</small>
-            </a>
-            <a href="/vendor-opportunities">
-              <b>🚜 Need JCB Rental Providers</b>
-              <small>Baneswar</small>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section className={`mobileCollapsibleSection ${mobileSectionOpen("workdesk") ? "isMobileExpanded" : ""}`}>
-        <div className="mobileToggleHead">
-          <div>
-            <h2>Business Workdesk</h2>
-            <p>Inventory, billing, fleet and dispatch actions</p>
-          </div>
-          <button type="button" className="mobileToggleBtn" onClick={() => toggleMobileSection("workdesk")}>
-            {mobileSectionOpen("workdesk") ? "▲ Less" : "▼ Show"}
-          </button>
-        </div>
-
+      <section className="contentSection manageBusinessSection">
         <div className="aiBusinessCommand">
           <div className="aiBusinessCopy">
-            <span>{homepageProjection.workdeskLabel}</span>
+            <span>Manage My Business</span>
             <h2>{homepageProjection.workdeskTitle}</h2>
             <p>{homepageProjection.workdeskDescription}</p>
           </div>
@@ -530,13 +430,9 @@ export default function HomePage() {
                 <a href={action.href} key={action.key}>{action.label}</a>
               ))
             ) : (
-              <>
-                <a href="/dashboard/vendor/inventory">📦 Inventory</a>
-                <a href="/dashboard/vendor/billing">🧾 Billing</a>
-                <a href="/dashboard/vendor/fleet">🚚 Fleet</a>
-                <a href="/dashboard/vendor/dispatch">📍 Dispatch</a>
-                <a href="/materials/add?inventory=1">➕ Add Stock</a>
-              </>
+              <a href={homepageProjection.primaryWorkspaceHref}>
+                {homepageProjection.primaryWorkspaceActionLabel}
+              </a>
             )}
           </div>
         </div>
@@ -570,8 +466,12 @@ export default function HomePage() {
       <section className="contentSection">
         <div className="sectionHead">
           <div>
-            <h2>Helpful Discovery</h2>
-            <p>Relevant next steps across property, materials, services and rentals</p>
+            <h2>Explore near you</h2>
+            <p>
+              {lgdLocation
+                ? `Showing paths connected with the official location directory for ${lgdLocation.name}.`
+                : "Choose a location in search to see nearby property, materials, services and rentals."}
+            </p>
           </div>
           <a href="/search">Explore all →</a>
         </div>
@@ -593,10 +493,10 @@ export default function HomePage() {
       <section className="contentSection utilitySection">
         <div className="sectionHead">
           <div>
-            <h2>Marketplace Utility Engine</h2>
-            <p>Tools, RFQ and pricing actions in one compact workspace</p>
+            <h2>Useful tools</h2>
+            <p>Estimate cost, check published prices, search or submit a requirement</p>
           </div>
-          <a href="/rfq">Post RFQ →</a>
+          <a href="/rfq">Submit requirement →</a>
         </div>
 
         <div className="utilityLayout">
@@ -614,13 +514,13 @@ export default function HomePage() {
           </div>
 
           <div className="rfqMiniCard">
-            <span>⚡ RFQ Engine</span>
+            <span>Submit a requirement</span>
             <h2>Post Your Requirement</h2>
-            <p>Get quotes from multiple verified vendors and compare faster.</p>
+            <p>Describe what you need, receive available quotations and compare them before deciding.</p>
             <div className="rfqPills">
-              <span>Multiple Vendors</span>
+              <span>Your Requirement</span>
               <span>Compare Quotes</span>
-              <span>Fast Response</span>
+              <span>You Decide</span>
             </div>
             <button type="button" onClick={submitRequirement}>
               Post Requirement Now →
@@ -633,66 +533,45 @@ export default function HomePage() {
         <div className="bottomPanel compactNewsPanel">
           <div className="bottomPanelHead">
             <div>
-              <h2>Latest from Blog / News</h2>
-              <p>Short market updates and construction guidance.</p>
+              <h2>Guides and updates</h2>
+              <p>Read the articles currently published on 3Bigha.</p>
             </div>
             <a href="/blog">View all →</a>
           </div>
 
-          <div className="cleanBlogList">
-            {blogItems.slice(0, 3).map((post, index) => (
-              <a href="/blog" key={post.title}>
-                <span>{index + 1}</span>
-                <div>
-                  <strong>{post.title}</strong>
-                  <small>{post.meta}</small>
-                </div>
-              </a>
-            ))}
-          </div>
+          <a className="homePanelAction" href="/blog">
+            Browse published guides and news →
+          </a>
         </div>
 
         <div className="bottomPanel compactInvestmentPanel">
           <div className="bottomPanelHead">
             <div>
               <h2>Investment Opportunities</h2>
-              <p>Selected high-return project options.</p>
+              <p>Review currently published projects, terms and available details.</p>
             </div>
             <a href="/investment/opportunities">View all →</a>
           </div>
 
-          <div className="cleanInvestmentList">
-            <a href="/investment/opportunities">
-              <span>🌿</span>
-              <div>
-                <strong>Green Valley Township</strong>
-                <small>₹15 Lakh onwards • ROI 18–22%</small>
-              </div>
-            </a>
-            <a href="/investment/opportunities">
-              <span>🏢</span>
-              <div>
-                <strong>Royal Enclave Project</strong>
-                <small>₹22 Lakh onwards • ROI 20–25%</small>
-              </div>
-            </a>
-          </div>
+          <a className="homePanelAction" href="/investment/opportunities">
+            Explore published investment opportunities →
+          </a>
         </div>
       </section>
 
       <section className="cleanTrustSection">
         <div className="cleanTrustIntro">
-          <span>Trusted Marketplace</span>
-          <h2>Why 3Bigha Marketplace?</h2>
-          <p>Verified listings, vendor discovery, RFQ support and local marketplace intelligence in one place.</p>
+          <span>Human-First Business Operating System</span>
+          <h2>One place to find, compare and continue your work</h2>
+          <p>Marketplace discovery and daily business work stay connected while every important decision remains yours.</p>
         </div>
 
         <div className="cleanTrustGrid">
           {[
-            ["100% Verified", "Verified sellers and marketplace listings"],
-            ["Secure Process", "Enquiry, RFQ and vendor workflow support"],
-            ["Best Prices", "Compare options before you decide"],
-            ["24/7 Support", "Marketplace support when you need help"],
+            ["Clear journeys", "Start with Build, Buy, Sell, Hire, Rent, Manage or Grow"],
+            ["Local context", "Official geography remains the source for location-based work"],
+            ["Direct comparison", "Review listings and quotations before you decide"],
+            ["Human control", "Assistance may prepare information but never makes the decision for you"],
           ].map(([title, detail]) => (
             <div key={title}>
               <strong>✓ {title}</strong>
@@ -705,17 +584,18 @@ export default function HomePage() {
       <section className="cleanStartBanner">
         <div>
           <h2>Ready to get started?</h2>
-          <p>Join 3Bigha Marketplace and start with your first requirement.</p>
+          <p>Start with a real need or open the workspace for your business.</p>
         </div>
         <div>
           <a href="/login?next=/auth/register-role">Create Account</a>
           <a href="/rfq">Post Requirement</a>
+          <a href="/dashboard">Manage My Business</a>
         </div>
       </section>
       <footer className="cleanHomeFooter">
         <div>
           <strong>🏠 3bigha</strong>
-          <p>Marketplace for property, construction, materials, services and rentals.</p>
+          <p>India&apos;s Human-First Business Operating System with an integrated marketplace.</p>
         </div>
         <nav>
           <strong>Marketplace</strong>

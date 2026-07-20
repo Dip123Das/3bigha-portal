@@ -88,14 +88,23 @@ assert.equal(
   "future workspaces must preserve the public fallback",
 );
 
-const page = await readFile(new URL("../app/page.tsx", import.meta.url), "utf8");
+const [page, hero, journeys, layout, founderPopup, installPrompt] = await Promise.all([
+  readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../components/home/ConstitutionalHero.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../components/home/SahajJourney.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../app/_components/BuildConVendorPopup.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../components/pwa/PWAInstallPrompt.tsx", import.meta.url), "utf8"),
+]);
+
+const homepageSource = [page, hero, journeys].join("\n");
 
 for (const journey of ["Build", "Buy", "Sell", "Hire", "Rent", "Manage", "Grow", "Submit Requirement"]) {
-  assert.match(page, new RegExp(`"${journey}"`), `homepage must preserve the ${journey} journey`);
+  assert.match(journeys, new RegExp(`title: "${journey}"`), `homepage must preserve the ${journey} journey`);
 }
 
 for (const legacyHref of ["/property", "/materials", "/services", "/rentals", "/rfq", "/dashboard"]) {
-  assert.ok(page.includes(legacyHref), `homepage must preserve ${legacyHref}`);
+  assert.ok(homepageSource.includes(legacyHref), `homepage must preserve ${legacyHref}`);
 }
 
 for (const prohibited of [
@@ -105,10 +114,25 @@ for (const prohibited of [
   "AI Business Work Desk",
   "AI Discovery Rails",
 ]) {
-  assert.ok(!page.includes(prohibited), `homepage must not present ${prohibited} as human-facing authority`);
+  assert.ok(!homepageSource.includes(prohibited), `homepage must not present ${prohibited} as human-facing authority`);
 }
 
 assert.ok(page.includes("useOptional3BOSRuntime"));
-assert.ok(page.includes("Review the prepared options before you choose"));
+assert.ok(homepageSource.includes("Review the prepared options before you choose"));
+assert.ok(hero.includes("India&apos;s Human-First Business Operating System"));
+assert.ok(hero.includes("you remain in control"));
+assert.ok(hero.includes("Manage My Business"));
+assert.ok(!hero.includes("Sahaj AI"));
+assert.ok(!hero.includes(">RFQ<"));
+assert.ok(page.includes('href: "/price-today"'));
+assert.ok(!page.includes('scope === "investment" ? "/investment/opportunities"'));
+assert.ok(page.includes("lgdLocation"), "homepage discovery must preserve LGD-backed location evidence");
+assert.ok(layout.includes("India&apos;s Human-First Business Operating System"));
+assert.ok(!page.includes("Marketplace Utility Engine"));
+assert.ok(!page.includes("100% Verified"));
+assert.ok(!page.includes("RFQs Posted Today"));
+assert.ok(!page.includes("Selected high-return"));
+assert.ok(founderPopup.includes('pathname === "/"'));
+assert.ok(installPrompt.includes('pathname === "/"'));
 
 console.log("NEEV-H02A homepage assertions passed (runtime, journeys, compatibility and AI posture)");

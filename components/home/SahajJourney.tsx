@@ -77,10 +77,10 @@ export default function SahajJourney({ expanded }: SahajJourneyProps) {
     >
       <div className="sectionHead">
         <div>
-          <h2>Start with your real need</h2>
+          <h2>What would you like to do?</h2>
           <p>
-            No technical terms. Choose what you want to do and 3Bigha will
-            prepare the right path.
+            Choose one clear path. You can review every detail before taking
+            the next step.
           </p>
         </div>
 

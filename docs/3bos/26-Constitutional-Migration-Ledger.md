@@ -444,6 +444,94 @@ then remove the homepage projection module and focused verification script.
 No data, authentication, permission, route, CSS, shell or infrastructure
 rollback is required.
 
+## NEEV-H02B — Constitutional homepage completion
+
+**Approval:** Approved by the repository owner on 20 July 2026.
+
+**Scope:** Complete the existing homepage transformation through consolidation,
+ordinary human language, evidence-backed public claims, quiet optional
+assistance, LGD-verified location presentation and a natural Manage My
+Business entry.
+
+**Compatibility boundary:** The existing homepage, marketplace feeds, search,
+RFQ, property, materials, services, rentals, investment, vendor opportunities,
+SEO schemas, authentication, workspace runtime, permissions, APIs, databases
+and route destinations remain authoritative. This milestone adds no database
+write, permission grant, route replacement or deployment change.
+
+- [x] Audit completed
+- [x] Constitutional mapping completed
+- [x] Design approved
+- [x] Implementation completed
+- [x] Build passed
+- [x] Type check passed
+- [ ] Desktop verified
+- [ ] Mobile verified
+- [ ] Production verified
+- [x] Regression checked
+
+### Implementation evidence
+
+- The eight human journeys remain intact while repeated hero capability pills,
+  shortcuts, static activity blocks and duplicated vendor-opportunity content
+  are removed from the first decision surface.
+- Search and Submit Requirement are the two explicit starting modes. Optional
+  assistance remains available but is quieter on the homepage and does not
+  occupy a primary mode.
+- The public workspace entry is now “Manage My Business.” Confirmed workspace
+  actions continue to come only from the existing read-only 3BOS runtime.
+- Price Today has its own homepage scope and always opens `/price-today` rather
+  than the investment-opportunities route.
+- Nearby wording uses a named place only after the existing LGD geography
+  options API verifies browser discovery context. Missing evidence uses a
+  neutral location prompt; no map or free-text value replaces LGD authority.
+- Static price figures, activity totals, dated “latest” content, fixed ROI
+  examples and absolute trust claims were removed from the homepage. Their
+  existing destination pages and live workflows remain available.
+- The Founding Partners promotion and PWA install prompt no longer cover the
+  homepage's primary task; both remain available on their existing eligible
+  routes.
+- Root metadata and homepage footer language now present 3Bigha as India's
+  Human-First Business Operating System with an integrated marketplace.
+- The repaired NEEV-H02A verifier follows extracted homepage components and
+  asserts journeys, compatibility routes, AI posture, Price Today routing,
+  LGD evidence, positioning, claim removal and overlay restraint.
+- `node scripts/verify-neev-h02a-homepage.mjs` passed. P04 workspace regression
+  suites remained green at 25/25 and 16/16 checks.
+- `npx tsc --noEmit` passed. The Next.js production build completed with
+  non-production placeholder service configuration and generated all 294
+  static pages. No production database connection or credential was used.
+- A local production server returned HTTP 200 for `/`, `/search`, `/rfq`,
+  `/dashboard`, `/property`, `/materials`, `/services`, `/rentals`,
+  `/price-today` and `/vendor-opportunities`.
+- Rendered HTML contains the constitutional identity, human journey heading and
+  Manage My Business entry. The removed technical headings, absolute claims
+  and homepage overlays are absent. Fresh desktop/mobile visual verification
+  and production verification remain pre-deployment staging steps and are not
+  claimed here.
+
+### Files
+
+- `app/_components/BuildConVendorPopup.tsx`
+- `app/_components/GlobalAiCopilot.tsx`
+- `app/home.css`
+- `app/layout.tsx`
+- `app/page.tsx`
+- `components/home/ConstitutionalHero.tsx`
+- `components/home/SahajJourney.tsx`
+- `components/pwa/PWAInstallPrompt.tsx`
+- `lib/3bos/homepage/resolve-homepage-projection.ts`
+- `scripts/verify-neev-h02a-homepage.mjs`
+- `docs/3bos/26-Constitutional-Migration-Ledger.md`
+
+### Rollback
+
+Apply the inverse of the isolated NEEV-H02B patch. This restores the previous
+homepage presentation, public projection labels, metadata and global-overlay
+eligibility without changing any database record, API, permission, route,
+authentication rule, marketplace feed or deployed process. The pre-milestone
+rollback point is commit `8551595`.
+
 ## P04-A — Preferred unified 3BOS workspace entry
 
 - Added `/dashboard/workspace` as a preferred human-first operating hub.
