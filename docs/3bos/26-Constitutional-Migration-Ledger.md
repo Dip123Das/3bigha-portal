@@ -562,3 +562,13 @@ rollback is required.
 - Keeps focused single-business workspaces compact and preserves all existing
   action destinations, permissions and saved work.
 - Database migration: none.
+
+## P04-C9 — Separate investment participation from banking
+
+- Presents the investment/deal-room operating area as “Investment” for the
+  multi-business hub-vendor workspace rather than implying access to Finance.
+- Retains “Finance” for identity-resolved finance workspaces such as banker and
+  financial institution.
+- Changes presentation language only; existing investment destinations,
+  banking identity checks, permissions and verification remain unchanged.
+- Database migration: none.

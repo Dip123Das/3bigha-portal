@@ -27,6 +27,7 @@ const checks = [
   ["procurement area exists", page.includes('label: "Procurement"')],
   ["business area exists", page.includes('label: "Business"')],
   ["finance area exists", page.includes('label: "Finance"')],
+  ["hub vendor sees investment without banking implication", page.includes('label: "Investment"') && page.includes("without implying banking access")],
   ["projects area exists", page.includes('label: "Projects"')],
   ["assistance area exists", page.includes('label: "Assistance"')],
   ["no database mutation introduced", !page.match(/\.from\(|\.insert\(|\.update\(|\.delete\(/)],

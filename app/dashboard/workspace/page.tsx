@@ -249,6 +249,15 @@ export default function UnifiedWorkspacePage() {
 
       <section className={styles.areaGrid} aria-label="3BOS operating areas">
         {OPERATING_AREAS.map((area) => {
+          const presentedArea =
+            isMultiBusinessWorkspace && area.key === "finance"
+              ? {
+                  ...area,
+                  label: "Investment",
+                  description:
+                    "Explore investment opportunities, applications and deal rooms without implying banking access.",
+                }
+              : area;
           const areaActions = currentActions.filter(
             (action) => resolveOperatingArea(action) === area.key
           );
@@ -281,8 +290,8 @@ export default function UnifiedWorkspacePage() {
                   {String(OPERATING_AREAS.indexOf(area) + 1).padStart(2, "0")}
                 </span>
                 <div>
-                  <h2>{area.label}</h2>
-                  <p>{area.description}</p>
+                  <h2>{presentedArea.label}</h2>
+                  <p>{presentedArea.description}</p>
                 </div>
               </header>
 
@@ -307,7 +316,7 @@ export default function UnifiedWorkspacePage() {
               {disclosedActions.length > 0 ? (
                 <details className={styles.moreActions}>
                   <summary>
-                    Show {disclosedActions.length} more {area.label.toLowerCase()} {disclosedActions.length === 1 ? "action" : "actions"}
+                    Show {disclosedActions.length} more {presentedArea.label.toLowerCase()} {disclosedActions.length === 1 ? "action" : "actions"}
                   </summary>
                   <div className={`${styles.actionList} ${styles.additionalActionList}`}>
                     {disclosedActions.map((action) => (
