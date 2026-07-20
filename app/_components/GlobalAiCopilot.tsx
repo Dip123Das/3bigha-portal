@@ -136,6 +136,7 @@ const groups = Array.from(new Set(tools.map((tool) => tool.group)));
 export default function GlobalAiCopilot() {
   const pathname = usePathname();
   const isHomepage = pathname === "/";
+  const isQuietJourney = isHomepage || pathname.startsWith("/rfq");
   const aiContext = useThreeBOSAiContext();
   const [open, setOpen] = useState(false);
 
@@ -178,7 +179,7 @@ export default function GlobalAiCopilot() {
   }, [pathname]);
 
   return (
-    <div className={`${open ? "globalAiShell globalAiShellOpen" : "globalAiShell"}${isHomepage ? " globalAiShellHomepage" : ""}`}>
+    <div className={`${open ? "globalAiShell globalAiShellOpen" : "globalAiShell"}${isQuietJourney ? " globalAiShellQuiet" : ""}${isHomepage ? " globalAiShellHomepage" : ""}`}>
       <button
         type="button"
         className="globalAiButton"
@@ -188,8 +189,8 @@ export default function GlobalAiCopilot() {
       >
         <span className="globalAiIcon">🤖</span>
         <span className="globalAiText">
-          <strong>{isHomepage ? "Need help?" : "3Bigha AI"}</strong>
-          <small>{open ? "Close" : isHomepage ? "Optional" : "AI Tools"}</small>
+          <strong>{isQuietJourney ? "Need help?" : "3Bigha AI"}</strong>
+          <small>{open ? "Close" : isQuietJourney ? "Optional" : "AI Tools"}</small>
         </span>
       </button>
 
@@ -278,6 +279,7 @@ export default function GlobalAiCopilot() {
           font-weight: 1000;
         }
 
+        .globalAiShellQuiet:not(.globalAiShellOpen) .globalAiButton,
         .globalAiShellHomepage:not(.globalAiShellOpen) .globalAiButton {
           width: 44px;
           height: 44px;
@@ -287,11 +289,13 @@ export default function GlobalAiCopilot() {
           box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
         }
 
+        .globalAiShellQuiet:not(.globalAiShellOpen),
         .globalAiShellHomepage:not(.globalAiShellOpen) {
           right: 18px;
           left: auto;
         }
 
+        .globalAiShellQuiet:not(.globalAiShellOpen) .globalAiText,
         .globalAiShellHomepage:not(.globalAiShellOpen) .globalAiText {
           display: none;
         }
@@ -476,12 +480,14 @@ export default function GlobalAiCopilot() {
             max-height: min(680px, calc(100vh - 92px));
           }
 
+          .globalAiShellQuiet:not(.globalAiShellOpen),
           .globalAiShellHomepage:not(.globalAiShellOpen) {
             right: 10px;
             bottom: 74px;
             left: auto;
           }
 
+          .globalAiShellQuiet:not(.globalAiShellOpen) .globalAiButton,
           .globalAiShellHomepage:not(.globalAiShellOpen) .globalAiButton {
             width: 38px;
             height: 38px;

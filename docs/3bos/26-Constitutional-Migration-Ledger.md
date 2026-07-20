@@ -537,6 +537,55 @@ eligibility without changing any database record, API, permission, route,
 authentication rule, marketplace feed or deployed process. The pre-milestone
 rollback point is commit `8551595`.
 
+## NEEV-R01 — Human-first requirement entry
+
+**Approval:** The repository owner directed the page-by-page constitutional
+programme to continue with the next customer journey on 20 July 2026.
+
+**Scope:** Correct the `/rfq` entry sequence before changing its data or
+professional procurement contracts. The customer chooses the need and moves
+directly to an ordinary-language requirement form. Professional tools remain
+available through progressive disclosure, and optional assistance stays quiet.
+
+**Compatibility boundary:** `/rfq`, `/rfq/new`, `/rfq/review`, `/rfq/success`,
+the RFQ creation API, LGD selector, database writes, attachments, marketplace
+matching, notifications, conversations, authentication and permissions remain
+authoritative and unchanged.
+
+- [x] Repository and handbook audit completed
+- [x] Desktop and mobile production screenshots reviewed
+- [x] Constitutional mapping completed
+- [x] Entry implementation completed
+- [x] Focused source assertions added
+- [ ] Type check passed
+- [ ] Production build passed
+- [ ] Desktop reverified
+- [ ] Mobile reverified
+- [ ] Production verified
+
+### Implementation evidence
+
+- Removed the repeated input-method and Simple-versus-Professional decision
+  screens. After selecting the kind of need, the customer reaches the simple
+  form directly.
+- Removed internal “Project SAHAJ” and “professional RFQ engine” language from
+  the ordinary entry journey.
+- Replaced unsupported “Speak it” and guided-assistance claims with an honest,
+  disclosed choice to add a photo, document or existing audio recording during
+  human review.
+- Added a three-step progress cue and an explicit statement that nothing is
+  sent before review and confirmation.
+- Preserved professional tools as a secondary route and retained LGD geography
+  as the official location source.
+- Reused the compact optional-assistance posture on all `/rfq` routes so the
+  floating control does not cover mobile choices.
+
+### Rollback
+
+Apply the inverse of the isolated NEEV-R01 patch. The pre-milestone rollback
+point is commit `86c5faa`. No database, permission, API or infrastructure
+rollback is required.
+
 ## P04-A — Preferred unified 3BOS workspace entry
 
 - Added `/dashboard/workspace` as a preferred human-first operating hub.
