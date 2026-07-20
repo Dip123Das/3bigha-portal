@@ -510,3 +510,15 @@ rollback is required.
 - Preserved every resolved cross-workspace action and destination while
   removing them from the current business’s immediate decision surface.
 - Database migration: none.
+
+## P04-C5 — Hub-vendor multi-business workspace
+
+- Made the existing `multi_business` workspace primary for the explicit
+  `hub_vendor` operational role without converting that legacy role into a
+  human identity.
+- Presents the respectful operating label “Multi-business operator.”
+- Projects all already-resolved authorised segment actions across the six main
+  operating areas for hub vendors.
+- Retains the focused primary-workspace experience for ordinary single-segment
+  vendors.
+- Database migration: none.

@@ -254,18 +254,28 @@ export function create3BOSRuntime(
     signals: input,
   });
 
-  const primaryWorkspace = resolvePrimaryWorkspace({
-    workspaces: availableWorkspaces,
-    preferredWorkspaceKey: humanConfirmedIdentity
-      ? input.preferredWorkspaceKey
-      : null,
-    /*
-     * The identity displayed to the human and the workspace displayed beside
-     * it must come from the same resolution. A confirmed identity may honour
-     * its saved preference; an inferred identity uses its canonical workspace.
-     */
-    activeIdentity: primaryIdentity,
-  });
+  const primaryWorkspace =
+    normalize(input.role) === "hub_vendor"
+      ? availableWorkspaces.find(
+          (workspace) => workspace.key === "multi_business"
+        ) ??
+        resolvePrimaryWorkspace({
+          workspaces: availableWorkspaces,
+          activeIdentity: primaryIdentity,
+        })
+      : resolvePrimaryWorkspace({
+          workspaces: availableWorkspaces,
+          preferredWorkspaceKey: humanConfirmedIdentity
+            ? input.preferredWorkspaceKey
+            : null,
+          /*
+           * The identity displayed to the human and the workspace displayed
+           * beside it must come from the same resolution. A confirmed identity
+           * may honour its saved preference; an inferred identity uses its
+           * canonical workspace.
+           */
+          activeIdentity: primaryIdentity,
+        });
 
   const growthPlanResolution =
     resolveLegacyGrowthPlan(input.legacyPlan);

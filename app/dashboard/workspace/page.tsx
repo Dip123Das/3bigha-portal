@@ -154,6 +154,14 @@ export default function UnifiedWorkspacePage() {
   const primaryActions = context?.primaryWorkspaceActions ?? [];
   const crossWorkspaceActions = context?.crossWorkspaceActions ?? [];
   const primaryWorkspace = context?.runtime?.workspaces.primary ?? null;
+  const isMultiBusinessWorkspace = primaryWorkspace?.key === "multi_business";
+  const currentActions = isMultiBusinessWorkspace
+    ? context?.actionProjection.allAvailableActions ?? []
+    : primaryActions;
+  const primaryNextAction =
+    currentActions.find((action) => action.key === "business_overview") ??
+    currentActions[0] ??
+    null;
   const needsHumanChoice = Boolean(
     context?.runtime?.identity.requiresHumanSelection &&
       !context.runtime.identity.humanConfirmed
@@ -199,7 +207,11 @@ export default function UnifiedWorkspacePage() {
       <section className={styles.identityBar} aria-label="Current work context">
         <div>
           <span>Working as</span>
-          <strong>{context.runtime.identity.primary?.label ?? "3Bigha member"}</strong>
+          <strong>
+            {isMultiBusinessWorkspace
+              ? "Multi-business operator"
+              : context.runtime.identity.primary?.label ?? "3Bigha member"}
+          </strong>
         </div>
         <div>
           <span>Current workspace</span>
@@ -228,16 +240,16 @@ export default function UnifiedWorkspacePage() {
           <h2 id="workspace-next-step">What would you like to do now?</h2>
           <p>Choose a familiar business activity. Each link opens the existing production workflow.</p>
         </div>
-        {primaryActions[0] ? (
-          <Link href={primaryActions[0].href} className={styles.primaryAction}>
-            {primaryActions[0].label} <span aria-hidden="true">→</span>
+        {primaryNextAction ? (
+          <Link href={primaryNextAction.href} className={styles.primaryAction}>
+            {primaryNextAction.label} <span aria-hidden="true">→</span>
           </Link>
         ) : null}
       </section>
 
       <section className={styles.areaGrid} aria-label="3BOS operating areas">
         {OPERATING_AREAS.map((area) => {
-          const areaActions = primaryActions.filter(
+          const areaActions = currentActions.filter(
             (action) => resolveOperatingArea(action) === area.key
           );
           const uniqueActions = areaActions.filter(
@@ -280,7 +292,7 @@ export default function UnifiedWorkspacePage() {
         })}
       </section>
 
-      {crossWorkspaceActions.length > 0 ? (
+      {!isMultiBusinessWorkspace && crossWorkspaceActions.length > 0 ? (
         <section className={styles.otherWorkSection} aria-labelledby="other-workspaces-title">
           <div className={styles.otherWorkHeading}>
             <div>
