@@ -3,6 +3,28 @@ import type {
   WorkspaceKey,
 } from "./types";
 
+/**
+ * Commercial segment workspaces a hub vendor may operate across. Regulated
+ * or identity-specific workspaces remain outside this compatibility set and
+ * still require their own human identity signals.
+ */
+export const HUB_VENDOR_BUSINESS_WORKSPACE_KEYS: readonly WorkspaceKey[] =
+  Object.freeze([
+    "property",
+    "builder",
+    "construction_business",
+    "contractor",
+    "material_business",
+    "rental_business",
+    "professional",
+    "legal_professional",
+    "investment",
+    "skilled_workforce",
+    "transport_business",
+    "agriculture_business",
+    "multi_business",
+  ]);
+
 const workspace = (
   value: WorkspaceDefinition
 ): WorkspaceDefinition => value;

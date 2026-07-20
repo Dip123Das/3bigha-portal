@@ -522,3 +522,19 @@ rollback is required.
 - Retains the focused primary-workspace experience for ordinary single-segment
   vendors.
 - Database migration: none.
+
+## P04-C6 — Hub-vendor segment capability projection
+
+- Resolved the explicit `hub_vendor` role across the existing commercial
+  segment workspaces instead of limiting discovery to the last inferred
+  business identity.
+- Aggregated capability relevance from those resolved workspaces while keeping
+  the current Growth Plan as the effective capability ceiling.
+- Preserved specialised segment routes for the explicit hub-vendor Scale
+  compatibility context where the older Growth Plan catalogue is silent;
+  existing route permissions and verification remain authoritative.
+- Kept banker, financial-institution, government and author workspaces behind
+  their existing identity signals; the hub-vendor bridge does not grant a
+  regulated or identity-specific role.
+- Preserved every existing route and enforcement boundary.
+- Database migration: none.

@@ -11,10 +11,12 @@ import {
   resolveCapabilityForIdentityAndPlan,
   resolveLegacyGrowthPlan,
   type CapabilityKey,
+  type CapabilityLevel,
   type CapabilityResolution,
 } from "../capability";
 
 import {
+  HUB_VENDOR_BUSINESS_WORKSPACE_KEYS,
   WORKSPACE_REGISTRY,
   type WorkspaceDefinition,
   type WorkspaceKey,
@@ -38,6 +40,48 @@ function normalizeList(
   );
 }
 
+const CAPABILITY_LEVEL_ORDER: readonly CapabilityLevel[] = [
+  "none",
+  "basic",
+  "limited",
+  "standard",
+  "full",
+  "advanced",
+  "priority",
+  "executive",
+  "unlimited",
+  "enterprise",
+];
+
+function higherCapabilityResolution(
+  current: CapabilityResolution | null,
+  candidate: CapabilityResolution
+): CapabilityResolution | null {
+  if (!candidate.eligible || candidate.effectiveLevel === "none") {
+    return current;
+  }
+
+  if (!current) return candidate;
+
+  return CAPABILITY_LEVEL_ORDER.indexOf(candidate.effectiveLevel) >
+    CAPABILITY_LEVEL_ORDER.indexOf(current.effectiveLevel)
+    ? candidate
+    : current;
+}
+
+function higherIdentityRelevance(
+  current: CapabilityResolution | null,
+  candidate: CapabilityResolution
+): CapabilityResolution | null {
+  if (candidate.identityLevel === "none") return current;
+  if (!current) return candidate;
+
+  return CAPABILITY_LEVEL_ORDER.indexOf(candidate.identityLevel) >
+    CAPABILITY_LEVEL_ORDER.indexOf(current.identityLevel)
+    ? candidate
+    : current;
+}
+
 function resolveWorkspaces(input: {
   identity: HumanIdentityDefinition | null;
   signals: LegacyIdentitySignals;
@@ -45,8 +89,16 @@ function resolveWorkspaces(input: {
   const role = normalize(input.signals.role);
   const modules = normalizeList(input.signals.moduleKeys);
   const activities = normalizeList(input.signals.natureOfBusiness);
+  const isHubVendor = role === "hub_vendor";
 
   const resolved = Object.values(WORKSPACE_REGISTRY).filter((workspace) => {
+    if (
+      isHubVendor &&
+      HUB_VENDOR_BUSINESS_WORKSPACE_KEYS.includes(workspace.key)
+    ) {
+      return true;
+    }
+
     if (
       input.identity &&
       workspace.identities.includes(input.identity.key)
@@ -158,17 +210,58 @@ function resolvePrimaryWorkspace(input: {
 function resolveCapabilities(input: {
   identity: HumanIdentityDefinition | null;
   growthPlan: ReturnType<typeof resolveLegacyGrowthPlan>["growthPlan"];
+  workspaces: WorkspaceDefinition[];
+  aggregateWorkspaceIdentities?: boolean;
+  preserveHubScaleCompatibility?: boolean;
 }): CapabilityResolution[] {
   if (!input.identity) return [];
 
-  return (Object.keys(CAPABILITY_REGISTRY) as CapabilityKey[]).map(
-    (capability) =>
-      resolveCapabilityForIdentityAndPlan({
+  return (Object.keys(CAPABILITY_REGISTRY) as CapabilityKey[]).map((capability) => {
+    const primaryResolution = resolveCapabilityForIdentityAndPlan({
         identity: input.identity!.key,
         capability,
         plan: input.growthPlan,
-      })
-  );
+      });
+
+    if (!input.aggregateWorkspaceIdentities) return primaryResolution;
+
+    const relevantIdentities = Array.from(
+      new Set(input.workspaces.flatMap((workspace) => workspace.identities))
+    );
+
+    const workspaceResolutions = relevantIdentities.map((identity) =>
+        resolveCapabilityForIdentityAndPlan({
+          identity,
+          capability,
+          plan: input.growthPlan,
+        })
+      );
+
+    const eligibleResolution = workspaceResolutions.reduce<CapabilityResolution | null>(
+        higherCapabilityResolution,
+        null
+      );
+
+    if (eligibleResolution) return eligibleResolution;
+
+    const workspaceRelevance = workspaceResolutions.reduce<CapabilityResolution | null>(
+      higherIdentityRelevance,
+      null
+    );
+
+    if (input.preserveHubScaleCompatibility && workspaceRelevance) {
+      return {
+        ...workspaceRelevance,
+        eligible: true,
+        planLevel: workspaceRelevance.identityLevel,
+        effectiveLevel: workspaceRelevance.identityLevel,
+        reason:
+          "Existing hub-vendor Scale segment route remains visible; route permissions and verification remain authoritative.",
+      };
+    }
+
+    return primaryResolution;
+  });
 }
 
 function resolveAvailableActions(input: {
@@ -286,6 +379,12 @@ export function create3BOSRuntime(
   const capabilities = resolveCapabilities({
     identity: primaryIdentity,
     growthPlan: growthPlanResolution.growthPlan,
+    workspaces: availableWorkspaces,
+    aggregateWorkspaceIdentities:
+      normalize(input.role) === "hub_vendor",
+    preserveHubScaleCompatibility:
+      normalize(input.role) === "hub_vendor" &&
+      growthPlanResolution.growthPlan === "scale",
   });
 
   const availableActions = resolveAvailableActions({
