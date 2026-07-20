@@ -530,11 +530,24 @@ rollback is required.
   business identity.
 - Aggregated capability relevance from those resolved workspaces while keeping
   the current Growth Plan as the effective capability ceiling.
-- Preserved specialised segment routes for the explicit hub-vendor Scale
+- Preserved specialised segment routes for the explicit hub-vendor
   compatibility context where the older Growth Plan catalogue is silent;
-  existing route permissions and verification remain authoritative.
+  existing route permissions, subscription limits and verification remain
+  authoritative.
 - Kept banker, financial-institution, government and author workspaces behind
   their existing identity signals; the hub-vendor bridge does not grant a
   regulated or identity-specific role.
 - Preserved every existing route and enforcement boundary.
+- Database migration: none.
+
+## P04-C7 — Complete hub-vendor action visibility
+
+- Removed the four-action presentation truncation for the multi-business
+  workspace so every resolved hub-vendor segment is visible without changing
+  context.
+- Kept the compact four-action presentation for focused single-business
+  workspaces.
+- Decoupled hub-vendor segment discovery from the Growth Plan display
+  catalogue; the existing production routes remain responsible for permission,
+  subscription-limit and verification enforcement.
 - Database migration: none.

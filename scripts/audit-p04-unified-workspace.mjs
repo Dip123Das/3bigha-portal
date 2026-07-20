@@ -15,6 +15,7 @@ const checks = [
   ["current cards use resolved current actions", page.includes("const areaActions = currentActions.filter")],
   ["single-business current actions stay primary", page.includes(": primaryActions;")],
   ["multi-business cards use all resolved actions", page.includes("isMultiBusinessWorkspace") && page.includes("actionProjection.allAvailableActions")],
+  ["multi-business cards do not truncate authorised actions", page.includes("isMultiBusinessWorkspace\n            ? uniqueActions\n            : uniqueActions.slice(0, 4)")],
   ["other workspaces are user disclosed", page.includes("showingOtherWork") && page.includes("Other workspaces")],
   ["work context chooser is user disclosed", page.includes("changingContext") && page.includes("Change work context")],
   ["inactive areas do not bypass resolution", page.includes("This area is not active") && !page.includes("fallbackHref")],

@@ -24,7 +24,7 @@ const checks = [
   ["hub vendor resolves multi-business workspace", runtime.includes('normalize(input.role) === "hub_vendor"') && runtime.includes('workspace.key === "multi_business"')],
   ["hub vendor resolves commercial segment workspaces", runtime.includes("HUB_VENDOR_BUSINESS_WORKSPACE_KEYS.includes")],
   ["hub vendor aggregates workspace identity relevance", runtime.includes("aggregateWorkspaceIdentities") && runtime.includes("workspace.identities")],
-  ["hub Scale compatibility preserves existing segment routes", runtime.includes("preserveHubScaleCompatibility") && runtime.includes("route permissions and verification remain authoritative")],
+  ["hub compatibility preserves existing segment routes", runtime.includes("preserveHubCompatibility") && runtime.includes("subscription limits and verification remain authoritative")],
   ["primary action belongs to primary workspace", workspace.includes("context?.primaryWorkspaceActions")],
   ["no route removed", !access.includes("redirect(")],
   ["no database contract changed", !shell.includes("supabase") && !workspace.match(/\.from\(/)],

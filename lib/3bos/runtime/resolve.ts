@@ -212,7 +212,7 @@ function resolveCapabilities(input: {
   growthPlan: ReturnType<typeof resolveLegacyGrowthPlan>["growthPlan"];
   workspaces: WorkspaceDefinition[];
   aggregateWorkspaceIdentities?: boolean;
-  preserveHubScaleCompatibility?: boolean;
+  preserveHubCompatibility?: boolean;
 }): CapabilityResolution[] {
   if (!input.identity) return [];
 
@@ -249,14 +249,14 @@ function resolveCapabilities(input: {
       null
     );
 
-    if (input.preserveHubScaleCompatibility && workspaceRelevance) {
+    if (input.preserveHubCompatibility && workspaceRelevance) {
       return {
         ...workspaceRelevance,
         eligible: true,
         planLevel: workspaceRelevance.identityLevel,
         effectiveLevel: workspaceRelevance.identityLevel,
         reason:
-          "Existing hub-vendor Scale segment route remains visible; route permissions and verification remain authoritative.",
+          "Existing hub-vendor segment route remains visible; route permissions, subscription limits and verification remain authoritative.",
       };
     }
 
@@ -382,9 +382,8 @@ export function create3BOSRuntime(
     workspaces: availableWorkspaces,
     aggregateWorkspaceIdentities:
       normalize(input.role) === "hub_vendor",
-    preserveHubScaleCompatibility:
-      normalize(input.role) === "hub_vendor" &&
-      growthPlanResolution.growthPlan === "scale",
+    preserveHubCompatibility:
+      normalize(input.role) === "hub_vendor",
   });
 
   const availableActions = resolveAvailableActions({

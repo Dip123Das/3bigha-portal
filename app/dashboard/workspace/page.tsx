@@ -256,7 +256,9 @@ export default function UnifiedWorkspacePage() {
             (action, index, collection) =>
               collection.findIndex((candidate) => candidate.href === action.href) === index
           );
-          const displayedActions = uniqueActions.slice(0, 4);
+          const displayedActions = isMultiBusinessWorkspace
+            ? uniqueActions
+            : uniqueActions.slice(0, 4);
 
           return (
             <article key={area.key} className={styles.areaCard}>
