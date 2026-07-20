@@ -11,6 +11,8 @@ const checks = [
   ["responsive styles exist", fs.existsSync(cssPath) && css.includes("@media")],
   ["canonical runtime is consumed", page.includes("useOptional3BOSRuntime")],
   ["canonical resolved actions are consumed", page.includes("actionProjection.allAvailableActions")],
+  ["each action resolves to one operating area", page.includes("resolveOperatingArea(action) === area.key")],
+  ["work context chooser is user disclosed", page.includes("changingContext") && page.includes("Change work context")],
   ["inactive areas do not bypass resolution", page.includes("This area is not active") && !page.includes("fallbackHref")],
   ["human identity choice is preserved", page.includes("ThreeBOSWorkContextChooser")],
   ["signed-out users retain next route", page.includes("/login?next=/dashboard/workspace")],

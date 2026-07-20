@@ -25,9 +25,6 @@ type OperatingArea = {
   key: OperatingAreaKey;
   label: string;
   description: string;
-  actionKeys: string[];
-  capabilityKeys: string[];
-  workspaceKeys: string[];
 };
 
 const OPERATING_AREAS: OperatingArea[] = [
@@ -35,58 +32,96 @@ const OPERATING_AREAS: OperatingArea[] = [
     key: "marketplace",
     label: "Marketplace",
     description: "Find, list and compare property, materials, services and rentals.",
-    actionKeys: ["marketplace", "property_market", "material_market", "service_market", "rental_market"],
-    capabilityKeys: ["marketplace", "property_management"],
-    workspaceKeys: ["property", "material_business", "rental_business", "contractor", "professional"],
   },
   {
     key: "procurement",
     label: "Procurement",
     description: "Create requirements, review quotations and continue supplier work.",
-    actionKeys: ["requirements", "submit_requirement", "buyer_requirements", "rfqs"],
-    capabilityKeys: ["rfq", "procurement"],
-    workspaceKeys: ["customer"],
   },
   {
     key: "business",
     label: "Business",
     description: "Run listings, stock, billing, customers, dispatch and daily operations.",
-    actionKeys: ["inventory", "billing", "dispatch", "customers", "my_materials", "my_services", "my_rentals"],
-    capabilityKeys: ["business_operations", "billing", "inventory", "customer_relationships", "communication"],
-    workspaceKeys: ["material_business", "rental_business", "contractor", "professional"],
   },
   {
     key: "finance",
     label: "Finance",
     description: "Understand funding, investment and financial decisions in one place.",
-    actionKeys: ["finance", "investments", "opportunities", "applications"],
-    capabilityKeys: ["finance", "investment"],
-    workspaceKeys: ["investor", "banker"],
   },
   {
     key: "projects",
     label: "Projects",
     description: "Continue construction, builder and execution work with clear next steps.",
-    actionKeys: ["projects", "construction_projects", "deal_rooms"],
-    capabilityKeys: ["project_management", "construction"],
-    workspaceKeys: ["builder", "construction_business"],
   },
   {
     key: "assistance",
     label: "Assistance",
     description: "Open conversations and contextual help when it genuinely supports your work.",
-    actionKeys: ["inbox", "messages", "conversations"],
-    capabilityKeys: ["communication", "intelligent_assistance", "business_insights"],
-    workspaceKeys: [],
   },
 ];
 
-function belongsToArea(action: ThreeBOSAvailableAction, area: OperatingArea) {
-  return (
-    area.actionKeys.includes(action.key) ||
-    area.capabilityKeys.includes(action.capability) ||
-    area.workspaceKeys.includes(action.workspaceKey)
-  );
+const ACTION_AREA_OVERRIDES: Partial<Record<string, OperatingAreaKey>> = {
+  marketplace: "marketplace",
+  property_market: "marketplace",
+  material_market: "marketplace",
+  service_market: "marketplace",
+  rental_market: "marketplace",
+  my_properties: "marketplace",
+  my_materials: "marketplace",
+  my_services: "marketplace",
+  my_rentals: "marketplace",
+  add_property: "marketplace",
+  add_material: "marketplace",
+  add_service: "marketplace",
+  add_rental: "marketplace",
+  requirements: "procurement",
+  submit_requirement: "procurement",
+  buyer_requirements: "procurement",
+  project_requirements: "procurement",
+  rfqs: "procurement",
+  inventory: "business",
+  billing: "business",
+  dispatch: "business",
+  customers: "business",
+  fleet: "business",
+  finance: "finance",
+  investments: "finance",
+  opportunities: "finance",
+  applications: "finance",
+  deal_rooms: "finance",
+  projects: "projects",
+  construction_projects: "projects",
+  inbox: "assistance",
+  messages: "assistance",
+  conversations: "assistance",
+};
+
+function resolveOperatingArea(action: ThreeBOSAvailableAction): OperatingAreaKey {
+  const explicitArea = ACTION_AREA_OVERRIDES[action.key];
+  if (explicitArea) return explicitArea;
+
+  switch (action.capability) {
+    case "rfq":
+      return "procurement";
+    case "finance":
+    case "investment":
+      return "finance";
+    case "project_management":
+      return "projects";
+    case "communication":
+    case "intelligent_assistance":
+    case "business_insights":
+      return "assistance";
+    case "billing":
+    case "customer_relationships":
+    case "business_operations":
+      return "business";
+    case "marketplace":
+    case "property_management":
+      return "marketplace";
+    default:
+      return "business";
+  }
 }
 
 export default function UnifiedWorkspacePage() {
@@ -94,6 +129,7 @@ export default function UnifiedWorkspacePage() {
   const context = useOptional3BOSRuntime();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [sessionChecked, setSessionChecked] = useState(false);
+  const [changingContext, setChangingContext] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -164,8 +200,22 @@ export default function UnifiedWorkspacePage() {
           <span>Current workspace</span>
           <strong>{primaryWorkspace.label}</strong>
         </div>
-        <ThreeBOSWorkContextChooser />
+        <button
+          type="button"
+          className={styles.changeContextButton}
+          aria-expanded={changingContext}
+          aria-controls="workspace-context-chooser"
+          onClick={() => setChangingContext((current) => !current)}
+        >
+          {changingContext ? "Close" : "Change work context"}
+        </button>
       </section>
+
+      {changingContext ? (
+        <div id="workspace-context-chooser" className={styles.contextChooserPanel}>
+          <ThreeBOSWorkContextChooser />
+        </div>
+      ) : null}
 
       <section className={styles.nextStep} aria-labelledby="workspace-next-step">
         <div>
@@ -182,7 +232,9 @@ export default function UnifiedWorkspacePage() {
 
       <section className={styles.areaGrid} aria-label="3BOS operating areas">
         {OPERATING_AREAS.map((area) => {
-          const areaActions = actions.filter((action) => belongsToArea(action, area));
+          const areaActions = actions.filter(
+            (action) => resolveOperatingArea(action) === area.key
+          );
           const uniqueActions = areaActions.filter(
             (action, index, collection) =>
               collection.findIndex((candidate) => candidate.href === action.href) === index

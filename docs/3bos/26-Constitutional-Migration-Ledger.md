@@ -456,3 +456,15 @@ rollback is required.
   work-context chooser.
 - Database migration: none.
 - Rollback: remove `app/dashboard/workspace` and the focused P04 audit script.
+
+## P04-B — Unified workspace visual and classification refinement
+
+- Compacted the active identity and workspace row.
+- Moved the complete human identity chooser behind an explicit user-controlled
+  “Change work context” disclosure.
+- Replaced overlapping workspace heuristics with deterministic, single-area
+  action classification so every resolved action appears in only one operating
+  area.
+- Preserved the canonical runtime action set, all routes, permissions, APIs and
+  databases.
+- Database migration: none.
