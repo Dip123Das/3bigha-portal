@@ -490,3 +490,13 @@ rollback is required.
 - The prominent “do now” action is selected from the primary workspace rather
   than from cross-workspace actions.
 - No identity, workspace, permission or route record is mutated.
+
+## P04-C3 — Displayed identity/workspace invariant
+
+- Enforced that the identity displayed to the human always determines the
+  primary workspace displayed beside it.
+- A confirmed identity may use its compatible saved workspace preference; an
+  inferred identity uses its canonical production workspace.
+- Removed alphabetical legacy-workspace fallback from the visible primary
+  workspace decision.
+- Database migration: none.

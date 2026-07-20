@@ -259,7 +259,12 @@ export function create3BOSRuntime(
     preferredWorkspaceKey: humanConfirmedIdentity
       ? input.preferredWorkspaceKey
       : null,
-    activeIdentity: humanConfirmedIdentity,
+    /*
+     * The identity displayed to the human and the workspace displayed beside
+     * it must come from the same resolution. A confirmed identity may honour
+     * its saved preference; an inferred identity uses its canonical workspace.
+     */
+    activeIdentity: primaryIdentity,
   });
 
   const growthPlanResolution =
