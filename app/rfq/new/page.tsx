@@ -40,6 +40,7 @@ function showPopup(message: string, type: "success" | "error" = "success") {
 }
 
 function safeNum(v: string) {
+  if (!v.trim()) return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
@@ -64,6 +65,7 @@ export default function RfqNewPage() {
   const [neededBy, setNeededBy] = useState("");
   const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
   const [aiItems, setAiItems] = useState<any[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
@@ -90,6 +92,30 @@ export default function RfqNewPage() {
     showPopup(message, "error");
   }
 
+  async function prepareSuggestedItems() {
+    const text = description.trim();
+    if (!text) return fail("Write your requirement details first.");
+
+    setAiLoading(true);
+    setErr("");
+    try {
+      const res = await fetch("/api/ai/rfq-generator", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.items?.length) {
+        return fail("We could not prepare item suggestions. You can continue without them.");
+      }
+      setAiItems(data.items);
+    } catch {
+      fail("We could not prepare item suggestions. You can continue without them.");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErr("");
@@ -112,7 +138,8 @@ export default function RfqNewPage() {
     const phone = contactPhone.trim();
     const email = contactEmail.trim();
     const whatsapp = contactWhatsapp.trim();
-    if (!phone && !email) {
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user && !phone && !email) {
       return fail("For public submission, please provide phone or email.");
     }
 
@@ -211,14 +238,7 @@ export default function RfqNewPage() {
 
   return (
     <div className="container pageBody" style={{ paddingTop: 16 }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 70%) minmax(280px, 30%)",
-          gap: 18,
-          alignItems: "start",
-        }}
-      >
+      <div className="professionalLayout">
         <main>
           <div
             style={{
@@ -230,14 +250,14 @@ export default function RfqNewPage() {
             }}
           >
             <div style={{ fontSize: 12, fontWeight: 900, color: "#1d4ed8" }}>
-              PROFESSIONAL RFQ WORKSPACE
+              PROFESSIONAL REQUIREMENT TOOLS
             </div>
             <h1 style={{ fontSize: 26, margin: "6px 0 8px", color: "#0f172a" }}>
-              Prepare a detailed RFQ
+              Prepare a detailed requirement
             </h1>
             <div style={{ opacity: 0.85, fontWeight: 700 }}>
-              Use this workspace when you want technical details, item rows, uploads,
-              AI writing help and vendor-ready procurement information.
+              Add item rows, documents and delivery details when your requirement needs
+              more precision. You review everything before it is sent.
             </div>
           </div>
 
@@ -259,12 +279,12 @@ export default function RfqNewPage() {
           <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
         <label>
           <div style={{ fontWeight: 700 }}>Title *</div>
-          <input className="searchInput" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <input className="searchInput professionalFullInput" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Example: Cement and steel for house construction" />
         </label>
 
         <label>
-          <div style={{ fontWeight: 700 }}>Description (write clearly)</div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div style={{ fontWeight: 700 }}>Requirement details</div>
+          <div>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -283,9 +303,9 @@ export default function RfqNewPage() {
             }}
           />
           {aiItems.length > 0 && (
-            <div style={{ marginTop: 16 }}>
+            <div className="suggestedItems">
               <div style={{ fontWeight: 700, marginBottom: 6 }}>
-                🤖 AI Suggested Items
+                Suggested items — review before using
               </div>
 
               {aiItems.map((it, idx) => (
@@ -298,82 +318,21 @@ export default function RfqNewPage() {
           <div style={{ marginTop: 10 }}>
             <button
               type="button"
-              onClick={async () => {
-                const text =
-                  (document.querySelector("textarea") as HTMLTextAreaElement)?.value || "";
-
-                if (!text) {
-                  alert("Please write your requirement first");
-                  return;
-                }
-
-                const res = await fetch("/api/ai/rfq-generator", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ text }),
-                });
-
-                const data = await res.json();
-
-                if (data?.items?.length) {
-                  setAiItems(data.items);
-                } else {
-                  alert("AI could not generate items");
-                }
-              }}
-              style={{
-                padding: "8px 12px",
-                borderRadius: 8,
-                background: "#2563eb",
-                color: "#fff",
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
+              onClick={prepareSuggestedItems}
+              disabled={aiLoading}
+              className="topBtn topBtnGhost"
             >
-              ✨ Generate RFQ with AI
+              {aiLoading ? "Preparing suggestions..." : "Get help preparing item suggestions"}
             </button>
+            <div className="assistanceNote">Optional assistance only. Your text is not replaced and you remain in control.</div>
           </div>
-
-          <button
-            type="button"
-            onClick={async () => {
-              const text = (document.querySelector("textarea") as HTMLTextAreaElement)?.value;
-
-              const res = await fetch("/api/ai/rfq-generator", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text }),
-              });
-
-              const data = await res.json();
-
-              if (data?.items?.length) {
-                alert("AI generated " + data.items.length + " items");
-                console.log(data.items);
-              } else {
-                alert("AI could not generate items");
-              }
-            }}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 8,
-              background: "#2563eb",
-              color: "#fff",
-              fontWeight: 700,
-              cursor: "pointer"
-            }}
-          >
-            ✨ AI Generate
-          </button>
           </div>
         </label>
 
         {/* AddressEngine location */}
         <div style={{ border: "1px solid rgba(0,0,0,0.12)", borderRadius: 12, padding: 12, background: "rgba(11,87,208,0.03)" }}>
           <div style={{ fontWeight: 900, marginBottom: 8 }}>
-            Project / Delivery Location
+            Delivery or work location
           </div>
 
           <AddressEngine
@@ -407,8 +366,8 @@ export default function RfqNewPage() {
         <div style={{ border: "1px solid rgba(0,0,0,0.12)", borderRadius: 12, padding: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 10, flexWrap: "wrap" }}>
             <div>
-              <div style={{ fontWeight: 900 }}>Typed items (optional)</div>
-              <div style={{ opacity: 0.8, marginTop: 4 }}>You can type freely OR select names from our materials listing.</div>
+              <div style={{ fontWeight: 900 }}>Item details</div>
+              <div style={{ opacity: 0.8, marginTop: 4 }}>Add each material, quantity, unit and any important note.</div>
             </div>
 
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -424,7 +383,7 @@ export default function RfqNewPage() {
 
           <div style={{ display: "grid", gap: 10 }}>
             {items.map((it, idx) => (
-              <div key={idx} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 2fr auto", gap: 8 }}>
+              <div key={idx} className="professionalItemRow">
                 <input className="searchInput" value={it.material_name} onChange={(e) => updateItem(idx, { material_name: e.target.value })} placeholder="Material name" />
                 <input className="searchInput" value={it.qty} onChange={(e) => updateItem(idx, { qty: e.target.value })} placeholder="Qty" />
                 <input className="searchInput" value={it.unit} onChange={(e) => updateItem(idx, { unit: e.target.value })} placeholder="Unit" />
@@ -446,9 +405,10 @@ export default function RfqNewPage() {
 
         {/* Contact */}
         <div style={{ border: "1px solid rgba(0,0,0,0.12)", borderRadius: 12, padding: 12 }}>
-          <div style={{ fontWeight: 900, marginBottom: 8 }}>Your Contact (required if not logged in)</div>
+          <div style={{ fontWeight: 900, marginBottom: 8 }}>How can businesses contact you?</div>
+          <div style={{ opacity: 0.75, marginBottom: 8 }}>Phone or email is needed when you are not signed in.</div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <div className="professionalContactRow">
             <input className="searchInput" value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Name" />
             <input className="searchInput" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="Phone" />
             <input className="searchInput" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="Email" />
@@ -461,10 +421,10 @@ export default function RfqNewPage() {
 
         <div style={{ display: "flex", gap: 10 }}>
           <button className="topBtn topBtnPrimary" type="submit" disabled={loading}>
-            {loading ? "Submitting..." : "Submit Requirement →"}
+            {loading ? "Submitting..." : "Submit requirement →"}
           </button>
           <button className="topBtn topBtnGhost" type="button" onClick={() => router.push("/")}>
-            Cancel
+            Back
           </button>
         </div>
           </form>
@@ -482,46 +442,46 @@ export default function RfqNewPage() {
           }}
         >
           <div style={{ fontWeight: 1000, fontSize: 18, color: "#0f172a" }}>
-            RFQ Assistant
+            Check before sending
           </div>
           <div style={{ marginTop: 4, color: "#64748b", fontWeight: 700, fontSize: 13 }}>
-            Professional tools stay here, separate from the form.
+            These optional checks help you prepare clearer information. They never submit or decide for you.
           </div>
 
           <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
             <div style={{ border: "1px solid #dbeafe", background: "#eff6ff", borderRadius: 14, padding: 12 }}>
-              <b>RFQ Quality</b>
+              <b>Requirement readiness</b>
               <div style={{ marginTop: 6, height: 8, background: "#dbeafe", borderRadius: 999, overflow: "hidden" }}>
                 <div style={{ width: title && description ? "55%" : "20%", height: "100%", background: "#2563eb" }} />
               </div>
               <div style={{ marginTop: 6, fontSize: 12, fontWeight: 800, color: "#1d4ed8" }}>
-                {title && description ? "Details are improving" : "Add title and description first"}
+                {title && description ? "Core details are present" : "Add a title and details first"}
               </div>
             </div>
 
             <details style={{ border: "1px solid #e2e8f0", borderRadius: 14, padding: 12 }}>
-              <summary style={{ cursor: "pointer", fontWeight: 900 }}>Improve writing</summary>
+              <summary style={{ cursor: "pointer", fontWeight: 900 }}>Make the wording clearer</summary>
               <p style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
-                Use AI Generate beside the description to make the RFQ clearer.
+                Use the optional suggestion button below the description, then review every suggestion yourself.
               </p>
             </details>
 
             <details style={{ border: "1px solid #e2e8f0", borderRadius: 14, padding: 12 }}>
-              <summary style={{ cursor: "pointer", fontWeight: 900 }}>Budget estimate</summary>
+              <summary style={{ cursor: "pointer", fontWeight: 900 }}>Prepare for a budget estimate</summary>
               <p style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
                 Add quantity and item rows to prepare rough budget guidance.
               </p>
             </details>
 
             <details style={{ border: "1px solid #e2e8f0", borderRadius: 14, padding: 12 }}>
-              <summary style={{ cursor: "pointer", fontWeight: 900 }}>Vendor matching</summary>
+              <summary style={{ cursor: "pointer", fontWeight: 900 }}>Help nearby businesses respond</summary>
               <p style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
                 Add LGD location and PIN to identify nearby vendors.
               </p>
             </details>
 
             <details style={{ border: "1px solid #e2e8f0", borderRadius: 14, padding: 12 }}>
-              <summary style={{ cursor: "pointer", fontWeight: 900 }}>Technical checks</summary>
+              <summary style={{ cursor: "pointer", fontWeight: 900 }}>Check specifications</summary>
               <p style={{ color: "#64748b", fontSize: 13, fontWeight: 700 }}>
                 Mention grade, size, brand, delivery and payment terms for a stronger RFQ.
               </p>
@@ -540,19 +500,73 @@ export default function RfqNewPage() {
                 textDecoration: "none",
               }}
             >
-              Back to Simple RFQ
+              Use the simpler requirement form
             </Link>
           </div>
         </aside>
       </div>
 
       <style jsx>{`
+        .professionalLayout {
+          display: grid;
+          grid-template-columns: minmax(0, 70%) minmax(280px, 30%);
+          gap: 18px;
+          align-items: start;
+        }
+        .professionalFullInput {
+          width: 100%;
+        }
+        .suggestedItems {
+          margin-top: 12px;
+          padding: 12px;
+          border: 1px solid #dbeafe;
+          border-radius: 12px;
+          background: #f8fbff;
+        }
+        .assistanceNote {
+          margin-top: 6px;
+          color: #64748b;
+          font-size: 12px;
+          font-weight: 700;
+        }
+        .professionalItemRow {
+          display: grid;
+          grid-template-columns: 2fr 1fr 1fr 2fr auto;
+          gap: 8px;
+        }
+        .professionalContactRow {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 12px;
+        }
         @media (max-width: 900px) {
-          .pageBody > div {
+          .professionalLayout {
             grid-template-columns: 1fr !important;
           }
           aside {
             position: static !important;
+          }
+          .professionalItemRow {
+            grid-template-columns: minmax(0, 2fr) minmax(70px, 1fr);
+          }
+          .professionalItemRow input:nth-of-type(4) {
+            grid-column: 1 / -1;
+          }
+          .professionalContactRow {
+            grid-template-columns: 1fr;
+          }
+        }
+        @media (max-width: 520px) {
+          .pageBody {
+            padding-left: 10px;
+            padding-right: 10px;
+          }
+          .professionalItemRow {
+            grid-template-columns: 1fr 1fr;
+          }
+          .professionalItemRow input:first-of-type,
+          .professionalItemRow input:nth-of-type(4) {
+            grid-column: 1 / -1;
           }
         }
       `}</style>

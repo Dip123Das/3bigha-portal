@@ -631,6 +631,56 @@ Apply the inverse of the isolated NEEV-R02 patch. The pre-milestone rollback
 point is the NEEV-R01 commit applied above `86c5faa`. No database or
 infrastructure rollback is required.
 
+## NEEV-R03 — Human-first professional requirement tools
+
+**Approval:** Included in the repository owner's approval to continue through
+all RFQ page milestones on 20 July 2026.
+
+**Scope:** Consolidate the existing `/rfq/new` professional requirement
+workspace after the NEEV-R01 and NEEV-R02 simple-entry milestones.
+
+**Compatibility boundary:** The existing `/rfq/new` and `/rfq` routes, RFQ
+creation API, attachment storage, database tables, vendor targeting,
+notifications, permissions and LGD geography engine remain authoritative and
+unchanged.
+
+- [x] Repository and handbook audit completed
+- [x] Desktop and mobile screenshots reviewed
+- [x] Duplicate assistance controls consolidated
+- [x] Human-first language and review posture added
+- [x] Responsive item and contact layouts added
+- [x] Focused constitutional assertions added
+- [ ] Type check passed
+- [ ] Production build passed
+- [ ] Desktop verified
+- [ ] Mobile verified
+- [ ] Production verified
+
+### Implementation evidence
+
+- Replaced internal RFQ and AI-first headings with ordinary professional
+  requirement language while retaining the established route and engine.
+- Consolidated two calls to the same AI item-generation endpoint into one
+  optional assistance action. Suggestions are visibly marked for human review;
+  the person's original description is never silently replaced.
+- Kept the core form primary and renamed the side panel as a set of optional
+  checks that cannot submit or decide for the user.
+- Made the title, item rows and contact fields responsive so the professional
+  workspace no longer compresses its primary inputs into unusable narrow
+  columns on mobile.
+- Stopped converting a blank item quantity to zero and stopped requiring
+  signed-in people to repeat public contact details; the existing server-side
+  identity and validation rules remain authoritative.
+- Preserved the existing Address Engine and its official LGD identifiers,
+  attachment bucket, RFQ creation endpoint and simpler `/rfq` path.
+- Database migration: none.
+
+### Rollback
+
+Apply the inverse of the isolated NEEV-R03 patch. The pre-milestone rollback
+point is the NEEV-R02 commit applied above `86c5faa`. No database, storage,
+API or infrastructure rollback is required.
+
 ## P04-A — Preferred unified 3BOS workspace entry
 
 - Added `/dashboard/workspace` as a preferred human-first operating hub.
