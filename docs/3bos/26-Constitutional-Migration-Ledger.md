@@ -509,6 +509,11 @@ write, permission grant, route replacement or deployment change.
   and homepage overlays are absent. Fresh desktop/mobile visual verification
   and production verification remain pre-deployment staging steps and are not
   claimed here.
+- Desktop and mobile review then exposed two presentation regressions: legacy
+  mobile ordering placed Manage My Business before the constitutional hero,
+  and the collapsed optional-assistance label could cover nearby copy. The
+  mobile order is now explicit and the closed assistant is a compact,
+  right-aligned control. Final visual re-verification remains pending.
 
 ### Files
 

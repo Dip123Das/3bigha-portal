@@ -279,9 +279,21 @@ export default function GlobalAiCopilot() {
         }
 
         .globalAiShellHomepage:not(.globalAiShellOpen) .globalAiButton {
-          padding: 8px 11px;
+          width: 44px;
+          height: 44px;
+          justify-content: center;
+          padding: 0;
           background: #334155;
           box-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
+        }
+
+        .globalAiShellHomepage:not(.globalAiShellOpen) {
+          right: 18px;
+          left: auto;
+        }
+
+        .globalAiShellHomepage:not(.globalAiShellOpen) .globalAiText {
+          display: none;
         }
 
         .globalAiText {
@@ -462,6 +474,18 @@ export default function GlobalAiCopilot() {
             width: auto;
             max-width: none;
             max-height: min(680px, calc(100vh - 92px));
+          }
+
+          .globalAiShellHomepage:not(.globalAiShellOpen) {
+            right: 10px;
+            bottom: 74px;
+            left: auto;
+          }
+
+          .globalAiShellHomepage:not(.globalAiShellOpen) .globalAiButton {
+            width: 38px;
+            height: 38px;
+            opacity: 0.9;
           }
         }
       `}</style>

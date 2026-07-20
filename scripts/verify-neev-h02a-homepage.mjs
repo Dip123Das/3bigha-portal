@@ -88,13 +88,15 @@ assert.equal(
   "future workspaces must preserve the public fallback",
 );
 
-const [page, hero, journeys, layout, founderPopup, installPrompt] = await Promise.all([
+const [page, hero, journeys, layout, founderPopup, installPrompt, homeCss, globalAi] = await Promise.all([
   readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../components/home/ConstitutionalHero.tsx", import.meta.url), "utf8"),
   readFile(new URL("../components/home/SahajJourney.tsx", import.meta.url), "utf8"),
   readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
   readFile(new URL("../app/_components/BuildConVendorPopup.tsx", import.meta.url), "utf8"),
   readFile(new URL("../components/pwa/PWAInstallPrompt.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../app/home.css", import.meta.url), "utf8"),
+  readFile(new URL("../app/_components/GlobalAiCopilot.tsx", import.meta.url), "utf8"),
 ]);
 
 const homepageSource = [page, hero, journeys].join("\n");
@@ -134,5 +136,19 @@ assert.ok(!page.includes("RFQs Posted Today"));
 assert.ok(!page.includes("Selected high-return"));
 assert.ok(founderPopup.includes('pathname === "/"'));
 assert.ok(installPrompt.includes('pathname === "/"'));
+assert.match(
+  homeCss,
+  /\.homePage \.heroShell\s*\{\s*order: 1 !important;/,
+  "mobile homepage must begin with the constitutional hero",
+);
+assert.match(
+  homeCss,
+  /\.homePage \.manageBusinessSection\s*\{\s*order: 4 !important;/,
+  "mobile business management entry must follow the primary public decisions",
+);
+assert.ok(
+  globalAi.includes(".globalAiShellHomepage:not(.globalAiShellOpen) .globalAiText"),
+  "homepage assistance must remain compact until the human opens it",
+);
 
 console.log("NEEV-H02A homepage assertions passed (runtime, journeys, compatibility and AI posture)");

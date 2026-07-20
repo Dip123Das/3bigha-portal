@@ -534,4 +534,49 @@
     justify-content: center;
     box-sizing: border-box;
   }
+
+  /* Keep the mobile decision sequence human-first and deterministic. */
+  .homePage .heroShell {
+    order: 1 !important;
+  }
+
+  .homePage .sahajJourneySection {
+    order: 2 !important;
+  }
+
+  .homePage .contentSection:has(.premiumListingsGrid) {
+    order: 3 !important;
+  }
+
+  .homePage .manageBusinessSection {
+    order: 4 !important;
+  }
+
+  .homePage .contentSection:has(.premiumCategoryGrid) {
+    order: 5 !important;
+  }
+
+  .homePage .contentSection:has(.premiumDiscoveryGrid) {
+    order: 6 !important;
+  }
+
+  .homePage .utilitySection {
+    order: 7 !important;
+  }
+
+  .homePage .homeBottomGrid {
+    order: 8 !important;
+  }
+
+  .homePage .cleanTrustSection {
+    order: 9 !important;
+  }
+
+  .homePage .cleanStartBanner {
+    order: 10 !important;
+  }
+
+  .homePage .cleanHomeFooter {
+    order: 11 !important;
+  }
 }
