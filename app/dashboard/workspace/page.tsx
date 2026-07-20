@@ -130,6 +130,7 @@ export default function UnifiedWorkspacePage() {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [changingContext, setChangingContext] = useState(false);
+  const [showingOtherWork, setShowingOtherWork] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -150,8 +151,8 @@ export default function UnifiedWorkspacePage() {
     };
   }, [router, supabase]);
 
-  const actions = context?.actionProjection.allAvailableActions ?? [];
   const primaryActions = context?.primaryWorkspaceActions ?? [];
+  const crossWorkspaceActions = context?.crossWorkspaceActions ?? [];
   const primaryWorkspace = context?.runtime?.workspaces.primary ?? null;
   const needsHumanChoice = Boolean(
     context?.runtime?.identity.requiresHumanSelection &&
@@ -236,7 +237,7 @@ export default function UnifiedWorkspacePage() {
 
       <section className={styles.areaGrid} aria-label="3BOS operating areas">
         {OPERATING_AREAS.map((area) => {
-          const areaActions = actions.filter(
+          const areaActions = primaryActions.filter(
             (action) => resolveOperatingArea(action) === area.key
           );
           const uniqueActions = areaActions.filter(
@@ -278,6 +279,63 @@ export default function UnifiedWorkspacePage() {
           );
         })}
       </section>
+
+      {crossWorkspaceActions.length > 0 ? (
+        <section className={styles.otherWorkSection} aria-labelledby="other-workspaces-title">
+          <div className={styles.otherWorkHeading}>
+            <div>
+              <span className={styles.eyebrow}>Available when you need them</span>
+              <h2 id="other-workspaces-title">Other workspaces</h2>
+              <p>
+                Keep your current business focused. Open another resolved workspace only when you want to work there.
+              </p>
+            </div>
+            <button
+              type="button"
+              aria-expanded={showingOtherWork}
+              aria-controls="other-workspace-actions"
+              onClick={() => setShowingOtherWork((current) => !current)}
+            >
+              {showingOtherWork
+                ? "Hide other workspaces"
+                : `Show other workspaces (${context.runtime.workspaces.available.length - 1})`}
+            </button>
+          </div>
+
+          {showingOtherWork ? (
+            <div id="other-workspace-actions" className={styles.otherWorkspaceGrid}>
+              {Object.entries(
+                crossWorkspaceActions.reduce<Record<string, ThreeBOSAvailableAction[]>>(
+                  (groups, action) => {
+                    const group = groups[action.workspaceLabel] ?? [];
+                    if (!group.some((item) => item.href === action.href)) {
+                      group.push(action);
+                    }
+                    groups[action.workspaceLabel] = group;
+                    return groups;
+                  },
+                  {}
+                )
+              ).map(([workspaceLabel, workspaceActions]) => (
+                <article key={workspaceLabel} className={styles.otherWorkspaceCard}>
+                  <h3>{workspaceLabel}</h3>
+                  <div className={styles.actionList}>
+                    {workspaceActions.slice(0, 4).map((action) => (
+                      <Link key={`${action.workspaceKey}:${action.key}:${action.href}`} href={action.href}>
+                        <span>
+                          <strong>{action.label}</strong>
+                          <small>{OPERATING_AREAS.find((area) => area.key === resolveOperatingArea(action))?.label}</small>
+                        </span>
+                        <span aria-hidden="true">→</span>
+                      </Link>
+                    ))}
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       <div className={styles.compatibilityNote}>
         This workspace brings existing modules together. No saved work, URL, permission or dashboard has been replaced.

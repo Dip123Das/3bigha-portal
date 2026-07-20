@@ -500,3 +500,13 @@ rollback is required.
 - Removed alphabetical legacy-workspace fallback from the visible primary
   workspace decision.
 - Database migration: none.
+
+## P04-C4 — Current-work focus with preserved cross-workspace access
+
+- Limited the six primary operating-area cards to actions from the current
+  primary workspace.
+- Moved other resolved identities and their existing actions into an explicit,
+  collapsed “Other workspaces” section controlled by the human.
+- Preserved every resolved cross-workspace action and destination while
+  removing them from the current business’s immediate decision surface.
+- Database migration: none.
