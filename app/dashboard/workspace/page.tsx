@@ -151,6 +151,7 @@ export default function UnifiedWorkspacePage() {
   }, [router, supabase]);
 
   const actions = context?.actionProjection.allAvailableActions ?? [];
+  const primaryActions = context?.primaryWorkspaceActions ?? [];
   const primaryWorkspace = context?.runtime?.workspaces.primary ?? null;
   const needsHumanChoice = Boolean(
     context?.runtime?.identity.requiresHumanSelection &&
@@ -226,9 +227,9 @@ export default function UnifiedWorkspacePage() {
           <h2 id="workspace-next-step">What would you like to do now?</h2>
           <p>Choose a familiar business activity. Each link opens the existing production workflow.</p>
         </div>
-        {actions[0] ? (
-          <Link href={actions[0].href} className={styles.primaryAction}>
-            {actions[0].label} <span aria-hidden="true">→</span>
+        {primaryActions[0] ? (
+          <Link href={primaryActions[0].href} className={styles.primaryAction}>
+            {primaryActions[0].label} <span aria-hidden="true">→</span>
           </Link>
         ) : null}
       </section>

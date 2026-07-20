@@ -480,3 +480,13 @@ rollback is required.
   activity afterward.
 - Existing dashboard pages retain their original shell order by default.
 - Database migration: none.
+
+## P04-C2 — Coherent identity and primary work
+
+- Prevented a stale session workspace preference from overriding the workspace
+  implied by the currently resolved identity.
+- Preferred workspace choices are now honoured only when paired with a valid,
+  human-confirmed identity.
+- The prominent “do now” action is selected from the primary workspace rather
+  than from cross-workspace actions.
+- No identity, workspace, permission or route record is mutated.

@@ -9,6 +9,7 @@ const workspace = fs.readFileSync(
   "app/dashboard/workspace/page.tsx",
   "utf8"
 );
+const runtime = fs.readFileSync("lib/3bos/runtime/resolve.ts", "utf8");
 
 const checks = [
   ["admin destination preserved", access.includes('if (access.isAdmin) return "/admin/dashboard"')],
@@ -18,6 +19,8 @@ const checks = [
   ["work-first hierarchy is opt in", shell.includes("{workFirst ? (")],
   ["workspace opts into work-first hierarchy", workspace.match(/workFirst/g)?.length === 3],
   ["recent activity moves after work", shell.indexOf("{children}\n            <OperationalEventStream") > -1],
+  ["stale workspace preference cannot override identity", runtime.includes("preferredWorkspaceKey: humanConfirmedIdentity")],
+  ["primary action belongs to primary workspace", workspace.includes("context?.primaryWorkspaceActions")],
   ["no route removed", !access.includes("redirect(")],
   ["no database contract changed", !shell.includes("supabase") && !workspace.match(/\.from\(/)],
 ];

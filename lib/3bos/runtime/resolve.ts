@@ -142,13 +142,11 @@ function resolvePrimaryWorkspace(input: {
     }
   }
 
-  if (preferredKey) {
-    const preferred = input.workspaces.find(
-      (workspace) => workspace.key === preferredKey
-    );
-
-    if (preferred) return preferred;
-  }
+  /*
+   * A preferred workspace is a human choice only when it is paired with a
+   * currently valid, human-confirmed identity. Stale session preferences must
+   * never override the workspace implied by the resolved identity.
+   */
 
   const productionWorkspace = input.workspaces.find(
     (workspace) => workspace.status === "production"
@@ -258,7 +256,9 @@ export function create3BOSRuntime(
 
   const primaryWorkspace = resolvePrimaryWorkspace({
     workspaces: availableWorkspaces,
-    preferredWorkspaceKey: input.preferredWorkspaceKey,
+    preferredWorkspaceKey: humanConfirmedIdentity
+      ? input.preferredWorkspaceKey
+      : null,
     activeIdentity: humanConfirmedIdentity,
   });
 
