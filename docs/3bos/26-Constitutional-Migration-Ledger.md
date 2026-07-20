@@ -468,3 +468,15 @@ rollback is required.
 - Preserved the canonical runtime action set, all routes, permissions, APIs and
   databases.
 - Database migration: none.
+
+## P04-C1 — Visible unified entry and work-first hierarchy
+
+- Made `/dashboard/workspace` the preferred post-login destination for
+  ordinary users while retaining the specialist admin and blog-admin entries.
+- Preserved every buyer, vendor, builder, author, marketplace and module URL as
+  a directly accessible production destination.
+- Added an opt-in work-first dashboard-shell order used only by the unified
+  workspace: identity first, continuation second, real work third and recent
+  activity afterward.
+- Existing dashboard pages retain their original shell order by default.
+- Database migration: none.

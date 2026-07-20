@@ -314,28 +314,12 @@ export function getDefaultPostLoginPath(access: AccessContext): string {
   if (access.isAdmin) return "/admin/dashboard";
   if (access.isBlogAdmin) return "/admin/blog";
 
-  if (access.isBuilder) return "/dashboard/builder";
-
-  if (access.isHubVendor) return "/vendor/hub";
-
-  if (access.isVendor) {
-    if (access.vendorCapabilities.length === 1) {
-      const c = access.vendorCapabilities[0];
-
-      if (c === "property_owner") return "/property/my";
-      if (c === "property_builder") return "/property/builder/projects";
-      if (c === "materials") return "/materials/my";
-      if (c === "services") return "/services/my";
-      if (c === "rentals") return "/rentals/my";
-      if (c === "blog_author") return "/blog/my";
-      if (c === "investor") return "/dashboard/investor";
-    }
-
-    return "/vendor/inbox-v2";
-  }
-
-  if (access.isBuyer) return "/dashboard/buyer";
-  if (access.role === "blogger") return "/blog/my";
-
-  return "/dashboard";
+  /*
+   * P04-C — Unified 3BOS is the preferred human entry.
+   *
+   * Existing role dashboards, module pages, URLs and permissions remain
+   * unchanged and directly accessible. Only the default landing decision is
+   * consolidated so ordinary users begin from one understandable workspace.
+   */
+  return "/dashboard/workspace";
 }

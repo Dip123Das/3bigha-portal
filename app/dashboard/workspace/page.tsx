@@ -163,6 +163,7 @@ export default function UnifiedWorkspacePage() {
         eyebrow="My Workspace"
         title="Preparing your 3BOS workspace"
         subtitle="Bringing your existing work together without changing your access or workflows."
+        workFirst
       >
         <SectionSkeleton cards={6} />
       </UniversalDashboardShell>
@@ -175,6 +176,7 @@ export default function UnifiedWorkspacePage() {
         eyebrow="My Workspace"
         title="Choose what you want to work on"
         subtitle="3Bigha will not guess your business identity. Choose your work area; you can change it at any time."
+        workFirst
       >
         <ThreeBOSWorkContextChooser />
         <div className={styles.compatibilityNote}>
@@ -190,6 +192,7 @@ export default function UnifiedWorkspacePage() {
       eyebrow="India's Human-First Business Operating System"
       title="My 3BOS Workspace"
       subtitle="See what needs attention, continue your work and move naturally between every part of your business. AI remains available as assistance; you remain in control."
+      workFirst
     >
       <section className={styles.identityBar} aria-label="Current work context">
         <div>
