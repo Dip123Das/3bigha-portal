@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [professional, createRoute, addressEngine] = await Promise.all([
+const [professional, createRoute, addressEngine, globalAssistant] = await Promise.all([
   readFile(new URL("../app/rfq/new/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../app/api/rfq/create/route.ts", import.meta.url), "utf8"),
   readFile(new URL("../components/geography/AddressEngine.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../app/_components/GlobalAiCopilot.tsx", import.meta.url), "utf8"),
 ]);
 
 assert.ok(professional.includes("PROFESSIONAL REQUIREMENT TOOLS"));
@@ -32,5 +33,8 @@ assert.ok(addressEngine.includes("formatAddress"));
 assert.ok(createRoute.includes('.from("rfqs")'));
 assert.ok(createRoute.includes('.from("rfq_items")'));
 assert.ok(createRoute.includes('.from("rfq_targets")'));
+assert.ok(globalAssistant.includes('pathname.startsWith("/rfq")'));
+assert.ok(globalAssistant.includes("globalAiShellRfq:not(.globalAiShellOpen)"));
+assert.ok(globalAssistant.includes("display: none"));
 
 console.log("NEEV-R03 professional requirement assertions passed (one assistance path, human control, mobile flow and compatibility)");

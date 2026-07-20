@@ -136,7 +136,8 @@ const groups = Array.from(new Set(tools.map((tool) => tool.group)));
 export default function GlobalAiCopilot() {
   const pathname = usePathname();
   const isHomepage = pathname === "/";
-  const isQuietJourney = isHomepage || pathname.startsWith("/rfq");
+  const isRfqJourney = pathname.startsWith("/rfq");
+  const isQuietJourney = isHomepage || isRfqJourney;
   const aiContext = useThreeBOSAiContext();
   const [open, setOpen] = useState(false);
 
@@ -179,7 +180,7 @@ export default function GlobalAiCopilot() {
   }, [pathname]);
 
   return (
-    <div className={`${open ? "globalAiShell globalAiShellOpen" : "globalAiShell"}${isQuietJourney ? " globalAiShellQuiet" : ""}${isHomepage ? " globalAiShellHomepage" : ""}`}>
+    <div className={`${open ? "globalAiShell globalAiShellOpen" : "globalAiShell"}${isQuietJourney ? " globalAiShellQuiet" : ""}${isHomepage ? " globalAiShellHomepage" : ""}${isRfqJourney ? " globalAiShellRfq" : ""}`}>
       <button
         type="button"
         className="globalAiButton"
@@ -492,6 +493,10 @@ export default function GlobalAiCopilot() {
             width: 38px;
             height: 38px;
             opacity: 0.9;
+          }
+
+          .globalAiShellRfq:not(.globalAiShellOpen) {
+            display: none;
           }
         }
       `}</style>

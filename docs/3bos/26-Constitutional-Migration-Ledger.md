@@ -673,6 +673,10 @@ unchanged.
   identity and validation rules remain authoritative.
 - Preserved the existing Address Engine and its official LGD identifiers,
   attachment bucket, RFQ creation endpoint and simpler `/rfq` path.
+- Removed the closed global-assistant bubble from narrow RFQ screens after
+  visual verification found it overlapping the location form. The focused
+  form's contextual assistance remains available and desktop behavior is
+  preserved.
 - Database migration: none.
 
 ### Rollback
