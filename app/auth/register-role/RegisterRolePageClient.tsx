@@ -339,12 +339,32 @@ export default function RegisterRolePageClient() {
             <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 4 }}>Choose your primary identity *</div>
             <div style={{ color: "#64748b", fontSize: 14, marginBottom: 12 }}>Choose the identity that best describes your main purpose today. This determines your default workspace—not all you are allowed to do.</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-              <button type="button" onClick={() => { setFamily(""); setSearch(""); setShowAllIdentities((current) => !current); }} style={chipStyle(showAllIdentities && !family)}>{showAllIdentities && !family ? "Show main choices" : "View all identities"}</button>
               {DECLARABLE_IDENTITY_FAMILIES.map((item) => <button key={item} type="button" onClick={() => { setFamily(item); setSearch(""); setShowAllIdentities(false); }} style={chipStyle(family === item)}>{getIdentityFamilyLabel(item)}</button>)}
             </div>
-            <input value={search} onChange={(e) => { setSearch(e.target.value); if (e.target.value) setFamily(""); }} placeholder="Search all identities: developer, contractor, banker, Amin, mason..." style={{ ...inputStyle, marginTop: 0, marginBottom: 8 }} />
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 10, alignItems: "stretch", marginBottom: 8 }}>
+              <input
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  if (e.target.value) setFamily("");
+                }}
+                placeholder="Search all identities: developer, contractor, banker, Amin, mason..."
+                style={{ ...inputStyle, marginTop: 0 }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setFamily("");
+                  setSearch("");
+                  setShowAllIdentities((current) => !current);
+                }}
+                style={viewAllButtonStyle(showAllIdentities && !family)}
+              >
+                {showAllIdentities && !family ? "Show main choices" : "See all identities"}
+              </button>
+            </div>
             <div style={{ color: "#475569", fontSize: 13, marginBottom: 12 }}>
-              Can’t see your identity? Search above, choose a category, or view all identities.
+              Can’t see your identity? Search above, choose a category, or see the complete identity list.
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 10 }}>
               {identityOptions.map((item) => {
@@ -369,3 +389,14 @@ export default function RegisterRolePageClient() {
 const inputStyle: React.CSSProperties = { display: "block", width: "100%", marginTop: 7, borderRadius: 10, border: "1px solid #cbd5e1", padding: "11px 12px", background: "white", fontWeight: 500 };
 const chipStyle = (active: boolean): React.CSSProperties => ({ border: `1px solid ${active ? "#2563eb" : "#cbd5e1"}`, background: active ? "#2563eb" : "white", color: active ? "white" : "#334155", borderRadius: 999, padding: "7px 11px", fontWeight: 800, fontSize: 12, cursor: "pointer" });
 const locationButtonStyle: React.CSSProperties = { border: "1px solid #86efac", background: "#f0fdf4", color: "#166534", borderRadius: 10, padding: "9px 12px", fontWeight: 900, cursor: "pointer" };
+const viewAllButtonStyle = (active: boolean): React.CSSProperties => ({
+  border: `1px solid ${active ? "#1d4ed8" : "#2563eb"}`,
+  background: active ? "#eff6ff" : "#2563eb",
+  color: active ? "#1d4ed8" : "white",
+  borderRadius: 10,
+  padding: "10px 16px",
+  minWidth: 145,
+  fontWeight: 900,
+  whiteSpace: "nowrap",
+  cursor: "pointer",
+});
