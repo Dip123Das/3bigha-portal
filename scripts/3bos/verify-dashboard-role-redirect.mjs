@@ -6,11 +6,15 @@ const PAGE_PATH = path.join(
   ROOT,
   "app/dashboard/page.tsx"
 );
+const ACCESS_PATH = path.join(ROOT, "lib/access/resolveAccess.ts");
+const AUTH_BUTTONS_PATH = path.join(ROOT, "app/_components/AuthButtons.tsx");
 
 const page = fs.readFileSync(
   PAGE_PATH,
   "utf8"
 );
+const access = fs.readFileSync(ACCESS_PATH, "utf8");
+const authButtons = fs.readFileSync(AUTH_BUTTONS_PATH, "utf8");
 
 let failed = false;
 
@@ -114,6 +118,28 @@ for (const marker of forbidden) {
   }
 }
 
+if (access.includes('access.vendorCapabilities.includes("investor")')) {
+  console.error("❌ Investor capability must not override the primary Vendor Hub role.");
+  failed = true;
+}
+
+if (!access.includes('if (access.role === "investor")')) {
+  console.error("❌ Explicit primary investor-role routing is missing.");
+  failed = true;
+}
+
+if (authButtons.includes('reason === "invest_in_opportunities"')) {
+  console.error("❌ Header dashboard link must not override a primary vendor role from portal-use reason.");
+  failed = true;
+}
+
+const vendorBranchIndex = authButtons.indexOf('r === "vendor"');
+const vendorPathIndex = authButtons.indexOf('return "/dashboard/vendor";', vendorBranchIndex);
+if (vendorBranchIndex < 0 || vendorPathIndex < vendorBranchIndex) {
+  console.error("❌ Header does not preserve the primary vendor dashboard destination.");
+  failed = true;
+}
+
 if (failed) {
   process.exit(1);
 }
@@ -135,4 +161,7 @@ console.log(
 );
 console.log(
   "✅ No route was renamed and no permission was replaced."
+);
+console.log(
+  "✅ Secondary investor capability cannot replace a Vendor Hub primary dashboard."
 );

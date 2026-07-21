@@ -326,10 +326,7 @@ export function getDefaultPostLoginPath(access: AccessContext): string {
     return "/dashboard/banker";
   }
 
-  if (
-    access.role === "investor" ||
-    access.vendorCapabilities.includes("investor")
-  ) {
+  if (access.role === "investor") {
     return "/dashboard/investor";
   }
 

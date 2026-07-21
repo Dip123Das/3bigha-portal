@@ -53,10 +53,11 @@ function prettyRole(profile?: ProfileLite | null): string {
 
 function dashboardHrefFor(profile?: ProfileLite | null): string {
   const r = String(profile?.role ?? "").trim().toLowerCase();
-  const reason = String(profile?.portal_use_reason ?? "").trim().toLowerCase();
 
   if (r === "master_admin") return "/admin/dashboard";
   if (r === "blog_admin") return "/admin/blog";
+  if (r === "banker" || r === "finance_banker") return "/dashboard/banker";
+  if (r === "investor") return "/dashboard/investor";
 
   if (
     r === "vendor" ||
@@ -64,7 +65,6 @@ function dashboardHrefFor(profile?: ProfileLite | null): string {
     r === "hub_vendor" ||
     profile?.is_vendor === true
   ) {
-    if (reason === "invest_in_opportunities") return "/dashboard/investor";
     return "/dashboard/vendor";
   }
 
