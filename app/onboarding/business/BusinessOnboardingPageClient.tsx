@@ -1195,7 +1195,6 @@ export default function BusinessOnboardingPageClient() {
         roleFromQuery === "hub_vendor" ||
         roleFromQuery === "blogger" ||
         roleFromQuery === "vendor",
-      approval_status: "active",
       onboarding_version: 2,
       onboarding_completed: true,
       portal_use_reason: fallbackUseReason,

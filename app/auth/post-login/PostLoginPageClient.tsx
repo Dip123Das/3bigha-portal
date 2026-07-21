@@ -135,7 +135,6 @@ export default function PostLoginPageClient() {
                 role: null,
                 requested_role: null,
                 is_vendor: false,
-                approval_status: "active",
                 onboarding_version: null,
                 onboarding_completed: false,
                 portal_use_reason: null,
@@ -204,16 +203,12 @@ export default function PostLoginPageClient() {
           hasValue(profile.state);
 
         const onboardingReady =
-          profile.onboarding_version === 2 &&
+          Number(profile.onboarding_version || 0) >= 2 &&
           profile.onboarding_completed === true &&
           hasValue(profile.portal_use_reason) &&
           hasValue(profile.role_display_label);
 
         const patch: Record<string, any> = {};
-
-        if (profile.approval_status !== "active") {
-          patch.approval_status = "active";
-        }
 
         if (!profile.requested_role && role) {
           patch.requested_role = role;

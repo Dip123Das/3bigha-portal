@@ -231,7 +231,6 @@ export default function RegisterRolePageClient() {
         state: stateName,
         requested_role: bridge.role,
         role: bridge.role,
-        approval_status: "active",
         is_vendor: isBusinessRole,
         onboarding_version: 3,
         onboarding_completed: !bridge.requiresBusinessOnboarding,
