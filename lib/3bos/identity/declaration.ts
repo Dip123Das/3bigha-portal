@@ -129,6 +129,16 @@ export const DECLARABLE_IDENTITIES: HumanIdentityKey[] = [
 
 export const DEFAULT_DECLARABLE_IDENTITIES: HumanIdentityKey[] = [
   "customer",
+  "property_owner",
+  "contractor",
+  "material_business",
+  "equipment_owner",
+  "professional",
+  "skilled_workforce",
+  "transport_business",
+  "farmer",
+  "banker",
+  "government_department",
   "multi_business_operator",
 ];
 

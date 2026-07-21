@@ -342,7 +342,10 @@ export default function RegisterRolePageClient() {
               <button type="button" onClick={() => { setFamily(""); setSearch(""); setShowAllIdentities((current) => !current); }} style={chipStyle(showAllIdentities && !family)}>{showAllIdentities && !family ? "Show main choices" : "View all identities"}</button>
               {DECLARABLE_IDENTITY_FAMILIES.map((item) => <button key={item} type="button" onClick={() => { setFamily(item); setSearch(""); setShowAllIdentities(false); }} style={chipStyle(family === item)}>{getIdentityFamilyLabel(item)}</button>)}
             </div>
-            <input value={search} onChange={(e) => { setSearch(e.target.value); if (e.target.value) setFamily(""); }} placeholder="Search all identities: developer, contractor, banker, Amin, mason..." style={{ ...inputStyle, marginTop: 0, marginBottom: 12 }} />
+            <input value={search} onChange={(e) => { setSearch(e.target.value); if (e.target.value) setFamily(""); }} placeholder="Search all identities: developer, contractor, banker, Amin, mason..." style={{ ...inputStyle, marginTop: 0, marginBottom: 8 }} />
+            <div style={{ color: "#475569", fontSize: 13, marginBottom: 12 }}>
+              Can’t see your identity? Search above, choose a category, or view all identities.
+            </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 10 }}>
               {identityOptions.map((item) => {
                 const selected = identityKey === item.key;
