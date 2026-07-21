@@ -37,6 +37,7 @@ export default function RegisterRolePageClient() {
   const [identityKey, setIdentityKey] = useState<HumanIdentityKey | "">("");
   const [family, setFamily] = useState<IdentityFamilyKey | "">("");
   const [search, setSearch] = useState("");
+  const [showAllIdentities, setShowAllIdentities] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [geography, setGeography] = useState<GeoSelection>({});
@@ -61,18 +62,19 @@ export default function RegisterRolePageClient() {
 
   const identityOptions = useMemo(() => {
     const query = search.trim().toLowerCase();
+    const allIdentities = DECLARABLE_IDENTITIES.map(getHumanIdentity);
     const source = family
       ? getIdentityFamilyOptions(family)
-      // Preserve the approved global order in the All view, including
-      // Multi-Business Operator immediately after Customer.
-      : DECLARABLE_IDENTITIES.map(getHumanIdentity);
+      : search.trim() || showAllIdentities
+        ? allIdentities
+        : allIdentities.slice(0, 2);
     if (!query) return source;
     return source.filter((item) =>
       `${item.label} ${item.description} ${getLocalIdentityLabel(item.key, stateName)}`
         .toLowerCase()
         .includes(query)
     );
-  }, [family, search, stateName]);
+  }, [family, search, showAllIdentities, stateName]);
 
   if (isMasterAdminRequest) {
     return (
@@ -336,10 +338,10 @@ export default function RegisterRolePageClient() {
             <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 4 }}>Choose your primary identity *</div>
             <div style={{ color: "#64748b", fontSize: 14, marginBottom: 12 }}>Choose the identity that best describes your main purpose today. This determines your default workspace—not all you are allowed to do.</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-              <button type="button" onClick={() => setFamily("")} style={chipStyle(!family)}>All</button>
-              {DECLARABLE_IDENTITY_FAMILIES.map((item) => <button key={item} type="button" onClick={() => setFamily(item)} style={chipStyle(family === item)}>{getIdentityFamilyLabel(item)}</button>)}
+              <button type="button" onClick={() => { setFamily(""); setSearch(""); setShowAllIdentities((current) => !current); }} style={chipStyle(showAllIdentities && !family)}>{showAllIdentities && !family ? "Show main choices" : "View all identities"}</button>
+              {DECLARABLE_IDENTITY_FAMILIES.map((item) => <button key={item} type="button" onClick={() => { setFamily(item); setSearch(""); setShowAllIdentities(false); }} style={chipStyle(family === item)}>{getIdentityFamilyLabel(item)}</button>)}
             </div>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search: developer, contractor, banker, Amin, mason..." style={{ ...inputStyle, marginTop: 0, marginBottom: 12 }} />
+            <input value={search} onChange={(e) => { setSearch(e.target.value); if (e.target.value) setFamily(""); }} placeholder="Search all identities: developer, contractor, banker, Amin, mason..." style={{ ...inputStyle, marginTop: 0, marginBottom: 12 }} />
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 10 }}>
               {identityOptions.map((item) => {
                 const selected = identityKey === item.key;
