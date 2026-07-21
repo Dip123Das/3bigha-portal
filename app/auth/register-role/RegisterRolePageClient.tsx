@@ -8,6 +8,7 @@ import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelect
 import {
   DECLARABLE_IDENTITY_FAMILIES,
   DECLARABLE_IDENTITIES,
+  DEFAULT_DECLARABLE_IDENTITIES,
   getHumanIdentity,
   getIdentityDeclarationBridge,
   getIdentityFamilyLabel,
@@ -67,7 +68,7 @@ export default function RegisterRolePageClient() {
       ? getIdentityFamilyOptions(family)
       : search.trim() || showAllIdentities
         ? allIdentities
-        : allIdentities.slice(0, 2);
+        : DEFAULT_DECLARABLE_IDENTITIES.map(getHumanIdentity);
     if (!query) return source;
     return source.filter((item) =>
       `${item.label} ${item.description} ${getLocalIdentityLabel(item.key, stateName)}`

@@ -127,6 +127,11 @@ export const DECLARABLE_IDENTITIES: HumanIdentityKey[] = [
   "multi_business_operator",
 ];
 
+export const DEFAULT_DECLARABLE_IDENTITIES: HumanIdentityKey[] = [
+  "customer",
+  "multi_business_operator",
+];
+
 const SERVICE_IDENTITIES = new Set<HumanIdentityKey>([
   "construction_business", "contractor", "civil_contractor",
   "electrical_contractor", "plumbing_contractor", "interior_contractor",
