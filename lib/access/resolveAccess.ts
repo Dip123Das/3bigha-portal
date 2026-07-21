@@ -9,6 +9,9 @@ export type PortalRole =
   | "hub_vendor"
   | "blogger"
   | "blog_admin"
+  | "banker"
+  | "finance_banker"
+  | "investor"
   | "master_admin";
 
 export type VendorCapabilityKey =
@@ -46,6 +49,9 @@ function normalizeRole(raw: unknown): PortalRole | null {
   if (v === "hub_vendor") return "hub_vendor";
   if (v === "blogger") return "blogger";
   if (v === "blog_admin") return "blog_admin";
+  if (v === "banker") return "banker";
+  if (v === "finance_banker") return "finance_banker";
+  if (v === "investor") return "investor";
   if (v === "master_admin") return "master_admin";
 
   return null;
@@ -314,12 +320,26 @@ export function getDefaultPostLoginPath(access: AccessContext): string {
   if (access.isAdmin) return "/admin/dashboard";
   if (access.isBlogAdmin) return "/admin/blog";
 
-  /*
-   * P04-C — Unified 3BOS is the preferred human entry.
-   *
-   * Existing role dashboards, module pages, URLs and permissions remain
-   * unchanged and directly accessible. Only the default landing decision is
-   * consolidated so ordinary users begin from one understandable workspace.
-   */
-  return "/dashboard/workspace";
+  // /dashboard is a role resolver. The unified workspace remains available
+  // directly, but must not replace a person's primary role dashboard.
+  if (access.role === "banker" || access.role === "finance_banker") {
+    return "/dashboard/banker";
+  }
+
+  if (
+    access.role === "investor" ||
+    access.vendorCapabilities.includes("investor")
+  ) {
+    return "/dashboard/investor";
+  }
+
+  if (access.isBuilder || access.isHubVendor || access.isVendor) {
+    return "/dashboard/vendor";
+  }
+  if (access.role === "blogger") return "/blog/my";
+  if (access.isBuyer) return "/dashboard/buyer";
+
+  // A signed-in account without a resolved specialist role uses the buyer
+  // workspace; never return /dashboard here because that would loop.
+  return "/dashboard/buyer";
 }
