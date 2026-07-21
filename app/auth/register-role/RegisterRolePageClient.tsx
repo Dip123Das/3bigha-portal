@@ -19,6 +19,21 @@ import {
   type LegacyModuleKey,
 } from "@/lib/3bos/identity";
 
+type ManagedIdentity = {
+  identity_key: string;
+  label: string;
+  family_key: string;
+  workspace_label: string;
+  description: string;
+  aliases: string[];
+  legacy_role: "buyer" | "vendor" | "builder" | "hub_vendor" | "blogger" | "banker" | "investor";
+  legacy_modules: LegacyModuleKey[];
+  requires_business_onboarding: boolean;
+  requires_professional_verification: boolean;
+  is_featured: boolean;
+  sort_order: number;
+};
+
 function safeNextPath(raw: string | null) {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "";
   return raw;
@@ -35,7 +50,8 @@ export default function RegisterRolePageClient() {
   const next = safeNextPath(sp.get("next"));
   const isMasterAdminRequest = (sp.get("role") || "").toLowerCase() === "master_admin";
 
-  const [identityKey, setIdentityKey] = useState<HumanIdentityKey | "">("");
+  const [identityKey, setIdentityKey] = useState<string>("");
+  const [managedIdentities, setManagedIdentities] = useState<ManagedIdentity[]>([]);
   const [family, setFamily] = useState<IdentityFamilyKey | "">("");
   const [search, setSearch] = useState("");
   const [showAllIdentities, setShowAllIdentities] = useState(false);
@@ -61,8 +77,36 @@ export default function RegisterRolePageClient() {
     });
   }, []);
 
+  useEffect(() => {
+    let alive = true;
+    supabase
+      .from("identity_master")
+      .select("identity_key,label,family_key,workspace_label,description,aliases,legacy_role,legacy_modules,requires_business_onboarding,requires_professional_verification,is_featured,sort_order")
+      .eq("is_active", true)
+      .order("sort_order")
+      .order("label")
+      .then(({ data, error }) => {
+        // Registration continues with the constitutional code registry until
+        // the managed identity migration has been applied successfully.
+        if (alive && !error && data) setManagedIdentities(data as ManagedIdentity[]);
+      });
+    return () => { alive = false; };
+  }, [supabase]);
+
   const identityOptions = useMemo(() => {
     const query = search.trim().toLowerCase();
+
+    if (managedIdentities.length) {
+      const source = family || query || showAllIdentities
+        ? managedIdentities
+        : managedIdentities.filter((item) => item.is_featured);
+      return source.filter((item) => {
+        const matchesFamily = !family || item.family_key === family;
+        const text = `${item.label} ${item.description} ${(item.aliases || []).join(" ")}`.toLowerCase();
+        return matchesFamily && (!query || text.includes(query));
+      }).map((item) => ({ ...item, key: item.identity_key }));
+    }
+
     const allIdentities = DECLARABLE_IDENTITIES.map(getHumanIdentity);
     const source = family
       ? getIdentityFamilyOptions(family)
@@ -75,7 +119,10 @@ export default function RegisterRolePageClient() {
         .toLowerCase()
         .includes(query)
     );
-  }, [family, search, showAllIdentities, stateName]);
+  }, [family, managedIdentities, search, showAllIdentities, stateName]);
+
+  const managedSelection = managedIdentities.find((item) => item.identity_key === identityKey);
+  const identityLabel = managedSelection?.label || (identityKey ? getLocalIdentityLabel(identityKey as HumanIdentityKey, stateName) : "");
 
   if (isMasterAdminRequest) {
     return (
@@ -194,9 +241,15 @@ export default function RegisterRolePageClient() {
       const user = sessionData.session?.user;
       if (!user?.id) throw new Error("No active session found. Please login again.");
 
-      const identity = getHumanIdentity(identityKey);
-      const bridge = getIdentityDeclarationBridge(identityKey);
-      const displayLabel = getLocalIdentityLabel(identityKey, stateName);
+      const identity = managedSelection || getHumanIdentity(identityKey as HumanIdentityKey);
+      const bridge = managedSelection ? {
+        role: managedSelection.legacy_role,
+        modules: managedSelection.legacy_modules || [],
+        portalUseReason: managedSelection.legacy_role === "buyer" ? "buy_property_or_materials" : "offer_services",
+        requiresBusinessOnboarding: managedSelection.requires_business_onboarding,
+        requiresProfessionalVerification: managedSelection.requires_professional_verification,
+      } : getIdentityDeclarationBridge(identityKey as HumanIdentityKey);
+      const displayLabel = managedSelection?.label || getLocalIdentityLabel(identityKey as HumanIdentityKey, stateName);
       const isBusinessRole = bridge.role !== "buyer" || bridge.requiresBusinessOnboarding;
 
       const { error: authError } = await supabase.auth.updateUser({
@@ -369,15 +422,17 @@ export default function RegisterRolePageClient() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 10 }}>
               {identityOptions.map((item) => {
                 const selected = identityKey === item.key;
-                const bridge = getIdentityDeclarationBridge(item.key);
+                const bridge = "requires_professional_verification" in item
+                  ? { requiresProfessionalVerification: item.requires_professional_verification }
+                  : getIdentityDeclarationBridge(item.key as HumanIdentityKey);
                 return <label key={item.key} style={{ border: `2px solid ${selected ? "#2563eb" : "#e2e8f0"}`, background: selected ? "#eff6ff" : "white", borderRadius: 14, padding: 13, cursor: "pointer" }}>
-                  <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}><input type="radio" name="identity" checked={selected} onChange={() => setIdentityKey(item.key)} style={{ marginTop: 4 }} /><div><div style={{ fontWeight: 900 }}>{getLocalIdentityLabel(item.key, stateName)}</div><div style={{ color: "#64748b", fontSize: 13, marginTop: 3 }}>{item.description}</div>{bridge.requiresProfessionalVerification ? <div style={{ color: "#92400e", fontSize: 12, fontWeight: 800, marginTop: 5 }}>Professional verification required for protected access</div> : null}</div></div>
+                  <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}><input type="radio" name="identity" checked={selected} onChange={() => setIdentityKey(item.key)} style={{ marginTop: 4 }} /><div><div style={{ fontWeight: 900 }}>{item.label}</div><div style={{ color: "#64748b", fontSize: 13, marginTop: 3 }}>{item.description}</div>{bridge.requiresProfessionalVerification ? <div style={{ color: "#92400e", fontSize: 12, fontWeight: 800, marginTop: 5 }}>Professional verification required for protected access</div> : null}</div></div>
                 </label>;
               })}
             </div>
           </section>
 
-          {identityKey ? <div style={{ padding: 14, borderRadius: 12, background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#166534" }}><strong>Primary identity:</strong> {getLocalIdentityLabel(identityKey, stateName)}<br /><span style={{ fontSize: 13 }}>You remain a 3Bigha Member and can add other identities later. Secondary capabilities will not replace this primary workspace.</span></div> : null}
+          {identityKey ? <div style={{ padding: 14, borderRadius: 12, background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#166534" }}><strong>Primary identity:</strong> {identityLabel}<br /><span style={{ fontSize: 13 }}>You remain a 3Bigha Member and can add other identities later. Secondary capabilities will not replace this primary workspace.</span></div> : null}
           {msg ? <div role="alert" style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#9f1239", borderRadius: 10, padding: 11 }}>{msg}</div> : null}
           <button type="submit" disabled={loading} style={{ justifySelf: "start", padding: "12px 20px", borderRadius: 11, border: 0, background: loading ? "#94a3b8" : "#2563eb", color: "white", fontWeight: 900, cursor: loading ? "wait" : "pointer" }}>{loading ? "Preparing your workspace..." : "Confirm identity and continue"}</button>
         </form>

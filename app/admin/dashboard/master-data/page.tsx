@@ -164,6 +164,15 @@ export default function MasterDataEntryCentrePage() {
       </div>
 
       <div className="md-grid">
+        <CardShell title="Identity & Capability · Master Data">
+          <p style={{ margin: "0 0 12px", color: "#64748b", fontSize: 13 }}>
+            Add and organise professional, contractor, rental, company and turnkey identities.
+          </p>
+          <ActionButton href="/admin/dashboard/master-data/identities" variant="primary">
+            Manage identities
+          </ActionButton>
+        </CardShell>
+
         <CardShell title="Property · Master Data">
           <SegmentedToggle
   taxonomyHref="/admin/dashboard/master-data/property/taxonomy"
