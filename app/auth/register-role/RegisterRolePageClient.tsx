@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { trackVendorConversionClient } from "@/components/marketplace/vendor-conversion-client";
+import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
 import {
   DECLARABLE_IDENTITY_FAMILIES,
   getHumanIdentity,
@@ -37,10 +38,17 @@ export default function RegisterRolePageClient() {
   const [search, setSearch] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [city, setCity] = useState("");
-  const [stateName, setStateName] = useState("");
+  const [geography, setGeography] = useState<GeoSelection>({});
+  const [pincode, setPincode] = useState("");
+  const [locating, setLocating] = useState(false);
+  const [locationMsg, setLocationMsg] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+
+  const stateName = geography.state?.name || "";
+  const districtName = geography.district?.name || "";
+  const localityName = geography.place?.name || geography.block?.name || "";
+  const cityName = localityName || districtName;
 
   useEffect(() => {
     trackVendorConversionClient({
@@ -77,10 +85,84 @@ export default function RegisterRolePageClient() {
   function validateForm() {
     if (!fullName.trim()) return "Please enter your full name.";
     if (normalizePhone(phone).length < 10) return "Please enter a valid phone number.";
-    if (!city.trim()) return "Please enter your city.";
-    if (!stateName.trim()) return "Please enter your state.";
+    if (!geography.state?.id) return "Please select your State from the official LGD list.";
+    if (!geography.district?.id) return "Please select your District from the official LGD list.";
+    if (pincode.trim() && !/^\d{6}$/.test(pincode.trim())) return "Please enter a valid 6-digit PIN code.";
     if (!identityKey) return "Please choose the identity that best describes your main work on 3Bigha.";
     return "";
+  }
+
+  async function useCurrentLocation() {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setLocationMsg("Current location is not supported by this browser. Please select your LGD location below.");
+      return;
+    }
+
+    setLocating(true);
+    setLocationMsg("Checking your current location…");
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const response = await fetch("/api/onboarding/verify-location", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              lat: coords.latitude,
+              lng: coords.longitude,
+              accuracy: coords.accuracy,
+            }),
+          });
+          const detected = await response.json().catch(() => null);
+          if (!response.ok || !detected?.ok) throw new Error(detected?.error || "Could not identify this location.");
+
+          const query = detected.postcode || detected.locality || detected.district;
+          if (!query) throw new Error("No LGD match was found for the detected location.");
+          const optionsResponse = await fetch(`/api/geography/options?type=search&q=${encodeURIComponent(query)}&limit=25`, { cache: "no-store" });
+          const optionsJson = await optionsResponse.json().catch(() => null);
+          const options = Array.isArray(optionsJson?.options) ? optionsJson.options : [];
+          const normalizedDistrict = String(detected.district || "").toLowerCase();
+          const match = options.find((item: any) =>
+            !normalizedDistrict || String(item.district_name || "").toLowerCase() === normalizedDistrict
+          ) || options[0];
+          if (!match?.state_id || !match?.district_id) {
+            throw new Error("We detected your area, but could not safely match it to an official LGD location. Please select it below.");
+          }
+
+          const isUrban = Boolean(match.local_body_id || match.ward_id);
+          setGeography({
+            state: { id: match.state_id, name: match.state_name || detected.state || "" },
+            district: { id: match.district_id, name: match.district_name || detected.district || "" },
+            subdivision: match.subdivision_id
+              ? { id: match.subdivision_id, name: match.subdivision_name || "" }
+              : null,
+            block: isUrban
+              ? match.local_body_id
+                ? { id: match.local_body_id, name: match.local_body_name || "", place_type: "LOCAL_BODY" }
+                : null
+              : match.block_id
+                ? { id: match.block_id, name: match.block_name || "" }
+                : null,
+            place: {
+              id: isUrban ? match.ward_id || match.local_body_id || match.id : match.village_id || match.id,
+              name: match.ward_name || match.name,
+              pincode: match.pincode || detected.postcode || null,
+              place_type: match.place_type || null,
+            },
+          });
+          setPincode(String(match.pincode || detected.postcode || ""));
+          setLocationMsg("Location suggested from your device. Please check the official LGD selection before continuing.");
+        } catch (error: any) {
+          setLocationMsg(error?.message || "Could not use your current location. Please select it below.");
+        } finally {
+          setLocating(false);
+        }
+      },
+      (error) => {
+        setLocating(false);
+        setLocationMsg(error?.message || "Location permission was not available. Please select your location below.");
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+    );
   }
 
   async function saveModuleGrants(userId: string, modules: LegacyModuleKey[]) {
@@ -121,6 +203,21 @@ export default function RegisterRolePageClient() {
           human_identity_local_label: displayLabel,
           human_identity_declared_at: new Date().toISOString(),
           professional_verification_required: bridge.requiresProfessionalVerification,
+          lgd_location: {
+            state_code: geography.state?.id || null,
+            state_name: stateName,
+            district_code: geography.district?.id || null,
+            district_name: districtName,
+            subdistrict_code: geography.subdivision?.id || null,
+            subdistrict_name: geography.subdivision?.name || null,
+            block_or_local_body_code: geography.block?.id || null,
+            block_or_local_body_name: geography.block?.name || null,
+            village_or_ward_code: geography.place?.id || null,
+            village_or_ward_name: geography.place?.name || null,
+            place_type: geography.place?.place_type || geography.block?.place_type || null,
+            pincode: pincode.trim() || geography.place?.pincode || null,
+            source: "LGD",
+          },
         },
       });
       if (authError) throw authError;
@@ -130,8 +227,8 @@ export default function RegisterRolePageClient() {
         email: user.email ?? null,
         full_name: fullName.trim(),
         phone: normalizePhone(phone),
-        city: city.trim(),
-        state: stateName.trim(),
+        city: cityName,
+        state: stateName,
         requested_role: bridge.role,
         role: bridge.role,
         approval_status: "active",
@@ -160,10 +257,12 @@ export default function RegisterRolePageClient() {
           trade_license_no: null,
           contact_person: fullName.trim(),
           phone_primary: normalizePhone(phone),
-          city: city.trim(),
-          state: stateName.trim(),
+          city: cityName,
+          district: districtName,
+          locality: localityName || null,
+          state: stateName,
           address_line1: null,
-          pincode: null,
+          pincode: pincode.trim() || geography.place?.pincode || null,
         }, { onConflict: "user_id" });
         if (businessError) throw businessError;
       }
@@ -200,8 +299,35 @@ export default function RegisterRolePageClient() {
           <section style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
             <label style={{ fontWeight: 800 }}>Full Name *<input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your full name" style={inputStyle} /></label>
             <label style={{ fontWeight: 800 }}>Phone *<input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Your phone number" inputMode="tel" style={inputStyle} /></label>
-            <label style={{ fontWeight: 800 }}>City *<input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Your city" style={inputStyle} /></label>
-            <label style={{ fontWeight: 800 }}>State *<input value={stateName} onChange={(e) => setStateName(e.target.value)} placeholder="For example, West Bengal" style={inputStyle} /></label>
+          </section>
+
+          <section>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 18 }}>Your official location *</div>
+                <div style={{ color: "#64748b", fontSize: 14, marginTop: 4 }}>State and District are required. Add the deeper rural or urban LGD location whenever available.</div>
+              </div>
+              <button type="button" onClick={useCurrentLocation} disabled={locating} style={locationButtonStyle}>
+                {locating ? "Finding location…" : "Use my current location"}
+              </button>
+            </div>
+            {locationMsg ? <div role="status" style={{ marginTop: 10, color: "#475569", fontSize: 13 }}>{locationMsg}</div> : null}
+            <GeoSelector
+              value={geography}
+              onChange={(selection) => {
+                setGeography(selection);
+                setPincode(selection.place?.pincode || "");
+                setLocationMsg("");
+              }}
+              includeSubdivision
+              includeBlock
+              includePlace
+              disabled={loading}
+            />
+            <label style={{ display: "block", fontWeight: 800, marginTop: 12, maxWidth: 320 }}>
+              PIN code <span style={{ color: "#64748b", fontWeight: 600 }}>(if available)</span>
+              <input value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="6-digit PIN code" inputMode="numeric" autoComplete="postal-code" style={inputStyle} />
+            </label>
           </section>
 
           <section>
@@ -234,3 +360,4 @@ export default function RegisterRolePageClient() {
 
 const inputStyle: React.CSSProperties = { display: "block", width: "100%", marginTop: 7, borderRadius: 10, border: "1px solid #cbd5e1", padding: "11px 12px", background: "white", fontWeight: 500 };
 const chipStyle = (active: boolean): React.CSSProperties => ({ border: `1px solid ${active ? "#2563eb" : "#cbd5e1"}`, background: active ? "#2563eb" : "white", color: active ? "white" : "#334155", borderRadius: 999, padding: "7px 11px", fontWeight: 800, fontSize: 12, cursor: "pointer" });
+const locationButtonStyle: React.CSSProperties = { border: "1px solid #86efac", background: "#f0fdf4", color: "#166534", borderRadius: 10, padding: "9px 12px", fontWeight: 900, cursor: "pointer" };
