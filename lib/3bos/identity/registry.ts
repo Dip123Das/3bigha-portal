@@ -346,7 +346,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   surveyor: identity({
     key: "surveyor",
     family: "professional",
-    label: "Land Surveyor",
+    label: "Land Surveyor (Amin)",
     workspaceLabel: "Land Survey Workspace",
     description: "A professional providing land or construction surveys.",
     status: "partial",
@@ -526,7 +526,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   mason: identity({
     key: "mason",
     family: "skilled_workforce",
-    label: "Masonry Professional",
+    label: "Masonry Professional (Rajmistri)",
     workspaceLabel: "Mason Workspace",
     description: "A skilled masonry professional.",
     status: "partial",
@@ -536,7 +536,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   carpenter: identity({
     key: "carpenter",
     family: "skilled_workforce",
-    label: "Carpentry Professional",
+    label: "Carpentry Professional (Chhutor Mistri)",
     workspaceLabel: "Carpenter Workspace",
     description: "A skilled carpentry professional.",
     status: "partial",

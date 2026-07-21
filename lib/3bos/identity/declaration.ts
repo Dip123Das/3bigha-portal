@@ -188,12 +188,9 @@ export function getIdentityDeclarationBridge(
 
 export function getLocalIdentityLabel(identityKey: HumanIdentityKey, stateName: string): string {
   const standard = HUMAN_IDENTITY_REGISTRY[identityKey].label;
-  const state = stateName.trim().toLowerCase();
-  const bengal = state === "west bengal" || state === "westbengal" || state === "wb";
-  if (!bengal) return standard;
-  if (identityKey === "surveyor") return `${standard} (Amin)`;
-  if (identityKey === "mason") return `${standard} (Rajmistri)`;
-  if (identityKey === "carpenter") return `${standard} (Chhutor Mistri)`;
+  // Reserved for future state-specific aliases. The familiar terms in the
+  // approved registry labels must be visible before location is selected.
+  void stateName;
   return standard;
 }
 
