@@ -4,719 +4,233 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { trackVendorConversionClient } from "@/components/marketplace/vendor-conversion-client";
-
-type PortalRole =
-  | "buyer"
-  | "vendor"
-  | "builder"
-  | "hub_vendor"
-  | "blogger";
-
-type VendorCapability =
-  | "materials"
-  | "services"
-  | "rentals"
-  | "property_owner"
-  | "property_builder"
-  | "blog_author"
-  | "investor";
-
-type UseReason =
-  | "buy_property_or_materials"
-  | "sell_materials"
-  | "offer_services"
-  | "provide_rentals"
-  | "list_property_for_sale"
-  | "manage_builder_projects"
-  | "operate_multiple_businesses"
-  | "invest_in_opportunities"
-  | "publish_blog_or_news";
+import {
+  DECLARABLE_IDENTITY_FAMILIES,
+  getHumanIdentity,
+  getIdentityDeclarationBridge,
+  getIdentityFamilyLabel,
+  getIdentityFamilyOptions,
+  getLocalIdentityLabel,
+  type HumanIdentityKey,
+  type IdentityFamilyKey,
+  type LegacyModuleKey,
+} from "@/lib/3bos/identity";
 
 function safeNextPath(raw: string | null) {
-  if (!raw) return "";
-  if (!raw.startsWith("/")) return "";
-  if (raw.startsWith("//")) return "";
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "";
   return raw;
-}
-
-function goesToBusinessOnboarding(role: PortalRole | "") {
-  return (
-    role === "vendor" ||
-    role === "builder" ||
-    role === "hub_vendor" ||
-    role === "blogger"
-  );
 }
 
 function normalizePhone(raw: string) {
   return raw.replace(/[^\d+]/g, "").trim();
 }
 
-function getRoleDisplayLabel(
-  role: PortalRole,
-  caps: VendorCapability[]
-): string {
-  if (role === "buyer") return "Buyer";
-  if (role === "builder") return "Builder / Developer";
-  if (role === "hub_vendor") return "Vendor Hub";
-  if (role === "blogger") return "Blogger / Author";
-
-  if (role === "vendor") {
-    if (caps.length === 1) {
-      const c = caps[0];
-      if (c === "materials") return "Materials Vendor";
-      if (c === "services") return "Service Vendor";
-      if (c === "rentals") return "Rental Vendor";
-      if (c === "property_owner") return "Property Vendor / Seller";
-      if (c === "property_builder") return "Builder / Developer";
-      if (c === "blog_author") return "Blogger / Author";
-      if (c === "investor") return "Investor";
-    }
-
-    return caps.includes("investor") ? "Multi-Service Vendor / Investor" : "Multi-Service Vendor";
-  }
-
-  return "User";
-}
-
 export default function RegisterRolePageClient() {
   const router = useRouter();
   const sp = useSearchParams();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
-
   const next = safeNextPath(sp.get("next"));
-  const preselectedRole = (sp.get("role") || "").trim().toLowerCase();
-  const isMasterAdminRequest = preselectedRole === "master_admin";
+  const isMasterAdminRequest = (sp.get("role") || "").toLowerCase() === "master_admin";
 
-  useEffect(() => {
-    // Master admin must not repeatedly auto-redirect from register-role.
-    // Post-login and dashboard routing will handle the correct destination.
-  }, []);
-
-  const [role, setRole] = useState<PortalRole | "">(
-    ["buyer", "vendor", "builder", "hub_vendor", "blogger"].includes(
-      preselectedRole
-    )
-      ? (preselectedRole as PortalRole)
-      : ""
-  );
-  const [caps, setCaps] = useState<VendorCapability[]>([]);
+  const [identityKey, setIdentityKey] = useState<HumanIdentityKey | "">("");
+  const [family, setFamily] = useState<IdentityFamilyKey | "">("");
+  const [search, setSearch] = useState("");
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [stateName, setStateName] = useState("");
-  const [useReason, setUseReason] = useState<UseReason | "">("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
     trackVendorConversionClient({
       eventType: "registration_started",
-      source: "register_role_page",
-      label: "Vendor Registration Started",
-      metadata: {
-        preselectedRole,
-      },
+      source: "human_identity_declaration",
+      label: "3Bigha Member Identity Declaration Started",
     });
-  }, [preselectedRole]);
+  }, []);
 
+  const identityOptions = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    const source = family
+      ? getIdentityFamilyOptions(family)
+      : DECLARABLE_IDENTITY_FAMILIES.flatMap(getIdentityFamilyOptions);
+    if (!query) return source;
+    return source.filter((item) =>
+      `${item.label} ${item.description} ${getLocalIdentityLabel(item.key, stateName)}`
+        .toLowerCase()
+        .includes(query)
+    );
+  }, [family, search, stateName]);
 
   if (isMasterAdminRequest) {
     return (
       <main style={{ padding: "40px 20px", textAlign: "center" }}>
-        <div style={{ fontWeight: 900, fontSize: 18 }}>
-          Master Admin access is already configured.
-        </div>
-        <div style={{ marginTop: 8, opacity: 0.75 }}>
-          Open the admin dashboard from the button below.
-        </div>
-        <a
-          href="/admin/dashboard"
-          style={{
-            display: "inline-flex",
-            marginTop: 16,
-            padding: "10px 16px",
-            borderRadius: 10,
-            background: "#2563eb",
-            color: "white",
-            fontWeight: 800,
-            textDecoration: "none",
-          }}
-        >
-          Open Master Admin Dashboard
+        <div style={{ fontWeight: 900, fontSize: 18 }}>Master Admin access is already configured.</div>
+        <a href="/admin/dashboard" style={{ display: "inline-flex", marginTop: 16, padding: "10px 16px", borderRadius: 10, background: "#2563eb", color: "white", fontWeight: 800, textDecoration: "none" }}>
+          Open Master Admin Workspace
         </a>
       </main>
     );
   }
 
-  function toggleCap(cap: VendorCapability) {
-    setCaps((prev) =>
-      prev.includes(cap) ? prev.filter((x) => x !== cap) : [...prev, cap]
-    );
-  }
-
   function validateForm() {
-    const trimmedName = fullName.trim();
-    const trimmedPhone = normalizePhone(phone);
-    const trimmedCity = city.trim();
-    const trimmedState = stateName.trim();
-
-    if (!role) return "Please choose your role.";
-    if (!trimmedName) return "Please enter your full name.";
-    if (!trimmedPhone || trimmedPhone.length < 10)
-      return "Please enter a valid phone number.";
-    if (!trimmedCity) return "Please enter your city.";
-    if (!trimmedState) return "Please enter your state.";
-    if (!useReason) return "Please tell us why you want to use 3bigha.";
-    if (role === "vendor" && caps.filter((x) => x !== "investor").length === 0)
-      return "Please choose at least one vendor capability.";
-
+    if (!fullName.trim()) return "Please enter your full name.";
+    if (normalizePhone(phone).length < 10) return "Please enter a valid phone number.";
+    if (!city.trim()) return "Please enter your city.";
+    if (!stateName.trim()) return "Please enter your state.";
+    if (!identityKey) return "Please choose the identity that best describes your main work on 3Bigha.";
     return "";
   }
 
-  async function saveModuleGrants(userId: string, selectedRole: PortalRole) {
-    await supabase.from("vendor_module_grants").delete().eq("user_id", userId);
-
-    if (selectedRole === "buyer") {
-      return { error: null as any };
-    }
-
-    if (selectedRole === "vendor") {
-      const capabilityRows = caps.map((cap) => ({
-        user_id: userId,
-        module_key: cap,
-        is_active: true,
-      }));
-
-      if (capabilityRows.length === 0) {
-        return { error: null as any };
-      }
-
-      const { error } = await supabase
-        .from("vendor_module_grants")
-        .insert(capabilityRows);
-
-      return { error };
-    }
-
-    if (selectedRole === "builder") {
-      const { error } = await supabase.from("vendor_module_grants").insert([
-        {
-          user_id: userId,
-          module_key: "property_builder",
-          is_active: true,
-        },
-      ]);
-      return { error };
-    }
-
-    if (selectedRole === "blogger") {
-      const { error } = await supabase.from("vendor_module_grants").insert([
-        {
-          user_id: userId,
-          module_key: "blog_author",
-          is_active: true,
-        },
-      ]);
-      return { error };
-    }
-
-    if (selectedRole === "hub_vendor") {
-      const capabilityRows = [
-        "materials",
-        "services",
-        "rentals",
-        "property_owner",
-        "property_builder",
-        "blog_author",
-        "investor",
-      ].map((cap) => ({
-        user_id: userId,
-        module_key: cap,
-        is_active: true,
-      }));
-
-      const { error } = await supabase
-        .from("vendor_module_grants")
-        .insert(capabilityRows);
-
-      return { error };
-    }
-
-    return { error: null as any };
+  async function saveModuleGrants(userId: string, modules: LegacyModuleKey[]) {
+    const { error: deleteError } = await supabase.from("vendor_module_grants").delete().eq("user_id", userId);
+    if (deleteError) return deleteError;
+    if (!modules.length) return null;
+    const { error } = await supabase.from("vendor_module_grants").insert(
+      modules.map((moduleKey) => ({ user_id: userId, module_key: moduleKey, is_active: true }))
+    );
+    return error;
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
     const validationError = validateForm();
-    if (validationError) {
-      setMsg(validationError);
-      return;
-    }
+    if (validationError) return setMsg(validationError);
+    if (!identityKey) return;
 
     setLoading(true);
     setMsg("");
-
     try {
       const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session?.user ?? null;
+      const user = sessionData.session?.user;
+      if (!user?.id) throw new Error("No active session found. Please login again.");
 
-      if (!user?.id) {
-        setMsg("No active session found. Please login again.");
-        setLoading(false);
-        return;
-      }
+      const identity = getHumanIdentity(identityKey);
+      const bridge = getIdentityDeclarationBridge(identityKey);
+      const displayLabel = getLocalIdentityLabel(identityKey, stateName);
+      const isBusinessRole = bridge.role !== "buyer" || bridge.requiresBusinessOnboarding;
 
-      const isVendor =
-        role === "vendor" ||
-        role === "hub_vendor" ||
-        role === "builder" ||
-        role === "blogger";
+      const { error: authError } = await supabase.auth.updateUser({
+        data: {
+          ...(user.user_metadata || {}),
+          member_identity_status: "declared",
+          primary_human_identity: identityKey,
+          human_identities: [identityKey],
+          human_identity_label: identity.label,
+          human_identity_local_label: displayLabel,
+          human_identity_declared_at: new Date().toISOString(),
+          professional_verification_required: bridge.requiresProfessionalVerification,
+        },
+      });
+      if (authError) throw authError;
 
-      const roleDisplayLabel = getRoleDisplayLabel(role as PortalRole, caps);
-
-      const profilePayload: Record<string, any> = {
+      const { error: profileError } = await supabase.from("profiles").upsert({
         id: user.id,
         email: user.email ?? null,
-        full_name: fullName.trim() || null,
-        phone: normalizePhone(phone) || null,
-        city: city.trim() || null,
-        state: stateName.trim() || null,
-        requested_role: role,
-        role: role,
+        full_name: fullName.trim(),
+        phone: normalizePhone(phone),
+        city: city.trim(),
+        state: stateName.trim(),
+        requested_role: bridge.role,
+        role: bridge.role,
         approval_status: "active",
-        is_vendor: isVendor,
-        onboarding_version: 2,
-        onboarding_completed: !goesToBusinessOnboarding(role),
-        portal_use_reason: useReason,
-        role_display_label: roleDisplayLabel,
-      };
+        is_vendor: isBusinessRole,
+        onboarding_version: 3,
+        onboarding_completed: !bridge.requiresBusinessOnboarding,
+        portal_use_reason: bridge.portalUseReason,
+        role_display_label: displayLabel,
+      }, { onConflict: "id" });
+      if (profileError) throw profileError;
 
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .upsert(profilePayload, { onConflict: "id" });
+      const grantsError = await saveModuleGrants(user.id, bridge.modules);
+      if (grantsError) throw grantsError;
 
-      if (profileError) {
-        setMsg(profileError.message || "Could not save registration.");
-        setLoading(false);
-        return;
-      }
-
-      const { error: grantsError } = await saveModuleGrants(
-        user.id,
-        role as PortalRole
-      );
-
-      if (grantsError) {
-        setMsg(grantsError.message || "Could not save module access.");
-        setLoading(false);
-        return;
-      }
-
-      if (goesToBusinessOnboarding(role)) {
-        const businessPayload = {
+      if (bridge.requiresBusinessOnboarding) {
+        const natureOfBusiness = Array.from(new Set(bridge.modules.map((key) =>
+          key === "property_owner" || key === "property_builder" ? "property" :
+          key === "blog_author" ? "blog" : key
+        )));
+        const { error: businessError } = await supabase.from("business_profiles").upsert({
           user_id: user.id,
           business_name: null,
-          business_type:
-            role === "builder"
-              ? "builder"
-              : role === "hub_vendor"
-              ? "hub"
-              : role === "blogger"
-              ? "blogger"
-              : "vendor",
-          nature_of_business:
-            role === "builder"
-              ? ["property"]
-              : role === "hub_vendor"
-              ? ["property", "materials", "services", "rentals", "blog"]
-              : role === "blogger"
-              ? ["blog"]
-              : caps,
+          business_type: bridge.role === "builder" ? "builder" : bridge.role === "blogger" ? "blogger" : "vendor",
+          nature_of_business: natureOfBusiness,
           gstin: null,
           trade_license_no: null,
-          contact_person: fullName.trim() || null,
-          phone_primary: normalizePhone(phone) || null,
-          city: city.trim() || null,
-          state: stateName.trim() || null,
+          contact_person: fullName.trim(),
+          phone_primary: normalizePhone(phone),
+          city: city.trim(),
+          state: stateName.trim(),
           address_line1: null,
           pincode: null,
-        };
-
-        const { error: businessError } = await supabase
-          .from("business_profiles")
-          .upsert(businessPayload, { onConflict: "user_id" });
-
-        if (!businessError) {
-          trackVendorConversionClient({
-            eventType: "registration_completed",
-            source: "register_role_page",
-            label: "Vendor Registration Completed",
-            metadata: {
-              role,
-              capabilities: caps,
-            },
-          });
-        }
-
-        if (businessError) {
-          setMsg(businessError.message || "Could not save business profile.");
-          setLoading(false);
-          return;
-        }
-
-        const qs = new URLSearchParams();
-        qs.set("returnTo", next || "/dashboard");
-        qs.set("role", role);
-        router.replace(`/onboarding/business?${qs.toString()}`);
-        return;
+        }, { onConflict: "user_id" });
+        if (businessError) throw businessError;
       }
 
-      router.replace(next || "/dashboard");
-    } catch (e: any) {
-      setMsg(e?.message || "Something went wrong.");
+      trackVendorConversionClient({
+        eventType: "registration_completed",
+        source: "human_identity_declaration",
+        label: "3Bigha Member Identity Declared",
+        metadata: { identityKey, legacyRole: bridge.role, modules: bridge.modules },
+      });
+
+      if (bridge.requiresBusinessOnboarding) {
+        const qs = new URLSearchParams({ returnTo: next || "/dashboard", role: bridge.role });
+        router.replace(`/onboarding/business?${qs.toString()}`);
+      } else {
+        router.replace(next || "/dashboard");
+      }
+    } catch (error: any) {
+      setMsg(error?.message || "Could not save your identity. Please try again.");
       setLoading(false);
     }
   }
 
   return (
-    <main style={{ padding: "40px 20px" }}>
-      <div
-        style={{
-          maxWidth: 860,
-          margin: "0 auto",
-          border: "1px solid rgba(0,0,0,0.08)",
-          borderRadius: 12,
-          padding: 24,
-          background: "white",
-        }}
-      >
-        <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 8 }}>
-          Complete Your Registration
-        </div>
+    <main style={{ padding: "32px 16px", background: "#f8fafc", minHeight: "100vh" }}>
+      <div style={{ maxWidth: 1040, margin: "0 auto", border: "1px solid #e2e8f0", borderRadius: 18, padding: 24, background: "white", boxShadow: "0 12px 36px rgba(15,23,42,.06)" }}>
+        <div style={{ color: "#1d4ed8", fontWeight: 900, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase" }}>Welcome, 3Bigha Member</div>
+        <h1 style={{ margin: "8px 0", fontSize: "clamp(24px,4vw,34px)", lineHeight: 1.15 }}>How would you like to use 3Bigha?</h1>
+        <p style={{ margin: "0 0 22px", color: "#475569", maxWidth: 760 }}>
+          We do not assume who you are. Tell us your main professional, business or personal identity so we can prepare the right workspace. You can add more identities later.
+        </p>
 
-        <div style={{ opacity: 0.8, marginBottom: 20 }}>
-          Tell us who you are and why you want to use 3bigha. If your role needs
-          business setup, you will be guided to the next step automatically.
-        </div>
+        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 20 }}>
+          <section style={{ display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
+            <label style={{ fontWeight: 800 }}>Full Name *<input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your full name" style={inputStyle} /></label>
+            <label style={{ fontWeight: 800 }}>Phone *<input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Your phone number" inputMode="tel" style={inputStyle} /></label>
+            <label style={{ fontWeight: 800 }}>City *<input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Your city" style={inputStyle} /></label>
+            <label style={{ fontWeight: 800 }}>State *<input value={stateName} onChange={(e) => setStateName(e.target.value)} placeholder="For example, West Bengal" style={inputStyle} /></label>
+          </section>
 
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 16 }}>
-          <div>
-            <div style={{ fontWeight: 800, marginBottom: 8 }}>Full Name *</div>
-            <input
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Your full name"
-              style={{
-                width: "100%",
-                borderRadius: 10,
-                border: "1px solid #dbe0e6",
-                padding: "10px 12px",
-              }}
-            />
-          </div>
-
-          <div>
-            <div style={{ fontWeight: 800, marginBottom: 8 }}>Phone *</div>
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Your phone number"
-              style={{
-                width: "100%",
-                borderRadius: 10,
-                border: "1px solid #dbe0e6",
-                padding: "10px 12px",
-              }}
-            />
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gap: 16,
-              gridTemplateColumns: "1fr 1fr",
-            }}
-          >
-            <div>
-              <div style={{ fontWeight: 800, marginBottom: 8 }}>City *</div>
-              <input
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Your city"
-                style={{
-                  width: "100%",
-                  borderRadius: 10,
-                  border: "1px solid #dbe0e6",
-                  padding: "10px 12px",
-                }}
-              />
+          <section>
+            <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 4 }}>Choose your primary identity *</div>
+            <div style={{ color: "#64748b", fontSize: 14, marginBottom: 12 }}>Choose the identity that best describes your main purpose today. This determines your default workspace—not all you are allowed to do.</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+              <button type="button" onClick={() => setFamily("")} style={chipStyle(!family)}>All</button>
+              {DECLARABLE_IDENTITY_FAMILIES.map((item) => <button key={item} type="button" onClick={() => setFamily(item)} style={chipStyle(family === item)}>{getIdentityFamilyLabel(item)}</button>)}
             </div>
-
-            <div>
-              <div style={{ fontWeight: 800, marginBottom: 8 }}>State *</div>
-              <input
-                value={stateName}
-                onChange={(e) => setStateName(e.target.value)}
-                placeholder="Your state"
-                style={{
-                  width: "100%",
-                  borderRadius: 10,
-                  border: "1px solid #dbe0e6",
-                  padding: "10px 12px",
-                }}
-              />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search: developer, contractor, banker, Amin, mason..." style={{ ...inputStyle, marginTop: 0, marginBottom: 12 }} />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 10, maxHeight: 450, overflowY: "auto", paddingRight: 4 }}>
+              {identityOptions.map((item) => {
+                const selected = identityKey === item.key;
+                const bridge = getIdentityDeclarationBridge(item.key);
+                return <label key={item.key} style={{ border: `2px solid ${selected ? "#2563eb" : "#e2e8f0"}`, background: selected ? "#eff6ff" : "white", borderRadius: 14, padding: 13, cursor: "pointer" }}>
+                  <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}><input type="radio" name="identity" checked={selected} onChange={() => setIdentityKey(item.key)} style={{ marginTop: 4 }} /><div><div style={{ fontWeight: 900 }}>{getLocalIdentityLabel(item.key, stateName)}</div><div style={{ color: "#64748b", fontSize: 13, marginTop: 3 }}>{item.description}</div>{bridge.requiresProfessionalVerification ? <div style={{ color: "#92400e", fontSize: 12, fontWeight: 800, marginTop: 5 }}>Professional verification required for protected access</div> : null}</div></div>
+                </label>;
+              })}
             </div>
-          </div>
+          </section>
 
-          <div>
-            <div style={{ fontWeight: 800, marginBottom: 8 }}>
-              Who are you? *
-            </div>
-
-            <div style={{ display: "grid", gap: 10 }}>
-              {[
-                {
-                  value: "buyer",
-                  label: "🏠 Buy Property / Materials",
-                  desc: "Browse property, materials, services and rentals. Post RFQs and compare offers.",
-                  caps: [],
-                  reason: "buy_property_or_materials",
-                },
-                {
-                  value: "vendor",
-                  label: "🛒 Sell Materials",
-                  desc: "List materials, receive buyer requirements and send quotations.",
-                  caps: ["materials"],
-                  reason: "sell_materials",
-                },
-                {
-                  value: "vendor",
-                  label: "👷 Provide Services",
-                  desc: "Offer construction, repair, labour, technical or professional services.",
-                  caps: ["services"],
-                  reason: "offer_services",
-                },
-                {
-                  value: "vendor",
-                  label: "🚜 Offer Rentals",
-                  desc: "List equipment, tools, vehicles or rental assets.",
-                  caps: ["rentals"],
-                  reason: "provide_rentals",
-                },
-                {
-                  value: "builder",
-                  label: "🏗 Builder / Developer",
-                  desc: "List builder projects, manage inventory and receive buyer interest.",
-                  caps: ["property_builder"],
-                  reason: "manage_builder_projects",
-                },
-                {
-                  value: "blogger",
-                  label: "📰 Blogger / Publisher",
-                  desc: "Publish blog, news, guides or marketplace content.",
-                  caps: ["blog_author"],
-                  reason: "publish_blog_or_news",
-                },
-                {
-                  value: "hub_vendor",
-                  label: "🏢 Multi-Business Vendor",
-                  desc: "Operate property, materials, services, rentals and content from one account.",
-                  caps: ["materials", "services", "rentals", "property_owner", "property_builder", "blog_author"],
-                  reason: "operate_multiple_businesses",
-                },
-              ].map((item) => (
-                <label
-                  key={item.value}
-                  style={{
-                    display: "grid",
-                    gap: 4,
-                    border: "1px solid #e5e7eb",
-                    borderRadius: 12,
-                    padding: 12,
-                    cursor: "pointer",
-                  }}
-                >
-                  <div
-                    style={{ display: "flex", gap: 10, alignItems: "center" }}
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value={item.value}
-                      checked={role === item.value}
-                      onChange={() => {
-                        const nextCaps = (item.caps as VendorCapability[]) || [];
-                        const keepInvestor = caps.includes("investor");
-                        setRole(item.value as PortalRole);
-                        setCaps(keepInvestor ? [...nextCaps, "investor"] : nextCaps);
-                        setUseReason(item.reason as UseReason);
-                      }}
-                    />
-                    <span style={{ fontWeight: 700 }}>{item.label}</span>
-                  </div>
-
-                  <div
-                    style={{ fontSize: 13, opacity: 0.75, paddingLeft: 26 }}
-                  >
-                    {item.desc}
-                  </div>
-                </label>
-              ))}
-            </div>
-
-            <label
-              style={{
-                marginTop: 12,
-                display: "flex",
-                gap: 10,
-                alignItems: "center",
-                border: "1px solid #fde68a",
-                background: "#fffbeb",
-                borderRadius: 12,
-                padding: 12,
-                cursor: "pointer",
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={caps.includes("investor")}
-                onChange={() => toggleCap("investor")}
-              />
-              <span style={{ fontWeight: 800 }}>
-                💰 I also want to explore investment opportunities
-              </span>
-            </label>
-          </div>
-
-          <div>
-            <div style={{ fontWeight: 800, marginBottom: 8 }}>
-              Why do you want to use 3bigha? *
-            </div>
-
-            <select
-              value={useReason}
-              onChange={(e) => setUseReason(e.target.value as UseReason)}
-              style={{
-                width: "100%",
-                borderRadius: 10,
-                border: "1px solid #dbe0e6",
-                padding: "10px 12px",
-                background: "white",
-              }}
-            >
-              <option value="">Select your purpose</option>
-              <option value="buy_property_or_materials">
-                To buy property or materials
-              </option>
-              <option value="sell_materials">To sell materials</option>
-              <option value="offer_services">To offer services</option>
-              <option value="provide_rentals">To provide rentals</option>
-              <option value="list_property_for_sale">
-                To list property for sale
-              </option>
-              <option value="manage_builder_projects">
-                To manage builder projects
-              </option>
-              <option value="operate_multiple_businesses">
-                To operate multiple businesses through one account
-              </option>
-              <option value="invest_in_opportunities">
-                To invest in opportunities
-              </option>
-              <option value="publish_blog_or_news">
-                To publish blog or news content
-              </option>
-            </select>
-          </div>
-
-          {role === "vendor" ? (
-            <div>
-              <div style={{ fontWeight: 800, marginBottom: 8 }}>
-                Choose Your Vendor Type *
-              </div>
-
-              <div style={{ display: "grid", gap: 10 }}>
-                {[
-                  ["materials", "Materials Vendor"],
-                  ["services", "Service Vendor"],
-                  ["rentals", "Rental Vendor"],
-                  ["property_owner", "Property Vendor / Seller"],
-                  ["property_builder", "Builder / Developer"],
-                  ["blog_author", "Blogger / Author"],
-                ].map(([value, label]) => (
-                  <label
-                    key={value}
-                    style={{
-                      display: "flex",
-                      gap: 10,
-                      alignItems: "center",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 12,
-                      padding: 12,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={caps.includes(value as VendorCapability)}
-                      onChange={() => toggleCap(value as VendorCapability)}
-                    />
-                    <span style={{ fontWeight: 700 }}>{label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          {msg ? (
-            <div
-              style={{
-                border: "1px solid #fecaca",
-                background: "#fff1f2",
-                color: "#9f1239",
-                borderRadius: 10,
-                padding: 10,
-                fontSize: 14,
-              }}
-            >
-              {msg}
-            </div>
-          ) : null}
-
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                padding: "10px 16px",
-                borderRadius: 10,
-                border: "1px solid #2563eb",
-                background: "#2563eb",
-                color: "white",
-                fontWeight: 800,
-                cursor: "pointer",
-              }}
-            >
-              {loading ? "Saving..." : "Continue"}
-            </button>
-
-            {next ? (
-              <div style={{ fontSize: 12, opacity: 0.7 }}>
-                Requested return path: {next}
-              </div>
-            ) : null}
-          </div>
+          {identityKey ? <div style={{ padding: 14, borderRadius: 12, background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#166534" }}><strong>Primary identity:</strong> {getLocalIdentityLabel(identityKey, stateName)}<br /><span style={{ fontSize: 13 }}>You remain a 3Bigha Member and can add other identities later. Secondary capabilities will not replace this primary workspace.</span></div> : null}
+          {msg ? <div role="alert" style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#9f1239", borderRadius: 10, padding: 11 }}>{msg}</div> : null}
+          <button type="submit" disabled={loading} style={{ justifySelf: "start", padding: "12px 20px", borderRadius: 11, border: 0, background: loading ? "#94a3b8" : "#2563eb", color: "white", fontWeight: 900, cursor: loading ? "wait" : "pointer" }}>{loading ? "Preparing your workspace..." : "Confirm identity and continue"}</button>
         </form>
       </div>
     </main>
   );
 }
+
+const inputStyle: React.CSSProperties = { display: "block", width: "100%", marginTop: 7, borderRadius: 10, border: "1px solid #cbd5e1", padding: "11px 12px", background: "white", fontWeight: 500 };
+const chipStyle = (active: boolean): React.CSSProperties => ({ border: `1px solid ${active ? "#2563eb" : "#cbd5e1"}`, background: active ? "#2563eb" : "white", color: active ? "white" : "#334155", borderRadius: 999, padding: "7px 11px", fontWeight: 800, fontSize: 12, cursor: "pointer" });

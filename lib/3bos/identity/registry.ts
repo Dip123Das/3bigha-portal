@@ -24,6 +24,18 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
     legacyPurposes: ["buy_property_or_materials"],
   }),
 
+  property_seeker: identity({
+    key: "property_seeker", family: "customer", label: "Property Seeker",
+    workspaceLabel: "Property Requirements", description: "A person looking to buy land, a home or another property.",
+    status: "production", parent: "customer", legacyRoles: ["buyer"], legacyPurposes: ["buy_property_or_materials"],
+  }),
+
+  tenant: identity({
+    key: "tenant", family: "customer", label: "Tenant / Property Renter",
+    workspaceLabel: "Rental Requirements", description: "A person looking to rent a home, workplace or other property.",
+    status: "foundation", parent: "customer", legacyRoles: ["buyer"],
+  }),
+
   property_owner: identity({
     key: "property_owner",
     family: "property_real_estate",
@@ -34,6 +46,12 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
     legacyModules: ["property", "property_owner"],
     legacyBusinessActivities: ["property"],
     legacyPurposes: ["list_property_for_sale"],
+  }),
+
+  property_lessor: identity({
+    key: "property_lessor", family: "property_real_estate", label: "Property Lessor / Property Owner",
+    workspaceLabel: "Property Rental Workspace", description: "A property owner offering a property for rent or lease.",
+    status: "foundation", parent: "property_owner",
   }),
 
   land_owner: identity({
@@ -63,9 +81,9 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   real_estate_developer: identity({
     key: "real_estate_developer",
     family: "property_real_estate",
-    label: "Real Estate Developer",
-    workspaceLabel: "Developer Workspace",
-    description: "An organisation developing property and real-estate projects.",
+    label: "Real Estate Project Developer (Promoter)",
+    workspaceLabel: "Real Estate Project Workspace",
+    description: "A person or organisation that owns and develops real-estate projects and manages project inventory.",
     status: "partial",
     parent: "builder",
   }),
@@ -114,8 +132,8 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   contractor: identity({
     key: "contractor",
     family: "construction",
-    label: "Contractor",
-    workspaceLabel: "Contractor Workspace",
+    label: "Building Contractor",
+    workspaceLabel: "Building Contractor Workspace",
     description:
       "A contractor managing construction work, quotations and customers.",
     status: "partial",
@@ -328,8 +346,8 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   surveyor: identity({
     key: "surveyor",
     family: "professional",
-    label: "Surveyor",
-    workspaceLabel: "Surveyor Workspace",
+    label: "Land Surveyor",
+    workspaceLabel: "Land Survey Workspace",
     description: "A professional providing land or construction surveys.",
     status: "partial",
     parent: "professional",
@@ -368,11 +386,17 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   valuation_professional: identity({
     key: "valuation_professional",
     family: "professional",
-    label: "Valuation Professional",
+    label: "Property Valuation Professional",
     workspaceLabel: "Valuation Workspace",
     description: "A professional providing valuation services.",
     status: "foundation",
     parent: "professional",
+  }),
+
+  registered_valuer: identity({
+    key: "registered_valuer", family: "professional", label: "Registered Valuer",
+    workspaceLabel: "Registered Valuation Workspace", description: "A verified registered professional providing regulated valuation services.",
+    status: "foundation", parent: "valuation_professional",
   }),
 
   environmental_consultant: identity({
@@ -434,8 +458,8 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   banker: identity({
     key: "banker",
     family: "finance_investment",
-    label: "Banker",
-    workspaceLabel: "Banker Workspace",
+    label: "Banking Professional",
+    workspaceLabel: "Banking Professional Workspace",
     description: "A banking professional handling eligible finance opportunities.",
     status: "production",
   }),
@@ -491,7 +515,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   skilled_workforce: identity({
     key: "skilled_workforce",
     family: "skilled_workforce",
-    label: "Skilled Workforce",
+    label: "Skilled Construction Professional",
     workspaceLabel: "Skilled Workforce Workspace",
     description: "A skilled person or team offering practical services.",
     status: "production",
@@ -502,7 +526,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   mason: identity({
     key: "mason",
     family: "skilled_workforce",
-    label: "Mason",
+    label: "Masonry Professional",
     workspaceLabel: "Mason Workspace",
     description: "A skilled masonry professional.",
     status: "partial",
@@ -512,7 +536,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   carpenter: identity({
     key: "carpenter",
     family: "skilled_workforce",
-    label: "Carpenter",
+    label: "Carpentry Professional",
     workspaceLabel: "Carpenter Workspace",
     description: "A skilled carpentry professional.",
     status: "partial",
@@ -522,7 +546,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   electrician: identity({
     key: "electrician",
     family: "skilled_workforce",
-    label: "Electrician",
+    label: "Electrical Technician",
     workspaceLabel: "Electrician Workspace",
     description: "A skilled electrical professional.",
     status: "partial",
@@ -532,7 +556,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   plumber: identity({
     key: "plumber",
     family: "skilled_workforce",
-    label: "Plumber",
+    label: "Plumbing Professional",
     workspaceLabel: "Plumber Workspace",
     description: "A skilled plumbing professional.",
     status: "partial",
@@ -542,7 +566,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   painter: identity({
     key: "painter",
     family: "skilled_workforce",
-    label: "Painter",
+    label: "Painting Professional",
     workspaceLabel: "Painter Workspace",
     description: "A skilled painting professional.",
     status: "partial",
@@ -552,7 +576,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   fabricator: identity({
     key: "fabricator",
     family: "skilled_workforce",
-    label: "Fabricator",
+    label: "Fabrication Professional",
     workspaceLabel: "Fabricator Workspace",
     description: "A skilled fabrication professional.",
     status: "partial",
@@ -562,7 +586,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   welder: identity({
     key: "welder",
     family: "skilled_workforce",
-    label: "Welder",
+    label: "Welding Professional",
     workspaceLabel: "Welder Workspace",
     description: "A skilled welding professional.",
     status: "partial",
@@ -572,7 +596,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   tile_installer: identity({
     key: "tile_installer",
     family: "skilled_workforce",
-    label: "Tile Installer",
+    label: "Tile Installation Professional",
     workspaceLabel: "Tile Installer Workspace",
     description: "A skilled tile installation professional.",
     status: "foundation",
@@ -582,7 +606,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   steel_fixer: identity({
     key: "steel_fixer",
     family: "skilled_workforce",
-    label: "Steel Fixer",
+    label: "Steel Fixing Professional",
     workspaceLabel: "Steel Fixer Workspace",
     description: "A skilled reinforcement and steel-fixing professional.",
     status: "foundation",
@@ -592,7 +616,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   bar_bender: identity({
     key: "bar_bender",
     family: "skilled_workforce",
-    label: "Bar Bender",
+    label: "Bar Bending Professional",
     workspaceLabel: "Bar Bender Workspace",
     description: "A skilled bar-bending professional.",
     status: "foundation",
@@ -607,6 +631,12 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
     description: "A person supervising construction work and teams.",
     status: "partial",
     parent: "skilled_workforce",
+  }),
+
+  construction_support_worker: identity({
+    key: "construction_support_worker", family: "skilled_workforce", label: "Construction Support Worker",
+    workspaceLabel: "Construction Support Workspace", description: "A person supporting construction teams and practical site work.",
+    status: "foundation", parent: "skilled_workforce",
   }),
 
   transport_business: identity({
@@ -641,7 +671,7 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
   delivery_partner: identity({
     key: "delivery_partner",
     family: "logistics",
-    label: "Delivery Partner",
+    label: "Delivery Professional",
     workspaceLabel: "Delivery Workspace",
     description: "A person or business supporting delivery operations.",
     status: "partial",
@@ -781,6 +811,12 @@ export const HUMAN_IDENTITY_REGISTRY: Record<
     description: "A person creating useful professional knowledge.",
     status: "foundation",
     parent: "author",
+  }),
+
+  multi_business_operator: identity({
+    key: "multi_business_operator", family: "materials_supply", label: "Multi-Business Operator",
+    workspaceLabel: "Multi-Business Workspace", description: "A person or organisation operating more than one business through one account.",
+    status: "production", legacyRoles: ["hub_vendor"],
   }),
 };
 

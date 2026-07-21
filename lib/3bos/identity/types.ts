@@ -31,7 +31,10 @@ export type IdentityLifecycleStatus =
 
 export type HumanIdentityKey =
   | "customer"
+  | "property_seeker"
+  | "tenant"
   | "property_owner"
+  | "property_lessor"
   | "land_owner"
   | "builder"
   | "real_estate_developer"
@@ -64,6 +67,7 @@ export type HumanIdentityKey =
   | "landscape_designer"
   | "project_management_consultant"
   | "valuation_professional"
+  | "registered_valuer"
   | "environmental_consultant"
   | "lawyer"
   | "chartered_accountant"
@@ -88,6 +92,7 @@ export type HumanIdentityKey =
   | "steel_fixer"
   | "bar_bender"
   | "supervisor"
+  | "construction_support_worker"
   | "transport_business"
   | "fleet_owner"
   | "crane_service"
@@ -105,7 +110,8 @@ export type HumanIdentityKey =
   | "trainer"
   | "researcher"
   | "institution"
-  | "knowledge_creator";
+  | "knowledge_creator"
+  | "multi_business_operator";
 
 export type HumanIdentityDefinition = {
   key: HumanIdentityKey;
