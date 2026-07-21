@@ -7,6 +7,7 @@ import { trackVendorConversionClient } from "@/components/marketplace/vendor-con
 import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
 import {
   DECLARABLE_IDENTITY_FAMILIES,
+  DECLARABLE_IDENTITIES,
   getHumanIdentity,
   getIdentityDeclarationBridge,
   getIdentityFamilyLabel,
@@ -62,7 +63,9 @@ export default function RegisterRolePageClient() {
     const query = search.trim().toLowerCase();
     const source = family
       ? getIdentityFamilyOptions(family)
-      : DECLARABLE_IDENTITY_FAMILIES.flatMap(getIdentityFamilyOptions);
+      // Preserve the approved global order in the All view, including
+      // Multi-Business Operator immediately after Customer.
+      : DECLARABLE_IDENTITIES.map(getHumanIdentity);
     if (!query) return source;
     return source.filter((item) =>
       `${item.label} ${item.description} ${getLocalIdentityLabel(item.key, stateName)}`
@@ -337,7 +340,7 @@ export default function RegisterRolePageClient() {
               {DECLARABLE_IDENTITY_FAMILIES.map((item) => <button key={item} type="button" onClick={() => setFamily(item)} style={chipStyle(family === item)}>{getIdentityFamilyLabel(item)}</button>)}
             </div>
             <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search: developer, contractor, banker, Amin, mason..." style={{ ...inputStyle, marginTop: 0, marginBottom: 12 }} />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 10, maxHeight: 450, overflowY: "auto", paddingRight: 4 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 10 }}>
               {identityOptions.map((item) => {
                 const selected = identityKey === item.key;
                 const bridge = getIdentityDeclarationBridge(item.key);
