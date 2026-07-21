@@ -557,11 +557,11 @@ authoritative and unchanged.
 - [x] Constitutional mapping completed
 - [x] Entry implementation completed
 - [x] Focused source assertions added
-- [ ] Type check passed
-- [ ] Production build passed
-- [ ] Desktop reverified
-- [ ] Mobile reverified
-- [ ] Production verified
+- [x] Type check passed
+- [x] Production build passed
+- [x] Desktop reverified
+- [x] Mobile reverified
+- [x] Production verified
 
 ### Implementation evidence
 
@@ -603,11 +603,11 @@ official matching continues to use the existing LGD identifiers and PIN code.
 - [x] Human review extended
 - [x] Authenticated contact requirement corrected
 - [x] Focused source assertions added
-- [ ] Type check passed
-- [ ] Production build passed
-- [ ] Desktop verified
-- [ ] Mobile verified
-- [ ] Production verified
+- [x] Type check passed
+- [x] Production build passed
+- [x] Desktop verified
+- [x] Mobile verified
+- [x] Production verified
 
 ### Implementation evidence
 
@@ -650,11 +650,11 @@ unchanged.
 - [x] Human-first language and review posture added
 - [x] Responsive item and contact layouts added
 - [x] Focused constitutional assertions added
-- [ ] Type check passed
-- [ ] Production build passed
-- [ ] Desktop verified
-- [ ] Mobile verified
-- [ ] Production verified
+- [x] Type check passed
+- [x] Production build passed
+- [x] Desktop verified
+- [x] Mobile verified
+- [x] Production verified
 
 ### Implementation evidence
 
@@ -679,11 +679,62 @@ unchanged.
   preserved.
 - Database migration: none.
 
+### Production evidence
+
+- The complete RFQ series passed TypeScript, the NEEV-R01, R02 and R03 focused
+  assertions, homepage compatibility, P04 (25/25), P04-C (16/16), and the
+  production build generating all 3,898 static pages.
+- Desktop and mobile production screenshots verified the simple and
+  professional requirement forms, responsive item/contact layouts, official
+  LGD selection and non-overlapping mobile assistance posture.
+- GitHub `main` and the Hostinger VPS were promoted to `f3a7d1a` on 20 July
+  2026. The VPS working tree was clean, PM2 `3bigha` remained online, and both
+  `http://127.0.0.1:3000/` and `https://3bigha.com/` returned HTTP 200 on 21
+  July 2026.
+- The pre-series production rollback point is `86c5faa`.
+
 ### Rollback
 
 Apply the inverse of the isolated NEEV-R03 patch. The pre-milestone rollback
 point is the NEEV-R02 commit applied above `86c5faa`. No database, storage,
 API or infrastructure rollback is required.
+
+## NEEV-R04 — Visible professional requirement entry
+
+**Approval:** The repository owner approved continuing with the visible
+professional-tools entry after production verification on 21 July 2026.
+
+**Scope:** Make the existing `/rfq/new` professional route discoverable from
+the first `/rfq` decision surface without adding another mandatory choice.
+
+**Compatibility boundary:** The simple category journey remains primary. The
+existing `/rfq`, `/rfq/new`, review, creation API, LGD geography, permissions,
+database and marketplace workflows remain unchanged.
+
+- [x] Existing entry journey re-audited
+- [x] Professional route exposed as a secondary option
+- [x] Focused constitutional assertions added
+- [ ] Type check passed
+- [ ] Production build passed
+- [ ] Desktop verified
+- [ ] Mobile verified
+- [ ] Production verified
+
+### Implementation evidence
+
+- Added an ordinary-language professional-tools panel immediately after the
+  four simple need categories, so people can discover BOQ, item-row, upload and
+  technical-detail support without first completing the simple form.
+- Explicitly states that the simple choices are best for most people, keeping
+  the human-first path primary and the professional workspace optional.
+- Reuses the established `/rfq/new` route; no parallel form, API, data model,
+  permission or geography source was introduced.
+
+### Rollback
+
+Apply the inverse of the isolated NEEV-R04 patch. The production rollback point
+before this visibility-only milestone is `f3a7d1a`. No database, API, storage
+or infrastructure rollback is required.
 
 ## P04-A — Preferred unified 3BOS workspace entry
 

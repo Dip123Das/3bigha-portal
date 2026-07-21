@@ -207,6 +207,21 @@ export default function SahajRfqClient() {
             </button>
           ))}
         </div>
+
+        <div className="mt-5 rounded-3xl border border-blue-200 bg-blue-50 p-5">
+          <p className="text-sm font-black text-blue-900">
+            Need BOQ, item rows, document uploads or technical details?
+          </p>
+          <p className="mt-1 text-sm font-bold text-slate-600">
+            The simple choices above are best for most people. Use professional tools when your requirement needs more detail.
+          </p>
+          <Link
+            href="/rfq/new"
+            className="mt-3 inline-flex rounded-2xl border border-blue-300 bg-white px-4 py-3 text-sm font-black text-blue-700"
+          >
+            Open Professional Requirement Tools →
+          </Link>
+        </div>
       </SahajLayout>
     );
   }
