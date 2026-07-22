@@ -395,7 +395,11 @@ export default function RegisterRolePageClient() {
       });
 
       if (requiresBusinessOnboarding) {
-        const qs = new URLSearchParams({ returnTo: next || "/dashboard", role: effectiveRole });
+        const qs = new URLSearchParams({
+          returnTo: next || "/dashboard",
+          role: effectiveRole,
+          registration: "1",
+        });
         router.replace(`/onboarding/business?${qs.toString()}`);
       } else {
         router.replace(next || "/dashboard");

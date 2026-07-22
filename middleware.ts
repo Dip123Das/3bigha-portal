@@ -30,6 +30,7 @@ const LOCALES = [
 const PUBLIC_PATH_PREFIXES = [
   "/",
   "/login",
+  "/signup",
   "/auth/callback",
   "/property",
   "/materials",
