@@ -19,5 +19,5 @@ export async function POST(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
   if (["vendor","builder","hub_vendor","blogger"].includes(role)) await trackVendorApproved({ userId, metadata: { role, approvedBy: access.user.id, source: "admin_approve_user" } });
-  return NextResponse.redirect(new URL("/admin/users", req.url), 303);
+  return new NextResponse(null, { status: 303, headers: { Location: "/admin/users" } });
 }

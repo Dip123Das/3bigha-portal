@@ -10,5 +10,5 @@ export async function POST(req: Request) {
   if (!userId) return NextResponse.json({ error: "Invalid rejection request" }, { status: 400 });
   const { error } = await access.admin.from("profiles").update({ approval_status: "rejected", rejection_reason: reason || null }).eq("id", userId).neq("role", "master_admin");
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.redirect(new URL("/admin/users", req.url), 303);
+  return new NextResponse(null, { status: 303, headers: { Location: "/admin/users" } });
 }

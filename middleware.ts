@@ -171,11 +171,18 @@ export async function middleware(req: NextRequest) {
     .eq("id", data.user.id)
     .maybeSingle();
 
-  if (accessProfile?.account_status === "deactivated") {
+  if (["deactivated", "permanently_blocked"].includes(accessProfile?.account_status || "")) {
     const disabledUrl = req.nextUrl.clone();
     disabledUrl.pathname = "/auth/account-disabled";
     disabledUrl.search = "";
     return NextResponse.redirect(disabledUrl);
+  }
+
+  if (accessProfile?.account_status === "re_registration_required" && !pathname.startsWith("/auth/register-role")) {
+    const registrationUrl = req.nextUrl.clone();
+    registrationUrl.pathname = "/auth/register-role";
+    registrationUrl.search = "?registration=1";
+    return NextResponse.redirect(registrationUrl);
   }
 
   if (pathname.startsWith("/admin")) {
