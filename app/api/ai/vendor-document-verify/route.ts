@@ -78,7 +78,7 @@ export async function POST(req: Request) {
           tradeLicenseMatchedInDocument: false,
           businessNameMatched: false,
           addressMatched: false,
-          summary: "Please upload GST certificate or trade license document for AI tally.",
+          summary: "Please upload the GST certificate or Trade Licence document.",
           warnings: ["No uploaded document/image was provided for document matching."],
         },
       });
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
           tradeLicenseMatchedInDocument: false,
           businessNameMatched: false,
           addressMatched: false,
-          summary: "GSTIN format was checked locally, but AI document matching is disabled because OPENAI_API_KEY is missing.",
+          summary: "The GSTIN format was checked, but document matching is temporarily unavailable.",
           warnings: gstinValidation.errors,
         },
       });
@@ -177,8 +177,8 @@ Rules:
           tradeLicenseMatchedInDocument: false,
           businessNameMatched: false,
           addressMatched: false,
-          summary: "GSTIN format checked locally, but AI document reading failed. Please review manually.",
-          warnings: [aiJson?.error?.message || "AI document verification failed."],
+          summary: "The GSTIN format was checked, but the document needs manual review.",
+          warnings: ["Automated document matching was unavailable."],
         },
       });
     }
@@ -251,7 +251,7 @@ Rules:
         addressMatched: Boolean(parsed?.addressMatched),
         summary:
           safeString(parsed?.summary) ||
-          "AI-assisted document tally completed. Please manually review before final approval.",
+          "Document check completed. Please manually review before final approval.",
         warnings,
       },
     });

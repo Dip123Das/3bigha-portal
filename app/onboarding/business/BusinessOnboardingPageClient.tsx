@@ -665,7 +665,7 @@ export default function BusinessOnboardingPageClient() {
     const tradeLicenseNo = String(bp.trade_license_no || "").trim();
 
     if (!gstin && !tradeLicenseNo) {
-      setMsg("Please enter GSTIN or Trade License No before AI document check.");
+      setMsg("Please enter GSTIN or Trade License No before checking the document.");
       return;
     }
 
@@ -675,7 +675,7 @@ export default function BusinessOnboardingPageClient() {
     }
 
     setDocumentVerifyLoading(true);
-    setMsg("AI is checking GSTIN / Trade License against uploaded document...");
+    setMsg("Checking the registration number against the uploaded document...");
 
     try {
       const res = await fetch("/api/ai/vendor-document-verify", {
@@ -706,7 +706,7 @@ export default function BusinessOnboardingPageClient() {
       const json = await res.json().catch(() => null);
 
       if (!res.ok || !json?.ok) {
-        throw new Error(json?.error || "AI document verification failed.");
+        throw new Error(json?.error || "Document verification failed.");
       }
 
       const verification = json.verification as VendorDocumentVerification;
@@ -716,9 +716,9 @@ export default function BusinessOnboardingPageClient() {
         vendor_document_verification_json: verification,
       }));
 
-      setMsg("✅ AI-assisted document tally completed. Please review the result below.");
+      setMsg("✅ Document check completed. Please review the result below.");
     } catch (e: any) {
-      setMsg(e?.message || "AI document verification failed.");
+      setMsg(e?.message || "Document verification failed.");
     } finally {
       setDocumentVerifyLoading(false);
     }
@@ -1595,7 +1595,7 @@ export default function BusinessOnboardingPageClient() {
               }}
             >
               <div style={{ fontWeight: 900 }}>
-                🤖 AI-assisted GST / Trade License document tally
+                GST / Trade Licence document check
               </div>
 
               <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.5 }}>
@@ -1617,7 +1617,7 @@ export default function BusinessOnboardingPageClient() {
                   cursor: documentVerifyLoading || saving ? "not-allowed" : "pointer",
                 }}
               >
-                {documentVerifyLoading ? "AI checking document..." : "AI Check GST / Trade License Document"}
+                {documentVerifyLoading ? "Checking document..." : "Check GST / Trade Licence Document"}
               </button>
 
               {documentVerification ? (
@@ -1652,7 +1652,7 @@ export default function BusinessOnboardingPageClient() {
                   }}
                 >
                   <div style={{ fontWeight: 950 }}>
-                    Status: {documentVerification.status.replace(/_/g, " ")} • Confidence:{" "}
+                    Status: {documentVerification.status === "verified_by_ai" ? "document matched" : documentVerification.status.replace(/_/g, " ").replace("by ai", "")} • Confidence:{" "}
                     {documentVerification.confidence ?? 0}%
                   </div>
 
