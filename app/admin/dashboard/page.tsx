@@ -153,7 +153,7 @@ export default async function AdminDashboardPage() {
   const cards = [
     {
       title: "Admin · User Approvals",
-      desc: "Review new user registrations, requested roles, and approve or reject access.",
+      desc: "Approve identities, deactivate or reactivate accounts, record cash subscriptions, and filter members by official LGD geography.",
       href: "/admin/users",
       show: isMaster(role),
       badges: ["profiles", "pending → approved/rejected"],
@@ -628,8 +628,12 @@ export default async function AdminDashboardPage() {
               </div>
 
               <div style={{ fontSize: 13, color: "#92400e", fontWeight: 800, marginBottom: 12 }}>
-                Safe mode is active. After confirming manual payment, approve the requested vendor plan here.
+                Pending online/manual requests appear here. For auditable hand-cash activation, use Member Administration.
               </div>
+
+              <a href="/admin/users" style={{ display: "inline-block", marginBottom: 12, fontWeight: 900, color: "#1d4ed8" }}>
+                Open Member Administration →
+              </a>
 
               {subscriptionRequests && subscriptionRequests.length > 0 ? (
                 <Grid min={280} gap={12}>

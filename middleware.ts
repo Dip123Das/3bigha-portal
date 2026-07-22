@@ -32,6 +32,7 @@ const PUBLIC_PATH_PREFIXES = [
   "/login",
   "/signup",
   "/auth/callback",
+  "/auth/account-disabled",
   "/property",
   "/materials",
   "/services",
@@ -164,12 +165,21 @@ export async function middleware(req: NextRequest) {
     return loginRedirect(req, pathname);
   }
 
+  const { data: accessProfile } = await supabase
+    .from("profiles")
+    .select("role,account_status")
+    .eq("id", data.user.id)
+    .maybeSingle();
+
+  if (accessProfile?.account_status === "deactivated") {
+    const disabledUrl = req.nextUrl.clone();
+    disabledUrl.pathname = "/auth/account-disabled";
+    disabledUrl.search = "";
+    return NextResponse.redirect(disabledUrl);
+  }
+
   if (pathname.startsWith("/admin")) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", data.user.id)
-      .maybeSingle();
+    const profile = accessProfile;
 
     const canAccessAdminRoute =
       profile?.role === "master_admin" ||

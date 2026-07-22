@@ -4,132 +4,100 @@ import { getSupabaseServerClient } from "@/lib/supabaseServer";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminUsersPage() {
+type Params = Record<string, string | string[] | undefined>;
+const one = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] || "" : value || "";
+
+export default async function AdminUsersPage({ searchParams }: { searchParams?: Params }) {
   const cookieStore = await cookies();
   const supabase = getSupabaseServerClient(cookieStore);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/admin/users");
+  const { data: adminProfile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  if (adminProfile?.role !== "master_admin") return <main style={{ padding: 24 }}>Access denied</main>;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [profilesRes, businessRes, statesRes, districtsRes, subdivisionsRes, blocksRes] = await Promise.all([
+    supabase.from("profiles").select("id,email,full_name,role,requested_role,approval_status,account_status,account_status_reason,created_at,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id").order("created_at", { ascending: false }),
+    supabase.from("business_profiles").select("user_id,business_name,subscription_plan,subscription_status,subscription_expires_at,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id"),
+    supabase.from("geo_states").select("id,name").order("name"),
+    supabase.from("geo_districts").select("id,state_id,name").order("name"),
+    supabase.from("geo_subdivisions").select("id,district_id,name").order("name"),
+    supabase.from("geo_blocks").select("id,district_id,subdivision_id,name").order("name"),
+  ]);
 
-  if (!user) {
-    redirect("/login?next=/admin/users");
-  }
+  const stateId = one(searchParams?.state);
+  const districtId = one(searchParams?.district);
+  const subdivisionId = one(searchParams?.subdivision);
+  const blockId = one(searchParams?.block);
+  const statusFilter = one(searchParams?.account_status);
+  const query = one(searchParams?.q).trim().toLowerCase();
+  const businessByUser = new Map((businessRes.data || []).map((row: any) => [row.user_id, row]));
+  const names = (rows: any[]) => new Map(rows.map((row) => [row.id, row.name]));
+  const stateNames = names(statesRes.data || []), districtNames = names(districtsRes.data || []);
+  const subdivisionNames = names(subdivisionsRes.data || []), blockNames = names(blocksRes.data || []);
 
-  const { data: prof } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
+  const users = (profilesRes.data || []).filter((profile: any) => {
+    const bp: any = businessByUser.get(profile.id) || {};
+    const geo = {
+      state: bp.geo_state_id || profile.geo_state_id || "",
+      district: bp.geo_district_id || profile.geo_district_id || "",
+      subdivision: bp.geo_subdivision_id || profile.geo_subdivision_id || "",
+      block: bp.geo_block_id || profile.geo_block_id || "",
+    };
+    if (stateId && geo.state !== stateId) return false;
+    if (districtId && geo.district !== districtId) return false;
+    if (subdivisionId && geo.subdivision !== subdivisionId) return false;
+    if (blockId && geo.block !== blockId) return false;
+    if (statusFilter && (profile.account_status || "active") !== statusFilter) return false;
+    if (query && !`${profile.email || ""} ${profile.full_name || ""} ${bp.business_name || ""}`.toLowerCase().includes(query)) return false;
+    return true;
+  });
 
-  if (prof?.role !== "master_admin") {
-    return <div style={{ padding: 14 }}>Access denied</div>;
-  }
+  const districts = (districtsRes.data || []).filter((row: any) => !stateId || row.state_id === stateId);
+  const subdivisions = (subdivisionsRes.data || []).filter((row: any) => !districtId || row.district_id === districtId);
+  const blocks = (blocksRes.data || []).filter((row: any) => (!districtId || row.district_id === districtId) && (!subdivisionId || row.subdivision_id === subdivisionId));
+  const field = { padding: "8px 10px", border: "1px solid #cbd5e1", borderRadius: 8 } as const;
 
-  const { data: users } = await supabase
-    .from("profiles")
-    .select("id,email,requested_role,approval_status,created_at")
-    .order("created_at", { ascending: false });
+  return <main style={{ padding: 24, maxWidth: 1500, margin: "0 auto" }}>
+    <h1 style={{ fontSize: 28, fontWeight: 900, margin: 0 }}>Member Administration</h1>
+    <p style={{ color: "#475569" }}>Approve identities, activate or deactivate accounts, record cash subscriptions, and filter members through the official geography hierarchy.</p>
 
-  const userIds = (users || []).map((u) => u.id);
+    <form method="get" style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: 14, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12 }}>
+      <input name="q" defaultValue={one(searchParams?.q)} placeholder="Search name, email or business" style={{ ...field, minWidth: 240 }} />
+      <select name="state" defaultValue={stateId} style={field}><option value="">All states</option>{(statesRes.data || []).map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
+      <select name="district" defaultValue={districtId} style={field}><option value="">All districts</option>{districts.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
+      <select name="subdivision" defaultValue={subdivisionId} style={field}><option value="">All subdivisions</option>{subdivisions.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
+      <select name="block" defaultValue={blockId} style={field}><option value="">All blocks/local bodies</option>{blocks.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
+      <select name="account_status" defaultValue={statusFilter} style={field}><option value="">All account states</option><option value="active">Active</option><option value="deactivated">Deactivated</option></select>
+      <button type="submit" style={field}>Apply filters</button><a href="/admin/users" style={{ ...field, textDecoration: "none", color: "#0f172a" }}>Clear</a>
+    </form>
 
-  const { data: businessProfiles } = await supabase
-    .from("business_profiles")
-    .select("user_id,subscription_plan,subscription_status,subscription_expires_at")
-    .in("user_id", userIds);
-
-  const businessByUserId = new Map(
-    (businessProfiles || []).map((bp) => [bp.user_id, bp])
-  );
-
-  return (
-    <main style={{ padding: 14 }}>
-      <h1 style={{ fontSize: 18, fontWeight: 900 }}>User Approvals</h1>
-
-      <div style={{ marginTop: 20 }}>
-        {users?.map((u) => (
-          <div
-            key={u.id}
-            style={{
-              border: "1px solid #ddd",
-              padding: 12,
-              borderRadius: 10,
-              marginBottom: 10,
-            }}
-          >
-            <div><b>Email:</b> {u.email || "—"}</div>
-            <div><b>Requested Role:</b> {u.requested_role || "—"}</div>
-            <div><b>Status:</b> {u.approval_status || "—"}</div>
-
-                        {(() => {
-              const bp = businessByUserId.get(u.id);
-
-              return (
-                <form
-                  action="/api/admin/update-subscription"
-                  method="post"
-                  style={{
-                    marginTop: 12,
-                    display: "flex",
-                    gap: 8,
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                  }}
-                >
-                  <input type="hidden" name="user_id" value={u.id} />
-
-                  <select
-                    name="subscription_plan"
-                    defaultValue={bp?.subscription_plan || "free"}
-                  >
-                    <option value="free">Free</option>
-                    <option value="basic_vendor">Basic Vendor</option>
-                    <option value="premium_vendor">Premium Vendor</option>
-                    <option value="hub_vendor">Hub Vendor</option>
-                  </select>
-
-                  <select
-                    name="subscription_status"
-                    defaultValue={bp?.subscription_status || "free"}
-                  >
-                    <option value="free">Free</option>
-                    <option value="active">Active</option>
-                    <option value="expired">Expired</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-
-                  <input
-                    type="date"
-                    name="subscription_expires_at"
-                    defaultValue={
-                      bp?.subscription_expires_at
-                        ? String(bp.subscription_expires_at).slice(0, 10)
-                        : ""
-                    }
-                  />
-
-                  <button type="submit">Save Subscription</button>
-                </form>
-              );
-            })()}
-
-            {u.approval_status === "pending" ? (
-              <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <form action="/api/admin/approve-user" method="post">
-                  <input type="hidden" name="user_id" value={u.id} />
-                  <input type="hidden" name="role" value={u.requested_role || ""} />
-                  <button type="submit">Approve</button>
-                </form>
-
-                <form action="/api/admin/reject-user" method="post">
-                  <input type="hidden" name="user_id" value={u.id} />
-                  <button type="submit">Reject</button>
-                </form>
-              </div>
-            ) : null}
+    <div style={{ margin: "16px 0", fontWeight: 800 }}>{users.length} member{users.length === 1 ? "" : "s"}</div>
+    <div style={{ display: "grid", gap: 14 }}>
+      {users.map((profile: any) => {
+        const bp: any = businessByUser.get(profile.id) || {};
+        const geoState = bp.geo_state_id || profile.geo_state_id, geoDistrict = bp.geo_district_id || profile.geo_district_id;
+        const geoSubdivision = bp.geo_subdivision_id || profile.geo_subdivision_id, geoBlock = bp.geo_block_id || profile.geo_block_id;
+        const active = (profile.account_status || "active") === "active";
+        return <article key={profile.id} style={{ border: `1px solid ${active ? "#dbeafe" : "#fecaca"}`, borderRadius: 14, padding: 16, background: active ? "white" : "#fff7f7" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            <div><strong>{profile.full_name || bp.business_name || "Unnamed member"}</strong><div>{profile.email || "No email"}</div><div style={{ color: "#64748b", fontSize: 13 }}>{[stateNames.get(geoState), districtNames.get(geoDistrict), subdivisionNames.get(geoSubdivision), blockNames.get(geoBlock)].filter(Boolean).join(" → ") || "LGD location not recorded"}</div></div>
+            <div><b>{active ? "Active" : "Deactivated"}</b><div style={{ fontSize: 13 }}>{profile.account_status_reason || "No status note"}</div></div>
           </div>
-        ))}
-      </div>
-    </main>
-  );
+          <div style={{ marginTop: 10 }}>Role: <b>{profile.role || "unresolved"}</b> · Requested: <b>{profile.requested_role || "—"}</b> · Approval: <b>{profile.approval_status || "—"}</b></div>
+
+          {profile.approval_status === "pending" ? <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}><form action="/api/admin/approve-user" method="post"><input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="role" value={profile.requested_role || ""}/><button>Approve identity</button></form><form action="/api/admin/reject-user" method="post" style={{ display: "flex", gap: 8 }}><input type="hidden" name="user_id" value={profile.id}/><input name="reason" placeholder="Reason for rejection" required style={field}/><button>Reject identity</button></form></div> : null}
+
+          {profile.id !== user.id && profile.role !== "master_admin" ? <form action="/api/admin/account-status" method="post" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}><input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="action" value={active ? "deactivate" : "activate"}/><input name="reason" placeholder={active ? "Reason for deactivation" : "Reactivation note"} required={active} style={{ ...field, minWidth: 250 }}/><button type="submit" style={{ ...field, background: active ? "#b91c1c" : "#15803d", color: "white" }}>{active ? "Deactivate account" : "Reactivate account"}</button></form> : null}
+
+          <form action="/api/admin/update-subscription" method="post" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 8, marginTop: 14, padding: 12, background: "#fffbeb", borderRadius: 10 }}>
+            <input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="cash_payment" value="1"/>
+            <select name="subscription_plan" defaultValue={bp.subscription_plan === "free" ? "basic_vendor" : bp.subscription_plan || "basic_vendor"} style={field}><option value="basic_vendor">Basic Vendor</option><option value="silver_vendor">Silver Vendor</option><option value="gold_vendor">Gold Vendor</option><option value="platinum_vendor">Platinum Vendor</option><option value="premium_vendor">Premium Vendor (legacy)</option><option value="hub_vendor">Hub Vendor (legacy)</option></select>
+            <input type="hidden" name="subscription_status" value="active"/><input type="date" name="subscription_expires_at" defaultValue={bp.subscription_expires_at ? String(bp.subscription_expires_at).slice(0,10) : ""} required style={field}/>
+            <input type="number" name="amount" min="0" step="0.01" placeholder="Cash amount ₹" required style={field}/><input name="reference_no" placeholder="Receipt/reference number" required style={field}/><input name="notes" placeholder="Cash collection notes" style={field}/>
+            <button type="submit" style={{ ...field, background: "#0f766e", color: "white" }}>Record cash & activate</button>
+          </form>
+        </article>;
+      })}
+    </div>
+  </main>;
 }

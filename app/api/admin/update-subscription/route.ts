@@ -1,65 +1,65 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
 
-export const runtime = "nodejs";
-
-function getSupabaseAdmin() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error("Missing Supabase env vars");
-  }
-
-  return createClient(supabaseUrl, serviceRoleKey);
-}
-
-function getPlanAmount(plan: string) {
-  if (plan === "hub_vendor") return 2999;
-  if (plan === "premium_vendor") return 1299;
-  if (plan === "basic_vendor") return 599;
-  return 0;
-}
+const PLANS = new Set(["free", "basic_vendor", "silver_vendor", "gold_vendor", "platinum_vendor", "premium_vendor", "hub_vendor"]);
+const STATUSES = new Set(["free", "active", "expired", "cancelled"]);
 
 export async function POST(req: Request) {
-  const supabase = getSupabaseAdmin();
-  const form = await req.formData();
+  const access = await requireMasterAdmin();
+  if ("error" in access) return NextResponse.json({ error: access.error }, { status: access.status });
 
+  const form = await req.formData();
   const userId = String(form.get("user_id") || "");
   const plan = String(form.get("subscription_plan") || "free");
   const status = String(form.get("subscription_status") || "free");
   const expiresAt = String(form.get("subscription_expires_at") || "");
-  const referenceNo = String(form.get("reference_no") || "");
-  const notes = String(form.get("notes") || "");
+  const cashPayment = String(form.get("cash_payment") || "") === "1";
+  const amount = Number(form.get("amount") || 0);
+  const receiptReference = String(form.get("reference_no") || "").trim();
+  const notes = String(form.get("notes") || "").trim();
 
-  if (!userId) {
-    return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+  if (!userId || !PLANS.has(plan) || !STATUSES.has(status)) return NextResponse.json({ error: "Invalid subscription request" }, { status: 400 });
+  if (cashPayment && (status !== "active" || plan === "free" || !receiptReference || !Number.isFinite(amount) || amount < 0)) {
+    return NextResponse.json({ error: "Cash activation requires an active paid plan, amount and receipt/reference number." }, { status: 400 });
   }
 
-  const subscriptionExpiresAt = expiresAt ? `${expiresAt}T23:59:59` : null;
+  const subscriptionExpiresAt = expiresAt ? `${expiresAt}T23:59:59.000Z` : null;
+  if (cashPayment) {
+    const { data: audit, error: auditError } = await access.admin.from("admin_cash_subscription_audit").insert({
+      user_id: userId,
+      admin_user_id: access.user.id,
+      subscription_plan: plan,
+      amount,
+      currency: "INR",
+      receipt_reference: receiptReference,
+      notes: notes || null,
+      subscription_expires_at: subscriptionExpiresAt,
+    }).select("id").single();
+    if (auditError) return NextResponse.json({ error: auditError.message }, { status: 400 });
 
-  await supabase
-    .from("business_profiles")
-    .update({
+    const { error } = await access.admin.from("business_profiles").update({
       subscription_plan: plan,
       subscription_status: status,
       subscription_expires_at: subscriptionExpiresAt,
-    })
-    .eq("user_id", userId);
+    }).eq("user_id", userId);
+    if (error) {
+      if (audit?.id) await access.admin.from("admin_cash_subscription_audit").delete().eq("id", audit.id);
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
 
-  if (status === "active" && plan !== "free") {
-    await supabase.from("payment_records").insert({
-      user_id: userId,
-      subscription_plan: plan,
-      amount: getPlanAmount(plan),
-      currency: "INR",
-      payment_method: "manual",
-      payment_status: "paid",
-      reference_no: referenceNo || null,
-      notes: notes || null,
-      subscription_expires_at: subscriptionExpiresAt,
+    await access.admin.from("payment_records").insert({
+      user_id: userId, subscription_plan: plan, amount, currency: "INR",
+      payment_method: "cash", payment_status: "paid", reference_no: receiptReference,
+      notes: notes || null, subscription_expires_at: subscriptionExpiresAt,
     });
+  } else {
+    const { error } = await access.admin.from("business_profiles").update({
+      subscription_plan: plan,
+      subscription_status: status,
+      subscription_expires_at: subscriptionExpiresAt,
+    }).eq("user_id", userId);
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
-  return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+  return NextResponse.redirect(new URL("/admin/users", req.url), 303);
 }
