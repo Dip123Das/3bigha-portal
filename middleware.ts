@@ -29,6 +29,8 @@ const LOCALES = [
 
 const PUBLIC_PATH_PREFIXES = [
   "/",
+  "/login",
+  "/auth/callback",
   "/property",
   "/materials",
   "/services",
@@ -75,6 +77,14 @@ function getLocaleFromPath(pathname: string) {
   return LOCALES.includes(first) ? first : null;
 }
 
+function loginRedirect(req: NextRequest, pathname: string) {
+  const url = req.nextUrl.clone();
+  url.pathname = "/login";
+  url.search = "";
+  url.searchParams.set("next", pathname + req.nextUrl.search);
+  return NextResponse.redirect(url);
+}
+
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
@@ -117,7 +127,11 @@ export async function middleware(req: NextRequest) {
     });
   }
 
-  if (isPublicPath(pathname)) {
+  const authPathname = locale
+    ? pathname.replace(`/${locale}`, "") || "/"
+    : pathname;
+
+  if (isPublicPath(authPathname)) {
     return res;
   }
 
@@ -143,7 +157,30 @@ export async function middleware(req: NextRequest) {
     },
   });
 
-  await supabase.auth.getUser();
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error || !data.user) {
+    return loginRedirect(req, pathname);
+  }
+
+  if (pathname.startsWith("/admin")) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    const canAccessAdminRoute =
+      profile?.role === "master_admin" ||
+      (profile?.role === "blog_admin" && pathname.startsWith("/admin/blog"));
+
+    if (!canAccessAdminRoute) {
+      const dashboardUrl = req.nextUrl.clone();
+      dashboardUrl.pathname = "/dashboard";
+      dashboardUrl.search = "";
+      return NextResponse.redirect(dashboardUrl);
+    }
+  }
 
   return res;
 }

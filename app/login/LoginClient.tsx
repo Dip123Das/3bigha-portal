@@ -162,7 +162,8 @@ export default function LoginClient() {
   const router = useRouter();
   const sp = useSearchParams();
 
-  const debugEnabled = sp.get("debug") === "1";
+  const debugEnabled =
+    process.env.NODE_ENV !== "production" && sp.get("debug") === "1";
   const nextRaw = sp.get("next");
   const openEnquiry = sp.get("openEnquiry");
 
@@ -203,7 +204,9 @@ export default function LoginClient() {
     const line = `[${new Date().toISOString()}] ${s}`;
     debugLines.current = [line, ...debugLines.current].slice(0, 200);
     if (debugEnabled) console.log(s);
-    (window as any).__loginDebug = debugLines.current;
+    if (debugEnabled) {
+      (window as any).__loginDebug = debugLines.current;
+    }
   };
 
   const startElapsed = () => {
@@ -525,7 +528,7 @@ export default function LoginClient() {
             Welcome to 3Bigha
           </div>
           <div style={{ marginTop: 6, fontSize: 14, color: "#64748b", fontWeight: 700 }}>
-            Login to continue your marketplace work
+            Sign in to access your Business Workspace
           </div>
         </div>
 
