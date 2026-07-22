@@ -1,60 +1,23 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
 import { trackVendorApproved } from "@/lib/marketplace/vendor-conversion-analytics";
 
+const APPROVABLE_ROLES = new Set(["buyer","vendor","builder","hub_vendor","blogger","banker","finance_banker","investor"]);
+
 export async function POST(req: Request) {
-  const formData = await req.formData();
+  const access = await requireMasterAdmin();
+  if ("error" in access) return NextResponse.json({ error: access.error }, { status: access.status });
+  const form = await req.formData();
+  const userId = String(form.get("user_id") || "");
+  const role = String(form.get("role") || "");
+  if (!userId || !APPROVABLE_ROLES.has(role)) return NextResponse.json({ error: "Invalid approval request" }, { status: 400 });
 
-  const userId = String(formData.get("user_id"));
-  const role = String(formData.get("role"));
+  const { error } = await access.admin.from("profiles").update({
+    role, approval_status: "approved", approved_by: access.user.id,
+    approved_at: new Date().toISOString(), rejection_reason: null,
+  }).eq("id", userId).neq("role", "master_admin");
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
-  const cookieStore = await cookies();
-  const supabase = getSupabaseServerClient(cookieStore);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { data: admin } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (admin?.role !== "master_admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  await supabase
-    .from("profiles")
-    .update({
-      role,
-      approval_status: "approved",
-      approved_by: user.id,
-      approved_at: new Date().toISOString(),
-    })
-    .eq("id", userId);
-
-  if (
-    role === "vendor" ||
-    role === "builder" ||
-    role === "hub_vendor" ||
-    role === "blogger"
-  ) {
-    await trackVendorApproved({
-      userId,
-      metadata: {
-        role,
-        approvedBy: user.id,
-        source: "admin_approve_user",
-      },
-    });
-  }
-
-  return NextResponse.redirect(new URL("/admin/users", req.url));
+  if (["vendor","builder","hub_vendor","blogger"].includes(role)) await trackVendorApproved({ userId, metadata: { role, approvedBy: access.user.id, source: "admin_approve_user" } });
+  return NextResponse.redirect(new URL("/admin/users", req.url), 303);
 }

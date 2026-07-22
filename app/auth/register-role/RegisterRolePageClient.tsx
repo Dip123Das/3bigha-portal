@@ -402,6 +402,11 @@ export default function RegisterRolePageClient() {
         onboarding_completed: true,
         portal_use_reason: bridge.portalUseReason,
         role_display_label: displayLabel,
+        geo_state_id: geography.state?.id || null,
+        geo_district_id: geography.district?.id || null,
+        geo_subdivision_id: geography.subdivision?.id || null,
+        geo_block_id: geography.block?.id || null,
+        geo_place_id: geography.place?.id || null,
       }, { onConflict: "id" });
       if (profileError) throw profileError;
 
