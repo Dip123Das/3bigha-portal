@@ -71,7 +71,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams?: 
       <select name="district" defaultValue={districtId} style={field}><option value="">All districts</option>{districts.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
       <select name="subdivision" defaultValue={subdivisionId} style={field}><option value="">All subdivisions</option>{subdivisions.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
       <select name="block" defaultValue={blockId} style={field}><option value="">All blocks/local bodies</option>{blocks.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
-      <select name="account_status" defaultValue={statusFilter} style={field}><option value="">All account states</option><option value="active">Active</option><option value="deactivated">Deactivated</option></select>
+      <select name="account_status" defaultValue={statusFilter} style={field}><option value="">All account states</option><option value="active">Active</option><option value="deactivated">Temporarily suspended</option><option value="re_registration_required">Re-registration required</option><option value="permanently_blocked">Serious block</option></select>
       <button type="submit" style={field}>Apply filters</button><a href="/admin/users" style={{ ...field, textDecoration: "none", color: "#0f172a" }}>Clear</a>
     </form>
 
@@ -81,11 +81,17 @@ export default async function AdminUsersPage({ searchParams }: { searchParams?: 
         const bp: any = businessByUser.get(profile.id) || {};
         const geoState = bp.geo_state_id || profile.geo_state_id, geoDistrict = bp.geo_district_id || profile.geo_district_id;
         const geoSubdivision = bp.geo_subdivision_id || profile.geo_subdivision_id, geoBlock = bp.geo_block_id || profile.geo_block_id;
-        const active = (profile.account_status || "active") === "active";
+        const accountStatus = profile.account_status || "active";
+        const active = accountStatus === "active";
+        const statusLabel = accountStatus === "re_registration_required"
+          ? "Re-registration required"
+          : accountStatus === "permanently_blocked"
+            ? "Serious block"
+            : active ? "Active" : "Suspended";
         return <article key={profile.id} style={{ border: `1px solid ${active ? "#dbeafe" : "#fecaca"}`, borderRadius: 14, padding: 16, background: active ? "white" : "#fff7f7" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
             <div><strong>{profile.full_name || bp.business_name || "Unnamed member"}</strong><div>{profile.email || "No email"}</div><div style={{ color: "#64748b", fontSize: 13 }}>{[stateNames.get(geoState), districtNames.get(geoDistrict), subdivisionNames.get(geoSubdivision), blockNames.get(geoBlock)].filter(Boolean).join(" → ") || "LGD location not recorded"}</div></div>
-            <div><b>{active ? "Active" : "Deactivated"}</b><div style={{ fontSize: 13 }}>{profile.account_status_reason || "No status note"}</div></div>
+            <div><b>{statusLabel}</b><div style={{ fontSize: 13 }}>{profile.account_status_reason || "No status note"}</div></div>
           </div>
           <div style={{ marginTop: 10 }}>Role: <b>{profile.role || "unresolved"}</b> · Requested: <b>{profile.requested_role || "—"}</b> · Approval: <b>{profile.approval_status || "—"}</b></div>
 
@@ -94,6 +100,11 @@ export default async function AdminUsersPage({ searchParams }: { searchParams?: 
           {profile.id !== user.id && profile.role !== "master_admin" ? <form action="/api/admin/account-status" method="post" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
             <input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="action" value={active ? "deactivate" : "activate"}/>
             {active ? <>
+              <select name="restriction_mode" required defaultValue="suspend" style={{ ...field, minWidth: 250 }}>
+                <option value="suspend">Temporary suspension — admin review required</option>
+                <option value="re_register">Ordinary issue — allow re-registration</option>
+                <option value="permanent">Serious violation — block indefinitely</option>
+              </select>
               <select name="reason_code" required defaultValue="" style={{ ...field, minWidth: 260 }}>
                 <option value="" disabled>Select deactivation reason</option>
                 <option value="policy_violation">Terms or policy violation</option>

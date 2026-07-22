@@ -417,6 +417,9 @@ export default function RegisterRolePageClient() {
       });
       if (declarationError) throw declarationError;
 
+      const { error: reRegistrationError } = await supabase.rpc("complete_required_re_registration");
+      if (reRegistrationError) throw reRegistrationError;
+
       const grantsError = await saveModuleGrants(user.id, allModules);
       if (grantsError) throw grantsError;
 
