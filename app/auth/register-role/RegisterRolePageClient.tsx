@@ -73,6 +73,7 @@ export default function RegisterRolePageClient() {
   const [showAllIdentities, setShowAllIdentities] = useState(false);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [businessName, setBusinessName] = useState("");
   const [geography, setGeography] = useState<GeoSelection>({});
   const [pincode, setPincode] = useState("");
   const [locating, setLocating] = useState(false);
@@ -141,6 +142,10 @@ export default function RegisterRolePageClient() {
   const managedSelection = managedIdentities.find((item) => item.identity_key === identityKey);
   const identityLabel = managedSelection?.label || (identityKey ? getLocalIdentityLabel(identityKey as HumanIdentityKey, stateName) : "");
   const operatingDefinition = OPERATING_PROFILES.find((item) => item.key === operatingProfile)!;
+  const needsBusinessProfile = operatingProfile === "multi_business_organisation" || identityKeys.some((key) => {
+    const managed = managedIdentities.find((item) => item.identity_key === key);
+    return managed?.requires_business_onboarding ?? getIdentityDeclarationBridge(key as HumanIdentityKey).requiresBusinessOnboarding;
+  });
 
   function selectIdentity(key: string) {
     setMsg("");
@@ -182,6 +187,7 @@ export default function RegisterRolePageClient() {
     if (!geography.district?.id) return "Please select your District from the official LGD list.";
     if (pincode.trim() && !/^\d{6}$/.test(pincode.trim())) return "Please enter a valid 6-digit PIN code.";
     if (!identityKey) return "Please choose at least one work category.";
+    if (needsBusinessProfile && !businessName.trim()) return "Please enter your business or professional name.";
     if (operatingProfile === "multi_service_professional" && identityKeys.length < 2) return "Please choose at least two categories for a Multi-Service Professional profile.";
     if (operatingDefinition.limit && identityKeys.length > operatingDefinition.limit) return `Please choose no more than ${operatingDefinition.limit} categories.`;
     return "";
@@ -347,7 +353,7 @@ export default function RegisterRolePageClient() {
         city: cityName,
         state: stateName,
         onboarding_version: 3,
-        onboarding_completed: !requiresBusinessOnboarding,
+        onboarding_completed: true,
         portal_use_reason: bridge.portalUseReason,
         role_display_label: displayLabel,
       }, { onConflict: "id" });
@@ -370,7 +376,7 @@ export default function RegisterRolePageClient() {
         )));
         const { error: businessError } = await supabase.from("business_profiles").upsert({
           user_id: user.id,
-          business_name: null,
+          business_name: businessName.trim(),
           business_type: effectiveRole === "builder" ? "builder" : effectiveRole === "blogger" ? "blogger" : effectiveRole === "hub_vendor" ? "multi_business" : "vendor",
           nature_of_business: natureOfBusiness,
           gstin: null,
@@ -394,16 +400,7 @@ export default function RegisterRolePageClient() {
         metadata: { identityKey, identityKeys, operatingProfile, legacyRole: effectiveRole, modules: allModules },
       });
 
-      if (requiresBusinessOnboarding) {
-        const qs = new URLSearchParams({
-          returnTo: next || "/dashboard",
-          role: effectiveRole,
-          registration: "1",
-        });
-        router.replace(`/onboarding/business?${qs.toString()}`);
-      } else {
-        router.replace(next || "/dashboard");
-      }
+      router.replace(next || "/dashboard");
     } catch (error: any) {
       setMsg(error?.message || "Could not save your identity. Please try again.");
       setLoading(false);
@@ -516,6 +513,24 @@ export default function RegisterRolePageClient() {
               })}
             </div>
           </section>
+
+          {needsBusinessProfile ? (
+            <section style={{ padding: 16, border: "1px solid #dbeafe", borderRadius: 14, background: "#f8fbff" }}>
+              <label style={{ display: "block", fontWeight: 800 }}>
+                Business or professional name *
+                <input
+                  value={businessName}
+                  onChange={(event) => setBusinessName(event.target.value)}
+                  placeholder="The name customers should see"
+                  autoComplete="organization"
+                  style={inputStyle}
+                />
+              </label>
+              <div style={{ marginTop: 8, color: "#64748b", fontSize: 13 }}>
+                Licences, tax details, media, service coverage and other optional information can be added later from Manage Business Profile.
+              </div>
+            </section>
+          ) : null}
 
           {identityKey ? <div style={{ padding: 14, borderRadius: 12, background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#166534" }}><strong>Primary category:</strong> {identityLabel}<br /><span style={{ fontSize: 13 }}>{identityKeys.length} {identityKeys.length === 1 ? "category" : "categories"} selected · Recommended: {operatingDefinition.plan}. Adding a category outside your active entitlement will be stopped and you will be guided to the appropriate upgrade.</span></div> : null}
           {msg ? <div role="alert" style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#9f1239", borderRadius: 10, padding: 11 }}>{msg}</div> : null}
