@@ -64,7 +64,7 @@ export default function AwaitingApprovalPage() {
           businessProfile?.business_profile_complete === true;
 
         if (!progressiveVendorReady) {
-          router.replace("/onboarding/business");
+          router.replace("/onboarding/business?registration=1");
           return;
         }
 

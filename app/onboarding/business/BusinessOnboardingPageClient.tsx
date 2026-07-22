@@ -370,6 +370,11 @@ export default function BusinessOnboardingPageClient() {
   const returnTo =
     rawReturnTo === "/dashboard" ? "/dashboard/vendor" : rawReturnTo;
   const roleFromQuery = (sp.get("role") || "").trim().toLowerCase();
+  const onboardingPath = `/onboarding/business?${new URLSearchParams({
+    returnTo: rawReturnTo,
+    ...(streamlinedRegistration ? { registration: "1" } : {}),
+    ...(roleFromQuery ? { role: roleFromQuery } : {}),
+  }).toString()}`;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -452,7 +457,7 @@ export default function BusinessOnboardingPageClient() {
       try {
         const sessionOrUser = await ensureSessionOrRedirect(
           supabase,
-          `/onboarding/business?returnTo=${encodeURIComponent(returnTo)}`
+          onboardingPath
         );
 
         if (!alive || !sessionOrUser) return;
@@ -464,7 +469,7 @@ export default function BusinessOnboardingPageClient() {
 
         if (!uid) {
           window.location.href = `/login?next=${encodeURIComponent(
-            `/onboarding/business?returnTo=${encodeURIComponent(returnTo)}`
+            onboardingPath
           )}`;
           return;
         }
@@ -793,7 +798,7 @@ export default function BusinessOnboardingPageClient() {
 
     const authOk = await ensureSessionOrRedirect(
       supabase,
-      `/onboarding/business?returnTo=${encodeURIComponent(returnTo)}`
+      onboardingPath
     );
     if (!authOk) return { ok: false };
 
