@@ -91,7 +91,28 @@ export default async function AdminUsersPage({ searchParams }: { searchParams?: 
 
           {profile.approval_status === "pending" ? <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}><form action="/api/admin/approve-user" method="post"><input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="role" value={profile.requested_role || ""}/><button>Approve identity</button></form><form action="/api/admin/reject-user" method="post" style={{ display: "flex", gap: 8 }}><input type="hidden" name="user_id" value={profile.id}/><input name="reason" placeholder="Reason for rejection" required style={field}/><button>Reject identity</button></form></div> : null}
 
-          {profile.id !== user.id && profile.role !== "master_admin" ? <form action="/api/admin/account-status" method="post" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}><input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="action" value={active ? "deactivate" : "activate"}/><input name="reason" placeholder={active ? "Reason for deactivation" : "Reactivation note"} required={active} style={{ ...field, minWidth: 250 }}/><button type="submit" style={{ ...field, background: active ? "#b91c1c" : "#15803d", color: "white" }}>{active ? "Deactivate account" : "Reactivate account"}</button></form> : null}
+          {profile.id !== user.id && profile.role !== "master_admin" ? <form action="/api/admin/account-status" method="post" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+            <input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="action" value={active ? "deactivate" : "activate"}/>
+            {active ? <>
+              <select name="reason_code" required defaultValue="" style={{ ...field, minWidth: 260 }}>
+                <option value="" disabled>Select deactivation reason</option>
+                <option value="policy_violation">Terms or policy violation</option>
+                <option value="suspicious_activity">Fraud or suspicious activity</option>
+                <option value="verification_failed">Identity/document verification failed</option>
+                <option value="payment_issue">Subscription or payment issue</option>
+                <option value="duplicate_account">Duplicate account</option>
+                <option value="user_request">User requested deactivation</option>
+                <option value="inactive_account">Inactive or abandoned account</option>
+                <option value="legal_request">Legal or regulatory request</option>
+                <option value="security_risk">Account security risk</option>
+                <option value="other">Other reason</option>
+              </select>
+              <input name="custom_reason" placeholder="Custom reason (required when Other is selected)" style={{ ...field, minWidth: 320 }}/>
+            </> : (
+              <input name="reason" placeholder="Reactivation note (optional)" style={{ ...field, minWidth: 260 }}/>
+            )}
+            <button type="submit" style={{ ...field, background: active ? "#b91c1c" : "#15803d", color: "white" }}>{active ? "Deactivate account" : "Reactivate account"}</button>
+          </form> : null}
 
           <form action="/api/admin/update-subscription" method="post" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 8, marginTop: 14, padding: 12, background: "#fffbeb", borderRadius: 10 }}>
             <input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="cash_payment" value="1"/>
