@@ -1,6 +1,5 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -8,12 +7,12 @@ type Params = Record<string, string | string[] | undefined>;
 const one = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] || "" : value || "";
 
 export default async function AdminUsersPage({ searchParams }: { searchParams?: Params }) {
-  const cookieStore = await cookies();
-  const supabase = getSupabaseServerClient(cookieStore);
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login?next=/admin/users");
-  const { data: adminProfile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (adminProfile?.role !== "master_admin") return <main style={{ padding: 24 }}>Access denied</main>;
+  const access = await requireMasterAdmin();
+  if ("error" in access) {
+    if (access.status === 401) redirect("/login?next=/admin/users");
+    return <main style={{ padding: 24 }}>Access denied</main>;
+  }
+  const { user, admin: supabase } = access;
 
   const [profilesRes, businessRes, statesRes, districtsRes, subdivisionsRes, blocksRes] = await Promise.all([
     supabase.from("profiles").select("id,email,full_name,role,requested_role,approval_status,account_status,account_status_reason,created_at,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id").order("created_at", { ascending: false }),
@@ -23,6 +22,11 @@ export default async function AdminUsersPage({ searchParams }: { searchParams?: 
     supabase.from("geo_subdivisions").select("id,district_id,name").order("name"),
     supabase.from("geo_blocks").select("id,district_id,subdivision_id,name").order("name"),
   ]);
+
+  const loadError = profilesRes.error || businessRes.error || statesRes.error || districtsRes.error || subdivisionsRes.error || blocksRes.error;
+  if (loadError) {
+    return <main style={{ padding: 24 }}><h1>Member Administration</h1><p>Member records could not be loaded.</p><pre>{loadError.message}</pre></main>;
+  }
 
   const stateId = one(searchParams?.state);
   const districtId = one(searchParams?.district);
