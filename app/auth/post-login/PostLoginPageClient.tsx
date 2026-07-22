@@ -241,6 +241,7 @@ export default function PostLoginPageClient() {
           if (isBusinessRole(role)) {
             const qs = new URLSearchParams();
             qs.set("returnTo", next || "/dashboard/vendor");
+            qs.set("registration", "1");
             if (role) qs.set("role", role);
 
             const businessProfileRes = await supabase
