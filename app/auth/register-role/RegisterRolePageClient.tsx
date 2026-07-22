@@ -301,10 +301,11 @@ export default function RegisterRolePageClient() {
         } : getIdentityDeclarationBridge(key as HumanIdentityKey);
       });
       const allModules = Array.from(new Set(selectedBridges.flatMap((item) => item.modules))) as LegacyModuleKey[];
-      const effectiveRole = operatingProfile === "multi_business_organisation" ? "hub_vendor" : bridge.role;
+      // Navigation and follow-on onboarding mirror the primary catalogue mapping;
+      // the database remains authoritative and validates every selected identity.
+      const effectiveRole = bridge.role;
       const requiresBusinessOnboarding = operatingProfile === "multi_business_organisation" || selectedBridges.some((item) => item.requiresBusinessOnboarding);
       const requiresProfessionalVerification = selectedBridges.some((item) => item.requiresProfessionalVerification);
-      const isBusinessRole = effectiveRole !== "buyer" || requiresBusinessOnboarding;
 
       const { error: authError } = await supabase.auth.updateUser({
         data: {
@@ -345,9 +346,6 @@ export default function RegisterRolePageClient() {
         phone: normalizePhone(phone),
         city: cityName,
         state: stateName,
-        requested_role: effectiveRole,
-        role: effectiveRole,
-        is_vendor: isBusinessRole,
         onboarding_version: 3,
         onboarding_completed: !requiresBusinessOnboarding,
         portal_use_reason: bridge.portalUseReason,
@@ -355,15 +353,15 @@ export default function RegisterRolePageClient() {
       }, { onConflict: "id" });
       if (profileError) throw profileError;
 
-      const grantsError = await saveModuleGrants(user.id, allModules);
-      if (grantsError) throw grantsError;
-
       const { error: declarationError } = await supabase.rpc("declare_operating_profile", {
         p_operating_profile: operatingProfile,
         p_identity_keys: identityKeys,
         p_primary_identity_key: identityKey,
       });
       if (declarationError) throw declarationError;
+
+      const grantsError = await saveModuleGrants(user.id, allModules);
+      if (grantsError) throw grantsError;
 
       if (requiresBusinessOnboarding) {
         const natureOfBusiness = Array.from(new Set(allModules.map((key) =>
