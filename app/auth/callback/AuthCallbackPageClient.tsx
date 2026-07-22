@@ -11,6 +11,8 @@ function safeNextPath(raw: string | null) {
   return raw;
 }
 
+const isDevelopment = process.env.NODE_ENV !== "production";
+
 export default function AuthCallbackPageClient() {
   const router = useRouter();
   const sp = useSearchParams();
@@ -28,7 +30,7 @@ export default function AuthCallbackPageClient() {
         const errorDesc = sp.get("error_description") || sp.get("error");
 
         if (errorDesc) {
-          console.error("AUTH_CALLBACK_PROVIDER_ERROR", errorDesc);
+          if (isDevelopment) console.error("AUTH_CALLBACK_PROVIDER_ERROR", errorDesc);
           if (!alive) return;
           setMsg("Login failed. Redirecting…");
           setTimeout(() => {
@@ -66,7 +68,7 @@ export default function AuthCallbackPageClient() {
         >;
 
         if (error) {
-          console.error("AUTH_CALLBACK_EXCHANGE_ERROR", error);
+          if (isDevelopment) console.error("AUTH_CALLBACK_EXCHANGE_ERROR", error);
 
           const sessionRes = await Promise.race([
             supabase.auth.getSession(),
@@ -95,26 +97,21 @@ export default function AuthCallbackPageClient() {
           return;
         }
 
-        console.log("AUTH_CALLBACK_SUCCESS");
+        if (isDevelopment) console.log("AUTH_CALLBACK_SUCCESS");
 
         setMsg("Signed in. Redirecting…");
         router.replace(`/auth/post-login${next ? `?next=${encodeURIComponent(next)}` : ""}`);
       } catch (e) {
-        console.error("AUTH_CALLBACK_FAIL", {
-          error: e,
-          href:
-            typeof window !== "undefined"
-              ? window.location.href
-              : "(server)",
-          search:
-            typeof window !== "undefined"
-              ? window.location.search
-              : "(server)",
-          userAgent:
-            typeof navigator !== "undefined"
-              ? navigator.userAgent
-              : "(server)",
-        });
+        if (isDevelopment) {
+          console.error("AUTH_CALLBACK_FAIL", {
+            error: e,
+            href: window.location.href,
+            search: window.location.search,
+            userAgent: navigator.userAgent,
+          });
+        } else {
+          console.error("AUTH_CALLBACK_FAIL");
+        }
         if (!alive) return;
         setMsg("Unexpected error. Redirecting…");
         setTimeout(() => {

@@ -320,23 +320,7 @@ export function getDefaultPostLoginPath(access: AccessContext): string {
   if (access.isAdmin) return "/admin/dashboard";
   if (access.isBlogAdmin) return "/admin/blog";
 
-  // /dashboard is a role resolver. The unified workspace remains available
-  // directly, but must not replace a person's primary role dashboard.
-  if (access.role === "banker" || access.role === "finance_banker") {
-    return "/dashboard/banker";
-  }
-
-  if (access.role === "investor") {
-    return "/dashboard/investor";
-  }
-
-  if (access.isBuilder || access.isHubVendor || access.isVendor) {
-    return "/dashboard/vendor";
-  }
-  if (access.role === "blogger") return "/blog/my";
-  if (access.isBuyer) return "/dashboard/buyer";
-
-  // A signed-in account without a resolved specialist role uses the buyer
-  // workspace; never return /dashboard here because that would loop.
-  return "/dashboard/buyer";
+  // Every non-administrative identity enters one workspace. The active 3BOS
+  // identity/work context selects the relevant tools inside that workspace.
+  return "/dashboard";
 }
