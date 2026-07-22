@@ -6,7 +6,7 @@ import LoginClient from "./LoginClient";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Login | 3Bigha",
+  title: "Sign in or create an account | 3Bigha",
   robots: {
     index: false,
     follow: false,

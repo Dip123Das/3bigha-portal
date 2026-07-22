@@ -366,6 +366,7 @@ export default function BusinessOnboardingPageClient() {
   const sp = useSearchParams();
 
   const rawReturnTo = sp.get("returnTo") || "/dashboard/vendor";
+  const streamlinedRegistration = sp.get("registration") === "1";
   const returnTo =
     rawReturnTo === "/dashboard" ? "/dashboard/vendor" : rawReturnTo;
   const roleFromQuery = (sp.get("role") || "").trim().toLowerCase();
@@ -765,9 +766,9 @@ export default function BusinessOnboardingPageClient() {
   };
 
   const stepsAll: StepDef[] = [
-    { key: "nature", title: "Step 1 — Nature", subtitle: "Choose what you do", show: true, targetId: "sec-nature" },
-    { key: "identity", title: "Step 2 — Identity", subtitle: "Business / Legal info", show: true, targetId: "sec-identity" },
-    { key: "contact", title: "Step 3 — Contact", subtitle: "Phone / email", show: true, targetId: "sec-contact" },
+    { key: "nature", title: "Step 1 — Nature", subtitle: "Choose what you do", show: !streamlinedRegistration, targetId: "sec-nature" },
+    { key: "identity", title: streamlinedRegistration ? "Business details" : "Step 2 — Identity", subtitle: "Business / Legal info", show: true, targetId: "sec-identity" },
+    { key: "contact", title: "Step 3 — Contact", subtitle: "Phone / email", show: !streamlinedRegistration, targetId: "sec-contact" },
     { key: "address", title: "Step 4 — Address", subtitle: "Device live location required", show: true, targetId: "sec-address" },
     { key: "property", title: "Step 5 — Property Compliance", subtitle: "RERA details (optional)", show: nature.includes("property"), targetId: "sec-property" },
     { key: "author", title: "Step 6 — Author Identity", subtitle: "Blog profile", show: hasBlog, targetId: "sec-author" },
@@ -1299,9 +1300,16 @@ export default function BusinessOnboardingPageClient() {
 
   return (
     <div style={{ maxWidth: 900, margin: "40px auto", padding: 12 }}>
-      <h1 style={{ fontSize: 26, fontWeight: 800 }}>Complete Your Business Profile</h1>
+      <div style={{ color: "#1d4ed8", fontWeight: 900, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase" }}>
+        {streamlinedRegistration ? "Workspace setup · Business details" : "Business profile"}
+      </div>
+      <h1 style={{ fontSize: 26, fontWeight: 800, marginTop: 8 }}>
+        {streamlinedRegistration ? "Complete your registration" : "Manage your Business Profile"}
+      </h1>
       <p style={{ opacity: 0.8 }}>
-        Complete this profile to activate your business-side access on 3bigha. After all required details are filled, click <b>Activate My Dashboard</b> to enable your dashboard actions, listing submission, and publishing access.
+        {streamlinedRegistration
+          ? "Your identity, contact and official location are already saved. Add only the business details required for your selected work, then open your unified workspace."
+          : "Update your business details, verification and service coverage. Your account identity and workspace remain unchanged."}
       </p>
 
       <div style={{ marginTop: 12, padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
@@ -1429,7 +1437,7 @@ export default function BusinessOnboardingPageClient() {
       </div>
 
       <form onSubmit={onSave} style={{ marginTop: 20, display: "grid", gap: 16 }}>
-        <section id="sec-nature" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
+        {!streamlinedRegistration ? <section id="sec-nature" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Nature of Business</h3>
           <p style={{ marginTop: 0, opacity: 0.8 }}>Select all that apply.</p>
 
@@ -1444,7 +1452,7 @@ export default function BusinessOnboardingPageClient() {
               ))}
             </div>
           </div>
-        </section>
+        </section> : null}
 
         <section id="sec-identity" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Business Identity</h3>
@@ -1675,7 +1683,7 @@ export default function BusinessOnboardingPageClient() {
           </div>
         </section>
 
-        <section id="sec-contact" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
+        {!streamlinedRegistration ? <section id="sec-contact" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Contact</h3>
 
           <div style={{ display: "grid", gap: 10 }}>
@@ -1713,7 +1721,7 @@ export default function BusinessOnboardingPageClient() {
               />
             </Field>
           </div>
-        </section>
+        </section> : null}
 
         <section id="sec-address" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Address</h3>

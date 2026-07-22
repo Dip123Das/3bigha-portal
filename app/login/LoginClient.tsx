@@ -162,6 +162,9 @@ export default function LoginClient() {
   const router = useRouter();
   const sp = useSearchParams();
 
+  const authMode = sp.get("mode") === "register" ? "register" : "login";
+  const isRegistering = authMode === "register";
+
   const debugEnabled =
     process.env.NODE_ENV !== "production" && sp.get("debug") === "1";
   const nextRaw = sp.get("next");
@@ -178,6 +181,16 @@ export default function LoginClient() {
 
   const nextPath = useMemo(() => safeNextPath(nextRaw), [nextRaw]);
   const nextWithOpen = useMemo(() => addOpenEnquiryToNext(nextPath, openEnquiry), [nextPath, openEnquiry]);
+
+  const switchAuthMode = (mode: "login" | "register") => {
+    const params = new URLSearchParams(sp.toString());
+    if (mode === "register") params.set("mode", "register");
+    else params.delete("mode");
+    router.replace(`/login${params.size ? `?${params.toString()}` : ""}`, {
+      scroll: false,
+    });
+    setMsg({ type: "idle", text: "" });
+  };
 
   const [tab, setTab] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
@@ -525,14 +538,28 @@ export default function LoginClient() {
           }}
         >
           <div style={{ fontWeight: 950, fontSize: 30, color: "#0f172a" }}>
-            Welcome to 3Bigha
+            {isRegistering ? "Create your 3Bigha account" : "Welcome back to 3Bigha"}
           </div>
           <div style={{ marginTop: 6, fontSize: 14, color: "#64748b", fontWeight: 700 }}>
-            Sign in to access your Business Workspace
+            {isRegistering
+              ? "Authenticate first. We’ll help you set up your identity and Business Workspace next."
+              : "Sign in to continue your business from where you left off."}
           </div>
         </div>
 
         <div className="ui-card__body">
+          <div
+            role="tablist"
+            aria-label="Account access"
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, padding: 5, marginBottom: 16, borderRadius: 14, background: "#f1f5f9" }}
+          >
+            <button role="tab" aria-selected={!isRegistering} type="button" onClick={() => switchAuthMode("login")} style={authModeButtonStyle(!isRegistering)}>
+              Sign in
+            </button>
+            <button role="tab" aria-selected={isRegistering} type="button" onClick={() => switchAuthMode("register")} style={authModeButtonStyle(isRegistering)}>
+              Create account
+            </button>
+          </div>
           {msg.type !== "idle" ? (
             <div
               style={{
@@ -582,7 +609,7 @@ export default function LoginClient() {
                   borderRadius: 14,
                 }}
               >
-                {loadingGoogle ? "Opening Google…" : "Continue with Google"}
+                {loadingGoogle ? "Opening Google…" : isRegistering ? "Create account with Google" : "Continue with Google"}
               </button>
 
               <div style={{ margin: "18px 0", display: "flex", alignItems: "center", gap: 10 }}>
@@ -628,11 +655,13 @@ export default function LoginClient() {
                     type="button"
                     style={{ height: 46, borderRadius: 14, fontWeight: 950 }}
                   >
-                    {loadingMagic ? `Sending… ${Math.floor(elapsedMs / 1000)}s` : "Send magic link"}
+                    {loadingMagic ? `Sending… ${Math.floor(elapsedMs / 1000)}s` : isRegistering ? "Email me a secure registration link" : "Send magic link"}
                   </button>
 
                   <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5, fontWeight: 700 }}>
-                    We will send a secure login link to your email.
+                    {isRegistering
+                      ? "After authentication, you’ll confirm your identity and prepare your workspace."
+                      : "We will send a secure login link to your email."}
                   </div>
                 </div>
               ) : (
@@ -718,3 +747,14 @@ export default function LoginClient() {
     </div>
   );
 }
+
+const authModeButtonStyle = (active: boolean): React.CSSProperties => ({
+  border: 0,
+  borderRadius: 10,
+  padding: "10px 12px",
+  background: active ? "white" : "transparent",
+  color: active ? "#0f172a" : "#64748b",
+  boxShadow: active ? "0 1px 4px rgba(15,23,42,.12)" : "none",
+  fontWeight: 900,
+  cursor: "pointer",
+});

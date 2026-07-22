@@ -395,7 +395,11 @@ export default function RegisterRolePageClient() {
       });
 
       if (requiresBusinessOnboarding) {
-        const qs = new URLSearchParams({ returnTo: next || "/dashboard", role: effectiveRole });
+        const qs = new URLSearchParams({
+          returnTo: next || "/dashboard",
+          role: effectiveRole,
+          registration: "1",
+        });
         router.replace(`/onboarding/business?${qs.toString()}`);
       } else {
         router.replace(next || "/dashboard");
@@ -409,10 +413,10 @@ export default function RegisterRolePageClient() {
   return (
     <main style={{ padding: "32px 16px", background: "#f8fafc", minHeight: "100vh" }}>
       <div style={{ maxWidth: 1040, margin: "0 auto", border: "1px solid #e2e8f0", borderRadius: 18, padding: 24, background: "white", boxShadow: "0 12px 36px rgba(15,23,42,.06)" }}>
-        <div style={{ color: "#1d4ed8", fontWeight: 900, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase" }}>Welcome, 3Bigha Member</div>
-        <h1 style={{ margin: "8px 0", fontSize: "clamp(24px,4vw,34px)", lineHeight: 1.15 }}>How would you like to use 3Bigha?</h1>
+        <div style={{ color: "#1d4ed8", fontWeight: 900, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase" }}>Account created · Workspace setup</div>
+        <h1 style={{ margin: "8px 0", fontSize: "clamp(24px,4vw,34px)", lineHeight: 1.15 }}>Set up your Business Workspace</h1>
         <p style={{ margin: "0 0 22px", color: "#475569", maxWidth: 760 }}>
-          First tell us how you operate, then choose what work you do. Your primary category prepares the default workspace; your Growth Plan governs how many categories you may use.
+          You are signed in. Now tell us how you operate and what work you do. This does not create another login; it prepares your identities inside one Business Workspace.
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: 20 }}>
