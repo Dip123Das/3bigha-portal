@@ -514,7 +514,11 @@ export default function RegisterRolePageClient() {
         metadata: { identityKey, identityKeys, operatingProfile, legacyRole: effectiveRole, modules: allModules },
       });
 
-      router.replace(next || "/dashboard");
+      if (["vendor", "builder", "hub_vendor", "blogger"].includes(effectiveRole)) {
+        router.replace("/auth/awaiting-approval");
+      } else {
+        router.replace(next || "/dashboard");
+      }
     } catch (error: any) {
       setMsg(error?.message || "Could not save your identity. Please try again.");
       setLoading(false);

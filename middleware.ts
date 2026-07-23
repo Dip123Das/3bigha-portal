@@ -87,6 +87,25 @@ function loginRedirect(req: NextRequest, pathname: string) {
   return NextResponse.redirect(url);
 }
 
+function isActivatedPaidSubscription(input: {
+  subscription_plan?: string | null;
+  subscription_status?: string | null;
+  subscription_expires_at?: string | null;
+} | null) {
+  const plan = String(input?.subscription_plan || "").trim().toLowerCase();
+  const status = String(input?.subscription_status || "").trim().toLowerCase();
+  const expiresAt = input?.subscription_expires_at
+    ? new Date(input.subscription_expires_at)
+    : null;
+
+  return (
+    plan !== "" &&
+    plan !== "free" &&
+    ["active", "approved", "paid", "trialing"].includes(status) &&
+    (!expiresAt || Number.isNaN(expiresAt.getTime()) || expiresAt > new Date())
+  );
+}
+
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
@@ -167,7 +186,7 @@ export async function middleware(req: NextRequest) {
 
   const { data: accessProfile } = await supabase
     .from("profiles")
-    .select("role,account_status")
+    .select("role,account_status,approval_status")
     .eq("id", data.user.id)
     .maybeSingle();
 
@@ -197,6 +216,30 @@ export async function middleware(req: NextRequest) {
       dashboardUrl.pathname = "/dashboard";
       dashboardUrl.search = "";
       return NextResponse.redirect(dashboardUrl);
+    }
+  }
+
+  if (authPathname.startsWith("/dashboard/vendor")) {
+    if (accessProfile?.role !== "master_admin") {
+      if (accessProfile?.approval_status !== "approved") {
+        const reviewUrl = req.nextUrl.clone();
+        reviewUrl.pathname = "/auth/awaiting-approval";
+        reviewUrl.search = "";
+        return NextResponse.redirect(reviewUrl);
+      }
+
+      const { data: subscription } = await supabase
+        .from("business_profiles")
+        .select("subscription_plan,subscription_status,subscription_expires_at")
+        .eq("user_id", data.user.id)
+        .maybeSingle();
+
+      if (!isActivatedPaidSubscription(subscription)) {
+        const subscriptionUrl = req.nextUrl.clone();
+        subscriptionUrl.pathname = "/dashboard/subscription";
+        subscriptionUrl.search = "?reason=activation_required";
+        return NextResponse.redirect(subscriptionUrl);
+      }
     }
   }
 

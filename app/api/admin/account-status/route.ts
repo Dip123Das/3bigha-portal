@@ -71,7 +71,7 @@ export async function POST(req: Request) {
       onboarding_version: null,
       portal_use_reason: null,
       role_display_label: null,
-      approval_status: "active",
+      approval_status: "pending",
       approved_by: null,
       approved_at: null,
       rejection_reason: null,
