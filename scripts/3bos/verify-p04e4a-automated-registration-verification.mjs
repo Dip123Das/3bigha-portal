@@ -149,16 +149,16 @@ const checks = [
   [
     "database activation remains separate",
     source.includes(
-      "separate atomic server function"
+      'dashboardProjection: "ready"'
     ) &&
       source.includes(
-        "final dashboard activation"
-      ) &&
-      source.includes(
-        'dashboardProjection: "ready"'
+        "canActivateDashboard: true"
       ) &&
       !source.includes(
         'dashboardProjection: "active"'
+      ) &&
+      !source.includes(
+        "dashboardActivatedAt"
       ),
   ],
   [
