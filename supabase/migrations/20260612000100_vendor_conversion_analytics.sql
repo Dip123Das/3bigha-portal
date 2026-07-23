@@ -16,18 +16,35 @@ create table if not exists public.vendor_conversion_events (
   created_at timestamptz not null default now()
 );
 
-alter table public.vendor_conversion_events
-  add constraint vendor_conversion_events_event_type_check
-  check (
-    event_type in (
-      'opportunity_viewed',
-      'opportunity_clicked',
-      'registration_started',
-      'registration_completed',
-      'vendor_approved',
-      'first_listing_created'
-    )
-  );
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint constraint_record
+    join pg_class relation
+      on relation.oid = constraint_record.conrelid
+    join pg_namespace schema_record
+      on schema_record.oid = relation.relnamespace
+    where constraint_record.conname =
+      'vendor_conversion_events_event_type_check'
+      and schema_record.nspname = 'public'
+      and relation.relname = 'vendor_conversion_events'
+  ) then
+    alter table public.vendor_conversion_events
+      add constraint vendor_conversion_events_event_type_check
+      check (
+        event_type in (
+          'opportunity_viewed',
+          'opportunity_clicked',
+          'registration_started',
+          'registration_completed',
+          'vendor_approved',
+          'first_listing_created'
+        )
+      );
+  end if;
+end
+$$;
 
 create index if not exists vendor_conversion_events_event_type_idx
   on public.vendor_conversion_events(event_type);
