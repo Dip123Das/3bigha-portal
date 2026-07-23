@@ -7,6 +7,10 @@ import {
   getDefaultPostLoginPath,
   resolveAccessForUser,
 } from "@/lib/access/resolveAccess";
+import {
+  resolveRegistrationState,
+  type RegistrationStateInput,
+} from "@/lib/registration/resolveRegistrationState";
 
 function safeNextPath(raw: string | null) {
   if (!raw) return "";
@@ -26,35 +30,56 @@ function hardRedirect(path: string) {
   window.location.href = target;
 }
 
-function hasValue(v: unknown) {
-  return typeof v === "string" ? v.trim().length > 0 : !!v;
+function hasValue(value: unknown) {
+  return typeof value === "string"
+    ? value.trim().length > 0
+    : Boolean(value);
+}
+
+function normalizeRole(raw: string | null | undefined) {
+  return String(raw || "").trim().toLowerCase();
 }
 
 function isBusinessRole(role: string | null | undefined) {
   return ["vendor", "builder", "hub_vendor", "blogger"].includes(
-    (role || "").trim().toLowerCase()
+    normalizeRole(role)
   );
 }
 
-function normalizeRole(raw: string | null | undefined) {
-  return (raw || "").trim().toLowerCase();
+function registrationQuery(options: {
+  next?: string;
+  role?: string;
+  business?: boolean;
+}) {
+  const query = new URLSearchParams();
+
+  if (options.business) {
+    query.set("returnTo", options.next || "/dashboard/vendor");
+    query.set("registration", "1");
+  } else if (options.next) {
+    query.set("next", options.next);
+  }
+
+  if (options.role) query.set("role", options.role);
+
+  return query.toString();
 }
 
 export default function PostLoginPageClient() {
-  const sp = useSearchParams();
+  const searchParams = useSearchParams();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [msg, setMsg] = useState("Preparing your access…");
 
   useEffect(() => {
     let alive = true;
 
-    (async () => {
+    async function runPostLogin() {
       try {
-        const next = safeNextPath(sp.get("next"));
+        const next = safeNextPath(searchParams.get("next"));
 
         setMsg("Checking your session…");
 
-        const sessionRes = await Promise.race([
+        const sessionResult = await Promise.race([
           supabase.auth.getSession(),
           new Promise<never>((_, reject) =>
             setTimeout(
@@ -69,22 +94,24 @@ export default function PostLoginPageClient() {
 
         if (!alive) return;
 
-        const session = (sessionRes as any)?.data?.session ?? null;
+        const session = (sessionResult as any)?.data?.session ?? null;
         const user = session?.user ?? null;
 
         if (!user?.id) {
           setMsg("No active session found. Redirecting to login…");
-          setTimeout(() => {
+
+          window.setTimeout(() => {
             hardRedirect(
               `/login${next ? `?next=${encodeURIComponent(next)}` : ""}`
             );
           }, 800);
+
           return;
         }
 
         setMsg("Checking your account setup…");
 
-        const profileRes = await Promise.race([
+        const profileResult = await Promise.race([
           supabase
             .from("profiles")
             .select(
@@ -95,6 +122,7 @@ export default function PostLoginPageClient() {
                 "requested_role",
                 "is_vendor",
                 "approval_status",
+                "account_status",
                 "full_name",
                 "phone",
                 "city",
@@ -117,17 +145,17 @@ export default function PostLoginPageClient() {
 
         if (!alive) return;
 
-        const profile = (profileRes as any)?.data ?? null;
-        const profileError = (profileRes as any)?.error ?? null;
+        let profile = (profileResult as any)?.data ?? null;
+        const profileError = (profileResult as any)?.error ?? null;
 
         if (profileError) {
-          console.error("POST_LOGIN_V7_PROFILE_LOOKUP_ERROR", profileError);
+          console.error("POST_LOGIN_STATE_PROFILE_LOOKUP_ERROR", profileError);
         }
 
         if (!profile?.id) {
           setMsg("Preparing your account…");
 
-          const upsertRes = await Promise.race([
+          const createResult = await Promise.race([
             supabase.from("profiles").upsert(
               {
                 id: user.id,
@@ -151,49 +179,67 @@ export default function PostLoginPageClient() {
             ),
           ]);
 
-          const upsertError = (upsertRes as any)?.error ?? null;
+          const createError = (createResult as any)?.error ?? null;
 
-          if (upsertError) {
-            console.error("POST_LOGIN_V7_PROFILE_CREATE_ERROR", upsertError);
+          if (createError) {
+            console.error(
+              "POST_LOGIN_STATE_PROFILE_CREATE_ERROR",
+              createError
+            );
             setMsg("Could not prepare your registration. Redirecting…");
-            setTimeout(() => {
-              hardRedirect("/");
-            }, 1000);
+
+            window.setTimeout(() => hardRedirect("/"), 1000);
             return;
           }
 
-          hardRedirect(
-            `/auth/register-role${next ? `?next=${encodeURIComponent(next)}` : ""}`
-          );
-          return;
+          profile = {
+            id: user.id,
+            email: user.email ?? null,
+            role: null,
+            requested_role: null,
+            is_vendor: false,
+            approval_status: null,
+            account_status: "active",
+            full_name: null,
+            phone: null,
+            city: null,
+            state: null,
+            onboarding_version: null,
+            onboarding_completed: false,
+            portal_use_reason: null,
+            role_display_label: null,
+          };
         }
 
         if (!profile.email && user.email) {
-          await supabase
+          const emailPatchResult = await supabase
             .from("profiles")
             .update({ email: user.email })
             .eq("id", user.id);
+
+          if (emailPatchResult.error) {
+            console.error(
+              "POST_LOGIN_STATE_EMAIL_PATCH_ERROR",
+              emailPatchResult.error
+            );
+          }
         }
 
         const role = normalizeRole(profile.role);
+        const businessRole = isBusinessRole(role);
 
-        // 🚀 MASTER ADMIN FULL BYPASS (FINAL FIX)
-        if (role === "master_admin") {
-          hardRedirect(next || "/admin/dashboard");
-          return;
-        }
+        if (!profile.requested_role && role) {
+          const rolePatchResult = await supabase
+            .from("profiles")
+            .update({ requested_role: role })
+            .eq("id", user.id);
 
-        // MASTER ADMIN MUST NEVER BE SENT TO REGISTER-ROLE.
-        if (role === "master_admin") {
-          hardRedirect(next || "/admin/dashboard");
-          return;
-        }
-
-        if (!role) {
-          hardRedirect(
-            `/auth/register-role${next ? `?next=${encodeURIComponent(next)}` : ""}`
-          );
-          return;
+          if (rolePatchResult.error) {
+            console.error(
+              "POST_LOGIN_STATE_ROLE_PATCH_ERROR",
+              rolePatchResult.error
+            );
+          }
         }
 
         const basicComplete =
@@ -208,108 +254,136 @@ export default function PostLoginPageClient() {
           hasValue(profile.portal_use_reason) &&
           hasValue(profile.role_display_label);
 
-        const patch: Record<string, any> = {};
+        let businessProfile: any = null;
 
-        if (!profile.requested_role && role) {
-          patch.requested_role = role;
-        }
+        if (businessRole) {
+          setMsg("Checking your business workspace setup…");
 
-        if (Object.keys(patch).length > 0) {
-          const patchRes = await supabase
-            .from("profiles")
-            .update(patch)
-            .eq("id", user.id);
-
-          if ((patchRes as any)?.error) {
-            console.error(
-              "POST_LOGIN_V7_PROFILE_PATCH_ERROR",
-              (patchRes as any).error
-            );
-          }
-        }
-
-        if (role !== "master_admin" && !basicComplete) {
-          const qs = new URLSearchParams();
-          if (next) qs.set("next", next);
-          if (role) qs.set("role", role);
-
-          hardRedirect(`/auth/register-role?${qs.toString()}`);
-          return;
-        }
-
-        if (role !== "master_admin" && !onboardingReady) {
-          if (isBusinessRole(role)) {
-            const qs = new URLSearchParams();
-            qs.set("returnTo", next || "/dashboard/vendor");
-            qs.set("registration", "1");
-            if (role) qs.set("role", role);
-
-            const businessProfileRes = await supabase
-              .from("business_profiles")
-              .select("nature_of_business,is_complete,registration_complete,business_profile_complete")
-              .eq("user_id", user.id)
-              .maybeSingle();
-
-            const businessProfile = businessProfileRes.data as any;
-
-            const hasVendorCapabilities =
-              Array.isArray(businessProfile?.nature_of_business) &&
-              businessProfile.nature_of_business.length > 0;
-
-            const progressiveVendorReady =
-              hasVendorCapabilities ||
-              businessProfile?.is_complete === true ||
-              businessProfile?.registration_complete === true ||
-              businessProfile?.business_profile_complete === true;
-
-            if (!progressiveVendorReady) {
-              hardRedirect(`/onboarding/business?${qs.toString()}`);
-              return;
-            }
-
-            hardRedirect(next || "/dashboard/vendor");
-            return;
-          }
-
-          const qs = new URLSearchParams();
-          if (next) qs.set("next", next);
-          if (role) qs.set("role", role);
-
-          hardRedirect(`/auth/register-role?${qs.toString()}`);
-          return;
-        }
-
-        if (role !== "master_admin" && isBusinessRole(role)) {
-          setMsg("Checking district-free access eligibility…");
-
-          const businessProfileRes = await supabase
+          const businessProfileResult = await supabase
             .from("business_profiles")
-            .select("eligible_free, location_verification_status")
+            .select(
+              [
+                "nature_of_business",
+                "is_complete",
+                "registration_complete",
+                "business_profile_complete",
+                "eligible_free",
+                "location_verification_status",
+                "subscription_plan",
+                "subscription_status",
+              ].join(",")
+            )
             .eq("user_id", user.id)
             .maybeSingle();
 
-          const businessProfile = businessProfileRes.data;
+          if (businessProfileResult.error) {
+            console.error(
+              "POST_LOGIN_STATE_BUSINESS_LOOKUP_ERROR",
+              businessProfileResult.error
+            );
+          }
 
-          const locationVerified =
-            (businessProfile?.location_verification_status || "")
-              .trim()
-              .toLowerCase() === "verified";
+          businessProfile = businessProfileResult.data ?? null;
+        }
 
-          if (!locationVerified) {
-            // Progressive onboarding: allow vendor dashboard entry after business capability selection.
+        const hasVendorCapabilities =
+          Array.isArray(businessProfile?.nature_of_business) &&
+          businessProfile.nature_of_business.length > 0;
+
+        const locationVerified =
+          String(businessProfile?.location_verification_status || "")
+            .trim()
+            .toLowerCase() === "verified";
+
+        const stateInput: RegistrationStateInput = {
+          role,
+          accountStatus: profile.account_status,
+          basicComplete,
+          onboardingReady,
+          isBusinessRole: businessRole,
+          hasVendorCapabilities,
+          businessProfileComplete:
+            businessProfile?.is_complete === true ||
+            businessProfile?.business_profile_complete === true,
+          registrationComplete:
+            businessProfile?.registration_complete === true,
+          locationVerified,
+          eligibleFree: businessProfile?.eligible_free ?? null,
+        };
+
+        const registrationState = resolveRegistrationState(stateInput);
+
+        console.info("POST_LOGIN_REGISTRATION_STATE", {
+          state: registrationState.state,
+          reason: registrationState.reason,
+          role,
+          userId: user.id,
+        });
+
+        switch (registrationState.state) {
+          case "MASTER_ADMIN": {
+            hardRedirect(next || "/admin/dashboard");
+            return;
+          }
+
+          case "ACCOUNT_BLOCKED": {
+            hardRedirect("/auth/account-disabled");
+            return;
+          }
+
+          case "ROLE_SELECTION_REQUIRED": {
+            const query = registrationQuery({ next });
+            hardRedirect(`/auth/register-role${query ? `?${query}` : ""}`);
+            return;
+          }
+
+          case "BASIC_PROFILE_REQUIRED":
+          case "PROFILE_SETUP_REQUIRED": {
+            const query = registrationQuery({ next, role });
+            hardRedirect(`/auth/register-role${query ? `?${query}` : ""}`);
+            return;
+          }
+
+          case "BUSINESS_PROFILE_REQUIRED": {
+            const query = registrationQuery({
+              next: next || "/dashboard/vendor",
+              role,
+              business: true,
+            });
+
+            hardRedirect(`/onboarding/business?${query}`);
+            return;
+          }
+
+          case "BUSINESS_PROGRESSIVE_READY": {
             hardRedirect(next || "/dashboard/vendor");
             return;
           }
 
-          if (businessProfile?.eligible_free !== true) {
+          case "GROWTH_PLAN_REQUIRED": {
             hardRedirect(
               "/dashboard/subscription?reason=district_free_not_eligible"
             );
             return;
           }
+
+          case "ESSENTIAL_ACTIVE":
+          case "READY": {
+            break;
+          }
+
+          default: {
+            const exhaustiveCheck: never = registrationState.state;
+            console.error(
+              "POST_LOGIN_UNKNOWN_REGISTRATION_STATE",
+              exhaustiveCheck
+            );
+            hardRedirect("/");
+            return;
+          }
         }
 
-        setMsg("Preparing your dashboard…");
+        setMsg("Preparing your unified workspace…");
 
         let redirectTo = next || "/dashboard";
 
@@ -328,30 +402,39 @@ export default function PostLoginPageClient() {
           if (!alive) return;
 
           redirectTo = next || getDefaultPostLoginPath(access);
-        } catch (accessErr) {
-          console.error("POST_LOGIN_V7_ACCESS_FALLBACK", accessErr);
+        } catch (accessError) {
+          console.error(
+            "POST_LOGIN_STATE_ACCESS_FALLBACK",
+            accessError
+          );
           redirectTo = next || "/";
         }
 
         hardRedirect(redirectTo);
-      } catch (e: any) {
-        console.error("POST_LOGIN_V7_FAIL", e);
+      } catch (error: any) {
+        console.error("POST_LOGIN_STATE_ROUTER_FAIL", error);
 
         if (!alive) return;
 
-        const next = safeNextPath(sp.get("next"));
-        setMsg(`Could not complete login routing: ${e?.message || "Unknown error"}`);
+        const next = safeNextPath(searchParams.get("next"));
+        setMsg(
+          `Could not complete login routing: ${
+            error?.message || "Unknown error"
+          }`
+        );
 
-        setTimeout(() => {
+        window.setTimeout(() => {
           hardRedirect(next || "/");
         }, 1000);
       }
-    })();
+    }
+
+    runPostLogin();
 
     return () => {
       alive = false;
     };
-  }, [sp, supabase]);
+  }, [searchParams, supabase]);
 
   return (
     <main style={{ padding: "40px 20px" }}>
