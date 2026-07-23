@@ -69,7 +69,7 @@ export default function AwaitingApprovalPage() {
             router.replace("/dashboard/vendor");
             return;
           }
-          setMsg("Your identity is approved. Activate a subscription to begin operational work.");
+          setMsg("Your identity check is complete. Finish the SBI subscription payment to begin operational work.");
           return;
         }
 
@@ -78,7 +78,7 @@ export default function AwaitingApprovalPage() {
           return;
         }
 
-        setMsg("Your registration was received and is waiting for Master Admin review.");
+        setMsg("Your registration was received. Choose a plan and complete SBI payment when the gateway becomes available. Verified documents and confirmed online payment can complete approval automatically.");
       } catch (error) {
         console.error("REGISTRATION_STATUS_CHECK_FAILED", error);
         if (alive) setMsg("We could not check your status. Please try again.");
@@ -99,15 +99,15 @@ export default function AwaitingApprovalPage() {
           Registration status
         </div>
         <h1 style={{ margin: "10px 0", fontSize: 30 }}>
-          {approved ? "Identity approved" : "Registration submitted"}
+          {approved ? "Identity approved" : "Registration and payment setup"}
         </h1>
         <p style={{ color: "#475569", lineHeight: 1.7 }}>{msg}</p>
 
         <div style={{ display: "grid", gap: 12, marginTop: 24 }}>
           {[
             ["1", "Identity and business details", "Completed"],
-            ["2", "Master Admin review", approved ? "Approved" : "Pending"],
-            ["3", "Subscription activation", hasActivatedPaidSubscription(state || { approvalStatus: "", plan: "", subscriptionStatus: "" }) ? "Active" : "Required"],
+            ["2", "Identity document validation", approved ? "Approved" : "Pending"],
+            ["3", "SBI subscription payment", hasActivatedPaidSubscription(state || { approvalStatus: "", plan: "", subscriptionStatus: "" }) ? "Confirmed" : "Required"],
             ["4", "Operational dashboard", approved && hasActivatedPaidSubscription(state || { approvalStatus: "", plan: "", subscriptionStatus: "" }) ? "Available" : "Locked"],
           ].map(([number, label, status]) => (
             <div key={number} style={{ display: "grid", gridTemplateColumns: "36px 1fr auto", gap: 12, alignItems: "center", padding: 14, border: "1px solid #e2e8f0", borderRadius: 12 }}>
@@ -118,9 +118,9 @@ export default function AwaitingApprovalPage() {
           ))}
         </div>
 
-        {approved && !hasActivatedPaidSubscription(state || { approvalStatus: "", plan: "", subscriptionStatus: "" }) ? (
+        {!hasActivatedPaidSubscription(state || { approvalStatus: "", plan: "", subscriptionStatus: "" }) ? (
           <button type="button" onClick={() => router.push("/dashboard/subscription?reason=activation_required")} style={{ marginTop: 24, padding: "12px 18px", border: 0, borderRadius: 10, background: "#2563eb", color: "white", fontWeight: 900, cursor: "pointer" }}>
-            Choose and activate subscription
+            Choose plan and prepare SBI payment
           </button>
         ) : null}
       </section>

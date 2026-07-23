@@ -63,7 +63,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams?: 
 
   return <main style={{ padding: 24, maxWidth: 1500, margin: "0 auto" }}>
     <h1 style={{ fontSize: 28, fontWeight: 900, margin: 0 }}>Member Administration</h1>
-    <p style={{ color: "#475569" }}>Approve identities, activate or deactivate accounts, record cash subscriptions, and filter members through the official geography hierarchy.</p>
+    <p style={{ color: "#475569" }}>Review identities, activate or deactivate accounts, inspect SBI payment status, and filter members through the official geography hierarchy. Subscriptions cannot be activated manually.</p>
 
     <form method="get" style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: 14, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12 }}>
       <input name="q" defaultValue={one(searchParams?.q)} placeholder="Search name, email or business" style={{ ...field, minWidth: 240 }} />
@@ -125,13 +125,9 @@ export default async function AdminUsersPage({ searchParams }: { searchParams?: 
             <button type="submit" style={{ ...field, background: active ? "#b91c1c" : "#15803d", color: "white" }}>{active ? "Deactivate account" : "Reactivate account"}</button>
           </form> : null}
 
-          <form action="/api/admin/update-subscription" method="post" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))", gap: 8, marginTop: 14, padding: 12, background: "#fffbeb", borderRadius: 10 }}>
-            <input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="cash_payment" value="1"/>
-            <select name="subscription_plan" defaultValue={bp.subscription_plan === "free" ? "basic_vendor" : bp.subscription_plan || "basic_vendor"} style={field}><option value="basic_vendor">Basic Vendor</option><option value="silver_vendor">Silver Vendor</option><option value="gold_vendor">Gold Vendor</option><option value="platinum_vendor">Platinum Vendor</option><option value="premium_vendor">Premium Vendor (legacy)</option><option value="hub_vendor">Hub Vendor (legacy)</option></select>
-            <input type="hidden" name="subscription_status" value="active"/><input type="date" name="subscription_expires_at" defaultValue={bp.subscription_expires_at ? String(bp.subscription_expires_at).slice(0,10) : ""} required style={field}/>
-            <input type="number" name="amount" min="0" step="0.01" placeholder="Cash amount ₹" required style={field}/><input name="reference_no" placeholder="Receipt/reference number" required style={field}/><input name="notes" placeholder="Cash collection notes" style={field}/>
-            <button type="submit" style={{ ...field, background: "#0f766e", color: "white" }}>Record cash & activate</button>
-          </form>
+          <div style={{ marginTop: 14, padding: 12, background: "#eff6ff", color: "#1e3a8a", borderRadius: 10, fontWeight: 800 }}>
+            Subscription: {String(bp.subscription_plan || "none").replaceAll("_", " ")} · Status: {String(bp.subscription_status || "not paid").replaceAll("_", " ")}. Activation occurs only after verified SBI Payment Gateway confirmation.
+          </div>
         </article>;
       })}
     </div>

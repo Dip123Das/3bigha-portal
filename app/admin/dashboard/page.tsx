@@ -153,7 +153,7 @@ export default async function AdminDashboardPage() {
   const cards = [
     {
       title: "Admin · User Approvals",
-      desc: "Approve identities, deactivate or reactivate accounts, record cash subscriptions, and filter members by official LGD geography.",
+      desc: "Review identities, deactivate or reactivate accounts, inspect SBI subscription payments, and filter members by official LGD geography.",
       href: "/admin/users",
       show: isMaster(role),
       badges: ["profiles", "pending → approved/rejected"],
@@ -624,11 +624,11 @@ export default async function AdminDashboardPage() {
               }}
             >
               <div style={{ fontSize: 18, fontWeight: 950, marginBottom: 6 }}>
-                Manual Subscription Activation
+                SBI Subscription Requests
               </div>
 
               <div style={{ fontSize: 13, color: "#92400e", fontWeight: 800, marginBottom: 12 }}>
-                Pending online/manual requests appear here. For auditable hand-cash activation, use Member Administration.
+                Subscription access is activated only by verified SBI Payment Gateway confirmation. Administrators cannot record cash or manually mark a request paid.
               </div>
 
               <a href="/admin/users" style={{ display: "inline-block", marginBottom: 12, fontWeight: 900, color: "#1d4ed8" }}>
@@ -736,18 +736,19 @@ export default async function AdminDashboardPage() {
                           </label>
 
                           <button
-                            type="submit"
+                            type="button"
+                            disabled
                             style={{
                               height: 40,
                               border: "none",
                               borderRadius: 12,
-                              background: "#111827",
+                              background: "#94a3b8",
                               color: "white",
                               fontWeight: 900,
-                              cursor: "pointer",
+                              cursor: "not-allowed",
                             }}
                           >
-                            Approve & Activate →
+                            Awaiting verified SBI payment
                           </button>
                         </form>
                       </CardFooter>
