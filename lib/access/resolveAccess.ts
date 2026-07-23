@@ -322,5 +322,5 @@ export function getDefaultPostLoginPath(access: AccessContext): string {
 
   // Every non-administrative identity enters one workspace. The active 3BOS
   // identity/work context selects the relevant tools inside that workspace.
-  return "/dashboard";
+  return "/dashboard/workspace";
 }
