@@ -1125,6 +1125,7 @@ export default function BusinessOnboardingPageClient() {
     setMsg(null);
 
     const res = await saveCommon();
+
     if (!res.ok) {
       setSaving(false);
       return;
@@ -1132,167 +1133,155 @@ export default function BusinessOnboardingPageClient() {
 
     if (!res.isComplete) {
       setSaving(false);
-      setMsg("Please complete the highlighted required fields before finishing registration.");
-      scrollToId(firstPendingStep.targetId || "sec-review");
+      setMsg(
+        "Please complete the highlighted required fields before finishing registration."
+      );
+      scrollToId(
+        firstPendingStep.targetId || "sec-review"
+      );
       return;
     }
 
-    const { data, error } = await supabase.rpc("vendor_registration_complete", {
-      p_vendor_id: userId,
-    });
+    try {
+      const response = await fetch(
+        "/api/onboarding/complete-registration",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+          credentials: "include",
+          cache: "no-store",
+        }
+      );
 
-    if (error) {
-      setSaving(false);
-      setMsg(error.message);
-      return;
-    }
+      const payload = await response
+        .json()
+        .catch(() => null);
 
-    const ok = !!data;
-    if (!ok) {
-      setSaving(false);
-      setMsg("Profile complete, but registration is still not marked complete. Try again.");
-      await fetchCompleteness(userId);
-      return;
-    }
+      if (!response.ok || payload?.ok !== true) {
+        const code = String(
+          payload?.code || "REGISTRATION_COMPLETION_FAILED"
+        );
 
-    const roleDisplayLabel =
-      roleFromQuery === "builder"
-        ? "Builder / Developer"
-        : roleFromQuery === "hub_vendor"
-        ? "Vendor Hub"
-        : roleFromQuery === "blogger"
-        ? "Blogger / Author"
-        : getRoleDisplayLabelFromNature(safeArr(bp.nature_of_business));
+        const message =
+          typeof payload?.error === "string" &&
+          payload.error.trim()
+            ? payload.error
+            : code === "BUSINESS_PROFILE_INCOMPLETE"
+            ? "Please complete the required business information before activating your dashboard."
+            : code === "LOCATION_VERIFICATION_REQUIRED"
+            ? "Please verify your live business location before activating your dashboard."
+            : code === "ACCOUNT_RESTRICTED"
+            ? "This account cannot complete registration in its current state."
+            : code === "PERMITTED_ROLE_REQUIRED"
+            ? "Please complete your identity declaration before activating your dashboard."
+            : "Registration could not be completed safely. Please try again.";
 
-    const fallbackUseReason =
-      roleFromQuery === "builder"
-        ? "manage_builder_projects"
-        : roleFromQuery === "hub_vendor"
-        ? "operate_multiple_businesses"
-        : roleFromQuery === "blogger"
-        ? "publish_blog_or_news"
-        : safeArr(bp.nature_of_business).includes("materials")
-        ? "sell_materials"
-        : safeArr(bp.nature_of_business).includes("services")
-        ? "offer_services"
-        : safeArr(bp.nature_of_business).includes("rentals")
-        ? "provide_rentals"
-        : safeArr(bp.nature_of_business).includes("property")
-        ? "list_property_for_sale"
-        : "operate_multiple_businesses";
-
-    const sessionRes = await supabase.auth.getSession();
-    const sessionUser = sessionRes.data.session?.user ?? null;
-
-    const profilePayload = {
-      id: userId,
-      email: sessionUser?.email ?? null,
-      requested_role: roleFromQuery || null,
-      role:
-        roleFromQuery === "builder"
-          ? "builder"
-          : roleFromQuery === "hub_vendor"
-          ? "hub_vendor"
-          : roleFromQuery === "blogger"
-          ? "blogger"
-          : "vendor",
-      is_vendor:
-        roleFromQuery === "builder" ||
-        roleFromQuery === "hub_vendor" ||
-        roleFromQuery === "blogger" ||
-        roleFromQuery === "vendor",
-      onboarding_version: 2,
-      onboarding_completed: true,
-      portal_use_reason: fallbackUseReason,
-      role_display_label: roleDisplayLabel,
-      full_name: bp.contact_person ?? null,
-      phone: bp.phone_primary ?? null,
-      city: bp.city ?? null,
-      state: bp.state ?? null,
-    };
-
-    const { error: profileUpdateError } = await supabase
-      .from("profiles")
-      .upsert(profilePayload, { onConflict: "id" });
-
-    if (profileUpdateError) {
-      setSaving(false);
-      setMsg(profileUpdateError.message);
-      await fetchCompleteness(userId);
-      return;
-    }
-
-    // Rebuild grants from final onboarding selection
-    const finalRole =
-      roleFromQuery === "builder"
-        ? "builder"
-        : roleFromQuery === "hub_vendor"
-        ? "hub_vendor"
-        : roleFromQuery === "blogger"
-        ? "blogger"
-        : "vendor";
-
-    const grantRows =
-      finalRole === "hub_vendor"
-        ? [
-            "materials",
-            "services",
-            "rentals",
-            "property_owner",
-            "property_builder",
-            "blog_author",
-            "investor",
-          ]
-        : finalRole === "builder"
-        ? ["property_builder"]
-        : finalRole === "blogger"
-        ? ["blog_author"]
-        : safeArr(bp.nature_of_business).flatMap((x) => {
-            if (x === "materials") return ["materials"];
-            if (x === "services") return ["services"];
-            if (x === "rentals") return ["rentals"];
-            if (x === "property") return ["property_owner"];
-            if (x === "blog") return ["blog_author"];
-            return [];
-          });
-
-    const uniqueGrantRows = Array.from(new Set(grantRows)).map((module_key) => ({
-      user_id: userId,
-      module_key,
-      is_active: true,
-    }));
-
-    const { error: deleteGrantError } = await supabase
-      .from("vendor_module_grants")
-      .delete()
-      .eq("user_id", userId);
-
-    if (deleteGrantError) {
-      setSaving(false);
-      setMsg(deleteGrantError.message);
-      await fetchCompleteness(userId);
-      return;
-    }
-
-    if (uniqueGrantRows.length > 0) {
-      const { error: insertGrantError } = await supabase
-        .from("vendor_module_grants")
-        .insert(uniqueGrantRows);
-
-      if (insertGrantError) {
         setSaving(false);
-        setMsg(insertGrantError.message);
+        setMsg(message);
         await fetchCompleteness(userId);
         return;
       }
+
+      /*
+       * P04-E4E
+       *
+       * Registration verification is decided exclusively by
+       * the authenticated server orchestration.
+       *
+       * The browser consumes the canonical result only. It does
+       * not calculate verification, approval, dashboard readiness,
+       * subscription state or role assignment.
+       */
+      if (
+        payload?.code !==
+        "REGISTRATION_COMPLETION_AND_VERIFICATION_EVALUATED"
+      ) {
+        throw new Error(
+          "The registration server returned an unexpected completion contract."
+        );
+      }
+
+      const verificationStatus = String(
+        payload?.verification?.status || ""
+      );
+
+      const canonicalVerificationStatuses = new Set([
+        "auto_verified",
+        "evidence_incomplete",
+        "correction_required",
+        "admin_review_required",
+        "restricted",
+      ]);
+
+      if (
+        !canonicalVerificationStatuses.has(
+          verificationStatus
+        )
+      ) {
+        throw new Error(
+          "The registration server returned an invalid verification status."
+        );
+      }
+
+      await fetchCompleteness(userId);
+
+      switch (verificationStatus) {
+        case "auto_verified": {
+          setMsg(
+            "✅ Registration completed and automatically verified. Your workspace readiness has been confirmed. Redirecting..."
+          );
+
+          router.replace(returnTo);
+          router.refresh();
+          return;
+        }
+
+        case "evidence_incomplete": {
+          setMsg(
+            "Registration is saved, but some required verification evidence is still incomplete. Please review and complete the highlighted information."
+          );
+          scrollToId("sec-review");
+          return;
+        }
+
+        case "correction_required": {
+          setMsg(
+            "Registration is saved, but some submitted information requires correction before verification can continue. Please review the details below."
+          );
+          scrollToId("sec-review");
+          return;
+        }
+
+        case "admin_review_required": {
+          setMsg(
+            "Registration is complete and has been submitted for administrative review. No payment or dashboard activation is required at this stage."
+          );
+          scrollToId("sec-review");
+          return;
+        }
+
+        case "restricted": {
+          setMsg(
+            "Registration is complete, but this account is currently restricted. Dashboard access has not been activated."
+          );
+          scrollToId("sec-review");
+          return;
+        }
+      }
+    } catch (error) {
+      console.error(
+        "REGISTRATION_COMPLETION_REQUEST_FAILED",
+        error
+      );
+
+      setMsg(
+        "Registration could not be completed because the server could not be reached. Please try again."
+      );
+    } finally {
+      setSaving(false);
     }
-
-    setSaving(false);
-
-    setMsg("✅ Registration Complete. Redirecting...");
-    await fetchCompleteness(userId);
-    router.replace(returnTo);
-    router.refresh();
   }
 
   if (loading) {
