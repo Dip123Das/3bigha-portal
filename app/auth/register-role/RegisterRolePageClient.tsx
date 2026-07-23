@@ -335,13 +335,8 @@ export default function RegisterRolePageClient() {
     );
   }
 
-  async function saveModuleGrants(userId: string, modules: LegacyModuleKey[]) {
-    const { error: deleteError } = await supabase.from("vendor_module_grants").delete().eq("user_id", userId);
-    if (deleteError) return deleteError;
-    if (!modules.length) return null;
-    const { error } = await supabase.from("vendor_module_grants").insert(
-      modules.map((moduleKey) => ({ user_id: userId, module_key: moduleKey, is_active: true }))
-    );
+  async function syncModuleGrants() {
+    const { error } = await supabase.rpc("sync_member_module_grants");
     return error;
   }
 
@@ -482,7 +477,7 @@ export default function RegisterRolePageClient() {
       const { error: reRegistrationError } = await supabase.rpc("complete_required_re_registration");
       if (reRegistrationError) throw reRegistrationError;
 
-      const grantsError = await saveModuleGrants(user.id, allModules);
+      const grantsError = await syncModuleGrants();
       if (grantsError) throw grantsError;
 
       if (requiresBusinessOnboarding) {
