@@ -150,10 +150,13 @@ const checks = [
       !route.includes("roleFromQuery"),
   ],
   [
-    "verification remains separate",
-    route.includes(
-      'verificationDecision: "not_evaluated"'
-    ),
+    "verification remains server-owned",
+    !route.includes("request.json") &&
+      !route.includes("req.json") &&
+      !route.includes("requestedVerificationStatus") &&
+      !route.includes("requestedVerificationScore") &&
+      !route.includes("requestedApproval") &&
+      !route.includes("requestedDashboardActivation"),
   ],
   [
     "dashboard activation remains separate",

@@ -273,19 +273,115 @@ export async function POST() {
       );
     }
 
+    /*
+     * P04-E4D
+     *
+     * Compatibility completion has succeeded.
+     * Automated verification is now evaluated from the
+     * canonical evidence stored in the database.
+     *
+     * This RPC accepts no client decision parameters.
+     */
+    const {
+      data: verificationData,
+      error: verificationError,
+    } = await supabase.rpc(
+      "evaluate_automated_registration_verification"
+    );
+
+    if (verificationError) {
+      console.error(
+        "AUTOMATED_REGISTRATION_VERIFICATION_FAILED",
+        {
+          userId: user.id,
+          code: verificationError.code,
+          message: verificationError.message,
+          details: verificationError.details,
+          hint: verificationError.hint,
+        }
+      );
+
+      return errorResponse(
+        "Registration was completed, but automated verification could not be evaluated safely.",
+        500,
+        "AUTOMATED_VERIFICATION_FAILED"
+      );
+    }
+
+    const verificationResult =
+      verificationData &&
+      typeof verificationData === "object"
+        ? verificationData as Record<string, unknown>
+        : {};
+
+    const verificationStatus = String(
+      verificationResult.status || ""
+    )
+      .trim()
+      .toLowerCase();
+
+    if (
+      verificationResult.ok !== true ||
+      !verificationStatus
+    ) {
+      console.error(
+        "AUTOMATED_REGISTRATION_VERIFICATION_INVALID_RESULT",
+        {
+          userId: user.id,
+          verificationResult,
+        }
+      );
+
+      return errorResponse(
+        "Registration was completed, but the verification service returned an invalid decision.",
+        500,
+        "INVALID_VERIFICATION_RESULT"
+      );
+    }
+
     return NextResponse.json({
       ok: true,
-      code: "REGISTRATION_COMPATIBILITY_COMPLETED",
-      registrationComplete: true,
-      onboardingCompleted: true,
-      role: projection.role,
-      moduleGrants: projection.moduleGrants,
+      code:
+        "REGISTRATION_COMPLETION_AND_VERIFICATION_EVALUATED",
+
+      completion: {
+        completed: true,
+        registrationComplete: true,
+        onboardingCompleted: true,
+        role: projection.role,
+        moduleGrants: projection.moduleGrants,
+      },
+
+      verification: {
+        status: verificationStatus,
+        score:
+          typeof verificationResult.score === "number"
+            ? verificationResult.score
+            : Number(verificationResult.score || 0),
+        reasons: Array.isArray(
+          verificationResult.reasons
+        )
+          ? verificationResult.reasons
+          : [],
+        dashboardStatus: String(
+          verificationResult.dashboard_status ||
+            "not_ready"
+        ),
+        canActivateDashboard:
+          verificationResult.can_activate_dashboard ===
+          true,
+        dashboardActivated:
+          verificationResult.dashboard_activated === true,
+        decisionSource: String(
+          verificationResult.decision_source ||
+            "automated_registration_verification_v1"
+        ),
+      },
 
       /*
-       * Verification and activation remain separate.
-       * P04-E4 will decide these from stored evidence.
+       * Compatibility completion and automated
+       * verification do not activate the dashboard.
        */
-      verificationDecision: "not_evaluated",
       dashboardActivation: "not_changed",
     });
   } catch (error) {
