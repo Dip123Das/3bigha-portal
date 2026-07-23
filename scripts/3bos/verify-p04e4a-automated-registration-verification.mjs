@@ -149,8 +149,17 @@ const checks = [
   [
     "database activation remains separate",
     source.includes(
-      "a separate atomic server function performs final dashboard activation"
-    ),
+      "separate atomic server function"
+    ) &&
+      source.includes(
+        "final dashboard activation"
+      ) &&
+      source.includes(
+        'dashboardProjection: "ready"'
+      ) &&
+      !source.includes(
+        'dashboardProjection: "active"'
+      ),
   ],
   [
     "browser decisions are not accepted",
