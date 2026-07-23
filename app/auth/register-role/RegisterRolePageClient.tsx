@@ -74,6 +74,23 @@ function lgdCode(raw: string | null | undefined) {
   return Number.isInteger(value) && value > 0 ? value : null;
 }
 
+function resolvePermittedRole(
+  operatingProfile: OperatingProfile,
+  roles: ManagedIdentity["legacy_role"][]
+): ManagedIdentity["legacy_role"] {
+  const uniqueRoles = Array.from(new Set(roles));
+  if (operatingProfile === "multi_business_organisation") {
+    if (uniqueRoles.length === 1 && uniqueRoles[0] === "investor") return "investor";
+    if (uniqueRoles.length === 1 && uniqueRoles[0] === "buyer") return "buyer";
+    return "hub_vendor";
+  }
+  if (uniqueRoles.length === 1) return uniqueRoles[0];
+  if (uniqueRoles.every((role) => ["vendor", "builder", "hub_vendor", "blogger"].includes(role))) {
+    return "hub_vendor";
+  }
+  return roles[0] || "buyer";
+}
+
 export default function RegisterRolePageClient() {
   const router = useRouter();
   const sp = useSearchParams();
@@ -360,7 +377,13 @@ export default function RegisterRolePageClient() {
       const allModules = Array.from(new Set(selectedBridges.flatMap((item) => item.modules))) as LegacyModuleKey[];
       // Navigation and follow-on onboarding mirror the primary catalogue mapping;
       // the database remains authoritative and validates every selected identity.
-      const effectiveRole = bridge.role;
+      const effectiveRole = resolvePermittedRole(
+        operatingProfile,
+        identityKeys.map((key) => {
+          const managed = managedIdentities.find((item) => item.identity_key === key);
+          return managed?.legacy_role || getIdentityDeclarationBridge(key as HumanIdentityKey).role;
+        })
+      );
       const requiresBusinessOnboarding = operatingProfile === "multi_business_organisation" || selectedBridges.some((item) => item.requiresBusinessOnboarding);
       const requiresProfessionalVerification = selectedBridges.some((item) => item.requiresProfessionalVerification);
 
