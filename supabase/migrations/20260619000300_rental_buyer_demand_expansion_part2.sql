@@ -1,53 +1,15 @@
-insert into vendor_opportunity_seo
-(
-  slug,
-  seo_title,
-  seo_description,
-  is_indexable
-)
-select distinct
-  concat(
-    'rental-provider-',
-    equipment_slug,
-    '-',
-    p.slug
-  ),
-  concat(
-    'Need ',
-    equipment_name,
-    ' Rental Providers in ',
-    p.name
-  ),
-  concat(
-    'Builders, contractors and project owners in ',
-    p.name,
-    ' are searching for ',
-    lower(equipment_name),
-    ' rental providers. Join 3Bigha and receive local rental demand opportunities.'
-  ),
-  true
-from geo_places p
-cross join (
-  values
-    ('tower-crane','Tower Crane'),
-    ('mobile-crane','Mobile Crane'),
-    ('hydra-crane','Hydra Crane'),
-    ('boom-lift','Boom Lift'),
-    ('scissor-lift','Scissor Lift'),
-    ('forklift','Forklift'),
-    ('backhoe-loader','Backhoe Loader'),
-    ('soil-compactor','Soil Compactor'),
-    ('vibratory-roller','Vibratory Roller'),
-    ('plate-compactor','Plate Compactor'),
-    ('concrete-pump','Concrete Pump'),
-    ('bar-bending-machine','Bar Bending Machine'),
-    ('bar-cutting-machine','Bar Cutting Machine'),
-    ('power-trowel','Power Trowel'),
-    ('dewatering-pump','Dewatering Pump'),
-    ('diesel-generator','Diesel Generator'),
-    ('air-compressor','Air Compressor'),
-    ('welding-machine','Welding Machine'),
-    ('water-tanker','Water Tanker'),
-    ('tipper-truck','Tipper Truck')
-) as eq(equipment_slug,equipment_name)
-on conflict do nothing;
+-- Additional rental SEO mass expansion superseded by controlled SEO architecture.
+--
+-- The original migration attempted to cross join the complete national
+-- geo_places dataset with multiple opportunity categories, producing
+-- millions of permanent SEO rows in one transaction.
+--
+-- Existing curated vendor_opportunity_seo records are intentionally
+-- preserved. National SEO expansion must use a controlled, normalized,
+-- demand-led or dynamic projection architecture instead.
+
+do $$
+begin
+  raise notice 'Additional rental SEO mass expansion superseded by controlled SEO architecture.';
+end
+$$;

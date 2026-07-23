@@ -1,53 +1,15 @@
-insert into vendor_opportunity_seo
-(
-  slug,
-  seo_title,
-  seo_description,
-  is_indexable
-)
-select distinct
-  concat(
-    'service-provider-',
-    service_slug,
-    '-',
-    p.slug
-  ),
-  concat(
-    'Need ',
-    service_name,
-    ' Service Providers in ',
-    p.name
-  ),
-  concat(
-    'House owners, builders and businesses in ',
-    p.name,
-    ' are searching for ',
-    lower(service_name),
-    ' service providers. Join 3Bigha as a service provider and receive local buyer demand opportunities.'
-  ),
-  true
-from geo_places p
-cross join (
-  values
-    ('electrician','Electrician'),
-    ('plumber','Plumber'),
-    ('civil-contractor','Civil Contractor'),
-    ('raj-mistri','Raj Mistri'),
-    ('mason','Mason'),
-    ('painter','Painter'),
-    ('carpenter','Carpenter'),
-    ('tiles-mistri','Tiles Mistri'),
-    ('marble-mistri','Marble Mistri'),
-    ('grill-mistri','Grill Mistri'),
-    ('welder','Welder'),
-    ('aluminium-fabricator','Aluminium Fabricator'),
-    ('labour-contractor','Labour Contractor'),
-    ('house-construction-contractor','House Construction Contractor'),
-    ('roof-casting-contractor','Roof Casting Contractor'),
-    ('earthwork-contractor','Earthwork Contractor'),
-    ('boundary-wall-contractor','Boundary Wall Contractor'),
-    ('boring-service','Boring Service'),
-    ('waterproofing-contractor','Waterproofing Contractor'),
-    ('interior-contractor','Interior Contractor')
-) as svc(service_slug, service_name)
-on conflict do nothing;
+-- National service SEO mass expansion superseded by controlled SEO architecture.
+--
+-- The original migration attempted to cross join the complete national
+-- geo_places dataset with multiple opportunity categories, producing
+-- millions of permanent SEO rows in one transaction.
+--
+-- Existing curated vendor_opportunity_seo records are intentionally
+-- preserved. National SEO expansion must use a controlled, normalized,
+-- demand-led or dynamic projection architecture instead.
+
+do $$
+begin
+  raise notice 'National service SEO mass expansion superseded by controlled SEO architecture.';
+end
+$$;
