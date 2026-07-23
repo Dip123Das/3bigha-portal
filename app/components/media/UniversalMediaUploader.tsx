@@ -396,6 +396,8 @@ export default function UniversalMediaUploader({
             marginTop: 10,
             color:
               message.toLowerCase().includes("failed") ||
+              message.toLowerCase().includes("error") ||
+              message.toLowerCase().includes("not found") ||
               message.toLowerCase().includes("large") ||
               message.toLowerCase().includes("skipped") ||
               message.toLowerCase().includes("unsupported")
