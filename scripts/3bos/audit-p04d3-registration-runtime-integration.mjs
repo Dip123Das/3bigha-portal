@@ -68,9 +68,8 @@ const routeMappings = {
     postLogin.includes("/auth/awaiting-approval") ||
     postLogin.includes("awaiting-approval"),
   essentialWorkspace:
-    postLogin.includes("/dashboard/workspace") ||
-    postLogin.includes("resolveUnifiedWorkspaceAccess") ||
-    postLogin.includes("workspace-access"),
+    postLogin.includes("resolveAccessForUser") &&
+    postLogin.includes("getDefaultPostLoginPath"),
   growthPlan:
     postLogin.includes("/dashboard/subscription"),
 };
@@ -137,12 +136,14 @@ const report = {
 
   stateToRouteIntegration: {
     roleSelectionStateExists:
-      resolver.includes("role-selection"),
+      resolver.includes('"ROLE_SELECTION_REQUIRED"') &&
+      postLogin.includes('case "ROLE_SELECTION_REQUIRED"'),
     roleSelectionRouteMapped:
       routeMappings.roleSelection,
 
     businessProfileStateExists:
-      resolver.includes("business-profile"),
+      resolver.includes('"BUSINESS_PROFILE_REQUIRED"') &&
+      postLogin.includes('case "BUSINESS_PROFILE_REQUIRED"'),
     businessProfileRouteMapped:
       routeMappings.businessProfile,
 
@@ -152,7 +153,8 @@ const report = {
       resolver.includes("review"),
 
     essentialWorkspaceStateExists:
-      resolver.includes("essential-workspace"),
+      resolver.includes('"ESSENTIAL_ACTIVE"') &&
+      postLogin.includes('case "ESSENTIAL_ACTIVE"'),
     essentialWorkspaceRouteMapped:
       routeMappings.essentialWorkspace,
 

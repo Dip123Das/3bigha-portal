@@ -85,14 +85,13 @@ const checks = [
   ],
   [
     "Essential Workspace state exists",
-    stateResolver.includes("essential-workspace"),
+    stateResolver.includes('"ESSENTIAL_ACTIVE"') &&
+      postLogin.includes('case "ESSENTIAL_ACTIVE"'),
   ],
   [
     "workspace access remains canonically resolved",
-    postLogin.includes(
-      "resolveUnifiedWorkspaceAccess"
-    ) ||
-      postLogin.includes("workspace-access"),
+    postLogin.includes("resolveAccessForUser") &&
+      postLogin.includes("getDefaultPostLoginPath"),
   ],
   [
     "registration status resolver exists",
