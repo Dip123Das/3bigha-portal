@@ -69,6 +69,11 @@ function normalizePhone(raw: string) {
   return raw.replace(/[^\d+]/g, "").trim();
 }
 
+function lgdCode(raw: string | null | undefined) {
+  const value = Number(raw);
+  return Number.isInteger(value) && value > 0 ? value : null;
+}
+
 export default function RegisterRolePageClient() {
   const router = useRouter();
   const sp = useSearchParams();
@@ -391,6 +396,11 @@ export default function RegisterRolePageClient() {
       });
       if (authError) throw authError;
 
+      const placeType = String(geography.place?.place_type || "").toUpperCase();
+      const blockType = String(geography.block?.place_type || "").toUpperCase();
+      const isWard = placeType.includes("WARD");
+      const isLocalBody = blockType.includes("LOCAL_BODY") || blockType.includes("MUNICIPAL");
+
       const { error: profileError } = await supabase.from("profiles").upsert({
         id: user.id,
         email: user.email ?? null,
@@ -402,11 +412,13 @@ export default function RegisterRolePageClient() {
         onboarding_completed: true,
         portal_use_reason: bridge.portalUseReason,
         role_display_label: displayLabel,
-        geo_state_id: geography.state?.id || null,
-        geo_district_id: geography.district?.id || null,
-        geo_subdivision_id: geography.subdivision?.id || null,
-        geo_block_id: geography.block?.id || null,
-        geo_place_id: geography.place?.id || null,
+        lgd_state_code: lgdCode(geography.state?.id),
+        lgd_district_code: lgdCode(geography.district?.id),
+        lgd_subdistrict_code: lgdCode(geography.subdivision?.id),
+        lgd_block_code: isLocalBody ? null : lgdCode(geography.block?.id),
+        lgd_village_code: isWard ? null : lgdCode(geography.place?.id),
+        lgd_local_body_code: isLocalBody ? lgdCode(geography.block?.id) : null,
+        lgd_ward_code: isWard ? lgdCode(geography.place?.id) : null,
       }, { onConflict: "id" });
       if (profileError) throw profileError;
 
