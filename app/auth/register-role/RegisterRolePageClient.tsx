@@ -91,6 +91,20 @@ function resolvePermittedRole(
   return roles[0] || "buyer";
 }
 
+const PERMITTED_ROLE_LABELS: Record<string, string> = {
+  buyer: "Buyer",
+  vendor: "Vendor / Professional",
+  builder: "Builder / Real Estate Developer",
+  hub_vendor: "Multi-Business Operator",
+  blogger: "Author / Publisher",
+  investor: "Investor",
+  banker: "Banking Professional",
+  finance_banker: "Finance Banker",
+  blog_admin: "Blog Admin",
+  admin: "Admin",
+  master_admin: "Master Admin",
+};
+
 export default function RegisterRolePageClient() {
   const router = useRouter();
   const sp = useSearchParams();
@@ -180,6 +194,19 @@ export default function RegisterRolePageClient() {
   const managedSelection = managedIdentities.find((item) => item.identity_key === identityKey);
   const identityLabel = managedSelection?.label || (identityKey ? getLocalIdentityLabel(identityKey as HumanIdentityKey, stateName) : "");
   const operatingDefinition = OPERATING_PROFILES.find((item) => item.key === operatingProfile)!;
+  const selectedLegacyRoles = identityKeys.map((key) => {
+    const managed = managedIdentities.find((item) => item.identity_key === key);
+    return managed?.legacy_role || getIdentityDeclarationBridge(key as HumanIdentityKey).role;
+  });
+  const protectedSelectedRole = selectedLegacyRoles.find((role) =>
+    ["master_admin", "admin", "blog_admin", "banker", "finance_banker"].includes(role)
+  );
+  const recommendedPermittedRole = identityKeys.length
+    ? protectedSelectedRole || resolvePermittedRole(operatingProfile, selectedLegacyRoles)
+    : "";
+  const recommendedRoleLabel = recommendedPermittedRole
+    ? PERMITTED_ROLE_LABELS[recommendedPermittedRole] || recommendedPermittedRole
+    : "";
   const needsBusinessProfile = operatingProfile === "multi_business_organisation" || identityKeys.some((key) => {
     const managed = managedIdentities.find((item) => item.identity_key === key);
     return managed?.requires_business_onboarding ?? getIdentityDeclarationBridge(key as HumanIdentityKey).requiresBusinessOnboarding;
@@ -655,7 +682,13 @@ export default function RegisterRolePageClient() {
             </section>
           ) : null}
 
-          {identityKey ? <div style={{ padding: 14, borderRadius: 12, background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#166534" }}><strong>Primary category:</strong> {identityLabel}<br /><span style={{ fontSize: 13 }}>{identityKeys.length} {identityKeys.length === 1 ? "category" : "categories"} selected · Recommended: {operatingDefinition.plan}. Adding a category outside your active entitlement will be stopped and you will be guided to the appropriate upgrade.</span></div> : null}
+          {identityKey ? <div style={{ padding: 14, borderRadius: 12, background: protectedSelectedRole ? "#fff7ed" : "#f0fdf4", border: `1px solid ${protectedSelectedRole ? "#fdba74" : "#bbf7d0"}`, color: protectedSelectedRole ? "#9a3412" : "#166534" }}>
+            <strong>Primary category:</strong> {identityLabel}<br />
+            <strong>Recommended permitted role:</strong> {recommendedRoleLabel}
+            {protectedSelectedRole ? " — Master Admin approval required" : " — assigned automatically after confirmation"}
+            <br />
+            <span style={{ fontSize: 13 }}>{identityKeys.length} {identityKeys.length === 1 ? "category" : "categories"} selected · Recommended plan: {operatingDefinition.plan}. Adding a category outside your active entitlement will be stopped and you will be guided to the appropriate upgrade.</span>
+          </div> : null}
           {msg ? <div role="alert" style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#9f1239", borderRadius: 10, padding: 11 }}>{msg}</div> : null}
           <button type="submit" disabled={loading} style={{ justifySelf: "start", padding: "12px 20px", borderRadius: 11, border: 0, background: loading ? "#94a3b8" : "#2563eb", color: "white", fontWeight: 900, cursor: loading ? "wait" : "pointer" }}>{loading ? "Preparing your workspace..." : "Confirm identity and continue"}</button>
         </form>
