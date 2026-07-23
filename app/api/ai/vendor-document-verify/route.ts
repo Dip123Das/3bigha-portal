@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { validateGstin, documentTextContainsNeedle } from "@/lib/vendor-verification/gstin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseServerClient } from "@/lib/supabaseServer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,6 +48,33 @@ function parseJsonLoose(text: string) {
 
 export async function POST(req: Request) {
   try {
+    const cookieStore = await cookies();
+    const session = getSupabaseServerClient(cookieStore);
+    const {
+      data: { user },
+    } = await session.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Login required." }, { status: 401 });
+    }
+
+    const admin = getSupabaseAdmin();
+    async function verifiedResponse(verification: Record<string, unknown>) {
+      const { error } = await admin.from("registration_verification_cases").insert({
+        user_id: user!.id,
+        status: String(verification.status || "needs_manual_review"),
+        confidence: Number(verification.confidence || 0),
+        result_json: verification,
+      });
+      if (error) {
+        console.error("REGISTRATION_VERIFICATION_AUDIT_FAILED", error);
+        return NextResponse.json(
+          { ok: false, error: "The document check could not be recorded safely." },
+          { status: 500 }
+        );
+      }
+      return NextResponse.json({ ok: true, verification });
+    }
+
     const body = await req.json();
 
     const gstin = safeString(body?.gstin);
@@ -68,9 +98,7 @@ export async function POST(req: Request) {
       .filter(Boolean);
 
     if (!uploadedUrls.length) {
-      return NextResponse.json({
-        ok: true,
-        verification: {
+      return verifiedResponse({
           status: "needs_document",
           confidence: 0,
           gstinValidation,
@@ -80,16 +108,13 @@ export async function POST(req: Request) {
           addressMatched: false,
           summary: "Please upload the GST certificate or Trade Licence document.",
           warnings: ["No uploaded document/image was provided for document matching."],
-        },
       });
     }
 
     const apiKey = getOpenAIKey();
 
     if (!apiKey) {
-      return NextResponse.json({
-        ok: true,
-        verification: {
+      return verifiedResponse({
           status: gstinValidation.valid ? "format_valid_needs_manual_review" : "format_invalid",
           confidence: gstinValidation.valid ? 35 : 5,
           gstinValidation,
@@ -99,7 +124,6 @@ export async function POST(req: Request) {
           addressMatched: false,
           summary: "The GSTIN format was checked, but document matching is temporarily unavailable.",
           warnings: gstinValidation.errors,
-        },
       });
     }
 
@@ -167,9 +191,7 @@ Rules:
     const aiJson = await aiRes.json().catch(() => null);
 
     if (!aiRes.ok) {
-      return NextResponse.json({
-        ok: true,
-        verification: {
+      return verifiedResponse({
           status: gstinValidation.valid ? "format_valid_needs_manual_review" : "format_invalid",
           confidence: gstinValidation.valid ? 35 : 5,
           gstinValidation,
@@ -179,7 +201,6 @@ Rules:
           addressMatched: false,
           summary: "The GSTIN format was checked, but the document needs manual review.",
           warnings: ["Automated document matching was unavailable."],
-        },
       });
     }
 
@@ -234,9 +255,7 @@ Rules:
       status = "needs_manual_review";
     }
 
-    return NextResponse.json({
-      ok: true,
-      verification: {
+    return verifiedResponse({
         status,
         confidence,
         gstinValidation,
@@ -253,7 +272,6 @@ Rules:
           safeString(parsed?.summary) ||
           "Document check completed. Please manually review before final approval.",
         warnings,
-      },
     });
   } catch (e: any) {
     return NextResponse.json(

@@ -208,6 +208,7 @@ export default function SubscriptionPageClient() {
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [paymentLink, setPaymentLink] = useState<string | null>(null);
 
   // if listingId is missing, show a clear banner (do NOT break the page)
   const listingIdMissing = !listingId || String(listingId).trim().length < 6;
@@ -354,31 +355,29 @@ export default function SubscriptionPageClient() {
         }),
       });
 
-      const { error: requestError } = await supabase
-        .from("business_profiles")
-        .update({
-          subscription_plan: plan,
-          subscription_status: "requested",
-          subscription_expires_at: null,
-        })
-        .eq("user_id", user.id);
-
-      if (requestError) {
-        console.warn("subscription request update failed:", requestError.message);
+      const response = await fetch("/api/payments/sbi/create-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error || "Could not create the SBI payment request.");
       }
 
       setActivePlan(plan);
       setIsActive(false);
       setExpiresAt(null);
+      setPaymentLink(result.shareUrl || null);
 
       setMsg(
-        "Your Growth Plan request has been recorded. Online payment is not active yet; the team can activate the requested plan after payment confirmation."
+        result.gatewayReady
+          ? "Your secure SBI payment request is ready."
+          : "Your plan and secure shareable payment request are saved. SBI Payment Gateway connection is still pending, so no payment can be collected or subscription activated yet."
       );
     } catch (e: any) {
       console.warn("subscription purchase intent tracking failed:", e?.message || e);
-      setMsg(
-        "Online payment is not active yet. Please contact the 3Bigha team for plan activation support."
-      );
+      setErr(e?.message || "Could not create the SBI payment request.");
     } finally {
       setSaving(false);
     }
@@ -504,6 +503,13 @@ export default function SubscriptionPageClient() {
             {msg ? (
               <div className="alert alertOk">
                 <b>Info:</b> {msg}
+                {paymentLink ? (
+                  <div style={{ marginTop: 10 }}>
+                    <a href={paymentLink} style={{ fontWeight: 900 }}>
+                      Open or share this SBI payment request
+                    </a>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -638,7 +644,7 @@ export default function SubscriptionPageClient() {
             </div>
 
             <div className="alert alertWarn">
-              <b>Payment update:</b> Online payment is not active yet. Plan requests are recorded safely, and activation is completed after payment confirmation.
+              <b>SBI Payment Gateway:</b> Subscription payment is online-only through SBI. The bank integration is being configured; until it is enabled, a payment request cannot be marked paid and cannot unlock business operations.
             </div>
 
             <div className="comparisonBox">

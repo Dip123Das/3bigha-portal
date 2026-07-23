@@ -71,7 +71,7 @@ export default function BoostPage() {
         return;
       }
 
-      setMessage("Payment gateway will open here after Razorpay activation.");
+      setMessage("SBI Payment Gateway checkout will open here after the bank integration is activated.");
     } catch (e: any) {
       setMessage(e?.message || "Something went wrong");
     } finally {
@@ -100,8 +100,9 @@ export default function BoostPage() {
           color: "#7c2d12",
         }}
       >
-        Payment is currently disabled until GST, current bank account, and Razorpay
-        activation are completed. This page prepares the full boost infrastructure safely.
+        Payment is currently disabled until the SBI Payment Gateway merchant
+        integration kit and production credentials are configured. This page prepares
+        the boost request safely without collecting or confirming payment.
       </div>
 
       {message ? (
