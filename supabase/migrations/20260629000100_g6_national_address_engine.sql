@@ -225,41 +225,71 @@ alter table public.geo_lgd_pincodes enable row level security;
 alter table public.geo_lgd_place_pincodes enable row level security;
 alter table public.geo_lgd_import_runs enable row level security;
 
+drop policy if exists "Public read geo_lgd_states"
+on public.geo_lgd_states;
+
 create policy "Public read geo_lgd_states"
 on public.geo_lgd_states for select
 using (true);
+
+drop policy if exists "Public read geo_lgd_districts"
+on public.geo_lgd_districts;
 
 create policy "Public read geo_lgd_districts"
 on public.geo_lgd_districts for select
 using (true);
 
+drop policy if exists "Public read geo_lgd_subdistricts"
+on public.geo_lgd_subdistricts;
+
 create policy "Public read geo_lgd_subdistricts"
 on public.geo_lgd_subdistricts for select
 using (true);
+
+drop policy if exists "Public read geo_lgd_blocks"
+on public.geo_lgd_blocks;
 
 create policy "Public read geo_lgd_blocks"
 on public.geo_lgd_blocks for select
 using (true);
 
+drop policy if exists "Public read geo_lgd_local_bodies"
+on public.geo_lgd_local_bodies;
+
 create policy "Public read geo_lgd_local_bodies"
 on public.geo_lgd_local_bodies for select
 using (true);
+
+drop policy if exists "Public read geo_lgd_block_villages"
+on public.geo_lgd_block_villages;
 
 create policy "Public read geo_lgd_block_villages"
 on public.geo_lgd_block_villages for select
 using (true);
 
+drop policy if exists "Public read geo_lgd_villages"
+on public.geo_lgd_villages;
+
 create policy "Public read geo_lgd_villages"
 on public.geo_lgd_villages for select
 using (true);
+
+drop policy if exists "Public read geo_lgd_wards"
+on public.geo_lgd_wards;
 
 create policy "Public read geo_lgd_wards"
 on public.geo_lgd_wards for select
 using (true);
 
+drop policy if exists "Public read geo_lgd_pincodes"
+on public.geo_lgd_pincodes;
+
 create policy "Public read geo_lgd_pincodes"
 on public.geo_lgd_pincodes for select
 using (true);
+
+drop policy if exists "Public read geo_lgd_place_pincodes"
+on public.geo_lgd_place_pincodes;
 
 create policy "Public read geo_lgd_place_pincodes"
 on public.geo_lgd_place_pincodes for select
