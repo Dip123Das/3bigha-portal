@@ -168,7 +168,9 @@ export default function RegisterRolePageClient() {
     if (managedIdentities.length) {
       const source = family || query || showAllIdentities
         ? managedIdentities
-        : managedIdentities.filter((item) => item.is_featured);
+        : managedIdentities
+            .filter((item) => item.is_featured)
+            .slice(0, 9);
       return source.filter((item) => {
         if (item.identity_key === "multi_business_operator") return false;
         const matchesFamily = !family || item.family_key === family;
@@ -588,8 +590,12 @@ export default function RegisterRolePageClient() {
           </section>
 
           <section>
-            <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 4 }}>Choose your work {operatingProfile === "individual_professional" ? "category" : "categories"} *</div>
-            <div style={{ color: "#64748b", fontSize: 14, marginBottom: 12 }}>The first selection is your primary category and determines your default workspace. {operatingDefinition.limit ? `You may select up to ${operatingDefinition.limit}.` : "You may select any number."}</div>
+            <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 4 }}>
+              What kind of work do you do? *
+            </div>
+            <div style={{ color: "#64748b", fontSize: 14, marginBottom: 12 }}>
+              Start with the closest match. Your first choice becomes your main work area, and you can add other permitted work when needed. {operatingDefinition.limit ? `Your current plan allows up to ${operatingDefinition.limit}.` : "Your current plan allows multiple work areas."}
+            </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
               {DECLARABLE_IDENTITY_FAMILIES.map((item) => <button key={item} type="button" onClick={() => { setFamily(item); setSearch(""); setShowAllIdentities(false); }} style={chipStyle(family === item)}>{getIdentityFamilyLabel(item)}</button>)}
             </div>
@@ -600,7 +606,7 @@ export default function RegisterRolePageClient() {
                   setSearch(e.target.value);
                   if (e.target.value) setFamily("");
                 }}
-                placeholder="Search all identities: developer, contractor, banker, Amin, mason..."
+                placeholder="Search your work: builder, contractor, Amin, mason, banker..."
                 style={{ ...inputStyle, marginTop: 0 }}
               />
               <button
@@ -612,11 +618,13 @@ export default function RegisterRolePageClient() {
                 }}
                 style={viewAllButtonStyle(showAllIdentities && !family)}
               >
-                {showAllIdentities && !family ? "Show main choices" : "See all identities"}
+                {showAllIdentities && !family ? "Show main choices" : "Show all work types"}
               </button>
             </div>
             <div style={{ color: "#475569", fontSize: 13, marginBottom: 12 }}>
-              Can’t see your identity? Search above, choose a category, or see the complete identity list.
+              {family || search.trim() || showAllIdentities
+                ? "Choose the closest description of your work. Protected professions will still require the applicable verification."
+                : "These are the main choices. Search, choose a work family, or open the complete list only when needed."}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))", gap: 10 }}>
               {identityOptions.map((item) => {
@@ -689,7 +697,9 @@ export default function RegisterRolePageClient() {
             <span style={{ fontSize: 13 }}>{identityKeys.length} {identityKeys.length === 1 ? "category" : "categories"} selected · Recommended plan: {operatingDefinition.plan}. Adding a category outside your active entitlement will be stopped and you will be guided to the appropriate upgrade.</span>
           </div> : null}
           {msg ? <div role="alert" style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#9f1239", borderRadius: 10, padding: 11 }}>{msg}</div> : null}
-          <button type="submit" disabled={loading} style={{ justifySelf: "start", padding: "12px 20px", borderRadius: 11, border: 0, background: loading ? "#94a3b8" : "#2563eb", color: "white", fontWeight: 900, cursor: loading ? "wait" : "pointer" }}>{loading ? "Preparing your workspace..." : "Confirm identity and continue"}</button>
+          <button type="submit" disabled={loading} style={{ justifySelf: "start", padding: "12px 20px", borderRadius: 11, border: 0, background: loading ? "#94a3b8" : "#2563eb", color: "white", fontWeight: 900, cursor: loading ? "wait" : "pointer" }}>
+            {loading ? "Preparing your workspace..." : "Continue with my choices"}
+          </button>
         </form>
       </div>
     </main>
