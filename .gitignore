@@ -40,7 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.vercel
 .env*.local
 
 # Android release signing
@@ -66,3 +65,23 @@ data/geography/coordinates/raw/*.tmp
 
 # Local audit outputs
 audits/
+
+# Local engineering backups and temporary snapshots
+.project-neev-backups/
+*.before-*
+*.old.css
+
+# Local patches, archives and build/audit output
+*.patch
+*.zip
+*.log
+*-audit.txt
+repository-*.txt
+vendor-opportunity-runtime-audit.txt
+neev-n2a-workspace-layer/
+
+# Local one-off recovery and transformation scripts
+apply-neev-*.py
+apply-project-neev-*.sh
+run-neev-*-audit.sh
+run-sahaj-audit.sh
