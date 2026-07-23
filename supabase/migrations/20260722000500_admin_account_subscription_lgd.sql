@@ -9,8 +9,19 @@ alter table public.profiles
   add column if not exists geo_block_id uuid references public.geo_blocks(id) on delete set null,
   add column if not exists geo_place_id uuid references public.geo_places(id) on delete set null;
 
-alter table public.profiles drop constraint if exists profiles_account_status_check;
-alter table public.profiles add constraint profiles_account_status_check check (account_status in ('active','deactivated'));
+alter table public.profiles
+  drop constraint if exists profiles_account_status_check;
+
+alter table public.profiles
+  add constraint profiles_account_status_check
+  check (
+    account_status in (
+      'active',
+      'deactivated',
+      're_registration_required',
+      'permanently_blocked'
+    )
+  );
 create index if not exists profiles_account_status_idx on public.profiles(account_status);
 create index if not exists profiles_geo_admin_idx on public.profiles(geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id);
 
