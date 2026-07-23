@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { getGrowthPlanPresentation } from "@/lib/3bos/capability";
+import { resolveGrowthJourney } from "@/lib/registration/resolveGrowthJourney";
 
 type SessionUser = {
   id: string;
@@ -204,8 +205,10 @@ export default function SubscriptionPageClient() {
   const [err, setErr] = useState<string | null>(null);
 
   const [activePlan, setActivePlan] = useState<PlanKey>("free");
-  const [isActive, setIsActive] = useState<boolean>(true);
+  const [subscriptionStatus, setSubscriptionStatus] =
+    useState<string>("free");
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [gatewayReady, setGatewayReady] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [paymentLink, setPaymentLink] = useState<string | null>(null);
@@ -216,6 +219,12 @@ export default function SubscriptionPageClient() {
   const activeDisplayPlan = normalizePlanKey(activePlan);
   const activeGrowthPlan = getGrowthPlanPresentation(activePlan);
   const activePrediction = planLeadPrediction(activePlan);
+  const growthJourney = resolveGrowthJourney({
+    subscriptionPlan: activePlan,
+    subscriptionStatus,
+    subscriptionExpiresAt: expiresAt,
+    gatewayReady,
+  });
   const goldPrediction = planLeadPrediction("gold_vendor");
   const platinumPrediction = planLeadPrediction("platinum_vendor");
   const displayPlans: DisplayPlanKey[] = [
@@ -280,26 +289,33 @@ export default function SubscriptionPageClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 2) Load active plan from business_profiles
+  // 2) Load subscription record and canonical SBI readiness
   useEffect(() => {
     if (!user?.id) return;
 
     let alive = true;
 
     (async () => {
-      const { data, error } = await supabase
-        .from("business_profiles")
-        .select("subscription_plan,subscription_status,subscription_expires_at")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      const [profileResult, readinessResponse] = await Promise.all([
+        supabase
+          .from("business_profiles")
+          .select(
+            "subscription_plan,subscription_status,subscription_expires_at"
+          )
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        fetch("/api/payments/sbi/readiness", {
+          method: "GET",
+          cache: "no-store",
+        }),
+      ]);
 
       if (!alive) return;
 
-      if (!error && data?.subscription_plan) {
+      const data = profileResult.data;
+
+      if (!profileResult.error && data?.subscription_plan) {
         const pk = String(data.subscription_plan) as PlanKey;
-        const status = String(data.subscription_status || "free");
-        const exp = data.subscription_expires_at || null;
-        const expMs = exp ? new Date(exp).getTime() : 0;
 
         if (
           pk === "free" ||
@@ -313,17 +329,26 @@ export default function SubscriptionPageClient() {
           setActivePlan(pk);
         }
 
-        setExpiresAt(exp);
-        setIsActive(
-          pk === "free" ||
-            (status === "active" &&
-              (!exp || (Number.isFinite(expMs) && expMs > Date.now())))
+        setSubscriptionStatus(
+          String(data.subscription_status || "free").toLowerCase()
         );
+        setExpiresAt(data.subscription_expires_at || null);
       } else {
         setActivePlan("free");
-        setIsActive(true);
+        setSubscriptionStatus("free");
         setExpiresAt(null);
       }
+
+      const readiness = await readinessResponse
+        .json()
+        .catch(() => null);
+
+      if (!alive) return;
+
+      setGatewayReady(
+        readinessResponse.ok &&
+          readiness?.gatewayReady === true
+      );
     })();
 
     return () => {
@@ -366,8 +391,9 @@ export default function SubscriptionPageClient() {
       }
 
       setActivePlan(plan);
-      setIsActive(false);
+      setSubscriptionStatus("payment_pending");
       setExpiresAt(null);
+      setGatewayReady(result.gatewayReady === true);
       setPaymentLink(result.shareUrl || null);
 
       setMsg(
@@ -383,46 +409,11 @@ export default function SubscriptionPageClient() {
     }
   }
 
-  async function activatePlan(plan: PlanKey) {
-    if (!user?.id) return;
-
-    setSaving(true);
-    setMsg(null);
-    setErr(null);
-
-    try {
-      if (plan !== "free") {
-        setMsg(
-          "Online payment is not active yet. Please contact the 3Bigha team to activate this Growth Plan."
-        );
-        setSaving(false);
-        return;
-      }
-
-      const { error } = await supabase
-        .from("business_profiles")
-        .update({
-          subscription_plan: "free",
-          subscription_status: "free",
-          subscription_expires_at: null,
-        })
-        .eq("user_id", user.id);
-
-      if (error) {
-        console.warn("business_profiles subscription update error:", error.message);
-      }
-
-      setActivePlan("free");
-      setIsActive(true);
-      setExpiresAt(null);
-      setMsg("Start — Essential is active. Continuing…");
-
-      router.replace(returnTo);
-    } catch (e: any) {
-      setErr(e?.message || "Failed to activate plan.");
-    } finally {
-      setSaving(false);
-    }
+  function continueWithEssential() {
+    setMsg(
+      "Your Essential Workspace remains available. No subscription record needs to be changed."
+    );
+    router.push(returnTo || "/dashboard/workspace");
   }
 
   return (
@@ -447,7 +438,7 @@ export default function SubscriptionPageClient() {
             <Link className="btn btnOutline" href={returnTo}>
               Return to My Work
             </Link>
-            <Link className="btn btnOutline" href="/dashboard">
+            <Link className="btn btnOutline" href="/dashboard/workspace">
               Back to Workspace
             </Link>
           </div>
@@ -536,13 +527,35 @@ export default function SubscriptionPageClient() {
               <div className="pill">
                 <b>Current Growth Plan:</b>{" "}
                 {activeGrowthPlan.offerLabel}{" "}
-                {isActive ? "✅" : "⚠️"}
+                — {growthJourney.statusLabel}
               </div>
               {expiresAt ? (
                 <div className="pill">
                   <b>Expiry:</b> {new Date(expiresAt).toLocaleDateString()}
                 </div>
               ) : null}
+            </div>
+
+            <div
+              className={`alert ${
+                growthJourney.tone === "positive"
+                  ? "alertOk"
+                  : growthJourney.tone === "attention"
+                  ? "alertWarn"
+                  : ""
+              }`}
+            >
+              <b>{growthJourney.title}:</b>{" "}
+              {growthJourney.statusLabel}
+              <div style={{ marginTop: 6 }}>
+                {growthJourney.detail}
+              </div>
+            </div>
+
+            <div className="alert">
+              <b>Essential Workspace:</b> Available separately from paid
+              Growth Plans. Identity verification and trust remain based
+              on evidence, not subscription level.
             </div>
 
             <div className="revenueHero">
@@ -644,7 +657,10 @@ export default function SubscriptionPageClient() {
             </div>
 
             <div className="alert alertWarn">
-              <b>SBI Payment Gateway:</b> Subscription payment is online-only through SBI. The bank integration is being configured; until it is enabled, a payment request cannot be marked paid and cannot unlock business operations.
+              <b>SBI Payment Gateway:</b>{" "}
+              {gatewayReady
+                ? "Secure SBI payment requests are available for optional paid Growth Plans."
+                : "The SBI integration is being configured. Your Essential Workspace remains available; no paid benefit can activate until payment is available and verified."}
             </div>
 
             <div className="comparisonBox">
@@ -660,7 +676,11 @@ export default function SubscriptionPageClient() {
               <div className="comparisonGrid">
                 {displayPlans.map((plan) => {
                   const meta = PLAN_META[plan];
-                  const active = activeDisplayPlan === plan && isActive;
+                  const active =
+                    activeDisplayPlan === plan &&
+                    (plan === "free"
+                      ? growthJourney.isEssential
+                      : growthJourney.isPaidActive);
 
                   return (
                     <div
@@ -700,7 +720,11 @@ export default function SubscriptionPageClient() {
             <div className="grid">
               {displayPlans.map((plan) => {
                 const meta = PLAN_META[plan];
-                const active = activeDisplayPlan === plan && isActive;
+                const active =
+                  activeDisplayPlan === plan &&
+                  (plan === "free"
+                    ? growthJourney.isEssential
+                    : growthJourney.isPaidActive);
                 const isFree = plan === "free";
 
                 return (
@@ -750,7 +774,7 @@ export default function SubscriptionPageClient() {
                     disabled={saving || active}
                     onClick={() =>
                       isFree
-                        ? activatePlan("free")
+                        ? continueWithEssential()
                         : handlePayment(meta.storagePlan)
                     }
                   />
