@@ -1184,14 +1184,92 @@ export default function BusinessOnboardingPageClient() {
         return;
       }
 
-      setMsg(
-        "✅ Registration Complete. Redirecting..."
+      /*
+       * P04-E4E
+       *
+       * Registration verification is decided exclusively by
+       * the authenticated server orchestration.
+       *
+       * The browser consumes the canonical result only. It does
+       * not calculate verification, approval, dashboard readiness,
+       * subscription state or role assignment.
+       */
+      if (
+        payload?.code !==
+        "REGISTRATION_COMPLETION_AND_VERIFICATION_EVALUATED"
+      ) {
+        throw new Error(
+          "The registration server returned an unexpected completion contract."
+        );
+      }
+
+      const verificationStatus = String(
+        payload?.verification?.status || ""
       );
+
+      const canonicalVerificationStatuses = new Set([
+        "auto_verified",
+        "evidence_incomplete",
+        "correction_required",
+        "admin_review_required",
+        "restricted",
+      ]);
+
+      if (
+        !canonicalVerificationStatuses.has(
+          verificationStatus
+        )
+      ) {
+        throw new Error(
+          "The registration server returned an invalid verification status."
+        );
+      }
 
       await fetchCompleteness(userId);
 
-      router.replace(returnTo);
-      router.refresh();
+      switch (verificationStatus) {
+        case "auto_verified": {
+          setMsg(
+            "✅ Registration completed and automatically verified. Your workspace readiness has been confirmed. Redirecting..."
+          );
+
+          router.replace(returnTo);
+          router.refresh();
+          return;
+        }
+
+        case "evidence_incomplete": {
+          setMsg(
+            "Registration is saved, but some required verification evidence is still incomplete. Please review and complete the highlighted information."
+          );
+          scrollToId("sec-review");
+          return;
+        }
+
+        case "correction_required": {
+          setMsg(
+            "Registration is saved, but some submitted information requires correction before verification can continue. Please review the details below."
+          );
+          scrollToId("sec-review");
+          return;
+        }
+
+        case "admin_review_required": {
+          setMsg(
+            "Registration is complete and has been submitted for administrative review. No payment or dashboard activation is required at this stage."
+          );
+          scrollToId("sec-review");
+          return;
+        }
+
+        case "restricted": {
+          setMsg(
+            "Registration is complete, but this account is currently restricted. Dashboard access has not been activated."
+          );
+          scrollToId("sec-review");
+          return;
+        }
+      }
     } catch (error) {
       console.error(
         "REGISTRATION_COMPLETION_REQUEST_FAILED",
