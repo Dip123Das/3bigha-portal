@@ -9,6 +9,7 @@ import type { UploadedMediaAsset } from "@/lib/media/media-config";
 import { validateGstin } from "@/lib/vendor-verification/gstin";
 import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
 import { addressEngineToBusinessPayload, legacyBusinessToAddressEngine } from "@/lib/geography/addressAdapters";
+import AIWritingImprovement from "../../../components/onboarding/AIWritingImprovement";
 
 async function ensureSessionOrRedirect(
   supabase: any,
@@ -64,6 +65,8 @@ type BusinessProfile = {
   author_bio: string | null;
   author_category: string | null;
   author_portfolio_url: string | null;
+  about_person: string | null;
+  about_business: string | null;
 
   location_verification_status: string | null;
   verified_country: string | null;
@@ -1447,6 +1450,84 @@ export default function BusinessOnboardingPageClient() {
             </div>
           </div>
         </section> : null}
+
+        <section
+          id="sec-story"
+          style={{
+            padding: 18,
+            border: "1px solid #bfdbfe",
+            borderRadius: 18,
+            background: "#f8fbff",
+          }}
+        >
+          <div
+            style={{
+              color: "#1d4ed8",
+              fontWeight: 900,
+              fontSize: 12,
+              letterSpacing: ".06em",
+              textTransform: "uppercase",
+            }}
+          >
+            Human identity and business story
+          </div>
+
+          <h3
+            style={{
+              margin: "7px 0 5px",
+              fontSize: 22,
+              lineHeight: 1.25,
+            }}
+          >
+            Tell people who you are and why they should trust your work
+          </h3>
+
+          <p
+            style={{
+              margin: "0 0 16px",
+              color: "#475569",
+              lineHeight: 1.65,
+            }}
+          >
+            You do not need to write perfect sentences. Enter a few truthful
+            words about yourself or your business. AI can improve the
+            presentation, but nothing will be used without your approval.
+          </p>
+
+          <div style={{ display: "grid", gap: 16 }}>
+            <AIWritingImprovement
+              target="about_person"
+              value={bp.about_person ?? ""}
+              onChange={(value: string) => setField("about_person", value)}
+              title="About you"
+              helpText="Mention your experience, skills, values, languages or the kind of people you help."
+              placeholder="Example: 12 years experience, honest service, speak Bengali and Hindi, help local builders..."
+              disabled={saving}
+            />
+
+            <AIWritingImprovement
+              target="about_business"
+              value={bp.about_business ?? ""}
+              onChange={(value: string) => setField("about_business", value)}
+              title="About your business"
+              helpText="Mention what you sell or provide, how long you have operated, who you serve and what makes your business dependable."
+              placeholder="Example: hardware shop, cement and steel, home delivery, Cooch Behar, established 2014..."
+              disabled={saving}
+            />
+
+            {hasBlog ? (
+              <AIWritingImprovement
+                target="author_bio"
+                value={bp.author_bio ?? ""}
+                onChange={(value: string) => setField("author_bio", value)}
+                title="Author or professional biography"
+                helpText="Mention your subjects, knowledge, experience and the purpose of your writing or professional work."
+                placeholder="Example: write about property law, 8 years field experience, explain complex topics simply..."
+                disabled={saving}
+              />
+            ) : null}
+          </div>
+        </section>
 
         <section id="sec-identity" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Business Identity</h3>
