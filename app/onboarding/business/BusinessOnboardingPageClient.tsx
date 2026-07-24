@@ -912,6 +912,139 @@ export default function BusinessOnboardingPageClient() {
   const liveSelfieReady =
     hasBlog || liveSelfieAssets.length > 0;
 
+  /*
+   * Registration readiness must represent the complete human journey.
+   *
+   * The legacy computeCompletion() result remains the compatibility value
+   * saved to business_profiles, but it must not independently unlock final
+   * registration or dashboard activation.
+   */
+  const documentVerificationStatus = String(
+    documentVerification?.status || ""
+  )
+    .trim()
+    .toLowerCase();
+
+  const failedDocumentStatuses = new Set([
+    "failed",
+    "rejected",
+    "invalid",
+    "unreadable",
+    "mismatch",
+    "correction_required",
+  ]);
+
+  const verifiedDocumentStatuses = new Set([
+    "verified",
+    "accepted",
+    "approved",
+    "passed",
+    "complete",
+    "completed",
+    "good_attachment",
+    "reviewed",
+  ]);
+
+  const verificationDocuments =
+    Array.isArray(documentVerification?.documents)
+      ? documentVerification.documents
+      : [];
+
+  const verificationHasFailure =
+    failedDocumentStatuses.has(documentVerificationStatus) ||
+    verificationDocuments.some((document) => {
+      const status = String(document.status || "")
+        .trim()
+        .toLowerCase();
+
+      return (
+        document.readable === false ||
+        document.matched === false ||
+        document.businessNameMatched === false ||
+        document.addressMatched === false ||
+        failedDocumentStatuses.has(status)
+      );
+    });
+
+  const documentVerificationReady =
+    hasBlog ||
+    Boolean(
+      documentVerification &&
+        !verificationHasFailure &&
+        (
+          verifiedDocumentStatuses.has(
+            documentVerificationStatus
+          ) ||
+          verificationDocuments.some(
+            (document) =>
+              document.readable === true &&
+              document.matched !== false
+          )
+        )
+    );
+
+  const registrationReadinessChecks = [
+    {
+      key: "identity",
+      label: "Complete your identity and contact details",
+      targetId: "sec-identity",
+      complete: identityReady,
+    },
+    {
+      key: "address",
+      label: "Verify your official and live business address",
+      targetId: "sec-address",
+      complete: addressReady,
+    },
+    {
+      key: "about-you",
+      label: "Add truthful information about yourself",
+      targetId: "sec-about-you",
+      complete: aboutReady,
+    },
+    {
+      key: "coverage",
+      label: "Define where you provide your service",
+      targetId: "sec-service-area",
+      complete: coverageReady,
+    },
+    {
+      key: "legal-proof",
+      label: "Upload legal business proof matching your registration number",
+      targetId: "sec-documents",
+      complete: legalProofReady,
+    },
+    {
+      key: "practical-proof",
+      label: "Add practical workplace or project evidence",
+      targetId: "sec-gallery",
+      complete: practicalProofReady,
+    },
+    {
+      key: "live-selfie",
+      label: "Add the required live identity or workplace selfie",
+      targetId: "sec-selfie",
+      complete: liveSelfieReady,
+    },
+    {
+      key: "document-verification",
+      label: "Run and complete legal-document verification",
+      targetId: "sec-documents",
+      complete: documentVerificationReady,
+    },
+  ];
+
+  const registrationPendingChecks =
+    registrationReadinessChecks.filter(
+      (check) => !check.complete
+    );
+
+  const registrationReadyUI =
+    registrationPendingChecks.length === 0;
+
+  const firstRegistrationPendingCheck =
+    registrationPendingChecks[0] || null;
+
   const weightedCompletionScore = Math.min(
     100,
     (identityReady ? 15 : 0) +
@@ -1004,18 +1137,10 @@ export default function BusinessOnboardingPageClient() {
       title: "Documents",
       description: "Business proof and verification",
       targetId: "sec-documents",
-      complete: legalProofReady && liveSelfieReady
-        ? true
-        : Boolean(
-            (
-              String(bp.gstin || "").trim() ||
-              String(bp.trade_license_no || "").trim()
-            ) &&
-              (
-                mediaAssets.some((asset) => asset.kind === "document") ||
-                documentVerification
-              )
-          ),
+      complete:
+        legalProofReady &&
+        liveSelfieReady &&
+        documentVerificationReady,
     },
     {
       key: "review",
@@ -1393,8 +1518,26 @@ export default function BusinessOnboardingPageClient() {
     if (!res.ok) return;
 
     if (!res.isComplete) {
-      setMsg("Saved ✅ Please complete the highlighted required fields to continue.");
-      scrollToId(firstPendingStep.targetId || "sec-review");
+      setMsg(
+        "Saved ✅ Please complete the highlighted required fields to continue."
+      );
+      scrollToId(
+        firstPendingStep.targetId || "sec-review"
+      );
+      return;
+    }
+
+    if (!registrationReadyUI) {
+      setMsg(
+        firstRegistrationPendingCheck
+          ? `Saved ✅ Next required step: ${firstRegistrationPendingCheck.label}.`
+          : "Saved ✅ Please complete the remaining registration steps."
+      );
+
+      scrollToId(
+        firstRegistrationPendingCheck?.targetId ||
+          "sec-review"
+      );
       return;
     }
 
@@ -1439,6 +1582,21 @@ export default function BusinessOnboardingPageClient() {
       );
       scrollToId(
         firstPendingStep.targetId || "sec-review"
+      );
+      return;
+    }
+
+    if (!registrationReadyUI) {
+      setSaving(false);
+      setMsg(
+        firstRegistrationPendingCheck
+          ? `Registration cannot be finished yet. ${firstRegistrationPendingCheck.label}.`
+          : "Registration cannot be finished until every required step is complete."
+      );
+
+      scrollToId(
+        firstRegistrationPendingCheck?.targetId ||
+          "sec-review"
       );
       return;
     }
@@ -1495,9 +1653,15 @@ export default function BusinessOnboardingPageClient() {
        * not calculate verification, approval, dashboard readiness,
        * subscription state or role assignment.
        */
+      const acceptedCompletionCodes = new Set([
+        "REGISTRATION_COMPLETION_AND_VERIFICATION_EVALUATED",
+        "REGISTRATION_COMPLETION_VERIFICATION_AND_INTELLIGENCE_EVALUATED",
+      ]);
+
       if (
-        payload?.code !==
-        "REGISTRATION_COMPLETION_AND_VERIFICATION_EVALUATED"
+        !acceptedCompletionCodes.has(
+          String(payload?.code || "")
+        )
       ) {
         throw new Error(
           "The registration server returned an unexpected completion contract."
@@ -1612,6 +1776,36 @@ export default function BusinessOnboardingPageClient() {
           steps={journeySteps}
           activeKey={activeJourneyKey}
           completionScore={weightedCompletionScore}
+          onStepSelect={(step) => {
+            if (step.key !== "review") {
+              return;
+            }
+
+            if (!registrationReadyUI) {
+              setMsg(
+                firstRegistrationPendingCheck
+                  ? `Before Review & Finish: ${firstRegistrationPendingCheck.label}.`
+                  : "Please complete all required registration steps before finishing."
+              );
+
+              window.setTimeout(() => {
+                scrollToId(
+                  firstRegistrationPendingCheck?.targetId ||
+                    "sec-review"
+                );
+              }, 60);
+
+              return;
+            }
+
+            setMsg(
+              "All required steps are ready. Review the summary below and finish registration."
+            );
+
+            window.setTimeout(() => {
+              scrollToId("sec-review");
+            }, 60);
+          }}
         />
       </div>
 
@@ -1620,8 +1814,16 @@ export default function BusinessOnboardingPageClient() {
           <div>
             <div>
               Status:{" "}
-              <b style={{ color: isCompleteUI ? "green" : "crimson" }}>
-                {isCompleteUI ? "Complete" : "Incomplete"}
+              <b
+                style={{
+                  color: registrationReadyUI
+                    ? "green"
+                    : "crimson",
+                }}
+              >
+                {registrationReadyUI
+                  ? "Ready for Review"
+                  : "Needs Attention"}
               </b>{" "}
               | Profile readiness: <b>{weightedCompletionScore}%</b>
               {vcLoading && <span style={{ marginLeft: 10, opacity: 0.7 }}>(updating…)</span>}
@@ -1665,14 +1867,50 @@ export default function BusinessOnboardingPageClient() {
           </div>
         </div>
 
-        {!isCompleteUI && missingUI.length > 0 ? (
-          <div style={{ marginTop: 12, padding: 10, borderRadius: 8, background: "#fff7ed", border: "1px solid #fed7aa" }}>
-            <div style={{ fontWeight: 900, marginBottom: 6, color: "#9a3412" }}>
-              Please complete the highlighted required fields:
+        {!registrationReadyUI ? (
+          <div
+            style={{
+              marginTop: 12,
+              padding: 10,
+              borderRadius: 8,
+              background: "#fff7ed",
+              border: "1px solid #fed7aa",
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 900,
+                marginBottom: 6,
+                color: "#9a3412",
+              }}
+            >
+              Complete these steps before Review & Finish:
             </div>
+
             <ul style={{ margin: 0, paddingLeft: 18 }}>
-              {missingUI.map((m) => (
-                <li key={m} style={{ marginBottom: 4 }}>{m}</li>
+              {registrationPendingChecks.map((check) => (
+                <li
+                  key={check.key}
+                  style={{ marginBottom: 4 }}
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      scrollToId(check.targetId)
+                    }
+                    style={{
+                      border: 0,
+                      padding: 0,
+                      background: "transparent",
+                      color: "#9a3412",
+                      fontWeight: 750,
+                      textAlign: "left",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {check.label}
+                  </button>
+                </li>
               ))}
             </ul>
           </div>
@@ -1714,25 +1952,36 @@ export default function BusinessOnboardingPageClient() {
             <>
               <button
                 type="button"
-                disabled={saving || !isCompleteUI}
+                disabled={saving || !registrationReadyUI}
                 onClick={onFinishRegistration}
                 style={{
                   padding: "10px 14px",
                   fontWeight: 800,
                   borderRadius: 10,
                   border: "1px solid #16a34a",
-                  background: saving || !isCompleteUI ? "#cbd5e1" : "#16a34a",
+                  background:
+                    saving || !registrationReadyUI
+                      ? "#cbd5e1"
+                      : "#16a34a",
                   color: "#fff",
-                  cursor: saving || !isCompleteUI ? "not-allowed" : "pointer",
-                  opacity: saving || !isCompleteUI ? 0.8 : 1,
+                  cursor:
+                    saving || !registrationReadyUI
+                      ? "not-allowed"
+                      : "pointer",
+                  opacity:
+                    saving || !registrationReadyUI
+                      ? 0.8
+                      : 1,
                 }}
               >
                 {saving ? "Activating..." : "🚀 Activate My Dashboard"}
               </button>
 
-              {!isCompleteUI && (
+              {!registrationReadyUI && (
                 <span style={{ opacity: 0.8 }}>
-                  Complete the highlighted fields, then activate your dashboard.
+                  Complete every required identity,
+                  address, coverage and verification
+                  step before finishing registration.
                 </span>
               )}
             </>
