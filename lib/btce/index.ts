@@ -1,3 +1,5 @@
+export { adaptRegistrationEvidence } from "@/lib/btce/adapters/registration-evidence-adapter";
+export type { RegistrationEvidenceAdapterInput } from "@/lib/btce/adapters/registration-evidence-adapter";
 export { evaluateBusinessTrust } from "@/lib/btce/core/btce-engine";
 export {
   buildTrustExplanation,
