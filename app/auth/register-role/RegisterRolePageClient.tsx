@@ -5,9 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { trackVendorConversionClient } from "@/components/marketplace/vendor-conversion-client";
 import type { GeoSelection } from "@/components/geography/GeoSelector";
-import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
-import type { UploadedMediaAsset } from "@/lib/media/media-config";
-import { validateGstin } from "@/lib/vendor-verification/gstin";
 import {
   DECLARABLE_IDENTITY_FAMILIES,
   DECLARABLE_IDENTITIES,
@@ -51,14 +48,7 @@ const OPERATING_PROFILES: Array<{
   { key: "multi_business_organisation", label: "Multi-Business Organisation", description: "Separate businesses, brands or establishments with no category limit.", limit: null, plan: "Multi-Business Operating Plan" },
 ];
 
-const BUSINESS_EVIDENCE_IDENTITIES = new Set([
-  "property_owner", "land_owner", "builder", "real_estate_developer", "housing_society",
-  "construction_business", "contractor", "civil_contractor", "electrical_contractor",
-  "plumbing_contractor", "interior_contractor", "road_contractor", "infrastructure_contractor",
-  "material_business", "manufacturer", "dealer", "distributor", "wholesaler", "retail_business",
-  "rental_business", "transport_business", "fleet_owner", "financial_institution",
-  "agriculture_business", "institution", "multi_business_operator",
-]);
+
 
 function safeNextPath(raw: string | null) {
   if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "";
@@ -122,10 +112,6 @@ export default function RegisterRolePageClient() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [businessName, setBusinessName] = useState("");
-  const [gstin, setGstin] = useState("");
-  const [tradeLicenseNo, setTradeLicenseNo] = useState("");
-  const [udyamNo, setUdyamNo] = useState("");
-  const [evidenceFiles, setEvidenceFiles] = useState<UploadedMediaAsset[]>([]);
   const [geography, setGeography] = useState<GeoSelection>({});
   const [pincode, setPincode] = useState("");
   const [locating, setLocating] = useState(false);
@@ -214,7 +200,6 @@ export default function RegisterRolePageClient() {
     const managed = managedIdentities.find((item) => item.identity_key === key);
     return managed?.requires_business_onboarding ?? getIdentityDeclarationBridge(key as HumanIdentityKey).requiresBusinessOnboarding;
   });
-  const requiresBusinessEvidence = operatingProfile === "multi_business_organisation" || identityKeys.some((key) => BUSINESS_EVIDENCE_IDENTITIES.has(key));
 
   function selectIdentity(key: string) {
     setMsg("");
@@ -257,9 +242,6 @@ export default function RegisterRolePageClient() {
     }
     if (!identityKey) return "Please choose at least one work category.";
     if (needsBusinessProfile && !businessName.trim()) return "Please enter your business or professional name.";
-    if (requiresBusinessEvidence && !gstin.trim() && !tradeLicenseNo.trim() && !udyamNo.trim()) return "Please provide GSTIN, Trade Licence or Udyam registration.";
-    if (requiresBusinessEvidence && evidenceFiles.length === 0) return "Please upload one supporting registration document.";
-    if (gstin.trim() && !validateGstin(gstin).valid) return "The GSTIN format does not appear valid. Please check it and try again.";
     if (operatingProfile === "multi_service_professional" && identityKeys.length < 2) return "Please choose at least two categories for a Multi-Service Professional profile.";
     if (operatingDefinition.limit && identityKeys.length > operatingDefinition.limit) return `Please choose no more than ${operatingDefinition.limit} categories.`;
     return "";
@@ -470,32 +452,6 @@ export default function RegisterRolePageClient() {
       const user = sessionData.session?.user;
       if (!user?.id) throw new Error("No active session found. Please login again.");
 
-      let documentVerification: Record<string, unknown> | null = null;
-      if (requiresBusinessEvidence && (gstin.trim() || tradeLicenseNo.trim() || udyamNo.trim())) {
-        const verificationResponse = await fetch("/api/ai/vendor-document-verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
-          body: JSON.stringify({
-            gstin: gstin.trim(),
-            tradeLicenseNo: tradeLicenseNo.trim() || udyamNo.trim(),
-            businessName: businessName.trim(),
-            businessAddress: [cityName, districtName, stateName, pincode.trim()].filter(Boolean).join(", "),
-            mediaAssets: evidenceFiles,
-          }),
-        });
-        const verificationJson = await verificationResponse.json().catch(() => null);
-        if (!verificationResponse.ok || !verificationJson?.ok) {
-          throw new Error(verificationJson?.error || "The registration document could not be checked. Please try again.");
-        }
-        documentVerification = verificationJson.verification;
-        const status = String(verificationJson?.verification?.status || "");
-        if (status === "format_invalid" || status === "format_valid_document_mismatch") {
-          window.alert("The registration number and uploaded document do not match. Please correct the number or upload the matching document.");
-          throw new Error("Registration document mismatch. Please review the highlighted business evidence.");
-        }
-      }
-
       const identity = managedSelection || getHumanIdentity(identityKey as HumanIdentityKey);
       const bridge = managedSelection ? {
         role: managedSelection.legacy_role,
@@ -607,9 +563,6 @@ export default function RegisterRolePageClient() {
           business_name: businessName.trim(),
           business_type: effectiveRole === "builder" ? "builder" : effectiveRole === "blogger" ? "blogger" : effectiveRole === "hub_vendor" ? "multi_business" : "vendor",
           nature_of_business: natureOfBusiness,
-          gstin: gstin.trim() || null,
-          trade_license_no: tradeLicenseNo.trim() || null,
-          udyam_no: udyamNo.trim() || null,
           contact_person: fullName.trim(),
           phone_primary: normalizePhone(phone),
           city: cityName,
@@ -618,8 +571,6 @@ export default function RegisterRolePageClient() {
           state: stateName,
           address_line1: null,
           pincode: pincode.trim() || geography.place?.pincode || null,
-          business_media_json: evidenceFiles,
-          vendor_document_verification_json: documentVerification,
         }, { onConflict: "user_id" });
         if (businessError) throw businessError;
       }
@@ -649,7 +600,7 @@ export default function RegisterRolePageClient() {
             : "/dashboard";
 
         router.replace(
-          `/onboarding/business?returnTo=${encodeURIComponent(
+          `/onboarding/business?registration=1&returnTo=${encodeURIComponent(
             onboardingReturnTo
           )}`
         );
@@ -828,7 +779,14 @@ export default function RegisterRolePageClient() {
           </section>
 
           {needsBusinessProfile ? (
-            <section style={{ padding: 16, border: "1px solid #dbeafe", borderRadius: 14, background: "#f8fbff" }}>
+            <section
+              style={{
+                padding: 16,
+                border: "1px solid #dbeafe",
+                borderRadius: 14,
+                background: "#f8fbff",
+              }}
+            >
               <label style={{ display: "block", fontWeight: 800 }}>
                 Business or professional name *
                 <input
@@ -839,40 +797,30 @@ export default function RegisterRolePageClient() {
                   style={inputStyle}
                 />
               </label>
-              <div style={{ marginTop: 8, color: "#64748b", fontSize: 13 }}>
-                Licences, tax details, media, service coverage and other optional information can be added later from Manage Business Profile.
+
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: 12,
+                  borderRadius: 11,
+                  background: "#eff6ff",
+                  border: "1px solid #bfdbfe",
+                  color: "#1e40af",
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                }}
+              >
+                <strong>Business evidence comes next.</strong>
+                <br />
+                In your Business Profile you will complete one unified
+                verification section containing:
+                <br />
+                1. Legal Business Proof
+                <br />
+                2. Real Business Activity Proof
+                <br />
+                3. Live Camera Selfie
               </div>
-              {requiresBusinessEvidence ? (
-                <div style={{ display: "grid", gap: 14, marginTop: 18 }}>
-                  <div>
-                    <div style={{ fontWeight: 900 }}>Business registration evidence *</div>
-                    <div style={{ color: "#64748b", fontSize: 13, marginTop: 4 }}>
-                      Contractors, builders, project or property businesses and companies must provide any one registration number and its supporting document.
-                    </div>
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 12 }}>
-                    <label style={{ fontWeight: 800 }}>GSTIN<input value={gstin} onChange={(event) => setGstin(event.target.value.toUpperCase())} placeholder="15-character GSTIN" style={inputStyle} /></label>
-                    <label style={{ fontWeight: 800 }}>Trade Licence<input value={tradeLicenseNo} onChange={(event) => setTradeLicenseNo(event.target.value)} placeholder="Trade Licence number" style={inputStyle} /></label>
-                    <label style={{ fontWeight: 800 }}>Udyam Registration<input value={udyamNo} onChange={(event) => setUdyamNo(event.target.value.toUpperCase())} placeholder="Udyam registration number" style={inputStyle} /></label>
-                  </div>
-                  <UniversalMediaUploader
-                    module="vendor"
-                    value={evidenceFiles}
-                    onChange={setEvidenceFiles}
-                    folder="registration-evidence"
-                    label="Supporting registration document *"
-                    helperText="Upload the certificate or licence that matches the number entered above. Submitted documents are checked for validity."
-                    allowImages
-                    allowVideos={false}
-                    allowDocuments
-                    maxFiles={3}
-                  />
-                </div>
-              ) : (
-                <div style={{ marginTop: 12, padding: 10, borderRadius: 10, background: "#f0fdf4", color: "#166534", fontSize: 13 }}>
-                  Individual workers and tradespeople can continue without GSTIN, Trade Licence or Udyam registration.
-                </div>
-              )}
             </section>
           ) : null}
 
