@@ -12,8 +12,14 @@ type Props = {
   onRunDocumentVerification: () => void;
 };
 
+type LegalProofKind = "gst" | "trade-license" | "udyam" | "other";
+
 function belongsTo(asset: UploadedMediaAsset, category: string) {
   return String(asset.path || "").includes(`/${category}/`);
+}
+
+function belongsToLegalKind(asset: UploadedMediaAsset, kind: LegalProofKind) {
+  return String(asset.path || "").includes(`/legal-proof/${kind}/`);
 }
 
 function replaceCategory(
@@ -24,6 +30,17 @@ function replaceCategory(
   return [
     ...allAssets.filter((asset) => !belongsTo(asset, category)),
     ...nextCategoryAssets,
+  ];
+}
+
+function replaceLegalKind(
+  allAssets: UploadedMediaAsset[],
+  kind: LegalProofKind,
+  nextKindAssets: UploadedMediaAsset[]
+) {
+  return [
+    ...allAssets.filter((asset) => !belongsToLegalKind(asset, kind)),
+    ...nextKindAssets,
   ];
 }
 
@@ -46,7 +63,61 @@ function RequirementStatus({
         fontSize: 13,
       }}
     >
-      {complete ? "✓ Completed" : "Required"} — {children}
+      {complete ? "✓ Added" : "Required"} — {children}
+    </div>
+  );
+}
+
+function LegalProofCard({
+  title,
+  description,
+  kind,
+  assets,
+  allAssets,
+  onChange,
+}: {
+  title: string;
+  description: string;
+  kind: LegalProofKind;
+  assets: UploadedMediaAsset[];
+  allAssets: UploadedMediaAsset[];
+  onChange: (assets: UploadedMediaAsset[]) => void;
+}) {
+  return (
+    <div
+      style={{
+        padding: 14,
+        borderRadius: 16,
+        border: "1px solid #dbeafe",
+        background: "#fff",
+      }}
+    >
+      <div style={{ fontWeight: 950, color: "#0f172a" }}>{title}</div>
+      <div
+        style={{
+          marginTop: 5,
+          color: "#64748b",
+          fontSize: 13,
+          lineHeight: 1.55,
+        }}
+      >
+        {description}
+      </div>
+
+      <UniversalMediaUploader
+        module="vendor"
+        folder={`vendor/legal-proof/${kind}/${Date.now()}`}
+        value={assets}
+        onChange={(next) =>
+          onChange(replaceLegalKind(allAssets, kind, next))
+        }
+        label={`${title} PDF`}
+        helperText="Upload the corresponding certificate as a PDF. Photos and videos are not accepted in this legal-proof slot."
+        allowImages={false}
+        allowVideos={false}
+        allowDocuments
+        maxFiles={1}
+      />
     </div>
   );
 }
@@ -59,14 +130,36 @@ export default function BusinessVerificationPanel({
   documentVerifyLoading = false,
   onRunDocumentVerification,
 }: Props) {
-  const legalAssets = assets.filter((asset) =>
-    belongsTo(asset, "legal-proof")
+  const legacyLegalAssets = assets.filter(
+    (asset) =>
+      belongsTo(asset, "legal-proof") &&
+      !(["gst", "trade-license", "udyam", "other"] as LegalProofKind[]).some(
+        (kind) => belongsToLegalKind(asset, kind)
+      )
   );
 
+  const gstAssets = assets.filter((asset) => belongsToLegalKind(asset, "gst"));
+  const tradeLicenseAssets = assets.filter((asset) =>
+    belongsToLegalKind(asset, "trade-license")
+  );
+  const udyamAssets = assets.filter((asset) =>
+    belongsToLegalKind(asset, "udyam")
+  );
+  const otherLegalAssets = assets.filter((asset) =>
+    belongsToLegalKind(asset, "other")
+  );
+
+  const structuredLegalAssets = [
+    ...gstAssets,
+    ...tradeLicenseAssets,
+    ...udyamAssets,
+    ...otherLegalAssets,
+  ];
+
+  const legalAssets = [...structuredLegalAssets, ...legacyLegalAssets];
   const practicalAssets = assets.filter((asset) =>
     belongsTo(asset, "practical-proof")
   );
-
   const selfieAssets = assets.filter((asset) =>
     belongsTo(asset, "live-selfie")
   );
@@ -102,48 +195,111 @@ export default function BusinessVerificationPanel({
         Prove your business in three simple ways
       </h3>
 
-      <p
-        style={{
-          margin: "0 0 14px",
-          color: "#475569",
-          lineHeight: 1.6,
-        }}
-      >
-        Legal proof confirms registration. Practical proof shows the real
-        workplace or business activity. A live selfie confirms that the person
-        completing this profile is present.
+      <p style={{ margin: "0 0 14px", color: "#475569", lineHeight: 1.6 }}>
+        Legal proof confirms registration. Physical proof shows the real
+        workplace or business activity. A live business-board selfie confirms
+        that the person completing this profile is present at the declared
+        business.
       </p>
 
       <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
         <RequirementStatus complete={legalComplete}>
-          Legal Business Proof
+          At least one Legal Business Proof
         </RequirementStatus>
-
         <RequirementStatus complete={practicalComplete}>
-          Practical Business Proof
+          At least one Physical Business Proof
         </RequirementStatus>
-
         <RequirementStatus complete={selfieComplete}>
-          Live Selfie
+          Live Business-Board Selfie
         </RequirementStatus>
       </div>
 
       <div style={{ display: "grid", gap: 16 }}>
         <div id="sec-legal-proof" style={{ scrollMarginTop: 190 }}>
-          <UniversalMediaUploader
-            module="vendor"
-            folder={`vendor/legal-proof/${Date.now()}`}
-            value={legalAssets}
-            onChange={(next) =>
-              onChange(replaceCategory(assets, "legal-proof", next))
-            }
-            label="1. Legal Business Proof — Mandatory"
-            helperText="Upload GST certificate, Trade Licence, UDYAM, registration certificate or another accepted legal business document."
-            allowImages
-            allowDocuments
-            allowVideos={false}
-            maxFiles={5}
-          />
+          <div
+            style={{
+              padding: 16,
+              borderRadius: 16,
+              border: "1px solid #bfdbfe",
+              background: "#eff6ff",
+            }}
+          >
+            <div style={{ fontWeight: 950, color: "#1e3a8a", fontSize: 16 }}>
+              1. Legal Business Proof — Mandatory
+            </div>
+            <p
+              style={{
+                margin: "7px 0 14px",
+                color: "#475569",
+                fontSize: 13,
+                lineHeight: 1.6,
+              }}
+            >
+              Upload only the documents that apply to your business. At least
+              one valid registration proof is required. Each number entered in
+              Business Identity must have its corresponding certificate here.
+            </p>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+                gap: 12,
+              }}
+            >
+              <LegalProofCard
+                title="GST Registration"
+                description="For the GSTIN entered in Business Identity."
+                kind="gst"
+                assets={gstAssets}
+                allAssets={assets}
+                onChange={onChange}
+              />
+              <LegalProofCard
+                title="Trade Licence"
+                description="For the Trade Licence number entered in Business Identity."
+                kind="trade-license"
+                assets={tradeLicenseAssets}
+                allAssets={assets}
+                onChange={onChange}
+              />
+              <LegalProofCard
+                title="UDYAM Registration"
+                description="For the UDYAM number entered in Business Identity."
+                kind="udyam"
+                assets={udyamAssets}
+                allAssets={assets}
+                onChange={onChange}
+              />
+              <LegalProofCard
+                title="Other Legal Registration"
+                description="PAN, FSSAI, Shop & Establishment, professional registration or another applicable business certificate."
+                kind="other"
+                assets={otherLegalAssets}
+                allAssets={assets}
+                onChange={onChange}
+              />
+            </div>
+
+            {legacyLegalAssets.length ? (
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: 12,
+                  borderRadius: 12,
+                  border: "1px solid #fde68a",
+                  background: "#fffbeb",
+                  color: "#92400e",
+                  fontSize: 13,
+                  lineHeight: 1.55,
+                }}
+              >
+                {legacyLegalAssets.length} earlier legal-proof file(s) are
+                preserved for compatibility. New documents should be added in
+                the correct registration card above.
+              </div>
+            ) : null}
+          </div>
         </div>
 
         <div id="sec-gallery" style={{ scrollMarginTop: 190 }}>
@@ -154,12 +310,12 @@ export default function BusinessVerificationPanel({
             onChange={(next) =>
               onChange(replaceCategory(assets, "practical-proof", next))
             }
-            label="2. Practical Business Proof — Mandatory"
-            helperText="Take or upload a clear photo of your shop, office, warehouse, factory, equipment, signboard or active workplace."
+            label="2. Physical Business Proof — Mandatory"
+            helperText="Add one to five clear photos of your shop, office, warehouse, factory, equipment, stock, signboard or active workplace."
             allowImages
-            allowVideos
+            allowVideos={false}
             allowDocuments={false}
-            maxFiles={8}
+            maxFiles={5}
           />
         </div>
 
@@ -171,14 +327,14 @@ export default function BusinessVerificationPanel({
             onChange={(next) =>
               onChange(replaceCategory(assets, "live-selfie", next))
             }
-            label="3. Live Selfie — Mandatory"
-            helperText="Use the front camera now. Gallery upload is disabled for this verification."
+            label="3. Live Business-Board Selfie — Mandatory"
+            helperText="Stand in front of your business signboard, office, shop or workplace. Make sure both your face and the declared business name are visible. Gallery upload is disabled."
             allowImages
             allowVideos={false}
             allowDocuments={false}
             cameraFacing="user"
             cameraOnly
-            cameraButtonLabel="🤳 Take Live Selfie"
+            cameraButtonLabel="🤳 Take Live Business Selfie"
             maxFiles={1}
           />
         </div>
@@ -203,9 +359,9 @@ export default function BusinessVerificationPanel({
               lineHeight: 1.55,
             }}
           >
-            AI may compare the typed GSTIN or Trade Licence number with the
-            legal proof. This assists review but does not replace official or
-            manual verification.
+            AI compares the entered registration information with the uploaded
+            legal certificates. This assists review but does not replace
+            official or exceptional manual verification.
           </p>
 
           <button
@@ -230,7 +386,7 @@ export default function BusinessVerificationPanel({
             }}
           >
             {documentVerifyLoading
-              ? "Checking legal document..."
+              ? "Checking legal documents..."
               : "Check Legal Business Proof"}
           </button>
 
