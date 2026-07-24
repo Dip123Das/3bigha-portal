@@ -13,6 +13,7 @@ import AIWritingImprovement from "../../../components/onboarding/AIWritingImprov
 import BusinessIdentityJourney, {
   type BusinessIdentityJourneyStep,
 } from "@/components/onboarding/BusinessIdentityJourney";
+import BusinessVerificationPanel from "@/components/onboarding/BusinessVerificationPanel";
 
 async function ensureSessionOrRedirect(
   supabase: any,
@@ -736,6 +737,83 @@ export default function BusinessOnboardingPageClient() {
   const missingUI = localCompletion.missing;
   const registrationCompleteUI = vc?.registration_complete ?? false;
 
+  const legalProofAssets = mediaAssets.filter((asset) =>
+    String(asset.path || "").includes("/legal-proof/")
+  );
+
+  const practicalProofAssets = mediaAssets.filter((asset) =>
+    String(asset.path || "").includes("/practical-proof/")
+  );
+
+  const liveSelfieAssets = mediaAssets.filter((asset) =>
+    String(asset.path || "").includes("/live-selfie/")
+  );
+
+  const identityReady = Boolean(
+    nature.length > 0 &&
+      String(bp.contact_person || "").trim() &&
+      (
+        String(bp.business_name || "").trim() ||
+        String(bp.author_display_name || "").trim()
+      ) &&
+      (
+        String(bp.phone_primary || "").trim() ||
+        String(bp.email_business || "").trim()
+      )
+  );
+
+  const addressReady =
+    String(bp.location_verification_status || "")
+      .trim()
+      .toLowerCase() === "verified" &&
+    Boolean(
+      String(bp.address_line1 || "").trim() ||
+        String(bp.formatted_address || "").trim() ||
+        String(bp.short_address || "").trim()
+    );
+
+  const aboutReady = Boolean(
+    String(bp.about_person || "").trim() &&
+      (
+        String(bp.about_business || "").trim() ||
+        (hasBlog && String(bp.author_bio || "").trim())
+      )
+  );
+
+  const coverageReady = Boolean(
+    Number(bp.delivery_radius_km || 0) > 0 ||
+      String(bp.preferred_service_area || "").trim() ||
+      bp.statewide_service ||
+      bp.nationwide_service
+  );
+
+  const legalProofReady =
+    hasBlog ||
+    Boolean(
+      legalProofAssets.length > 0 &&
+        (
+          String(bp.gstin || "").trim() ||
+          String(bp.trade_license_no || "").trim()
+        )
+    );
+
+  const practicalProofReady =
+    hasBlog || practicalProofAssets.length > 0;
+
+  const liveSelfieReady =
+    hasBlog || liveSelfieAssets.length > 0;
+
+  const weightedCompletionScore = Math.min(
+    100,
+    (identityReady ? 15 : 0) +
+      (addressReady ? 20 : 0) +
+      (aboutReady ? 15 : 0) +
+      (coverageReady ? 10 : 0) +
+      (legalProofReady ? 15 : 0) +
+      (practicalProofReady ? 15 : 0) +
+      (liveSelfieReady ? 10 : 0)
+  );
+
   /*
    * Human-First Business Identity Journey
    *
@@ -776,14 +854,14 @@ export default function BusinessOnboardingPageClient() {
       key: "about-you",
       title: "About You",
       description: "Experience, skills and values",
-      targetId: "sec-story",
+      targetId: "sec-about-you",
       complete: Boolean(String(bp.about_person || "").trim()),
     },
     {
       key: "about-business",
       title: "About Business",
       description: "What your business does",
-      targetId: "sec-story",
+      targetId: "sec-about-business",
       complete: Boolean(
         String(bp.about_business || "").trim() ||
           (hasBlog && String(bp.author_bio || "").trim())
@@ -808,18 +886,16 @@ export default function BusinessOnboardingPageClient() {
       key: "gallery",
       title: "Gallery",
       description: "Workplace and project photos",
-      targetId: "sec-identity",
-      complete: mediaAssets.some(
-        (asset) => asset.kind === "image" || asset.kind === "video"
-      ),
+      targetId: "sec-gallery",
+      complete: practicalProofReady,
       optional: true,
     },
     {
       key: "documents",
       title: "Documents",
       description: "Business proof and verification",
-      targetId: "sec-identity",
-      complete: hasBlog
+      targetId: "sec-documents",
+      complete: legalProofReady && liveSelfieReady
         ? true
         : Boolean(
             (
@@ -1426,7 +1502,7 @@ export default function BusinessOnboardingPageClient() {
         <BusinessIdentityJourney
           steps={journeySteps}
           activeKey={activeJourneyKey}
-          completionScore={scoreUI}
+          completionScore={weightedCompletionScore}
         />
       </div>
 
@@ -1616,6 +1692,7 @@ export default function BusinessOnboardingPageClient() {
           </p>
 
           <div style={{ display: "grid", gap: 16 }}>
+            <div id="sec-about-you" style={{ scrollMarginTop: 190 }}>
             <AIWritingImprovement
               target="about_person"
               value={bp.about_person ?? ""}
@@ -1625,7 +1702,9 @@ export default function BusinessOnboardingPageClient() {
               placeholder="Example: 12 years experience, honest service, speak Bengali and Hindi, help local builders..."
               disabled={saving}
             />
+            </div>
 
+            <div id="sec-about-business" style={{ scrollMarginTop: 190 }}>
             <AIWritingImprovement
               target="about_business"
               value={bp.about_business ?? ""}
@@ -1635,6 +1714,7 @@ export default function BusinessOnboardingPageClient() {
               placeholder="Example: hardware shop, cement and steel, home delivery, Cooch Behar, established 2014..."
               disabled={saving}
             />
+            </div>
 
             {hasBlog ? (
               <AIWritingImprovement
@@ -1758,126 +1838,17 @@ export default function BusinessOnboardingPageClient() {
               Pure blog-only profiles may complete without business proof.
             </div>
 
-            <UniversalMediaUploader
-              module="vendor"
-              value={mediaAssets}
-              onChange={setMediaAssets}
-              label="Business proof / shop photos / certificates"
-              helperText="Upload shop photos, office photos, GST certificate, trade license, visiting card, completed work photos, or business proof documents."
-              allowImages
-              allowVideos
-              allowDocuments
-              maxFiles={10}
-            />
-
-            <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.5 }}>
-              These uploads help verification and trust. If your database does not yet have
-              <b> business_media_json</b>, the form will still save safely and we can add the column later.
-            </div>
-
-            <div
-              style={{
-                border: "1px solid #e5e7eb",
-                borderRadius: 12,
-                padding: 12,
-                background: "#fff",
-                display: "grid",
-                gap: 10,
-              }}
-            >
-              <div style={{ fontWeight: 900 }}>
-                GST / Trade Licence document check
-              </div>
-
-              <div style={{ fontSize: 13, color: "#475569", lineHeight: 1.5 }}>
-                AI will compare typed GSTIN / Trade License No with uploaded certificate or license.
-                This is not official government verification; admin/manual review may still be required.
-              </div>
-
-              <button
-                type="button"
-                onClick={runVendorDocumentVerification}
-                disabled={documentVerifyLoading || saving}
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  border: "1px solid #111827",
-                  background: documentVerifyLoading ? "#f1f5f9" : "#111827",
-                  color: documentVerifyLoading ? "#64748b" : "#fff",
-                  fontWeight: 900,
-                  cursor: documentVerifyLoading || saving ? "not-allowed" : "pointer",
-                }}
-              >
-                {documentVerifyLoading ? "Checking document..." : "Check GST / Trade Licence Document"}
-              </button>
-
-              {documentVerification ? (
-                <div
-                  style={{
-                    borderRadius: 12,
-                    padding: 12,
-                    border:
-                      documentVerification.status === "verified_by_ai"
-                        ? "1px solid #bbf7d0"
-                        : documentVerification.status === "format_invalid" ||
-                          documentVerification.status === "format_valid_document_mismatch"
-                        ? "1px solid #fecaca"
-                        : "1px solid #fed7aa",
-                    background:
-                      documentVerification.status === "verified_by_ai"
-                        ? "#f0fdf4"
-                        : documentVerification.status === "format_invalid" ||
-                          documentVerification.status === "format_valid_document_mismatch"
-                        ? "#fff1f2"
-                        : "#fff7ed",
-                    color:
-                      documentVerification.status === "verified_by_ai"
-                        ? "#166534"
-                        : documentVerification.status === "format_invalid" ||
-                          documentVerification.status === "format_valid_document_mismatch"
-                        ? "#9f1239"
-                        : "#9a3412",
-                    fontSize: 13,
-                    lineHeight: 1.6,
-                    fontWeight: 800,
-                  }}
-                >
-                  <div style={{ fontWeight: 950 }}>
-                    Status: {documentVerification.status === "verified_by_ai" ? "document matched" : documentVerification.status.replace(/_/g, " ").replace("by ai", "")} • Confidence:{" "}
-                    {documentVerification.confidence ?? 0}%
-                  </div>
-
-                  <div style={{ marginTop: 6 }}>
-                    GSTIN format: {documentVerification.gstinValidation?.valid ? "✅ Valid" : "⚠️ Not valid / not provided"}
-                  </div>
-
-                  <div>
-                    GSTIN matched in document: {documentVerification.gstinMatchedInDocument ? "✅ Yes" : "⚠️ No"}
-                  </div>
-
-                  <div>
-                    Trade License matched in document:{" "}
-                    {documentVerification.tradeLicenseMatchedInDocument ? "✅ Yes" : "⚠️ No"}
-                  </div>
-
-                  <div>
-                    Business name match: {documentVerification.businessNameMatched ? "✅ Likely" : "⚠️ Needs review"}
-                  </div>
-
-                  {documentVerification.summary ? (
-                    <div style={{ marginTop: 6 }}>{documentVerification.summary}</div>
-                  ) : null}
-
-                  {Array.isArray(documentVerification.warnings) && documentVerification.warnings.length ? (
-                    <div style={{ marginTop: 6 }}>
-                      Warnings: {documentVerification.warnings.slice(0, 3).join(" ")}
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
           </div>
         </section>
+
+        <BusinessVerificationPanel
+          assets={mediaAssets}
+          onChange={setMediaAssets}
+          disabled={saving}
+          documentVerification={documentVerification}
+          documentVerifyLoading={documentVerifyLoading}
+          onRunDocumentVerification={runVendorDocumentVerification}
+        />
 
         {!streamlinedRegistration ? <section id="sec-contact" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Contact</h3>
@@ -1987,16 +1958,18 @@ export default function BusinessOnboardingPageClient() {
             ) : null}
 
             <div
+              id="sec-service-area"
               style={{
                 marginTop: 12,
                 padding: 12,
                 borderRadius: 10,
                 background: "#f8fafc",
                 border: "1px solid #e2e8f0",
+                scrollMarginTop: 190,
               }}
             >
               <h4 style={{ margin: "0 0 8px", fontSize: 15 }}>
-                Vendor Service Radius
+                Service Coverage
               </h4>
 
               <p style={{ marginTop: 0, fontSize: 12, opacity: 0.75 }}>

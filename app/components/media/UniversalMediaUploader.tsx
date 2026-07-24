@@ -29,6 +29,9 @@ type UniversalMediaUploaderProps = {
   allowVideos?: boolean;
   allowDocuments?: boolean;
   maxFiles?: number;
+  cameraFacing?: "user" | "environment";
+  cameraOnly?: boolean;
+  cameraButtonLabel?: string;
 };
 
 export default function UniversalMediaUploader({
@@ -42,6 +45,9 @@ export default function UniversalMediaUploader({
   allowVideos = true,
   allowDocuments = false,
   maxFiles = UNIVERSAL_MEDIA_LIMITS.maxFiles,
+  cameraFacing = "environment",
+  cameraOnly = false,
+  cameraButtonLabel = "📷 Take Photo",
 }: UniversalMediaUploaderProps) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -249,17 +255,19 @@ export default function UniversalMediaUploader({
               onClick={() => cameraInputRef.current?.click()}
               style={buttonStyle(uploading || remainingSlots <= 0)}
             >
-              📷 Take Photo
+              {cameraButtonLabel}
             </button>
 
-            <button
-              type="button"
-              disabled={uploading || remainingSlots <= 0}
-              onClick={() => imageInputRef.current?.click()}
-              style={buttonStyle(uploading || remainingSlots <= 0)}
-            >
-              🖼 Upload Photo
-            </button>
+            {!cameraOnly ? (
+              <button
+                type="button"
+                disabled={uploading || remainingSlots <= 0}
+                onClick={() => imageInputRef.current?.click()}
+                style={buttonStyle(uploading || remainingSlots <= 0)}
+              >
+                🖼 Upload Photo
+              </button>
+            ) : null}
           </>
         ) : null}
 
@@ -290,7 +298,7 @@ export default function UniversalMediaUploader({
         ref={cameraInputRef}
         type="file"
         accept="image/*"
-        capture="environment"
+        capture={cameraFacing}
         hidden
         onChange={(e) => {
           if (e.target.files) uploadFiles(e.target.files);
