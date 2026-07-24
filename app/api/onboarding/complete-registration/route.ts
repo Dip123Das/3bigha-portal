@@ -5,6 +5,15 @@ import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import {
   resolveRegistrationCompatibilityProjection,
 } from "@/lib/registration/resolveRegistrationCompatibilityProjection";
+import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import type { BtceCapabilityClaim } from "@/lib/btce/shared/btce-types";
+import {
+  persistRegistrationIntelligenceSnapshot,
+  resolveRegistrationIntelligence,
+} from "@/lib/registration/intelligence";
+import type {
+  RegistrationIntelligencePersistenceClient,
+} from "@/lib/registration/intelligence";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +36,8 @@ type CompletionBusinessRow = {
   is_complete: boolean | null;
   registration_complete: boolean | null;
   location_verification_status: string | null;
+  business_media_json: unknown;
+  vendor_document_verification_json: unknown;
 };
 
 function errorResponse(
@@ -42,6 +53,108 @@ function errorResponse(
     },
     { status }
   );
+}
+
+function normalizeMediaAssets(
+  value: unknown
+): UploadedMediaAsset[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object") {
+      return [];
+    }
+
+    const record = item as Record<string, unknown>;
+
+    const id = String(record.id || "").trim();
+    const url = String(record.url || "").trim();
+    const bucket = String(record.bucket || "").trim();
+    const mediaPath = String(record.path || "").trim();
+    const name = String(record.name || "").trim();
+    const mimeType = String(record.mimeType || "").trim();
+    const kind = String(record.kind || "").trim();
+    const size = Number(record.size || 0);
+
+    if (
+      !id ||
+      !url ||
+      !bucket ||
+      !mediaPath ||
+      !name ||
+      !mimeType ||
+      !["image", "video", "document"].includes(kind) ||
+      !Number.isFinite(size) ||
+      size < 0
+    ) {
+      return [];
+    }
+
+    return [{
+      id,
+      url,
+      bucket,
+      path: mediaPath,
+      name,
+      size,
+      mimeType,
+      kind: kind as UploadedMediaAsset["kind"],
+    }];
+  });
+}
+
+function normalizeDocumentVerification(
+  value: unknown
+): {
+  documents?: Array<Record<string, unknown>> | null;
+} | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+
+  return {
+    documents: Array.isArray(record.documents)
+      ? record.documents.filter(
+          (document): document is Record<string, unknown> =>
+            Boolean(document) &&
+            typeof document === "object" &&
+            !Array.isArray(document)
+        )
+      : null,
+  };
+}
+
+function buildCapabilityClaims(
+  natureOfBusiness: string[] | null
+): BtceCapabilityClaim[] {
+  const declaredAt = new Date().toISOString();
+
+  return [
+    ...new Set(
+      (Array.isArray(natureOfBusiness)
+        ? natureOfBusiness
+        : []
+      )
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+    ),
+  ].map((label) => ({
+    code:
+      label
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "") ||
+      "declared_business_capability",
+    label,
+    description:
+      "Capability declared by the member during business registration.",
+    declaredAt,
+    tags: ["registration_declaration"],
+  }));
 }
 
 export async function POST() {
@@ -90,6 +203,8 @@ export async function POST() {
             "is_complete",
             "registration_complete",
             "location_verification_status",
+            "business_media_json",
+            "vendor_document_verification_json",
           ].join(",")
         )
         .eq("user_id", user.id)
@@ -339,10 +454,98 @@ export async function POST() {
       );
     }
 
+    /*
+     * INT-1B2
+     *
+     * Registration completion and automated verification have
+     * succeeded. Resolve explainable registration intelligence
+     * from canonical evidence and persist an immutable snapshot.
+     *
+     * No trust or capability decision is accepted from the client.
+     */
+    let registrationIntelligence: {
+      status: "created";
+      snapshotId: string;
+      version: string;
+      trustScore: number;
+      trustConfidence: number;
+      confidenceBand: string;
+      requiresHumanReview: boolean;
+      evidenceCount: number;
+      capabilityCount: number;
+      createdAt: string;
+    };
+
+    try {
+      const intelligenceSnapshot =
+        resolveRegistrationIntelligence({
+          businessId: user.id,
+          assets: normalizeMediaAssets(
+            business.business_media_json
+          ),
+          documentVerification:
+            normalizeDocumentVerification(
+              business.vendor_document_verification_json
+            ),
+          capabilityClaims: buildCapabilityClaims(
+            business.nature_of_business
+          ),
+          generatedAt: new Date().toISOString(),
+        });
+
+      const persistedSnapshot =
+        await persistRegistrationIntelligenceSnapshot(
+          supabase as unknown as
+            RegistrationIntelligencePersistenceClient,
+          {
+            userId: user.id,
+            snapshot: intelligenceSnapshot,
+            source: "registration_completion",
+          }
+        );
+
+      registrationIntelligence = {
+        status: "created",
+        snapshotId: persistedSnapshot.id,
+        version: persistedSnapshot.version,
+        trustScore: persistedSnapshot.trustScore,
+        trustConfidence:
+          persistedSnapshot.trustConfidence,
+        confidenceBand:
+          intelligenceSnapshot.trust.confidenceBand,
+        requiresHumanReview:
+          persistedSnapshot.requiresHumanReview,
+        evidenceCount:
+          intelligenceSnapshot.processing
+            .registrationEvidenceCount,
+        capabilityCount:
+          intelligenceSnapshot.trust
+            .capabilityClaims.length,
+        createdAt: persistedSnapshot.createdAt,
+      };
+    } catch (intelligenceError) {
+      console.error(
+        "REGISTRATION_INTELLIGENCE_PERSISTENCE_FAILED",
+        {
+          userId: user.id,
+          error:
+            intelligenceError instanceof Error
+              ? intelligenceError.message
+              : intelligenceError,
+        }
+      );
+
+      return errorResponse(
+        "Registration was completed and verified, but registration intelligence could not be recorded safely.",
+        500,
+        "REGISTRATION_INTELLIGENCE_FAILED"
+      );
+    }
+
     return NextResponse.json({
       ok: true,
       code:
-        "REGISTRATION_COMPLETION_AND_VERIFICATION_EVALUATED",
+        "REGISTRATION_COMPLETION_VERIFICATION_AND_INTELLIGENCE_EVALUATED",
 
       completion: {
         completed: true,
@@ -378,9 +581,12 @@ export async function POST() {
         ),
       },
 
+      registrationIntelligence,
+
       /*
-       * Compatibility completion and automated
-       * verification do not activate the dashboard.
+       * Compatibility completion, automated verification,
+       * and intelligence evaluation do not activate the
+       * dashboard.
        */
       dashboardActivation: "not_changed",
     });
