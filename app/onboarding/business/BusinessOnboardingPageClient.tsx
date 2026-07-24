@@ -96,9 +96,36 @@ type BusinessProfile = {
   vendor_document_verification_json?: VendorDocumentVerification | null;
 };
 
+type VendorDocumentVerificationItem = {
+  documentType: string;
+  label?: string;
+  enteredNumber?: string;
+  extractedNumber?: string;
+  matched?: boolean;
+  readable?: boolean;
+  confidence?: number;
+  status?: string;
+  extractedBusinessName?: string;
+  extractedAddress?: string;
+  businessNameMatched?: boolean;
+  addressMatched?: boolean;
+  summary?: string;
+  warnings?: string[];
+};
+
 type VendorDocumentVerification = {
   status: string;
   confidence: number;
+  documents?: VendorDocumentVerificationItem[];
+  compatibility?: {
+    gstinValidation?: {
+      valid: boolean;
+      normalized: string;
+      errors: string[];
+    };
+    gstinMatchedInDocument?: boolean;
+    tradeLicenseMatchedInDocument?: boolean;
+  };
   gstinValidation?: {
     valid: boolean;
     normalized: string;
@@ -670,19 +697,93 @@ export default function BusinessOnboardingPageClient() {
   async function runVendorDocumentVerification() {
     const gstin = String(bp.gstin || "").trim();
     const tradeLicenseNo = String(bp.trade_license_no || "").trim();
+    const udyamNo = String(bp.udyam_no || "").trim();
+    const pan = String(bp.pan || "").trim();
 
-    if (!gstin && !tradeLicenseNo) {
-      setMsg("Please enter GSTIN or Trade License No before checking the document.");
+    const assetsFor = (kind: string) =>
+      mediaAssets.filter((asset) =>
+        String(asset.path || "").includes(`/legal-proof/${kind}/`)
+      );
+
+    const legacyLegalAssets = mediaAssets.filter(
+      (asset) =>
+        String(asset.path || "").includes("/legal-proof/") &&
+        !["gst", "trade-license", "udyam", "other"].some((kind) =>
+          String(asset.path || "").includes(`/legal-proof/${kind}/`)
+        )
+    );
+
+    const documents = [
+      {
+        documentType: "gst",
+        enteredNumber: gstin,
+        label: "GST Registration",
+        mediaAssets: assetsFor("gst"),
+      },
+      {
+        documentType: "trade_license",
+        enteredNumber: tradeLicenseNo,
+        label: "Trade Licence",
+        mediaAssets: assetsFor("trade-license"),
+      },
+      {
+        documentType: "udyam",
+        enteredNumber: udyamNo,
+        label: "UDYAM Registration",
+        mediaAssets: assetsFor("udyam"),
+      },
+      {
+        documentType: "pan",
+        enteredNumber: pan,
+        label: "PAN",
+        mediaAssets: assetsFor("other"),
+      },
+    ].filter(
+      (document) =>
+        document.enteredNumber || document.mediaAssets.length > 0
+    );
+
+    if (!documents.length && legacyLegalAssets.length) {
+      if (gstin) {
+        documents.push({
+          documentType: "gst",
+          enteredNumber: gstin,
+          label: "GST Registration",
+          mediaAssets: legacyLegalAssets,
+        });
+      } else if (tradeLicenseNo) {
+        documents.push({
+          documentType: "trade_license",
+          enteredNumber: tradeLicenseNo,
+          label: "Trade Licence",
+          mediaAssets: legacyLegalAssets,
+        });
+      }
+    }
+
+    if (!documents.length) {
+      setMsg(
+        "Enter at least one registration number and upload its matching legal certificate."
+      );
       return;
     }
 
-    if (!mediaAssets.length) {
-      setMsg("Please upload GST certificate or Trade License document/photo first.");
+    const missingCertificate = documents.find(
+      (document) =>
+        document.enteredNumber && document.mediaAssets.length === 0
+    );
+
+    if (missingCertificate) {
+      setMsg(
+        `Please upload the ${missingCertificate.label} certificate before checking it.`
+      );
       return;
     }
 
     setDocumentVerifyLoading(true);
-    setMsg("Checking the registration number against the uploaded document...");
+    setMsg(
+      "Checking each registration number against its own legal certificate..."
+    );
 
     try {
       const res = await fetch("/api/ai/vendor-document-verify", {
@@ -692,8 +793,7 @@ export default function BusinessOnboardingPageClient() {
         },
         cache: "no-store",
         body: JSON.stringify({
-          gstin,
-          tradeLicenseNo,
+          documents,
           businessName: bp.business_name || "",
           businessAddress: [
             bp.address_line1,
@@ -706,26 +806,33 @@ export default function BusinessOnboardingPageClient() {
           ]
             .filter(Boolean)
             .join(", "),
-          mediaAssets,
         }),
       });
 
       const json = await res.json().catch(() => null);
 
       if (!res.ok || !json?.ok) {
-        throw new Error(json?.error || "Document verification failed.");
+        throw new Error(
+          json?.error || "Document verification failed."
+        );
       }
 
-      const verification = json.verification as VendorDocumentVerification;
+      const verification =
+        json.verification as VendorDocumentVerification;
+
       setDocumentVerification(verification);
-      setBp((p) => ({
-        ...p,
+      setBp((current) => ({
+        ...current,
         vendor_document_verification_json: verification,
       }));
 
-      setMsg("✅ Document check completed. Please review the result below.");
-    } catch (e: any) {
-      setMsg(e?.message || "Document verification failed.");
+      setMsg(
+        "✅ Legal-document checks completed. Review the status shown for every registration."
+      );
+    } catch (error: any) {
+      setMsg(
+        error?.message || "Document verification failed."
+      );
     } finally {
       setDocumentVerifyLoading(false);
     }

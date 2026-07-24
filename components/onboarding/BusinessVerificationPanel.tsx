@@ -75,6 +75,7 @@ function LegalProofCard({
   assets,
   allAssets,
   onChange,
+  verification,
 }: {
   title: string;
   description: string;
@@ -82,6 +83,7 @@ function LegalProofCard({
   assets: UploadedMediaAsset[];
   allAssets: UploadedMediaAsset[];
   onChange: (assets: UploadedMediaAsset[]) => void;
+  verification?: any;
 }) {
   return (
     <div
@@ -103,6 +105,43 @@ function LegalProofCard({
       >
         {description}
       </div>
+
+      {verification ? (
+        <div
+          style={{
+            marginTop: 10,
+            padding: "8px 10px",
+            borderRadius: 10,
+            background:
+              verification.status === "verified_by_ai"
+                ? "#f0fdf4"
+                : verification.status === "document_mismatch" ||
+                  verification.status === "format_invalid"
+                ? "#fef2f2"
+                : "#fff7ed",
+            border:
+              verification.status === "verified_by_ai"
+                ? "1px solid #bbf7d0"
+                : verification.status === "document_mismatch" ||
+                  verification.status === "format_invalid"
+                ? "1px solid #fecaca"
+                : "1px solid #fed7aa",
+            fontSize: 12,
+            lineHeight: 1.5,
+          }}
+        >
+          <b>
+            {String(
+              verification.status || "needs_manual_review"
+            ).replace(/_/g, " ")}
+          </b>
+          {verification.summary ? (
+            <div style={{ marginTop: 3 }}>
+              {verification.summary}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <UniversalMediaUploader
         module="vendor"
@@ -167,6 +206,19 @@ export default function BusinessVerificationPanel({
   const legalComplete = legalAssets.length > 0;
   const practicalComplete = practicalAssets.length > 0;
   const selfieComplete = selfieAssets.length > 0;
+
+  const documentResults = Array.isArray(
+    documentVerification?.documents
+  )
+    ? documentVerification.documents
+    : [];
+
+  function verificationFor(type: string) {
+    return documentResults.find(
+      (item: any) =>
+        String(item?.documentType || "") === type
+    );
+  }
 
   return (
     <section
@@ -254,6 +306,7 @@ export default function BusinessVerificationPanel({
                 assets={gstAssets}
                 allAssets={assets}
                 onChange={onChange}
+                verification={verificationFor("gst")}
               />
               <LegalProofCard
                 title="Trade Licence"
@@ -262,6 +315,7 @@ export default function BusinessVerificationPanel({
                 assets={tradeLicenseAssets}
                 allAssets={assets}
                 onChange={onChange}
+                verification={verificationFor("trade_license")}
               />
               <LegalProofCard
                 title="UDYAM Registration"
@@ -270,6 +324,7 @@ export default function BusinessVerificationPanel({
                 assets={udyamAssets}
                 allAssets={assets}
                 onChange={onChange}
+                verification={verificationFor("udyam")}
               />
               <LegalProofCard
                 title="Other Legal Registration"
@@ -278,6 +333,13 @@ export default function BusinessVerificationPanel({
                 assets={otherLegalAssets}
                 allAssets={assets}
                 onChange={onChange}
+                verification={
+                  verificationFor("pan") ||
+                  verificationFor("fssai") ||
+                  verificationFor("shop_establishment") ||
+                  verificationFor("professional_registration") ||
+                  verificationFor("other")
+                }
               />
             </div>
 
