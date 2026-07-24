@@ -768,8 +768,10 @@ export default function BusinessOnboardingPageClient() {
       .toLowerCase() === "verified" &&
     Boolean(
       String(bp.address_line1 || "").trim() ||
-        String(bp.formatted_address || "").trim() ||
-        String(bp.short_address || "").trim()
+        String(bp.address_line2 || "").trim() ||
+        String(bp.city || "").trim() ||
+        String(bp.district || "").trim() ||
+        String(bp.pincode || "").trim()
     );
 
   const aboutReady = Boolean(
@@ -1514,7 +1516,7 @@ export default function BusinessOnboardingPageClient() {
               <b style={{ color: isCompleteUI ? "green" : "crimson" }}>
                 {isCompleteUI ? "Complete" : "Incomplete"}
               </b>{" "}
-              | Score: <b>{scoreUI}%</b>
+              | Profile readiness: <b>{weightedCompletionScore}%</b>
               {vcLoading && <span style={{ marginLeft: 10, opacity: 0.7 }}>(updating…)</span>}
             </div>
             <div style={{ marginTop: 6, opacity: 0.8 }}>
@@ -1546,8 +1548,9 @@ export default function BusinessOnboardingPageClient() {
               <div
                 style={{
                   height: 10,
-                  width: `${scoreUI}%`,
-                  background: scoreUI >= 100 ? "green" : "#333",
+                  width: `${weightedCompletionScore}%`,
+                  background:
+                    weightedCompletionScore >= 100 ? "green" : "#2563eb",
                   borderRadius: 12,
                 }}
               />
