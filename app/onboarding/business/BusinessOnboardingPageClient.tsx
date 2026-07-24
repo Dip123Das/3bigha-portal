@@ -10,6 +10,9 @@ import { validateGstin } from "@/lib/vendor-verification/gstin";
 import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
 import { addressEngineToBusinessPayload, legacyBusinessToAddressEngine } from "@/lib/geography/addressAdapters";
 import AIWritingImprovement from "../../../components/onboarding/AIWritingImprovement";
+import BusinessIdentityJourney, {
+  type BusinessIdentityJourneyStep,
+} from "@/components/onboarding/BusinessIdentityJourney";
 
 async function ensureSessionOrRedirect(
   supabase: any,
@@ -733,6 +736,116 @@ export default function BusinessOnboardingPageClient() {
   const missingUI = localCompletion.missing;
   const registrationCompleteUI = vc?.registration_complete ?? false;
 
+  /*
+   * Human-First Business Identity Journey
+   *
+   * These steps project the existing onboarding state into one understandable
+   * human journey. They do not replace the current completion engine,
+   * verification engine, persistence contract, or registration orchestration.
+   */
+  const journeySteps: BusinessIdentityJourneyStep[] = [
+    {
+      key: "identity",
+      title: "Your Identity",
+      description: "Name, role and contact",
+      targetId: "sec-identity",
+      complete: Boolean(
+        nature.length > 0 &&
+          String(bp.contact_person || "").trim() &&
+          (
+            String(bp.business_name || "").trim() ||
+            String(bp.author_display_name || "").trim()
+          ) &&
+          (
+            String(bp.phone_primary || "").trim() ||
+            String(bp.email_business || "").trim()
+          )
+      ),
+    },
+    {
+      key: "address",
+      title: "Exact Address",
+      description: "Official and live location",
+      targetId: "sec-address",
+      complete:
+        String(bp.location_verification_status || "")
+          .trim()
+          .toLowerCase() === "verified",
+    },
+    {
+      key: "about-you",
+      title: "About You",
+      description: "Experience, skills and values",
+      targetId: "sec-story",
+      complete: Boolean(String(bp.about_person || "").trim()),
+    },
+    {
+      key: "about-business",
+      title: "About Business",
+      description: "What your business does",
+      targetId: "sec-story",
+      complete: Boolean(
+        String(bp.about_business || "").trim() ||
+          (hasBlog && String(bp.author_bio || "").trim())
+      ),
+    },
+    {
+      key: "coverage",
+      title: "Coverage",
+      description: "Areas where you work",
+      targetId: "sec-service-area",
+      complete: Boolean(
+        Number(bp.delivery_radius_km || 0) > 0 ||
+          String(bp.preferred_service_area || "").trim() ||
+          bp.statewide_service ||
+          bp.nationwide_service ||
+          safeArr(bp.preferred_geo_districts).length > 0 ||
+          safeArr(bp.preferred_geo_blocks).length > 0 ||
+          safeArr(bp.preferred_geo_places).length > 0
+      ),
+    },
+    {
+      key: "gallery",
+      title: "Gallery",
+      description: "Workplace and project photos",
+      targetId: "sec-identity",
+      complete: mediaAssets.some(
+        (asset) => asset.kind === "image" || asset.kind === "video"
+      ),
+      optional: true,
+    },
+    {
+      key: "documents",
+      title: "Documents",
+      description: "Business proof and verification",
+      targetId: "sec-identity",
+      complete: hasBlog
+        ? true
+        : Boolean(
+            (
+              String(bp.gstin || "").trim() ||
+              String(bp.trade_license_no || "").trim()
+            ) &&
+              (
+                mediaAssets.some((asset) => asset.kind === "document") ||
+                documentVerification
+              )
+          ),
+    },
+    {
+      key: "review",
+      title: "Review & Finish",
+      description: "Check and submit",
+      targetId: "sec-review",
+      complete: registrationCompleteUI,
+    },
+  ];
+
+  const activeJourneyKey =
+    journeySteps.find((step) => !step.complete && !step.optional)?.key ??
+    journeySteps.find((step) => !step.complete)?.key ??
+    "review";
+
   const missingByStep = groupMissingByStep(missingUI, { hasProperty: false, hasBlog });
 
   const missingBusinessOrAuthor = missingUI.some((m) => {
@@ -1309,7 +1422,15 @@ export default function BusinessOnboardingPageClient() {
           : "Update your business details, verification and service coverage. Your account identity and workspace remain unchanged."}
       </p>
 
-      <div style={{ marginTop: 12, padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
+      <div style={{ marginTop: 22 }}>
+        <BusinessIdentityJourney
+          steps={journeySteps}
+          activeKey={activeJourneyKey}
+          completionScore={scoreUI}
+        />
+      </div>
+
+      <div style={{ marginTop: 18, padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
             <div>
