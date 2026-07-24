@@ -1,3 +1,7 @@
+export { assessPhysicalEvidenceObservation } from "@/lib/btce/ai/physical-evidence-analysis";
+export type { BtcePhysicalObservation } from "@/lib/btce/ai/physical-evidence-analysis";
+export { evaluateCapabilityIntelligence } from "@/lib/btce/core/capability-intelligence-engine";
+export type { BtceCapabilityIntelligence } from "@/lib/btce/core/capability-intelligence-engine";
 export { adaptRegistrationEvidence } from "@/lib/btce/adapters/registration-evidence-adapter";
 export type { RegistrationEvidenceAdapterInput } from "@/lib/btce/adapters/registration-evidence-adapter";
 export { evaluateBusinessTrust } from "@/lib/btce/core/btce-engine";
