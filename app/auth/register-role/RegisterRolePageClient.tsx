@@ -516,8 +516,28 @@ export default function RegisterRolePageClient() {
         metadata: { identityKey, identityKeys, operatingProfile, legacyRole: effectiveRole, modules: allModules },
       });
 
-      if (["vendor", "builder", "hub_vendor", "blogger"].includes(effectiveRole)) {
-        router.replace("/auth/awaiting-approval");
+      /*
+       * Human-First Business Identity Builder
+       *
+       * Identity declaration is only the first stage. Business-facing
+       * identities must continue into the canonical business onboarding
+       * experience before registration can be completed or verification
+       * status can be shown.
+       *
+       * The awaiting-approval page is a post-completion status destination,
+       * not a substitute for business identity onboarding.
+       */
+      if (requiresBusinessOnboarding) {
+        const onboardingReturnTo =
+          next && next !== "/auth/awaiting-approval"
+            ? next
+            : "/dashboard";
+
+        router.replace(
+          `/onboarding/business?returnTo=${encodeURIComponent(
+            onboardingReturnTo
+          )}`
+        );
       } else {
         router.replace(next || "/dashboard");
       }
