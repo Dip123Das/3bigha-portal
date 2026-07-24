@@ -293,6 +293,7 @@ export default function BusinessVerificationPanel({
   const [cameraAvailability, setCameraAvailability] = useState<
     "checking" | "available" | "unavailable" | "unknown"
   >("checking");
+  const [handoffMessage, setHandoffMessage] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -397,6 +398,52 @@ export default function BusinessVerificationPanel({
   const practicalComplete = practicalAssets.length > 0;
   const selfieComplete = selfieAssets.length > 0;
 
+  const completedVerificationSteps = [
+    legalComplete,
+    practicalComplete,
+    selfieComplete,
+  ].filter(Boolean).length;
+  const verificationProgress = Math.round(
+    (completedVerificationSteps / 3) * 100
+  );
+
+  async function copyMobileContinuationLink() {
+    if (typeof window === "undefined") return;
+
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setHandoffMessage(
+        "Continuation link copied. Open it on your mobile phone and sign in with the same 3Bigha account."
+      );
+    } catch {
+      setHandoffMessage(
+        "Copy the current page address from your browser and open it on your mobile phone. Then sign in with the same 3Bigha account."
+      );
+    }
+  }
+
+  async function shareMobileContinuationLink() {
+    if (typeof window === "undefined") return;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Continue 3Bigha business registration",
+          text: "Open this saved 3Bigha registration on your mobile phone.",
+          url: window.location.href,
+        });
+        setHandoffMessage(
+          "Continuation link shared. Open it on your mobile phone and sign in with the same account."
+        );
+        return;
+      } catch {
+        return;
+      }
+    }
+
+    await copyMobileContinuationLink();
+  }
+
   const signboardAdded =
     physicalAssetsByKind.signboard.length > 0;
   const workplaceContextAdded =
@@ -470,6 +517,89 @@ export default function BusinessVerificationPanel({
         that the person completing this profile is present at the declared
         business.
       </p>
+
+      <div
+        style={{
+          marginBottom: 14,
+          padding: 14,
+          borderRadius: 14,
+          border: "1px solid #dbeafe",
+          background: "#ffffff",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 950, color: "#0f172a" }}>
+              Verification progress
+            </div>
+            <div
+              style={{
+                marginTop: 4,
+                color: "#64748b",
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}
+            >
+              {completedVerificationSteps} of 3 verification steps completed
+            </div>
+          </div>
+
+          <div
+            style={{
+              padding: "7px 10px",
+              borderRadius: 999,
+              background:
+                verificationProgress === 100 ? "#dcfce7" : "#eff6ff",
+              color:
+                verificationProgress === 100 ? "#166534" : "#1e40af",
+              fontSize: 12,
+              fontWeight: 950,
+            }}
+          >
+            {verificationProgress}% complete
+          </div>
+        </div>
+
+        <div
+          style={{
+            marginTop: 10,
+            height: 9,
+            borderRadius: 999,
+            background: "#e2e8f0",
+            overflow: "hidden",
+          }}
+          aria-label={`Verification progress ${verificationProgress}%`}
+        >
+          <div
+            style={{
+              width: `${verificationProgress}%`,
+              height: "100%",
+              background:
+                verificationProgress === 100 ? "#16a34a" : "#2563eb",
+              transition: "width 180ms ease",
+            }}
+          />
+        </div>
+
+        <div
+          style={{
+            marginTop: 9,
+            color: "#166534",
+            fontSize: 12,
+            fontWeight: 900,
+          }}
+        >
+          ✓ Uploaded evidence is saved to this registration
+        </div>
+      </div>
 
       <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
         <RequirementStatus complete={legalComplete}>
@@ -638,6 +768,67 @@ export default function BusinessVerificationPanel({
             3Bigha on your mobile phone with the same account and continue from
             this registration.
           </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+              gap: 10,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => void shareMobileContinuationLink()}
+              style={{
+                minHeight: 44,
+                border: 0,
+                borderRadius: 12,
+                padding: "10px 12px",
+                background: "#1d4ed8",
+                color: "#ffffff",
+                fontWeight: 950,
+                cursor: "pointer",
+              }}
+            >
+              📱 Send link to mobile
+            </button>
+
+            <button
+              type="button"
+              onClick={() => void copyMobileContinuationLink()}
+              style={{
+                minHeight: 44,
+                border: "1px solid #bfdbfe",
+                borderRadius: 12,
+                padding: "10px 12px",
+                background: "#ffffff",
+                color: "#1e40af",
+                fontWeight: 950,
+                cursor: "pointer",
+              }}
+            >
+              🔗 Copy continuation link
+            </button>
+          </div>
+
+          {handoffMessage ? (
+            <div
+              style={{
+                marginTop: 10,
+                padding: "9px 10px",
+                borderRadius: 10,
+                background: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                color: "#166534",
+                fontSize: 12,
+                fontWeight: 850,
+                lineHeight: 1.5,
+              }}
+            >
+              {handoffMessage}
+            </div>
+          ) : null}
         </div>
 
         <div id="sec-gallery" style={{ scrollMarginTop: 190 }}>
