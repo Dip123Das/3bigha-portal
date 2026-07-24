@@ -441,6 +441,12 @@ export default function BusinessOnboardingPageClient() {
 
   const nature = safeArr(bp.nature_of_business);
   const hasBlog = nature.includes("blog");
+  const hasNonBlogBusiness = nature.some((item) =>
+    ["property", "materials", "services", "rentals"].includes(item)
+  );
+  const isPureBlogOnly =
+    hasBlog && !hasNonBlogBusiness;
+
   const gstinFormatCheck = validateGstin(String(bp.gstin || ""));
 
   async function fetchCompleteness(uid: string) {
@@ -903,7 +909,7 @@ export default function BusinessOnboardingPageClient() {
   );
 
   const legalProofReady =
-    hasBlog ||
+    isPureBlogOnly ||
     Boolean(
       legalProofAssets.length > 0 &&
         (
@@ -913,10 +919,12 @@ export default function BusinessOnboardingPageClient() {
     );
 
   const practicalProofReady =
-    hasBlog || practicalProofAssets.length > 0;
+    isPureBlogOnly ||
+    practicalProofAssets.length > 0;
 
   const liveSelfieReady =
-    hasBlog || liveSelfieAssets.length > 0;
+    isPureBlogOnly ||
+    liveSelfieAssets.length > 0;
 
   /*
    * Registration readiness must represent the complete human journey.
@@ -973,7 +981,7 @@ export default function BusinessOnboardingPageClient() {
     });
 
   const documentVerificationReady =
-    hasBlog ||
+    isPureBlogOnly ||
     Boolean(
       documentVerification &&
         !verificationHasFailure &&
