@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
 
@@ -289,6 +290,43 @@ export default function BusinessVerificationPanel({
   documentVerifyLoading = false,
   onRunDocumentVerification,
 }: Props) {
+  const [cameraAvailability, setCameraAvailability] = useState<
+    "checking" | "available" | "unavailable" | "unknown"
+  >("checking");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function detectCamera() {
+      if (
+        typeof navigator === "undefined" ||
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.enumerateDevices
+      ) {
+        if (!cancelled) setCameraAvailability("unavailable");
+        return;
+      }
+
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const hasCamera = devices.some(
+          (device) => device.kind === "videoinput"
+        );
+
+        if (!cancelled) {
+          setCameraAvailability(hasCamera ? "available" : "unavailable");
+        }
+      } catch {
+        if (!cancelled) setCameraAvailability("unknown");
+      }
+    }
+
+    void detectCamera();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const legacyLegalAssets = assets.filter(
     (asset) =>
       belongsTo(asset, "legal-proof") &&
@@ -540,6 +578,65 @@ export default function BusinessVerificationPanel({
                 the correct registration card above.
               </div>
             ) : null}
+          </div>
+        </div>
+
+        <div
+          style={{
+            padding: 16,
+            borderRadius: 16,
+            border:
+              cameraAvailability === "unavailable"
+                ? "1px solid #fdba74"
+                : "1px solid #bfdbfe",
+            background:
+              cameraAvailability === "unavailable"
+                ? "#fff7ed"
+                : "#eff6ff",
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 950,
+              color:
+                cameraAvailability === "unavailable"
+                  ? "#9a3412"
+                  : "#1e3a8a",
+              fontSize: 16,
+            }}
+          >
+            📱 You can complete the photo steps from your mobile phone
+          </div>
+
+          <p
+            style={{
+              margin: "7px 0 0",
+              color: "#475569",
+              fontSize: 13,
+              lineHeight: 1.65,
+            }}
+          >
+            {cameraAvailability === "unavailable"
+              ? "No camera was detected on this device. No problem — you can do the rest, including capturing business photos and the live selfie, from your mobile phone."
+              : "If this desktop or laptop does not have a suitable camera, you can do the rest, including capturing business photos and the live selfie, from your mobile phone."}
+          </p>
+
+          <div
+            style={{
+              marginTop: 10,
+              padding: "10px 12px",
+              borderRadius: 12,
+              background: "#ffffff",
+              border: "1px solid #dbeafe",
+              color: "#0f172a",
+              fontSize: 13,
+              fontWeight: 850,
+              lineHeight: 1.55,
+            }}
+          >
+            ✓ The work you have completed so far is saved here. Sign in to
+            3Bigha on your mobile phone with the same account and continue from
+            this registration.
           </div>
         </div>
 
