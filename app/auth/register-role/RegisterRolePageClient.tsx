@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { trackVendorConversionClient } from "@/components/marketplace/vendor-conversion-client";
-import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
+import type { GeoSelection } from "@/components/geography/GeoSelector";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
 import { validateGstin } from "@/lib/vendor-verification/gstin";
@@ -251,9 +251,6 @@ export default function RegisterRolePageClient() {
   function validateForm() {
     if (!fullName.trim()) return "Please enter your full name.";
     if (normalizePhone(phone).length < 10) return "Please enter a valid phone number.";
-    if (!geography.state?.id) return "Please select your State from the official LGD list.";
-    if (!geography.district?.id) return "Please select your District from the official LGD list.";
-    if (pincode.trim() && !/^\d{6}$/.test(pincode.trim())) return "Please enter a valid 6-digit PIN code.";
     if (!identityKey) return "Please choose at least one work category.";
     if (needsBusinessProfile && !businessName.trim()) return "Please enter your business or professional name.";
     if (requiresBusinessEvidence && !gstin.trim() && !tradeLicenseNo.trim() && !udyamNo.trim()) return "Please provide GSTIN, Trade Licence or Udyam registration.";
@@ -266,7 +263,7 @@ export default function RegisterRolePageClient() {
 
   async function useCurrentLocation() {
     if (typeof window === "undefined" || !navigator.geolocation) {
-      setLocationMsg("Current location is not supported by this browser. Please select your LGD location below.");
+      setLocationMsg("Current location is not supported by this browser. You can add your exact official address in the next step.");
       return;
     }
 
@@ -297,7 +294,7 @@ export default function RegisterRolePageClient() {
             !normalizedDistrict || String(item.district_name || "").toLowerCase() === normalizedDistrict
           ) || options[0];
           if (!match?.state_id || !match?.district_id) {
-            throw new Error("We detected your area, but could not safely match it to an official LGD location. Please select it below.");
+            throw new Error("We detected your area, but could not safely match it to an official LGD location. You can complete the exact official address in the next step.");
           }
 
           const isUrban = Boolean(match.local_body_id || match.ward_id);
@@ -322,16 +319,16 @@ export default function RegisterRolePageClient() {
             },
           });
           setPincode(String(match.pincode || detected.postcode || ""));
-          setLocationMsg("Location suggested from your device. Please check the official LGD selection before continuing.");
+          setLocationMsg("Current location captured. You can confirm and complete the exact official address in the next step.");
         } catch (error: any) {
-          setLocationMsg(error?.message || "Could not use your current location. Please select it below.");
+          setLocationMsg(error?.message || "Could not use your current location. You can continue and add the exact official address in the next step.");
         } finally {
           setLocating(false);
         }
       },
       (error) => {
         setLocating(false);
-        setLocationMsg(error?.message || "Location permission was not available. Please select your location below.");
+        setLocationMsg(error?.message || "Location permission was not available. You can continue and add the exact official address in the next step.");
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
     );
@@ -562,33 +559,84 @@ export default function RegisterRolePageClient() {
             <label style={{ fontWeight: 800 }}>Phone *<input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Your phone number" inputMode="tel" style={inputStyle} /></label>
           </section>
 
-          <section>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-              <div>
-                <div style={{ fontWeight: 900, fontSize: 18 }}>Your official location *</div>
-                <div style={{ color: "#64748b", fontSize: 14, marginTop: 4 }}>State and District are required. Add the deeper rural or urban LGD location whenever available.</div>
+          <section
+            style={{
+              padding: 16,
+              border: "1px solid #dbeafe",
+              borderRadius: 14,
+              background: "#f8fbff",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 14,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ minWidth: 0, flex: "1 1 420px" }}>
+                <div style={{ fontWeight: 900, fontSize: 18 }}>
+                  Current location
+                </div>
+
+                <div
+                  style={{
+                    color: "#64748b",
+                    fontSize: 14,
+                    marginTop: 5,
+                    lineHeight: 1.55,
+                  }}
+                >
+                  Use your device location to help us prepare your workspace.
+                  Your complete LGD and official postal address will be entered
+                  once, in the next Business Profile step.
+                </div>
               </div>
-              <button type="button" onClick={useCurrentLocation} disabled={locating} style={locationButtonStyle}>
+
+              <button
+                type="button"
+                onClick={useCurrentLocation}
+                disabled={locating || loading}
+                style={locationButtonStyle}
+              >
                 {locating ? "Finding location…" : "Use my current location"}
               </button>
             </div>
-            {locationMsg ? <div role="status" style={{ marginTop: 10, color: "#475569", fontSize: 13 }}>{locationMsg}</div> : null}
-            <GeoSelector
-              value={geography}
-              onChange={(selection) => {
-                setGeography(selection);
-                setPincode(selection.place?.pincode || "");
-                setLocationMsg("");
+
+            {locationMsg ? (
+              <div
+                role="status"
+                style={{
+                  marginTop: 12,
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  color: geography.state?.id ? "#166534" : "#475569",
+                  background: geography.state?.id ? "#f0fdf4" : "#f8fafc",
+                  border: geography.state?.id
+                    ? "1px solid #bbf7d0"
+                    : "1px solid #e2e8f0",
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                  fontWeight: geography.state?.id ? 750 : 500,
+                }}
+              >
+                {locationMsg}
+              </div>
+            ) : null}
+
+            <div
+              style={{
+                marginTop: 10,
+                color: "#64748b",
+                fontSize: 12,
+                lineHeight: 1.5,
               }}
-              includeSubdivision
-              includeBlock
-              includePlace
-              disabled={loading}
-            />
-            <label style={{ display: "block", fontWeight: 800, marginTop: 12, maxWidth: 320 }}>
-              PIN code <span style={{ color: "#64748b", fontWeight: 600 }}>(if available)</span>
-              <input value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="6-digit PIN code" inputMode="numeric" autoComplete="postal-code" style={inputStyle} />
-            </label>
+            >
+              You may continue even when device-location permission is not
+              available.
+            </div>
           </section>
 
           <section>
