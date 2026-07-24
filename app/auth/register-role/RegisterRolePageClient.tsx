@@ -252,11 +252,7 @@ export default function RegisterRolePageClient() {
   function validateForm() {
     if (!fullName.trim()) return "Please enter your full name.";
     if (normalizePhone(phone).length < 10) return "Please enter a valid phone number.";
-    if (
-      !locationCaptured ||
-      !geography.state?.id ||
-      !geography.district?.id
-    ) {
+    if (!locationCaptured) {
       return "Please use your current location before continuing.";
     }
     if (!identityKey) return "Please choose at least one work category.";
@@ -296,44 +292,137 @@ export default function RegisterRolePageClient() {
           const detected = await response.json().catch(() => null);
           if (!response.ok || !detected?.ok) throw new Error(detected?.error || "Could not identify this location.");
 
-          const query = detected.postcode || detected.locality || detected.district;
-          if (!query) throw new Error("No LGD match was found for the detected location.");
-          const optionsResponse = await fetch(`/api/geography/options?type=search&q=${encodeURIComponent(query)}&limit=25`, { cache: "no-store" });
-          const optionsJson = await optionsResponse.json().catch(() => null);
-          const options = Array.isArray(optionsJson?.options) ? optionsJson.options : [];
-          const normalizedDistrict = String(detected.district || "").toLowerCase();
-          const match = options.find((item: any) =>
-            !normalizedDistrict || String(item.district_name || "").toLowerCase() === normalizedDistrict
-          ) || options[0];
-          if (!match?.state_id || !match?.district_id) {
-            throw new Error("We detected your area, but could not safely match it to an official LGD location. You can complete the exact official address in the next step.");
+          // Browser coordinates and server-side reverse geocoding have
+          // already been verified and saved at this point. The LGD search
+          // below is only a best-effort prefill for the next onboarding step.
+          setLocationCaptured(true);
+          setPincode(String(detected.postcode || ""));
+
+          const query =
+            detected.postcode || detected.locality || detected.district;
+
+          if (query) {
+            try {
+              const optionsResponse = await fetch(
+                `/api/geography/options?type=search&q=${encodeURIComponent(query)}&limit=25`,
+                { cache: "no-store" }
+              );
+
+              const optionsJson = await optionsResponse
+                .json()
+                .catch(() => null);
+
+              const options = Array.isArray(optionsJson?.options)
+                ? optionsJson.options
+                : [];
+
+              const normalize = (value: unknown) =>
+                String(value || "")
+                  .trim()
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]/g, "");
+
+              const detectedDistrict = normalize(detected.district);
+              const detectedState = normalize(detected.state);
+
+              const match =
+                options.find((item: any) => {
+                  const itemDistrict = normalize(item.district_name);
+                  const itemState = normalize(item.state_name);
+
+                  const districtMatches =
+                    !detectedDistrict ||
+                    itemDistrict === detectedDistrict ||
+                    itemDistrict.includes(detectedDistrict) ||
+                    detectedDistrict.includes(itemDistrict);
+
+                  const stateMatches =
+                    !detectedState ||
+                    itemState === detectedState ||
+                    itemState.includes(detectedState) ||
+                    detectedState.includes(itemState);
+
+                  return districtMatches && stateMatches;
+                }) || options[0];
+
+              if (match?.state_id && match?.district_id) {
+                const isUrban = Boolean(
+                  match.local_body_id || match.ward_id
+                );
+
+                setGeography({
+                  state: {
+                    id: match.state_id,
+                    name: match.state_name || detected.state || "",
+                  },
+                  district: {
+                    id: match.district_id,
+                    name: match.district_name || detected.district || "",
+                  },
+                  subdivision: match.subdivision_id
+                    ? {
+                        id: match.subdivision_id,
+                        name: match.subdivision_name || "",
+                      }
+                    : null,
+                  block: isUrban
+                    ? match.local_body_id
+                      ? {
+                          id: match.local_body_id,
+                          name: match.local_body_name || "",
+                          place_type: "LOCAL_BODY",
+                        }
+                      : null
+                    : match.block_id
+                      ? {
+                          id: match.block_id,
+                          name: match.block_name || "",
+                        }
+                      : null,
+                  place: {
+                    id: isUrban
+                      ? match.ward_id ||
+                        match.local_body_id ||
+                        match.id
+                      : match.village_id || match.id,
+                    name:
+                      match.ward_name ||
+                      match.name ||
+                      detected.locality ||
+                      "",
+                    pincode:
+                      match.pincode ||
+                      detected.postcode ||
+                      null,
+                    place_type: match.place_type || null,
+                  },
+                });
+
+                setPincode(
+                  String(match.pincode || detected.postcode || "")
+                );
+              }
+            } catch (lgdError) {
+              console.warn(
+                "Optional LGD prefill could not be completed:",
+                lgdError
+              );
+            }
           }
 
-          const isUrban = Boolean(match.local_body_id || match.ward_id);
-          setGeography({
-            state: { id: match.state_id, name: match.state_name || detected.state || "" },
-            district: { id: match.district_id, name: match.district_name || detected.district || "" },
-            subdivision: match.subdivision_id
-              ? { id: match.subdivision_id, name: match.subdivision_name || "" }
-              : null,
-            block: isUrban
-              ? match.local_body_id
-                ? { id: match.local_body_id, name: match.local_body_name || "", place_type: "LOCAL_BODY" }
-                : null
-              : match.block_id
-                ? { id: match.block_id, name: match.block_name || "" }
-                : null,
-            place: {
-              id: isUrban ? match.ward_id || match.local_body_id || match.id : match.village_id || match.id,
-              name: match.ward_name || match.name,
-              pincode: match.pincode || detected.postcode || null,
-              place_type: match.place_type || null,
-            },
-          });
-          setPincode(String(match.pincode || detected.postcode || ""));
-          setLocationCaptured(true);
+          const detectedSummary = [
+            detected.locality,
+            detected.district,
+            detected.state,
+            detected.postcode,
+          ]
+            .filter(Boolean)
+            .join(", ");
+
           setLocationMsg(
-            "Current location verified successfully. Your complete official address will be confirmed in the next Business Profile step."
+            detectedSummary
+              ? `Current location verified: ${detectedSummary}. Your complete official LGD address will be confirmed in the next Business Profile step.`
+              : "Current location verified successfully. Your complete official LGD address will be confirmed in the next Business Profile step."
           );
         } catch (error: any) {
           setLocationCaptured(false);
@@ -642,14 +731,14 @@ export default function RegisterRolePageClient() {
                   marginTop: 12,
                   padding: "10px 12px",
                   borderRadius: 10,
-                  color: geography.state?.id ? "#166534" : "#475569",
-                  background: geography.state?.id ? "#f0fdf4" : "#f8fafc",
-                  border: geography.state?.id
+                  color: locationCaptured ? "#166534" : "#475569",
+                  background: locationCaptured ? "#f0fdf4" : "#f8fafc",
+                  border: locationCaptured
                     ? "1px solid #bbf7d0"
                     : "1px solid #e2e8f0",
                   fontSize: 13,
                   lineHeight: 1.5,
-                  fontWeight: geography.state?.id ? 750 : 500,
+                  fontWeight: locationCaptured ? 750 : 500,
                 }}
               >
                 {locationMsg}
