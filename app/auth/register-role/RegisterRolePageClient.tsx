@@ -130,6 +130,7 @@ export default function RegisterRolePageClient() {
   const [pincode, setPincode] = useState("");
   const [locating, setLocating] = useState(false);
   const [locationMsg, setLocationMsg] = useState("");
+  const [locationCaptured, setLocationCaptured] = useState(false);
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -251,6 +252,13 @@ export default function RegisterRolePageClient() {
   function validateForm() {
     if (!fullName.trim()) return "Please enter your full name.";
     if (normalizePhone(phone).length < 10) return "Please enter a valid phone number.";
+    if (
+      !locationCaptured ||
+      !geography.state?.id ||
+      !geography.district?.id
+    ) {
+      return "Please use your current location before continuing.";
+    }
     if (!identityKey) return "Please choose at least one work category.";
     if (needsBusinessProfile && !businessName.trim()) return "Please enter your business or professional name.";
     if (requiresBusinessEvidence && !gstin.trim() && !tradeLicenseNo.trim() && !udyamNo.trim()) return "Please provide GSTIN, Trade Licence or Udyam registration.";
@@ -263,10 +271,14 @@ export default function RegisterRolePageClient() {
 
   async function useCurrentLocation() {
     if (typeof window === "undefined" || !navigator.geolocation) {
-      setLocationMsg("Current location is not supported by this browser. You can add your exact official address in the next step.");
+      setLocationCaptured(false);
+      setLocationMsg(
+        "Current location is required, but this browser does not support it. Please use a supported browser and allow location access."
+      );
       return;
     }
 
+    setLocationCaptured(false);
     setLocating(true);
     setLocationMsg("Checking your current location…");
     navigator.geolocation.getCurrentPosition(
@@ -319,16 +331,33 @@ export default function RegisterRolePageClient() {
             },
           });
           setPincode(String(match.pincode || detected.postcode || ""));
-          setLocationMsg("Current location captured. You can confirm and complete the exact official address in the next step.");
+          setLocationCaptured(true);
+          setLocationMsg(
+            "Current location verified successfully. Your complete official address will be confirmed in the next Business Profile step."
+          );
         } catch (error: any) {
-          setLocationMsg(error?.message || "Could not use your current location. You can continue and add the exact official address in the next step.");
+          setLocationCaptured(false);
+          setLocationMsg(
+            error?.message ||
+              "Current location could not be verified. Please allow location access and try again."
+          );
         } finally {
           setLocating(false);
         }
       },
       (error) => {
+        setLocationCaptured(false);
         setLocating(false);
-        setLocationMsg(error?.message || "Location permission was not available. You can continue and add the exact official address in the next step.");
+
+        const denied =
+          typeof error?.code === "number" && error.code === 1;
+
+        setLocationMsg(
+          denied
+            ? "Location permission is required. Please allow location access in your browser and try again."
+            : error?.message ||
+                "Current location could not be verified. Please try again."
+        );
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
     );
@@ -578,7 +607,7 @@ export default function RegisterRolePageClient() {
             >
               <div style={{ minWidth: 0, flex: "1 1 420px" }}>
                 <div style={{ fontWeight: 900, fontSize: 18 }}>
-                  Current location
+                  Current location *
                 </div>
 
                 <div
@@ -589,9 +618,10 @@ export default function RegisterRolePageClient() {
                     lineHeight: 1.55,
                   }}
                 >
-                  Use your device location to help us prepare your workspace.
-                  Your complete LGD and official postal address will be entered
-                  once, in the next Business Profile step.
+                  Your current device location is required to establish the
+                  correct State and District for your workspace. Your complete LGD
+                  and official postal address will be entered once, in the next
+                  Business Profile step.
                 </div>
               </div>
 
@@ -634,8 +664,8 @@ export default function RegisterRolePageClient() {
                 lineHeight: 1.5,
               }}
             >
-              You may continue even when device-location permission is not
-              available.
+              Location verification is mandatory. Please allow location
+              permission when your browser asks for it.
             </div>
           </section>
 
@@ -765,8 +795,12 @@ export default function RegisterRolePageClient() {
             <span style={{ fontSize: 13 }}>{identityKeys.length} {identityKeys.length === 1 ? "category" : "categories"} selected · Recommended plan: {operatingDefinition.plan}. Adding a category outside your active entitlement will be stopped and you will be guided to the appropriate upgrade.</span>
           </div> : null}
           {msg ? <div role="alert" style={{ border: "1px solid #fecaca", background: "#fff1f2", color: "#9f1239", borderRadius: 10, padding: 11 }}>{msg}</div> : null}
-          <button type="submit" disabled={loading} style={{ justifySelf: "start", padding: "12px 20px", borderRadius: 11, border: 0, background: loading ? "#94a3b8" : "#2563eb", color: "white", fontWeight: 900, cursor: loading ? "wait" : "pointer" }}>
-            {loading ? "Preparing your workspace..." : "Continue with my choices"}
+          <button type="submit" disabled={loading || !locationCaptured} style={{ justifySelf: "start", padding: "12px 20px", borderRadius: 11, border: 0, background: loading ? "#94a3b8" : "#2563eb", color: "white", fontWeight: 900, cursor: loading ? "wait" : "pointer" }}>
+            {loading
+              ? "Preparing your workspace..."
+              : !locationCaptured
+                ? "Use current location to continue"
+                : "Continue with my choices"}
           </button>
         </form>
       </div>
