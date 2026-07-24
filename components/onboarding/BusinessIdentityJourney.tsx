@@ -53,16 +53,15 @@ export default function BusinessIdentityJourney({
   useEffect(() => {
     if (!activeKey) return;
 
-    setSelectedKey((current) => {
-      const currentStep = steps.find((step) => step.key === current);
-
-      if (currentStep && !currentStep.complete) {
-        return current;
-      }
-
-      return activeKey;
-    });
-  }, [activeKey, steps]);
+    /*
+     * Parent-controlled navigation must always be honoured.
+     *
+     * This allows pending-step links, validation guidance and
+     * Review & Finish to open sections that are currently hidden
+     * by the journey presentation layer.
+     */
+    setSelectedKey(activeKey);
+  }, [activeKey]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;

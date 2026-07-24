@@ -432,6 +432,12 @@ export default function BusinessOnboardingPageClient() {
   const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
   const [documentVerifyLoading, setDocumentVerifyLoading] = useState(false);
   const [documentVerification, setDocumentVerification] = useState<VendorDocumentVerification | null>(null);
+  const [
+    selectedJourneyKey,
+    setSelectedJourneyKey,
+  ] = useState<BusinessIdentityJourneyStep["key"] | null>(
+    null
+  );
 
   const nature = safeArr(bp.nature_of_business);
   const hasBlog = nature.includes("blog");
@@ -1151,10 +1157,70 @@ export default function BusinessOnboardingPageClient() {
     },
   ];
 
-  const activeJourneyKey =
-    journeySteps.find((step) => !step.complete && !step.optional)?.key ??
-    journeySteps.find((step) => !step.complete)?.key ??
+  const calculatedActiveJourneyKey =
+    journeySteps.find(
+      (step) => !step.complete && !step.optional
+    )?.key ??
+    journeySteps.find(
+      (step) => !step.complete
+    )?.key ??
     "review";
+
+  const activeJourneyKey =
+    selectedJourneyKey ??
+    calculatedActiveJourneyKey;
+
+  function openJourneyStep(
+    key: BusinessIdentityJourneyStep["key"],
+    targetId: string
+  ) {
+    setSelectedJourneyKey(key);
+
+    window.setTimeout(() => {
+      scrollToId(targetId);
+    }, 80);
+  }
+
+  function journeyKeyForTarget(
+    targetId: string
+  ): BusinessIdentityJourneyStep["key"] {
+    if (
+      targetId === "sec-identity" ||
+      targetId === "sec-contact"
+    ) {
+      return "identity";
+    }
+
+    if (targetId === "sec-address") {
+      return "address";
+    }
+
+    if (targetId === "sec-about-you") {
+      return "about-you";
+    }
+
+    if (targetId === "sec-about-business") {
+      return "about-business";
+    }
+
+    if (targetId === "sec-service-area") {
+      return "coverage";
+    }
+
+    if (targetId === "sec-gallery") {
+      return "gallery";
+    }
+
+    if (
+      targetId === "sec-documents" ||
+      targetId === "sec-legal-proof" ||
+      targetId === "sec-selfie"
+    ) {
+      return "documents";
+    }
+
+    return "review";
+  }
 
   const missingByStep = groupMissingByStep(missingUI, { hasProperty: false, hasBlog });
 
@@ -1534,9 +1600,13 @@ export default function BusinessOnboardingPageClient() {
           : "Saved ✅ Please complete the remaining registration steps."
       );
 
-      scrollToId(
+      const targetId =
         firstRegistrationPendingCheck?.targetId ||
-          "sec-review"
+        "sec-review";
+
+      openJourneyStep(
+        journeyKeyForTarget(targetId),
+        targetId
       );
       return;
     }
@@ -1594,9 +1664,13 @@ export default function BusinessOnboardingPageClient() {
           : "Registration cannot be finished until every required step is complete."
       );
 
-      scrollToId(
+      const targetId =
         firstRegistrationPendingCheck?.targetId ||
-          "sec-review"
+        "sec-review";
+
+      openJourneyStep(
+        journeyKeyForTarget(targetId),
+        targetId
       );
       return;
     }
@@ -1777,23 +1851,31 @@ export default function BusinessOnboardingPageClient() {
           activeKey={activeJourneyKey}
           completionScore={weightedCompletionScore}
           onStepSelect={(step) => {
+            setSelectedJourneyKey(step.key);
+
             if (step.key !== "review") {
+              setMsg(null);
               return;
             }
 
             if (!registrationReadyUI) {
+              const pending =
+                firstRegistrationPendingCheck;
+
               setMsg(
-                firstRegistrationPendingCheck
-                  ? `Before Review & Finish: ${firstRegistrationPendingCheck.label}.`
+                pending
+                  ? `Before Review & Finish: ${pending.label}.`
                   : "Please complete all required registration steps before finishing."
               );
 
-              window.setTimeout(() => {
-                scrollToId(
-                  firstRegistrationPendingCheck?.targetId ||
-                    "sec-review"
+              if (pending) {
+                openJourneyStep(
+                  journeyKeyForTarget(
+                    pending.targetId
+                  ),
+                  pending.targetId
                 );
-              }, 60);
+              }
 
               return;
             }
@@ -1843,7 +1925,17 @@ export default function BusinessOnboardingPageClient() {
             <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
               <button
                 type="button"
-                onClick={() => scrollToId(firstPendingStep.targetId || "sec-review")}
+                onClick={() => {
+                  const targetId =
+                    firstRegistrationPendingCheck?.targetId ||
+                    firstPendingStep.targetId ||
+                    "sec-review";
+
+                  openJourneyStep(
+                    journeyKeyForTarget(targetId),
+                    targetId
+                  );
+                }}
                 style={{ padding: 10, fontWeight: 700 }}
               >
                 Go to Next Pending Step
@@ -1896,7 +1988,12 @@ export default function BusinessOnboardingPageClient() {
                   <button
                     type="button"
                     onClick={() =>
-                      scrollToId(check.targetId)
+                      openJourneyStep(
+                        journeyKeyForTarget(
+                          check.targetId
+                        ),
+                        check.targetId
+                      )
                     }
                     style={{
                       border: 0,
