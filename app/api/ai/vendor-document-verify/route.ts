@@ -24,6 +24,10 @@ type RegistrationDocumentInput = {
   documentType: RegistrationDocumentType;
   enteredNumber: string;
   label?: string;
+  issuingAuthority: string;
+  issueDate: string;
+  validUntil: string;
+  noExpiry: boolean;
   mediaAssets: any[];
 };
 
@@ -41,6 +45,19 @@ type DocumentVerificationResult = {
     | "format_invalid"
     | "needs_manual_review"
     | "needs_document";
+  enteredIssuingAuthority: string;
+  extractedIssuingAuthority: string;
+  authorityMatched: boolean;
+  enteredIssueDate: string;
+  extractedIssueDate: string;
+  issueDateMatched: boolean;
+  enteredValidUntil: string;
+  extractedValidUntil: string;
+  expiryMatched: boolean;
+  noExpiry: boolean;
+  extractedNoExpiry: boolean;
+  noExpiryMatched: boolean;
+  documentExpired: boolean;
   extractedBusinessName: string;
   extractedAddress: string;
   businessNameMatched: boolean;
@@ -70,6 +87,65 @@ function safeString(value: unknown) {
 
 function normalizeRegistrationNumber(value: unknown) {
   return safeString(value).toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+function normalizeComparableText(value: unknown) {
+  return safeString(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeIsoDate(value: unknown) {
+  const raw = safeString(value);
+  if (!raw) return "";
+
+  const direct = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (direct) {
+    return `${direct[1]}-${direct[2]}-${direct[3]}`;
+  }
+
+  const indian = raw.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+  if (indian) {
+    return [
+      indian[3],
+      indian[2].padStart(2, "0"),
+      indian[1].padStart(2, "0"),
+    ].join("-");
+  }
+
+  const parsed = new Date(raw);
+  if (!Number.isFinite(parsed.getTime())) return "";
+
+  return parsed.toISOString().slice(0, 10);
+}
+
+function datesMatch(left: unknown, right: unknown) {
+  const a = normalizeIsoDate(left);
+  const b = normalizeIsoDate(right);
+  return Boolean(a && b && a === b);
+}
+
+function authorityMatches(entered: unknown, extracted: unknown) {
+  const a = normalizeComparableText(entered);
+  const b = normalizeComparableText(extracted);
+
+  if (!a || !b) return false;
+  return a === b || a.includes(b) || b.includes(a);
+}
+
+function isExpiredDate(validUntil: unknown, noExpiry: boolean) {
+  if (noExpiry) return false;
+
+  const normalized = normalizeIsoDate(validUntil);
+  if (!normalized) return false;
+
+  const expiry = new Date(`${normalized}T23:59:59.999Z`);
+  return (
+    Number.isFinite(expiry.getTime()) &&
+    expiry.getTime() < Date.now()
+  );
 }
 
 function isSupportedDocumentType(
@@ -160,6 +236,10 @@ function legacyDocuments(body: any): RegistrationDocumentInput[] {
       documentType,
       enteredNumber,
       label: DOCUMENT_LABELS[documentType],
+      issuingAuthority: "",
+      issueDate: "",
+      validUntil: "",
+      noExpiry: false,
       mediaAssets,
     }));
 }
@@ -181,6 +261,22 @@ function parseDocuments(body: any): RegistrationDocumentInput[] {
       label:
         safeString(item?.label) ||
         DOCUMENT_LABELS[documentType],
+      issuingAuthority: safeString(
+        item?.issuingAuthority ??
+          item?.legalProofMeta?.issuingAuthority
+      ),
+      issueDate: normalizeIsoDate(
+        item?.issueDate ??
+          item?.legalProofMeta?.issueDate
+      ),
+      validUntil: normalizeIsoDate(
+        item?.validUntil ??
+          item?.legalProofMeta?.validUntil
+      ),
+      noExpiry: Boolean(
+        item?.noExpiry ??
+          item?.legalProofMeta?.noExpiry
+      ),
       mediaAssets: Array.isArray(item?.mediaAssets)
         ? item.mediaAssets
         : [],
@@ -209,6 +305,22 @@ function emptyResult(
     readable: false,
     confidence: 0,
     status: "needs_manual_review",
+    enteredIssuingAuthority: document.issuingAuthority,
+    extractedIssuingAuthority: "",
+    authorityMatched: false,
+    enteredIssueDate: document.issueDate,
+    extractedIssueDate: "",
+    issueDateMatched: false,
+    enteredValidUntil: document.validUntil,
+    extractedValidUntil: "",
+    expiryMatched: false,
+    noExpiry: document.noExpiry,
+    extractedNoExpiry: false,
+    noExpiryMatched: false,
+    documentExpired: isExpiredDate(
+      document.validUntil,
+      document.noExpiry
+    ),
     extractedBusinessName: "",
     extractedAddress: "",
     businessNameMatched: false,
@@ -328,6 +440,55 @@ export async function POST(req: Request) {
         continue;
       }
 
+      const missingStructuredFields = [
+        !document.issuingAuthority
+          ? "issuing authority"
+          : "",
+        !document.issueDate
+          ? "issue date"
+          : "",
+        !document.noExpiry &&
+        !document.validUntil
+          ? "validity date or no-expiry declaration"
+          : "",
+      ].filter(Boolean);
+
+      if (missingStructuredFields.length) {
+        prechecked.push(
+          emptyResult(document, {
+            status: "format_invalid",
+            confidence: 5,
+            summary:
+              "Complete the legal-certificate information before verification.",
+            warnings: [
+              `Missing ${missingStructuredFields.join(", ")}.`,
+            ],
+          })
+        );
+        continue;
+      }
+
+      if (
+        isExpiredDate(
+          document.validUntil,
+          document.noExpiry
+        )
+      ) {
+        prechecked.push(
+          emptyResult(document, {
+            status: "format_invalid",
+            confidence: 100,
+            documentExpired: true,
+            summary:
+              "This legal certificate has expired. Upload the renewed certificate.",
+            warnings: [
+              `Certificate expired on ${document.validUntil}.`,
+            ],
+          })
+        );
+        continue;
+      }
+
       if (document.documentType === "gst") {
         const validation = validateGstin(document.enteredNumber);
         if (!validation.valid) {
@@ -391,6 +552,10 @@ export async function POST(req: Request) {
           document.label ||
           DOCUMENT_LABELS[document.documentType],
         enteredNumber: document.enteredNumber,
+        issuingAuthority: document.issuingAuthority,
+        issueDate: document.issueDate,
+        validUntil: document.validUntil,
+        noExpiry: document.noExpiry,
       })
     );
 
@@ -418,6 +583,14 @@ Return JSON only:
       "extractedNumber": string,
       "readable": boolean,
       "numberMatched": boolean,
+      "extractedIssuingAuthority": string,
+      "authorityMatched": boolean,
+      "extractedIssueDate": string,
+      "issueDateMatched": boolean,
+      "extractedValidUntil": string,
+      "expiryMatched": boolean,
+      "extractedNoExpiry": boolean,
+      "noExpiryMatched": boolean,
       "extractedBusinessName": string,
       "extractedAddress": string,
       "businessNameMatched": boolean,
@@ -433,7 +606,13 @@ Rules:
 - Compare numbers after ignoring spaces, hyphens and punctuation, but never invent characters.
 - GSTIN must match exactly after normalisation.
 - UDYAM, PAN, FSSAI, Trade Licence and other numbers must match exactly after normalisation when readable.
-- Mark readable=false when the number cannot be read.
+- Mark readable=false when the registration number or essential document text cannot be read.
+- Extract the issuing authority exactly as shown where possible.
+- Compare issuing authority semantically, without inventing an authority.
+- Return dates as YYYY-MM-DD whenever readable.
+- Compare issue date and validity date with the declared values.
+- When the document explicitly states permanent, lifetime, perpetual or no expiry, set extractedNoExpiry=true.
+- Never infer no-expiry merely because an expiry date is absent.
 - Business name and address may be approximate.
 - Do not claim database, government portal or official verification.
 - Confidence must be from 0 to 100.
@@ -538,6 +717,68 @@ Rules:
           Boolean(parsedDocument?.readable) &&
           Boolean(extracted);
 
+        const extractedIssuingAuthority =
+          safeString(
+            parsedDocument?.extractedIssuingAuthority
+          );
+
+        const extractedIssueDate =
+          normalizeIsoDate(
+            parsedDocument?.extractedIssueDate
+          );
+
+        const extractedValidUntil =
+          normalizeIsoDate(
+            parsedDocument?.extractedValidUntil
+          );
+
+        const extractedNoExpiry = Boolean(
+          parsedDocument?.extractedNoExpiry
+        );
+
+        const authorityMatched =
+          authorityMatches(
+            document.issuingAuthority,
+            extractedIssuingAuthority
+          ) &&
+          Boolean(parsedDocument?.authorityMatched);
+
+        const issueDateMatched =
+          datesMatch(
+            document.issueDate,
+            extractedIssueDate
+          ) &&
+          Boolean(parsedDocument?.issueDateMatched);
+
+        const noExpiryMatched =
+          document.noExpiry
+            ? extractedNoExpiry &&
+              Boolean(
+                parsedDocument?.noExpiryMatched
+              )
+            : !extractedNoExpiry;
+
+        const expiryMatched =
+          document.noExpiry
+            ? noExpiryMatched
+            : datesMatch(
+                document.validUntil,
+                extractedValidUntil
+              ) &&
+              Boolean(
+                parsedDocument?.expiryMatched
+              );
+
+        const documentExpired =
+          isExpiredDate(
+            document.validUntil,
+            document.noExpiry
+          ) ||
+          isExpiredDate(
+            extractedValidUntil,
+            extractedNoExpiry
+          );
+
         const confidence = Math.max(
           0,
           Math.min(
@@ -548,9 +789,17 @@ Rules:
 
         let status: DocumentVerificationResult["status"];
 
-        if (!readable) {
+        if (documentExpired) {
+          status = "format_invalid";
+        } else if (!readable) {
           status = "needs_manual_review";
-        } else if (!matched) {
+        } else if (
+          !matched ||
+          !authorityMatched ||
+          !issueDateMatched ||
+          !expiryMatched ||
+          !noExpiryMatched
+        ) {
           status = "document_mismatch";
         } else {
           status =
@@ -563,6 +812,22 @@ Rules:
           extractedNumber,
           matched,
           readable,
+          enteredIssuingAuthority:
+            document.issuingAuthority,
+          extractedIssuingAuthority,
+          authorityMatched,
+          enteredIssueDate:
+            document.issueDate,
+          extractedIssueDate,
+          issueDateMatched,
+          enteredValidUntil:
+            document.validUntil,
+          extractedValidUntil,
+          expiryMatched,
+          noExpiry: document.noExpiry,
+          extractedNoExpiry,
+          noExpiryMatched,
+          documentExpired,
           confidence,
           status,
           extractedBusinessName: safeString(
