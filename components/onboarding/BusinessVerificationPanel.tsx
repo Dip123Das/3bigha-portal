@@ -11,6 +11,20 @@ type Props = {
   documentVerification?: any;
   documentVerifyLoading?: boolean;
   onRunDocumentVerification: () => void;
+  registrationNumbers: {
+    gstin: string;
+    tradeLicenseNo: string;
+    udyamNo: string;
+    otherRegistrationNo: string;
+  };
+  onRegistrationNumberChange: (
+    key:
+      | "gstin"
+      | "tradeLicenseNo"
+      | "udyamNo"
+      | "otherRegistrationNo",
+    value: string
+  ) => void;
 };
 
 type LegalProofKind = "gst" | "trade-license" | "udyam" | "other";
@@ -106,6 +120,9 @@ function LegalProofCard({
   allAssets,
   onChange,
   verification,
+  certificateNumber,
+  certificateNumberLabel,
+  onCertificateNumberChange,
 }: {
   title: string;
   description: string;
@@ -114,7 +131,14 @@ function LegalProofCard({
   allAssets: UploadedMediaAsset[];
   onChange: (assets: UploadedMediaAsset[]) => void;
   verification?: any;
+  certificateNumber: string;
+  certificateNumberLabel: string;
+  onCertificateNumberChange: (
+    value: string
+  ) => void;
 }) {
+  const certificateNumberReady =
+    certificateNumber.trim().length > 0;
   return (
     <div
       style={{
@@ -173,20 +197,77 @@ function LegalProofCard({
         </div>
       ) : null}
 
-      <UniversalMediaUploader
-        module="vendor"
-        folder={`vendor/legal-proof/${kind}/${Date.now()}`}
-        value={assets}
-        onChange={(next) =>
-          onChange(replaceLegalKind(allAssets, kind, next))
-        }
-        label={`${title} PDF`}
-        helperText="Upload the corresponding certificate as a PDF. Photos and videos are not accepted in this legal-proof slot."
-        allowImages={false}
-        allowVideos={false}
-        allowDocuments
-        maxFiles={1}
-      />
+      <label
+        style={{
+          display: "block",
+          marginTop: 12,
+          fontSize: 13,
+          fontWeight: 900,
+          color: "#0f172a",
+        }}
+      >
+        {certificateNumberLabel}
+
+        <input
+          value={certificateNumber}
+          onChange={(event) =>
+            onCertificateNumberChange(
+              event.target.value
+            )
+          }
+          placeholder={`Enter ${certificateNumberLabel}`}
+          style={{
+            display: "block",
+            width: "100%",
+            marginTop: 6,
+            padding: "10px 11px",
+            borderRadius: 10,
+            border: "1px solid #cbd5e1",
+            background: "#ffffff",
+            fontWeight: 750,
+          }}
+        />
+      </label>
+
+      {certificateNumberReady ? (
+        <UniversalMediaUploader
+          module="vendor"
+          folder={`vendor/legal-proof/${kind}/${Date.now()}`}
+          value={assets}
+          onChange={(next) =>
+            onChange(
+              replaceLegalKind(
+                allAssets,
+                kind,
+                next
+              )
+            )
+          }
+          label={`${title} PDF`}
+          helperText="Upload the certificate matching the number entered above. Photos and videos are not accepted."
+          allowImages={false}
+          allowVideos={false}
+          allowDocuments
+          maxFiles={1}
+        />
+      ) : (
+        <div
+          style={{
+            marginTop: 10,
+            padding: "9px 10px",
+            borderRadius: 10,
+            border: "1px solid #fed7aa",
+            background: "#fff7ed",
+            color: "#9a3412",
+            fontSize: 12,
+            fontWeight: 850,
+            lineHeight: 1.5,
+          }}
+        >
+          Enter the certificate number first.
+          The matching PDF upload will then open.
+        </div>
+      )}
     </div>
   );
 }
@@ -254,7 +335,7 @@ function PhysicalProofCard({
             fontWeight: 900,
           }}
         >
-          {assets.length ? "Added" : "Optional"}
+          {assets.length ? "Added" : "Choose one"}
         </div>
       </div>
 
@@ -289,6 +370,8 @@ export default function BusinessVerificationPanel({
   documentVerification,
   documentVerifyLoading = false,
   onRunDocumentVerification,
+  registrationNumbers,
+  onRegistrationNumberChange,
 }: Props) {
   const [cameraAvailability, setCameraAvailability] = useState<
     "checking" | "available" | "unavailable" | "unknown"
@@ -654,6 +737,16 @@ export default function BusinessVerificationPanel({
                 allAssets={assets}
                 onChange={onChange}
                 verification={verificationFor("gst")}
+                certificateNumber={
+                  registrationNumbers.gstin
+                }
+                certificateNumberLabel="GSTIN"
+                onCertificateNumberChange={(value) =>
+                  onRegistrationNumberChange(
+                    "gstin",
+                    value
+                  )
+                }
               />
               <LegalProofCard
                 title="Trade Licence"
@@ -663,6 +756,16 @@ export default function BusinessVerificationPanel({
                 allAssets={assets}
                 onChange={onChange}
                 verification={verificationFor("trade_license")}
+                certificateNumber={
+                  registrationNumbers.tradeLicenseNo
+                }
+                certificateNumberLabel="Trade Licence Number"
+                onCertificateNumberChange={(value) =>
+                  onRegistrationNumberChange(
+                    "tradeLicenseNo",
+                    value
+                  )
+                }
               />
               <LegalProofCard
                 title="UDYAM Registration"
@@ -672,6 +775,16 @@ export default function BusinessVerificationPanel({
                 allAssets={assets}
                 onChange={onChange}
                 verification={verificationFor("udyam")}
+                certificateNumber={
+                  registrationNumbers.udyamNo
+                }
+                certificateNumberLabel="UDYAM Registration Number"
+                onCertificateNumberChange={(value) =>
+                  onRegistrationNumberChange(
+                    "udyamNo",
+                    value
+                  )
+                }
               />
               <LegalProofCard
                 title="Other Legal Registration"
@@ -686,6 +799,16 @@ export default function BusinessVerificationPanel({
                   verificationFor("shop_establishment") ||
                   verificationFor("professional_registration") ||
                   verificationFor("other")
+                }
+                certificateNumber={
+                  registrationNumbers.otherRegistrationNo
+                }
+                certificateNumberLabel="Other Registration / PAN Number"
+                onCertificateNumberChange={(value) =>
+                  onRegistrationNumberChange(
+                    "otherRegistrationNo",
+                    value
+                  )
                 }
               />
             </div>

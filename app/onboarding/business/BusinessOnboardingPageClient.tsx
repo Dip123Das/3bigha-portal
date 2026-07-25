@@ -439,6 +439,9 @@ export default function BusinessOnboardingPageClient() {
     null
   );
 
+  const [termsAccepted, setTermsAccepted] =
+    useState(false);
+
   const nature = safeArr(bp.nature_of_business);
   const hasBlog = nature.includes("blog");
   const hasNonBlogBusiness = nature.some((item) =>
@@ -957,6 +960,11 @@ export default function BusinessOnboardingPageClient() {
     "completed",
     "good_attachment",
     "reviewed",
+    "verified_by_ai",
+    "needs_manual_review",
+    "manual_review_required",
+    "verification_complete",
+    "checks_completed",
   ]);
 
   const verificationDocuments =
@@ -1160,7 +1168,6 @@ export default function BusinessOnboardingPageClient() {
       description: "Workplace and project photos",
       targetId: "sec-gallery",
       complete: practicalProofReady,
-      optional: true,
     },
     {
       key: "documents",
@@ -1193,6 +1200,22 @@ export default function BusinessOnboardingPageClient() {
   const activeJourneyKey =
     selectedJourneyKey ??
     calculatedActiveJourneyKey;
+
+  const subscriptionIdentityFocus =
+    nature.length > 1
+      ? "vendor-hub"
+      : nature[0] ||
+        String(bp.business_type || "business")
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-");
+
+  const subscriptionAfterRegistrationUrl =
+    `/dashboard/subscription?source=registration` +
+    `&focus=${encodeURIComponent(
+      subscriptionIdentityFocus
+    )}` +
+    `&return=${encodeURIComponent(returnTo)}`;
 
   function openJourneyStep(
     key: BusinessIdentityJourneyStep["key"],
@@ -1659,6 +1682,14 @@ export default function BusinessOnboardingPageClient() {
   async function onFinishRegistration() {
     if (!userId) return;
 
+    if (!termsAccepted) {
+      setMsg(
+        "Please read and agree to the Terms & Conditions and Privacy Policy before activating your dashboard."
+      );
+      scrollToId("sec-review");
+      return;
+    }
+
     setSaving(true);
     setMsg(null);
 
@@ -1796,7 +1827,9 @@ export default function BusinessOnboardingPageClient() {
             "✅ Registration completed and automatically verified. Your workspace readiness has been confirmed. Redirecting..."
           );
 
-          router.replace(returnTo);
+          router.replace(
+            subscriptionAfterRegistrationUrl
+          );
           router.refresh();
           return;
         }
@@ -1819,9 +1852,13 @@ export default function BusinessOnboardingPageClient() {
 
         case "admin_review_required": {
           setMsg(
-            "Registration is complete and has been submitted for administrative review. No payment or dashboard activation is required at this stage."
+            "Registration is complete and has been submitted for administrative review. You can now review the workspace and growth plans suitable for your identity."
           );
-          scrollToId("sec-review");
+
+          router.replace(
+            subscriptionAfterRegistrationUrl
+          );
+          router.refresh();
           return;
         }
 
@@ -2047,6 +2084,75 @@ export default function BusinessOnboardingPageClient() {
             alignItems: "center",
           }}
         >
+          {!registrationCompleteUI ? (
+            <div
+              style={{
+                width: "100%",
+                padding: 12,
+                borderRadius: 12,
+                border: termsAccepted
+                  ? "1px solid #86efac"
+                  : "1px solid #fed7aa",
+                background: termsAccepted
+                  ? "#f0fdf4"
+                  : "#fff7ed",
+              }}
+            >
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 10,
+                  fontWeight: 750,
+                  lineHeight: 1.55,
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(event) =>
+                    setTermsAccepted(
+                      event.target.checked
+                    )
+                  }
+                  style={{
+                    marginTop: 4,
+                    width: 18,
+                    height: 18,
+                  }}
+                />
+
+                <span>
+                  I have reviewed my submitted
+                  information and agree to the{" "}
+                  <a
+                    href="/terms-and-conditions"
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(event) =>
+                      event.stopPropagation()
+                    }
+                  >
+                    Terms & Conditions
+                  </a>{" "}
+                  and{" "}
+                  <a
+                    href="/privacy-policy"
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(event) =>
+                      event.stopPropagation()
+                    }
+                  >
+                    Privacy Policy
+                  </a>
+                  .
+                </span>
+              </label>
+            </div>
+          ) : null}
+
           {registrationCompleteUI ? (
             <>
               <div style={{ fontWeight: 800, color: "green" }}>
@@ -2073,7 +2179,11 @@ export default function BusinessOnboardingPageClient() {
             <>
               <button
                 type="button"
-                disabled={saving || !registrationReadyUI}
+                disabled={
+                  saving ||
+                  !registrationReadyUI ||
+                  !termsAccepted
+                }
                 onClick={onFinishRegistration}
                 style={{
                   padding: "10px 14px",
@@ -2081,16 +2191,22 @@ export default function BusinessOnboardingPageClient() {
                   borderRadius: 10,
                   border: "1px solid #16a34a",
                   background:
-                    saving || !registrationReadyUI
+                    saving ||
+                    !registrationReadyUI ||
+                    !termsAccepted
                       ? "#cbd5e1"
                       : "#16a34a",
                   color: "#fff",
                   cursor:
-                    saving || !registrationReadyUI
+                    saving ||
+                    !registrationReadyUI ||
+                    !termsAccepted
                       ? "not-allowed"
                       : "pointer",
                   opacity:
-                    saving || !registrationReadyUI
+                    saving ||
+                    !registrationReadyUI ||
+                    !termsAccepted
                       ? 0.8
                       : 1,
                 }}
@@ -2328,7 +2444,41 @@ export default function BusinessOnboardingPageClient() {
           documentVerification={documentVerification}
           documentVerifyLoading={documentVerifyLoading}
           onRunDocumentVerification={runVendorDocumentVerification}
-        />
+                registrationNumbers={{
+          gstin: String(bp.gstin || ""),
+          tradeLicenseNo: String(
+            bp.trade_license_no || ""
+          ),
+          udyamNo: String(bp.udyam_no || ""),
+          otherRegistrationNo: String(
+            bp.pan || ""
+          ),
+        }}
+        onRegistrationNumberChange={(
+          key,
+          value
+        ) => {
+          if (key === "gstin") {
+            setField("gstin", value);
+            return;
+          }
+
+          if (key === "tradeLicenseNo") {
+            setField(
+              "trade_license_no",
+              value
+            );
+            return;
+          }
+
+          if (key === "udyamNo") {
+            setField("udyam_no", value);
+            return;
+          }
+
+          setField("pan", value);
+        }}
+      />
 
         {!streamlinedRegistration ? <section id="sec-contact" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Contact</h3>

@@ -235,6 +235,55 @@ export default function SubscriptionPageClient() {
     "platinum_vendor",
   ];
 
+  const identityRecommendation:
+    | {
+        plan: DisplayPlanKey;
+        title: string;
+        detail: string;
+      }
+    | null =
+    focus === "vendor-hub"
+      ? {
+          plan: "platinum_vendor",
+          title:
+            "Recommended for Vendor Hub",
+          detail:
+            "Your identity operates across multiple business segments. Platinum provides the widest operational and marketplace support.",
+        }
+      : focus === "property" ||
+        focus === "materials" ||
+        focus === "rentals"
+      ? {
+          plan: "gold_vendor",
+          title:
+            "Recommended for your business identity",
+          detail:
+            "Gold provides stronger visibility, priority opportunities and business-growth tools suitable for transaction-focused businesses.",
+        }
+      : focus === "services"
+      ? {
+          plan: "silver_vendor",
+          title:
+            "Recommended for a service professional",
+          detail:
+            "Silver supports professional visibility, RFQ alerts and customer follow-up without requiring the highest plan.",
+        }
+      : focus === "blog"
+      ? {
+          plan: "basic_vendor",
+          title:
+            "Recommended for an author or publisher",
+          detail:
+            "Basic provides an economical starting point while your audience and publishing activity grow.",
+        }
+      : {
+          plan: "free",
+          title:
+            "Start with the Essential Workspace",
+          detail:
+            "Use the Free plan first, then upgrade when your business needs stronger marketplace visibility or operational tools.",
+        };
+
   // 1) Read session robustly (no infinite loading)
   useEffect(() => {
     let alive = true;
@@ -485,6 +534,52 @@ export default function SubscriptionPageClient() {
               </div>
             ) : null}
 
+            {identityRecommendation ? (
+              <div
+                className="alert alertOk"
+                style={{
+                  border: "1px solid #86efac",
+                  background: "#f0fdf4",
+                  color: "#166534",
+                }}
+              >
+                <b>
+                  {identityRecommendation.title}
+                </b>
+
+                <div style={{ marginTop: 6 }}>
+                  {
+                    identityRecommendation.detail
+                  }
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 8,
+                    fontWeight: 950,
+                  }}
+                >
+                  Suggested plan:{" "}
+                  {
+                    PLAN_META[
+                      identityRecommendation.plan
+                    ].title
+                  }
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 5,
+                    fontSize: 12,
+                  }}
+                >
+                  This is a recommendation only.
+                  You may choose Free or any other
+                  plan.
+                </div>
+              </div>
+            ) : null}
+
             {err ? (
               <div className="alert alertErr">
                 <b>Error:</b> {err}
@@ -684,9 +779,42 @@ export default function SubscriptionPageClient() {
 
                   return (
                     <div
-                      className={`compareCol ${active ? "compareActive" : ""}`}
+                      className={`compareCol ${
+                        active
+                          ? "compareActive"
+                          : ""
+                      }`}
                       key={plan}
+                      style={
+                        identityRecommendation?.plan ===
+                        plan
+                          ? {
+                              border:
+                                "3px solid #16a34a",
+                              boxShadow:
+                                "0 12px 30px rgba(22,163,74,0.18)",
+                            }
+                          : undefined
+                      }
                     >
+                      {identityRecommendation?.plan ===
+                      plan ? (
+                        <div
+                          style={{
+                            marginBottom: 7,
+                            padding: "5px 8px",
+                            borderRadius: 999,
+                            background: "#dcfce7",
+                            color: "#166534",
+                            fontSize: 11,
+                            fontWeight: 950,
+                            textAlign: "center",
+                          }}
+                        >
+                          RECOMMENDED FOR YOU
+                        </div>
+                      ) : null}
+
                       <div className="comparePlan">{getGrowthPlanPresentation(plan).offerLabel}</div>
                       <div className="comparePrice">{meta.price}</div>
                       <div className="compareBadge">{meta.badge}</div>
