@@ -37,10 +37,18 @@ const checks = [
     "service coverage participates in readiness",
   ],
   [
-    source.includes(
-      "disabled={saving || !registrationReadyUI}"
+    (
+      source.includes(
+        "!registrationReadyUI"
+      ) &&
+      source.includes(
+        "!termsAccepted"
+      ) &&
+      source.includes(
+        "disabled={"
+      )
     ),
-    "dashboard activation is blocked until full readiness",
+    "dashboard activation is blocked until full readiness and agreement",
   ],
   [
     source.includes(
