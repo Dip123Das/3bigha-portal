@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import { resolveBusinessRegistrationProgress } from "@/lib/registration/resolveBusinessRegistrationProgress";
 
 import styles from "./BusinessIdentityCenter.module.css";
 
@@ -40,9 +41,28 @@ type BusinessProfileSnapshot = {
   is_complete?: boolean | null;
   completion_score?: number | string | null;
   missing_fields?: string[] | null;
+  registration_complete?: boolean | null;
+
+  about_person?: string | null;
+  about_business?: string | null;
+  author_bio?: string | null;
+
+  delivery_radius_km?: number | string | null;
+  preferred_service_area?: string | null;
+  statewide_service?: boolean | null;
+  nationwide_service?: boolean | null;
+  preferred_geo_districts?: unknown;
+  preferred_geo_blocks?: unknown;
+  preferred_geo_places?: unknown;
 
   business_media_json?: unknown;
   vendor_document_verification_json?: unknown;
+  automated_verification_json?: unknown;
+
+  selfie_capture_status?: string | null;
+  selfie_media_json?: unknown;
+  workplace_evidence_status?: string | null;
+  workplace_media_json?: unknown;
 };
 
 type BusinessIdentityCenterProps = {
@@ -410,13 +430,16 @@ export default function BusinessIdentityCenter({
     profile.nature_of_business
   );
 
-  const completion = clampPercent(
-    profile.completion_score
-  );
+  const registrationProgress =
+    resolveBusinessRegistrationProgress(
+      profile
+    );
 
-  const missingFields = safeStringArray(
-    profile.missing_fields
-  );
+  const completion =
+    registrationProgress.registrationJourneyPercent;
+
+  const missingFields =
+    registrationProgress.missingSteps;
 
   const location = resolvedLocation(
     profile
@@ -585,10 +608,12 @@ export default function BusinessIdentityCenter({
               <span
                 className={styles.cardLabel}
               >
-                Profile readiness
+                Registration journey
               </span>
               <h3>
-                {completion}% complete
+                {registrationProgress.registrationComplete
+                  ? "Registration complete"
+                  : `${completion}% complete`}
               </h3>
             </div>
 
@@ -626,8 +651,11 @@ export default function BusinessIdentityCenter({
             </p>
           ) : (
             <p className={styles.readyText}>
-              Your core business profile is
-              complete.
+              {registrationProgress.registrationComplete
+                ? "Your full business registration is complete."
+                : registrationProgress.registrationJourneyReady
+                ? "All required registration evidence is ready for final verification."
+                : "Your saved business information remains editable."}
             </p>
           )}
         </article>
