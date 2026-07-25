@@ -1101,7 +1101,6 @@ export default function BusinessVerificationPanel({
             cameraFacing="user"
             cameraOnly
             inlineCamera
-            cameraButtonLabel="🤳 Open Device Camera"
             maxFiles={1}
           />
         </div>

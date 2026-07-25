@@ -115,7 +115,7 @@ export default function UniversalMediaUploader({
       !navigator.mediaDevices?.getUserMedia
     ) {
       setCameraError(
-        "This browser cannot open a live camera preview. Use the device-camera button below or continue on another mobile browser."
+        "This browser cannot open a live camera preview. Open this page in the latest Chrome browser and tap Start Live Camera."
       );
       return;
     }
@@ -153,7 +153,7 @@ export default function UniversalMediaUploader({
           await video.play();
         } catch {
           setCameraError(
-            "The camera opened but the preview could not start. Tap Start Camera again or use the device-camera button."
+            "The camera opened but the preview could not start. Close the camera and tap Start Live Camera again."
           );
         }
       }, 30);
@@ -170,7 +170,7 @@ export default function UniversalMediaUploader({
         errorName === "SecurityError"
       ) {
         setCameraError(
-          "Camera permission was not granted. Allow camera access for 3bigha.com in your browser settings, then tap Start Camera again."
+          "Camera access was not granted. Tap Start Live Camera again and choose Allow when your browser asks for camera permission."
         );
       } else if (
         errorName === "NotFoundError" ||
@@ -181,7 +181,7 @@ export default function UniversalMediaUploader({
         );
       } else {
         setCameraError(
-          "The live camera could not start. Use the device-camera button below or reopen this page in Chrome."
+          "The live camera could not start. Close and reopen this page in Chrome, then tap Start Live Camera and choose Allow."
         );
       }
     }
@@ -579,7 +579,7 @@ export default function UniversalMediaUploader({
           gap: 10,
         }}
       >
-        {allowImages ? (
+        {allowImages && !inlineCamera ? (
           <>
             <button
               type="button"
