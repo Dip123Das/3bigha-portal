@@ -266,10 +266,10 @@ export default function AwaitingApprovalPage() {
             <div className="registrationPrinciple">
               <strong>Human First. AI Second.</strong>
               <span>
-                Identity review, Essential Workspace access and
-                optional paid Growth features are shown separately
-                so that you always know what is available and what
-                action, if any, is required.
+                Profile completion, business verification,
+                Essential Workspace access and optional paid Growth
+                features are separate. You can always see what is
+                saved, what is available now and what needs attention.
               </span>
             </div>
 

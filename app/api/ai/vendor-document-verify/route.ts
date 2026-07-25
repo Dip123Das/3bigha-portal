@@ -205,9 +205,6 @@ function mediaInput(asset: any) {
     return {
       type: "input_file",
       file_url: url,
-      filename: name.toLowerCase().endsWith(".pdf")
-        ? name
-        : `${name}.pdf`,
     };
   }
 

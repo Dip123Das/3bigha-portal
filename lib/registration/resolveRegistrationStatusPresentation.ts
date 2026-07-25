@@ -87,11 +87,12 @@ export function resolveRegistrationStatusPresentation(
 
   const identityStep: RegistrationStatusStep = {
     key: "identity",
-    label: "Identity and business details",
-    status: "Completed",
-    detail:
-      "Your submitted identity and business information has been received.",
-    tone: "positive",
+    label: "Business profile information",
+    status: approved ? "Received" : "Continue anytime",
+    detail: approved
+      ? "Your submitted business information has been received. You may review and improve it from your Business Profile."
+      : "Some business information has been saved. This does not mean that every part of your profile is complete.",
+    tone: approved ? "positive" : "neutral",
   };
 
   let reviewStep: RegistrationStatusStep;
@@ -99,7 +100,7 @@ export function resolveRegistrationStatusPresentation(
   if (rejected) {
     reviewStep = {
       key: "review",
-      label: "Identity review",
+      label: "Business verification",
       status: "Correction required",
       detail:
         input.rejectionReason?.trim() ||
@@ -109,19 +110,19 @@ export function resolveRegistrationStatusPresentation(
   } else if (approved) {
     reviewStep = {
       key: "review",
-      label: "Identity review",
-      status: "Approved",
+      label: "Business verification",
+      status: "Verified",
       detail:
-        "Your identity review is complete. Verification remains evidence-based and independent of the Growth Plan you use.",
+        "The submitted business evidence has been reviewed. Verification remains separate from the Growth Plan you use.",
       tone: "positive",
     };
   } else {
     reviewStep = {
       key: "review",
-      label: "Identity review",
-      status: "Under review",
+      label: "Business verification",
+      status: "Review pending",
       detail:
-        "Your information is being reviewed. No payment is required for this review.",
+        "Only the evidence you submitted is awaiting review. You may continue completing your profile and using the Essential Workspace.",
       tone: "attention",
     };
   }
@@ -129,10 +130,10 @@ export function resolveRegistrationStatusPresentation(
   const workspaceStep: RegistrationStatusStep = {
     key: "workspace",
     label: "Essential Workspace",
-    status: rejected ? "Limited" : "Available",
+    status: rejected ? "Limited" : "Available now",
     detail: rejected
       ? "You may review your submitted information while the requested correction is resolved."
-      : "Your Essential Workspace is separate from paid Growth features and does not wait for SBI payment activation.",
+      : "You do not need to wait for business verification or payment to use the Essential Workspace.",
     tone: rejected ? "attention" : "positive",
   };
 
@@ -240,10 +241,10 @@ export function resolveRegistrationStatusPresentation(
   }
 
   return {
-    eyebrow: "Registration status",
-    title: "Your registration has been received",
+    eyebrow: "Business setup",
+    title: "Your saved information is safe",
     message:
-      "Your identity review is in progress. You may continue into the Essential Workspace while the review proceeds.",
+      "Business verification is pending, but it does not block your Essential Workspace. Continue completing your Business Profile now or go directly to your workspace.",
     steps: [
       identityStep,
       reviewStep,
@@ -252,13 +253,13 @@ export function resolveRegistrationStatusPresentation(
     ],
     actions: [
       {
-        label: "Open my Essential Workspace",
-        href: "/dashboard/workspace",
+        label: "Continue my Business Profile",
+        href: "/onboarding/business?returnTo=%2Fdashboard%2Fworkspace&registration=1",
         kind: "primary",
       },
       {
-        label: "Review submitted information",
-        href: "/auth/register-role",
+        label: "Open my Essential Workspace",
+        href: "/dashboard/workspace",
         kind: "secondary",
       },
       {
