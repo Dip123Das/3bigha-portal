@@ -1,6 +1,11 @@
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import {
   MEDIA_BUCKET_BY_MODULE,
@@ -32,6 +37,7 @@ type UniversalMediaUploaderProps = {
   cameraFacing?: "user" | "environment";
   cameraOnly?: boolean;
   cameraButtonLabel?: string;
+  inlineCamera?: boolean;
 };
 
 export default function UniversalMediaUploader({
@@ -48,17 +54,204 @@ export default function UniversalMediaUploader({
   cameraFacing = "environment",
   cameraOnly = false,
   cameraButtonLabel = "📷 Take Photo",
+  inlineCamera = false,
 }: UniversalMediaUploaderProps) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
-  const documentInputRef = useRef<HTMLInputElement | null>(null);
+  const documentInputRef =
+    useRef<HTMLInputElement | null>(null);
+  const inlineVideoRef =
+    useRef<HTMLVideoElement | null>(null);
+  const inlineCanvasRef =
+    useRef<HTMLCanvasElement | null>(null);
+  const inlineStreamRef =
+    useRef<MediaStream | null>(null);
 
   const [uploading, setUploading] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraStarting, setCameraStarting] =
+    useState(false);
+  const [cameraError, setCameraError] = useState("");
   const [message, setMessage] = useState("");
   const [progressText, setProgressText] = useState("");
   const [qualityWarnings, setQualityWarnings] = useState<MediaQualityWarning[]>([]);
+
+  function stopInlineCamera() {
+    const stream = inlineStreamRef.current;
+
+    if (stream) {
+      stream.getTracks().forEach((track) => {
+        track.stop();
+      });
+    }
+
+    inlineStreamRef.current = null;
+
+    if (inlineVideoRef.current) {
+      inlineVideoRef.current.srcObject = null;
+    }
+
+    setCameraOpen(false);
+    setCameraStarting(false);
+  }
+
+  useEffect(() => {
+    return () => {
+      const stream = inlineStreamRef.current;
+
+      if (stream) {
+        stream.getTracks().forEach((track) => {
+          track.stop();
+        });
+      }
+    };
+  }, []);
+
+  async function startInlineCamera() {
+    if (
+      typeof navigator === "undefined" ||
+      !navigator.mediaDevices?.getUserMedia
+    ) {
+      setCameraError(
+        "This browser cannot open a live camera preview. Use the device-camera button below or continue on another mobile browser."
+      );
+      return;
+    }
+
+    setCameraError("");
+    setCameraStarting(true);
+
+    try {
+      stopInlineCamera();
+
+      const stream =
+        await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: {
+            facingMode: {
+              ideal: cameraFacing,
+            },
+          },
+        });
+
+      inlineStreamRef.current = stream;
+      setCameraOpen(true);
+      setCameraStarting(false);
+
+      window.setTimeout(async () => {
+        const video = inlineVideoRef.current;
+
+        if (!video) {
+          return;
+        }
+
+        video.srcObject = stream;
+
+        try {
+          await video.play();
+        } catch {
+          setCameraError(
+            "The camera opened but the preview could not start. Tap Start Camera again or use the device-camera button."
+          );
+        }
+      }, 30);
+    } catch (error) {
+      stopInlineCamera();
+
+      const errorName =
+        error instanceof DOMException
+          ? error.name
+          : "";
+
+      if (
+        errorName === "NotAllowedError" ||
+        errorName === "SecurityError"
+      ) {
+        setCameraError(
+          "Camera permission was not granted. Allow camera access for 3bigha.com in your browser settings, then tap Start Camera again."
+        );
+      } else if (
+        errorName === "NotFoundError" ||
+        errorName === "DevicesNotFoundError"
+      ) {
+        setCameraError(
+          "No usable camera was detected on this device. Continue this selfie step from a mobile phone with a camera."
+        );
+      } else {
+        setCameraError(
+          "The live camera could not start. Use the device-camera button below or reopen this page in Chrome."
+        );
+      }
+    }
+  }
+
+  async function captureInlinePhoto() {
+    const video = inlineVideoRef.current;
+    const canvas = inlineCanvasRef.current;
+
+    if (
+      !video ||
+      !canvas ||
+      video.videoWidth <= 0 ||
+      video.videoHeight <= 0
+    ) {
+      setCameraError(
+        "The camera preview is not ready yet. Wait a moment and try again."
+      );
+      return;
+    }
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      setCameraError(
+        "The selfie could not be captured on this browser."
+      );
+      return;
+    }
+
+    context.drawImage(
+      video,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    const blob = await new Promise<Blob | null>(
+      (resolve) => {
+        canvas.toBlob(
+          resolve,
+          "image/jpeg",
+          0.9
+        );
+      }
+    );
+
+    if (!blob) {
+      setCameraError(
+        "The selfie could not be prepared for upload."
+      );
+      return;
+    }
+
+    const file = new File(
+      [blob],
+      `live-selfie-${Date.now()}.jpg`,
+      {
+        type: "image/jpeg",
+        lastModified: Date.now(),
+      }
+    );
+
+    stopInlineCamera();
+    await uploadFiles([file]);
+  }
 
   const acceptList = [
     allowImages ? "image/*" : "",
@@ -239,11 +432,150 @@ export default function UniversalMediaUploader({
         </div>
       </div>
 
+      {inlineCamera &&
+      allowImages &&
+      remainingSlots > 0 ? (
+        <div
+          style={{
+            marginTop: 12,
+            padding: 12,
+            borderRadius: 14,
+            border: "1px solid #bfdbfe",
+            background: "#eff6ff",
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 950,
+              color: "#1e3a8a",
+            }}
+          >
+            Live camera
+          </div>
+
+          <div
+            style={{
+              marginTop: 5,
+              color: "#475569",
+              fontSize: 13,
+              lineHeight: 1.55,
+            }}
+          >
+            Allow camera access, keep your face and
+            business signboard visible, then capture
+            and upload the selfie.
+          </div>
+
+          {!cameraOpen ? (
+            <button
+              type="button"
+              disabled={uploading || cameraStarting}
+              onClick={() =>
+                void startInlineCamera()
+              }
+              style={{
+                ...buttonStyle(
+                  uploading || cameraStarting
+                ),
+                marginTop: 10,
+                width: "100%",
+                background: "#1d4ed8",
+                color: "#ffffff",
+              }}
+            >
+              {cameraStarting
+                ? "Opening Camera..."
+                : "📷 Start Live Camera"}
+            </button>
+          ) : (
+            <div style={{ marginTop: 10 }}>
+              <video
+                ref={inlineVideoRef}
+                playsInline
+                muted
+                autoPlay
+                style={{
+                  display: "block",
+                  width: "100%",
+                  maxHeight: 420,
+                  objectFit: "cover",
+                  borderRadius: 12,
+                  background: "#0f172a",
+                  transform:
+                    cameraFacing === "user"
+                      ? "scaleX(-1)"
+                      : undefined,
+                }}
+              />
+
+              <canvas
+                ref={inlineCanvasRef}
+                hidden
+              />
+
+              <div
+                style={{
+                  marginTop: 10,
+                  display: "grid",
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(150px, 1fr))",
+                  gap: 8,
+                }}
+              >
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() =>
+                    void captureInlinePhoto()
+                  }
+                  style={{
+                    ...buttonStyle(uploading),
+                    background: "#16a34a",
+                    color: "#ffffff",
+                  }}
+                >
+                  🤳 Capture & Upload
+                </button>
+
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={stopInlineCamera}
+                  style={buttonStyle(uploading)}
+                >
+                  Cancel Camera
+                </button>
+              </div>
+            </div>
+          )}
+
+          {cameraError ? (
+            <div
+              role="alert"
+              style={{
+                marginTop: 10,
+                padding: "9px 10px",
+                borderRadius: 10,
+                border: "1px solid #fecaca",
+                background: "#fef2f2",
+                color: "#991b1b",
+                fontSize: 12,
+                fontWeight: 800,
+                lineHeight: 1.5,
+              }}
+            >
+              {cameraError}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       <div
         style={{
           marginTop: 12,
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(130px, 1fr))",
           gap: 10,
         }}
       >

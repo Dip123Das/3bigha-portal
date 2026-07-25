@@ -1059,16 +1059,32 @@ export default function BusinessOnboardingPageClient() {
   const firstRegistrationPendingCheck =
     registrationPendingChecks[0] || null;
 
-  const weightedCompletionScore = Math.min(
-    100,
-    (identityReady ? 15 : 0) +
-      (addressReady ? 20 : 0) +
-      (aboutReady ? 15 : 0) +
-      (coverageReady ? 10 : 0) +
-      (legalProofReady ? 15 : 0) +
-      (practicalProofReady ? 15 : 0) +
-      (liveSelfieReady ? 10 : 0)
-  );
+  /*
+   * One canonical readiness percentage.
+   *
+   * The same eight checks now govern:
+   * - profile readiness,
+   * - pending-step guidance,
+   * - Review & Finish,
+   * - dashboard activation.
+   *
+   * This prevents the percentage from drifting away
+   * from the actual registration requirements.
+   */
+  const completedRegistrationChecks =
+    registrationReadinessChecks.filter(
+      (check) => check.complete
+    ).length;
+
+  const weightedCompletionScore =
+    registrationReadinessChecks.length > 0
+      ? Math.round(
+          (
+            completedRegistrationChecks /
+            registrationReadinessChecks.length
+          ) * 100
+        )
+      : 0;
 
   /*
    * Human-First Business Identity Journey

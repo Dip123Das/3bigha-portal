@@ -1100,7 +1100,8 @@ export default function BusinessVerificationPanel({
             allowDocuments={false}
             cameraFacing="user"
             cameraOnly
-            cameraButtonLabel="🤳 Take Live Business Selfie"
+            inlineCamera
+            cameraButtonLabel="🤳 Open Device Camera"
             maxFiles={1}
           />
         </div>
