@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import ThreeBOSWorkContextChooser from "@/components/layout/ThreeBOSWorkContextChooser";
+import BusinessIdentityCenter from "@/components/business-identity/BusinessIdentityCenter";
 import UniversalDashboardShell from "@/components/operational/UniversalDashboardShell";
 import { SectionSkeleton } from "@/components/ui/Skeleton";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
@@ -233,6 +234,8 @@ export default function UnifiedWorkspacePage() {
           <ThreeBOSWorkContextChooser />
         </div>
       ) : null}
+
+      <BusinessIdentityCenter />
 
       <section className={styles.nextStep} aria-labelledby="workspace-next-step">
         <div>
