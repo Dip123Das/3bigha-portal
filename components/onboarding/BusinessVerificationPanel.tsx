@@ -29,6 +29,144 @@ type Props = {
 
 type LegalProofKind = "gst" | "trade-license" | "udyam" | "other";
 
+type LegalProofMeta = {
+  documentType: LegalProofKind;
+  certificateNumber: string;
+  issuingAuthority: string;
+  issueDate: string;
+  validUntil: string;
+  noExpiry: boolean;
+};
+
+function getLegalProofMeta(
+  asset: UploadedMediaAsset | undefined
+): LegalProofMeta | null {
+  const value = (asset as any)?.legalProofMeta;
+
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  return {
+    documentType: String(
+      value.documentType || ""
+    ) as LegalProofKind,
+    certificateNumber: String(
+      value.certificateNumber || ""
+    ),
+    issuingAuthority: String(
+      value.issuingAuthority || ""
+    ),
+    issueDate: String(
+      value.issueDate || ""
+    ),
+    validUntil: String(
+      value.validUntil || ""
+    ),
+    noExpiry: Boolean(value.noExpiry),
+  };
+}
+
+function dateAtEndOfDay(value: string) {
+  if (!value) return null;
+
+  const parsed = new Date(
+    `${value}T23:59:59`
+  );
+
+  return Number.isFinite(parsed.getTime())
+    ? parsed
+    : null;
+}
+
+function isExpiredLegalProof(
+  validUntil: string,
+  noExpiry: boolean
+) {
+  if (noExpiry) return false;
+
+  const expiry = dateAtEndOfDay(validUntil);
+
+  return Boolean(
+    expiry &&
+      expiry.getTime() < Date.now()
+  );
+}
+
+function isFutureIssueDate(issueDate: string) {
+  if (!issueDate) return false;
+
+  const issue = new Date(
+    `${issueDate}T00:00:00`
+  );
+
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
+  return Boolean(
+    Number.isFinite(issue.getTime()) &&
+      issue.getTime() > today.getTime()
+  );
+}
+
+function validityPrecedesIssueDate(
+  issueDate: string,
+  validUntil: string,
+  noExpiry: boolean
+) {
+  if (
+    noExpiry ||
+    !issueDate ||
+    !validUntil
+  ) {
+    return false;
+  }
+
+  const issue = new Date(
+    `${issueDate}T00:00:00`
+  );
+
+  const expiry = new Date(
+    `${validUntil}T23:59:59`
+  );
+
+  return Boolean(
+    Number.isFinite(issue.getTime()) &&
+      Number.isFinite(expiry.getTime()) &&
+      expiry.getTime() < issue.getTime()
+  );
+}
+
+function legalProofAssetIsComplete(
+  asset: UploadedMediaAsset
+) {
+  const meta = getLegalProofMeta(asset);
+
+  if (!meta) return false;
+
+  return Boolean(
+    meta.certificateNumber.trim() &&
+      meta.issuingAuthority.trim() &&
+      meta.issueDate &&
+      (
+        meta.noExpiry ||
+        meta.validUntil
+      ) &&
+      !isFutureIssueDate(
+        meta.issueDate
+      ) &&
+      !validityPrecedesIssueDate(
+        meta.issueDate,
+        meta.validUntil,
+        meta.noExpiry
+      ) &&
+      !isExpiredLegalProof(
+        meta.validUntil,
+        meta.noExpiry
+      )
+  );
+}
+
 type PhysicalProofKind =
   | "signboard"
   | "frontage"
@@ -137,8 +275,148 @@ function LegalProofCard({
     value: string
   ) => void;
 }) {
+  const existingMeta =
+    getLegalProofMeta(assets[0]);
+
+  const [
+    issuingAuthority,
+    setIssuingAuthority,
+  ] = useState(
+    existingMeta?.issuingAuthority || ""
+  );
+
+  const [
+    issueDate,
+    setIssueDate,
+  ] = useState(
+    existingMeta?.issueDate || ""
+  );
+
+  const [
+    validUntil,
+    setValidUntil,
+  ] = useState(
+    existingMeta?.validUntil || ""
+  );
+
+  const [
+    noExpiry,
+    setNoExpiry,
+  ] = useState(
+    Boolean(existingMeta?.noExpiry)
+  );
+
+  useEffect(() => {
+    const latest =
+      getLegalProofMeta(assets[0]);
+
+    if (!latest) return;
+
+    setIssuingAuthority(
+      latest.issuingAuthority
+    );
+    setIssueDate(
+      latest.issueDate
+    );
+    setValidUntil(
+      latest.validUntil
+    );
+    setNoExpiry(
+      latest.noExpiry
+    );
+  }, [assets]);
+
+  function buildMeta(
+    overrides: Partial<LegalProofMeta> = {}
+  ): LegalProofMeta {
+    return {
+      documentType: kind,
+      certificateNumber:
+        certificateNumber.trim(),
+      issuingAuthority:
+        issuingAuthority.trim(),
+      issueDate,
+      validUntil:
+        noExpiry ? "" : validUntil,
+      noExpiry,
+      ...overrides,
+    };
+  }
+
+  function persistExistingAssets(
+    meta: LegalProofMeta
+  ) {
+    if (assets.length === 0) return;
+
+    const nextAssets = assets.map(
+      (asset) =>
+        ({
+          ...asset,
+          legalProofMeta: meta,
+        }) as UploadedMediaAsset
+    );
+
+    onChange(
+      replaceLegalKind(
+        allAssets,
+        kind,
+        nextAssets
+      )
+    );
+  }
+
+  function attachMetadata(
+    nextAssets: UploadedMediaAsset[]
+  ) {
+    const meta = buildMeta();
+
+    return nextAssets.map(
+      (asset) =>
+        ({
+          ...asset,
+          legalProofMeta: meta,
+        }) as UploadedMediaAsset
+    );
+  }
+
   const certificateNumberReady =
     certificateNumber.trim().length > 0;
+
+  const issuingAuthorityReady =
+    issuingAuthority.trim().length > 0;
+
+  const issueDateReady =
+    issueDate.length > 0;
+
+  const validityReady =
+    noExpiry ||
+    validUntil.length > 0;
+
+  const futureIssueDate =
+    isFutureIssueDate(issueDate);
+
+  const invalidDateOrder =
+    validityPrecedesIssueDate(
+      issueDate,
+      validUntil,
+      noExpiry
+    );
+
+  const expired =
+    isExpiredLegalProof(
+      validUntil,
+      noExpiry
+    );
+
+  const structuredDetailsReady =
+    certificateNumberReady &&
+    issuingAuthorityReady &&
+    issueDateReady &&
+    validityReady &&
+    !futureIssueDate &&
+    !invalidDateOrder &&
+    !expired;
+
   return (
     <div
       style={{
@@ -148,7 +426,15 @@ function LegalProofCard({
         background: "#fff",
       }}
     >
-      <div style={{ fontWeight: 950, color: "#0f172a" }}>{title}</div>
+      <div
+        style={{
+          fontWeight: 950,
+          color: "#0f172a",
+        }}
+      >
+        {title}
+      </div>
+
       <div
         style={{
           marginTop: 5,
@@ -167,17 +453,23 @@ function LegalProofCard({
             padding: "8px 10px",
             borderRadius: 10,
             background:
-              verification.status === "verified_by_ai"
+              verification.status ===
+              "verified_by_ai"
                 ? "#f0fdf4"
-                : verification.status === "document_mismatch" ||
-                  verification.status === "format_invalid"
+                : verification.status ===
+                    "document_mismatch" ||
+                  verification.status ===
+                    "format_invalid"
                 ? "#fef2f2"
                 : "#fff7ed",
             border:
-              verification.status === "verified_by_ai"
+              verification.status ===
+              "verified_by_ai"
                 ? "1px solid #bbf7d0"
-                : verification.status === "document_mismatch" ||
-                  verification.status === "format_invalid"
+                : verification.status ===
+                    "document_mismatch" ||
+                  verification.status ===
+                    "format_invalid"
                 ? "1px solid #fecaca"
                 : "1px solid #fed7aa",
             fontSize: 12,
@@ -186,9 +478,11 @@ function LegalProofCard({
         >
           <b>
             {String(
-              verification.status || "needs_manual_review"
+              verification.status ||
+                "needs_manual_review"
             ).replace(/_/g, " ")}
           </b>
+
           {verification.summary ? (
             <div style={{ marginTop: 3 }}>
               {verification.summary}
@@ -206,15 +500,25 @@ function LegalProofCard({
           color: "#0f172a",
         }}
       >
-        {certificateNumberLabel}
+        {certificateNumberLabel} *
 
         <input
           value={certificateNumber}
-          onChange={(event) =>
+          onChange={(event) => {
+            const value =
+              event.target.value;
+
             onCertificateNumberChange(
-              event.target.value
-            )
-          }
+              value
+            );
+
+            persistExistingAssets(
+              buildMeta({
+                certificateNumber:
+                  value.trim(),
+              })
+            );
+          }}
           placeholder={`Enter ${certificateNumberLabel}`}
           style={{
             display: "block",
@@ -222,14 +526,254 @@ function LegalProofCard({
             marginTop: 6,
             padding: "10px 11px",
             borderRadius: 10,
-            border: "1px solid #cbd5e1",
+            border:
+              "1px solid #cbd5e1",
             background: "#ffffff",
             fontWeight: 750,
           }}
         />
       </label>
 
-      {certificateNumberReady ? (
+      <label
+        style={{
+          display: "block",
+          marginTop: 12,
+          fontSize: 13,
+          fontWeight: 900,
+          color: "#0f172a",
+        }}
+      >
+        Issuing Authority *
+
+        <input
+          value={issuingAuthority}
+          onChange={(event) => {
+            const value =
+              event.target.value;
+
+            setIssuingAuthority(value);
+
+            persistExistingAssets(
+              buildMeta({
+                issuingAuthority:
+                  value.trim(),
+              })
+            );
+          }}
+          placeholder="Example: Municipality, GST Department or Ministry of MSME"
+          style={{
+            display: "block",
+            width: "100%",
+            marginTop: 6,
+            padding: "10px 11px",
+            borderRadius: 10,
+            border:
+              "1px solid #cbd5e1",
+            background: "#ffffff",
+            fontWeight: 750,
+          }}
+        />
+      </label>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(180px, 1fr))",
+          gap: 10,
+          marginTop: 12,
+        }}
+      >
+        <label
+          style={{
+            display: "block",
+            fontSize: 13,
+            fontWeight: 900,
+            color: "#0f172a",
+          }}
+        >
+          Issue Date *
+
+          <input
+            type="date"
+            value={issueDate}
+            max={new Date()
+              .toISOString()
+              .slice(0, 10)}
+            onChange={(event) => {
+              const value =
+                event.target.value;
+
+              setIssueDate(value);
+
+              persistExistingAssets(
+                buildMeta({
+                  issueDate: value,
+                })
+              );
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              marginTop: 6,
+              padding: "10px 11px",
+              borderRadius: 10,
+              border:
+                "1px solid #cbd5e1",
+              background: "#ffffff",
+              fontWeight: 750,
+            }}
+          />
+        </label>
+
+        <label
+          style={{
+            display: "block",
+            fontSize: 13,
+            fontWeight: 900,
+            color: "#0f172a",
+          }}
+        >
+          Valid Until
+          {noExpiry ? "" : " *"}
+
+          <input
+            type="date"
+            value={validUntil}
+            min={issueDate || undefined}
+            disabled={noExpiry}
+            onChange={(event) => {
+              const value =
+                event.target.value;
+
+              setValidUntil(value);
+
+              persistExistingAssets(
+                buildMeta({
+                  validUntil: value,
+                  noExpiry: false,
+                })
+              );
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              marginTop: 6,
+              padding: "10px 11px",
+              borderRadius: 10,
+              border:
+                "1px solid #cbd5e1",
+              background:
+                noExpiry
+                  ? "#f1f5f9"
+                  : "#ffffff",
+              fontWeight: 750,
+            }}
+          />
+        </label>
+      </div>
+
+      <label
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          marginTop: 11,
+          fontSize: 13,
+          fontWeight: 850,
+          color: "#334155",
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={noExpiry}
+          onChange={(event) => {
+            const checked =
+              event.target.checked;
+
+            setNoExpiry(checked);
+
+            if (checked) {
+              setValidUntil("");
+            }
+
+            persistExistingAssets(
+              buildMeta({
+                noExpiry: checked,
+                validUntil: checked
+                  ? ""
+                  : validUntil,
+              })
+            );
+          }}
+          style={{
+            width: 17,
+            height: 17,
+          }}
+        />
+
+        This certificate has no expiry date
+      </label>
+
+      {futureIssueDate ? (
+        <div
+          style={{
+            marginTop: 10,
+            padding: "9px 10px",
+            borderRadius: 10,
+            border:
+              "1px solid #fecaca",
+            background: "#fef2f2",
+            color: "#991b1b",
+            fontSize: 12,
+            fontWeight: 850,
+          }}
+        >
+          The issue date cannot be in
+          the future.
+        </div>
+      ) : null}
+
+      {invalidDateOrder ? (
+        <div
+          style={{
+            marginTop: 10,
+            padding: "9px 10px",
+            borderRadius: 10,
+            border:
+              "1px solid #fecaca",
+            background: "#fef2f2",
+            color: "#991b1b",
+            fontSize: 12,
+            fontWeight: 850,
+          }}
+        >
+          The validity date cannot be
+          earlier than the issue date.
+        </div>
+      ) : null}
+
+      {expired ? (
+        <div
+          style={{
+            marginTop: 10,
+            padding: "9px 10px",
+            borderRadius: 10,
+            border:
+              "1px solid #fecaca",
+            background: "#fef2f2",
+            color: "#991b1b",
+            fontSize: 12,
+            fontWeight: 850,
+          }}
+        >
+          This certificate expired on{" "}
+          {validUntil}. Please provide
+          the renewed certificate.
+        </div>
+      ) : null}
+
+      {structuredDetailsReady ? (
         <UniversalMediaUploader
           module="vendor"
           folder={`vendor/legal-proof/${kind}/${Date.now()}`}
@@ -239,12 +783,12 @@ function LegalProofCard({
               replaceLegalKind(
                 allAssets,
                 kind,
-                next
+                attachMetadata(next)
               )
             )
           }
           label={`${title} PDF`}
-          helperText="Upload the certificate matching the number entered above. Photos and videos are not accepted."
+          helperText="Upload the certificate matching the number, authority, issue date and validity entered above."
           allowImages={false}
           allowVideos={false}
           allowDocuments
@@ -256,7 +800,8 @@ function LegalProofCard({
             marginTop: 10,
             padding: "9px 10px",
             borderRadius: 10,
-            border: "1px solid #fed7aa",
+            border:
+              "1px solid #fed7aa",
             background: "#fff7ed",
             color: "#9a3412",
             fontSize: 12,
@@ -264,8 +809,11 @@ function LegalProofCard({
             lineHeight: 1.5,
           }}
         >
-          Enter the certificate number first.
-          The matching PDF upload will then open.
+          Complete the certificate
+          number, issuing authority,
+          issue date and validity
+          information first. The matching
+          PDF upload will then open.
         </div>
       )}
     </div>
@@ -477,7 +1025,10 @@ export default function BusinessVerificationPanel({
     belongsTo(asset, "live-selfie")
   );
 
-  const legalComplete = legalAssets.length > 0;
+  const legalComplete =
+    legalAssets.some(
+      legalProofAssetIsComplete
+    );
   const practicalComplete = practicalAssets.length > 0;
   const selfieComplete = selfieAssets.length > 0;
 
