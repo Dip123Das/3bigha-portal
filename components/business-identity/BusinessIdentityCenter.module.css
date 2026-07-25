@@ -1,0 +1,423 @@
+.center {
+  width: 100%;
+  margin: 0 0 18px;
+  padding: clamp(18px, 2vw, 26px);
+  border: 1px solid #dbe4ee;
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(219, 234, 254, 0.56),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #f8fafc
+    );
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    0 14px 34px rgba(15, 23, 42, 0.05);
+}
+
+.compact {
+  padding: 18px;
+}
+
+.header,
+.identitySummary,
+.headerActions,
+.completionHeader,
+.footer {
+  display: flex;
+  align-items: center;
+}
+
+.header {
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.identitySummary {
+  min-width: 0;
+  gap: 14px;
+}
+
+.identityMark {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  place-items: center;
+  border-radius: 18px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+}
+
+.identityText {
+  min-width: 0;
+}
+
+.eyebrow,
+.cardLabel,
+.factCard > span {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.identityText h2,
+.notice h2 {
+  margin: 5px 0 3px;
+  color: #0f172a;
+  font-size: clamp(21px, 2vw, 28px);
+  line-height: 1.15;
+  font-weight: 950;
+}
+
+.identityText p,
+.notice p {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.headerActions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.verifiedBadge,
+.pendingBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.verifiedBadge {
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.pendingBadge {
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.primaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.primaryAction:hover {
+  background: #1e293b;
+}
+
+.identityGrid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.factCard,
+.activitiesCard,
+.completionCard {
+  min-width: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.factCard {
+  padding: 15px;
+}
+
+.factCard strong {
+  display: block;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+  color: #0f172a;
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: 900;
+}
+
+.factCard small {
+  display: block;
+  margin-top: 7px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.lowerGrid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.15fr)
+    minmax(280px, 0.85fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.activitiesCard,
+.completionCard {
+  padding: 17px;
+}
+
+.activitiesCard h3,
+.completionCard h3 {
+  margin: 5px 0 0;
+  color: #0f172a;
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 900;
+}
+
+.activityList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.activityList span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.completionHeader {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.completionHeader > strong {
+  color: #0f172a;
+  font-size: 20px;
+  font-weight: 950;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 9px;
+  margin-top: 17px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.progressTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    #0f766e,
+    #0891b2
+  );
+}
+
+.missingText,
+.readyText,
+.emptyText {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.missingText,
+.emptyText {
+  color: #64748b;
+}
+
+.readyText {
+  color: #166534;
+  font-weight: 800;
+}
+
+.footer {
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 15px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.footer p {
+  max-width: 760px;
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.footer a {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.loadingHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.loadingAvatar,
+.loadingLines span,
+.loadingGrid span {
+  background:
+    linear-gradient(
+      90deg,
+      #e2e8f0 25%,
+      #f1f5f9 50%,
+      #e2e8f0 75%
+    );
+  background-size: 200% 100%;
+  animation: identityPulse 1.4s infinite;
+}
+
+.loadingAvatar {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+}
+
+.loadingLines {
+  display: grid;
+  width: min(360px, 60vw);
+  gap: 9px;
+}
+
+.loadingLines span {
+  height: 14px;
+  border-radius: 999px;
+}
+
+.loadingLines span:last-child {
+  width: 65%;
+}
+
+.loadingGrid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.loadingGrid span {
+  height: 92px;
+  border-radius: 17px;
+}
+
+@keyframes identityPulse {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .header,
+  .notice {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .headerActions {
+    justify-content: flex-start;
+  }
+
+  .identityGrid,
+  .loadingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .lowerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .center {
+    padding: 16px;
+    border-radius: 19px;
+  }
+
+  .identityMark {
+    width: 50px;
+    height: 50px;
+    flex-basis: 50px;
+    border-radius: 15px;
+    font-size: 15px;
+  }
+
+  .identityText h2,
+  .notice h2 {
+    font-size: 21px;
+  }
+
+  .headerActions,
+  .primaryAction {
+    width: 100%;
+  }
+
+  .verifiedBadge,
+  .pendingBadge {
+    justify-content: center;
+    width: 100%;
+  }
+}
