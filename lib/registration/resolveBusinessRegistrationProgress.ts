@@ -120,11 +120,23 @@ function documentVerification(input: BusinessRegistrationProgressInput) {
     input.automated_verification_json
   );
 
-  return (
-    jsonObject(automated.documentVerification) ||
-    jsonObject(automated.document_verification) ||
-    jsonObject(automated.document)
+  const camelCase = jsonObject(
+    automated.documentVerification
   );
+
+  if (Object.keys(camelCase).length) {
+    return camelCase;
+  }
+
+  const snakeCase = jsonObject(
+    automated.document_verification
+  );
+
+  if (Object.keys(snakeCase).length) {
+    return snakeCase;
+  }
+
+  return jsonObject(automated.document);
 }
 
 function documentVerificationReady(
