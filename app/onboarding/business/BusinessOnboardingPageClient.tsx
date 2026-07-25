@@ -42,6 +42,173 @@ async function ensureSessionOrRedirect(
   }
 }
 
+type LegalProofKind =
+  | "gst"
+  | "trade-license"
+  | "udyam"
+  | "other";
+
+type LegalProofMeta = {
+  documentType: LegalProofKind;
+  certificateNumber: string;
+  issuingAuthority: string;
+  issueDate: string;
+  validUntil: string;
+  noExpiry: boolean;
+};
+
+type BusinessMediaAsset = UploadedMediaAsset & {
+  legalProofMeta?: LegalProofMeta;
+};
+
+function normalizeLegalProofMeta(
+  value: unknown
+): LegalProofMeta | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const documentType = String(
+    candidate.documentType || ""
+  ).trim() as LegalProofKind;
+
+  if (
+    ![
+      "gst",
+      "trade-license",
+      "udyam",
+      "other",
+    ].includes(documentType)
+  ) {
+    return undefined;
+  }
+
+  return {
+    documentType,
+    certificateNumber: String(
+      candidate.certificateNumber || ""
+    ).trim(),
+    issuingAuthority: String(
+      candidate.issuingAuthority || ""
+    ).trim(),
+    issueDate: String(
+      candidate.issueDate || ""
+    ).trim(),
+    validUntil: String(
+      candidate.validUntil || ""
+    ).trim(),
+    noExpiry: Boolean(candidate.noExpiry),
+  };
+}
+
+function legalProofMetaFor(
+  asset: UploadedMediaAsset | undefined
+) {
+  return normalizeLegalProofMeta(
+    (asset as BusinessMediaAsset | undefined)
+      ?.legalProofMeta
+  );
+}
+
+function legalProofDate(
+  value: string,
+  endOfDay = false
+) {
+  if (!value) return null;
+
+  const parsed = new Date(
+    `${value}T${
+      endOfDay
+        ? "23:59:59.999"
+        : "00:00:00.000"
+    }`
+  );
+
+  return Number.isFinite(parsed.getTime())
+    ? parsed
+    : null;
+}
+
+function legalProofIsExpired(
+  meta: LegalProofMeta
+) {
+  if (meta.noExpiry) return false;
+
+  const expiry = legalProofDate(
+    meta.validUntil,
+    true
+  );
+
+  return Boolean(
+    expiry &&
+      expiry.getTime() < Date.now()
+  );
+}
+
+function legalProofIssueDateIsFuture(
+  meta: LegalProofMeta
+) {
+  const issueDate = legalProofDate(
+    meta.issueDate
+  );
+
+  if (!issueDate) return false;
+
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
+  return issueDate.getTime() > today.getTime();
+}
+
+function legalProofValidityPrecedesIssue(
+  meta: LegalProofMeta
+) {
+  if (
+    meta.noExpiry ||
+    !meta.issueDate ||
+    !meta.validUntil
+  ) {
+    return false;
+  }
+
+  const issueDate = legalProofDate(
+    meta.issueDate
+  );
+  const validUntil = legalProofDate(
+    meta.validUntil,
+    true
+  );
+
+  return Boolean(
+    issueDate &&
+      validUntil &&
+      validUntil.getTime() <
+        issueDate.getTime()
+  );
+}
+
+function legalProofAssetIsComplete(
+  asset: UploadedMediaAsset
+) {
+  const meta = legalProofMetaFor(asset);
+
+  if (!meta) return false;
+
+  return Boolean(
+    meta.certificateNumber &&
+      meta.issuingAuthority &&
+      meta.issueDate &&
+      (
+        meta.noExpiry ||
+        meta.validUntil
+      ) &&
+      !legalProofIssueDateIsFuture(meta) &&
+      !legalProofValidityPrecedesIssue(meta) &&
+      !legalProofIsExpired(meta)
+  );
+}
+
 type BusinessProfile = {
   user_id: string;
   business_name: string | null;
@@ -105,6 +272,19 @@ type VendorDocumentVerificationItem = {
   readable?: boolean;
   confidence?: number;
   status?: string;
+  enteredIssuingAuthority?: string;
+  extractedIssuingAuthority?: string;
+  authorityMatched?: boolean;
+  enteredIssueDate?: string;
+  extractedIssueDate?: string;
+  issueDateMatched?: boolean;
+  enteredValidUntil?: string;
+  extractedValidUntil?: string;
+  expiryMatched?: boolean;
+  noExpiry?: boolean;
+  extractedNoExpiry?: boolean;
+  noExpiryMatched?: boolean;
+  documentExpired?: boolean;
   extractedBusinessName?: string;
   extractedAddress?: string;
   businessNameMatched?: boolean;
@@ -606,26 +786,82 @@ export default function BusinessOnboardingPageClient() {
               ? "vendor"
               : null);
 
-          const restoredMedia: UploadedMediaAsset[] = Array.isArray((data as any).business_media_json)
-            ? (data as any).business_media_json
-                .map((x: any, idx: number): UploadedMediaAsset => {
-                  const rawKind = String(x?.kind || "").toLowerCase();
-                  const kind: UploadedMediaAsset["kind"] =
-                    rawKind === "video" ? "video" : rawKind === "document" ? "document" : "image";
+          const restoredMedia: BusinessMediaAsset[] =
+            Array.isArray(
+              (data as any).business_media_json
+            )
+              ? (data as any).business_media_json
+                  .map(
+                    (
+                      x: any,
+                      idx: number
+                    ): BusinessMediaAsset => {
+                      const rawKind = String(
+                        x?.kind || ""
+                      ).toLowerCase();
 
-                  return {
-                    id: String(x?.id || `${Date.now()}_${idx}`),
-                    url: String(x?.url || x?.public_url || ""),
-                    bucket: String(x?.bucket || "vendor-media"),
-                    path: String(x?.path || x?.object_path || ""),
-                    name: String(x?.name || x?.file_name || `Business media ${idx + 1}`),
-                    size: Number(x?.size || x?.file_size || 0),
-                    mimeType: String(x?.mimeType || x?.mime_type || ""),
-                    kind,
-                  };
-                })
-                .filter((x: UploadedMediaAsset) => Boolean(x.url))
-            : [];
+                      const kind:
+                        UploadedMediaAsset["kind"] =
+                        rawKind === "video"
+                          ? "video"
+                          : rawKind === "document"
+                          ? "document"
+                          : "image";
+
+                      const legalProofMeta =
+                        normalizeLegalProofMeta(
+                          x?.legalProofMeta ??
+                            x?.legal_proof_meta
+                        );
+
+                      return {
+                        id: String(
+                          x?.id ||
+                            `${Date.now()}_${idx}`
+                        ),
+                        url: String(
+                          x?.url ||
+                            x?.public_url ||
+                            ""
+                        ),
+                        bucket: String(
+                          x?.bucket ||
+                            "vendor-media"
+                        ),
+                        path: String(
+                          x?.path ||
+                            x?.object_path ||
+                            ""
+                        ),
+                        name: String(
+                          x?.name ||
+                            x?.file_name ||
+                            `Business media ${
+                              idx + 1
+                            }`
+                        ),
+                        size: Number(
+                          x?.size ||
+                            x?.file_size ||
+                            0
+                        ),
+                        mimeType: String(
+                          x?.mimeType ||
+                            x?.mime_type ||
+                            ""
+                        ),
+                        kind,
+                        ...(legalProofMeta
+                          ? { legalProofMeta }
+                          : {}),
+                      };
+                    }
+                  )
+                  .filter(
+                    (x: BusinessMediaAsset) =>
+                      Boolean(x.url)
+                  )
+              : [];
 
           setMediaAssets(restoredMedia);
           setDocumentVerification((data as any).vendor_document_verification_json ?? null);
@@ -717,8 +953,64 @@ export default function BusinessOnboardingPageClient() {
 
     const assetsFor = (kind: string) =>
       mediaAssets.filter((asset) =>
-        String(asset.path || "").includes(`/legal-proof/${kind}/`)
+        String(asset.path || "").includes(
+          `/legal-proof/${kind}/`
+        )
       );
+
+    const verificationDocument = ({
+      documentType,
+      enteredNumber,
+      label,
+      assetKind,
+      fallbackAssets = [],
+    }: {
+      documentType:
+        | "gst"
+        | "trade_license"
+        | "udyam"
+        | "pan";
+      enteredNumber: string;
+      label: string;
+      assetKind:
+        | "gst"
+        | "trade-license"
+        | "udyam"
+        | "other";
+      fallbackAssets?: UploadedMediaAsset[];
+    }) => {
+      const matchingAssets =
+        assetsFor(assetKind);
+
+      const mediaAssetsForDocument =
+        matchingAssets.length
+          ? matchingAssets
+          : fallbackAssets;
+
+      const meta = legalProofMetaFor(
+        mediaAssetsForDocument[0]
+      );
+
+      return {
+        documentType,
+        enteredNumber:
+          enteredNumber ||
+          meta?.certificateNumber ||
+          "",
+        label,
+        issuingAuthority:
+          meta?.issuingAuthority || "",
+        issueDate:
+          meta?.issueDate || "",
+        validUntil:
+          meta?.validUntil || "",
+        noExpiry:
+          meta?.noExpiry || false,
+        legalProofMeta: meta,
+        mediaAssets:
+          mediaAssetsForDocument,
+      };
+    };
 
     const legacyLegalAssets = mediaAssets.filter(
       (asset) =>
@@ -729,50 +1021,62 @@ export default function BusinessOnboardingPageClient() {
     );
 
     const documents = [
-      {
+      verificationDocument({
         documentType: "gst",
         enteredNumber: gstin,
         label: "GST Registration",
-        mediaAssets: assetsFor("gst"),
-      },
-      {
+        assetKind: "gst",
+      }),
+      verificationDocument({
         documentType: "trade_license",
         enteredNumber: tradeLicenseNo,
         label: "Trade Licence",
-        mediaAssets: assetsFor("trade-license"),
-      },
-      {
+        assetKind: "trade-license",
+      }),
+      verificationDocument({
         documentType: "udyam",
         enteredNumber: udyamNo,
         label: "UDYAM Registration",
-        mediaAssets: assetsFor("udyam"),
-      },
-      {
+        assetKind: "udyam",
+      }),
+      verificationDocument({
         documentType: "pan",
         enteredNumber: pan,
         label: "PAN",
-        mediaAssets: assetsFor("other"),
-      },
+        assetKind: "other",
+      }),
     ].filter(
       (document) =>
-        document.enteredNumber || document.mediaAssets.length > 0
+        document.enteredNumber ||
+        document.mediaAssets.length > 0
     );
 
     if (!documents.length && legacyLegalAssets.length) {
       if (gstin) {
-        documents.push({
-          documentType: "gst",
-          enteredNumber: gstin,
-          label: "GST Registration",
-          mediaAssets: legacyLegalAssets,
-        });
+        documents.push(
+          verificationDocument({
+            documentType: "gst",
+            enteredNumber: gstin,
+            label: "GST Registration",
+            assetKind: "gst",
+            fallbackAssets:
+              legacyLegalAssets,
+          })
+        );
       } else if (tradeLicenseNo) {
-        documents.push({
-          documentType: "trade_license",
-          enteredNumber: tradeLicenseNo,
-          label: "Trade Licence",
-          mediaAssets: legacyLegalAssets,
-        });
+        documents.push(
+          verificationDocument({
+            documentType:
+              "trade_license",
+            enteredNumber:
+              tradeLicenseNo,
+            label: "Trade Licence",
+            assetKind:
+              "trade-license",
+            fallbackAssets:
+              legacyLegalAssets,
+          })
+        );
       }
     }
 
@@ -911,15 +1215,25 @@ export default function BusinessOnboardingPageClient() {
       bp.nationwide_service
   );
 
+  const structuredLegalProofAssets =
+    legalProofAssets.filter(
+      legalProofAssetIsComplete
+    );
+
+  const legacyLegalProofAssets =
+    legalProofAssets.filter(
+      (asset) =>
+        !legalProofMetaFor(asset)
+    );
+
+  /*
+   * Existing vendors remain loadable, but legacy files do not
+   * unlock a new registration. The user must complete the
+   * structured certificate details before activation.
+   */
   const legalProofReady =
     isPureBlogOnly ||
-    Boolean(
-      legalProofAssets.length > 0 &&
-        (
-          String(bp.gstin || "").trim() ||
-          String(bp.trade_license_no || "").trim()
-        )
-    );
+    structuredLegalProofAssets.length > 0;
 
   const practicalProofReady =
     isPureBlogOnly ||
@@ -948,6 +1262,9 @@ export default function BusinessOnboardingPageClient() {
     "invalid",
     "unreadable",
     "mismatch",
+    "document_mismatch",
+    "format_invalid",
+    "needs_document",
     "correction_required",
   ]);
 
@@ -982,6 +1299,11 @@ export default function BusinessOnboardingPageClient() {
       return (
         document.readable === false ||
         document.matched === false ||
+        document.authorityMatched === false ||
+        document.issueDateMatched === false ||
+        document.expiryMatched === false ||
+        document.noExpiryMatched === false ||
+        document.documentExpired === true ||
         document.businessNameMatched === false ||
         document.addressMatched === false ||
         failedDocumentStatuses.has(status)
@@ -1350,16 +1672,26 @@ export default function BusinessOnboardingPageClient() {
       is_complete: isComplete,
       completion_score: score,
       missing_fields: missing,
-      business_media_json: mediaAssets.map((asset) => ({
-        id: asset.id,
-        url: asset.url,
-        bucket: asset.bucket,
-        path: asset.path,
-        name: asset.name,
-        size: asset.size,
-        mimeType: asset.mimeType,
-        kind: asset.kind,
-      })),
+      business_media_json: mediaAssets.map(
+        (asset) => {
+          const legalProofMeta =
+            legalProofMetaFor(asset);
+
+          return {
+            id: asset.id,
+            url: asset.url,
+            bucket: asset.bucket,
+            path: asset.path,
+            name: asset.name,
+            size: asset.size,
+            mimeType: asset.mimeType,
+            kind: asset.kind,
+            ...(legalProofMeta
+              ? { legalProofMeta }
+              : {}),
+          };
+        }
+      ),
       vendor_document_verification_json: documentVerification,
     };
 
