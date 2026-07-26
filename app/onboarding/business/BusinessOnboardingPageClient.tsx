@@ -2852,8 +2852,43 @@ export default function BusinessOnboardingPageClient() {
           </div>
         </section> : null}
 
-        <section id="sec-address" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
-          <h3 style={{ marginTop: 0 }}>Address</h3>
+        <section
+          id="sec-address"
+          style={{
+            padding: 12,
+            border: "1px solid #ddd",
+            borderRadius: 8,
+          }}
+        >
+          <div style={{ marginBottom: 12 }}>
+            <div
+              style={{
+                color: "#1d4ed8",
+                fontSize: 12,
+                fontWeight: 900,
+                letterSpacing: ".05em",
+                textTransform: "uppercase",
+              }}
+            >
+              Official business location
+            </div>
+
+            <h3 style={{ margin: "4px 0 3px" }}>
+              Verify and complete your business address
+            </h3>
+
+            <p
+              style={{
+                margin: 0,
+                color: "#64748b",
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}
+            >
+              Device GPS confirms that the location is genuine. The official
+              LGD address below is the single address saved with your business.
+            </p>
+          </div>
 
           <div style={{ display: "grid", gap: 10 }}>
                         <div
@@ -2868,12 +2903,20 @@ export default function BusinessOnboardingPageClient() {
               }}
             >
               {missingLocationVerification
-                ? "Device live location verification is mandatory. Manual address or copied district will not activate dashboard access."
-                : `Device location verified: ${
-                    bp.verified_locality ||
-                    bp.verified_district ||
-                    "Verified"
-                  }${bp.eligible_free ? " • Free district eligible" : ""}`}
+                ? "Verify your device location before activation."
+                : `GPS verified${
+                    bp.verified_district
+                      ? ` • ${bp.verified_district}`
+                      : ""
+                  }${
+                    bp.verified_state
+                      ? `, ${bp.verified_state}`
+                      : ""
+                  }${
+                    bp.eligible_free
+                      ? " • Free district eligible"
+                      : ""
+                  }`}
             </div>
 
             <button
@@ -2898,7 +2941,7 @@ export default function BusinessOnboardingPageClient() {
                 ? "Verifying live location..."
                 : missingLocationVerification
                 ? "📍 Use My Live Location to Verify"
-                : "✅ Location Verified (Tap to re-check)"}
+                : "✅ GPS Verified — Re-check"}
             </button>
 
             {missingLocationVerification ? (
@@ -3033,30 +3076,6 @@ export default function BusinessOnboardingPageClient() {
                 </div>
               </div>
             </div>
-
-            {!missingLocationVerification ? (
-              <div
-                style={{
-                  padding: 10,
-                  borderRadius: 8,
-                  background: "#eff6ff",
-                  border: "1px solid #bfdbfe",
-                  color: "#1d4ed8",
-                  fontSize: 12,
-                  lineHeight: 1.5,
-                }}
-              >
-                Verified from device GPS:
-                <br />
-                District: <b>{bp.verified_locality || bp.verified_district || "Detected"}</b>
-                <br />
-                Locality: <b>{bp.verified_locality || "Detected"}</b>
-                <br />
-                State: <b>{bp.verified_state || "Detected"}</b>
-                <br />
-                Pincode: <b>{bp.verified_postcode || "Detected"}</b>
-              </div>
-            ) : null}
 
             <AddressEngine
               value={
