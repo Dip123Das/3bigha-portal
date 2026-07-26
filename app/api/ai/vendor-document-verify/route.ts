@@ -376,19 +376,36 @@ export async function POST(req: Request) {
       if (error) {
         console.error(
           "REGISTRATION_VERIFICATION_AUDIT_FAILED",
-          error
-        );
-        return NextResponse.json(
           {
-            ok: false,
-            error:
-              "The document check could not be recorded safely.",
-          },
-          { status: 500 }
+            userId: user!.id,
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+          }
         );
+
+        /*
+         * The verification decision remains usable even when the
+         * secondary audit-history insert is temporarily unavailable.
+         *
+         * The browser must not lose a valid verification result merely
+         * because an operational audit record could not be written.
+         */
+        return NextResponse.json({
+          ok: true,
+          verification,
+          auditRecorded: false,
+          warning:
+            "The verification result is available, but its audit-history record will need reconciliation.",
+        });
       }
 
-      return NextResponse.json({ ok: true, verification });
+      return NextResponse.json({
+        ok: true,
+        verification,
+        auditRecorded: true,
+      });
     }
 
     const body = await req.json();

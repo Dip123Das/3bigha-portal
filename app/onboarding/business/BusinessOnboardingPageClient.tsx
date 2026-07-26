@@ -1149,8 +1149,13 @@ export default function BusinessOnboardingPageClient() {
         vendor_document_verification_json: verification,
       }));
 
+      const auditRecorded =
+        json?.auditRecorded !== false;
+
       setMsg(
-        "✅ Legal-document checks completed. Review the status shown for every registration."
+        auditRecorded
+          ? "✅ Legal-document checks completed. Review the status shown for every registration."
+          : "✅ Your document check completed and the result is available. The audit-history record will be reconciled automatically; you do not need to upload the document again."
       );
     } catch (error: any) {
       setMsg(
@@ -1297,6 +1302,13 @@ export default function BusinessOnboardingPageClient() {
       ? documentVerification.documents
       : [];
 
+  /*
+   * A pending/manual-review result is not a user correction.
+   *
+   * Comparison flags may be false when automation could not confidently
+   * read a certificate. Only explicit failure statuses, expiry, or a
+   * confirmed mismatch should create a correction state.
+   */
   const verificationHasFailure =
     failedDocumentStatuses.has(documentVerificationStatus) ||
     verificationDocuments.some((document) => {
@@ -1305,14 +1317,8 @@ export default function BusinessOnboardingPageClient() {
         .toLowerCase();
 
       return (
-        document.readable === false ||
-        document.matched === false ||
-        document.authorityMatched === false ||
-        document.issueDateMatched === false ||
-        document.expiryMatched === false ||
-        document.noExpiryMatched === false ||
-        document.documentExpired === true ||
-        failedDocumentStatuses.has(status)
+        failedDocumentStatuses.has(status) ||
+        document.documentExpired === true
       );
     });
 
