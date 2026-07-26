@@ -62,8 +62,15 @@ export default async function AdminUsersPage({ searchParams }: { searchParams?: 
   const field = { padding: "8px 10px", border: "1px solid #cbd5e1", borderRadius: 8 } as const;
 
   return <main style={{ padding: 24, maxWidth: 1500, margin: "0 auto" }}>
-    <h1 style={{ fontSize: 28, fontWeight: 900, margin: 0 }}>Member Administration</h1>
-    <p style={{ color: "#475569" }}>Review identities, activate or deactivate accounts, inspect SBI payment status, and filter members through the official geography hierarchy. Subscriptions cannot be activated manually.</p>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+      <div>
+        <h1 style={{ fontSize: 28, fontWeight: 900, margin: 0 }}>Member Administration</h1>
+        <p style={{ color: "#475569" }}>Review identities, activate or deactivate accounts, inspect SBI payment status, and filter members through the official geography hierarchy. Subscriptions cannot be activated manually.</p>
+      </div>
+      <a href="/admin/verification-reviews" style={{ padding: "9px 11px", border: "1px solid #cbd5e1", borderRadius: 9, textDecoration: "none", color: "#0f172a", background: "white", fontWeight: 800 }}>
+        Business proof reviews
+      </a>
+    </div>
 
     <form method="get" style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: 14, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12 }}>
       <input name="q" defaultValue={one(searchParams?.q)} placeholder="Search name, email or business" style={{ ...field, minWidth: 240 }} />
