@@ -1142,14 +1142,13 @@ export default function BusinessVerificationPanel({
       </div>
 
       <h3 style={{ margin: "6px 0" }}>
-        Prove your business in three simple ways
+        Complete your business proof
       </h3>
 
       <p style={{ margin: "0 0 14px", color: "#475569", lineHeight: 1.6 }}>
-        Legal proof confirms registration. Physical proof shows the real
-        workplace or business activity. A live business-board selfie confirms
-        that the person completing this profile is present at the declared
-        business.
+        Add one legal proof, real workplace evidence and a live selfie.
+        3Bigha will then show one clear business-proof status: uploaded,
+        verifying, verified or needs correction.
       </p>
 
       <div
@@ -1172,7 +1171,7 @@ export default function BusinessVerificationPanel({
         >
           <div>
             <div style={{ fontWeight: 950, color: "#0f172a" }}>
-              Verification progress
+              Evidence collection
             </div>
             <div
               style={{
@@ -1182,7 +1181,7 @@ export default function BusinessVerificationPanel({
                 lineHeight: 1.5,
               }}
             >
-              {completedVerificationSteps} of 3 verification steps completed
+              {completedVerificationSteps} of 3 required evidence items added
             </div>
           </div>
 
@@ -1210,7 +1209,7 @@ export default function BusinessVerificationPanel({
             background: "#e2e8f0",
             overflow: "hidden",
           }}
-          aria-label={`Verification progress ${verificationProgress}%`}
+          aria-label={`Evidence collection ${verificationProgress}%`}
         >
           <div
             style={{
@@ -1827,7 +1826,7 @@ export default function BusinessVerificationPanel({
           >
             {documentVerifyLoading
               ? "Checking legal documents..."
-              : "Check Legal Business Proof"}
+              : "Verify My Business Proof"}
           </button>
 
           {documentVerification ? (

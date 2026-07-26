@@ -1275,13 +1275,17 @@ export default function BusinessOnboardingPageClient() {
     "passed",
     "complete",
     "completed",
-    "good_attachment",
-    "reviewed",
     "verified_by_ai",
-    "needs_manual_review",
-    "manual_review_required",
     "verification_complete",
     "checks_completed",
+  ]);
+
+  const pendingDocumentStatuses = new Set([
+    "needs_manual_review",
+    "manual_review_required",
+    "pending",
+    "processing",
+    "under_review",
   ]);
 
   const verificationDocuments =
@@ -1304,28 +1308,73 @@ export default function BusinessOnboardingPageClient() {
         document.expiryMatched === false ||
         document.noExpiryMatched === false ||
         document.documentExpired === true ||
-        document.businessNameMatched === false ||
-        document.addressMatched === false ||
         failedDocumentStatuses.has(status)
       );
     });
 
-  const documentVerificationReady =
-    isPureBlogOnly ||
-    Boolean(
-      documentVerification &&
-        !verificationHasFailure &&
+  const documentVerificationConfidence = Number(
+    documentVerification?.confidence || 0
+  );
+
+  type BusinessProofStatus =
+    | "not_uploaded"
+    | "ready_to_verify"
+    | "verifying"
+    | "under_review"
+    | "needs_correction"
+    | "verified";
+
+  const businessProofStatus: BusinessProofStatus =
+    isPureBlogOnly
+      ? "verified"
+      : !legalProofReady
+      ? "not_uploaded"
+      : documentVerifyLoading
+      ? "verifying"
+      : verificationHasFailure
+      ? "needs_correction"
+      : verifiedDocumentStatuses.has(
+          documentVerificationStatus
+        ) &&
+        Number.isFinite(
+          documentVerificationConfidence
+        ) &&
+        documentVerificationConfidence >= 85
+      ? "verified"
+      : documentVerification &&
         (
-          verifiedDocumentStatuses.has(
+          pendingDocumentStatuses.has(
             documentVerificationStatus
           ) ||
-          verificationDocuments.some(
-            (document) =>
-              document.readable === true &&
-              document.matched !== false
-          )
+          documentVerificationStatus
         )
-    );
+      ? "under_review"
+      : "ready_to_verify";
+
+  const documentVerificationReady =
+    businessProofStatus === "verified";
+
+  const businessProofReady =
+    legalProofReady &&
+    documentVerificationReady;
+
+  const businessProofStatusLabel: Record<
+    BusinessProofStatus,
+    string
+  > = {
+    not_uploaded:
+      "Upload one valid business proof",
+    ready_to_verify:
+      "Business proof uploaded — verification required",
+    verifying:
+      "Verifying your business proof...",
+    under_review:
+      "Business proof received — verification is in progress",
+    needs_correction:
+      "Business proof needs correction",
+    verified:
+      "Business proof verified",
+  };
 
   const registrationReadinessChecks = [
     {
@@ -1353,10 +1402,10 @@ export default function BusinessOnboardingPageClient() {
       complete: coverageReady,
     },
     {
-      key: "legal-proof",
-      label: "Upload legal business proof matching your registration number",
+      key: "business-proof",
+      label: businessProofStatusLabel[businessProofStatus],
       targetId: "sec-documents",
-      complete: legalProofReady,
+      complete: businessProofReady,
     },
     {
       key: "practical-proof",
@@ -1369,12 +1418,6 @@ export default function BusinessOnboardingPageClient() {
       label: "Add the required live identity or workplace selfie",
       targetId: "sec-selfie",
       complete: liveSelfieReady,
-    },
-    {
-      key: "document-verification",
-      label: "Run and complete legal-document verification",
-      targetId: "sec-documents",
-      complete: documentVerificationReady,
     },
   ];
 
@@ -1493,13 +1536,13 @@ export default function BusinessOnboardingPageClient() {
     },
     {
       key: "documents",
-      title: "Documents",
-      description: "Business proof and verification",
+      title: "Business Proof",
+      description:
+        businessProofStatusLabel[businessProofStatus],
       targetId: "sec-documents",
       complete:
-        legalProofReady &&
-        liveSelfieReady &&
-        documentVerificationReady,
+        businessProofReady &&
+        liveSelfieReady,
     },
     {
       key: "review",
