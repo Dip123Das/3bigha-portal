@@ -1566,22 +1566,6 @@ export default function BusinessOnboardingPageClient() {
     selectedJourneyKey ??
     calculatedActiveJourneyKey;
 
-  const subscriptionIdentityFocus =
-    nature.length > 1
-      ? "vendor-hub"
-      : nature[0] ||
-        String(bp.business_type || "business")
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "-");
-
-  const subscriptionAfterRegistrationUrl =
-    `/dashboard/subscription?source=registration` +
-    `&focus=${encodeURIComponent(
-      subscriptionIdentityFocus
-    )}` +
-    `&return=${encodeURIComponent(returnTo)}`;
-
   function openJourneyStep(
     key: BusinessIdentityJourneyStep["key"],
     targetId: string
@@ -2158,8 +2142,7 @@ export default function BusinessOnboardingPageClient() {
        * subscription state or role assignment.
        */
       const acceptedCompletionCodes = new Set([
-        "REGISTRATION_COMPLETION_AND_VERIFICATION_EVALUATED",
-        "REGISTRATION_COMPLETION_VERIFICATION_AND_INTELLIGENCE_EVALUATED",
+        "REGISTRATION_COMPLETION_AND_DASHBOARD_ACTIVATED",
       ]);
 
       if (
@@ -2176,75 +2159,28 @@ export default function BusinessOnboardingPageClient() {
         payload?.verification?.status || ""
       );
 
-      const canonicalVerificationStatuses = new Set([
-        "auto_verified",
-        "evidence_incomplete",
-        "correction_required",
-        "admin_review_required",
-        "restricted",
-      ]);
+      const dashboardActivated =
+        payload?.dashboardActivation?.activated === true &&
+        payload?.completion?.registrationComplete === true;
 
       if (
-        !canonicalVerificationStatuses.has(
-          verificationStatus
-        )
+        verificationStatus !== "auto_verified" ||
+        !dashboardActivated
       ) {
         throw new Error(
-          "The registration server returned an invalid verification status."
+          "The registration server did not confirm atomic dashboard activation."
         );
       }
 
       await fetchCompleteness(userId);
 
-      switch (verificationStatus) {
-        case "auto_verified": {
-          setMsg(
-            "✅ Registration completed and automatically verified. Your workspace readiness has been confirmed. Redirecting..."
-          );
+      setMsg(
+        "✅ Registration complete. Your dashboard is active. Opening your workspace..."
+      );
 
-          router.replace(
-            subscriptionAfterRegistrationUrl
-          );
-          router.refresh();
-          return;
-        }
-
-        case "evidence_incomplete": {
-          setMsg(
-            "Registration is saved, but some required verification evidence is still incomplete. Please review and complete the highlighted information."
-          );
-          scrollToId("sec-review");
-          return;
-        }
-
-        case "correction_required": {
-          setMsg(
-            "Registration is saved, but some submitted information requires correction before verification can continue. Please review the details below."
-          );
-          scrollToId("sec-review");
-          return;
-        }
-
-        case "admin_review_required": {
-          setMsg(
-            "Registration is complete and has been submitted for administrative review. You can now review the workspace and growth plans suitable for your identity."
-          );
-
-          router.replace(
-            subscriptionAfterRegistrationUrl
-          );
-          router.refresh();
-          return;
-        }
-
-        case "restricted": {
-          setMsg(
-            "Registration is complete, but this account is currently restricted. Dashboard access has not been activated."
-          );
-          scrollToId("sec-review");
-          return;
-        }
-      }
+      router.replace(returnTo);
+      router.refresh();
+      return;
     } catch (error) {
       console.error(
         "REGISTRATION_COMPLETION_REQUEST_FAILED",

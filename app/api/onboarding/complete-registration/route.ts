@@ -389,44 +389,51 @@ export async function POST() {
     }
 
     /*
-     * P04-E4D
+     * R3.1 — Atomic self-registration activation
      *
-     * Compatibility completion has succeeded.
-     * Automated verification is now evaluated from the
-     * canonical evidence stored in the database.
+     * Compatibility projection has saved the member's declared
+     * identity and module grants. The authoritative database
+     * function now performs the complete activation transaction:
      *
-     * This RPC accepts no client decision parameters.
+     * - locks the member and business profile,
+     * - evaluates canonical registration evidence,
+     * - completes registration,
+     * - activates dashboard access,
+     * - records the immutable activation event.
+     *
+     * It accepts no verification, approval or activation decision
+     * from the browser.
      */
     const {
-      data: verificationData,
-      error: verificationError,
+      data: activationData,
+      error: activationError,
     } = await supabase.rpc(
-      "evaluate_automated_registration_verification"
+      "activate_self_registered_dashboard"
     );
 
-    if (verificationError) {
+    if (activationError) {
       console.error(
-        "AUTOMATED_REGISTRATION_VERIFICATION_FAILED",
+        "ATOMIC_DASHBOARD_ACTIVATION_FAILED",
         {
           userId: user.id,
-          code: verificationError.code,
-          message: verificationError.message,
-          details: verificationError.details,
-          hint: verificationError.hint,
+          code: activationError.code,
+          message: activationError.message,
+          details: activationError.details,
+          hint: activationError.hint,
         }
       );
 
       return errorResponse(
-        "Registration was completed, but automated verification could not be evaluated safely.",
+        "Your registration was saved, but the dashboard could not be activated safely.",
         500,
-        "AUTOMATED_VERIFICATION_FAILED"
+        "DASHBOARD_ACTIVATION_FAILED"
       );
     }
 
     const verificationResult =
-      verificationData &&
-      typeof verificationData === "object"
-        ? verificationData as Record<string, unknown>
+      activationData &&
+      typeof activationData === "object"
+        ? activationData as Record<string, unknown>
         : {};
 
     const verificationStatus = String(
@@ -435,12 +442,9 @@ export async function POST() {
       .trim()
       .toLowerCase();
 
-    if (
-      verificationResult.ok !== true ||
-      !verificationStatus
-    ) {
+    if (!verificationStatus) {
       console.error(
-        "AUTOMATED_REGISTRATION_VERIFICATION_INVALID_RESULT",
+        "ATOMIC_DASHBOARD_ACTIVATION_INVALID_RESULT",
         {
           userId: user.id,
           verificationResult,
@@ -448,9 +452,43 @@ export async function POST() {
       );
 
       return errorResponse(
-        "Registration was completed, but the verification service returned an invalid decision.",
+        "The dashboard activation service returned an invalid decision.",
         500,
-        "INVALID_VERIFICATION_RESULT"
+        "INVALID_ACTIVATION_RESULT"
+      );
+    }
+
+    if (
+      verificationResult.ok !== true ||
+      verificationResult.activated !== true ||
+      verificationResult.dashboard_activated !== true
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code:
+            verificationStatus === "evidence_incomplete"
+              ? "EVIDENCE_INCOMPLETE"
+              : verificationStatus === "correction_required"
+              ? "CORRECTION_REQUIRED"
+              : verificationStatus === "admin_review_required"
+              ? "VERIFICATION_REVIEW_REQUIRED"
+              : verificationStatus === "restricted"
+              ? "ACCOUNT_RESTRICTED"
+              : "DASHBOARD_NOT_READY",
+          error:
+            verificationStatus === "evidence_incomplete"
+              ? "Complete the remaining business evidence before activating your dashboard."
+              : verificationStatus === "correction_required"
+              ? "Correct the highlighted business-proof information before activating your dashboard."
+              : verificationStatus === "admin_review_required"
+              ? "Your evidence requires further verification before dashboard activation."
+              : verificationStatus === "restricted"
+              ? "This account is currently restricted and cannot activate dashboard access."
+              : "Your registration is saved, but the dashboard is not ready for activation.",
+          verification: verificationResult,
+        },
+        { status: 409 }
       );
     }
 
@@ -545,11 +583,12 @@ export async function POST() {
     return NextResponse.json({
       ok: true,
       code:
-        "REGISTRATION_COMPLETION_VERIFICATION_AND_INTELLIGENCE_EVALUATED",
+        "REGISTRATION_COMPLETION_AND_DASHBOARD_ACTIVATED",
 
       completion: {
         completed: true,
-        registrationComplete: true,
+        registrationComplete:
+          verificationResult.registration_complete === true,
         onboardingCompleted: true,
         role: projection.role,
         moduleGrants: projection.moduleGrants,
@@ -568,7 +607,7 @@ export async function POST() {
           : [],
         dashboardStatus: String(
           verificationResult.dashboard_status ||
-            "not_ready"
+            "active"
         ),
         canActivateDashboard:
           verificationResult.can_activate_dashboard ===
@@ -583,12 +622,19 @@ export async function POST() {
 
       registrationIntelligence,
 
-      /*
-       * Compatibility completion, automated verification,
-       * and intelligence evaluation do not activate the
-       * dashboard.
-       */
-      dashboardActivation: "not_changed",
+      dashboardActivation: {
+        activated:
+          verificationResult.dashboard_activated === true,
+        alreadyActive:
+          verificationResult.already_active === true,
+        status: String(
+          verificationResult.dashboard_status || "active"
+        ),
+        decisionSource: String(
+          verificationResult.decision_source ||
+            "atomic_self_registration_activation_v1"
+        ),
+      },
     });
   } catch (error) {
     console.error(
