@@ -14,6 +14,16 @@ import {
   normalizeValidityType,
   type LegalProofValidityType,
 } from "@/lib/registration/legalProofValidity";
+import {
+  averageFieldConfidence,
+  buildFieldReviews,
+  clampConfidence,
+  createFieldConfidenceMap,
+  normalizeGovernmentDocumentType,
+  resolveDocumentDecision,
+  type FieldConfidenceMap,
+  type FieldReview,
+} from "@/lib/registration/governmentDocumentIntelligence";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,6 +60,12 @@ type DocumentVerificationResult = {
   matched: boolean;
   readable: boolean;
   confidence: number;
+  classifiedDocumentType:
+    RegistrationDocumentType;
+  classificationConfidence: number;
+  documentTypeMatched: boolean;
+  fieldConfidence: FieldConfidenceMap;
+  fieldReviews: FieldReview[];
   status:
     | "verified_by_ai"
     | "document_mismatch"
@@ -353,6 +369,13 @@ function emptyResult(
     matched: false,
     readable: false,
     confidence: 0,
+    classifiedDocumentType:
+      document.documentType,
+    classificationConfidence: 0,
+    documentTypeMatched: true,
+    fieldConfidence:
+      createFieldConfidenceMap({}),
+    fieldReviews: [],
     status: "needs_manual_review",
     enteredIssuingAuthority: document.issuingAuthority,
     extractedIssuingAuthority: "",
@@ -653,6 +676,8 @@ Return JSON only:
     {
       "index": number,
       "documentType": string,
+      "classifiedDocumentType": "gst" | "trade_license" | "udyam" | "pan" | "fssai" | "shop_establishment" | "professional_registration" | "other",
+      "classificationConfidence": number,
       "extractedNumber": string,
       "readable": boolean,
       "numberMatched": boolean,
@@ -671,6 +696,15 @@ Return JSON only:
       "extractedAddress": string,
       "businessNameMatched": boolean,
       "addressMatched": boolean,
+      "fieldConfidence": {
+        "document_type": number,
+        "registration_number": number,
+        "issuing_authority": number,
+        "issue_date": number,
+        "validity": number,
+        "business_name": number,
+        "business_address": number
+      },
       "confidence": number,
       "warnings": string[],
       "summary": string
@@ -679,6 +713,12 @@ Return JSON only:
 }
 
 Rules:
+- First classify the uploaded certificate independently from the user's selected document type.
+- Return classifiedDocumentType and classificationConfidence for every document.
+- Classification must be based only on visible headings, authority, registration format and certificate content.
+- Never force the classification to match the selected upload card.
+- Return a separate 0-100 confidence for every field in fieldConfidence.
+- A confidence score measures extraction certainty, not whether the entered value matches.
 - Compare numbers after ignoring spaces, hyphens and punctuation, but never invent characters.
 - GSTIN must match exactly after normalisation.
 - UDYAM, PAN, FSSAI, Trade Licence and other numbers must match exactly after normalisation when readable.
@@ -775,6 +815,22 @@ Rules:
           ) ||
           aiDocuments[index] ||
           {};
+
+        const classifiedDocumentType =
+          normalizeGovernmentDocumentType(
+            parsedDocument?.classifiedDocumentType ??
+              parsedDocument?.documentType,
+            document.documentType
+          ) as RegistrationDocumentType;
+
+        const classificationConfidence =
+          clampConfidence(
+            parsedDocument?.classificationConfidence
+          );
+
+        const documentTypeMatched =
+          classifiedDocumentType ===
+          document.documentType;
 
         const extractedNumber = safeString(
           parsedDocument?.extractedNumber
@@ -906,32 +962,101 @@ Rules:
           )
         );
 
-        let status: DocumentVerificationResult["status"];
+        const fieldConfidence =
+          createFieldConfidenceMap({
+            ...parsedDocument?.fieldConfidence,
+            document_type:
+              parsedDocument?.fieldConfidence
+                ?.document_type ??
+              classificationConfidence,
+            registration_number:
+              parsedDocument?.fieldConfidence
+                ?.registration_number ??
+              confidence,
+          });
 
-        if (documentExpired) {
-          status = "format_invalid";
-        } else if (!readable) {
-          status = "needs_manual_review";
-        } else if (
-          !matched ||
-          !authorityMatched ||
-          !issueDateMatched ||
-          !validityTypeMatched ||
-          !expiryMatched ||
-          !noExpiryMatched
-        ) {
-          status = "document_mismatch";
-        } else {
-          status =
-            confidence >= 70
-              ? "verified_by_ai"
-              : "needs_manual_review";
-        }
+        const fieldReviews =
+          buildFieldReviews(
+            fieldConfidence,
+            {
+              document_type:
+                documentTypeMatched,
+              registration_number:
+                matched,
+              issuing_authority:
+                extractedIssuingAuthority
+                  ? authorityMatched
+                  : null,
+              issue_date:
+                extractedIssueDate
+                  ? issueDateMatched
+                  : null,
+              validity:
+                extractedValidityType
+                  ? (
+                      validityTypeMatched &&
+                      expiryMatched &&
+                      noExpiryMatched
+                    )
+                  : null,
+              business_name:
+                safeString(
+                  parsedDocument
+                    ?.extractedBusinessName
+                )
+                  ? Boolean(
+                      parsedDocument
+                        ?.businessNameMatched
+                    )
+                  : null,
+              business_address:
+                safeString(
+                  parsedDocument
+                    ?.extractedAddress
+                )
+                  ? Boolean(
+                      parsedDocument
+                        ?.addressMatched
+                    )
+                  : null,
+            }
+          );
+
+        const intelligenceConfidence =
+          averageFieldConfidence(
+            fieldConfidence
+          );
+
+        const effectiveConfidence =
+          intelligenceConfidence > 0
+            ? Math.round(
+                (
+                  confidence +
+                  intelligenceConfidence
+                ) / 2
+              )
+            : confidence;
+
+        const status =
+          resolveDocumentDecision(
+            fieldReviews,
+            {
+              readable,
+              expired: documentExpired,
+              overallConfidence:
+                effectiveConfidence,
+            }
+          );
 
         return emptyResult(document, {
           extractedNumber,
           matched,
           readable,
+          classifiedDocumentType,
+          classificationConfidence,
+          documentTypeMatched,
+          fieldConfidence,
+          fieldReviews,
           enteredIssuingAuthority:
             document.issuingAuthority,
           extractedIssuingAuthority,
@@ -959,7 +1084,8 @@ Rules:
           extractedNoExpiry,
           noExpiryMatched,
           documentExpired,
-          confidence,
+          confidence:
+            effectiveConfidence,
           status,
           extractedBusinessName: safeString(
             parsedDocument?.extractedBusinessName
