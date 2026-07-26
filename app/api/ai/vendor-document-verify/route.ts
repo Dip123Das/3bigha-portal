@@ -6,6 +6,14 @@ import {
 } from "@/lib/vendor-verification/gstin";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import {
+  financialPeriodsMatch,
+  legalProofValidityIsComplete,
+  legalProofValidityIsExpired,
+  normalizeFinancialYear,
+  normalizeValidityType,
+  type LegalProofValidityType,
+} from "@/lib/registration/legalProofValidity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,8 +34,11 @@ type RegistrationDocumentInput = {
   label?: string;
   issuingAuthority: string;
   issueDate: string;
+  validityType: LegalProofValidityType;
   validUntil: string;
   noExpiry: boolean;
+  periodStartYear: number | null;
+  periodEndYear: number | null;
   mediaAssets: any[];
 };
 
@@ -51,8 +62,16 @@ type DocumentVerificationResult = {
   enteredIssueDate: string;
   extractedIssueDate: string;
   issueDateMatched: boolean;
+  enteredValidityType: LegalProofValidityType;
+  extractedValidityType: LegalProofValidityType;
+  validityTypeMatched: boolean;
   enteredValidUntil: string;
   extractedValidUntil: string;
+  enteredPeriodStartYear: number | null;
+  enteredPeriodEndYear: number | null;
+  extractedPeriodStartYear: number | null;
+  extractedPeriodEndYear: number | null;
+  financialPeriodMatched: boolean;
   expiryMatched: boolean;
   noExpiry: boolean;
   extractedNoExpiry: boolean;
@@ -235,8 +254,11 @@ function legacyDocuments(body: any): RegistrationDocumentInput[] {
       label: DOCUMENT_LABELS[documentType],
       issuingAuthority: "",
       issueDate: "",
+      validityType: "exact_date",
       validUntil: "",
       noExpiry: false,
+      periodStartYear: null,
+      periodEndYear: null,
       mediaAssets,
     }));
 }
@@ -266,13 +288,43 @@ function parseDocuments(body: any): RegistrationDocumentInput[] {
         item?.issueDate ??
           item?.legalProofMeta?.issueDate
       ),
+      validityType: normalizeValidityType({
+        validityType:
+          item?.validityType ??
+          item?.legalProofMeta?.validityType,
+        validUntil:
+          item?.validUntil ??
+          item?.legalProofMeta?.validUntil,
+        noExpiry:
+          item?.noExpiry ??
+          item?.legalProofMeta?.noExpiry,
+        periodStartYear:
+          item?.periodStartYear ??
+          item?.legalProofMeta?.periodStartYear,
+        periodEndYear:
+          item?.periodEndYear ??
+          item?.legalProofMeta?.periodEndYear,
+      }),
       validUntil: normalizeIsoDate(
         item?.validUntil ??
           item?.legalProofMeta?.validUntil
       ),
-      noExpiry: Boolean(
-        item?.noExpiry ??
-          item?.legalProofMeta?.noExpiry
+      noExpiry:
+        normalizeValidityType({
+          validityType:
+            item?.validityType ??
+            item?.legalProofMeta?.validityType,
+          noExpiry:
+            item?.noExpiry ??
+            item?.legalProofMeta?.noExpiry,
+        }) === "no_expiry",
+      periodStartYear: normalizeFinancialYear(
+        item?.periodStartYear ??
+          item?.legalProofMeta?.periodStartYear
+      ),
+      periodEndYear: normalizeFinancialYear(
+        item?.periodEndYear ??
+          item?.legalProofMeta?.periodEndYear
       ),
       mediaAssets: Array.isArray(item?.mediaAssets)
         ? item.mediaAssets
@@ -308,16 +360,22 @@ function emptyResult(
     enteredIssueDate: document.issueDate,
     extractedIssueDate: "",
     issueDateMatched: false,
+    enteredValidityType: document.validityType,
+    extractedValidityType: "exact_date",
+    validityTypeMatched: false,
     enteredValidUntil: document.validUntil,
     extractedValidUntil: "",
+    enteredPeriodStartYear: document.periodStartYear,
+    enteredPeriodEndYear: document.periodEndYear,
+    extractedPeriodStartYear: null,
+    extractedPeriodEndYear: null,
+    financialPeriodMatched: false,
     expiryMatched: false,
     noExpiry: document.noExpiry,
     extractedNoExpiry: false,
     noExpiryMatched: false,
-    documentExpired: isExpiredDate(
-      document.validUntil,
-      document.noExpiry
-    ),
+    documentExpired:
+      legalProofValidityIsExpired(document),
     extractedBusinessName: "",
     extractedAddress: "",
     businessNameMatched: false,
@@ -461,9 +519,8 @@ export async function POST(req: Request) {
         !document.issueDate
           ? "issue date"
           : "",
-        !document.noExpiry &&
-        !document.validUntil
-          ? "validity date or no-expiry declaration"
+        !legalProofValidityIsComplete(document)
+          ? "exact expiry date, financial period or no-expiry declaration"
           : "",
       ].filter(Boolean);
 
@@ -483,10 +540,7 @@ export async function POST(req: Request) {
       }
 
       if (
-        isExpiredDate(
-          document.validUntil,
-          document.noExpiry
-        )
+        legalProofValidityIsExpired(document)
       ) {
         prechecked.push(
           emptyResult(document, {
@@ -496,7 +550,9 @@ export async function POST(req: Request) {
             summary:
               "This legal certificate has expired. Upload the renewed certificate.",
             warnings: [
-              `Certificate expired on ${document.validUntil}.`,
+              document.validityType === "financial_period"
+                ? `Certificate period ended in ${document.periodEndYear}.`
+                : `Certificate expired on ${document.validUntil}.`,
             ],
           })
         );
@@ -568,8 +624,11 @@ export async function POST(req: Request) {
         enteredNumber: document.enteredNumber,
         issuingAuthority: document.issuingAuthority,
         issueDate: document.issueDate,
+        validityType: document.validityType,
         validUntil: document.validUntil,
         noExpiry: document.noExpiry,
+        periodStartYear: document.periodStartYear,
+        periodEndYear: document.periodEndYear,
       })
     );
 
@@ -601,7 +660,10 @@ Return JSON only:
       "authorityMatched": boolean,
       "extractedIssueDate": string,
       "issueDateMatched": boolean,
+      "extractedValidityType": "exact_date" | "financial_period" | "no_expiry",
       "extractedValidUntil": string,
+      "extractedPeriodStartYear": number | null,
+      "extractedPeriodEndYear": number | null,
       "expiryMatched": boolean,
       "extractedNoExpiry": boolean,
       "noExpiryMatched": boolean,
@@ -624,8 +686,12 @@ Rules:
 - Extract the issuing authority exactly as shown where possible.
 - Compare issuing authority semantically, without inventing an authority.
 - Return dates as YYYY-MM-DD whenever readable.
-- Compare issue date and validity date with the declared values.
-- When the document explicitly states permanent, lifetime, perpetual or no expiry, set extractedNoExpiry=true.
+- Determine validity as exact_date, financial_period or no_expiry.
+- For a certificate listing periods such as 2026-2027, 2027-2028 and 2028-2029, return extractedValidityType="financial_period", extractedPeriodStartYear=2026 and extractedPeriodEndYear=2029.
+- A financial period is not an exact expiry date and must not be treated as missing merely because no DD-MM-YYYY expiry appears.
+- Compare exact dates only when validity type is exact_date.
+- Compare financial start and ending years when validity type is financial_period.
+- When the document explicitly states permanent, lifetime, perpetual or no expiry, set extractedValidityType="no_expiry" and extractedNoExpiry=true.
 - Never infer no-expiry merely because an expiry date is absent.
 - Business name and address may be approximate.
 - Do not claim database, government portal or official verification.
@@ -741,14 +807,38 @@ Rules:
             parsedDocument?.extractedIssueDate
           );
 
+        const extractedValidityType =
+          normalizeValidityType({
+            validityType:
+              parsedDocument?.extractedValidityType,
+            validUntil:
+              parsedDocument?.extractedValidUntil,
+            noExpiry:
+              parsedDocument?.extractedNoExpiry,
+            periodStartYear:
+              parsedDocument?.extractedPeriodStartYear,
+            periodEndYear:
+              parsedDocument?.extractedPeriodEndYear,
+          });
+
         const extractedValidUntil =
           normalizeIsoDate(
             parsedDocument?.extractedValidUntil
           );
 
-        const extractedNoExpiry = Boolean(
-          parsedDocument?.extractedNoExpiry
-        );
+        const extractedPeriodStartYear =
+          normalizeFinancialYear(
+            parsedDocument?.extractedPeriodStartYear
+          );
+
+        const extractedPeriodEndYear =
+          normalizeFinancialYear(
+            parsedDocument?.extractedPeriodEndYear
+          );
+
+        const extractedNoExpiry =
+          extractedValidityType === "no_expiry" ||
+          Boolean(parsedDocument?.extractedNoExpiry);
 
         const authorityMatched =
           authorityMatches(
@@ -764,17 +854,30 @@ Rules:
           ) &&
           Boolean(parsedDocument?.issueDateMatched);
 
+        const validityTypeMatched =
+          document.validityType ===
+          extractedValidityType;
+
         const noExpiryMatched =
-          document.noExpiry
-            ? extractedNoExpiry &&
-              Boolean(
-                parsedDocument?.noExpiryMatched
-              )
+          document.validityType === "no_expiry"
+            ? extractedNoExpiry
             : !extractedNoExpiry;
 
+        const financialPeriodMatched =
+          document.validityType === "financial_period"
+            ? financialPeriodsMatch(
+                document.periodStartYear,
+                document.periodEndYear,
+                extractedPeriodStartYear,
+                extractedPeriodEndYear
+              )
+            : true;
+
         const expiryMatched =
-          document.noExpiry
+          document.validityType === "no_expiry"
             ? noExpiryMatched
+            : document.validityType === "financial_period"
+            ? financialPeriodMatched
             : datesMatch(
                 document.validUntil,
                 extractedValidUntil
@@ -784,14 +887,16 @@ Rules:
               );
 
         const documentExpired =
-          isExpiredDate(
-            document.validUntil,
-            document.noExpiry
-          ) ||
-          isExpiredDate(
-            extractedValidUntil,
-            extractedNoExpiry
-          );
+          legalProofValidityIsExpired(document) ||
+          legalProofValidityIsExpired({
+            validityType: extractedValidityType,
+            validUntil: extractedValidUntil,
+            noExpiry: extractedNoExpiry,
+            periodStartYear:
+              extractedPeriodStartYear,
+            periodEndYear:
+              extractedPeriodEndYear,
+          });
 
         const confidence = Math.max(
           0,
@@ -811,6 +916,7 @@ Rules:
           !matched ||
           !authorityMatched ||
           !issueDateMatched ||
+          !validityTypeMatched ||
           !expiryMatched ||
           !noExpiryMatched
         ) {
@@ -834,9 +940,20 @@ Rules:
             document.issueDate,
           extractedIssueDate,
           issueDateMatched,
+          enteredValidityType:
+            document.validityType,
+          extractedValidityType,
+          validityTypeMatched,
           enteredValidUntil:
             document.validUntil,
           extractedValidUntil,
+          enteredPeriodStartYear:
+            document.periodStartYear,
+          enteredPeriodEndYear:
+            document.periodEndYear,
+          extractedPeriodStartYear,
+          extractedPeriodEndYear,
+          financialPeriodMatched,
           expiryMatched,
           noExpiry: document.noExpiry,
           extractedNoExpiry,

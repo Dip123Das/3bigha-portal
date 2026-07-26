@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import {
+  legalProofValidityIsComplete,
+  legalProofValidityIsExpired,
+  normalizeValidityType,
+  type LegalProofValidityType,
+} from "@/lib/registration/legalProofValidity";
 
 type Props = {
   assets: UploadedMediaAsset[];
@@ -34,8 +40,11 @@ type LegalProofMeta = {
   certificateNumber: string;
   issuingAuthority: string;
   issueDate: string;
+  validityType: LegalProofValidityType;
   validUntil: string;
   noExpiry: boolean;
+  periodStartYear: number | null;
+  periodEndYear: number | null;
 };
 
 function getLegalProofMeta(
@@ -60,10 +69,29 @@ function getLegalProofMeta(
     issueDate: String(
       value.issueDate || ""
     ),
+    validityType: normalizeValidityType({
+      validityType: value.validityType,
+      validUntil: value.validUntil,
+      noExpiry: value.noExpiry,
+      periodStartYear: value.periodStartYear,
+      periodEndYear: value.periodEndYear,
+    }),
     validUntil: String(
       value.validUntil || ""
     ),
-    noExpiry: Boolean(value.noExpiry),
+    noExpiry:
+      normalizeValidityType({
+        validityType: value.validityType,
+        noExpiry: value.noExpiry,
+      }) === "no_expiry",
+    periodStartYear:
+      Number.isInteger(Number(value.periodStartYear))
+        ? Number(value.periodStartYear)
+        : null,
+    periodEndYear:
+      Number.isInteger(Number(value.periodEndYear))
+        ? Number(value.periodEndYear)
+        : null,
   };
 }
 
@@ -80,17 +108,16 @@ function dateAtEndOfDay(value: string) {
 }
 
 function isExpiredLegalProof(
-  validUntil: string,
-  noExpiry: boolean
+  validity: Pick<
+    LegalProofMeta,
+    | "validityType"
+    | "validUntil"
+    | "noExpiry"
+    | "periodStartYear"
+    | "periodEndYear"
+  >
 ) {
-  if (noExpiry) return false;
-
-  const expiry = dateAtEndOfDay(validUntil);
-
-  return Boolean(
-    expiry &&
-      expiry.getTime() < Date.now()
-  );
+  return legalProofValidityIsExpired(validity);
 }
 
 function isFutureIssueDate(issueDate: string) {
@@ -112,10 +139,10 @@ function isFutureIssueDate(issueDate: string) {
 function validityPrecedesIssueDate(
   issueDate: string,
   validUntil: string,
-  noExpiry: boolean
+  validityType: LegalProofValidityType
 ) {
   if (
-    noExpiry ||
+    validityType !== "exact_date" ||
     !issueDate ||
     !validUntil
   ) {
@@ -148,22 +175,14 @@ function legalProofAssetIsComplete(
     meta.certificateNumber.trim() &&
       meta.issuingAuthority.trim() &&
       meta.issueDate &&
-      (
-        meta.noExpiry ||
-        meta.validUntil
-      ) &&
-      !isFutureIssueDate(
-        meta.issueDate
-      ) &&
+      legalProofValidityIsComplete(meta) &&
+      !isFutureIssueDate(meta.issueDate) &&
       !validityPrecedesIssueDate(
         meta.issueDate,
         meta.validUntil,
-        meta.noExpiry
+        meta.validityType
       ) &&
-      !isExpiredLegalProof(
-        meta.validUntil,
-        meta.noExpiry
-      )
+      !isExpiredLegalProof(meta)
   );
 }
 
@@ -300,10 +319,36 @@ function LegalProofCard({
   );
 
   const [
+    validityType,
+    setValidityType,
+  ] = useState<LegalProofValidityType>(
+    existingMeta?.validityType ||
+      normalizeValidityType(existingMeta || {})
+  );
+
+  const [
     noExpiry,
     setNoExpiry,
   ] = useState(
     Boolean(existingMeta?.noExpiry)
+  );
+
+  const [
+    periodStartYear,
+    setPeriodStartYear,
+  ] = useState(
+    existingMeta?.periodStartYear
+      ? String(existingMeta.periodStartYear)
+      : ""
+  );
+
+  const [
+    periodEndYear,
+    setPeriodEndYear,
+  ] = useState(
+    existingMeta?.periodEndYear
+      ? String(existingMeta.periodEndYear)
+      : ""
   );
 
   useEffect(() => {
@@ -321,8 +366,21 @@ function LegalProofCard({
     setValidUntil(
       latest.validUntil
     );
+    setValidityType(
+      latest.validityType
+    );
     setNoExpiry(
       latest.noExpiry
+    );
+    setPeriodStartYear(
+      latest.periodStartYear
+        ? String(latest.periodStartYear)
+        : ""
+    );
+    setPeriodEndYear(
+      latest.periodEndYear
+        ? String(latest.periodEndYear)
+        : ""
     );
   }, [assets]);
 
@@ -336,9 +394,23 @@ function LegalProofCard({
       issuingAuthority:
         issuingAuthority.trim(),
       issueDate,
+      validityType,
       validUntil:
-        noExpiry ? "" : validUntil,
-      noExpiry,
+        validityType === "exact_date"
+          ? validUntil
+          : "",
+      noExpiry:
+        validityType === "no_expiry",
+      periodStartYear:
+        validityType === "financial_period" &&
+        Number.isInteger(Number(periodStartYear))
+          ? Number(periodStartYear)
+          : null,
+      periodEndYear:
+        validityType === "financial_period" &&
+        Number.isInteger(Number(periodEndYear))
+          ? Number(periodEndYear)
+          : null,
       ...overrides,
     };
   }
@@ -389,8 +461,13 @@ function LegalProofCard({
     issueDate.length > 0;
 
   const validityReady =
-    noExpiry ||
-    validUntil.length > 0;
+    legalProofValidityIsComplete({
+      validityType,
+      validUntil,
+      noExpiry,
+      periodStartYear,
+      periodEndYear,
+    });
 
   const futureIssueDate =
     isFutureIssueDate(issueDate);
@@ -399,14 +476,23 @@ function LegalProofCard({
     validityPrecedesIssueDate(
       issueDate,
       validUntil,
-      noExpiry
+      validityType
     );
 
   const expired =
-    isExpiredLegalProof(
+    isExpiredLegalProof({
+      validityType,
       validUntil,
-      noExpiry
-    );
+      noExpiry,
+      periodStartYear:
+        Number.isInteger(Number(periodStartYear))
+          ? Number(periodStartYear)
+          : null,
+      periodEndYear:
+        Number.isInteger(Number(periodEndYear))
+          ? Number(periodEndYear)
+          : null,
+    });
 
   const structuredDetailsReady =
     certificateNumberReady &&
@@ -601,15 +687,10 @@ function LegalProofCard({
               .toISOString()
               .slice(0, 10)}
             onChange={(event) => {
-              const value =
-                event.target.value;
-
+              const value = event.target.value;
               setIssueDate(value);
-
               persistExistingAssets(
-                buildMeta({
-                  issueDate: value,
-                })
+                buildMeta({ issueDate: value })
               );
             }}
             style={{
@@ -618,8 +699,7 @@ function LegalProofCard({
               marginTop: 6,
               padding: "10px 11px",
               borderRadius: 10,
-              border:
-                "1px solid #cbd5e1",
+              border: "1px solid #cbd5e1",
               background: "#ffffff",
               fontWeight: 750,
             }}
@@ -634,22 +714,97 @@ function LegalProofCard({
             color: "#0f172a",
           }}
         >
-          Valid Until
-          {noExpiry ? "" : " *"}
+          Validity shown on certificate *
+
+          <select
+            value={validityType}
+            onChange={(event) => {
+              const next =
+                event.target.value as LegalProofValidityType;
+
+              setValidityType(next);
+              setNoExpiry(next === "no_expiry");
+
+              if (next !== "exact_date") {
+                setValidUntil("");
+              }
+
+              if (next !== "financial_period") {
+                setPeriodStartYear("");
+                setPeriodEndYear("");
+              }
+
+              persistExistingAssets(
+                buildMeta({
+                  validityType: next,
+                  noExpiry: next === "no_expiry",
+                  validUntil:
+                    next === "exact_date"
+                      ? validUntil
+                      : "",
+                  periodStartYear:
+                    next === "financial_period" &&
+                    Number.isInteger(
+                      Number(periodStartYear)
+                    )
+                      ? Number(periodStartYear)
+                      : null,
+                  periodEndYear:
+                    next === "financial_period" &&
+                    Number.isInteger(
+                      Number(periodEndYear)
+                    )
+                      ? Number(periodEndYear)
+                      : null,
+                })
+              );
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              marginTop: 6,
+              padding: "10px 11px",
+              borderRadius: 10,
+              border: "1px solid #cbd5e1",
+              background: "#ffffff",
+              fontWeight: 750,
+            }}
+          >
+            <option value="exact_date">
+              Exact expiry date
+            </option>
+            <option value="financial_period">
+              Financial / assessment period
+            </option>
+            <option value="no_expiry">
+              No expiry
+            </option>
+          </select>
+        </label>
+      </div>
+
+      {validityType === "exact_date" ? (
+        <label
+          style={{
+            display: "block",
+            marginTop: 12,
+            fontSize: 13,
+            fontWeight: 900,
+            color: "#0f172a",
+          }}
+        >
+          Valid Until *
 
           <input
             type="date"
             value={validUntil}
             min={issueDate || undefined}
-            disabled={noExpiry}
             onChange={(event) => {
-              const value =
-                event.target.value;
-
+              const value = event.target.value;
               setValidUntil(value);
-
               persistExistingAssets(
                 buildMeta({
+                  validityType: "exact_date",
                   validUntil: value,
                   noExpiry: false,
                 })
@@ -661,59 +816,154 @@ function LegalProofCard({
               marginTop: 6,
               padding: "10px 11px",
               borderRadius: 10,
-              border:
-                "1px solid #cbd5e1",
-              background:
-                noExpiry
-                  ? "#f1f5f9"
-                  : "#ffffff",
+              border: "1px solid #cbd5e1",
+              background: "#ffffff",
               fontWeight: 750,
             }}
           />
         </label>
-      </div>
+      ) : null}
 
-      <label
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          marginTop: 11,
-          fontSize: 13,
-          fontWeight: 850,
-          color: "#334155",
-        }}
-      >
-        <input
-          type="checkbox"
-          checked={noExpiry}
-          onChange={(event) => {
-            const checked =
-              event.target.checked;
-
-            setNoExpiry(checked);
-
-            if (checked) {
-              setValidUntil("");
-            }
-
-            persistExistingAssets(
-              buildMeta({
-                noExpiry: checked,
-                validUntil: checked
-                  ? ""
-                  : validUntil,
-              })
-            );
-          }}
+      {validityType === "financial_period" ? (
+        <div
           style={{
-            width: 17,
-            height: 17,
+            marginTop: 12,
+            padding: 12,
+            borderRadius: 12,
+            border: "1px solid #bfdbfe",
+            background: "#eff6ff",
           }}
-        />
+        >
+          <div
+            style={{
+              fontWeight: 900,
+              color: "#1e3a8a",
+              fontSize: 13,
+            }}
+          >
+            Financial or assessment period
+          </div>
 
-        This certificate has no expiry date
-      </label>
+          <div
+            style={{
+              marginTop: 5,
+              color: "#475569",
+              fontSize: 12,
+              lineHeight: 1.5,
+            }}
+          >
+            Example: a certificate covering 2026–2027,
+            2027–2028 and 2028–2029 should be entered
+            as start year 2026 and end year 2029.
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(150px, 1fr))",
+              gap: 10,
+              marginTop: 10,
+            }}
+          >
+            <label
+              style={{
+                fontSize: 13,
+                fontWeight: 900,
+              }}
+            >
+              Start year *
+
+              <input
+                type="number"
+                min="1900"
+                max="2200"
+                value={periodStartYear}
+                placeholder="2026"
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setPeriodStartYear(value);
+                  persistExistingAssets(
+                    buildMeta({
+                      validityType:
+                        "financial_period",
+                      periodStartYear:
+                        Number.isInteger(Number(value))
+                          ? Number(value)
+                          : null,
+                    })
+                  );
+                }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  marginTop: 6,
+                  padding: "10px 11px",
+                  borderRadius: 10,
+                  border: "1px solid #cbd5e1",
+                }}
+              />
+            </label>
+
+            <label
+              style={{
+                fontSize: 13,
+                fontWeight: 900,
+              }}
+            >
+              End year *
+
+              <input
+                type="number"
+                min="1900"
+                max="2200"
+                value={periodEndYear}
+                placeholder="2029"
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setPeriodEndYear(value);
+                  persistExistingAssets(
+                    buildMeta({
+                      validityType:
+                        "financial_period",
+                      periodEndYear:
+                        Number.isInteger(Number(value))
+                          ? Number(value)
+                          : null,
+                    })
+                  );
+                }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  marginTop: 6,
+                  padding: "10px 11px",
+                  borderRadius: 10,
+                  border: "1px solid #cbd5e1",
+                }}
+              />
+            </label>
+          </div>
+        </div>
+      ) : null}
+
+      {validityType === "no_expiry" ? (
+        <div
+          style={{
+            marginTop: 12,
+            padding: "10px 12px",
+            borderRadius: 10,
+            border: "1px solid #bbf7d0",
+            background: "#f0fdf4",
+            color: "#166534",
+            fontSize: 13,
+            fontWeight: 850,
+          }}
+        >
+          ✓ The certificate explicitly states that it has
+          no expiry.
+        </div>
+      ) : null}
 
       {futureIssueDate ? (
         <div
@@ -767,9 +1017,9 @@ function LegalProofCard({
             fontWeight: 850,
           }}
         >
-          This certificate expired on{" "}
-          {validUntil}. Please provide
-          the renewed certificate.
+          {validityType === "financial_period"
+            ? `This certificate period ended in ${periodEndYear}. Please provide the renewed certificate.`
+            : `This certificate expired on ${validUntil}. Please provide the renewed certificate.`}
         </div>
       ) : null}
 
@@ -925,6 +1175,10 @@ export default function BusinessVerificationPanel({
     "checking" | "available" | "unavailable" | "unknown"
   >("checking");
   const [handoffMessage, setHandoffMessage] = useState("");
+  const [
+    selectedLegalKind,
+    setSelectedLegalKind,
+  ] = useState<LegalProofKind>("trade-license");
 
   useEffect(() => {
     let cancelled = false;
@@ -1276,92 +1530,163 @@ export default function BusinessVerificationPanel({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-                gap: 12,
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(170px, 1fr))",
+                gap: 9,
+                marginBottom: 14,
               }}
             >
-              <LegalProofCard
-                title="GST Registration"
-                description="For the GSTIN entered in Business Identity."
-                kind="gst"
-                assets={gstAssets}
-                allAssets={assets}
-                onChange={onChange}
-                verification={verificationFor("gst")}
-                certificateNumber={
-                  registrationNumbers.gstin
-                }
-                certificateNumberLabel="GSTIN"
-                onCertificateNumberChange={(value) =>
-                  onRegistrationNumberChange(
-                    "gstin",
-                    value
-                  )
-                }
-              />
-              <LegalProofCard
-                title="Trade Licence"
-                description="For the Trade Licence number entered in Business Identity."
-                kind="trade-license"
-                assets={tradeLicenseAssets}
-                allAssets={assets}
-                onChange={onChange}
-                verification={verificationFor("trade_license")}
-                certificateNumber={
-                  registrationNumbers.tradeLicenseNo
-                }
-                certificateNumberLabel="Trade Licence Number"
-                onCertificateNumberChange={(value) =>
-                  onRegistrationNumberChange(
-                    "tradeLicenseNo",
-                    value
-                  )
-                }
-              />
-              <LegalProofCard
-                title="UDYAM Registration"
-                description="For the UDYAM number entered in Business Identity."
-                kind="udyam"
-                assets={udyamAssets}
-                allAssets={assets}
-                onChange={onChange}
-                verification={verificationFor("udyam")}
-                certificateNumber={
-                  registrationNumbers.udyamNo
-                }
-                certificateNumberLabel="UDYAM Registration Number"
-                onCertificateNumberChange={(value) =>
-                  onRegistrationNumberChange(
-                    "udyamNo",
-                    value
-                  )
-                }
-              />
-              <LegalProofCard
-                title="Other Legal Registration"
-                description="PAN, FSSAI, Shop & Establishment, professional registration or another applicable business certificate."
-                kind="other"
-                assets={otherLegalAssets}
-                allAssets={assets}
-                onChange={onChange}
-                verification={
-                  verificationFor("pan") ||
-                  verificationFor("fssai") ||
-                  verificationFor("shop_establishment") ||
-                  verificationFor("professional_registration") ||
-                  verificationFor("other")
-                }
-                certificateNumber={
-                  registrationNumbers.otherRegistrationNo
-                }
-                certificateNumberLabel="Other Registration / PAN Number"
-                onCertificateNumberChange={(value) =>
-                  onRegistrationNumberChange(
-                    "otherRegistrationNo",
-                    value
-                  )
-                }
-              />
+              {([
+                ["trade-license", "Trade Licence"],
+                ["gst", "GST Registration"],
+                ["udyam", "UDYAM Registration"],
+                ["other", "Other Registration"],
+              ] as const).map(([kind, label]) => {
+                const added =
+                  kind === "trade-license"
+                    ? tradeLicenseAssets.length > 0
+                    : kind === "gst"
+                    ? gstAssets.length > 0
+                    : kind === "udyam"
+                    ? udyamAssets.length > 0
+                    : otherLegalAssets.length > 0;
+
+                const selected =
+                  selectedLegalKind === kind;
+
+                return (
+                  <button
+                    key={kind}
+                    type="button"
+                    onClick={() =>
+                      setSelectedLegalKind(kind)
+                    }
+                    style={{
+                      minHeight: 46,
+                      padding: "10px 12px",
+                      borderRadius: 12,
+                      border: selected
+                        ? "2px solid #2563eb"
+                        : "1px solid #cbd5e1",
+                      background: selected
+                        ? "#eff6ff"
+                        : "#ffffff",
+                      color: selected
+                        ? "#1e40af"
+                        : "#334155",
+                      fontWeight: 900,
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
+                  >
+                    {added ? "✓ " : "○ "}
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ maxWidth: 720 }}>
+              {selectedLegalKind === "gst" ? (
+                <LegalProofCard
+                  title="GST Registration"
+                  description="For the GSTIN entered in Business Identity."
+                  kind="gst"
+                  assets={gstAssets}
+                  allAssets={assets}
+                  onChange={onChange}
+                  verification={verificationFor("gst")}
+                  certificateNumber={
+                    registrationNumbers.gstin
+                  }
+                  certificateNumberLabel="GSTIN"
+                  onCertificateNumberChange={(value) =>
+                    onRegistrationNumberChange(
+                      "gstin",
+                      value
+                    )
+                  }
+                />
+              ) : null}
+
+              {selectedLegalKind ===
+              "trade-license" ? (
+                <LegalProofCard
+                  title="Trade Licence"
+                  description="Use the validity style actually printed on the licence. Financial or assessment-year periods do not require an invented exact expiry date."
+                  kind="trade-license"
+                  assets={tradeLicenseAssets}
+                  allAssets={assets}
+                  onChange={onChange}
+                  verification={verificationFor(
+                    "trade_license"
+                  )}
+                  certificateNumber={
+                    registrationNumbers.tradeLicenseNo
+                  }
+                  certificateNumberLabel="Trade Licence Number"
+                  onCertificateNumberChange={(value) =>
+                    onRegistrationNumberChange(
+                      "tradeLicenseNo",
+                      value
+                    )
+                  }
+                />
+              ) : null}
+
+              {selectedLegalKind === "udyam" ? (
+                <LegalProofCard
+                  title="UDYAM Registration"
+                  description="For the UDYAM number entered in Business Identity."
+                  kind="udyam"
+                  assets={udyamAssets}
+                  allAssets={assets}
+                  onChange={onChange}
+                  verification={verificationFor("udyam")}
+                  certificateNumber={
+                    registrationNumbers.udyamNo
+                  }
+                  certificateNumberLabel="UDYAM Registration Number"
+                  onCertificateNumberChange={(value) =>
+                    onRegistrationNumberChange(
+                      "udyamNo",
+                      value
+                    )
+                  }
+                />
+              ) : null}
+
+              {selectedLegalKind === "other" ? (
+                <LegalProofCard
+                  title="Other Legal Registration"
+                  description="PAN, FSSAI, Shop & Establishment, professional registration or another applicable certificate."
+                  kind="other"
+                  assets={otherLegalAssets}
+                  allAssets={assets}
+                  onChange={onChange}
+                  verification={
+                    verificationFor("pan") ||
+                    verificationFor("fssai") ||
+                    verificationFor(
+                      "shop_establishment"
+                    ) ||
+                    verificationFor(
+                      "professional_registration"
+                    ) ||
+                    verificationFor("other")
+                  }
+                  certificateNumber={
+                    registrationNumbers.otherRegistrationNo
+                  }
+                  certificateNumberLabel="Other Registration / PAN Number"
+                  onCertificateNumberChange={(value) =>
+                    onRegistrationNumberChange(
+                      "otherRegistrationNo",
+                      value
+                    )
+                  }
+                />
+              ) : null}
             </div>
 
             {legacyLegalAssets.length ? (
@@ -1827,6 +2152,9 @@ export default function BusinessVerificationPanel({
           >
             {documentVerifyLoading
               ? "Checking legal documents..."
+              : documentVerification?.status ===
+                "needs_manual_review"
+              ? "Recheck after changing the document"
               : "Verify My Business Proof"}
           </button>
 

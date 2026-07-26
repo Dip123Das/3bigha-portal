@@ -18,6 +18,12 @@ import {
   resolveRegistrationReadiness,
   type BusinessProofStatus as CanonicalBusinessProofStatus,
 } from "@/lib/registration/resolveRegistrationReadiness";
+import {
+  legalProofValidityIsComplete,
+  legalProofValidityIsExpired,
+  normalizeValidityType,
+  type LegalProofValidityType,
+} from "@/lib/registration/legalProofValidity";
 
 async function ensureSessionOrRedirect(
   supabase: any,
@@ -57,8 +63,11 @@ type LegalProofMeta = {
   certificateNumber: string;
   issuingAuthority: string;
   issueDate: string;
+  validityType: LegalProofValidityType;
   validUntil: string;
   noExpiry: boolean;
+  periodStartYear: number | null;
+  periodEndYear: number | null;
 };
 
 type BusinessMediaAsset = UploadedMediaAsset & {
@@ -99,10 +108,31 @@ function normalizeLegalProofMeta(
     issueDate: String(
       candidate.issueDate || ""
     ).trim(),
+    validityType: normalizeValidityType({
+      validityType: candidate.validityType as string,
+      validUntil: candidate.validUntil as string,
+      noExpiry: Boolean(candidate.noExpiry),
+      periodStartYear:
+        candidate.periodStartYear as number | string,
+      periodEndYear:
+        candidate.periodEndYear as number | string,
+    }),
     validUntil: String(
       candidate.validUntil || ""
     ).trim(),
-    noExpiry: Boolean(candidate.noExpiry),
+    noExpiry:
+      normalizeValidityType({
+        validityType: candidate.validityType as string,
+        noExpiry: Boolean(candidate.noExpiry),
+      }) === "no_expiry",
+    periodStartYear:
+      Number.isInteger(Number(candidate.periodStartYear))
+        ? Number(candidate.periodStartYear)
+        : null,
+    periodEndYear:
+      Number.isInteger(Number(candidate.periodEndYear))
+        ? Number(candidate.periodEndYear)
+        : null,
   };
 }
 
@@ -137,17 +167,7 @@ function legalProofDate(
 function legalProofIsExpired(
   meta: LegalProofMeta
 ) {
-  if (meta.noExpiry) return false;
-
-  const expiry = legalProofDate(
-    meta.validUntil,
-    true
-  );
-
-  return Boolean(
-    expiry &&
-      expiry.getTime() < Date.now()
-  );
+  return legalProofValidityIsExpired(meta);
 }
 
 function legalProofIssueDateIsFuture(
@@ -169,7 +189,7 @@ function legalProofValidityPrecedesIssue(
   meta: LegalProofMeta
 ) {
   if (
-    meta.noExpiry ||
+    normalizeValidityType(meta) !== "exact_date" ||
     !meta.issueDate ||
     !meta.validUntil
   ) {
@@ -203,10 +223,7 @@ function legalProofAssetIsComplete(
     meta.certificateNumber &&
       meta.issuingAuthority &&
       meta.issueDate &&
-      (
-        meta.noExpiry ||
-        meta.validUntil
-      ) &&
+      legalProofValidityIsComplete(meta) &&
       !legalProofIssueDateIsFuture(meta) &&
       !legalProofValidityPrecedesIssue(meta) &&
       !legalProofIsExpired(meta)
@@ -1006,10 +1023,16 @@ export default function BusinessOnboardingPageClient() {
           meta?.issuingAuthority || "",
         issueDate:
           meta?.issueDate || "",
+        validityType:
+          meta?.validityType || "exact_date",
         validUntil:
           meta?.validUntil || "",
         noExpiry:
           meta?.noExpiry || false,
+        periodStartYear:
+          meta?.periodStartYear || null,
+        periodEndYear:
+          meta?.periodEndYear || null,
         legalProofMeta: meta,
         mediaAssets:
           mediaAssetsForDocument,
