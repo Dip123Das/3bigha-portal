@@ -1540,9 +1540,7 @@ export default function BusinessOnboardingPageClient() {
       description:
         businessProofStatusLabel[businessProofStatus],
       targetId: "sec-documents",
-      complete:
-        businessProofReady &&
-        liveSelfieReady,
+      complete: businessProofReady,
     },
     {
       key: "review",
@@ -1609,9 +1607,12 @@ export default function BusinessOnboardingPageClient() {
 
     if (
       targetId === "sec-documents" ||
-      targetId === "sec-legal-proof" ||
-      targetId === "sec-selfie"
+      targetId === "sec-legal-proof"
     ) {
+      return "documents";
+    }
+
+    if (targetId === "sec-selfie") {
       return "documents";
     }
 
@@ -2132,14 +2133,11 @@ export default function BusinessOnboardingPageClient() {
       }
 
       /*
-       * P04-E4E
+       * The authenticated server is the only activation authority.
        *
-       * Registration verification is decided exclusively by
-       * the authenticated server orchestration.
-       *
-       * The browser consumes the canonical result only. It does
-       * not calculate verification, approval, dashboard readiness,
-       * subscription state or role assignment.
+       * The browser submits no approval, verification, role,
+       * subscription or dashboard-access decision. It consumes
+       * only the final canonical activation result.
        */
       const acceptedCompletionCodes = new Set([
         "REGISTRATION_COMPLETION_AND_DASHBOARD_ACTIVATED",
@@ -2188,7 +2186,10 @@ export default function BusinessOnboardingPageClient() {
       );
 
       setMsg(
-        "Registration could not be completed because the server could not be reached. Please try again."
+        error instanceof Error &&
+          error.message.trim()
+          ? error.message
+          : "Registration could not be completed safely. Please try again."
       );
     } finally {
       setSaving(false);

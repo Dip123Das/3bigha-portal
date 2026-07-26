@@ -501,18 +501,23 @@ export async function POST() {
      *
      * No trust or capability decision is accepted from the client.
      */
-    let registrationIntelligence: {
-      status: "created";
-      snapshotId: string;
-      version: string;
-      trustScore: number;
-      trustConfidence: number;
-      confidenceBand: string;
-      requiresHumanReview: boolean;
-      evidenceCount: number;
-      capabilityCount: number;
-      createdAt: string;
-    };
+    let registrationIntelligence:
+      | {
+          status: "created";
+          snapshotId: string;
+          version: string;
+          trustScore: number;
+          trustConfidence: number;
+          confidenceBand: string;
+          requiresHumanReview: boolean;
+          evidenceCount: number;
+          capabilityCount: number;
+          createdAt: string;
+        }
+      | {
+          status: "deferred";
+          reason: string;
+        };
 
     try {
       const intelligenceSnapshot =
@@ -562,22 +567,31 @@ export async function POST() {
         createdAt: persistedSnapshot.createdAt,
       };
     } catch (intelligenceError) {
+      const intelligenceFailureMessage =
+        intelligenceError instanceof Error
+          ? intelligenceError.message
+          : "Registration intelligence could not be recorded.";
+
       console.error(
-        "REGISTRATION_INTELLIGENCE_PERSISTENCE_FAILED",
+        "REGISTRATION_INTELLIGENCE_PERSISTENCE_DEFERRED",
         {
           userId: user.id,
-          error:
-            intelligenceError instanceof Error
-              ? intelligenceError.message
-              : intelligenceError,
+          error: intelligenceFailureMessage,
         }
       );
 
-      return errorResponse(
-        "Registration was completed and verified, but registration intelligence could not be recorded safely.",
-        500,
-        "REGISTRATION_INTELLIGENCE_FAILED"
-      );
+      /*
+       * Dashboard activation has already succeeded through the
+       * authoritative database transaction. Registration
+       * intelligence is auxiliary and must never reverse or
+       * misrepresent that successful activation.
+       *
+       * A later refresh may safely rebuild this snapshot.
+       */
+      registrationIntelligence = {
+        status: "deferred",
+        reason: intelligenceFailureMessage,
+      };
     }
 
     return NextResponse.json({
