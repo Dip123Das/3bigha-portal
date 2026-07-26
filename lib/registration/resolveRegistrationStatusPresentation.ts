@@ -91,7 +91,7 @@ export function resolveRegistrationStatusPresentation(
     status: approved ? "Received" : "Continue anytime",
     detail: approved
       ? "Your submitted business information has been received. You may review and improve it from your Business Profile."
-      : "Some business information has been saved. This does not mean that every part of your profile is complete.",
+      : "Your business information has been saved. Evidence collection and business-proof verification are shown separately.",
     tone: approved ? "positive" : "neutral",
   };
 
@@ -122,7 +122,7 @@ export function resolveRegistrationStatusPresentation(
       label: "Business verification",
       status: "Review pending",
       detail:
-        "Only the evidence you submitted is awaiting review. You may continue completing your profile and using the Essential Workspace.",
+        "Your submitted evidence has been received. Business-proof verification is still in progress, while your Essential Workspace remains available.",
       tone: "attention",
     };
   }
@@ -244,7 +244,7 @@ export function resolveRegistrationStatusPresentation(
     eyebrow: "Business setup",
     title: "Your saved information is safe",
     message:
-      "Business verification is pending, but it does not block your Essential Workspace. Continue completing your Business Profile now or go directly to your workspace.",
+      "Your business information is saved and your submitted evidence is awaiting a verification decision. This does not block your Essential Workspace.",
     steps: [
       identityStep,
       reviewStep,
@@ -253,7 +253,7 @@ export function resolveRegistrationStatusPresentation(
     ],
     actions: [
       {
-        label: "Continue my Business Profile",
+        label: "Review my Business Profile",
         href: "/onboarding/business?returnTo=%2Fdashboard%2Fworkspace&registration=1",
         kind: "primary",
       },

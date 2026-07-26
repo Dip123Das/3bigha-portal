@@ -1197,7 +1197,7 @@ export default function BusinessVerificationPanel({
               fontWeight: 950,
             }}
           >
-            {verificationProgress}% complete
+            {verificationProgress}% evidence collected
           </div>
         </div>
 
@@ -1230,7 +1230,8 @@ export default function BusinessVerificationPanel({
             fontWeight: 900,
           }}
         >
-          ✓ Uploaded evidence is saved to this registration
+          ✓ Uploaded evidence is saved to this registration.
+          Evidence collection and business-proof verification are separate.
         </div>
       </div>
 

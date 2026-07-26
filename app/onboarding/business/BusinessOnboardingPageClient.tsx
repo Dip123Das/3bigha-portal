@@ -14,6 +14,10 @@ import BusinessIdentityJourney, {
   type BusinessIdentityJourneyStep,
 } from "@/components/onboarding/BusinessIdentityJourney";
 import BusinessVerificationPanel from "@/components/onboarding/BusinessVerificationPanel";
+import {
+  resolveRegistrationReadiness,
+  type BusinessProofStatus as CanonicalBusinessProofStatus,
+} from "@/lib/registration/resolveRegistrationReadiness";
 
 async function ensureSessionOrRedirect(
   supabase: any,
@@ -1317,12 +1321,7 @@ export default function BusinessOnboardingPageClient() {
   );
 
   type BusinessProofStatus =
-    | "not_uploaded"
-    | "ready_to_verify"
-    | "verifying"
-    | "under_review"
-    | "needs_correction"
-    | "verified";
+    CanonicalBusinessProofStatus;
 
   const businessProofStatus: BusinessProofStatus =
     isPureBlogOnly
@@ -1351,12 +1350,26 @@ export default function BusinessOnboardingPageClient() {
       ? "under_review"
       : "ready_to_verify";
 
+  const canonicalReadiness =
+    resolveRegistrationReadiness({
+      identityReady,
+      addressReady,
+      aboutReady,
+      coverageReady,
+      legalProofReady,
+      practicalProofReady,
+      liveSelfieReady,
+      businessProofStatus,
+      declarationsAccepted: termsAccepted,
+      dashboardActivated:
+        registrationCompleteUI,
+    });
+
   const documentVerificationReady =
-    businessProofStatus === "verified";
+    canonicalReadiness.businessProofReady;
 
   const businessProofReady =
-    legalProofReady &&
-    documentVerificationReady;
+    canonicalReadiness.businessProofReady;
 
   const businessProofStatusLabel: Record<
     BusinessProofStatus,
@@ -1426,8 +1439,12 @@ export default function BusinessOnboardingPageClient() {
       (check) => !check.complete
     );
 
+  /*
+   * Final activation now follows the canonical readiness engine.
+   * The local checklist remains only as a UI navigation projection.
+   */
   const registrationReadyUI =
-    registrationPendingChecks.length === 0;
+    canonicalReadiness.registrationReady;
 
   const firstRegistrationPendingCheck =
     registrationPendingChecks[0] || null;
@@ -1445,19 +1462,10 @@ export default function BusinessOnboardingPageClient() {
    * from the actual registration requirements.
    */
   const completedRegistrationChecks =
-    registrationReadinessChecks.filter(
-      (check) => check.complete
-    ).length;
+    canonicalReadiness.completedRequiredSteps;
 
   const weightedCompletionScore =
-    registrationReadinessChecks.length > 0
-      ? Math.round(
-          (
-            completedRegistrationChecks /
-            registrationReadinessChecks.length
-          ) * 100
-        )
-      : 0;
+    canonicalReadiness.progressPercent;
 
   /*
    * Human-First Business Identity Journey
