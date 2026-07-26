@@ -224,14 +224,33 @@ export function resolveDocumentDecision(
     return "document_mismatch";
   }
 
-  const uncertain = reviews.some(
+  /*
+   * Autonomous registration rule
+   *
+   * Routine registrations must be completed by AI without
+   * administrator approval when:
+   *
+   * - the document is readable,
+   * - it is not expired,
+   * - no hard field has a confirmed mismatch,
+   * - the overall AI confidence is sufficient.
+   *
+   * Missing optional/soft comparison data must not block an
+   * otherwise successful registration. Manual review is reserved
+   * for uncertainty in authoritative hard fields or genuinely low
+   * confidence.
+   */
+  const unresolvedHardField = reviews.some(
     (review) =>
-      review.state === "uncertain" ||
-      review.state === "not_available"
+      review.severity === "hard" &&
+      (
+        review.state === "uncertain" ||
+        review.state === "not_available"
+      )
   );
 
   if (
-    uncertain ||
+    unresolvedHardField ||
     options.overallConfidence < 75
   ) {
     return "needs_manual_review";
