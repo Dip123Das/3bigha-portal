@@ -794,18 +794,17 @@ export default function UniversalMediaUploader({
                   }}
                 />
               ) : (
-                <div
-                  style={{
-                    height: 120,
-                    display: "grid",
-                    placeItems: "center",
-                    background: "#f1f5f9",
-                    fontWeight: 950,
-                    color: "#334155",
-                  }}
+                <a
+                  href={asset.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="registration-document-link"
+                  aria-label={`Open ${asset.name}`}
                 >
-                  📄 PDF
-                </div>
+                  <span>
+                    📄 Open PDF
+                  </span>
+                </a>
               )}
 
               <div style={{ padding: 10 }}>

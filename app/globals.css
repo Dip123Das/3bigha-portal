@@ -3898,3 +3898,200 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   }
 }
 
+
+/* R3.4D — Human-First Business Verification Experience */
+.registration-page-shell {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 28px clamp(16px, 3vw, 48px) 48px;
+}
+
+.registration-workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  gap: 24px;
+  align-items: start;
+  margin-top: 20px;
+}
+
+.registration-main-column {
+  min-width: 0;
+  display: grid;
+  gap: 18px;
+}
+
+.registration-status-rail {
+  position: sticky;
+  top: 20px;
+  display: grid;
+  gap: 14px;
+}
+
+.registration-status-card,
+.registration-help-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 17px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.registration-status-eyebrow {
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.registration-status-heading-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 7px;
+}
+
+.registration-status-heading-row h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.registration-status-heading-row p {
+  margin: 5px 0 0;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.registration-status-heading-row > strong {
+  font-size: 22px;
+  color: #1d4ed8;
+}
+
+.registration-progress-track {
+  height: 9px;
+  margin-top: 14px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.registration-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #2563eb;
+  transition: width 200ms ease;
+}
+
+.registration-status-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.registration-status-facts > div {
+  padding: 9px;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.registration-status-facts span {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.registration-status-facts b {
+  display: block;
+  margin-top: 3px;
+}
+
+.registration-confidence,
+.registration-updated {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.registration-updated {
+  opacity: 0.72;
+}
+
+.registration-primary-action {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #1d4ed8;
+  border-radius: 11px;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.registration-primary-action:disabled {
+  border-color: #cbd5e1;
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.registration-help-card summary {
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.registration-help-card p {
+  color: #475569;
+  line-height: 1.55;
+}
+
+.registration-secondary-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.registration-secondary-actions button {
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #334155;
+  font-weight: 800;
+}
+
+.registration-document-link {
+  height: 120px;
+  display: grid;
+  place-items: center;
+  background: #f1f5f9;
+  color: #1d4ed8;
+  font-weight: 950;
+  text-decoration: none;
+}
+
+.registration-document-link:hover {
+  background: #e0e7ff;
+}
+
+@media (max-width: 1024px) {
+  .registration-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .registration-status-rail {
+    position: static;
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .registration-page-shell {
+    padding: 18px 12px 36px;
+  }
+
+  .registration-status-facts {
+    grid-template-columns: 1fr;
+  }
+}

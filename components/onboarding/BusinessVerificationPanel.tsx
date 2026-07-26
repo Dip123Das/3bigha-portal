@@ -1586,7 +1586,7 @@ export default function BusinessVerificationPanel({
               })}
             </div>
 
-            <div style={{ maxWidth: 720 }}>
+            <div style={{ width: "100%" }}>
               {selectedLegalKind === "gst" ? (
                 <LegalProofCard
                   title="GST Registration"
@@ -1864,7 +1864,7 @@ export default function BusinessVerificationPanel({
                     color: "#475569",
                     fontSize: 13,
                     lineHeight: 1.6,
-                    maxWidth: 760,
+                    width: "100%",
                   }}
                 >
                   Add one to five recent photos from the real business

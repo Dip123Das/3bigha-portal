@@ -14,6 +14,7 @@ import BusinessIdentityJourney, {
   type BusinessIdentityJourneyStep,
 } from "@/components/onboarding/BusinessIdentityJourney";
 import BusinessVerificationPanel from "@/components/onboarding/BusinessVerificationPanel";
+import BusinessRegistrationStatusRail from "@/components/onboarding/BusinessRegistrationStatusRail";
 import {
   resolveRegistrationReadiness,
   type BusinessProofStatus as CanonicalBusinessProofStatus,
@@ -2235,14 +2236,14 @@ export default function BusinessOnboardingPageClient() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: 900, margin: "40px auto", padding: 12 }}>
+      <div className="registration-page-shell">
         Loading business profile...
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: "40px auto", padding: 12 }}>
+    <div className="registration-page-shell">
       <div style={{ color: "#1d4ed8", fontWeight: 900, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase" }}>
         {streamlinedRegistration ? "Workspace setup · Business details" : "Business profile"}
       </div>
@@ -2301,279 +2302,8 @@ export default function BusinessOnboardingPageClient() {
         />
       </div>
 
-      <div style={{ marginTop: 18, padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <div>
-            <div>
-              Status:{" "}
-              <b
-                style={{
-                  color: registrationReadyUI
-                    ? "green"
-                    : "crimson",
-                }}
-              >
-                {registrationReadyUI
-                  ? "Ready for Review"
-                  : "Needs Attention"}
-              </b>{" "}
-              | Profile readiness: <b>{weightedCompletionScore}%</b>
-              {vcLoading && <span style={{ marginLeft: 10, opacity: 0.7 }}>(updating…)</span>}
-            </div>
-            <div style={{ marginTop: 6, opacity: 0.8 }}>
-              Registration:{" "}
-              <b style={{ color: registrationCompleteUI ? "green" : "crimson" }}>
-                {registrationCompleteUI ? "Complete" : "Not Complete"}
-              </b>
-              {vc?.updated_at ? (
-                <span style={{ marginLeft: 10, opacity: 0.7 }}>
-                  Updated: {new Date(vc.updated_at).toLocaleString()}
-                </span>
-              ) : null}
-            </div>
-
-            <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <button
-                type="button"
-                onClick={() => {
-                  const targetId =
-                    firstRegistrationPendingCheck?.targetId ||
-                    firstPendingStep.targetId ||
-                    "sec-review";
-
-                  openJourneyStep(
-                    journeyKeyForTarget(targetId),
-                    targetId
-                  );
-                }}
-                style={{ padding: 10, fontWeight: 700 }}
-              >
-                Go to Next Pending Step
-              </button>
-            </div>
-          </div>
-
-          <div style={{ minWidth: 220 }}>
-            <div style={{ fontWeight: 700, marginBottom: 6 }}>Progress</div>
-            <div style={{ height: 10, background: "#eee", borderRadius: 12 }}>
-              <div
-                style={{
-                  height: 10,
-                  width: `${weightedCompletionScore}%`,
-                  background:
-                    weightedCompletionScore >= 100 ? "green" : "#2563eb",
-                  borderRadius: 12,
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {!registrationReadyUI ? (
-          <div
-            style={{
-              marginTop: 12,
-              padding: 10,
-              borderRadius: 8,
-              background: "#fff7ed",
-              border: "1px solid #fed7aa",
-            }}
-          >
-            <div
-              style={{
-                fontWeight: 900,
-                marginBottom: 6,
-                color: "#9a3412",
-              }}
-            >
-              Complete these steps before Review & Finish:
-            </div>
-
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              {registrationPendingChecks.map((check) => (
-                <li
-                  key={check.key}
-                  style={{ marginBottom: 4 }}
-                >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      openJourneyStep(
-                        journeyKeyForTarget(
-                          check.targetId
-                        ),
-                        check.targetId
-                      )
-                    }
-                    style={{
-                      border: 0,
-                      padding: 0,
-                      background: "transparent",
-                      color: "#9a3412",
-                      fontWeight: 750,
-                      textAlign: "left",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {check.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
-        <div
-          id="sec-review"
-          style={{
-            marginTop: 14,
-            display: "flex",
-            gap: 12,
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
-          {!registrationCompleteUI ? (
-            <div
-              style={{
-                width: "100%",
-                padding: 12,
-                borderRadius: 12,
-                border: termsAccepted
-                  ? "1px solid #86efac"
-                  : "1px solid #fed7aa",
-                background: termsAccepted
-                  ? "#f0fdf4"
-                  : "#fff7ed",
-              }}
-            >
-              <label
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 10,
-                  fontWeight: 750,
-                  lineHeight: 1.55,
-                  cursor: "pointer",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={termsAccepted}
-                  onChange={(event) =>
-                    setTermsAccepted(
-                      event.target.checked
-                    )
-                  }
-                  style={{
-                    marginTop: 4,
-                    width: 18,
-                    height: 18,
-                  }}
-                />
-
-                <span>
-                  I have reviewed my submitted
-                  information and agree to the{" "}
-                  <a
-                    href="/terms-and-conditions"
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(event) =>
-                      event.stopPropagation()
-                    }
-                  >
-                    Terms & Conditions
-                  </a>{" "}
-                  and{" "}
-                  <a
-                    href="/privacy-policy"
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(event) =>
-                      event.stopPropagation()
-                    }
-                  >
-                    Privacy Policy
-                  </a>
-                  .
-                </span>
-              </label>
-            </div>
-          ) : null}
-
-          {registrationCompleteUI ? (
-            <>
-              <div style={{ fontWeight: 800, color: "green" }}>
-                ✅ Registration Complete
-              </div>
-
-              <button
-                type="button"
-                onClick={() => router.replace(returnTo)}
-                style={{
-                  padding: "10px 14px",
-                  fontWeight: 800,
-                  borderRadius: 10,
-                  border: "1px solid #16a34a",
-                  background: "#16a34a",
-                  color: "#fff",
-                  cursor: "pointer",
-                }}
-              >
-                Open Dashboard
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                disabled={
-                  saving ||
-                  !registrationReadyUI ||
-                  !termsAccepted
-                }
-                onClick={onFinishRegistration}
-                style={{
-                  padding: "10px 14px",
-                  fontWeight: 800,
-                  borderRadius: 10,
-                  border: "1px solid #16a34a",
-                  background:
-                    saving ||
-                    !registrationReadyUI ||
-                    !termsAccepted
-                      ? "#cbd5e1"
-                      : "#16a34a",
-                  color: "#fff",
-                  cursor:
-                    saving ||
-                    !registrationReadyUI ||
-                    !termsAccepted
-                      ? "not-allowed"
-                      : "pointer",
-                  opacity:
-                    saving ||
-                    !registrationReadyUI ||
-                    !termsAccepted
-                      ? 0.8
-                      : 1,
-                }}
-              >
-                {saving ? "Activating..." : "🚀 Activate My Dashboard"}
-              </button>
-
-              {!registrationReadyUI && (
-                <span style={{ opacity: 0.8 }}>
-                  Complete every required identity,
-                  address, coverage and verification
-                  step before finishing registration.
-                </span>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+      <div className="registration-workspace-grid">
+        <div className="registration-main-column">
 
       <form onSubmit={onSave} style={{ marginTop: 20, display: "grid", gap: 16 }}>
         {!streamlinedRegistration ? <section id="sec-nature" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
@@ -3207,20 +2937,58 @@ export default function BusinessOnboardingPageClient() {
 
         {msg && <div style={{ color: msg.includes("✅") ? "green" : "crimson", fontWeight: 800 }}>{msg}</div>}
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button type="submit" disabled={saving} style={{ padding: 10, fontWeight: 700 }}>
-            {saving ? "Saving..." : "Save"}
+        <div className="registration-secondary-actions">
+          <button type="submit" disabled={saving}>
+            {saving ? "Saving..." : "Save Draft"}
           </button>
 
-          <button type="button" disabled={saving} onClick={onSaveAndContinue} style={{ padding: 10, fontWeight: 700 }}>
-            Save & Go to Review
+          <button
+            type="button"
+            disabled={saving}
+            onClick={onSaveAndContinue}
+          >
+            Save and Review
           </button>
 
-          <button type="button" onClick={() => router.replace(returnTo)} style={{ padding: 10 }}>
-            Back
+          <button
+            type="button"
+            onClick={() => router.replace(returnTo)}
+          >
+            Leave Setup
           </button>
         </div>
       </form>
+        </div>
+
+        <aside>
+          <BusinessRegistrationStatusRail
+            readiness={canonicalReadiness}
+            registrationComplete={registrationCompleteUI}
+            verificationLoading={documentVerifyLoading}
+            verificationConfidence={Number(
+              documentVerification?.confidence || 0
+            )}
+            updatedAt={vc?.updated_at}
+            termsAccepted={termsAccepted}
+            saving={saving}
+            onGoNext={() => {
+              const targetId =
+                firstRegistrationPendingCheck?.targetId ||
+                firstPendingStep.targetId ||
+                "sec-review";
+
+              openJourneyStep(
+                journeyKeyForTarget(targetId),
+                targetId
+              );
+            }}
+            onFinish={onFinishRegistration}
+            onOpenDashboard={() =>
+              router.replace(returnTo)
+            }
+          />
+        </aside>
+      </div>
 
       <style jsx global>{`
         header,
