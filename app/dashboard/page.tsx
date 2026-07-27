@@ -7,6 +7,10 @@ import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { SectionSkeleton } from "@/components/ui/Skeleton";
 import { OperationalErrorState } from "@/components/ui/OperationalErrorState";
 import ThreeBOSWorkSummary from "./ThreeBOSWorkSummary";
+import {
+  resolveAccessForUser,
+  type PortalRole,
+} from "@/lib/access/resolveAccess";
 
 type AnalyticsStats = {
   rfqs: number;
@@ -45,6 +49,31 @@ type ProcurementMemoryGraph = {
   graphNodes?: { type: string; label: string }[];
   nextLearningAction?: string;
 };
+
+function dashboardDestinationForRole(
+  role: PortalRole | null
+): string | null {
+  switch (role) {
+    case "master_admin":
+      return "/admin/dashboard";
+    case "blog_admin":
+      return "/admin/blog";
+    case "banker":
+    case "finance_banker":
+      return "/dashboard/banker";
+    case "investor":
+      return "/dashboard/investor";
+    case "buyer":
+      return "/dashboard/buyer";
+    case "vendor":
+    case "builder":
+    case "hub_vendor":
+    case "blogger":
+      return "/dashboard/vendor";
+    default:
+      return null;
+  }
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -121,6 +150,31 @@ export default function DashboardPage() {
         }
 
         setSignedOut(false);
+
+        const access = await withDashboardTimeout(
+          resolveAccessForUser(
+            supabase,
+            session.user.id,
+            session.user.email ?? null
+          ),
+          7000,
+          "Dashboard access resolution"
+        );
+
+        if (!alive) return;
+
+        const roleDestination =
+          dashboardDestinationForRole(access.role);
+
+        if (
+          roleDestination &&
+          roleDestination !== "/dashboard"
+        ) {
+          setMessage("Opening your correct dashboard...");
+          setLoading(false);
+          router.replace(roleDestination);
+          return;
+        }
 
         const [
           profileRes,

@@ -14,6 +14,7 @@ import { use3BOSRuntime } from "@/lib/3bos/context";
 import {
   clearActiveWorkContext,
   readActiveWorkContext,
+  type HumanIdentityKey,
 } from "@/lib/3bos/identity";
 
 type BootstrapProfileRow = LegacyProfileRuntimeSource;
@@ -23,6 +24,12 @@ type BootstrapBusinessProfileRow =
 
 type BootstrapModuleGrantRow = {
   module_key?: string | null;
+};
+
+type BootstrapIdentityEntitlementRow = {
+  identity_key?: string | null;
+  is_primary?: boolean | null;
+  status?: string | null;
 };
 
 function timeoutAfter(
@@ -137,6 +144,7 @@ export default function ThreeBOSAuthenticatedBootstrap() {
           | null = null;
 
         let moduleKeys: string[] = [];
+        let canonicalPrimaryIdentityKey: HumanIdentityKey | null = null;
 
         try {
           const businessProfileResponse =
@@ -254,6 +262,53 @@ export default function ThreeBOSAuthenticatedBootstrap() {
           );
         }
 
+        try {
+          const entitlementResponse =
+            await Promise.race([
+              supabase
+                .from("member_identity_entitlements")
+                .select("identity_key,is_primary,status")
+                .eq("user_id", userId)
+                .eq("is_primary", true)
+                .eq("status", "active")
+                .maybeSingle(),
+
+              timeoutAfter(
+                5000,
+                "3BOS primary identity entitlement bootstrap"
+              ),
+            ]);
+
+          if (
+            !alive ||
+            currentSequence !== requestSequence
+          ) {
+            return;
+          }
+
+          const entitlementError =
+            (entitlementResponse as any)?.error ?? null;
+
+          if (entitlementError) {
+            console.warn(
+              "THREE_BOS_PRIMARY_IDENTITY_BOOTSTRAP_READ_FAILED",
+              entitlementError
+            );
+          } else {
+            const entitlement =
+              ((entitlementResponse as any)?.data ??
+                null) as BootstrapIdentityEntitlementRow | null;
+
+            canonicalPrimaryIdentityKey =
+              (entitlement?.identity_key?.trim() as HumanIdentityKey) || null;
+          }
+        } catch (entitlementError) {
+          console.warn(
+            "THREE_BOS_PRIMARY_IDENTITY_BOOTSTRAP_FAILED",
+            entitlementError
+          );
+        }
+
         if (
           !alive ||
           currentSequence !== requestSequence
@@ -289,7 +344,9 @@ export default function ThreeBOSAuthenticatedBootstrap() {
         setRuntimeInput({
           ...bootstrap.input,
           activeIdentityKey:
-            activeWorkContext?.identityKey ?? null,
+            activeWorkContext?.identityKey ??
+            canonicalPrimaryIdentityKey ??
+            null,
           preferredWorkspaceKey:
             activeWorkContext?.workspaceKey ?? null,
         });
