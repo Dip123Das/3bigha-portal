@@ -2361,30 +2361,28 @@ export default function BusinessOnboardingPageClient() {
               return;
             }
 
-            if (!registrationReadyUI) {
-              const pending =
-                firstRegistrationPendingCheck;
-
-              setMsg(
-                pending
-                  ? `Before Review & Finish: ${pending.label}.`
-                  : "Please complete all required registration steps before finishing."
-              );
-
-              if (pending) {
-                openJourneyStep(
-                  journeyKeyForTarget(
-                    pending.targetId
-                  ),
-                  pending.targetId
-                );
-              }
-
-              return;
-            }
+            /*
+             * Review & Finish must always remain accessible.
+             *
+             * The truthful declaration is itself one of the
+             * canonical readiness requirements. Redirecting away
+             * while declarationsAccepted is false creates a
+             * deadlock because the user cannot reach the checkbox
+             * required to make registration ready.
+             *
+             * Incomplete evidence is explained inside the review
+             * panel and activation remains disabled until every
+             * canonical requirement is complete.
+             */
+            const pending =
+              firstRegistrationPendingCheck;
 
             setMsg(
-              "All required steps are ready. Review the summary below and finish registration."
+              pending
+                ? `Review your registration below. Before activation, complete: ${pending.label}.`
+                : registrationReadyUI
+                ? "All required steps are ready. Review the summary below and finish registration."
+                : "Review your registration below and accept the final truthful declaration to activate your dashboard."
             );
 
             window.setTimeout(() => {
@@ -3269,10 +3267,28 @@ export default function BusinessOnboardingPageClient() {
             </button>
 
             {!registrationReadyUI ? (
-              <p className="registration-final-blocker">
-                Complete the remaining required item before
-                activation.
-              </p>
+              <div className="registration-final-blocker">
+                {firstRegistrationPendingCheck ? (
+                  <>
+                    Before activation, complete:{" "}
+                    <b>
+                      {firstRegistrationPendingCheck.label}
+                    </b>
+                    .
+                  </>
+                ) : !termsAccepted ? (
+                  <>
+                    Accept the truthful declaration, Terms &
+                    Conditions and Privacy Policy to activate your
+                    dashboard.
+                  </>
+                ) : (
+                  <>
+                    Complete the remaining required registration
+                    item before activation.
+                  </>
+                )}
+              </div>
             ) : null}
           </section>
         ) : null}

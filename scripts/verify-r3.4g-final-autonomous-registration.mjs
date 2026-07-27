@@ -63,6 +63,24 @@ const assertions = [
     "editing actions are hidden on final review",
   ],
   [
+    page.includes(
+      "Review & Finish must always remain accessible"
+    ),
+    "Review & Finish remains accessible before declarations are accepted",
+  ],
+  [
+    !page.includes(
+      "Before Review & Finish: ${pending.label}."
+    ),
+    "Review selection no longer redirects users away from the final panel",
+  ],
+  [
+    page.includes(
+      "Accept the truthful declaration, Terms &"
+    ),
+    "final panel explains the declaration requirement",
+  ],
+  [
     completionRoute.includes(
       "activate_self_registered_dashboard"
     ),
