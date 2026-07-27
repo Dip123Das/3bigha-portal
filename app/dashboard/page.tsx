@@ -737,12 +737,30 @@ export default function DashboardPage() {
             ) : null}
           </div>
         ) : null}
-        <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link href="/dashboard/buyer" className="topBtn topBtnPrimary">
-            Buyer Intelligence →
+        <div
+          aria-label="Dashboard tools"
+          style={{
+            marginTop: 16,
+            display: "flex",
+            gap: 10,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <Link href="/dashboard/workspace" className="topBtn topBtnPrimary">
+            Workspace →
           </Link>
-          <Link href="/dashboard/vendor" className="topBtn topBtnGhost">
-            Vendor Intelligence →
+          <Link href="/dashboard/vendor/workspace" className="topBtn topBtnGhost">
+            Vendor Work Desk →
+          </Link>
+          <Link href="/settings" className="topBtn topBtnGhost">
+            Settings →
+          </Link>
+          <Link href="/onboarding/business" className="topBtn topBtnGhost">
+            Business Profile →
+          </Link>
+          <Link href="/dashboard/subscription" className="topBtn topBtnGhost">
+            Subscription →
           </Link>
           <Link href="/dashboard/inbox-v2" className="topBtn topBtnGhost">
             Inbox →
