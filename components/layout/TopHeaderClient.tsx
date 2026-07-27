@@ -210,15 +210,27 @@ export default function TopHeaderClient() {
         return;
       }
 
-      // VENDOR / HUB VENDOR
+      // HUB VENDOR keeps the main dashboard as the primary entry.
+      if (role === "hub_vendor") {
+        setDashboardHref("/dashboard");
+        return;
+      }
+
+      // Dedicated vendor roles use the vendor dashboard.
       const { data: vendor } = await supabase
         .from("business_profiles")
         .select("id,user_id")
         .eq("user_id", userId)
         .maybeSingle();
 
-      if (vendor || role.includes("vendor")) {
+      if (role === "vendor" || role === "builder" || role === "blogger") {
         setDashboardHref("/dashboard/vendor");
+        return;
+      }
+
+      // A business profile alone must not override the declared role.
+      if (vendor && !role) {
+        setDashboardHref("/dashboard");
         return;
       }
 
