@@ -644,6 +644,36 @@ export default function BusinessOnboardingPageClient() {
   const [termsAccepted, setTermsAccepted] =
     useState(false);
 
+  type RegistrationPlan =
+    | "free"
+    | "basic_vendor"
+    | "silver_vendor"
+    | "gold_vendor"
+    | "platinum_vendor";
+
+  const [selectedRegistrationPlan, setSelectedRegistrationPlan] =
+    useState<RegistrationPlan>("free");
+
+  useEffect(() => {
+    const storedPlan = String(
+      (bp as Record<string, unknown>).subscription_plan || "free"
+    );
+
+    if (
+      [
+        "free",
+        "basic_vendor",
+        "silver_vendor",
+        "gold_vendor",
+        "platinum_vendor",
+      ].includes(storedPlan)
+    ) {
+      setSelectedRegistrationPlan(
+        storedPlan as RegistrationPlan
+      );
+    }
+  }, [(bp as Record<string, unknown>).subscription_plan]);
+
   const nature = safeArr(bp.nature_of_business);
   const hasBlog = nature.includes("blog");
   const hasNonBlogBusiness = nature.some((item) =>
@@ -2077,6 +2107,68 @@ export default function BusinessOnboardingPageClient() {
     scrollToId("sec-review");
   }
 
+  async function continueFromFinalReview() {
+    if (!userId) {
+      setMsg("Please sign in again to finish registration.");
+      return;
+    }
+
+    if (!termsAccepted) {
+      setMsg(
+        "Please confirm the truthful declaration and agree to the Terms & Conditions and Privacy Policy."
+      );
+      scrollToId("sec-review");
+      return;
+    }
+
+    setSaving(true);
+    setMsg(null);
+
+    const subscriptionPatch =
+      selectedRegistrationPlan === "free"
+        ? {
+            subscription_plan: "free",
+            subscription_status: "free",
+          }
+        : {
+            subscription_plan: selectedRegistrationPlan,
+          };
+
+    const { error } = await supabase
+      .from("business_profiles")
+      .update(subscriptionPatch)
+      .eq("user_id", userId);
+
+    setSaving(false);
+
+    if (error) {
+      setMsg(
+        error.message ||
+          "Your subscription choice could not be saved."
+      );
+      return;
+    }
+
+    setBp((previous) => ({
+      ...previous,
+      ...subscriptionPatch,
+    }));
+
+    if (selectedRegistrationPlan === "free") {
+      await onFinishRegistration();
+      return;
+    }
+
+    const subscriptionUrl =
+      "/dashboard/subscription?" +
+      new URLSearchParams({
+        source: "registration",
+        return: onboardingPath,
+      }).toString();
+
+    router.push(subscriptionUrl);
+  }
+
   async function onFinishRegistration() {
     if (!userId) return;
 
@@ -2935,8 +3027,268 @@ export default function BusinessOnboardingPageClient() {
           </section>
         ) : null}
 
-        {msg && <div style={{ color: msg.includes("✅") ? "green" : "crimson", fontWeight: 800 }}>{msg}</div>}
+        {activeJourneyKey === "review" ? (
+          <section
+            id="sec-review"
+            className="registration-final-review"
+          >
+            <div className="registration-final-success">
+              <div>
+                <div className="registration-final-eyebrow">
+                  Final step
+                </div>
 
+                <h2>Your business registration is ready</h2>
+
+                <p>
+                  Review the completed checks, choose your
+                  subscription and accept the declarations.
+                  Normal registrations activate without
+                  administrator approval.
+                </p>
+              </div>
+
+              <div className="registration-final-score">
+                <strong>
+                  {canonicalReadiness.progressPercent}%
+                </strong>
+                <span>Registration readiness</span>
+              </div>
+            </div>
+
+            <div className="registration-final-checks">
+              {[
+                ["Identity and contact", identityReady],
+                ["Official and live address", addressReady],
+                ["Personal and business story", aboutReady],
+                ["Service coverage", coverageReady],
+                ["Workplace evidence", practicalProofReady],
+                ["Live business-board selfie", liveSelfieReady],
+                ["AI business-proof verification", businessProofReady],
+              ].map(([label, complete]) => (
+                <div
+                  key={String(label)}
+                  className={
+                    complete
+                      ? "registration-final-check complete"
+                      : "registration-final-check incomplete"
+                  }
+                >
+                  <span>{complete ? "✓" : "!"}</span>
+                  <b>{String(label)}</b>
+                </div>
+              ))}
+            </div>
+
+            <div className="registration-final-verification">
+              <div>
+                <span>AI verification</span>
+                <strong>
+                  {businessProofReady
+                    ? "Business proof verified"
+                    : "Verification required"}
+                </strong>
+              </div>
+
+              <div>
+                <span>AI confidence</span>
+                <strong>
+                  {Math.round(
+                    Number(
+                      documentVerification?.confidence || 0
+                    )
+                  )}
+                  %
+                </strong>
+              </div>
+
+              <div>
+                <span>Evidence collected</span>
+                <strong>
+                  {canonicalReadiness.evidenceCollectionProgress}%
+                </strong>
+              </div>
+            </div>
+
+            <div className="registration-final-section">
+              <div className="registration-final-heading">
+                <div>
+                  <div className="registration-final-eyebrow">
+                    Subscription
+                  </div>
+
+                  <h3>Choose how you want to begin</h3>
+
+                  <p>
+                    The Free plan activates immediately. Paid
+                    plans continue through SBI secure payment.
+                  </p>
+                </div>
+              </div>
+
+              <div className="registration-plan-grid">
+                {[
+                  {
+                    key: "free",
+                    title: "Free",
+                    price: "₹0 / month",
+                    description:
+                      "Essential workspace and standard marketplace presence.",
+                  },
+                  {
+                    key: "basic_vendor",
+                    title: "Basic",
+                    price: "₹299 / month",
+                    description:
+                      "Entry-level AI boost and improved marketplace visibility.",
+                  },
+                  {
+                    key: "silver_vendor",
+                    title: "Silver",
+                    price: "₹499 / month",
+                    description:
+                      "Priority RFQ visibility and stronger workflow alerts.",
+                  },
+                  {
+                    key: "gold_vendor",
+                    title: "Gold",
+                    price: "₹999 / month",
+                    description:
+                      "Strong AI boost, premium ranking and priority opportunities.",
+                    recommended: true,
+                  },
+                  {
+                    key: "platinum_vendor",
+                    title: "Platinum",
+                    price: "₹1,999 / month",
+                    description:
+                      "Maximum visibility, AI boost and marketplace priority.",
+                  },
+                ].map((plan) => {
+                  const selected =
+                    selectedRegistrationPlan === plan.key;
+
+                  return (
+                    <button
+                      key={plan.key}
+                      type="button"
+                      className={
+                        selected
+                          ? "registration-plan-card selected"
+                          : "registration-plan-card"
+                      }
+                      onClick={() =>
+                        setSelectedRegistrationPlan(
+                          plan.key as RegistrationPlan
+                        )
+                      }
+                      aria-pressed={selected}
+                    >
+                      <div className="registration-plan-title-row">
+                        <strong>{plan.title}</strong>
+
+                        {plan.recommended ? (
+                          <span>Recommended</span>
+                        ) : null}
+                      </div>
+
+                      <b>{plan.price}</b>
+                      <p>{plan.description}</p>
+
+                      <div className="registration-plan-choice">
+                        {selected ? "✓ Selected" : "Select plan"}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="registration-final-section">
+              <div className="registration-final-eyebrow">
+                Truthful declaration
+              </div>
+
+              <h3>Confirm before activation</h3>
+
+              <label className="registration-declaration">
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(event) =>
+                    setTermsAccepted(event.target.checked)
+                  }
+                />
+
+                <span>
+                  I confirm that the information and evidence
+                  submitted are truthful. I have read and agree
+                  to the{" "}
+                  <a
+                    href="/terms-and-conditions"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Terms & Conditions
+                  </a>{" "}
+                  and{" "}
+                  <a
+                    href="/privacy-policy"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Privacy Policy
+                  </a>
+                  .
+                </span>
+              </label>
+
+              <div className="registration-autonomy-note">
+                <b>Autonomous registration:</b> Your verified
+                registration will be activated without routine
+                administrator approval. Only a genuine
+                verification exception requires human review.
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="registration-final-action"
+              disabled={
+                saving ||
+                !registrationReadyUI ||
+                !termsAccepted
+              }
+              onClick={continueFromFinalReview}
+            >
+              {saving
+                ? "Please wait..."
+                : selectedRegistrationPlan === "free"
+                ? "Activate My Dashboard"
+                : "Continue to SBI Secure Payment"}
+            </button>
+
+            {!registrationReadyUI ? (
+              <p className="registration-final-blocker">
+                Complete the remaining required item before
+                activation.
+              </p>
+            ) : null}
+          </section>
+        ) : null}
+
+        {msg ? (
+          <div
+            style={{
+              color: msg.includes("✅") ? "green" : "crimson",
+              fontWeight: 800,
+            }}
+          >
+            {msg}
+          </div>
+        ) : null}
+
+        {activeJourneyKey !== "review" ? (
         <div className="registration-secondary-actions">
           <button type="submit" disabled={saving}>
             {saving ? "Saving..." : "Save Draft"}
@@ -2957,6 +3309,7 @@ export default function BusinessOnboardingPageClient() {
             Leave Setup
           </button>
         </div>
+        ) : null}
       </form>
         </div>
 
