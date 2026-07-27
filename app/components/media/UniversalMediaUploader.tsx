@@ -38,6 +38,7 @@ type UniversalMediaUploaderProps = {
   cameraOnly?: boolean;
   cameraButtonLabel?: string;
   inlineCamera?: boolean;
+  cameraGuide?: "none" | "face";
 };
 
 export default function UniversalMediaUploader({
@@ -55,6 +56,7 @@ export default function UniversalMediaUploader({
   cameraOnly = false,
   cameraButtonLabel = "📷 Take Photo",
   inlineCamera = false,
+  cameraGuide = "none",
 }: UniversalMediaUploaderProps) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -77,6 +79,8 @@ export default function UniversalMediaUploader({
   const [message, setMessage] = useState("");
   const [progressText, setProgressText] = useState("");
   const [qualityWarnings, setQualityWarnings] = useState<MediaQualityWarning[]>([]);
+  const [capturedPhoto, setCapturedPhoto] = useState<File | null>(null);
+  const [capturedPreviewUrl, setCapturedPreviewUrl] = useState("");
 
   function stopInlineCamera() {
     const stream = inlineStreamRef.current;
@@ -106,8 +110,34 @@ export default function UniversalMediaUploader({
           track.stop();
         });
       }
+
+      if (capturedPreviewUrl) {
+        URL.revokeObjectURL(capturedPreviewUrl);
+      }
     };
-  }, []);
+  }, [capturedPreviewUrl]);
+
+  function clearCapturedPhoto() {
+    if (capturedPreviewUrl) {
+      URL.revokeObjectURL(capturedPreviewUrl);
+    }
+
+    setCapturedPhoto(null);
+    setCapturedPreviewUrl("");
+  }
+
+  async function useCapturedPhoto() {
+    if (!capturedPhoto || uploading) return;
+
+    const file = capturedPhoto;
+    clearCapturedPhoto();
+    await uploadFiles([file]);
+  }
+
+  async function retakeCapturedPhoto() {
+    clearCapturedPhoto();
+    await startInlineCamera();
+  }
 
   async function startInlineCamera() {
     if (
@@ -122,6 +152,7 @@ export default function UniversalMediaUploader({
 
     setCameraError("");
     setCameraStarting(true);
+    clearCapturedPhoto();
 
     try {
       stopInlineCamera();
@@ -132,6 +163,12 @@ export default function UniversalMediaUploader({
           video: {
             facingMode: {
               ideal: cameraFacing,
+            },
+            width: {
+              ideal: cameraFacing === "user" ? 1080 : 1920,
+            },
+            height: {
+              ideal: 1080,
             },
           },
         });
@@ -203,8 +240,22 @@ export default function UniversalMediaUploader({
       return;
     }
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    const sourceSize = Math.min(
+      video.videoWidth,
+      video.videoHeight
+    );
+    const sourceX = Math.max(
+      0,
+      Math.floor((video.videoWidth - sourceSize) / 2)
+    );
+    const sourceY = Math.max(
+      0,
+      Math.floor((video.videoHeight - sourceSize) / 2)
+    );
+    const outputSize = Math.min(1080, sourceSize);
+
+    canvas.width = outputSize;
+    canvas.height = outputSize;
 
     const context = canvas.getContext("2d");
 
@@ -217,10 +268,14 @@ export default function UniversalMediaUploader({
 
     context.drawImage(
       video,
+      sourceX,
+      sourceY,
+      sourceSize,
+      sourceSize,
       0,
       0,
-      canvas.width,
-      canvas.height
+      outputSize,
+      outputSize
     );
 
     const blob = await new Promise<Blob | null>(
@@ -250,7 +305,13 @@ export default function UniversalMediaUploader({
     );
 
     stopInlineCamera();
-    await uploadFiles([file]);
+
+    if (capturedPreviewUrl) {
+      URL.revokeObjectURL(capturedPreviewUrl);
+    }
+
+    setCapturedPhoto(file);
+    setCapturedPreviewUrl(URL.createObjectURL(file));
   }
 
   const acceptList = [
@@ -466,7 +527,64 @@ export default function UniversalMediaUploader({
             and upload the selfie.
           </div>
 
-          {!cameraOpen ? (
+          {capturedPreviewUrl ? (
+            <div style={{ marginTop: 10 }}>
+              <div
+                style={{
+                  position: "relative",
+                  width: "min(100%, 420px)",
+                  aspectRatio: "1 / 1",
+                  margin: "0 auto",
+                  overflow: "hidden",
+                  borderRadius: 18,
+                  background: "#0f172a",
+                }}
+              >
+                <img
+                  src={capturedPreviewUrl}
+                  alt="Captured photo preview"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+              </div>
+
+              <div
+                style={{
+                  marginTop: 10,
+                  display: "grid",
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(150px, 1fr))",
+                  gap: 8,
+                }}
+              >
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => void useCapturedPhoto()}
+                  style={{
+                    ...buttonStyle(uploading),
+                    background: "#16a34a",
+                    color: "#ffffff",
+                  }}
+                >
+                  ✓ Use This Photo
+                </button>
+
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => void retakeCapturedPhoto()}
+                  style={buttonStyle(uploading)}
+                >
+                  ↻ Retake
+                </button>
+              </div>
+            </div>
+          ) : !cameraOpen ? (
             <button
               type="button"
               disabled={uploading || cameraStarting}
@@ -489,24 +607,73 @@ export default function UniversalMediaUploader({
             </button>
           ) : (
             <div style={{ marginTop: 10 }}>
-              <video
-                ref={inlineVideoRef}
-                playsInline
-                muted
-                autoPlay
+              <div
                 style={{
-                  display: "block",
-                  width: "100%",
-                  maxHeight: 420,
-                  objectFit: "cover",
-                  borderRadius: 12,
+                  position: "relative",
+                  width: "min(100%, 420px)",
+                  aspectRatio: "1 / 1",
+                  margin: "0 auto",
+                  overflow: "hidden",
+                  borderRadius: 18,
                   background: "#0f172a",
-                  transform:
-                    cameraFacing === "user"
-                      ? "scaleX(-1)"
-                      : undefined,
                 }}
-              />
+              >
+                <video
+                  ref={inlineVideoRef}
+                  playsInline
+                  muted
+                  autoPlay
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    background: "#0f172a",
+                    transform:
+                      cameraFacing === "user"
+                        ? "scaleX(-1)"
+                        : undefined,
+                  }}
+                />
+
+                {cameraGuide === "face" ? (
+                  <>
+                    <div
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        left: "50%",
+                        top: "47%",
+                        width: "52%",
+                        height: "68%",
+                        transform: "translate(-50%, -50%)",
+                        border: "3px solid rgba(255,255,255,0.95)",
+                        borderRadius: "48% 48% 44% 44% / 42% 42% 58% 58%",
+                        boxShadow:
+                          "0 0 0 999px rgba(15,23,42,0.28), 0 0 0 2px rgba(37,99,235,0.5)",
+                        pointerEvents: "none",
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 12,
+                        right: 12,
+                        bottom: 12,
+                        padding: "8px 10px",
+                        borderRadius: 10,
+                        background: "rgba(15,23,42,0.74)",
+                        color: "#fff",
+                        textAlign: "center",
+                        fontSize: 12,
+                        fontWeight: 850,
+                      }}
+                    >
+                      Keep your full face inside the guide and look at the camera.
+                    </div>
+                  </>
+                ) : null}
+              </div>
 
               <canvas
                 ref={inlineCanvasRef}
@@ -534,7 +701,7 @@ export default function UniversalMediaUploader({
                     color: "#ffffff",
                   }}
                 >
-                  🤳 Capture & Upload
+                  🤳 Capture Photo
                 </button>
 
                 <button

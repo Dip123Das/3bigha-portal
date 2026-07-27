@@ -43,6 +43,40 @@ type NotificationRow = {
   created_at: string;
 };
 
+function cleanHeaderValue(value: unknown) {
+  return String(value || "").trim();
+}
+
+function firstHeaderSelfieUrl(value: unknown) {
+  const assets = Array.isArray(value)
+    ? value
+    : value && typeof value === "object"
+      ? [value]
+      : [];
+
+  for (const asset of assets as Record<string, unknown>[]) {
+    const url = cleanHeaderValue(asset?.url || asset?.publicUrl);
+    const path = cleanHeaderValue(asset?.path);
+
+    if (url && (!path || path.includes("/live-selfie/"))) {
+      return url;
+    }
+  }
+
+  return "";
+}
+
+function headerRoleLabel(role: string) {
+  const normalized = cleanHeaderValue(role)
+    .toLowerCase()
+    .replace(/_/g, " ");
+
+  if (!normalized) return "3Bigha Member";
+  if (normalized === "hub vendor") return "Vendor Hub";
+
+  return normalized.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 function scopeToHref(scope: SearchScope, q: string) {
   const query = q.trim();
 
@@ -74,6 +108,10 @@ export default function TopHeaderClient() {
   const [authLoading, setAuthLoading] = useState(true);
   const [isAuthed, setIsAuthed] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState("");
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState("");
+  const [profileRoleLabel, setProfileRoleLabel] = useState("3Bigha Member");
+  const [profilePlanLabel, setProfilePlanLabel] = useState("Free");
   const [dashboardHref, setDashboardHref] = useState("/dashboard");
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationRows, setNotificationRows] = useState<NotificationRow[]>([]);
@@ -89,6 +127,53 @@ export default function TopHeaderClient() {
     slaBreached: 0,
     adminMode: false,
   });
+
+  async function loadAccountIdentity(userId?: string | null) {
+    if (!userId) {
+      setProfileName("");
+      setProfilePhotoUrl("");
+      setProfileRoleLabel("3Bigha Member");
+      setProfilePlanLabel("Free");
+      return;
+    }
+
+    try {
+      const [profileResult, businessResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("display_name,profile_photo_url,role")
+          .eq("id", userId)
+          .maybeSingle(),
+        supabase
+          .from("business_profiles")
+          .select("business_name,selfie_media_json,subscription_plan")
+          .eq("user_id", userId)
+          .maybeSingle(),
+      ]);
+
+      const member = (profileResult.data || {}) as Record<string, any>;
+      const business = (businessResult.data || {}) as Record<string, any>;
+      const fallbackName =
+        cleanHeaderValue(member.display_name) ||
+        cleanHeaderValue(business.business_name) ||
+        cleanHeaderValue(email?.split("@")[0]) ||
+        "3Bigha Member";
+      const selectedPhoto =
+        cleanHeaderValue(member.profile_photo_url) ||
+        firstHeaderSelfieUrl(business.selfie_media_json);
+      const plan = cleanHeaderValue(business.subscription_plan || "free")
+        .replace(/_vendor$/, "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+      setProfileName(fallbackName);
+      setProfilePhotoUrl(selectedPhoto);
+      setProfileRoleLabel(headerRoleLabel(cleanHeaderValue(member.role)));
+      setProfilePlanLabel(plan || "Free");
+    } catch {
+      setProfileName(cleanHeaderValue(email?.split("@")[0]) || "3Bigha Member");
+    }
+  }
 
   async function resolveDashboardHrefForUser(userId?: string | null) {
     if (!userId) {
@@ -161,7 +246,10 @@ export default function TopHeaderClient() {
         setIsAuthed(!!s);
         setEmail(s?.user?.email ?? null);
         setAuthLoading(false);
-        await resolveDashboardHrefForUser(s?.user?.id || null);
+        await Promise.all([
+          resolveDashboardHrefForUser(s?.user?.id || null),
+          loadAccountIdentity(s?.user?.id || null),
+        ]);
         loadSupportAlerts(s?.access_token || null);
         loadNotifications(s?.access_token || null);
       } catch {
@@ -177,6 +265,7 @@ export default function TopHeaderClient() {
       setEmail(session?.user?.email ?? null);
       setAuthLoading(false);
       void resolveDashboardHrefForUser(session?.user?.id || null);
+      void loadAccountIdentity(session?.user?.id || null);
       loadSupportAlerts(session?.access_token || null);
       loadNotifications(session?.access_token || null);
     });
@@ -186,6 +275,23 @@ export default function TopHeaderClient() {
       sub.subscription.unsubscribe();
     };
   }, [supabase]);
+
+  useEffect(() => {
+    function refreshProfile() {
+      if (!isAuthed) return;
+
+      void supabase.auth.getSession().then(({ data }) => {
+        void loadAccountIdentity(data.session?.user?.id || null);
+      });
+    }
+
+    window.addEventListener("threebigha-profile-updated", refreshProfile);
+
+    return () => {
+      window.removeEventListener("threebigha-profile-updated", refreshProfile);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthed, supabase]);
 
     useEffect(() => {
     if (!isAuthed) return;
@@ -720,47 +826,167 @@ export default function TopHeaderClient() {
                 ) : null}
               </div>
 
-              <Link className="topBtn topBtnGhost" href={dashboardHref} title={email ?? ""}>
-                Dashboard
-              </Link>
-              <Link
-                className="topBtn topBtnGhost"
-                href={supportAlerts.adminMode ? "/admin/dashboard/support" : "/support/my"}
-                title={
-                  supportAlerts.adminMode
-                    ? `Open: ${supportAlerts.open}, Escalated: ${supportAlerts.escalated}, Risk: ${supportAlerts.risk}`
-                    : `Support tickets: ${supportAlerts.total}`
-                }
-              >
-                Support
-                {(supportAlerts.adminMode
-                  ? supportAlerts.open + supportAlerts.waiting + supportAlerts.escalated + supportAlerts.risk + supportAlerts.slaBreached
-                  : supportAlerts.open + supportAlerts.waiting) > 0 ? (
+              <details style={{ position: "relative" }}>
+                <summary
+                  className="topBtn topBtnGhost"
+                  title={email ?? "My profile"}
+                  style={{
+                    listStyle: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    cursor: "pointer",
+                    padding: "5px 9px",
+                  }}
+                >
                   <span
                     style={{
-                      marginLeft: 6,
-                      minWidth: 18,
-                      height: 18,
-                      borderRadius: 12,
-                      background: supportAlerts.escalated || supportAlerts.risk || supportAlerts.slaBreached ? "#dc2626" : "#2563eb",
-                      color: "#fff",
+                      width: 34,
+                      height: 34,
+                      flexShrink: 0,
+                      overflow: "hidden",
+                      borderRadius: "50%",
+                      border: "2px solid #dbeafe",
+                      background: "#e2e8f0",
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: 11,
+                      color: "#334155",
                       fontWeight: 950,
-                      padding: "0 6px",
                     }}
                   >
-                    {supportAlerts.adminMode
-                      ? supportAlerts.open + supportAlerts.waiting + supportAlerts.escalated + supportAlerts.risk + supportAlerts.slaBreached
-                      : supportAlerts.open + supportAlerts.waiting}
+                    {profilePhotoUrl ? (
+                      <img
+                        src={profilePhotoUrl}
+                        alt=""
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      (profileName || email || "3").slice(0, 1).toUpperCase()
+                    )}
                   </span>
-                ) : null}
-              </Link>
-              <button className="topBtn topBtnGhost" type="button" onClick={doLogout}>
-                Logout
-              </button>
+
+                  <span
+                    style={{
+                      display: "grid",
+                      minWidth: 0,
+                      textAlign: "left",
+                      lineHeight: 1.15,
+                    }}
+                  >
+                    <b
+                      style={{
+                        maxWidth: 130,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        color: "#0f172a",
+                        fontSize: 12,
+                      }}
+                    >
+                      {profileName || email || "My Profile"}
+                    </b>
+                    <span
+                      style={{
+                        color: "#64748b",
+                        fontSize: 10,
+                        fontWeight: 850,
+                      }}
+                    >
+                      {profileRoleLabel}
+                    </span>
+                  </span>
+                  <span aria-hidden="true">▾</span>
+                </summary>
+
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: "calc(100% + 8px)",
+                    width: 280,
+                    maxWidth: "90vw",
+                    padding: 10,
+                    border: "1px solid #e2e8f0",
+                    borderRadius: 16,
+                    background: "#fff",
+                    boxShadow: "0 22px 55px rgba(15,23,42,0.2)",
+                    zIndex: 100,
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: "10px 10px 12px",
+                      borderBottom: "1px solid #e2e8f0",
+                    }}
+                  >
+                    <div style={{ color: "#0f172a", fontWeight: 950 }}>
+                      {profileName || "3Bigha Member"}
+                    </div>
+                    <div
+                      style={{
+                        marginTop: 3,
+                        color: "#64748b",
+                        fontSize: 12,
+                        fontWeight: 800,
+                      }}
+                    >
+                      {profileRoleLabel} · {profilePlanLabel} Plan
+                    </div>
+                  </div>
+
+                  {[
+                    ["My Profile", "/settings"],
+                    ["Personal Details", "/settings#personal"],
+                    ["Change Profile Photo", "/settings#photo"],
+                    ["Edit Business Profile", "/onboarding/business"],
+                    ["Subscription & Plan", "/dashboard/subscription?source=profile&return=/settings"],
+                    ["My Workspace", dashboardHref],
+                    [
+                      "Support",
+                      supportAlerts.adminMode
+                        ? "/admin/dashboard/support"
+                        : "/support/my",
+                    ],
+                  ].map(([label, href]) => (
+                    <Link
+                      key={label}
+                      href={href}
+                      style={{
+                        display: "block",
+                        padding: "10px 11px",
+                        borderRadius: 10,
+                        color: "#1e293b",
+                        textDecoration: "none",
+                        fontSize: 13,
+                        fontWeight: 850,
+                      }}
+                    >
+                      {label}
+                    </Link>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={doLogout}
+                    style={{
+                      width: "100%",
+                      marginTop: 4,
+                      padding: "10px 11px",
+                      border: "1px solid #fecaca",
+                      borderRadius: 10,
+                      background: "#fef2f2",
+                      color: "#b91c1c",
+                      textAlign: "left",
+                      fontSize: 13,
+                      fontWeight: 950,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              </details>
             </>
           ) : (
             <Link className="topBtn topBtnGhost" href="/login">

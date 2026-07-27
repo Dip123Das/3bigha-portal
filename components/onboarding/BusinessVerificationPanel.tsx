@@ -2100,6 +2100,7 @@ export default function BusinessVerificationPanel({
             cameraFacing="user"
             cameraOnly
             inlineCamera
+            cameraGuide="face"
             maxFiles={1}
           />
         </div>
