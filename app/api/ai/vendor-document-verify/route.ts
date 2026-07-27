@@ -96,6 +96,16 @@ type DocumentVerificationResult = {
   extractedBusinessName: string;
   extractedAddress: string;
   businessNameMatched: boolean;
+  businessRelationshipMatched: boolean;
+  businessRelationshipType:
+    | "enterprise_name"
+    | "listed_unit"
+    | "listed_business"
+    | "listed_brand"
+    | "listed_branch"
+    | "listed_trade_name"
+    | "not_found"
+    | "uncertain";
   addressMatched: boolean;
   summary: string;
   warnings: string[];
@@ -402,6 +412,8 @@ function emptyResult(
     extractedBusinessName: "",
     extractedAddress: "",
     businessNameMatched: false,
+    businessRelationshipMatched: false,
+    businessRelationshipType: "uncertain",
     addressMatched: false,
     summary: "This document needs manual review.",
     warnings: [],
@@ -695,6 +707,8 @@ Return JSON only:
       "extractedBusinessName": string,
       "extractedAddress": string,
       "businessNameMatched": boolean,
+      "businessRelationshipMatched": boolean,
+      "businessRelationshipType": "enterprise_name" | "listed_unit" | "listed_business" | "listed_brand" | "listed_branch" | "listed_trade_name" | "not_found" | "uncertain",
       "addressMatched": boolean,
       "fieldConfidence": {
         "document_type": number,
@@ -733,7 +747,17 @@ Rules:
 - Compare financial start and ending years when validity type is financial_period.
 - When the document explicitly states permanent, lifetime, perpetual or no expiry, set extractedValidityType="no_expiry" and extractedNoExpiry=true.
 - Never infer no-expiry merely because an expiry date is absent.
-- Business name and address may be approximate.
+- Business address may be approximate and should be compared semantically.
+- An UDYAM registration may contain multiple businesses, units, branches, brands or trade names under one registered enterprise.
+- For UDYAM, do not require the portal business name to equal the main enterprise name.
+- Search the entire UDYAM certificate for the business being registered on 3Bigha.
+- If the declared portal business appears anywhere as the enterprise name, a listed unit, listed business, brand, branch or trade name, set businessRelationshipMatched=true.
+- Set businessRelationshipType to the strongest visible relationship: enterprise_name, listed_unit, listed_business, listed_brand, listed_branch or listed_trade_name.
+- When businessRelationshipMatched=true, also set businessNameMatched=true for registration-decision purposes.
+- Use businessRelationshipType="not_found" only when the declared business is genuinely absent from the readable certificate.
+- Use businessRelationshipType="uncertain" only when the relevant certificate section cannot be read reliably.
+- A valid enterprise-to-unit relationship is a positive match and must not be described as a mismatch or warning.
+- For non-UDYAM documents, businessRelationshipMatched may represent an exact or clearly equivalent business-name match.
 - Do not claim database, government portal or official verification.
 - Confidence must be from 0 to 100.
 `,
@@ -975,6 +999,60 @@ Rules:
               confidence,
           });
 
+        const aiBusinessNameMatched =
+          Boolean(parsedDocument?.businessNameMatched);
+
+        const businessRelationshipMatched =
+          aiBusinessNameMatched ||
+          Boolean(
+            parsedDocument?.businessRelationshipMatched
+          );
+
+        const allowedRelationshipTypes = new Set([
+          "enterprise_name",
+          "listed_unit",
+          "listed_business",
+          "listed_brand",
+          "listed_branch",
+          "listed_trade_name",
+          "not_found",
+          "uncertain",
+        ]);
+
+        const rawBusinessRelationshipType =
+          safeString(
+            parsedDocument?.businessRelationshipType
+          );
+
+        const businessRelationshipType =
+          (
+            allowedRelationshipTypes.has(
+              rawBusinessRelationshipType
+            )
+              ? rawBusinessRelationshipType
+              : businessRelationshipMatched
+              ? aiBusinessNameMatched
+                ? "enterprise_name"
+                : "listed_business"
+              : "uncertain"
+          ) as DocumentVerificationResult[
+            "businessRelationshipType"
+          ];
+
+        /*
+         * UDYAM multi-business rule:
+         *
+         * A registered enterprise may contain several businesses.
+         * The portal business is accepted when it appears anywhere
+         * in the certificate as an enterprise, unit, business, brand,
+         * branch or trade name.
+         */
+        const businessNameAccepted =
+          document.documentType === "udyam"
+            ? businessRelationshipMatched
+            : aiBusinessNameMatched ||
+              businessRelationshipMatched;
+
         const fieldReviews =
           buildFieldReviews(
             fieldConfidence,
@@ -1003,11 +1081,9 @@ Rules:
                 safeString(
                   parsedDocument
                     ?.extractedBusinessName
-                )
-                  ? Boolean(
-                      parsedDocument
-                        ?.businessNameMatched
-                    )
+                ) ||
+                businessRelationshipMatched
+                  ? businessNameAccepted
                   : null,
               business_address:
                 safeString(
@@ -1093,9 +1169,10 @@ Rules:
           extractedAddress: safeString(
             parsedDocument?.extractedAddress
           ),
-          businessNameMatched: Boolean(
-            parsedDocument?.businessNameMatched
-          ),
+          businessNameMatched:
+            businessNameAccepted,
+          businessRelationshipMatched,
+          businessRelationshipType,
           addressMatched: Boolean(
             parsedDocument?.addressMatched
           ),
