@@ -58,15 +58,26 @@ const checks = [
   ],
   [
     source.includes(
-      "REGISTRATION_COMPLETION_VERIFICATION_AND_INTELLIGENCE_EVALUATED"
+      "REGISTRATION_COMPLETION_AND_DASHBOARD_ACTIVATED"
     ),
     "frontend accepts the current server completion contract",
   ],
   [
-    source.includes(
-      "registrationPendingChecks.map"
+    (
+      source.includes(
+        "const registrationPendingChecks ="
+      ) &&
+      source.includes(
+        "registrationReadinessChecks.filter"
+      ) &&
+      source.includes(
+        "firstRegistrationPendingCheck"
+      ) &&
+      source.includes(
+        "firstRegistrationPendingCheck.label"
+      )
     ),
-    "pending registration work is visibly listed",
+    "pending registration work is visibly communicated",
   ],
 ];
 
