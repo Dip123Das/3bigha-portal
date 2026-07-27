@@ -59,10 +59,15 @@ function dashboardHrefFor(profile?: ProfileLite | null): string {
   if (r === "banker" || r === "finance_banker") return "/dashboard/banker";
   if (r === "investor") return "/dashboard/investor";
 
+  // Hub Vendor uses the unified role dashboard as its dashboard entry.
+  // Workspace, settings and vendor work tools remain available from there.
+  if (r === "hub_vendor") {
+    return "/dashboard";
+  }
+
   if (
     r === "vendor" ||
     r === "builder" ||
-    r === "hub_vendor" ||
     profile?.is_vendor === true
   ) {
     return "/dashboard/vendor";
