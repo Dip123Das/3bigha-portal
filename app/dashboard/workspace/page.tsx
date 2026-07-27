@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 
 import ThreeBOSWorkContextChooser from "@/components/layout/ThreeBOSWorkContextChooser";
 import BusinessIdentityCenter from "@/components/business-identity/BusinessIdentityCenter";
+import UnifiedProfileSettings from "@/components/profile/UnifiedProfileSettings";
+import ExperienceModeSettings from "@/components/experience/ExperienceModeSettings";
 import UniversalDashboardShell from "@/components/operational/UniversalDashboardShell";
 import { SectionSkeleton } from "@/components/ui/Skeleton";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
@@ -132,6 +134,7 @@ export default function UnifiedWorkspacePage() {
   const [sessionChecked, setSessionChecked] = useState(false);
   const [changingContext, setChangingContext] = useState(false);
   const [showingOtherWork, setShowingOtherWork] = useState(false);
+  const [showingIdentitySettings, setShowingIdentitySettings] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -236,6 +239,111 @@ export default function UnifiedWorkspacePage() {
       ) : null}
 
       <BusinessIdentityCenter />
+
+      <section
+        className={styles.identitySettingsHub}
+        aria-labelledby="workspace-identity-settings-title"
+      >
+        <div className={styles.identitySettingsHeading}>
+          <div>
+            <span className={styles.eyebrow}>My account & workspace</span>
+            <h2 id="workspace-identity-settings-title">
+              Profile, settings and subscription
+            </h2>
+            <p>
+              Manage your personal details, public photo, business profile,
+              subscription and workspace experience from this workspace.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className={styles.identitySettingsToggle}
+            aria-expanded={showingIdentitySettings}
+            aria-controls="workspace-identity-settings-panel"
+            onClick={() =>
+              setShowingIdentitySettings((current) => !current)
+            }
+          >
+            {showingIdentitySettings
+              ? "Close settings"
+              : "Open profile & settings"}
+          </button>
+        </div>
+
+        <div className={styles.identitySettingsShortcuts}>
+          <button
+            type="button"
+            onClick={() => {
+              setShowingIdentitySettings(true);
+              window.setTimeout(() => {
+                document
+                  .getElementById("workspace-personal-settings")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 50);
+            }}
+          >
+            Personal details
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowingIdentitySettings(true);
+              window.setTimeout(() => {
+                document
+                  .getElementById("workspace-profile-photo")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 50);
+            }}
+          >
+            Profile photo
+          </button>
+
+          <Link href="/onboarding/business">Business profile</Link>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowingIdentitySettings(true);
+              window.setTimeout(() => {
+                document
+                  .getElementById("workspace-subscription")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 50);
+            }}
+          >
+            Subscription & upgrade
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowingIdentitySettings(true);
+              window.setTimeout(() => {
+                document
+                  .getElementById("workspace-experience-settings")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 50);
+            }}
+          >
+            Workspace preferences
+          </button>
+        </div>
+
+        {showingIdentitySettings ? (
+          <div
+            id="workspace-identity-settings-panel"
+            className={styles.identitySettingsPanel}
+          >
+            <UnifiedProfileSettings workspaceEmbedded />
+
+            <section id="workspace-experience-settings">
+              <ExperienceModeSettings />
+            </section>
+          </div>
+        ) : null}
+      </section>
 
       <section className={styles.nextStep} aria-labelledby="workspace-next-step">
         <div>
