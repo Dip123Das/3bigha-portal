@@ -69,6 +69,24 @@ const assertions = [
     "Review & Finish remains accessible before declarations are accepted",
   ],
   [
+    page.includes(
+      "registration-form--review"
+    ),
+    "Review & Finish uses a dedicated final-screen state",
+  ],
+  [
+    css.includes(
+      ".registration-form--review > #sec-review"
+    ),
+    "final review panel is explicitly visible",
+  ],
+  [
+    page.includes(
+      'document.getElementById("sec-review")'
+    ),
+    "final panel scroll occurs after React renders it",
+  ],
+  [
     !page.includes(
       "Before Review & Finish: ${pending.label}."
     ),

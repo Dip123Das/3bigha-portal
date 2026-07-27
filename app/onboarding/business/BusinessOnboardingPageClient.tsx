@@ -1632,6 +1632,29 @@ export default function BusinessOnboardingPageClient() {
     selectedJourneyKey ??
     calculatedActiveJourneyKey;
 
+  useEffect(() => {
+    if (activeJourneyKey !== "review") {
+      return;
+    }
+
+    /*
+     * The final panel is conditionally mounted. Scroll only after
+     * React has committed it to the document.
+     */
+    const frame = window.requestAnimationFrame(() => {
+      const panel =
+        document.getElementById("sec-review");
+
+      panel?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+
+    return () =>
+      window.cancelAnimationFrame(frame);
+  }, [activeJourneyKey]);
+
   function openJourneyStep(
     key: BusinessIdentityJourneyStep["key"],
     targetId: string
@@ -2395,7 +2418,19 @@ export default function BusinessOnboardingPageClient() {
       <div className="registration-workspace-grid">
         <div className="registration-main-column">
 
-      <form onSubmit={onSave} style={{ marginTop: 20, display: "grid", gap: 16 }}>
+      <form
+        onSubmit={onSave}
+        className={
+          activeJourneyKey === "review"
+            ? "registration-form registration-form--review"
+            : "registration-form"
+        }
+        style={{
+          marginTop: 20,
+          display: "grid",
+          gap: 16,
+        }}
+      >
         {!streamlinedRegistration ? <section id="sec-nature" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Nature of Business</h3>
           <p style={{ marginTop: 0, opacity: 0.8 }}>Select all that apply.</p>
@@ -3295,8 +3330,13 @@ export default function BusinessOnboardingPageClient() {
 
         {msg ? (
           <div
+            className="registration-inline-message"
             style={{
-              color: msg.includes("✅") ? "green" : "crimson",
+              color: msg.includes("✅")
+                ? "green"
+                : activeJourneyKey === "review"
+                ? "#1d4ed8"
+                : "crimson",
               fontWeight: 800,
             }}
           >

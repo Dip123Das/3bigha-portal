@@ -4378,3 +4378,32 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     grid-template-columns: 1fr;
   }
 }
+
+/* R3.4G2 — Dedicated Review & Finish screen */
+.registration-form--review > * {
+  display: none !important;
+}
+
+.registration-form--review > #sec-review,
+.registration-form--review > .registration-inline-message {
+  display: grid !important;
+}
+
+.registration-form--review > #sec-review {
+  order: 1;
+  margin-top: 0;
+}
+
+.registration-form--review > .registration-inline-message {
+  order: 2;
+  padding: 12px 14px;
+  border: 1px solid #bfdbfe;
+  border-radius: 11px;
+  background: #eff6ff;
+  line-height: 1.5;
+}
+
+.registration-form--review {
+  margin-top: 20px !important;
+  min-height: 0;
+}
