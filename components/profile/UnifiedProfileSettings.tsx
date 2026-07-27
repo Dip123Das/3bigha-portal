@@ -59,13 +59,7 @@ function planLabel(plan: string) {
   return normalized.replace(/\b\w/g, (letter) => letter.toUpperCase()) || "Free";
 }
 
-type UnifiedProfileSettingsProps = {
-  workspaceEmbedded?: boolean;
-};
-
-export default function UnifiedProfileSettings({
-  workspaceEmbedded = false,
-}: UnifiedProfileSettingsProps) {
+export default function UnifiedProfileSettings() {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -267,7 +261,6 @@ export default function UnifiedProfileSettings({
 
   return (
     <div className="space-y-5">
-      {!workspaceEmbedded ? (
       <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4">
@@ -318,9 +311,8 @@ export default function UnifiedProfileSettings({
           </div>
         </div>
       </section>
-      ) : null}
 
-      <section id="workspace-personal-settings" className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section id="personal" className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
           Personal Profile
         </div>
@@ -377,7 +369,7 @@ export default function UnifiedProfileSettings({
         </button>
       </section>
 
-      <section id="workspace-profile-photo" className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section id="photo" className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
           Profile Photo
         </div>
@@ -417,7 +409,7 @@ export default function UnifiedProfileSettings({
         />
       </section>
 
-      <section id="workspace-subscription" className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section id="plan" className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
           Subscription & Growth
         </div>

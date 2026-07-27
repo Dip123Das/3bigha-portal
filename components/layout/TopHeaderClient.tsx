@@ -936,11 +936,11 @@ export default function TopHeaderClient() {
                   </div>
 
                   {[
-                    ["My Profile", "/dashboard/workspace#workspace-identity-settings-title"],
-                    ["Personal Details", "/dashboard/workspace#workspace-personal-settings"],
-                    ["Change Profile Photo", "/dashboard/workspace#workspace-profile-photo"],
+                    ["My Profile", "/settings"],
+                    ["Personal Details", "/settings#personal"],
+                    ["Change Profile Photo", "/settings#photo"],
                     ["Edit Business Profile", "/onboarding/business"],
-                    ["Subscription & Plan", "/dashboard/workspace#workspace-subscription"],
+                    ["Subscription & Plan", "/dashboard/subscription?source=profile&return=/settings"],
                     ["My Workspace", dashboardHref],
                     [
                       "Support",
