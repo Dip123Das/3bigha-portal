@@ -7,6 +7,7 @@ import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { SectionSkeleton } from "@/components/ui/Skeleton";
 import { OperationalErrorState } from "@/components/ui/OperationalErrorState";
 import ThreeBOSWorkSummary from "./ThreeBOSWorkSummary";
+import DashboardExecutiveShell from "./DashboardExecutiveShell";
 import {
   resolveAccessForUser,
   type PortalRole,
@@ -460,7 +461,13 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="container pageBody" style={{ paddingTop: 16, paddingBottom: 32 }}>
+    <DashboardExecutiveShell
+      role={stats.latestRole}
+      rfqs={stats.rfqs}
+      conversations={stats.conversations}
+      unreadAlerts={stats.unreadVendorAlerts}
+      priceSignals={stats.priceSignals}
+    >
       <ThreeBOSWorkSummary
         signals={{
           pendingWorkCount: stats.unreadVendorAlerts,
@@ -780,6 +787,6 @@ export default function DashboardPage() {
       <div style={{ marginTop: 14, opacity: 0.75, fontSize: 13 }}>
         {loading ? message : `${message} Current detected role: ${stats.latestRole}.`}
       </div>
-    </div>
+    </DashboardExecutiveShell>
   );
 }
