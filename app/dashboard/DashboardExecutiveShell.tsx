@@ -321,14 +321,40 @@ export default function DashboardExecutiveShell({
           <span>✓ Explain the most important marketplace signals</span><span>✓ Suggest opportunities based on your registered segments</span><span>✓ Highlight risk and pending attention</span><span>✓ Keep every final decision under human control</span>
           <Link href="/dashboard/procurement-copilot">Open 3BOS AI Co-Pilot</Link>
         </section>
-        <section className="d5RailCard">
+        <section className="d5RailCard d5WorkNow">
           <strong>⚡ Work Now</strong>
-          <Link className="qa blue" href="/materials/add">+ Submit New Listing</Link>
-          <Link className="qa green" href="/dashboard/vendor/enquiries">+ Send Proposal / Quote</Link>
-          <Link className="qa purple" href="/dashboard/vendor/rfqs">⌕ Find New RFQs</Link>
-          <Link className="qa ghost" href="/dashboard/workspace">Manage My Listings</Link>
-          <Link className="qa ghost" href="/onboarding/business">Update Business Profile</Link>
-          <Link className="qa ghost" href="/dashboard/procurement-analytics">View My Analytics</Link>
+          <div className="d5WorkActions">
+            <Link className="d5WorkAction primary" href="/materials/add">
+              <span aria-hidden="true">＋</span>
+              <b>Submit New Listing</b>
+              <i aria-hidden="true">›</i>
+            </Link>
+            <Link className="d5WorkAction success" href="/dashboard/vendor/enquiries">
+              <span aria-hidden="true">✎</span>
+              <b>Send Proposal / Quote</b>
+              <i aria-hidden="true">›</i>
+            </Link>
+            <Link className="d5WorkAction accent" href="/dashboard/vendor/rfqs">
+              <span aria-hidden="true">⌕</span>
+              <b>Find New RFQs</b>
+              <i aria-hidden="true">›</i>
+            </Link>
+            <Link className="d5WorkAction secondary" href="/dashboard/vendor/workspace">
+              <span aria-hidden="true">▤</span>
+              <b>Manage My Listings</b>
+              <i aria-hidden="true">›</i>
+            </Link>
+            <Link className="d5WorkAction secondary" href="/onboarding/business">
+              <span aria-hidden="true">▣</span>
+              <b>Update Business Profile</b>
+              <i aria-hidden="true">›</i>
+            </Link>
+            <Link className="d5WorkAction secondary" href="/dashboard/procurement-analytics">
+              <span aria-hidden="true">⌁</span>
+              <b>View My Analytics</b>
+              <i aria-hidden="true">›</i>
+            </Link>
+          </div>
         </section>
       </aside>
 
@@ -357,7 +383,21 @@ export default function DashboardExecutiveShell({
         .d5Kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin-top:13px}.d5Kpi{padding:12px;border:1px solid #d9e4f4;border-radius:13px;background:linear-gradient(160deg,#f6faff,#fff)}.d5Kpi span,.d5Kpi small{display:block;font-size:11px;color:#516b97;font-weight:800}.d5Kpi strong{display:block;font-size:23px;margin:7px 0 4px}.d5Kpi small{color:#188449}.d5DecisionRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:11px}.d5DecisionRow>div{position:relative;padding:12px;border:1px solid #bdd5ff;border-radius:13px;background:#f6f9ff}.d5DecisionRow>div+div{background:#eafff2;border-color:#9dddb7}.d5DecisionRow strong,.d5DecisionRow span{display:block}.d5DecisionRow strong{font-size:12px}.d5DecisionRow span{font-size:11px;line-height:1.4;margin-top:4px}.d5DecisionRow a{position:absolute;right:10px;top:16px;background:#078a46;color:#fff;padding:8px 12px;border-radius:9px;text-decoration:none;font-size:10px;font-weight:900}
         .d5ExecutiveConsole{margin-top:12px;padding:16px;border:1px solid #d4e0f2;border-radius:17px;background:#fff}.d5ConsoleHeading{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.d5ConsoleHeading span{color:#1767ef;font-size:9px;font-weight:950;letter-spacing:.09em}.d5ConsoleHeading h2{margin:4px 0 0;font-size:19px}.d5ConsoleHeading p{margin:4px 0 0;color:#647596;font-size:10px}.d5ConsoleHeading a{color:#1767ef;text-decoration:none;font-size:10px;font-weight:900}.d5ConsoleGrid{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:10px;margin-top:13px}.d5ConsoleCard{min-width:0;padding:13px;border:1px solid #d9e4f4;border-radius:14px;background:linear-gradient(160deg,#f8fbff,#fff)}.d5ConsoleCard>strong{display:block;font-size:11px;color:#526b96}.d5ConsoleCard>b{display:block;margin-top:7px;font-size:16px;color:#142f5d}.d5ConsoleCard>p{margin:5px 0 0;font-size:11px;line-height:1.5;color:#607394}.d5ConsoleCard>a{display:inline-flex;margin-top:9px;color:#1767ef;text-decoration:none;font-size:10px;font-weight:900}.d5CompactHealth,.d5CompactActivity{display:grid;gap:7px;margin-top:9px}.d5CompactHealth span{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid #edf1f7;font-size:11px}.d5CompactHealth b{color:#1767ef}.d5CompactActivity span{display:flex;align-items:center;gap:7px;font-size:11px;color:#29436e}.d5CompactActivity i{width:8px;height:8px;border-radius:50%;background:#94a3b8}.d5CompactActivity i.healthy{background:#0a9954}.d5CompactActivity i.attention{background:#d97706}.d5LegacyIntelligence{display:none}
         .d5WorkspaceLinks{margin-top:12px;padding:12px 14px;border:1px solid #d1def1;border-radius:15px;background:#eef4ff}.d5WorkspaceLinks>strong{display:block;font-size:12px}.d5WorkspaceLinks>div{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.d5WorkspaceLinks a{padding:7px 11px;border-radius:999px;background:#fff;border:1px solid #cbd9ed;text-decoration:none;font-size:10px;color:#1c3765;font-weight:850}
-        .d5RightRail{display:grid;gap:14px;align-content:start}.d5RailCard{background:#fff;border:1px solid #d4e0f1;border-radius:16px;padding:14px;box-shadow:0 9px 26px rgba(26,72,153,.07)}.d5RailCard>strong{display:block;font-size:15px;margin-bottom:11px}.d5AiCard{background:linear-gradient(155deg,#eef0ff,#e8e2ff)}.d5AiCard span{display:block;font-size:11px;line-height:1.45;margin-top:9px;color:#29436d}.d5RailCard>a{display:flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;font-size:11px;font-weight:900}.d5AiCard>a{margin-top:12px;padding:10px;border-radius:9px;background:linear-gradient(90deg,#5234e8,#6814ce);color:#fff}.qa{min-height:42px;margin-top:9px;padding:0 10px;border-radius:10px;color:#fff}.qa.blue{background:#1768ef}.qa.green{background:#0b9b58}.qa.purple{background:#6128dc}.qa.ghost{background:#fff;color:#214070;border:1px solid #b9cae4}
+        .d5RightRail{display:grid;gap:14px;align-content:start}.d5RailCard{background:#fff;border:1px solid #d4e0f1;border-radius:16px;padding:14px;box-shadow:0 9px 26px rgba(26,72,153,.07)}.d5RailCard>strong{display:block;font-size:15px;margin-bottom:11px}.d5AiCard{background:linear-gradient(155deg,#eef0ff,#e8e2ff)}.d5AiCard span{display:block;font-size:11px;line-height:1.45;margin-top:9px;color:#29436d}.d5AiCard>a{display:flex;align-items:center;justify-content:center;margin-top:12px;padding:10px;border-radius:9px;background:linear-gradient(90deg,#5234e8,#6814ce);color:#fff;text-align:center;text-decoration:none;font-size:11px;font-weight:900}
+        .d5WorkNow{border-color:#c9d9ef}
+        .d5WorkActions{display:grid;gap:9px}
+        .d5WorkAction{display:grid;grid-template-columns:32px minmax(0,1fr) 18px;gap:9px;align-items:center;min-height:48px;padding:7px 9px;border:1px solid;border-radius:11px;text-decoration:none;box-shadow:0 3px 9px rgba(25,61,120,.08);transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+        .d5WorkAction>span{display:flex;width:32px;height:32px;align-items:center;justify-content:center;border-radius:9px;background:rgba(255,255,255,.2);font-size:16px;font-weight:950}
+        .d5WorkAction>b{font-size:11px;line-height:1.3}
+        .d5WorkAction>i{font-style:normal;font-size:20px;line-height:1;text-align:right}
+        .d5WorkAction:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(25,61,120,.16)}
+        .d5WorkAction:focus-visible{outline:3px solid rgba(23,103,239,.28);outline-offset:2px}
+        .d5WorkAction.primary{background:#1768ef;border-color:#1768ef;color:#fff}
+        .d5WorkAction.success{background:#0b9456;border-color:#0b9456;color:#fff}
+        .d5WorkAction.accent{background:#6128dc;border-color:#6128dc;color:#fff}
+        .d5WorkAction.secondary{background:linear-gradient(180deg,#fff,#f7faff);border-color:#c5d5ea;color:#1d3a68}
+        .d5WorkAction.secondary>span{background:#eaf2ff;color:#1767ef}
+        .d5WorkAction.secondary:hover{border-color:#7fa9e8;background:#eef5ff}
         @media(max-width:1280px){.d5ConsoleGrid{grid-template-columns:1fr 1fr}.d5ConsoleCard:first-child{grid-column:1/-1}.d5Shell{grid-template-columns:210px minmax(0,1fr)}.d5RightRail{grid-column:1/-1;grid-template-columns:1fr 1fr}.d5IdentityHero{grid-template-columns:auto minmax(0,1fr) 230px}.d5HeroActions{grid-column:1/-1;grid-template-columns:1fr 1fr}.d5Kpis{grid-template-columns:repeat(3,1fr)}}
         @media(max-width:900px){.d5ConsoleGrid{grid-template-columns:1fr}.d5ConsoleCard:first-child{grid-column:auto}.d5ReadinessGrid{grid-template-columns:repeat(2,1fr)}.d5PriorityCards{grid-template-columns:1fr}.d5Shell{display:block;padding:9px}.d5Sidebar{position:static}.d5Nav{grid-template-columns:repeat(2,1fr)}.d5IdentityHero{grid-template-columns:auto 1fr}.d5CompletionCard,.d5HeroActions{grid-column:1/-1}.d5ProfileActions{grid-template-columns:repeat(2,1fr)}.d5BottomGrid{grid-template-columns:1fr}.d5RightRail{grid-template-columns:1fr;margin-top:12px}}
         @media(max-width:600px){.d5ConsoleHeading{display:block}.d5ConsoleHeading a{display:inline-flex;margin-top:9px}.d5ReadinessGrid{grid-template-columns:1fr}.d5ReadinessHeading,.d5PriorityHeading{display:block}.d5ReadinessHeading>strong,.d5PriorityHeading a{display:inline-flex;margin-top:9px}.d5Nav{grid-template-columns:1fr}.d5IdentityHero{display:block}.d5LogoOrb{margin-bottom:12px}.d5CompletionCard{margin-top:12px}.d5ProfileActions{grid-template-columns:1fr}.d5Kpis{grid-template-columns:repeat(2,1fr)}.d5DecisionRow{grid-template-columns:1fr}.d5DecisionRow a{position:static;display:inline-flex;margin-top:8px}.d5SectionHeading{display:block}.d5StatusPills{margin-top:9px}.d5RightRail{display:grid}}
