@@ -9,6 +9,15 @@ type DashboardExecutiveShellProps = {
   conversations: number;
   unreadAlerts: number;
   priceSignals: number;
+  businessName: string;
+  businessType: string;
+  businessNature: string[];
+  businessCity: string;
+  businessDistrict: string;
+  businessState: string;
+  completionScore: number;
+  isComplete: boolean;
+  profileImageUrl: string | null;
   children: ReactNode;
 };
 
@@ -24,13 +33,13 @@ const NAV_ITEMS = [
   ["Dashboard", "/dashboard", "▦"],
   ["My Profile", "/settings", "♙"],
   ["Business Profile", "/onboarding/business", "▣"],
-  ["My Listings", "/materials/my", "▤"],
-  ["RFQ Work Desk", "/dashboard/buyer/rfqs", "◫"],
+  ["My Listings", "/dashboard/workspace", "▤"],
+  ["RFQ Work Desk", "/dashboard/vendor/rfqs", "◫"],
   ["Buyer Enquiries", "/dashboard/vendor/enquiries", "♧"],
   ["Vendor Analytics", "/dashboard/procurement-analytics", "⌁"],
   ["Orders & Deals", "/dashboard/vendor/workspace", "▢"],
   ["Payments & Billing", "/dashboard/vendor/billing", "▭"],
-  ["Ratings & Reviews", "/vendor", "☆"],
+  ["Ratings & Reviews", "/dashboard/vendor/workspace", "☆"],
   ["Predictive Prices", "/price-today", "⌁"],
   ["Learning & Knowledge", "/dashboard/procurement-memory-intelligence", "◇"],
   ["Subscription", "/dashboard/subscription", "◉"],
@@ -52,11 +61,30 @@ export default function DashboardExecutiveShell({
   conversations,
   unreadAlerts,
   priceSignals,
+  businessName,
+  businessType,
+  businessNature,
+  businessCity,
+  businessDistrict,
+  businessState,
+  completionScore,
+  isComplete,
+  profileImageUrl,
   children,
 }: DashboardExecutiveShellProps) {
   const displayRole = roleLabel(role);
-  const completion = unreadAlerts > 50 ? 82 : 92;
+  const completion = Math.max(0, Math.min(100, Math.round(completionScore || 0)));
   const momentum = Math.min(100, 35 + conversations * 8 + priceSignals * 5 + rfqs * 6);
+  const resolvedBusinessName = businessName || "Your Business";
+  const natureLabel = businessNature.length
+    ? businessNature
+        .map((item) => item.charAt(0).toUpperCase() + item.slice(1))
+        .join(" | ")
+    : businessType || displayRole;
+  const locationLabel = [businessCity, businessDistrict, businessState]
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index)
+    .join(", ");
 
   return (
     <div className="d5Shell">
@@ -86,20 +114,26 @@ export default function DashboardExecutiveShell({
 
       <main className="d5Main">
         <section className="d5IdentityHero">
-          <div className="d5LogoOrb">SV</div>
+          <div className="d5LogoOrb">
+            {profileImageUrl ? (
+              <img src={profileImageUrl} alt={`${resolvedBusinessName} profile`} />
+            ) : (
+              resolvedBusinessName.slice(0, 2).toUpperCase()
+            )}
+          </div>
           <div className="d5IdentityCopy">
-            <div className="d5BusinessName">Swarnabhumi Ventures <span>✓</span></div>
-            <div className="d5RoleLine">{displayRole} — Materials | Services | Rentals | Property</div>
-            <div className="d5Location">⌖ Cooch Behar, West Bengal</div>
+            <div className="d5BusinessName">{resolvedBusinessName} <span>✓</span></div>
+            <div className="d5RoleLine">{displayRole} — {natureLabel}</div>
+            <div className="d5Location">⌖ {locationLabel || "Location not yet added"}</div>
             <div className="d5Badges">
-              <span>✓ Verified Vendor</span><span>✓ Active</span><span>◷ Since 2024</span>
+              <span>{isComplete ? "✓ Verified Vendor" : "◷ Profile in progress"}</span><span>✓ Active</span>
             </div>
           </div>
           <div className="d5CompletionCard">
             <small>♛ Business Completion Score</small>
             <strong>{completion}<span>/100</span></strong>
             <div className="d5Progress"><i style={{ width: `${completion}%` }} /></div>
-            <b>Excellent Profile – Highly Trusted</b>
+            <b>{completion >= 90 ? "Excellent Profile – Highly Trusted" : completion >= 70 ? "Good Profile – Keep Improving" : "Complete your profile to build trust"}</b>
           </div>
           <div className="d5HeroActions">
             <Link href="/onboarding/business">✎ Edit Profile</Link>
@@ -189,7 +223,7 @@ export default function DashboardExecutiveShell({
         .d5Nav{display:grid;gap:4px;margin-top:10px}.d5NavLink{display:flex;align-items:center;gap:9px;min-height:38px;padding:8px 10px;border-radius:10px;text-decoration:none;color:#1c315c;font-size:12px}.d5NavLink:hover{background:#edf4ff}.d5NavActive{color:#fff;background:linear-gradient(90deg,#1364ef,#2248e7);box-shadow:0 8px 20px rgba(28,91,230,.3)}.d5NavLink em{margin-left:auto;background:#ed1c3b;color:#fff;border-radius:999px;padding:2px 6px;font-style:normal;font-size:10px}
         .d5HelpCard{margin-top:14px;padding:12px;border-radius:14px;background:linear-gradient(140deg,#edf8ff,#eef2ff);border:1px solid #cfe1ff}.d5HelpCard strong,.d5HelpCard span{display:block}.d5HelpCard span{font-size:10px;margin-top:3px;color:#5e7094}.d5HelpCard a{display:block;margin-top:10px;padding:9px;border-radius:9px;background:#1769ee;color:#fff;text-align:center;text-decoration:none;font-weight:900;font-size:11px}
         .d5Main{min-width:0}.d5IdentityHero{display:grid;grid-template-columns:auto minmax(0,1fr) 250px 150px;gap:16px;align-items:center;padding:18px;border-radius:18px;background:linear-gradient(110deg,#dff1ff 0%,#eef4ff 55%,#b9d4ff 100%);border:1px solid #b9d2ff;box-shadow:0 12px 30px rgba(27,77,167,.09)}
-        .d5LogoOrb{width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#fff,#d9f6e5);border:5px solid #fff;box-shadow:0 0 0 2px #ff9c2a;color:#16834b;font-size:28px;font-weight:950}.d5BusinessName{font-size:25px;font-weight:950;color:#10234a}.d5BusinessName span{color:#1364ef}.d5RoleLine{font-size:13px;margin-top:3px}.d5Location{font-size:12px;margin-top:8px}.d5Badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.d5Badges span{padding:6px 10px;border-radius:999px;background:#effff5;border:1px solid #8bd7ac;color:#087640;font-size:10px;font-weight:900}
+        .d5LogoOrb{width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(145deg,#fff,#d9f6e5);border:5px solid #fff;box-shadow:0 0 0 2px #ff9c2a;color:#16834b;font-size:28px;font-weight:950}.d5LogoOrb img{width:100%;height:100%;object-fit:cover;display:block}.d5BusinessName{font-size:25px;font-weight:950;color:#10234a}.d5BusinessName span{color:#1364ef}.d5RoleLine{font-size:13px;margin-top:3px}.d5Location{font-size:12px;margin-top:8px}.d5Badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.d5Badges span{padding:6px 10px;border-radius:999px;background:#effff5;border:1px solid #8bd7ac;color:#087640;font-size:10px;font-weight:900}
         .d5CompletionCard{background:rgba(255,255,255,.78);border:1px solid #d4e0f3;border-radius:16px;padding:14px}.d5CompletionCard small,.d5CompletionCard b{display:block}.d5CompletionCard strong{display:block;color:#098646;font-size:30px;margin-top:5px}.d5CompletionCard strong span{font-size:16px;color:#263b63}.d5Progress{height:9px;background:#d8e3ed;border-radius:999px;overflow:hidden}.d5Progress i{display:block;height:100%;background:#10a453;border-radius:inherit}.d5CompletionCard b{font-size:10px;color:#078348;margin-top:7px}.d5HeroActions{display:grid;gap:8px}.d5HeroActions a{display:flex;align-items:center;justify-content:center;min-height:40px;border-radius:10px;text-decoration:none;font-size:11px;font-weight:900;background:#1464ef;color:#fff}.d5HeroActions a+a{background:#fff;color:#233b6b;border:1px solid #c9d8ef}
         .d5ProfileActions{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:12px}.d5ProfileAction{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;text-decoration:none;border:1px solid}.d5ProfileAction>span{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.7);font-size:18px}.d5ProfileAction strong,.d5ProfileAction small{display:block}.d5ProfileAction strong{font-size:12px;color:#15305d}.d5ProfileAction small{font-size:10px;color:#63769a;margin-top:3px}.blue{background:#e8f3ff;border-color:#a9cef9}.purple{background:#f3eaff;border-color:#d2b7f5}.green{background:#e9fbee;border-color:#a8e1b7}.orange{background:#fff1df;border-color:#f2c58a}.pink{background:#ffeaf1;border-color:#f5b5c8}
         .d5OperatingCenter{margin-top:12px;padding:16px;border:1px solid #d4e0f2;border-radius:17px;background:#fff}.d5SectionHeading{display:flex;justify-content:space-between;gap:12px}.d5SectionHeading h2{margin:0;font-size:20px}.d5SectionHeading p{margin:4px 0 0;font-size:11px;color:#647596}.d5StatusPills{display:flex;gap:7px;align-items:flex-start}.d5StatusPills span{padding:7px 10px;border-radius:999px;background:#eafff1;color:#08733e;font-size:10px;font-weight:900}

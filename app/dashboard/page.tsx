@@ -20,6 +20,15 @@ type AnalyticsStats = {
   conversations: number;
   priceSignals: number;
   latestRole: string;
+  businessName: string;
+  businessType: string;
+  businessNature: string[];
+  businessCity: string;
+  businessDistrict: string;
+  businessState: string;
+  completionScore: number;
+  isComplete: boolean;
+  profileImageUrl: string | null;
 };
 
 type ProcurementRecommendation = {
@@ -91,6 +100,15 @@ export default function DashboardPage() {
     conversations: 0,
     priceSignals: 0,
     latestRole: "user",
+    businessName: "",
+    businessType: "",
+    businessNature: [],
+    businessCity: "",
+    businessDistrict: "",
+    businessState: "",
+    completionScore: 0,
+    isComplete: false,
+    profileImageUrl: null,
   });
 
   const [procurementRecommendation, setProcurementRecommendation] =
@@ -185,6 +203,7 @@ export default function DashboardPage() {
           unreadVendorAlertRes,
           conversationRes,
           priceRes,
+          businessProfileRes,
         ] = await Promise.allSettled([
           withDashboardTimeout(
             supabase
@@ -242,10 +261,61 @@ export default function DashboardPage() {
             5000,
             "Dashboard price signal count"
           ),
+
+          withDashboardTimeout(
+            supabase
+              .from("business_profiles")
+              .select(
+                "business_name,business_type,nature_of_business,city,district,state,completion_score,is_complete,business_media_json"
+              )
+              .eq("user_id", session.user.id)
+              .maybeSingle(),
+            5000,
+            "Dashboard business identity"
+          ),
         ]);
 
         const profile =
           profileRes.status === "fulfilled" ? profileRes.value.data : null;
+
+        const businessProfile =
+          businessProfileRes.status === "fulfilled"
+            ? businessProfileRes.value.data
+            : null;
+
+        const businessMedia = Array.isArray(
+          businessProfile?.business_media_json
+        )
+          ? businessProfile.business_media_json
+          : [];
+
+        const profileImage =
+          businessMedia.find((asset: any) => {
+            const haystack = [
+              asset?.name,
+              asset?.path,
+              asset?.object_path,
+              asset?.label,
+              asset?.purpose,
+              asset?.category,
+              asset?.type,
+            ]
+              .filter(Boolean)
+              .join(" ")
+              .toLowerCase();
+
+            return (
+              (asset?.kind === "image" ||
+                String(asset?.mimeType || asset?.mime_type || "").startsWith("image/")) &&
+              /(selfie|profile|portrait|person|owner|contact)/.test(haystack)
+            );
+          }) ||
+          businessMedia.find(
+            (asset: any) =>
+              asset?.kind === "image" ||
+              String(asset?.mimeType || asset?.mime_type || "").startsWith("image/")
+          ) ||
+          null;
 
         setStats({
           rfqs:
@@ -269,6 +339,18 @@ export default function DashboardPage() {
               ? Number(priceRes.value.count || 0)
               : 0,
           latestRole: String(profile?.role || profile?.requested_role || "user"),
+          businessName: String(businessProfile?.business_name || "").trim(),
+          businessType: String(businessProfile?.business_type || "").trim(),
+          businessNature: Array.isArray(businessProfile?.nature_of_business)
+            ? businessProfile.nature_of_business.filter(Boolean)
+            : [],
+          businessCity: String(businessProfile?.city || "").trim(),
+          businessDistrict: String(businessProfile?.district || "").trim(),
+          businessState: String(businessProfile?.state || "").trim(),
+          completionScore: Number(businessProfile?.completion_score || 0),
+          isComplete: Boolean(businessProfile?.is_complete),
+          profileImageUrl:
+            String(profileImage?.url || profileImage?.public_url || "").trim() || null,
         });
 
         setMessage("Your work is ready.");
@@ -467,6 +549,15 @@ export default function DashboardPage() {
       conversations={stats.conversations}
       unreadAlerts={stats.unreadVendorAlerts}
       priceSignals={stats.priceSignals}
+      businessName={stats.businessName}
+      businessType={stats.businessType}
+      businessNature={stats.businessNature}
+      businessCity={stats.businessCity}
+      businessDistrict={stats.businessDistrict}
+      businessState={stats.businessState}
+      completionScore={stats.completionScore}
+      isComplete={stats.isComplete}
+      profileImageUrl={stats.profileImageUrl}
     >
       <ThreeBOSWorkSummary
         signals={{
