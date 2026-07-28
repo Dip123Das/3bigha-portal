@@ -744,44 +744,6 @@ export default function DashboardPage() {
             ) : null}
           </div>
         ) : null}
-        <div
-          aria-label="Dashboard tools"
-          style={{
-            marginTop: 16,
-            display: "flex",
-            gap: 10,
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
-          <Link href="/dashboard/workspace" className="topBtn topBtnPrimary">
-            Workspace →
-          </Link>
-          <Link href="/dashboard/vendor/workspace" className="topBtn topBtnGhost">
-            Vendor Work Desk →
-          </Link>
-          <Link href="/settings" className="topBtn topBtnGhost">
-            Settings →
-          </Link>
-          <Link href="/onboarding/business" className="topBtn topBtnGhost">
-            Business Profile →
-          </Link>
-          <Link href="/dashboard/subscription" className="topBtn topBtnGhost">
-            Subscription →
-          </Link>
-          <Link href="/dashboard/inbox-v2" className="topBtn topBtnGhost">
-            Inbox →
-          </Link>
-          <Link href="/dashboard/buyer/rfqs" className="topBtn topBtnGhost">
-            RFQ Work Desk →
-          </Link>
-          <Link href="/price-today" className="topBtn topBtnGhost">
-            Predictive Prices →
-          </Link>
-          <Link href="/rfq" className="topBtn topBtnGhost">
-            + New RFQ →
-          </Link>
-        </div>
       </div>
 
       <div style={{ marginTop: 14, opacity: 0.75, fontSize: 13 }}>
