@@ -186,7 +186,7 @@ export async function middleware(req: NextRequest) {
 
   const { data: accessProfile } = await supabase
     .from("profiles")
-    .select("role,account_status,approval_status")
+    .select("role,account_status,approval_status,onboarding_completed")
     .eq("id", data.user.id)
     .maybeSingle();
 
@@ -221,7 +221,21 @@ export async function middleware(req: NextRequest) {
 
   if (authPathname.startsWith("/dashboard/vendor")) {
     if (accessProfile?.role !== "master_admin") {
-      if (accessProfile?.approval_status !== "approved") {
+      const vendorRoles = new Set(["vendor", "hub_vendor", "builder"]);
+      const hasOperationalVendorIdentity =
+        accessProfile?.account_status === "active" &&
+        accessProfile?.onboarding_completed === true &&
+        vendorRoles.has(String(accessProfile?.role || ""));
+
+      /*
+       * Essential vendor workspaces belong to an active, onboarded identity.
+       * Administrative approval remains relevant to verification presentation,
+       * but must not lock an established vendor out of their own work.
+       */
+      if (
+        accessProfile?.approval_status !== "approved" &&
+        !hasOperationalVendorIdentity
+      ) {
         const reviewUrl = req.nextUrl.clone();
         reviewUrl.pathname = "/auth/awaiting-approval";
         reviewUrl.search = "";

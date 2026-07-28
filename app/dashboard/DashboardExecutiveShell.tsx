@@ -41,7 +41,7 @@ const NAV_ITEMS = [
   ["Payments & Billing", "/dashboard/vendor/billing", "▭"],
   ["Ratings & Reviews", "/dashboard/vendor/workspace", "☆"],
   ["Predictive Prices", "/price-today", "⌁"],
-  ["Learning & Knowledge", "/dashboard/procurement-memory-intelligence", "◇"],
+  ["Learning & Knowledge", "/ai-search-guide", "◇"],
   ["Subscription", "/dashboard/subscription", "◉"],
   ["Inbox", "/dashboard/inbox-v2", "✉"],
   ["Settings", "/settings", "⚙"],
