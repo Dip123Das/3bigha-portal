@@ -151,7 +151,7 @@ export default function DashboardExecutiveShell({
 
         <section className="d5OperatingCenter">
           <div className="d5SectionHeading">
-            <div><h2>Marketplace Operations Overview</h2><p>Live status of RFQs, conversations, vendor alerts, price signals and next actions.</p></div>
+            <div><h2>Business Operating Center</h2><p>Today’s priorities, marketplace activity and the next human action from one place.</p></div>
             <div className="d5StatusPills"><span>⚙ Analytics Score 100/100</span><span>● Live</span></div>
           </div>
           <div className="d5Kpis">
@@ -160,8 +160,8 @@ export default function DashboardExecutiveShell({
               ["Conversations", conversations, "Active", "▤"],
               ["Vendor Alerts", unreadAlerts, "Unread", "♧"],
               ["Price Signals", priceSignals, "New", "⌁"],
-              ["Purchase Orders", Math.max(0, Math.floor(conversations / 2)), "This Month", "▣"],
-              ["Views on Profile", 1248, "All Time", "◉"],
+              ["Profile Completion", completion, "Business readiness", "▣"],
+              ["Active Segments", businessNature.length, "Registered capabilities", "◉"],
             ].map(([label, value, note, icon]) => (
               <div className="d5Kpi" key={String(label)}><span>{icon} {label}</span><strong>{value}</strong><small>{note}</small></div>
             ))}
@@ -172,6 +172,14 @@ export default function DashboardExecutiveShell({
           </div>
         </section>
 
+        <section className="d5IntelligenceHeader">
+          <div>
+            <span>AI-SUPPORTED INTELLIGENCE</span>
+            <h2>Recommendation, forecasting and learning</h2>
+            <p>AI explains signals and suggests actions. You remain responsible for every decision.</p>
+          </div>
+          <Link href="/dashboard/procurement-copilot">Open full AI Co-Pilot →</Link>
+        </section>
         <div className="d5Content">{children}</div>
 
         <section className="d5BottomGrid">
@@ -180,22 +188,29 @@ export default function DashboardExecutiveShell({
             <ul><li>New vendor alert received for Building Materials <small>2 hours ago</small></li><li>{conversations} active conversations from buyers <small>Today</small></li><li>Price signal update received <small>Yesterday</small></li><li>Business profile and listings remain visible <small>Live</small></li></ul>
           </div>
           <div className="d5MetricsCard">
-            <div className="d5MiniHeading"><strong>My Business Metrics</strong><span>30D</span></div>
-            <div className="d5Bars">
-              {[78, 62, 46, 32].map((value, index) => (
-                <div key={value}><i style={{ height: `${value}%` }} /><b>{["Profile Views", "RFQs Received", "Responses", "Deals"][index]}</b><small>{[1248, 32, 18, 6][index]}</small></div>
-              ))}
+            <div className="d5MiniHeading"><strong>My Business Health</strong><span>Live</span></div>
+            <div className="d5HealthRows">
+              <div><span>Profile completion</span><b>{completion}%</b></div>
+              <div><span>Verification</span><b>{isComplete ? "Complete" : "In progress"}</b></div>
+              <div><span>Unread attention</span><b>{unreadAlerts}</b></div>
+              <div><span>Active segments</span><b>{businessNature.length}</b></div>
             </div>
           </div>
           <div className="d5TrustCard">
             <strong>Why Buyers Choose You</strong>
-            {["Verified & Reliable Vendor","Multi-Segment Services","Responsive Communication","Quality Commitment","On-Time Delivery"].map((item) => <span key={item}>✓ {item}</span>)}
+            {[
+              "Registered business identity",
+              `${businessNature.length} active business segments`,
+              "Direct buyer communication",
+              "Live marketplace presence",
+              isComplete ? "Profile requirements complete" : "Profile completion underway",
+            ].map((item) => <span key={item}>✓ {item}</span>)}
           </div>
         </section>
 
         <section className="d5WorkspaceLinks">
           <strong>Your Workspace Quick Links</strong>
-          <div><Link href="/marketplace">Marketplace</Link><Link href="/dashboard/vendor/workspace">Vendor Work Desk</Link><Link href="/dashboard/buyer/rfqs">RFQ Work Desk</Link><Link href="/dashboard/inbox-v2">Inbox</Link><Link href="/price-today">Predictive Prices</Link><Link href="/rfq">+ New RFQ</Link></div>
+          <div><Link href="/dashboard/workspace">Unified Workspace</Link><Link href="/dashboard/vendor/workspace">Vendor Work Desk</Link><Link href="/dashboard/vendor/rfqs">RFQ Work Desk</Link><Link href="/dashboard/inbox-v2">Inbox</Link><Link href="/price-today">Predictive Prices</Link><Link href="/rfq">+ New RFQ</Link></div>
         </section>
       </main>
 
@@ -209,8 +224,8 @@ export default function DashboardExecutiveShell({
           <strong>⚡ Quick Actions</strong>
           <Link className="qa blue" href="/materials/add">+ Submit New Listing</Link>
           <Link className="qa green" href="/dashboard/vendor/enquiries">+ Send Proposal / Quote</Link>
-          <Link className="qa purple" href="/dashboard/buyer/rfqs">⌕ Find New RFQs</Link>
-          <Link className="qa ghost" href="/materials/my">Manage My Listings</Link>
+          <Link className="qa purple" href="/dashboard/vendor/rfqs">⌕ Find New RFQs</Link>
+          <Link className="qa ghost" href="/dashboard/workspace">Manage My Listings</Link>
           <Link className="qa ghost" href="/onboarding/business">Update Business Profile</Link>
           <Link className="qa ghost" href="/dashboard/procurement-analytics">View My Analytics</Link>
         </section>
@@ -228,7 +243,7 @@ export default function DashboardExecutiveShell({
         .d5ProfileActions{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:12px}.d5ProfileAction{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;text-decoration:none;border:1px solid}.d5ProfileAction>span{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.7);font-size:18px}.d5ProfileAction strong,.d5ProfileAction small{display:block}.d5ProfileAction strong{font-size:12px;color:#15305d}.d5ProfileAction small{font-size:10px;color:#63769a;margin-top:3px}.blue{background:#e8f3ff;border-color:#a9cef9}.purple{background:#f3eaff;border-color:#d2b7f5}.green{background:#e9fbee;border-color:#a8e1b7}.orange{background:#fff1df;border-color:#f2c58a}.pink{background:#ffeaf1;border-color:#f5b5c8}
         .d5OperatingCenter{margin-top:12px;padding:16px;border:1px solid #d4e0f2;border-radius:17px;background:#fff}.d5SectionHeading{display:flex;justify-content:space-between;gap:12px}.d5SectionHeading h2{margin:0;font-size:20px}.d5SectionHeading p{margin:4px 0 0;font-size:11px;color:#647596}.d5StatusPills{display:flex;gap:7px;align-items:flex-start}.d5StatusPills span{padding:7px 10px;border-radius:999px;background:#eafff1;color:#08733e;font-size:10px;font-weight:900}
         .d5Kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin-top:13px}.d5Kpi{padding:12px;border:1px solid #d9e4f4;border-radius:13px;background:linear-gradient(160deg,#f6faff,#fff)}.d5Kpi span,.d5Kpi small{display:block;font-size:10px;color:#516b97;font-weight:800}.d5Kpi strong{display:block;font-size:23px;margin:7px 0 4px}.d5Kpi small{color:#188449}.d5DecisionRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:11px}.d5DecisionRow>div{position:relative;padding:12px;border:1px solid #bdd5ff;border-radius:13px;background:#f6f9ff}.d5DecisionRow>div+div{background:#eafff2;border-color:#9dddb7}.d5DecisionRow strong,.d5DecisionRow span{display:block}.d5DecisionRow strong{font-size:12px}.d5DecisionRow span{font-size:10px;margin-top:4px}.d5DecisionRow a{position:absolute;right:10px;top:16px;background:#078a46;color:#fff;padding:8px 12px;border-radius:9px;text-decoration:none;font-size:10px;font-weight:900}
-        .d5Content{margin-top:12px}.d5BottomGrid{display:grid;grid-template-columns:1.1fr 1.2fr .75fr;gap:12px;margin-top:12px}.d5BottomGrid>div{background:#fff;border:1px solid #d5e0f1;border-radius:15px;padding:14px}.d5MiniHeading{display:flex;justify-content:space-between;gap:8px}.d5MiniHeading a{font-size:10px;text-decoration:none}.d5ActivityCard ul{list-style:none;margin:10px 0 0;padding:0}.d5ActivityCard li{padding:8px 0;border-top:1px solid #edf1f7;font-size:10px}.d5ActivityCard small{display:block;color:#8190aa;margin-top:2px}.d5Bars{height:150px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:end;margin-top:12px}.d5Bars>div{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center}.d5Bars i{width:28px;background:linear-gradient(#1766ee,#13a459);border-radius:5px 5px 0 0}.d5Bars b,.d5Bars small{font-size:9px;text-align:center;margin-top:4px}.d5TrustCard{display:grid;gap:9px;align-content:start}.d5TrustCard span{font-size:10px;color:#29436e}
+        .d5IntelligenceHeader{margin-top:12px;padding:15px 16px 0;border:1px solid #d4e0f2;border-bottom:0;border-radius:17px 17px 0 0;background:#fff;display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.d5IntelligenceHeader span{color:#1767ef;font-size:9px;font-weight:950;letter-spacing:.09em}.d5IntelligenceHeader h2{margin:4px 0 0;font-size:19px}.d5IntelligenceHeader p{margin:4px 0 0;color:#647596;font-size:10px}.d5IntelligenceHeader a{color:#1767ef;text-decoration:none;font-size:10px;font-weight:900}.d5Content{margin-top:0;padding:1px 16px 16px;border:1px solid #d4e0f2;border-top:0;border-radius:0 0 17px 17px;background:#fff}.d5Content>:first-child{display:none}.d5Content>:nth-child(2)>:nth-child(-n+3){display:none}.d5Content>:nth-child(2){border:0!important;padding:0!important;box-shadow:none!important;background:transparent!important}.d5Content>:nth-child(2)>div{margin-top:10px!important}.d5BottomGrid{display:grid;grid-template-columns:1.1fr 1.2fr .75fr;gap:12px;margin-top:12px}.d5BottomGrid>div{background:#fff;border:1px solid #d5e0f1;border-radius:15px;padding:14px}.d5MiniHeading{display:flex;justify-content:space-between;gap:8px}.d5MiniHeading a{font-size:10px;text-decoration:none}.d5ActivityCard ul{list-style:none;margin:10px 0 0;padding:0}.d5ActivityCard li{padding:8px 0;border-top:1px solid #edf1f7;font-size:10px}.d5ActivityCard small{display:block;color:#8190aa;margin-top:2px}.d5HealthRows{display:grid;gap:9px;margin-top:12px}.d5HealthRows>div{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid #edf1f7}.d5HealthRows span,.d5HealthRows b{font-size:10px}.d5HealthRows b{color:#1767ef}.d5TrustCard{display:grid;gap:9px;align-content:start}.d5TrustCard span{font-size:10px;color:#29436e}
         .d5WorkspaceLinks{margin-top:12px;padding:12px 14px;border:1px solid #d1def1;border-radius:15px;background:#eef4ff}.d5WorkspaceLinks>strong{display:block;font-size:12px}.d5WorkspaceLinks>div{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.d5WorkspaceLinks a{padding:7px 11px;border-radius:999px;background:#fff;border:1px solid #cbd9ed;text-decoration:none;font-size:10px;color:#1c3765;font-weight:850}
         .d5RightRail{display:grid;gap:14px;align-content:start}.d5RailCard{background:#fff;border:1px solid #d4e0f1;border-radius:16px;padding:14px;box-shadow:0 9px 26px rgba(26,72,153,.07)}.d5RailCard>strong{display:block;font-size:14px;margin-bottom:10px}.d5AiCard{background:linear-gradient(155deg,#eef0ff,#e8e2ff)}.d5AiCard span{display:block;font-size:10px;margin-top:8px;color:#29436d}.d5RailCard>a{display:flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;font-size:10px;font-weight:900}.d5AiCard>a{margin-top:12px;padding:10px;border-radius:9px;background:linear-gradient(90deg,#5234e8,#6814ce);color:#fff}.qa{min-height:38px;margin-top:8px;border-radius:9px;color:#fff}.qa.blue{background:#1768ef}.qa.green{background:#0b9b58}.qa.purple{background:#6128dc}.qa.ghost{background:#fff;color:#214070;border:1px solid #b9cae4}
         @media(max-width:1280px){.d5Shell{grid-template-columns:210px minmax(0,1fr)}.d5RightRail{grid-column:1/-1;grid-template-columns:1fr 1fr}.d5IdentityHero{grid-template-columns:auto minmax(0,1fr) 230px}.d5HeroActions{grid-column:1/-1;grid-template-columns:1fr 1fr}.d5Kpis{grid-template-columns:repeat(3,1fr)}}
