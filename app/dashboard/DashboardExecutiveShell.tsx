@@ -33,7 +33,7 @@ const NAV_ITEMS = [
   ["Dashboard", "/dashboard", "▦"],
   ["My Profile", "/settings", "♙"],
   ["Business Profile", "/onboarding/business", "▣"],
-  ["My Listings", "/dashboard/workspace", "▤"],
+  ["My Listings", "/dashboard/vendor/workspace", "▤"],
   ["RFQ Work Desk", "/dashboard/vendor/rfqs", "◫"],
   ["Buyer Enquiries", "/dashboard/vendor/enquiries", "♧"],
   ["Vendor Analytics", "/dashboard/procurement-analytics", "⌁"],
@@ -96,11 +96,21 @@ export default function DashboardExecutiveShell({
 
         <nav className="d5Nav">
           {NAV_ITEMS.map(([label, href, icon], index) => (
-            <Link key={href + label} href={href} className={`d5NavLink ${index === 0 ? "d5NavActive" : ""}`}>
-              <span aria-hidden="true">{icon}</span>
+            <Link
+              key={href + label}
+              href={href}
+              className={`d5NavLink ${index === 0 ? "d5NavActive" : ""}`}
+              aria-current={index === 0 ? "page" : undefined}
+            >
+              <span className="d5NavIcon" aria-hidden="true">{icon}</span>
               <b>{label}</b>
-              {label === "RFQ Work Desk" && unreadAlerts > 0 ? <em aria-label={`${unreadAlerts} unread RFQ alerts`}>{unreadAlerts}</em> : null}
-              {label === "Buyer Enquiries" && conversations > 0 ? <em aria-label={`${conversations} active buyer enquiries`}>{conversations}</em> : null}
+              {label === "RFQ Work Desk" && unreadAlerts > 0 ? (
+                <em aria-label={`${unreadAlerts} unread RFQ alerts`}>{unreadAlerts}</em>
+              ) : null}
+              {label === "Buyer Enquiries" && conversations > 0 ? (
+                <em aria-label={`${conversations} active buyer enquiries`}>{conversations}</em>
+              ) : null}
+              <i className="d5NavArrow" aria-hidden="true">›</i>
             </Link>
           ))}
         </nav>
@@ -326,7 +336,18 @@ export default function DashboardExecutiveShell({
         .d5Shell{display:grid;grid-template-columns:240px minmax(0,1fr) 320px;gap:18px;width:100%;padding:14px;background:#f4f7fd;min-height:calc(100vh - 120px);color:#10234a}
         .d5Sidebar,.d5RightRail{min-width:0}.d5Sidebar{position:sticky;top:12px;align-self:start;background:#fff;border:1px solid #d8e3f5;border-radius:18px;padding:14px;box-shadow:0 10px 30px rgba(36,76,150,.08)}
         .d5SideIdentity{padding:4px 10px 14px;border-bottom:1px solid #e7edf7}.d5SideIdentity strong{display:block;font-size:18px}.d5Verified{display:block;color:#07884a;font-size:12px;font-weight:900;margin-top:6px}
-        .d5Nav{display:grid;gap:4px;margin-top:10px}.d5NavLink{display:flex;align-items:center;gap:10px;min-height:42px;padding:9px 11px;border-radius:11px;text-decoration:none;color:#1c315c;font-size:13px;line-height:1.25}.d5NavLink:hover{background:#edf4ff}.d5NavActive{color:#fff;background:linear-gradient(90deg,#1364ef,#2248e7);box-shadow:0 8px 20px rgba(28,91,230,.3)}.d5NavLink em{margin-left:auto;min-width:24px;height:22px;display:inline-flex;align-items:center;justify-content:center;background:#ed1c3b;color:#fff;border-radius:999px;padding:0 7px;font-style:normal;font-size:11px;font-weight:900}
+        .d5Nav{display:grid;gap:7px;margin-top:12px}
+        .d5NavLink{display:flex;align-items:center;gap:9px;min-height:44px;padding:8px 9px;border:1px solid #d8e4f4;border-radius:11px;text-decoration:none;color:#17315c;background:linear-gradient(180deg,#fff,#f8fbff);box-shadow:0 2px 7px rgba(31,70,132,.05);font-size:12px;line-height:1.25;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease,background .16s ease}
+        .d5NavIcon{width:25px;height:25px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;border-radius:7px;background:#edf4ff;color:#1767ef;font-size:13px}
+        .d5NavLink b{min-width:0}
+        .d5NavLink:hover{transform:translateX(2px);border-color:#8fb7f3;background:#edf5ff;box-shadow:0 6px 14px rgba(31,91,180,.12)}
+        .d5NavLink:focus-visible{outline:3px solid rgba(23,103,239,.28);outline-offset:2px}
+        .d5NavActive{color:#fff;border-color:#1767ef;background:linear-gradient(90deg,#1364ef,#2248e7);box-shadow:0 8px 20px rgba(28,91,230,.3)}
+        .d5NavActive .d5NavIcon{background:rgba(255,255,255,.2);color:#fff}
+        .d5NavLink em{margin-left:auto;min-width:24px;height:22px;display:inline-flex;align-items:center;justify-content:center;background:#ed1c3b;color:#fff;border-radius:999px;padding:0 7px;font-style:normal;font-size:11px;font-weight:900}
+        .d5NavArrow{margin-left:auto;color:#7790b7;font-style:normal;font-size:18px;line-height:1}
+        .d5NavLink em+.d5NavArrow{margin-left:0}
+        .d5NavActive .d5NavArrow{color:#fff}
         .d5HelpCard{margin-top:14px;padding:12px;border-radius:14px;background:linear-gradient(140deg,#edf8ff,#eef2ff);border:1px solid #cfe1ff}.d5HelpCard strong,.d5HelpCard span{display:block}.d5HelpCard span{font-size:10px;margin-top:3px;color:#5e7094}.d5HelpCard a{display:block;margin-top:10px;padding:9px;border-radius:9px;background:#1769ee;color:#fff;text-align:center;text-decoration:none;font-weight:900;font-size:11px}
         .d5Main{min-width:0}.d5IdentityHero{display:grid;grid-template-columns:auto minmax(0,1fr) 250px 150px;gap:16px;align-items:center;padding:18px;border-radius:18px;background:linear-gradient(110deg,#dff1ff 0%,#eef4ff 55%,#b9d4ff 100%);border:1px solid #b9d2ff;box-shadow:0 12px 30px rgba(27,77,167,.09)}
         .d5LogoOrb{width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(145deg,#fff,#d9f6e5);border:5px solid #fff;box-shadow:0 0 0 2px #ff9c2a;color:#16834b;font-size:28px;font-weight:950}.d5LogoOrb img{width:100%;height:100%;object-fit:cover;display:block}.d5BusinessName{font-size:28px;font-weight:950;color:#10234a}.d5BusinessName span{color:#1364ef}.d5RoleLine{font-size:13px;margin-top:3px}.d5Location{font-size:12px;line-height:1.45;margin-top:8px;color:#4b638d}.d5Badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.d5Badges span{padding:6px 10px;border-radius:999px;background:#effff5;border:1px solid #8bd7ac;color:#087640;font-size:10px;font-weight:900}
