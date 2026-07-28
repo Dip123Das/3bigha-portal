@@ -130,10 +130,10 @@ export default function DashboardExecutiveShell({
             </div>
           </div>
           <div className="d5CompletionCard">
-            <small>♛ Business Completion Score</small>
+            <small>♛ Business Readiness Index</small>
             <strong>{completion}<span>/100</span></strong>
             <div className="d5Progress"><i style={{ width: `${completion}%` }} /></div>
-            <b>{completion >= 90 ? "Excellent Profile – Highly Trusted" : completion >= 70 ? "Good Profile – Keep Improving" : "Complete your profile to build trust"}</b>
+            <b>{completion >= 90 ? "Ready for strong marketplace participation" : completion >= 70 ? "Good foundation – complete the remaining trust steps" : "Complete the required identity and trust information"}</b>
           </div>
           <div className="d5HeroActions">
             <Link href="/onboarding/business">✎ Edit Profile</Link>
@@ -147,6 +147,86 @@ export default function DashboardExecutiveShell({
               <span>{icon}</span><div><strong>{title}</strong><small>{detail}</small></div>
             </Link>
           ))}
+        </section>
+
+        <section className="d5ReadinessPanel" aria-label="Business readiness">
+          <div className="d5ReadinessHeading">
+            <div>
+              <span>BUSINESS READINESS</span>
+              <h2>Trust, presence and operating preparedness</h2>
+            </div>
+            <strong>{completion}/100</strong>
+          </div>
+
+          <div className="d5ReadinessGrid">
+            {[
+              ["Identity", Boolean(resolvedBusinessName && resolvedBusinessName !== "Your Business"), "Registered business name"],
+              ["Verification", isComplete, isComplete ? "Registration requirements complete" : "Complete pending verification"],
+              ["Marketplace Presence", businessNature.length > 0, `${businessNature.length} active segments`],
+              ["Responsiveness", unreadAlerts === 0, unreadAlerts === 0 ? "No unread attention" : `${unreadAlerts} unread items`],
+              ["Reputation", conversations > 0, conversations > 0 ? "Buyer interaction established" : "Build interaction history"],
+              ["Subscription", true, "Subscription workspace available"],
+            ].map(([label, ready, detail]) => (
+              <div className={`d5ReadinessItem ${ready ? "ready" : "pending"}`} key={String(label)}>
+                <span>{ready ? "✓" : "!"}</span>
+                <div>
+                  <strong>{label}</strong>
+                  <small>{detail}</small>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="d5Priorities" aria-label="Today's priorities">
+          <div className="d5PriorityHeading">
+            <div>
+              <span>HUMAN-FIRST WORK</span>
+              <h2>What should I do now?</h2>
+              <p>Complete the most important human action before reviewing analytics.</p>
+            </div>
+            <Link href="/dashboard/workspace">Open Unified Workspace →</Link>
+          </div>
+
+          <div className="d5PriorityCards">
+            {!isComplete ? (
+              <Link href="/onboarding/business" className="urgent">
+                <span>1</span>
+                <div>
+                  <strong>Complete business verification</strong>
+                  <small>Finish the remaining registration and trust information.</small>
+                </div>
+              </Link>
+            ) : null}
+
+            {unreadAlerts > 0 ? (
+              <Link href="/dashboard/vendor/notifications" className="urgent">
+                <span>{!isComplete ? 2 : 1}</span>
+                <div>
+                  <strong>Review {unreadAlerts} unread vendor alerts</strong>
+                  <small>Clear time-sensitive opportunities and pending attention.</small>
+                </div>
+              </Link>
+            ) : null}
+
+            {conversations > 0 ? (
+              <Link href="/dashboard/inbox-v2">
+                <span>{(!isComplete ? 1 : 0) + (unreadAlerts > 0 ? 1 : 0) + 1}</span>
+                <div>
+                  <strong>Continue {conversations} buyer conversations</strong>
+                  <small>Reply clearly and move active discussions toward closure.</small>
+                </div>
+              </Link>
+            ) : null}
+
+            <Link href="/dashboard/vendor/rfqs">
+              <span>{(!isComplete ? 1 : 0) + (unreadAlerts > 0 ? 1 : 0) + (conversations > 0 ? 1 : 0) + 1}</span>
+              <div>
+                <strong>Review RFQs for your business</strong>
+                <small>Find suitable requirements across your registered segments.</small>
+              </div>
+            </Link>
+          </div>
         </section>
 
         <section className="d5OperatingCenter">
@@ -216,9 +296,9 @@ export default function DashboardExecutiveShell({
 
       <aside className="d5RightRail">
         <section className="d5RailCard d5AiCard">
-          <strong>🤖 3Bigha AI Assistant</strong>
-          <span>✓ Scan new RFQs for your categories</span><span>✓ Suggest best opportunities</span><span>✓ Predict demand in your area</span><span>✓ Alert for high value deals</span>
-          <Link href="/dashboard/procurement-copilot">Ask 3Bigha AI</Link>
+          <strong>🤖 3BOS AI Co-Pilot</strong>
+          <span>✓ Explain the most important marketplace signals</span><span>✓ Suggest opportunities based on your registered segments</span><span>✓ Highlight risk and pending attention</span><span>✓ Keep every final decision under human control</span>
+          <Link href="/dashboard/procurement-copilot">Open 3BOS AI Co-Pilot</Link>
         </section>
         <section className="d5RailCard">
           <strong>⚡ Quick Actions</strong>
@@ -241,14 +321,14 @@ export default function DashboardExecutiveShell({
         .d5LogoOrb{width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(145deg,#fff,#d9f6e5);border:5px solid #fff;box-shadow:0 0 0 2px #ff9c2a;color:#16834b;font-size:28px;font-weight:950}.d5LogoOrb img{width:100%;height:100%;object-fit:cover;display:block}.d5BusinessName{font-size:25px;font-weight:950;color:#10234a}.d5BusinessName span{color:#1364ef}.d5RoleLine{font-size:13px;margin-top:3px}.d5Location{font-size:12px;margin-top:8px}.d5Badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.d5Badges span{padding:6px 10px;border-radius:999px;background:#effff5;border:1px solid #8bd7ac;color:#087640;font-size:10px;font-weight:900}
         .d5CompletionCard{background:rgba(255,255,255,.78);border:1px solid #d4e0f3;border-radius:16px;padding:14px}.d5CompletionCard small,.d5CompletionCard b{display:block}.d5CompletionCard strong{display:block;color:#098646;font-size:30px;margin-top:5px}.d5CompletionCard strong span{font-size:16px;color:#263b63}.d5Progress{height:9px;background:#d8e3ed;border-radius:999px;overflow:hidden}.d5Progress i{display:block;height:100%;background:#10a453;border-radius:inherit}.d5CompletionCard b{font-size:10px;color:#078348;margin-top:7px}.d5HeroActions{display:grid;gap:8px}.d5HeroActions a{display:flex;align-items:center;justify-content:center;min-height:40px;border-radius:10px;text-decoration:none;font-size:11px;font-weight:900;background:#1464ef;color:#fff}.d5HeroActions a+a{background:#fff;color:#233b6b;border:1px solid #c9d8ef}
         .d5ProfileActions{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:12px}.d5ProfileAction{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;text-decoration:none;border:1px solid}.d5ProfileAction>span{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.7);font-size:18px}.d5ProfileAction strong,.d5ProfileAction small{display:block}.d5ProfileAction strong{font-size:12px;color:#15305d}.d5ProfileAction small{font-size:10px;color:#63769a;margin-top:3px}.blue{background:#e8f3ff;border-color:#a9cef9}.purple{background:#f3eaff;border-color:#d2b7f5}.green{background:#e9fbee;border-color:#a8e1b7}.orange{background:#fff1df;border-color:#f2c58a}.pink{background:#ffeaf1;border-color:#f5b5c8}
-        .d5OperatingCenter{margin-top:12px;padding:16px;border:1px solid #d4e0f2;border-radius:17px;background:#fff}.d5SectionHeading{display:flex;justify-content:space-between;gap:12px}.d5SectionHeading h2{margin:0;font-size:20px}.d5SectionHeading p{margin:4px 0 0;font-size:11px;color:#647596}.d5StatusPills{display:flex;gap:7px;align-items:flex-start}.d5StatusPills span{padding:7px 10px;border-radius:999px;background:#eafff1;color:#08733e;font-size:10px;font-weight:900}
+        .d5ReadinessPanel,.d5Priorities{margin-top:12px;padding:16px;border:1px solid #d4e0f2;border-radius:17px;background:#fff}.d5ReadinessHeading,.d5PriorityHeading{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.d5ReadinessHeading span,.d5PriorityHeading span{color:#1767ef;font-size:9px;font-weight:950;letter-spacing:.09em}.d5ReadinessHeading h2,.d5PriorityHeading h2{margin:4px 0 0;font-size:19px}.d5ReadinessHeading>strong{font-size:28px;color:#0a8b4e}.d5PriorityHeading p{margin:4px 0 0;color:#647596;font-size:10px}.d5PriorityHeading a{color:#1767ef;text-decoration:none;font-size:10px;font-weight:900}.d5ReadinessGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px}.d5ReadinessItem{display:flex;gap:9px;align-items:flex-start;padding:11px;border-radius:13px;border:1px solid}.d5ReadinessItem>span{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:950}.d5ReadinessItem strong,.d5ReadinessItem small{display:block}.d5ReadinessItem strong{font-size:11px}.d5ReadinessItem small{font-size:9px;margin-top:3px;color:#647596}.d5ReadinessItem.ready{background:#effcf4;border-color:#a9dfbd}.d5ReadinessItem.ready>span{background:#0a9954;color:#fff}.d5ReadinessItem.pending{background:#fff8e8;border-color:#f2ce83}.d5ReadinessItem.pending>span{background:#e69b16;color:#fff}.d5PriorityCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:13px}.d5PriorityCards a{display:flex;gap:10px;padding:12px;border:1px solid #cdddf4;border-radius:13px;background:#f8fbff;text-decoration:none;color:#16325f}.d5PriorityCards a.urgent{border-color:#f2ba75;background:#fff8ec}.d5PriorityCards a>span{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#1767ef;color:#fff;font-size:11px;font-weight:950;flex:0 0 auto}.d5PriorityCards a.urgent>span{background:#d97706}.d5PriorityCards strong,.d5PriorityCards small{display:block}.d5PriorityCards strong{font-size:11px}.d5PriorityCards small{font-size:9px;margin-top:4px;color:#647596}.d5OperatingCenter{margin-top:12px;padding:16px;border:1px solid #d4e0f2;border-radius:17px;background:#fff}.d5SectionHeading{display:flex;justify-content:space-between;gap:12px}.d5SectionHeading h2{margin:0;font-size:20px}.d5SectionHeading p{margin:4px 0 0;font-size:11px;color:#647596}.d5StatusPills{display:flex;gap:7px;align-items:flex-start}.d5StatusPills span{padding:7px 10px;border-radius:999px;background:#eafff1;color:#08733e;font-size:10px;font-weight:900}
         .d5Kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin-top:13px}.d5Kpi{padding:12px;border:1px solid #d9e4f4;border-radius:13px;background:linear-gradient(160deg,#f6faff,#fff)}.d5Kpi span,.d5Kpi small{display:block;font-size:10px;color:#516b97;font-weight:800}.d5Kpi strong{display:block;font-size:23px;margin:7px 0 4px}.d5Kpi small{color:#188449}.d5DecisionRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:11px}.d5DecisionRow>div{position:relative;padding:12px;border:1px solid #bdd5ff;border-radius:13px;background:#f6f9ff}.d5DecisionRow>div+div{background:#eafff2;border-color:#9dddb7}.d5DecisionRow strong,.d5DecisionRow span{display:block}.d5DecisionRow strong{font-size:12px}.d5DecisionRow span{font-size:10px;margin-top:4px}.d5DecisionRow a{position:absolute;right:10px;top:16px;background:#078a46;color:#fff;padding:8px 12px;border-radius:9px;text-decoration:none;font-size:10px;font-weight:900}
         .d5IntelligenceHeader{margin-top:12px;padding:15px 16px 0;border:1px solid #d4e0f2;border-bottom:0;border-radius:17px 17px 0 0;background:#fff;display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.d5IntelligenceHeader span{color:#1767ef;font-size:9px;font-weight:950;letter-spacing:.09em}.d5IntelligenceHeader h2{margin:4px 0 0;font-size:19px}.d5IntelligenceHeader p{margin:4px 0 0;color:#647596;font-size:10px}.d5IntelligenceHeader a{color:#1767ef;text-decoration:none;font-size:10px;font-weight:900}.d5Content{margin-top:0;padding:1px 16px 16px;border:1px solid #d4e0f2;border-top:0;border-radius:0 0 17px 17px;background:#fff}.d5Content>:first-child{display:none}.d5Content>:nth-child(2)>:nth-child(-n+3){display:none}.d5Content>:nth-child(2){border:0!important;padding:0!important;box-shadow:none!important;background:transparent!important}.d5Content>:nth-child(2)>div{margin-top:10px!important}.d5BottomGrid{display:grid;grid-template-columns:1.1fr 1.2fr .75fr;gap:12px;margin-top:12px}.d5BottomGrid>div{background:#fff;border:1px solid #d5e0f1;border-radius:15px;padding:14px}.d5MiniHeading{display:flex;justify-content:space-between;gap:8px}.d5MiniHeading a{font-size:10px;text-decoration:none}.d5ActivityCard ul{list-style:none;margin:10px 0 0;padding:0}.d5ActivityCard li{padding:8px 0;border-top:1px solid #edf1f7;font-size:10px}.d5ActivityCard small{display:block;color:#8190aa;margin-top:2px}.d5HealthRows{display:grid;gap:9px;margin-top:12px}.d5HealthRows>div{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid #edf1f7}.d5HealthRows span,.d5HealthRows b{font-size:10px}.d5HealthRows b{color:#1767ef}.d5TrustCard{display:grid;gap:9px;align-content:start}.d5TrustCard span{font-size:10px;color:#29436e}
         .d5WorkspaceLinks{margin-top:12px;padding:12px 14px;border:1px solid #d1def1;border-radius:15px;background:#eef4ff}.d5WorkspaceLinks>strong{display:block;font-size:12px}.d5WorkspaceLinks>div{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.d5WorkspaceLinks a{padding:7px 11px;border-radius:999px;background:#fff;border:1px solid #cbd9ed;text-decoration:none;font-size:10px;color:#1c3765;font-weight:850}
         .d5RightRail{display:grid;gap:14px;align-content:start}.d5RailCard{background:#fff;border:1px solid #d4e0f1;border-radius:16px;padding:14px;box-shadow:0 9px 26px rgba(26,72,153,.07)}.d5RailCard>strong{display:block;font-size:14px;margin-bottom:10px}.d5AiCard{background:linear-gradient(155deg,#eef0ff,#e8e2ff)}.d5AiCard span{display:block;font-size:10px;margin-top:8px;color:#29436d}.d5RailCard>a{display:flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;font-size:10px;font-weight:900}.d5AiCard>a{margin-top:12px;padding:10px;border-radius:9px;background:linear-gradient(90deg,#5234e8,#6814ce);color:#fff}.qa{min-height:38px;margin-top:8px;border-radius:9px;color:#fff}.qa.blue{background:#1768ef}.qa.green{background:#0b9b58}.qa.purple{background:#6128dc}.qa.ghost{background:#fff;color:#214070;border:1px solid #b9cae4}
         @media(max-width:1280px){.d5Shell{grid-template-columns:210px minmax(0,1fr)}.d5RightRail{grid-column:1/-1;grid-template-columns:1fr 1fr}.d5IdentityHero{grid-template-columns:auto minmax(0,1fr) 230px}.d5HeroActions{grid-column:1/-1;grid-template-columns:1fr 1fr}.d5Kpis{grid-template-columns:repeat(3,1fr)}}
-        @media(max-width:900px){.d5Shell{display:block;padding:9px}.d5Sidebar{position:static}.d5Nav{grid-template-columns:repeat(2,1fr)}.d5IdentityHero{grid-template-columns:auto 1fr}.d5CompletionCard,.d5HeroActions{grid-column:1/-1}.d5ProfileActions{grid-template-columns:repeat(2,1fr)}.d5BottomGrid{grid-template-columns:1fr}.d5RightRail{grid-template-columns:1fr;margin-top:12px}}
-        @media(max-width:600px){.d5Nav{grid-template-columns:1fr}.d5IdentityHero{display:block}.d5LogoOrb{margin-bottom:12px}.d5CompletionCard{margin-top:12px}.d5ProfileActions{grid-template-columns:1fr}.d5Kpis{grid-template-columns:repeat(2,1fr)}.d5DecisionRow{grid-template-columns:1fr}.d5DecisionRow a{position:static;display:inline-flex;margin-top:8px}.d5SectionHeading{display:block}.d5StatusPills{margin-top:9px}.d5RightRail{display:grid}}
+        @media(max-width:900px){.d5ReadinessGrid{grid-template-columns:repeat(2,1fr)}.d5PriorityCards{grid-template-columns:1fr}.d5Shell{display:block;padding:9px}.d5Sidebar{position:static}.d5Nav{grid-template-columns:repeat(2,1fr)}.d5IdentityHero{grid-template-columns:auto 1fr}.d5CompletionCard,.d5HeroActions{grid-column:1/-1}.d5ProfileActions{grid-template-columns:repeat(2,1fr)}.d5BottomGrid{grid-template-columns:1fr}.d5RightRail{grid-template-columns:1fr;margin-top:12px}}
+        @media(max-width:600px){.d5ReadinessGrid{grid-template-columns:1fr}.d5ReadinessHeading,.d5PriorityHeading{display:block}.d5ReadinessHeading>strong,.d5PriorityHeading a{display:inline-flex;margin-top:9px}.d5Nav{grid-template-columns:1fr}.d5IdentityHero{display:block}.d5LogoOrb{margin-bottom:12px}.d5CompletionCard{margin-top:12px}.d5ProfileActions{grid-template-columns:1fr}.d5Kpis{grid-template-columns:repeat(2,1fr)}.d5DecisionRow{grid-template-columns:1fr}.d5DecisionRow a{position:static;display:inline-flex;margin-top:8px}.d5SectionHeading{display:block}.d5StatusPills{margin-top:9px}.d5RightRail{display:grid}}
       `}</style>
     </div>
   );
