@@ -91,7 +91,7 @@ export default function DashboardExecutiveShell({
       <aside className="d5Sidebar" aria-label="Dashboard navigation">
         <div className="d5SideIdentity">
           <strong>{displayRole}</strong>
-          <span className="d5Verified">● Verified Vendor</span>
+          <span className="d5Verified">{isComplete ? "● Profile complete" : "◷ Profile in progress"}</span>
         </div>
 
         <nav className="d5Nav">
@@ -141,7 +141,7 @@ export default function DashboardExecutiveShell({
           </div>
 
           <div className="d7TrustRow">
-            <span>{isComplete ? "✓ Verified" : "◷ Verification pending"}</span>
+            <span>{isComplete ? "✓ Profile complete" : "◷ Profile incomplete"}</span>
             <span>✓ Active</span>
             <strong>{completion}% ready</strong>
           </div>
@@ -244,7 +244,7 @@ export default function DashboardExecutiveShell({
             <Link href="/dashboard/vendor/rfqs">
               <b>{rfqs}</b>
               <div>
-                <strong>RFQs for your business</strong>
+                <strong>Assigned RFQs</strong>
                 <small>Open matching requirements</small>
               </div>
               <span aria-hidden="true">›</span>
@@ -264,7 +264,7 @@ export default function DashboardExecutiveShell({
             <Link href="/dashboard/vendor/rfqs">
               <small>RFQs</small>
               <strong>{rfqs}</strong>
-              <span>Active now</span>
+              <span>Assigned to you</span>
             </Link>
             <Link href="/dashboard/inbox-v2">
               <small>Messages</small>
@@ -317,18 +317,18 @@ export default function DashboardExecutiveShell({
             )}
           </div>
           <div className="d5IdentityCopy">
-            <div className="d5BusinessName">{resolvedBusinessName} <span>✓</span></div>
+            <div className="d5BusinessName">{resolvedBusinessName} {isComplete ? <span>✓</span> : null}</div>
             <div className="d5RoleLine">{displayRole} — {natureLabel}</div>
             <div className="d5Location">⌖ {locationLabel || "Add your operating location for nearby marketplace matching"}</div>
             <div className="d5Badges">
-              <span>{isComplete ? "✓ Verified Vendor" : "◷ Profile in progress"}</span><span>✓ Active</span>
+              <span>{isComplete ? "✓ Profile complete" : "◷ Profile in progress"}</span><span>✓ Active</span>
             </div>
           </div>
           <div className="d5CompletionCard">
-            <small>♛ Marketplace Readiness</small>
+            <small>♛ Profile Completion</small>
             <strong>{completion}<span>/100</span></strong>
             <div className="d5Progress"><i style={{ width: `${completion}%` }} /></div>
-            <b>{completion >= 90 ? "Ready for strong marketplace participation" : completion >= 70 ? "Good foundation – complete the remaining trust steps" : "Complete the required identity and trust information"}</b>
+            <b>{completion >= 90 ? "Business profile information is substantially complete" : completion >= 70 ? "Good foundation – complete the remaining profile information" : "Complete the required business profile information"}</b>
           </div>
           <div className="d5HeroActions">
             <Link href="/onboarding/business">✎ Edit Business</Link>
@@ -356,7 +356,7 @@ export default function DashboardExecutiveShell({
           <div className="d5ReadinessGrid">
             {[
               ["Identity", Boolean(resolvedBusinessName && resolvedBusinessName !== "Your Business"), "Registered business name"],
-              ["Verification", isComplete, isComplete ? "Registration requirements complete" : "Complete pending verification"],
+              ["Profile Completion", isComplete, isComplete ? "Required profile information complete" : "Complete the remaining profile information"],
               ["Marketplace Presence", businessNature.length > 0, `${businessNature.length} active segments`],
               ["Responsiveness", unreadAlerts === 0, unreadAlerts === 0 ? "No unread attention" : `${unreadAlerts} unread items`],
               ["Reputation", conversations > 0, conversations > 0 ? "Buyer interaction established" : "Build interaction history"],
@@ -417,7 +417,7 @@ export default function DashboardExecutiveShell({
             <Link href="/dashboard/vendor/rfqs">
               <span>{(!isComplete ? 1 : 0) + (unreadAlerts > 0 ? 1 : 0) + (conversations > 0 ? 1 : 0) + 1}</span>
               <div>
-                <strong>Review RFQs for your business</strong>
+                <strong>Review assigned RFQs</strong>
                 <small>Find suitable requirements across your registered segments.</small>
               </div>
             </Link>
@@ -431,7 +431,7 @@ export default function DashboardExecutiveShell({
           </div>
           <div className="d5Kpis">
             {[
-              ["RFQs for You", rfqs, "Active Now", "▦"],
+              ["Assigned RFQs", rfqs, "Vendor work queue", "▦"],
               ["Conversations", conversations, "Active", "▤"],
               ["Vendor Alerts", unreadAlerts, "Unread", "♧"],
               ["Price Signals", priceSignals, "New", "⌁"],

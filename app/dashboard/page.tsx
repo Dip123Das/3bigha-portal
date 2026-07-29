@@ -217,10 +217,11 @@ export default function DashboardPage() {
 
           withDashboardTimeout(
             supabase
-              .from("rfqs")
-              .select("id", { count: "exact", head: true }),
+              .from("rfq_targets")
+              .select("rfq_id", { count: "exact", head: true })
+              .eq("vendor_user_id", session.user.id),
             5000,
-            "Dashboard RFQ count"
+            "Dashboard assigned RFQ count"
           ),
 
           withDashboardTimeout(
