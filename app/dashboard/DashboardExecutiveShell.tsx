@@ -556,6 +556,63 @@ export default function DashboardExecutiveShell({
           }
         }
 
+
+        /* VENDOR_DASHBOARD_6_MOBILE */
+        @media(max-width:600px){
+          .d5Shell{background:#f4f7fd!important;min-height:auto!important}
+
+          .d5WorkNow{padding:11px!important;border-radius:14px!important;box-shadow:none!important}
+          .d5RailCard>strong{margin-bottom:9px!important;font-size:15px!important}
+          .d5WorkActions{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+          .d5WorkAction{grid-template-columns:26px minmax(0,1fr)!important;gap:7px!important;min-height:46px!important;padding:7px!important;border-radius:10px!important;box-shadow:none!important}
+          .d5WorkAction>span{width:26px!important;height:26px!important;border-radius:7px!important;font-size:13px!important}
+          .d5WorkAction>b{font-size:10px!important;line-height:1.25!important}
+          .d5WorkAction>i{display:none!important}
+
+          .d5IdentityHero{gap:9px!important;padding:11px!important;border-radius:14px!important;box-shadow:none!important}
+          .d5IdentityCopy{min-width:0!important}
+          .d5BusinessName{font-size:18px!important;line-height:1.15!important}
+          .d5RoleLine{display:-webkit-box!important;overflow:hidden!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important}
+          .d5Location{display:none!important}
+          .d5Badges{margin-top:6px!important}
+          .d5CompletionCard{grid-column:1/-1!important;display:grid!important;grid-template-columns:1fr auto!important;gap:5px 10px!important;align-items:center!important;padding:10px!important;margin:0!important;border-radius:11px!important}
+          .d5CompletionCard small{font-size:10px!important}
+          .d5CompletionCard strong{grid-column:2!important;grid-row:1!important;margin:0!important;font-size:22px!important}
+          .d5CompletionCard strong span{font-size:11px!important}
+          .d5Progress{grid-column:1/-1!important;height:7px!important}
+          .d5CompletionCard b{display:none!important}
+          .d5HeroActions{grid-template-columns:1fr 1fr!important;gap:7px!important}
+          .d5HeroActions a{min-height:40px!important;padding:0 8px!important;border-radius:9px!important;font-size:10px!important;box-shadow:none!important}
+
+          .d5ReadinessPanel{display:none!important}
+
+          .d5Priorities{padding:11px!important;border-radius:14px!important}
+          .d5PriorityHeading h2{font-size:18px!important}
+          .d5PriorityHeading p{display:none!important}
+          .d5PriorityHeading a{margin-top:6px!important;padding:7px 9px!important;border:1px solid #c7d8ef!important;border-radius:8px!important;background:#f5f9ff!important}
+          .d5PriorityCards{margin-top:9px!important;gap:6px!important}
+          .d5PriorityCards a{align-items:center!important;padding:9px!important;border-radius:10px!important}
+          .d5PriorityCards a>span{width:25px!important;height:25px!important;font-size:10px!important}
+          .d5PriorityCards strong{font-size:10px!important}
+          .d5PriorityCards small{display:none!important}
+
+          .d5OperatingCenter{padding:11px!important;border-radius:14px!important}
+          .d5SectionHeading h2{font-size:18px!important}
+          .d5SectionHeading p{display:none!important}
+          .d5StatusPills{margin-top:6px!important}
+          .d5StatusPills span{padding:5px 8px!important;font-size:9px!important}
+          .d5Kpis{margin-top:9px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+          .d5Kpi{min-height:86px!important;padding:9px!important;border-radius:10px!important}
+          .d5Kpi:nth-child(n+5){display:none!important}
+          .d5Kpi span,.d5Kpi small{font-size:9px!important}
+          .d5Kpi strong{margin:6px 0 3px!important;font-size:22px!important}
+          .d5DecisionRow{display:block!important;margin-top:8px!important}
+          .d5DecisionRow>div:first-child{display:none!important}
+          .d5DecisionRow>div+div{padding:10px!important;border-radius:10px!important}
+          .d5DecisionRow span{font-size:10px!important}
+          .d5DecisionRow a{padding:7px 9px!important;border-radius:8px!important;font-size:9px!important}
+        }
+
       `}</style>
     </div>
   );
