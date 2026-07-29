@@ -54,3 +54,5 @@
   body:has(.d7MobileDashboard) footer [class*="links"],
   body:has(.d7MobileDashboard) footer [class*="Links"]{gap:7px 10px!important}
   body:has(.d7MobileDashboard) footer a{font-size:10px!important;line-height:1.3!important}
+
+}
