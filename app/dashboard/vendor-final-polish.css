@@ -1,0 +1,56 @@
+/* Sprint H-3 final constitutional vendor dashboard polish. */
+@media (max-width: 600px) {
+  .d7MobileDashboard{gap:8px!important;padding:0 8px 76px!important}
+  .d7MobileDashboard section{border-radius:14px!important;box-shadow:0 3px 10px rgba(29,64,121,.045)!important}
+  .d7Welcome,.d7QuickWork,.d7Lifecycle,.d7Today,.d7Pulse,.d7Recommendation{padding:11px!important}
+  .d7WelcomeIdentity{gap:9px!important}
+  .d7Avatar{width:52px!important;height:52px!important}
+  .d7WelcomeIdentity h1{font-size:20px!important}
+  .d7TrustRow{margin-top:9px!important}
+  .d7PrimaryCta{min-height:46px!important;margin-top:10px!important}
+  .d7SectionTitle h2,.d7Recommendation h2{font-size:16px!important}
+
+  .d7ActionGrid{gap:7px!important;margin-top:8px!important}
+  .d7ActionGrid>a{min-height:92px!important;padding:10px!important}
+  .d7ActionGrid>a>span{width:30px!important;height:30px!important}
+  .d7ActionGrid strong{margin-top:7px!important;font-size:12px!important}
+  .d7ActionGrid small{font-size:8.5px!important}
+  .d7SecondaryActions{margin-top:7px!important}
+  .d7SecondaryActions a{min-height:40px!important}
+
+  .d7LifecycleGrid{position:relative!important;grid-template-columns:1fr!important;gap:0!important;margin-top:9px!important;padding-left:2px!important}
+  .d7LifecycleGrid::before{content:"";position:absolute;top:29px;bottom:29px;left:25px;width:2px;background:linear-gradient(#1767ef,#6f56dc,#0a9954);opacity:.28}
+  .d7LifecycleGrid>a{position:relative!important;z-index:1;grid-template-columns:34px minmax(0,1fr) auto!important;min-height:54px!important;padding:7px 9px!important;border:0!important;border-bottom:1px solid #e4ebf5!important;border-radius:0!important;background:transparent!important}
+  .d7LifecycleGrid>a:last-child{border-bottom:0!important}
+  .d7LifecycleGrid>a::after{content:"Continue ›";color:#1767ef;font-size:8px;font-weight:900}
+  .d7LifecycleGrid>a>span{width:30px!important;height:30px!important}
+  .d7LifecycleGrid>a:nth-child(3) strong{font-size:0!important}
+  .d7LifecycleGrid>a:nth-child(3) strong::after{content:"Orders & Delivery";font-size:11px}
+
+  .d7PriorityList{gap:5px!important;margin-top:8px!important}
+  .d7PriorityList>a{grid-template-columns:minmax(0,1fr) 42px 14px!important;min-height:55px!important;padding:8px 9px!important}
+  .d7PriorityList>a>b{grid-column:2;grid-row:1;width:auto!important;height:30px!important;padding:0 8px;border-radius:999px!important;font-size:11px!important}
+  .d7PriorityList>a>div{grid-column:1;grid-row:1}
+  .d7PriorityList>a>span{grid-column:3;grid-row:1}
+  .d7PriorityList>a:nth-child(1) strong,.d7PriorityList>a:nth-child(2) strong,.d7PriorityList>a:nth-child(3) strong{font-size:0!important}
+  .d7PriorityList>a:nth-child(1) strong::after{content:"Review urgent updates";font-size:11px}
+  .d7PriorityList>a:nth-child(2) strong::after{content:"Respond to buyers";font-size:11px}
+  .d7PriorityList>a:nth-child(3) strong::after{content:"Open assigned RFQs";font-size:11px}
+
+  .d7MetricGrid{gap:6px!important;margin-top:8px!important}
+  .d7MetricGrid>a{min-height:78px!important;padding:9px!important}
+  .d7MetricGrid strong{margin-top:5px!important;font-size:21px!important}
+  .d7MetricGrid span{margin-top:2px!important;line-height:1.25!important}
+  .d7Recommendation p{margin-top:5px!important}
+  .d7Recommendation>a{margin-top:8px!important}
+
+  .d7BottomNav a:nth-child(2) b,.d7BottomNav a:nth-child(3) b,.d7BottomNav a:nth-child(4) b{font-size:0!important}
+  .d7BottomNav a:nth-child(2) b::after{content:"Find Work";font-size:8.5px}
+  .d7BottomNav a:nth-child(3) b::after{content:"Messages";font-size:8.5px}
+  .d7BottomNav a:nth-child(4) b::after{content:"Sell";font-size:8.5px}
+
+  body:has(.d7MobileDashboard) footer{padding-top:14px!important;padding-bottom:14px!important}
+  body:has(.d7MobileDashboard) footer nav,
+  body:has(.d7MobileDashboard) footer [class*="links"],
+  body:has(.d7MobileDashboard) footer [class*="Links"]{gap:7px 10px!important}
+  body:has(.d7MobileDashboard) footer a{font-size:10px!important;line-height:1.3!important}
