@@ -1,0 +1,1319 @@
+===== CURRENT COMMIT =====
+b33ebfe Recognize multiple businesses within UDYAM
+6c03647 Enable autonomous AI registration decisions
+e208801 Deliver human-first business verification experience
+132b708 Align registration verification status contract
+d7bafde Add business proof reviewer intelligence console
+
+===== REVIEW AND FINISH UI =====
+app/onboarding/business/BusinessOnboardingPageClient.tsx:644:  const [termsAccepted, setTermsAccepted] =
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1393:      declarationsAccepted: termsAccepted,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1437:      label: "Add truthful information about yourself",
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1488:   * - Review & Finish,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1585:      title: "Review & Finish",
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1587:      targetId: "sec-review",
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1707:    { key: "review", title: "Step 7 — Review & Finish", subtitle: "Confirm completion", show: true, targetId: "sec-review" },
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2036:        firstPendingStep.targetId || "sec-review"
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2050:        "sec-review";
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2071:          : "Saved ✅ Profile is complete. Now click 'Activate My Dashboard' to finish setup."
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2074:      setMsg("Saved ✅ Profile is complete. Now click 'Activate My Dashboard' to finish setup.");
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2077:    scrollToId("sec-review");
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2083:    if (!termsAccepted) {
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2085:        "Please read and agree to the Terms & Conditions and Privacy Policy before activating your dashboard."
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2087:      scrollToId("sec-review");
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2107:        firstPendingStep.targetId || "sec-review"
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2122:        "sec-review";
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2278:                  ? `Before Review & Finish: ${pending.label}.`
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2299:              scrollToId("sec-review");
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2364:            You do not need to write perfect sentences. Enter a few truthful
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2972:            termsAccepted={termsAccepted}
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2978:                "sec-review";
+components/onboarding/BusinessIdentityJourney.tsx:60:     * Review & Finish to open sections that are currently hidden
+components/onboarding/BusinessRegistrationStatusRail.tsx:14:  termsAccepted: boolean;
+components/onboarding/BusinessRegistrationStatusRail.tsx:107:  termsAccepted,
+components/onboarding/BusinessRegistrationStatusRail.tsx:119:      ? termsAccepted
+components/onboarding/BusinessRegistrationStatusRail.tsx:120:        ? "Activate My Dashboard"
+components/onboarding/BusinessRegistrationStatusRail.tsx:128:      !termsAccepted);
+components/onboarding/BusinessRegistrationStatusRail.tsx:136:    if (readiness.registrationReady && termsAccepted) {
+
+===== SUBSCRIPTION STORAGE =====
+app/api/payments/sbi/create-link/route.ts:66:      subscription_plan: plan,
+app/api/payments/sbi/create-link/route.ts:88:      subscription_plan: plan,
+app/api/payments/sbi/create-link/route.ts:89:      subscription_status: "payment_pending",
+app/dashboard/subscription/SubscriptionPageClient.tsx:17:  | "basic_vendor"
+app/dashboard/subscription/SubscriptionPageClient.tsx:18:  | "silver_vendor"
+app/dashboard/subscription/SubscriptionPageClient.tsx:19:  | "gold_vendor"
+app/dashboard/subscription/SubscriptionPageClient.tsx:20:  | "platinum_vendor"
+app/dashboard/subscription/SubscriptionPageClient.tsx:26:  | "basic_vendor"
+app/dashboard/subscription/SubscriptionPageClient.tsx:27:  | "silver_vendor"
+app/dashboard/subscription/SubscriptionPageClient.tsx:28:  | "gold_vendor"
+app/dashboard/subscription/SubscriptionPageClient.tsx:29:  | "platinum_vendor";
+app/dashboard/subscription/SubscriptionPageClient.tsx:32:  if (plan === "premium_vendor") return "gold_vendor";
+app/dashboard/subscription/SubscriptionPageClient.tsx:33:  if (plan === "hub_vendor") return "platinum_vendor";
+app/dashboard/subscription/SubscriptionPageClient.tsx:70:  basic_vendor: {
+app/dashboard/subscription/SubscriptionPageClient.tsx:83:    storagePlan: "basic_vendor",
+app/dashboard/subscription/SubscriptionPageClient.tsx:85:  silver_vendor: {
+app/dashboard/subscription/SubscriptionPageClient.tsx:98:    storagePlan: "silver_vendor",
+app/dashboard/subscription/SubscriptionPageClient.tsx:100:  gold_vendor: {
+app/dashboard/subscription/SubscriptionPageClient.tsx:113:    storagePlan: "gold_vendor",
+app/dashboard/subscription/SubscriptionPageClient.tsx:115:  platinum_vendor: {
+app/dashboard/subscription/SubscriptionPageClient.tsx:128:    storagePlan: "platinum_vendor",
+app/dashboard/subscription/SubscriptionPageClient.tsx:134:  if (p === "platinum_vendor") return 20;
+app/dashboard/subscription/SubscriptionPageClient.tsx:135:  if (p === "gold_vendor") return 10;
+app/dashboard/subscription/SubscriptionPageClient.tsx:136:  if (p === "silver_vendor") return 5;
+app/dashboard/subscription/SubscriptionPageClient.tsx:137:  if (p === "basic_vendor") return 3;
+app/dashboard/subscription/SubscriptionPageClient.tsx:228:  const goldPrediction = planLeadPrediction("gold_vendor");
+app/dashboard/subscription/SubscriptionPageClient.tsx:229:  const platinumPrediction = planLeadPrediction("platinum_vendor");
+app/dashboard/subscription/SubscriptionPageClient.tsx:232:    "basic_vendor",
+app/dashboard/subscription/SubscriptionPageClient.tsx:233:    "silver_vendor",
+app/dashboard/subscription/SubscriptionPageClient.tsx:234:    "gold_vendor",
+app/dashboard/subscription/SubscriptionPageClient.tsx:235:    "platinum_vendor",
+app/dashboard/subscription/SubscriptionPageClient.tsx:247:          plan: "platinum_vendor",
+app/dashboard/subscription/SubscriptionPageClient.tsx:257:          plan: "gold_vendor",
+app/dashboard/subscription/SubscriptionPageClient.tsx:265:          plan: "silver_vendor",
+app/dashboard/subscription/SubscriptionPageClient.tsx:273:          plan: "basic_vendor",
+app/dashboard/subscription/SubscriptionPageClient.tsx:352:            "subscription_plan,subscription_status,subscription_expires_at"
+app/dashboard/subscription/SubscriptionPageClient.tsx:366:      if (!profileResult.error && data?.subscription_plan) {
+app/dashboard/subscription/SubscriptionPageClient.tsx:367:        const pk = String(data.subscription_plan) as PlanKey;
+app/dashboard/subscription/SubscriptionPageClient.tsx:371:          pk === "basic_vendor" ||
+app/dashboard/subscription/SubscriptionPageClient.tsx:372:          pk === "silver_vendor" ||
+app/dashboard/subscription/SubscriptionPageClient.tsx:373:          pk === "gold_vendor" ||
+app/dashboard/subscription/SubscriptionPageClient.tsx:374:          pk === "platinum_vendor" ||
+app/dashboard/subscription/SubscriptionPageClient.tsx:382:          String(data.subscription_status || "free").toLowerCase()
+app/dashboard/subscription/SubscriptionPageClient.tsx:870:                      plan === "gold_vendor"
+app/dashboard/subscription/SubscriptionPageClient.tsx:872:                        : plan === "platinum_vendor"
+app/dashboard/subscription/SubscriptionPageClient.tsx:874:                        : plan === "silver_vendor"
+app/dashboard/subscription/SubscriptionPageClient.tsx:876:                        : plan === "basic_vendor"
+app/dashboard/subscription/SubscriptionPageClient.tsx:881:                      (focus === "boost" && plan === "silver_vendor") ||
+app/dashboard/subscription/SubscriptionPageClient.tsx:882:                      (focus === "ai" && plan === "gold_vendor") ||
+app/dashboard/subscription/SubscriptionPageClient.tsx:883:                      (focus === "premium" && plan === "platinum_vendor")
+
+===== COMPLETION ROUTE =====
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import {
+  resolveRegistrationCompatibilityProjection,
+} from "@/lib/registration/resolveRegistrationCompatibilityProjection";
+import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import type { BtceCapabilityClaim } from "@/lib/btce/shared/btce-types";
+import {
+  persistRegistrationIntelligenceSnapshot,
+  resolveRegistrationIntelligence,
+} from "@/lib/registration/intelligence";
+import type {
+  RegistrationIntelligencePersistenceClient,
+} from "@/lib/registration/intelligence";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type CompletionProfileRow = {
+  id: string;
+  role: string | null;
+  account_status: string | null;
+  portal_use_reason: string | null;
+  role_display_label: string | null;
+};
+
+type CompletionBusinessRow = {
+  user_id: string;
+  nature_of_business: string[] | null;
+  contact_person: string | null;
+  phone_primary: string | null;
+  city: string | null;
+  state: string | null;
+  is_complete: boolean | null;
+  registration_complete: boolean | null;
+  location_verification_status: string | null;
+  business_media_json: unknown;
+  vendor_document_verification_json: unknown;
+};
+
+function errorResponse(
+  message: string,
+  status: number,
+  code: string
+) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: message,
+      code,
+    },
+    { status }
+  );
+}
+
+function normalizeMediaAssets(
+  value: unknown
+): UploadedMediaAsset[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object") {
+      return [];
+    }
+
+    const record = item as Record<string, unknown>;
+
+    const id = String(record.id || "").trim();
+    const url = String(record.url || "").trim();
+    const bucket = String(record.bucket || "").trim();
+    const mediaPath = String(record.path || "").trim();
+    const name = String(record.name || "").trim();
+    const mimeType = String(record.mimeType || "").trim();
+    const kind = String(record.kind || "").trim();
+    const size = Number(record.size || 0);
+
+    if (
+      !id ||
+      !url ||
+      !bucket ||
+      !mediaPath ||
+      !name ||
+      !mimeType ||
+      !["image", "video", "document"].includes(kind) ||
+      !Number.isFinite(size) ||
+      size < 0
+    ) {
+      return [];
+    }
+
+    return [{
+      id,
+      url,
+      bucket,
+      path: mediaPath,
+      name,
+      size,
+      mimeType,
+      kind: kind as UploadedMediaAsset["kind"],
+    }];
+  });
+}
+
+function normalizeDocumentVerification(
+  value: unknown
+): {
+  documents?: Array<Record<string, unknown>> | null;
+} | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+
+  return {
+    documents: Array.isArray(record.documents)
+      ? record.documents.filter(
+          (document): document is Record<string, unknown> =>
+            Boolean(document) &&
+            typeof document === "object" &&
+            !Array.isArray(document)
+        )
+      : null,
+  };
+}
+
+function buildCapabilityClaims(
+  natureOfBusiness: string[] | null
+): BtceCapabilityClaim[] {
+  const declaredAt = new Date().toISOString();
+
+  return [
+    ...new Set(
+      (Array.isArray(natureOfBusiness)
+        ? natureOfBusiness
+        : []
+      )
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+    ),
+  ].map((label) => ({
+    code:
+      label
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "") ||
+      "declared_business_capability",
+    label,
+    description:
+      "Capability declared by the member during business registration.",
+    declaredAt,
+    tags: ["registration_declaration"],
+  }));
+}
+
+export async function POST() {
+  try {
+    const cookieStore = await cookies();
+    const supabase = getSupabaseServerClient(cookieStore);
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return errorResponse(
+        "Login required.",
+        401,
+        "AUTHENTICATION_REQUIRED"
+      );
+    }
+
+    const [profileResult, businessResult] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select(
+          [
+            "id",
+            "role",
+            "account_status",
+            "portal_use_reason",
+            "role_display_label",
+          ].join(",")
+        )
+        .eq("id", user.id)
+        .maybeSingle(),
+
+      supabase
+        .from("business_profiles")
+        .select(
+          [
+            "user_id",
+            "nature_of_business",
+            "contact_person",
+            "phone_primary",
+            "city",
+            "state",
+            "is_complete",
+            "registration_complete",
+            "location_verification_status",
+            "business_media_json",
+            "vendor_document_verification_json",
+          ].join(",")
+        )
+        .eq("user_id", user.id)
+        .maybeSingle(),
+    ]);
+
+    if (profileResult.error) {
+      console.error(
+        "REGISTRATION_COMPLETION_PROFILE_LOOKUP_FAILED",
+        profileResult.error
+      );
+
+      return errorResponse(
+        "Your member profile could not be loaded.",
+        500,
+        "PROFILE_LOOKUP_FAILED"
+      );
+    }
+
+    if (businessResult.error) {
+      console.error(
+        "REGISTRATION_COMPLETION_BUSINESS_LOOKUP_FAILED",
+        businessResult.error
+      );
+
+      return errorResponse(
+        "Your business profile could not be loaded.",
+        500,
+        "BUSINESS_PROFILE_LOOKUP_FAILED"
+      );
+    }
+
+    const profile =
+      profileResult.data as unknown as CompletionProfileRow | null;
+
+    const business =
+      businessResult.data as unknown as CompletionBusinessRow | null;
+
+    if (!profile) {
+      return errorResponse(
+        "Member profile not found.",
+        404,
+        "PROFILE_NOT_FOUND"
+      );
+    }
+
+    if (!business) {
+      return errorResponse(
+        "Business profile not found.",
+        409,
+        "BUSINESS_PROFILE_REQUIRED"
+      );
+    }
+
+    const accountStatus = String(
+      profile.account_status || "active"
+    )
+      .trim()
+      .toLowerCase();
+
+    if (
+      [
+        "deactivated",
+        "re_registration_required",
+        "permanently_blocked",
+      ].includes(accountStatus)
+    ) {
+      return errorResponse(
+        "This account cannot complete registration in its current state.",
+        403,
+        "ACCOUNT_RESTRICTED"
+      );
+    }
+
+    if (business.is_complete !== true) {
+      return errorResponse(
+        "Please complete the required business information first.",
+        409,
+        "BUSINESS_PROFILE_INCOMPLETE"
+      );
+    }
+
+    const locationVerified =
+      String(
+        business.location_verification_status || ""
+      )
+        .trim()
+        .toLowerCase() === "verified";
+
+    if (!locationVerified) {
+      return errorResponse(
+        "Please verify your live business location first.",
+        409,
+        "LOCATION_VERIFICATION_REQUIRED"
+      );
+    }
+
+    let projection;
+
+    try {
+      projection =
+        resolveRegistrationCompatibilityProjection({
+          role: profile.role,
+          portalUseReason: profile.portal_use_reason,
+          roleDisplayLabel: profile.role_display_label,
+          natureOfBusiness: Array.isArray(
+            business.nature_of_business
+          )
+            ? business.nature_of_business
+            : [],
+          contactPerson: business.contact_person,
+          phonePrimary: business.phone_primary,
+          city: business.city,
+          state: business.state,
+        });
+    } catch (error) {
+      return errorResponse(
+        error instanceof Error
+          ? error.message
+          : "A permitted member role is required.",
+        409,
+        "PERMITTED_ROLE_REQUIRED"
+      );
+    }
+
+    /*
+     * This RPC executes through the authenticated session client.
+     * Therefore auth.uid() remains the current member.
+     *
+     * No service-role client is used for registration authority.
+     */
+    const { data, error } = await supabase.rpc(
+      "complete_self_registration_compatibility",
+      {
+        p_portal_use_reason:
+          projection.portalUseReason,
+        p_role_display_label:
+          projection.roleDisplayLabel,
+        p_full_name:
+          projection.profilePatch.full_name,
+        p_phone:
+          projection.profilePatch.phone,
+        p_city:
+          projection.profilePatch.city,
+        p_state:
+          projection.profilePatch.state,
+        p_module_grants:
+          projection.moduleGrants,
+      }
+    );
+
+    if (error) {
+      console.error(
+        "REGISTRATION_COMPLETION_RPC_FAILED",
+        error
+      );
+
+      return errorResponse(
+        error.message ||
+          "Registration could not be completed safely.",
+        500,
+        "REGISTRATION_COMPLETION_FAILED"
+      );
+    }
+
+    const result =
+      data && typeof data === "object"
+        ? data as Record<string, unknown>
+        : {};
+
+    if (result.ok !== true) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code:
+            String(result.reason || "") ||
+            "REGISTRATION_NOT_COMPLETED",
+          result,
+        },
+        { status: 409 }
+      );
+    }
+
+    /*
+     * R3.1 — Atomic self-registration activation
+     *
+     * Compatibility projection has saved the member's declared
+     * identity and module grants. The authoritative database
+     * function now performs the complete activation transaction:
+     *
+     * - locks the member and business profile,
+     * - evaluates canonical registration evidence,
+     * - completes registration,
+     * - activates dashboard access,
+     * - records the immutable activation event.
+     *
+     * It accepts no verification, approval or activation decision
+     * from the browser.
+     */
+    const {
+      data: activationData,
+      error: activationError,
+    } = await supabase.rpc(
+      "activate_self_registered_dashboard"
+    );
+
+    if (activationError) {
+      console.error(
+        "ATOMIC_DASHBOARD_ACTIVATION_FAILED",
+        {
+          userId: user.id,
+          code: activationError.code,
+          message: activationError.message,
+          details: activationError.details,
+          hint: activationError.hint,
+        }
+      );
+
+      return errorResponse(
+        "Your registration was saved, but the dashboard could not be activated safely.",
+        500,
+        "DASHBOARD_ACTIVATION_FAILED"
+      );
+    }
+
+    const verificationResult =
+      activationData &&
+      typeof activationData === "object"
+        ? activationData as Record<string, unknown>
+        : {};
+
+    const verificationStatus = String(
+      verificationResult.status || ""
+    )
+      .trim()
+      .toLowerCase();
+
+    if (!verificationStatus) {
+      console.error(
+        "ATOMIC_DASHBOARD_ACTIVATION_INVALID_RESULT",
+        {
+          userId: user.id,
+          verificationResult,
+        }
+      );
+
+      return errorResponse(
+        "The dashboard activation service returned an invalid decision.",
+        500,
+        "INVALID_ACTIVATION_RESULT"
+      );
+    }
+
+    if (
+      verificationResult.ok !== true ||
+      verificationResult.activated !== true ||
+      verificationResult.dashboard_activated !== true
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code:
+            verificationStatus === "evidence_incomplete"
+              ? "EVIDENCE_INCOMPLETE"
+              : verificationStatus === "correction_required"
+              ? "CORRECTION_REQUIRED"
+              : verificationStatus === "admin_review_required"
+              ? "VERIFICATION_REVIEW_REQUIRED"
+              : verificationStatus === "restricted"
+              ? "ACCOUNT_RESTRICTED"
+              : "DASHBOARD_NOT_READY",
+          error:
+            verificationStatus === "evidence_incomplete"
+              ? "Complete the remaining business evidence before activating your dashboard."
+              : verificationStatus === "correction_required"
+              ? "Correct the highlighted business-proof information before activating your dashboard."
+              : verificationStatus === "admin_review_required"
+              ? "Your evidence requires further verification before dashboard activation."
+              : verificationStatus === "restricted"
+              ? "This account is currently restricted and cannot activate dashboard access."
+              : "Your registration is saved, but the dashboard is not ready for activation.",
+          verification: verificationResult,
+        },
+        { status: 409 }
+      );
+    }
+
+    /*
+     * INT-1B2
+     *
+     * Registration completion and automated verification have
+     * succeeded. Resolve explainable registration intelligence
+     * from canonical evidence and persist an immutable snapshot.
+     *
+     * No trust or capability decision is accepted from the client.
+     */
+    let registrationIntelligence:
+      | {
+          status: "created";
+          snapshotId: string;
+          version: string;
+          trustScore: number;
+          trustConfidence: number;
+          confidenceBand: string;
+          requiresHumanReview: boolean;
+          evidenceCount: number;
+          capabilityCount: number;
+          createdAt: string;
+        }
+      | {
+          status: "deferred";
+          reason: string;
+        };
+
+    try {
+      const intelligenceSnapshot =
+        resolveRegistrationIntelligence({
+          businessId: user.id,
+          assets: normalizeMediaAssets(
+            business.business_media_json
+          ),
+          documentVerification:
+            normalizeDocumentVerification(
+              business.vendor_document_verification_json
+            ),
+          capabilityClaims: buildCapabilityClaims(
+            business.nature_of_business
+          ),
+          generatedAt: new Date().toISOString(),
+        });
+
+      const persistedSnapshot =
+        await persistRegistrationIntelligenceSnapshot(
+          supabase as unknown as
+            RegistrationIntelligencePersistenceClient,
+          {
+            userId: user.id,
+            snapshot: intelligenceSnapshot,
+            source: "registration_completion",
+          }
+        );
+
+      registrationIntelligence = {
+        status: "created",
+        snapshotId: persistedSnapshot.id,
+        version: persistedSnapshot.version,
+        trustScore: persistedSnapshot.trustScore,
+        trustConfidence:
+          persistedSnapshot.trustConfidence,
+        confidenceBand:
+          intelligenceSnapshot.trust.confidenceBand,
+        requiresHumanReview:
+          persistedSnapshot.requiresHumanReview,
+        evidenceCount:
+          intelligenceSnapshot.processing
+            .registrationEvidenceCount,
+        capabilityCount:
+          intelligenceSnapshot.trust
+            .capabilityClaims.length,
+        createdAt: persistedSnapshot.createdAt,
+      };
+    } catch (intelligenceError) {
+      const intelligenceFailureMessage =
+        intelligenceError instanceof Error
+          ? intelligenceError.message
+          : "Registration intelligence could not be recorded.";
+
+      console.error(
+        "REGISTRATION_INTELLIGENCE_PERSISTENCE_DEFERRED",
+        {
+          userId: user.id,
+          error: intelligenceFailureMessage,
+        }
+      );
+
+      /*
+       * Dashboard activation has already succeeded through the
+       * authoritative database transaction. Registration
+       * intelligence is auxiliary and must never reverse or
+       * misrepresent that successful activation.
+       *
+       * A later refresh may safely rebuild this snapshot.
+       */
+      registrationIntelligence = {
+        status: "deferred",
+        reason: intelligenceFailureMessage,
+      };
+    }
+
+    return NextResponse.json({
+      ok: true,
+      code:
+        "REGISTRATION_COMPLETION_AND_DASHBOARD_ACTIVATED",
+
+      completion: {
+        completed: true,
+        registrationComplete:
+          verificationResult.registration_complete === true,
+        onboardingCompleted: true,
+        role: projection.role,
+        moduleGrants: projection.moduleGrants,
+      },
+
+      verification: {
+        status: verificationStatus,
+        score:
+          typeof verificationResult.score === "number"
+            ? verificationResult.score
+            : Number(verificationResult.score || 0),
+        reasons: Array.isArray(
+          verificationResult.reasons
+        )
+          ? verificationResult.reasons
+          : [],
+        dashboardStatus: String(
+          verificationResult.dashboard_status ||
+            "active"
+        ),
+        canActivateDashboard:
+          verificationResult.can_activate_dashboard ===
+          true,
+        dashboardActivated:
+          verificationResult.dashboard_activated === true,
+        decisionSource: String(
+          verificationResult.decision_source ||
+            "automated_registration_verification_v1"
+        ),
+      },
+
+      registrationIntelligence,
+
+      dashboardActivation: {
+        activated:
+          verificationResult.dashboard_activated === true,
+        alreadyActive:
+          verificationResult.already_active === true,
+        status: String(
+          verificationResult.dashboard_status || "active"
+        ),
+        decisionSource: String(
+          verificationResult.decision_source ||
+            "atomic_self_registration_activation_v1"
+        ),
+      },
+    });
+  } catch (error) {
+    console.error(
+      "REGISTRATION_COMPLETION_UNEXPECTED_ERROR",
+      error
+    );
+
+    return errorResponse(
+      error instanceof Error
+        ? error.message
+        : "Unexpected registration completion error.",
+      500,
+      "UNEXPECTED_ERROR"
+    );
+  }
+}
+
+===== ONBOARDING FINAL SECTION =====
+    }
+
+    if (typeof window === "undefined" || typeof navigator === "undefined") {
+      setMsg("Live location is not available here. Please open this page in your browser.");
+      return;
+    }
+
+    if (!window.isSecureContext) {
+      setMsg("Live location works only on HTTPS. Please open https://www.3bigha.com.");
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      setMsg("Live location is not supported on this device or browser.");
+      return;
+    }
+
+    setLocationVerifying(true);
+    setMsg("Please allow location permission in your browser popup...");
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          setMsg(`Device GPS captured. Verifying location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}...`);
+
+          const res = await fetch("/api/onboarding/verify-location", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              latitude,
+              longitude,
+              lat: latitude,
+              lng: longitude,
+            }),
+          });
+
+          const json = await res.json().catch(() => null);
+
+          if (!res.ok || !json?.ok) {
+            setLocationVerifying(false);
+            setMsg(json?.error || "Could not verify your live location.");
+            return;
+          }
+
+          let geography: any = null;
+
+          try {
+            const geoRes = await fetch("/api/admin/geography/resolve", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                state: json.state || bp.state,
+                district: json.district || bp.district,
+                city: json.locality || bp.city,
+                locality: json.locality || bp.city,
+                pincode: json.postcode || bp.pincode,
+              }),
+            });
+
+            const geoJson = await geoRes.json().catch(() => null);
+            geography = geoJson?.result || null;
+          } catch {
+            geography = null;
+          }
+
+          const nextBp = {
+            ...bp,
+            location_verification_status: "verified",
+            verified_country: json.country ?? null,
+            verified_state: json.state ?? null,
+            verified_district: json.district ?? null,
+            verified_locality: json.locality ?? null,
+            verified_postcode: json.postcode ?? null,
+            eligible_free: !!json.eligible_free,
+            district: json.district || bp.district || null,
+            state: json.state || bp.state || null,
+            city: json.locality || bp.city || null,
+            pincode: json.postcode || bp.pincode || null,
+            geo_state_id: geography?.geo_state_id || null,
+            geo_district_id: geography?.geo_district_id || null,
+            geo_subdivision_id: geography?.geo_subdivision_id || null,
+            geo_block_id: geography?.geo_block_id || null,
+            geo_place_id: geography?.geo_place_id || null,
+          };
+
+          setBp(nextBp);
+
+          const completion = computeCompletion(nextBp);
+
+          const { error } = await supabase
+            .from("business_profiles")
+            .update({
+              location_verification_status: "verified",
+              verified_country: json.country ?? null,
+              verified_state: json.state ?? null,
+              verified_district: json.district ?? null,
+              verified_locality: json.locality ?? null,
+              verified_postcode: json.postcode ?? null,
+              eligible_free: !!json.eligible_free,
+              district: json.district || bp.district || null,
+              state: json.state || bp.state || null,
+              city: json.locality || bp.city || null,
+              pincode: json.postcode || bp.pincode || null,
+              geo_state_id: geography?.geo_state_id || null,
+              geo_district_id: geography?.geo_district_id || null,
+              geo_subdivision_id: geography?.geo_subdivision_id || null,
+              geo_block_id: geography?.geo_block_id || null,
+              geo_place_id: geography?.geo_place_id || null,
+              is_complete: completion.isComplete,
+              completion_score: completion.score,
+              missing_fields: completion.missing,
+            })
+            .eq("user_id", userId);
+
+          setLocationVerifying(false);
+
+          if (error) {
+            setMsg(error.message);
+            return;
+          }
+
+          await fetchCompleteness(userId);
+
+          setMsg(
+            `✅ Device location verified: ${
+              json.locality || json.district || "Location detected"
+            }${json.eligible_free ? " • Free district eligible" : ""}`
+          );
+        } catch (e: any) {
+          setLocationVerifying(false);
+          setMsg(e?.message || "Location verification failed.");
+        }
+      },
+      (error) => {
+        setLocationVerifying(false);
+
+        if (error.code === error.PERMISSION_DENIED) {
+          setMsg(
+            "Location permission is blocked. Tap the lock/site icon beside the browser address bar, open Site settings, allow Location, reload this page, then try again."
+          );
+          return;
+        }
+
+        if (error.code === error.TIMEOUT) {
+          setMsg("Location request timed out. Please turn on GPS/location and try again.");
+          return;
+        }
+
+        setMsg("Could not get your device location. Please turn on GPS/location and try again.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0,
+      }
+    );
+  }
+
+  async function onSave(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setMsg(null);
+    const res = await saveCommon();
+    setSaving(false);
+
+    if (!res.ok) return;
+    setMsg(res.isComplete ? "Profile saved ✅ (Complete)" : "Saved ✅ Please complete missing required fields.");
+  }
+
+  async function onSaveAndContinue() {
+    setSaving(true);
+    setMsg(null);
+
+    const res = await saveCommon();
+    setSaving(false);
+
+    if (!res.ok) return;
+
+    if (!res.isComplete) {
+      setMsg(
+        "Saved ✅ Please complete the highlighted required fields to continue."
+      );
+      scrollToId(
+        firstPendingStep.targetId || "sec-review"
+      );
+      return;
+    }
+
+    if (!registrationReadyUI) {
+      setMsg(
+        firstRegistrationPendingCheck
+          ? `Saved ✅ Next required step: ${firstRegistrationPendingCheck.label}.`
+          : "Saved ✅ Please complete the remaining registration steps."
+      );
+
+      const targetId =
+        firstRegistrationPendingCheck?.targetId ||
+        "sec-review";
+
+      openJourneyStep(
+        journeyKeyForTarget(targetId),
+        targetId
+      );
+      return;
+    }
+
+    if (userId) {
+      const { data: latestVc } = await supabase
+        .from("v_vendor_profile_completeness")
+        .select("registration_complete")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      await fetchCompleteness(userId);
+
+      setMsg(
+        latestVc?.registration_complete
+          ? "Saved ✅ Registration already complete. You can go to the dashboard."
+          : "Saved ✅ Profile is complete. Now click 'Activate My Dashboard' to finish setup."
+      );
+    } else {
+      setMsg("Saved ✅ Profile is complete. Now click 'Activate My Dashboard' to finish setup.");
+    }
+
+    scrollToId("sec-review");
+  }
+
+  async function onFinishRegistration() {
+    if (!userId) return;
+
+    if (!termsAccepted) {
+      setMsg(
+        "Please read and agree to the Terms & Conditions and Privacy Policy before activating your dashboard."
+      );
+      scrollToId("sec-review");
+      return;
+    }
+
+    setSaving(true);
+    setMsg(null);
+
+    const res = await saveCommon();
+
+    if (!res.ok) {
+      setSaving(false);
+      return;
+    }
+
+    if (!res.isComplete) {
+      setSaving(false);
+      setMsg(
+        "Please complete the highlighted required fields before finishing registration."
+      );
+      scrollToId(
+        firstPendingStep.targetId || "sec-review"
+      );
+      return;
+    }
+
+    if (!registrationReadyUI) {
+      setSaving(false);
+      setMsg(
+        firstRegistrationPendingCheck
+          ? `Registration cannot be finished yet. ${firstRegistrationPendingCheck.label}.`
+          : "Registration cannot be finished until every required step is complete."
+      );
+
+      const targetId =
+        firstRegistrationPendingCheck?.targetId ||
+        "sec-review";
+
+      openJourneyStep(
+        journeyKeyForTarget(targetId),
+        targetId
+      );
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "/api/onboarding/complete-registration",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+          credentials: "include",
+          cache: "no-store",
+        }
+      );
+
+      const payload = await response
+        .json()
+        .catch(() => null);
+
+      if (!response.ok || payload?.ok !== true) {
+        const code = String(
+          payload?.code || "REGISTRATION_COMPLETION_FAILED"
+        );
+
+        const message =
+          typeof payload?.error === "string" &&
+          payload.error.trim()
+            ? payload.error
+            : code === "BUSINESS_PROFILE_INCOMPLETE"
+            ? "Please complete the required business information before activating your dashboard."
+            : code === "LOCATION_VERIFICATION_REQUIRED"
+            ? "Please verify your live business location before activating your dashboard."
+            : code === "ACCOUNT_RESTRICTED"
+            ? "This account cannot complete registration in its current state."
+            : code === "PERMITTED_ROLE_REQUIRED"
+            ? "Please complete your identity declaration before activating your dashboard."
+            : "Registration could not be completed safely. Please try again.";
+
+        setSaving(false);
+        setMsg(message);
+        await fetchCompleteness(userId);
+        return;
+      }
+
+      /*
+       * The authenticated server is the only activation authority.
+       *
+       * The browser submits no approval, verification, role,
+       * subscription or dashboard-access decision. It consumes
+       * only the final canonical activation result.
+       */
+      const acceptedCompletionCodes = new Set([
+        "REGISTRATION_COMPLETION_AND_DASHBOARD_ACTIVATED",
+      ]);
+
+      if (
+        !acceptedCompletionCodes.has(
+          String(payload?.code || "")
+        )
+      ) {
+        throw new Error(
+          "The registration server returned an unexpected completion contract."
+        );
+      }
+
+      const verificationStatus = String(
+        payload?.verification?.status || ""
+      );
+
+      const dashboardActivated =
+        payload?.dashboardActivation?.activated === true &&
+        payload?.completion?.registrationComplete === true;
+
+      if (
+        verificationStatus !== "auto_verified" ||
+        !dashboardActivated
+      ) {
+        throw new Error(
+          "The registration server did not confirm atomic dashboard activation."
+        );
+      }
+
+      await fetchCompleteness(userId);
+
+      setMsg(
+        "✅ Registration complete. Your dashboard is active. Opening your workspace..."
+      );
+
+      router.replace(returnTo);
+      router.refresh();
+      return;
+    } catch (error) {
+      console.error(
+        "REGISTRATION_COMPLETION_REQUEST_FAILED",
+        error
+      );
+
+      setMsg(
+        error instanceof Error &&
+          error.message.trim()
+          ? error.message
+          : "Registration could not be completed safely. Please try again."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="registration-page-shell">
+        Loading business profile...
+      </div>
+    );
+  }
+
+  return (
+    <div className="registration-page-shell">
+      <div style={{ color: "#1d4ed8", fontWeight: 900, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase" }}>
+        {streamlinedRegistration ? "Workspace setup · Business details" : "Business profile"}
+      </div>
+      <h1 style={{ fontSize: 26, fontWeight: 800, marginTop: 8 }}>
+        {streamlinedRegistration ? "Complete your registration" : "Manage your Business Profile"}
+      </h1>
+      <p style={{ opacity: 0.8 }}>
+        {streamlinedRegistration
+          ? "Your identity, contact and official location are already saved. Add only the business details required for your selected work, then open your unified workspace."
+          : "Update your business details, verification and service coverage. Your account identity and workspace remain unchanged."}
+      </p>
+
+      <div style={{ marginTop: 22 }}>
+        <BusinessIdentityJourney
+          steps={journeySteps}
+          activeKey={activeJourneyKey}
+          completionScore={weightedCompletionScore}
+          onStepSelect={(step) => {
+            setSelectedJourneyKey(step.key);
+
+            if (step.key !== "review") {
+              setMsg(null);
+              return;
+            }
+
+            if (!registrationReadyUI) {
+              const pending =
+                firstRegistrationPendingCheck;
+
+              setMsg(
+                pending
+                  ? `Before Review & Finish: ${pending.label}.`
+                  : "Please complete all required registration steps before finishing."
+              );
+
+              if (pending) {
+                openJourneyStep(
+                  journeyKeyForTarget(
+                    pending.targetId
+                  ),
+                  pending.targetId
+                );
+              }
+
+              return;
+            }
+
+            setMsg(
+              "All required steps are ready. Review the summary below and finish registration."
+            );
+
+            window.setTimeout(() => {
+              scrollToId("sec-review");
+            }, 60);
+          }}
+        />
+      </div>
+
+      <div className="registration-workspace-grid">
+        <div className="registration-main-column">
+
+      <form onSubmit={onSave} style={{ marginTop: 20, display: "grid", gap: 16 }}>
+        {!streamlinedRegistration ? <section id="sec-nature" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
+          <h3 style={{ marginTop: 0 }}>Nature of Business</h3>
+          <p style={{ marginTop: 0, opacity: 0.8 }}>Select all that apply.</p>
+
+          <div style={{ padding: missingNature ? 10 : 0, borderRadius: 8, border: missingNature ? "2px solid crimson" : "none" }}>
+            {missingNature ? <div style={{ color: "crimson", fontWeight: 800, marginBottom: 8 }}>Required: select at least one</div> : null}
+            <div style={{ display: "grid", gap: 8 }}>
+              {NATURE_OPTIONS.map((o) => (
+                <label key={o.key} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <input type="checkbox" checked={nature.includes(o.key)} onChange={() => toggleNature(o.key)} />
+                  <span>{o.label}</span>
+                </label>
+
+===== SUBSCRIPTION SAVE / PAYMENT ACTIONS =====
+app/dashboard/subscription/SubscriptionPageClient.tsx:214:  const [paymentLink, setPaymentLink] = useState<string | null>(null);
+app/dashboard/subscription/SubscriptionPageClient.tsx:282:            "Start with the Essential Workspace",
+app/dashboard/subscription/SubscriptionPageClient.tsx:432:      const response = await fetch("/api/payments/sbi/create-link", {
+app/dashboard/subscription/SubscriptionPageClient.tsx:592:                {paymentLink ? (
+app/dashboard/subscription/SubscriptionPageClient.tsx:594:                    <a href={paymentLink} style={{ fontWeight: 900 }}>
+app/dashboard/subscription/SubscriptionPageClient.tsx:666:                    : "Choose tools that match the present stage of your business"}
+app/dashboard/subscription/SubscriptionPageClient.tsx:675:                    : "Every Growth Plan supports a different stage of business. Choose according to the tools, team size and operating support you currently need."}
+app/dashboard/subscription/SubscriptionPageClient.tsx:766:                    Choose the communication, visibility and business support suitable for your present stage.
+app/dashboard/subscription/SubscriptionPageClient.tsx:899:                        ? "Activate FREE"
+app/dashboard/subscription/boost/page.tsx:168:              {busyPlan === plan.key ? "Preparing..." : "Activate Boost"}
+
+===== ACTIVATION DATABASE AUTHORITY =====
+app/api/onboarding/complete-registration/route.ts:340:      "complete_self_registration_compatibility",
+app/api/onboarding/complete-registration/route.ts:411:      "activate_self_registered_dashboard"
+app/api/onboarding/evaluate-registration/route.ts:18:  subscription_changed?: boolean;
+app/api/onboarding/evaluate-registration/route.ts:51:    case "auto_verified":
+app/api/onboarding/evaluate-registration/route.ts:189:      ok: decision === "auto_verified",
+app/api/onboarding/evaluate-registration/route.ts:192:        decision === "auto_verified"
+app/api/onboarding/evaluate-registration/route.ts:226:      subscriptionChanged:
+app/api/onboarding/evaluate-registration/route.ts:227:        result.subscription_changed === true,
+supabase/migrations/20260722000500_admin_account_subscription_lgd.sql:37:create table if not exists public.admin_cash_subscription_audit (
+supabase/migrations/20260722000500_admin_account_subscription_lgd.sql:41:  subscription_plan text not null,
+supabase/migrations/20260722000500_admin_account_subscription_lgd.sql:46:  subscription_expires_at timestamptz,
+supabase/migrations/20260722000500_admin_account_subscription_lgd.sql:51:alter table public.admin_cash_subscription_audit enable row level security;
+supabase/migrations/20260722000500_admin_account_subscription_lgd.sql:52:revoke all on public.admin_account_action_audit, public.admin_cash_subscription_audit from anon, authenticated;
+supabase/migrations/20260723000600_pending_self_registration_approval.sql:2:-- an explicit Master Admin approval followed by an activated paid subscription.
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:1:-- Provider-independent subscription payment records prepared exclusively for
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:23:create table if not exists public.subscription_payment_requests (
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:28:  subscription_plan text not null check (subscription_plan in (
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:58:create index if not exists subscription_payment_requests_user_created_idx
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:59:  on public.subscription_payment_requests(user_id, created_at desc);
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:62:alter table public.subscription_payment_requests enable row level security;
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:65:  public.subscription_payment_requests from anon, authenticated;
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:67:comment on table public.subscription_payment_requests is
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:68:  'SBI-only subscription payment lifecycle. Paid state must be written only after authenticated SBI server confirmation.';
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:70:create or replace function public.finalize_verified_sbi_subscription(
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:81:  payment_request public.subscription_payment_requests%rowtype;
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:91:  from public.subscription_payment_requests
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:116:  update public.subscription_payment_requests
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:130:    set subscription_plan = payment_request.subscription_plan,
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:131:        subscription_status = 'active',
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:132:        subscription_expires_at = now() + interval '1 month',
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:148:revoke all on function public.finalize_verified_sbi_subscription(
+supabase/migrations/20260723000800_self_registration_verification_foundation.sql:44:          'auto_verified',
+supabase/migrations/20260723000900_vendor_registration_complete_contract.sql:64:  'Legacy compatibility finalizer. It marks business profile completeness only. It does not approve identity, perform verification, activate subscriptions or activate dashboard access.';
+supabase/migrations/20260723001000_atomic_self_registration_completion.sql:3:create or replace function public.complete_self_registration_compatibility(
+supabase/migrations/20260723001000_atomic_self_registration_completion.sql:175:alter function public.complete_self_registration_compatibility(
+supabase/migrations/20260723001000_atomic_self_registration_completion.sql:187:  public.complete_self_registration_compatibility(
+supabase/migrations/20260723001000_atomic_self_registration_completion.sql:199:  public.complete_self_registration_compatibility(
+supabase/migrations/20260723001000_atomic_self_registration_completion.sql:211:  public.complete_self_registration_compatibility(
+supabase/migrations/20260723001000_atomic_self_registration_completion.sql:221:  'Atomically finalizes legacy registration compatibility fields for the authenticated member. It does not assign roles, approve identity, activate subscriptions or activate dashboard access.';
+supabase/migrations/20260723001100_atomic_automated_registration_verification.sql:550:    v_next_status := 'auto_verified';
+supabase/migrations/20260723001100_atomic_automated_registration_verification.sql:609:               'auto_verified',
+supabase/migrations/20260723001100_atomic_automated_registration_verification.sql:709:      v_next_status = 'auto_verified'
+supabase/migrations/20260723001100_atomic_automated_registration_verification.sql:715:    'subscription_changed',
+supabase/migrations/20260723001100_atomic_automated_registration_verification.sql:738:  'Atomically evaluates the authenticated member from stored registration evidence, writes the canonical verification state and audit event, and makes an eligible dashboard ready. It never assigns roles, changes subscriptions, projects legacy approval, or activates dashboard access.';
+supabase/migrations/20260724170000_strict_registration_authority.sql:43:            and profile.registration_verification_status in ('auto_verified', 'admin_verified')
+supabase/migrations/20260724170000_strict_registration_authority.sql:47:            and profile.registration_verification_status in ('auto_verified', 'admin_verified')
+supabase/migrations/20260724170000_strict_registration_authority.sql:134:create or replace function public.complete_self_registration_compatibility(
+supabase/migrations/20260724170000_strict_registration_authority.sql:227:           when registration_verification_status in ('auto_verified', 'admin_verified', 'restricted')
+supabase/migrations/20260724170000_strict_registration_authority.sql:260:alter function public.complete_self_registration_compatibility(text, text, text, text, text, text, text[]) owner to postgres;
+supabase/migrations/20260724170000_strict_registration_authority.sql:261:revoke all on function public.complete_self_registration_compatibility(text, text, text, text, text, text, text[]) from public, anon;
+supabase/migrations/20260724170000_strict_registration_authority.sql:262:grant execute on function public.complete_self_registration_compatibility(text, text, text, text, text, text, text[]) to authenticated;
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:549:    v_next_status := 'auto_verified';
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:608:               'auto_verified',
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:708:      v_next_status = 'auto_verified'
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:714:    'subscription_changed',
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:723:create or replace function public.activate_self_registered_dashboard()
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:765:      'status', 'auto_verified',
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:774:      'subscription_changed', false,
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:793:  if v_status <> 'auto_verified'
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:808:      'subscription_changed', false,
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:834:    'auto_verified',
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:835:    'auto_verified',
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:853:    'status', 'auto_verified',
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:862:    'subscription_changed', false,
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:869:alter function public.activate_self_registered_dashboard() owner to postgres;
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:876:revoke all on function public.activate_self_registered_dashboard() from public;
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:877:revoke all on function public.activate_self_registered_dashboard() from anon;
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:878:grant execute on function public.activate_self_registered_dashboard() to authenticated;
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:879:grant execute on function public.activate_self_registered_dashboard() to service_role;
+supabase/sql/verify_20260724170000_strict_registration_authority.sql:24:    and p.proname = 'complete_self_registration_compatibility'
+supabase/sql/verify_20260724170000_strict_registration_authority.sql:50:    'complete_self_registration_compatibility'
+supabase/sql/verify_20260725120000_atomic_self_registration_activation.sql:27:  if v_verifier_definition not ilike '%v_next_status := ''auto_verified''%' then
+supabase/sql/verify_20260725120000_atomic_self_registration_activation.sql:36:    and p.proname = 'activate_self_registered_dashboard'
+supabase/sql/verify_20260725120000_atomic_self_registration_activation.sql:86:    'activate_self_registered_dashboard'

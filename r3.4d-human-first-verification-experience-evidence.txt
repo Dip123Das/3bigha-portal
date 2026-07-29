@@ -1,0 +1,2417 @@
+===== GIT =====
+132b708 Align registration verification status contract
+d7bafde Add business proof reviewer intelligence console
+189a000 Add government document verification intelligence
+3179da5 Support financial-period business proof validity
+c1de674 Reconcile manual review and verification persistence
+?? r3.4-government-document-intelligence-evidence.txt
+?? r3.4b-reviewer-intelligence-console-evidence.txt
+?? r3.4d-human-first-verification-experience-evidence.txt
+?? scripts/audit-r3.4-government-document-intelligence.mjs
+?? scripts/audit-r3.4b-reviewer-intelligence-console.mjs
+?? scripts/audit-r3.4d-human-first-verification-experience.mjs
+
+===== PAGE WIDTH AND MAIN JSX =====
+app/onboarding/business/BusinessOnboardingPageClient.tsx:13:import BusinessIdentityJourney, {
+app/onboarding/business/BusinessOnboardingPageClient.tsx:14:  type BusinessIdentityJourneyStep,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:15:} from "@/components/onboarding/BusinessIdentityJourney";
+app/onboarding/business/BusinessOnboardingPageClient.tsx:16:import BusinessVerificationPanel from "@/components/onboarding/BusinessVerificationPanel";
+app/onboarding/business/BusinessOnboardingPageClient.tsx:544:  return (
+app/onboarding/business/BusinessOnboardingPageClient.tsx:639:  ] = useState<BusinessIdentityJourneyStep["key"] | null>(
+app/onboarding/business/BusinessOnboardingPageClient.tsx:911:    return () => {
+app/onboarding/business/BusinessOnboardingPageClient.tsx:964:    return () => {
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1342:      return (
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1506:  const journeySteps: BusinessIdentityJourneyStep[] = [
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1605:    key: BusinessIdentityJourneyStep["key"],
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1617:  ): BusinessIdentityJourneyStep["key"] {
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2237:    return (
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2238:      <div style={{ maxWidth: 900, margin: "40px auto", padding: 12 }}>
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2244:  return (
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2245:    <div style={{ maxWidth: 900, margin: "40px auto", padding: 12 }}>
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2259:        <BusinessIdentityJourney
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2320:              | Profile readiness: <b>{weightedCompletionScore}%</b>
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2324:              Registration:{" "}
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2789:        <BusinessVerificationPanel
+components/onboarding/BusinessIdentityJourney.tsx:5:export type BusinessIdentityJourneyStep = {
+components/onboarding/BusinessIdentityJourney.tsx:23:  steps: BusinessIdentityJourneyStep[];
+components/onboarding/BusinessIdentityJourney.tsx:24:  activeKey?: BusinessIdentityJourneyStep["key"];
+components/onboarding/BusinessIdentityJourney.tsx:26:  onStepSelect?: (step: BusinessIdentityJourneyStep) => void;
+components/onboarding/BusinessIdentityJourney.tsx:34:export default function BusinessIdentityJourney({
+components/onboarding/BusinessIdentityJourney.tsx:44:    useState<BusinessIdentityJourneyStep["key"]>(initialKey);
+components/onboarding/BusinessIdentityJourney.tsx:71:    return () => {
+components/onboarding/BusinessIdentityJourney.tsx:76:  function openStep(step: BusinessIdentityJourneyStep) {
+components/onboarding/BusinessIdentityJourney.tsx:102:  return (
+components/onboarding/BusinessIdentityJourney.tsx:234:              <span>Profile readiness</span>
+components/onboarding/BusinessIdentityJourney.tsx:272:            return (
+components/onboarding/BusinessVerificationPanel.tsx:255:  return (
+components/onboarding/BusinessVerificationPanel.tsx:506:  return (
+components/onboarding/BusinessVerificationPanel.tsx:1092:  return (
+components/onboarding/BusinessVerificationPanel.tsx:1164:export default function BusinessVerificationPanel({
+components/onboarding/BusinessVerificationPanel.tsx:1212:    return () => {
+components/onboarding/BusinessVerificationPanel.tsx:1375:  return (
+components/onboarding/BusinessVerificationPanel.tsx:1557:                return (
+components/onboarding/BusinessVerificationPanel.tsx:1589:            <div style={{ maxWidth: 720 }}>
+components/onboarding/BusinessVerificationPanel.tsx:1867:                    maxWidth: 760,
+
+===== ACTIONS =====
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2070:          : "Saved ✅ Profile is complete. Now click 'Activate My Dashboard' to finish setup."
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2073:      setMsg("Saved ✅ Profile is complete. Now click 'Activate My Dashboard' to finish setup.");
+app/onboarding/business/BusinessOnboardingPageClient.tsx:2563:                {saving ? "Activating..." : "🚀 Activate My Dashboard"}
+app/onboarding/business/BusinessOnboardingPageClient.tsx:3216:            Save & Go to Review
+components/onboarding/BusinessIdentityJourney.tsx:422:                  Save & Continue
+components/onboarding/BusinessVerificationPanel.tsx:1793:              📱 Send link to mobile
+components/onboarding/BusinessVerificationPanel.tsx:1810:              🔗 Copy continuation link
+components/onboarding/BusinessVerificationPanel.tsx:2157:              ? "Recheck after changing the document"
+
+===== MOBILE CONTINUATION =====
+components/onboarding/BusinessVerificationPanel.tsx:1737:            📱 You can complete the photo steps from your mobile phone
+components/onboarding/BusinessVerificationPanel.tsx:1793:              📱 Send link to mobile
+components/onboarding/BusinessVerificationPanel.tsx:1810:              🔗 Copy continuation link
+
+===== MEDIA PREVIEW =====
+app/components/media/UniversalMediaUploader.tsx:118:        "This browser cannot open a live camera preview. Open this page in the latest Chrome browser and tap Start Live Camera."
+app/components/media/UniversalMediaUploader.tsx:156:            "The camera opened but the preview could not start. Close the camera and tap Start Live Camera again."
+app/components/media/UniversalMediaUploader.tsx:201:        "The camera preview is not ready yet. Wait a moment and try again."
+app/components/media/UniversalMediaUploader.tsx:338:        const objectPath = `${baseFolder}/${Date.now()}_${index}_${safeName}`;
+app/components/media/UniversalMediaUploader.tsx:342:        const { error } = await supabase.storage.from(bucket).upload(objectPath, file, {
+app/components/media/UniversalMediaUploader.tsx:353:        const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath);
+app/components/media/UniversalMediaUploader.tsx:357:          url: data.publicUrl,
+app/components/media/UniversalMediaUploader.tsx:359:          path: objectPath,
+app/components/media/UniversalMediaUploader.tsx:362:          mimeType: file.type,
+app/components/media/UniversalMediaUploader.tsx:501:                  objectFit: "cover",
+app/components/media/UniversalMediaUploader.tsx:624:            📄 Add PDF
+app/components/media/UniversalMediaUploader.tsx:690:        <b>AI media guidance:</b> Use daylight, keep the object/property centered,
+app/components/media/UniversalMediaUploader.tsx:780:                    objectFit: "cover",
+app/components/media/UniversalMediaUploader.tsx:791:                    objectFit: "cover",
+app/components/media/UniversalMediaUploader.tsx:807:                  📄 PDF
+app/onboarding/business/BusinessOnboardingPageClient.tsx:80:  if (!value || typeof value !== "object") {
+app/onboarding/business/BusinessOnboardingPageClient.tsx:854:                            x?.object_path ||
+app/onboarding/business/BusinessOnboardingPageClient.tsx:869:                        mimeType: String(
+app/onboarding/business/BusinessOnboardingPageClient.tsx:870:                          x?.mimeType ||
+app/onboarding/business/BusinessOnboardingPageClient.tsx:871:                            x?.mime_type ||
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1752:            mimeType: asset.mimeType,
+components/onboarding/BusinessVerificationPanel.tsx:55:  if (!value || typeof value !== "object") {
+components/onboarding/BusinessVerificationPanel.tsx:1040:          label={`${title} PDF`}
+components/onboarding/BusinessVerificationPanel.tsx:1066:          PDF upload will then open.
+lib/media/media-config.ts:21:  mimeType: string;
+lib/media/media-utils.ts:32:  if (!kind) return "Unsupported file type. Please upload image, video or PDF only.";
+lib/media/media-utils.ts:43:    return "Document is too large. Please upload PDF under 20 MB.";
+
+===== READINESS =====
+export type BusinessProofStatus =
+  | "not_uploaded"
+  | "ready_to_verify"
+  | "verifying"
+  | "under_review"
+  | "needs_correction"
+  | "verified";
+
+export type RegistrationReadinessInput = {
+  identityReady: boolean;
+  addressReady: boolean;
+  aboutReady: boolean;
+  coverageReady: boolean;
+
+  legalProofReady: boolean;
+  practicalProofReady: boolean;
+  liveSelfieReady: boolean;
+
+  businessProofStatus: BusinessProofStatus;
+  declarationsAccepted?: boolean;
+  dashboardActivated?: boolean;
+};
+
+export type RegistrationReadinessStepKey =
+  | "identity"
+  | "address"
+  | "about"
+  | "coverage"
+  | "legal-proof"
+  | "practical-proof"
+  | "live-selfie"
+  | "business-proof"
+  | "declarations";
+
+export type RegistrationReadinessStep = {
+  key: RegistrationReadinessStepKey;
+  label: string;
+  complete: boolean;
+};
+
+export type RegistrationReadiness = {
+  identityReady: boolean;
+  addressReady: boolean;
+  aboutReady: boolean;
+  coverageReady: boolean;
+
+  legalProofReady: boolean;
+  practicalProofReady: boolean;
+  liveSelfieReady: boolean;
+
+  evidenceCollectionComplete: boolean;
+  evidenceCollectionProgress: number;
+
+  businessProofStatus: BusinessProofStatus;
+  businessProofReady: boolean;
+  businessProofStatusLabel: string;
+
+  declarationsAccepted: boolean;
+  registrationReady: boolean;
+  activationAllowed: boolean;
+  dashboardActivated: boolean;
+
+  completedRequiredSteps: number;
+  requiredStepCount: number;
+  progressPercent: number;
+
+  steps: RegistrationReadinessStep[];
+  pendingSteps: RegistrationReadinessStep[];
+  nextRequiredStep: RegistrationReadinessStep | null;
+};
+
+const BUSINESS_PROOF_STATUS_LABELS: Record<
+  BusinessProofStatus,
+  string
+> = {
+  not_uploaded: "Upload one valid legal business proof",
+  ready_to_verify:
+    "Evidence uploaded — business-proof verification required",
+  verifying: "Business proof is being checked",
+  under_review:
+    "Business proof received — verification is in progress",
+  needs_correction: "Business proof needs correction",
+  verified: "Business proof verified",
+};
+
+export function resolveRegistrationReadiness(
+  input: RegistrationReadinessInput
+): RegistrationReadiness {
+  const declarationsAccepted =
+    input.declarationsAccepted === true;
+
+  const evidenceChecks = [
+    input.legalProofReady,
+    input.practicalProofReady,
+    input.liveSelfieReady,
+  ];
+
+  const evidenceCompleted = evidenceChecks.filter(Boolean).length;
+
+  const evidenceCollectionProgress = Math.round(
+    (evidenceCompleted / evidenceChecks.length) * 100
+  );
+
+  const evidenceCollectionComplete =
+    evidenceCompleted === evidenceChecks.length;
+
+  const businessProofReady =
+    input.businessProofStatus === "verified";
+
+  const steps: RegistrationReadinessStep[] = [
+    {
+      key: "identity",
+      label: "Complete your identity and contact details",
+      complete: input.identityReady,
+    },
+    {
+      key: "address",
+      label: "Verify your official and live business address",
+      complete: input.addressReady,
+    },
+    {
+      key: "about",
+      label: "Add truthful information about yourself and your work",
+      complete: input.aboutReady,
+    },
+    {
+      key: "coverage",
+      label: "Define where you provide your service",
+      complete: input.coverageReady,
+    },
+    {
+      key: "legal-proof",
+      label: "Add one valid legal business proof",
+      complete: input.legalProofReady,
+    },
+    {
+      key: "practical-proof",
+      label: "Add practical workplace or project evidence",
+      complete: input.practicalProofReady,
+    },
+    {
+      key: "live-selfie",
+      label: "Add the required live business-board selfie",
+      complete: input.liveSelfieReady,
+    },
+    {
+      key: "business-proof",
+      label: BUSINESS_PROOF_STATUS_LABELS[input.businessProofStatus],
+      complete: businessProofReady,
+    },
+    {
+      key: "declarations",
+      label: "Accept the final truthful declarations",
+      complete: declarationsAccepted,
+    },
+  ];
+
+  const completedRequiredSteps =
+    steps.filter((step) => step.complete).length;
+
+  const requiredStepCount = steps.length;
+
+  const progressPercent = Math.round(
+    (completedRequiredSteps / requiredStepCount) * 100
+  );
+
+  const pendingSteps =
+    steps.filter((step) => !step.complete);
+
+  const registrationReady =
+    pendingSteps.length === 0;
+
+  return {
+    identityReady: input.identityReady,
+    addressReady: input.addressReady,
+    aboutReady: input.aboutReady,
+    coverageReady: input.coverageReady,
+
+    legalProofReady: input.legalProofReady,
+    practicalProofReady: input.practicalProofReady,
+    liveSelfieReady: input.liveSelfieReady,
+
+    evidenceCollectionComplete,
+    evidenceCollectionProgress,
+
+    businessProofStatus: input.businessProofStatus,
+    businessProofReady,
+    businessProofStatusLabel:
+      BUSINESS_PROOF_STATUS_LABELS[input.businessProofStatus],
+
+    declarationsAccepted,
+    registrationReady,
+    activationAllowed:
+      registrationReady &&
+      input.dashboardActivated !== true,
+    dashboardActivated:
+      input.dashboardActivated === true,
+
+    completedRequiredSteps,
+    requiredStepCount,
+    progressPercent,
+
+    steps,
+    pendingSteps,
+    nextRequiredStep: pendingSteps[0] || null,
+  };
+}
+
+===== VERIFICATION PANEL JSX =====
+"use client";
+
+import { useEffect, useState } from "react";
+import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
+import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import {
+  legalProofValidityIsComplete,
+  legalProofValidityIsExpired,
+  normalizeValidityType,
+  type LegalProofValidityType,
+} from "@/lib/registration/legalProofValidity";
+
+type Props = {
+  assets: UploadedMediaAsset[];
+  onChange: (assets: UploadedMediaAsset[]) => void;
+  disabled?: boolean;
+  documentVerification?: any;
+  documentVerifyLoading?: boolean;
+  onRunDocumentVerification: () => void;
+  registrationNumbers: {
+    gstin: string;
+    tradeLicenseNo: string;
+    udyamNo: string;
+    otherRegistrationNo: string;
+  };
+  onRegistrationNumberChange: (
+    key:
+      | "gstin"
+      | "tradeLicenseNo"
+      | "udyamNo"
+      | "otherRegistrationNo",
+    value: string
+  ) => void;
+};
+
+type LegalProofKind = "gst" | "trade-license" | "udyam" | "other";
+
+type LegalProofMeta = {
+  documentType: LegalProofKind;
+  certificateNumber: string;
+  issuingAuthority: string;
+  issueDate: string;
+  validityType: LegalProofValidityType;
+  validUntil: string;
+  noExpiry: boolean;
+  periodStartYear: number | null;
+  periodEndYear: number | null;
+};
+
+function getLegalProofMeta(
+  asset: UploadedMediaAsset | undefined
+): LegalProofMeta | null {
+  const value = (asset as any)?.legalProofMeta;
+
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  return {
+    documentType: String(
+      value.documentType || ""
+    ) as LegalProofKind,
+    certificateNumber: String(
+      value.certificateNumber || ""
+    ),
+    issuingAuthority: String(
+      value.issuingAuthority || ""
+    ),
+    issueDate: String(
+      value.issueDate || ""
+    ),
+    validityType: normalizeValidityType({
+      validityType: value.validityType,
+      validUntil: value.validUntil,
+      noExpiry: value.noExpiry,
+      periodStartYear: value.periodStartYear,
+      periodEndYear: value.periodEndYear,
+    }),
+    validUntil: String(
+      value.validUntil || ""
+    ),
+    noExpiry:
+      normalizeValidityType({
+        validityType: value.validityType,
+        noExpiry: value.noExpiry,
+      }) === "no_expiry",
+    periodStartYear:
+      Number.isInteger(Number(value.periodStartYear))
+        ? Number(value.periodStartYear)
+        : null,
+    periodEndYear:
+      Number.isInteger(Number(value.periodEndYear))
+        ? Number(value.periodEndYear)
+        : null,
+  };
+}
+
+function dateAtEndOfDay(value: string) {
+  if (!value) return null;
+
+  const parsed = new Date(
+    `${value}T23:59:59`
+  );
+
+  return Number.isFinite(parsed.getTime())
+    ? parsed
+    : null;
+}
+
+function isExpiredLegalProof(
+  validity: Pick<
+    LegalProofMeta,
+    | "validityType"
+    | "validUntil"
+    | "noExpiry"
+    | "periodStartYear"
+    | "periodEndYear"
+  >
+) {
+  return legalProofValidityIsExpired(validity);
+}
+
+function isFutureIssueDate(issueDate: string) {
+  if (!issueDate) return false;
+
+  const issue = new Date(
+    `${issueDate}T00:00:00`
+  );
+
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
+  return Boolean(
+    Number.isFinite(issue.getTime()) &&
+      issue.getTime() > today.getTime()
+  );
+}
+
+function validityPrecedesIssueDate(
+  issueDate: string,
+  validUntil: string,
+  validityType: LegalProofValidityType
+) {
+  if (
+    validityType !== "exact_date" ||
+    !issueDate ||
+    !validUntil
+  ) {
+    return false;
+  }
+
+  const issue = new Date(
+    `${issueDate}T00:00:00`
+  );
+
+  const expiry = new Date(
+    `${validUntil}T23:59:59`
+  );
+
+  return Boolean(
+    Number.isFinite(issue.getTime()) &&
+      Number.isFinite(expiry.getTime()) &&
+      expiry.getTime() < issue.getTime()
+  );
+}
+
+function legalProofAssetIsComplete(
+  asset: UploadedMediaAsset
+) {
+  const meta = getLegalProofMeta(asset);
+
+  if (!meta) return false;
+
+  return Boolean(
+    meta.certificateNumber.trim() &&
+      meta.issuingAuthority.trim() &&
+      meta.issueDate &&
+      legalProofValidityIsComplete(meta) &&
+      !isFutureIssueDate(meta.issueDate) &&
+      !validityPrecedesIssueDate(
+        meta.issueDate,
+        meta.validUntil,
+        meta.validityType
+      ) &&
+      !isExpiredLegalProof(meta)
+  );
+}
+
+type PhysicalProofKind =
+  | "signboard"
+  | "frontage"
+  | "workplace"
+  | "machinery"
+  | "stock"
+  | "activity"
+  | "warehouse"
+  | "factory"
+  | "other";
+
+function belongsTo(asset: UploadedMediaAsset, category: string) {
+  return String(asset.path || "").includes(`/${category}/`);
+}
+
+function belongsToLegalKind(asset: UploadedMediaAsset, kind: LegalProofKind) {
+  return String(asset.path || "").includes(`/legal-proof/${kind}/`);
+}
+
+function belongsToPhysicalKind(
+  asset: UploadedMediaAsset,
+  kind: PhysicalProofKind
+) {
+  return String(asset.path || "").includes(`/practical-proof/${kind}/`);
+}
+
+function replaceCategory(
+  allAssets: UploadedMediaAsset[],
+  category: string,
+  nextCategoryAssets: UploadedMediaAsset[]
+) {
+  return [
+    ...allAssets.filter((asset) => !belongsTo(asset, category)),
+    ...nextCategoryAssets,
+  ];
+}
+
+function replaceLegalKind(
+  allAssets: UploadedMediaAsset[],
+  kind: LegalProofKind,
+  nextKindAssets: UploadedMediaAsset[]
+) {
+  return [
+    ...allAssets.filter((asset) => !belongsToLegalKind(asset, kind)),
+    ...nextKindAssets,
+  ];
+}
+
+function replacePhysicalKind(
+  allAssets: UploadedMediaAsset[],
+  kind: PhysicalProofKind,
+  nextKindAssets: UploadedMediaAsset[]
+) {
+  return [
+    ...allAssets.filter((asset) => !belongsToPhysicalKind(asset, kind)),
+    ...nextKindAssets,
+  ];
+}
+
+function RequirementStatus({
+  complete,
+  children,
+}: {
+  complete: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        padding: "8px 10px",
+        borderRadius: 10,
+        background: complete ? "#f0fdf4" : "#fff7ed",
+        border: complete ? "1px solid #bbf7d0" : "1px solid #fed7aa",
+        color: complete ? "#166534" : "#9a3412",
+        fontWeight: 850,
+        fontSize: 13,
+      }}
+    >
+      {complete ? "✓ Added" : "Required"} — {children}
+    </div>
+  );
+}
+
+function LegalProofCard({
+  title,
+  description,
+  kind,
+  assets,
+  allAssets,
+  onChange,
+  verification,
+  certificateNumber,
+  certificateNumberLabel,
+  onCertificateNumberChange,
+}: {
+  title: string;
+  description: string;
+  kind: LegalProofKind;
+  assets: UploadedMediaAsset[];
+  allAssets: UploadedMediaAsset[];
+  onChange: (assets: UploadedMediaAsset[]) => void;
+  verification?: any;
+  certificateNumber: string;
+  certificateNumberLabel: string;
+  onCertificateNumberChange: (
+    value: string
+  ) => void;
+}) {
+  const existingMeta =
+    getLegalProofMeta(assets[0]);
+
+  const [
+    issuingAuthority,
+    setIssuingAuthority,
+  ] = useState(
+    existingMeta?.issuingAuthority || ""
+  );
+
+  const [
+    issueDate,
+    setIssueDate,
+  ] = useState(
+    existingMeta?.issueDate || ""
+  );
+
+  const [
+    validUntil,
+    setValidUntil,
+  ] = useState(
+    existingMeta?.validUntil || ""
+  );
+
+  const [
+    validityType,
+    setValidityType,
+  ] = useState<LegalProofValidityType>(
+    existingMeta?.validityType ||
+      normalizeValidityType(existingMeta || {})
+  );
+
+  const [
+    noExpiry,
+    setNoExpiry,
+  ] = useState(
+    Boolean(existingMeta?.noExpiry)
+  );
+
+  const [
+    periodStartYear,
+    setPeriodStartYear,
+  ] = useState(
+    existingMeta?.periodStartYear
+      ? String(existingMeta.periodStartYear)
+      : ""
+  );
+
+  const [
+    periodEndYear,
+    setPeriodEndYear,
+  ] = useState(
+    existingMeta?.periodEndYear
+      ? String(existingMeta.periodEndYear)
+      : ""
+  );
+
+  useEffect(() => {
+    const latest =
+      getLegalProofMeta(assets[0]);
+
+    if (!latest) return;
+
+    setIssuingAuthority(
+      latest.issuingAuthority
+    );
+    setIssueDate(
+      latest.issueDate
+    );
+    setValidUntil(
+      latest.validUntil
+    );
+    setValidityType(
+      latest.validityType
+    );
+    setNoExpiry(
+      latest.noExpiry
+    );
+    setPeriodStartYear(
+      latest.periodStartYear
+        ? String(latest.periodStartYear)
+        : ""
+    );
+    setPeriodEndYear(
+      latest.periodEndYear
+        ? String(latest.periodEndYear)
+        : ""
+    );
+  }, [assets]);
+
+  function buildMeta(
+    overrides: Partial<LegalProofMeta> = {}
+  ): LegalProofMeta {
+    return {
+      documentType: kind,
+      certificateNumber:
+        certificateNumber.trim(),
+      issuingAuthority:
+        issuingAuthority.trim(),
+      issueDate,
+      validityType,
+      validUntil:
+        validityType === "exact_date"
+          ? validUntil
+          : "",
+      noExpiry:
+        validityType === "no_expiry",
+      periodStartYear:
+        validityType === "financial_period" &&
+        Number.isInteger(Number(periodStartYear))
+          ? Number(periodStartYear)
+          : null,
+      periodEndYear:
+        validityType === "financial_period" &&
+        Number.isInteger(Number(periodEndYear))
+          ? Number(periodEndYear)
+          : null,
+      ...overrides,
+    };
+  }
+
+  function persistExistingAssets(
+    meta: LegalProofMeta
+  ) {
+    if (assets.length === 0) return;
+
+    const nextAssets = assets.map(
+      (asset) =>
+        ({
+          ...asset,
+          legalProofMeta: meta,
+        }) as UploadedMediaAsset
+    );
+
+    onChange(
+      replaceLegalKind(
+        allAssets,
+        kind,
+        nextAssets
+      )
+    );
+  }
+
+  function attachMetadata(
+    nextAssets: UploadedMediaAsset[]
+  ) {
+    const meta = buildMeta();
+
+    return nextAssets.map(
+      (asset) =>
+        ({
+          ...asset,
+          legalProofMeta: meta,
+        }) as UploadedMediaAsset
+    );
+  }
+
+  const certificateNumberReady =
+    certificateNumber.trim().length > 0;
+
+  const issuingAuthorityReady =
+    issuingAuthority.trim().length > 0;
+
+  const issueDateReady =
+    issueDate.length > 0;
+
+  const validityReady =
+    legalProofValidityIsComplete({
+      validityType,
+      validUntil,
+      noExpiry,
+      periodStartYear,
+      periodEndYear,
+    });
+
+  const futureIssueDate =
+    isFutureIssueDate(issueDate);
+
+  const invalidDateOrder =
+    validityPrecedesIssueDate(
+      issueDate,
+      validUntil,
+      validityType
+    );
+
+  const expired =
+    isExpiredLegalProof({
+      validityType,
+      validUntil,
+      noExpiry,
+      periodStartYear:
+        Number.isInteger(Number(periodStartYear))
+          ? Number(periodStartYear)
+          : null,
+      periodEndYear:
+        Number.isInteger(Number(periodEndYear))
+          ? Number(periodEndYear)
+          : null,
+    });
+
+  const structuredDetailsReady =
+    certificateNumberReady &&
+    issuingAuthorityReady &&
+    issueDateReady &&
+    validityReady &&
+    !futureIssueDate &&
+    !invalidDateOrder &&
+    !expired;
+
+  return (
+    <div
+      style={{
+        padding: 14,
+        borderRadius: 16,
+        border: "1px solid #dbeafe",
+        background: "#fff",
+      }}
+    >
+      <div
+        style={{
+          fontWeight: 950,
+          color: "#0f172a",
+        }}
+      >
+        {title}
+      </div>
+
+      <div
+        style={{
+          marginTop: 5,
+          color: "#64748b",
+          fontSize: 13,
+          lineHeight: 1.55,
+        }}
+      >
+        {description}
+      </div>
+
+      {verification ? (
+        <div
+          style={{
+            marginTop: 10,
+            padding: "8px 10px",
+            borderRadius: 10,
+            background:
+              verification.status ===
+              "verified_by_ai"
+                ? "#f0fdf4"
+                : verification.status ===
+                    "document_mismatch" ||
+                  verification.status ===
+                    "format_invalid"
+                ? "#fef2f2"
+                : "#fff7ed",
+            border:
+              verification.status ===
+              "verified_by_ai"
+                ? "1px solid #bbf7d0"
+                : verification.status ===
+                    "document_mismatch" ||
+                  verification.status ===
+                    "format_invalid"
+                ? "1px solid #fecaca"
+                : "1px solid #fed7aa",
+            fontSize: 12,
+            lineHeight: 1.5,
+          }}
+        >
+          <b>
+            {String(
+              verification.status ||
+                "needs_manual_review"
+            ).replace(/_/g, " ")}
+          </b>
+
+          {verification.summary ? (
+            <div style={{ marginTop: 3 }}>
+              {verification.summary}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <label
+        style={{
+          display: "block",
+          marginTop: 12,
+          fontSize: 13,
+          fontWeight: 900,
+          color: "#0f172a",
+        }}
+      >
+        {certificateNumberLabel} *
+
+        <input
+          value={certificateNumber}
+          onChange={(event) => {
+            const value =
+              event.target.value;
+
+            onCertificateNumberChange(
+              value
+            );
+
+            persistExistingAssets(
+              buildMeta({
+                certificateNumber:
+                  value.trim(),
+              })
+            );
+          }}
+          placeholder={`Enter ${certificateNumberLabel}`}
+          style={{
+            display: "block",
+            width: "100%",
+            marginTop: 6,
+            padding: "10px 11px",
+            borderRadius: 10,
+            border:
+              "1px solid #cbd5e1",
+            background: "#ffffff",
+            fontWeight: 750,
+          }}
+        />
+      </label>
+
+      <label
+        style={{
+          display: "block",
+          marginTop: 12,
+          fontSize: 13,
+          fontWeight: 900,
+          color: "#0f172a",
+        }}
+      >
+        Issuing Authority *
+
+        <input
+          value={issuingAuthority}
+          onChange={(event) => {
+            const value =
+              event.target.value;
+
+            setIssuingAuthority(value);
+
+            persistExistingAssets(
+              buildMeta({
+                issuingAuthority:
+                  value.trim(),
+              })
+            );
+          }}
+          placeholder="Example: Municipality, GST Department or Ministry of MSME"
+          style={{
+            display: "block",
+            width: "100%",
+            marginTop: 6,
+            padding: "10px 11px",
+            borderRadius: 10,
+            border:
+              "1px solid #cbd5e1",
+            background: "#ffffff",
+            fontWeight: 750,
+          }}
+        />
+      </label>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(180px, 1fr))",
+          gap: 10,
+          marginTop: 12,
+        }}
+      >
+        <label
+          style={{
+            display: "block",
+            fontSize: 13,
+            fontWeight: 900,
+            color: "#0f172a",
+          }}
+        >
+          Issue Date *
+
+          <input
+            type="date"
+            value={issueDate}
+            max={new Date()
+              .toISOString()
+              .slice(0, 10)}
+            onChange={(event) => {
+              const value = event.target.value;
+              setIssueDate(value);
+              persistExistingAssets(
+                buildMeta({ issueDate: value })
+              );
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              marginTop: 6,
+              padding: "10px 11px",
+              borderRadius: 10,
+              border: "1px solid #cbd5e1",
+              background: "#ffffff",
+              fontWeight: 750,
+            }}
+          />
+        </label>
+
+        <label
+          style={{
+            display: "block",
+            fontSize: 13,
+            fontWeight: 900,
+            color: "#0f172a",
+          }}
+        >
+          Validity shown on certificate *
+
+          <select
+            value={validityType}
+            onChange={(event) => {
+              const next =
+                event.target.value as LegalProofValidityType;
+
+              setValidityType(next);
+              setNoExpiry(next === "no_expiry");
+
+              if (next !== "exact_date") {
+                setValidUntil("");
+              }
+
+              if (next !== "financial_period") {
+                setPeriodStartYear("");
+                setPeriodEndYear("");
+              }
+
+              persistExistingAssets(
+                buildMeta({
+                  validityType: next,
+                  noExpiry: next === "no_expiry",
+                  validUntil:
+                    next === "exact_date"
+                      ? validUntil
+                      : "",
+                  periodStartYear:
+                    next === "financial_period" &&
+                    Number.isInteger(
+                      Number(periodStartYear)
+                    )
+                      ? Number(periodStartYear)
+                      : null,
+                  periodEndYear:
+                    next === "financial_period" &&
+                    Number.isInteger(
+                      Number(periodEndYear)
+                    )
+                      ? Number(periodEndYear)
+                      : null,
+                })
+              );
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              marginTop: 6,
+              padding: "10px 11px",
+              borderRadius: 10,
+              border: "1px solid #cbd5e1",
+              background: "#ffffff",
+              fontWeight: 750,
+            }}
+          >
+            <option value="exact_date">
+              Exact expiry date
+            </option>
+            <option value="financial_period">
+              Financial / assessment period
+            </option>
+            <option value="no_expiry">
+              No expiry
+            </option>
+          </select>
+        </label>
+      </div>
+
+      {validityType === "exact_date" ? (
+        <label
+          style={{
+            display: "block",
+            marginTop: 12,
+            fontSize: 13,
+            fontWeight: 900,
+            color: "#0f172a",
+          }}
+        >
+          Valid Until *
+
+          <input
+            type="date"
+            value={validUntil}
+            min={issueDate || undefined}
+            onChange={(event) => {
+              const value = event.target.value;
+              setValidUntil(value);
+              persistExistingAssets(
+                buildMeta({
+                  validityType: "exact_date",
+                  validUntil: value,
+                  noExpiry: false,
+                })
+              );
+            }}
+            style={{
+              display: "block",
+              width: "100%",
+              marginTop: 6,
+              padding: "10px 11px",
+              borderRadius: 10,
+              border: "1px solid #cbd5e1",
+              background: "#ffffff",
+              fontWeight: 750,
+            }}
+          />
+        </label>
+      ) : null}
+
+      {validityType === "financial_period" ? (
+        <div
+          style={{
+            marginTop: 12,
+            padding: 12,
+            borderRadius: 12,
+            border: "1px solid #bfdbfe",
+            background: "#eff6ff",
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 900,
+              color: "#1e3a8a",
+              fontSize: 13,
+            }}
+          >
+            Financial or assessment period
+          </div>
+
+          <div
+            style={{
+              marginTop: 5,
+              color: "#475569",
+              fontSize: 12,
+              lineHeight: 1.5,
+            }}
+          >
+            Example: a certificate covering 2026–2027,
+            2027–2028 and 2028–2029 should be entered
+            as start year 2026 and end year 2029.
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(150px, 1fr))",
+              gap: 10,
+              marginTop: 10,
+            }}
+          >
+            <label
+              style={{
+                fontSize: 13,
+                fontWeight: 900,
+              }}
+            >
+              Start year *
+
+              <input
+                type="number"
+                min="1900"
+                max="2200"
+                value={periodStartYear}
+                placeholder="2026"
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setPeriodStartYear(value);
+                  persistExistingAssets(
+                    buildMeta({
+                      validityType:
+                        "financial_period",
+                      periodStartYear:
+                        Number.isInteger(Number(value))
+                          ? Number(value)
+                          : null,
+                    })
+                  );
+                }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  marginTop: 6,
+                  padding: "10px 11px",
+                  borderRadius: 10,
+                  border: "1px solid #cbd5e1",
+                }}
+              />
+            </label>
+
+            <label
+              style={{
+                fontSize: 13,
+                fontWeight: 900,
+              }}
+            >
+              End year *
+
+              <input
+                type="number"
+                min="1900"
+                max="2200"
+                value={periodEndYear}
+                placeholder="2029"
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setPeriodEndYear(value);
+                  persistExistingAssets(
+                    buildMeta({
+                      validityType:
+                        "financial_period",
+                      periodEndYear:
+                        Number.isInteger(Number(value))
+                          ? Number(value)
+                          : null,
+                    })
+                  );
+                }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  marginTop: 6,
+                  padding: "10px 11px",
+                  borderRadius: 10,
+                  border: "1px solid #cbd5e1",
+                }}
+              />
+            </label>
+          </div>
+        </div>
+      ) : null}
+
+      {validityType === "no_expiry" ? (
+        <div
+          style={{
+            marginTop: 12,
+            padding: "10px 12px",
+            borderRadius: 10,
+            border: "1px solid #bbf7d0",
+            background: "#f0fdf4",
+            color: "#166534",
+            fontSize: 13,
+            fontWeight: 850,
+          }}
+        >
+          ✓ The certificate explicitly states that it has
+          no expiry.
+        </div>
+      ) : null}
+
+      {futureIssueDate ? (
+        <div
+          style={{
+            marginTop: 10,
+            padding: "9px 10px",
+            borderRadius: 10,
+            border:
+              "1px solid #fecaca",
+            background: "#fef2f2",
+            color: "#991b1b",
+            fontSize: 12,
+            fontWeight: 850,
+          }}
+        >
+          The issue date cannot be in
+          the future.
+        </div>
+      ) : null}
+
+      {invalidDateOrder ? (
+        <div
+          style={{
+            marginTop: 10,
+            padding: "9px 10px",
+            borderRadius: 10,
+            border:
+              "1px solid #fecaca",
+            background: "#fef2f2",
+            color: "#991b1b",
+            fontSize: 12,
+            fontWeight: 850,
+          }}
+        >
+          The validity date cannot be
+          earlier than the issue date.
+        </div>
+      ) : null}
+
+      {expired ? (
+        <div
+          style={{
+            marginTop: 10,
+            padding: "9px 10px",
+            borderRadius: 10,
+            border:
+              "1px solid #fecaca",
+            background: "#fef2f2",
+            color: "#991b1b",
+            fontSize: 12,
+            fontWeight: 850,
+          }}
+        >
+          {validityType === "financial_period"
+            ? `This certificate period ended in ${periodEndYear}. Please provide the renewed certificate.`
+            : `This certificate expired on ${validUntil}. Please provide the renewed certificate.`}
+        </div>
+      ) : null}
+
+      {structuredDetailsReady ? (
+        <UniversalMediaUploader
+          module="vendor"
+          folder={`vendor/legal-proof/${kind}/${Date.now()}`}
+          value={assets}
+          onChange={(next) =>
+            onChange(
+              replaceLegalKind(
+                allAssets,
+                kind,
+                attachMetadata(next)
+              )
+            )
+          }
+          label={`${title} PDF`}
+          helperText="Upload the certificate matching the number, authority, issue date and validity entered above."
+          allowImages={false}
+          allowVideos={false}
+          allowDocuments
+          maxFiles={1}
+        />
+      ) : (
+        <div
+          style={{
+            marginTop: 10,
+            padding: "9px 10px",
+            borderRadius: 10,
+            border:
+              "1px solid #fed7aa",
+            background: "#fff7ed",
+            color: "#9a3412",
+            fontSize: 12,
+            fontWeight: 850,
+            lineHeight: 1.5,
+          }}
+        >
+          Complete the certificate
+          number, issuing authority,
+          issue date and validity
+          information first. The matching
+          PDF upload will then open.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PhysicalProofCard({
+  title,
+  description,
+  kind,
+  assets,
+  allAssets,
+  onChange,
+  totalPhysicalAssets,
+}: {
+  title: string;
+  description: string;
+  kind: PhysicalProofKind;
+  assets: UploadedMediaAsset[];
+  allAssets: UploadedMediaAsset[];
+  onChange: (assets: UploadedMediaAsset[]) => void;
+  totalPhysicalAssets: number;
+}) {
+  const slotAvailable = assets.length > 0 || totalPhysicalAssets < 5;
+
+  return (
+    <div
+      style={{
+        padding: 14,
+        borderRadius: 16,
+        border: assets.length
+          ? "1px solid #86efac"
+          : "1px solid #e2e8f0",
+        background: assets.length ? "#f0fdf4" : "#fff",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 10,
+          alignItems: "flex-start",
+        }}
+      >
+        <div>
+          <div style={{ fontWeight: 950, color: "#0f172a" }}>{title}</div>
+          <div
+            style={{
+              marginTop: 5,
+              color: "#64748b",
+              fontSize: 13,
+              lineHeight: 1.55,
+            }}
+          >
+            {description}
+          </div>
+        </div>
+
+        <div
+          style={{
+            flexShrink: 0,
+            padding: "5px 8px",
+            borderRadius: 999,
+            background: assets.length ? "#dcfce7" : "#f1f5f9",
+            color: assets.length ? "#166534" : "#475569",
+            fontSize: 11,
+            fontWeight: 900,
+          }}
+        >
+          {assets.length ? "Added" : "Choose one"}
+        </div>
+      </div>
+
+      <UniversalMediaUploader
+        module="vendor"
+        folder={`vendor/practical-proof/${kind}/${Date.now()}`}
+        value={assets}
+        onChange={(next) =>
+          onChange(replacePhysicalKind(allAssets, kind, next))
+        }
+        label={`${title} photo`}
+        helperText={
+          slotAvailable
+            ? "Use a clear, recent photo taken at the real business location."
+            : "Five physical-proof photos have already been added. Remove one to use this category."
+        }
+        allowImages
+        allowVideos={false}
+        allowDocuments={false}
+        cameraFacing="environment"
+        maxFiles={slotAvailable ? 1 : 0}
+      />
+    </div>
+  );
+}
+
+
+export default function BusinessVerificationPanel({
+  assets,
+  onChange,
+  disabled = false,
+  documentVerification,
+  documentVerifyLoading = false,
+  onRunDocumentVerification,
+  registrationNumbers,
+  onRegistrationNumberChange,
+}: Props) {
+  const [cameraAvailability, setCameraAvailability] = useState<
+    "checking" | "available" | "unavailable" | "unknown"
+  >("checking");
+  const [handoffMessage, setHandoffMessage] = useState("");
+  const [
+    selectedLegalKind,
+    setSelectedLegalKind,
+  ] = useState<LegalProofKind>("trade-license");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function detectCamera() {
+      if (
+        typeof navigator === "undefined" ||
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.enumerateDevices
+      ) {
+        if (!cancelled) setCameraAvailability("unavailable");
+        return;
+      }
+
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const hasCamera = devices.some(
+          (device) => device.kind === "videoinput"
+        );
+
+===== ONBOARDING MAIN JSX =====
+544:  return (
+911:    return () => {
+964:    return () => {
+1342:      return (
+2237:    return (
+2244:  return (
+                type="button"
+                onClick={() => {
+                  const targetId =
+                    firstRegistrationPendingCheck?.targetId ||
+                    firstPendingStep.targetId ||
+                    "sec-review";
+
+                  openJourneyStep(
+                    journeyKeyForTarget(targetId),
+                    targetId
+                  );
+                }}
+                style={{ padding: 10, fontWeight: 700 }}
+              >
+                Go to Next Pending Step
+              </button>
+            </div>
+          </div>
+
+          <div style={{ minWidth: 220 }}>
+            <div style={{ fontWeight: 700, marginBottom: 6 }}>Progress</div>
+            <div style={{ height: 10, background: "#eee", borderRadius: 12 }}>
+              <div
+                style={{
+                  height: 10,
+                  width: `${weightedCompletionScore}%`,
+                  background:
+                    weightedCompletionScore >= 100 ? "green" : "#2563eb",
+                  borderRadius: 12,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {!registrationReadyUI ? (
+          <div
+            style={{
+              marginTop: 12,
+              padding: 10,
+              borderRadius: 8,
+              background: "#fff7ed",
+              border: "1px solid #fed7aa",
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 900,
+                marginBottom: 6,
+                color: "#9a3412",
+              }}
+            >
+              Complete these steps before Review & Finish:
+            </div>
+
+            <ul style={{ margin: 0, paddingLeft: 18 }}>
+              {registrationPendingChecks.map((check) => (
+                <li
+                  key={check.key}
+                  style={{ marginBottom: 4 }}
+                >
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openJourneyStep(
+                        journeyKeyForTarget(
+                          check.targetId
+                        ),
+                        check.targetId
+                      )
+                    }
+                    style={{
+                      border: 0,
+                      padding: 0,
+                      background: "transparent",
+                      color: "#9a3412",
+                      fontWeight: 750,
+                      textAlign: "left",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {check.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        <div
+          id="sec-review"
+          style={{
+            marginTop: 14,
+            display: "flex",
+            gap: 12,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          {!registrationCompleteUI ? (
+            <div
+              style={{
+                width: "100%",
+                padding: 12,
+                borderRadius: 12,
+                border: termsAccepted
+                  ? "1px solid #86efac"
+                  : "1px solid #fed7aa",
+                background: termsAccepted
+                  ? "#f0fdf4"
+                  : "#fff7ed",
+              }}
+            >
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 10,
+                  fontWeight: 750,
+                  lineHeight: 1.55,
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(event) =>
+                    setTermsAccepted(
+                      event.target.checked
+                    )
+                  }
+                  style={{
+                    marginTop: 4,
+                    width: 18,
+                    height: 18,
+                  }}
+                />
+
+                <span>
+                  I have reviewed my submitted
+                  information and agree to the{" "}
+                  <a
+                    href="/terms-and-conditions"
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(event) =>
+                      event.stopPropagation()
+                    }
+                  >
+                    Terms & Conditions
+                  </a>{" "}
+                  and{" "}
+                  <a
+                    href="/privacy-policy"
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(event) =>
+                      event.stopPropagation()
+                    }
+                  >
+                    Privacy Policy
+                  </a>
+                  .
+                </span>
+              </label>
+            </div>
+          ) : null}
+
+          {registrationCompleteUI ? (
+            <>
+              <div style={{ fontWeight: 800, color: "green" }}>
+                ✅ Registration Complete
+              </div>
+
+              <button
+                type="button"
+                onClick={() => router.replace(returnTo)}
+                style={{
+                  padding: "10px 14px",
+                  fontWeight: 800,
+                  borderRadius: 10,
+                  border: "1px solid #16a34a",
+                  background: "#16a34a",
+                  color: "#fff",
+                  cursor: "pointer",
+                }}
+              >
+                Open Dashboard
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled={
+                  saving ||
+                  !registrationReadyUI ||
+                  !termsAccepted
+                }
+                onClick={onFinishRegistration}
+                style={{
+                  padding: "10px 14px",
+                  fontWeight: 800,
+                  borderRadius: 10,
+                  border: "1px solid #16a34a",
+                  background:
+                    saving ||
+                    !registrationReadyUI ||
+                    !termsAccepted
+                      ? "#cbd5e1"
+                      : "#16a34a",
+                  color: "#fff",
+                  cursor:
+                    saving ||
+                    !registrationReadyUI ||
+                    !termsAccepted
+                      ? "not-allowed"
+                      : "pointer",
+                  opacity:
+                    saving ||
+                    !registrationReadyUI ||
+                    !termsAccepted
+                      ? 0.8
+                      : 1,
+                }}
+              >
+                {saving ? "Activating..." : "🚀 Activate My Dashboard"}
+              </button>
+
+              {!registrationReadyUI && (
+                <span style={{ opacity: 0.8 }}>
+                  Complete every required identity,
+                  address, coverage and verification
+                  step before finishing registration.
+                </span>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      <form onSubmit={onSave} style={{ marginTop: 20, display: "grid", gap: 16 }}>
+        {!streamlinedRegistration ? <section id="sec-nature" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
+          <h3 style={{ marginTop: 0 }}>Nature of Business</h3>
+          <p style={{ marginTop: 0, opacity: 0.8 }}>Select all that apply.</p>
+
+          <div style={{ padding: missingNature ? 10 : 0, borderRadius: 8, border: missingNature ? "2px solid crimson" : "none" }}>
+            {missingNature ? <div style={{ color: "crimson", fontWeight: 800, marginBottom: 8 }}>Required: select at least one</div> : null}
+            <div style={{ display: "grid", gap: 8 }}>
+              {NATURE_OPTIONS.map((o) => (
+                <label key={o.key} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <input type="checkbox" checked={nature.includes(o.key)} onChange={() => toggleNature(o.key)} />
+                  <span>{o.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </section> : null}
+
+        <section
+          id="sec-story"
+          style={{
+            padding: 18,
+            border: "1px solid #bfdbfe",
+            borderRadius: 18,
+            background: "#f8fbff",
+          }}
+        >
+          <div
+            style={{
+              color: "#1d4ed8",
+              fontWeight: 900,
+              fontSize: 12,
+              letterSpacing: ".06em",
+              textTransform: "uppercase",
+            }}
+          >
+            Human identity and business story
+          </div>
+
+          <h3
+            style={{
+              margin: "7px 0 5px",
+              fontSize: 22,
+              lineHeight: 1.25,
+            }}
+          >
+            Tell people who you are and why they should trust your work
+          </h3>
+
+          <p
+            style={{
+              margin: "0 0 16px",
+              color: "#475569",
+              lineHeight: 1.65,
+            }}
+          >
+            You do not need to write perfect sentences. Enter a few truthful
+            words about yourself or your business. AI can improve the
+            presentation, but nothing will be used without your approval.
+          </p>
+
+          <div style={{ display: "grid", gap: 16 }}>
+            <div id="sec-about-you" style={{ scrollMarginTop: 190 }}>
+            <AIWritingImprovement
+              target="about_person"
+              value={bp.about_person ?? ""}
+              onChange={(value: string) => setField("about_person", value)}
+              title="About you"
+              helpText="Mention your experience, skills, values, languages or the kind of people you help."
+              placeholder="Example: 12 years experience, honest service, speak Bengali and Hindi, help local builders..."
+              disabled={saving}
+            />
+            </div>
+
+            <div id="sec-about-business" style={{ scrollMarginTop: 190 }}>
+            <AIWritingImprovement
+              target="about_business"
+              value={bp.about_business ?? ""}
+              onChange={(value: string) => setField("about_business", value)}
+              title="About your business"
+              helpText="Mention what you sell or provide, how long you have operated, who you serve and what makes your business dependable."
+              placeholder="Example: hardware shop, cement and steel, home delivery, Cooch Behar, established 2014..."
+              disabled={saving}
+            />
+            </div>
+
+            {hasBlog ? (
+              <AIWritingImprovement
+                target="author_bio"
+                value={bp.author_bio ?? ""}
+                onChange={(value: string) => setField("author_bio", value)}
+                title="Author or professional biography"
+                helpText="Mention your subjects, knowledge, experience and the purpose of your writing or professional work."
+                placeholder="Example: write about property law, 8 years field experience, explain complex topics simply..."
+                disabled={saving}
+              />
+            ) : null}
+          </div>
+        </section>
+
+        <section id="sec-identity" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
+          <h3 style={{ marginTop: 0 }}>Business Identity</h3>
+
+          <div style={{ display: "grid", gap: 10 }}>
+            <Field label="Business Name (or use Author Display Name if only blog)" required missing={missingBusinessOrAuthor}>
+              <input
+                value={bp.business_name ?? ""}
+                onChange={(e) => setField("business_name", e.target.value)}
+                style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+              />
+            </Field>
+
+            <Field label="Business Type">
+              <select
+                value={bp.business_type ?? ""}
+                onChange={(e) => setField("business_type", e.target.value)}
+                style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+              >
+                <option value="">Select</option>
+                <option value="individual">Individual</option>
+                <option value="proprietor">Proprietor</option>
+                <option value="partnership">Partnership</option>
+                <option value="llp">LLP</option>
+                <option value="pvt_ltd">Private Limited</option>
+                <option value="other">Other</option>
+              </select>
+            </Field>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <Field
+                label="GSTIN"
+                required
+                missing={missingBusinessProof}
+                hint="Provide GSTIN or Trade License No"
+              >
+                <input
+                  value={bp.gstin ?? ""}
+                  onChange={(e) => setField("gstin", e.target.value.toUpperCase())}
+                  maxLength={15}
+                  placeholder="15-character GSTIN"
+                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                />
+                {bp.gstin ? (
+                  <div
+                    style={{
+                      padding: "0 10px 10px",
+                      fontSize: 12,
+                      color: gstinFormatCheck.valid ? "#047857" : "#b91c1c",
+                      fontWeight: 800,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {gstinFormatCheck.valid ? (
+                      <>✅ GSTIN format valid: {gstinFormatCheck.normalized}</>
+                    ) : (
+                      <>
+                        ⚠️ {gstinFormatCheck.errors.slice(0, 2).join(" ")}
+                      </>
+                    )}
+                  </div>
+                ) : null}
+              </Field>
+              <Field label="PAN (optional)">
+                <input
+                  value={bp.pan ?? ""}
+                  onChange={(e) => setField("pan", e.target.value)}
+                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                />
+              </Field>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <Field
+                label="Trade License No"
+                required
+                missing={missingBusinessProof}
+                hint="For business operators, provide GSTIN or Trade License No"
+              >
+                <input
+                  value={bp.trade_license_no ?? ""}
+                  onChange={(e) => setField("trade_license_no", e.target.value)}
+                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                />
+              </Field>
+              <Field label="UDYAM No (optional)">
+                <input
+                  value={bp.udyam_no ?? ""}
+                  onChange={(e) => setField("udyam_no", e.target.value)}
+                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                />
+              </Field>
+            </div>
+
+            <div
+              style={{
+                padding: 10,
+                borderRadius: 8,
+                background: "#eff6ff",
+                border: "1px solid #bfdbfe",
+                color: "#1d4ed8",
+                fontSize: 13,
+              }}
+            >
+              For all business activities on 3bigha, at least one proof is required:
+              <b> GSTIN or Trade License No</b>.
+              Pure blog-only profiles may complete without business proof.
+            </div>
+
+          </div>
+        </section>
+
+        <BusinessVerificationPanel
+          assets={mediaAssets}
+          onChange={setMediaAssets}
+          disabled={saving}
+          documentVerification={documentVerification}
+          documentVerifyLoading={documentVerifyLoading}
+          onRunDocumentVerification={runVendorDocumentVerification}
+                registrationNumbers={{
+          gstin: String(bp.gstin || ""),
+          tradeLicenseNo: String(
+            bp.trade_license_no || ""
+          ),
+          udyamNo: String(bp.udyam_no || ""),
+          otherRegistrationNo: String(
+            bp.pan || ""
+          ),
+        }}
+        onRegistrationNumberChange={(
+          key,
+          value
+        ) => {
+          if (key === "gstin") {
+            setField("gstin", value);
+            return;
+          }
+
+          if (key === "tradeLicenseNo") {
+            setField(
+              "trade_license_no",
+              value
+            );
+            return;
+          }
+
+          if (key === "udyamNo") {
+            setField("udyam_no", value);
+            return;
+          }
+
+          setField("pan", value);
+        }}
+      />
+
+        {!streamlinedRegistration ? <section id="sec-contact" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
+          <h3 style={{ marginTop: 0 }}>Contact</h3>
+
+          <div style={{ display: "grid", gap: 10 }}>
+            <Field label="Contact Person" required missing={missingContactPerson}>
+              <input
+                value={bp.contact_person ?? ""}
+                onChange={(e) => setField("contact_person", e.target.value)}
+                style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+              />
+            </Field>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <Field label="Phone (required OR Email)" required missing={missingPhoneOrEmail}>
+                <input
+                  value={bp.phone_primary ?? ""}
+                  onChange={(e) => setField("phone_primary", e.target.value)}
+                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                />
+              </Field>
+              <Field label="Business Email (required OR Phone)" required missing={missingPhoneOrEmail}>
+                <input
+                  type="email"
+                  value={bp.email_business ?? ""}
+                  onChange={(e) => setField("email_business", e.target.value)}
+                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                />
+              </Field>
+            </div>
+
+            <Field label="WhatsApp (optional)">
+              <input
+                value={bp.phone_whatsapp ?? ""}
+                onChange={(e) => setField("phone_whatsapp", e.target.value)}
+                style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+              />
+            </Field>
+          </div>
+        </section> : null}
+
+        <section
+          id="sec-address"
+          style={{
+            padding: 12,
+            border: "1px solid #ddd",
+            borderRadius: 8,
+          }}
+        >
+          <div style={{ marginBottom: 12 }}>
+            <div
+              style={{
+                color: "#1d4ed8",
+                fontSize: 12,
+                fontWeight: 900,
+                letterSpacing: ".05em",
+                textTransform: "uppercase",
+              }}
+            >
+              Official business location
+            </div>
+
+            <h3 style={{ margin: "4px 0 3px" }}>
+              Verify and complete your business address
+            </h3>
+
+            <p
+              style={{
+                margin: 0,
+                color: "#64748b",
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}
+            >
+              Device GPS confirms that the location is genuine. The official
+              LGD address below is the single address saved with your business.
+            </p>
+          </div>
+
+          <div style={{ display: "grid", gap: 10 }}>
+                        <div
+              style={{
+                padding: 12,
+                borderRadius: 10,
+                background: missingLocationVerification ? "#fff1f2" : "#f0fdf4",
+                border: `1px solid ${missingLocationVerification ? "#fecdd3" : "#bbf7d0"}`,
+                color: missingLocationVerification ? "#9f1239" : "#166534",
+                fontSize: 13,
+                fontWeight: 700,
+              }}
+            >
+              {missingLocationVerification
+                ? "Verify your device location before activation."
+                : `GPS verified${
+                    bp.verified_district
+                      ? ` • ${bp.verified_district}`
+                      : ""
+                  }${
+                    bp.verified_state
+                      ? `, ${bp.verified_state}`
+                      : ""
+                  }${
+                    bp.eligible_free
+                      ? " • Free district eligible"
+                      : ""
+                  }`}
+            </div>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                verifyLiveLocation();
+              }}
+              disabled={locationVerifying}
+              style={{
+                padding: 12,
+                borderRadius: 10,
+                border: "1px solid #2563eb",
+                background: "#2563eb",
+                color: "#ffffff",
+                fontWeight: 900,
+                cursor: locationVerifying ? "not-allowed" : "pointer",
+              }}
+            >
+              {locationVerifying
+                ? "Verifying live location..."
+                : missingLocationVerification
+                ? "📍 Use My Live Location to Verify"
+                : "✅ GPS Verified — Re-check"}
+            </button>
+
+            {missingLocationVerification ? (
+              <div
+                style={{
+                  padding: 10,
+                  borderRadius: 8,
+                  background: "#fff7ed",
+                  border: "1px solid #fed7aa",
+                  color: "#9a3412",
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                }}
+              >
+                Mobile help: If the button does not open the location popup,
+                tap the lock/site icon beside the browser address bar, allow
+                Location permission, reload this page, then try again.
+              </div>
+            ) : null}
+
+            <div
+              id="sec-service-area"
+              style={{
+                marginTop: 12,
+                padding: 12,
+                borderRadius: 10,
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                scrollMarginTop: 190,
+              }}
+            >
+              <h4 style={{ margin: "0 0 8px", fontSize: 15 }}>
+                Service Coverage
+              </h4>
+
+              <p style={{ marginTop: 0, fontSize: 12, opacity: 0.75 }}>
+                This helps 3Bigha route RFQs to vendors who can actually serve the buyer location.
+              </p>
+
+              <div style={{ display: "grid", gap: 10 }}>
+                <Field label="Delivery / Service Radius in KM">
+                  <input
+                    type="number"
+                    min="0"
+                    value={bp.delivery_radius_km ?? ""}
+                    onChange={(e) => setField("delivery_radius_km", e.target.value)}
+                    placeholder="Example: 25"
+                    style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                  />
+                </Field>
+
+                <Field label="Preferred Service Area">
+                  <input
+                    value={bp.preferred_service_area ?? ""}
+                    onChange={(e) => setField("preferred_service_area", e.target.value)}
+                    placeholder="Example: Cooch Behar II, Khagrabari, Pundibari"
+                    style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                  />
+                </Field>
+
+                <label style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 700 }}>
+                  <input
+                    type="checkbox"
+                    checked={!!bp.statewide_service}
+                    onChange={(e) => setField("statewide_service", e.target.checked)}
+                  />
+                  I can serve across my state
+                </label>
+
+                <label style={{ display: "flex", gap: 8, alignItems: "center", fontWeight: 700 }}>
+                  <input
+                    type="checkbox"
+                    checked={!!bp.nationwide_service}
+                    onChange={(e) => setField("nationwide_service", e.target.checked)}
+                  />
+                  I can serve across India
+                </label>
+
+                <div
+                  style={{
+                    padding: 12,
+                    borderRadius: 10,
+                    background: "#ecfdf5",
+                    border: "1px solid #bbf7d0",
+                  }}
+                >
+                  <div style={{ fontSize: 14, fontWeight: 950, marginBottom: 6 }}>
+                    Service Coverage
+                  </div>
+
+                  <p style={{ margin: "0 0 10px", fontSize: 12, opacity: 0.78, lineHeight: 1.5 }}>
+                    Your primary service area is linked with the official LGD location selected below.
+                    Use radius for nearby RFQs, or select Statewide / Nationwide service above.
+                    Detailed multi-location service coverage will be added through a clean hierarchy in the next data phase.
+                  </p>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: 8,
+                      padding: 10,
+                      borderRadius: 8,
+                      background: "#fff",
+                      border: "1px solid #d1fae5",
+                      fontSize: 13,
+                    }}
+                  >
+                    <div>
+                      <b>Primary service area:</b>{" "}
+                      {bp.preferred_service_area ||
+                        bp.city ||
+                        bp.district ||
+                        "Select your official location below"}
+                    </div>
+
+                    <div>
+                      <b>Coverage mode:</b>{" "}
+                      {bp.nationwide_service
+                        ? "Across India"
+                        : bp.statewide_service
+                        ? "Across my state"
+                        : bp.delivery_radius_km
+                        ? `Within ${bp.delivery_radius_km} KM radius`
+                        : "Local service area"}
+                    </div>
+
+                    <div style={{ opacity: 0.75 }}>
+                      To add multiple districts, blocks or places, use the service area text field for now.
+                      Avoid selecting from long unfiltered lists.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <AddressEngine
+              value={
+                Object.keys(addressEngineValue || {}).length
+                  ? addressEngineValue
+                  : legacyBusinessToAddressEngine(bp)
+              }
+              disabled={saving}
+              onChange={(nextAddress) => {
+                setAddressEngineValue(nextAddress);
+
+                const mapped = addressEngineToBusinessPayload(nextAddress);
+                const {
+                  formatted_address,
+                  short_address,
+                  ...businessAddressPayload
+                } = mapped;
+
+                setBp((prev) => ({
+                  ...prev,
+                  ...businessAddressPayload,
+                }));
+              }}
+            />
+          </div>
+        </section>
+
+        {nature.includes("property") ? (
+          <section id="sec-property" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
+            <h3 style={{ marginTop: 0 }}>Property Compliance (RERA)</h3>
+            <p style={{ marginTop: 0, opacity: 0.8 }}>
+              Optional now (you can fill later).
+            </p>
+
+            <div style={{ display: "grid", gap: 10 }}>
+              <Field label="RERA Registration No (optional)">
+                <input
+                  value={bp.rera_registration_no ?? ""}
+                  onChange={(e) => setField("rera_registration_no", e.target.value)}
+                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                />
+              </Field>
+
+              <Field label="RERA State (optional)">
+                <input
+                  value={bp.rera_state ?? ""}
+                  onChange={(e) => setField("rera_state", e.target.value)}
+                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                />
+              </Field>
+
+              <Field label="RERA Expiry Date (optional)" hint="Earliest allowed: 2000-01-01">
+                <input
+                  type="date"
+                  min="2000-01-01"
+                  value={bp.rera_expiry_date ?? ""}
+                  onChange={(e) => setField("rera_expiry_date", e.target.value)}
+                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                />
+              </Field>
+            </div>
+          </section>
+        ) : null}
+
+        {hasBlog ? (
+          <section id="sec-author" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
+            <h3 style={{ marginTop: 0 }}>Author / Writer Identity (Blog)</h3>
+
+            <div style={{ display: "grid", gap: 10 }}>
+              <Field label="Author Display Name" required missing={missingAuthorName}>
+                <input
+                  value={bp.author_display_name ?? ""}
+                  onChange={(e) => setField("author_display_name", e.target.value)}
+                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                />
+              </Field>
+
+              <Field label="Author Category (optional)">
+                <select
+                  value={bp.author_category ?? ""}
+                  onChange={(e) => setField("author_category", e.target.value)}
+                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                >
+                  <option value="">Select</option>
+                  <option value="writer">Writer</option>
+                  <option value="journalist">Journalist</option>
+                  <option value="blogger">Blogger</option>
+                  <option value="company">Company</option>
+                  <option value="agency">Agency</option>
+                </select>
+              </Field>
+
+              <Field label="Short Bio (optional)">
+                <textarea
+                  value={bp.author_bio ?? ""}
+                  onChange={(e) => setField("author_bio", e.target.value)}
+                  rows={4}
+                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                />
+              </Field>
+
+              <Field label="Portfolio URL (optional)">
+                <input
+                  value={bp.author_portfolio_url ?? ""}
+                  onChange={(e) => setField("author_portfolio_url", e.target.value)}
+                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
+                />
+              </Field>
+            </div>
+          </section>
+        ) : null}
+
+        {msg && <div style={{ color: msg.includes("✅") ? "green" : "crimson", fontWeight: 800 }}>{msg}</div>}
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button type="submit" disabled={saving} style={{ padding: 10, fontWeight: 700 }}>
+            {saving ? "Saving..." : "Save"}
+          </button>
+
+          <button type="button" disabled={saving} onClick={onSaveAndContinue} style={{ padding: 10, fontWeight: 700 }}>
+            Save & Go to Review
+          </button>
+
+          <button type="button" onClick={() => router.replace(returnTo)} style={{ padding: 10 }}>
+            Back
+          </button>
+        </div>
+      </form>
+
+      <style jsx global>{`
+        header,
+        footer {
+          display: none !important;
+        }
+        body {
+          background: #f8fafc;
+        }
+      `}</style>
+    </div>
+  );
+}

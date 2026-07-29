@@ -1,0 +1,721 @@
+===== GIT =====
+3179da5 Support financial-period business proof validity
+c1de674 Reconcile manual review and verification persistence
+f2e87f6 Unify registration readiness and business proof status
+29619ec Finish constitutional onboarding audit
+94fa7fb Finalize atomic dashboard activation flow
+?? r3.4-government-document-intelligence-evidence.txt
+?? scripts/audit-r3.4-government-document-intelligence.mjs
+
+===== VERIFICATION TABLE REFERENCES =====
+app/admin/dashboard/banker-verification/page.tsx:19:  if (status === "needs_manual_review") return "bg-amber-100 text-amber-700";
+app/api/ai/vendor-document-verify/route.ts:57:    | "needs_manual_review"
+app/api/ai/vendor-document-verify/route.ts:356:    status: "needs_manual_review",
+app/api/ai/vendor-document-verify/route.ts:400:  return "needs_manual_review";
+app/api/ai/vendor-document-verify/route.ts:424:        .from("registration_verification_cases")
+app/api/ai/vendor-document-verify/route.ts:428:            verification.status || "needs_manual_review"
+app/api/ai/vendor-document-verify/route.ts:914:          status = "needs_manual_review";
+app/api/ai/vendor-document-verify/route.ts:928:              : "needs_manual_review";
+app/api/finance/banker-profile/[id]/route.ts:48:      finalStatus = "needs_manual_review";
+app/api/finance/banker-profile/[id]/route.ts:49:      manualStatus = "needs_manual_review";
+app/api/finance/banker-profile/[id]/route.ts:51:      finalStatus = "needs_manual_review";
+app/api/finance/banker-profile/[id]/route.ts:52:      manualStatus = "needs_manual_review";
+app/api/onboarding/complete-registration/route.ts:40:  vendor_document_verification_json: unknown;
+app/api/onboarding/complete-registration/route.ts:207:            "vendor_document_verification_json",
+app/api/onboarding/complete-registration/route.ts:531:              business.vendor_document_verification_json
+app/api/payments/sbi/create-link/route.ts:41:      .from("registration_verification_cases")
+app/onboarding/business/BusinessOnboardingPageClient.tsx:284:  vendor_document_verification_json?: VendorDocumentVerification | null;
+app/onboarding/business/BusinessOnboardingPageClient.tsx:888:          setDocumentVerification((data as any).vendor_document_verification_json ?? null);
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1172:        vendor_document_verification_json: verification,
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1316:    "needs_manual_review",
+app/onboarding/business/BusinessOnboardingPageClient.tsx:1760:      vendor_document_verification_json: documentVerification,
+components/business-identity/BusinessIdentityCenter.tsx:59:  vendor_document_verification_json?: unknown;
+components/onboarding/BusinessVerificationPanel.tsx:568:                "needs_manual_review"
+components/onboarding/BusinessVerificationPanel.tsx:2156:                "needs_manual_review"
+lib/btce/adapters/registration-evidence-adapter.ts:199:          result.status || "needs_manual_review"
+lib/finance/bankerProfile.ts:4:  | "needs_manual_review"
+lib/registration/resolveBusinessRegistrationProgress.ts:35:  vendor_document_verification_json?: unknown;
+lib/registration/resolveBusinessRegistrationProgress.ts:114:    input.vendor_document_verification_json
+lib/registration/resolveBusinessRegistrationProgress.ts:132:    automated.document_verification
+lib/registration/resolveBusinessRegistrationProgress.ts:151:      verification.document_verification_status
+lib/registration/resolveBusinessRegistrationProgress.ts:156:      verification.document_verification_confidence ||
+scripts/verify-final-registration-subscription-flow.mjs:27:      '"needs_manual_review"'
+scripts/verify-registration-intelligence-live-integration.mjs:23:      '"vendor_document_verification_json"'
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:4:create table if not exists public.registration_verification_cases (
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:9:    'needs_manual_review',
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:11:    'format_valid_needs_manual_review',
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:20:create index if not exists registration_verification_cases_user_created_idx
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:21:  on public.registration_verification_cases(user_id, created_at desc);
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:61:alter table public.registration_verification_cases enable row level security;
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:64:revoke all on public.registration_verification_cases,
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:111:  from public.registration_verification_cases
+supabase/migrations/20260723001100_atomic_automated_registration_verification.sql:182:      v_automated_json #>> '{document_verification,status}',
+supabase/migrations/20260723001100_atomic_automated_registration_verification.sql:184:      v_automated_json ->> 'document_verification_status',
+supabase/migrations/20260723001100_atomic_automated_registration_verification.sql:202:                #>> '{document_verification,confidence}',
+supabase/migrations/20260723001100_atomic_automated_registration_verification.sql:212:                ->> 'document_verification_confidence',
+supabase/migrations/20260723001100_atomic_automated_registration_verification.sql:593:    'document_verification_status',
+supabase/migrations/20260723001100_atomic_automated_registration_verification.sql:595:    'document_verification_confidence',
+supabase/migrations/20260724170000_strict_registration_authority.sql:31:              business.automated_verification_json #>> '{document_verification,status}',
+supabase/migrations/20260724170000_strict_registration_authority.sql:33:              business.automated_verification_json ->> 'document_verification_status',
+supabase/migrations/20260724170000_strict_registration_authority.sql:38:              nullif(business.automated_verification_json #>> '{document_verification,confidence}', '')::numeric,
+supabase/migrations/20260724170000_strict_registration_authority.sql:40:              nullif(business.automated_verification_json ->> 'document_verification_confidence', '')::numeric,
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:184:      v_automated_json #>> '{document_verification,status}',
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:186:      v_automated_json ->> 'document_verification_status',
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:204:                #>> '{document_verification,confidence}',
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:214:                ->> 'document_verification_confidence',
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:592:    'document_verification_status',
+supabase/sql/20260725120000_atomic_self_registration_activation.sql:594:    'document_verification_confidence',
+
+===== ADMIN REVIEW REFERENCES =====
+app/admin/dashboard/banker-verification/page.tsx:19:  if (status === "needs_manual_review") return "bg-amber-100 text-amber-700";
+app/admin/dashboard/page.tsx:213:      href: "/admin/dashboard/vendor-control",
+app/admin/dashboard/page.tsx:220:      href: "/admin/dashboard/vendor-control",
+app/admin/dashboard/vendor-control/page.tsx:42:    const res = await fetch("/api/admin/vendor-control", {
+app/admin/dashboard/vendor-control/page.tsx:67:    const res = await fetch("/api/admin/vendor-control", {
+app/admin/users/page.tsx:98:          {profile.approval_status === "pending" ? <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}><form action="/api/admin/approve-user" method="post"><input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="role" value={profile.requested_role || ""}/><button>Approve identity</button></form><form action="/api/admin/reject-user" method="post" style={{ display: "flex", gap: 8 }}><input type="hidden" name="user_id" value={profile.id}/><input name="reason" placeholder="Reason for rejection" required style={field}/><button>Reject identity</button></form></div> : null}
+components/onboarding/BusinessVerificationPanel.tsx:568:                "needs_manual_review"
+components/onboarding/BusinessVerificationPanel.tsx:2156:                "needs_manual_review"
+components/vendor-erp/VendorWorkMenu.tsx:7:  { label: "Work Desk", href: "/dashboard/vendor", help: "Main vendor control room" },
+lib/btce/adapters/registration-evidence-adapter.ts:199:          result.status || "needs_manual_review"
+lib/finance/bankerProfile.ts:4:  | "needs_manual_review"
+lib/marketplace/live-vendor-intelligence.ts:60:      .from("vendor_control")
+lib/marketplace/vendor-intelligence-refresh.ts:74:      .from("vendor_control")
+
+===== RELEVANT MIGRATIONS =====
+supabase/migrations/20260722000400_account_re_registration_policy.sql
+supabase/migrations/20260723000400_fix_re_registration_configuration_key.sql
+supabase/migrations/20260723000600_pending_self_registration_approval.sql
+supabase/migrations/20260723000800_self_registration_verification_foundation.sql
+supabase/migrations/20260723000900_vendor_registration_complete_contract.sql
+supabase/migrations/20260723001000_atomic_self_registration_completion.sql
+supabase/migrations/20260723001100_atomic_automated_registration_verification.sql
+supabase/migrations/20260724090000_registration_intelligence_snapshots.sql
+supabase/migrations/20260724170000_strict_registration_authority.sql
+supabase/sql/20260725120000_atomic_self_registration_activation.sql
+supabase/sql/verify_20260724170000_strict_registration_authority.sql
+supabase/sql/verify_20260725120000_atomic_self_registration_activation.sql
+
+===== CURRENT VERIFICATION ROUTE TYPES =====
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import {
+  validateGstin,
+  documentTextContainsNeedle,
+} from "@/lib/vendor-verification/gstin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import {
+  financialPeriodsMatch,
+  legalProofValidityIsComplete,
+  legalProofValidityIsExpired,
+  normalizeFinancialYear,
+  normalizeValidityType,
+  type LegalProofValidityType,
+} from "@/lib/registration/legalProofValidity";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type RegistrationDocumentType =
+  | "gst"
+  | "trade_license"
+  | "udyam"
+  | "pan"
+  | "fssai"
+  | "shop_establishment"
+  | "professional_registration"
+  | "other";
+
+type RegistrationDocumentInput = {
+  documentType: RegistrationDocumentType;
+  enteredNumber: string;
+  label?: string;
+  issuingAuthority: string;
+  issueDate: string;
+  validityType: LegalProofValidityType;
+  validUntil: string;
+  noExpiry: boolean;
+  periodStartYear: number | null;
+  periodEndYear: number | null;
+  mediaAssets: any[];
+};
+
+type DocumentVerificationResult = {
+  documentType: RegistrationDocumentType;
+  label: string;
+  enteredNumber: string;
+  extractedNumber: string;
+  matched: boolean;
+  readable: boolean;
+  confidence: number;
+  status:
+    | "verified_by_ai"
+    | "document_mismatch"
+    | "format_invalid"
+    | "needs_manual_review"
+    | "needs_document";
+  enteredIssuingAuthority: string;
+  extractedIssuingAuthority: string;
+  authorityMatched: boolean;
+  enteredIssueDate: string;
+  extractedIssueDate: string;
+  issueDateMatched: boolean;
+  enteredValidityType: LegalProofValidityType;
+  extractedValidityType: LegalProofValidityType;
+  validityTypeMatched: boolean;
+  enteredValidUntil: string;
+  extractedValidUntil: string;
+  enteredPeriodStartYear: number | null;
+  enteredPeriodEndYear: number | null;
+  extractedPeriodStartYear: number | null;
+  extractedPeriodEndYear: number | null;
+  financialPeriodMatched: boolean;
+  expiryMatched: boolean;
+  noExpiry: boolean;
+  extractedNoExpiry: boolean;
+  noExpiryMatched: boolean;
+  documentExpired: boolean;
+  extractedBusinessName: string;
+  extractedAddress: string;
+  businessNameMatched: boolean;
+  addressMatched: boolean;
+  summary: string;
+  warnings: string[];
+};
+
+const DOCUMENT_LABELS: Record<RegistrationDocumentType, string> = {
+  gst: "GST Registration",
+  trade_license: "Trade Licence",
+  udyam: "UDYAM Registration",
+  pan: "PAN",
+  fssai: "FSSAI Registration",
+  shop_establishment: "Shop & Establishment Registration",
+  professional_registration: "Professional Registration",
+  other: "Other Legal Registration",
+};
+
+function getOpenAIKey() {
+  return process.env.OPENAI_API_KEY || "";
+}
+
+function safeString(value: unknown) {
+  return String(value || "").trim();
+}
+
+function normalizeRegistrationNumber(value: unknown) {
+  return safeString(value).toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
+
+function normalizeComparableText(value: unknown) {
+  return safeString(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeIsoDate(value: unknown) {
+  const raw = safeString(value);
+  if (!raw) return "";
+
+  const direct = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (direct) {
+    return `${direct[1]}-${direct[2]}-${direct[3]}`;
+  }
+
+  const indian = raw.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+  if (indian) {
+    return [
+      indian[3],
+      indian[2].padStart(2, "0"),
+      indian[1].padStart(2, "0"),
+    ].join("-");
+  }
+
+  const parsed = new Date(raw);
+  if (!Number.isFinite(parsed.getTime())) return "";
+
+  return parsed.toISOString().slice(0, 10);
+}
+
+function datesMatch(left: unknown, right: unknown) {
+  const a = normalizeIsoDate(left);
+  const b = normalizeIsoDate(right);
+  return Boolean(a && b && a === b);
+}
+
+function authorityMatches(entered: unknown, extracted: unknown) {
+  const a = normalizeComparableText(entered);
+  const b = normalizeComparableText(extracted);
+
+  if (!a || !b) return false;
+  return a === b || a.includes(b) || b.includes(a);
+}
+
+function isExpiredDate(validUntil: unknown, noExpiry: boolean) {
+  if (noExpiry) return false;
+
+  const normalized = normalizeIsoDate(validUntil);
+  if (!normalized) return false;
+
+  const expiry = new Date(`${normalized}T23:59:59.999Z`);
+  return (
+    Number.isFinite(expiry.getTime()) &&
+    expiry.getTime() < Date.now()
+  );
+}
+
+function isSupportedDocumentType(
+  value: unknown
+): value is RegistrationDocumentType {
+  return Object.prototype.hasOwnProperty.call(
+    DOCUMENT_LABELS,
+    safeString(value)
+  );
+}
+
+function extractOutputText(data: any) {
+  if (typeof data?.output_text === "string") return data.output_text;
+
+  const chunks: string[] = [];
+  const output = Array.isArray(data?.output) ? data.output : [];
+
+  for (const item of output) {
+    const content = Array.isArray(item?.content) ? item.content : [];
+    for (const chunk of content) {
+      if (typeof chunk?.text === "string") chunks.push(chunk.text);
+    }
+  }
+
+  return chunks.join("\n").trim();
+}
+
+function parseJsonLoose(text: string) {
+  try {
+    return JSON.parse(text);
+  } catch {}
+
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+
+  try {
+    return JSON.parse(match[0]);
+  } catch {
+    return null;
+  }
+}
+
+function mediaInput(asset: any) {
+  const url = safeString(asset?.url);
+  if (!url) return null;
+
+  const mimeType = safeString(asset?.mimeType || asset?.mime_type).toLowerCase();
+  const kind = safeString(asset?.kind).toLowerCase();
+  const name =
+    safeString(asset?.name || asset?.file_name) || "business-proof";
+
+  if (
+    kind === "document" ||
+    mimeType === "application/pdf" ||
+    /\.pdf(?:$|\?)/i.test(url)
+  ) {
+    return {
+      type: "input_file",
+      file_url: url,
+    };
+  }
+
+  return {
+    type: "input_image",
+    image_url: url,
+    detail: "high",
+  };
+}
+
+function legacyDocuments(body: any): RegistrationDocumentInput[] {
+  const mediaAssets = Array.isArray(body?.mediaAssets)
+    ? body.mediaAssets
+    : [];
+
+  const candidates = [
+    ["gst", safeString(body?.gstin)],
+    ["trade_license", safeString(body?.tradeLicenseNo)],
+    ["udyam", safeString(body?.udyamNo)],
+    ["pan", safeString(body?.pan)],
+  ] as const;
+
+  return candidates
+    .filter(([, enteredNumber]) => Boolean(enteredNumber))
+    .map(([documentType, enteredNumber]) => ({
+      documentType,
+      enteredNumber,
+      label: DOCUMENT_LABELS[documentType],
+      issuingAuthority: "",
+      issueDate: "",
+      validityType: "exact_date",
+      validUntil: "",
+      noExpiry: false,
+      periodStartYear: null,
+
+===== CURRENT VERIFICATION RESPONSE LOGIC =====
+      periodStartYear: null,
+      periodEndYear: null,
+      mediaAssets,
+    }));
+}
+
+function parseDocuments(body: any): RegistrationDocumentInput[] {
+  const structured = Array.isArray(body?.documents)
+    ? body.documents
+    : [];
+
+  const parsed = structured
+    .map((item: any): RegistrationDocumentInput | null => {
+      if (!isSupportedDocumentType(item?.documentType)) return null;
+
+      const documentType = item.documentType as RegistrationDocumentType;
+
+    return {
+      documentType,
+      enteredNumber: safeString(item?.enteredNumber),
+      label:
+        safeString(item?.label) ||
+        DOCUMENT_LABELS[documentType],
+      issuingAuthority: safeString(
+        item?.issuingAuthority ??
+          item?.legalProofMeta?.issuingAuthority
+      ),
+      issueDate: normalizeIsoDate(
+        item?.issueDate ??
+          item?.legalProofMeta?.issueDate
+      ),
+      validityType: normalizeValidityType({
+        validityType:
+          item?.validityType ??
+          item?.legalProofMeta?.validityType,
+        validUntil:
+          item?.validUntil ??
+          item?.legalProofMeta?.validUntil,
+        noExpiry:
+          item?.noExpiry ??
+          item?.legalProofMeta?.noExpiry,
+        periodStartYear:
+          item?.periodStartYear ??
+          item?.legalProofMeta?.periodStartYear,
+        periodEndYear:
+          item?.periodEndYear ??
+          item?.legalProofMeta?.periodEndYear,
+      }),
+      validUntil: normalizeIsoDate(
+        item?.validUntil ??
+          item?.legalProofMeta?.validUntil
+      ),
+      noExpiry:
+        normalizeValidityType({
+          validityType:
+            item?.validityType ??
+            item?.legalProofMeta?.validityType,
+          noExpiry:
+            item?.noExpiry ??
+            item?.legalProofMeta?.noExpiry,
+        }) === "no_expiry",
+      periodStartYear: normalizeFinancialYear(
+        item?.periodStartYear ??
+          item?.legalProofMeta?.periodStartYear
+      ),
+      periodEndYear: normalizeFinancialYear(
+        item?.periodEndYear ??
+          item?.legalProofMeta?.periodEndYear
+      ),
+      mediaAssets: Array.isArray(item?.mediaAssets)
+        ? item.mediaAssets
+        : [],
+    };
+    })
+    .filter(
+      (
+        item: RegistrationDocumentInput | null
+      ): item is RegistrationDocumentInput => Boolean(item)
+    );
+
+  return parsed.length ? parsed : legacyDocuments(body);
+}
+
+function emptyResult(
+  document: RegistrationDocumentInput,
+  overrides: Partial<DocumentVerificationResult> = {}
+): DocumentVerificationResult {
+  return {
+    documentType: document.documentType,
+    label:
+      document.label || DOCUMENT_LABELS[document.documentType],
+    enteredNumber: document.enteredNumber,
+    extractedNumber: "",
+    matched: false,
+    readable: false,
+    confidence: 0,
+    status: "needs_manual_review",
+    enteredIssuingAuthority: document.issuingAuthority,
+    extractedIssuingAuthority: "",
+    authorityMatched: false,
+    enteredIssueDate: document.issueDate,
+    extractedIssueDate: "",
+    issueDateMatched: false,
+    enteredValidityType: document.validityType,
+    extractedValidityType: "exact_date",
+    validityTypeMatched: false,
+    enteredValidUntil: document.validUntil,
+    extractedValidUntil: "",
+    enteredPeriodStartYear: document.periodStartYear,
+    enteredPeriodEndYear: document.periodEndYear,
+    extractedPeriodStartYear: null,
+    extractedPeriodEndYear: null,
+    financialPeriodMatched: false,
+    expiryMatched: false,
+    noExpiry: document.noExpiry,
+    extractedNoExpiry: false,
+    noExpiryMatched: false,
+    documentExpired:
+      legalProofValidityIsExpired(document),
+    extractedBusinessName: "",
+    extractedAddress: "",
+    businessNameMatched: false,
+    addressMatched: false,
+    summary: "This document needs manual review.",
+    warnings: [],
+    ...overrides,
+  };
+}
+
+function aggregateStatus(results: DocumentVerificationResult[]) {
+  if (!results.length) return "needs_document";
+  if (results.some((item) => item.status === "format_invalid")) {
+    return "format_invalid";
+  }
+  if (results.some((item) => item.status === "document_mismatch")) {
+    return "document_mismatch";
+  }
+  if (results.every((item) => item.status === "verified_by_ai")) {
+    return "verified_by_ai";
+  }
+  return "needs_manual_review";
+}
+
+export async function POST(req: Request) {
+  try {
+    const cookieStore = await cookies();
+    const session = getSupabaseServerClient(cookieStore);
+    const {
+      data: { user },
+    } = await session.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Login required." },
+        { status: 401 }
+      );
+    }
+
+    const admin = getSupabaseAdmin();
+
+    async function verifiedResponse(
+      verification: Record<string, unknown>
+    ) {
+      const { error } = await admin
+        .from("registration_verification_cases")
+        .insert({
+          user_id: user!.id,
+          status: String(
+            verification.status || "needs_manual_review"
+          ),
+          confidence: Number(verification.confidence || 0),
+          result_json: verification,
+        });
+
+      if (error) {
+        console.error(
+          "REGISTRATION_VERIFICATION_AUDIT_FAILED",
+          {
+            userId: user!.id,
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+          }
+        );
+
+        /*
+         * The verification decision remains usable even when the
+         * secondary audit-history insert is temporarily unavailable.
+         *
+         * The browser must not lose a valid verification result merely
+         * because an operational audit record could not be written.
+         */
+        return NextResponse.json({
+          ok: true,
+          verification,
+          auditRecorded: false,
+          warning:
+            "The verification result is available, but its audit-history record will need reconciliation.",
+        });
+      }
+
+      return NextResponse.json({
+        ok: true,
+        verification,
+        auditRecorded: true,
+      });
+    }
+
+    const body = await req.json();
+    const businessName = safeString(body?.businessName);
+    const businessAddress = safeString(body?.businessAddress);
+    const documents = parseDocuments(body);
+
+    if (!documents.length) {
+      return verifiedResponse({
+        status: "needs_document",
+        confidence: 0,
+        documents: [],
+        summary:
+          "Enter at least one legal registration number and upload its certificate.",
+        warnings: ["No legal registration document was supplied."],
+      });
+    }
+
+    const prechecked: DocumentVerificationResult[] = [];
+    const documentsForAi: RegistrationDocumentInput[] = [];
+
+    for (const document of documents) {
+      const inputs = document.mediaAssets
+        .map(mediaInput)
+        .filter(Boolean);
+
+      if (!document.enteredNumber) {
+        prechecked.push(
+          emptyResult(document, {
+            summary:
+              "Enter the registration number before checking this certificate.",
+            warnings: ["Registration number not provided."],
+          })
+        );
+        continue;
+      }
+
+      if (!inputs.length) {
+        prechecked.push(
+          emptyResult(document, {
+            status: "needs_document",
+            summary: `Upload the ${document.label} certificate.`,
+            warnings: ["No matching certificate was uploaded."],
+          })
+        );
+        continue;
+      }
+
+      const missingStructuredFields = [
+        !document.issuingAuthority
+          ? "issuing authority"
+          : "",
+        !document.issueDate
+          ? "issue date"
+          : "",
+        !legalProofValidityIsComplete(document)
+          ? "exact expiry date, financial period or no-expiry declaration"
+          : "",
+      ].filter(Boolean);
+
+      if (missingStructuredFields.length) {
+        prechecked.push(
+          emptyResult(document, {
+            status: "format_invalid",
+            confidence: 5,
+            summary:
+              "Complete the legal-certificate information before verification.",
+            warnings: [
+              `Missing ${missingStructuredFields.join(", ")}.`,
+            ],
+          })
+        );
+        continue;
+      }
+
+      if (
+        legalProofValidityIsExpired(document)
+      ) {
+        prechecked.push(
+          emptyResult(document, {
+            status: "format_invalid",
+            confidence: 100,
+            documentExpired: true,
+            summary:
+              "This legal certificate has expired. Upload the renewed certificate.",
+            warnings: [
+              document.validityType === "financial_period"
+                ? `Certificate period ended in ${document.periodEndYear}.`
+                : `Certificate expired on ${document.validUntil}.`,
+            ],
+          })
+        );
+        continue;
+      }
+
+      if (document.documentType === "gst") {
+        const validation = validateGstin(document.enteredNumber);
+        if (!validation.valid) {
+          prechecked.push(
+            emptyResult(document, {
+              status: "format_invalid",
+              confidence: 5,
+              summary: "The entered GSTIN format is invalid.",
+              warnings: validation.errors,
+            })
+          );
+          continue;
+        }
+      }
+
+      documentsForAi.push(document);
+    }
+
+    const apiKey = getOpenAIKey();
+
+    if (!documentsForAi.length || !apiKey) {
+      const results = [
+        ...prechecked,
+        ...documentsForAi.map((document) =>
+          emptyResult(document, {
+            confidence:
+              document.documentType === "gst" ? 35 : 10,
+            summary:
+              "The certificate was received, but automated comparison is temporarily unavailable.",
+            warnings: [
+              "Automated document matching was unavailable.",
+            ],
+          })
+        ),
+      ];
+
+      const confidence = results.length
+        ? Math.round(
+            results.reduce(
+              (sum, item) => sum + item.confidence,
+              0
+            ) / results.length
+          )
+        : 0;
+
+      return verifiedResponse({
+        status: aggregateStatus(results),
+        confidence,
+        documents: results,
+        summary:
+          "Legal certificates were recorded. Some checks require manual review.",
+        warnings: results.flatMap((item) => item.warnings),
+      });
+    }
+
+    const manifest = documentsForAi.map(
+      (document, index) => ({
+        index,
+        documentType: document.documentType,

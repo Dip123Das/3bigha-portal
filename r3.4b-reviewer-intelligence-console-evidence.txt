@@ -1,0 +1,341 @@
+===== GIT =====
+189a000 Add government document verification intelligence
+3179da5 Support financial-period business proof validity
+c1de674 Reconcile manual review and verification persistence
+f2e87f6 Unify registration readiness and business proof status
+29619ec Finish constitutional onboarding audit
+?? r3.4-government-document-intelligence-evidence.txt
+?? r3.4b-reviewer-intelligence-console-evidence.txt
+?? scripts/audit-r3.4-government-document-intelligence.mjs
+?? scripts/audit-r3.4b-reviewer-intelligence-console.mjs
+
+===== VERIFICATION CASE SCHEMA =====
+-- Provider-independent subscription payment records prepared exclusively for
+-- SBI Payment Gateway. No row in these tables can activate access by itself.
+
+create table if not exists public.registration_verification_cases (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  status text not null check (status in (
+    'verified_by_ai',
+    'needs_manual_review',
+    'needs_document',
+    'format_valid_needs_manual_review',
+    'format_valid_document_mismatch',
+    'format_invalid'
+  )),
+  confidence numeric not null default 0 check (confidence between 0 and 100),
+  result_json jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists registration_verification_cases_user_created_idx
+  on public.registration_verification_cases(user_id, created_at desc);
+
+create table if not exists public.subscription_payment_requests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete restrict,
+  provider text not null default 'sbi_payment_gateway'
+    check (provider = 'sbi_payment_gateway'),
+  subscription_plan text not null check (subscription_plan in (
+    'basic_vendor','silver_vendor','gold_vendor','platinum_vendor'
+  )),
+  amount_paise bigint not null check (amount_paise > 0),
+  currency text not null default 'INR' check (currency = 'INR'),
+  status text not null default 'created' check (status in (
+    'created',
+    'gateway_configuration_pending',
+    'gateway_order_created',
+    'payment_pending',
+    'paid',
+    'failed',
+    'expired',
+    'cancelled',
+    'review_required'
+  )),
+  share_token text not null unique,
+  gateway_transaction_id text unique,
+  gateway_response_json jsonb,
+  verification_status text not null default 'not_checked',
+  paid_at timestamptz,
+  expires_at timestamptz not null,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint paid_requires_gateway_reference check (
+    status <> 'paid' or (gateway_transaction_id is not null and paid_at is not null)
+  )
+);
+
+create index if not exists subscription_payment_requests_user_created_idx
+  on public.subscription_payment_requests(user_id, created_at desc);
+
+alter table public.registration_verification_cases enable row level security;
+alter table public.subscription_payment_requests enable row level security;
+
+revoke all on public.registration_verification_cases,
+  public.subscription_payment_requests from anon, authenticated;
+
+comment on table public.subscription_payment_requests is
+  'SBI-only subscription payment lifecycle. Paid state must be written only after authenticated SBI server confirmation.';
+
+create or replace function public.finalize_verified_sbi_subscription(
+  p_payment_request_id uuid,
+  p_gateway_transaction_id text,
+  p_gateway_response jsonb
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, auth, pg_catalog
+as $$
+declare
+  payment_request public.subscription_payment_requests%rowtype;
+  latest_verification_status text;
+begin
+  if coalesce(auth.role(), '') <> 'service_role'
+     and session_user not in ('postgres', 'supabase_admin') then
+    raise exception 'Only the trusted SBI callback service may finalize payment.'
+      using errcode = '42501';
+  end if;
+
+  select * into payment_request
+
+===== ADMIN USERS PAGE =====
+import { redirect } from "next/navigation";
+import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
+
+export const dynamic = "force-dynamic";
+
+type Params = Record<string, string | string[] | undefined>;
+const one = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] || "" : value || "";
+
+export default async function AdminUsersPage({ searchParams }: { searchParams?: Params }) {
+  const access = await requireMasterAdmin();
+  if ("error" in access) {
+    if (access.status === 401) redirect("/login?next=/admin/users");
+    return <main style={{ padding: 24 }}>Access denied</main>;
+  }
+  const { user, admin: supabase } = access;
+
+  const [profilesRes, businessRes, statesRes, districtsRes, subdivisionsRes, blocksRes] = await Promise.all([
+    supabase.from("profiles").select("id,email,full_name,role,requested_role,approval_status,account_status,account_status_reason,created_at,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id").order("created_at", { ascending: false }),
+    supabase.from("business_profiles").select("user_id,business_name,subscription_plan,subscription_status,subscription_expires_at,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id"),
+    supabase.from("geo_states").select("id,name").order("name"),
+    supabase.from("geo_districts").select("id,state_id,name").order("name"),
+    supabase.from("geo_subdivisions").select("id,district_id,name").order("name"),
+    supabase.from("geo_blocks").select("id,district_id,subdivision_id,name").order("name"),
+  ]);
+
+  const loadError = profilesRes.error || businessRes.error || statesRes.error || districtsRes.error || subdivisionsRes.error || blocksRes.error;
+  if (loadError) {
+    return <main style={{ padding: 24 }}><h1>Member Administration</h1><p>Member records could not be loaded.</p><pre>{loadError.message}</pre></main>;
+  }
+
+  const stateId = one(searchParams?.state);
+  const districtId = one(searchParams?.district);
+  const subdivisionId = one(searchParams?.subdivision);
+  const blockId = one(searchParams?.block);
+  const statusFilter = one(searchParams?.account_status);
+  const query = one(searchParams?.q).trim().toLowerCase();
+  const businessByUser = new Map((businessRes.data || []).map((row: any) => [row.user_id, row]));
+  const names = (rows: any[]) => new Map(rows.map((row) => [row.id, row.name]));
+  const stateNames = names(statesRes.data || []), districtNames = names(districtsRes.data || []);
+  const subdivisionNames = names(subdivisionsRes.data || []), blockNames = names(blocksRes.data || []);
+
+  const users = (profilesRes.data || []).filter((profile: any) => {
+    const bp: any = businessByUser.get(profile.id) || {};
+    const geo = {
+      state: bp.geo_state_id || profile.geo_state_id || "",
+      district: bp.geo_district_id || profile.geo_district_id || "",
+      subdivision: bp.geo_subdivision_id || profile.geo_subdivision_id || "",
+      block: bp.geo_block_id || profile.geo_block_id || "",
+    };
+    if (stateId && geo.state !== stateId) return false;
+    if (districtId && geo.district !== districtId) return false;
+    if (subdivisionId && geo.subdivision !== subdivisionId) return false;
+    if (blockId && geo.block !== blockId) return false;
+    if (statusFilter && (profile.account_status || "active") !== statusFilter) return false;
+    if (query && !`${profile.email || ""} ${profile.full_name || ""} ${bp.business_name || ""}`.toLowerCase().includes(query)) return false;
+    return true;
+  });
+
+  const districts = (districtsRes.data || []).filter((row: any) => !stateId || row.state_id === stateId);
+  const subdivisions = (subdivisionsRes.data || []).filter((row: any) => !districtId || row.district_id === districtId);
+  const blocks = (blocksRes.data || []).filter((row: any) => (!districtId || row.district_id === districtId) && (!subdivisionId || row.subdivision_id === subdivisionId));
+  const field = { padding: "8px 10px", border: "1px solid #cbd5e1", borderRadius: 8 } as const;
+
+  return <main style={{ padding: 24, maxWidth: 1500, margin: "0 auto" }}>
+    <h1 style={{ fontSize: 28, fontWeight: 900, margin: 0 }}>Member Administration</h1>
+    <p style={{ color: "#475569" }}>Review identities, activate or deactivate accounts, inspect SBI payment status, and filter members through the official geography hierarchy. Subscriptions cannot be activated manually.</p>
+
+    <form method="get" style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: 14, background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 12 }}>
+      <input name="q" defaultValue={one(searchParams?.q)} placeholder="Search name, email or business" style={{ ...field, minWidth: 240 }} />
+      <select name="state" defaultValue={stateId} style={field}><option value="">All states</option>{(statesRes.data || []).map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
+      <select name="district" defaultValue={districtId} style={field}><option value="">All districts</option>{districts.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
+      <select name="subdivision" defaultValue={subdivisionId} style={field}><option value="">All subdivisions</option>{subdivisions.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
+      <select name="block" defaultValue={blockId} style={field}><option value="">All blocks/local bodies</option>{blocks.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
+      <select name="account_status" defaultValue={statusFilter} style={field}><option value="">All account states</option><option value="active">Active</option><option value="deactivated">Temporarily suspended</option><option value="re_registration_required">Re-registration required</option><option value="permanently_blocked">Serious block</option></select>
+      <button type="submit" style={field}>Apply filters</button><a href="/admin/users" style={{ ...field, textDecoration: "none", color: "#0f172a" }}>Clear</a>
+    </form>
+
+    <div style={{ margin: "16px 0", fontWeight: 800 }}>{users.length} member{users.length === 1 ? "" : "s"}</div>
+    <div style={{ display: "grid", gap: 14 }}>
+      {users.map((profile: any) => {
+        const bp: any = businessByUser.get(profile.id) || {};
+        const geoState = bp.geo_state_id || profile.geo_state_id, geoDistrict = bp.geo_district_id || profile.geo_district_id;
+        const geoSubdivision = bp.geo_subdivision_id || profile.geo_subdivision_id, geoBlock = bp.geo_block_id || profile.geo_block_id;
+        const accountStatus = profile.account_status || "active";
+        const active = accountStatus === "active";
+        const statusLabel = accountStatus === "re_registration_required"
+          ? "Re-registration required"
+          : accountStatus === "permanently_blocked"
+            ? "Serious block"
+            : active ? "Active" : "Suspended";
+        return <article key={profile.id} style={{ border: `1px solid ${active ? "#dbeafe" : "#fecaca"}`, borderRadius: 14, padding: 16, background: active ? "white" : "#fff7f7" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            <div><strong>{profile.full_name || bp.business_name || "Unnamed member"}</strong><div>{profile.email || "No email"}</div><div style={{ color: "#64748b", fontSize: 13 }}>{[stateNames.get(geoState), districtNames.get(geoDistrict), subdivisionNames.get(geoSubdivision), blockNames.get(geoBlock)].filter(Boolean).join(" → ") || "LGD location not recorded"}</div></div>
+            <div><b>{statusLabel}</b><div style={{ fontSize: 13 }}>{profile.account_status_reason || "No status note"}</div></div>
+          </div>
+          <div style={{ marginTop: 10 }}>Role: <b>{profile.role || "unresolved"}</b> · Requested: <b>{profile.requested_role || "—"}</b> · Approval: <b>{profile.approval_status || "—"}</b></div>
+
+          {profile.approval_status === "pending" ? <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}><form action="/api/admin/approve-user" method="post"><input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="role" value={profile.requested_role || ""}/><button>Approve identity</button></form><form action="/api/admin/reject-user" method="post" style={{ display: "flex", gap: 8 }}><input type="hidden" name="user_id" value={profile.id}/><input name="reason" placeholder="Reason for rejection" required style={field}/><button>Reject identity</button></form></div> : null}
+
+          {profile.id !== user.id && profile.role !== "master_admin" ? <form action="/api/admin/account-status" method="post" style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+            <input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="action" value={active ? "deactivate" : "activate"}/>
+            {active ? <>
+              <select name="restriction_mode" required defaultValue="suspend" style={{ ...field, minWidth: 250 }}>
+                <option value="suspend">Temporary suspension — admin review required</option>
+                <option value="re_register">Ordinary issue — allow re-registration</option>
+                <option value="permanent">Serious violation — block indefinitely</option>
+              </select>
+              <select name="reason_code" required defaultValue="" style={{ ...field, minWidth: 260 }}>
+                <option value="" disabled>Select deactivation reason</option>
+                <option value="policy_violation">Terms or policy violation</option>
+                <option value="suspicious_activity">Fraud or suspicious activity</option>
+                <option value="verification_failed">Identity/document verification failed</option>
+                <option value="payment_issue">Subscription or payment issue</option>
+                <option value="duplicate_account">Duplicate account</option>
+                <option value="user_request">User requested deactivation</option>
+                <option value="inactive_account">Inactive or abandoned account</option>
+                <option value="legal_request">Legal or regulatory request</option>
+                <option value="security_risk">Account security risk</option>
+                <option value="other">Other reason</option>
+              </select>
+              <input name="custom_reason" placeholder="Custom reason (required when Other is selected)" style={{ ...field, minWidth: 320 }}/>
+            </> : (
+              <input name="reason" placeholder="Reactivation note (optional)" style={{ ...field, minWidth: 260 }}/>
+            )}
+            <button type="submit" style={{ ...field, background: active ? "#b91c1c" : "#15803d", color: "white" }}>{active ? "Deactivate account" : "Reactivate account"}</button>
+          </form> : null}
+
+          <div style={{ marginTop: 14, padding: 12, background: "#eff6ff", color: "#1e3a8a", borderRadius: 10, fontWeight: 800 }}>
+            Subscription: {String(bp.subscription_plan || "none").replaceAll("_", " ")} · Status: {String(bp.subscription_status || "not paid").replaceAll("_", " ")}. Activation occurs only after verified SBI Payment Gateway confirmation.
+          </div>
+        </article>;
+      })}
+    </div>
+  </main>;
+}
+
+===== APPROVAL API =====
+import { NextResponse } from "next/server";
+import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
+import { trackVendorApproved } from "@/lib/marketplace/vendor-conversion-analytics";
+
+const APPROVABLE_ROLES = new Set(["buyer","vendor","builder","hub_vendor","blogger","banker","finance_banker","investor"]);
+
+export async function POST(req: Request) {
+  const access = await requireMasterAdmin();
+  if ("error" in access) return NextResponse.json({ error: access.error }, { status: access.status });
+  const form = await req.formData();
+  const userId = String(form.get("user_id") || "");
+  const role = String(form.get("role") || "");
+  if (!userId || !APPROVABLE_ROLES.has(role)) return NextResponse.json({ error: "Invalid approval request" }, { status: 400 });
+
+  const { error } = await access.admin.from("profiles").update({
+    role, approval_status: "approved", approved_by: access.user.id,
+    approved_at: new Date().toISOString(), rejection_reason: null,
+  }).eq("id", userId).neq("role", "master_admin");
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+
+  if (["vendor","builder","hub_vendor","blogger"].includes(role)) await trackVendorApproved({ userId, metadata: { role, approvedBy: access.user.id, source: "admin_approve_user" } });
+  return new NextResponse(null, { status: 303, headers: { Location: "/admin/users" } });
+}
+
+===== REJECTION API =====
+import { NextResponse } from "next/server";
+import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
+
+export async function POST(req: Request) {
+  const access = await requireMasterAdmin();
+  if ("error" in access) return NextResponse.json({ error: access.error }, { status: access.status });
+  const form = await req.formData();
+  const userId = String(form.get("user_id") || "");
+  const reason = String(form.get("reason") || "").trim();
+  if (!userId) return NextResponse.json({ error: "Invalid rejection request" }, { status: 400 });
+  const { error } = await access.admin.from("profiles").update({ approval_status: "rejected", rejection_reason: reason || null }).eq("id", userId).neq("role", "master_admin");
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return new NextResponse(null, { status: 303, headers: { Location: "/admin/users" } });
+}
+
+===== VERIFICATION CASE REFERENCES =====
+app/api/ai/vendor-document-verify/route.ts:447:        .from("registration_verification_cases")
+app/api/payments/sbi/create-link/route.ts:41:      .from("registration_verification_cases")
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:4:create table if not exists public.registration_verification_cases (
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:20:create index if not exists registration_verification_cases_user_created_idx
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:21:  on public.registration_verification_cases(user_id, created_at desc);
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:61:alter table public.registration_verification_cases enable row level security;
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:64:revoke all on public.registration_verification_cases,
+supabase/migrations/20260723000700_sbi_payment_readiness.sql:111:  from public.registration_verification_cases
+
+===== REVIEW DECISION SCHEMA REFERENCES =====
+app/admin/dashboard/banker-verification/BankerVerificationActions.tsx:81:          onClick={() => updateStatus("clarification")}
+app/api/finance/banker-profile/[id]/route.ts:47:    } else if (action === "clarification") {
+app/dashboard/investor/opportunities/[id]/page.tsx:25:  "reviewed_at",
+app/dashboard/investor/opportunities/[id]/page.tsx:31:  "reviewed_by",
+app/dashboard/thread/[conversationId]/page.tsx:197:          ? "Terms clarification"
+app/dashboard/vendor/chat/[conversationId]/vendor-conversation-chat-box.tsx:452:      ? "Delivery/payment clarification"
+lib/registration/resolveSelfRegistrationJourney.ts:403:      "Wait for the exception review or respond to any requested clarification.",
+
+===== DOCUMENT URL INFRASTRUCTURE =====
+app/api/ai/vendor-document-verify/route.ts:242:      file_url: url,
+app/api/conversations/[conversationId]/messages/route.ts:94:      const url = String(item.url ?? item.file_url ?? "").trim();
+app/api/conversations/[conversationId]/messages/route.ts:95:      const file_url = String(item.file_url ?? item.url ?? "").trim();
+app/api/conversations/[conversationId]/messages/route.ts:111:        file_url,
+app/api/conversations/[conversationId]/messages/route.ts:119:    .filter((item) => item.file_url || item.url);
+app/api/conversations/[conversationId]/messages/route.ts:155:    const file_url = String(meta.file_url ?? meta.url ?? attachments[0]?.file_url ?? "").trim();
+app/api/conversations/[conversationId]/messages/route.ts:168:    nextMeta.file_url = file_url;
+app/api/conversations/[conversationId]/messages/route.ts:190:              url: file_url,
+app/api/conversations/[conversationId]/messages/route.ts:191:              file_url,
+app/api/conversations/[conversationId]/messages/route.ts:214:    meta.file_url ?? meta.url ?? firstAttachment?.file_url ?? firstAttachment?.url ?? ""
+app/api/conversations/[conversationId]/upload/route.ts:203:    const uploadRes = await supabase.storage.from(BUCKET).upload(path, fileBuffer, {
+app/api/finance/banker-documents/view/route.ts:31:      .createSignedUrl(path, 120);
+app/api/investment/deal-rooms/[id]/documents/[documentId]/route.ts:235:        .createSignedUrl(filePath, 60 * 60);
+app/api/investment/deal-rooms/[id]/documents/[documentId]/route.ts:249:          signed_url: signedUrl,
+app/api/investment/deal-rooms/[id]/documents/route.ts:353:      .createSignedUrl(storagePath, 60 * 60 * 24 * 7);
+app/api/investment/deal-rooms/[id]/documents/route.ts:385:      await supabase.storage.from(bucket).remove([storagePath]);
+app/api/investment/deal-rooms/[id]/documents/route.ts:411:          signed_url: signedUrlData?.signedUrl || null,
+app/api/rfq-conversations/[rfqId]/messages/route.ts:360:      const uploadRes = await supabase.storage.from(CHAT_BUCKET).upload(path, file, {
+app/components/investment/InvestmentDealRoomClient.tsx:3040:                              if (json?.data?.signed_url) {
+app/components/investment/InvestmentDealRoomClient.tsx:3041:                                window.open(json.data.signed_url, "_blank");
+app/components/media/UniversalMediaUploader.tsx:342:        const { error } = await supabase.storage.from(bucket).upload(objectPath, file, {
+app/components/media/UniversalMediaUploader.tsx:353:        const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath);
+app/dashboard/buyer/chat/[conversationId]/buyer-conversation-chat-box.tsx:183:  return String(att?.file_url ?? att?.url ?? "").trim();
+app/dashboard/buyer/chat/[conversationId]/buyer-conversation-chat-box.tsx:1168:            file_url: String(uploadJson?.url ?? ""),
+app/dashboard/buyer/chat/[conversationId]/buyer-conversation-chat-box.tsx:1181:                file_url: String(uploadJson?.url ?? ""),
+app/dashboard/buyer/quote-compare/[rfqId]/chat/buyer-rfq-chat-box.tsx:1119:          .createSignedUrl(path, 60 * 60);
+app/dashboard/vendor/chat/[conversationId]/vendor-conversation-chat-box.tsx:172:  return String(att?.file_url ?? att?.url ?? "").trim();
+app/dashboard/vendor/chat/[conversationId]/vendor-conversation-chat-box.tsx:1286:            file_url: String(uploadJson?.url ?? ""),
+app/dashboard/vendor/chat/[conversationId]/vendor-conversation-chat-box.tsx:1299:                file_url: String(uploadJson?.url ?? ""),
+app/property/builder/projects/[projectId]/units/add/page.tsx:949:      const up = await supabase.storage.from(BUCKET).upload(path, f, {
+app/property/builder/projects/[projectId]/units/add/page.tsx:965:      const up = await supabase.storage.from(BUCKET).upload(path, f, {
+app/rfq/new/page.tsx:164:          const up = await supabase.storage.from("rfq_attachments").upload(objectPath, f, {
+app/vendor/inbox-v2/[rfqId]/chat/vendor-rfq-chat-box.tsx:1184:          .createSignedUrl(path, 60 * 60);
+lib/conversations/chat-client-shared.ts:9:  file_url?: string;
+lib/conversations/chat-client-shared.ts:36:  file_url?: string;
+lib/conversations/chat-client-shared.ts:91:  const url = String(att.url ?? att.file_url ?? "").trim();
+lib/conversations/chat-client-shared.ts:92:  const fileUrl = String(att.file_url ?? att.url ?? "").trim();
+lib/conversations/chat-client-shared.ts:100:    file_url: fileUrl,
+lib/conversations/chat-client-shared.ts:256:  const singleUrl = String(meta.file_url ?? meta.url ?? "").trim();
+lib/conversations/chat-client-shared.ts:278:      file_url: singleUrl,
