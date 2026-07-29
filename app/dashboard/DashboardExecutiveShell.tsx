@@ -1099,6 +1099,151 @@ export default function DashboardExecutiveShell({
           .d7BottomNav b{font-size:8px}
         }
 
+
+        /* D7_FINAL_MOBILE_POLISH */
+        @media(max-width:600px){
+          .d7MobileDashboard{
+            gap:12px!important;
+            padding:0 10px 88px!important;
+          }
+
+          .d7Welcome{
+            padding:15px!important;
+            border-radius:18px!important;
+            box-shadow:0 10px 26px rgba(31,85,170,.10)!important;
+          }
+          .d7WelcomeIdentity h1{
+            font-size:22px!important;
+            font-weight:900!important;
+          }
+          .d7TrustRow{
+            align-items:center!important;
+          }
+          .d7TrustRow strong{
+            margin-left:0!important;
+          }
+          .d7PrimaryCta{
+            min-height:48px!important;
+            margin-top:13px!important;
+            padding:0 15px!important;
+            border:1px solid #0d56da!important;
+            border-radius:12px!important;
+            background:linear-gradient(90deg,#1767ef,#244ddf)!important;
+            color:#fff!important;
+            font-size:13px!important;
+            box-shadow:0 8px 18px rgba(23,103,239,.24)!important;
+          }
+
+          .d7QuickWork,.d7Today,.d7Pulse{
+            padding:14px!important;
+            border-radius:17px!important;
+            box-shadow:0 5px 16px rgba(29,64,121,.05)!important;
+          }
+
+          .d7ActionGrid{
+            gap:9px!important;
+          }
+          .d7ActionGrid>a{
+            position:relative!important;
+            min-height:112px!important;
+            padding:13px!important;
+            overflow:hidden!important;
+            border-color:#cbdcf1!important;
+            border-radius:14px!important;
+            background:linear-gradient(145deg,#f4f8ff,#fff)!important;
+            box-shadow:0 4px 12px rgba(31,70,132,.06)!important;
+          }
+          .d7ActionGrid>a:nth-child(1)>span{background:#e7f1ff!important;color:#1767ef!important}
+          .d7ActionGrid>a:nth-child(2)>span{background:#eee9ff!important;color:#6042d9!important}
+          .d7ActionGrid>a:nth-child(3)>span{background:#e8fbf0!important;color:#0a8d4c!important}
+          .d7ActionGrid>a:nth-child(4)>span{background:#fff1df!important;color:#d97706!important}
+          .d7ActionGrid>a::after{
+            content:"›";
+            position:absolute;
+            right:11px;
+            top:11px;
+            color:#8aa0bf;
+            font-size:20px;
+          }
+          .d7ActionGrid strong{
+            font-size:14px!important;
+          }
+          .d7ActionGrid small{
+            font-size:9.5px!important;
+          }
+
+          .d7SecondaryActions{
+            gap:7px!important;
+          }
+          .d7SecondaryActions a{
+            min-height:42px!important;
+            padding:7px!important;
+            border-color:#c3d5ed!important;
+            background:#f1f6ff!important;
+            color:#173b6f!important;
+            font-size:9.5px!important;
+          }
+
+          .d7PriorityList{
+            gap:8px!important;
+          }
+          .d7PriorityList>a{
+            min-height:58px!important;
+            padding:8px 10px!important;
+            border-radius:11px!important;
+            background:#fbfdff!important;
+          }
+          .d7PriorityList>a>b{
+            width:36px!important;
+            height:36px!important;
+            border-radius:10px!important;
+          }
+          .d7PriorityList strong{
+            font-size:11px!important;
+          }
+          .d7PriorityList small{
+            font-size:8.8px!important;
+          }
+
+          .d7MetricGrid>a{
+            min-height:88px!important;
+            border-radius:12px!important;
+            box-shadow:0 3px 10px rgba(31,70,132,.04)!important;
+          }
+
+          .d7Recommendation{
+            border-radius:17px!important;
+            box-shadow:0 5px 16px rgba(17,118,67,.07)!important;
+          }
+          .d7Recommendation>a{
+            min-height:38px!important;
+            align-items:center!important;
+          }
+
+          .d7BottomNav{
+            left:12px!important;
+            right:12px!important;
+            bottom:10px!important;
+            padding:6px!important;
+            border-radius:17px!important;
+            box-shadow:0 10px 28px rgba(20,46,93,.24)!important;
+          }
+          .d7BottomNav a{
+            min-height:48px!important;
+          }
+          .d7BottomNav b{
+            font-size:8.5px!important;
+          }
+
+          :global(a[href="/dashboard/procurement-copilot"][style*="fixed"]),
+          :global(a[href="/dashboard/procurement-copilot"][class*="fixed"]),
+          :global([class*="floating"][class*="ai"]),
+          :global([class*="ai"][class*="launcher"]),
+          :global([class*="Ai"][class*="Launcher"]){
+            display:none!important;
+          }
+        }
+
       `}</style>
     </div>
   );
