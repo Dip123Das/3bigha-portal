@@ -86,6 +86,40 @@ export default function DashboardExecutiveShell({
     .filter((value, index, values) => values.indexOf(value) === index)
     .join(", ");
 
+  /* CONSTITUTIONAL_DASHBOARD_WORKFLOW_M2
+   * Human First: identity, people, attention, opportunity.
+   * AI explains this ordering but never replaces human judgement.
+   */
+  const recommendedAction = !isComplete
+    ? {
+        title: "Complete your business profile",
+        detail: "Finish the remaining business information before expanding marketplace activity.",
+        href: "/onboarding/business",
+      }
+    : conversations > 0
+      ? {
+          title: "Reply to active buyer conversations",
+          detail: `${conversations} buyer conversation${conversations === 1 ? "" : "s"} are waiting for your attention.`,
+          href: "/dashboard/inbox-v2",
+        }
+      : unreadAlerts > 0
+        ? {
+            title: "Review unread marketplace updates",
+            detail: `${unreadAlerts} unread update${unreadAlerts === 1 ? "" : "s"} are available for human review.`,
+            href: "/dashboard/vendor/notifications",
+          }
+        : rfqs > 0
+          ? {
+              title: "Review assigned RFQs",
+              detail: `${rfqs} assigned RFQ${rfqs === 1 ? "" : "s"} are available in your work queue.`,
+              href: "/dashboard/vendor/rfqs",
+            }
+          : {
+              title: "Strengthen your marketplace presence",
+              detail: "Keep listings current and review new opportunities regularly.",
+              href: "/dashboard/vendor/workspace",
+            };
+
   return (
     <div className="d5Shell">
       <aside className="d5Sidebar" aria-label="Dashboard navigation">
@@ -134,9 +168,12 @@ export default function DashboardExecutiveShell({
               )}
             </div>
             <div>
-              <span>YOUR BUSINESS TODAY</span>
+              <span>TODAY&apos;S BUSINESS</span>
               <h1>{resolvedBusinessName}</h1>
               <p>{displayRole} · {businessNature.length} active segments</p>
+              <small className="d7WorkSummary">
+                {unreadAlerts} unread updates · {conversations} conversations · {rfqs} assigned RFQs
+              </small>
             </div>
           </div>
 
@@ -175,37 +212,70 @@ export default function DashboardExecutiveShell({
           <div className="d7SectionTitle">
             <div>
               <span>WORK NOW</span>
-              <h2 id="d7-work-title">What do you need to do?</h2>
+              <h2 id="d7-work-title">Run your business</h2>
             </div>
           </div>
 
           <div className="d7ActionGrid">
             <Link href="/dashboard/vendor/workspace">
               <span aria-hidden="true">▤</span>
-              <strong>Listings</strong>
-              <small>Manage products and services</small>
+              <strong>Sell &amp; Manage</strong>
+              <small>Listings, products and services</small>
             </Link>
             <Link href="/dashboard/vendor/rfqs">
               <span aria-hidden="true">◫</span>
-              <strong>RFQs</strong>
-              <small>Find suitable requirements</small>
+              <strong>Find Opportunities</strong>
+              <small>Review assigned requirements</small>
             </Link>
             <Link href="/dashboard/inbox-v2">
               <span aria-hidden="true">✉</span>
-              <strong>Messages</strong>
-              <small>{conversations} buyer conversations</small>
+              <strong>Talk to Buyers</strong>
+              <small>{conversations} active conversations</small>
             </Link>
             <Link href="/dashboard/procurement-analytics">
               <span aria-hidden="true">⌁</span>
-              <strong>Analytics</strong>
-              <small>Review business performance</small>
+              <strong>Review Performance</strong>
+              <small>Understand activity and progress</small>
             </Link>
           </div>
 
           <div className="d7SecondaryActions">
-            <Link href="/materials/add">＋ New Listing</Link>
+            <Link href="/materials/add">＋ Add Listing</Link>
             <Link href="/dashboard/vendor/enquiries">✎ Send Quote</Link>
-            <Link href="/onboarding/business">▣ Edit Business</Link>
+            <Link href="/onboarding/business">▣ Edit Profile</Link>
+          </div>
+        </section>
+
+        
+        <section className="d7Lifecycle" aria-labelledby="d7-lifecycle-title">
+          <div className="d7SectionTitle">
+            <div>
+              <span>BUSINESS LIFECYCLE</span>
+              <h2 id="d7-lifecycle-title">Move work towards completion</h2>
+            </div>
+          </div>
+
+          <div className="d7LifecycleGrid">
+            <Link href="/dashboard/vendor/rfqs">
+              <span>1</span>
+              <strong>Opportunities</strong>
+              <small>Assigned RFQs</small>
+            </Link>
+            <Link href="/dashboard/vendor/enquiries">
+              <span>2</span>
+              <strong>Quotes</strong>
+              <small>Proposals and enquiries</small>
+            </Link>
+            <Link href="/dashboard/vendor/workspace">
+              <span>3</span>
+              <strong>Orders &amp; Deals</strong>
+              <small>Current business work</small>
+            </Link>
+            <Link href="/dashboard/vendor/billing">
+              <span>4</span>
+              <strong>Payments</strong>
+              <small>Billing and records</small>
+            </Link>
           </div>
         </section>
 
@@ -256,7 +326,7 @@ export default function DashboardExecutiveShell({
           <div className="d7SectionTitle">
             <div>
               <span>BUSINESS PULSE</span>
-              <h2 id="d7-pulse-title">Marketplace activity</h2>
+              <h2 id="d7-pulse-title">Business activity</h2>
             </div>
           </div>
 
@@ -287,14 +357,10 @@ export default function DashboardExecutiveShell({
         <section className="d7Recommendation">
           <div>
             <span>3BOS ASSISTANCE</span>
-            <h2>Recommended next action</h2>
-            <p>
-              {unreadAlerts > 0
-                ? "Review unread alerts first, then follow up active buyer conversations."
-                : "Review new RFQs and keep your active listings updated."}
-            </p>
+            <h2>{recommendedAction.title}</h2>
+            <p>{recommendedAction.detail}</p>
           </div>
-          <Link href={unreadAlerts > 0 ? "/dashboard/vendor/notifications" : "/dashboard/vendor/rfqs"}>
+          <Link href={recommendedAction.href}>
             Take Action →
           </Link>
         </section>
@@ -1261,6 +1327,55 @@ export default function DashboardExecutiveShell({
           :global([class*="Ai"][class*="Launcher"]){
             display:none!important;
           }
+        }
+
+
+        /* CONSTITUTIONAL_DASHBOARD_WORKFLOW_M2 */
+        .d7WorkSummary{display:block;margin-top:5px;color:#38577f;font-size:9px;line-height:1.35}
+        .d7Lifecycle{display:none}
+        @media(max-width:600px){
+          .d7Lifecycle{
+            display:block;
+            padding:14px;
+            background:#fff;
+            border:1px solid #d8e3f2;
+            border-radius:17px;
+            box-shadow:0 5px 16px rgba(29,64,121,.05);
+          }
+          .d7LifecycleGrid{
+            display:grid;
+            grid-template-columns:repeat(2,minmax(0,1fr));
+            gap:8px;
+            margin-top:11px;
+          }
+          .d7LifecycleGrid>a{
+            display:grid;
+            grid-template-columns:28px minmax(0,1fr);
+            gap:3px 8px;
+            align-items:center;
+            min-height:72px;
+            padding:10px;
+            border:1px solid #d5e1f1;
+            border-radius:12px;
+            background:linear-gradient(150deg,#f8fbff,#fff);
+            color:#17315c;
+            text-decoration:none;
+          }
+          .d7LifecycleGrid>a>span{
+            grid-row:1/3;
+            display:flex;
+            width:28px;
+            height:28px;
+            align-items:center;
+            justify-content:center;
+            border-radius:50%;
+            background:#1767ef;
+            color:#fff;
+            font-size:10px;
+            font-weight:950;
+          }
+          .d7LifecycleGrid strong{font-size:11px;line-height:1.2}
+          .d7LifecycleGrid small{color:#687b9b;font-size:8.5px;line-height:1.25}
         }
 
       `}</style>
