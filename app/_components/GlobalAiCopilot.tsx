@@ -137,6 +137,7 @@ export default function GlobalAiCopilot() {
   const pathname = usePathname();
   const isHomepage = pathname === "/";
   const isRfqJourney = pathname.startsWith("/rfq");
+  const isDashboardHome = pathname === "/dashboard";
   const isQuietJourney = isHomepage || isRfqJourney;
   const aiContext = useThreeBOSAiContext();
   const [open, setOpen] = useState(false);
@@ -179,7 +180,13 @@ export default function GlobalAiCopilot() {
     setOpen(false);
   }, [pathname]);
 
+  if (isDashboardHome) return null;
+
+
+
   return (
+
+
     <div className={`${open ? "globalAiShell globalAiShellOpen" : "globalAiShell"}${isQuietJourney ? " globalAiShellQuiet" : ""}${isHomepage ? " globalAiShellHomepage" : ""}${isRfqJourney ? " globalAiShellRfq" : ""}`}>
       <button
         type="button"

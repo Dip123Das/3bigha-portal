@@ -146,7 +146,26 @@ export default function DashboardExecutiveShell({
             <strong>{completion}% ready</strong>
           </div>
 
-          <Link className="d7PrimaryCta" href="/dashboard/workspace">
+          <Link
+            className="d7PrimaryCta"
+            href="/dashboard/workspace"
+            style={{
+              display: "flex",
+              minHeight: 48,
+              marginTop: 13,
+              padding: "0 15px",
+              alignItems: "center",
+              justifyContent: "space-between",
+              border: "1px solid #0d56da",
+              borderRadius: 12,
+              background: "linear-gradient(90deg,#1767ef,#244ddf)",
+              color: "#fff",
+              textDecoration: "none",
+              fontSize: 13,
+              fontWeight: 950,
+              boxShadow: "0 8px 18px rgba(23,103,239,.24)",
+            }}
+          >
             Continue Today&apos;s Work
             <span aria-hidden="true">→</span>
           </Link>
