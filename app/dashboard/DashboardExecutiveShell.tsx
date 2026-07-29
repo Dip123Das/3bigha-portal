@@ -122,6 +122,172 @@ export default function DashboardExecutiveShell({
         </section>
       </aside>
 
+      {/* D7_MOBILE_DASHBOARD */}
+      <main className="d7MobileDashboard" aria-label="Mobile vendor dashboard">
+        <section className="d7Welcome">
+          <div className="d7WelcomeIdentity">
+            <div className="d7Avatar">
+              {profileImageUrl ? (
+                <img src={profileImageUrl} alt={`${resolvedBusinessName} profile`} />
+              ) : (
+                resolvedBusinessName.slice(0, 2).toUpperCase()
+              )}
+            </div>
+            <div>
+              <span>YOUR BUSINESS TODAY</span>
+              <h1>{resolvedBusinessName}</h1>
+              <p>{displayRole} · {businessNature.length} active segments</p>
+            </div>
+          </div>
+
+          <div className="d7TrustRow">
+            <span>{isComplete ? "✓ Verified" : "◷ Verification pending"}</span>
+            <span>✓ Active</span>
+            <strong>{completion}% ready</strong>
+          </div>
+
+          <Link className="d7PrimaryCta" href="/dashboard/workspace">
+            Continue Today&apos;s Work
+            <span aria-hidden="true">→</span>
+          </Link>
+        </section>
+
+        <section className="d7QuickWork" aria-labelledby="d7-work-title">
+          <div className="d7SectionTitle">
+            <div>
+              <span>WORK NOW</span>
+              <h2 id="d7-work-title">What do you need to do?</h2>
+            </div>
+          </div>
+
+          <div className="d7ActionGrid">
+            <Link href="/dashboard/vendor/workspace">
+              <span aria-hidden="true">▤</span>
+              <strong>Listings</strong>
+              <small>Manage products and services</small>
+            </Link>
+            <Link href="/dashboard/vendor/rfqs">
+              <span aria-hidden="true">◫</span>
+              <strong>RFQs</strong>
+              <small>Find suitable requirements</small>
+            </Link>
+            <Link href="/dashboard/inbox-v2">
+              <span aria-hidden="true">✉</span>
+              <strong>Messages</strong>
+              <small>{conversations} buyer conversations</small>
+            </Link>
+            <Link href="/dashboard/procurement-analytics">
+              <span aria-hidden="true">⌁</span>
+              <strong>Analytics</strong>
+              <small>Review business performance</small>
+            </Link>
+          </div>
+
+          <div className="d7SecondaryActions">
+            <Link href="/materials/add">＋ New Listing</Link>
+            <Link href="/dashboard/vendor/enquiries">✎ Send Quote</Link>
+            <Link href="/onboarding/business">▣ Edit Business</Link>
+          </div>
+        </section>
+
+        <section className="d7Today" aria-labelledby="d7-today-title">
+          <div className="d7SectionTitle">
+            <div>
+              <span>HUMAN-FIRST WORK</span>
+              <h2 id="d7-today-title">Today&apos;s priorities</h2>
+            </div>
+            <Link href="/dashboard/workspace">View all</Link>
+          </div>
+
+          <div className="d7PriorityList">
+            {unreadAlerts > 0 ? (
+              <Link href="/dashboard/vendor/notifications">
+                <b>{unreadAlerts}</b>
+                <div>
+                  <strong>Unread vendor alerts</strong>
+                  <small>Review time-sensitive opportunities</small>
+                </div>
+                <span aria-hidden="true">›</span>
+              </Link>
+            ) : null}
+
+            {conversations > 0 ? (
+              <Link href="/dashboard/inbox-v2">
+                <b>{conversations}</b>
+                <div>
+                  <strong>Buyer conversations</strong>
+                  <small>Reply and move discussions forward</small>
+                </div>
+                <span aria-hidden="true">›</span>
+              </Link>
+            ) : null}
+
+            <Link href="/dashboard/vendor/rfqs">
+              <b>{rfqs}</b>
+              <div>
+                <strong>RFQs for your business</strong>
+                <small>Open matching requirements</small>
+              </div>
+              <span aria-hidden="true">›</span>
+            </Link>
+          </div>
+        </section>
+
+        <section className="d7Pulse" aria-labelledby="d7-pulse-title">
+          <div className="d7SectionTitle">
+            <div>
+              <span>BUSINESS PULSE</span>
+              <h2 id="d7-pulse-title">Marketplace activity</h2>
+            </div>
+          </div>
+
+          <div className="d7MetricGrid">
+            <Link href="/dashboard/vendor/rfqs">
+              <small>RFQs</small>
+              <strong>{rfqs}</strong>
+              <span>Active now</span>
+            </Link>
+            <Link href="/dashboard/inbox-v2">
+              <small>Messages</small>
+              <strong>{conversations}</strong>
+              <span>Open conversations</span>
+            </Link>
+            <Link href="/dashboard/vendor/notifications">
+              <small>Alerts</small>
+              <strong>{unreadAlerts}</strong>
+              <span>Need attention</span>
+            </Link>
+            <Link href="/price-today">
+              <small>Price signals</small>
+              <strong>{priceSignals}</strong>
+              <span>New market updates</span>
+            </Link>
+          </div>
+        </section>
+
+        <section className="d7Recommendation">
+          <div>
+            <span>3BOS ASSISTANCE</span>
+            <h2>Recommended next action</h2>
+            <p>
+              {unreadAlerts > 0
+                ? "Review unread alerts first, then follow up active buyer conversations."
+                : "Review new RFQs and keep your active listings updated."}
+            </p>
+          </div>
+          <Link href={unreadAlerts > 0 ? "/dashboard/vendor/notifications" : "/dashboard/vendor/rfqs"}>
+            Take Action →
+          </Link>
+        </section>
+
+        <nav className="d7BottomNav" aria-label="Mobile dashboard shortcuts">
+          <Link href="/dashboard"><span>▦</span><b>Home</b></Link>
+          <Link href="/dashboard/vendor/rfqs"><span>◫</span><b>RFQs</b></Link>
+          <Link href="/dashboard/inbox-v2"><span>✉</span><b>Inbox</b></Link>
+          <Link href="/dashboard/vendor/workspace"><span>▤</span><b>Listings</b></Link>
+        </nav>
+      </main>
+
       <main className="d5Main">
         <section className="d5IdentityHero">
           <div className="d5LogoOrb">
@@ -611,6 +777,326 @@ export default function DashboardExecutiveShell({
           .d5DecisionRow>div+div{padding:10px!important;border-radius:10px!important}
           .d5DecisionRow span{font-size:10px!important}
           .d5DecisionRow a{padding:7px 9px!important;border-radius:8px!important;font-size:9px!important}
+        }
+
+
+        /* D7_MOBILE_DASHBOARD */
+        .d7MobileDashboard{display:none}
+
+        @media(max-width:600px){
+          .d5Main,.d5RightRail{display:none!important}
+          .d7MobileDashboard{
+            display:grid;
+            order:1;
+            gap:10px;
+            width:100%;
+            padding:0 8px 76px;
+            color:#10234a;
+          }
+          .d7MobileDashboard section{
+            background:#fff;
+            border:1px solid #d8e3f2;
+            border-radius:16px;
+          }
+
+          .d7Welcome{
+            padding:14px;
+            background:linear-gradient(145deg,#e6f4ff,#c9ddff)!important;
+            border-color:#b9d2f5!important;
+          }
+          .d7WelcomeIdentity{
+            display:flex;
+            align-items:center;
+            gap:11px;
+          }
+          .d7Avatar{
+            width:58px;
+            height:58px;
+            flex:0 0 auto;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            overflow:hidden;
+            border-radius:50%;
+            background:#fff;
+            border:3px solid #fff;
+            box-shadow:0 0 0 2px #f5a43a;
+            color:#1464ef;
+            font-size:17px;
+            font-weight:950;
+          }
+          .d7Avatar img{
+            width:100%;
+            height:100%;
+            object-fit:cover;
+          }
+          .d7WelcomeIdentity span,.d7SectionTitle span,.d7Recommendation>div>span{
+            display:block;
+            color:#1767ef;
+            font-size:9px;
+            font-weight:950;
+            letter-spacing:.08em;
+          }
+          .d7WelcomeIdentity h1{
+            margin:3px 0 0;
+            font-size:20px;
+            line-height:1.1;
+          }
+          .d7WelcomeIdentity p{
+            margin:4px 0 0;
+            color:#4f6387;
+            font-size:10px;
+          }
+          .d7TrustRow{
+            display:flex;
+            flex-wrap:wrap;
+            gap:6px;
+            margin-top:12px;
+          }
+          .d7TrustRow span,.d7TrustRow strong{
+            padding:5px 8px;
+            border-radius:999px;
+            background:#f1fff6;
+            border:1px solid #9ed7b5;
+            color:#087744;
+            font-size:9px;
+          }
+          .d7TrustRow strong{
+            margin-left:auto;
+            background:#fff;
+            border-color:#bdd0eb;
+            color:#183a69;
+          }
+          .d7PrimaryCta{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            min-height:46px;
+            margin-top:12px;
+            padding:0 13px;
+            border-radius:11px;
+            background:#1767ef;
+            color:#fff;
+            text-decoration:none;
+            font-size:12px;
+            font-weight:950;
+            box-shadow:0 8px 18px rgba(23,103,239,.2);
+          }
+
+          .d7QuickWork,.d7Today,.d7Pulse{
+            padding:13px;
+          }
+          .d7SectionTitle{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap:10px;
+          }
+          .d7SectionTitle h2,.d7Recommendation h2{
+            margin:3px 0 0;
+            font-size:18px;
+            line-height:1.2;
+          }
+          .d7SectionTitle>a{
+            color:#1767ef;
+            text-decoration:none;
+            font-size:10px;
+            font-weight:900;
+          }
+          .d7ActionGrid{
+            display:grid;
+            grid-template-columns:repeat(2,minmax(0,1fr));
+            gap:8px;
+            margin-top:11px;
+          }
+          .d7ActionGrid>a{
+            min-height:108px;
+            padding:12px;
+            border:1px solid #d5e1f1;
+            border-radius:13px;
+            background:linear-gradient(160deg,#f7faff,#fff);
+            color:#17315c;
+            text-decoration:none;
+          }
+          .d7ActionGrid>a>span{
+            display:flex;
+            width:34px;
+            height:34px;
+            align-items:center;
+            justify-content:center;
+            border-radius:10px;
+            background:#e8f2ff;
+            color:#1767ef;
+            font-size:17px;
+          }
+          .d7ActionGrid strong,.d7ActionGrid small{
+            display:block;
+          }
+          .d7ActionGrid strong{
+            margin-top:9px;
+            font-size:13px;
+          }
+          .d7ActionGrid small{
+            margin-top:4px;
+            color:#687b9b;
+            font-size:9px;
+            line-height:1.35;
+          }
+          .d7SecondaryActions{
+            display:grid;
+            grid-template-columns:repeat(3,minmax(0,1fr));
+            gap:6px;
+            margin-top:8px;
+          }
+          .d7SecondaryActions a{
+            display:flex;
+            min-height:38px;
+            align-items:center;
+            justify-content:center;
+            padding:6px;
+            border:1px solid #cddcf0;
+            border-radius:9px;
+            background:#f7faff;
+            color:#1c3968;
+            text-align:center;
+            text-decoration:none;
+            font-size:9px;
+            font-weight:900;
+          }
+
+          .d7PriorityList{
+            display:grid;
+            gap:7px;
+            margin-top:11px;
+          }
+          .d7PriorityList>a{
+            display:grid;
+            grid-template-columns:38px minmax(0,1fr) 16px;
+            gap:9px;
+            align-items:center;
+            min-height:62px;
+            padding:9px;
+            border:1px solid #d5e1f1;
+            border-radius:12px;
+            background:#f8fbff;
+            color:#17315c;
+            text-decoration:none;
+          }
+          .d7PriorityList>a>b{
+            display:flex;
+            width:38px;
+            height:38px;
+            align-items:center;
+            justify-content:center;
+            border-radius:10px;
+            background:#1767ef;
+            color:#fff;
+            font-size:13px;
+          }
+          .d7PriorityList strong,.d7PriorityList small{
+            display:block;
+          }
+          .d7PriorityList strong{font-size:11px}
+          .d7PriorityList small{
+            margin-top:3px;
+            color:#687b9b;
+            font-size:9px;
+          }
+          .d7PriorityList>a>span{
+            color:#7790b7;
+            font-size:18px;
+          }
+
+          .d7MetricGrid{
+            display:grid;
+            grid-template-columns:repeat(2,minmax(0,1fr));
+            gap:8px;
+            margin-top:11px;
+          }
+          .d7MetricGrid>a{
+            min-height:92px;
+            padding:11px;
+            border:1px solid #d5e1f1;
+            border-radius:12px;
+            background:#f9fbff;
+            color:#17315c;
+            text-decoration:none;
+          }
+          .d7MetricGrid small,.d7MetricGrid strong,.d7MetricGrid span{
+            display:block;
+          }
+          .d7MetricGrid small{
+            color:#687b9b;
+            font-size:9px;
+            font-weight:900;
+          }
+          .d7MetricGrid strong{
+            margin-top:8px;
+            font-size:24px;
+          }
+          .d7MetricGrid span{
+            margin-top:4px;
+            color:#0a8749;
+            font-size:9px;
+            font-weight:900;
+          }
+
+          .d7Recommendation{
+            padding:14px;
+            background:linear-gradient(145deg,#effff5,#e0f8e9)!important;
+            border-color:#a9dfbc!important;
+          }
+          .d7Recommendation p{
+            margin:7px 0 0;
+            color:#3c5b4a;
+            font-size:10px;
+            line-height:1.45;
+          }
+          .d7Recommendation>a{
+            display:inline-flex;
+            margin-top:11px;
+            padding:9px 12px;
+            border-radius:9px;
+            background:#0a8d4c;
+            color:#fff;
+            text-decoration:none;
+            font-size:10px;
+            font-weight:950;
+          }
+
+          .d7BottomNav{
+            position:fixed;
+            z-index:40;
+            left:8px;
+            right:8px;
+            bottom:8px;
+            display:grid;
+            grid-template-columns:repeat(4,1fr);
+            gap:4px;
+            padding:7px;
+            border:1px solid #cedcf0;
+            border-radius:16px;
+            background:rgba(255,255,255,.96);
+            box-shadow:0 12px 32px rgba(20,46,93,.2);
+            backdrop-filter:blur(12px);
+          }
+          .d7BottomNav a{
+            display:flex;
+            min-height:46px;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:3px;
+            border-radius:10px;
+            color:#536b92;
+            text-decoration:none;
+          }
+          .d7BottomNav a:first-child{
+            background:#eaf2ff;
+            color:#1767ef;
+          }
+          .d7BottomNav span{font-size:15px}
+          .d7BottomNav b{font-size:8px}
         }
 
       `}</style>
