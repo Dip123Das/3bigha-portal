@@ -38,6 +38,7 @@ import {
 
 import { buildBuyerSmartNotifications } from "@/lib/notifications/smart-reengagement";
 
+import "./buyer-constitutional-dashboard.css";
 function readableRfqTitle(r: BuyerRfqMini) {
   const rawTitle = String(r.title || "").trim();
   const moduleName = String(r.module || "Procurement").trim();
@@ -459,6 +460,7 @@ const closedDeals =
       title="Buyer Work Desk"
       subtitle="Manage RFQs, compare quotations, continue vendor conversations and complete buying decisions."
     >
+      <div className="buyerConstitutionalDashboard">
         <WorkspaceHome
           greeting="Your buying workspace"
           signals={{
@@ -1262,6 +1264,7 @@ const closedDeals =
           Buyer dashboard now connects procurement creation, RFQ comparison, vendor chat, inbox, marketplace discovery and Procurement guidance.
         </div>
 
-    </UniversalDashboardShell>
+      </div>
+        </UniversalDashboardShell>
   );
 }

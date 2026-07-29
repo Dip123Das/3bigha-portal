@@ -1,0 +1,74 @@
+/* H-4B — Constitutional Buyer Dashboard
+ * Human First. AI Second. Precision Always.
+ */
+
+.buyerConstitutionalDashboard {
+  width: 100%;
+  min-width: 0;
+}
+
+.buyerConstitutionalDashboard > * {
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .buyerConstitutionalDashboard {
+    display: grid;
+    gap: 10px;
+  }
+
+  .buyerConstitutionalDashboard > * {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .buyerConstitutionalDashboard h1 {
+    font-size: 23px !important;
+    line-height: 1.16 !important;
+  }
+
+  .buyerConstitutionalDashboard h2 {
+    font-size: 18px !important;
+    line-height: 1.22 !important;
+  }
+
+  .buyerConstitutionalDashboard p {
+    line-height: 1.5 !important;
+  }
+
+  .buyerConstitutionalDashboard details {
+    margin: 0 !important;
+    border-radius: 14px !important;
+  }
+
+  .buyerConstitutionalDashboard details > summary {
+    padding: 12px !important;
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+  }
+
+  .buyerConstitutionalDashboard a,
+  .buyerConstitutionalDashboard button {
+    min-height: 42px;
+  }
+
+  .buyerConstitutionalDashboard [style*="borderRadius: 22"],
+  .buyerConstitutionalDashboard [style*="border-radius: 22"] {
+    border-radius: 16px !important;
+  }
+
+  .buyerConstitutionalDashboard [style*="padding: 18"] {
+    padding: 13px !important;
+  }
+
+  .buyerConstitutionalDashboard [style*="marginBottom: 18"],
+  .buyerConstitutionalDashboard [style*="margin-bottom: 18"] {
+    margin-bottom: 10px !important;
+  }
+
+  .buyerConstitutionalDashboard [style*="minmax(180px,1fr)"],
+  .buyerConstitutionalDashboard [style*="minmax(210px,1fr)"],
+  .buyerConstitutionalDashboard [style*="minmax(280px,1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+}
