@@ -38,7 +38,7 @@ import {
 
 import { buildBuyerSmartNotifications } from "@/lib/notifications/smart-reengagement";
 
-import "./buyer-constitutional-dashboard.css";
+import "../buyer-constitutional-dashboard.css";
 function readableRfqTitle(r: BuyerRfqMini) {
   const rawTitle = String(r.title || "").trim();
   const moduleName = String(r.module || "Procurement").trim();
