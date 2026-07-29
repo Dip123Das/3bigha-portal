@@ -401,6 +401,161 @@ export default function DashboardExecutiveShell({
         @media(max-width:1280px){.d5ConsoleGrid{grid-template-columns:1fr 1fr}.d5ConsoleCard:first-child{grid-column:1/-1}.d5Shell{grid-template-columns:210px minmax(0,1fr)}.d5RightRail{grid-column:1/-1;grid-template-columns:1fr 1fr}.d5IdentityHero{grid-template-columns:auto minmax(0,1fr) 230px}.d5HeroActions{grid-column:1/-1;grid-template-columns:1fr 1fr}.d5Kpis{grid-template-columns:repeat(3,1fr)}}
         @media(max-width:900px){.d5ConsoleGrid{grid-template-columns:1fr}.d5ConsoleCard:first-child{grid-column:auto}.d5ReadinessGrid{grid-template-columns:repeat(2,1fr)}.d5PriorityCards{grid-template-columns:1fr}.d5Shell{display:block;padding:9px}.d5Sidebar{position:static}.d5Nav{grid-template-columns:repeat(2,1fr)}.d5IdentityHero{grid-template-columns:auto 1fr}.d5CompletionCard,.d5HeroActions{grid-column:1/-1}.d5ProfileActions{grid-template-columns:repeat(2,1fr)}.d5BottomGrid{grid-template-columns:1fr}.d5RightRail{grid-template-columns:1fr;margin-top:12px}}
         @media(max-width:600px){.d5ConsoleHeading{display:block}.d5ConsoleHeading a{display:inline-flex;margin-top:9px}.d5ReadinessGrid{grid-template-columns:1fr}.d5ReadinessHeading,.d5PriorityHeading{display:block}.d5ReadinessHeading>strong,.d5PriorityHeading a{display:inline-flex;margin-top:9px}.d5Nav{grid-template-columns:1fr}.d5IdentityHero{display:block}.d5LogoOrb{margin-bottom:12px}.d5CompletionCard{margin-top:12px}.d5ProfileActions{grid-template-columns:1fr}.d5Kpis{grid-template-columns:repeat(2,1fr)}.d5DecisionRow{grid-template-columns:1fr}.d5DecisionRow a{position:static;display:inline-flex;margin-top:8px}.d5SectionHeading{display:block}.d5StatusPills{margin-top:9px}.d5RightRail{display:grid}}
+
+        /* MOBILE_DASHBOARD_COMPACT_V3 */
+        @media(max-width:900px){
+          .d5Shell{
+            display:flex!important;
+            flex-direction:column!important;
+            gap:8px!important;
+            width:100%!important;
+            max-width:none!important;
+            margin:0!important;
+            padding:0!important;
+            overflow-x:hidden!important;
+          }
+          .d5Sidebar{
+            display:none!important;
+          }
+          .d5RightRail{
+            order:1!important;
+            display:block!important;
+            width:100%!important;
+            max-width:none!important;
+            margin:0!important;
+            padding:0 8px!important;
+          }
+          .d5Main{
+            order:2!important;
+            width:100%!important;
+            max-width:none!important;
+            margin:0!important;
+            padding:0 8px 8px!important;
+          }
+          .d5AiCard{
+            display:none!important;
+          }
+          .d5WorkNow{
+            display:block!important;
+            width:100%!important;
+            margin:0!important;
+          }
+          .d5IdentityHero{
+            grid-template-columns:auto minmax(0,1fr)!important;
+            gap:11px!important;
+            padding:13px!important;
+            border-radius:14px!important;
+          }
+          .d5LogoOrb{
+            width:68px!important;
+            height:68px!important;
+            border-width:4px!important;
+          }
+          .d5BusinessName{font-size:22px!important}
+          .d5RoleLine{font-size:11px!important}
+          .d5Location{font-size:10px!important}
+          .d5CompletionCard,.d5HeroActions{
+            grid-column:1/-1!important;
+          }
+          .d5HeroActions{
+            grid-template-columns:1fr 1fr!important;
+          }
+          .d5ProfileActions{
+            grid-template-columns:repeat(2,minmax(0,1fr))!important;
+          }
+          .d5ReadinessGrid{
+            grid-template-columns:repeat(2,minmax(0,1fr))!important;
+          }
+          .d5PriorityCards{
+            grid-template-columns:1fr!important;
+          }
+          .d5Kpis{
+            grid-template-columns:repeat(3,minmax(0,1fr))!important;
+          }
+          .d5ConsoleGrid{
+            grid-template-columns:1fr!important;
+          }
+        }
+
+        @media(max-width:600px){
+          .d5RightRail,.d5Main{
+            padding-left:6px!important;
+            padding-right:6px!important;
+          }
+          .d5WorkActions{
+            grid-template-columns:1fr 1fr!important;
+            gap:7px!important;
+          }
+          .d5WorkAction{
+            grid-template-columns:29px minmax(0,1fr) 14px!important;
+            min-height:48px!important;
+            padding:6px 7px!important;
+          }
+          .d5WorkAction>span{
+            width:29px!important;
+            height:29px!important;
+          }
+          .d5WorkAction>b{font-size:10px!important}
+          .d5WorkAction>i{font-size:17px!important}
+          .d5IdentityHero{
+            display:grid!important;
+            grid-template-columns:58px minmax(0,1fr)!important;
+            padding:11px!important;
+          }
+          .d5LogoOrb{
+            width:58px!important;
+            height:58px!important;
+            margin:0!important;
+          }
+          .d5BusinessName{font-size:19px!important}
+          .d5RoleLine{
+            font-size:10px!important;
+            line-height:1.35!important;
+          }
+          .d5Location{margin-top:5px!important}
+          .d5Badges{
+            gap:5px!important;
+            margin-top:7px!important;
+          }
+          .d5Badges span{
+            padding:4px 7px!important;
+            font-size:9px!important;
+          }
+          .d5ProfileActions{
+            display:none!important;
+          }
+          .d5ReadinessPanel,.d5Priorities,.d5OperatingCenter{
+            margin-top:8px!important;
+            padding:11px!important;
+          }
+          .d5ReadinessGrid{
+            grid-template-columns:1fr 1fr!important;
+            gap:6px!important;
+          }
+          .d5ReadinessItem{
+            padding:8px!important;
+            gap:6px!important;
+          }
+          .d5PriorityCards{gap:7px!important}
+          .d5PriorityCards a{padding:10px!important}
+          .d5Kpis{
+            grid-template-columns:repeat(2,minmax(0,1fr))!important;
+            gap:7px!important;
+          }
+          .d5Kpi{padding:9px!important}
+          .d5DecisionRow{
+            grid-template-columns:1fr!important;
+          }
+          .d5DecisionRow a{
+            position:static!important;
+            display:inline-flex!important;
+            margin-top:8px!important;
+          }
+          .d5ExecutiveConsole,.d5WorkspaceLinks{
+            display:none!important;
+          }
+        }
+
       `}</style>
     </div>
   );
