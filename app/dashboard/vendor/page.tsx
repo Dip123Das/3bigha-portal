@@ -1351,6 +1351,88 @@ const aiDealUpgradeTarget =
       />
 
       <Container>
+        {/* DS4A_LIVE_BUSINESS_OS_PREVIEW_ENTRY */}
+        <section
+          aria-label="Business OS preview"
+          style={{
+            marginBottom: 16,
+            border: "1px solid #bfdbfe",
+            borderRadius: 18,
+            padding: 14,
+            background:
+              "linear-gradient(135deg, rgba(239,246,255,0.96), rgba(238,242,255,0.96))",
+            boxShadow: "0 8px 22px rgba(37,99,235,0.08)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  color: "#1d4ed8",
+                  fontSize: 11,
+                  fontWeight: 950,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                }}
+              >
+                New Business OS
+              </div>
+              <div
+                style={{
+                  marginTop: 4,
+                  color: "#0f172a",
+                  fontSize: 16,
+                  lineHeight: 1.35,
+                  fontWeight: 950,
+                }}
+              >
+                Review your new Vendor Business Operating System
+              </div>
+              <div
+                style={{
+                  marginTop: 4,
+                  maxWidth: 760,
+                  color: "#475569",
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                  fontWeight: 700,
+                }}
+              >
+                The present Vendor Dashboard remains unchanged. Open the controlled preview to review the new human-first workspace before final migration.
+              </div>
+            </div>
+
+            <a
+              href="/dashboard/vendor/business-os-preview"
+              style={{
+                flex: "0 0 auto",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 42,
+                padding: "0 15px",
+                borderRadius: 12,
+                background: "#1767ef",
+                color: "#ffffff",
+                textDecoration: "none",
+                fontSize: 12,
+                fontWeight: 950,
+                boxShadow: "0 8px 18px rgba(23,103,239,0.22)",
+              }}
+            >
+              Open Business OS Preview
+            </a>
+          </div>
+        </section>
+
         <WorkspaceHome
           greeting="Your business workspace"
           signals={{
