@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Container from "@/components/layout/Container";
+import { Container } from "@/components/layout/Container";
 import { BusinessOsRenderer } from "@/components/3bos/framework";
-import { getSupabaseBrowser } from "@/lib/supabase/client";
+import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { createVendorBusinessOsProjection } from "@/lib/3bos/projections/create-vendor-business-os-projection";
 
 type PreviewSignals = {
