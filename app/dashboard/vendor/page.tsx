@@ -28,9 +28,6 @@ import WorkflowContinuityRecorder from "@/components/workflow-continuity/Workflo
 import OperationalEventStream from "@/components/operational-events/OperationalEventStream";
 import OperationalEventRecorder from "@/components/operational-events/OperationalEventRecorder";
 import { buildVendorSmartNotifications } from "@/lib/notifications/smart-reengagement";
-import GlobalAiOperationalStatus from "@/components/ai-operational/GlobalAiOperationalStatus";
-import OperationalRecoveryFeed from "@/components/ai-operational/OperationalRecoveryFeed";
-import WorkspaceHome from "@/components/3bos/workspace-home/WorkspaceHome";
 import { resolveVendorWorkspaceProjection } from "@/lib/3bos/vendor/resolve-vendor-workspace-projection";
 import VendorExecutiveMission from "@/components/3bos/vendor/VendorExecutiveMission";
 import VendorHumanFirstWorkCentre from "@/components/3bos/vendor/VendorHumanFirstWorkCentre";
