@@ -37,6 +37,7 @@ import VendorHumanFirstWorkCentre from "@/components/3bos/vendor/VendorHumanFirs
 import VendorUnifiedBusinessPulse from "@/components/3bos/vendor/VendorUnifiedBusinessPulse";
 import VendorWorkspaceNavigation from "@/components/3bos/vendor/VendorWorkspaceNavigation";
 import VendorUnifiedBusinessHealth from "@/components/3bos/vendor/VendorUnifiedBusinessHealth";
+import VendorUnifiedGrowthCentre from "@/components/3bos/vendor/VendorUnifiedGrowthCentre";
 
 type CompletenessRow = {
   user_id?: string;
@@ -1411,6 +1412,11 @@ const aiDealUpgradeTarget =
           projection={vendorWorkspaceProjection}
         />
 
+        {/* V6_UNIFIED_GROWTH_CENTRE */}
+        <VendorUnifiedGrowthCentre
+          projection={vendorWorkspaceProjection}
+        />
+
         {/* DS4A_LIVE_BUSINESS_OS_PREVIEW_ENTRY */}
         <section
           aria-label="Business OS preview"
@@ -1611,30 +1617,6 @@ const aiDealUpgradeTarget =
           </div>
         </section>
 
-        <section
-          style={{
-            border: "1px solid #e9d5ff",
-            borderRadius: 22,
-            padding: 16,
-            background: "#faf5ff",
-            marginBottom: 18,
-          }}
-        >
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 950, color: "#581c87" }}>
-            Extra Suggestions
-          </h2>
-          <p style={{ marginTop: 6, fontSize: 13, fontWeight: 750, color: "#475569" }}>
-            Use these only after finishing daily work.
-          </p>
-
-          <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-            {aiRecommendations.slice(0, 4).map((rec, i) => (
-              <div key={i} style={{ border: "1px solid #e9d5ff", borderRadius: 14, padding: 12, background: "#ffffff", fontSize: 13, fontWeight: 850, color: "#581c87" }}>
-                {rec}
-              </div>
-            ))}
-          </div>
-        </section>
 
         <div style={{ marginTop: 10, marginBottom: 24, fontSize: 12, fontWeight: 700, color: "#64748b" }}>
           Daily vendor work simplified for easy business operations.
@@ -1642,6 +1624,4 @@ const aiDealUpgradeTarget =
       </Container>
     </main>
   );
-
-
 }

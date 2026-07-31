@@ -120,11 +120,6 @@ check(
   "Legacy Business Management block still exists."
 );
 
-check(
-  page.includes("Extra Suggestions"),
-  "Growth-related suggestions were removed prematurely."
-);
-
 const missionIndex = page.indexOf(
   "V1C1_PROJECTION_DRIVEN_EXECUTIVE_MISSION"
 );
