@@ -35,6 +35,7 @@ import VendorUnifiedBusinessPulse from "@/components/3bos/vendor/VendorUnifiedBu
 import VendorWorkspaceNavigation from "@/components/3bos/vendor/VendorWorkspaceNavigation";
 import VendorUnifiedBusinessHealth from "@/components/3bos/vendor/VendorUnifiedBusinessHealth";
 import VendorUnifiedGrowthCentre from "@/components/3bos/vendor/VendorUnifiedGrowthCentre";
+import VendorDashboardApplicationShell from "@/components/3bos/vendor/VendorDashboardApplicationShell";
 
 type CompletenessRow = {
   user_id?: string;
@@ -1383,36 +1384,51 @@ const aiDealUpgradeTarget =
         }}
       />
 
-      <Container>
+      <VendorDashboardApplicationShell
+        projection={vendorWorkspaceProjection}
+        email={email}
+      >
         {/* V1C1_PROJECTION_DRIVEN_EXECUTIVE_MISSION */}
+        <section id="vendor-executive-mission">
         <VendorExecutiveMission
           projection={vendorWorkspaceProjection}
         />
+        </section>
 
         {/* V2_HUMAN_FIRST_WORK_CENTRE */}
+        <section id="vendor-work-centre">
         <VendorHumanFirstWorkCentre
           projection={vendorWorkspaceProjection}
         />
+        </section>
 
         {/* V5_UNIFIED_BUSINESS_HEALTH */}
+        <section id="vendor-health-centre">
         <VendorUnifiedBusinessHealth
           projection={vendorWorkspaceProjection}
         />
+        </section>
 
         {/* V6_UNIFIED_GROWTH_CENTRE */}
+        <section id="vendor-growth-centre">
         <VendorUnifiedGrowthCentre
           projection={vendorWorkspaceProjection}
         />
+        </section>
 
         {/* V3_UNIFIED_BUSINESS_PULSE */}
+        <section id="vendor-business-pulse">
         <VendorUnifiedBusinessPulse
           projection={vendorWorkspaceProjection}
         />
+        </section>
 
         {/* V4_CANONICAL_WORKSPACE_NAVIGATION */}
+        <section id="vendor-workspace-navigation">
         <VendorWorkspaceNavigation
           projection={vendorWorkspaceProjection}
         />
+        </section>
 
         {/* V7_CANONICAL_VENDOR_DASHBOARD_CUTOVER */}
         <div
@@ -1430,7 +1446,7 @@ const aiDealUpgradeTarget =
           intelligence now operate through one unified Vendor Business
           Operating System.
         </div>
-      </Container>
+      </VendorDashboardApplicationShell>
     </main>
   );
 }
