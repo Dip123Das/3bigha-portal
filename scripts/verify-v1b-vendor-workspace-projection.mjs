@@ -38,6 +38,7 @@ for (const marker of [
   "pulse:",
   "performance:",
   "growth:",
+  "navigation:",
   'version: "v1b"',
   "Use the Essential Workspace fully",
 ]) {

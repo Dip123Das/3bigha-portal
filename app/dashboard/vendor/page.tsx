@@ -36,6 +36,7 @@ import VendorExecutiveMission from "@/components/3bos/vendor/VendorExecutiveMiss
 import VendorHumanFirstWorkCentre from "@/components/3bos/vendor/VendorHumanFirstWorkCentre";
 import VendorUnifiedBusinessPulse from "@/components/3bos/vendor/VendorUnifiedBusinessPulse";
 import VendorWorkspaceNavigation from "@/components/3bos/vendor/VendorWorkspaceNavigation";
+import VendorUnifiedBusinessHealth from "@/components/3bos/vendor/VendorUnifiedBusinessHealth";
 
 type CompletenessRow = {
   user_id?: string;
@@ -1405,6 +1406,11 @@ const aiDealUpgradeTarget =
           projection={vendorWorkspaceProjection}
         />
 
+        {/* V5_UNIFIED_BUSINESS_HEALTH */}
+        <VendorUnifiedBusinessHealth
+          projection={vendorWorkspaceProjection}
+        />
+
         {/* DS4A_LIVE_BUSINESS_OS_PREVIEW_ENTRY */}
         <section
           aria-label="Business OS preview"
@@ -1602,57 +1608,6 @@ const aiDealUpgradeTarget =
               <div style={{ fontWeight: 950, color: "#9a3412" }}>Visibility</div>
               <div style={{ marginTop: 4, fontSize: 13, fontWeight: 750, color: "#475569" }}>Profile and activity help buyers find you faster.</div>
             </div>
-          </div>
-        </section>
-
-        <section
-          style={{
-            border: "1px solid #e2e8f0",
-            borderRadius: 22,
-            padding: 16,
-            background: "#ffffff",
-            marginBottom: 16,
-          }}
-        >
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 950, color: "#0f172a" }}>
-            Business Management
-          </h2>
-
-          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 10 }}>
-            <div style={{ border: "1px solid #bbf7d0", borderRadius: 16, padding: 12, background: "#f0fdf4" }}>
-              <div style={{ fontSize: 12, fontWeight: 850, color: "#047857" }}>Profile</div>
-              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#064e3b" }}>
-                {vendorComplete ? "Complete" : vendorPct !== null ? `${vendorPct}%` : "Review"}
-              </div>
-              <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#475569" }}>Business profile</div>
-            </div>
-
-            <div style={{ border: "1px solid #dbeafe", borderRadius: 16, padding: 12, background: "#eff6ff" }}>
-              <div style={{ fontSize: 12, fontWeight: 850, color: "#1d4ed8" }}>Leads</div>
-              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#1e3a8a" }}>{leadStats.newLeadCount}</div>
-              <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#475569" }}>New buyer leads</div>
-            </div>
-
-            <div style={{ border: "1px solid #fef3c7", borderRadius: 16, padding: 12, background: "#fffbeb" }}>
-              <div style={{ fontSize: 12, fontWeight: 850, color: "#92400e" }}>Replies</div>
-              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#78350f" }}>{replyRate}%</div>
-              <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#475569" }}>Reply rate</div>
-            </div>
-
-            <a
-              href="/dashboard/subscription"
-              style={{
-                textDecoration: "none",
-                border: "1px solid #e9d5ff",
-                borderRadius: 16,
-                padding: 12,
-                background: "#faf5ff",
-              }}
-            >
-              <div style={{ fontSize: 12, fontWeight: 850, color: "#7e22ce" }}>Plan</div>
-              <div style={{ marginTop: 4, fontSize: 20, fontWeight: 950, color: "#581c87" }}>{String(vendorPlan || "Free").replace(/_/g, " ")}</div>
-              <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: "#475569" }}>Manage vendor plan</div>
-            </a>
           </div>
         </section>
 
