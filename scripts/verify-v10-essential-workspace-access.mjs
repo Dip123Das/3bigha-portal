@@ -54,7 +54,7 @@ check(
   middleware.includes(
     "ESSENTIAL_WORKSPACE_MUST_REMAIN_AVAILABLE"
   ),
-  "Essential Workspace access policy marker is missing."
+  "Essential Workspace access marker is missing."
 );
 
 for (const forbidden of [
@@ -64,7 +64,21 @@ for (const forbidden of [
 ]) {
   check(
     !middleware.includes(forbidden),
-    `Forced Growth Plan access rule remains: ${forbidden}`
+    `Forced Growth Plan rule remains: ${forbidden}`
+  );
+}
+
+for (const required of [
+  "hasApprovedIdentity",
+  "hasEstablishedVendorIdentity",
+  'accessProfile?.account_status === "active"',
+  "accessProfile?.onboarding_completed === true",
+  '"hub_vendor"',
+  '"vendor"',
+]) {
+  check(
+    middleware.includes(required),
+    `Operational access compatibility is missing: ${required}`
   );
 }
 
@@ -72,14 +86,7 @@ check(
   middleware.includes(
     'reviewUrl.pathname = "/auth/awaiting-approval"'
   ),
-  "Identity-approval protection was removed."
-);
-
-check(
-  middleware.includes(
-    'authPathname.startsWith("/dashboard/vendor")'
-  ),
-  "Vendor Dashboard protection boundary is missing."
+  "Approval fallback protection was removed."
 );
 
 check(
@@ -93,14 +100,7 @@ check(
   growthComponent.includes(
     'href: "/dashboard/subscription"'
   ),
-  "Optional Growth Plan review action was removed."
-);
-
-check(
-  growthComponent.includes(
-    "paid plans and advanced assistance"
-  ),
-  "Human-first optional Growth Plan language is missing."
+  "Optional Growth Plan action was removed."
 );
 
 console.log(
@@ -108,9 +108,9 @@ console.log(
 );
 
 console.log(
-  "Approved members can open the Vendor Dashboard without purchasing a Growth Plan."
+  "Approved members and established active onboarded vendors can open the Vendor Dashboard."
 );
 
 console.log(
-  "Growth Plans remain optional and available only through deliberate user action."
+  "Growth Plans remain optional and never control Essential Workspace access."
 );

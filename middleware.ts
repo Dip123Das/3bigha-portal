@@ -215,9 +215,27 @@ export async function middleware(req: NextRequest) {
   }
 
   if (authPathname.startsWith("/dashboard/vendor")) {
+    const vendorRoles = new Set([
+      "vendor",
+      "hub_vendor",
+      "builder",
+      "blogger",
+    ]);
+
+    const hasApprovedIdentity =
+      accessProfile?.approval_status === "approved";
+
+    const hasEstablishedVendorIdentity =
+      accessProfile?.account_status === "active" &&
+      accessProfile?.onboarding_completed === true &&
+      vendorRoles.has(
+        String(accessProfile?.role || "")
+      );
+
     if (
       accessProfile?.role !== "master_admin" &&
-      accessProfile?.approval_status !== "approved"
+      !hasApprovedIdentity &&
+      !hasEstablishedVendorIdentity
     ) {
       const reviewUrl = req.nextUrl.clone();
       reviewUrl.pathname = "/auth/awaiting-approval";
@@ -228,7 +246,11 @@ export async function middleware(req: NextRequest) {
     /*
      * ESSENTIAL_WORKSPACE_MUST_REMAIN_AVAILABLE
      *
-     * Identity approval protects operational access.
+     * A formally approved member may enter the workspace.
+     * An established active and onboarded vendor may also
+     * continue working while newer approval records are
+     * being aligned.
+     *
      * A paid Growth Plan is optional support and must never
      * control access to the Vendor Dashboard.
      */
