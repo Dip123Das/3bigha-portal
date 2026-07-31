@@ -33,6 +33,7 @@ import OperationalRecoveryFeed from "@/components/ai-operational/OperationalReco
 import WorkspaceHome from "@/components/3bos/workspace-home/WorkspaceHome";
 import { resolveVendorWorkspaceProjection } from "@/lib/3bos/vendor/resolve-vendor-workspace-projection";
 import VendorExecutiveMission from "@/components/3bos/vendor/VendorExecutiveMission";
+import VendorHumanFirstWorkCentre from "@/components/3bos/vendor/VendorHumanFirstWorkCentre";
 
 type CompletenessRow = {
   user_id?: string;
@@ -1384,6 +1385,11 @@ const aiDealUpgradeTarget =
       <Container>
         {/* V1C1_PROJECTION_DRIVEN_EXECUTIVE_MISSION */}
         <VendorExecutiveMission
+          projection={vendorWorkspaceProjection}
+        />
+
+        {/* V2_HUMAN_FIRST_WORK_CENTRE */}
+        <VendorHumanFirstWorkCentre
           projection={vendorWorkspaceProjection}
         />
 

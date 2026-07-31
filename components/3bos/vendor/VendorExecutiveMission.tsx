@@ -1,41 +1,14 @@
 import type {
   VendorWorkspaceProjection,
-  VendorWorkspaceTone,
 } from "@/lib/3bos/vendor/resolve-vendor-workspace-projection";
 
 type VendorExecutiveMissionProps = {
   projection: VendorWorkspaceProjection;
 };
 
-function getToneStyle(tone: VendorWorkspaceTone) {
-  if (tone === "positive") {
-    return {
-      border: "#bbf7d0",
-      background: "#f0fdf4",
-      accent: "#047857",
-    };
-  }
-
-  if (tone === "attention") {
-    return {
-      border: "#fde68a",
-      background: "#fffbeb",
-      accent: "#92400e",
-    };
-  }
-
-  return {
-    border: "#dbeafe",
-    background: "#eff6ff",
-    accent: "#1d4ed8",
-  };
-}
-
 export default function VendorExecutiveMission({
   projection,
 }: VendorExecutiveMissionProps) {
-  const priorities = projection.workNow.slice(0, 3);
-
   const pulseItems = [
     {
       label: "New requirements",
@@ -227,113 +200,6 @@ export default function VendorExecutiveMission({
           padding: 20,
         }}
       >
-        <div>
-          <div
-            style={{
-              color: "#0f172a",
-              fontSize: 18,
-              fontWeight: 950,
-            }}
-          >
-            Today&apos;s priorities
-          </div>
-
-          <div
-            style={{
-              marginTop: 4,
-              color: "#64748b",
-              fontSize: 12,
-              lineHeight: 1.5,
-              fontWeight: 700,
-            }}
-          >
-            Complete the most important human actions before reviewing
-            secondary analytics.
-          </div>
-
-          <div
-            style={{
-              marginTop: 12,
-              display: "grid",
-              gap: 10,
-            }}
-          >
-            {priorities.map((action, index) => {
-              const tone = getToneStyle(action.tone);
-
-              return (
-                <a
-                  key={action.key}
-                  href={action.href}
-                  style={{
-                    display: "block",
-                    padding: 13,
-                    border: `1px solid ${tone.border}`,
-                    borderRadius: 16,
-                    background: tone.background,
-                    color: "inherit",
-                    textDecoration: "none",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: 10,
-                    }}
-                  >
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        flex: "0 0 auto",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 25,
-                        height: 25,
-                        borderRadius: 999,
-                        background: "#ffffff",
-                        color: tone.accent,
-                        fontSize: 12,
-                        fontWeight: 950,
-                      }}
-                    >
-                      {index + 1}
-                    </span>
-
-                    <span style={{ minWidth: 0 }}>
-                      <span
-                        style={{
-                          display: "block",
-                          color: "#0f172a",
-                          fontSize: 13,
-                          lineHeight: 1.4,
-                          fontWeight: 950,
-                        }}
-                      >
-                        {action.label}
-                      </span>
-
-                      <span
-                        style={{
-                          display: "block",
-                          marginTop: 3,
-                          color: "#475569",
-                          fontSize: 12,
-                          lineHeight: 1.5,
-                          fontWeight: 700,
-                        }}
-                      >
-                        {action.detail}
-                      </span>
-                    </span>
-                  </div>
-                </a>
-              );
-            })}
-          </div>
-        </div>
-
         <div>
           <div
             style={{

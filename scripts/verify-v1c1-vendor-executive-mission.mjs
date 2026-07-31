@@ -43,13 +43,6 @@ assert(
 
 assert(
   component.includes(
-    "projection.workNow.slice(0, 3)"
-  ),
-  "Executive Mission must use canonical workNow priorities."
-);
-
-assert(
-  component.includes(
     "projection.readiness.score"
   ),
   "Executive Mission must use canonical readiness."
