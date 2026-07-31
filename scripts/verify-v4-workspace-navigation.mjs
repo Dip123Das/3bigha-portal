@@ -145,11 +145,6 @@ assert(
   "Visible legacy Daily Work Areas navigation still exists."
 );
 
-assert(
-  page.includes("Business Management"),
-  "Business Management was removed prematurely."
-);
-
 const missionIndex = page.indexOf("V1C1_PROJECTION_DRIVEN_EXECUTIVE_MISSION");
 const workIndex = page.indexOf("V2_HUMAN_FIRST_WORK_CENTRE");
 const pulseIndex = page.indexOf("V3_UNIFIED_BUSINESS_PULSE");

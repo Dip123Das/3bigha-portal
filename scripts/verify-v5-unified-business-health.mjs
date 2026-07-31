@@ -105,6 +105,11 @@ check(
 );
 
 check(
+  page.includes("V4_CANONICAL_WORKSPACE_NAVIGATION"),
+  "V-4 canonical workspace navigation was removed."
+);
+
+check(
   page.includes("<VendorUnifiedBusinessHealth") &&
     page.includes("projection={vendorWorkspaceProjection}"),
   "Vendor Dashboard does not render projection-driven Business Health."
