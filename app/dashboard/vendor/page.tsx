@@ -32,6 +32,7 @@ import GlobalAiOperationalStatus from "@/components/ai-operational/GlobalAiOpera
 import OperationalRecoveryFeed from "@/components/ai-operational/OperationalRecoveryFeed";
 import WorkspaceHome from "@/components/3bos/workspace-home/WorkspaceHome";
 import { resolveVendorWorkspaceProjection } from "@/lib/3bos/vendor/resolve-vendor-workspace-projection";
+import VendorExecutiveMission from "@/components/3bos/vendor/VendorExecutiveMission";
 
 type CompletenessRow = {
   user_id?: string;
@@ -1381,6 +1382,11 @@ const aiDealUpgradeTarget =
       />
 
       <Container>
+        {/* V1C1_PROJECTION_DRIVEN_EXECUTIVE_MISSION */}
+        <VendorExecutiveMission
+          projection={vendorWorkspaceProjection}
+        />
+
         {/* DS4A_LIVE_BUSINESS_OS_PREVIEW_ENTRY */}
         <section
           aria-label="Business OS preview"
