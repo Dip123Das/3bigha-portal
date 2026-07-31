@@ -227,6 +227,36 @@ export default function SubscriptionPageClient() {
   });
   const goldPrediction = planLeadPrediction("gold_vendor");
   const platinumPrediction = planLeadPrediction("platinum_vendor");
+
+  // DS4B_EXECUTIVE_HEALTH_LOGIC
+  const businessHealthScore = Math.min(
+    100,
+    35 +
+      planAiBoostPower(activePlan) * 2 +
+      (growthJourney.isPaidActive ? 20 : 0) +
+      (gatewayReady ? 5 : 0)
+  );
+
+  const businessHealthLabel =
+    businessHealthScore >= 80
+      ? "Strong"
+      : businessHealthScore >= 60
+      ? "Growing"
+      : businessHealthScore >= 40
+      ? "Building"
+      : "Starting";
+
+  const executiveNextAction =
+    focus === "boost"
+      ? "Review visibility support and recover missed opportunities."
+      : focus === "ai"
+      ? "Strengthen customer follow-up and deal conversion."
+      : focus === "premium"
+      ? "Protect your position with wider operational support."
+      : activePlan === "free"
+      ? "Continue with the Essential Workspace and upgrade only when your business needs more support."
+      : "Use your present Growth Plan fully before considering the next level.";
+
   const displayPlans: DisplayPlanKey[] = [
     "free",
     "basic_vendor",
@@ -283,6 +313,13 @@ export default function SubscriptionPageClient() {
           detail:
             "Use the Free plan first, then upgrade when your business needs stronger marketplace visibility or operational tools.",
         };
+
+  const executiveRecommendation =
+    identityRecommendation?.plan === activeDisplayPlan
+      ? `Your present ${activeGrowthPlan.offerLabel} plan already matches the current recommendation.`
+      : identityRecommendation
+      ? `${PLAN_META[identityRecommendation.plan].title} is the suggested next plan for your present business identity.`
+      : "Continue with your present workspace and review plans only when a real business need arises.";
 
   // 1) Read session robustly (no infinite loading)
   useEffect(() => {
@@ -504,6 +541,61 @@ export default function SubscriptionPageClient() {
           </div>
         ) : (
           <>
+            {/* DS4B_EXECUTIVE_BUSINESS_GROWTH_LAYER */}
+            <section className="executiveGrowth">
+              <div className="executiveGrowthMain">
+                <div className="executiveEyebrow">Your Business Growth Desk</div>
+                <h2 className="executiveTitle">
+                  Understand where your business stands before choosing a plan
+                </h2>
+                <p className="executiveLead">
+                  Your Essential Workspace remains available. Growth Plans are optional support tools for communication, visibility and business operations.
+                </p>
+
+                <div className="executiveActionRow">
+                  <Link className="executivePrimary" href={returnTo}>
+                    Continue My Work
+                  </Link>
+                  <a className="executiveSecondary" href="#growth-plan-options">
+                    Review Plan Options
+                  </a>
+                </div>
+              </div>
+
+              <div className="executiveHealth">
+                <div className="executiveHealthLabel">Business health</div>
+                <div className="executiveHealthValue">{businessHealthScore}/100</div>
+                <div className="executiveHealthState">{businessHealthLabel}</div>
+                <div className="executiveHealthHint">
+                  This guidance reflects your current plan and available business support. It is not a promise of sales or enquiries.
+                </div>
+              </div>
+
+              <div className="executiveGrid">
+                <div className="executiveCard">
+                  <div className="executiveCardLabel">Current stage</div>
+                  <div className="executiveCardValue">{activeGrowthPlan.stageLabel}</div>
+                  <div className="executiveCardText">{activeGrowthPlan.badge}</div>
+                </div>
+
+                <div className="executiveCard">
+                  <div className="executiveCardLabel">Recommendation</div>
+                  <div className="executiveCardValue">
+                    {identityRecommendation
+                      ? PLAN_META[identityRecommendation.plan].title
+                      : activeGrowthPlan.offerLabel}
+                  </div>
+                  <div className="executiveCardText">{executiveRecommendation}</div>
+                </div>
+
+                <div className="executiveCard">
+                  <div className="executiveCardLabel">Next best action</div>
+                  <div className="executiveCardValue">Act with clarity</div>
+                  <div className="executiveCardText">{executiveNextAction}</div>
+                </div>
+              </div>
+            </section>
+
             {focus === "boost" ? (
               <div className="alert alertWarn" style={{ borderColor: "#f97316", background: "#fff7ed" }}>
                 <b>Your business may benefit from broader visibility.</b>
@@ -758,7 +850,7 @@ export default function SubscriptionPageClient() {
                 : "The SBI integration is being configured. Your Essential Workspace remains available; no paid benefit can activate until payment is available and verified."}
             </div>
 
-            <div className="comparisonBox">
+            <div id="growth-plan-options" className="comparisonBox">
               <div className="comparisonHead">
                 <div>
                   <div className="comparisonKicker">Business Growth Plans</div>
@@ -981,6 +1073,139 @@ export default function SubscriptionPageClient() {
         .subPage .btnOutline:hover {
           background: #f9fafb;
         }
+        .subPage .executiveGrowth {
+          margin: 18px 0 16px;
+          border: 1px solid #cbd5e1;
+          border-radius: 24px;
+          padding: 20px;
+          background:
+            radial-gradient(circle at top right, rgba(37, 99, 235, 0.10), transparent 34%),
+            linear-gradient(135deg, #ffffff, #f8fafc);
+          box-shadow: 0 18px 44px rgba(15, 23, 42, 0.09);
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) 240px;
+          gap: 18px;
+        }
+        .subPage .executiveGrowthMain { min-width: 0; }
+        .subPage .executiveEyebrow {
+          color: #1d4ed8;
+          font-size: 11px;
+          font-weight: 950;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+        }
+        .subPage .executiveTitle {
+          margin: 7px 0 0;
+          max-width: 760px;
+          color: #0f172a;
+          font-size: 28px;
+          line-height: 1.12;
+          letter-spacing: -0.02em;
+          font-weight: 950;
+        }
+        .subPage .executiveLead {
+          margin: 10px 0 0;
+          max-width: 760px;
+          color: #475569;
+          font-size: 14px;
+          line-height: 1.65;
+          font-weight: 650;
+        }
+        .subPage .executiveActionRow {
+          margin-top: 16px;
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .subPage .executivePrimary,
+        .subPage .executiveSecondary {
+          min-height: 42px;
+          padding: 0 15px;
+          border-radius: 12px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 950;
+        }
+        .subPage .executivePrimary {
+          background: #1767ef;
+          color: #fff;
+          box-shadow: 0 10px 22px rgba(23, 103, 239, 0.22);
+        }
+        .subPage .executiveSecondary {
+          border: 1px solid #cbd5e1;
+          background: #fff;
+          color: #0f172a;
+        }
+        .subPage .executiveHealth {
+          border: 1px solid #bfdbfe;
+          border-radius: 18px;
+          padding: 16px;
+          background: rgba(255, 255, 255, 0.92);
+        }
+        .subPage .executiveHealthLabel,
+        .subPage .executiveCardLabel {
+          color: #64748b;
+          font-size: 11px;
+          font-weight: 950;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+        .subPage .executiveHealthValue {
+          margin-top: 6px;
+          color: #1d4ed8;
+          font-size: 34px;
+          line-height: 1;
+          font-weight: 950;
+        }
+        .subPage .executiveHealthState {
+          margin-top: 6px;
+          color: #0f172a;
+          font-size: 15px;
+          font-weight: 950;
+        }
+        .subPage .executiveHealthHint {
+          margin-top: 8px;
+          color: #64748b;
+          font-size: 11px;
+          line-height: 1.5;
+          font-weight: 700;
+        }
+        .subPage .executiveGrid {
+          grid-column: 1 / -1;
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 12px;
+        }
+        .subPage .executiveCard {
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          padding: 14px;
+          background: rgba(255, 255, 255, 0.92);
+        }
+        .subPage .executiveCardValue {
+          margin-top: 7px;
+          color: #0f172a;
+          font-size: 17px;
+          font-weight: 950;
+        }
+        .subPage .executiveCardText {
+          margin-top: 6px;
+          color: #475569;
+          font-size: 12px;
+          line-height: 1.55;
+          font-weight: 700;
+        }
+        @media (max-width: 820px) {
+          .subPage .executiveGrowth {
+            grid-template-columns: 1fr;
+            padding: 16px;
+          }
+          .subPage .executiveGrid { grid-template-columns: 1fr; }
+          .subPage .executiveTitle { font-size: 24px; }
+        }
         .subPage .state {
           margin-top: 18px;
           border: 1px solid #eeeeee;
@@ -1023,7 +1248,7 @@ export default function SubscriptionPageClient() {
         }
         .subPage .bar {
           margin-top: 12px;
-          display: flex;
+          display: none;
           gap: 8px;
           flex-wrap: wrap;
         }
@@ -1271,6 +1496,7 @@ export default function SubscriptionPageClient() {
           cursor: not-allowed;
         }
         .subPage .footHint {
+          display: none;
           margin-top: 12px;
           font-size: 12px;
           color: #6b7280;
