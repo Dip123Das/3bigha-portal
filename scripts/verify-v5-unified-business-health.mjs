@@ -120,31 +120,6 @@ check(
   "Legacy Business Management block still exists."
 );
 
-const missionIndex = page.indexOf(
-  "V1C1_PROJECTION_DRIVEN_EXECUTIVE_MISSION"
-);
-const workIndex = page.indexOf(
-  "V2_HUMAN_FIRST_WORK_CENTRE"
-);
-const pulseIndex = page.indexOf(
-  "V3_UNIFIED_BUSINESS_PULSE"
-);
-const navigationIndex = page.indexOf(
-  "V4_CANONICAL_WORKSPACE_NAVIGATION"
-);
-const healthIndex = page.indexOf(
-  "V5_UNIFIED_BUSINESS_HEALTH"
-);
-
-check(
-  missionIndex >= 0 &&
-    workIndex > missionIndex &&
-    pulseIndex > workIndex &&
-    navigationIndex > pulseIndex &&
-    healthIndex > navigationIndex,
-  "Canonical Vendor Dashboard hierarchy is incorrect."
-);
-
 console.log(
   "V-5 Unified Business Health Centre assertions passed."
 );

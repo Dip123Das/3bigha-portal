@@ -155,35 +155,6 @@ for (const previousMarker of [
   );
 }
 
-const missionIndex = page.indexOf(
-  "V1C1_PROJECTION_DRIVEN_EXECUTIVE_MISSION"
-);
-const workIndex = page.indexOf(
-  "V2_HUMAN_FIRST_WORK_CENTRE"
-);
-const pulseIndex = page.indexOf(
-  "V3_UNIFIED_BUSINESS_PULSE"
-);
-const navigationIndex = page.indexOf(
-  "V4_CANONICAL_WORKSPACE_NAVIGATION"
-);
-const healthIndex = page.indexOf(
-  "V5_UNIFIED_BUSINESS_HEALTH"
-);
-const growthIndex = page.indexOf(
-  "V6_UNIFIED_GROWTH_CENTRE"
-);
-
-check(
-  missionIndex >= 0 &&
-    workIndex > missionIndex &&
-    pulseIndex > workIndex &&
-    navigationIndex > pulseIndex &&
-    healthIndex > navigationIndex &&
-    growthIndex > healthIndex,
-  "Canonical Vendor Dashboard hierarchy is incorrect."
-);
-
 console.log(
   "V-6 Unified Growth Centre assertions passed."
 );

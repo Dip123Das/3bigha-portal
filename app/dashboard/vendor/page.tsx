@@ -1397,16 +1397,6 @@ const aiDealUpgradeTarget =
           projection={vendorWorkspaceProjection}
         />
 
-        {/* V3_UNIFIED_BUSINESS_PULSE */}
-        <VendorUnifiedBusinessPulse
-          projection={vendorWorkspaceProjection}
-        />
-
-        {/* V4_CANONICAL_WORKSPACE_NAVIGATION */}
-        <VendorWorkspaceNavigation
-          projection={vendorWorkspaceProjection}
-        />
-
         {/* V5_UNIFIED_BUSINESS_HEALTH */}
         <VendorUnifiedBusinessHealth
           projection={vendorWorkspaceProjection}
@@ -1417,209 +1407,31 @@ const aiDealUpgradeTarget =
           projection={vendorWorkspaceProjection}
         />
 
-        {/* DS4A_LIVE_BUSINESS_OS_PREVIEW_ENTRY */}
-        <section
-          aria-label="Business OS preview"
-          style={{
-            marginBottom: 16,
-            border: "1px solid #bfdbfe",
-            borderRadius: 18,
-            padding: 14,
-            background:
-              "linear-gradient(135deg, rgba(239,246,255,0.96), rgba(238,242,255,0.96))",
-            boxShadow: "0 8px 22px rgba(37,99,235,0.08)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{
-                  color: "#1d4ed8",
-                  fontSize: 11,
-                  fontWeight: 950,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                }}
-              >
-                New Business OS
-              </div>
-              <div
-                style={{
-                  marginTop: 4,
-                  color: "#0f172a",
-                  fontSize: 16,
-                  lineHeight: 1.35,
-                  fontWeight: 950,
-                }}
-              >
-                Review your new Vendor Business Operating System
-              </div>
-              <div
-                style={{
-                  marginTop: 4,
-                  maxWidth: 760,
-                  color: "#475569",
-                  fontSize: 12,
-                  lineHeight: 1.5,
-                  fontWeight: 700,
-                }}
-              >
-                The present Vendor Dashboard remains unchanged. Open the controlled preview to review the new human-first workspace before final migration.
-              </div>
-            </div>
-
-            <a
-              href="/dashboard/vendor/business-os-preview"
-              style={{
-                flex: "0 0 auto",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: 42,
-                padding: "0 15px",
-                borderRadius: 12,
-                background: "#1767ef",
-                color: "#ffffff",
-                textDecoration: "none",
-                fontSize: 12,
-                fontWeight: 950,
-                boxShadow: "0 8px 18px rgba(23,103,239,0.22)",
-              }}
-            >
-              Open Business OS Preview
-            </a>
-          </div>
-        </section>
-
-        <WorkspaceHome
-          greeting="Your business workspace"
-          signals={{
-            pendingWorkCount:
-              leadStats.newLeadCount,
-            unreadConversationCount:
-              recentEnquiries.filter(
-                (item) =>
-                  String(item.status).toLowerCase() ===
-                  "new"
-              ).length,
-            openRequirementCount:
-              leadStats.leadsLast30Days,
-            activeListingCount:
-              priceIntelligenceStats.totalUpdates,
-            alertCount:
-              missedLeads,
-            recentActivity:
-              recentEnquiries.slice(0, 5).map(
-                (item) => ({
-                  id: item.id,
-                  label:
-                    item.buyer_name ||
-                    "Customer enquiry",
-                  description:
-                    item.message ||
-                    "New customer activity",
-                  href:
-                    "/dashboard/vendor/enquiries",
-                  occurredAt:
-                    item.created_at,
-                  category:
-                    item.subject_type,
-                })
-              ),
-            recentActionKeys: [
-              "business_overview",
-              "requirements",
-            ],
-            attentionActionKeys:
-              missedLeads > 0
-                ? ["requirements"]
-                : [],
-            recommendedActionLimit: 6,
-          }}
+        {/* V3_UNIFIED_BUSINESS_PULSE */}
+        <VendorUnifiedBusinessPulse
+          projection={vendorWorkspaceProjection}
         />
 
-        <div style={{ marginBottom: 16 }}>
-          <GlobalAiOperationalStatus
-            battlefieldPulse="active"
-            procurementPressure="watch"
-            economicStress="stable"
-            supplyChainRisk="stable"
-            orchestrationState="loaded"
-          />
-        </div>
+        {/* V4_CANONICAL_WORKSPACE_NAVIGATION */}
+        <VendorWorkspaceNavigation
+          projection={vendorWorkspaceProjection}
+        />
 
-        <div style={{ marginBottom: 16 }}>
-          <OperationalRecoveryFeed />
-        </div>
-
-        <section
+        {/* V7_CANONICAL_VENDOR_DASHBOARD_CUTOVER */}
+        <div
+          data-v7-canonical-vendor-dashboard="active"
           style={{
-            border: "1px solid #bbf7d0",
-            borderRadius: 22,
-            padding: 16,
-            background: "#f0fdf4",
-            marginBottom: 16,
+            marginTop: 4,
+            marginBottom: 24,
+            color: "#64748b",
+            fontSize: 12,
+            lineHeight: 1.5,
+            fontWeight: 700,
           }}
         >
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 950, color: "#065f46" }}>
-            Today’s Action Centre
-          </h2>
-          <p style={{ marginTop: 6, fontSize: 13, fontWeight: 750, color: "#475569" }}>
-            Only the important things that need your attention today.
-          </p>
-
-          <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-            <div style={{ border: "1px solid #dcfce7", borderRadius: 14, padding: 12, background: "#ffffff", fontWeight: 850, color: "#065f46" }}>
-              {leadStats.newLeadCount > 0 ? `${leadStats.newLeadCount} new buyer lead(s) need checking.` : "No urgent buyer follow-up pending."}
-            </div>
-            <div style={{ border: "1px solid #dbeafe", borderRadius: 14, padding: 12, background: "#ffffff", fontWeight: 850, color: "#1e3a8a" }}>
-              {dealStats.ready > 0 ? `${dealStats.ready} ready-to-close deal signal(s) found.` : "No ready-to-close deal signal detected yet."}
-            </div>
-            <div style={{ border: "1px solid #fef3c7", borderRadius: 14, padding: 12, background: "#ffffff", fontWeight: 850, color: "#92400e" }}>
-              {missedLeads > 0 ? `${missedLeads} lead(s) may need faster reply.` : "Reply pressure is normal today."}
-            </div>
-          </div>
-        </section>
-
-        <section
-          style={{
-            border: "1px solid #fed7aa",
-            borderRadius: 22,
-            padding: 16,
-            background: "#fff7ed",
-            marginBottom: 16,
-          }}
-        >
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 950, color: "#9a3412" }}>
-            Important Vendor Alerts
-          </h2>
-          <p style={{ marginTop: 6, fontSize: 13, fontWeight: 750, color: "#475569" }}>
-            Simple reminders for replies, visibility and pending vendor work.
-          </p>
-
-          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 10 }}>
-            <div style={{ border: "1px solid #fed7aa", borderRadius: 16, padding: 12, background: "#ffffff" }}>
-              <div style={{ fontWeight: 950, color: "#9a3412" }}>Reply rate</div>
-              <div style={{ marginTop: 4, fontSize: 13, fontWeight: 750, color: "#475569" }}>{replyRate}% reply performance.</div>
-            </div>
-            <div style={{ border: "1px solid #fed7aa", borderRadius: 16, padding: 12, background: "#ffffff" }}>
-              <div style={{ fontWeight: 950, color: "#9a3412" }}>Visibility</div>
-              <div style={{ marginTop: 4, fontSize: 13, fontWeight: 750, color: "#475569" }}>Profile and activity help buyers find you faster.</div>
-            </div>
-          </div>
-        </section>
-
-
-        <div style={{ marginTop: 10, marginBottom: 24, fontSize: 12, fontWeight: 700, color: "#64748b" }}>
-          Daily vendor work simplified for easy business operations.
+          Your daily work, business health, growth and marketplace
+          intelligence now operate through one unified Vendor Business
+          Operating System.
         </div>
       </Container>
     </main>
