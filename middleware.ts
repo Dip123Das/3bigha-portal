@@ -87,25 +87,6 @@ function loginRedirect(req: NextRequest, pathname: string) {
   return NextResponse.redirect(url);
 }
 
-function isActivatedPaidSubscription(input: {
-  subscription_plan?: string | null;
-  subscription_status?: string | null;
-  subscription_expires_at?: string | null;
-} | null) {
-  const plan = String(input?.subscription_plan || "").trim().toLowerCase();
-  const status = String(input?.subscription_status || "").trim().toLowerCase();
-  const expiresAt = input?.subscription_expires_at
-    ? new Date(input.subscription_expires_at)
-    : null;
-
-  return (
-    plan !== "" &&
-    plan !== "free" &&
-    ["active", "approved", "paid", "trialing"].includes(status) &&
-    (!expiresAt || Number.isNaN(expiresAt.getTime()) || expiresAt > new Date())
-  );
-}
-
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
@@ -234,41 +215,23 @@ export async function middleware(req: NextRequest) {
   }
 
   if (authPathname.startsWith("/dashboard/vendor")) {
-    if (accessProfile?.role !== "master_admin") {
-      const vendorRoles = new Set(["vendor", "hub_vendor", "builder"]);
-      const hasOperationalVendorIdentity =
-        accessProfile?.account_status === "active" &&
-        accessProfile?.onboarding_completed === true &&
-        vendorRoles.has(String(accessProfile?.role || ""));
-
-      /*
-       * Essential vendor workspaces belong to an active, onboarded identity.
-       * Administrative approval remains relevant to verification presentation,
-       * but must not lock an established vendor out of their own work.
-       */
-      if (
-        accessProfile?.approval_status !== "approved" &&
-        !hasOperationalVendorIdentity
-      ) {
-        const reviewUrl = req.nextUrl.clone();
-        reviewUrl.pathname = "/auth/awaiting-approval";
-        reviewUrl.search = "";
-        return NextResponse.redirect(reviewUrl);
-      }
-
-      const { data: subscription } = await supabase
-        .from("business_profiles")
-        .select("subscription_plan,subscription_status,subscription_expires_at")
-        .eq("user_id", data.user.id)
-        .maybeSingle();
-
-      if (!isActivatedPaidSubscription(subscription)) {
-        const subscriptionUrl = req.nextUrl.clone();
-        subscriptionUrl.pathname = "/dashboard/subscription";
-        subscriptionUrl.search = "?reason=activation_required";
-        return NextResponse.redirect(subscriptionUrl);
-      }
+    if (
+      accessProfile?.role !== "master_admin" &&
+      accessProfile?.approval_status !== "approved"
+    ) {
+      const reviewUrl = req.nextUrl.clone();
+      reviewUrl.pathname = "/auth/awaiting-approval";
+      reviewUrl.search = "";
+      return NextResponse.redirect(reviewUrl);
     }
+
+    /*
+     * ESSENTIAL_WORKSPACE_MUST_REMAIN_AVAILABLE
+     *
+     * Identity approval protects operational access.
+     * A paid Growth Plan is optional support and must never
+     * control access to the Vendor Dashboard.
+     */
   }
 
   return res;
