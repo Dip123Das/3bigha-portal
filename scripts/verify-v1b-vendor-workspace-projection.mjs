@@ -60,10 +60,15 @@ for (const preserved of [
   }
 }
 
-assert(
-  projection.includes("navigation: VendorWorkspaceNavigationGroup[]"),
-  "Canonical Vendor Workspace navigation is missing."
-);
+if (
+  !projection.includes(
+    "navigation: VendorWorkspaceNavigationGroup[]"
+  )
+) {
+  throw new Error(
+    "V-1B projection assertion failed: canonical navigation"
+  );
+}
 
 console.log("V-1B Vendor Workspace Projection assertions passed.");
 console.log("Canonical identity, readiness, work, pulse, performance and growth data are available.");
