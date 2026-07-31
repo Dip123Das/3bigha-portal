@@ -563,11 +563,11 @@ export default function SubscriptionPageClient() {
               </div>
 
               <div className="executiveHealth">
-                <div className="executiveHealthLabel">Business health</div>
+                <div className="executiveHealthLabel">Growth support readiness</div>
                 <div className="executiveHealthValue">{businessHealthScore}/100</div>
                 <div className="executiveHealthState">{businessHealthLabel}</div>
                 <div className="executiveHealthHint">
-                  This guidance reflects your current plan and available business support. It is not a promise of sales or enquiries.
+                  This score reflects your current Growth Plan and available support tools. It does not measure the true health of your business or promise sales.
                 </div>
               </div>
 
@@ -782,6 +782,7 @@ export default function SubscriptionPageClient() {
             </div>
 
             <div
+              className="legacyGrowthComparison"
               style={{
                 marginTop: 14,
                 borderRadius: 18,
@@ -855,7 +856,7 @@ export default function SubscriptionPageClient() {
                 <div>
                   <div className="comparisonKicker">Business Growth Plans</div>
                   <div className="comparisonTitle">
-                    Choose the communication, visibility and business support suitable for your present stage.
+                    Compare optional support plans only after reviewing your present business stage.
                   </div>
                 </div>
               </div>
@@ -1260,6 +1261,12 @@ export default function SubscriptionPageClient() {
           font-size: 12px;
           color: #111827;
         }
+        /* DS4C_CONSOLIDATED_GROWTH_PRESENTATION */
+        .subPage .revenueHero,
+        .subPage .legacyGrowthComparison {
+          display: none;
+        }
+
         .subPage .revenueHero {
           margin-top: 14px;
           border: 1px solid #fde68a;
