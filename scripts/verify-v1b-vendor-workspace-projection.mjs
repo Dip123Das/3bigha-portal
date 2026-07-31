@@ -48,7 +48,6 @@ for (const marker of [
 }
 
 for (const preserved of [
-  "WorkspaceHome",
   "GlobalAiOperationalStatus",
   "OperationalRecoveryFeed",
   "WorkflowContinuityRecorder",
