@@ -321,6 +321,56 @@ export default function SubscriptionPageClient() {
       ? `${PLAN_META[identityRecommendation.plan].title} is the suggested next plan for your present business identity.`
       : "Continue with your present workspace and review plans only when a real business need arises.";
 
+  // G1_BUSINESS_GROWTH_CENTRE_LOGIC
+  const growthJourneySteps = [
+    { label: "Foundation", detail: "Essential Workspace available", complete: true },
+    {
+      label: "Business identity",
+      detail: focus !== "unknown" ? "Business identity recognised" : "Choose your working identity",
+      complete: focus !== "unknown",
+    },
+    {
+      label: "Marketplace presence",
+      detail: listingIdMissing ? "Add or select a business listing" : "Business listing connected",
+      complete: !listingIdMissing,
+    },
+    {
+      label: "Growth support",
+      detail: activePlan === "free" ? "Optional support not activated" : `${activeGrowthPlan.offerLabel} support active`,
+      complete: activePlan !== "free",
+    },
+    {
+      label: "Payment readiness",
+      detail: gatewayReady ? "Secure payment channel available" : "No paid activation available yet",
+      complete: gatewayReady,
+    },
+  ];
+
+  const growthActions = [
+    {
+      title: listingIdMissing ? "Connect a business listing" : "Continue managing your business",
+      detail: listingIdMissing
+        ? "Growth guidance becomes more relevant when it is connected to a real listing."
+        : "Return to your present work and use the tools already available.",
+      href: listingIdMissing ? "/dashboard/workspace" : returnTo,
+      priority: true,
+    },
+    {
+      title: focus === "unknown" ? "Confirm your business identity" : "Review identity-based guidance",
+      detail: focus === "unknown"
+        ? "Choose the identity that best describes how you work on 3Bigha."
+        : identityRecommendation.detail,
+      href: focus === "unknown" ? "/auth/register-role" : "#recommended-decision",
+      priority: false,
+    },
+    {
+      title: activePlan === "free" ? "Stay on Essential unless support is needed" : "Use your current Growth Plan fully",
+      detail: executiveNextAction,
+      href: activePlan === "free" ? returnTo : "#growth-plan-options",
+      priority: false,
+    },
+  ];
+
   // 1) Read session robustly (no infinite loading)
   useEffect(() => {
     let alive = true;
@@ -594,6 +644,71 @@ export default function SubscriptionPageClient() {
                   <div className="executiveCardText">{executiveNextAction}</div>
                 </div>
               </div>
+
+              {/* G1_HUMAN_FIRST_GROWTH_CENTRE */}
+              <div className="growthCentreSection">
+                <div className="growthCentreHeading">
+                  <div>
+                    <div className="growthCentreKicker">Your growth journey</div>
+                    <h3>Know where you are and what comes next</h3>
+                  </div>
+                  <div className="growthCentreProgress">
+                    {growthJourneySteps.filter((step) => step.complete).length}/
+                    {growthJourneySteps.length} ready
+                  </div>
+                </div>
+
+                <div className="growthJourneyGrid">
+                  {growthJourneySteps.map((step, index) => (
+                    <div
+                      className={`growthJourneyStep ${step.complete ? "isComplete" : "isPending"}`}
+                      key={step.label}
+                    >
+                      <div className="growthJourneyNumber">{step.complete ? "✓" : index + 1}</div>
+                      <div>
+                        <div className="growthJourneyLabel">{step.label}</div>
+                        <div className="growthJourneyDetail">{step.detail}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="growthCentreSection">
+                <div className="growthCentreHeading">
+                  <div>
+                    <div className="growthCentreKicker">Action centre</div>
+                    <h3>Do the useful work before considering an upgrade</h3>
+                  </div>
+                </div>
+
+                <div className="growthActionGrid">
+                  {growthActions.map((action) => (
+                    <Link
+                      className={`growthActionCard ${action.priority ? "isPriority" : ""}`}
+                      href={action.href}
+                      key={action.title}
+                    >
+                      <div className="growthActionTitle">{action.title}</div>
+                      <div className="growthActionText">{action.detail}</div>
+                      <div className="growthActionLink">{action.priority ? "Do this now" : "Review"}</div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div className="recommendedDecision" id="recommended-decision">
+                <div>
+                  <div className="growthCentreKicker">Recommended decision</div>
+                  <h3>
+                    {identityRecommendation.plan === activeDisplayPlan
+                      ? `Continue with ${activeGrowthPlan.offerLabel}`
+                      : `Review ${PLAN_META[identityRecommendation.plan].title}`}
+                  </h3>
+                  <p>{executiveRecommendation}</p>
+                </div>
+                <a href="#growth-plan-options">See plan details</a>
+              </div>
             </section>
 
             {focus === "boost" ? (
@@ -628,7 +743,7 @@ export default function SubscriptionPageClient() {
 
             {identityRecommendation ? (
               <div
-                className="alert alertOk"
+                className="alert alertOk legacyIdentityRecommendation"
                 style={{
                   border: "1px solid #86efac",
                   background: "#f0fdf4",
@@ -724,7 +839,7 @@ export default function SubscriptionPageClient() {
             </div>
 
             <div
-              className={`alert ${
+              className={`alert legacyGrowthJourney ${
                 growthJourney.tone === "positive"
                   ? "alertOk"
                   : growthJourney.tone === "attention"
@@ -739,7 +854,7 @@ export default function SubscriptionPageClient() {
               </div>
             </div>
 
-            <div className="alert">
+            <div className="alert legacyEssentialNotice">
               <b>Essential Workspace:</b> Available separately from paid
               Growth Plans. Identity verification and trust remain based
               on evidence, not subscription level.
@@ -1511,6 +1626,45 @@ export default function SubscriptionPageClient() {
         .subPage .mono {
           font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
             monospace;
+        }
+        /* G1_BUSINESS_GROWTH_CENTRE_PRESENTATION */
+        .subPage .revenueHero,
+        .subPage .legacyGrowthComparison,
+        .subPage .legacyIdentityRecommendation,
+        .subPage .legacyGrowthJourney,
+        .subPage .legacyEssentialNotice { display: none !important; }
+        .subPage .growthCentreSection { grid-column: 1 / -1; border-top: 1px solid #e2e8f0; padding-top: 18px; }
+        .subPage .growthCentreHeading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+        .subPage .growthCentreKicker { color: #1d4ed8; font-size: 11px; font-weight: 950; letter-spacing: .1em; text-transform: uppercase; }
+        .subPage .growthCentreHeading h3,
+        .subPage .recommendedDecision h3 { margin: 5px 0 0; color: #0f172a; font-size: 19px; line-height: 1.25; font-weight: 950; }
+        .subPage .growthCentreProgress { flex: 0 0 auto; border: 1px solid #bfdbfe; border-radius: 999px; padding: 7px 10px; background: #eff6ff; color: #1d4ed8; font-size: 11px; font-weight: 950; }
+        .subPage .growthJourneyGrid { margin-top: 13px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; }
+        .subPage .growthJourneyStep { min-width: 0; border: 1px solid #e2e8f0; border-radius: 14px; padding: 11px; display: flex; gap: 9px; background: #fff; }
+        .subPage .growthJourneyStep.isComplete { border-color: #bbf7d0; background: #f0fdf4; }
+        .subPage .growthJourneyNumber { width: 25px; height: 25px; flex: 0 0 25px; border-radius: 999px; display: grid; place-items: center; background: #e2e8f0; color: #334155; font-size: 11px; font-weight: 950; }
+        .subPage .isComplete .growthJourneyNumber { background: #16a34a; color: #fff; }
+        .subPage .growthJourneyLabel { color: #0f172a; font-size: 12px; font-weight: 950; }
+        .subPage .growthJourneyDetail { margin-top: 4px; color: #64748b; font-size: 10px; line-height: 1.4; font-weight: 700; }
+        .subPage .growthActionGrid { margin-top: 13px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+        .subPage .growthActionCard { border: 1px solid #e2e8f0; border-radius: 15px; padding: 13px; background: #fff; text-decoration: none; transition: transform .15s ease, box-shadow .15s ease; }
+        .subPage .growthActionCard:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(15, 23, 42, .08); }
+        .subPage .growthActionCard.isPriority { border-color: #93c5fd; background: #eff6ff; }
+        .subPage .growthActionTitle { color: #0f172a; font-size: 14px; font-weight: 950; }
+        .subPage .growthActionText { margin-top: 6px; color: #475569; font-size: 11px; line-height: 1.5; font-weight: 700; }
+        .subPage .growthActionLink { margin-top: 10px; color: #1d4ed8; font-size: 11px; font-weight: 950; }
+        .subPage .recommendedDecision { grid-column: 1 / -1; border: 1px solid #bfdbfe; border-radius: 16px; padding: 15px; background: linear-gradient(135deg, #eff6ff, #fff); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .subPage .recommendedDecision p { margin: 6px 0 0; color: #475569; font-size: 12px; line-height: 1.5; font-weight: 700; }
+        .subPage .recommendedDecision > a { flex: 0 0 auto; min-height: 39px; padding: 0 13px; border-radius: 11px; background: #0f172a; color: #fff; display: inline-flex; align-items: center; text-decoration: none; font-size: 12px; font-weight: 950; }
+        @media (max-width: 900px) {
+          .subPage .growthJourneyGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .subPage .growthActionGrid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 560px) {
+          .subPage .growthJourneyGrid { grid-template-columns: 1fr; }
+          .subPage .growthCentreHeading,
+          .subPage .recommendedDecision { align-items: stretch; flex-direction: column; }
+          .subPage .recommendedDecision > a { justify-content: center; }
         }
       `}</style>
     </main>
