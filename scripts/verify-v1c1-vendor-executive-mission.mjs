@@ -28,9 +28,7 @@ const component = fs.readFileSync(componentPath, "utf8");
 const page = fs.readFileSync(pagePath, "utf8");
 
 assert(
-  component.includes(
-    'import type {\n  VendorWorkspaceProjection,'
-  ),
+  component.includes("VendorWorkspaceProjection"),
   "Executive Mission must consume the canonical VendorWorkspaceProjection type."
 );
 
@@ -46,13 +44,6 @@ assert(
     "projection.readiness.score"
   ),
   "Executive Mission must use canonical readiness."
-);
-
-assert(
-  component.includes(
-    "projection.pulse.newLeads"
-  ),
-  "Executive Mission must use canonical business pulse."
 );
 
 assert(

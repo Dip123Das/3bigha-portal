@@ -34,6 +34,7 @@ import WorkspaceHome from "@/components/3bos/workspace-home/WorkspaceHome";
 import { resolveVendorWorkspaceProjection } from "@/lib/3bos/vendor/resolve-vendor-workspace-projection";
 import VendorExecutiveMission from "@/components/3bos/vendor/VendorExecutiveMission";
 import VendorHumanFirstWorkCentre from "@/components/3bos/vendor/VendorHumanFirstWorkCentre";
+import VendorUnifiedBusinessPulse from "@/components/3bos/vendor/VendorUnifiedBusinessPulse";
 
 type CompletenessRow = {
   user_id?: string;
@@ -1390,6 +1391,11 @@ const aiDealUpgradeTarget =
 
         {/* V2_HUMAN_FIRST_WORK_CENTRE */}
         <VendorHumanFirstWorkCentre
+          projection={vendorWorkspaceProjection}
+        />
+
+        {/* V3_UNIFIED_BUSINESS_PULSE */}
+        <VendorUnifiedBusinessPulse
           projection={vendorWorkspaceProjection}
         />
 

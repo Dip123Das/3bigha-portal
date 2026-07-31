@@ -9,24 +9,7 @@ type VendorExecutiveMissionProps = {
 export default function VendorExecutiveMission({
   projection,
 }: VendorExecutiveMissionProps) {
-  const pulseItems = [
-    {
-      label: "New requirements",
-      value: projection.pulse.newLeads,
-    },
-    {
-      label: "Buyer conversations",
-      value: projection.pulse.unreadConversations,
-    },
-    {
-      label: "Ready deals",
-      value: projection.pulse.readyDeals,
-    },
-    {
-      label: "Alerts",
-      value: projection.pulse.alerts,
-    },
-  ];
+
 
   return (
     <section
@@ -201,73 +184,6 @@ export default function VendorExecutiveMission({
         }}
       >
         <div>
-          <div
-            style={{
-              color: "#0f172a",
-              fontSize: 18,
-              fontWeight: 950,
-            }}
-          >
-            Business pulse
-          </div>
-
-          <div
-            style={{
-              marginTop: 4,
-              color: "#64748b",
-              fontSize: 12,
-              lineHeight: 1.5,
-              fontWeight: 700,
-            }}
-          >
-            A compact view of the live activity around your business.
-          </div>
-
-          <div
-            style={{
-              marginTop: 12,
-              display: "grid",
-              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-              gap: 10,
-            }}
-          >
-            {pulseItems.map((item) => (
-              <div
-                key={item.label}
-                style={{
-                  minWidth: 0,
-                  padding: 13,
-                  border: "1px solid #e2e8f0",
-                  borderRadius: 16,
-                  background: "#ffffff",
-                }}
-              >
-                <div
-                  style={{
-                    color: "#0f172a",
-                    fontSize: 23,
-                    lineHeight: 1,
-                    fontWeight: 950,
-                  }}
-                >
-                  {item.value}
-                </div>
-
-                <div
-                  style={{
-                    marginTop: 6,
-                    color: "#64748b",
-                    fontSize: 11,
-                    lineHeight: 1.4,
-                    fontWeight: 800,
-                  }}
-                >
-                  {item.label}
-                </div>
-              </div>
-            ))}
-          </div>
-
           <div
             style={{
               marginTop: 10,
