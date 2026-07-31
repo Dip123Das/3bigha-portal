@@ -156,6 +156,20 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
+  /*
+   * Authenticated workspaces contain personal and rapidly changing
+   * operational information. They must never be shared-cached or
+   * retained across application deployments.
+   */
+  res.headers.set(
+    "Cache-Control",
+    "private, no-store, no-cache, must-revalidate, max-age=0"
+  );
+  res.headers.set("Pragma", "no-cache");
+  res.headers.set("Expires", "0");
+  res.headers.set("Vary", "Cookie, Authorization");
+  res.headers.set("X-3Bigha-Workspace-Cache", "private-no-store");
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

@@ -48,8 +48,6 @@ for (const marker of [
 }
 
 for (const preserved of [
-  "GlobalAiOperationalStatus",
-  "OperationalRecoveryFeed",
   "WorkflowContinuityRecorder",
   "OperationalEventRecorder",
   'fetch("/api/vendor/rfqs?limit=100"',
@@ -72,4 +70,4 @@ if (
 
 console.log("V-1B Vendor Workspace Projection assertions passed.");
 console.log("Canonical identity, readiness, work, pulse, performance and growth data are available.");
-console.log("The existing live Vendor Dashboard presentation remains preserved.");
+console.log("The canonical Vendor Dashboard presentation remains active after the V-7 cutover.");
