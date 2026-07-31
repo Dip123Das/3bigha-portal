@@ -60,6 +60,11 @@ for (const preserved of [
   }
 }
 
+assert(
+  projection.includes("navigation: VendorWorkspaceNavigationGroup[]"),
+  "Canonical Vendor Workspace navigation is missing."
+);
+
 console.log("V-1B Vendor Workspace Projection assertions passed.");
 console.log("Canonical identity, readiness, work, pulse, performance and growth data are available.");
 console.log("The existing live Vendor Dashboard presentation remains preserved.");

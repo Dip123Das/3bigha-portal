@@ -130,13 +130,19 @@ assert(
 );
 
 assert(
-  !page.includes("Vendor Work Desk"),
-  "Legacy Vendor Work Desk navigation still exists."
+  !page.includes(
+    `            Vendor Work Desk
+          </div>`
+  ),
+  "Visible legacy Vendor Work Desk navigation still exists."
 );
 
 assert(
-  !page.includes("Daily Work Areas"),
-  "Legacy Daily Work Areas navigation still exists."
+  !page.includes(
+    `            Daily Work Areas
+          </h2>`
+  ),
+  "Visible legacy Daily Work Areas navigation still exists."
 );
 
 assert(

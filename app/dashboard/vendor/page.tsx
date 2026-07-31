@@ -1550,58 +1550,6 @@ const aiDealUpgradeTarget =
 
         <section
           style={{
-            border: "1px solid #e2e8f0",
-            borderRadius: 24,
-            padding: 20,
-            background: "linear-gradient(to bottom right,#f8fafc,#ffffff)",
-            boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
-            marginBottom: 16,
-          }}
-        >
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: "0.16em", textTransform: "uppercase", color: "#64748b" }}>
-            Vendor Work Desk
-          </div>
-
-          <h1 style={{ marginTop: 8, fontSize: 30, lineHeight: 1.15, fontWeight: 950, color: "#0f172a" }}>
-            Start your daily vendor work here
-          </h1>
-
-          <p style={{ marginTop: 10, maxWidth: 760, fontSize: 14, lineHeight: 1.7, color: "#475569", fontWeight: 650 }}>
-            Reply to buyers, check RFQs, update stock, create bills and manage dispatch from one simple place.
-          </p>
-
-          <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-            {[
-              ["RFQs / Buyer Leads", "Check new requirements and quote quickly.", "/dashboard/vendor/rfqs"],
-              ["Messages", "Reply to buyer conversations.", "/dashboard/vendor/inbox"],
-              ["Inventory", "Update stock and available items.", "/dashboard/vendor/inventory"],
-              ["Billing", "Create invoice and bill records.", "/dashboard/vendor/billing"],
-              ["Dispatch", "Track delivery and dispatch work.", "/dashboard/vendor/dispatch"],
-              ["Notifications", "Review important vendor alerts.", "/dashboard/vendor/notifications"],
-            ].map(([title, detail, href]) => (
-              <a
-                key={title}
-                href={href}
-                style={{
-                  textDecoration: "none",
-                  border: "1px solid #dbeafe",
-                  background: "#ffffff",
-                  borderRadius: 18,
-                  padding: 14,
-                  minHeight: 92,
-                  display: "block",
-                  boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
-                }}
-              >
-                <div style={{ fontSize: 15, fontWeight: 950, color: "#0f172a" }}>{title}</div>
-                <div style={{ marginTop: 6, fontSize: 12, lineHeight: 1.5, fontWeight: 700, color: "#64748b" }}>{detail}</div>
-              </a>
-            ))}
-          </div>
-        </section>
-
-        <section
-          style={{
             border: "1px solid #bbf7d0",
             borderRadius: 22,
             padding: 16,
@@ -1654,53 +1602,6 @@ const aiDealUpgradeTarget =
               <div style={{ fontWeight: 950, color: "#9a3412" }}>Visibility</div>
               <div style={{ marginTop: 4, fontSize: 13, fontWeight: 750, color: "#475569" }}>Profile and activity help buyers find you faster.</div>
             </div>
-          </div>
-        </section>
-
-        <section
-          style={{
-            border: "1px solid #dbeafe",
-            borderRadius: 22,
-            padding: 16,
-            background: "#eff6ff",
-            marginBottom: 16,
-          }}
-        >
-          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 950, color: "#1e3a8a" }}>
-            Daily Work Areas
-          </h2>
-
-          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10 }}>
-            {[
-              ["Property", "/property"],
-              ["Builder Projects", "/services/turnkey"],
-              ["Materials", "/materials"],
-              ["Services", "/services"],
-              ["Rentals", "/rentals"],
-              ["Buyer Leads", "/dashboard/vendor/rfqs"],
-              ["Messages", "/dashboard/vendor/inbox"],
-              ["Inventory", "/dashboard/vendor/inventory"],
-              ["Billing", "/dashboard/vendor/billing"],
-              ["Fleet", "/dashboard/vendor/fleet"],
-              ["Dispatch", "/dashboard/vendor/dispatch"],
-            ].map(([title, href]) => (
-              <a
-                key={title}
-                href={href}
-                style={{
-                  textDecoration: "none",
-                  border: "1px solid #bfdbfe",
-                  background: "#ffffff",
-                  color: "#1e3a8a",
-                  borderRadius: 14,
-                  padding: "12px 14px",
-                  fontWeight: 950,
-                  fontSize: 13,
-                }}
-              >
-                {title}
-              </a>
-            ))}
           </div>
         </section>
 
