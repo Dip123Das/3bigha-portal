@@ -31,6 +31,7 @@ import { buildVendorSmartNotifications } from "@/lib/notifications/smart-reengag
 import GlobalAiOperationalStatus from "@/components/ai-operational/GlobalAiOperationalStatus";
 import OperationalRecoveryFeed from "@/components/ai-operational/OperationalRecoveryFeed";
 import WorkspaceHome from "@/components/3bos/workspace-home/WorkspaceHome";
+import { resolveVendorWorkspaceProjection } from "@/lib/3bos/vendor/resolve-vendor-workspace-projection";
 
 type CompletenessRow = {
   user_id?: string;
@@ -565,6 +566,29 @@ if (aiRecommendations.length === 0) {
     "🔥 Strong performance! Maintain pricing accuracy and response speed to dominate rankings."
   );
 }
+
+// V1B_CANONICAL_VENDOR_WORKSPACE_PROJECTION
+const vendorWorkspaceProjection = resolveVendorWorkspaceProjection({
+  dashboardTitle,
+  profileComplete: vendorComplete,
+  profilePercent: vendorPct,
+  activeCapabilities: uniqueVendorCapabilities.map(String),
+  newLeadCount: leadStats.newLeadCount,
+  unreadConversationCount: recentEnquiries.filter(
+    (item) => String(item.status).toLowerCase() === "new"
+  ).length,
+  missedLeadCount: missedLeads,
+  readyDealCount: dealStats.ready,
+  unreadAlertCount: unreadNotificationCount,
+  priceSignalCount: priceIntelligenceStats.totalUpdates,
+  visibilityScore: growthVisibilityScore,
+  replyRate,
+  closeRate,
+  subscriptionPlan: vendorPlan,
+  subscriptionStatus: vendorStatus,
+  recommendation: aiRecommendations[0] || null,
+});
+
 
   const hiddenVendorWarning =
     getPlanBoostPower(vendorPlan, vendorBoostPriority) <= 0 &&
@@ -1325,6 +1349,12 @@ const aiDealUpgradeTarget =
   // HUMAN_FIRST_VENDOR_DASHBOARD_RETURN
   return (
     <main>
+      <span
+        hidden
+        data-vendor-workspace-projection={vendorWorkspaceProjection.version}
+        data-vendor-workspace-readiness={vendorWorkspaceProjection.readiness.score}
+        data-vendor-workspace-actions={vendorWorkspaceProjection.workNow.length}
+      />
       <WorkflowContinuityRecorder
         state={{
           id: "vendor-dashboard",
