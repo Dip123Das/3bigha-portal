@@ -76,7 +76,6 @@ function dashboardDestinationForRole(
     case "buyer":
       return "/dashboard/buyer";
     case "hub_vendor":
-      return null;
     case "vendor":
     case "builder":
     case "blogger":
