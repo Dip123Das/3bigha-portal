@@ -100,7 +100,7 @@
 }
 
 .sidebarStats div {
-  padding: 8px 5px;
+  padding: 18px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   text-align: center;
@@ -144,8 +144,8 @@
   grid-template-columns: 42px minmax(0, 1fr);
   gap: 8px;
   align-items: center;
-  min-height: 42px;
-  padding: 6px 8px;
+  min-height: 56px;
+  padding: 10px 14px;
   border: 1px solid transparent;
   border-radius: 11px;
   color: #18304f;
@@ -216,9 +216,9 @@
 .topbar {
   display: flex;
   justify-content: space-between;
-  gap: 18px;
+  gap: 32px;
   align-items: center;
-  padding: 17px 19px;
+  padding: 32px;
   border: 1px solid #dce5f0;
   border-radius: 20px;
   background: linear-gradient(110deg, #fff 58%, #eef5ff);
@@ -240,7 +240,7 @@
 
 .topActions {
   display: flex;
-  gap: 7px;
+  gap: 14px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
@@ -249,13 +249,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 38px;
-  padding: 0 13px;
+  min-height: 52px;
+  padding: 0 24px;
   border: 1px solid #cbd8e8;
   border-radius: 10px;
   background: #fff;
   color: #10213d;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 900;
   text-decoration: none;
 }
@@ -267,7 +267,7 @@
 }
 
 .content {
-  margin-top: 10px;
+  margin-top: 24px;
 }
 
 .mobileBar,
