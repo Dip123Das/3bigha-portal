@@ -448,3 +448,47 @@
     font-size: 15px;
   }
 }
+
+/* A-2.4B — shared executive dashboard token adoption */
+.brand span,
+.topbar span,
+.nav p {
+  font-size: var(--3b-dashboard-label);
+}
+
+.identity span,
+.identity small,
+.governance span {
+  font-size: var(--3b-dashboard-caption);
+  line-height: var(--3b-dashboard-line-height);
+}
+
+.identity strong,
+.navLink strong {
+  font-size: var(--3b-dashboard-body-strong);
+}
+
+.sidebarStats span,
+.governance strong {
+  font-size: var(--3b-dashboard-label);
+}
+
+.sidebarStats strong {
+  font-size: var(--3b-dashboard-metric);
+}
+
+.topbar h1 {
+  font-size: var(--3b-dashboard-page-title);
+}
+
+.topbar p {
+  font-size: var(--3b-dashboard-body);
+  line-height: var(--3b-dashboard-line-height);
+}
+
+.topActions a,
+.mobileBar {
+  min-height: var(--3b-dashboard-button-height);
+  font-size: var(--3b-dashboard-body);
+  border-radius: var(--3b-dashboard-control-radius);
+}

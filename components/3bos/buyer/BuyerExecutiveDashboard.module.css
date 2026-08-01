@@ -883,3 +883,86 @@
   .primaryActions { display: grid; }
   .primaryActions a { width: 100%; }
 }
+
+/* A-2.4B — Buyer executive scale normalization */
+.eyebrow,
+.readiness > span,
+.kpiStrip > a > span,
+.kpiStrip span,
+.journey a span,
+.journeyStep em,
+.journey header > small {
+  font-size: var(--3b-dashboard-label);
+}
+
+.needIntro p,
+.primaryWork p,
+.needCategory small,
+.firstTimeGuide > div:last-child span,
+.readiness small,
+.readiness em,
+.kpiStrip > a > small,
+.kpiStrip > a > em,
+.requirementList span,
+.requirementList small,
+.empty span,
+.reminders small,
+.reminders em,
+.noAttention span,
+.journey a small,
+.ai p,
+.ai aside span,
+.ai aside a {
+  font-size: var(--3b-dashboard-caption);
+  line-height: var(--3b-dashboard-line-height);
+}
+
+.needCategory strong,
+.requirementList strong,
+.reminders strong,
+.journey a strong,
+.noAttention strong {
+  font-size: var(--3b-dashboard-body-strong);
+}
+
+.firstTimeGuide h3,
+.workPanel h3,
+.attentionPanel h3,
+.journey h3,
+.ai h3 {
+  font-size: var(--3b-dashboard-section-title);
+}
+
+.needIntro h2,
+.primaryWork h2 {
+  font-size: clamp(1.75rem, 2vw, 2.25rem);
+}
+
+.readiness strong,
+.kpiStrip > a > strong,
+.kpiStrip strong {
+  font-size: var(--3b-dashboard-metric);
+}
+
+.primaryActions a,
+.empty a,
+.empty > div:last-child a {
+  min-height: var(--3b-dashboard-button-height);
+  font-size: var(--3b-dashboard-body);
+  border-radius: var(--3b-dashboard-control-radius);
+}
+
+.needCategory {
+  min-height: 148px;
+}
+
+.journey a {
+  min-height: 138px;
+}
+
+@media (max-width: 760px) {
+  .needCategory,
+  .journey a {
+    min-height: auto;
+  }
+}

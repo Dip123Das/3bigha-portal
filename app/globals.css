@@ -4407,3 +4407,21 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   margin-top: 20px !important;
   min-height: 0;
 }
+
+/* =========================================================
+   3Bigha Executive Dashboard Scale 1.0
+   Shared Human-First typography and control tokens.
+   ========================================================= */
+:root {
+  --3b-dashboard-label: 0.8125rem;
+  --3b-dashboard-caption: 0.875rem;
+  --3b-dashboard-body: 1rem;
+  --3b-dashboard-body-strong: 1.0625rem;
+  --3b-dashboard-card-title: 1.125rem;
+  --3b-dashboard-section-title: 1.375rem;
+  --3b-dashboard-page-title: clamp(2rem, 2.5vw, 2.75rem);
+  --3b-dashboard-metric: clamp(1.75rem, 2vw, 2.25rem);
+  --3b-dashboard-button-height: 2.875rem;
+  --3b-dashboard-control-radius: 0.75rem;
+  --3b-dashboard-line-height: 1.55;
+}
