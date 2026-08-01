@@ -144,19 +144,69 @@ function titleCase(s: string) {
   return t.length ? t.charAt(0).toUpperCase() + t.slice(1) : t;
 }
 
-function firstVerifiedSelfieUrl(value: unknown) {
-  const assets = Array.isArray(value)
-    ? value
-    : value && typeof value === "object"
-    ? [value]
-    : [];
+function firstVerifiedSelfieUrl(value: unknown): string {
+  if (!value) return "";
 
-  for (const asset of assets as Record<string, unknown>[]) {
-    const url = String(asset?.url || asset?.publicUrl || "").trim();
-    const path = String(asset?.path || "").trim();
+  if (typeof value === "string") {
+    const text = value.trim();
 
-    if (url && (!path || path.includes("/live-selfie/"))) {
+    if (!text) return "";
+
+    if (
+      /^https?:\/\//i.test(text) &&
+      /live-selfie/i.test(text)
+    ) {
+      return text;
+    }
+
+    try {
+      return firstVerifiedSelfieUrl(JSON.parse(text));
+    } catch {
+      return "";
+    }
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = firstVerifiedSelfieUrl(item);
+      if (found) return found;
+    }
+
+    return "";
+  }
+
+  if (typeof value === "object") {
+    const asset = value as Record<string, unknown>;
+    const url = String(
+      asset.url ||
+      asset.publicUrl ||
+      asset.public_url ||
+      asset.signedUrl ||
+      asset.signed_url ||
+      ""
+    ).trim();
+    const path = String(
+      asset.path ||
+      asset.storagePath ||
+      asset.storage_path ||
+      asset.name ||
+      ""
+    ).trim();
+
+    if (
+      url &&
+      (
+        /live-selfie/i.test(url) ||
+        /live-selfie/i.test(path) ||
+        String(asset.category || "").toLowerCase() === "live-selfie"
+      )
+    ) {
       return url;
+    }
+
+    for (const nested of Object.values(asset)) {
+      const found = firstVerifiedSelfieUrl(nested);
+      if (found) return found;
     }
   }
 
@@ -702,9 +752,21 @@ const aiDealUpgradeTarget =
       .trim()
       .toLowerCase();
 
-    const registrationSelfie =
+    let registrationSelfie =
       firstVerifiedSelfieUrl(profileAccess.selfie_media_json) ||
       firstVerifiedSelfieUrl(profileAccess.business_media_json);
+
+    if (!registrationSelfie) {
+      const { data: selfieFallbackRow } = await supabase
+        .from("business_profiles")
+        .select("business_media_json,selfie_media_json")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      registrationSelfie =
+        firstVerifiedSelfieUrl(selfieFallbackRow?.selfie_media_json) ||
+        firstVerifiedSelfieUrl(selfieFallbackRow?.business_media_json);
+    }
 
     const selectedRegistrationPhoto =
       String(memberIdentity.profile_photo_source || "").trim() === "registration_selfie"

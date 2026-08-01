@@ -1393,6 +1393,232 @@ export default function VendorDashboardApplicationShell({
           margin-top: 5px;
         }
 
+
+        /* V14B_READABLE_FINAL_OVERRIDE
+           Final source-order correction: readable type, compact but not microscopic,
+           and removal of the dashboard-only empty band below the global header. */
+        .vendor-app-shell {
+          grid-template-columns: 238px minmax(0, 1fr);
+          gap: 18px;
+          margin-top: -44px;
+          padding: 16px clamp(14px, 1.5vw, 24px) 28px;
+          font-size: 13px;
+        }
+
+        .vendor-profile-card {
+          padding: 16px 14px 14px;
+        }
+
+        .vendor-profile-avatar,
+        .vendor-profile-avatar-button,
+        .vendor-profile-avatar-image,
+        .vendor-profile-avatar img {
+          width: 76px;
+          height: 76px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+
+        .vendor-profile-name {
+          margin-top: 9px;
+          font-size: 16px;
+          line-height: 1.25;
+        }
+
+        .vendor-profile-plan,
+        .vendor-profile-email {
+          font-size: 10px;
+          line-height: 1.35;
+        }
+
+        .vendor-profile-status {
+          padding: 5px 9px;
+          font-size: 10px;
+        }
+
+        .vendor-profile-button,
+        .vendor-selfie-retake {
+          padding: 8px 10px;
+          font-size: 10px;
+        }
+
+        nav {
+          padding: 9px;
+        }
+
+        .vendor-menu-item {
+          gap: 9px;
+          padding: 8px 9px;
+        }
+
+        .vendor-menu-icon {
+          width: 27px;
+          height: 27px;
+          font-size: 11px;
+        }
+
+        .vendor-menu-copy strong {
+          font-size: 11px;
+          line-height: 1.25;
+        }
+
+        .vendor-menu-copy small {
+          font-size: 9px;
+          line-height: 1.25;
+        }
+
+        .vendor-dashboard-welcome {
+          margin-bottom: 12px;
+        }
+
+        .vendor-page-kicker {
+          font-size: 9px;
+        }
+
+        .vendor-dashboard-welcome h1 {
+          font-size: clamp(24px, 2.6vw, 34px);
+        }
+
+        .vendor-dashboard-welcome p {
+          font-size: 12px;
+        }
+
+        .vendor-kpi-grid {
+          gap: 12px;
+          margin-bottom: 12px;
+        }
+
+        .vendor-kpi-card {
+          min-height: 112px;
+          padding: 15px;
+        }
+
+        .vendor-kpi-card span {
+          font-size: 11px;
+        }
+
+        .vendor-kpi-card strong {
+          margin-top: 7px;
+          font-size: 28px;
+        }
+
+        .vendor-kpi-card small {
+          margin-top: 7px;
+          font-size: 10px;
+        }
+
+        .vendor-action-strip {
+          gap: 10px;
+          margin-bottom: 12px;
+        }
+
+        .vendor-action-strip a {
+          padding: 14px;
+        }
+
+        .vendor-action-strip small {
+          font-size: 9px;
+        }
+
+        .vendor-action-strip strong {
+          font-size: 13px;
+        }
+
+        .vendor-action-strip span {
+          font-size: 10px;
+        }
+
+        .vendor-reference-hero,
+        .vendor-reference-three,
+        .vendor-reference-block {
+          margin-top: 12px;
+        }
+
+        .vendor-reference-mission,
+        .vendor-reference-readiness {
+          min-height: 150px;
+          padding: 17px;
+        }
+
+        .vendor-reference-mission h2,
+        .vendor-reference-title h2 {
+          font-size: 18px;
+        }
+
+        .vendor-reference-mission p,
+        .vendor-reference-title p {
+          font-size: 11px;
+          line-height: 1.5;
+        }
+
+        .vendor-reference-three > button,
+        .vendor-reference-three > a {
+          min-height: 122px;
+          padding: 14px;
+        }
+
+        .vendor-reference-three small,
+        .vendor-reference-title small,
+        .vendor-reference-growth-cards small {
+          font-size: 9px;
+        }
+
+        .vendor-reference-three strong {
+          font-size: 14px;
+        }
+
+        .vendor-reference-three span {
+          font-size: 10px;
+        }
+
+        .vendor-reference-block {
+          padding: 16px;
+        }
+
+        .vendor-reference-metrics article,
+        .vendor-reference-pulse article,
+        .vendor-reference-growth-cards > button,
+        .vendor-reference-growth-cards > a {
+          padding: 12px;
+        }
+
+        .vendor-reference-metrics span,
+        .vendor-reference-pulse span {
+          font-size: 10px;
+        }
+
+        .vendor-reference-metrics strong,
+        .vendor-reference-pulse strong {
+          font-size: 19px;
+        }
+
+        .vendor-reference-metrics small,
+        .vendor-reference-pulse small,
+        .vendor-reference-growth-cards span {
+          font-size: 9px;
+          line-height: 1.45;
+        }
+
+        .vendor-reference-growth-cards strong {
+          font-size: 11px;
+        }
+
+        .vendor-reference-groups h3 {
+          font-size: 14px;
+        }
+
+        .vendor-reference-groups p,
+        .vendor-reference-groups a {
+          font-size: 9px;
+        }
+
+        @media (max-width: 980px) {
+          .vendor-app-shell {
+            margin-top: 0;
+            padding: 12px;
+          }
+        }
+
       `}</style>
     </div>
   );
