@@ -139,6 +139,8 @@ export default function BuyerDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [buyerName, setBuyerName] = useState<string>("Buyer");
+  const [buyerAvatarUrl, setBuyerAvatarUrl] = useState<string | null>(null);
 
   const [procurementStats, setProcurementStats] = useState<BuyerProcurementStats>({
     totalRfqs: 0,
@@ -173,6 +175,35 @@ export default function BuyerDashboardPage() {
     }
 
     setEmail(session.user.email ?? null);
+
+    const metadata = session.user.user_metadata || {};
+    const identityData =
+      session.user.identities?.find((identity) => identity.provider === "google")
+        ?.identity_data || {};
+
+    const resolvedName =
+      metadata.full_name ||
+      metadata.name ||
+      metadata.display_name ||
+      identityData.full_name ||
+      identityData.name ||
+      session.user.email?.split("@")[0] ||
+      "Buyer";
+
+    const resolvedAvatar =
+      metadata.avatar_url ||
+      metadata.picture ||
+      metadata.photo_url ||
+      identityData.avatar_url ||
+      identityData.picture ||
+      null;
+
+    setBuyerName(String(resolvedName).trim() || "Buyer");
+    setBuyerAvatarUrl(
+      typeof resolvedAvatar === "string" && resolvedAvatar.trim()
+        ? resolvedAvatar
+        : null
+    );
 
     try {
       const { data: rfqs, error: rfqsError } = await supabase
@@ -472,6 +503,8 @@ const closedDeals =
       hideActivity
     >
       <BuyerDashboardApplicationShell
+        buyerName={buyerName}
+        avatarUrl={buyerAvatarUrl}
         email={email}
         totalRequirements={procurementStats.totalRfqs}
         activeRequirements={procurementStats.activeRfqs}

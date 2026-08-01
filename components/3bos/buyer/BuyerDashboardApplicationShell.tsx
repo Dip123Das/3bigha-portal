@@ -8,6 +8,8 @@ import styles from "./BuyerDashboardApplicationShell.module.css";
 type Props = {
   children: ReactNode;
   email?: string | null;
+  buyerName?: string | null;
+  avatarUrl?: string | null;
   totalRequirements?: number;
   activeRequirements?: number;
   urgentRequirements?: number;
@@ -60,6 +62,8 @@ function active(pathname: string, href: string, exact?: boolean) {
 export default function BuyerDashboardApplicationShell({
   children,
   email,
+  buyerName,
+  avatarUrl,
   totalRequirements = 0,
   activeRequirements = 0,
   urgentRequirements = 0,
@@ -105,10 +109,22 @@ export default function BuyerDashboardApplicationShell({
         </div>
 
         <div className={styles.identity}>
-          <div className={styles.avatar}>B</div>
+          <div className={styles.avatar}>
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={`${buyerName || "Buyer"} profile`}
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span aria-hidden="true">
+                {(buyerName || "Buyer").trim().charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
           <div>
-            <span>Working as</span>
-            <strong>Buyer</strong>
+            <span>Welcome</span>
+            <strong>{buyerName || "Buyer"}</strong>
             <small>{email || "3Bigha member"}</small>
           </div>
         </div>
@@ -157,8 +173,8 @@ export default function BuyerDashboardApplicationShell({
         <header className={styles.topbar}>
           <div>
             <span>India&apos;s Human-First Business Operating System</span>
-            <h1>Buyer Work Desk</h1>
-            <p>One place to create requirements, compare suppliers, converse and decide.</p>
+            <h1>Welcome, {buyerName || "Buyer"}</h1>
+            <p>Your Buyer Work Desk is ready to create requirements, compare suppliers, converse and decide.</p>
           </div>
           <div className={styles.topActions}>
             <Link href="/dashboard/buyer/rfqs">My Requirements</Link>
