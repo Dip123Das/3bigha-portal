@@ -68,6 +68,22 @@ assert(
   "A-2.3C filtered operational navigation is incomplete."
 );
 
+
+assert(
+  finalBuyerDashboard.includes("What do you need today?") &&
+    finalBuyerDashboard.includes("needCategories") &&
+    finalBuyerDashboard.includes("isFirstTimeBuyer"),
+  "A-2.3G Human command centre or adaptive first-time state is missing."
+);
+
+assert(
+  finalBuyerDashboard.includes("/materials") &&
+    finalBuyerDashboard.includes("/services") &&
+    finalBuyerDashboard.includes("/rentals") &&
+    finalBuyerDashboard.includes("/property"),
+  "A-2.3G marketplace category entry points are incomplete."
+);
+
 assert(
   finalBuyerDashboard.indexOf("Optional assistance") >
     finalBuyerDashboard.indexOf("Live Human Journey"),
@@ -169,4 +185,4 @@ if (failures.length > 0) {
 }
 
 console.log("\nPASS: Existing Buyer APIs, RFQ workflow, procurement intelligence, conversations and compatibility routes remain present.");
-console.log("PASS: Constitutional Buyer Workspace is complete: operational metrics, live journey, navigation consistency and AI-secondary hierarchy verified.");
+console.log("PASS: Constitutional Buyer Workspace is complete with Vendor-style shell, adaptive Human command centre, operational metrics, live journey and AI-secondary hierarchy.");

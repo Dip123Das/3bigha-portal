@@ -120,6 +120,7 @@ export default function BuyerExecutiveDashboard({
   aiNextAction,
 }: Props) {
   const journey = deriveJourney(totalRfqs, activeRfqs, closedRfqs, recentRequirements);
+  const isFirstTimeBuyer = totalRfqs === 0;
 
   const metrics = [
     {
@@ -157,45 +158,96 @@ export default function BuyerExecutiveDashboard({
 
   return (
     <div className={styles.dashboard}>
-      <section className={styles.cockpit}>
-        <div className={styles.primaryWork}>
-          <span className={styles.eyebrow}>Today&apos;s priority</span>
-          <h2>{activeRfqs > 0 ? "Continue active procurement" : "Create your first requirement"}</h2>
-          <p>
-            {activeRfqs > 0
-              ? "Review quotations, continue supplier conversations and move the right requirement toward a decision."
-              : "Describe what you need in familiar language. 3Bigha structures the process while you remain in control."}
-          </p>
-          <div className={styles.primaryActions}>
-            <Link href="/rfq">Create Requirement</Link>
-            <Link href="/dashboard/buyer/rfqs">Open Requirements</Link>
-            <Link href="/dashboard/buyer/inbox">Open Conversations</Link>
-          </div>
-        </div>
+      {isFirstTimeBuyer ? (
+        <>
+          <section className={styles.needCentre} aria-labelledby="buyer-need-centre">
+            <div className={styles.needIntro}>
+              <span className={styles.eyebrow}>Human-First Buying</span>
+              <h2 id="buyer-need-centre">What do you need today?</h2>
+              <p>
+                Choose a familiar category or describe the requirement in your own words.
+                The same RFQ and marketplace systems continue behind this simpler starting point.
+              </p>
+              <div className={styles.primaryActions}>
+                <Link href="/rfq">Create Requirement</Link>
+                <Link href="/search">Explore Marketplace</Link>
+              </div>
+            </div>
 
-        <Link href="/dashboard/buyer/rfqs" className={styles.readiness}>
-          <span>Procurement readiness</span>
-          <strong>{healthScore}%</strong>
-          <div><i style={{ width: `${Math.max(4, Math.min(100, healthScore))}%` }} /></div>
-          <small>{successPrediction}</small>
-          <em>Review procurement health →</em>
-        </Link>
-      </section>
+            <div className={styles.needCategories}>
+              {[
+                ["Materials", "Cement, steel, sand, bricks and more", "/materials", "▦"],
+                ["Services", "Contractors, engineers and skilled professionals", "/services", "⌁"],
+                ["Equipment", "Machines, tools and rental equipment", "/rentals", "⚙"],
+                ["Property", "Land, houses and commercial property", "/property", "⌂"],
+                ["Construction Cost", "Estimate before you procure", "/construction-cost", "₹"],
+                ["Nearby Options", "Discover relevant marketplace choices", "/search", "⌕"],
+              ].map(([title, detail, href, icon]) => (
+                <Link key={title} href={href} className={styles.needCategory}>
+                  <span aria-hidden="true">{icon}</span>
+                  <strong>{title}</strong>
+                  <small>{detail}</small>
+                  <em>Open →</em>
+                </Link>
+              ))}
+            </div>
+          </section>
 
-      <section className={styles.kpiStrip} aria-label="Buyer operational metrics">
-        {metrics.map((metric) => (
-          <Link
-            key={metric.label}
-            href={metric.href}
-            className={metric.urgent ? styles.urgentMetric : undefined}
-          >
-            <span>{metric.label}</span>
-            <strong>{metric.value}</strong>
-            <small>{metric.detail}</small>
-            <em>Open →</em>
-          </Link>
-        ))}
-      </section>
+          <section className={styles.firstTimeGuide}>
+            <div>
+              <span className={styles.eyebrow}>How 3Bigha helps</span>
+              <h3>One simple path from need to supplier decision</h3>
+            </div>
+            <div>
+              <span><strong>1</strong> Tell us what you need</span>
+              <span><strong>2</strong> Receive suitable responses</span>
+              <span><strong>3</strong> Compare and decide yourself</span>
+            </div>
+          </section>
+        </>
+      ) : (
+        <>
+          <section className={styles.cockpit}>
+            <div className={styles.primaryWork}>
+              <span className={styles.eyebrow}>Today&apos;s priority</span>
+              <h2>{activeRfqs > 0 ? "Continue active procurement" : "Create another requirement"}</h2>
+              <p>
+                {activeRfqs > 0
+                  ? "Review quotations, continue supplier conversations and move the right requirement toward a decision."
+                  : "Your previous procurement remains available. Start a new requirement whenever work demands it."}
+              </p>
+              <div className={styles.primaryActions}>
+                <Link href="/rfq">Create Requirement</Link>
+                <Link href="/dashboard/buyer/rfqs">Open Requirements</Link>
+                <Link href="/dashboard/buyer/inbox">Open Conversations</Link>
+              </div>
+            </div>
+
+            <Link href="/dashboard/buyer/rfqs" className={styles.readiness}>
+              <span>Procurement readiness</span>
+              <strong>{healthScore}%</strong>
+              <div><i style={{ width: `${Math.max(4, Math.min(100, healthScore))}%` }} /></div>
+              <small>{successPrediction}</small>
+              <em>Review procurement health →</em>
+            </Link>
+          </section>
+
+          <section className={styles.kpiStrip} aria-label="Buyer operational metrics">
+            {metrics.map((metric) => (
+              <Link
+                key={metric.label}
+                href={metric.href}
+                className={metric.urgent ? styles.urgentMetric : undefined}
+              >
+                <span>{metric.label}</span>
+                <strong>{metric.value}</strong>
+                <small>{metric.detail}</small>
+                <em>Open →</em>
+              </Link>
+            ))}
+          </section>
+        </>
+      )}
 
       <div className={styles.grid}>
         <section className={styles.workPanel}>
@@ -225,8 +277,8 @@ export default function BuyerExecutiveDashboard({
           ) : (
             <div className={styles.empty}>
               <div className={styles.emptyIcon} aria-hidden="true">+</div>
-              <strong>Start with one clear requirement</strong>
-              <span>Post what you need, where you need it and when you need it. Suitable vendors can then respond.</span>
+              <strong>Your requirements will appear here</strong>
+              <span>After you create one, supplier responses and next actions will remain visible in this work area.</span>
               <div>
                 <Link href="/rfq">Create Requirement</Link>
                 <Link href="/search">Explore Marketplace</Link>
