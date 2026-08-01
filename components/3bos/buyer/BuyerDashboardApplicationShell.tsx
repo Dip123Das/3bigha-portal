@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
-
 import styles from "./BuyerDashboardApplicationShell.module.css";
 
-type BuyerDashboardApplicationShellProps = {
+type Props = {
   children: ReactNode;
   email?: string | null;
   totalRequirements?: number;
@@ -14,27 +13,48 @@ type BuyerDashboardApplicationShellProps = {
   urgentRequirements?: number;
 };
 
-const PRIMARY_NAV = [
-  { label: "Overview", help: "Your procurement command centre", href: "/dashboard/buyer", icon: "⌂", exact: true },
-  { label: "My Requirements", help: "Track RFQs and buying work", href: "/dashboard/buyer/rfqs", icon: "▤" },
-  { label: "Create Requirement", help: "Tell vendors what you need", href: "/rfq", icon: "+" },
-  { label: "Compare Quotes", help: "Review vendor responses", href: "/dashboard/buyer/rfqs", icon: "⇄" },
-  { label: "Conversations", help: "Continue supplier discussions", href: "/dashboard/buyer/inbox", icon: "◌" },
+type BuyerNavItem = {
+  label: string;
+  href: string;
+  icon: string;
+  exact?: boolean;
+  secondary?: boolean;
+};
+
+type BuyerNavSection = {
+  group: string;
+  items: BuyerNavItem[];
+};
+
+const NAV: BuyerNavSection[] = [
+  {
+    group: "Operate",
+    items: [
+      { label: "Overview", href: "/dashboard/buyer", icon: "⌂", exact: true },
+      { label: "Requirements", href: "/dashboard/buyer/rfqs", icon: "▤" },
+      { label: "Create Requirement", href: "/rfq", icon: "+" },
+      { label: "Compare Quotes", href: "/dashboard/buyer/rfqs", icon: "⇄" },
+      { label: "Conversations", href: "/dashboard/buyer/inbox", icon: "◌" },
+    ],
+  },
+  {
+    group: "Discover",
+    items: [
+      { label: "Marketplace", href: "/search", icon: "⌕" },
+      { label: "Unified Inbox", href: "/dashboard/inbox", icon: "✉" },
+    ],
+  },
+  {
+    group: "Identity",
+    items: [
+      { label: "Business Identity", href: "/dashboard/workspace", icon: "◉" },
+      { label: "AI Assistance", href: "/dashboard/inbox-v2", icon: "✦", secondary: true },
+    ],
+  },
 ];
 
-const DISCOVERY_NAV = [
-  { label: "Marketplace", help: "Find materials, services and property", href: "/search", icon: "⌕" },
-  { label: "Unified Inbox", help: "Open all existing conversations", href: "/dashboard/inbox", icon: "✉" },
-];
-
-const SUPPORT_NAV = [
-  { label: "Business Identity", help: "Review your profile and location", href: "/dashboard/workspace", icon: "◉" },
-  { label: "AI Assistance", help: "Optional help after your work", href: "/dashboard/inbox-v2", icon: "✦", secondary: true },
-];
-
-function navIsActive(pathname: string, href: string, exact?: boolean) {
-  if (exact) return pathname === href;
-  return pathname === href || pathname.startsWith(`${href}/`);
+function active(pathname: string, href: string, exact?: boolean) {
+  return exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export default function BuyerDashboardApplicationShell({
@@ -43,94 +63,49 @@ export default function BuyerDashboardApplicationShell({
   totalRequirements = 0,
   activeRequirements = 0,
   urgentRequirements = 0,
-}: BuyerDashboardApplicationShellProps) {
+}: Props) {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  const renderGroup = (
-    label: string,
-    items: Array<{
-      label: string;
-      help: string;
-      href: string;
-      icon: string;
-      exact?: boolean;
-      secondary?: boolean;
-    }>
-  ) => (
-    <section className={styles.navGroup} aria-label={label}>
-      <p className={styles.navGroupLabel}>{label}</p>
-      <div className={styles.navList}>
-        {items.map((item) => {
-          const active = navIsActive(pathname, item.href, item.exact);
-          return (
-            <Link
-              key={`${item.label}:${item.href}`}
-              href={item.href}
-              className={[
-                styles.navItem,
-                active ? styles.navItemActive : "",
-                item.secondary ? styles.navItemSecondary : "",
-              ].filter(Boolean).join(" ")}
-              aria-current={active ? "page" : undefined}
-              onClick={() => setMobileOpen(false)}
-            >
-              <span className={styles.navIcon} aria-hidden="true">{item.icon}</span>
-              <span className={styles.navCopy}>
-                <strong>{item.label}</strong>
-                <small>{item.help}</small>
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-    </section>
-  );
+  const [open, setOpen] = useState(false);
 
   return (
-    <div className={styles.application}>
+    <div className={styles.workspace}>
       <button
         type="button"
-        className={styles.mobileTrigger}
-        aria-expanded={mobileOpen}
-        aria-controls="buyer-workspace-navigation"
-        onClick={() => setMobileOpen((current) => !current)}
+        className={styles.mobileBar}
+        aria-expanded={open}
+        aria-controls="buyer-workspace-nav"
+        onClick={() => setOpen((value) => !value)}
       >
-        <span aria-hidden="true">{mobileOpen ? "×" : "☰"}</span>
-        Buyer workspace
+        <span aria-hidden="true">{open ? "×" : "☰"}</span>
+        Buyer Workspace
         <small>{activeRequirements} active</small>
       </button>
 
-      {mobileOpen ? (
+      {open ? (
         <button
-          className={styles.mobileBackdrop}
+          className={styles.backdrop}
           type="button"
           aria-label="Close buyer navigation"
-          onClick={() => setMobileOpen(false)}
+          onClick={() => setOpen(false)}
         />
       ) : null}
 
       <aside
-        id="buyer-workspace-navigation"
-        className={[styles.sidebar, mobileOpen ? styles.sidebarOpen : ""].filter(Boolean).join(" ")}
+        id="buyer-workspace-nav"
+        className={[styles.sidebar, open ? styles.sidebarOpen : ""].filter(Boolean).join(" ")}
       >
-        <div className={styles.sidebarHeader}>
+        <div className={styles.brand}>
           <div>
-            <span className={styles.eyebrow}>Human-First Procurement</span>
-            <h2>Buyer Workspace</h2>
+            <span>Human-First Procurement</span>
+            <strong>Buyer Workspace</strong>
           </div>
-          <button
-            type="button"
-            className={styles.mobileClose}
-            aria-label="Close buyer navigation"
-            onClick={() => setMobileOpen(false)}
-          >
+          <button type="button" onClick={() => setOpen(false)} aria-label="Close navigation">
             ×
           </button>
         </div>
 
         <div className={styles.identity}>
-          <div className={styles.identityMark} aria-hidden="true">B</div>
+          <div className={styles.avatar}>B</div>
           <div>
             <span>Working as</span>
             <strong>Buyer</strong>
@@ -138,51 +113,57 @@ export default function BuyerDashboardApplicationShell({
           </div>
         </div>
 
-        <div className={styles.statusPanel}>
+        <div className={styles.sidebarStats}>
           <div><span>Total</span><strong>{totalRequirements}</strong></div>
           <div><span>Active</span><strong>{activeRequirements}</strong></div>
           <div><span>Attention</span><strong>{urgentRequirements}</strong></div>
         </div>
 
-        {renderGroup("Buying journey", PRIMARY_NAV)}
-        {renderGroup("Discovery and communication", DISCOVERY_NAV)}
-        {renderGroup("Identity and assistance", SUPPORT_NAV)}
+        <nav className={styles.nav}>
+          {NAV.map((section) => (
+            <section key={section.group}>
+              <p>{section.group}</p>
+              {section.items.map((item) => {
+                const selected = active(pathname, item.href, item.exact);
+                return (
+                  <Link
+                    key={`${section.group}:${item.label}`}
+                    href={item.href}
+                    className={[
+                      styles.navLink,
+                      selected ? styles.navLinkActive : "",
+                      item.secondary ? styles.secondaryNav : "",
+                    ].filter(Boolean).join(" ")}
+                    aria-current={selected ? "page" : undefined}
+                    onClick={() => setOpen(false)}
+                  >
+                    <span aria-hidden="true">{item.icon}</span>
+                    <strong>{item.label}</strong>
+                  </Link>
+                );
+              })}
+            </section>
+          ))}
+        </nav>
 
-        <p className={styles.controlNote}>
-          You choose the requirement, supplier and final decision. AI remains optional assistance.
-        </p>
+        <div className={styles.governance}>
+          <strong>You remain in control.</strong>
+          <span>AI may assist, but it never chooses the supplier or final decision.</span>
+        </div>
       </aside>
 
-      <main className={styles.canvas}>
-        <header className={styles.workspaceHeader}>
+      <main className={styles.main}>
+        <header className={styles.topbar}>
           <div>
-            <span className={styles.eyebrow}>India&apos;s Human-First Business Operating System</span>
+            <span>India&apos;s Human-First Business Operating System</span>
             <h1>Buyer Work Desk</h1>
-            <p>
-              Create requirements, receive quotations, compare suppliers,
-              continue conversations and make your buying decision.
-            </p>
+            <p>One place to create requirements, compare suppliers, converse and decide.</p>
           </div>
-          <div className={styles.headerActions}>
-            <Link href="/dashboard/buyer/rfqs" className={styles.secondaryAction}>My Requirements</Link>
-            <Link href="/rfq" className={styles.primaryAction}>Create Requirement</Link>
+          <div className={styles.topActions}>
+            <Link href="/dashboard/buyer/rfqs">My Requirements</Link>
+            <Link href="/rfq">Create Requirement</Link>
           </div>
         </header>
-
-        <section className={styles.journey} aria-label="Human buying journey">
-          {[
-            ["01", "Describe need"],
-            ["02", "Receive quotes"],
-            ["03", "Compare"],
-            ["04", "Converse"],
-            ["05", "Decide"],
-          ].map(([number, label]) => (
-            <div key={number}>
-              <span>{number}</span>
-              <strong>{label}</strong>
-            </div>
-          ))}
-        </section>
 
         <div className={styles.content}>{children}</div>
       </main>
