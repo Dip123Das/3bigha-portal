@@ -1248,6 +1248,54 @@ export default function VendorDashboardApplicationShell({
           }
         }
 
+
+        /* V14E_READABLE_COMPACT_DASHBOARD */
+        .vendor-app-shell { margin-top:-62px!important; padding:8px 12px 16px!important; gap:12px!important; font-size:15px!important; }
+        .vendor-app-content { gap:0!important; }
+        .vendor-dashboard-welcome { margin:0 0 10px!important; }
+        .vendor-dashboard-welcome h1 { font-size:clamp(28px,2.2vw,36px)!important; line-height:1.08!important; }
+        .vendor-dashboard-welcome p { margin:4px 0 0!important; font-size:14px!important; line-height:1.4!important; }
+        .vendor-page-kicker { font-size:10px!important; }
+        .vendor-kpi-grid { gap:10px!important; margin:0 0 10px!important; }
+        .vendor-kpi-card { min-height:0!important; height:auto!important; padding:13px 14px!important; }
+        .vendor-kpi-card span { font-size:12px!important; }
+        .vendor-kpi-card strong { margin-top:5px!important; font-size:30px!important; line-height:1!important; }
+        .vendor-kpi-card small { margin-top:6px!important; font-size:11px!important; }
+        .vendor-action-strip { gap:8px!important; margin:0 0 10px!important; }
+        .vendor-action-strip a { min-height:0!important; height:auto!important; padding:12px 14px!important; }
+        .vendor-action-strip small { font-size:10px!important; }
+        .vendor-action-strip strong { font-size:15px!important; }
+        .vendor-action-strip span,.vendor-action-strip b { font-size:12px!important; }
+        .vendor-reference-hero,.vendor-reference-three,.vendor-reference-block { margin:0 0 10px!important; }
+        .vendor-reference-hero,.vendor-reference-three { gap:10px!important; }
+        .vendor-reference-mission,.vendor-reference-readiness,.vendor-reference-three>button,.vendor-reference-three>a { min-height:0!important; height:auto!important; align-content:start!important; justify-content:start!important; }
+        .vendor-reference-mission,.vendor-reference-readiness { padding:14px 16px!important; }
+        .vendor-reference-mission h2,.vendor-reference-title h2 { margin:4px 0 5px!important; font-size:21px!important; line-height:1.2!important; }
+        .vendor-reference-mission p,.vendor-reference-title p { margin:0!important; font-size:13px!important; line-height:1.45!important; }
+        .vendor-reference-mission small,.vendor-reference-readiness small,.vendor-reference-three small,.vendor-reference-title small,.vendor-reference-growth-cards small { font-size:10px!important; }
+        .vendor-reference-readiness>strong { font-size:30px!important; line-height:1.05!important; }
+        .vendor-reference-readiness>b,.vendor-reference-readiness>span,.vendor-reference-readiness>em { font-size:12px!important; }
+        .vendor-reference-three>button,.vendor-reference-three>a { padding:12px 14px!important; }
+        .vendor-reference-three strong { font-size:15px!important; }
+        .vendor-reference-three span,.vendor-reference-three b { font-size:12px!important; line-height:1.4!important; }
+        .vendor-reference-block { padding:13px 14px!important; }
+        .vendor-reference-title { margin:0 0 9px!important; gap:10px!important; }
+        .vendor-reference-title>button,.vendor-reference-plan { padding:9px 11px!important; }
+        .vendor-reference-title>button strong,.vendor-reference-plan strong { font-size:24px!important; }
+        .vendor-reference-metrics,.vendor-reference-growth-cards,.vendor-reference-pulse,.vendor-reference-groups { gap:8px!important; margin:0!important; }
+        .vendor-reference-metrics article,.vendor-reference-pulse article,.vendor-reference-growth-cards>button,.vendor-reference-growth-cards>a { min-height:0!important; height:auto!important; padding:10px 11px!important; align-content:start!important; justify-content:start!important; }
+        .vendor-reference-metrics span,.vendor-reference-pulse span { font-size:11px!important; }
+        .vendor-reference-metrics strong,.vendor-reference-pulse strong { font-size:21px!important; }
+        .vendor-reference-metrics small,.vendor-reference-pulse small,.vendor-reference-growth-cards span { font-size:10px!important; line-height:1.4!important; }
+        .vendor-reference-growth-cards strong { font-size:13px!important; }
+        .vendor-reference-growth-cards b { margin-top:6px!important; font-size:10px!important; }
+        .vendor-reference-groups article { padding:10px 11px!important; }
+        .vendor-reference-groups h3 { margin:0 0 3px!important; font-size:17px!important; }
+        .vendor-reference-groups p { min-height:0!important; margin:0 0 7px!important; font-size:11px!important; line-height:1.4!important; }
+        .vendor-reference-groups a { margin-top:4px!important; padding:7px 8px!important; font-size:11px!important; }
+        .vendor-shell-continuity { margin-top:0!important; }
+        @media(max-width:980px){ .vendor-app-shell{ margin-top:0!important; padding:10px!important; font-size:14px!important; } }
+
       `}</style>
     </div>
   );
