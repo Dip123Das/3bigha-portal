@@ -1296,7 +1296,382 @@ export default function VendorDashboardApplicationShell({
         .vendor-shell-continuity { margin-top:0!important; }
         @media(max-width:980px){ .vendor-app-shell{ margin-top:0!important; padding:10px!important; font-size:14px!important; } }
 
-      `}</style>
+      
+        /* =========================================================
+           A-2.5A — Vendor desktop presentation repair
+           Presentation-only. No routes, data, APIs or logic changed.
+           ========================================================= */
+        @media (min-width: 821px) {
+          .vendor-app-shell {
+            grid-template-columns: 292px minmax(0, 1fr) !important;
+            gap: 24px !important;
+            padding: 24px clamp(18px, 2vw, 34px) 42px !important;
+            overflow-x: clip;
+          }
+
+          .vendor-app-sidebar {
+            top: 88px;
+            width: 100%;
+            max-height: calc(100vh - 108px);
+            border-radius: 22px;
+          }
+
+          .vendor-profile-card {
+            padding: 22px 18px 18px !important;
+          }
+
+          .vendor-profile-avatar {
+            width: 82px !important;
+            height: 82px !important;
+          }
+
+          .vendor-profile-name {
+            margin-top: 12px !important;
+            font-size: 19px !important;
+            line-height: 1.25 !important;
+            overflow-wrap: anywhere;
+          }
+
+          .vendor-profile-plan {
+            font-size: 13px !important;
+            line-height: 1.4 !important;
+          }
+
+          .vendor-profile-email {
+            font-size: 12px !important;
+          }
+
+          .vendor-profile-status {
+            font-size: 12px !important;
+          }
+
+          .vendor-profile-button,
+          .vendor-selfie-retake {
+            min-height: 42px;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px !important;
+          }
+
+          .vendor-app-sidebar nav {
+            padding: 12px !important;
+          }
+
+          .vendor-menu-item {
+            min-height: 52px;
+            padding: 9px 10px !important;
+            border-radius: 11px;
+          }
+
+          .vendor-menu-icon {
+            width: 34px !important;
+            height: 34px !important;
+            font-size: 15px !important;
+          }
+
+          .vendor-menu-copy strong {
+            font-size: 14px !important;
+            line-height: 1.25 !important;
+          }
+
+          .vendor-menu-copy small {
+            margin-top: 2px;
+            font-size: 11px !important;
+            line-height: 1.3 !important;
+          }
+
+          .vendor-sidebar-support {
+            margin: 10px !important;
+            padding: 14px !important;
+          }
+
+          .vendor-sidebar-support strong {
+            font-size: 14px !important;
+          }
+
+          .vendor-sidebar-support span,
+          .vendor-sidebar-support a {
+            font-size: 12px !important;
+            line-height: 1.45 !important;
+          }
+
+          .vendor-app-content {
+            min-width: 0;
+            width: 100%;
+          }
+
+          .vendor-dashboard-welcome {
+            min-height: 118px;
+            padding: 22px 24px !important;
+            border-radius: 18px;
+          }
+
+          .vendor-page-kicker,
+          .vendor-dashboard-welcome small,
+          .vendor-reference-block small,
+          .vendor-reference-title small,
+          .vendor-reference-hero small,
+          .vendor-reference-three small {
+            font-size: 12px !important;
+            line-height: 1.35 !important;
+            letter-spacing: .08em;
+          }
+
+          .vendor-dashboard-welcome h1 {
+            margin-top: 6px !important;
+            font-size: clamp(30px, 2.4vw, 42px) !important;
+            line-height: 1.12 !important;
+          }
+
+          .vendor-dashboard-welcome p {
+            margin-top: 7px !important;
+            font-size: 15px !important;
+            line-height: 1.5 !important;
+          }
+
+          .vendor-overview-button {
+            min-height: 44px;
+            padding: 0 18px !important;
+            font-size: 13px !important;
+          }
+
+          .vendor-kpi-grid {
+            grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+            gap: 12px !important;
+          }
+
+          .vendor-kpi-card {
+            min-height: 108px !important;
+            padding: 16px !important;
+            border-radius: 15px !important;
+          }
+
+          .vendor-kpi-card > span {
+            font-size: 13px !important;
+          }
+
+          .vendor-kpi-card > strong {
+            margin-top: 8px !important;
+            font-size: 30px !important;
+            line-height: 1 !important;
+          }
+
+          .vendor-kpi-card > small {
+            margin-top: 8px !important;
+            font-size: 12px !important;
+          }
+
+          .vendor-action-strip {
+            gap: 12px !important;
+          }
+
+          .vendor-action-strip > a {
+            min-height: 112px;
+            padding: 18px !important;
+            border-radius: 15px !important;
+          }
+
+          .vendor-action-strip strong {
+            font-size: 17px !important;
+            line-height: 1.3 !important;
+          }
+
+          .vendor-action-strip span,
+          .vendor-action-strip b {
+            font-size: 13px !important;
+            line-height: 1.45 !important;
+          }
+
+          .vendor-reference-hero {
+            grid-template-columns: minmax(0, 1fr) 290px !important;
+            gap: 14px !important;
+          }
+
+          .vendor-reference-mission,
+          .vendor-reference-readiness {
+            min-height: 190px !important;
+            padding: 24px !important;
+            border-radius: 18px !important;
+          }
+
+          .vendor-reference-mission h2,
+          .vendor-reference-title h2 {
+            margin-top: 7px !important;
+            font-size: 25px !important;
+            line-height: 1.2 !important;
+          }
+
+          .vendor-reference-mission p,
+          .vendor-reference-title p {
+            margin-top: 8px !important;
+            font-size: 14px !important;
+            line-height: 1.55 !important;
+          }
+
+          .vendor-reference-readiness > strong {
+            font-size: 36px !important;
+          }
+
+          .vendor-reference-readiness > b,
+          .vendor-reference-readiness > span,
+          .vendor-reference-readiness > em {
+            font-size: 13px !important;
+            line-height: 1.45 !important;
+          }
+
+          .vendor-reference-three {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 12px !important;
+          }
+
+          .vendor-reference-three > * {
+            min-height: 150px !important;
+            padding: 18px !important;
+            border-radius: 16px !important;
+          }
+
+          .vendor-reference-three strong {
+            font-size: 17px !important;
+            line-height: 1.3 !important;
+          }
+
+          .vendor-reference-three span,
+          .vendor-reference-three b {
+            font-size: 13px !important;
+            line-height: 1.45 !important;
+          }
+
+          .vendor-reference-block {
+            padding: 20px !important;
+            border-radius: 18px !important;
+          }
+
+          .vendor-reference-title {
+            gap: 18px !important;
+          }
+
+          .vendor-reference-title > button,
+          .vendor-reference-plan {
+            min-width: 190px;
+            padding: 16px !important;
+          }
+
+          .vendor-reference-metrics {
+            grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+          }
+
+          .vendor-reference-metrics article,
+          .vendor-reference-pulse article {
+            min-height: 124px !important;
+            padding: 15px !important;
+            border-radius: 14px !important;
+          }
+
+          .vendor-reference-metrics span,
+          .vendor-reference-pulse span {
+            font-size: 12px !important;
+            line-height: 1.35 !important;
+          }
+
+          .vendor-reference-metrics strong,
+          .vendor-reference-pulse strong {
+            margin-top: 8px !important;
+            font-size: 24px !important;
+          }
+
+          .vendor-reference-metrics small,
+          .vendor-reference-pulse small {
+            margin-top: 7px !important;
+            font-size: 12px !important;
+            line-height: 1.45 !important;
+          }
+
+          .vendor-reference-growth-cards {
+            grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+          }
+
+          .vendor-reference-growth-cards > * {
+            min-height: 154px !important;
+            padding: 15px !important;
+            border-radius: 14px !important;
+          }
+
+          .vendor-reference-growth-cards strong {
+            font-size: 15px !important;
+            line-height: 1.35 !important;
+          }
+
+          .vendor-reference-growth-cards span,
+          .vendor-reference-growth-cards b {
+            font-size: 12px !important;
+            line-height: 1.45 !important;
+          }
+
+          .vendor-reference-pulse {
+            grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+          }
+
+          .vendor-reference-groups {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 12px !important;
+          }
+
+          .vendor-reference-groups article {
+            min-height: 310px !important;
+            padding: 17px !important;
+            border-radius: 16px !important;
+          }
+
+          .vendor-reference-groups h3 {
+            font-size: 19px !important;
+          }
+
+          .vendor-reference-groups p {
+            font-size: 12px !important;
+            line-height: 1.45 !important;
+          }
+
+          .vendor-reference-groups a {
+            min-height: 42px;
+            padding: 10px 11px !important;
+            font-size: 13px !important;
+          }
+
+          .vendor-shell-continuity {
+            max-width: 100%;
+            overflow-x: clip;
+          }
+        }
+
+        @media (min-width: 821px) and (max-width: 1180px) {
+          .vendor-app-shell {
+            grid-template-columns: 252px minmax(0, 1fr) !important;
+            gap: 16px !important;
+          }
+
+          .vendor-kpi-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+          }
+
+          .vendor-reference-metrics,
+          .vendor-reference-growth-cards {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+          }
+
+          .vendor-reference-pulse {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+          }
+
+          .vendor-reference-groups {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+
+        `}</style>
     </div>
   );
 }
