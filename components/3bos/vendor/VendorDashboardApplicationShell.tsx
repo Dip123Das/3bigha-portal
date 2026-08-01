@@ -28,14 +28,14 @@ type MenuItem =
 const menu: MenuItem[] = [
   { type: "panel", label: "Dashboard", detail: "Business overview", panel: "overview", icon: "▦", tone: "blue" },
   { type: "route", label: "My Profile", detail: "Business & KYC", href: "/onboarding/business", icon: "●", tone: "blue" },
-  { type: "route", label: "Unified Workspace", detail: "All business segments", href: "/dashboard/vendor/workspace", icon: "▤", tone: "indigo" },
-  { type: "route", label: "Vendor Work Desk", detail: "Manage operations", href: "/dashboard/vendor/rfqs", icon: "▣", tone: "orange" },
+  { type: "route", label: "Unified Workspace", detail: "All business segments", href: "/dashboard/workspace", icon: "▤", tone: "indigo" },
+  { type: "route", label: "Vendor Work Desk", detail: "Manage operations", href: "/dashboard/vendor/workspace", icon: "▣", tone: "orange" },
   { type: "route", label: "My RFQs", detail: "Bids & opportunities", href: "/dashboard/vendor/rfqs", icon: "▥", tone: "red" },
   { type: "route", label: "Messages", detail: "Conversations", href: "/dashboard/vendor/inbox", icon: "◫", tone: "green" },
   { type: "panel", label: "Analytics", detail: "Performance insights", panel: "pulse", icon: "▧", tone: "purple" },
   { type: "route", label: "My Listings", detail: "Products & services", href: "/dashboard/vendor/master-data", icon: "▨", tone: "emerald" },
   { type: "route", label: "Subscription", detail: "Plan & billing", href: "/dashboard/subscription", icon: "◇", tone: "pink" },
-  { type: "route", label: "Team & Users", detail: "Manage access", href: "/settings", icon: "⌘", tone: "cyan" },
+  { type: "route", label: "Team & Users", detail: "Manage access", href: "/dashboard/vendor/team", icon: "⌘", tone: "cyan" },
   { type: "route", label: "Help & Support", detail: "Get assistance", href: "/support/my", icon: "?", tone: "amber" },
   { type: "route", label: "Settings", detail: "Account & preferences", href: "/settings", icon: "⚙", tone: "sky" },
 ];
