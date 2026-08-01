@@ -1619,6 +1619,123 @@ export default function VendorDashboardApplicationShell({
           }
         }
 
+
+        /* V14C_FINAL_GAP_COMPRESSION
+           Spacing-only pass. Typography and selfie behaviour remain unchanged. */
+        .vendor-app-shell {
+          gap: 12px;
+          padding-top: 8px;
+          padding-bottom: 18px;
+        }
+
+        .vendor-app-content {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+        }
+
+        .vendor-dashboard-welcome {
+          margin-bottom: 8px;
+        }
+
+        .vendor-kpi-grid {
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+
+        .vendor-action-strip {
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+
+        .vendor-reference-hero,
+        .vendor-reference-three,
+        .vendor-reference-block {
+          margin-top: 8px;
+        }
+
+        .vendor-reference-hero {
+          gap: 8px;
+        }
+
+        .vendor-reference-three {
+          gap: 8px;
+        }
+
+        .vendor-reference-block {
+          padding-top: 12px;
+          padding-bottom: 12px;
+        }
+
+        .vendor-reference-title {
+          margin-bottom: 8px;
+        }
+
+        .vendor-reference-metrics,
+        .vendor-reference-growth-cards,
+        .vendor-reference-pulse,
+        .vendor-reference-groups {
+          gap: 8px;
+          margin-top: 8px;
+        }
+
+        .vendor-reference-mission,
+        .vendor-reference-readiness {
+          min-height: 132px;
+          padding-top: 14px;
+          padding-bottom: 14px;
+        }
+
+        .vendor-reference-three > button,
+        .vendor-reference-three > a {
+          min-height: 108px;
+          padding-top: 12px;
+          padding-bottom: 12px;
+        }
+
+        .vendor-reference-metrics article,
+        .vendor-reference-pulse article,
+        .vendor-reference-growth-cards > button,
+        .vendor-reference-growth-cards > a {
+          padding-top: 10px;
+          padding-bottom: 10px;
+        }
+
+        .vendor-reference-groups article {
+          padding-top: 10px;
+          padding-bottom: 10px;
+        }
+
+        .vendor-reference-groups p {
+          margin-top: 4px;
+          margin-bottom: 6px;
+        }
+
+        .vendor-reference-groups a {
+          margin-top: 4px;
+        }
+
+        .vendor-shell-continuity {
+          margin-top: 4px;
+        }
+
+        .vendor-sidebar-support {
+          margin-top: 6px;
+        }
+
+        @media (max-width: 980px) {
+          .vendor-app-shell {
+            gap: 10px;
+            padding-top: 8px;
+          }
+
+          .vendor-reference-hero,
+          .vendor-reference-three,
+          .vendor-reference-block {
+            margin-top: 8px;
+          }
+        }
+
       `}</style>
     </div>
   );
