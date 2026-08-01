@@ -41,7 +41,7 @@ const NAV: BuyerNavSection[] = [
     group: "Discover",
     items: [
       { label: "Marketplace", href: "/search", icon: "⌕" },
-      { label: "Unified Inbox", href: "/dashboard/inbox", icon: "✉" },
+      { label: "All Conversations", href: "/dashboard/inbox", icon: "✉" },
     ],
   },
   {

@@ -35,6 +35,16 @@ type Props = {
   aiNextAction?: string | null;
 };
 
+type JourneyState = "complete" | "current" | "upcoming";
+
+type JourneyStep = {
+  number: string;
+  title: string;
+  detail: string;
+  href: string;
+  state: JourneyState;
+};
+
 function formatDate(value?: string | null) {
   if (!value) return "Not set";
   const date = new Date(value);
@@ -46,20 +56,104 @@ function formatDate(value?: string | null) {
   });
 }
 
-export default function BuyerExecutiveDashboard(props: Props) {
-  const {
-    totalRfqs,
-    activeRfqs,
-    closedRfqs,
-    urgentRfqs,
-    memoryCount,
-    healthScore,
-    successPrediction,
-    recentRequirements,
-    reminders,
-    aiSummary,
-    aiNextAction,
-  } = props;
+function normalizedStatus(value: string) {
+  return value.trim().toLowerCase().replace(/[\s_-]+/g, "");
+}
+
+function deriveJourney(
+  totalRfqs: number,
+  activeRfqs: number,
+  closedRfqs: number,
+  requirements: RecentRequirement[]
+): JourneyStep[] {
+  const statuses = requirements.map((item) => normalizedStatus(item.status));
+
+  const hasQuotes = statuses.some((status) =>
+    ["quoted", "quote", "quotesreceived", "responded", "comparison", "negotiation"].some((token) =>
+      status.includes(token)
+    )
+  );
+
+  const inConversation = statuses.some((status) =>
+    ["conversation", "negotiation", "discussion", "clarification"].some((token) =>
+      status.includes(token)
+    )
+  );
+
+  const decided = closedRfqs > 0 && activeRfqs === 0;
+  const currentIndex =
+    totalRfqs === 0 ? 0 :
+    decided ? 4 :
+    inConversation ? 3 :
+    hasQuotes ? 2 :
+    activeRfqs > 0 ? 1 :
+    1;
+
+  const definitions = [
+    ["01", "Describe", "State your requirement", "/rfq"],
+    ["02", "Receive", "Collect supplier responses", "/dashboard/buyer/rfqs?status=active"],
+    ["03", "Compare", "Review price and suitability", "/dashboard/buyer/rfqs?view=compare"],
+    ["04", "Converse", "Clarify and negotiate", "/dashboard/buyer/inbox"],
+    ["05", "Decide", "Choose the supplier yourself", "/dashboard/buyer/rfqs?status=completed"],
+  ] as const;
+
+  return definitions.map(([number, title, detail, href], index) => ({
+    number,
+    title,
+    detail,
+    href,
+    state: index < currentIndex ? "complete" : index === currentIndex ? "current" : "upcoming",
+  }));
+}
+
+export default function BuyerExecutiveDashboard({
+  totalRfqs,
+  activeRfqs,
+  closedRfqs,
+  urgentRfqs,
+  memoryCount,
+  healthScore,
+  successPrediction,
+  recentRequirements,
+  reminders,
+  aiSummary,
+  aiNextAction,
+}: Props) {
+  const journey = deriveJourney(totalRfqs, activeRfqs, closedRfqs, recentRequirements);
+
+  const metrics = [
+    {
+      label: "Requirements",
+      value: totalRfqs,
+      detail: "All buying requests",
+      href: "/dashboard/buyer/rfqs",
+    },
+    {
+      label: "Active",
+      value: activeRfqs,
+      detail: "Open work and supplier responses",
+      href: "/dashboard/buyer/rfqs?status=active",
+    },
+    {
+      label: "Completed",
+      value: closedRfqs,
+      detail: "Finished procurement decisions",
+      href: "/dashboard/buyer/rfqs?status=completed",
+    },
+    {
+      label: "Attention",
+      value: urgentRfqs,
+      detail: urgentRfqs > 0 ? "Needs review now" : "No urgent work",
+      href: "/dashboard/buyer/rfqs?status=attention",
+      urgent: urgentRfqs > 0,
+    },
+    {
+      label: "Reusable memory",
+      value: memoryCount,
+      detail: "Previous requirement context",
+      href: "/dashboard/procurement-memory-intelligence",
+    },
+  ];
 
   return (
     <div className={styles.dashboard}>
@@ -70,7 +164,7 @@ export default function BuyerExecutiveDashboard(props: Props) {
           <p>
             {activeRfqs > 0
               ? "Review quotations, continue supplier conversations and move the right requirement toward a decision."
-              : "Describe what you need in familiar language. 3Bigha will structure the process without taking control away from you."}
+              : "Describe what you need in familiar language. 3Bigha structures the process while you remain in control."}
           </p>
           <div className={styles.primaryActions}>
             <Link href="/rfq">Create Requirement</Link>
@@ -79,26 +173,27 @@ export default function BuyerExecutiveDashboard(props: Props) {
           </div>
         </div>
 
-        <div className={styles.readiness}>
+        <Link href="/dashboard/buyer/rfqs" className={styles.readiness}>
           <span>Procurement readiness</span>
           <strong>{healthScore}%</strong>
           <div><i style={{ width: `${Math.max(4, Math.min(100, healthScore))}%` }} /></div>
           <small>{successPrediction}</small>
-        </div>
+          <em>Review procurement health →</em>
+        </Link>
       </section>
 
-      <section className={styles.kpiStrip}>
-        {[
-          ["Requirements", totalRfqs],
-          ["Active", activeRfqs],
-          ["Completed", closedRfqs],
-          ["Attention", urgentRfqs],
-          ["Reusable memory", memoryCount],
-        ].map(([label, value]) => (
-          <article key={String(label)}>
-            <span>{label}</span>
-            <strong>{value}</strong>
-          </article>
+      <section className={styles.kpiStrip} aria-label="Buyer operational metrics">
+        {metrics.map((metric) => (
+          <Link
+            key={metric.label}
+            href={metric.href}
+            className={metric.urgent ? styles.urgentMetric : undefined}
+          >
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+            <small>{metric.detail}</small>
+            <em>Open →</em>
+          </Link>
         ))}
       </section>
 
@@ -129,9 +224,13 @@ export default function BuyerExecutiveDashboard(props: Props) {
             </div>
           ) : (
             <div className={styles.empty}>
-              <strong>No requirement created yet</strong>
-              <span>Post one requirement and invite suitable vendors to respond.</span>
-              <Link href="/rfq">Create your first requirement</Link>
+              <div className={styles.emptyIcon} aria-hidden="true">+</div>
+              <strong>Start with one clear requirement</strong>
+              <span>Post what you need, where you need it and when you need it. Suitable vendors can then respond.</span>
+              <div>
+                <Link href="/rfq">Create Requirement</Link>
+                <Link href="/search">Explore Marketplace</Link>
+              </div>
             </div>
           )}
         </section>
@@ -141,38 +240,56 @@ export default function BuyerExecutiveDashboard(props: Props) {
             <span className={styles.eyebrow}>Needs your attention</span>
             <h3>Next best actions</h3>
           </header>
-          <div className={styles.reminders}>
-            {reminders.slice(0, 4).map((item) => (
-              <Link key={item.id} href={item.href}>
-                <span>{item.icon || "•"}</span>
-                <div>
-                  <strong>{item.title}</strong>
-                  <small>{item.message}</small>
-                  <em>{item.cta} →</em>
-                </div>
-              </Link>
-            ))}
-          </div>
+
+          {reminders.length ? (
+            <div className={styles.reminders}>
+              {reminders.slice(0, 4).map((item) => (
+                <Link key={item.id} href={item.href}>
+                  <span>{item.icon || "•"}</span>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <small>{item.message}</small>
+                    <em>{item.cta} →</em>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.noAttention}>
+              <strong>No urgent work</strong>
+              <span>Your active requirements and supplier replies will appear here.</span>
+            </div>
+          )}
         </aside>
       </div>
 
       <section className={styles.journey}>
         <header>
-          <span className={styles.eyebrow}>Human Journey</span>
-          <h3>From need to decision</h3>
+          <div>
+            <span className={styles.eyebrow}>Live Human Journey</span>
+            <h3>From need to decision</h3>
+          </div>
+          <small>Current stage is highlighted automatically.</small>
         </header>
         <div>
-          {[
-            ["01", "Describe", "State your requirement", "/rfq"],
-            ["02", "Receive", "Collect supplier responses", "/dashboard/buyer/rfqs"],
-            ["03", "Compare", "Review price and suitability", "/dashboard/buyer/rfqs"],
-            ["04", "Converse", "Clarify and negotiate", "/dashboard/buyer/inbox"],
-            ["05", "Decide", "Choose the supplier yourself", "/dashboard/buyer/rfqs"],
-          ].map(([number, title, detail, href]) => (
-            <Link key={number} href={href}>
-              <span>{number}</span>
-              <strong>{title}</strong>
-              <small>{detail}</small>
+          {journey.map((step) => (
+            <Link
+              key={step.number}
+              href={step.href}
+              className={[
+                styles.journeyStep,
+                step.state === "complete" ? styles.journeyComplete : "",
+                step.state === "current" ? styles.journeyCurrent : "",
+              ].filter(Boolean).join(" ")}
+              aria-current={step.state === "current" ? "step" : undefined}
+            >
+              <span>{step.state === "complete" ? "✓" : step.number}</span>
+              <strong>{step.title}</strong>
+              <small>{step.detail}</small>
+              <em>
+                {step.state === "complete" ? "Completed" :
+                 step.state === "current" ? "Current stage" : "Upcoming"}
+              </em>
             </Link>
           ))}
         </div>

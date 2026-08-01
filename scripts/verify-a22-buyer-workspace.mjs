@@ -50,6 +50,30 @@ for (const file of requiredFiles) {
 const page = read("app/dashboard/buyer/page.tsx");
 const menu = read("components/buyer/BuyerWorkMenu.tsx");
 
+const finalBuyerDashboard = read(
+  "components/3bos/buyer/BuyerExecutiveDashboard.tsx"
+);
+
+assert(
+  finalBuyerDashboard.includes("Buyer operational metrics") &&
+    finalBuyerDashboard.includes("Live Human Journey") &&
+    finalBuyerDashboard.includes('aria-current={step.state === "current" ? "step" : undefined}'),
+  "A-2.3C–F clickable metrics or live Human Journey are missing."
+);
+
+assert(
+  finalBuyerDashboard.includes("?status=active") &&
+    finalBuyerDashboard.includes("?status=completed") &&
+    finalBuyerDashboard.includes("?status=attention"),
+  "A-2.3C filtered operational navigation is incomplete."
+);
+
+assert(
+  finalBuyerDashboard.indexOf("Optional assistance") >
+    finalBuyerDashboard.indexOf("Live Human Journey"),
+  "AI assistance must remain after the human operational workflow."
+);
+
 const preservedRoutes = [
   "/rfq",
   "/dashboard/buyer/rfqs",
@@ -145,4 +169,4 @@ if (failures.length > 0) {
 }
 
 console.log("\nPASS: Existing Buyer APIs, RFQ workflow, procurement intelligence, conversations and compatibility routes remain present.");
-console.log("PASS: Buyer Workspace is ready for the A-2.2B application-shell refactor.");
+console.log("PASS: Constitutional Buyer Workspace is complete: operational metrics, live journey, navigation consistency and AI-secondary hierarchy verified.");
