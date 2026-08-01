@@ -672,12 +672,12 @@ const aiDealUpgradeTarget =
     const [memberIdentityResult, businessIdentityResult] = await Promise.all([
       supabase
         .from("profiles")
-        .select("full_name,display_name,profile_photo_url,profile_photo_source")
+        .select("full_name,display_name,profile_photo_url,profile_photo_source,registration_verification_status")
         .eq("id", session.user.id)
         .maybeSingle(),
       supabase
         .from("business_profiles")
-        .select("nature_of_business,business_profile_complete,is_complete,registration_complete,selfie_media_json,selfie_capture_status")
+        .select("nature_of_business,business_profile_complete,is_complete,registration_complete,selfie_media_json,selfie_capture_status,business_media_json,automated_verification_json")
         .eq("user_id", session.user.id)
         .maybeSingle(),
     ]);
@@ -695,19 +695,36 @@ const aiDealUpgradeTarget =
     const selfieStatus = String(profileAccess.selfie_capture_status || "")
       .trim()
       .toLowerCase();
-    const registrationSelfie = firstVerifiedSelfieUrl(profileAccess.selfie_media_json);
+
+    const registrationVerificationStatus = String(
+      memberIdentity.registration_verification_status || ""
+    )
+      .trim()
+      .toLowerCase();
+
+    const registrationSelfie =
+      firstVerifiedSelfieUrl(profileAccess.selfie_media_json) ||
+      firstVerifiedSelfieUrl(profileAccess.business_media_json);
+
     const selectedRegistrationPhoto =
       String(memberIdentity.profile_photo_source || "").trim() === "registration_selfie"
         ? String(memberIdentity.profile_photo_url || "").trim()
         : "";
-    const resolvedSelfie =
-      selfieStatus === "verified"
-        ? selectedRegistrationPhoto || registrationSelfie
-        : "";
+
+    const registrationIdentityVerified =
+      selfieStatus === "verified" ||
+      registrationVerificationStatus === "verified" ||
+      registrationVerificationStatus === "auto_verified";
+
+    const resolvedSelfie = registrationIdentityVerified
+      ? selectedRegistrationPhoto || registrationSelfie
+      : "";
 
     setRegisteredName(resolvedRegisteredName);
     setVerifiedSelfieUrl(resolvedSelfie);
-    setVerifiedSelfieStatus(Boolean(resolvedSelfie) && selfieStatus === "verified");
+    setVerifiedSelfieStatus(
+      Boolean(resolvedSelfie) && registrationIdentityVerified
+    );
 
     const profileNature = Array.isArray((profileAccess as any)?.nature_of_business)
       ? ((profileAccess as any).nature_of_business as string[])

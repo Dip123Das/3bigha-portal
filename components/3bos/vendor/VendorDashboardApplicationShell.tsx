@@ -1154,6 +1154,245 @@ export default function VendorDashboardApplicationShell({
             font-size: 25px;
           }
         }
+
+        /* V14A_FINAL_DENSITY_OVERRIDE */
+        .vendor-app-shell {
+          grid-template-columns: 220px minmax(0, 1fr);
+          gap: 14px;
+          padding: 8px clamp(8px, 1vw, 14px) 18px;
+        }
+
+        .vendor-app-sidebar {
+          top: 76px;
+          max-height: calc(100vh - 86px);
+          border-radius: 16px;
+        }
+
+        .vendor-profile-card {
+          padding: 10px 10px 9px;
+          border-radius: 14px;
+        }
+
+        .vendor-profile-avatar,
+        .vendor-profile-avatar-button,
+        .vendor-profile-avatar-image {
+          width: 58px;
+          height: 58px;
+        }
+
+        .vendor-profile-name {
+          margin-top: 6px;
+          font-size: 14px;
+          line-height: 1.15;
+        }
+
+        .vendor-profile-plan,
+        .vendor-profile-email {
+          margin-top: 2px;
+          font-size: 9px;
+        }
+
+        .vendor-profile-status {
+          margin-top: 5px;
+          padding: 3px 7px;
+          font-size: 9px;
+        }
+
+        .vendor-profile-button,
+        .vendor-selfie-retake {
+          margin-top: 6px;
+          padding: 6px 8px;
+          font-size: 9px;
+        }
+
+        nav {
+          padding: 5px;
+        }
+
+        .vendor-menu-item {
+          gap: 7px;
+          margin-bottom: 0;
+          padding: 5px 7px;
+          border-radius: 8px;
+        }
+
+        .vendor-menu-icon {
+          width: 21px;
+          height: 21px;
+          border-radius: 6px;
+          font-size: 9px;
+        }
+
+        .vendor-menu-copy strong {
+          font-size: 9.5px;
+          line-height: 1.15;
+        }
+
+        .vendor-menu-copy small {
+          font-size: 7.5px;
+          line-height: 1.15;
+        }
+
+        .vendor-sidebar-support {
+          gap: 5px;
+          margin: 5px;
+          padding: 8px;
+        }
+
+        .vendor-dashboard-welcome {
+          margin-bottom: 7px;
+        }
+
+        .vendor-page-kicker {
+          margin-bottom: 2px;
+          font-size: 8px;
+        }
+
+        .vendor-dashboard-welcome h1 {
+          font-size: clamp(20px, 2.2vw, 28px);
+          line-height: 1.1;
+        }
+
+        .vendor-dashboard-welcome p {
+          margin-top: 3px;
+          font-size: 10px;
+        }
+
+        .vendor-overview-button {
+          padding: 8px 11px;
+          font-size: 9px;
+        }
+
+        .vendor-kpi-grid {
+          gap: 8px;
+          margin-bottom: 7px;
+        }
+
+        .vendor-kpi-card {
+          min-height: 88px;
+          padding: 10px;
+          border-radius: 12px;
+        }
+
+        .vendor-kpi-card strong {
+          margin-top: 4px;
+          font-size: 22px;
+        }
+
+        .vendor-kpi-card small {
+          margin-top: 4px;
+        }
+
+        .vendor-action-strip {
+          gap: 8px;
+          margin-bottom: 7px;
+        }
+
+        .vendor-action-strip a {
+          gap: 3px;
+          padding: 10px;
+          border-radius: 11px;
+        }
+
+        .vendor-reference-hero {
+          gap: 8px;
+          margin-top: 7px;
+        }
+
+        .vendor-reference-mission,
+        .vendor-reference-readiness {
+          min-height: 118px;
+          padding: 12px;
+          border-radius: 12px;
+        }
+
+        .vendor-reference-mission > div:first-child {
+          gap: 4px;
+        }
+
+        .vendor-reference-art {
+          width: 115px;
+          height: 82px;
+          transform: scale(.82);
+          transform-origin: center right;
+        }
+
+        .vendor-reference-three {
+          gap: 8px;
+          margin-top: 7px;
+        }
+
+        .vendor-reference-three > button,
+        .vendor-reference-three > a {
+          min-height: 94px;
+          gap: 4px;
+          padding: 10px;
+          border-radius: 11px;
+        }
+
+        .vendor-reference-block {
+          margin-top: 7px;
+          padding: 10px;
+          border-radius: 12px;
+        }
+
+        .vendor-reference-title {
+          gap: 9px;
+        }
+
+        .vendor-reference-title h2,
+        .vendor-reference-mission h2 {
+          font-size: 14px;
+        }
+
+        .vendor-reference-title p,
+        .vendor-reference-mission p {
+          font-size: 8px;
+          line-height: 1.35;
+        }
+
+        .vendor-reference-title > button,
+        .vendor-reference-plan {
+          min-width: 140px;
+          padding: 8px;
+        }
+
+        .vendor-reference-metrics,
+        .vendor-reference-growth-cards,
+        .vendor-reference-pulse,
+        .vendor-reference-groups {
+          gap: 7px;
+          margin-top: 8px;
+        }
+
+        .vendor-reference-metrics article,
+        .vendor-reference-pulse article,
+        .vendor-reference-growth-cards > button,
+        .vendor-reference-growth-cards > a {
+          min-height: auto;
+          gap: 3px;
+          padding: 8px;
+          border-radius: 9px;
+        }
+
+        .vendor-reference-groups article {
+          padding: 9px;
+          border-radius: 10px;
+        }
+
+        .vendor-reference-groups p {
+          min-height: 24px;
+        }
+
+        .vendor-reference-groups a {
+          margin-top: 3px;
+          padding: 5px 6px;
+        }
+
+        .vendor-shell-continuity {
+          margin-top: 5px;
+        }
+
       `}</style>
     </div>
   );
