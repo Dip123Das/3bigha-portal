@@ -173,11 +173,16 @@ export default function BuyerDashboardPage() {
     setEmail(session.user.email ?? null);
 
     try {
-      const { data: rfqs } = await supabase
+      const { data: rfqs, error: rfqsError } = await supabase
         .from("rfqs")
-        .select("id,title,module,status,created_at,needed_by")
+        .select("id,title,module,status,created_at,needed_by,requester_user_id")
+        .eq("requester_user_id", session.user.id)
         .order("created_at", { ascending: false })
         .limit(20);
+
+      if (rfqsError) {
+        throw rfqsError;
+      }
 
       const rows = Array.isArray(rfqs) ? (rfqs as BuyerRfqMini[]) : [];
 
