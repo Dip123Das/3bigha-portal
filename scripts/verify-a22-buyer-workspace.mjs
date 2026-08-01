@@ -21,6 +21,10 @@ const requiredFiles = [
   "app/dashboard/buyer/inbox/page.tsx",
   "components/operational/UniversalDashboardShell.tsx",
   "components/3bos/workspace-home/WorkspaceHome.tsx",
+  "components/3bos/buyer/BuyerDashboardApplicationShell.tsx",
+  "components/3bos/buyer/BuyerDashboardApplicationShell.module.css",
+  "components/3bos/buyer/BuyerExecutiveDashboard.tsx",
+  "components/3bos/buyer/BuyerExecutiveDashboard.module.css",
 ];
 
 const buyerPage = path.join(root, "app/dashboard/buyer/page.tsx");
