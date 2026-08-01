@@ -144,6 +144,25 @@ function titleCase(s: string) {
   return t.length ? t.charAt(0).toUpperCase() + t.slice(1) : t;
 }
 
+function firstVerifiedSelfieUrl(value: unknown) {
+  const assets = Array.isArray(value)
+    ? value
+    : value && typeof value === "object"
+    ? [value]
+    : [];
+
+  for (const asset of assets as Record<string, unknown>[]) {
+    const url = String(asset?.url || asset?.publicUrl || "").trim();
+    const path = String(asset?.path || "").trim();
+
+    if (url && (!path || path.includes("/live-selfie/"))) {
+      return url;
+    }
+  }
+
+  return "";
+}
+
 function Pill({
   children,
   tone = "neutral",
@@ -214,6 +233,9 @@ export default function VendorDashboardPage() {
   const [err, setErr] = useState<string | null>(null);
 
   const [email, setEmail] = useState<string | null>(null);
+  const [registeredName, setRegisteredName] = useState("");
+  const [verifiedSelfieUrl, setVerifiedSelfieUrl] = useState("");
+  const [verifiedSelfieStatus, setVerifiedSelfieStatus] = useState(false);
 
   const [isVendor, setIsVendor] = useState(false);
   const [vendorComplete, setVendorComplete] = useState<boolean | null>(null);
@@ -647,11 +669,45 @@ const aiDealUpgradeTarget =
       session.user.email ?? null
     );
 
-    const { data: profileAccess } = await supabase
-      .from("business_profiles")
-      .select("nature_of_business,business_profile_complete,is_complete,registration_complete")
-      .eq("user_id", session.user.id)
-      .maybeSingle();
+    const [memberIdentityResult, businessIdentityResult] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("full_name,display_name,profile_photo_url,profile_photo_source")
+        .eq("id", session.user.id)
+        .maybeSingle(),
+      supabase
+        .from("business_profiles")
+        .select("nature_of_business,business_profile_complete,is_complete,registration_complete,selfie_media_json,selfie_capture_status")
+        .eq("user_id", session.user.id)
+        .maybeSingle(),
+    ]);
+
+    const memberIdentity = (memberIdentityResult.data || {}) as Record<string, any>;
+    const profileAccess = (businessIdentityResult.data || {}) as Record<string, any>;
+
+    const resolvedRegisteredName =
+      String(memberIdentity.display_name || "").trim() ||
+      String(memberIdentity.full_name || "").trim() ||
+      String(session.user.user_metadata?.full_name || "").trim() ||
+      String(session.user.email || "").split("@")[0] ||
+      "3Bigha Member";
+
+    const selfieStatus = String(profileAccess.selfie_capture_status || "")
+      .trim()
+      .toLowerCase();
+    const registrationSelfie = firstVerifiedSelfieUrl(profileAccess.selfie_media_json);
+    const selectedRegistrationPhoto =
+      String(memberIdentity.profile_photo_source || "").trim() === "registration_selfie"
+        ? String(memberIdentity.profile_photo_url || "").trim()
+        : "";
+    const resolvedSelfie =
+      selfieStatus === "verified"
+        ? selectedRegistrationPhoto || registrationSelfie
+        : "";
+
+    setRegisteredName(resolvedRegisteredName);
+    setVerifiedSelfieUrl(resolvedSelfie);
+    setVerifiedSelfieStatus(Boolean(resolvedSelfie) && selfieStatus === "verified");
 
     const profileNature = Array.isArray((profileAccess as any)?.nature_of_business)
       ? ((profileAccess as any).nature_of_business as string[])
@@ -1387,6 +1443,9 @@ const aiDealUpgradeTarget =
       <VendorDashboardApplicationShell
         projection={vendorWorkspaceProjection}
         email={email}
+        registeredName={registeredName}
+        verifiedSelfieUrl={verifiedSelfieUrl}
+        verifiedSelfie={verifiedSelfieStatus}
       >
         {/* V1C1_PROJECTION_DRIVEN_EXECUTIVE_MISSION */}
         <section id="vendor-executive-mission">

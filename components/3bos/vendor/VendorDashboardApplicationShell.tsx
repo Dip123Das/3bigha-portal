@@ -6,6 +6,9 @@ import type { VendorWorkspaceProjection } from "@/lib/3bos/vendor/resolve-vendor
 type Props = {
   projection: VendorWorkspaceProjection;
   email?: string | null;
+  registeredName?: string | null;
+  verifiedSelfieUrl?: string | null;
+  verifiedSelfie?: boolean;
   children: React.ReactNode;
 };
 
@@ -72,12 +75,20 @@ function panelLabel(panel: InternalPanel) {
 export default function VendorDashboardApplicationShell({
   projection,
   email,
+  registeredName,
+  verifiedSelfieUrl,
+  verifiedSelfie = false,
   children,
 }: Props) {
   const [activePanel, setActivePanel] =
     useState<InternalPanel>("overview");
+  const [photoOpen, setPhotoOpen] = useState(false);
 
   const identity = projection.identity.title || "Vendor Hub";
+  const humanName = String(registeredName || "").trim() ||
+    String(email || "").split("@")[0] ||
+    "3Bigha Member";
+  const selfieUrl = verifiedSelfie ? String(verifiedSelfieUrl || "").trim() : "";
   const pulse = projection.pulse;
 
   const sectionMap = useMemo(() => {
@@ -200,19 +211,28 @@ export default function VendorDashboardApplicationShell({
     >
       <aside className="vendor-app-sidebar">
         <div className="vendor-profile-card">
-          <div className="vendor-profile-avatar">
-            {initials(identity)}
-          </div>
+          <button
+            type="button"
+            className="vendor-profile-avatar"
+            onClick={() => selfieUrl && setPhotoOpen(true)}
+            aria-label={selfieUrl ? "Open verified selfie" : "Profile initials"}
+          >
+            {selfieUrl ? (
+              <img src={selfieUrl} alt={`${humanName} verified registration selfie`} />
+            ) : (
+              initials(humanName)
+            )}
+          </button>
 
-          <div className="vendor-profile-name">{identity}</div>
-          <div className="vendor-profile-plan">Premium Vendor</div>
+          <div className="vendor-profile-name">{humanName}</div>
+          <div className="vendor-profile-plan">{identity}</div>
 
           <div className="vendor-profile-email">
             {email || "Vendor workspace"}
           </div>
 
           <div className="vendor-profile-status">
-            ✓ Verified
+            {selfieUrl ? "✓ Verified live identity" : "Live selfie required"}
           </div>
 
           <a
@@ -220,6 +240,12 @@ export default function VendorDashboardApplicationShell({
             className="vendor-profile-button"
           >
             View My Profile
+          </a>
+          <a
+            href="/onboarding/business#sec-selfie"
+            className="vendor-selfie-retake"
+          >
+            Retake Verified Live Selfie
           </a>
         </div>
 
@@ -286,7 +312,7 @@ export default function VendorDashboardApplicationShell({
 
             <h1>
               {activePanel === "overview"
-                ? `Welcome back, ${identity}`
+                ? `Welcome, ${humanName}! 👋`
                 : panelLabel(activePanel)}
             </h1>
 
@@ -431,7 +457,167 @@ export default function VendorDashboardApplicationShell({
         </div>
       </section>
 
+      {photoOpen && selfieUrl ? (
+        <div
+          className="vendor-photo-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Verified registration selfie"
+          onClick={() => setPhotoOpen(false)}
+        >
+          <div className="vendor-photo-dialog" onClick={(event) => event.stopPropagation()}>
+            <button
+              type="button"
+              className="vendor-photo-close"
+              onClick={() => setPhotoOpen(false)}
+              aria-label="Close photo viewer"
+            >
+              ×
+            </button>
+            <img src={selfieUrl} alt={`${humanName} verified registration selfie`} />
+            <div className="vendor-photo-caption">
+              <strong>{humanName}</strong>
+              <span>Verified live-camera registration selfie</span>
+            </div>
+            <div className="vendor-photo-actions">
+              <a href="/onboarding/business">View Profile</a>
+              <a href="/onboarding/business#sec-selfie">Retake Verified Live Selfie</a>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <style jsx>{`
+
+        /* V14_VERIFIED_HUMAN_IDENTITY_DASHBOARD */
+        .vendor-app-shell {
+          grid-template-columns: 236px minmax(0, 1fr);
+          gap: 14px;
+          padding: 14px clamp(10px, 1.4vw, 22px) 28px;
+        }
+
+        .vendor-profile-card {
+          padding: 15px 14px 13px;
+        }
+
+        .vendor-profile-avatar {
+          overflow: hidden;
+          padding: 0;
+          border: 0;
+          cursor: pointer;
+        }
+
+        .vendor-profile-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        .vendor-profile-name { margin-top: 9px; }
+        .vendor-profile-plan { margin-top: 2px; }
+        .vendor-profile-status { margin-top: 7px; }
+        .vendor-profile-button { margin-top: 9px; padding: 8px 10px; }
+
+        .vendor-selfie-retake {
+          display: block;
+          margin-top: 7px;
+          padding: 8px 10px;
+          border: 1px solid #bfdbfe;
+          border-radius: 10px;
+          color: #1d4ed8;
+          background: #eff6ff;
+          text-decoration: none;
+          font-size: 10px;
+          font-weight: 900;
+        }
+
+        nav { padding: 8px; }
+        .vendor-menu-item { margin-bottom: 1px; padding: 7px 8px; }
+        .vendor-dashboard-welcome { margin-bottom: 11px; }
+        .vendor-kpi-grid, .vendor-action-strip { margin-bottom: 11px; }
+        .vendor-reference-hero, .vendor-reference-three, .vendor-reference-block { margin-top: 11px; }
+        .vendor-reference-block { padding: 14px; }
+        .vendor-sidebar-support { margin: 8px; padding: 11px; }
+
+        .vendor-photo-modal {
+          position: fixed;
+          inset: 0;
+          z-index: 10000;
+          display: grid;
+          place-items: center;
+          padding: 20px;
+          background: rgba(2, 6, 23, 0.78);
+          backdrop-filter: blur(8px);
+        }
+
+        .vendor-photo-dialog {
+          position: relative;
+          width: min(92vw, 520px);
+          padding: 14px;
+          border-radius: 22px;
+          background: #ffffff;
+          box-shadow: 0 30px 80px rgba(2, 6, 23, 0.4);
+        }
+
+        .vendor-photo-dialog > img {
+          display: block;
+          width: 100%;
+          max-height: 68vh;
+          object-fit: contain;
+          border-radius: 16px;
+          background: #0f172a;
+        }
+
+        .vendor-photo-close {
+          position: absolute;
+          top: 22px;
+          right: 22px;
+          z-index: 2;
+          display: grid;
+          place-items: center;
+          width: 34px;
+          height: 34px;
+          border: 0;
+          border-radius: 50%;
+          color: #ffffff;
+          background: rgba(15, 23, 42, 0.78);
+          font-size: 24px;
+          cursor: pointer;
+        }
+
+        .vendor-photo-caption {
+          display: grid;
+          gap: 3px;
+          padding: 12px 3px 6px;
+        }
+
+        .vendor-photo-caption strong { font-size: 16px; }
+        .vendor-photo-caption span { color: #64748b; font-size: 11px; }
+
+        .vendor-photo-actions {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px;
+          margin-top: 7px;
+        }
+
+        .vendor-photo-actions a {
+          padding: 10px;
+          border-radius: 10px;
+          color: #ffffff;
+          background: #2563eb;
+          text-align: center;
+          text-decoration: none;
+          font-size: 11px;
+          font-weight: 900;
+        }
+
+        .vendor-photo-actions a:last-child {
+          color: #1d4ed8;
+          border: 1px solid #bfdbfe;
+          background: #eff6ff;
+        }
         .vendor-app-shell {
           display: grid;
           grid-template-columns: 260px minmax(0, 1fr);
