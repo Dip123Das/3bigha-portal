@@ -4,7 +4,7 @@
   --buyer-muted: #64748b;
   --buyer-blue: #1d5fd1;
   display: grid;
-  grid-template-columns: 272px minmax(0, 1fr);
+  grid-template-columns: 292px minmax(0, 1fr);
   gap: 18px;
   width: 100%;
   align-items: start;
@@ -13,8 +13,8 @@
 .sidebar {
   position: sticky;
   top: 92px;
-  max-height: calc(100vh - 112px);
-  overflow-y: auto;
+  min-height: calc(100vh - 112px);
+  overflow: visible;
   border: 1px solid var(--buyer-border);
   border-radius: 22px;
   padding: 16px;

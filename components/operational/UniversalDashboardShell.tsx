@@ -9,12 +9,18 @@ export default function UniversalDashboardShell({
   subtitle,
   children,
   workFirst = false,
+  hideHeader = false,
+  hideContinuity = false,
+  hideActivity = false,
 }: {
   eyebrow: string;
   title: string;
   subtitle: string;
   children: React.ReactNode;
   workFirst?: boolean;
+  hideHeader?: boolean;
+  hideContinuity?: boolean;
+  hideActivity?: boolean;
 }) {
   const header = (
     <section
@@ -71,16 +77,20 @@ export default function UniversalDashboardShell({
       <Container>
         {workFirst ? (
           <>
-            {header}
-            <WorkflowContinuityBar />
+            {!hideHeader ? header : null}
+            {!hideContinuity ? <WorkflowContinuityBar /> : null}
             {children}
-            <OperationalEventStream title="Recent activity" limit={3} />
+            {!hideActivity ? (
+              <OperationalEventStream title="Recent activity" limit={3} />
+            ) : null}
           </>
         ) : (
           <>
-            <WorkflowContinuityBar />
-            <OperationalEventStream title="Recent activity" limit={5} />
-            {header}
+            {!hideContinuity ? <WorkflowContinuityBar /> : null}
+            {!hideActivity ? (
+              <OperationalEventStream title="Recent activity" limit={5} />
+            ) : null}
+            {!hideHeader ? header : null}
             {children}
           </>
         )}

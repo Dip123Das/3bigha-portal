@@ -467,6 +467,9 @@ const closedDeals =
       title="Buyer Work Desk"
       subtitle="Manage requirements, quotations, supplier conversations and buying decisions from one human-first workspace."
       workFirst
+      hideHeader
+      hideContinuity
+      hideActivity
     >
       <BuyerDashboardApplicationShell
         email={email}
