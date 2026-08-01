@@ -83,6 +83,7 @@ export default function VendorDashboardApplicationShell({
   const [activePanel, setActivePanel] =
     useState<InternalPanel>("overview");
   const [photoOpen, setPhotoOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const identity = projection.identity.title || "Vendor Hub";
   const humanName = String(registeredName || "").trim() ||
@@ -209,7 +210,31 @@ export default function VendorDashboardApplicationShell({
       data-v12-zero-scroll-dashboard="active"
       className="vendor-app-shell"
     >
-      <aside className="vendor-app-sidebar">
+      <button
+        type="button"
+        className="vendor-mobile-menu-bar"
+        aria-expanded={menuOpen}
+        aria-controls="vendor-dashboard-navigation"
+        onClick={() => setMenuOpen((value) => !value)}
+      >
+        <span aria-hidden="true">{menuOpen ? "×" : "☰"}</span>
+        <strong>Vendor Workspace</strong>
+        <small>{pulse.newLeads + pulse.unreadConversations} active</small>
+      </button>
+
+      {menuOpen ? (
+        <button
+          type="button"
+          className="vendor-mobile-backdrop"
+          aria-label="Close Vendor workspace menu"
+          onClick={() => setMenuOpen(false)}
+        />
+      ) : null}
+
+      <aside
+        id="vendor-dashboard-navigation"
+        className={`vendor-app-sidebar ${menuOpen ? "vendor-app-sidebar-open" : ""}`}
+      >
         <div className="vendor-profile-card">
           <button
             type="button"
@@ -257,6 +282,7 @@ export default function VendorDashboardApplicationShell({
                 type="button"
                 onClick={() => {
                   setActivePanel(item.panel);
+                  setMenuOpen(false);
                   window.scrollTo({
                     top: 0,
                     behavior: "smooth",
@@ -281,6 +307,7 @@ export default function VendorDashboardApplicationShell({
                 key={`${item.label}-${item.href}`}
                 href={item.href}
                 className="vendor-menu-item"
+                onClick={() => setMenuOpen(false)}
               >
                 <span className={`vendor-menu-icon tone-${item.tone}`}>
                   {item.icon}
@@ -2116,6 +2143,193 @@ export default function VendorDashboardApplicationShell({
 
           .vendor-reference-art {
             display: none !important;
+          }
+        }
+
+
+        /* =========================================================
+           A-2.5C — Vendor full-width mobile shell with hamburger drawer
+           Presentation/navigation only. Desktop and internals preserved.
+           ========================================================= */
+        .vendor-mobile-menu-bar,
+        .vendor-mobile-backdrop {
+          display: none;
+        }
+
+        @media (max-width: 820px) {
+          .vendor-app-shell {
+            display: block !important;
+            width: 100% !important;
+            max-width: none !important;
+            min-width: 0 !important;
+            margin: 0 !important;
+            padding: 10px 8px 28px !important;
+            overflow-x: clip !important;
+          }
+
+          .vendor-mobile-menu-bar {
+            position: sticky;
+            top: 66px;
+            z-index: 65;
+            display: grid;
+            grid-template-columns: 28px minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+            min-height: 52px;
+            margin: 0 0 10px;
+            padding: 0 14px;
+            border: 1px solid #d8e2ee;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, .97);
+            color: #10213d;
+            box-shadow: 0 8px 22px rgba(15, 35, 70, .1);
+            backdrop-filter: blur(10px);
+          }
+
+          .vendor-mobile-menu-bar > span {
+            font-size: 21px;
+            font-weight: 900;
+          }
+
+          .vendor-mobile-menu-bar > strong {
+            min-width: 0;
+            font-size: 16px;
+            text-align: left;
+          }
+
+          .vendor-mobile-menu-bar > small {
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+          }
+
+          .vendor-mobile-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 78;
+            display: block;
+            border: 0;
+            background: rgba(7, 18, 36, .48);
+          }
+
+          .vendor-app-sidebar {
+            position: fixed !important;
+            inset: 0 auto 0 0 !important;
+            z-index: 79 !important;
+            display: block !important;
+            width: min(90vw, 360px) !important;
+            max-width: min(90vw, 360px) !important;
+            min-height: 100dvh !important;
+            max-height: 100dvh !important;
+            margin: 0 !important;
+            padding: max(12px, env(safe-area-inset-top)) 0 max(18px, env(safe-area-inset-bottom)) !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            border-radius: 0 20px 20px 0 !important;
+            background: #ffffff !important;
+            box-shadow: 18px 0 44px rgba(2, 12, 30, .2) !important;
+            transform: translateX(-105%);
+            transition: transform 180ms ease;
+            overscroll-behavior: contain;
+          }
+
+          .vendor-app-sidebar-open {
+            transform: translateX(0);
+          }
+
+          .vendor-profile-card {
+            display: grid !important;
+            grid-template-columns: 64px minmax(0, 1fr) !important;
+            gap: 4px 12px !important;
+            padding: 16px !important;
+            text-align: left !important;
+          }
+
+          .vendor-app-sidebar nav {
+            display: block !important;
+            padding: 10px !important;
+            overflow: visible !important;
+          }
+
+          .vendor-menu-item {
+            width: 100% !important;
+            min-height: 54px !important;
+            margin: 0 0 5px !important;
+            padding: 9px 10px !important;
+            border: 1px solid transparent !important;
+            border-radius: 11px !important;
+          }
+
+          .vendor-menu-active {
+            border-color: #a9c7ed !important;
+            background: #edf5ff !important;
+            box-shadow: inset 3px 0 0 #1d5fd1;
+          }
+
+          .vendor-sidebar-support {
+            display: block !important;
+            margin: 10px !important;
+          }
+
+          .vendor-app-content {
+            width: 100% !important;
+            max-width: none !important;
+            min-width: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          .vendor-dashboard-welcome,
+          .vendor-kpi-grid,
+          .vendor-action-strip,
+          .vendor-reference-hero,
+          .vendor-reference-three,
+          .vendor-reference-block,
+          .vendor-focused-workspace,
+          .vendor-shell-continuity {
+            width: 100% !important;
+            max-width: none !important;
+            min-width: 0 !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            box-sizing: border-box !important;
+          }
+
+          .vendor-mobile-panels {
+            display: none !important;
+          }
+
+          .vendor-dashboard-welcome {
+            padding: 18px 15px !important;
+          }
+
+          .vendor-kpi-grid,
+          .vendor-reference-metrics,
+          .vendor-reference-pulse {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+
+          .vendor-reference-growth-cards,
+          .vendor-reference-groups {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 390px) {
+          .vendor-app-shell {
+            padding-inline: 6px !important;
+          }
+
+          .vendor-mobile-menu-bar {
+            padding-inline: 11px;
+          }
+
+          .vendor-kpi-grid,
+          .vendor-reference-metrics,
+          .vendor-reference-pulse {
+            grid-template-columns: 1fr !important;
           }
         }
 
