@@ -121,7 +121,7 @@ export default function FoundingPartnersPage() {
           <div className="foundingMiniCard">💰 Lifetime Preferential Pricing</div>
           <div className="foundingMiniCard">🚀 AI Marketplace Priority</div>
           <div className="foundingMiniCard">📍 District Recognition</div>
-          <div className="foundingMiniCard">⚡ Early Access to Future AI Tools</div>
+          <div className="foundingMiniCard" style={{ position: "fixed", left: "auto", right: 20, bottom: 20, zIndex: 60 }}>⚡ Early Access to Future AI Tools</div>
           <div className="foundingMiniCard">🤝 Priority Founder Support</div>
         </div>
       </section>
