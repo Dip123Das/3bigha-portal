@@ -793,3 +793,93 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   A-2.4A-03 — Buyer content readability authority
+   Human-First minimum readable typography for dashboard boxes.
+   Shell, routes, RFQ logic and responsive structure are unchanged.
+   ========================================================= */
+
+.dashboard { gap: 18px; }
+.eyebrow { font-size: 13px; line-height: 1.35; letter-spacing: .09em; }
+.needCentre, .cockpit { padding: 24px; gap: 20px; }
+.needIntro h2, .primaryWork h2 { margin-top: 8px; font-size: clamp(27px, 2vw, 34px); line-height: 1.16; }
+.needIntro p, .primaryWork p { margin-top: 10px; font-size: 16px; line-height: 1.6; }
+.primaryActions { gap: 10px; margin-top: 18px; }
+.primaryActions a { min-height: 46px; padding: 0 18px; font-size: 15px; }
+.needCategories { gap: 12px; }
+.needCategory { min-height: 142px; padding: 18px; }
+.needCategory > span { width: 38px; height: 38px; font-size: 18px; }
+.needCategory strong { margin-top: 10px; font-size: 17px; line-height: 1.3; }
+.needCategory small { margin-top: 6px; font-size: 14px; line-height: 1.5; }
+.needCategory em { margin-top: 10px; font-size: 14px; }
+.firstTimeGuide { padding: 18px 20px; gap: 18px; }
+.firstTimeGuide h3 { margin-top: 5px; font-size: 20px; line-height: 1.3; }
+.firstTimeGuide > div:last-child { gap: 12px; }
+.firstTimeGuide > div:last-child span { min-height: 48px; padding: 12px 14px; font-size: 14px; line-height: 1.4; }
+.firstTimeGuide > div:last-child strong { font-size: 15px; }
+.readiness { padding: 18px; }
+.readiness > span { font-size: 13px; }
+.readiness strong { font-size: 36px; }
+.readiness small, .readiness em { font-size: 13px; line-height: 1.45; }
+.kpiStrip { gap: 12px; }
+.kpiStrip > a, .kpiStrip article { min-height: 134px; padding: 18px; }
+.kpiStrip > a > span, .kpiStrip span { font-size: 13px; }
+.kpiStrip > a > strong, .kpiStrip strong { margin-top: 8px; font-size: 30px; }
+.kpiStrip > a > small, .kpiStrip > a > em { margin-top: 7px; font-size: 13px; line-height: 1.4; }
+.grid { gap: 16px; }
+.workPanel, .attentionPanel { padding: 20px; }
+.workPanel h3, .attentionPanel h3, .journey h3, .ai h3 { margin-top: 6px; font-size: 21px; line-height: 1.3; }
+.workPanel header > a { font-size: 14px; }
+.empty { min-height: 220px; gap: 10px; padding: 26px; }
+.emptyIcon { width: 46px; height: 46px; font-size: 24px; }
+.empty strong { font-size: 18px; line-height: 1.35; }
+.empty span { max-width: 720px; font-size: 14px; line-height: 1.55; }
+.empty a, .empty > div:last-child a { min-height: 44px; padding: 0 16px; font-size: 14px; }
+.requirementList, .reminders { gap: 10px; margin-top: 14px; }
+.requirementList > a { padding: 14px; }
+.requirementList strong { font-size: 16px; }
+.requirementList span, .requirementList small { margin-top: 5px; font-size: 13px; line-height: 1.45; }
+.reminders > a { grid-template-columns: 38px minmax(0, 1fr); gap: 12px; padding: 14px; }
+.reminders > a > span { width: 38px; height: 38px; font-size: 18px; }
+.reminders strong { font-size: 15px; line-height: 1.35; }
+.reminders small { margin-top: 5px; font-size: 13px; line-height: 1.5; }
+.reminders em { margin-top: 7px; font-size: 13px; }
+.noAttention strong { font-size: 16px; }
+.noAttention span { font-size: 14px; line-height: 1.5; }
+.journey { padding: 20px; }
+.journey header > small { font-size: 13px; }
+.journey > div { gap: 10px; margin-top: 14px; }
+.journey a { min-height: 132px; padding: 15px; }
+.journey a span { font-size: 13px; }
+.journey a strong { margin-top: 7px; font-size: 16px; line-height: 1.3; }
+.journey a small { margin-top: 6px; font-size: 13px; line-height: 1.45; }
+.journeyStep em { margin-top: 9px; font-size: 12px; }
+.ai { padding: 20px; gap: 20px; }
+.ai p, .ai aside span, .ai aside a { font-size: 14px; line-height: 1.55; }
+.ai aside a { margin-top: 9px; }
+
+@media (max-width: 1100px) {
+  .needCentre { grid-template-columns: 1fr; }
+  .needCategories { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .dashboard { gap: 14px; }
+  .needCentre, .cockpit, .workPanel, .attentionPanel, .journey, .ai { padding: 16px; }
+  .needIntro h2, .primaryWork h2 { font-size: 25px; }
+  .needIntro p, .primaryWork p { font-size: 15px; }
+  .needCategories { grid-template-columns: 1fr; }
+  .needCategory { min-height: auto; }
+  .firstTimeGuide { grid-template-columns: 1fr; padding: 16px; }
+  .firstTimeGuide > div:last-child { grid-template-columns: 1fr; }
+  .kpiStrip { grid-template-columns: 1fr 1fr; }
+  .journey > div { grid-template-columns: repeat(5, minmax(190px, 1fr)); }
+  .journey a { min-height: 138px; }
+}
+
+@media (max-width: 480px) {
+  .kpiStrip { grid-template-columns: 1fr; }
+  .primaryActions { display: grid; }
+  .primaryActions a { width: 100%; }
+}
