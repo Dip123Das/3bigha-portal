@@ -1296,7 +1296,7 @@ export default function VendorDashboardApplicationShell({
         .vendor-shell-continuity { margin-top:0!important; }
         @media(max-width:980px){ .vendor-app-shell{ margin-top:0!important; padding:10px!important; font-size:14px!important; } }
 
-      
+
         /* =========================================================
            A-2.5A — Vendor desktop presentation repair
            Presentation-only. No routes, data, APIs or logic changed.
@@ -1668,6 +1668,454 @@ export default function VendorDashboardApplicationShell({
 
           .vendor-reference-groups {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+
+
+        /* =========================================================
+           A-2.5B — Vendor mobile presentation repair
+           Presentation-only. No routes, data, APIs or logic changed.
+           ========================================================= */
+        @media (max-width: 820px) {
+          .vendor-app-shell {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            padding: 10px 10px 28px !important;
+            overflow-x: clip !important;
+            background: #f8fafc;
+          }
+
+          .vendor-app-sidebar,
+          .vendor-app-content,
+          .vendor-dashboard-welcome,
+          .vendor-kpi-grid,
+          .vendor-action-strip,
+          .vendor-reference-hero,
+          .vendor-reference-three,
+          .vendor-reference-block,
+          .vendor-reference-metrics,
+          .vendor-reference-growth-cards,
+          .vendor-reference-pulse,
+          .vendor-reference-groups,
+          .vendor-focused-workspace,
+          .vendor-shell-continuity {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+          }
+
+          .vendor-app-sidebar {
+            position: static !important;
+            max-height: none !important;
+            overflow: visible !important;
+            margin-bottom: 12px !important;
+            border-radius: 18px !important;
+          }
+
+          .vendor-profile-card {
+            display: grid !important;
+            grid-template-columns: 64px minmax(0, 1fr) !important;
+            gap: 4px 12px !important;
+            align-items: center !important;
+            padding: 14px !important;
+            text-align: left !important;
+          }
+
+          .vendor-profile-avatar {
+            grid-row: 1 / span 5 !important;
+            width: 64px !important;
+            height: 64px !important;
+            margin: 0 !important;
+          }
+
+          .vendor-profile-name {
+            margin: 0 !important;
+            font-size: 18px !important;
+            line-height: 1.2 !important;
+            overflow-wrap: anywhere;
+          }
+
+          .vendor-profile-plan {
+            margin: 0 !important;
+            font-size: 12px !important;
+            line-height: 1.35 !important;
+          }
+
+          .vendor-profile-email {
+            margin: 0 !important;
+            font-size: 11px !important;
+            line-height: 1.35 !important;
+            white-space: normal !important;
+            overflow-wrap: anywhere;
+          }
+
+          .vendor-profile-status {
+            justify-self: start !important;
+            margin: 2px 0 0 !important;
+            font-size: 11px !important;
+          }
+
+          .vendor-profile-button,
+          .vendor-selfie-retake {
+            grid-column: 1 / -1 !important;
+            min-height: 42px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-top: 6px !important;
+            font-size: 13px !important;
+          }
+
+          .vendor-app-sidebar nav {
+            display: grid !important;
+            grid-auto-flow: column !important;
+            grid-auto-columns: minmax(150px, 1fr) !important;
+            gap: 8px !important;
+            padding: 10px !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            scroll-snap-type: x proximity;
+            -webkit-overflow-scrolling: touch;
+          }
+
+          .vendor-menu-item {
+            min-height: 58px !important;
+            margin: 0 !important;
+            padding: 9px 10px !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            background: #ffffff !important;
+            scroll-snap-align: start;
+          }
+
+          .vendor-menu-active {
+            border-color: #93c5fd !important;
+            background: #eff6ff !important;
+          }
+
+          .vendor-menu-icon {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 14px !important;
+          }
+
+          .vendor-menu-copy strong {
+            font-size: 13px !important;
+            line-height: 1.25 !important;
+          }
+
+          .vendor-menu-copy small {
+            margin-top: 2px !important;
+            font-size: 10px !important;
+            line-height: 1.25 !important;
+          }
+
+          .vendor-sidebar-support {
+            display: none !important;
+          }
+
+          .vendor-dashboard-welcome {
+            display: block !important;
+            min-height: auto !important;
+            margin-bottom: 12px !important;
+            padding: 18px 16px !important;
+            border-radius: 16px !important;
+          }
+
+          .vendor-page-kicker {
+            font-size: 11px !important;
+            line-height: 1.3 !important;
+            letter-spacing: .08em;
+          }
+
+          .vendor-dashboard-welcome h1 {
+            margin-top: 6px !important;
+            font-size: clamp(26px, 8vw, 34px) !important;
+            line-height: 1.08 !important;
+            overflow-wrap: anywhere;
+          }
+
+          .vendor-dashboard-welcome p {
+            margin-top: 8px !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+          }
+
+          .vendor-overview-button {
+            width: 100% !important;
+            min-height: 46px !important;
+            margin-top: 14px !important;
+            padding: 0 14px !important;
+            font-size: 14px !important;
+            border-radius: 10px !important;
+          }
+
+          .vendor-mobile-panels {
+            display: flex !important;
+            gap: 8px !important;
+            width: 100% !important;
+            margin-bottom: 12px !important;
+            overflow-x: auto !important;
+            padding-bottom: 2px !important;
+            -webkit-overflow-scrolling: touch;
+          }
+
+          .vendor-mobile-panels button {
+            flex: 0 0 auto !important;
+            min-height: 40px !important;
+            padding: 0 13px !important;
+            font-size: 12px !important;
+            border-radius: 999px !important;
+            white-space: nowrap !important;
+          }
+
+          .vendor-kpi-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+            margin-bottom: 12px !important;
+          }
+
+          .vendor-kpi-card {
+            min-height: 112px !important;
+            padding: 14px !important;
+            border-radius: 14px !important;
+          }
+
+          .vendor-kpi-card > span {
+            font-size: 12px !important;
+            line-height: 1.3 !important;
+          }
+
+          .vendor-kpi-card > strong {
+            margin-top: 8px !important;
+            font-size: 28px !important;
+            line-height: 1 !important;
+          }
+
+          .vendor-kpi-card > small {
+            margin-top: 8px !important;
+            font-size: 12px !important;
+          }
+
+          .vendor-action-strip {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+            margin-bottom: 12px !important;
+          }
+
+          .vendor-action-strip > a {
+            min-height: auto !important;
+            padding: 16px !important;
+            border-radius: 14px !important;
+          }
+
+          .vendor-action-strip strong {
+            font-size: 16px !important;
+            line-height: 1.3 !important;
+          }
+
+          .vendor-action-strip span,
+          .vendor-action-strip b {
+            font-size: 13px !important;
+            line-height: 1.45 !important;
+          }
+
+          .vendor-reference-hero {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+            margin-top: 12px !important;
+          }
+
+          .vendor-reference-mission,
+          .vendor-reference-readiness {
+            min-height: auto !important;
+            padding: 18px !important;
+            border-radius: 16px !important;
+          }
+
+          .vendor-reference-mission {
+            grid-template-columns: minmax(0, 1fr) 88px !important;
+            gap: 10px !important;
+          }
+
+          .vendor-reference-art {
+            transform: scale(.82);
+            transform-origin: center right;
+          }
+
+          .vendor-reference-mission h2,
+          .vendor-reference-title h2 {
+            margin-top: 6px !important;
+            font-size: 22px !important;
+            line-height: 1.2 !important;
+          }
+
+          .vendor-reference-mission p,
+          .vendor-reference-title p {
+            margin-top: 7px !important;
+            font-size: 13px !important;
+            line-height: 1.5 !important;
+          }
+
+          .vendor-reference-readiness > strong {
+            font-size: 34px !important;
+          }
+
+          .vendor-reference-readiness > b,
+          .vendor-reference-readiness > span,
+          .vendor-reference-readiness > em {
+            font-size: 13px !important;
+            line-height: 1.45 !important;
+          }
+
+          .vendor-reference-three {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+            margin-top: 12px !important;
+          }
+
+          .vendor-reference-three > * {
+            min-height: auto !important;
+            padding: 16px !important;
+            border-radius: 14px !important;
+          }
+
+          .vendor-reference-three strong {
+            font-size: 16px !important;
+            line-height: 1.3 !important;
+          }
+
+          .vendor-reference-three span,
+          .vendor-reference-three b {
+            font-size: 13px !important;
+            line-height: 1.45 !important;
+          }
+
+          .vendor-reference-block {
+            margin-top: 12px !important;
+            padding: 16px !important;
+            border-radius: 16px !important;
+            overflow: hidden !important;
+          }
+
+          .vendor-reference-title {
+            display: block !important;
+          }
+
+          .vendor-reference-title > button,
+          .vendor-reference-plan {
+            width: 100% !important;
+            min-width: 0 !important;
+            margin-top: 12px !important;
+            padding: 14px !important;
+          }
+
+          .vendor-reference-metrics {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 9px !important;
+          }
+
+          .vendor-reference-metrics article,
+          .vendor-reference-pulse article {
+            min-height: 116px !important;
+            padding: 13px !important;
+            border-radius: 13px !important;
+          }
+
+          .vendor-reference-metrics span,
+          .vendor-reference-pulse span {
+            font-size: 11px !important;
+            line-height: 1.35 !important;
+          }
+
+          .vendor-reference-metrics strong,
+          .vendor-reference-pulse strong {
+            margin-top: 7px !important;
+            font-size: 22px !important;
+          }
+
+          .vendor-reference-metrics small,
+          .vendor-reference-pulse small {
+            margin-top: 6px !important;
+            font-size: 11px !important;
+            line-height: 1.4 !important;
+          }
+
+          .vendor-reference-growth-cards {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 9px !important;
+          }
+
+          .vendor-reference-growth-cards > * {
+            min-height: auto !important;
+            padding: 14px !important;
+            border-radius: 13px !important;
+          }
+
+          .vendor-reference-growth-cards strong {
+            font-size: 15px !important;
+            line-height: 1.35 !important;
+          }
+
+          .vendor-reference-growth-cards span,
+          .vendor-reference-growth-cards b {
+            font-size: 12px !important;
+            line-height: 1.45 !important;
+          }
+
+          .vendor-reference-pulse {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 9px !important;
+          }
+
+          .vendor-reference-groups {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+          }
+
+          .vendor-reference-groups article {
+            min-height: auto !important;
+            padding: 15px !important;
+            border-radius: 14px !important;
+          }
+
+          .vendor-reference-groups h3 {
+            font-size: 18px !important;
+          }
+
+          .vendor-reference-groups p {
+            font-size: 12px !important;
+            line-height: 1.45 !important;
+          }
+
+          .vendor-reference-groups a {
+            min-height: 42px !important;
+            padding: 10px !important;
+            font-size: 13px !important;
+          }
+
+          .vendor-shell-continuity {
+            overflow-x: clip !important;
+          }
+        }
+
+        @media (max-width: 390px) {
+          .vendor-kpi-grid,
+          .vendor-reference-metrics,
+          .vendor-reference-pulse {
+            grid-template-columns: 1fr !important;
+          }
+
+          .vendor-reference-mission {
+            grid-template-columns: 1fr !important;
+          }
+
+          .vendor-reference-art {
+            display: none !important;
           }
         }
 
