@@ -1155,584 +1155,96 @@ export default function VendorDashboardApplicationShell({
           }
         }
 
-        /* V14A_FINAL_DENSITY_OVERRIDE */
+
+
+        /* V14D_UNIFIED_DASHBOARD_DENSITY */
         .vendor-app-shell {
-          grid-template-columns: 220px minmax(0, 1fr);
+          grid-template-columns: 232px minmax(0, 1fr);
           gap: 14px;
-          padding: 8px clamp(8px, 1vw, 14px) 18px;
-        }
-
-        .vendor-app-sidebar {
-          top: 76px;
-          max-height: calc(100vh - 86px);
-          border-radius: 16px;
-        }
-
-        .vendor-profile-card {
-          padding: 10px 10px 9px;
-          border-radius: 14px;
-        }
-
-        .vendor-profile-avatar,
-        .vendor-profile-avatar-button,
-        .vendor-profile-avatar-image {
-          width: 58px;
-          height: 58px;
-        }
-
-        .vendor-profile-name {
-          margin-top: 6px;
-          font-size: 14px;
-          line-height: 1.15;
-        }
-
-        .vendor-profile-plan,
-        .vendor-profile-email {
-          margin-top: 2px;
-          font-size: 9px;
-        }
-
-        .vendor-profile-status {
-          margin-top: 5px;
-          padding: 3px 7px;
-          font-size: 9px;
-        }
-
-        .vendor-profile-button,
-        .vendor-selfie-retake {
-          margin-top: 6px;
-          padding: 6px 8px;
-          font-size: 9px;
-        }
-
-        nav {
-          padding: 5px;
-        }
-
-        .vendor-menu-item {
-          gap: 7px;
-          margin-bottom: 0;
-          padding: 5px 7px;
-          border-radius: 8px;
-        }
-
-        .vendor-menu-icon {
-          width: 21px;
-          height: 21px;
-          border-radius: 6px;
-          font-size: 9px;
-        }
-
-        .vendor-menu-copy strong {
-          font-size: 9.5px;
-          line-height: 1.15;
-        }
-
-        .vendor-menu-copy small {
-          font-size: 7.5px;
-          line-height: 1.15;
-        }
-
-        .vendor-sidebar-support {
-          gap: 5px;
-          margin: 5px;
-          padding: 8px;
-        }
-
-        .vendor-dashboard-welcome {
-          margin-bottom: 7px;
-        }
-
-        .vendor-page-kicker {
-          margin-bottom: 2px;
-          font-size: 8px;
-        }
-
-        .vendor-dashboard-welcome h1 {
-          font-size: clamp(20px, 2.2vw, 28px);
-          line-height: 1.1;
-        }
-
-        .vendor-dashboard-welcome p {
-          margin-top: 3px;
-          font-size: 10px;
-        }
-
-        .vendor-overview-button {
-          padding: 8px 11px;
-          font-size: 9px;
-        }
-
-        .vendor-kpi-grid {
-          gap: 8px;
-          margin-bottom: 7px;
-        }
-
-        .vendor-kpi-card {
-          min-height: 88px;
-          padding: 10px;
-          border-radius: 12px;
-        }
-
-        .vendor-kpi-card strong {
-          margin-top: 4px;
-          font-size: 22px;
-        }
-
-        .vendor-kpi-card small {
-          margin-top: 4px;
-        }
-
-        .vendor-action-strip {
-          gap: 8px;
-          margin-bottom: 7px;
-        }
-
-        .vendor-action-strip a {
-          gap: 3px;
-          padding: 10px;
-          border-radius: 11px;
-        }
-
-        .vendor-reference-hero {
-          gap: 8px;
-          margin-top: 7px;
-        }
-
-        .vendor-reference-mission,
-        .vendor-reference-readiness {
-          min-height: 118px;
-          padding: 12px;
-          border-radius: 12px;
-        }
-
-        .vendor-reference-mission > div:first-child {
-          gap: 4px;
-        }
-
-        .vendor-reference-art {
-          width: 115px;
-          height: 82px;
-          transform: scale(.82);
-          transform-origin: center right;
-        }
-
-        .vendor-reference-three {
-          gap: 8px;
-          margin-top: 7px;
-        }
-
-        .vendor-reference-three > button,
-        .vendor-reference-three > a {
-          min-height: 94px;
-          gap: 4px;
-          padding: 10px;
-          border-radius: 11px;
-        }
-
-        .vendor-reference-block {
-          margin-top: 7px;
-          padding: 10px;
-          border-radius: 12px;
-        }
-
-        .vendor-reference-title {
-          gap: 9px;
-        }
-
-        .vendor-reference-title h2,
-        .vendor-reference-mission h2 {
+          margin-top: -54px;
+          padding: 10px 14px 18px;
           font-size: 14px;
         }
-
-        .vendor-reference-title p,
-        .vendor-reference-mission p {
-          font-size: 8px;
-          line-height: 1.35;
-        }
-
-        .vendor-reference-title > button,
-        .vendor-reference-plan {
-          min-width: 140px;
-          padding: 8px;
-        }
-
-        .vendor-reference-metrics,
-        .vendor-reference-growth-cards,
-        .vendor-reference-pulse,
-        .vendor-reference-groups {
-          gap: 7px;
-          margin-top: 8px;
-        }
-
-        .vendor-reference-metrics article,
-        .vendor-reference-pulse article,
-        .vendor-reference-growth-cards > button,
-        .vendor-reference-growth-cards > a {
-          min-height: auto;
-          gap: 3px;
-          padding: 8px;
-          border-radius: 9px;
-        }
-
-        .vendor-reference-groups article {
-          padding: 9px;
-          border-radius: 10px;
-        }
-
-        .vendor-reference-groups p {
-          min-height: 24px;
-        }
-
-        .vendor-reference-groups a {
-          margin-top: 3px;
-          padding: 5px 6px;
-        }
-
-        .vendor-shell-continuity {
-          margin-top: 5px;
-        }
-
-
-        /* V14B_READABLE_FINAL_OVERRIDE
-           Final source-order correction: readable type, compact but not microscopic,
-           and removal of the dashboard-only empty band below the global header. */
-        .vendor-app-shell {
-          grid-template-columns: 238px minmax(0, 1fr);
-          gap: 18px;
-          margin-top: -44px;
-          padding: 16px clamp(14px, 1.5vw, 24px) 28px;
-          font-size: 13px;
-        }
-
-        .vendor-profile-card {
-          padding: 16px 14px 14px;
-        }
-
+        .vendor-app-content { display:flex; flex-direction:column; gap:0; min-width:0; }
+        .vendor-app-sidebar { top:72px; max-height:calc(100vh - 80px); }
+        .vendor-profile-card { padding:13px 12px 11px; }
         .vendor-profile-avatar,
-        .vendor-profile-avatar-button,
-        .vendor-profile-avatar-image,
-        .vendor-profile-avatar img {
-          width: 76px;
-          height: 76px;
-          border-radius: 50%;
-          object-fit: cover;
-        }
-
-        .vendor-profile-name {
-          margin-top: 9px;
-          font-size: 16px;
-          line-height: 1.25;
-        }
-
+        .vendor-profile-avatar img { width:78px; height:78px; object-fit:cover; }
+        .vendor-profile-name { margin-top:7px; font-size:17px; line-height:1.2; }
         .vendor-profile-plan,
-        .vendor-profile-email {
-          font-size: 10px;
-          line-height: 1.35;
-        }
-
-        .vendor-profile-status {
-          padding: 5px 9px;
-          font-size: 10px;
-        }
-
+        .vendor-profile-email { margin-top:2px; font-size:11px; line-height:1.3; }
+        .vendor-profile-status { margin-top:5px; padding:4px 8px; font-size:10px; }
         .vendor-profile-button,
-        .vendor-selfie-retake {
-          padding: 8px 10px;
-          font-size: 10px;
-        }
-
-        nav {
-          padding: 9px;
-        }
-
-        .vendor-menu-item {
-          gap: 9px;
-          padding: 8px 9px;
-        }
-
-        .vendor-menu-icon {
-          width: 27px;
-          height: 27px;
-          font-size: 11px;
-        }
-
-        .vendor-menu-copy strong {
-          font-size: 11px;
-          line-height: 1.25;
-        }
-
-        .vendor-menu-copy small {
-          font-size: 9px;
-          line-height: 1.25;
-        }
-
-        .vendor-dashboard-welcome {
-          margin-bottom: 12px;
-        }
-
-        .vendor-page-kicker {
-          font-size: 9px;
-        }
-
-        .vendor-dashboard-welcome h1 {
-          font-size: clamp(24px, 2.6vw, 34px);
-        }
-
-        .vendor-dashboard-welcome p {
-          font-size: 12px;
-        }
-
-        .vendor-kpi-grid {
-          gap: 12px;
-          margin-bottom: 12px;
-        }
-
-        .vendor-kpi-card {
-          min-height: 112px;
-          padding: 15px;
-        }
-
-        .vendor-kpi-card span {
-          font-size: 11px;
-        }
-
-        .vendor-kpi-card strong {
-          margin-top: 7px;
-          font-size: 28px;
-        }
-
-        .vendor-kpi-card small {
-          margin-top: 7px;
-          font-size: 10px;
-        }
-
-        .vendor-action-strip {
-          gap: 10px;
-          margin-bottom: 12px;
-        }
-
-        .vendor-action-strip a {
-          padding: 14px;
-        }
-
-        .vendor-action-strip small {
-          font-size: 9px;
-        }
-
-        .vendor-action-strip strong {
-          font-size: 13px;
-        }
-
-        .vendor-action-strip span {
-          font-size: 10px;
-        }
-
+        .vendor-selfie-retake { margin-top:6px; padding:8px 10px; font-size:10px; }
+        nav { padding:7px; }
+        .vendor-menu-item { gap:8px; padding:7px 8px; }
+        .vendor-menu-icon { width:26px; height:26px; font-size:11px; }
+        .vendor-menu-copy strong { font-size:11px; line-height:1.2; }
+        .vendor-menu-copy small { font-size:9px; line-height:1.2; }
+        .vendor-dashboard-welcome { margin-bottom:8px; }
+        .vendor-page-kicker { margin-bottom:2px; font-size:9px; }
+        .vendor-dashboard-welcome h1 { font-size:clamp(26px,2.5vw,34px); line-height:1.08; }
+        .vendor-dashboard-welcome p { margin-top:3px; font-size:12px; }
+        .vendor-kpi-grid { gap:9px; margin-bottom:8px; }
+        .vendor-kpi-card { min-height:96px; padding:12px; }
+        .vendor-kpi-card span { font-size:11px; }
+        .vendor-kpi-card strong { margin-top:5px; font-size:27px; }
+        .vendor-kpi-card small { margin-top:5px; font-size:10px; }
+        .vendor-action-strip { gap:8px; margin-bottom:8px; }
+        .vendor-action-strip a { padding:11px 12px; }
+        .vendor-action-strip small { font-size:9px; }
+        .vendor-action-strip strong { font-size:13px; }
+        .vendor-action-strip span { font-size:10px; }
         .vendor-reference-hero,
         .vendor-reference-three,
-        .vendor-reference-block {
-          margin-top: 12px;
-        }
-
+        .vendor-reference-block { margin-top:8px; }
+        .vendor-reference-hero,
+        .vendor-reference-three { gap:8px; }
         .vendor-reference-mission,
-        .vendor-reference-readiness {
-          min-height: 150px;
-          padding: 17px;
-        }
-
+        .vendor-reference-readiness { min-height:126px; padding:13px 14px; }
         .vendor-reference-mission h2,
-        .vendor-reference-title h2 {
-          font-size: 18px;
-        }
-
+        .vendor-reference-title h2 { font-size:18px; line-height:1.2; }
         .vendor-reference-mission p,
-        .vendor-reference-title p {
-          font-size: 11px;
-          line-height: 1.5;
-        }
-
+        .vendor-reference-title p { font-size:11px; line-height:1.4; }
         .vendor-reference-three > button,
-        .vendor-reference-three > a {
-          min-height: 122px;
-          padding: 14px;
-        }
-
+        .vendor-reference-three > a { min-height:102px; padding:11px 12px; }
         .vendor-reference-three small,
         .vendor-reference-title small,
-        .vendor-reference-growth-cards small {
-          font-size: 9px;
-        }
-
-        .vendor-reference-three strong {
-          font-size: 14px;
-        }
-
-        .vendor-reference-three span {
-          font-size: 10px;
-        }
-
-        .vendor-reference-block {
-          padding: 16px;
-        }
-
-        .vendor-reference-metrics article,
-        .vendor-reference-pulse article,
-        .vendor-reference-growth-cards > button,
-        .vendor-reference-growth-cards > a {
-          padding: 12px;
-        }
-
-        .vendor-reference-metrics span,
-        .vendor-reference-pulse span {
-          font-size: 10px;
-        }
-
-        .vendor-reference-metrics strong,
-        .vendor-reference-pulse strong {
-          font-size: 19px;
-        }
-
-        .vendor-reference-metrics small,
-        .vendor-reference-pulse small,
-        .vendor-reference-growth-cards span {
-          font-size: 9px;
-          line-height: 1.45;
-        }
-
-        .vendor-reference-growth-cards strong {
-          font-size: 11px;
-        }
-
-        .vendor-reference-groups h3 {
-          font-size: 14px;
-        }
-
-        .vendor-reference-groups p,
-        .vendor-reference-groups a {
-          font-size: 9px;
-        }
-
-        @media (max-width: 980px) {
-          .vendor-app-shell {
-            margin-top: 0;
-            padding: 12px;
-          }
-        }
-
-
-        /* V14C_FINAL_GAP_COMPRESSION
-           Spacing-only pass. Typography and selfie behaviour remain unchanged. */
-        .vendor-app-shell {
-          gap: 12px;
-          padding-top: 8px;
-          padding-bottom: 18px;
-        }
-
-        .vendor-app-content {
-          display: flex;
-          flex-direction: column;
-          gap: 0;
-        }
-
-        .vendor-dashboard-welcome {
-          margin-bottom: 8px;
-        }
-
-        .vendor-kpi-grid {
-          gap: 8px;
-          margin-bottom: 8px;
-        }
-
-        .vendor-action-strip {
-          gap: 8px;
-          margin-bottom: 8px;
-        }
-
-        .vendor-reference-hero,
-        .vendor-reference-three,
-        .vendor-reference-block {
-          margin-top: 8px;
-        }
-
-        .vendor-reference-hero {
-          gap: 8px;
-        }
-
-        .vendor-reference-three {
-          gap: 8px;
-        }
-
-        .vendor-reference-block {
-          padding-top: 12px;
-          padding-bottom: 12px;
-        }
-
-        .vendor-reference-title {
-          margin-bottom: 8px;
-        }
-
+        .vendor-reference-growth-cards small { font-size:9px; }
+        .vendor-reference-three strong { font-size:14px; }
+        .vendor-reference-three span { font-size:10px; line-height:1.35; }
+        .vendor-reference-block { padding:12px 13px; }
+        .vendor-reference-title { margin-bottom:7px; }
         .vendor-reference-metrics,
         .vendor-reference-growth-cards,
         .vendor-reference-pulse,
-        .vendor-reference-groups {
-          gap: 8px;
-          margin-top: 8px;
-        }
-
-        .vendor-reference-mission,
-        .vendor-reference-readiness {
-          min-height: 132px;
-          padding-top: 14px;
-          padding-bottom: 14px;
-        }
-
-        .vendor-reference-three > button,
-        .vendor-reference-three > a {
-          min-height: 108px;
-          padding-top: 12px;
-          padding-bottom: 12px;
-        }
-
+        .vendor-reference-groups { gap:7px; margin-top:7px; }
         .vendor-reference-metrics article,
         .vendor-reference-pulse article,
         .vendor-reference-growth-cards > button,
-        .vendor-reference-growth-cards > a {
-          padding-top: 10px;
-          padding-bottom: 10px;
-        }
-
-        .vendor-reference-groups article {
-          padding-top: 10px;
-          padding-bottom: 10px;
-        }
-
-        .vendor-reference-groups p {
-          margin-top: 4px;
-          margin-bottom: 6px;
-        }
-
-        .vendor-reference-groups a {
-          margin-top: 4px;
-        }
-
-        .vendor-shell-continuity {
-          margin-top: 4px;
-        }
-
-        .vendor-sidebar-support {
-          margin-top: 6px;
-        }
-
-        @media (max-width: 980px) {
+        .vendor-reference-growth-cards > a { padding:9px 10px; }
+        .vendor-reference-metrics span,
+        .vendor-reference-pulse span { font-size:10px; }
+        .vendor-reference-metrics strong,
+        .vendor-reference-pulse strong { font-size:18px; }
+        .vendor-reference-metrics small,
+        .vendor-reference-pulse small,
+        .vendor-reference-growth-cards span { font-size:9px; line-height:1.35; }
+        .vendor-reference-growth-cards strong { font-size:11px; }
+        .vendor-reference-groups article { padding:9px 10px; }
+        .vendor-reference-groups h3 { font-size:14px; }
+        .vendor-reference-groups p,
+        .vendor-reference-groups a { font-size:9px; }
+        .vendor-reference-groups p { min-height:0; margin:3px 0 5px; }
+        .vendor-reference-groups a { margin-top:3px; padding:6px 7px; }
+        .vendor-sidebar-support,
+        .vendor-shell-continuity { margin-top:5px; }
+        @media (max-width:980px) {
           .vendor-app-shell {
-            gap: 10px;
-            padding-top: 8px;
-          }
-
-          .vendor-reference-hero,
-          .vendor-reference-three,
-          .vendor-reference-block {
-            margin-top: 8px;
+            margin-top:0;
+            grid-template-columns:1fr;
+            gap:10px;
+            padding:10px;
           }
         }
 
