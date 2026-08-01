@@ -19,87 +19,22 @@ type InternalPanel =
   | "navigation";
 
 type MenuItem =
-  | {
-      type: "panel";
-      label: string;
-      panel: InternalPanel;
-      icon: string;
-    }
-  | {
-      type: "route";
-      label: string;
-      href: string;
-      icon: string;
-    };
+  | { type: "panel"; label: string; detail: string; panel: InternalPanel; icon: string; tone: string }
+  | { type: "route"; label: string; detail: string; href: string; icon: string; tone: string };
 
 const menu: MenuItem[] = [
-  { type: "panel", label: "Dashboard Home", panel: "overview", icon: "⌂" },
-  { type: "panel", label: "Today's Mission", panel: "mission", icon: "◎" },
-  { type: "panel", label: "Work Now", panel: "work", icon: "✓" },
-  { type: "panel", label: "Business Health", panel: "health", icon: "♡" },
-  { type: "panel", label: "Growth Centre", panel: "growth", icon: "↗" },
-  { type: "panel", label: "Business Pulse", panel: "pulse", icon: "◌" },
-
-  {
-    type: "route",
-    label: "Unified Workspace",
-    href: "/dashboard/vendor/workspace",
-    icon: "▤",
-  },
-  {
-    type: "route",
-    label: "Vendor Work Desk",
-    href: "/dashboard/vendor/rfqs",
-    icon: "▣",
-  },
-  {
-    type: "route",
-    label: "My RFQs",
-    href: "/dashboard/vendor/rfqs",
-    icon: "▥",
-  },
-  {
-    type: "route",
-    label: "Messages",
-    href: "/dashboard/vendor/inbox",
-    icon: "◫",
-  },
-  {
-    type: "route",
-    label: "My Listings",
-    href: "/dashboard/vendor/master-data",
-    icon: "▨",
-  },
-  {
-    type: "route",
-    label: "Price Updates",
-    href: "/vendor/price-updates/new",
-    icon: "₹",
-  },
-  {
-    type: "route",
-    label: "Growth Plan",
-    href: "/dashboard/subscription",
-    icon: "◇",
-  },
-  {
-    type: "route",
-    label: "My Profile",
-    href: "/onboarding/business",
-    icon: "◉",
-  },
-  {
-    type: "route",
-    label: "Help & Support",
-    href: "/support/my",
-    icon: "?",
-  },
-  {
-    type: "route",
-    label: "Settings",
-    href: "/settings",
-    icon: "⚙",
-  },
+  { type: "panel", label: "Dashboard", detail: "Business overview", panel: "overview", icon: "▦", tone: "blue" },
+  { type: "route", label: "My Profile", detail: "Business & KYC", href: "/onboarding/business", icon: "●", tone: "blue" },
+  { type: "route", label: "Unified Workspace", detail: "All business segments", href: "/dashboard/vendor/workspace", icon: "▤", tone: "indigo" },
+  { type: "route", label: "Vendor Work Desk", detail: "Manage operations", href: "/dashboard/vendor/rfqs", icon: "▣", tone: "orange" },
+  { type: "route", label: "My RFQs", detail: "Bids & opportunities", href: "/dashboard/vendor/rfqs", icon: "▥", tone: "red" },
+  { type: "route", label: "Messages", detail: "Conversations", href: "/dashboard/vendor/inbox", icon: "◫", tone: "green" },
+  { type: "panel", label: "Analytics", detail: "Performance insights", panel: "pulse", icon: "▧", tone: "purple" },
+  { type: "route", label: "My Listings", detail: "Products & services", href: "/dashboard/vendor/master-data", icon: "▨", tone: "emerald" },
+  { type: "route", label: "Subscription", detail: "Plan & billing", href: "/dashboard/subscription", icon: "◇", tone: "pink" },
+  { type: "route", label: "Team & Users", detail: "Manage access", href: "/settings", icon: "⌘", tone: "cyan" },
+  { type: "route", label: "Help & Support", detail: "Get assistance", href: "/support/my", icon: "?", tone: "amber" },
+  { type: "route", label: "Settings", detail: "Account & preferences", href: "/settings", icon: "⚙", tone: "sky" },
 ];
 
 const panelBySectionId: Record<string, InternalPanel> = {
@@ -259,6 +194,7 @@ export default function VendorDashboardApplicationShell({
 
   return (
     <div
+      data-v13-reference-dashboard="active"
       data-v12-zero-scroll-dashboard="active"
       className="vendor-app-shell"
     >
@@ -269,13 +205,14 @@ export default function VendorDashboardApplicationShell({
           </div>
 
           <div className="vendor-profile-name">{identity}</div>
+          <div className="vendor-profile-plan">Premium Vendor</div>
 
           <div className="vendor-profile-email">
             {email || "Vendor workspace"}
           </div>
 
           <div className="vendor-profile-status">
-            ✓ Active workspace
+            ✓ Verified
           </div>
 
           <a
@@ -305,10 +242,13 @@ export default function VendorDashboardApplicationShell({
                     : ""
                 }`}
               >
-                <span className="vendor-menu-icon">
+                <span className={`vendor-menu-icon tone-${item.tone}`}>
                   {item.icon}
                 </span>
-                <span>{item.label}</span>
+                <span className="vendor-menu-copy">
+                  <strong>{item.label}</strong>
+                  <small>{item.detail}</small>
+                </span>
               </button>
             ) : (
               <a
@@ -316,10 +256,13 @@ export default function VendorDashboardApplicationShell({
                 href={item.href}
                 className="vendor-menu-item"
               >
-                <span className="vendor-menu-icon">
+                <span className={`vendor-menu-icon tone-${item.tone}`}>
                   {item.icon}
                 </span>
-                <span>{item.label}</span>
+                <span className="vendor-menu-copy">
+                  <strong>{item.label}</strong>
+                  <small>{item.detail}</small>
+                </span>
               </a>
             )
           )}
@@ -401,34 +344,16 @@ export default function VendorDashboardApplicationShell({
             <section className="vendor-kpi-grid">
               {statistics.map((item) => {
                 const className = `vendor-kpi-card vendor-kpi-${item.tone}`;
-
                 if (item.href) {
                   return (
-                    <a
-                      key={item.label}
-                      href={item.href}
-                      className={className}
-                    >
-                      <span>{item.label}</span>
-                      <strong>{item.value}</strong>
-                      <small>Open now →</small>
+                    <a key={item.label} href={item.href} className={className}>
+                      <span>{item.label}</span><strong>{item.value}</strong><small>Open now →</small>
                     </a>
                   );
                 }
-
                 return (
-                  <button
-                    type="button"
-                    key={item.label}
-                    onClick={() =>
-                      item.panel &&
-                      setActivePanel(item.panel)
-                    }
-                    className={className}
-                  >
-                    <span>{item.label}</span>
-                    <strong>{item.value}</strong>
-                    <small>Review →</small>
+                  <button type="button" key={item.label} onClick={() => item.panel && setActivePanel(item.panel)} className={className}>
+                    <span>{item.label}</span><strong>{item.value}</strong><small>Review →</small>
                   </button>
                 );
               })}
@@ -436,53 +361,68 @@ export default function VendorDashboardApplicationShell({
 
             {projection.workNow.length > 0 ? (
               <section className="vendor-action-strip">
-                {projection.workNow
-                  .slice(0, 3)
-                  .map((action, index) => (
-                    <a
-                      key={action.key}
-                      href={action.href}
-                    >
-                      <small>
-                        {index === 0
-                          ? "Recommended next action"
-                          : "Work now"}
-                      </small>
-                      <strong>{action.label}</strong>
-                      <span>{action.detail}</span>
-                    </a>
-                  ))}
+                {projection.workNow.slice(0, 3).map((action, index) => (
+                  <a key={action.key} href={action.href}>
+                    <small>{index === 0 ? "Recommended Next Action" : "Work Now"}</small>
+                    <strong>{action.label}</strong><span>{action.detail}</span><b>Open →</b>
+                  </a>
+                ))}
               </section>
             ) : null}
 
-            <section className="vendor-overview-grid">
-              {overviewCards.map((card) => (
-                <button
-                  type="button"
-                  key={card.panel}
-                  onClick={() =>
-                    setActivePanel(card.panel)
-                  }
-                  className={`vendor-overview-card vendor-overview-${card.panel}`}
-                >
-                  <small>{card.eyebrow}</small>
-                  <strong>{card.title}</strong>
-                  <span>{card.detail}</span>
-                  <b>Open workspace →</b>
-                </button>
-              ))}
+            <section className="vendor-reference-hero">
+              <button type="button" onClick={() => setActivePanel("mission")} className="vendor-reference-mission">
+                <div><small>Executive Mission</small><h2>Run today&apos;s business from one clear place</h2><p>Review the work that needs human attention first. Business signals and AI guidance remain available to support your final decision.</p></div>
+                <div className="vendor-reference-art"><span>↗</span><i>▥</i><b>◈</b></div>
+              </button>
+              <button type="button" onClick={() => setActivePanel("health")} className="vendor-reference-readiness">
+                <small>Business Readiness</small><strong>{projection.readiness.score}/100</strong><b>{projection.readiness.label}</b><span>{projection.identity.capabilityCount} active business segments</span><em>View Readiness Details</em>
+              </button>
+            </section>
+
+            <section className="vendor-reference-three">
+              <button type="button" onClick={() => setActivePanel("growth")}><small>Business Guidance</small><strong>{projection.growth.guidance}</strong><span>Focus on the strongest practical improvement first.</span><b>Go to Growth Centre</b></button>
+              <button type="button" onClick={() => setActivePanel("work")}><small>Human-First Work</small><strong>What should I do now?</strong><span>{projection.workNow[0]?.label || "Start with the first responsible business action."}</span><b>Open Work Centre</b></button>
+              <a href="/onboarding/business"><small>Start Here</small><strong>{projection.identity.profileComplete ? "Business profile complete" : "Complete your business profile"}</strong><span>Improve trust and matching accuracy with complete information.</span><div className="vendor-reference-progress"><i style={{ width: `${projection.identity.profilePercent}%` }} /><em>{projection.identity.profilePercent}%</em></div><b>Continue Profile</b></a>
+            </section>
+
+            <section className="vendor-reference-block">
+              <div className="vendor-reference-title"><div><small>Business Health Centre</small><h2>Is my business foundation healthy?</h2><p>See the essential conditions that help buyers discover, trust and respond to your business.</p></div><button type="button" onClick={() => setActivePanel("health")}><span>Overall Readiness</span><strong>{projection.readiness.score}%</strong><small>{projection.readiness.label}</small></button></div>
+              <div className="vendor-reference-metrics">
+                <article><span>Business Profile</span><strong>{projection.identity.profileComplete ? "Complete" : `${projection.identity.profilePercent}%`}</strong><small>Your essential business information.</small></article>
+                <article><span>Capabilities</span><strong>{projection.identity.capabilityCount}</strong><small>Active capabilities represented.</small></article>
+                <article><span>Marketplace Visibility</span><strong>{projection.performance.visibilityScore}%</strong><small>Current discovery support.</small></article>
+                <article><span>Buyer Response</span><strong>{projection.performance.replyRate}%</strong><small>Response performance.</small></article>
+                <article><span>Deal Progress</span><strong>{projection.performance.closeRate}%</strong><small>Conversion progress.</small></article>
+              </div>
+            </section>
+
+            <section className="vendor-reference-block vendor-reference-growth">
+              <div className="vendor-reference-title"><div><small>Business Growth Operating Centre</small><h2>What should help my business grow next?</h2><p>Complete the strongest practical improvement first.</p></div><div className="vendor-reference-plan"><span>Present Growth Plan</span><strong>{projection.growth.plan}</strong><small>Status: {projection.growth.status}</small></div></div>
+              <div className="vendor-reference-growth-cards">
+                <button type="button" onClick={() => setActivePanel("work")}><small>Priority Growth Step</small><strong>Improve buyer response</strong><span>Faster and clearer replies can strengthen trust.</span><b>Take Action →</b></button>
+                <button type="button" onClick={() => setActivePanel("health")}><small>Priority Growth Step</small><strong>Improve marketplace visibility</strong><span>Keep profile, capabilities and prices current.</span><b>Take Action →</b></button>
+                <a href="/vendor-opportunities"><small>Supporting Route</small><strong>Review marketplace opportunities</strong><span>Explore suitable demand around your business.</span><b>Review →</b></a>
+                <a href="/vendor/price-updates/new"><small>Supporting Route</small><strong>Keep market prices current</strong><span>Publish genuine price information buyers understand.</span><b>Review →</b></a>
+                <a href="/dashboard/subscription"><small>Supporting Route</small><strong>Review your growth plan</strong><span>Consider paid support only when a real need appears.</span><b>Review →</b></a>
+              </div>
+            </section>
+
+            <section className="vendor-reference-block">
+              <div className="vendor-reference-title"><div><small>Unified Business Pulse</small><h2>What is happening in my business?</h2><p>Review live business activity in one place.</p></div><button type="button" onClick={() => setActivePanel("pulse")}><strong>{pulse.alerts + pulse.newLeads + pulse.unreadConversations}</strong><span>Active Business Signals</span></button></div>
+              <div className="vendor-reference-pulse">
+                <article><span>New requirements</span><strong>{pulse.newLeads}</strong><small>Buyer requirements waiting.</small></article><article><span>Buyer conversations</span><strong>{pulse.unreadConversations}</strong><small>Unread discussions needing reply.</small></article><article><span>Ready deals</span><strong>{pulse.readyDeals}</strong><small>Deals showing closing readiness.</small></article><article><span>Follow-ups</span><strong>{pulse.missedLeads}</strong><small>Leads needing attention.</small></article><article className="vendor-reference-alert"><span>Vendor alerts</span><strong>{pulse.alerts}</strong><small>Important operational notifications.</small></article><article><span>Price signals</span><strong>{pulse.priceSignals}</strong><small>Recent market activity.</small></article>
+              </div>
+            </section>
+
+            <section className="vendor-reference-block">
+              <div className="vendor-reference-title"><div><small>Workspace Navigation</small><h2>Where do I go to run my business?</h2><p>Choose the kind of work you want to perform.</p></div></div>
+              <div className="vendor-reference-groups">{projection.navigation.map((group) => (<article key={group.key} className={`group-${group.key}`}><h3>{group.label}</h3><p>{group.purpose}</p>{group.items.slice(0,4).map((item) => <a key={item.key} href={item.href}><span>{item.label}</span><b>→</b></a>)}</article>))}</div>
             </section>
           </>
         ) : (
-          <div
-            className="vendor-focused-workspace"
-            data-active-vendor-panel={activePanel}
-          >
-            {activeSection || (
-              <div className="vendor-panel-missing">
-                This workspace is temporarily unavailable.
-              </div>
-            )}
+          <div className="vendor-focused-workspace" data-active-vendor-panel={activePanel}>
+            {activeSection || <div className="vendor-panel-missing">This workspace is temporarily unavailable.</div>}
           </div>
         )}
 
@@ -947,6 +887,8 @@ export default function VendorDashboardApplicationShell({
             transform: translateY(0);
           }
         }
+
+        .vendor-app-shell{grid-template-columns:230px minmax(0,1fr);gap:22px;background:#f8fafc}.vendor-app-sidebar{border:0;box-shadow:none;background:transparent}.vendor-profile-card{border:1px solid #e5e7eb;border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(15,23,42,.04)}.vendor-profile-plan{margin-top:3px;color:#64748b;font-size:11px;font-weight:750}.vendor-menu-item{padding:9px 10px}.vendor-menu-copy{display:grid;gap:1px;min-width:0}.vendor-menu-copy strong{font-size:11px}.vendor-menu-copy small{color:#94a3b8;font-size:9px;font-weight:700}.vendor-menu-icon{color:#fff}.tone-blue{background:#2563eb}.tone-indigo{background:#4f46e5}.tone-orange{background:#f59e0b}.tone-red{background:#f43f5e}.tone-green{background:#10b981}.tone-purple{background:#7c3aed}.tone-emerald{background:#059669}.tone-pink{background:#ec4899}.tone-cyan{background:#0891b2}.tone-amber{background:#f59e0b}.tone-sky{background:#0ea5e9}.vendor-reference-hero{display:grid;grid-template-columns:1.8fr 1fr;gap:14px;margin-top:18px}.vendor-reference-mission,.vendor-reference-readiness{min-height:175px;padding:19px;border:1px solid #e5e7eb;border-radius:16px;background:#fff;text-align:left;font-family:inherit;cursor:pointer}.vendor-reference-mission{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#f8faff,#eef6ff)}.vendor-reference-mission>div:first-child{display:grid;gap:8px;max-width:62%}.vendor-reference-mission small,.vendor-reference-readiness small,.vendor-reference-three small,.vendor-reference-title small,.vendor-reference-growth-cards small{color:#5b21b6;font-size:8px;font-weight:950;text-transform:uppercase;letter-spacing:.08em}.vendor-reference-mission h2,.vendor-reference-title h2{margin:0;font-size:17px}.vendor-reference-mission p,.vendor-reference-title p{margin:0;color:#64748b;font-size:10px;line-height:1.55}.vendor-reference-art{position:relative;width:160px;height:120px}.vendor-reference-art span,.vendor-reference-art i,.vendor-reference-art b{position:absolute;display:grid;place-items:center;border-radius:18px;color:#fff;background:linear-gradient(145deg,#60a5fa,#2563eb);box-shadow:0 16px 30px rgba(37,99,235,.2)}.vendor-reference-art span{left:55px;top:15px;width:70px;height:70px;font-size:30px}.vendor-reference-art i{left:15px;bottom:10px;width:55px;height:55px;font-style:normal}.vendor-reference-art b{right:0;bottom:6px;width:58px;height:58px}.vendor-reference-readiness{display:grid;gap:9px}.vendor-reference-readiness>strong{font-size:27px}.vendor-reference-readiness>b{color:#059669;font-size:12px}.vendor-reference-readiness>span{color:#64748b;font-size:9px}.vendor-reference-readiness>em{justify-self:start;padding:7px 10px;border:1px solid #bfdbfe;border-radius:8px;color:#2563eb;font-size:9px;font-style:normal;font-weight:900}.vendor-reference-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:16px}.vendor-reference-three>button,.vendor-reference-three>a{display:grid;min-height:138px;gap:7px;padding:16px;border:1px solid #e5e7eb;border-radius:15px;background:#fff;color:inherit;text-align:left;text-decoration:none;font-family:inherit;cursor:pointer}.vendor-reference-three strong{font-size:13px}.vendor-reference-three span{color:#64748b;font-size:9px;line-height:1.5}.vendor-reference-three b{align-self:end;justify-self:start;color:#2563eb;font-size:9px}.vendor-reference-progress{position:relative;height:8px;margin-top:3px;border-radius:999px;background:#e5e7eb}.vendor-reference-progress i{display:block;height:100%;border-radius:999px;background:#10b981}.vendor-reference-progress em{position:absolute;right:0;top:-24px;color:#059669;font-size:10px;font-style:normal;font-weight:950}.vendor-reference-block{margin-top:16px;padding:18px;border:1px solid #e5e7eb;border-radius:17px;background:#fff}.vendor-reference-title{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.vendor-reference-title>button{display:grid;min-width:165px;padding:11px;border:1px solid #bae6fd;border-radius:12px;background:#fff;text-align:left}.vendor-reference-title>button strong{font-size:21px}.vendor-reference-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:14px}.vendor-reference-metrics article,.vendor-reference-pulse article{display:grid;gap:5px;padding:13px;border:1px solid #e5e7eb;border-radius:12px;background:#fff}.vendor-reference-metrics span,.vendor-reference-pulse span{font-size:9px;font-weight:850}.vendor-reference-metrics strong,.vendor-reference-pulse strong{font-size:18px}.vendor-reference-metrics small,.vendor-reference-pulse small{color:#64748b;font-size:8px;line-height:1.4}.vendor-reference-growth{background:linear-gradient(135deg,#fdfbff,#fff)}.vendor-reference-plan{display:grid;min-width:180px;padding:12px;border:1px solid #e9d5ff;border-radius:12px;background:#fff}.vendor-reference-plan span{font-size:8px}.vendor-reference-plan strong{font-size:21px}.vendor-reference-plan small{color:#059669;font-size:9px}.vendor-reference-growth-cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:14px}.vendor-reference-growth-cards>button,.vendor-reference-growth-cards>a{display:grid;min-height:125px;gap:6px;padding:13px;border:1px solid #e5e7eb;border-radius:12px;color:inherit;background:#fff;text-align:left;text-decoration:none;font-family:inherit;cursor:pointer}.vendor-reference-growth-cards strong{font-size:10px}.vendor-reference-growth-cards span{color:#64748b;font-size:8px;line-height:1.45}.vendor-reference-growth-cards b{align-self:end;color:#2563eb;font-size:8px}.vendor-reference-pulse{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin-top:14px}.vendor-reference-alert{background:#fffaf0!important;border-color:#fde68a!important}.vendor-reference-alert strong{color:#b45309}.vendor-reference-groups{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.vendor-reference-groups article{padding:14px;border:1px solid #e5e7eb;border-radius:13px}.vendor-reference-groups h3{margin:0;font-size:12px}.vendor-reference-groups p{min-height:34px;color:#64748b;font-size:8px;line-height:1.45}.vendor-reference-groups a{display:flex;justify-content:space-between;gap:8px;margin-top:5px;padding:8px;border:1px solid rgba(148,163,184,.22);border-radius:8px;color:inherit;background:#fff;text-decoration:none;font-size:8px;font-weight:800}.group-sell{background:#f0fdf4}.group-operate{background:#eff6ff}.group-grow{background:#faf5ff}.group-manage{background:#fff7ed}
 
         @media (max-width: 980px) {
           .vendor-app-shell {
