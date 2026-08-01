@@ -33,7 +33,7 @@ const NAV: BuyerNavSection[] = [
       { label: "Overview", href: "/dashboard/buyer", icon: "⌂", exact: true },
       { label: "Requirements", href: "/dashboard/buyer/rfqs", icon: "▤" },
       { label: "Create Requirement", href: "/rfq", icon: "+" },
-      { label: "Compare Quotes", href: "/dashboard/buyer/rfqs", icon: "⇄" },
+      { label: "Compare Quotes", href: "/dashboard/buyer/enquiries", icon: "⇄" },
       { label: "Conversations", href: "/dashboard/buyer/inbox", icon: "◌" },
     ],
   },
@@ -119,7 +119,7 @@ export default function BuyerDashboardApplicationShell({
           <div><span>Attention</span><strong>{urgentRequirements}</strong></div>
         </div>
 
-        <nav className={styles.nav}>
+        <nav className={styles.nav} aria-label="Buyer workspace navigation">
           {NAV.map((section) => (
             <section key={section.group}>
               <p>{section.group}</p>
@@ -135,6 +135,7 @@ export default function BuyerDashboardApplicationShell({
                       item.secondary ? styles.secondaryNav : "",
                     ].filter(Boolean).join(" ")}
                     aria-current={selected ? "page" : undefined}
+                    data-buyer-nav-destination={item.href}
                     onClick={() => setOpen(false)}
                   >
                     <span aria-hidden="true">{item.icon}</span>

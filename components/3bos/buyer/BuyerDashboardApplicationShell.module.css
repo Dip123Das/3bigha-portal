@@ -354,3 +354,46 @@
     margin-top: 12px;
   }
 }
+
+
+/* A-2.3H - responsive, accessible Buyer navigation destinations */
+.navLink:focus-visible,
+.topActions a:focus-visible,
+.mobileBar:focus-visible,
+.brand button:focus-visible {
+  outline: 3px solid rgba(29, 95, 209, .28);
+  outline-offset: 2px;
+}
+
+@media (max-width: 820px) {
+  .sidebar {
+    max-height: 100dvh;
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+    overscroll-behavior: contain;
+  }
+
+  .navLink {
+    min-height: 46px;
+  }
+
+  .main {
+    width: 100%;
+    overflow-x: clip;
+  }
+}
+
+@media (max-width: 520px) {
+  .topActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .topActions a {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .mobileBar {
+    min-height: 48px;
+  }
+}
