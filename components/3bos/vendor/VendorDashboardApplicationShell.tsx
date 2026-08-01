@@ -2333,6 +2333,93 @@ export default function VendorDashboardApplicationShell({
           }
         }
 
+
+        /* =========================================================
+           A-2.5D — force true full-width Vendor mobile canvas
+           Fixes inherited parent/container width constraints only.
+           ========================================================= */
+        @media (max-width: 820px) {
+          .vendor-app-shell {
+            position: relative !important;
+            left: 50% !important;
+            right: 50% !important;
+            width: 100vw !important;
+            max-width: 100vw !important;
+            min-width: 100vw !important;
+            margin-left: -50vw !important;
+            margin-right: -50vw !important;
+            padding-left: 8px !important;
+            padding-right: 8px !important;
+            box-sizing: border-box !important;
+          }
+
+          .vendor-mobile-menu-bar,
+          .vendor-app-content,
+          .vendor-dashboard-welcome,
+          .vendor-kpi-grid,
+          .vendor-action-strip,
+          .vendor-reference-hero,
+          .vendor-reference-three,
+          .vendor-reference-block,
+          .vendor-reference-title,
+          .vendor-reference-metrics,
+          .vendor-reference-growth-cards,
+          .vendor-reference-pulse,
+          .vendor-reference-groups,
+          .vendor-focused-workspace,
+          .vendor-shell-continuity {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+          }
+
+          .vendor-app-content {
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          .vendor-dashboard-welcome,
+          .vendor-action-strip,
+          .vendor-reference-hero,
+          .vendor-reference-three,
+          .vendor-reference-block,
+          .vendor-focused-workspace {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+          }
+
+          .vendor-kpi-grid,
+          .vendor-reference-metrics,
+          .vendor-reference-pulse {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+
+          .vendor-kpi-grid > *,
+          .vendor-reference-metrics > *,
+          .vendor-reference-pulse > *,
+          .vendor-reference-growth-cards > *,
+          .vendor-reference-groups > * {
+            min-width: 0 !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+          }
+        }
+
+        @media (max-width: 390px) {
+          .vendor-app-shell {
+            padding-left: 6px !important;
+            padding-right: 6px !important;
+          }
+
+          .vendor-kpi-grid,
+          .vendor-reference-metrics,
+          .vendor-reference-pulse {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
         `}</style>
     </div>
   );
