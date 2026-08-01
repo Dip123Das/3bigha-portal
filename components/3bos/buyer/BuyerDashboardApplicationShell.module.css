@@ -583,3 +583,36 @@
     width: min(92vw, 360px);
   }
 }
+
+/* =========================================================
+   A-2.4D — mobile overflow repair
+   Prevents the Buyer workspace from extending beyond viewport.
+   ========================================================= */
+@media (max-width: 820px) {
+  .workspace,
+  .main,
+  .content,
+  .topbar,
+  .topbar > div,
+  .topActions {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .workspace,
+  .main,
+  .content {
+    overflow-x: clip;
+  }
+
+  .topbar h1,
+  .topbar p,
+  .identity strong,
+  .identity small {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}

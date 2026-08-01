@@ -1239,3 +1239,139 @@
     width: 100%;
   }
 }
+
+/* =========================================================
+   A-2.4D — mobile cards fully visible
+   Removes inherited minimum widths that hid right-side cards.
+   ========================================================= */
+@media (max-width: 760px) {
+  .dashboard,
+  .needCentre,
+  .needIntro,
+  .needCategories,
+  .needCategory,
+  .firstTimeGuide,
+  .grid,
+  .workPanel,
+  .attentionPanel,
+  .journey,
+  .ai,
+  .empty,
+  .reminders,
+  .reminders > a {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dashboard {
+    overflow-x: clip;
+  }
+
+  .needCentre,
+  .grid,
+  .workPanel,
+  .attentionPanel,
+  .journey,
+  .ai {
+    overflow: visible;
+  }
+
+  .needCategories {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .needCategory {
+    min-width: 0 !important;
+    overflow: hidden;
+  }
+
+  .needCategory strong,
+  .needCategory small,
+  .needCategory em {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  .primaryActions,
+  .empty > div:last-child {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .primaryActions a,
+  .empty > div:last-child a {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .firstTimeGuide > div:last-child,
+  .journey > div {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .firstTimeGuide > div:last-child {
+    grid-template-columns: repeat(3, minmax(150px, 1fr));
+  }
+
+  .journey > div {
+    grid-template-columns: repeat(5, minmax(132px, 1fr));
+  }
+
+  .empty {
+    overflow: hidden;
+  }
+
+  .empty strong,
+  .empty span {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .reminders > a {
+    overflow: hidden;
+  }
+
+  .reminders > a > div {
+    min-width: 0;
+  }
+
+  .reminders strong,
+  .reminders small,
+  .reminders em {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .ai > div,
+  .ai aside {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .ai p,
+  .ai aside span,
+  .ai aside a {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 380px) {
+  .needCategories {
+    grid-template-columns: 1fr;
+  }
+
+  .needCategory {
+    min-height: auto;
+  }
+}
