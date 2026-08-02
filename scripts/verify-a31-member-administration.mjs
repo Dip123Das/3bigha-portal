@@ -21,7 +21,9 @@ const required = [
   [api, "complimentary_subscription"],
   [api, "granted_by"],
   [api, "subscription_status: \"active\""],
-  [css, ".tableWrap"],
+  [css, ".workspace"],
+  [css, ".memberList"],
+  [css, ".detail"],
   [css, ".summary"],
 ];
 
