@@ -95,21 +95,35 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
         const effectivePlan=complimentary?.active?complimentary.plan:business.subscription_plan||"none";
         const effectiveStatus=complimentary?.active?"complimentary":business.subscription_status||"not paid";
         const checks=[Boolean(profile.full_name),Boolean(profile.email),Boolean(profile.role&&profile.role!=="unresolved"),Boolean(profile.approval_status==="approved"),Boolean(stateId),Boolean(districtId),Boolean(business.business_name),Boolean(effectivePlan&&effectivePlan!=="none")];
-        const readiness=Math.round(checks.filter(Boolean).length/checks.length*100);
-        const readinessItems=[
-          ["Name",Boolean(profile.full_name)],
-          ["Email",Boolean(profile.email)],
-          ["Declared identity",Boolean(profile.role&&profile.role!=="unresolved")],
-          ["Identity approved",profile.approval_status==="approved"],
-          ["State",Boolean(stateId)],
-          ["District",Boolean(districtId)],
-          ["Business name",Boolean(business.business_name)],
-          ["Subscription",Boolean(effectivePlan&&effectivePlan!=="none")],
-        ];
         const lastLogin=authUser?.last_sign_in_at||null;
         const emailVerified=Boolean(authUser?.email_confirmed_at);
         const phoneVerified=Boolean(authUser?.phone_confirmed_at);
         const authCreated=authUser?.created_at||profile.created_at||null;
+        const readinessWeights=[
+          [Boolean(profile.full_name),10],
+          [Boolean(profile.email),10],
+          [Boolean(profile.role&&profile.role!=="unresolved"),15],
+          [profile.approval_status==="approved",20],
+          [Boolean(stateId),8],
+          [Boolean(districtId),7],
+          [Boolean(business.business_name),15],
+          [Boolean(effectivePlan&&effectivePlan!=="none"),5],
+          [emailVerified,5],
+          [phoneVerified,5],
+        ];
+        const readiness=readinessWeights.reduce((sum,[complete,weight])=>sum+(complete?Number(weight):0),0);
+        const readinessItems=[
+          ["Profile name",Boolean(profile.full_name),10],
+          ["Email",Boolean(profile.email),10],
+          ["Declared identity",Boolean(profile.role&&profile.role!=="unresolved"),15],
+          ["Identity approved",profile.approval_status==="approved",20],
+          ["State",Boolean(stateId),8],
+          ["District",Boolean(districtId),7],
+          ["Business name",Boolean(business.business_name),15],
+          ["Subscription",Boolean(effectivePlan&&effectivePlan!=="none"),5],
+          ["Email verified",emailVerified,5],
+          ["Phone verified",phoneVerified,5],
+        ];
         return <section className={styles.detail}>
           <header className={styles.detailHeader}><div className={styles.detailIdentity}><span className={styles.detailAvatar}>{(profile.full_name||business.business_name||"M").charAt(0).toUpperCase()}</span><div><h2>{profile.full_name||business.business_name||"Unnamed member"}</h2><p>{profile.email||"No email"} · {business.business_name||"No business name"}</p><div className={styles.chips}><span className={styles.chip}>{group}</span><span className={styles.chip}>{clean(profile.role||"unresolved")}</span>{profile.requested_role?<span className={styles.chip}>Requested: {clean(profile.requested_role)}</span>:null}<span className={!isActive?styles.statusBlocked:isPending?styles.statusPending:styles.statusActive}>{!isActive?clean(accountStatus):isPending?"Identity pending":"Active"}</span></div></div></div><div className={styles.scoreCard}><span>Account readiness</span><strong>{readiness}%</strong><div className={styles.progress}><i style={{width:`${readiness}%`}}/></div></div></header>
           {/* A-3.3 — Founder member operating centre */}
@@ -120,13 +134,30 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
             {profile.email?<a href={"mailto:"+profile.email}>Email member</a>:null}
             <a href="/admin/dashboard">Admin dashboard</a>
           </nav>
+          {/* A-3.4 — Member 360 operating centre foundation */}
+          <section className={styles.operatingCentre}>
+            <div className={styles.operatingCentreHeader}>
+              <div><span>Member 360°</span><h3>Operating centre</h3></div>
+              <small>Only existing system records and routes are exposed here.</small>
+            </div>
+            <div className={styles.operatingGrid}>
+              <a href="#identity-panel"><strong>Identity</strong><span>Role, approval and member classification</span></a>
+              <a href="#business-panel"><strong>Business</strong><span>Business name, registration state and account readiness</span></a>
+              <a href="#location-panel"><strong>LGD Geography</strong><span>India, state and district currently recorded</span></a>
+              <a href="/admin/verification-reviews"><strong>Documents</strong><span>Open submitted business-proof reviews</span></a>
+              <a href="#subscription-control"><strong>Subscription</strong><span>Review or grant complimentary access</span></a>
+              <a href="/admin/dashboard/vendor-control"><strong>Marketplace control</strong><span>Open existing marketplace administration</span></a>
+              <a href="/admin/dashboard/support"><strong>Support</strong><span>Review support tickets and member issues</span></a>
+              <a href={"/admin/users?member="+profile.id}><strong>Refresh member</strong><span>Reload the latest member record</span></a>
+            </div>
+          </section>
           <div className={styles.detailGrid}>
-            <article className={styles.panel}><h3>Identity</h3><div className={styles.kv}><span>Primary role</span><strong>{clean(profile.role)}</strong></div><div className={styles.kv}><span>Requested role</span><strong>{clean(profile.requested_role)}</strong></div><div className={styles.kv}><span>Approval</span><strong>{clean(profile.approval_status)}</strong></div><div className={styles.kv}><span>Member group</span><strong>{group}</strong></div></article>
-            <article className={styles.panel}><h3>Account</h3><div className={styles.kv}><span>Status</span><strong>{clean(accountStatus)}</strong></div><div className={styles.kv}><span>Status note</span><strong>{profile.account_status_reason||"No note"}</strong></div><div className={styles.kv}><span>Joined</span><strong>{profile.created_at?new Date(profile.created_at).toLocaleDateString("en-IN"):"—"}</strong></div></article>
+            <article id="identity-panel" className={styles.panel}><h3>Identity</h3><div className={styles.kv}><span>Primary role</span><strong>{clean(profile.role)}</strong></div><div className={styles.kv}><span>Requested role</span><strong>{clean(profile.requested_role)}</strong></div><div className={styles.kv}><span>Approval</span><strong>{clean(profile.approval_status)}</strong></div><div className={styles.kv}><span>Member group</span><strong>{group}</strong></div></article>
+            <article id="business-panel" className={styles.panel}><h3>Account & business</h3><div className={styles.kv}><span>Status</span><strong>{clean(accountStatus)}</strong></div><div className={styles.kv}><span>Status note</span><strong>{profile.account_status_reason||"No note"}</strong></div><div className={styles.kv}><span>Joined</span><strong>{profile.created_at?new Date(profile.created_at).toLocaleDateString("en-IN"):"—"}</strong></div></article>
             <article className={styles.panel}><h3>Subscription</h3><div className={styles.kv}><span>Plan</span><strong>{clean(effectivePlan)}</strong></div><div className={styles.kv}><span>Status</span><strong>{clean(effectiveStatus)}</strong></div><div className={styles.kv}><span>Expiry</span><strong>{complimentary?.active?(complimentary.expires_at?new Date(complimentary.expires_at).toLocaleDateString("en-IN"):"Never"):business.subscription_expires_at?new Date(business.subscription_expires_at).toLocaleDateString("en-IN"):"Not recorded"}</strong></div><div className={styles.kv}><span>Granted by</span><strong>{complimentary?.active?complimentary.granted_by||"Admin ID not recorded":"Payment system / not recorded"}</strong></div><div className={styles.kv}><span>Grant reason</span><strong>{complimentary?.active?complimentary.reason||"Not recorded":"Not complimentary"}</strong></div></article>
-            <article className={styles.panel}><h3>Location</h3><div className={styles.kv}><span>State</span><strong>{stateNames.get(stateId)||"Not recorded"}</strong></div><div className={styles.kv}><span>District</span><strong>{districtNames.get(districtId)||"Not recorded"}</strong></div></article>
+            <article id="location-panel" className={styles.panel}><h3>LGD Geography</h3><div className={styles.kv}><span>Country</span><strong>India</strong></div><div className={styles.kv}><span>State</span><strong>{stateNames.get(stateId)||"Not recorded"}</strong></div><div className={styles.kv}><span>District</span><strong>{districtNames.get(districtId)||"Not recorded"}</strong></div></article>
             <article className={styles.panel}><h3>Login & verification</h3><div className={styles.kv}><span>Email verified</span><strong>{emailVerified?"Yes":"No"}</strong></div><div className={styles.kv}><span>Phone verified</span><strong>{phoneVerified?"Yes":"No"}</strong></div><div className={styles.kv}><span>Last login</span><strong>{lastLogin?new Date(lastLogin).toLocaleString("en-IN"):"No login recorded"}</strong></div><div className={styles.kv}><span>Auth account created</span><strong>{authCreated?new Date(authCreated).toLocaleString("en-IN"):"Not recorded"}</strong></div></article>
-            <article className={`${styles.panel} ${styles.panelWide}`}><h3>Readiness breakdown</h3><div className={styles.readinessGrid}>{readinessItems.map(([label,complete])=><div key={String(label)} className={complete?styles.readinessComplete:styles.readinessMissing}><span>{complete?"✓":"!"}</span><strong>{label}</strong><small>{complete?"Recorded":"Missing"}</small></div>)}</div></article>
+            <article className={`${styles.panel} ${styles.panelWide}`}><h3>Readiness breakdown</h3><div className={styles.readinessGrid}>{readinessItems.map(([label,complete,weight])=><div key={String(label)} className={complete?styles.readinessComplete:styles.readinessMissing}><span>{complete?"✓":"!"}</span><strong>{label}</strong><small>{complete?`Recorded · ${weight}%`:`Missing · ${weight}%`}</small></div>)}</div></article>
             <article className={`${styles.panel} ${styles.panelWide}`}><h3>Member timeline</h3><div className={styles.timeline}><div><i/><span>Account created {profile.created_at?new Date(profile.created_at).toLocaleString("en-IN"):"date unavailable"}</span></div><div><i/><span>Identity status: {clean(profile.approval_status)}</span></div>{complimentary?.active?<div><i/><span>Complimentary {clean(complimentary.plan)} granted {complimentary.granted_at?new Date(complimentary.granted_at).toLocaleString("en-IN"):""} · Reason: {complimentary.reason||"Not recorded"}</span></div>:null}</div></article>
             <article id="founder-controls" className={`${styles.panel} ${styles.panelFull}`}><h3>Founder controls</h3><div className={styles.actions}>
               {isPending?<div className={styles.inlineForm}><form action="/api/admin/approve-user" method="post"><input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="role" value={profile.requested_role||""}/><button className={styles.approve}>Approve identity</button></form><form action="/api/admin/reject-user" method="post" className={styles.inlineForm}><input type="hidden" name="user_id" value={profile.id}/><input name="reason" placeholder="Rejection reason" required/><button className={styles.reject}>Reject</button></form></div>:null}
