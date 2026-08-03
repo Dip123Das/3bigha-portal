@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import MemberSidebarLiveSearch from "./MemberSidebarLiveSearch";
 import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
 import styles from "./MemberAdministration.module.css";
 
@@ -97,23 +98,12 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
     <section className={styles.workspace}>
       <aside className={styles.memberList}>
         {/* A-3.8 — Member sidebar search */}
-        <form method="get" className={styles.memberSearch}>
-          {identity?<input type="hidden" name="identity" value={identity}/>:null}
-          {role?<input type="hidden" name="role" value={role}/>:null}
-          {approval?<input type="hidden" name="approval" value={approval}/>:null}
-          {account?<input type="hidden" name="account" value={account}/>:null}
-          {plan?<input type="hidden" name="plan" value={plan}/>:null}
-          {state?<input type="hidden" name="state" value={state}/>:null}
-          {activeWorkspace!=="overview"?<input type="hidden" name="workspace" value={activeWorkspace}/>:null}
-          <label htmlFor="member-sidebar-search">Find a member</label>
-          <div>
-            <input id="member-sidebar-search" name="q" defaultValue={one(searchParams?.q)} placeholder="Name, email, business or role"/>
-            <button type="submit">Search</button>
-          </div>
-          {q?<a href={workspaceHref(activeWorkspace,selected?.profile.id||filtered[0]?.profile.id||"")}>Clear search</a>:null}
-        </form>
-        <div className={styles.listHeader}>{filtered.length} matching members</div>
-        {filtered.map(({profile,business,group,complimentary,stateId,districtId})=>{const params=new URLSearchParams(preserve);params.set("member",profile.id);if(activeWorkspace!=="overview")params.set("workspace",activeWorkspace);const selectedNow=selected?.profile.id===profile.id;const planName=complimentary?.active?complimentary.plan:business.subscription_plan||"free";const accountState=profile.account_status||"active";const stateClass=accountState!=="active"?styles.memberStateBlocked:profile.approval_status==="pending"?styles.memberStatePending:styles.memberStateActive;return <a key={profile.id} href={`/admin/users?${params.toString()}`} className={`${styles.memberLink} ${selectedNow?styles.memberLinkActive:""}`}><span className={styles.avatar}>{(profile.full_name||business.business_name||"M").charAt(0).toUpperCase()}</span><span className={styles.memberCopy}><strong><i className={`${styles.memberState} ${stateClass}`}/>{profile.full_name||business.business_name||"Unnamed member"}</strong><small>{business.business_name||profile.email||"No business or email"}</small><small>{districtNames.get(districtId)||stateNames.get(stateId)||"Location not recorded"}</small></span><span className={styles.listMeta}><span>{group}</span><small>{clean(planName)}</small></span></a>})}
+        {/* A-3.9 — Live member sidebar search */}
+        <div className={styles.memberSearch}>
+          <MemberSidebarLiveSearch />
+        </div>
+        <div className={styles.listHeader} data-member-search-count>{filtered.length} matching members</div>
+        {filtered.map(({profile,business,group,complimentary,stateId,districtId})=>{const params=new URLSearchParams(preserve);params.set("member",profile.id);if(activeWorkspace!=="overview")params.set("workspace",activeWorkspace);const selectedNow=selected?.profile.id===profile.id;const planName=complimentary?.active?complimentary.plan:business.subscription_plan||"free";const accountState=profile.account_status||"active";const stateClass=accountState!=="active"?styles.memberStateBlocked:profile.approval_status==="pending"?styles.memberStatePending:styles.memberStateActive;return <a key={profile.id} href={`/admin/users?${params.toString()}`} data-member-search-item data-member-search-text={`${profile.full_name||""} ${profile.email||""} ${business.business_name||""} ${profile.role||""} ${profile.requested_role||""} ${group} ${districtNames.get(districtId)||""} ${stateNames.get(stateId)||""}`} className={`${styles.memberLink} ${selectedNow?styles.memberLinkActive:""}`}><span className={styles.avatar}>{(profile.full_name||business.business_name||"M").charAt(0).toUpperCase()}</span><span className={styles.memberCopy}><strong><i className={`${styles.memberState} ${stateClass}`}/>{profile.full_name||business.business_name||"Unnamed member"}</strong><small>{business.business_name||profile.email||"No business or email"}</small><small>{districtNames.get(districtId)||stateNames.get(stateId)||"Location not recorded"}</small></span><span className={styles.listMeta}><span>{group}</span><small>{clean(planName)}</small></span></a>})}
       </aside>
 
       {selected?(()=>{

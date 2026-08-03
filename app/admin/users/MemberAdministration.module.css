@@ -248,3 +248,20 @@
   .memberSearch{position:static}
   .memberList .listHeader{top:0}
 }
+
+/* A-3.9 — Live member sidebar search */
+.memberSearch :global(.member-sidebar-live-search) {
+  display: block;
+}
+
+.memberSearch :global(.member-sidebar-live-search > small) {
+  display: block;
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.memberLink[hidden] {
+  display: none !important;
+}
