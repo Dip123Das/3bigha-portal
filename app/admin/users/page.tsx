@@ -74,8 +74,14 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
   return <main className={styles.page}>
     <header className={styles.header}><div><h1>Member Administration</h1><p>Founder control centre for every registered member and identity.</p></div><div className={styles.headerActions}><a href="/admin/verification-reviews">Business proof reviews</a><a href="/admin/dashboard">Admin dashboard</a></div></header>
     {success?<div className={styles.notice}>{success}</div>:null}{error?<div className={styles.error}>{error}</div>:null}
+        {/* A-3.7 — Founder Operating Centre 2.0 */}
     <section className={styles.summary}>
-      <article><span>Total members</span><strong>{all.length}</strong></article><article><span>Active</span><strong>{active}</strong></article><article><span>Pending identity</span><strong>{pending}</strong></article><article><span>Restricted</span><strong>{restricted}</strong></article><article><span>Complimentary</span><strong>{complimentaryCount}</strong></article><article><span>Enterprise / lifetime</span><strong>{highest}</strong></article>
+      <a href="/admin/users"><span>Total members</span><strong>{all.length}</strong><small>Show everyone</small></a>
+      <a href="/admin/users?account=active"><span>Active</span><strong>{active}</strong><small>Filter active accounts</small></a>
+      <a href="/admin/users?approval=pending"><span>Pending identity</span><strong>{pending}</strong><small>Needs founder review</small></a>
+      <a href="/admin/users?account=deactivated"><span>Restricted</span><strong>{restricted}</strong><small>Review restricted accounts</small></a>
+      <a href="/admin/users?plan=enterprise"><span>Complimentary</span><strong>{complimentaryCount}</strong><small>Review granted access</small></a>
+      <a href="/admin/users?plan=lifetime"><span>Enterprise / lifetime</span><strong>{highest}</strong><small>Highest access members</small></a>
     </section>
     <form method="get" className={styles.filters}>{activeWorkspace!=="overview"?<input type="hidden" name="workspace" value={activeWorkspace}/>:null}
       <input className={styles.field} name="q" defaultValue={one(searchParams?.q)} placeholder="Search name, email, business or role"/>
@@ -129,7 +135,7 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
           ["Phone verified",phoneVerified,5],
         ];
         return <section className={styles.detail} data-workspace={activeWorkspace}>
-          <header className={styles.detailHeader}><div className={styles.detailIdentity}><span className={styles.detailAvatar}>{(profile.full_name||business.business_name||"M").charAt(0).toUpperCase()}</span><div><h2>{profile.full_name||business.business_name||"Unnamed member"}</h2><p>{profile.email||"No email"} · {business.business_name||"No business name"}</p><div className={styles.chips}><span className={styles.chip}>{group}</span><span className={styles.chip}>{clean(profile.role||"unresolved")}</span>{profile.requested_role?<span className={styles.chip}>Requested: {clean(profile.requested_role)}</span>:null}<span className={!isActive?styles.statusBlocked:isPending?styles.statusPending:styles.statusActive}>{!isActive?clean(accountStatus):isPending?"Identity pending":"Active"}</span></div></div></div><div className={styles.scoreCard}><span>Account readiness</span><strong>{readiness}%</strong><div className={styles.progress}><i style={{width:`${readiness}%`}}/></div></div></header>
+          <header className={styles.detailHeader}><div className={styles.detailIdentity}><span className={styles.detailAvatar}>{(profile.full_name||business.business_name||"M").charAt(0).toUpperCase()}</span><div><h2>{profile.full_name||business.business_name||"Unnamed member"}</h2><p>{profile.email||"No email"} · {business.business_name||"No business name"} · {districtNames.get(districtId)||stateNames.get(stateId)||"Location not recorded"} · Joined {profile.created_at?new Date(profile.created_at).toLocaleDateString("en-IN"):"date unavailable"}</p><div className={styles.chips}><span className={styles.chip}>{group}</span><span className={styles.chip}>{clean(profile.role||"unresolved")}</span>{profile.requested_role?<span className={styles.chip}>Requested: {clean(profile.requested_role)}</span>:null}<span className={!isActive?styles.statusBlocked:isPending?styles.statusPending:styles.statusActive}>{!isActive?clean(accountStatus):isPending?"Identity pending":"Active"}</span></div></div></div><div className={styles.scoreCard}><span>Account readiness</span><strong>{readiness}%</strong><div className={styles.progress}><i style={{width:`${readiness}%`}}/></div><small>{profile.approval_status==="approved"?"Identity approved":"Identity needs review"} · {phoneVerified?"Phone verified":"Phone missing"}</small></div></header>
           {/* A-3.3 — Founder member operating centre */}
           {/* A-3.6 — Member navigation and workspace activation */}
           <nav className={styles.quickActions} aria-label="Founder quick actions">
@@ -144,7 +150,7 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
           <section className={styles.operatingCentre}>
             <div className={styles.operatingCentreHeader}>
               <div><span>Member 360°</span><h3>Founder member workspace</h3></div>
-              <small>Select one workspace. The member list and founder controls remain available.</small>
+              <small>The selected workspace opens immediately below. Overview remains the complete default view.</small>
             </div>
             <nav className={styles.workspaceTabs} aria-label="Member operating workspaces">
               {[
