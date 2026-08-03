@@ -2,14 +2,42 @@ import { NextResponse } from "next/server";
 import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
 
 const ALLOWED_PLANS = new Set([
-  "starter",
-  "professional",
+  "basic_vendor",
+  "growth",
   "enterprise",
   "lifetime",
 ]);
 
+function adminReturnOrigin(req: Request) {
+  const configured =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.SITE_URL ||
+    process.env.APP_URL;
+
+  if (configured) {
+    try {
+      return new URL(configured).origin;
+    } catch {
+      // Continue to trusted forwarded headers.
+    }
+  }
+
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  const forwardedProto = req.headers.get("x-forwarded-proto") || "https";
+
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    return "https://3bigha.com";
+  }
+
+  return new URL(req.url).origin;
+}
+
 function back(req: Request, key: "success" | "error", message: string) {
-  const url = new URL("/admin/users", req.url);
+  const url = new URL("/admin/users", adminReturnOrigin(req));
   url.searchParams.set(key, message);
   return NextResponse.redirect(url, 303);
 }
