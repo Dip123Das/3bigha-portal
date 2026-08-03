@@ -2016,3 +2016,677 @@
   }
 }
 
+
+/* =========================================================
+   HVR-1C-B — COMPLETE HOMEPAGE REFERENCE ALIGNMENT
+   Existing content, order, links and behaviour are preserved.
+   ========================================================= */
+
+/* Shared premium section shells */
+.homePage > .sahajJourneySection,
+.homePage > .contentSection,
+.homePage > .manageBusinessSection,
+.homePage > .homeBottomGrid,
+.homePage > .cleanTrustSection,
+.homePage > .cleanStartBanner {
+  max-width: 1680px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.homePage > .sahajJourneySection,
+.homePage > .contentSection {
+  margin-top: 18px;
+  padding-top: 26px;
+  padding-bottom: 26px;
+  border: 1px solid rgba(55, 70, 150, 0.09);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow:
+    0 14px 42px rgba(39, 50, 112, 0.055),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(18px);
+}
+
+/* Human journey */
+.homePage .sahajJourneySection {
+  padding-top: 24px;
+  padding-bottom: 28px;
+}
+
+.homePage .sahajJourneyGrid {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.homePage .sahajJourneyCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 172px;
+  padding: 18px 16px;
+  border-radius: 17px;
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.99),
+      rgba(248, 249, 255, 0.94)
+    );
+}
+
+.homePage .sahajJourneyIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background:
+    linear-gradient(145deg, #fff2e7, #eef1ff);
+  box-shadow: inset 0 1px 0 #ffffff;
+  font-size: 20px;
+}
+
+.homePage .sahajJourneyCard strong {
+  margin-top: 14px;
+  color: #17213f;
+  font-size: 14px;
+  line-height: 1.25;
+  font-weight: 850;
+}
+
+.homePage .sahajJourneyCard p {
+  margin-top: 7px;
+  color: #69738c;
+  font-size: 11px;
+  line-height: 1.55;
+  font-weight: 580;
+}
+
+/* Featured marketplace */
+.homePage .premiumListingsGrid,
+.homePage .listingGrid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.homePage .listingCard {
+  position: relative;
+  min-width: 0;
+  min-height: 230px;
+  overflow: hidden;
+  border-radius: 18px;
+  background:
+    linear-gradient(160deg, #ffffff, #fafaff);
+}
+
+.homePage .listingCard > * {
+  position: relative;
+  z-index: 1;
+}
+
+.homePage .listingCard::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background:
+    linear-gradient(90deg, #ef4b82, #6648e7);
+  opacity: 0.72;
+}
+
+.homePage .listingCard img {
+  width: 100%;
+  height: 105px;
+  object-fit: cover;
+}
+
+.homePage .listingCard h3 {
+  color: #17213f;
+  font-size: 14px;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+}
+
+.homePage .listingCard p,
+.homePage .listingCard small {
+  color: #6d7690;
+  line-height: 1.45;
+}
+
+.homePage .listingCard strong {
+  color: #142047;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+/* Manage My Business premium BOS banner */
+.homePage .manageBusinessSection {
+  position: relative;
+  min-height: 142px;
+  overflow: hidden;
+  border: 1px solid rgba(101, 97, 235, 0.18);
+  border-radius: 22px;
+  background:
+    radial-gradient(
+      circle at 66% 20%,
+      rgba(255, 255, 255, 0.16),
+      transparent 27%
+    ),
+    linear-gradient(
+      105deg,
+      #243db7 0%,
+      #405ce5 50%,
+      #8248ed 100%
+    );
+  box-shadow: 0 24px 58px rgba(64, 71, 190, 0.2);
+}
+
+.homePage .manageBusinessSection::before {
+  content: "";
+  position: absolute;
+  right: 23%;
+  bottom: -44px;
+  width: 280px;
+  height: 180px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 28px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0.04)
+    );
+  transform: rotate(-4deg);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 18px 46px rgba(20, 23, 100, 0.2);
+}
+
+.homePage .manageBusinessSection::after {
+  content: "3BOS";
+  position: absolute;
+  right: 31%;
+  top: 50%;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  transform: translateY(-50%);
+}
+
+/* remove historical accidental centre rectangle */
+.homePage .manageBusinessSection > div,
+.homePage .manageBusinessSection a {
+  position: relative;
+  z-index: 2;
+}
+
+.homePage .manageBusinessSection *::before,
+.homePage .manageBusinessSection *::after {
+  max-width: 100%;
+}
+
+.homePage .aiBusinessCommand {
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: none;
+}
+
+.homePage .aiBusinessCommand::before,
+.homePage .aiBusinessCommand::after {
+  display: none;
+}
+
+.homePage .aiBusinessCopy h2 {
+  font-size: clamp(21px, 2vw, 30px);
+  letter-spacing: -0.035em;
+}
+
+.homePage .aiBusinessCopy p {
+  max-width: 760px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.homePage .aiBusinessActions a {
+  min-width: 190px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #344ac7;
+  box-shadow: 0 12px 28px rgba(22, 28, 102, 0.18);
+}
+
+/* Categories */
+.homePage .categoryGrid {
+  gap: 14px;
+}
+
+.homePage .categoryCard {
+  min-height: 194px;
+  padding: 20px;
+  border-radius: 18px;
+  background:
+    linear-gradient(155deg, #ffffff, #fbfbff);
+}
+
+.homePage .categoryCard h3 {
+  color: #17213f;
+  font-size: 15px;
+}
+
+.homePage .categoryCard p {
+  min-height: 55px;
+  margin-top: 8px;
+  color: #6f7890;
+  font-size: 11px;
+  line-height: 1.52;
+}
+
+.homePage .categoryCard strong {
+  margin-top: 14px;
+  color: #07966b;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+/* Explore near you */
+.homePage .premiumDiscoveryGrid,
+.homePage .discoveryRailGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.homePage .discoveryRailCard {
+  position: relative;
+  min-height: 154px;
+  overflow: hidden;
+  padding: 20px;
+  border-radius: 18px;
+}
+
+.homePage .discoveryRailCard::after {
+  content: "";
+  position: absolute;
+  right: -28px;
+  bottom: -38px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      rgba(88, 104, 226, 0.15),
+      transparent 70%
+    );
+}
+
+.homePage .discoveryRailCard strong {
+  color: #17213f;
+  font-size: 14px;
+}
+
+.homePage .discoveryRailCard small {
+  color: #6b758e;
+}
+
+/* Useful tools */
+.homePage .utilitySection {
+  padding: 26px !important;
+  border-radius: 24px;
+}
+
+.homePage .utilityLayout {
+  grid-template-columns: minmax(0, 1fr) minmax(350px, 410px);
+  gap: 18px;
+}
+
+.homePage .toolsGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.homePage .toolCard {
+  min-height: 122px;
+  padding: 18px;
+  border-radius: 17px;
+}
+
+.homePage .toolCard b {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background:
+    linear-gradient(145deg, #edf2ff, #f4efff);
+}
+
+.homePage .toolCard h3 {
+  color: #17213f;
+  font-size: 14px;
+}
+
+.homePage .toolCard p {
+  color: #707990;
+}
+
+.homePage .rfqMiniCard {
+  min-height: 100%;
+  padding: 24px;
+  border-radius: 19px;
+  background:
+    radial-gradient(
+      circle at 84% 8%,
+      rgba(255, 255, 255, 0.2),
+      transparent 30%
+    ),
+    linear-gradient(135deg, #334fd2, #7444e5);
+}
+
+/* Guides and Investment */
+.homePage .homeBottomGrid {
+  gap: 18px;
+}
+
+.homePage .bottomPanel {
+  position: relative;
+  min-height: 176px;
+  overflow: hidden;
+  padding: 26px;
+  border-radius: 22px;
+  background:
+    linear-gradient(145deg, #ffffff, #f8f9ff);
+}
+
+.homePage .bottomPanel::after {
+  content: "";
+  position: absolute;
+  right: 24px;
+  bottom: 12px;
+  width: 150px;
+  height: 108px;
+  border-radius: 50% 50% 18px 18px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(93, 112, 233, 0.12),
+      rgba(118, 74, 232, 0.24)
+    );
+  clip-path:
+    polygon(
+      8% 83%,
+      8% 55%,
+      28% 55%,
+      28% 34%,
+      49% 34%,
+      49% 12%,
+      68% 12%,
+      68% 44%,
+      91% 44%,
+      91% 83%
+    );
+}
+
+.homePage .bottomPanel:first-child::after {
+  border-radius: 52% 52% 12px 12px;
+  clip-path:
+    polygon(
+      4% 72%,
+      20% 43%,
+      43% 60%,
+      50% 16%,
+      57% 60%,
+      80% 43%,
+      96% 72%,
+      50% 88%
+    );
+}
+
+.homePage .bottomPanel > * {
+  position: relative;
+  z-index: 2;
+}
+
+.homePage .bottomPanel h2 {
+  color: #17213f;
+  font-size: 20px;
+  letter-spacing: -0.03em;
+}
+
+.homePage .bottomPanel p {
+  max-width: 66%;
+  color: #707990;
+  line-height: 1.55;
+}
+
+/* Human-first trust statement */
+.homePage .cleanTrustSection {
+  position: relative;
+  min-height: 260px;
+  overflow: hidden;
+  padding: 36px 38px;
+  border: 1px solid rgba(111, 92, 239, 0.2);
+  border-radius: 26px;
+  background:
+    radial-gradient(
+      circle at 88% 15%,
+      rgba(255, 255, 255, 0.18),
+      transparent 27%
+    ),
+    linear-gradient(
+      108deg,
+      #2746cc 0%,
+      #435bea 48%,
+      #8045ec 100%
+    );
+  color: #ffffff;
+  box-shadow: 0 27px 68px rgba(58, 67, 186, 0.22);
+}
+
+.homePage .cleanTrustSection::after {
+  content: "3Bigha";
+  position: absolute;
+  right: 6%;
+  bottom: 18%;
+  color: rgba(255, 255, 255, 0.12);
+  font-size: clamp(72px, 9vw, 150px);
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: -0.08em;
+}
+
+.homePage .cleanTrustSection > * {
+  position: relative;
+  z-index: 2;
+}
+
+.homePage .cleanTrustSection h2,
+.homePage .cleanTrustSection p {
+  color: #ffffff;
+}
+
+.homePage .cleanTrustSection h2 {
+  max-width: 850px;
+  font-size: clamp(30px, 3vw, 48px);
+  line-height: 1.08;
+  letter-spacing: -0.052em;
+}
+
+.homePage .cleanTrustSection > p {
+  max-width: 850px;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.homePage .cleanTrustGrid {
+  margin-top: 28px;
+}
+
+.homePage .cleanTrustGrid > div {
+  min-height: 116px;
+  border-color: rgba(255, 255, 255, 0.17);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  backdrop-filter: blur(14px);
+}
+
+.homePage .cleanTrustGrid strong,
+.homePage .cleanTrustGrid p {
+  color: #ffffff;
+}
+
+/* Closing CTA */
+.homePage .cleanStartBanner {
+  min-height: 112px;
+  padding: 24px 30px;
+  border-radius: 22px;
+}
+
+.homePage .cleanStartBanner h2,
+.homePage .cleanStartBanner p {
+  color: #ffffff;
+}
+
+.homePage .cleanStartBanner a {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.95);
+  color: #354bc5;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+/* Footer */
+.homePage .cleanHomeFooter {
+  max-width: 1680px;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 38px var(--home-inline) 46px;
+  border: 1px solid rgba(55, 70, 150, 0.08);
+  border-radius: 24px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.92),
+      rgba(248, 249, 255, 0.94)
+    );
+}
+
+.homePage .cleanHomeFooter h3 {
+  color: #1a2444;
+  font-size: 13px;
+}
+
+.homePage .cleanHomeFooter a,
+.homePage .cleanHomeFooter p {
+  color: #667089;
+  line-height: 1.8;
+}
+
+@media (max-width: 1280px) {
+  .homePage .sahajJourneyGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .homePage .premiumListingsGrid,
+  .homePage .listingGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .homePage .categoryGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .homePage .premiumDiscoveryGrid,
+  .homePage .discoveryRailGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .homePage .utilityLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .homePage .manageBusinessSection::before,
+  .homePage .manageBusinessSection::after {
+    opacity: 0.32;
+  }
+}
+
+@media (max-width: 768px) {
+  .homePage > .sahajJourneySection,
+  .homePage > .contentSection {
+    margin-top: 14px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-radius: 19px;
+  }
+
+  .homePage .sahajJourneyGrid,
+  .homePage .premiumListingsGrid,
+  .homePage .listingGrid,
+  .homePage .categoryGrid,
+  .homePage .premiumDiscoveryGrid,
+  .homePage .discoveryRailGrid,
+  .homePage .toolsGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .homePage .sahajJourneyCard,
+  .homePage .categoryCard,
+  .homePage .listingCard,
+  .homePage .discoveryRailCard {
+    min-height: 0;
+  }
+
+  .homePage .manageBusinessSection {
+    min-height: 210px;
+    border-radius: 19px;
+  }
+
+  .homePage .manageBusinessSection::before,
+  .homePage .manageBusinessSection::after {
+    display: none;
+  }
+
+  .homePage .aiBusinessActions a {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .homePage .utilitySection {
+    padding: 20px !important;
+  }
+
+  .homePage .homeBottomGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .homePage .bottomPanel p {
+    max-width: 100%;
+    padding-right: 96px;
+  }
+
+  .homePage .cleanTrustSection {
+    min-height: 0;
+    padding: 28px 20px;
+    border-radius: 20px;
+  }
+
+  .homePage .cleanTrustSection::after {
+    display: none;
+  }
+
+  .homePage .cleanTrustGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .homePage .cleanStartBanner {
+    padding: 24px 20px;
+    border-radius: 19px;
+  }
+
+  .homePage .cleanHomeFooter {
+    border-radius: 19px;
+  }
+}
+
