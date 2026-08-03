@@ -3,9 +3,9 @@ import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
 
 const ALLOWED_PLANS = new Set([
   "basic_vendor",
-  "growth",
-  "enterprise",
-  "lifetime",
+  "silver_vendor",
+  "gold_vendor",
+  "platinum_vendor",
 ]);
 
 function adminReturnOrigin(req: Request) {
@@ -71,10 +71,9 @@ export async function POST(req: Request) {
     return back(req, "error", "The active master-admin account cannot be changed here.");
   }
 
-  const expiresAt =
-    plan === "lifetime" || !expiresOn
-      ? null
-      : new Date(`${expiresOn}T23:59:59.999Z`).toISOString();
+  const expiresAt = expiresOn
+    ? new Date(`${expiresOn}T23:59:59.999Z`).toISOString()
+    : null;
 
   const userResult = await access.admin.auth.admin.getUserById(userId);
 
