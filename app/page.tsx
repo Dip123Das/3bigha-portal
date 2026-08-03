@@ -615,7 +615,7 @@ export default function HomePage() {
           <strong>Company</strong>
           <a href="/about">About</a>
           <a href="/contact">Contact</a>
-          <a href="/support">Support</a>
+          <a href="/support/new">Support</a>
         </nav>
       </footer>
 
