@@ -80,3 +80,18 @@
 .detail[data-workspace="controls"] .controlsWorkspace{display:block;grid-column:1/-1}
 @media(max-width:1180px){.workspaceTabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:820px){.workspaceTabs{display:flex;overflow-x:auto;padding-bottom:4px}.workspaceTab,.workspaceTabActive{flex:0 0 175px}.externalTools{overflow-x:auto;flex-wrap:nowrap}.externalTools a{flex:0 0 auto}}
+/* A-3.6 — active navigation clarity */
+.quickActions a[aria-current="page"] {
+  border-color: #2563eb;
+  background: #eaf3ff;
+  color: #1d4ed8;
+  box-shadow: inset 3px 0 0 #2563eb;
+}
+
+.workspaceTabs a[aria-current="page"] {
+  cursor: default;
+}
+
+.detail [data-workspace-panel] {
+  scroll-margin-top: 150px;
+}
