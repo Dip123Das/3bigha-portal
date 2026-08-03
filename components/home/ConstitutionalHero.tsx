@@ -50,31 +50,87 @@ export default function ConstitutionalHero({
   return (
     <section className="heroShell constitutionalHero">
       <div className="heroGrid">
-        <div className="heroCopy">
-          <div className="miniBadge">
-            🇮🇳 India&apos;s Human-First Business Operating System
+        <div className="heroExperience">
+          <div className="heroCopy">
+            <div className="miniBadge">
+              India&apos;s Human-First Business Operating System
+            </div>
+
+            <h1>
+              Run your business
+              <br />
+              from <span>one place.</span>
+            </h1>
+
+            <p className="constitutionalHeroLead">
+              3Bigha Business Operating System (3BOS) connects marketplace
+              discovery, requirements, vendors, local geography, business
+              workspace and intelligent assistance in one unified platform.
+            </p>
+
+            <p className="constitutionalHeroPromise">
+              You tell us what you need in ordinary language. 3Bigha quietly
+              prepares the right path, information and business actions in the
+              background.
+            </p>
+
+            <a className="heroManageBusiness" href="/dashboard">
+              Manage My Business <span aria-hidden="true">→</span>
+            </a>
           </div>
 
-          <h1>
-            <span>Run your business from one place.</span>
-            Buy, sell, build, hire, rent and grow with 3Bigha.
-          </h1>
+          <div className="heroVisualStage" aria-hidden="true">
+            <div className="heroSkyline heroSkylineBack" />
+            <div className="heroSkyline heroSkylineFront" />
 
-          <p className="constitutionalHeroLead">
-            3Bigha Business Operating System (3BOS) connects marketplace
-            discovery, requirements, vendors, local geography, business
-            workspace and intelligent assistance in one unified platform.
-          </p>
+            <div className="heroCapability heroCapabilityProperty">
+              <span>⌂</span>
+              Property
+            </div>
 
-          <p className="constitutionalHeroPromise">
-            You tell us what you need in ordinary language. 3Bigha quietly
-            prepares the right path, information and business actions in the
-            background.
-          </p>
+            <div className="heroCapability heroCapabilityMaterials">
+              <span>▦</span>
+              Materials
+            </div>
 
-          <a className="heroManageBusiness" href="/dashboard">
-            Manage My Business →
-          </a>
+            <div className="heroCapability heroCapabilityServices">
+              <span>⚒</span>
+              Services
+            </div>
+
+            <div className="heroCapability heroCapabilityRentals">
+              <span>▣</span>
+              Rentals
+            </div>
+
+            <div className="heroCapability heroCapabilityEquipment">
+              <span>◈</span>
+              Equipment
+            </div>
+
+            <div className="heroCapability heroCapabilityMore">
+              <span>⊙</span>
+              More
+            </div>
+
+            <div className="heroPlatformGlow" />
+
+            <div className="heroPlatform">
+              <div className="heroPlatformTop">
+                <div className="heroBrandMark">
+                  <span className="heroBrandSymbol">3</span>
+                  <div>
+                    <strong>3Bigha</strong>
+                    <small>Business Operating System</small>
+                  </div>
+                </div>
+              </div>
+
+              <div className="heroPlatformRing heroPlatformRingOne" />
+              <div className="heroPlatformRing heroPlatformRingTwo" />
+              <div className="heroPlatformRing heroPlatformRingThree" />
+            </div>
+          </div>
         </div>
 
         <div className="searchCard">
@@ -128,7 +184,11 @@ export default function ConstitutionalHero({
           <div className="searchActions">
             <button
               type="button"
-              className={activeTab === "search" ? "primaryAction" : "secondaryAction"}
+              className={
+                activeTab === "search"
+                  ? "primaryAction"
+                  : "secondaryAction"
+              }
               onClick={onRunSearch}
             >
               🔍 Search Marketplace
@@ -136,7 +196,11 @@ export default function ConstitutionalHero({
 
             <button
               type="button"
-              className={activeTab === "post" ? "primaryAction" : "secondaryAction"}
+              className={
+                activeTab === "post"
+                  ? "primaryAction"
+                  : "secondaryAction"
+              }
               onClick={onSubmitRequirement}
             >
               ⚡ Submit Requirement
@@ -156,7 +220,9 @@ export default function ConstitutionalHero({
         onClick={onToggleSahajNeeds}
         aria-expanded={sahajNeedsExpanded}
       >
-        {sahajNeedsExpanded ? "Show fewer options" : "More ways to use 3Bigha"}
+        {sahajNeedsExpanded
+          ? "Show fewer options"
+          : "More ways to use 3Bigha"}
       </button>
     </section>
   );

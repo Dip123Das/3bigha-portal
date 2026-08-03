@@ -1237,3 +1237,782 @@
   }
 }
 
+
+/* =========================================================
+   HVR-1B — REFERENCE-ALIGNED CONSTITUTIONAL HERO
+   Actual visual transformation of the homepage hero.
+   ========================================================= */
+
+.homePage .constitutionalHero {
+  padding:
+    clamp(18px, 2vw, 30px)
+    var(--home-inline)
+    clamp(24px, 3vw, 42px);
+  background: transparent;
+  border-bottom: 0;
+}
+
+.homePage .constitutionalHero .heroGrid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.62fr)
+    minmax(400px, 0.98fr);
+  gap: 0;
+  width: 100%;
+  max-width: 1680px;
+  min-height: 590px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid rgba(80, 96, 190, 0.12);
+  border-radius: 30px;
+  background:
+    radial-gradient(
+      circle at 40% 22%,
+      rgba(255, 255, 255, 0.96),
+      transparent 27%
+    ),
+    radial-gradient(
+      circle at 57% 55%,
+      rgba(109, 94, 241, 0.12),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #edf3ff 0%,
+      #f4efff 48%,
+      #ffffff 76%
+    );
+  box-shadow:
+    0 28px 80px rgba(50, 63, 141, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.homePage .heroExperience {
+  position: relative;
+  display: grid;
+  grid-template-columns:
+    minmax(340px, 0.9fr)
+    minmax(360px, 1.1fr);
+  align-items: stretch;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.homePage .heroExperience::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 67% 35%,
+      rgba(255, 255, 255, 0.92),
+      transparent 20%
+    ),
+    linear-gradient(
+      115deg,
+      rgba(255, 255, 255, 0.48),
+      transparent 60%
+    );
+}
+
+.homePage .heroCopy {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding:
+    clamp(42px, 4vw, 72px)
+    clamp(24px, 3vw, 54px);
+}
+
+.homePage .heroCopy .miniBadge {
+  width: max-content;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #18275b;
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 850;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.homePage .heroCopy h1 {
+  max-width: 620px;
+  margin: 24px 0 0;
+  color: #111d43;
+  font-size: clamp(50px, 4.75vw, 79px);
+  line-height: 0.98;
+  letter-spacing: -0.066em;
+  font-weight: 900;
+}
+
+.homePage .heroCopy h1 span {
+  background:
+    linear-gradient(
+      100deg,
+      #3157dc 0%,
+      #6f43e9 86%
+    );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.homePage .heroCopy .constitutionalHeroLead {
+  max-width: 610px;
+  margin: 22px 0 0;
+  color: #475372;
+  font-size: clamp(15px, 1.2vw, 18px);
+  line-height: 1.68;
+  font-weight: 560;
+}
+
+.homePage .heroCopy .constitutionalHeroPromise {
+  max-width: 610px;
+  margin: 13px 0 0;
+  color: #273453;
+  font-size: 13px;
+  line-height: 1.58;
+  font-weight: 730;
+}
+
+.homePage .heroManageBusiness {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: max-content;
+  min-height: 48px;
+  margin-top: 26px;
+  padding: 0 20px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 13px;
+  background:
+    linear-gradient(135deg, #111a43, #17255e);
+  color: #ffffff;
+  box-shadow: 0 14px 32px rgba(18, 31, 78, 0.22);
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.homePage .heroManageBusiness:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 38px rgba(18, 31, 78, 0.28);
+}
+
+.homePage .heroVisualStage {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  min-height: 590px;
+  overflow: hidden;
+}
+
+.homePage .heroVisualStage::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 12%;
+  width: 360px;
+  height: 430px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(255, 255, 255, 0.98) 0%,
+      rgba(150, 165, 255, 0.25) 43%,
+      transparent 72%
+    );
+  filter: blur(3px);
+}
+
+.homePage .heroVisualStage::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 74px;
+  width: 440px;
+  height: 120px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(82, 77, 225, 0.38),
+      transparent 68%
+    );
+  filter: blur(15px);
+}
+
+.homePage .heroSkyline {
+  position: absolute;
+  right: 0;
+  bottom: 94px;
+  left: 0;
+  opacity: 0.48;
+  background-repeat: repeat-x;
+}
+
+.homePage .heroSkylineBack {
+  height: 250px;
+  background-image:
+    linear-gradient(
+      to top,
+      rgba(105, 123, 210, 0.18),
+      transparent 72%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(105, 123, 210, 0.22) 0 27px,
+      transparent 27px 42px,
+      rgba(120, 105, 220, 0.18) 42px 65px,
+      transparent 65px 82px
+    );
+  clip-path:
+    polygon(
+      0 100%,
+      0 58%,
+      7% 58%,
+      7% 28%,
+      13% 28%,
+      13% 48%,
+      20% 48%,
+      20% 17%,
+      27% 17%,
+      27% 64%,
+      34% 64%,
+      34% 34%,
+      43% 34%,
+      43% 4%,
+      52% 4%,
+      52% 42%,
+      61% 42%,
+      61% 19%,
+      69% 19%,
+      69% 58%,
+      77% 58%,
+      77% 30%,
+      85% 30%,
+      85% 49%,
+      92% 49%,
+      92% 22%,
+      100% 22%,
+      100% 100%
+    );
+}
+
+.homePage .heroSkylineFront {
+  height: 190px;
+  opacity: 0.36;
+  background:
+    linear-gradient(
+      to top,
+      rgba(91, 104, 206, 0.25),
+      transparent
+    );
+  clip-path:
+    polygon(
+      0 100%,
+      0 64%,
+      11% 64%,
+      11% 27%,
+      20% 27%,
+      20% 52%,
+      31% 52%,
+      31% 16%,
+      44% 16%,
+      44% 70%,
+      56% 70%,
+      56% 37%,
+      67% 37%,
+      67% 9%,
+      78% 9%,
+      78% 58%,
+      89% 58%,
+      89% 31%,
+      100% 31%,
+      100% 100%
+    );
+}
+
+.homePage .heroPlatform {
+  position: absolute;
+  left: 50%;
+  bottom: 70px;
+  z-index: 5;
+  width: 310px;
+  height: 270px;
+  transform: translateX(-50%);
+}
+
+.homePage .heroPlatformGlow {
+  position: absolute;
+  left: 50%;
+  bottom: 118px;
+  z-index: 2;
+  width: 205px;
+  height: 310px;
+  transform: translateX(-50%);
+  border: 2px solid rgba(148, 162, 255, 0.2);
+  border-radius: 54% 54% 38% 38%;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.82),
+      rgba(123, 137, 235, 0.12)
+    );
+  box-shadow:
+    inset 0 0 34px rgba(255, 255, 255, 0.88),
+    0 0 56px rgba(99, 105, 234, 0.24);
+  backdrop-filter: blur(9px);
+}
+
+.homePage .heroPlatformTop {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 200px;
+  height: 195px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(114, 124, 225, 0.28);
+  border-radius: 48% 48% 35% 35%;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.94),
+      rgba(237, 240, 255, 0.76)
+    );
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 22px 54px rgba(65, 72, 190, 0.2);
+  backdrop-filter: blur(16px);
+}
+
+.homePage .heroBrandMark {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.homePage .heroBrandSymbol {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, #ff802f, #ec216f 55%, #7048e8);
+  color: #ffffff;
+  box-shadow: 0 12px 26px rgba(208, 53, 124, 0.24);
+  font-size: 28px;
+  font-weight: 950;
+}
+
+.homePage .heroBrandMark strong {
+  display: block;
+  color: #da1f68;
+  font-size: 23px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.homePage .heroBrandMark small {
+  display: block;
+  margin-top: 6px;
+  color: #5d6582;
+  font-size: 8px;
+  line-height: 1.2;
+  font-weight: 750;
+}
+
+.homePage .heroPlatformRing {
+  position: absolute;
+  left: 50%;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.homePage .heroPlatformRingOne {
+  bottom: 32px;
+  width: 300px;
+  height: 82px;
+  border: 2px solid rgba(61, 78, 218, 0.42);
+  background:
+    linear-gradient(
+      180deg,
+      #a7b2ff,
+      #4b56d9 52%,
+      #2534b3
+    );
+  box-shadow:
+    0 18px 25px rgba(48, 55, 158, 0.25),
+    inset 0 8px 15px rgba(255, 255, 255, 0.42);
+}
+
+.homePage .heroPlatformRingTwo {
+  bottom: 52px;
+  width: 248px;
+  height: 69px;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  background:
+    linear-gradient(
+      180deg,
+      #d9ddff,
+      #6873e3 60%,
+      #3e49ca
+    );
+}
+
+.homePage .heroPlatformRingThree {
+  bottom: 73px;
+  width: 202px;
+  height: 57px;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #aab4ff 55%,
+      #6973df
+    );
+}
+
+.homePage .heroCapability {
+  position: absolute;
+  z-index: 8;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(92, 103, 205, 0.13);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.91);
+  color: #26345f;
+  box-shadow:
+    0 13px 30px rgba(49, 59, 137, 0.12),
+    inset 0 1px 0 #ffffff;
+  backdrop-filter: blur(14px);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.homePage .heroCapability span {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 8px;
+  background: #eef0ff;
+  color: #574bd8;
+  font-size: 13px;
+}
+
+.homePage .heroCapabilityProperty {
+  top: 118px;
+  left: 14%;
+}
+
+.homePage .heroCapabilityMaterials {
+  top: 144px;
+  right: 8%;
+}
+
+.homePage .heroCapabilityServices {
+  top: 215px;
+  left: 3%;
+}
+
+.homePage .heroCapabilityRentals {
+  top: 328px;
+  left: 8%;
+}
+
+.homePage .heroCapabilityEquipment {
+  top: 264px;
+  right: 2%;
+}
+
+.homePage .heroCapabilityMore {
+  top: 365px;
+  right: 7%;
+}
+
+.homePage .constitutionalHero .searchCard {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  margin: 24px 24px 24px 0;
+  padding: clamp(24px, 2.4vw, 38px);
+  border: 1px solid rgba(68, 82, 170, 0.13);
+  border-radius: 23px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.97),
+      rgba(250, 250, 255, 0.94)
+    );
+  box-shadow:
+    0 24px 64px rgba(45, 55, 127, 0.12),
+    inset 0 1px 0 #ffffff;
+}
+
+.homePage .searchCardIdentity {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.homePage .searchCardIdentity span {
+  color: #121d42;
+  font-size: 18px;
+  font-weight: 850;
+  letter-spacing: -0.025em;
+}
+
+.homePage .searchCardIdentity small {
+  color: #74809c;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.homePage .constitutionalHero .searchTabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 0 0 21px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(69, 84, 177, 0.12);
+  border-radius: 13px;
+  background: #ffffff;
+}
+
+.homePage .constitutionalHero .searchTabs button {
+  min-height: 45px;
+  border-radius: 0;
+}
+
+.homePage .constitutionalHero .searchTabs button.active {
+  background:
+    linear-gradient(
+      180deg,
+      #f2f5ff,
+      #eaf0ff
+    );
+  color: #3155d6;
+  box-shadow: inset 0 2px 0 #4b6bef;
+}
+
+.homePage .heroInputLabel {
+  display: block;
+  margin-bottom: 9px;
+  color: #263354;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.homePage .constitutionalHero .searchCard textarea {
+  min-height: 156px;
+  padding: 16px;
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #fbfcff
+    );
+  font-size: 14px;
+  line-height: 1.62;
+}
+
+.homePage .constitutionalHero .typeChips {
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.homePage .constitutionalHero .typeChips button {
+  min-height: 34px;
+  padding: 0 11px;
+  border-color: rgba(65, 80, 164, 0.12);
+  box-shadow: 0 5px 14px rgba(49, 59, 132, 0.04);
+  font-size: 11px;
+}
+
+.homePage .constitutionalHero .searchActions {
+  grid-template-columns: 1fr;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.homePage .constitutionalHero .searchActions button {
+  min-height: 47px;
+  border-radius: 11px;
+  font-size: 13px;
+}
+
+.homePage .constitutionalHero .primaryAction {
+  background:
+    linear-gradient(
+      100deg,
+      #3159e2,
+      #7246ef
+    );
+}
+
+.homePage .heroAssistanceNote {
+  margin: 12px 0 0;
+  color: #7a859d;
+  font-size: 9px;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+@media (max-width: 1320px) {
+  .homePage .constitutionalHero .heroGrid {
+    grid-template-columns:
+      minmax(0, 1.45fr)
+      minmax(380px, 0.95fr);
+  }
+
+  .homePage .heroExperience {
+    grid-template-columns:
+      minmax(330px, 0.92fr)
+      minmax(320px, 1.08fr);
+  }
+
+  .homePage .heroVisualStage {
+    transform: scale(0.92);
+    transform-origin: center;
+  }
+}
+
+@media (max-width: 1080px) {
+  .homePage .constitutionalHero .heroGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .homePage .constitutionalHero .searchCard {
+    margin: 0 24px 24px;
+  }
+
+  .homePage .heroExperience {
+    min-height: 560px;
+  }
+}
+
+@media (max-width: 768px) {
+  .homePage .constitutionalHero {
+    padding-top: 12px;
+  }
+
+  .homePage .constitutionalHero .heroGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    border-radius: 22px;
+  }
+
+  .homePage .heroExperience {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .homePage .heroCopy {
+    padding: 32px 22px 18px;
+  }
+
+  .homePage .heroCopy h1 {
+    font-size: clamp(43px, 13vw, 58px);
+  }
+
+  .homePage .heroCopy .constitutionalHeroLead {
+    font-size: 15px;
+  }
+
+  .homePage .heroVisualStage {
+    min-height: 390px;
+    transform: scale(0.88);
+    transform-origin: center top;
+    margin-bottom: -42px;
+  }
+
+  .homePage .heroCapabilityServices,
+  .homePage .heroCapabilityEquipment {
+    display: none;
+  }
+
+  .homePage .constitutionalHero .searchCard {
+    margin: 14px;
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+  .homePage .searchCardIdentity {
+    align-items: flex-start;
+  }
+
+  .homePage .searchCardIdentity span {
+    font-size: 17px;
+  }
+
+  .homePage .constitutionalHero .searchCard textarea {
+    min-height: 132px;
+  }
+}
+
+@media (max-width: 480px) {
+  .homePage .heroVisualStage {
+    min-height: 335px;
+    transform: scale(0.75);
+    transform-origin: center top;
+    width: 133%;
+    margin-right: -16.5%;
+    margin-left: -16.5%;
+    margin-bottom: -74px;
+  }
+
+  .homePage .heroCopy {
+    padding: 28px 18px 16px;
+  }
+
+  .homePage .heroCopy h1 {
+    font-size: 42px;
+  }
+
+  .homePage .heroManageBusiness {
+    width: 100%;
+  }
+
+  .homePage .searchCardIdentity {
+    display: grid;
+    gap: 5px;
+  }
+
+  .homePage .constitutionalHero .typeChips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
