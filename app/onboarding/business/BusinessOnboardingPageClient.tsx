@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
-import { validateGstin } from "@/lib/vendor-verification/gstin";
 import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
 import { addressEngineToBusinessPayload, legacyBusinessToAddressEngine } from "@/lib/geography/addressAdapters";
 import AIWritingImprovement from "../../../components/onboarding/AIWritingImprovement";
@@ -593,6 +592,7 @@ function computeCompletion(bp: Partial<BusinessProfile>) {
   );
   const isPureBlogOnly = hasBlog && !hasNonBlogBusiness;
 
+
   const natureOk = nature.length > 0;
   const businessNameOk = !!(bp.business_name && bp.business_name.trim());
   const authorNameOk = !!(bp.author_display_name && bp.author_display_name.trim());
@@ -895,9 +895,9 @@ export default function BusinessOnboardingPageClient() {
   const isPureBlogOnly =
     hasBlog && !hasNonBlogBusiness;
 
-  const gstinFormatCheck = validateGstin(String(bp.gstin || ""));
 
-  async function fetchCompleteness(uid: string) {
+
+async function fetchCompleteness(uid: string) {
     setVcLoading(true);
     const { data, error } = await supabase
       .from("v_vendor_profile_completeness")
@@ -3011,102 +3011,67 @@ export default function BusinessOnboardingPageClient() {
           </div>
         </section>
 
-        <section id="sec-identity" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
-          <h3 style={{ marginTop: 0 }}>Legal & Verification Details</h3>
-          <p style={{ marginTop: -4, color: "#64748b", fontSize: 13 }}>
-            Add the official name and registration details that support the Business Identity selected above.
+        <section
+          id="sec-identity"
+          style={{
+            padding: 18,
+            border: "1px solid #bfdbfe",
+            borderRadius: 18,
+            background: "#f8fbff",
+            scrollMarginTop: 190,
+          }}
+        >
+          <div
+            style={{
+              color: "#1d4ed8",
+              fontWeight: 900,
+              fontSize: 12,
+              letterSpacing: ".06em",
+              textTransform: "uppercase",
+            }}
+          >
+            Your identity and business proof
+          </div>
+
+          <h3
+            style={{
+              margin: "7px 0 5px",
+              fontSize: 22,
+            }}
+          >
+            Confirm your business identity
+          </h3>
+
+          <p
+            style={{
+              margin: "0 0 16px",
+              color: "#475569",
+              lineHeight: 1.65,
+            }}
+          >
+            Enter your business name once. Legal registration numbers,
+            certificates and verification are managed in the Business Proof
+            section below.
           </p>
 
-          <div style={{ display: "grid", gap: 10 }}>
-            <Field label="Business Name (or use Author Display Name if only blog)" required missing={missingBusinessOrAuthor}>
-              <input
-                value={bp.business_name ?? ""}
-                onChange={(e) => setField("business_name", e.target.value)}
-                style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-              />
-            </Field>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <Field
-                label="GSTIN"
-                required
-                missing={missingBusinessProof}
-                hint="Provide GSTIN or Trade License No"
-              >
-                <input
-                  value={bp.gstin ?? ""}
-                  onChange={(e) => setField("gstin", e.target.value.toUpperCase())}
-                  maxLength={15}
-                  placeholder="15-character GSTIN"
-                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-                />
-                {bp.gstin ? (
-                  <div
-                    style={{
-                      padding: "0 10px 10px",
-                      fontSize: 12,
-                      color: gstinFormatCheck.valid ? "#047857" : "#b91c1c",
-                      fontWeight: 800,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {gstinFormatCheck.valid ? (
-                      <>✅ GSTIN format valid: {gstinFormatCheck.normalized}</>
-                    ) : (
-                      <>
-                        ⚠️ {gstinFormatCheck.errors.slice(0, 2).join(" ")}
-                      </>
-                    )}
-                  </div>
-                ) : null}
-              </Field>
-              <Field label="PAN (optional)">
-                <input
-                  value={bp.pan ?? ""}
-                  onChange={(e) => setField("pan", e.target.value)}
-                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-                />
-              </Field>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <Field
-                label="Trade License No"
-                required
-                missing={missingBusinessProof}
-                hint="For business operators, provide GSTIN or Trade License No"
-              >
-                <input
-                  value={bp.trade_license_no ?? ""}
-                  onChange={(e) => setField("trade_license_no", e.target.value)}
-                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-                />
-              </Field>
-              <Field label="UDYAM No (optional)">
-                <input
-                  value={bp.udyam_no ?? ""}
-                  onChange={(e) => setField("udyam_no", e.target.value)}
-                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-                />
-              </Field>
-            </div>
-
-            <div
+          <Field
+            label="Business Name (or use Author Display Name if only blog)"
+            required
+            missing={missingBusinessOrAuthor}
+          >
+            <input
+              value={bp.business_name ?? ""}
+              onChange={(event) =>
+                setField("business_name", event.target.value)
+              }
               style={{
+                width: "100%",
                 padding: 10,
-                borderRadius: 8,
-                background: "#eff6ff",
-                border: "1px solid #bfdbfe",
-                color: "#1d4ed8",
-                fontSize: 13,
+                border: "none",
+                outline: "none",
               }}
-            >
-              For all business activities on 3bigha, at least one proof is required:
-              <b> GSTIN or Trade License No</b>.
-              Pure blog-only profiles may complete without business proof.
-            </div>
-
-          </div>
+            />
+          </Field>
         </section>
 
         <BusinessVerificationPanel
