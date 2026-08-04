@@ -512,6 +512,34 @@ const BUSINESS_IDENTITY_GROUPS: BusinessIdentityGroup[] = [
   },
 ];
 
+const BUSINESS_SECTOR_CARDS = [
+  { key: "construction_infrastructure", title: "Construction & Infrastructure", description: "Building, contracting, fabrication and infrastructure delivery.", symbol: "🏗️" },
+  { key: "trading_distribution", title: "Trading & Distribution", description: "Manufacturing, supply, wholesale, retail and distribution.", symbol: "📦" },
+  { key: "professional_services", title: "Professional Services", description: "Architecture, engineering, valuation, legal and advisory work.", symbol: "🧭" },
+  { key: "equipment_logistics", title: "Equipment & Logistics", description: "Equipment, transport, fleets, rentals and storage.", symbol: "🚚" },
+  { key: "property", title: "Property", description: "Ownership, development, brokerage and property consultancy.", symbol: "🏠" },
+  { key: "finance", title: "Finance", description: "Banking, lending, insurance and financial guidance.", symbol: "₹" },
+  { key: "manufacturing_industry", title: "Manufacturing & Industry", description: "Factories, workshops, processing and industrial enterprises.", symbol: "🏭" },
+  { key: "agriculture", title: "Agriculture", description: "Farming, nursery, agricultural supply, storage and processing.", symbol: "🌾" },
+  { key: "utilities", title: "Utilities", description: "Water, electricity, solar and telecom services.", symbol: "⚡" },
+  { key: "media_digital", title: "Media & Digital", description: "Writing, publishing, digital agencies and software.", symbol: "💻" },
+  { key: "others", title: "Others", description: "Institutions, cooperatives, startups and other organisations.", symbol: "🧩" },
+] as const;
+
+const BUSINESS_GROUP_BY_SECTOR = new Map([
+  ["construction_infrastructure", "Construction & Infrastructure"],
+  ["trading_distribution", "Trading & Distribution"],
+  ["professional_services", "Professional Services"],
+  ["equipment_logistics", "Equipment & Logistics"],
+  ["property", "Property"],
+  ["finance", "Finance"],
+  ["manufacturing_industry", "Manufacturing & Industry"],
+  ["agriculture", "Agriculture"],
+  ["utilities", "Utilities"],
+  ["media_digital", "Media & Digital"],
+  ["others", "Others"],
+]);
+
 const INDIVIDUAL_IDENTITY_OPTIONS = [
   { key: "buyer", label: "Buyer" },
   { key: "vendor_hub", label: "Vendor Hub" },
@@ -806,6 +834,7 @@ export default function BusinessOnboardingPageClient() {
     business_identities: [],
     individual_identities: [],
   });
+  const [selectedBusinessSectors, setSelectedBusinessSectors] = useState<string[]>([]);
   const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
 
   const [geoDistricts, setGeoDistricts] = useState<GeoOption[]>([]);
@@ -1132,6 +1161,36 @@ export default function BusinessOnboardingPageClient() {
       window.clearTimeout(loadingSafetyTimer);
     };
   }, [supabase, returnTo, roleFromQuery]);
+
+  function toggleBusinessSector(key: string) {
+    setSelectedBusinessSectors((current) =>
+      current.includes(key)
+        ? current.filter((sector) => sector !== key)
+        : [...current, key]
+    );
+  }
+
+  function identitiesForSector(sectorKey: string) {
+    const groupTitle = BUSINESS_GROUP_BY_SECTOR.get(sectorKey);
+    return BUSINESS_IDENTITY_GROUPS.find(
+      (group) => group.title === groupTitle
+    )?.options || [];
+  }
+
+  function businessIdentityLabel(key: string) {
+    return (
+      BUSINESS_IDENTITY_GROUPS.flatMap((group) => group.options)
+        .find((option) => option.key === key)?.label || key
+    );
+  }
+
+  function individualIdentityLabel(key: string) {
+    return (
+      INDIVIDUAL_IDENTITY_OPTIONS.find(
+        (option) => option.key === key
+      )?.label || key
+    );
+  }
 
   function toggleBusinessIdentity(key: string) {
     setBp((current) => {
@@ -2646,105 +2705,225 @@ export default function BusinessOnboardingPageClient() {
           <section
             id="sec-nature"
             style={{
-              padding: 18,
+              padding: 20,
               border: missingNature ? "2px solid crimson" : "1px solid #cbd5e1",
-              borderRadius: 16,
+              borderRadius: 18,
               background: "#ffffff",
               scrollMarginTop: 190,
             }}
           >
             <div style={{ color: "#1d4ed8", fontWeight: 900, fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase" }}>
-              Unified business identity
+              Human-first business identity
             </div>
-            <h3 style={{ margin: "6px 0 4px", fontSize: 22 }}>Business Identity</h3>
-            <p style={{ margin: "0 0 18px", color: "#475569", lineHeight: 1.55 }}>
-              First choose the legal constitution of your organisation, then select what the organisation does, and finally select the individual professional identities that apply to you.
+            <h3 style={{ margin: "6px 0 4px", fontSize: 24 }}>
+              Tell us about your business
+            </h3>
+            <p style={{ margin: "0 0 20px", color: "#475569", lineHeight: 1.6, maxWidth: 820 }}>
+              Complete one clear step at a time. Your existing marketplace, RFQ and workspace access will be derived automatically from the choices you make here.
             </p>
 
-            <div style={{ display: "grid", gap: 18 }}>
+            <div style={{ display: "grid", gap: 22 }}>
               <div>
-                <h4 style={{ margin: "0 0 5px", fontSize: 16 }}>1. Legal Constitution</h4>
-                <p style={{ margin: "0 0 10px", color: "#64748b", fontSize: 13 }}>
-                  How is your business legally constituted? Select one.
+                <h4 style={{ margin: "0 0 5px", fontSize: 18 }}>1. Legal Constitution</h4>
+                <p style={{ margin: "0 0 12px", color: "#64748b", fontSize: 14 }}>
+                  How is your organisation legally constituted? Select one.
                 </p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 8 }}>
-                  {LEGAL_CONSTITUTION_OPTIONS.map((option) => (
-                    <label
-                      key={option.key}
-                      style={{
-                        display: "flex",
-                        gap: 8,
-                        alignItems: "center",
-                        padding: 10,
-                        border: bp.business_type === option.key ? "2px solid #2563eb" : "1px solid #dbe3ee",
-                        borderRadius: 10,
-                        background: bp.business_type === option.key ? "#eff6ff" : "#ffffff",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        name="business-constitution"
-                        checked={bp.business_type === option.key}
-                        onChange={() => setField("business_type", option.key)}
-                      />
-                      <span style={{ fontWeight: 700 }}>{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 style={{ margin: "0 0 5px", fontSize: 16 }}>2. Nature and Identity of Business</h4>
-                <p style={{ margin: "0 0 10px", color: "#64748b", fontSize: 13 }}>
-                  What does your organisation actually do? Select every identity that applies. 3Bigha will derive the correct Property, Materials, Services, Rentals and Blog workspaces automatically.
-                </p>
-                {missingNature ? (
-                  <div style={{ color: "crimson", fontWeight: 800, marginBottom: 10 }}>
-                    Required: select at least one business identity.
-                  </div>
-                ) : null}
-
-                <div style={{ display: "grid", gap: 12 }}>
-                  {BUSINESS_IDENTITY_GROUPS.map((group) => (
-                    <div key={group.title} style={{ padding: 12, border: "1px solid #e2e8f0", borderRadius: 12, background: "#f8fafc" }}>
-                      <h5 style={{ margin: "0 0 9px", fontSize: 14 }}>{group.title}</h5>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(205px, 1fr))", gap: 7 }}>
-                        {group.options.map((option) => {
-                          const checked = safeArr(bp.business_identities).includes(option.key);
-                          return (
-                            <label key={`${group.title}-${option.key}`} style={{ display: "flex", gap: 8, alignItems: "center", padding: "7px 8px", borderRadius: 8, background: checked ? "#dbeafe" : "#ffffff", border: checked ? "1px solid #60a5fa" : "1px solid #e2e8f0", cursor: "pointer" }}>
-                              <input type="checkbox" checked={checked} onChange={() => toggleBusinessIdentity(option.key)} />
-                              <span style={{ fontWeight: 650 }}>{option.label}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h4 style={{ margin: "0 0 5px", fontSize: 16 }}>3. Individual Professional Identity</h4>
-                <p style={{ margin: "0 0 10px", color: "#64748b", fontSize: 13 }}>
-                  Keep the dignified personal identities already used across 3Bigha. Select every role that you personally perform.
-                </p>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(205px, 1fr))", gap: 7 }}>
-                  {INDIVIDUAL_IDENTITY_OPTIONS.map((option) => {
-                    const checked = safeArr(bp.individual_identities).includes(option.key);
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 9 }}>
+                  {LEGAL_CONSTITUTION_OPTIONS.map((option) => {
+                    const selected = bp.business_type === option.key;
                     return (
-                      <label key={option.key} style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 9px", borderRadius: 8, background: checked ? "#ecfdf5" : "#ffffff", border: checked ? "1px solid #34d399" : "1px solid #e2e8f0", cursor: "pointer" }}>
-                        <input type="checkbox" checked={checked} onChange={() => toggleIndividualIdentity(option.key)} />
-                        <span style={{ fontWeight: 650 }}>{option.label}</span>
+                      <label key={option.key} style={{
+                        display: "flex",
+                        gap: 9,
+                        alignItems: "center",
+                        minHeight: 48,
+                        padding: "10px 12px",
+                        border: selected ? "2px solid #2563eb" : "1px solid #dbe3ee",
+                        borderRadius: 12,
+                        background: selected ? "#eff6ff" : "#ffffff",
+                        cursor: "pointer",
+                      }}>
+                        <input
+                          type="radio"
+                          name="business-constitution"
+                          checked={selected}
+                          onChange={() => setField("business_type", option.key)}
+                        />
+                        <span style={{ fontWeight: 750 }}>{option.label}</span>
                       </label>
                     );
                   })}
                 </div>
               </div>
 
-              <div style={{ padding: 11, borderRadius: 10, background: "#eff6ff", border: "1px solid #bfdbfe", color: "#1e40af", fontSize: 13, lineHeight: 1.5 }}>
-                Your marketplace access is derived automatically from the identities selected above. You will not be asked to choose the same Property, Materials, Services, Rentals or Blog meaning again.
+              <div>
+                <h4 style={{ margin: "0 0 5px", fontSize: 18 }}>2. Business Sectors</h4>
+                <p style={{ margin: "0 0 12px", color: "#64748b", fontSize: 14 }}>
+                  Choose only the sectors in which your organisation actually works. You may select more than one.
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(225px, 1fr))", gap: 10 }}>
+                  {BUSINESS_SECTOR_CARDS.map((sector) => {
+                    const selected = selectedBusinessSectors.includes(sector.key);
+                    return (
+                      <button
+                        key={sector.key}
+                        type="button"
+                        onClick={() => toggleBusinessSector(sector.key)}
+                        aria-pressed={selected}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "38px 1fr auto",
+                          gap: 10,
+                          alignItems: "center",
+                          minHeight: 76,
+                          padding: 12,
+                          textAlign: "left",
+                          border: selected ? "2px solid #16a34a" : "1px solid #dbe3ee",
+                          borderRadius: 14,
+                          background: selected ? "#f0fdf4" : "#ffffff",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <span style={{ fontSize: 24 }}>{sector.symbol}</span>
+                        <span>
+                          <strong style={{ display: "block", color: "#0f172a", marginBottom: 3 }}>{sector.title}</strong>
+                          <span style={{ display: "block", color: "#64748b", fontSize: 12, lineHeight: 1.35 }}>
+                            {sector.description}
+                          </span>
+                        </span>
+                        <span aria-hidden="true" style={{
+                          display: "grid",
+                          placeItems: "center",
+                          width: 22,
+                          height: 22,
+                          borderRadius: 999,
+                          background: selected ? "#16a34a" : "#f1f5f9",
+                          color: selected ? "#ffffff" : "#64748b",
+                          fontWeight: 900,
+                        }}>
+                          {selected ? "✓" : "+"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <h4 style={{ margin: "0 0 5px", fontSize: 18 }}>3. What does your organisation do?</h4>
+                {selectedBusinessSectors.length === 0 ? (
+                  <div style={{
+                    padding: 16,
+                    borderRadius: 12,
+                    border: "1px dashed #94a3b8",
+                    background: "#f8fafc",
+                    color: "#475569",
+                  }}>
+                    Select one or more business sectors above. Only the relevant business identities will then appear here.
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gap: 12, marginTop: 10 }}>
+                    {selectedBusinessSectors.map((sectorKey) => {
+                      const sector = BUSINESS_SECTOR_CARDS.find((item) => item.key === sectorKey);
+                      const options = identitiesForSector(sectorKey);
+                      return (
+                        <div key={sectorKey} style={{ padding: 14, border: "1px solid #e2e8f0", borderRadius: 14, background: "#f8fafc" }}>
+                          <h5 style={{ margin: "0 0 10px", fontSize: 15 }}>
+                            {sector?.symbol} {sector?.title}
+                          </h5>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(205px, 1fr))", gap: 8 }}>
+                            {options.map((option) => {
+                              const checked = safeArr(bp.business_identities).includes(option.key);
+                              return (
+                                <label key={`${sectorKey}-${option.key}`} style={{
+                                  display: "flex",
+                                  gap: 8,
+                                  alignItems: "center",
+                                  minHeight: 42,
+                                  padding: "8px 10px",
+                                  borderRadius: 10,
+                                  background: checked ? "#ede9fe" : "#ffffff",
+                                  border: checked ? "1px solid #8b5cf6" : "1px solid #e2e8f0",
+                                  cursor: "pointer",
+                                }}>
+                                  <input type="checkbox" checked={checked} onChange={() => toggleBusinessIdentity(option.key)} />
+                                  <span style={{ fontWeight: 700 }}>{option.label}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {missingNature ? (
+                  <div style={{ color: "crimson", fontWeight: 800, marginTop: 10 }}>
+                    Required: select at least one business identity.
+                  </div>
+                ) : null}
+              </div>
+
+              <div>
+                <h4 style={{ margin: "0 0 5px", fontSize: 18 }}>4. Your Individual Identity</h4>
+                <p style={{ margin: "0 0 12px", color: "#64748b", fontSize: 14 }}>
+                  What role do you personally perform? Select only the identities that describe you.
+                </p>
+                <details open={bp.business_type === "individual_professional" || safeArr(bp.individual_identities).length > 0}
+                  style={{ border: "1px solid #fed7aa", borderRadius: 14, background: "#fffaf5", overflow: "hidden" }}>
+                  <summary style={{ cursor: "pointer", padding: 14, fontWeight: 800, color: "#9a3412" }}>
+                    Choose your personal role
+                    {safeArr(bp.individual_identities).length ? ` · ${safeArr(bp.individual_identities).length} selected` : ""}
+                  </summary>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(205px, 1fr))", gap: 8, padding: "0 14px 14px" }}>
+                    {INDIVIDUAL_IDENTITY_OPTIONS.map((option) => {
+                      const checked = safeArr(bp.individual_identities).includes(option.key);
+                      return (
+                        <label key={option.key} style={{
+                          display: "flex",
+                          gap: 8,
+                          alignItems: "center",
+                          minHeight: 42,
+                          padding: "8px 10px",
+                          borderRadius: 10,
+                          background: checked ? "#ecfdf5" : "#ffffff",
+                          border: checked ? "1px solid #34d399" : "1px solid #e2e8f0",
+                          cursor: "pointer",
+                        }}>
+                          <input type="checkbox" checked={checked} onChange={() => toggleIndividualIdentity(option.key)} />
+                          <span style={{ fontWeight: 700 }}>{option.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </details>
+              </div>
+
+              <div style={{ display: "grid", gap: 10, padding: 14, borderRadius: 14, background: "#eff6ff", border: "1px solid #bfdbfe" }}>
+                <strong style={{ color: "#1e3a8a" }}>Your Business Identity Summary</strong>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 8, fontSize: 13, color: "#334155" }}>
+                  <div><b>Legal constitution:</b>{" "}
+                    {LEGAL_CONSTITUTION_OPTIONS.find((option) => option.key === bp.business_type)?.label || "Not selected"}
+                  </div>
+                  <div><b>Business sectors:</b>{" "}
+                    {selectedBusinessSectors.length
+                      ? selectedBusinessSectors.map((key) => BUSINESS_SECTOR_CARDS.find((sector) => sector.key === key)?.title).filter(Boolean).join(", ")
+                      : "Not selected"}
+                  </div>
+                  <div><b>Business identities:</b>{" "}
+                    {safeArr(bp.business_identities).length
+                      ? safeArr(bp.business_identities).map(businessIdentityLabel).join(", ")
+                      : "Not selected"}
+                  </div>
+                  <div><b>Your role:</b>{" "}
+                    {safeArr(bp.individual_identities).length
+                      ? safeArr(bp.individual_identities).map(individualIdentityLabel).join(", ")
+                      : "Not selected"}
+                  </div>
+                </div>
+                <span style={{ color: "#1e40af", fontSize: 12, lineHeight: 1.5 }}>
+                  Property, Materials, Services, Rentals and Blog workspaces are derived automatically. You will not be asked to select the same meaning twice.
+                </span>
               </div>
             </div>
           </section>
