@@ -45,6 +45,7 @@ export type CanonicalIdentityProjection = {
   completionStatus: CanonicalCompletionState;
   workspaceProjection: {
     defaultPath: string;
+    unifiedPath: string;
     capabilities: VendorCapabilityKey[];
   };
   marketplaceProjection: {
@@ -118,6 +119,29 @@ function roleLabel(value: unknown) {
   if (normalized === "master admin") return "Master Administrator";
 
   return normalized.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function resolveDefaultWorkspacePath(access: AccessContext) {
+  if (access.isAdmin) return "/admin/dashboard";
+
+  if (
+    access.role === "banker" ||
+    access.role === "finance_banker"
+  ) {
+    return "/dashboard/banker";
+  }
+
+  if (access.role === "hub_vendor") return "/dashboard";
+
+  if (
+    access.role === "vendor" ||
+    access.role === "builder" ||
+    access.role === "blogger"
+  ) {
+    return "/dashboard/vendor";
+  }
+
+  return "/dashboard";
 }
 
 function buildNavigation(access: AccessContext): CanonicalNavigationItem[] {
@@ -277,9 +301,8 @@ export async function resolveCanonicalIdentity(
     ),
     completionStatus: resolveCompletion(profile, business),
     workspaceProjection: {
-      defaultPath: access.isAdmin
-        ? "/admin/dashboard"
-        : "/dashboard/workspace",
+      defaultPath: resolveDefaultWorkspacePath(access),
+      unifiedPath: "/dashboard/workspace",
       capabilities: access.vendorCapabilities,
     },
     marketplaceProjection: {
