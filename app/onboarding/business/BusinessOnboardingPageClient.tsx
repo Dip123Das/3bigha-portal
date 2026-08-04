@@ -1806,19 +1806,12 @@ async function fetchCompleteness(uid: string) {
     {
       key: "identity",
       title: "Your Identity",
-      description: "Name, role and contact",
+      description: "Identity, business proof and live verification",
       targetId: "sec-identity",
       complete: Boolean(
-        nature.length > 0 &&
-          String(bp.contact_person || "").trim() &&
-          (
-            String(bp.business_name || "").trim() ||
-            String(bp.author_display_name || "").trim()
-          ) &&
-          (
-            String(bp.phone_primary || "").trim() ||
-            String(bp.email_business || "").trim()
-          )
+        identityReady &&
+          businessProofReady &&
+          liveSelfieReady
       ),
     },
     {
@@ -1869,14 +1862,6 @@ async function fetchCompleteness(uid: string) {
       description: "Workplace and project photos",
       targetId: "sec-gallery",
       complete: practicalProofReady,
-    },
-    {
-      key: "documents",
-      title: "Business Proof",
-      description:
-        businessProofStatusLabel[businessProofStatus],
-      targetId: "sec-documents",
-      complete: businessProofReady,
     },
     {
       key: "review",
@@ -3072,9 +3057,8 @@ async function fetchCompleteness(uid: string) {
               }}
             />
           </Field>
-        </section>
 
-        <BusinessVerificationPanel
+          <BusinessVerificationPanel
           assets={mediaAssets}
           onChange={setMediaAssets}
           disabled={saving}
@@ -3116,6 +3100,8 @@ async function fetchCompleteness(uid: string) {
           setField("pan", value);
         }}
       />
+        </section>
+
 
         {!streamlinedRegistration ? <section id="sec-contact" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Contact</h3>
