@@ -236,6 +236,8 @@ type BusinessProfile = {
   business_name: string | null;
   business_type: string | null;
   nature_of_business: string[];
+  business_identities: string[] | null;
+  individual_identities: string[] | null;
   gstin: string | null;
   pan: string | null;
   trade_license_no: string | null;
@@ -363,13 +365,193 @@ type VendorCompletenessRow = {
   updated_at: string | null;
 };
 
-const NATURE_OPTIONS = [
-  { key: "property", label: "Property (Broker/Developer)" },
-  { key: "materials", label: "Materials (Seller/Supplier)" },
-  { key: "services", label: "Services (Professional/Skilled)" },
-  { key: "rentals", label: "Rentals (Equipment/Space/Vehicles)" },
-  { key: "blog", label: "Blog / Writer / Author" },
+const LEGAL_CONSTITUTION_OPTIONS = [
+  { key: "proprietorship", label: "Proprietorship" },
+  { key: "partnership", label: "Partnership" },
+  { key: "llp", label: "LLP" },
+  { key: "private_limited", label: "Private Limited" },
+  { key: "public_limited", label: "Public Limited" },
+  { key: "opc", label: "OPC" },
+  { key: "society", label: "Society" },
+  { key: "trust", label: "Trust" },
+  { key: "government", label: "Government" },
+  { key: "cooperative", label: "Cooperative" },
+  { key: "individual_professional", label: "Individual Professional" },
 ] as const;
+
+type BusinessIdentityOption = {
+  key: string;
+  label: string;
+  nature: Array<"property" | "materials" | "services" | "rentals" | "blog">;
+};
+
+type BusinessIdentityGroup = {
+  title: string;
+  options: BusinessIdentityOption[];
+};
+
+const BUSINESS_IDENTITY_GROUPS: BusinessIdentityGroup[] = [
+  {
+    title: "Construction & Infrastructure",
+    options: [
+      { key: "manufacturer", label: "Manufacturer", nature: ["materials"] },
+      { key: "builder_developer", label: "Builder / Developer", nature: ["property", "services"] },
+      { key: "civil_contractor", label: "Civil Contractor", nature: ["services"] },
+      { key: "epc_contractor", label: "EPC Contractor", nature: ["services"] },
+      { key: "interior_contractor", label: "Interior Contractor", nature: ["services"] },
+      { key: "fabricator", label: "Fabricator", nature: ["materials", "services"] },
+      { key: "infrastructure_company", label: "Infrastructure Company", nature: ["services"] },
+    ],
+  },
+  {
+    title: "Trading & Distribution",
+    options: [
+      { key: "manufacturer", label: "Manufacturer", nature: ["materials"] },
+      { key: "wholesaler", label: "Wholesaler", nature: ["materials"] },
+      { key: "distributor", label: "Distributor", nature: ["materials"] },
+      { key: "dealer", label: "Dealer", nature: ["materials"] },
+      { key: "retailer", label: "Retailer", nature: ["materials"] },
+      { key: "supplier", label: "Supplier", nature: ["materials"] },
+      { key: "importer", label: "Importer", nature: ["materials"] },
+      { key: "exporter", label: "Exporter", nature: ["materials"] },
+      { key: "stockist", label: "Stockist", nature: ["materials"] },
+    ],
+  },
+  {
+    title: "Professional Services",
+    options: [
+      { key: "architect", label: "Architect", nature: ["services"] },
+      { key: "structural_engineer", label: "Structural Engineer", nature: ["services"] },
+      { key: "civil_engineer", label: "Civil Engineer", nature: ["services"] },
+      { key: "surveyor", label: "Surveyor (Amin)", nature: ["services"] },
+      { key: "valuer", label: "Valuer", nature: ["services"] },
+      { key: "consultant", label: "Consultant", nature: ["services"] },
+      { key: "chartered_accountant", label: "Chartered Accountant", nature: ["services"] },
+      { key: "advocate", label: "Advocate", nature: ["services"] },
+      { key: "project_management_consultant", label: "Project Management Consultant", nature: ["services"] },
+    ],
+  },
+  {
+    title: "Equipment & Logistics",
+    options: [
+      { key: "equipment_owner", label: "Equipment Owner", nature: ["rentals"] },
+      { key: "equipment_rental_company", label: "Equipment Rental Company", nature: ["rentals"] },
+      { key: "transport_company", label: "Transport Company", nature: ["services", "rentals"] },
+      { key: "fleet_owner", label: "Fleet Owner", nature: ["rentals"] },
+      { key: "warehouse_operator", label: "Warehouse Operator", nature: ["services", "rentals"] },
+    ],
+  },
+  {
+    title: "Property",
+    options: [
+      { key: "property_owner", label: "Property Owner", nature: ["property"] },
+      { key: "builder_developer", label: "Builder / Developer", nature: ["property", "services"] },
+      { key: "real_estate_broker", label: "Real Estate Broker", nature: ["property"] },
+      { key: "property_consultant", label: "Property Consultant", nature: ["property", "services"] },
+    ],
+  },
+  {
+    title: "Finance",
+    options: [
+      { key: "bank", label: "Bank", nature: ["services"] },
+      { key: "nbfc", label: "NBFC", nature: ["services"] },
+      { key: "housing_finance_company", label: "Housing Finance Company", nature: ["services"] },
+      { key: "insurance_company", label: "Insurance Company", nature: ["services"] },
+      { key: "financial_consultant", label: "Financial Consultant", nature: ["services"] },
+    ],
+  },
+  {
+    title: "Manufacturing & Industry",
+    options: [
+      { key: "factory", label: "Factory", nature: ["materials"] },
+      { key: "processing_unit", label: "Processing Unit", nature: ["materials"] },
+      { key: "workshop", label: "Workshop", nature: ["materials", "services"] },
+      { key: "msme_unit", label: "MSME Unit", nature: ["materials", "services"] },
+      { key: "industrial_enterprise", label: "Industrial Enterprise", nature: ["materials", "services"] },
+    ],
+  },
+  {
+    title: "Agriculture",
+    options: [
+      { key: "farmer", label: "Farmer", nature: ["materials"] },
+      { key: "nursery", label: "Nursery", nature: ["materials"] },
+      { key: "agri_supplier", label: "Agri Supplier", nature: ["materials"] },
+      { key: "cold_storage", label: "Cold Storage", nature: ["services", "rentals"] },
+      { key: "food_processing", label: "Food Processing", nature: ["materials"] },
+    ],
+  },
+  {
+    title: "Utilities",
+    options: [
+      { key: "water_supplier", label: "Water Supplier", nature: ["materials", "services"] },
+      { key: "electricity_contractor", label: "Electricity Contractor", nature: ["services"] },
+      { key: "solar_company", label: "Solar Company", nature: ["materials", "services"] },
+      { key: "telecom_contractor", label: "Telecom Contractor", nature: ["services"] },
+    ],
+  },
+  {
+    title: "Media & Digital",
+    options: [
+      { key: "blogger", label: "Blogger", nature: ["blog"] },
+      { key: "writer", label: "Writer", nature: ["blog"] },
+      { key: "publisher", label: "Publisher", nature: ["blog"] },
+      { key: "digital_agency", label: "Digital Agency", nature: ["services", "blog"] },
+      { key: "software_company", label: "Software Company", nature: ["services"] },
+    ],
+  },
+  {
+    title: "Others",
+    options: [
+      { key: "ngo_trust", label: "NGO / Trust", nature: ["services"] },
+      { key: "educational_institution", label: "Educational Institution", nature: ["services"] },
+      { key: "government_organisation", label: "Government Organisation", nature: ["services"] },
+      { key: "cooperative_society", label: "Cooperative Society", nature: ["services"] },
+      { key: "startup", label: "Startup", nature: ["services"] },
+      { key: "individual_professional", label: "Individual Professional", nature: ["services"] },
+    ],
+  },
+];
+
+const INDIVIDUAL_IDENTITY_OPTIONS = [
+  { key: "buyer", label: "Buyer" },
+  { key: "vendor_hub", label: "Vendor Hub" },
+  { key: "builder", label: "Builder" },
+  { key: "contractor", label: "Contractor" },
+  { key: "property_owner", label: "Property Owner" },
+  { key: "equipment_owner", label: "Equipment Owner" },
+  { key: "architect", label: "Architect" },
+  { key: "civil_engineer", label: "Civil Engineer" },
+  { key: "structural_engineer", label: "Structural Engineer" },
+  { key: "surveyor", label: "Surveyor (Amin)" },
+  { key: "valuer", label: "Valuer" },
+  { key: "banker", label: "Banker" },
+  { key: "financial_consultant", label: "Financial Consultant" },
+  { key: "accountant", label: "Chartered Accountant / Accountant" },
+  { key: "advocate", label: "Advocate" },
+  { key: "consultant", label: "Consultant" },
+  { key: "project_management_consultant", label: "Project Management Consultant" },
+  { key: "driver", label: "Driver" },
+  { key: "operator", label: "Operator" },
+  { key: "skilled_professional", label: "Skilled Professional" },
+  { key: "writer_author", label: "Writer / Author" },
+  { key: "farmer", label: "Farmer" },
+  { key: "transport_operator", label: "Transport Operator" },
+  { key: "other_individual_professional", label: "Other Individual Professional" },
+] as const;
+
+const BUSINESS_IDENTITY_INDEX = new Map(
+  BUSINESS_IDENTITY_GROUPS.flatMap((group) => group.options).map((option) => [option.key, option])
+);
+
+function deriveNatureFromBusinessIdentities(identities: string[]) {
+  return Array.from(
+    new Set(
+      identities.flatMap(
+        (identity) => BUSINESS_IDENTITY_INDEX.get(identity)?.nature || []
+      )
+    )
+  );
+}
 
 function safeArr(v: any): string[] {
   return Array.isArray(v) ? v.filter(Boolean) : [];
@@ -621,6 +803,8 @@ export default function BusinessOnboardingPageClient() {
 
   const [bp, setBp] = useState<Partial<BusinessProfile>>({
     nature_of_business: [],
+    business_identities: [],
+    individual_identities: [],
   });
   const [addressEngineValue, setAddressEngineValue] = useState<AddressEngineValue>({});
 
@@ -812,6 +996,8 @@ export default function BusinessOnboardingPageClient() {
             user_id: uid,
             nature_of_business: initialNature,
             business_type: initialBusinessType,
+            business_identities: [],
+            individual_identities: [],
           });
         } else {
           const existingNature = safeArr(data.nature_of_business);
@@ -922,6 +1108,8 @@ export default function BusinessOnboardingPageClient() {
             ...data,
             business_type: seededBusinessType,
             nature_of_business: seededNature,
+            business_identities: safeArr((data as any).business_identities),
+            individual_identities: safeArr((data as any).individual_identities),
             missing_fields: safeArr(data.missing_fields),
           });
         }
@@ -945,12 +1133,33 @@ export default function BusinessOnboardingPageClient() {
     };
   }, [supabase, returnTo, roleFromQuery]);
 
-  function toggleNature(key: string) {
-    const curr = safeArr(bp.nature_of_business);
-    const next = curr.includes(key)
-      ? curr.filter((x) => x !== key)
-      : [...curr, key];
-    setBp((p) => ({ ...p, nature_of_business: next }));
+  function toggleBusinessIdentity(key: string) {
+    setBp((current) => {
+      const identities = safeArr(current.business_identities);
+      const nextIdentities = identities.includes(key)
+        ? identities.filter((identity) => identity !== key)
+        : [...identities, key];
+
+      return {
+        ...current,
+        business_identities: nextIdentities,
+        nature_of_business: deriveNatureFromBusinessIdentities(nextIdentities),
+      };
+    });
+  }
+
+  function toggleIndividualIdentity(key: string) {
+    setBp((current) => {
+      const identities = safeArr(current.individual_identities);
+      const next = identities.includes(key)
+        ? identities.filter((identity) => identity !== key)
+        : [...identities, key];
+
+      return {
+        ...current,
+        individual_identities: next,
+      };
+    });
   }
 
   function setField<K extends keyof BusinessProfile>(key: K, value: any) {
@@ -1751,8 +1960,8 @@ export default function BusinessOnboardingPageClient() {
   };
 
   const stepsAll: StepDef[] = [
-    { key: "nature", title: "Step 1 — Nature", subtitle: "Choose what you do", show: !streamlinedRegistration, targetId: "sec-nature" },
-    { key: "identity", title: streamlinedRegistration ? "Business details" : "Step 2 — Identity", subtitle: "Business / Legal info", show: true, targetId: "sec-identity" },
+    { key: "nature", title: "Step 1 — Business Identity", subtitle: "Legal constitution, business role and personal identity", show: !streamlinedRegistration, targetId: "sec-nature" },
+    { key: "identity", title: streamlinedRegistration ? "Business details" : "Step 2 — Legal Details", subtitle: "Business name and verification numbers", show: true, targetId: "sec-identity" },
     { key: "contact", title: "Step 3 — Contact", subtitle: "Phone / email", show: !streamlinedRegistration, targetId: "sec-contact" },
     { key: "address", title: "Step 4 — Address", subtitle: "Device live location required", show: true, targetId: "sec-address" },
     { key: "property", title: "Step 5 — Property Compliance", subtitle: "RERA details (optional)", show: nature.includes("property"), targetId: "sec-property" },
@@ -1788,6 +1997,8 @@ export default function BusinessOnboardingPageClient() {
       ...bp,
       user_id: userId,
       nature_of_business: safeArr(bp.nature_of_business),
+      business_identities: safeArr(bp.business_identities),
+      individual_identities: safeArr(bp.individual_identities),
       is_complete: isComplete,
       completion_score: score,
       missing_fields: missing,
@@ -2431,22 +2642,113 @@ export default function BusinessOnboardingPageClient() {
           gap: 16,
         }}
       >
-        {!streamlinedRegistration ? <section id="sec-nature" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
-          <h3 style={{ marginTop: 0 }}>Nature of Business</h3>
-          <p style={{ marginTop: 0, opacity: 0.8 }}>Select all that apply.</p>
-
-          <div style={{ padding: missingNature ? 10 : 0, borderRadius: 8, border: missingNature ? "2px solid crimson" : "none" }}>
-            {missingNature ? <div style={{ color: "crimson", fontWeight: 800, marginBottom: 8 }}>Required: select at least one</div> : null}
-            <div style={{ display: "grid", gap: 8 }}>
-              {NATURE_OPTIONS.map((o) => (
-                <label key={o.key} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <input type="checkbox" checked={nature.includes(o.key)} onChange={() => toggleNature(o.key)} />
-                  <span>{o.label}</span>
-                </label>
-              ))}
+        {!streamlinedRegistration ? (
+          <section
+            id="sec-nature"
+            style={{
+              padding: 18,
+              border: missingNature ? "2px solid crimson" : "1px solid #cbd5e1",
+              borderRadius: 16,
+              background: "#ffffff",
+              scrollMarginTop: 190,
+            }}
+          >
+            <div style={{ color: "#1d4ed8", fontWeight: 900, fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase" }}>
+              Unified business identity
             </div>
-          </div>
-        </section> : null}
+            <h3 style={{ margin: "6px 0 4px", fontSize: 22 }}>Business Identity</h3>
+            <p style={{ margin: "0 0 18px", color: "#475569", lineHeight: 1.55 }}>
+              First choose the legal constitution of your organisation, then select what the organisation does, and finally select the individual professional identities that apply to you.
+            </p>
+
+            <div style={{ display: "grid", gap: 18 }}>
+              <div>
+                <h4 style={{ margin: "0 0 5px", fontSize: 16 }}>1. Legal Constitution</h4>
+                <p style={{ margin: "0 0 10px", color: "#64748b", fontSize: 13 }}>
+                  How is your business legally constituted? Select one.
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 8 }}>
+                  {LEGAL_CONSTITUTION_OPTIONS.map((option) => (
+                    <label
+                      key={option.key}
+                      style={{
+                        display: "flex",
+                        gap: 8,
+                        alignItems: "center",
+                        padding: 10,
+                        border: bp.business_type === option.key ? "2px solid #2563eb" : "1px solid #dbe3ee",
+                        borderRadius: 10,
+                        background: bp.business_type === option.key ? "#eff6ff" : "#ffffff",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="business-constitution"
+                        checked={bp.business_type === option.key}
+                        onChange={() => setField("business_type", option.key)}
+                      />
+                      <span style={{ fontWeight: 700 }}>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 style={{ margin: "0 0 5px", fontSize: 16 }}>2. Nature and Identity of Business</h4>
+                <p style={{ margin: "0 0 10px", color: "#64748b", fontSize: 13 }}>
+                  What does your organisation actually do? Select every identity that applies. 3Bigha will derive the correct Property, Materials, Services, Rentals and Blog workspaces automatically.
+                </p>
+                {missingNature ? (
+                  <div style={{ color: "crimson", fontWeight: 800, marginBottom: 10 }}>
+                    Required: select at least one business identity.
+                  </div>
+                ) : null}
+
+                <div style={{ display: "grid", gap: 12 }}>
+                  {BUSINESS_IDENTITY_GROUPS.map((group) => (
+                    <div key={group.title} style={{ padding: 12, border: "1px solid #e2e8f0", borderRadius: 12, background: "#f8fafc" }}>
+                      <h5 style={{ margin: "0 0 9px", fontSize: 14 }}>{group.title}</h5>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(205px, 1fr))", gap: 7 }}>
+                        {group.options.map((option) => {
+                          const checked = safeArr(bp.business_identities).includes(option.key);
+                          return (
+                            <label key={`${group.title}-${option.key}`} style={{ display: "flex", gap: 8, alignItems: "center", padding: "7px 8px", borderRadius: 8, background: checked ? "#dbeafe" : "#ffffff", border: checked ? "1px solid #60a5fa" : "1px solid #e2e8f0", cursor: "pointer" }}>
+                              <input type="checkbox" checked={checked} onChange={() => toggleBusinessIdentity(option.key)} />
+                              <span style={{ fontWeight: 650 }}>{option.label}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 style={{ margin: "0 0 5px", fontSize: 16 }}>3. Individual Professional Identity</h4>
+                <p style={{ margin: "0 0 10px", color: "#64748b", fontSize: 13 }}>
+                  Keep the dignified personal identities already used across 3Bigha. Select every role that you personally perform.
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(205px, 1fr))", gap: 7 }}>
+                  {INDIVIDUAL_IDENTITY_OPTIONS.map((option) => {
+                    const checked = safeArr(bp.individual_identities).includes(option.key);
+                    return (
+                      <label key={option.key} style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 9px", borderRadius: 8, background: checked ? "#ecfdf5" : "#ffffff", border: checked ? "1px solid #34d399" : "1px solid #e2e8f0", cursor: "pointer" }}>
+                        <input type="checkbox" checked={checked} onChange={() => toggleIndividualIdentity(option.key)} />
+                        <span style={{ fontWeight: 650 }}>{option.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div style={{ padding: 11, borderRadius: 10, background: "#eff6ff", border: "1px solid #bfdbfe", color: "#1e40af", fontSize: 13, lineHeight: 1.5 }}>
+                Your marketplace access is derived automatically from the identities selected above. You will not be asked to choose the same Property, Materials, Services, Rentals or Blog meaning again.
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section
           id="sec-story"
@@ -2531,7 +2833,10 @@ export default function BusinessOnboardingPageClient() {
         </section>
 
         <section id="sec-identity" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
-          <h3 style={{ marginTop: 0 }}>Business Identity</h3>
+          <h3 style={{ marginTop: 0 }}>Legal & Verification Details</h3>
+          <p style={{ marginTop: -4, color: "#64748b", fontSize: 13 }}>
+            Add the official name and registration details that support the Business Identity selected above.
+          </p>
 
           <div style={{ display: "grid", gap: 10 }}>
             <Field label="Business Name (or use Author Display Name if only blog)" required missing={missingBusinessOrAuthor}>
@@ -2540,22 +2845,6 @@ export default function BusinessOnboardingPageClient() {
                 onChange={(e) => setField("business_name", e.target.value)}
                 style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
               />
-            </Field>
-
-            <Field label="Business Type">
-              <select
-                value={bp.business_type ?? ""}
-                onChange={(e) => setField("business_type", e.target.value)}
-                style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-              >
-                <option value="">Select</option>
-                <option value="individual">Individual</option>
-                <option value="proprietor">Proprietor</option>
-                <option value="partnership">Partnership</option>
-                <option value="llp">LLP</option>
-                <option value="pvt_ltd">Private Limited</option>
-                <option value="other">Other</option>
-              </select>
             </Field>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
