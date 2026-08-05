@@ -1805,12 +1805,19 @@ async function fetchCompleteness(uid: string) {
   const journeySteps: BusinessIdentityJourneyStep[] = [
     {
       key: "identity",
-      title: "Your Identity",
-      description: "Identity, business proof and live verification",
+      title: "Identity & Contact",
+      description: "Who you are and how to contact you",
       targetId: "sec-identity",
+      complete: identityReady,
+    },
+    {
+      key: "documents",
+      title: "Business Verification",
+      description: "Legal proof, workplace evidence and live selfie",
+      targetId: "sec-documents",
       complete: Boolean(
-        identityReady &&
-          businessProofReady &&
+        businessProofReady &&
+          practicalProofReady &&
           liveSelfieReady
       ),
     },
@@ -1826,20 +1833,10 @@ async function fetchCompleteness(uid: string) {
     },
     {
       key: "about-you",
-      title: "About You",
-      description: "Experience, skills and values",
+      title: "About You & Business",
+      description: "Your experience and what your business does",
       targetId: "sec-about-you",
-      complete: Boolean(String(bp.about_person || "").trim()),
-    },
-    {
-      key: "about-business",
-      title: "About Business",
-      description: "What your business does",
-      targetId: "sec-about-business",
-      complete: Boolean(
-        String(bp.about_business || "").trim() ||
-          (hasBlog && String(bp.author_bio || "").trim())
-      ),
+      complete: aboutReady,
     },
     {
       key: "coverage",
@@ -1938,7 +1935,7 @@ async function fetchCompleteness(uid: string) {
     }
 
     if (targetId === "sec-about-business") {
-      return "about-business";
+      return "about-you";
     }
 
     if (targetId === "sec-service-area") {
