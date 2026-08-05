@@ -3055,6 +3055,8 @@ async function fetchCompleteness(uid: string) {
             />
           </Field>
 
+        </section>
+
           <BusinessVerificationPanel
           assets={mediaAssets}
           onChange={setMediaAssets}
@@ -3097,7 +3099,7 @@ async function fetchCompleteness(uid: string) {
           setField("pan", value);
         }}
       />
-        </section>
+        
 
 
         {!streamlinedRegistration ? <section id="sec-contact" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
