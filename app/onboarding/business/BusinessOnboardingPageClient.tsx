@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
@@ -847,6 +847,9 @@ export default function BusinessOnboardingPageClient() {
   const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
   const [documentVerifyLoading, setDocumentVerifyLoading] = useState(false);
   const [documentVerification, setDocumentVerification] = useState<VendorDocumentVerification | null>(null);
+  const lastAutoVerificationSignatureRef = useRef("");
+  const autoVerificationTimerRef =
+    useRef<ReturnType<typeof setTimeout> | null>(null);
   const [
     selectedJourneyKey,
     setSelectedJourneyKey,
@@ -1487,6 +1490,128 @@ async function fetchCompleteness(uid: string) {
       setDocumentVerifyLoading(false);
     }
   }
+
+
+  /*
+   * Canonical automatic legal-document verification
+   *
+   * The existing verification API remains the sole verifier.
+   * This effect only connects completed legal-proof input to it.
+   */
+  const legalProofAssetsForAutomaticVerification =
+    mediaAssets.filter((asset) =>
+      String(asset.path || "").includes("/legal-proof/")
+    );
+
+  const hasEnteredLegalRegistration = Boolean(
+    String(bp.gstin || "").trim() ||
+      String(bp.trade_license_no || "").trim() ||
+      String(bp.udyam_no || "").trim() ||
+      String(bp.pan || "").trim()
+  );
+
+  const hasUploadedLegalCertificate =
+    legalProofAssetsForAutomaticVerification.some(
+      (asset) => Boolean(String(asset.url || "").trim())
+    );
+
+  const legalVerificationSignature = JSON.stringify({
+    gstin: String(bp.gstin || "").trim(),
+    tradeLicenseNo: String(
+      bp.trade_license_no || ""
+    ).trim(),
+    udyamNo: String(bp.udyam_no || "").trim(),
+    pan: String(bp.pan || "").trim(),
+    businessName: String(
+      bp.business_name || ""
+    ).trim(),
+    businessAddress: [
+      bp.address_line1,
+      bp.address_line2,
+      bp.landmark,
+      bp.city,
+      bp.district,
+      bp.state,
+      bp.pincode,
+    ]
+      .filter(Boolean)
+      .join(", "),
+    certificates:
+      legalProofAssetsForAutomaticVerification.map(
+        (asset) => ({
+          path: String(asset.path || ""),
+          url: String(asset.url || ""),
+          size: Number(asset.size || 0),
+          legalProofMeta:
+            legalProofMetaFor(asset) || null,
+        })
+      ),
+  });
+
+  useEffect(() => {
+    if (
+      loading ||
+      documentVerifyLoading ||
+      !hasEnteredLegalRegistration ||
+      !hasUploadedLegalCertificate
+    ) {
+      return;
+    }
+
+    if (
+      lastAutoVerificationSignatureRef.current ===
+      legalVerificationSignature
+    ) {
+      return;
+    }
+
+    if (autoVerificationTimerRef.current) {
+      clearTimeout(
+        autoVerificationTimerRef.current
+      );
+    }
+
+    /*
+     * An edited number, authority, date or replacement
+     * certificate makes the previous result stale immediately.
+     */
+    setDocumentVerification(null);
+
+    setBp((current) => {
+      if (
+        !current.vendor_document_verification_json
+      ) {
+        return current;
+      }
+
+      return {
+        ...current,
+        vendor_document_verification_json: null,
+      };
+    });
+
+    autoVerificationTimerRef.current =
+      setTimeout(() => {
+        lastAutoVerificationSignatureRef.current =
+          legalVerificationSignature;
+
+        void runVendorDocumentVerification();
+      }, 1200);
+
+    return () => {
+      if (autoVerificationTimerRef.current) {
+        clearTimeout(
+          autoVerificationTimerRef.current
+        );
+      }
+    };
+  }, [
+    legalVerificationSignature,
+    loading,
+    documentVerifyLoading,
+    hasEnteredLegalRegistration,
+    hasUploadedLegalCertificate,
+  ]);
 
   const localCompletion = computeCompletion(bp);
   const isCompleteUI = localCompletion.isComplete;
