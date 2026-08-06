@@ -20,9 +20,9 @@ export default function RegisterRolePage() {
             }}
           >
             <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 8 }}>
-              Complete Your Registration
+              Choose Your Registration Pathway
             </div>
-            <div style={{ opacity: 0.8 }}>Loading registration form…</div>
+            <div style={{ opacity: 0.8 }}>Loading registration choices…</div>
           </div>
         </main>
       }
