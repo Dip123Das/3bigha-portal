@@ -151,7 +151,17 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
             <a href="/admin/verification-reviews">Review proofs</a>
             {profile.email?<a href={"mailto:"+profile.email}>Email member</a>:null}
             <a href="/admin/dashboard">Admin dashboard</a>
-          </nav>
+                      <a
+              href={`/admin/users/delete-account?member=${encodeURIComponent(profile.id)}`}
+              style={{
+                color: "#991b1b",
+                borderColor: "#fecaca",
+                background: "#fff1f2",
+              }}
+            >
+              Delete account
+            </a>
+</nav>
           {/* A-3.4 — Member 360 operating centre foundation */}
           {/* A-3.5 — Founder member workspace navigation */}
           <section className={styles.operatingCentre}>
