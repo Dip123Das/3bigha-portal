@@ -20,6 +20,14 @@ export type UploadedMediaAsset = {
   size: number;
   mimeType: string;
   kind: UniversalMediaKind;
+
+  captureSource?: "live_camera" | "file_upload";
+  captureTimestamp?: string;
+  outputPreset?: "square_1080";
+  preparedBeforeUpload?: boolean;
+  preparationRequired?: boolean;
+  evidenceCategory?: string;
+  evidencePurpose?: string;
 };
 
 export const MEDIA_BUCKET_BY_MODULE: Record<UniversalMediaModule, string> = {
