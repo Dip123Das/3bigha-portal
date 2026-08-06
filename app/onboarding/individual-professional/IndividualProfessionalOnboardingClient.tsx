@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import IndividualProfessionalVerificationSection from "./IndividualProfessionalVerificationSection";
 import {
   INDIVIDUAL_PROFESSIONAL_CONSTITUTIONAL_RULES,
   resolveIndividualProfessionalEligibility,
@@ -25,6 +27,15 @@ type IndividualProfessionalRecord = {
   worker_declaration_accepted: boolean;
   contractor_risk_status: string;
   verification_status: string;
+  original_name_declared?: string | null;
+  original_name_warning_accepted?: boolean;
+  identity_document_type?: string | null;
+  identity_document_masked_reference?: string | null;
+  verified_selfie_json?: Record<string, unknown>;
+  work_photo_one_json?: Record<string, unknown>;
+  work_photo_two_json?: Record<string, unknown>;
+  selfie_verification_status?: string;
+  work_evidence_verification_status?: string;
 };
 
 const AVAILABILITY_OPTIONS = [
@@ -66,6 +77,27 @@ export default function IndividualProfessionalOnboardingClient() {
   const [perJobWork, setPerJobWork] = useState(true);
 
   const [workerDeclarationAccepted, setWorkerDeclarationAccepted] =
+    useState(false);
+
+  const [originalNameWarningAccepted, setOriginalNameWarningAccepted] =
+    useState(false);
+
+  const [selfieAssets, setSelfieAssets] =
+    useState<UploadedMediaAsset[]>([]);
+
+  const [workPhotoOneAssets, setWorkPhotoOneAssets] =
+    useState<UploadedMediaAsset[]>([]);
+
+  const [workPhotoTwoAssets, setWorkPhotoTwoAssets] =
+    useState<UploadedMediaAsset[]>([]);
+
+  const [identityDocumentType, setIdentityDocumentType] =
+    useState("");
+
+  const [identityDocumentMaskedReference, setIdentityDocumentMaskedReference] =
+    useState("");
+
+  const [identityDocumentConsentAccepted, setIdentityDocumentConsentAccepted] =
     useState(false);
 
   const [takesCompleteContracts, setTakesCompleteContracts] =
@@ -148,7 +180,7 @@ export default function IndividualProfessionalOnboardingClient() {
             supabase
               .from("individual_professional_profiles")
               .select(
-                "primary_skill_key,secondary_skill_keys,economic_mode,work_preferences,years_experience,availability_status,service_radius_km,worker_declaration_accepted,contractor_risk_status,verification_status"
+                "primary_skill_key,secondary_skill_keys,economic_mode,work_preferences,years_experience,availability_status,service_radius_km,worker_declaration_accepted,contractor_risk_status,verification_status,original_name_declared,original_name_warning_accepted,identity_document_type,identity_document_masked_reference,verified_selfie_json,work_photo_one_json,work_photo_two_json,selfie_verification_status,work_evidence_verification_status"
               )
               .eq("user_id", user.id)
               .maybeSingle<IndividualProfessionalRecord>(),
@@ -193,6 +225,41 @@ export default function IndividualProfessionalOnboardingClient() {
           )
         );
 
+        setOriginalNameWarningAccepted(
+          Boolean(
+            professionalProfile?.original_name_warning_accepted
+          )
+        );
+
+        setSelfieAssets(
+          professionalProfile?.verified_selfie_json &&
+          Object.keys(professionalProfile.verified_selfie_json).length
+            ? [professionalProfile.verified_selfie_json as UploadedMediaAsset]
+            : []
+        );
+
+        setWorkPhotoOneAssets(
+          professionalProfile?.work_photo_one_json &&
+          Object.keys(professionalProfile.work_photo_one_json).length
+            ? [professionalProfile.work_photo_one_json as UploadedMediaAsset]
+            : []
+        );
+
+        setWorkPhotoTwoAssets(
+          professionalProfile?.work_photo_two_json &&
+          Object.keys(professionalProfile.work_photo_two_json).length
+            ? [professionalProfile.work_photo_two_json as UploadedMediaAsset]
+            : []
+        );
+
+        setIdentityDocumentType(
+          professionalProfile?.identity_document_type || ""
+        );
+
+        setIdentityDocumentMaskedReference(
+          professionalProfile?.identity_document_masked_reference || ""
+        );
+
         const preferences =
           professionalProfile?.work_preferences || {};
 
@@ -218,12 +285,64 @@ export default function IndividualProfessionalOnboardingClient() {
     };
   }, [router, supabase]);
 
+  const selfieComplete =
+    selfieAssets.length === 1 &&
+    selfieAssets[0]?.captureSource === "live_camera" &&
+    selfieAssets[0]?.preparedBeforeUpload === true;
+
+  const workPhotoOneComplete =
+    workPhotoOneAssets.length === 1 &&
+    workPhotoOneAssets[0]?.captureSource === "live_camera" &&
+    workPhotoOneAssets[0]?.preparedBeforeUpload === true;
+
+  const workPhotoTwoComplete =
+    workPhotoTwoAssets.length === 1 &&
+    workPhotoTwoAssets[0]?.captureSource === "live_camera" &&
+    workPhotoTwoAssets[0]?.preparedBeforeUpload === true;
+
+  const mandatoryVerificationComplete =
+    originalNameWarningAccepted &&
+    selfieComplete &&
+    workPhotoOneComplete &&
+    workPhotoTwoComplete;
+
   async function saveFoundation(event: React.FormEvent) {
     event.preventDefault();
 
     if (!originalName.trim()) {
       setMessage(
         "Enter your complete original name exactly as shown on your accepted identity document."
+      );
+      return;
+    }
+
+    if (!originalNameWarningAccepted) {
+      setMessage(
+        "Confirm that you are using your complete original name."
+      );
+      return;
+    }
+
+    if (!selfieComplete) {
+      setMessage(
+        "A verified live-camera selfie is mandatory."
+      );
+      return;
+    }
+
+    if (!workPhotoOneComplete || !workPhotoTwoComplete) {
+      setMessage(
+        "Two prepared live-camera work photographs are mandatory."
+      );
+      return;
+    }
+
+    if (
+      identityDocumentType &&
+      !identityDocumentConsentAccepted
+    ) {
+      setMessage(
+        "Accept the optional identity-reference consent before saving it."
       );
       return;
     }
@@ -330,6 +449,38 @@ export default function IndividualProfessionalOnboardingClient() {
             contractor_risk_status: "not_detected",
             verification_status: "incomplete",
             lifetime_free_eligible: false,
+            original_name_declared: originalName.trim(),
+            original_name_warning_accepted: true,
+            original_name_warning_accepted_at:
+              new Date().toISOString(),
+            verified_selfie_json: selfieAssets[0],
+            work_photo_one_json: workPhotoOneAssets[0],
+            work_photo_two_json: workPhotoTwoAssets[0],
+            selfie_verification_status: "captured",
+            work_evidence_verification_status:
+              "pending_review",
+            identity_document_type:
+              identityDocumentType || null,
+            identity_document_masked_reference:
+              identityDocumentType
+                ? identityDocumentMaskedReference.trim() || null
+                : null,
+            identity_document_verification_status:
+              identityDocumentType
+                ? "pending_review"
+                : "not_submitted",
+            identity_name_match_status:
+              identityDocumentType
+                ? "human_review"
+                : "not_checked",
+            identity_document_consent_at:
+              identityDocumentType
+                ? new Date().toISOString()
+                : null,
+            identity_document_consent_version:
+              identityDocumentType
+                ? "individual-professional-v1"
+                : null,
           },
           { onConflict: "user_id" }
         );
@@ -567,6 +718,25 @@ export default function IndividualProfessionalOnboardingClient() {
             ) : null}
           </section>
 
+          <IndividualProfessionalVerificationSection
+            originalName={originalName}
+            originalNameWarningAccepted={originalNameWarningAccepted}
+            onOriginalNameWarningAcceptedChange={setOriginalNameWarningAccepted}
+            selfieAssets={selfieAssets}
+            onSelfieAssetsChange={setSelfieAssets}
+            workPhotoOneAssets={workPhotoOneAssets}
+            onWorkPhotoOneAssetsChange={setWorkPhotoOneAssets}
+            workPhotoTwoAssets={workPhotoTwoAssets}
+            onWorkPhotoTwoAssetsChange={setWorkPhotoTwoAssets}
+            identityDocumentType={identityDocumentType}
+            onIdentityDocumentTypeChange={setIdentityDocumentType}
+            identityDocumentMaskedReference={identityDocumentMaskedReference}
+            onIdentityDocumentMaskedReferenceChange={setIdentityDocumentMaskedReference}
+            identityDocumentConsentAccepted={identityDocumentConsentAccepted}
+            onIdentityDocumentConsentAcceptedChange={setIdentityDocumentConsentAccepted}
+            primarySkillLabel={primarySkillLabel}
+          />
+
           <section style={declarationStyle}>
             <label
               style={{
@@ -613,14 +783,16 @@ export default function IndividualProfessionalOnboardingClient() {
             disabled={
               saving ||
               contractorIndicatorDetected ||
-              !workerDeclarationAccepted
+              !workerDeclarationAccepted ||
+              !mandatoryVerificationComplete
             }
             style={{
               ...submitStyle,
               opacity:
                 saving ||
                 contractorIndicatorDetected ||
-                !workerDeclarationAccepted
+                !workerDeclarationAccepted ||
+                !mandatoryVerificationComplete
                   ? 0.55
                   : 1,
             }}
