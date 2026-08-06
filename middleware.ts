@@ -222,27 +222,6 @@ export async function middleware(req: NextRequest) {
       "blogger",
     ]);
 
-    const hasApprovedIdentity =
-      accessProfile?.approval_status === "approved";
-
-    const hasEstablishedVendorIdentity =
-      accessProfile?.account_status === "active" &&
-      accessProfile?.onboarding_completed === true &&
-      vendorRoles.has(
-        String(accessProfile?.role || "")
-      );
-
-    if (
-      accessProfile?.role !== "master_admin" &&
-      !hasApprovedIdentity &&
-      !hasEstablishedVendorIdentity
-    ) {
-      const reviewUrl = req.nextUrl.clone();
-      reviewUrl.pathname = "/auth/awaiting-approval";
-      reviewUrl.search = "";
-      return NextResponse.redirect(reviewUrl);
-    }
-
     /*
      * ESSENTIAL_WORKSPACE_MUST_REMAIN_AVAILABLE
      *
