@@ -172,21 +172,32 @@ export default function RegisterRolePageClient() {
       const declaredAt =
         new Date().toISOString();
 
-      const { error } =
-        await supabase.auth.updateUser({
+      void supabase.auth
+        .updateUser({
           data: {
             ...(session.user.user_metadata || {}),
             registration_path: selectedPath,
             registration_path_declared_at:
               declaredAt,
           },
+        })
+        .then(({ error }) => {
+          if (error) {
+            console.error(
+              "REGISTRATION_PATH_METADATA_UPDATE_FAILED",
+              error
+            );
+          }
+        })
+        .catch((error) => {
+          console.error(
+            "REGISTRATION_PATH_METADATA_UPDATE_FAILED",
+            error
+          );
         });
 
-      if (error) {
-        throw error;
-      }
-
       if (selectedPath === "customer") {
+        setContinuing(false);
         router.replace(
           "/onboarding/customer" +
             (next
@@ -199,6 +210,7 @@ export default function RegisterRolePageClient() {
       }
 
       if (selectedPath === "business") {
+        setContinuing(false);
         router.replace(
           "/onboarding/business?registration=1" +
             `&registrationPath=business` +
@@ -209,6 +221,7 @@ export default function RegisterRolePageClient() {
         return;
       }
 
+      setContinuing(false);
       router.replace(
         "/onboarding/individual-professional" +
           `?registrationPath=individual_professional` +

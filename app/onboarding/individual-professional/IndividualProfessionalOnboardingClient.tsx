@@ -169,7 +169,9 @@ export default function IndividualProfessionalOnboardingClient() {
         const metadata = user.user_metadata || {};
 
         const registrationPath = String(
-          metadata.registration_path || ""
+          searchParams.get("registrationPath") ||
+            metadata.registration_path ||
+            ""
         );
 
         const identityKey = String(
