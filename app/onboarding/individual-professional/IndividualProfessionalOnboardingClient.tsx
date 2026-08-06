@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
 import IndividualProfessionalVerificationSection from "./IndividualProfessionalVerificationSection";
+import IndividualProfessionalAiReviewPanel from "./IndividualProfessionalAiReviewPanel";
 import {
   INDIVIDUAL_PROFESSIONAL_CONSTITUTIONAL_RULES,
   resolveIndividualProfessionalEligibility,
@@ -36,6 +37,12 @@ type IndividualProfessionalRecord = {
   work_photo_two_json?: Record<string, unknown>;
   selfie_verification_status?: string;
   work_evidence_verification_status?: string;
+  ai_verification_status?: string;
+  ai_confidence?: number | null;
+  ai_result_json?: Record<string, unknown>;
+  ai_reviewed_at?: string | null;
+  lifetime_free_decision_status?: string;
+  lifetime_free_decision_reason?: string | null;
 };
 
 const AVAILABILITY_OPTIONS = [
@@ -99,6 +106,18 @@ export default function IndividualProfessionalOnboardingClient() {
 
   const [identityDocumentConsentAccepted, setIdentityDocumentConsentAccepted] =
     useState(false);
+
+  const [aiChecking, setAiChecking] = useState(false);
+  const [aiVerificationStatus, setAiVerificationStatus] =
+    useState("not_started");
+  const [aiConfidence, setAiConfidence] =
+    useState<number | null>(null);
+  const [aiResult, setAiResult] =
+    useState<Record<string, any> | null>(null);
+  const [lifetimeFreeDecisionStatus, setLifetimeFreeDecisionStatus] =
+    useState("not_evaluated");
+  const [lifetimeFreeDecisionReason, setLifetimeFreeDecisionReason] =
+    useState("");
 
   const [takesCompleteContracts, setTakesCompleteContracts] =
     useState(false);
@@ -180,7 +199,7 @@ export default function IndividualProfessionalOnboardingClient() {
             supabase
               .from("individual_professional_profiles")
               .select(
-                "primary_skill_key,secondary_skill_keys,economic_mode,work_preferences,years_experience,availability_status,service_radius_km,worker_declaration_accepted,contractor_risk_status,verification_status,original_name_declared,original_name_warning_accepted,identity_document_type,identity_document_masked_reference,verified_selfie_json,work_photo_one_json,work_photo_two_json,selfie_verification_status,work_evidence_verification_status"
+                "primary_skill_key,secondary_skill_keys,economic_mode,work_preferences,years_experience,availability_status,service_radius_km,worker_declaration_accepted,contractor_risk_status,verification_status,original_name_declared,original_name_warning_accepted,identity_document_type,identity_document_masked_reference,verified_selfie_json,work_photo_one_json,work_photo_two_json,selfie_verification_status,work_evidence_verification_status,ai_verification_status,ai_confidence,ai_result_json,ai_reviewed_at,lifetime_free_decision_status,lifetime_free_decision_reason"
               )
               .eq("user_id", user.id)
               .maybeSingle<IndividualProfessionalRecord>(),
@@ -260,6 +279,32 @@ export default function IndividualProfessionalOnboardingClient() {
           professionalProfile?.identity_document_masked_reference || ""
         );
 
+        setAiVerificationStatus(
+          professionalProfile?.ai_verification_status || "not_started"
+        );
+
+        setAiConfidence(
+          professionalProfile?.ai_confidence == null
+            ? null
+            : Number(professionalProfile.ai_confidence)
+        );
+
+        setAiResult(
+          professionalProfile?.ai_result_json &&
+          Object.keys(professionalProfile.ai_result_json).length
+            ? professionalProfile.ai_result_json
+            : null
+        );
+
+        setLifetimeFreeDecisionStatus(
+          professionalProfile?.lifetime_free_decision_status ||
+            "not_evaluated"
+        );
+
+        setLifetimeFreeDecisionReason(
+          professionalProfile?.lifetime_free_decision_reason || ""
+        );
+
         const preferences =
           professionalProfile?.work_preferences || {};
 
@@ -300,11 +345,109 @@ export default function IndividualProfessionalOnboardingClient() {
     workPhotoTwoAssets[0]?.captureSource === "live_camera" &&
     workPhotoTwoAssets[0]?.preparedBeforeUpload === true;
 
+  const aiResultAllowsSubmission =
+    aiVerificationStatus !== "likely_unrelated";
+
   const mandatoryVerificationComplete =
     originalNameWarningAccepted &&
     selfieComplete &&
     workPhotoOneComplete &&
-    workPhotoTwoComplete;
+    workPhotoTwoComplete &&
+    aiResultAllowsSubmission;
+
+  async function checkWorkEvidence() {
+    if (!workPhotoOneComplete || !workPhotoTwoComplete) {
+      setMessage(
+        "Take both mandatory live-camera work photographs before checking them."
+      );
+      return;
+    }
+
+    setAiChecking(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(
+        "/api/ai/individual-professional-verify",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.error ||
+            "Work-evidence verification could not be completed."
+        );
+      }
+
+      const verification = payload?.verification || {};
+
+      setAiVerificationStatus(
+        String(verification.status || "human_review")
+      );
+
+      setAiConfidence(
+        typeof verification.confidence === "number"
+          ? verification.confidence
+          : null
+      );
+
+      setAiResult(verification);
+
+      setLifetimeFreeDecisionStatus(
+        String(
+          verification?.constitutionalProjection
+            ?.recommendedDecision || "pending_human_review"
+        )
+      );
+
+      setLifetimeFreeDecisionReason(
+        String(
+          verification?.constitutionalProjection?.reason ||
+            verification.summary ||
+            "Human review is required."
+        )
+      );
+
+      if (
+        verification.status === "strong_match" ||
+        verification.status === "likely_match"
+      ) {
+        setMessage(
+          "Your work evidence is consistent with the declared skill and is ready for authorised human review."
+        );
+      } else if (
+        verification.status === "likely_unrelated"
+      ) {
+        setMessage(
+          "The photographs do not clearly match your declared skill. Please retake them using the guidance shown below."
+        );
+      } else if (
+        verification.status === "contractor_risk"
+      ) {
+        setMessage(
+          "The evidence needs human classification because it may represent contractor or business activity."
+        );
+      } else {
+        setMessage(
+          "The evidence needs clearer photographs or human review."
+        );
+      }
+    } catch (error: any) {
+      setMessage(
+        error?.message ||
+          "Work-evidence verification could not be completed."
+      );
+    } finally {
+      setAiChecking(false);
+    }
+  }
 
   async function saveFoundation(event: React.FormEvent) {
     event.preventDefault();
@@ -735,6 +878,20 @@ export default function IndividualProfessionalOnboardingClient() {
             identityDocumentConsentAccepted={identityDocumentConsentAccepted}
             onIdentityDocumentConsentAcceptedChange={setIdentityDocumentConsentAccepted}
             primarySkillLabel={primarySkillLabel}
+          />
+
+          <IndividualProfessionalAiReviewPanel
+            checking={aiChecking}
+            status={aiVerificationStatus}
+            confidence={aiConfidence}
+            result={aiResult}
+            decisionStatus={lifetimeFreeDecisionStatus}
+            decisionReason={lifetimeFreeDecisionReason}
+            canCheck={
+              workPhotoOneComplete &&
+              workPhotoTwoComplete
+            }
+            onCheck={checkWorkEvidence}
           />
 
           <section style={declarationStyle}>
