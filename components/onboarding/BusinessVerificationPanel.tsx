@@ -1154,6 +1154,15 @@ function PhysicalProofCard({
         allowVideos={false}
         allowDocuments={false}
         cameraFacing="environment"
+        cameraOnly
+        inlineCamera
+        requirePreparation
+        outputPreset="square_1080"
+        cameraButtonLabel="📷 Start Live Camera"
+        assetMetadata={{
+          evidenceCategory: kind,
+          evidencePurpose: "physical_business_proof",
+        }}
         maxFiles={slotAvailable ? 1 : 0}
       />
     </div>
@@ -1283,7 +1292,38 @@ export default function BusinessVerificationPanel({
     legalAssets.some(
       legalProofAssetIsComplete
     );
-  const practicalComplete = practicalAssets.length > 0;
+  const liveCameraPracticalAssets = practicalAssets.filter(
+    (asset) =>
+      String((asset as any).captureSource || "") === "live_camera" &&
+      Boolean(String((asset as any).captureTimestamp || "").trim()) &&
+      Boolean((asset as any).preparedBeforeUpload)
+  );
+
+  const liveSignboardAdded = liveCameraPracticalAssets.some(
+    (asset) => belongsToPhysicalKind(asset, "signboard")
+  );
+
+  const liveWorkplaceContextAdded = liveCameraPracticalAssets.some(
+    (asset) =>
+      belongsToPhysicalKind(asset, "frontage") ||
+      belongsToPhysicalKind(asset, "workplace") ||
+      belongsToPhysicalKind(asset, "warehouse") ||
+      belongsToPhysicalKind(asset, "factory")
+  );
+
+  const liveBusinessActivityAdded = liveCameraPracticalAssets.some(
+    (asset) =>
+      belongsToPhysicalKind(asset, "machinery") ||
+      belongsToPhysicalKind(asset, "stock") ||
+      belongsToPhysicalKind(asset, "activity")
+  );
+
+  const practicalComplete =
+    liveCameraPracticalAssets.length >= 3 &&
+    liveSignboardAdded &&
+    liveWorkplaceContextAdded &&
+    liveBusinessActivityAdded;
+
   const selfieComplete = selfieAssets.length > 0;
 
   const completedVerificationSteps = [
@@ -1349,6 +1389,11 @@ export default function BusinessVerificationPanel({
     workplaceContextAdded,
     businessActivityAdded,
   ].filter(Boolean).length;
+
+  const mandatoryPhysicalCoverageComplete =
+    signboardAdded &&
+    workplaceContextAdded &&
+    businessActivityAdded;
 
   const physicalEvidenceLevel =
     practicalAssets.length === 0
@@ -1494,7 +1539,7 @@ export default function BusinessVerificationPanel({
           At least one Legal Business Proof
         </RequirementStatus>
         <RequirementStatus complete={practicalComplete}>
-          At least one Physical Business Proof
+          At least 3 Live-Camera Business Photos
         </RequirementStatus>
         <RequirementStatus complete={selfieComplete}>
           Live Business-Board Selfie

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import { resolveCanonicalIdentity } from "@/lib/identity/resolveCanonicalIdentity";
 import LanguageSwitcher from "@/components/language/LanguageSwitcher";
 import GlobalOperationalAwarenessBar from "@/components/operational-events/GlobalOperationalAwarenessBar";
 
@@ -43,39 +44,7 @@ type NotificationRow = {
   created_at: string;
 };
 
-function cleanHeaderValue(value: unknown) {
-  return String(value || "").trim();
-}
 
-function firstHeaderSelfieUrl(value: unknown) {
-  const assets = Array.isArray(value)
-    ? value
-    : value && typeof value === "object"
-      ? [value]
-      : [];
-
-  for (const asset of assets as Record<string, unknown>[]) {
-    const url = cleanHeaderValue(asset?.url || asset?.publicUrl);
-    const path = cleanHeaderValue(asset?.path);
-
-    if (url && (!path || path.includes("/live-selfie/"))) {
-      return url;
-    }
-  }
-
-  return "";
-}
-
-function headerRoleLabel(role: string) {
-  const normalized = cleanHeaderValue(role)
-    .toLowerCase()
-    .replace(/_/g, " ");
-
-  if (!normalized) return "3Bigha Member";
-  if (normalized === "hub vendor") return "Vendor Hub";
-
-  return normalized.replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
 
 function scopeToHref(scope: SearchScope, q: string) {
   const query = q.trim();
@@ -128,115 +97,52 @@ export default function TopHeaderClient() {
     adminMode: false,
   });
 
-  async function loadAccountIdentity(userId?: string | null) {
-    if (!userId) {
+  async function loadCanonicalAccountIdentity(
+    user?: {
+      id: string;
+      email?: string | null;
+      user_metadata?: Record<string, unknown>;
+    } | null
+  ) {
+    if (!user?.id) {
       setProfileName("");
       setProfilePhotoUrl("");
       setProfileRoleLabel("3Bigha Member");
       setProfilePlanLabel("Free");
+      setDashboardHref("/dashboard");
       return;
     }
 
     try {
-      const [profileResult, businessResult] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("display_name,profile_photo_url,role")
-          .eq("id", userId)
-          .maybeSingle(),
-        supabase
-          .from("business_profiles")
-          .select("business_name,selfie_media_json,subscription_plan")
-          .eq("user_id", userId)
-          .maybeSingle(),
-      ]);
+      const identity = await resolveCanonicalIdentity(supabase, {
+        id: user.id,
+        email: user.email || undefined,
+        user_metadata: user.user_metadata || {},
+      });
 
-      const member = (profileResult.data || {}) as Record<string, any>;
-      const business = (businessResult.data || {}) as Record<string, any>;
-      const fallbackName =
-        cleanHeaderValue(member.display_name) ||
-        cleanHeaderValue(business.business_name) ||
-        cleanHeaderValue(email?.split("@")[0]) ||
-        "3Bigha Member";
-      const selectedPhoto =
-        cleanHeaderValue(member.profile_photo_url) ||
-        firstHeaderSelfieUrl(business.selfie_media_json);
-      const plan = cleanHeaderValue(business.subscription_plan || "free")
+      const subscriptionPlan = String(
+        identity.businessProfile.subscription_plan || "free"
+      )
+        .trim()
+        .toLowerCase()
         .replace(/_vendor$/, "")
         .replace(/_/g, " ")
         .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
-      setProfileName(fallbackName);
-      setProfilePhotoUrl(selectedPhoto);
-      setProfileRoleLabel(headerRoleLabel(cleanHeaderValue(member.role)));
-      setProfilePlanLabel(plan || "Free");
+      setProfileName(identity.registeredName);
+      setProfilePhotoUrl(
+        identity.verifiedSelfie ? identity.verifiedSelfieUrl : ""
+      );
+      setProfileRoleLabel(identity.primaryRole);
+      setProfilePlanLabel(subscriptionPlan || "Free");
+      setDashboardHref(identity.workspaceProjection.defaultPath);
     } catch {
-      setProfileName(cleanHeaderValue(email?.split("@")[0]) || "3Bigha Member");
-    }
-  }
-
-  async function resolveDashboardHrefForUser(userId?: string | null) {
-    if (!userId) {
-      setDashboardHref("/dashboard");
-      return;
-    }
-
-    try {
-      // MASTER / ADMIN / BUYER ROLE CHECK
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", userId)
-        .maybeSingle();
-
-      const role = String(profile?.role || "").toLowerCase();
-
-      // MASTER ADMIN
-      if (
-        role === "master_admin" ||
-        role === "admin" ||
-        role === "super_admin"
-      ) {
-        setDashboardHref("/admin/dashboard");
-        return;
-      }
-
-      // BANKER
-      if (
-        role === "banker" ||
-        role === "finance_banker"
-      ) {
-        setDashboardHref("/dashboard/banker");
-        return;
-      }
-
-      // HUB VENDOR keeps the main dashboard as the primary entry.
-      if (role === "hub_vendor") {
-        setDashboardHref("/dashboard");
-        return;
-      }
-
-      // Dedicated vendor roles use the vendor dashboard.
-      const { data: vendor } = await supabase
-        .from("business_profiles")
-        .select("id,user_id")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (role === "vendor" || role === "builder" || role === "blogger") {
-        setDashboardHref("/dashboard/vendor");
-        return;
-      }
-
-      // A business profile alone must not override the declared role.
-      if (vendor && !role) {
-        setDashboardHref("/dashboard");
-        return;
-      }
-
-      // DEFAULT BUYER / USER
-      setDashboardHref("/dashboard");
-    } catch {
+      setProfileName(
+        String(user.email || "").split("@")[0] || "3Bigha Member"
+      );
+      setProfilePhotoUrl("");
+      setProfileRoleLabel("3Bigha Member");
+      setProfilePlanLabel("Free");
       setDashboardHref("/dashboard");
     }
   }
@@ -258,10 +164,7 @@ export default function TopHeaderClient() {
         setIsAuthed(!!s);
         setEmail(s?.user?.email ?? null);
         setAuthLoading(false);
-        await Promise.all([
-          resolveDashboardHrefForUser(s?.user?.id || null),
-          loadAccountIdentity(s?.user?.id || null),
-        ]);
+        await loadCanonicalAccountIdentity(s?.user || null);
         loadSupportAlerts(s?.access_token || null);
         loadNotifications(s?.access_token || null);
       } catch {
@@ -276,8 +179,7 @@ export default function TopHeaderClient() {
       setIsAuthed(!!session);
       setEmail(session?.user?.email ?? null);
       setAuthLoading(false);
-      void resolveDashboardHrefForUser(session?.user?.id || null);
-      void loadAccountIdentity(session?.user?.id || null);
+      void loadCanonicalAccountIdentity(session?.user || null);
       loadSupportAlerts(session?.access_token || null);
       loadNotifications(session?.access_token || null);
     });
@@ -293,7 +195,7 @@ export default function TopHeaderClient() {
       if (!isAuthed) return;
 
       void supabase.auth.getSession().then(({ data }) => {
-        void loadAccountIdentity(data.session?.user?.id || null);
+        void loadCanonicalAccountIdentity(data.session?.user || null);
       });
     }
 
@@ -950,7 +852,7 @@ export default function TopHeaderClient() {
                   {[
                     ["My Profile", "/settings"],
                     ["Personal Details", "/settings#personal"],
-                    ["Change Profile Photo", "/settings#photo"],
+                    ["Retake Verified Live Selfie", "/onboarding/business#sec-selfie"],
                     ["Edit Business Profile", "/onboarding/business"],
                     ["Subscription & Plan", "/dashboard/subscription?source=profile&return=/settings"],
                     ["My Workspace", dashboardHref],

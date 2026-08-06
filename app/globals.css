@@ -4425,3 +4425,31 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   --3b-dashboard-control-radius: 0.75rem;
   --3b-dashboard-line-height: 1.55;
 }
+
+/* BI-4: compact business-verification workspace */
+@media (min-width: 1024px) {
+  html[data-business-journey-step="documents"]
+    #sec-documents {
+    padding: 12px !important;
+  }
+
+  html[data-business-journey-step="documents"]
+    #sec-documents input,
+  html[data-business-journey-step="documents"]
+    #sec-documents select {
+    min-height: 38px;
+  }
+
+  html[data-business-journey-step="documents"]
+    #sec-documents button {
+    min-height: 38px;
+  }
+}
+
+@media (max-width: 767px) {
+  html[data-business-journey-step="documents"]
+    #sec-documents {
+    padding: 10px !important;
+    border-radius: 14px !important;
+  }
+}

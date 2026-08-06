@@ -1,12 +1,11 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
-import { validateGstin } from "@/lib/vendor-verification/gstin";
 import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
 import { addressEngineToBusinessPayload, legacyBusinessToAddressEngine } from "@/lib/geography/addressAdapters";
 import AIWritingImprovement from "../../../components/onboarding/AIWritingImprovement";
@@ -593,6 +592,7 @@ function computeCompletion(bp: Partial<BusinessProfile>) {
   );
   const isPureBlogOnly = hasBlog && !hasNonBlogBusiness;
 
+
   const natureOk = nature.length > 0;
   const businessNameOk = !!(bp.business_name && bp.business_name.trim());
   const authorNameOk = !!(bp.author_display_name && bp.author_display_name.trim());
@@ -847,6 +847,9 @@ export default function BusinessOnboardingPageClient() {
   const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
   const [documentVerifyLoading, setDocumentVerifyLoading] = useState(false);
   const [documentVerification, setDocumentVerification] = useState<VendorDocumentVerification | null>(null);
+  const lastAutoVerificationSignatureRef = useRef("");
+  const autoVerificationTimerRef =
+    useRef<ReturnType<typeof setTimeout> | null>(null);
   const [
     selectedJourneyKey,
     setSelectedJourneyKey,
@@ -895,9 +898,9 @@ export default function BusinessOnboardingPageClient() {
   const isPureBlogOnly =
     hasBlog && !hasNonBlogBusiness;
 
-  const gstinFormatCheck = validateGstin(String(bp.gstin || ""));
 
-  async function fetchCompleteness(uid: string) {
+
+async function fetchCompleteness(uid: string) {
     setVcLoading(true);
     const { data, error } = await supabase
       .from("v_vendor_profile_completeness")
@@ -1488,6 +1491,128 @@ export default function BusinessOnboardingPageClient() {
     }
   }
 
+
+  /*
+   * Canonical automatic legal-document verification
+   *
+   * The existing verification API remains the sole verifier.
+   * This effect only connects completed legal-proof input to it.
+   */
+  const legalProofAssetsForAutomaticVerification =
+    mediaAssets.filter((asset) =>
+      String(asset.path || "").includes("/legal-proof/")
+    );
+
+  const hasEnteredLegalRegistration = Boolean(
+    String(bp.gstin || "").trim() ||
+      String(bp.trade_license_no || "").trim() ||
+      String(bp.udyam_no || "").trim() ||
+      String(bp.pan || "").trim()
+  );
+
+  const hasUploadedLegalCertificate =
+    legalProofAssetsForAutomaticVerification.some(
+      (asset) => Boolean(String(asset.url || "").trim())
+    );
+
+  const legalVerificationSignature = JSON.stringify({
+    gstin: String(bp.gstin || "").trim(),
+    tradeLicenseNo: String(
+      bp.trade_license_no || ""
+    ).trim(),
+    udyamNo: String(bp.udyam_no || "").trim(),
+    pan: String(bp.pan || "").trim(),
+    businessName: String(
+      bp.business_name || ""
+    ).trim(),
+    businessAddress: [
+      bp.address_line1,
+      bp.address_line2,
+      bp.landmark,
+      bp.city,
+      bp.district,
+      bp.state,
+      bp.pincode,
+    ]
+      .filter(Boolean)
+      .join(", "),
+    certificates:
+      legalProofAssetsForAutomaticVerification.map(
+        (asset) => ({
+          path: String(asset.path || ""),
+          url: String(asset.url || ""),
+          size: Number(asset.size || 0),
+          legalProofMeta:
+            legalProofMetaFor(asset) || null,
+        })
+      ),
+  });
+
+  useEffect(() => {
+    if (
+      loading ||
+      documentVerifyLoading ||
+      !hasEnteredLegalRegistration ||
+      !hasUploadedLegalCertificate
+    ) {
+      return;
+    }
+
+    if (
+      lastAutoVerificationSignatureRef.current ===
+      legalVerificationSignature
+    ) {
+      return;
+    }
+
+    if (autoVerificationTimerRef.current) {
+      clearTimeout(
+        autoVerificationTimerRef.current
+      );
+    }
+
+    /*
+     * An edited number, authority, date or replacement
+     * certificate makes the previous result stale immediately.
+     */
+    setDocumentVerification(null);
+
+    setBp((current) => {
+      if (
+        !current.vendor_document_verification_json
+      ) {
+        return current;
+      }
+
+      return {
+        ...current,
+        vendor_document_verification_json: null,
+      };
+    });
+
+    autoVerificationTimerRef.current =
+      setTimeout(() => {
+        lastAutoVerificationSignatureRef.current =
+          legalVerificationSignature;
+
+        void runVendorDocumentVerification();
+      }, 1200);
+
+    return () => {
+      if (autoVerificationTimerRef.current) {
+        clearTimeout(
+          autoVerificationTimerRef.current
+        );
+      }
+    };
+  }, [
+    legalVerificationSignature,
+    loading,
+    documentVerifyLoading,
+    hasEnteredLegalRegistration,
+    hasUploadedLegalCertificate,
+  ]);
+
   const localCompletion = computeCompletion(bp);
   const isCompleteUI = localCompletion.isComplete;
   const scoreUI = clampPct(localCompletion.score);
@@ -1805,20 +1930,20 @@ export default function BusinessOnboardingPageClient() {
   const journeySteps: BusinessIdentityJourneyStep[] = [
     {
       key: "identity",
-      title: "Your Identity",
-      description: "Name, role and contact",
+      title: "Identity & Contact",
+      description: "Who you are and how to contact you",
       targetId: "sec-identity",
+      complete: identityReady,
+    },
+    {
+      key: "documents",
+      title: "Business Verification",
+      description: "Legal proof, workplace evidence and live selfie",
+      targetId: "sec-documents",
       complete: Boolean(
-        nature.length > 0 &&
-          String(bp.contact_person || "").trim() &&
-          (
-            String(bp.business_name || "").trim() ||
-            String(bp.author_display_name || "").trim()
-          ) &&
-          (
-            String(bp.phone_primary || "").trim() ||
-            String(bp.email_business || "").trim()
-          )
+        businessProofReady &&
+          practicalProofReady &&
+          liveSelfieReady
       ),
     },
     {
@@ -1833,20 +1958,10 @@ export default function BusinessOnboardingPageClient() {
     },
     {
       key: "about-you",
-      title: "About You",
-      description: "Experience, skills and values",
+      title: "About You & Business",
+      description: "Your experience and what your business does",
       targetId: "sec-about-you",
-      complete: Boolean(String(bp.about_person || "").trim()),
-    },
-    {
-      key: "about-business",
-      title: "About Business",
-      description: "What your business does",
-      targetId: "sec-about-business",
-      complete: Boolean(
-        String(bp.about_business || "").trim() ||
-          (hasBlog && String(bp.author_bio || "").trim())
-      ),
+      complete: aboutReady,
     },
     {
       key: "coverage",
@@ -1869,14 +1984,6 @@ export default function BusinessOnboardingPageClient() {
       description: "Workplace and project photos",
       targetId: "sec-gallery",
       complete: practicalProofReady,
-    },
-    {
-      key: "documents",
-      title: "Business Proof",
-      description:
-        businessProofStatusLabel[businessProofStatus],
-      targetId: "sec-documents",
-      complete: businessProofReady,
     },
     {
       key: "review",
@@ -1953,7 +2060,7 @@ export default function BusinessOnboardingPageClient() {
     }
 
     if (targetId === "sec-about-business") {
-      return "about-business";
+      return "about-you";
     }
 
     if (targetId === "sec-service-area") {
@@ -3011,105 +3118,71 @@ export default function BusinessOnboardingPageClient() {
           </div>
         </section>
 
-        <section id="sec-identity" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
-          <h3 style={{ marginTop: 0 }}>Legal & Verification Details</h3>
-          <p style={{ marginTop: -4, color: "#64748b", fontSize: 13 }}>
-            Add the official name and registration details that support the Business Identity selected above.
+        <section
+          id="sec-identity"
+          style={{
+            padding: 18,
+            border: "1px solid #bfdbfe",
+            borderRadius: 18,
+            background: "#f8fbff",
+            scrollMarginTop: 190,
+          }}
+        >
+          <div
+            style={{
+              color: "#1d4ed8",
+              fontWeight: 900,
+              fontSize: 12,
+              letterSpacing: ".06em",
+              textTransform: "uppercase",
+            }}
+          >
+            Your identity and business proof
+          </div>
+
+          <h3
+            style={{
+              margin: "7px 0 5px",
+              fontSize: 22,
+            }}
+          >
+            Confirm your business identity
+          </h3>
+
+          <p
+            style={{
+              margin: "0 0 16px",
+              color: "#475569",
+              lineHeight: 1.65,
+            }}
+          >
+            Enter your business name once. Legal registration numbers,
+            certificates and verification are managed in the Business Proof
+            section below.
           </p>
 
-          <div style={{ display: "grid", gap: 10 }}>
-            <Field label="Business Name (or use Author Display Name if only blog)" required missing={missingBusinessOrAuthor}>
-              <input
-                value={bp.business_name ?? ""}
-                onChange={(e) => setField("business_name", e.target.value)}
-                style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-              />
-            </Field>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <Field
-                label="GSTIN"
-                required
-                missing={missingBusinessProof}
-                hint="Provide GSTIN or Trade License No"
-              >
-                <input
-                  value={bp.gstin ?? ""}
-                  onChange={(e) => setField("gstin", e.target.value.toUpperCase())}
-                  maxLength={15}
-                  placeholder="15-character GSTIN"
-                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-                />
-                {bp.gstin ? (
-                  <div
-                    style={{
-                      padding: "0 10px 10px",
-                      fontSize: 12,
-                      color: gstinFormatCheck.valid ? "#047857" : "#b91c1c",
-                      fontWeight: 800,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {gstinFormatCheck.valid ? (
-                      <>✅ GSTIN format valid: {gstinFormatCheck.normalized}</>
-                    ) : (
-                      <>
-                        ⚠️ {gstinFormatCheck.errors.slice(0, 2).join(" ")}
-                      </>
-                    )}
-                  </div>
-                ) : null}
-              </Field>
-              <Field label="PAN (optional)">
-                <input
-                  value={bp.pan ?? ""}
-                  onChange={(e) => setField("pan", e.target.value)}
-                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-                />
-              </Field>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <Field
-                label="Trade License No"
-                required
-                missing={missingBusinessProof}
-                hint="For business operators, provide GSTIN or Trade License No"
-              >
-                <input
-                  value={bp.trade_license_no ?? ""}
-                  onChange={(e) => setField("trade_license_no", e.target.value)}
-                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-                />
-              </Field>
-              <Field label="UDYAM No (optional)">
-                <input
-                  value={bp.udyam_no ?? ""}
-                  onChange={(e) => setField("udyam_no", e.target.value)}
-                  style={{ width: "100%", padding: 10, border: "none", outline: "none" }}
-                />
-              </Field>
-            </div>
-
-            <div
+          <Field
+            label="Business Name (or use Author Display Name if only blog)"
+            required
+            missing={missingBusinessOrAuthor}
+          >
+            <input
+              value={bp.business_name ?? ""}
+              onChange={(event) =>
+                setField("business_name", event.target.value)
+              }
               style={{
+                width: "100%",
                 padding: 10,
-                borderRadius: 8,
-                background: "#eff6ff",
-                border: "1px solid #bfdbfe",
-                color: "#1d4ed8",
-                fontSize: 13,
+                border: "none",
+                outline: "none",
               }}
-            >
-              For all business activities on 3bigha, at least one proof is required:
-              <b> GSTIN or Trade License No</b>.
-              Pure blog-only profiles may complete without business proof.
-            </div>
+            />
+          </Field>
 
-          </div>
         </section>
 
-        <BusinessVerificationPanel
+          <BusinessVerificationPanel
           assets={mediaAssets}
           onChange={setMediaAssets}
           disabled={saving}
@@ -3151,6 +3224,8 @@ export default function BusinessOnboardingPageClient() {
           setField("pan", value);
         }}
       />
+        
+
 
         {!streamlinedRegistration ? <section id="sec-contact" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
           <h3 style={{ marginTop: 0 }}>Contact</h3>

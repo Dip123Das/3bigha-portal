@@ -125,7 +125,6 @@ export default function BusinessIdentityJourney({
           display: block !important;
         }
 
-        html[data-business-journey-step="about-you"] #sec-about-business,
         html[data-business-journey-step="about-business"] #sec-about-you,
         html[data-business-journey-step="address"] #sec-service-area,
         html[data-business-journey-step="gallery"] #sec-legal-proof,
