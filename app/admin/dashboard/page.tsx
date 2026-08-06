@@ -159,6 +159,19 @@ export default async function AdminDashboardPage() {
       badges: ["profiles", "pending → approved/rejected"],
     },
     {
+      title: "Admin · Skilled Professional Reviews",
+      desc: "Review live identity and work evidence, approve lifetime-free eligibility, request correction, reject misuse or reclassify contractors.",
+      href: "/admin/individual-professional-reviews",
+      show: isMaster(role),
+      badges: [
+        "live selfie",
+        "work evidence",
+        "AI advisory",
+        "human approval",
+        "lifetime free",
+      ],
+    },
+    {
       title: "Admin · Property",
       desc: "Review, approve, or reject property listings.",
       href: "/admin/property",
