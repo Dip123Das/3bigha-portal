@@ -67,6 +67,8 @@ for (const marker of [
 }
 
 for (const marker of [
+  "x-forwarded-host",
+  "x-forwarded-proto",
   "requireMasterAdmin",
   "You cannot delete your own administrator account",
   "Master administrator accounts cannot be deleted",

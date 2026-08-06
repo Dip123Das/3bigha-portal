@@ -9,7 +9,19 @@ function redirectToMember(
   kind: "success" | "error",
   message: string
 ) {
-  const url = new URL("/admin/users", request.url);
+  const forwardedHost =
+    request.headers.get("x-forwarded-host") ||
+    request.headers.get("host");
+
+  const forwardedProto =
+    request.headers.get("x-forwarded-proto") ||
+    "https";
+
+  const origin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : new URL(request.url).origin;
+
+  const url = new URL("/admin/users", origin);
 
   if (memberId) {
     url.searchParams.set("member", memberId);
