@@ -39,6 +39,9 @@ type UniversalMediaUploaderProps = {
   cameraButtonLabel?: string;
   inlineCamera?: boolean;
   cameraGuide?: "none" | "face";
+  outputPreset?: "square_1080";
+  requirePreparation?: boolean;
+  assetMetadata?: Record<string, unknown>;
 };
 
 export default function UniversalMediaUploader({
@@ -57,6 +60,9 @@ export default function UniversalMediaUploader({
   cameraButtonLabel = "📷 Take Photo",
   inlineCamera = false,
   cameraGuide = "none",
+  outputPreset = "square_1080",
+  requirePreparation = false,
+  assetMetadata = {},
 }: UniversalMediaUploaderProps) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -81,6 +87,7 @@ export default function UniversalMediaUploader({
   const [qualityWarnings, setQualityWarnings] = useState<MediaQualityWarning[]>([]);
   const [capturedPhoto, setCapturedPhoto] = useState<File | null>(null);
   const [capturedPreviewUrl, setCapturedPreviewUrl] = useState("");
+  const [capturedAt, setCapturedAt] = useState("");
 
   function stopInlineCamera() {
     const stream = inlineStreamRef.current;
@@ -124,6 +131,7 @@ export default function UniversalMediaUploader({
 
     setCapturedPhoto(null);
     setCapturedPreviewUrl("");
+    setCapturedAt("");
   }
 
   async function useCapturedPhoto() {
@@ -131,7 +139,15 @@ export default function UniversalMediaUploader({
 
     const file = capturedPhoto;
     clearCapturedPhoto();
-    await uploadFiles([file]);
+    await uploadFiles([file], {
+      ...assetMetadata,
+      captureSource: "live_camera",
+      captureTimestamp:
+        capturedAt || new Date().toISOString(),
+      outputPreset,
+      preparedBeforeUpload: true,
+      preparationRequired: requirePreparation,
+    });
   }
 
   async function retakeCapturedPhoto() {
@@ -311,6 +327,7 @@ export default function UniversalMediaUploader({
     }
 
     setCapturedPhoto(file);
+    setCapturedAt(new Date().toISOString());
     setCapturedPreviewUrl(URL.createObjectURL(file));
   }
 
@@ -322,7 +339,10 @@ export default function UniversalMediaUploader({
     .filter(Boolean)
     .join(",");
 
-  async function uploadFiles(files: FileList | File[]) {
+  async function uploadFiles(
+    files: FileList | File[],
+    uploadMetadata: Record<string, unknown> = {}
+  ) {
     const incoming = Array.from(files || []);
     if (!incoming.length || uploading) return;
 
@@ -422,7 +442,8 @@ export default function UniversalMediaUploader({
           size: file.size,
           mimeType: file.type,
           kind,
-        });
+          ...uploadMetadata,
+        } as UploadedMediaAsset);
       }
 
       if (uploaded.length) {
