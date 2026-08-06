@@ -41,12 +41,16 @@ for (const marker of [
 }
 
 for (const marker of [
-  "individualProfessionalEligibility",
+  "\"individual_professional\"",
+  "registration_path: selectedPath",
+  "selectedPath === \"business\"",
   "/onboarding/individual-professional",
-  "requiresBusinessOnboarding",
+  "registrationPath=individual_professional",
 ]) {
   if (!register.includes(marker)) {
-    throw new Error(`Registration routing marker missing: ${marker}`);
+    throw new Error(
+      `Constitutional registration routing marker missing: ${marker}`
+    );
   }
 }
 
@@ -57,6 +61,12 @@ for (const marker of [
   "worker_declaration_accepted",
   "lifetime_free_eligible: false",
   "Continue with Business Registration",
+  "isFreshIndividualRegistration",
+  "INDIVIDUAL_SKILL_OPTIONS",
+  "Choose your primary skill",
+  "declare_operating_profile",
+  "sync_member_module_grants",
+  "primary_human_identity:",
 ]) {
   if (!onboarding.includes(marker)) {
     throw new Error(`Onboarding marker missing: ${marker}`);

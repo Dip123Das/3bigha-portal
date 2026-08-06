@@ -19,6 +19,14 @@ const customer = fs.readFileSync(
   "utf8"
 );
 
+const professional = fs.readFileSync(
+  path.join(
+    root,
+    "app/onboarding/individual-professional/IndividualProfessionalOnboardingClient.tsx"
+  ),
+  "utf8"
+);
+
 const business = fs.readFileSync(
   path.join(
     root,
@@ -95,6 +103,33 @@ for (const marker of [
   check(
     business.includes(marker),
     `Canonical business registration marker missing: ${marker}`
+  );
+}
+
+for (const marker of [
+  "isFreshIndividualRegistration",
+  "INDIVIDUAL_SKILL_OPTIONS",
+  "Choose your primary skill",
+  "declare_operating_profile",
+  "primary_human_identity:",
+  "sync_member_module_grants",
+]) {
+  check(
+    professional.includes(marker),
+    `Professional entry marker missing: ${marker}`
+  );
+}
+
+for (const forbidden of [
+  "Technician",
+  "Surveyor (Amin)",
+  "Architect",
+  "Civil Engineer",
+  "Valuer",
+]) {
+  check(
+    !professional.includes(forbidden),
+    `Excluded professional appears in lifetime-free pathway: ${forbidden}`
   );
 }
 

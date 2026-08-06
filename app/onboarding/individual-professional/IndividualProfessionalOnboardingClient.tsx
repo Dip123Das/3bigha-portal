@@ -45,6 +45,25 @@ type IndividualProfessionalRecord = {
   lifetime_free_decision_reason?: string | null;
 };
 
+const INDIVIDUAL_SKILL_OPTIONS = [
+  ["mason", "Mason (Rajmistri)"],
+  ["carpenter", "Carpenter"],
+  ["painter", "Painter / Polisher"],
+  ["electrician", "Electrician"],
+  ["plumber", "Plumber"],
+  ["welder", "Welder / Fabricator"],
+  ["tile_worker", "Tile / Marble Installer"],
+  ["bar_bender", "Bar Bender / Steel Fixer"],
+  ["shuttering_worker", "Shuttering Worker"],
+  ["machine_operator", "Construction Machine Operator"],
+  ["equipment_operator", "Heavy Equipment Operator"],
+  ["driver", "Driver"],
+  ["gardener", "Gardener / Landscaping Worker"],
+  ["helper", "Skilled Helper"],
+  ["repair_professional", "Repair Professional"],
+  ["skilled_professional", "Other Skilled Professional"],
+] as const;
+
 const AVAILABILITY_OPTIONS = [
   ["available", "Available for work"],
   ["partially_available", "Partially available"],
@@ -148,11 +167,26 @@ export default function IndividualProfessionalOnboardingClient() {
         }
 
         const metadata = user.user_metadata || {};
-        const operatingProfile = String(
-          metadata.operating_profile || ""
+
+        const registrationPath = String(
+          metadata.registration_path || ""
         );
+
         const identityKey = String(
           metadata.primary_human_identity || ""
+        );
+
+        const isFreshIndividualRegistration =
+          registrationPath ===
+            "individual_professional" &&
+          !identityKey;
+
+        const operatingProfile = String(
+          metadata.operating_profile ||
+            (registrationPath ===
+            "individual_professional"
+              ? "individual_professional"
+              : "")
         );
         const identityLabel = String(
           metadata.human_identity_local_label ||
@@ -180,7 +214,10 @@ export default function IndividualProfessionalOnboardingClient() {
               false,
           });
 
-        if (!eligibility.eligible) {
+        if (
+          !eligibility.eligible &&
+          !isFreshIndividualRegistration
+        ) {
           router.replace(
             identityRecord?.requires_business_onboarding
               ? "/onboarding/business?registration=1"
@@ -452,6 +489,13 @@ export default function IndividualProfessionalOnboardingClient() {
   async function saveFoundation(event: React.FormEvent) {
     event.preventDefault();
 
+    if (!primarySkillKey) {
+      setMessage(
+        "Choose the primary skill that you personally perform."
+      );
+      return;
+    }
+
     if (!originalName.trim()) {
       setMessage(
         "Enter your complete original name exactly as shown on your accepted identity document."
@@ -545,6 +589,48 @@ export default function IndividualProfessionalOnboardingClient() {
         throw new Error("Your session has expired. Please log in again.");
       }
 
+      const selectedSkill =
+        INDIVIDUAL_SKILL_OPTIONS.find(
+          ([key]) => key === primarySkillKey
+        );
+
+      if (!selectedSkill) {
+        throw new Error(
+          "Choose a supported individual skilled profession."
+        );
+      }
+
+      const selectedSkillLabel =
+        selectedSkill[1];
+
+      const {
+        error: declarationError,
+      } = await supabase.rpc(
+        "declare_operating_profile",
+        {
+          p_operating_profile:
+            "individual_professional",
+          p_identity_keys: [
+            primarySkillKey,
+          ],
+          p_primary_identity_key:
+            primarySkillKey,
+        }
+      );
+
+      if (declarationError) {
+        throw declarationError;
+      }
+
+      const { error: grantsError } =
+        await supabase.rpc(
+          "sync_member_module_grants"
+        );
+
+      if (grantsError) {
+        throw grantsError;
+      }
+
       const secondarySkillKeys = secondarySkills
         .split(",")
         .map((item) =>
@@ -634,7 +720,23 @@ export default function IndividualProfessionalOnboardingClient() {
         await supabase.auth.updateUser({
           data: {
             ...(user.user_metadata || {}),
-            economic_mode: "self_working_individual",
+            registration_path:
+              "individual_professional",
+            operating_profile:
+              "individual_professional",
+            primary_human_identity:
+              primarySkillKey,
+            human_identities: [
+              primarySkillKey,
+            ],
+            human_identity_label:
+              selectedSkillLabel,
+            human_identity_local_label:
+              selectedSkillLabel,
+            role_display_label:
+              selectedSkillLabel,
+            economic_mode:
+              "self_working_individual",
             individual_professional_registration_status:
               "foundation_complete",
             lifetime_free_plan_candidate:
@@ -730,15 +832,44 @@ export default function IndividualProfessionalOnboardingClient() {
             <h2 style={headingStyle}>2. Your skill</h2>
 
             <label style={labelStyle}>
-              Primary skill
-              <input
-                value={primarySkillLabel || primarySkillKey}
-                readOnly
-                style={{
-                  ...inputStyle,
-                  background: "#f1f5f9",
+              Primary skill *
+              <select
+                value={primarySkillKey}
+                onChange={(event) => {
+                  const selectedKey =
+                    event.target.value;
+
+                  const selectedSkill =
+                    INDIVIDUAL_SKILL_OPTIONS.find(
+                      ([key]) =>
+                        key === selectedKey
+                    );
+
+                  setPrimarySkillKey(
+                    selectedKey
+                  );
+
+                  setPrimarySkillLabel(
+                    selectedSkill?.[1] || ""
+                  );
                 }}
-              />
+                style={inputStyle}
+              >
+                <option value="">
+                  Choose your primary skill
+                </option>
+
+                {INDIVIDUAL_SKILL_OPTIONS.map(
+                  ([key, label]) => (
+                    <option
+                      key={key}
+                      value={key}
+                    >
+                      {label}
+                    </option>
+                  )
+                )}
+              </select>
             </label>
 
             <label style={labelStyle}>
