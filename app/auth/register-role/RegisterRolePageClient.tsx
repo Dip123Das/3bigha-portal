@@ -138,14 +138,20 @@ export default function RegisterRolePageClient() {
     );
   }
 
-  async function continueRegistration() {
-    if (!selectedPath) {
+  async function continueRegistration(
+    requestedPath?: RegistrationPath
+  ) {
+    const activePath =
+      requestedPath || selectedPath;
+
+    if (!activePath) {
       setMessage(
         "Choose how you want to use 3Bigha."
       );
       return;
     }
 
+    setSelectedPath(activePath);
     setContinuing(true);
     setMessage("");
 
@@ -176,7 +182,7 @@ export default function RegisterRolePageClient() {
         .updateUser({
           data: {
             ...(session.user.user_metadata || {}),
-            registration_path: selectedPath,
+            registration_path: activePath,
             registration_path_declared_at:
               declaredAt,
           },
@@ -196,7 +202,7 @@ export default function RegisterRolePageClient() {
           );
         });
 
-      if (selectedPath === "customer") {
+      if (activePath === "customer") {
         setContinuing(false);
         router.replace(
           "/onboarding/customer" +
@@ -209,7 +215,7 @@ export default function RegisterRolePageClient() {
         return;
       }
 
-      if (selectedPath === "business") {
+      if (activePath === "business") {
         setContinuing(false);
         router.replace(
           "/onboarding/business?registration=1" +
@@ -317,19 +323,38 @@ export default function RegisterRolePageClient() {
                   {choice.note}
                 </div>
 
-                <div
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    void continueRegistration(
+                      choice.key
+                    );
+                  }}
+                  disabled={continuing}
                   style={{
                     ...choiceButtonStyle,
+                    width: "100%",
+                    border: 0,
+                    cursor: continuing
+                      ? "wait"
+                      : "pointer",
                     background: selected
                       ? "#1d4ed8"
                       : "#e2e8f0",
                     color: selected
                       ? "white"
                       : "#334155",
+                    opacity: continuing
+                      ? 0.65
+                      : 1,
                   }}
                 >
-                  {choice.buttonLabel}
-                </div>
+                  {continuing &&
+                  selectedPath === choice.key
+                    ? "Opening registration…"
+                    : choice.buttonLabel}
+                </button>
               </button>
             );
           })}
@@ -367,7 +392,9 @@ export default function RegisterRolePageClient() {
 
           <button
             type="button"
-            onClick={continueRegistration}
+            onClick={() => {
+              void continueRegistration();
+            }}
             disabled={continuing || !selectedPath}
             style={{
               ...primaryButtonStyle,

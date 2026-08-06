@@ -61,6 +61,27 @@ for (const marker of [
   );
 }
 
+for (const marker of [
+  "requestedPath?: RegistrationPath",
+  "const activePath =",
+  "continueRegistration(",
+  "choice.key",
+  "event.stopPropagation()",
+  "Opening registration…",
+]) {
+  check(
+    entry.includes(marker),
+    `Direct pathway action marker missing: ${marker}`
+  );
+}
+
+check(
+  !entry.includes(
+    "<div\n                  style={{\n                    ...choiceButtonStyle"
+  ),
+  "Registration card still uses a non-interactive fake action."
+);
+
 for (const forbidden of [
   "How do you operate?",
   "What kind of work do you do?",

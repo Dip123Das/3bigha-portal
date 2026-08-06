@@ -42,8 +42,8 @@ for (const marker of [
 
 for (const marker of [
   "\"individual_professional\"",
-  "registration_path: selectedPath",
-  "selectedPath === \"business\"",
+  "registration_path: activePath",
+  "activePath === \"business\"",
   "/onboarding/individual-professional",
   "registrationPath=individual_professional",
 ]) {
