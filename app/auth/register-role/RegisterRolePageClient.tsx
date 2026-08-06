@@ -270,14 +270,13 @@ export default function RegisterRolePageClient() {
               choice.key === selectedPath;
 
             return (
-              <button
+              <article
                 key={choice.key}
-                type="button"
                 onClick={() => {
                   setSelectedPath(choice.key);
                   setMessage("");
                 }}
-                aria-pressed={selected}
+                aria-label={choice.title}
                 style={{
                   ...choiceCardStyle,
                   border: selected
@@ -325,8 +324,7 @@ export default function RegisterRolePageClient() {
 
                 <button
                   type="button"
-                  onClick={(event) => {
-                    event.stopPropagation();
+                  onClick={() => {
                     void continueRegistration(
                       choice.key
                     );
@@ -355,7 +353,7 @@ export default function RegisterRolePageClient() {
                     ? "Opening registration…"
                     : choice.buttonLabel}
                 </button>
-              </button>
+              </article>
             );
           })}
         </div>

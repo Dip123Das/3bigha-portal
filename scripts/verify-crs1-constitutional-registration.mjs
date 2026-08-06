@@ -66,7 +66,6 @@ for (const marker of [
   "const activePath =",
   "continueRegistration(",
   "choice.key",
-  "event.stopPropagation()",
   "Opening registration…",
 ]) {
   check(
@@ -156,4 +155,25 @@ for (const forbidden of [
 
 console.log(
   "CRS-1 constitutional registration assertions passed."
+);
+
+check(
+  entry.includes("<article"),
+  "Registration pathway cards must use non-button containers."
+);
+
+check(
+  entry.includes("requestedPath?: RegistrationPath"),
+  "Direct pathway routing argument is missing."
+);
+
+check(
+  entry.includes("const activePath ="),
+  "Direct pathway routing resolution is missing."
+);
+
+check(
+  entry.includes("void continueRegistration(") &&
+    entry.includes("choice.key"),
+  "Visible pathway action does not invoke direct routing."
 );
