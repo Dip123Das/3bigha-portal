@@ -178,10 +178,9 @@ export default function IndividualProfessionalOnboardingClient() {
           metadata.primary_human_identity || ""
         );
 
-        const isFreshIndividualRegistration =
+        const isExplicitIndividualRegistration =
           registrationPath ===
-            "individual_professional" &&
-          !identityKey;
+            "individual_professional";
 
         const operatingProfile = String(
           metadata.operating_profile ||
@@ -218,7 +217,7 @@ export default function IndividualProfessionalOnboardingClient() {
 
         if (
           !eligibility.eligible &&
-          !isFreshIndividualRegistration
+          !isExplicitIndividualRegistration
         ) {
           router.replace(
             identityRecord?.requires_business_onboarding
@@ -248,13 +247,24 @@ export default function IndividualProfessionalOnboardingClient() {
 
         setOriginalName(profile?.full_name || "");
         setPhone(profile?.phone || "");
+        const existingProfessionalSkillKey =
+          professionalProfile?.primary_skill_key ||
+          (eligibility.eligible ? identityKey : "");
+
+        const existingProfessionalSkillLabel =
+          professionalProfile?.primary_skill_key
+            ? profile?.role_display_label || ""
+            : eligibility.eligible
+              ? identityRecord?.label ||
+                identityLabel
+              : "";
+
         setPrimarySkillKey(
-          professionalProfile?.primary_skill_key || identityKey
+          existingProfessionalSkillKey
         );
+
         setPrimarySkillLabel(
-          profile?.role_display_label ||
-            identityRecord?.label ||
-            identityLabel
+          existingProfessionalSkillLabel
         );
 
         setSecondarySkills(

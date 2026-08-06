@@ -127,7 +127,7 @@ for (const marker of [
 }
 
 for (const marker of [
-  "isFreshIndividualRegistration",
+  "isExplicitIndividualRegistration",
   "INDIVIDUAL_SKILL_OPTIONS",
   "Choose your primary skill",
   "declare_operating_profile",

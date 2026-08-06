@@ -61,7 +61,7 @@ for (const marker of [
   "worker_declaration_accepted",
   "lifetime_free_eligible: false",
   "Continue with Business Registration",
-  "isFreshIndividualRegistration",
+  "isExplicitIndividualRegistration",
   "INDIVIDUAL_SKILL_OPTIONS",
   "Choose your primary skill",
   "declare_operating_profile",
@@ -76,3 +76,25 @@ for (const marker of [
 console.log(
   "BI-4 individual professional eligibility and routing assertions passed."
 );
+
+for (const marker of [
+  "isExplicitIndividualRegistration",
+  "eligibility.eligible ? identityKey :",
+  "existingProfessionalSkillKey",
+]) {
+  if (!onboarding.includes(marker)) {
+    throw new Error(
+      `Multi-identity professional entry marker missing: ${marker}`
+    );
+  }
+}
+
+if (
+  onboarding.includes(
+    "professionalProfile?.primary_skill_key || identityKey"
+  )
+) {
+  throw new Error(
+    "Existing Buyer or business identity can still leak into the professional skill selector."
+  );
+}
