@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { trackVendorConversionClient } from "@/components/marketplace/vendor-conversion-client";
 import type { GeoSelection } from "@/components/geography/GeoSelector";
+import { resolveIndividualProfessionalEligibility } from "@/lib/3bos/identity/individual-professional-eligibility";
 import {
   DECLARABLE_IDENTITY_FAMILIES,
   DECLARABLE_IDENTITIES,
@@ -482,6 +483,15 @@ export default function RegisterRolePageClient() {
       const requiresBusinessOnboarding = operatingProfile === "multi_business_organisation" || selectedBridges.some((item) => item.requiresBusinessOnboarding);
       const requiresProfessionalVerification = selectedBridges.some((item) => item.requiresProfessionalVerification);
 
+      const individualProfessionalEligibility =
+        resolveIndividualProfessionalEligibility({
+          operatingProfile,
+          identityKey,
+          identityLabel: displayLabel,
+          legacyRole: effectiveRole,
+          requiresBusinessOnboarding,
+        });
+
       const { error: authError } = await supabase.auth.updateUser({
         data: {
           ...(user.user_metadata || {}),
@@ -603,6 +613,13 @@ export default function RegisterRolePageClient() {
           `/onboarding/business?registration=1&returnTo=${encodeURIComponent(
             onboardingReturnTo
           )}`
+        );
+      } else if (individualProfessionalEligibility.eligible) {
+        const individualReturnTo = next || "/dashboard";
+
+        router.replace(
+          "/onboarding/individual-professional?returnTo=" +
+            encodeURIComponent(individualReturnTo)
         );
       } else {
         router.replace(next || "/dashboard");
