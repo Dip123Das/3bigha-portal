@@ -1,5 +1,6 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import {
+  getDefaultPostLoginPath,
   resolveAccessForUser,
   type AccessContext,
   type VendorCapabilityKey,
@@ -327,6 +328,28 @@ export async function resolveCanonicalIdentity(
     identityProjection.unifiedWorkspacePaths[0] ||
     "/dashboard/workspace";
 
+  const hasCanonicalIdentity =
+    identityProjection.identities.length > 0;
+
+  /*
+   * CRS-5C2 LEGACY COMPATIBILITY BRIDGE
+   *
+   * Existing production members predate canonical identity
+   * persistence. Until they explicitly acquire canonical
+   * identity keys, preserve their existing dashboard contract
+   * through the established Access resolver.
+   *
+   * This fallback is deliberately centralized here.
+   * Post-login and /dashboard must not recreate role routing.
+   */
+  const compatibilityDefaultPath =
+    getDefaultPostLoginPath(access);
+
+  const projectedNavigationModules =
+    hasCanonicalIdentity
+      ? identityProjection.navigationModules
+      : access.vendorCapabilities;
+
   const businessVerification = normalizeVerification(
     business.business_verification_status ||
       business.verification_status ||
@@ -363,14 +386,9 @@ export async function resolveCanonicalIdentity(
     completionStatus: resolveCompletion(profile, business),
     workspaceProjection: {
       defaultPath:
-        identityProjection.identities.length > 0
+        hasCanonicalIdentity
           ? canonicalDefaultPath
-          : access.isAdmin
-            ? "/admin/dashboard"
-            : access.role === "banker" ||
-                access.role === "finance_banker"
-              ? "/dashboard/banker"
-              : "/dashboard/workspace",
+          : compatibilityDefaultPath,
       unifiedPath: canonicalUnifiedPath,
       capabilities: access.vendorCapabilities,
     },
@@ -380,10 +398,8 @@ export async function resolveCanonicalIdentity(
       businessIdentities: businessIdentity,
     },
     navigationProjection: buildProjectedNavigation(
-      identityProjection.navigationModules,
-      identityProjection.identities.length > 0
-        ? canonicalDefaultPath
-        : "/dashboard/workspace",
+      projectedNavigationModules,
+      canonicalUnifiedPath,
       access
     ),
     permissionProjection: access,
