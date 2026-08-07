@@ -45,6 +45,10 @@ export type CanonicalIdentityProjectionSet = {
   identities: CanonicalIdentityRuntimeProjection[];
 
   compatibilityModules: string[];
+
+  dashboardPaths: string[];
+  unifiedWorkspacePaths: string[];
+
   navigationModules: string[];
   marketplaceModules: string[];
   rfqModules: string[];
@@ -63,6 +67,8 @@ export async function loadIdentityProjectionSet(
     return {
       identities: [],
       compatibilityModules: [],
+      dashboardPaths: [],
+      unifiedWorkspacePaths: [],
       navigationModules: [],
       marketplaceModules: [],
       rfqModules: [],
@@ -93,6 +99,22 @@ export async function loadIdentityProjectionSet(
     compatibilityModules: merge(
       projections.map((projection) =>
         projection.compatibilityModules
+      )
+    ),
+
+    dashboardPaths: Array.from(
+      new Set(
+        projections
+          .map((projection) => projection.dashboardPath)
+          .filter(Boolean)
+      )
+    ),
+
+    unifiedWorkspacePaths: Array.from(
+      new Set(
+        projections
+          .map((projection) => projection.unifiedWorkspacePath)
+          .filter(Boolean)
       )
     ),
 

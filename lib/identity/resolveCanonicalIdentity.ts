@@ -4,6 +4,9 @@ import {
   type AccessContext,
   type VendorCapabilityKey,
 } from "@/lib/access/resolveAccess";
+import {
+  loadIdentityProjectionSet,
+} from "@/lib/identity/loadIdentityProjections";
 
 export type CanonicalVerificationState =
   | "not_started"
@@ -121,73 +124,109 @@ function roleLabel(value: unknown) {
   return normalized.replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function resolveDefaultWorkspacePath(access: AccessContext) {
-  if (access.isAdmin) return "/admin/dashboard";
+function navigationItemForModule(
+  moduleKey: string
+): CanonicalNavigationItem | null {
+  switch (moduleKey) {
+    case "materials":
+      return {
+        key: "materials",
+        label: "Materials",
+        href: "/dashboard/vendor/materials",
+      };
 
-  if (
-    access.role === "banker" ||
-    access.role === "finance_banker"
-  ) {
-    return "/dashboard/banker";
+    case "services":
+      return {
+        key: "services",
+        label: "Services",
+        href: "/dashboard/vendor/services",
+      };
+
+    case "rentals":
+      return {
+        key: "rentals",
+        label: "Rentals",
+        href: "/dashboard/vendor/rentals",
+      };
+
+    case "property_owner":
+    case "property_builder":
+      return {
+        key: "property",
+        label: "Property",
+        href: "/dashboard/vendor/property",
+      };
+
+    case "blog_author":
+      return {
+        key: "blog",
+        label: "Blog / News",
+        href: "/blog/my",
+      };
+
+    case "investor":
+      return {
+        key: "investment",
+        label: "Investment",
+        href: "/dashboard/investor",
+      };
+
+    default:
+      return null;
   }
-
-  if (access.role === "hub_vendor") return "/dashboard";
-
-  if (
-    access.role === "vendor" ||
-    access.role === "builder" ||
-    access.role === "blogger"
-  ) {
-    return "/dashboard/vendor";
-  }
-
-  return "/dashboard";
 }
 
-function buildNavigation(access: AccessContext): CanonicalNavigationItem[] {
+function buildProjectedNavigation(
+  navigationModules: string[],
+  defaultPath: string,
+  access: AccessContext
+): CanonicalNavigationItem[] {
   if (access.isAdmin) {
     return [
-      { key: "admin", label: "Admin Dashboard", href: "/admin/dashboard" },
-      { key: "workspace", label: "Unified Workspace", href: "/dashboard/workspace" },
-      { key: "profile", label: "My Identity", href: "/settings" },
+      {
+        key: "admin",
+        label: "Admin Dashboard",
+        href: "/admin/dashboard",
+      },
+      {
+        key: "workspace",
+        label: "Unified Workspace",
+        href: "/dashboard/workspace",
+      },
+      {
+        key: "profile",
+        label: "My Identity",
+        href: "/settings",
+      },
     ];
   }
 
   const items: CanonicalNavigationItem[] = [
-    { key: "workspace", label: "Unified Workspace", href: "/dashboard/workspace" },
-    { key: "profile", label: "My Identity", href: "/settings" },
+    {
+      key: "workspace",
+      label: "Unified Workspace",
+      href: defaultPath || "/dashboard/workspace",
+    },
+    {
+      key: "profile",
+      label: "My Identity",
+      href: "/settings",
+    },
   ];
 
-  if (access.vendorCapabilities.includes("materials")) {
-    items.push({
-      key: "materials",
-      label: "Materials",
-      href: "/dashboard/vendor/materials",
-    });
-  }
-  if (access.vendorCapabilities.includes("services")) {
-    items.push({
-      key: "services",
-      label: "Services",
-      href: "/dashboard/vendor/services",
-    });
-  }
-  if (access.vendorCapabilities.includes("rentals")) {
-    items.push({
-      key: "rentals",
-      label: "Rentals",
-      href: "/dashboard/vendor/rentals",
-    });
-  }
-  if (
-    access.vendorCapabilities.includes("property_owner") ||
-    access.vendorCapabilities.includes("property_builder")
-  ) {
-    items.push({
-      key: "property",
-      label: "Property",
-      href: "/dashboard/vendor/property",
-    });
+  for (const moduleKey of navigationModules) {
+    const item = navigationItemForModule(moduleKey);
+
+    if (
+      item &&
+      !items.some(
+        (existing) =>
+          existing.key === item.key ||
+          existing.href === item.href
+      )
+    ) {
+      items.push(item);
+    }
   }
 
   return items;
@@ -266,6 +305,28 @@ export async function resolveCanonicalIdentity(
   const individualIdentity = stringArray(
     business.individual_identities
   );
+
+  const identityProjection =
+    await loadIdentityProjectionSet(
+      supabase,
+      Array.from(
+        new Set([
+          ...businessIdentity,
+          ...individualIdentity,
+        ])
+      )
+    );
+
+  const canonicalDefaultPath =
+    identityProjection.dashboardPaths.length === 1
+      ? identityProjection.dashboardPaths[0]
+      : identityProjection.unifiedWorkspacePaths[0] ||
+        "/dashboard/workspace";
+
+  const canonicalUnifiedPath =
+    identityProjection.unifiedWorkspacePaths[0] ||
+    "/dashboard/workspace";
+
   const businessVerification = normalizeVerification(
     business.business_verification_status ||
       business.verification_status ||
@@ -301,8 +362,16 @@ export async function resolveCanonicalIdentity(
     ),
     completionStatus: resolveCompletion(profile, business),
     workspaceProjection: {
-      defaultPath: resolveDefaultWorkspacePath(access),
-      unifiedPath: "/dashboard/workspace",
+      defaultPath:
+        identityProjection.identities.length > 0
+          ? canonicalDefaultPath
+          : access.isAdmin
+            ? "/admin/dashboard"
+            : access.role === "banker" ||
+                access.role === "finance_banker"
+              ? "/dashboard/banker"
+              : "/dashboard/workspace",
+      unifiedPath: canonicalUnifiedPath,
       capabilities: access.vendorCapabilities,
     },
     marketplaceProjection: {
@@ -310,7 +379,13 @@ export async function resolveCanonicalIdentity(
       businessName,
       businessIdentities: businessIdentity,
     },
-    navigationProjection: buildNavigation(access),
+    navigationProjection: buildProjectedNavigation(
+      identityProjection.navigationModules,
+      identityProjection.identities.length > 0
+        ? canonicalDefaultPath
+        : "/dashboard/workspace",
+      access
+    ),
     permissionProjection: access,
     profile,
     businessProfile: business,
