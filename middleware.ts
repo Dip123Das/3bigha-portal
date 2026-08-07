@@ -199,6 +199,128 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(registrationUrl);
   }
 
+  /*
+   * CRS-3_REGISTRATION_COMPLETION_GATE
+   *
+   * Authentication alone never grants workspace access.
+   * A member must finish the registration pathway they explicitly selected
+   * before any dashboard can open.
+   */
+  const registrationPath = String(
+    data.user.user_metadata?.registration_path || ""
+  );
+
+  const individualRegistrationStatus = String(
+    data.user.user_metadata
+      ?.individual_professional_registration_status || ""
+  );
+
+  const isDashboardRoute =
+    authPathname === "/dashboard" ||
+    authPathname.startsWith("/dashboard/");
+
+  const isAdministrativeIdentity =
+    accessProfile?.role === "master_admin" ||
+    accessProfile?.role === "blog_admin";
+
+  if (isDashboardRoute && !isAdministrativeIdentity) {
+    const returnTo =
+      authPathname + req.nextUrl.search;
+
+    if (registrationPath === "individual_professional") {
+      if (
+        individualRegistrationStatus !==
+        "foundation_complete"
+      ) {
+        const onboardingUrl =
+          req.nextUrl.clone();
+
+        onboardingUrl.pathname =
+          "/onboarding/individual-professional";
+
+        onboardingUrl.search = "";
+        onboardingUrl.searchParams.set(
+          "registrationPath",
+          "individual_professional"
+        );
+        onboardingUrl.searchParams.set(
+          "returnTo",
+          returnTo
+        );
+
+        return NextResponse.redirect(
+          onboardingUrl
+        );
+      }
+    } else if (registrationPath === "customer") {
+      if (
+        accessProfile?.onboarding_completed !== true
+      ) {
+        const onboardingUrl =
+          req.nextUrl.clone();
+
+        onboardingUrl.pathname =
+          "/onboarding/customer";
+
+        onboardingUrl.search = "";
+        onboardingUrl.searchParams.set(
+          "returnTo",
+          returnTo
+        );
+
+        return NextResponse.redirect(
+          onboardingUrl
+        );
+      }
+    } else if (registrationPath === "business") {
+      if (
+        accessProfile?.onboarding_completed !== true
+      ) {
+        const onboardingUrl =
+          req.nextUrl.clone();
+
+        onboardingUrl.pathname =
+          "/onboarding/business";
+
+        onboardingUrl.search = "";
+        onboardingUrl.searchParams.set(
+          "registration",
+          "1"
+        );
+        onboardingUrl.searchParams.set(
+          "registrationPath",
+          "business"
+        );
+        onboardingUrl.searchParams.set(
+          "returnTo",
+          returnTo
+        );
+
+        return NextResponse.redirect(
+          onboardingUrl
+        );
+      }
+    } else if (
+      accessProfile?.onboarding_completed !== true
+    ) {
+      const registrationUrl =
+        req.nextUrl.clone();
+
+      registrationUrl.pathname =
+        "/auth/register-role";
+
+      registrationUrl.search = "";
+      registrationUrl.searchParams.set(
+        "next",
+        returnTo
+      );
+
+      return NextResponse.redirect(
+        registrationUrl
+      );
+    }
+  }
+
   if (pathname.startsWith("/admin")) {
     const profile = accessProfile;
 

@@ -178,29 +178,20 @@ export default function RegisterRolePageClient() {
       const declaredAt =
         new Date().toISOString();
 
-      void supabase.auth
-        .updateUser({
-          data: {
-            ...(session.user.user_metadata || {}),
-            registration_path: activePath,
-            registration_path_declared_at:
-              declaredAt,
-          },
-        })
-        .then(({ error }) => {
-          if (error) {
-            console.error(
-              "REGISTRATION_PATH_METADATA_UPDATE_FAILED",
-              error
-            );
-          }
-        })
-        .catch((error) => {
-          console.error(
-            "REGISTRATION_PATH_METADATA_UPDATE_FAILED",
-            error
-          );
-        });
+      const {
+        error: registrationPathError,
+      } = await supabase.auth.updateUser({
+        data: {
+          ...(session.user.user_metadata || {}),
+          registration_path: activePath,
+          registration_path_declared_at:
+            declaredAt,
+        },
+      });
+
+      if (registrationPathError) {
+        throw registrationPathError;
+      }
 
       if (activePath === "customer") {
         setContinuing(false);
