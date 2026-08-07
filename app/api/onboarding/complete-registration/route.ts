@@ -5,6 +5,9 @@ import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import {
   resolveRegistrationCompatibilityProjection,
 } from "@/lib/registration/resolveRegistrationCompatibilityProjection";
+import {
+  loadIdentityProjectionSet,
+} from "@/lib/identity/loadIdentityProjections";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
 import type { BtceCapabilityClaim } from "@/lib/btce/shared/btce-types";
 import {
@@ -29,6 +32,8 @@ type CompletionProfileRow = {
 type CompletionBusinessRow = {
   user_id: string;
   nature_of_business: string[] | null;
+  business_identities: string[] | null;
+  individual_identities: string[] | null;
   contact_person: string | null;
   phone_primary: string | null;
   city: string | null;
@@ -196,6 +201,8 @@ export async function POST() {
           [
             "user_id",
             "nature_of_business",
+            "business_identities",
+            "individual_identities",
             "contact_person",
             "phone_primary",
             "city",
@@ -305,6 +312,23 @@ export async function POST() {
     let projection;
 
     try {
+      const selectedIdentityKeys = Array.from(
+        new Set([
+          ...(Array.isArray(business.business_identities)
+            ? business.business_identities
+            : []),
+          ...(Array.isArray(business.individual_identities)
+            ? business.individual_identities
+            : []),
+        ])
+      );
+
+      const identityProjection =
+        await loadIdentityProjectionSet(
+          supabase,
+          selectedIdentityKeys
+        );
+
       projection =
         resolveRegistrationCompatibilityProjection({
           role: profile.role,
@@ -315,6 +339,8 @@ export async function POST() {
           )
             ? business.nature_of_business
             : [],
+          projectedModules:
+            identityProjection.compatibilityModules,
           contactPerson: business.contact_person,
           phonePrimary: business.phone_primary,
           city: business.city,

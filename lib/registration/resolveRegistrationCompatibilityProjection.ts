@@ -11,6 +11,7 @@ export type RegistrationCompatibilityInput = {
   portalUseReason?: string | null;
   roleDisplayLabel?: string | null;
   natureOfBusiness?: string[] | null;
+  projectedModules?: string[] | null;
   contactPerson?: string | null;
   phonePrimary?: string | null;
   city?: string | null;
@@ -122,61 +123,16 @@ function deriveRoleDisplayLabel(
   return "Multi-Service Vendor";
 }
 
-function deriveModuleGrants(
-  role: RegistrationCompatibilityRole,
-  portalUseReason: string,
-  nature: string[]
+function projectedModuleGrants(
+  value: string[] | null | undefined
 ) {
-  if (
-    role === "hub_vendor" ||
-    portalUseReason === "operate_multiple_businesses"
-  ) {
-    return [
-      "materials",
-      "services",
-      "rentals",
-      "property_owner",
-      "property_builder",
-      "blog_author",
-      "investor",
-    ];
-  }
-
-  if (
-    role === "builder" ||
-    portalUseReason === "manage_builder_projects"
-  ) {
-    return ["property_builder"];
-  }
-
-  if (
-    role === "blogger" ||
-    portalUseReason === "publish_blog_or_news"
-  ) {
-    return ["blog_author"];
-  }
-
-  if (
-    role === "investor" ||
-    portalUseReason === "invest_in_opportunities"
-  ) {
-    return ["investor"];
-  }
-
-  if (role === "buyer") {
-    return [];
-  }
-
-  const grants = nature.flatMap((item) => {
-    if (item === "materials") return ["materials"];
-    if (item === "services") return ["services"];
-    if (item === "rentals") return ["rentals"];
-    if (item === "property") return ["property_owner"];
-    if (item === "blog") return ["blog_author"];
-    return [];
-  });
-
-  return Array.from(new Set(grants));
+  return Array.from(
+    new Set(
+      (Array.isArray(value) ? value : [])
+        .map((item) => clean(item).toLowerCase())
+        .filter(Boolean)
+    )
+  );
 }
 
 /**
@@ -204,10 +160,8 @@ export function resolveRegistrationCompatibilityProjection(
     input.roleDisplayLabel
   );
 
-  const moduleGrants = deriveModuleGrants(
-    role,
-    portalUseReason,
-    nature
+  const moduleGrants = projectedModuleGrants(
+    input.projectedModules
   );
 
   return {
