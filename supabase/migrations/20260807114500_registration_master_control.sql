@@ -1156,7 +1156,7 @@ values
     '/onboarding/business?registration=1',
     true,
     'Complete-contract activity is a business operating model.',
-    'civil_contractor',
+    'turnkey_contractor',
     10,
     true
   ),
@@ -1167,7 +1167,7 @@ values
     '/onboarding/business?registration=1',
     true,
     'Supplying workers is business activity rather than an individual self-working trade.',
-    'contractor',
+    'labour_contractor',
     20,
     true
   ),
@@ -1178,7 +1178,7 @@ values
     '/onboarding/business?registration=1',
     true,
     'Labour contracting belongs to Business Registration.',
-    'contractor',
+    'labour_contractor',
     30,
     true
   ),
@@ -1189,7 +1189,7 @@ values
     '/onboarding/business?registration=1',
     true,
     'Managing organised work teams is a business operating model.',
-    'contractor',
+    'labour_contractor',
     40,
     true
   ),
@@ -1200,7 +1200,7 @@ values
     '/onboarding/business?registration=1',
     true,
     'Construction companies belong to the Business / Organisation pathway.',
-    'infrastructure_company',
+    'turnkey_contractor',
     50,
     true
   ),
@@ -1211,7 +1211,7 @@ values
     '/onboarding/business?registration=1',
     true,
     'Service companies belong to the Business / Organisation pathway.',
-    'contractor',
+    'facility_management_company',
     60,
     true
   )
