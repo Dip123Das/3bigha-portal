@@ -18,6 +18,8 @@ import {
   resolveRegistrationReadiness,
   type BusinessProofStatus as CanonicalBusinessProofStatus,
 } from "@/lib/registration/resolveRegistrationReadiness";
+import { useRegistrationMasterData } from "@/lib/registration/useRegistrationMasterData";
+
 import {
   legalProofValidityIsComplete,
   legalProofValidityIsExpired,
@@ -364,222 +366,6 @@ type VendorCompletenessRow = {
   updated_at: string | null;
 };
 
-const LEGAL_CONSTITUTION_OPTIONS = [
-  { key: "proprietorship", label: "Proprietorship" },
-  { key: "partnership", label: "Partnership" },
-  { key: "llp", label: "LLP" },
-  { key: "private_limited", label: "Private Limited" },
-  { key: "public_limited", label: "Public Limited" },
-  { key: "opc", label: "OPC" },
-  { key: "society", label: "Society" },
-  { key: "trust", label: "Trust" },
-  { key: "government", label: "Government" },
-  { key: "cooperative", label: "Cooperative" },
-  { key: "individual_professional", label: "Individual Professional" },
-] as const;
-
-type BusinessIdentityOption = {
-  key: string;
-  label: string;
-  nature: Array<"property" | "materials" | "services" | "rentals" | "blog">;
-};
-
-type BusinessIdentityGroup = {
-  title: string;
-  options: BusinessIdentityOption[];
-};
-
-const BUSINESS_IDENTITY_GROUPS: BusinessIdentityGroup[] = [
-  {
-    title: "Construction & Infrastructure",
-    options: [
-      { key: "manufacturer", label: "Manufacturer", nature: ["materials"] },
-      { key: "builder_developer", label: "Builder / Developer", nature: ["property", "services"] },
-      { key: "civil_contractor", label: "Civil Contractor", nature: ["services"] },
-      { key: "epc_contractor", label: "EPC Contractor", nature: ["services"] },
-      { key: "interior_contractor", label: "Interior Contractor", nature: ["services"] },
-      { key: "fabricator", label: "Fabricator", nature: ["materials", "services"] },
-      { key: "infrastructure_company", label: "Infrastructure Company", nature: ["services"] },
-    ],
-  },
-  {
-    title: "Trading & Distribution",
-    options: [
-      { key: "manufacturer", label: "Manufacturer", nature: ["materials"] },
-      { key: "wholesaler", label: "Wholesaler", nature: ["materials"] },
-      { key: "distributor", label: "Distributor", nature: ["materials"] },
-      { key: "dealer", label: "Dealer", nature: ["materials"] },
-      { key: "retailer", label: "Retailer", nature: ["materials"] },
-      { key: "supplier", label: "Supplier", nature: ["materials"] },
-      { key: "importer", label: "Importer", nature: ["materials"] },
-      { key: "exporter", label: "Exporter", nature: ["materials"] },
-      { key: "stockist", label: "Stockist", nature: ["materials"] },
-    ],
-  },
-  {
-    title: "Professional Services",
-    options: [
-      { key: "architect", label: "Architect", nature: ["services"] },
-      { key: "structural_engineer", label: "Structural Engineer", nature: ["services"] },
-      { key: "civil_engineer", label: "Civil Engineer", nature: ["services"] },
-      { key: "surveyor", label: "Surveyor (Amin)", nature: ["services"] },
-      { key: "valuer", label: "Valuer", nature: ["services"] },
-      { key: "consultant", label: "Consultant", nature: ["services"] },
-      { key: "chartered_accountant", label: "Chartered Accountant", nature: ["services"] },
-      { key: "advocate", label: "Advocate", nature: ["services"] },
-      { key: "project_management_consultant", label: "Project Management Consultant", nature: ["services"] },
-    ],
-  },
-  {
-    title: "Equipment & Logistics",
-    options: [
-      { key: "equipment_owner", label: "Equipment Owner", nature: ["rentals"] },
-      { key: "equipment_rental_company", label: "Equipment Rental Company", nature: ["rentals"] },
-      { key: "transport_company", label: "Transport Company", nature: ["services", "rentals"] },
-      { key: "fleet_owner", label: "Fleet Owner", nature: ["rentals"] },
-      { key: "warehouse_operator", label: "Warehouse Operator", nature: ["services", "rentals"] },
-    ],
-  },
-  {
-    title: "Property",
-    options: [
-      { key: "property_owner", label: "Property Owner", nature: ["property"] },
-      { key: "builder_developer", label: "Builder / Developer", nature: ["property", "services"] },
-      { key: "real_estate_broker", label: "Real Estate Broker", nature: ["property"] },
-      { key: "property_consultant", label: "Property Consultant", nature: ["property", "services"] },
-    ],
-  },
-  {
-    title: "Finance",
-    options: [
-      { key: "bank", label: "Bank", nature: ["services"] },
-      { key: "nbfc", label: "NBFC", nature: ["services"] },
-      { key: "housing_finance_company", label: "Housing Finance Company", nature: ["services"] },
-      { key: "insurance_company", label: "Insurance Company", nature: ["services"] },
-      { key: "financial_consultant", label: "Financial Consultant", nature: ["services"] },
-    ],
-  },
-  {
-    title: "Manufacturing & Industry",
-    options: [
-      { key: "factory", label: "Factory", nature: ["materials"] },
-      { key: "processing_unit", label: "Processing Unit", nature: ["materials"] },
-      { key: "workshop", label: "Workshop", nature: ["materials", "services"] },
-      { key: "msme_unit", label: "MSME Unit", nature: ["materials", "services"] },
-      { key: "industrial_enterprise", label: "Industrial Enterprise", nature: ["materials", "services"] },
-    ],
-  },
-  {
-    title: "Agriculture",
-    options: [
-      { key: "farmer", label: "Farmer", nature: ["materials"] },
-      { key: "nursery", label: "Nursery", nature: ["materials"] },
-      { key: "agri_supplier", label: "Agri Supplier", nature: ["materials"] },
-      { key: "cold_storage", label: "Cold Storage", nature: ["services", "rentals"] },
-      { key: "food_processing", label: "Food Processing", nature: ["materials"] },
-    ],
-  },
-  {
-    title: "Utilities",
-    options: [
-      { key: "water_supplier", label: "Water Supplier", nature: ["materials", "services"] },
-      { key: "electricity_contractor", label: "Electricity Contractor", nature: ["services"] },
-      { key: "solar_company", label: "Solar Company", nature: ["materials", "services"] },
-      { key: "telecom_contractor", label: "Telecom Contractor", nature: ["services"] },
-    ],
-  },
-  {
-    title: "Media & Digital",
-    options: [
-      { key: "blogger", label: "Blogger", nature: ["blog"] },
-      { key: "writer", label: "Writer", nature: ["blog"] },
-      { key: "publisher", label: "Publisher", nature: ["blog"] },
-      { key: "digital_agency", label: "Digital Agency", nature: ["services", "blog"] },
-      { key: "software_company", label: "Software Company", nature: ["services"] },
-    ],
-  },
-  {
-    title: "Others",
-    options: [
-      { key: "ngo_trust", label: "NGO / Trust", nature: ["services"] },
-      { key: "educational_institution", label: "Educational Institution", nature: ["services"] },
-      { key: "government_organisation", label: "Government Organisation", nature: ["services"] },
-      { key: "cooperative_society", label: "Cooperative Society", nature: ["services"] },
-      { key: "startup", label: "Startup", nature: ["services"] },
-      { key: "individual_professional", label: "Individual Professional", nature: ["services"] },
-    ],
-  },
-];
-
-const BUSINESS_SECTOR_CARDS = [
-  { key: "construction_infrastructure", title: "Construction & Infrastructure", description: "Building, contracting, fabrication and infrastructure delivery.", symbol: "🏗️" },
-  { key: "trading_distribution", title: "Trading & Distribution", description: "Manufacturing, supply, wholesale, retail and distribution.", symbol: "📦" },
-  { key: "professional_services", title: "Professional Services", description: "Architecture, engineering, valuation, legal and advisory work.", symbol: "🧭" },
-  { key: "equipment_logistics", title: "Equipment & Logistics", description: "Equipment, transport, fleets, rentals and storage.", symbol: "🚚" },
-  { key: "property", title: "Property", description: "Ownership, development, brokerage and property consultancy.", symbol: "🏠" },
-  { key: "finance", title: "Finance", description: "Banking, lending, insurance and financial guidance.", symbol: "₹" },
-  { key: "manufacturing_industry", title: "Manufacturing & Industry", description: "Factories, workshops, processing and industrial enterprises.", symbol: "🏭" },
-  { key: "agriculture", title: "Agriculture", description: "Farming, nursery, agricultural supply, storage and processing.", symbol: "🌾" },
-  { key: "utilities", title: "Utilities", description: "Water, electricity, solar and telecom services.", symbol: "⚡" },
-  { key: "media_digital", title: "Media & Digital", description: "Writing, publishing, digital agencies and software.", symbol: "💻" },
-  { key: "others", title: "Others", description: "Institutions, cooperatives, startups and other organisations.", symbol: "🧩" },
-] as const;
-
-const BUSINESS_GROUP_BY_SECTOR = new Map([
-  ["construction_infrastructure", "Construction & Infrastructure"],
-  ["trading_distribution", "Trading & Distribution"],
-  ["professional_services", "Professional Services"],
-  ["equipment_logistics", "Equipment & Logistics"],
-  ["property", "Property"],
-  ["finance", "Finance"],
-  ["manufacturing_industry", "Manufacturing & Industry"],
-  ["agriculture", "Agriculture"],
-  ["utilities", "Utilities"],
-  ["media_digital", "Media & Digital"],
-  ["others", "Others"],
-]);
-
-const INDIVIDUAL_IDENTITY_OPTIONS = [
-  { key: "buyer", label: "Buyer" },
-  { key: "vendor_hub", label: "Vendor Hub" },
-  { key: "builder", label: "Builder" },
-  { key: "contractor", label: "Contractor" },
-  { key: "property_owner", label: "Property Owner" },
-  { key: "equipment_owner", label: "Equipment Owner" },
-  { key: "architect", label: "Architect" },
-  { key: "civil_engineer", label: "Civil Engineer" },
-  { key: "structural_engineer", label: "Structural Engineer" },
-  { key: "surveyor", label: "Surveyor (Amin)" },
-  { key: "valuer", label: "Valuer" },
-  { key: "banker", label: "Banker" },
-  { key: "financial_consultant", label: "Financial Consultant" },
-  { key: "accountant", label: "Chartered Accountant / Accountant" },
-  { key: "advocate", label: "Advocate" },
-  { key: "consultant", label: "Consultant" },
-  { key: "project_management_consultant", label: "Project Management Consultant" },
-  { key: "driver", label: "Driver" },
-  { key: "operator", label: "Operator" },
-  { key: "skilled_professional", label: "Skilled Professional" },
-  { key: "writer_author", label: "Writer / Author" },
-  { key: "farmer", label: "Farmer" },
-  { key: "transport_operator", label: "Transport Operator" },
-  { key: "other_individual_professional", label: "Other Individual Professional" },
-] as const;
-
-const BUSINESS_IDENTITY_INDEX = new Map(
-  BUSINESS_IDENTITY_GROUPS.flatMap((group) => group.options).map((option) => [option.key, option])
-);
-
-function deriveNatureFromBusinessIdentities(identities: string[]) {
-  return Array.from(
-    new Set(
-      identities.flatMap(
-        (identity) => BUSINESS_IDENTITY_INDEX.get(identity)?.nature || []
-      )
-    )
-  );
-}
-
 function safeArr(v: any): string[] {
   return Array.isArray(v) ? v.filter(Boolean) : [];
 }
@@ -811,15 +597,39 @@ export default function BusinessOnboardingPageClient() {
   const router = useRouter();
   const sp = useSearchParams();
 
+  const {
+    loading: registrationMasterLoading,
+    error: registrationMasterError,
+    legalConstitutions,
+    businessSectors,
+    sectorMappings,
+    businessPersonalRoles,
+    businessIdentitiesForSector,
+    natureForBusinessIdentities,
+    identityLabel,
+  } = useRegistrationMasterData();
+
   const rawReturnTo = sp.get("returnTo") || "/dashboard/vendor";
   const streamlinedRegistration = sp.get("registration") === "1";
   const returnTo =
     rawReturnTo === "/dashboard" ? "/dashboard/vendor" : rawReturnTo;
   const roleFromQuery = (sp.get("role") || "").trim().toLowerCase();
+  const preselectedBusinessIdentityKey = (
+    sp.get("businessIdentity") || ""
+  ).trim();
+  const redirectTriggerFromQuery = (
+    sp.get("redirectTrigger") || ""
+  ).trim();
   const onboardingPath = `/onboarding/business?${new URLSearchParams({
     returnTo: rawReturnTo,
     ...(streamlinedRegistration ? { registration: "1" } : {}),
     ...(roleFromQuery ? { role: roleFromQuery } : {}),
+    ...(preselectedBusinessIdentityKey
+      ? { businessIdentity: preselectedBusinessIdentityKey }
+      : {}),
+    ...(redirectTriggerFromQuery
+      ? { redirectTrigger: redirectTriggerFromQuery }
+      : {}),
   }).toString()}`;
 
   const [loading, setLoading] = useState(true);
@@ -1165,6 +975,62 @@ async function fetchCompleteness(uid: string) {
     };
   }, [supabase, returnTo, roleFromQuery]);
 
+  useEffect(() => {
+    if (!registrationMasterError) return;
+
+    setMsg((current) =>
+      current ||
+      `Registration master could not be loaded: ${registrationMasterError}`
+    );
+  }, [registrationMasterError]);
+
+  useEffect(() => {
+    if (
+      registrationMasterLoading ||
+      !preselectedBusinessIdentityKey
+    ) {
+      return;
+    }
+
+    setBp((current) => {
+      const existing = safeArr(current.business_identities);
+
+      if (existing.includes(preselectedBusinessIdentityKey)) {
+        return current;
+      }
+
+      const nextIdentities = [
+        ...existing,
+        preselectedBusinessIdentityKey,
+      ];
+
+      return {
+        ...current,
+        business_identities: nextIdentities,
+        nature_of_business:
+          natureForBusinessIdentities(nextIdentities),
+      };
+    });
+
+    const matchedSectors = sectorMappings
+      .filter(
+        (mapping) =>
+          mapping.identity_key === preselectedBusinessIdentityKey
+      )
+      .map((mapping) => mapping.sector_key);
+
+    if (matchedSectors.length) {
+      setSelectedBusinessSectors((current) =>
+        Array.from(new Set([...current, ...matchedSectors]))
+      );
+    }
+  }, [
+    registrationMasterLoading,
+    preselectedBusinessIdentityKey,
+    sectorMappings,
+    natureForBusinessIdentities,
+  ]);
+
   function toggleBusinessSector(key: string) {
     setSelectedBusinessSectors((current) =>
       current.includes(key)
@@ -1174,25 +1040,15 @@ async function fetchCompleteness(uid: string) {
   }
 
   function identitiesForSector(sectorKey: string) {
-    const groupTitle = BUSINESS_GROUP_BY_SECTOR.get(sectorKey);
-    return BUSINESS_IDENTITY_GROUPS.find(
-      (group) => group.title === groupTitle
-    )?.options || [];
+    return businessIdentitiesForSector(sectorKey);
   }
 
   function businessIdentityLabel(key: string) {
-    return (
-      BUSINESS_IDENTITY_GROUPS.flatMap((group) => group.options)
-        .find((option) => option.key === key)?.label || key
-    );
+    return identityLabel(key);
   }
 
   function individualIdentityLabel(key: string) {
-    return (
-      INDIVIDUAL_IDENTITY_OPTIONS.find(
-        (option) => option.key === key
-      )?.label || key
-    );
+    return identityLabel(key);
   }
 
   function toggleBusinessIdentity(key: string) {
@@ -1205,7 +1061,7 @@ async function fetchCompleteness(uid: string) {
       return {
         ...current,
         business_identities: nextIdentities,
-        nature_of_business: deriveNatureFromBusinessIdentities(nextIdentities),
+        nature_of_business: natureForBusinessIdentities(nextIdentities),
       };
     });
   }
@@ -2836,7 +2692,7 @@ async function fetchCompleteness(uid: string) {
                   How is your organisation legally constituted? Select one.
                 </p>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 9 }}>
-                  {LEGAL_CONSTITUTION_OPTIONS.map((option) => {
+                  {legalConstitutions.map((option) => {
                     const selected = bp.business_type === option.key;
                     return (
                       <label key={option.key} style={{
@@ -2869,7 +2725,7 @@ async function fetchCompleteness(uid: string) {
                   Choose only the sectors in which your organisation actually works. You may select more than one.
                 </p>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(225px, 1fr))", gap: 10 }}>
-                  {BUSINESS_SECTOR_CARDS.map((sector) => {
+                  {businessSectors.map((sector) => {
                     const selected = selectedBusinessSectors.includes(sector.key);
                     return (
                       <button
@@ -2891,11 +2747,11 @@ async function fetchCompleteness(uid: string) {
                           cursor: "pointer",
                         }}
                       >
-                        <span style={{ fontSize: 24 }}>{sector.symbol}</span>
+                        <span style={{ fontSize: 24 }}>{sector.symbol || "•"}</span>
                         <span>
                           <strong style={{ display: "block", color: "#0f172a", marginBottom: 3 }}>{sector.title}</strong>
                           <span style={{ display: "block", color: "#64748b", fontSize: 12, lineHeight: 1.35 }}>
-                            {sector.description}
+                            {sector.description || ""}
                           </span>
                         </span>
                         <span aria-hidden="true" style={{
@@ -2931,7 +2787,7 @@ async function fetchCompleteness(uid: string) {
                 ) : (
                   <div style={{ display: "grid", gap: 12, marginTop: 10 }}>
                     {selectedBusinessSectors.map((sectorKey) => {
-                      const sector = BUSINESS_SECTOR_CARDS.find((item) => item.key === sectorKey);
+                      const sector = businessSectors.find((item) => item.key === sectorKey);
                       const options = identitiesForSector(sectorKey);
                       return (
                         <div key={sectorKey} style={{ padding: 14, border: "1px solid #e2e8f0", borderRadius: 14, background: "#f8fafc" }}>
@@ -2983,10 +2839,10 @@ async function fetchCompleteness(uid: string) {
                     {safeArr(bp.individual_identities).length ? ` · ${safeArr(bp.individual_identities).length} selected` : ""}
                   </summary>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(205px, 1fr))", gap: 8, padding: "0 14px 14px" }}>
-                    {INDIVIDUAL_IDENTITY_OPTIONS.map((option) => {
-                      const checked = safeArr(bp.individual_identities).includes(option.key);
+                    {businessPersonalRoles.map((option) => {
+                      const checked = safeArr(bp.individual_identities).includes(option.identity_key);
                       return (
-                        <label key={option.key} style={{
+                        <label key={option.identity_key} style={{
                           display: "flex",
                           gap: 8,
                           alignItems: "center",
@@ -2997,7 +2853,7 @@ async function fetchCompleteness(uid: string) {
                           border: checked ? "1px solid #34d399" : "1px solid #e2e8f0",
                           cursor: "pointer",
                         }}>
-                          <input type="checkbox" checked={checked} onChange={() => toggleIndividualIdentity(option.key)} />
+                          <input type="checkbox" checked={checked} onChange={() => toggleIndividualIdentity(option.identity_key)} />
                           <span style={{ fontWeight: 700 }}>{option.label}</span>
                         </label>
                       );
@@ -3010,11 +2866,11 @@ async function fetchCompleteness(uid: string) {
                 <strong style={{ color: "#1e3a8a" }}>Your Business Identity Summary</strong>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 8, fontSize: 13, color: "#334155" }}>
                   <div><b>Legal constitution:</b>{" "}
-                    {LEGAL_CONSTITUTION_OPTIONS.find((option) => option.key === bp.business_type)?.label || "Not selected"}
+                    {legalConstitutions.find((option) => option.key === bp.business_type)?.label || "Not selected"}
                   </div>
                   <div><b>Business sectors:</b>{" "}
                     {selectedBusinessSectors.length
-                      ? selectedBusinessSectors.map((key) => BUSINESS_SECTOR_CARDS.find((sector) => sector.key === key)?.title).filter(Boolean).join(", ")
+                      ? selectedBusinessSectors.map((key) => businessSectors.find((sector) => sector.key === key)?.title).filter(Boolean).join(", ")
                       : "Not selected"}
                   </div>
                   <div><b>Business identities:</b>{" "}

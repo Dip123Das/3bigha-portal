@@ -7,6 +7,11 @@ import type { UploadedMediaAsset } from "@/lib/media/media-config";
 import IndividualProfessionalVerificationSection from "./IndividualProfessionalVerificationSection";
 import IndividualProfessionalAiReviewPanel from "./IndividualProfessionalAiReviewPanel";
 import {
+  useRegistrationMasterData,
+  type RegistrationRedirectRule,
+} from "@/lib/registration/useRegistrationMasterData";
+
+import {
   INDIVIDUAL_PROFESSIONAL_CONSTITUTIONAL_RULES,
   resolveIndividualProfessionalEligibility,
 } from "@/lib/3bos/identity/individual-professional-eligibility";
@@ -45,24 +50,6 @@ type IndividualProfessionalRecord = {
   lifetime_free_decision_reason?: string | null;
 };
 
-const INDIVIDUAL_SKILL_OPTIONS = [
-  ["mason", "Mason (Rajmistri)"],
-  ["carpenter", "Carpenter"],
-  ["painter", "Painter / Polisher"],
-  ["electrician", "Electrician"],
-  ["plumber", "Plumber"],
-  ["welder", "Welder / Fabricator"],
-  ["tile_worker", "Tile / Marble Installer"],
-  ["bar_bender", "Bar Bender / Steel Fixer"],
-  ["shuttering_worker", "Shuttering Worker"],
-  ["machine_operator", "Construction Machine Operator"],
-  ["equipment_operator", "Heavy Equipment Operator"],
-  ["driver", "Driver"],
-  ["gardener", "Gardener / Landscaping Worker"],
-  ["helper", "Skilled Helper"],
-  ["repair_professional", "Repair Professional"],
-  ["skilled_professional", "Other Skilled Professional"],
-] as const;
 
 const AVAILABILITY_OPTIONS = [
   ["available", "Available for work"],
@@ -83,6 +70,13 @@ export default function IndividualProfessionalOnboardingClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
+
+  const {
+    loading: registrationMasterLoading,
+    error: registrationMasterError,
+    individualSkills,
+    redirectRules,
+  } = useRegistrationMasterData();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -138,20 +132,8 @@ export default function IndividualProfessionalOnboardingClient() {
   const [lifetimeFreeDecisionReason, setLifetimeFreeDecisionReason] =
     useState("");
 
-  const [takesCompleteContracts, setTakesCompleteContracts] =
-    useState(false);
-  const [suppliesWorkerTeams, setSuppliesWorkerTeams] =
-    useState(false);
-  const [operatesFirmOrAgency, setOperatesFirmOrAgency] =
-    useState(false);
-  const [primarilySupervises, setPrimarilySupervises] =
-    useState(false);
-
-  const contractorIndicatorDetected =
-    takesCompleteContracts ||
-    suppliesWorkerTeams ||
-    operatesFirmOrAgency ||
-    primarilySupervises;
+  const [redirectingTrigger, setRedirectingTrigger] =
+    useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -379,6 +361,116 @@ export default function IndividualProfessionalOnboardingClient() {
     };
   }, [router, supabase]);
 
+  useEffect(() => {
+    if (!registrationMasterError) return;
+
+    setMessage(
+      `Registration master could not be loaded: ${registrationMasterError}`
+    );
+  }, [registrationMasterError]);
+
+  async function selectRedirectRule(
+    rule: RegistrationRedirectRule
+  ) {
+    if (!rule.redirect_after_selection) {
+      return;
+    }
+
+    setRedirectingTrigger(rule.trigger_key);
+    setMessage(
+      "Saving your progress and opening Business Registration…"
+    );
+
+    try {
+      const { data: sessionData } =
+        await supabase.auth.getSession();
+
+      const user = sessionData.session?.user;
+
+      if (!user?.id) {
+        throw new Error(
+          "Your session has expired. Please log in again."
+        );
+      }
+
+      const profileUpdate: Record<string, string | null> = {};
+
+      if (originalName.trim()) {
+        profileUpdate.full_name = originalName.trim();
+      }
+
+      if (phone.trim()) {
+        profileUpdate.phone = phone.trim();
+      }
+
+      if (Object.keys(profileUpdate).length) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update(profileUpdate)
+          .eq("id", user.id);
+
+        if (profileError) {
+          throw profileError;
+        }
+      }
+
+      const selectedSkill =
+        individualSkills.find(
+          (skill) =>
+            skill.identity_key === primarySkillKey
+        ) || null;
+
+      const { error: metadataError } =
+        await supabase.auth.updateUser({
+          data: {
+            ...(user.user_metadata || {}),
+            registration_path: "business",
+            registration_redirect_trigger:
+              rule.trigger_key,
+            registration_redirect_reason:
+              rule.business_reason || null,
+            pending_business_identity:
+              rule.target_business_identity_key || null,
+            previous_individual_skill:
+              primarySkillKey || null,
+            previous_individual_skill_label:
+              selectedSkill?.label || null,
+          },
+        });
+
+      if (metadataError) {
+        throw metadataError;
+      }
+
+      const target = new URL(
+        rule.target_registration_path,
+        window.location.origin
+      );
+
+      target.searchParams.set("registration", "1");
+      target.searchParams.set(
+        "redirectTrigger",
+        rule.trigger_key
+      );
+
+      if (rule.target_business_identity_key) {
+        target.searchParams.set(
+          "businessIdentity",
+          rule.target_business_identity_key
+        );
+      }
+
+      window.location.href =
+        `${target.pathname}${target.search}`;
+    } catch (error: any) {
+      setRedirectingTrigger(null);
+      setMessage(
+        error?.message ||
+          "Could not open Business Registration."
+      );
+    }
+  }
+
   const selfieComplete =
     selfieAssets.length === 1 &&
     selfieAssets[0]?.captureSource === "live_camera" &&
@@ -553,13 +645,6 @@ export default function IndividualProfessionalOnboardingClient() {
       return;
     }
 
-    if (contractorIndicatorDetected) {
-      setMessage(
-        "This pathway is only for self-working individual professionals. Contractors, agencies and labour suppliers must use Business Registration."
-      );
-      return;
-    }
-
     const parsedExperience =
       yearsExperience.trim() === ""
         ? null
@@ -602,8 +687,8 @@ export default function IndividualProfessionalOnboardingClient() {
       }
 
       const selectedSkill =
-        INDIVIDUAL_SKILL_OPTIONS.find(
-          ([key]) => key === primarySkillKey
+        individualSkills.find(
+          (skill) => skill.identity_key === primarySkillKey
         );
 
       if (!selectedSkill) {
@@ -613,7 +698,7 @@ export default function IndividualProfessionalOnboardingClient() {
       }
 
       const selectedSkillLabel =
-        selectedSkill[1];
+        selectedSkill.label;
 
       const {
         error: declarationError,
@@ -852,9 +937,9 @@ export default function IndividualProfessionalOnboardingClient() {
                     event.target.value;
 
                   const selectedSkill =
-                    INDIVIDUAL_SKILL_OPTIONS.find(
-                      ([key]) =>
-                        key === selectedKey
+                    individualSkills.find(
+                      (skill) =>
+                        skill.identity_key === selectedKey
                     );
 
                   setPrimarySkillKey(
@@ -862,7 +947,7 @@ export default function IndividualProfessionalOnboardingClient() {
                   );
 
                   setPrimarySkillLabel(
-                    selectedSkill?.[1] || ""
+                    selectedSkill?.label || ""
                   );
                 }}
                 style={inputStyle}
@@ -871,13 +956,13 @@ export default function IndividualProfessionalOnboardingClient() {
                   Choose your primary skill
                 </option>
 
-                {INDIVIDUAL_SKILL_OPTIONS.map(
-                  ([key, label]) => (
+                {individualSkills.map(
+                  (skill) => (
                     <option
-                      key={key}
-                      value={key}
+                      key={skill.identity_key}
+                      value={skill.identity_key}
                     >
-                      {label}
+                      {skill.label}
                     </option>
                   )
                 )}
@@ -959,47 +1044,41 @@ export default function IndividualProfessionalOnboardingClient() {
           </section>
 
           <section style={exclusionStyle}>
-            <h2 style={headingStyle}>Contractor eligibility check</h2>
+            <h2 style={headingStyle}>
+              Business eligibility check
+            </h2>
 
             <p style={introStyle}>
-              Answer honestly. A “Yes” means Business Registration is
-              the correct pathway.
+              Answer honestly. If any statement describes how you
+              operate, 3Bigha will save your progress and open the
+              correct Business Registration automatically.
             </p>
 
-            <CheckRow
-              checked={takesCompleteContracts}
-              onChange={setTakesCompleteContracts}
-              label="I take complete construction or service contracts."
-            />
-            <CheckRow
-              checked={suppliesWorkerTeams}
-              onChange={setSuppliesWorkerTeams}
-              label="I regularly supply or manage teams of workers."
-            />
-            <CheckRow
-              checked={operatesFirmOrAgency}
-              onChange={setOperatesFirmOrAgency}
-              label="I operate under a firm, agency or business organisation."
-            />
-            <CheckRow
-              checked={primarilySupervises}
-              onChange={setPrimarilySupervises}
-              label="I mainly supervise work instead of personally performing it."
-            />
-
-            {contractorIndicatorDetected ? (
-              <div style={blockedStyle}>
-                This registration cannot continue as an individual
-                skilled professional.
-                <button
-                  type="button"
-                  onClick={() =>
-                    router.push("/onboarding/business?registration=1")
+            {registrationMasterLoading ? (
+              <div style={pendingStyle}>
+                Loading constitutional registration rules…
+              </div>
+            ) : (
+              redirectRules.map((rule) => (
+                <CheckRow
+                  key={rule.id}
+                  checked={
+                    redirectingTrigger === rule.trigger_key
                   }
-                  style={businessButtonStyle}
-                >
-                  Continue with Business Registration
-                </button>
+                  onChange={(checked) => {
+                    if (checked && !redirectingTrigger) {
+                      void selectRedirectRule(rule);
+                    }
+                  }}
+                  label={rule.display_text}
+                />
+              ))
+            )}
+
+            {redirectingTrigger ? (
+              <div style={blockedStyle}>
+                Saving your progress and opening Business
+                Registration…
               </div>
             ) : null}
           </section>
@@ -1082,7 +1161,6 @@ export default function IndividualProfessionalOnboardingClient() {
             type="submit"
             disabled={
               saving ||
-              contractorIndicatorDetected ||
               !workerDeclarationAccepted ||
               !mandatoryVerificationComplete
             }
@@ -1090,7 +1168,6 @@ export default function IndividualProfessionalOnboardingClient() {
               ...submitStyle,
               opacity:
                 saving ||
-                contractorIndicatorDetected ||
                 !workerDeclarationAccepted ||
                 !mandatoryVerificationComplete
                   ? 0.55
@@ -1236,17 +1313,6 @@ const blockedStyle: React.CSSProperties = {
   fontWeight: 800,
 };
 
-const businessButtonStyle: React.CSSProperties = {
-  display: "block",
-  marginTop: 10,
-  padding: "9px 12px",
-  border: 0,
-  borderRadius: 9,
-  background: "#991b1b",
-  color: "white",
-  fontWeight: 900,
-  cursor: "pointer",
-};
 
 const summaryStyle: React.CSSProperties = {
   padding: 15,
