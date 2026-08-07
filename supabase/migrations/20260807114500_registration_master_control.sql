@@ -658,6 +658,7 @@ where identity_key in (
   'contractor',
   'property_owner',
   'equipment_owner',
+  'technician',
   'architect',
   'civil_engineer',
   'structural_engineer',
@@ -717,6 +718,7 @@ where identity_key in (
   'exporter',
   'stockist',
 
+  'technician',
   'architect',
   'structural_engineer',
   'civil_engineer',
@@ -773,6 +775,133 @@ where identity_key in (
   'startup'
 );
 
+
+
+-- ============================================================
+-- CRS-4 BUSINESS IDENTITY ↔ SECTOR SEED
+--
+-- Former React registration classifications now live here.
+-- identity_master remains the single canonical identity source.
+--
+-- A canonical identity may legitimately appear in multiple
+-- sectors without being duplicated.
+-- ============================================================
+
+insert into public.registration_identity_sector_map (
+  identity_key,
+  sector_key,
+  nature_modules,
+  sort_order,
+  is_active
+)
+select
+  seed.identity_key,
+  seed.sector_key,
+  seed.nature_modules,
+  seed.sort_order,
+  true
+from (
+  values
+    -- Construction & Infrastructure
+    ('manufacturer', 'construction_infrastructure', array['materials']::text[], 10),
+    ('builder_developer', 'construction_infrastructure', array['property','services']::text[], 20),
+    ('civil_contractor', 'construction_infrastructure', array['services']::text[], 30),
+    ('epc_contractor', 'construction_infrastructure', array['services']::text[], 40),
+    ('interior_contractor', 'construction_infrastructure', array['services']::text[], 50),
+    ('fabricator', 'construction_infrastructure', array['materials','services']::text[], 60),
+    ('infrastructure_company', 'construction_infrastructure', array['services']::text[], 70),
+
+    -- Trading & Distribution
+    ('manufacturer', 'trading_distribution', array['materials']::text[], 10),
+    ('wholesaler', 'trading_distribution', array['materials']::text[], 20),
+    ('distributor', 'trading_distribution', array['materials']::text[], 30),
+    ('dealer', 'trading_distribution', array['materials']::text[], 40),
+    ('retailer', 'trading_distribution', array['materials']::text[], 50),
+    ('supplier', 'trading_distribution', array['materials']::text[], 60),
+    ('importer', 'trading_distribution', array['materials']::text[], 70),
+    ('exporter', 'trading_distribution', array['materials']::text[], 80),
+    ('stockist', 'trading_distribution', array['materials']::text[], 90),
+
+    -- Professional Services
+    ('technician', 'professional_services', array['services']::text[], 5),
+    ('architect', 'professional_services', array['services']::text[], 10),
+    ('structural_engineer', 'professional_services', array['services']::text[], 20),
+    ('civil_engineer', 'professional_services', array['services']::text[], 30),
+    ('surveyor', 'professional_services', array['services']::text[], 40),
+    ('valuer', 'professional_services', array['services']::text[], 50),
+    ('consultant', 'professional_services', array['services']::text[], 60),
+    ('chartered_accountant', 'professional_services', array['services']::text[], 70),
+    ('advocate', 'professional_services', array['services']::text[], 80),
+    ('project_management_consultant', 'professional_services', array['services']::text[], 90),
+
+    -- Equipment & Logistics
+    ('equipment_owner', 'equipment_logistics', array['rentals']::text[], 10),
+    ('equipment_rental_company', 'equipment_logistics', array['rentals']::text[], 20),
+    ('transport_company', 'equipment_logistics', array['services','rentals']::text[], 30),
+    ('fleet_owner', 'equipment_logistics', array['rentals']::text[], 40),
+    ('warehouse_operator', 'equipment_logistics', array['services','rentals']::text[], 50),
+
+    -- Property
+    ('property_owner', 'property', array['property']::text[], 10),
+    ('builder_developer', 'property', array['property','services']::text[], 20),
+    ('real_estate_broker', 'property', array['property']::text[], 30),
+    ('property_consultant', 'property', array['property','services']::text[], 40),
+
+    -- Finance
+    ('bank', 'finance', array['services']::text[], 10),
+    ('nbfc', 'finance', array['services']::text[], 20),
+    ('housing_finance_company', 'finance', array['services']::text[], 30),
+    ('insurance_company', 'finance', array['services']::text[], 40),
+    ('financial_consultant', 'finance', array['services']::text[], 50),
+
+    -- Manufacturing & Industry
+    ('factory', 'manufacturing_industry', array['materials']::text[], 10),
+    ('processing_unit', 'manufacturing_industry', array['materials']::text[], 20),
+    ('workshop', 'manufacturing_industry', array['materials','services']::text[], 30),
+    ('msme_unit', 'manufacturing_industry', array['materials','services']::text[], 40),
+    ('industrial_enterprise', 'manufacturing_industry', array['materials','services']::text[], 50),
+
+    -- Agriculture
+    ('farmer', 'agriculture', array['materials']::text[], 10),
+    ('nursery', 'agriculture', array['materials']::text[], 20),
+    ('agri_supplier', 'agriculture', array['materials']::text[], 30),
+    ('cold_storage', 'agriculture', array['services','rentals']::text[], 40),
+    ('food_processing', 'agriculture', array['materials']::text[], 50),
+
+    -- Utilities
+    ('water_supplier', 'utilities', array['materials','services']::text[], 10),
+    ('electricity_contractor', 'utilities', array['services']::text[], 20),
+    ('solar_company', 'utilities', array['materials','services']::text[], 30),
+    ('telecom_contractor', 'utilities', array['services']::text[], 40),
+
+    -- Media & Digital
+    ('blogger', 'media_digital', array['blog']::text[], 10),
+    ('writer', 'media_digital', array['blog']::text[], 20),
+    ('publisher', 'media_digital', array['blog']::text[], 30),
+    ('digital_agency', 'media_digital', array['services','blog']::text[], 40),
+    ('software_company', 'media_digital', array['services']::text[], 50),
+
+    -- Others
+    ('ngo_trust', 'others', array['services']::text[], 10),
+    ('educational_institution', 'others', array['services']::text[], 20),
+    ('government_organisation', 'others', array['services']::text[], 30),
+    ('cooperative_society', 'others', array['services']::text[], 40),
+    ('startup', 'others', array['services']::text[], 50)
+) as seed(
+  identity_key,
+  sector_key,
+  nature_modules,
+  sort_order
+)
+join public.identity_master identity_row
+  on identity_row.identity_key = seed.identity_key
+join public.registration_business_sectors sector_row
+  on sector_row.key = seed.sector_key
+on conflict (identity_key, sector_key) do update
+set
+  nature_modules = excluded.nature_modules,
+  sort_order = excluded.sort_order,
+  is_active = excluded.is_active;
 
 -- ============================================================
 -- RLS
