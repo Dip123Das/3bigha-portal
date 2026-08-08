@@ -303,8 +303,17 @@ export async function resolveCanonicalIdentity(
     "3Bigha Member";
 
   const businessName = clean(business.business_name);
+  /*
+   * CRS-6B1
+   *
+   * nature_of_business contains legacy module/capability keys.
+   * It must never be interpreted as canonical identity data.
+   *
+   * Canonical identities are resolved exclusively through
+   * loadMemberCanonicalIdentityKeys().
+   */
   const businessIdentity = stringArray(
-    business.business_identities || business.nature_of_business
+    business.business_identities
   );
   const individualIdentity = stringArray(
     business.individual_identities
