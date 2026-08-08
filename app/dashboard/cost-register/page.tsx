@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import UniversalDashboardShell from "@/components/operational/UniversalDashboardShell";
 import CostRegisterCapabilityGate from "@/components/cost-execution/CostRegisterCapabilityGate";
 import FinishedOutputHandoffPanel from "@/components/cost-execution/FinishedOutputHandoffPanel";
+import PlanningConsumptionControlPanel from "@/components/cost-execution/PlanningConsumptionControlPanel";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import {
   humanCostEntryExamples,
@@ -529,7 +530,12 @@ export default function CostRegisterWorkspacePage() {
               </form>
             </section>
 
-            <section style={{ padding: 16, borderRadius: 18, border: "1px solid #e2e8f0", background: "#fff" }}>
+                        <PlanningConsumptionControlPanel
+              planId={selectedPlan.id}
+              mode={selectedPlan.operating_mode}
+            />
+
+<section style={{ padding: 16, borderRadius: 18, border: "1px solid #e2e8f0", background: "#fff" }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <div>
                   <h2 style={{ margin: 0 }}>3. Add your own columns</h2>
