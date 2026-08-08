@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import {
@@ -8,6 +8,13 @@ import {
   costProcurementIdempotencyKey,
   saveProcurementPrefillToBrowser,
 } from "@/lib/cost-execution/procurement-linkage";
+
+type OwnedStockItem = {
+  id: string;
+  title: string | null;
+  local_name: string | null;
+  attributes: any;
+};
 
 type PlanLine = {
   id: string;
@@ -41,10 +48,40 @@ export default function ProcurementInventoryLinkPanel({
   const [consumeQty, setConsumeQty] = useState(
     String(plannedQty(line) || "")
   );
+  const [ownedStock, setOwnedStock] = useState<OwnedStockItem[]>([]);
+  const [selectedStockId, setSelectedStockId] = useState("");
+  const [preparedIntentId, setPreparedIntentId] = useState<string | null>(null);
 
   const isMaterial =
     line.line_type === "raw_material" ||
     line.line_type === "consumable";
+
+  useEffect(() => {
+    let active = true;
+
+    void (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("material_listings")
+        .select("id,title,local_name,attributes")
+        .eq("vendor_user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(300);
+
+      if (active) {
+        setOwnedStock((data || []) as OwnedStockItem[]);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
 
   if (!isMaterial) return null;
 
@@ -142,37 +179,99 @@ export default function ProcurementInventoryLinkPanel({
       if (userError) throw userError;
       if (!user) throw new Error("Please sign in again.");
 
-      const quantity = Math.max(
-        0,
-        Number(consumeQty || 0)
-      );
-
+      const quantity = Math.max(0, Number(consumeQty || 0));
       if (quantity <= 0) {
         throw new Error("Enter quantity to consume.");
       }
+      if (!selectedStockId) {
+        throw new Error("Choose the inventory item to use.");
+      }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("bos_cost_stock_consumption_intents")
         .insert({
           user_id: user.id,
           plan_id: planId,
           plan_line_id: line.id,
+          material_listing_id: selectedStockId,
           requested_quantity: quantity,
           unit: line.unit || null,
           status: "prepared",
           note:
-            "Prepared from COST-02B. Existing inventory stock is not automatically decremented until a canonical stock transaction mechanism is verified.",
-        });
+            "Prepared for canonical 3BOS stock issue posting.",
+        })
+        .select("id")
+        .single();
+
+      if (error) throw error;
+
+      setPreparedIntentId(String(data.id));
+      setMessage(
+        "Stock issue prepared. Review the selected stock and click Post Stock Issue."
+      );
+    } catch (error: any) {
+      setMessage(
+        error?.message || "Could not prepare stock consumption."
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function postPreparedStockIssue() {
+    if (!preparedIntentId) {
+      setMessage("Prepare the stock issue first.");
+      return;
+    }
+
+    const chosen = ownedStock.find(
+      (item) => item.id === selectedStockId
+    );
+    const inventory = chosen?.attributes?.inventory;
+    const available = Number(inventory?.current_stock || 0);
+
+    const confirmed = window.confirm(
+      `Issue ${consumeQty} ${line.unit || "unit"} of ${line.item_name} from selected inventory? Available stock: ${available}. This will reduce inventory and add the material cost to this BOM/BOQ line.`
+    );
+
+    if (!confirmed) return;
+
+    setBusy(true);
+    setMessage("");
+
+    try {
+      const { data, error } = await supabase.rpc(
+        "post_bos_cost_stock_consumption",
+        { target_intent_id: preparedIntentId }
+      );
 
       if (error) throw error;
 
       setMessage(
-        "Stock consumption intent prepared. No stock has been deducted yet."
+        data?.already_posted
+          ? "This stock issue was already posted."
+          : `Stock issued successfully. Remaining stock: ${data?.stock_after ?? "updated"}.`
       );
+
+      setPreparedIntentId(null);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data: refreshed } = await supabase
+          .from("material_listings")
+          .select("id,title,local_name,attributes")
+          .eq("vendor_user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(300);
+
+        setOwnedStock((refreshed || []) as OwnedStockItem[]);
+      }
     } catch (error: any) {
       setMessage(
-        error?.message ||
-          "Could not prepare stock consumption."
+        error?.message || "Could not post the stock issue."
       );
     } finally {
       setBusy(false);
