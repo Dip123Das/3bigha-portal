@@ -16,6 +16,21 @@ type OwnedStockItem = {
   attributes: any;
 };
 
+type InventoryLocationRow = {
+  id: string;
+  location_name: string;
+  godown_no: string | null;
+  room_no: string | null;
+  rack_no: string | null;
+};
+
+type LocationAllocationRow = {
+  material_listing_id: string;
+  location_id: string;
+  quantity: number | string;
+  unit: string | null;
+};
+
 type PlanLine = {
   id: string;
   plan_id: string;
@@ -50,6 +65,9 @@ export default function ProcurementInventoryLinkPanel({
   );
   const [ownedStock, setOwnedStock] = useState<OwnedStockItem[]>([]);
   const [selectedStockId, setSelectedStockId] = useState("");
+  const [selectedLocationId, setSelectedLocationId] = useState("");
+  const [locations, setLocations] = useState<InventoryLocationRow[]>([]);
+  const [allocations, setAllocations] = useState<LocationAllocationRow[]>([]);
   const [preparedIntentId, setPreparedIntentId] = useState<string | null>(null);
 
   const isMaterial =
@@ -66,15 +84,27 @@ export default function ProcurementInventoryLinkPanel({
 
       if (!user) return;
 
-      const { data } = await supabase
-        .from("material_listings")
-        .select("id,title,local_name,attributes")
-        .eq("vendor_user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(300);
+      const [stockResult, locationResult, allocationResult] = await Promise.all([
+        supabase
+          .from("material_listings")
+          .select("id,title,local_name,attributes")
+          .eq("vendor_user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(300),
+        supabase
+          .from("bos_inventory_locations")
+          .select("id,location_name,godown_no,room_no,rack_no")
+          .eq("is_active", true)
+          .order("location_name"),
+        supabase
+          .from("bos_material_location_allocations")
+          .select("material_listing_id,location_id,quantity,unit"),
+      ]);
 
       if (active) {
-        setOwnedStock((data || []) as OwnedStockItem[]);
+        setOwnedStock((stockResult.data || []) as OwnedStockItem[]);
+        setLocations((locationResult.data || []) as InventoryLocationRow[]);
+        setAllocations((allocationResult.data || []) as LocationAllocationRow[]);
       }
     })();
 
@@ -186,6 +216,9 @@ export default function ProcurementInventoryLinkPanel({
       if (!selectedStockId) {
         throw new Error("Choose the inventory item to use.");
       }
+      if (locations.length > 0 && !selectedLocationId) {
+        throw new Error("Choose the physical stock location to use.");
+      }
 
       const { data, error } = await supabase
         .from("bos_cost_stock_consumption_intents")
@@ -194,6 +227,7 @@ export default function ProcurementInventoryLinkPanel({
           plan_id: planId,
           plan_line_id: line.id,
           material_listing_id: selectedStockId,
+          location_id: selectedLocationId || null,
           requested_quantity: quantity,
           unit: line.unit || null,
           status: "prepared",
@@ -229,9 +263,15 @@ export default function ProcurementInventoryLinkPanel({
     );
     const inventory = chosen?.attributes?.inventory;
     const available = Number(inventory?.current_stock || 0);
+    const locationAllocation = allocations.find(
+      (row) =>
+        row.material_listing_id === selectedStockId &&
+        row.location_id === selectedLocationId
+    );
+    const locationAvailable = Number(locationAllocation?.quantity || 0);
 
     const confirmed = window.confirm(
-      `Issue ${consumeQty} ${line.unit || "unit"} of ${line.item_name} from selected inventory? Available stock: ${available}. This will reduce inventory and add the material cost to this BOM/BOQ line.`
+      `Issue ${consumeQty} ${line.unit || "unit"} of ${line.item_name} from selected inventory? Total stock: ${available}.${selectedLocationId ? ` Selected location stock: ${locationAvailable}.` : ""} This will reduce inventory and add the material cost to this BOM/BOQ line.`
     );
 
     if (!confirmed) return;
@@ -321,6 +361,59 @@ export default function ProcurementInventoryLinkPanel({
           }}
         />
 
+        <select
+          value={selectedStockId}
+          onChange={(event) => {
+            setSelectedStockId(event.target.value);
+            setSelectedLocationId("");
+            setPreparedIntentId(null);
+          }}
+          aria-label="Owned inventory item"
+          style={selectStyle}
+        >
+          <option value="">Choose owned stock…</option>
+          {ownedStock.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.title || item.local_name || "Material"}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={selectedLocationId}
+          onChange={(event) => {
+            setSelectedLocationId(event.target.value);
+            setPreparedIntentId(null);
+          }}
+          aria-label="Physical stock location"
+          style={selectStyle}
+        >
+          <option value="">
+            {locations.length > 0
+              ? "Choose stock location…"
+              : "No stock locations configured"}
+          </option>
+          {locations.map((location) => {
+            const allocation = allocations.find(
+              (row) =>
+                row.material_listing_id === selectedStockId &&
+                row.location_id === location.id
+            );
+            const label = [
+              location.location_name,
+              location.godown_no ? `Godown ${location.godown_no}` : null,
+              location.room_no ? `Room ${location.room_no}` : null,
+              location.rack_no ? `Rack ${location.rack_no}` : null,
+            ].filter(Boolean).join(" · ");
+
+            return (
+              <option key={location.id} value={location.id}>
+                {label}{selectedStockId ? ` · ${Number(allocation?.quantity || 0)} ${allocation?.unit || line.unit || ""}` : ""}
+              </option>
+            );
+          })}
+        </select>
+
         <button
           type="button"
           disabled={busy}
@@ -360,6 +453,16 @@ export default function ProcurementInventoryLinkPanel({
     </div>
   );
 }
+
+const selectStyle: React.CSSProperties = {
+  minHeight: 34,
+  minWidth: 180,
+  padding: "6px 8px",
+  borderRadius: 8,
+  border: "1px solid #cbd5e1",
+  background: "#fff",
+  fontSize: 12,
+};
 
 const buttonStyle: React.CSSProperties = {
   minHeight: 34,

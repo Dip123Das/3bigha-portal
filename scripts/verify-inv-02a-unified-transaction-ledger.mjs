@@ -74,8 +74,9 @@ check(
 
 if (inv02b) {
   check(
-    billing.includes("post_bos_material_inventory_transaction"),
-    "After INV-02B, billing must use the canonical inventory transaction RPC."
+    billing.includes("post_bos_material_inventory_transaction") ||
+      billing.includes("post_bos_billing_material_sale"),
+    "After INV-02B, billing must use canonical inventory posting authority."
   );
   check(
     !billing.includes("current_stock: updatedStock"),

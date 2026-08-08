@@ -47,9 +47,12 @@ check(
 );
 
 check(
-  billing.includes("consume_bos_material_reservation_on_sale") &&
-  billing.includes("post_bos_material_inventory_transaction"),
-  "Billing must preserve direct sale and add reservation-aware sale."
+  (
+    billing.includes("consume_bos_material_reservation_on_sale") &&
+    billing.includes("post_bos_material_inventory_transaction")
+  ) ||
+  billing.includes("post_bos_billing_material_sale"),
+  "Billing must preserve direct sale and reservation-aware sale authority."
 );
 
 check(

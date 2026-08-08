@@ -45,6 +45,7 @@ type BillingLineItem = {
   itemType: string;
   sourceId: string;
   reservationId: string;
+  locationId: string;
   itemName: string;
   quantity: string;
   unit: string;
@@ -63,6 +64,21 @@ type ReservationRow = {
   status: string;
   source_reference_id: string | null;
   expires_at: string | null;
+};
+
+type InventoryLocationRow = {
+  id: string;
+  location_name: string;
+  godown_no: string | null;
+  room_no: string | null;
+  rack_no: string | null;
+};
+
+type LocationAllocationRow = {
+  material_listing_id: string;
+  location_id: string;
+  quantity: number | string;
+  unit: string | null;
 };
 
 type RentalAssetRow = {
@@ -114,6 +130,8 @@ export default function VendorBillingPage() {
   const [serviceWorkOrders, setServiceWorkOrders] = useState<ServiceWorkOrderRow[]>([]);
   const [bills, setBills] = useState<BillRow[]>([]);
   const [reservations, setReservations] = useState<ReservationRow[]>([]);
+  const [inventoryLocations, setInventoryLocations] = useState<InventoryLocationRow[]>([]);
+  const [locationAllocations, setLocationAllocations] = useState<LocationAllocationRow[]>([]);
 
   const [selectedMaterial, setSelectedMaterial] = useState("");
   const [billType, setBillType] = useState("offline");
@@ -135,6 +153,7 @@ export default function VendorBillingPage() {
       itemType: "inventory",
       sourceId: "",
       reservationId: "",
+      locationId: "",
       itemName: "",
       quantity: "",
       unit: "",
@@ -168,7 +187,7 @@ export default function VendorBillingPage() {
       const userId = await getUserId();
       if (!userId) return;
 
-      const [materialRes, rentalAssetRes, serviceWorkOrderRes, billRes, reservationRes] = await Promise.all([
+      const [materialRes, rentalAssetRes, serviceWorkOrderRes, billRes, reservationRes, locationRes, allocationRes] = await Promise.all([
         supabase
           .from("material_listings")
           .select("id,title,local_name,attributes")
@@ -199,6 +218,16 @@ export default function VendorBillingPage() {
           .select("id,material_listing_id,reserved_quantity,released_quantity,consumed_quantity,unit,status,source_reference_id,expires_at")
           .eq("status","active")
           .order("created_at",{ ascending: false }),
+
+        supabase
+          .from("bos_inventory_locations")
+          .select("id,location_name,godown_no,room_no,rack_no")
+          .eq("is_active",true)
+          .order("location_name"),
+
+        supabase
+          .from("bos_material_location_allocations")
+          .select("material_listing_id,location_id,quantity,unit"),
       ]);
 
       if (materialRes.error) throw materialRes.error;
@@ -206,12 +235,16 @@ export default function VendorBillingPage() {
       if (serviceWorkOrderRes.error) throw serviceWorkOrderRes.error;
       if (billRes.error) throw billRes.error;
       if (reservationRes.error) throw reservationRes.error;
+      if (locationRes.error) throw locationRes.error;
+      if (allocationRes.error) throw allocationRes.error;
 
       setMaterials((materialRes.data || []) as MaterialRow[]);
       setRentalAssets((rentalAssetRes.data || []) as RentalAssetRow[]);
       setServiceWorkOrders((serviceWorkOrderRes.data || []) as ServiceWorkOrderRow[]);
       setBills((billRes.data || []) as BillRow[]);
       setReservations((reservationRes.data || []) as ReservationRow[]);
+      setInventoryLocations((locationRes.data || []) as InventoryLocationRow[]);
+      setLocationAllocations((allocationRes.data || []) as LocationAllocationRow[]);
     } catch (e: any) {
       setErr(e?.message || "Failed to load billing center.");
     } finally {
@@ -228,6 +261,7 @@ export default function VendorBillingPage() {
         itemType: "manual",
         sourceId: "",
         reservationId: "",
+        locationId: "",
         itemName: "",
         quantity: "",
         unit: "",
@@ -281,6 +315,7 @@ export default function VendorBillingPage() {
                 ...item,
                 sourceId,
                 reservationId: "",
+                locationId: "",
                 itemName: getMaterialName(material),
                 unit: inventory?.stock_unit || item.unit,
                 rate: inventory?.selling_price || item.rate,
@@ -371,6 +406,7 @@ export default function VendorBillingPage() {
           item_type: item.itemType,
           source_id: item.sourceId || null,
           reservation_id: item.reservationId || null,
+          location_id: item.locationId || null,
           item_name: item.itemName.trim(),
           quantity: qty,
           unit: item.unit.trim(),
@@ -444,44 +480,22 @@ export default function VendorBillingPage() {
         const saleKey =
           `billing-sale:${billId}:${item.source_id}:${index}`;
 
-        const saleMetadata = {
-          bill_no: billNo,
-          bill_type: billType,
-          item_name: item.item_name,
-          selling_rate: item.rate,
-        };
-
-        const { error: stockError } = item.reservation_id
-          ? await supabase.rpc(
-              "consume_bos_material_reservation_on_sale",
-              {
-                target_reservation_id: item.reservation_id,
-                target_quantity: item.quantity,
-                target_unit: item.unit || null,
-                target_source_module: "billing",
-                target_source_reference_type: "inventory_bill",
-                target_source_reference_id: String(billId),
-                target_idempotency_key: saleKey,
-                target_note: `ERP billing ${billNo}`,
-                target_metadata: saleMetadata,
-              }
-            )
-          : await supabase.rpc(
-              "post_bos_material_inventory_transaction",
-              {
-                target_material_listing_id: item.source_id,
-                target_transaction_type: "sale",
-                target_quantity: item.quantity,
-                target_unit: item.unit || null,
-                target_unit_cost: null,
-                target_source_module: "billing",
-                target_source_reference_type: "inventory_bill",
-                target_source_reference_id: String(billId),
-                target_idempotency_key: saleKey,
-                target_note: `ERP billing ${billNo}`,
-                target_metadata: saleMetadata,
-              }
-            );
+        const { error: stockError } = await supabase.rpc(
+          "post_bos_billing_material_sale",
+          {
+            target_material_listing_id: item.source_id,
+            target_reservation_id: item.reservation_id,
+            target_quantity: item.quantity,
+            target_unit: item.unit || null,
+            target_bill_id: String(billId),
+            target_bill_no: billNo,
+            target_bill_type: billType,
+            target_item_name: item.item_name,
+            target_selling_rate: item.rate,
+            target_location_id: item.location_id,
+            target_idempotency_key: saleKey,
+          }
+        );
 
         if (stockError) throw stockError;
       }
@@ -532,6 +546,7 @@ export default function VendorBillingPage() {
           itemType: "inventory",
           sourceId: "",
           reservationId: "",
+          locationId: "",
           itemName: "",
           quantity: "",
           unit: "",
@@ -872,6 +887,39 @@ useEffect(() => {
                                 </option>
                               );
                             })}
+                        </select>
+
+                        <select
+                          value={item.locationId}
+                          onChange={(e) =>
+                            updateLineItem(item.id,"locationId",e.target.value)
+                          }
+                          style={inputStyle}
+                        >
+                          <option value="">
+                            {inventoryLocations.length > 0
+                              ? "Select stock location"
+                              : "No stock locations configured"}
+                          </option>
+                          {inventoryLocations.map((location) => {
+                            const allocation = locationAllocations.find(
+                              (row) =>
+                                row.material_listing_id === item.sourceId &&
+                                row.location_id === location.id
+                            );
+                            const label = [
+                              location.location_name,
+                              location.godown_no ? `Godown ${location.godown_no}` : null,
+                              location.room_no ? `Room ${location.room_no}` : null,
+                              location.rack_no ? `Rack ${location.rack_no}` : null,
+                            ].filter(Boolean).join(" · ");
+
+                            return (
+                              <option key={location.id} value={location.id}>
+                                {label}{item.sourceId ? ` · ${asNumber(allocation?.quantity)} ${allocation?.unit || item.unit || ""}` : ""}
+                              </option>
+                            );
+                          })}
                         </select>
                         </>
                       ) : item.itemType === "rental" ? (

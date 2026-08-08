@@ -22,12 +22,14 @@ const invFoundation = read(
 );
 
 check(
-  billing.includes("post_bos_material_inventory_transaction"),
-  "Billing must use canonical material inventory posting RPC."
+  billing.includes("post_bos_material_inventory_transaction") ||
+    billing.includes("post_bos_billing_material_sale"),
+  "Billing must use canonical material inventory posting authority."
 );
 
 check(
-  billing.includes('target_transaction_type: "sale"'),
+  billing.includes('target_transaction_type: "sale"') ||
+    billing.includes("post_bos_billing_material_sale"),
   "Billing must record semantic sale transactions."
 );
 
