@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import UniversalDashboardShell from "@/components/operational/UniversalDashboardShell";
+import CostRegisterCapabilityGate from "@/components/cost-execution/CostRegisterCapabilityGate";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import {
   humanCostEntryExamples,
@@ -85,8 +86,18 @@ function today() {
 }
 
 export default function CostRegisterWorkspacePage() {
+  const [requestedMode, setRequestedMode] = useState<"product" | "project" | null>(null);
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
+
+  useEffect(() => {
+    const mode = new URLSearchParams(window.location.search).get("mode");
+    setRequestedMode(
+      mode === "product" || mode === "project"
+        ? mode
+        : null
+    );
+  }, []);
 
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -416,6 +427,7 @@ export default function CostRegisterWorkspacePage() {
   const examples = humanCostEntryExamples();
 
   return (
+    <CostRegisterCapabilityGate requestedMode={requestedMode}>
     <UniversalDashboardShell
       eyebrow="Human-First Production & Project Cost Inventory"
       title="Cost Register"
@@ -433,8 +445,9 @@ export default function CostRegisterWorkspacePage() {
           <h2 style={{ marginTop: 0 }}>1. Create or open a register</h2>
           <form onSubmit={createPlan} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10 }}>
             <select
-              value={planForm.operating_mode}
+              value={requestedMode ?? planForm.operating_mode}
               onChange={(e) => setPlanForm({ ...planForm, operating_mode: e.target.value as "product" | "project" })}
+              disabled={Boolean(requestedMode)}
               style={inputStyle}
             >
               <option value="product">Manufacturing / Production</option>
@@ -689,6 +702,7 @@ export default function CostRegisterWorkspacePage() {
         )}
       </div>
     </UniversalDashboardShell>
+    </CostRegisterCapabilityGate>
   );
 }
 
