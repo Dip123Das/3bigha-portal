@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import {
+  loadMemberCanonicalIdentityKeys,
+} from "@/lib/identity/loadMemberCanonicalIdentityKeys";
 
 import {
   create3BOSRuntimeInputFromLegacy,
@@ -146,6 +149,19 @@ export default function ThreeBOSAuthenticatedBootstrap() {
         let moduleKeys: string[] = [];
         let canonicalPrimaryIdentityKey: HumanIdentityKey | null = null;
 
+        /*
+         * CRS-6B3
+         *
+         * Canonical identity determines which human/business
+         * identities are authorised.
+         *
+         * Active Work Context may choose only from that authorised
+         * set. Legacy entitlement/profile identity remains a
+         * compatibility fallback only when canonical persistence
+         * has not yet been populated.
+         */
+        let canonicalIdentityKeys: string[] = [];
+
         try {
           const businessProfileResponse =
             await Promise.race([
@@ -263,6 +279,40 @@ export default function ThreeBOSAuthenticatedBootstrap() {
         }
 
         try {
+          const canonicalIdentitySources =
+            await Promise.race([
+              loadMemberCanonicalIdentityKeys(
+                supabase,
+                userId
+              ),
+              timeoutAfter(
+                5000,
+                "3BOS canonical identity bootstrap"
+              ),
+            ]);
+
+          if (
+            !alive ||
+            currentSequence !== requestSequence
+          ) {
+            return;
+          }
+
+          canonicalIdentityKeys =
+            canonicalIdentitySources.allIdentityKeys;
+        } catch (canonicalIdentityError) {
+          /*
+           * Existing members may legitimately have no canonical
+           * persistence yet. The CRS-5C2 compatibility model
+           * therefore remains available below.
+           */
+          console.warn(
+            "THREE_BOS_CANONICAL_IDENTITY_BOOTSTRAP_FAILED",
+            canonicalIdentityError
+          );
+        }
+
+        try {
           const entitlementResponse =
             await Promise.race([
               supabase
@@ -341,11 +391,55 @@ export default function ThreeBOSAuthenticatedBootstrap() {
         const activeWorkContext =
           readActiveWorkContext(userId);
 
+        const hasCanonicalIdentityAuthority =
+          canonicalIdentityKeys.length > 0;
+
+        const requestedActiveIdentityKey =
+          activeWorkContext?.identityKey ?? null;
+
+        const authorisedActiveIdentityKey =
+          requestedActiveIdentityKey &&
+          (
+            !hasCanonicalIdentityAuthority ||
+            canonicalIdentityKeys.includes(
+              String(requestedActiveIdentityKey)
+            )
+          )
+            ? requestedActiveIdentityKey
+            : null;
+
+        const authorisedEntitlementIdentityKey =
+          canonicalPrimaryIdentityKey &&
+          (
+            !hasCanonicalIdentityAuthority ||
+            canonicalIdentityKeys.includes(
+              String(canonicalPrimaryIdentityKey)
+            )
+          )
+            ? canonicalPrimaryIdentityKey
+            : null;
+
+        const canonicalFallbackIdentityKey =
+          hasCanonicalIdentityAuthority
+            ? (
+                canonicalIdentityKeys[0] as
+                  HumanIdentityKey
+              )
+            : null;
+
+        /*
+         * Canonical authority > authorised active context >
+         * compatible entitlement.
+         *
+         * A saved work context is never allowed to manufacture
+         * an identity that the canonical source does not contain.
+         */
         setRuntimeInput({
           ...bootstrap.input,
           activeIdentityKey:
-            activeWorkContext?.identityKey ??
-            canonicalPrimaryIdentityKey ??
+            authorisedActiveIdentityKey ??
+            canonicalFallbackIdentityKey ??
+            authorisedEntitlementIdentityKey ??
             null,
           preferredWorkspaceKey:
             activeWorkContext?.workspaceKey ?? null,

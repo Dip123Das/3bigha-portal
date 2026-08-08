@@ -138,14 +138,20 @@ export default function RegisterRolePageClient() {
     );
   }
 
-  async function continueRegistration() {
-    if (!selectedPath) {
+  async function continueRegistration(
+    requestedPath?: RegistrationPath
+  ) {
+    const activePath =
+      requestedPath || selectedPath;
+
+    if (!activePath) {
       setMessage(
         "Choose how you want to use 3Bigha."
       );
       return;
     }
 
+    setSelectedPath(activePath);
     setContinuing(true);
     setMessage("");
 
@@ -172,31 +178,22 @@ export default function RegisterRolePageClient() {
       const declaredAt =
         new Date().toISOString();
 
-      void supabase.auth
-        .updateUser({
-          data: {
-            ...(session.user.user_metadata || {}),
-            registration_path: selectedPath,
-            registration_path_declared_at:
-              declaredAt,
-          },
-        })
-        .then(({ error }) => {
-          if (error) {
-            console.error(
-              "REGISTRATION_PATH_METADATA_UPDATE_FAILED",
-              error
-            );
-          }
-        })
-        .catch((error) => {
-          console.error(
-            "REGISTRATION_PATH_METADATA_UPDATE_FAILED",
-            error
-          );
-        });
+      const {
+        error: registrationPathError,
+      } = await supabase.auth.updateUser({
+        data: {
+          ...(session.user.user_metadata || {}),
+          registration_path: activePath,
+          registration_path_declared_at:
+            declaredAt,
+        },
+      });
 
-      if (selectedPath === "customer") {
+      if (registrationPathError) {
+        throw registrationPathError;
+      }
+
+      if (activePath === "customer") {
         setContinuing(false);
         router.replace(
           "/onboarding/customer" +
@@ -209,7 +206,7 @@ export default function RegisterRolePageClient() {
         return;
       }
 
-      if (selectedPath === "business") {
+      if (activePath === "business") {
         setContinuing(false);
         router.replace(
           "/onboarding/business?registration=1" +
@@ -264,14 +261,13 @@ export default function RegisterRolePageClient() {
               choice.key === selectedPath;
 
             return (
-              <button
+              <article
                 key={choice.key}
-                type="button"
                 onClick={() => {
                   setSelectedPath(choice.key);
                   setMessage("");
                 }}
-                aria-pressed={selected}
+                aria-label={choice.title}
                 style={{
                   ...choiceCardStyle,
                   border: selected
@@ -317,20 +313,38 @@ export default function RegisterRolePageClient() {
                   {choice.note}
                 </div>
 
-                <div
+                <button
+                  type="button"
+                  onClick={() => {
+                    void continueRegistration(
+                      choice.key
+                    );
+                  }}
+                  disabled={continuing}
                   style={{
                     ...choiceButtonStyle,
+                    width: "100%",
+                    border: 0,
+                    cursor: continuing
+                      ? "wait"
+                      : "pointer",
                     background: selected
                       ? "#1d4ed8"
                       : "#e2e8f0",
                     color: selected
                       ? "white"
                       : "#334155",
+                    opacity: continuing
+                      ? 0.65
+                      : 1,
                   }}
                 >
-                  {choice.buttonLabel}
-                </div>
-              </button>
+                  {continuing &&
+                  selectedPath === choice.key
+                    ? "Opening registration…"
+                    : choice.buttonLabel}
+                </button>
+              </article>
             );
           })}
         </div>
@@ -367,7 +381,9 @@ export default function RegisterRolePageClient() {
 
           <button
             type="button"
-            onClick={continueRegistration}
+            onClick={() => {
+              void continueRegistration();
+            }}
             disabled={continuing || !selectedPath}
             style={{
               ...primaryButtonStyle,

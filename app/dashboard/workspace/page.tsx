@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import ThreeBOSWorkContextChooser from "@/components/layout/ThreeBOSWorkContextChooser";
 import BusinessIdentityCenter from "@/components/business-identity/BusinessIdentityCenter";
+import OperatingCostWorkspacePanel from "@/components/cost-execution/OperatingCostWorkspacePanel";
 import UniversalDashboardShell from "@/components/operational/UniversalDashboardShell";
 import { SectionSkeleton } from "@/components/ui/Skeleton";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
@@ -236,6 +237,8 @@ export default function UnifiedWorkspacePage() {
       ) : null}
 
       <BusinessIdentityCenter />
+
+      <OperatingCostWorkspacePanel />
 
       <section className={styles.nextStep} aria-labelledby="workspace-next-step">
         <div>

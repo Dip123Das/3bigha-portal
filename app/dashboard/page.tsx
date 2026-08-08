@@ -9,9 +9,8 @@ import { OperationalErrorState } from "@/components/ui/OperationalErrorState";
 import ThreeBOSWorkSummary from "./ThreeBOSWorkSummary";
 import DashboardExecutiveShell from "./DashboardExecutiveShell";
 import {
-  resolveAccessForUser,
-  type PortalRole,
-} from "@/lib/access/resolveAccess";
+  resolveCanonicalIdentity,
+} from "@/lib/identity/resolveCanonicalIdentity";
 
 type AnalyticsStats = {
   rfqs: number;
@@ -59,31 +58,6 @@ type ProcurementMemoryGraph = {
   graphNodes?: { type: string; label: string }[];
   nextLearningAction?: string;
 };
-
-function dashboardDestinationForRole(
-  role: PortalRole | null
-): string | null {
-  switch (role) {
-    case "master_admin":
-      return "/admin/dashboard";
-    case "blog_admin":
-      return "/admin/blog";
-    case "banker":
-    case "finance_banker":
-      return "/dashboard/banker";
-    case "investor":
-      return "/dashboard/investor";
-    case "buyer":
-      return "/dashboard/buyer";
-    case "hub_vendor":
-    case "vendor":
-    case "builder":
-    case "blogger":
-      return "/dashboard/vendor";
-    default:
-      return null;
-  }
-}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -170,28 +144,28 @@ export default function DashboardPage() {
 
         setSignedOut(false);
 
-        const access = await withDashboardTimeout(
-          resolveAccessForUser(
-            supabase,
-            session.user.id,
-            session.user.email ?? null
-          ),
-          7000,
-          "Dashboard access resolution"
-        );
+        const canonicalIdentity =
+          await withDashboardTimeout(
+            resolveCanonicalIdentity(
+              supabase,
+              session.user
+            ),
+            7000,
+            "Dashboard canonical identity resolution"
+          );
 
         if (!alive) return;
 
-        const roleDestination =
-          dashboardDestinationForRole(access.role);
+        const canonicalDestination =
+          canonicalIdentity.workspaceProjection.defaultPath;
 
         if (
-          roleDestination &&
-          roleDestination !== "/dashboard"
+          canonicalDestination &&
+          canonicalDestination !== "/dashboard"
         ) {
-          setMessage("Opening your correct dashboard...");
+          setMessage("Opening your correct workspace...");
           setLoading(false);
-          router.replace(roleDestination);
+          router.replace(canonicalDestination);
           return;
         }
 

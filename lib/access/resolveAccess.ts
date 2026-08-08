@@ -1,5 +1,11 @@
 // lib/access/resolveAccess.ts
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  loadIdentityProjectionSet,
+} from "@/lib/identity/loadIdentityProjections";
+import {
+  loadMemberCanonicalIdentityKeys,
+} from "@/lib/identity/loadMemberCanonicalIdentityKeys";
 
 export type PortalRole =
   | "guest"
@@ -132,7 +138,9 @@ export async function resolveAccessForUser(
     withTimeout(
       supabase
         .from("business_profiles")
-        .select("user_id")
+        .select(
+          "user_id,business_identities,individual_identities"
+        )
         .eq("user_id", userId)
         .maybeSingle(),
       3500,
@@ -167,14 +175,23 @@ export async function resolveAccessForUser(
     }
   }
 
+  let businessProfile: any = null;
+
   if (bpSettled.status === "fulfilled") {
     const bpRes: any = bpSettled.value;
+
     if (!bpRes?.error && bpRes?.data?.user_id) {
-      // Intentionally not inferring vendor access from business_profiles alone.
+      businessProfile = bpRes.data;
+
+      // Identity selection does not itself elevate the member role.
+      // It only projects capabilities for an already-authorised role.
     }
   }
 
-  // AUTO-HEAL: if onboarding is complete but grants are missing, rebuild them.
+  // AUTO-HEAL:
+  // vendor_module_grants remains the compatibility storage contract,
+  // but its values are rebuilt from canonical identity_master
+  // projection rather than role / portal_use_reason branches.
   if (
     profile?.onboarding_completed === true &&
     profile?.onboarding_version === 2
@@ -193,36 +210,20 @@ export async function resolveAccessForUser(
       const existingGrantRows = (grantsCheckRes as any)?.data ?? [];
 
       if (Array.isArray(existingGrantRows) && existingGrantRows.length === 0) {
-        const portalUseReason = String(profile?.portal_use_reason ?? "")
-          .trim()
-          .toLowerCase();
+        const memberIdentitySources =
+          await loadMemberCanonicalIdentityKeys(
+            supabase,
+            userId
+          );
+
+        const identityProjection =
+          await loadIdentityProjectionSet(
+            supabase,
+            memberIdentitySources.allIdentityKeys
+          );
 
         const autoModules =
-          role === "hub_vendor" || portalUseReason === "operate_multiple_businesses"
-            ? [
-                "materials",
-                "services",
-                "rentals",
-                "property_owner",
-                "property_builder",
-                "blog_author",
-                "investor",
-              ]
-            : role === "builder" || portalUseReason === "manage_builder_projects"
-            ? ["property_builder"]
-            : role === "blogger" || portalUseReason === "publish_blog_or_news"
-            ? ["blog_author"]
-            : portalUseReason === "sell_materials"
-            ? ["materials"]
-            : portalUseReason === "offer_services"
-            ? ["services"]
-            : portalUseReason === "provide_rentals"
-            ? ["rentals"]
-            : portalUseReason === "list_property_for_sale"
-            ? ["property_owner"]
-            : portalUseReason === "invest_in_opportunities"
-            ? ["investor"]
-            : [];
+          identityProjection.compatibilityModules;
 
         if (autoModules.length > 0) {
           await withTimeout(
@@ -263,26 +264,6 @@ export async function resolveAccessForUser(
       vendorCapabilities = uniqueCapabilities(
         grantsRes.data.map((x: any) => x.module_key)
       );
-    }
-
-    if (role === "hub_vendor" && vendorCapabilities.length === 0) {
-      vendorCapabilities = [
-        "materials",
-        "services",
-        "rentals",
-        "property_owner",
-        "property_builder",
-        "blog_author",
-        "investor",
-      ];
-    }
-
-    if (role === "builder" && vendorCapabilities.length === 0) {
-      vendorCapabilities = ["property_builder"];
-    }
-
-    if (role === "vendor" && vendorCapabilities.length === 0) {
-      vendorCapabilities = [];
     }
 
     if (!role && isVendor) role = "vendor";

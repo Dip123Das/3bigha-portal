@@ -12,6 +12,13 @@ import { ActionButton } from "@/components/ui/ActionButton";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import VendorWorkMenu from "@/components/vendor-erp/VendorWorkMenu";
+import InventoryTransactionPanel from "@/components/inventory/InventoryTransactionPanel";
+import InventoryTransactionHistoryPanel from "@/components/inventory/InventoryTransactionHistoryPanel";
+import InventoryReconciliationPanel from "@/components/inventory/InventoryReconciliationPanel";
+import InventoryVarianceIntelligencePanel from "@/components/inventory/InventoryVarianceIntelligencePanel";
+import InventoryLocationTransferPanel from "@/components/inventory/InventoryLocationTransferPanel";
+import InventoryLocationIntegrityPanel from "@/components/inventory/InventoryLocationIntegrityPanel";
+import InventoryReservationPanel from "@/components/inventory/InventoryReservationPanel";
 import {
   ErpActionCard,
   ErpActionGrid,
@@ -290,6 +297,38 @@ export default function VendorInventoryPage() {
             </ActionButton>
           </div>
         </div>
+
+        <InventoryTransactionPanel
+          materials={inventoryRows}
+          onPosted={() => load()}
+        />
+
+        <InventoryReconciliationPanel
+          materials={inventoryRows}
+          onReconciled={() => load()}
+        />
+
+        <InventoryVarianceIntelligencePanel
+          materials={inventoryRows}
+        />
+
+        <InventoryLocationTransferPanel
+          materials={inventoryRows}
+          onTransferred={() => load()}
+        />
+
+        <InventoryLocationIntegrityPanel
+          materials={inventoryRows}
+          onReconciled={() => load()}
+        />
+
+        <InventoryReservationPanel
+          materials={inventoryRows}
+        />
+
+        <InventoryTransactionHistoryPanel
+          materials={inventoryRows}
+        />
 
         <ErpPanel
           title="Stock Overview"

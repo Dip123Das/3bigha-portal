@@ -1,9 +1,20 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import {
+  getDefaultPostLoginPath,
   resolveAccessForUser,
   type AccessContext,
   type VendorCapabilityKey,
 } from "@/lib/access/resolveAccess";
+import {
+  loadIdentityProjectionSet,
+} from "@/lib/identity/loadIdentityProjections";
+import {
+  loadMemberCanonicalIdentityKeys,
+} from "@/lib/identity/loadMemberCanonicalIdentityKeys";
+import {
+  loadOperatingCapabilityProjection,
+  type OperatingCapabilityProjection,
+} from "@/lib/identity/loadOperatingCapabilityProjection";
 
 export type CanonicalVerificationState =
   | "not_started"
@@ -48,6 +59,7 @@ export type CanonicalIdentityProjection = {
     unifiedPath: string;
     capabilities: VendorCapabilityKey[];
   };
+  operatingProjection: OperatingCapabilityProjection;
   marketplaceProjection: {
     visible: boolean;
     businessName: string;
@@ -121,73 +133,109 @@ function roleLabel(value: unknown) {
   return normalized.replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function resolveDefaultWorkspacePath(access: AccessContext) {
-  if (access.isAdmin) return "/admin/dashboard";
+function navigationItemForModule(
+  moduleKey: string
+): CanonicalNavigationItem | null {
+  switch (moduleKey) {
+    case "materials":
+      return {
+        key: "materials",
+        label: "Materials",
+        href: "/dashboard/vendor/materials",
+      };
 
-  if (
-    access.role === "banker" ||
-    access.role === "finance_banker"
-  ) {
-    return "/dashboard/banker";
+    case "services":
+      return {
+        key: "services",
+        label: "Services",
+        href: "/dashboard/vendor/services",
+      };
+
+    case "rentals":
+      return {
+        key: "rentals",
+        label: "Rentals",
+        href: "/dashboard/vendor/rentals",
+      };
+
+    case "property_owner":
+    case "property_builder":
+      return {
+        key: "property",
+        label: "Property",
+        href: "/dashboard/vendor/property",
+      };
+
+    case "blog_author":
+      return {
+        key: "blog",
+        label: "Blog / News",
+        href: "/blog/my",
+      };
+
+    case "investor":
+      return {
+        key: "investment",
+        label: "Investment",
+        href: "/dashboard/investor",
+      };
+
+    default:
+      return null;
   }
-
-  if (access.role === "hub_vendor") return "/dashboard";
-
-  if (
-    access.role === "vendor" ||
-    access.role === "builder" ||
-    access.role === "blogger"
-  ) {
-    return "/dashboard/vendor";
-  }
-
-  return "/dashboard";
 }
 
-function buildNavigation(access: AccessContext): CanonicalNavigationItem[] {
+function buildProjectedNavigation(
+  navigationModules: string[],
+  defaultPath: string,
+  access: AccessContext
+): CanonicalNavigationItem[] {
   if (access.isAdmin) {
     return [
-      { key: "admin", label: "Admin Dashboard", href: "/admin/dashboard" },
-      { key: "workspace", label: "Unified Workspace", href: "/dashboard/workspace" },
-      { key: "profile", label: "My Identity", href: "/settings" },
+      {
+        key: "admin",
+        label: "Admin Dashboard",
+        href: "/admin/dashboard",
+      },
+      {
+        key: "workspace",
+        label: "Unified Workspace",
+        href: "/dashboard/workspace",
+      },
+      {
+        key: "profile",
+        label: "My Identity",
+        href: "/settings",
+      },
     ];
   }
 
   const items: CanonicalNavigationItem[] = [
-    { key: "workspace", label: "Unified Workspace", href: "/dashboard/workspace" },
-    { key: "profile", label: "My Identity", href: "/settings" },
+    {
+      key: "workspace",
+      label: "Unified Workspace",
+      href: defaultPath || "/dashboard/workspace",
+    },
+    {
+      key: "profile",
+      label: "My Identity",
+      href: "/settings",
+    },
   ];
 
-  if (access.vendorCapabilities.includes("materials")) {
-    items.push({
-      key: "materials",
-      label: "Materials",
-      href: "/dashboard/vendor/materials",
-    });
-  }
-  if (access.vendorCapabilities.includes("services")) {
-    items.push({
-      key: "services",
-      label: "Services",
-      href: "/dashboard/vendor/services",
-    });
-  }
-  if (access.vendorCapabilities.includes("rentals")) {
-    items.push({
-      key: "rentals",
-      label: "Rentals",
-      href: "/dashboard/vendor/rentals",
-    });
-  }
-  if (
-    access.vendorCapabilities.includes("property_owner") ||
-    access.vendorCapabilities.includes("property_builder")
-  ) {
-    items.push({
-      key: "property",
-      label: "Property",
-      href: "/dashboard/vendor/property",
-    });
+  for (const moduleKey of navigationModules) {
+    const item = navigationItemForModule(moduleKey);
+
+    if (
+      item &&
+      !items.some(
+        (existing) =>
+          existing.key === item.key ||
+          existing.href === item.href
+      )
+    ) {
+      items.push(item);
+    }
   }
 
   return items;
@@ -260,12 +308,74 @@ export async function resolveCanonicalIdentity(
     "3Bigha Member";
 
   const businessName = clean(business.business_name);
+  /*
+   * CRS-6B1
+   *
+   * nature_of_business contains legacy module/capability keys.
+   * It must never be interpreted as canonical identity data.
+   *
+   * Canonical identities are resolved exclusively through
+   * loadMemberCanonicalIdentityKeys().
+   */
   const businessIdentity = stringArray(
-    business.business_identities || business.nature_of_business
+    business.business_identities
   );
   const individualIdentity = stringArray(
     business.individual_identities
   );
+
+  const memberIdentitySources =
+    await loadMemberCanonicalIdentityKeys(
+      supabase,
+      user.id
+    );
+
+  const [
+    identityProjection,
+    operatingProjection,
+  ] = await Promise.all([
+    loadIdentityProjectionSet(
+      supabase,
+      memberIdentitySources.allIdentityKeys
+    ),
+    loadOperatingCapabilityProjection(
+      supabase,
+      memberIdentitySources.allIdentityKeys
+    ),
+  ]);
+
+  const canonicalDefaultPath =
+    identityProjection.dashboardPaths.length === 1
+      ? identityProjection.dashboardPaths[0]
+      : identityProjection.unifiedWorkspacePaths[0] ||
+        "/dashboard/workspace";
+
+  const canonicalUnifiedPath =
+    identityProjection.unifiedWorkspacePaths[0] ||
+    "/dashboard/workspace";
+
+  const hasCanonicalIdentity =
+    identityProjection.identities.length > 0;
+
+  /*
+   * CRS-5C2 LEGACY COMPATIBILITY BRIDGE
+   *
+   * Existing production members predate canonical identity
+   * persistence. Until they explicitly acquire canonical
+   * identity keys, preserve their existing dashboard contract
+   * through the established Access resolver.
+   *
+   * This fallback is deliberately centralized here.
+   * Post-login and /dashboard must not recreate role routing.
+   */
+  const compatibilityDefaultPath =
+    getDefaultPostLoginPath(access);
+
+  const projectedNavigationModules =
+    hasCanonicalIdentity
+      ? identityProjection.navigationModules
+      : access.vendorCapabilities;
+
   const businessVerification = normalizeVerification(
     business.business_verification_status ||
       business.verification_status ||
@@ -301,16 +411,24 @@ export async function resolveCanonicalIdentity(
     ),
     completionStatus: resolveCompletion(profile, business),
     workspaceProjection: {
-      defaultPath: resolveDefaultWorkspacePath(access),
-      unifiedPath: "/dashboard/workspace",
+      defaultPath:
+        hasCanonicalIdentity
+          ? canonicalDefaultPath
+          : compatibilityDefaultPath,
+      unifiedPath: canonicalUnifiedPath,
       capabilities: access.vendorCapabilities,
     },
+    operatingProjection,
     marketplaceProjection: {
       visible: verifiedBusiness && Boolean(businessName),
       businessName,
       businessIdentities: businessIdentity,
     },
-    navigationProjection: buildNavigation(access),
+    navigationProjection: buildProjectedNavigation(
+      projectedNavigationModules,
+      canonicalUnifiedPath,
+      access
+    ),
     permissionProjection: access,
     profile,
     businessProfile: business,

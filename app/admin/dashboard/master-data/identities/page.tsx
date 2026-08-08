@@ -6,6 +6,8 @@ import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ActionButton } from "@/components/ui/ActionButton";
+import RegistrationMasterSections from "./RegistrationMasterSections";
+import OperatingCapabilityMasterSections from "./OperatingCapabilityMasterSections";
 
 type IdentityRow = {
   id: string; identity_key: string; label: string; family_key: string;
@@ -13,12 +15,13 @@ type IdentityRow = {
   provider_forms: string[]; engagement_models: string[]; aliases: string[];
   legacy_role: string; legacy_modules: string[];
   requires_business_onboarding: boolean; requires_professional_verification: boolean;
+  registration_scopes: string[]; lifetime_free_candidate: boolean; redirect_to_business: boolean;
   is_featured: boolean; is_active: boolean; sort_order: number;
 };
 
 const families = ["customer","property_real_estate","construction","materials_supply","equipment_rental","professional","skilled_workforce","logistics","finance_investment","legal_compliance","knowledge_media","agriculture_rural","government_public"];
 const stages = ["need","land","transaction","planning","approval","development","site_preparation","foundation","structure","envelope","services","finishing","interiors","external_works","procurement","equipment","execution","handover","maintenance","finance","logistics","manufacturing","operations"];
-const emptyForm = { identity_key: "", label: "", family_key: "construction", lifecycle_stage: "execution", workspace_label: "", description: "", provider_forms: "individual, firm, company", engagement_models: "direct_service, contract", aliases: "", legacy_role: "vendor", legacy_modules: "services", requires_business_onboarding: true, requires_professional_verification: false, is_featured: false, is_active: true, sort_order: 1000 };
+const emptyForm = { identity_key: "", label: "", family_key: "construction", lifecycle_stage: "execution", workspace_label: "", description: "", provider_forms: "individual, firm, company", engagement_models: "direct_service, contract", aliases: "", legacy_role: "vendor", legacy_modules: "services", registration_scopes: "", lifetime_free_candidate: false, redirect_to_business: false, requires_business_onboarding: true, requires_professional_verification: false, is_featured: false, is_active: true, sort_order: 1000 };
 
 const list = (value: string) => value.split(",").map((item) => item.trim()).filter(Boolean);
 const slug = (value: string) => value.trim().toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
@@ -55,14 +58,14 @@ export default function IdentityMasterAdminPage() {
 
   function edit(row: IdentityRow) {
     setEditingId(row.id);
-    setForm({ ...row, provider_forms: row.provider_forms.join(", "), engagement_models: row.engagement_models.join(", "), aliases: row.aliases.join(", "), legacy_modules: row.legacy_modules.join(", ") } as typeof emptyForm);
+    setForm({ ...row, provider_forms: row.provider_forms.join(", "), engagement_models: row.engagement_models.join(", "), aliases: row.aliases.join(", "), legacy_modules: row.legacy_modules.join(", "), registration_scopes: (row.registration_scopes || []).join(", ") } as typeof emptyForm);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function save(event: React.FormEvent) {
     event.preventDefault(); setBusy(true); setMessage("");
     const { data: auth } = await supabase.auth.getUser();
-    const payload = { ...form, identity_key: slug(form.identity_key || form.label), provider_forms: list(form.provider_forms), engagement_models: list(form.engagement_models), aliases: list(form.aliases), legacy_modules: list(form.legacy_modules), updated_by: auth.user?.id || null, ...(editingId ? {} : { created_by: auth.user?.id || null }) };
+    const payload = { ...form, identity_key: slug(form.identity_key || form.label), provider_forms: list(form.provider_forms), engagement_models: list(form.engagement_models), aliases: list(form.aliases), legacy_modules: list(form.legacy_modules), registration_scopes: list(form.registration_scopes), updated_by: auth.user?.id || null, ...(editingId ? {} : { created_by: auth.user?.id || null }) };
     const request = editingId ? supabase.from("identity_master").update(payload).eq("id", editingId) : supabase.from("identity_master").insert(payload);
     const { error } = await request;
     setBusy(false);
@@ -78,10 +81,10 @@ export default function IdentityMasterAdminPage() {
     await load();
   }
 
-  if (loading) return <Container><SectionHeader title="Identity & Capability Master" subtitle="Loading the managed catalogue…" /></Container>;
+  if (loading) return <Container><SectionHeader title="Constitutional Registration Master" subtitle="Loading the managed catalogue…" /></Container>;
 
   return <Container>
-    <SectionHeader title="Identity & Capability Master" subtitle="Manage who people are separately from provider form, capability and engagement model." />
+    <SectionHeader title="Constitutional Registration Master" subtitle="Manage who people are separately from provider form, capability and engagement model." />
     <div className="top"><ActionButton href="/admin/dashboard/master-data" variant="secondary">← Master Data</ActionButton><span>{rows.length} identities · {rows.filter((r) => r.is_active).length} active</span></div>
     {message && <div className="message" role="status">{message}</div>}
 
@@ -100,15 +103,21 @@ export default function IdentityMasterAdminPage() {
         <label>Engagement models (comma separated)<input value={form.engagement_models} onChange={(e) => setForm({ ...form, engagement_models: e.target.value })} /></label>
         <label>Aliases / regional search words<input value={form.aliases} onChange={(e) => setForm({ ...form, aliases: e.target.value })} /></label>
         <label>Legacy modules<input value={form.legacy_modules} onChange={(e) => setForm({ ...form, legacy_modules: e.target.value })} /></label>
+        <label className="wide">Registration scopes<input value={form.registration_scopes} onChange={(e) => setForm({ ...form, registration_scopes: e.target.value })} placeholder="business_identity, business_personal_role, individual_skill" /></label>
       </div>
       <div className="checks">
         <label><input type="checkbox" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} /> Main choice</label>
         <label><input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} /> Active</label>
         <label><input type="checkbox" checked={form.requires_business_onboarding} onChange={(e) => setForm({ ...form, requires_business_onboarding: e.target.checked })} /> Business onboarding</label>
         <label><input type="checkbox" checked={form.requires_professional_verification} onChange={(e) => setForm({ ...form, requires_professional_verification: e.target.checked })} /> Verification required</label>
+        <label><input type="checkbox" checked={form.lifetime_free_candidate} onChange={(e) => setForm({ ...form, lifetime_free_candidate: e.target.checked })} /> Lifetime Free eligibility candidate</label>
+        <label><input type="checkbox" checked={form.redirect_to_business} onChange={(e) => setForm({ ...form, redirect_to_business: e.target.checked })} /> Redirect to Business Registration</label>
       </div>
       <div className="actions"><button disabled={busy}>{busy ? "Saving…" : editingId ? "Save changes" : "Add identity"}</button>{editingId && <button type="button" className="secondary" onClick={() => { setEditingId(null); setForm(emptyForm); }}>Cancel</button>}</div>
     </form>
+
+    <RegistrationMasterSections identities={rows} />
+    <OperatingCapabilityMasterSections identities={rows} />
 
     <section className="catalogue">
       <div className="filters"><input placeholder="Search identity, alias or description" value={query} onChange={(e) => setQuery(e.target.value)} /><select value={family} onChange={(e) => setFamily(e.target.value)}><option value="">All families</option>{families.map((x) => <option key={x}>{x}</option>)}</select></div>

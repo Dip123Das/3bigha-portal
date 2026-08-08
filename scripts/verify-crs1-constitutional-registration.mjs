@@ -61,6 +61,26 @@ for (const marker of [
   );
 }
 
+for (const marker of [
+  "requestedPath?: RegistrationPath",
+  "const activePath =",
+  "continueRegistration(",
+  "choice.key",
+  "Opening registration…",
+]) {
+  check(
+    entry.includes(marker),
+    `Direct pathway action marker missing: ${marker}`
+  );
+}
+
+check(
+  !entry.includes(
+    "<div\n                  style={{\n                    ...choiceButtonStyle"
+  ),
+  "Registration card still uses a non-interactive fake action."
+);
+
 for (const forbidden of [
   "How do you operate?",
   "What kind of work do you do?",
@@ -107,7 +127,7 @@ for (const marker of [
 }
 
 for (const marker of [
-  "isFreshIndividualRegistration",
+  "isExplicitIndividualRegistration",
   "INDIVIDUAL_SKILL_OPTIONS",
   "Choose your primary skill",
   "declare_operating_profile",
@@ -135,4 +155,25 @@ for (const forbidden of [
 
 console.log(
   "CRS-1 constitutional registration assertions passed."
+);
+
+check(
+  entry.includes("<article"),
+  "Registration pathway cards must use non-button containers."
+);
+
+check(
+  entry.includes("requestedPath?: RegistrationPath"),
+  "Direct pathway routing argument is missing."
+);
+
+check(
+  entry.includes("const activePath ="),
+  "Direct pathway routing resolution is missing."
+);
+
+check(
+  entry.includes("void continueRegistration(") &&
+    entry.includes("choice.key"),
+  "Visible pathway action does not invoke direct routing."
 );

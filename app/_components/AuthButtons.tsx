@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import {
+  resolveCanonicalIdentity,
+} from "@/lib/identity/resolveCanonicalIdentity";
 
 type SessionLite = {
   user: { email?: string | null; id?: string | null };
@@ -26,10 +29,6 @@ function shortEmail(email?: string | null) {
   return `${shortName}@${domain}`;
 }
 
-function isMasterAdminEmail(email?: string | null) {
-  return String(email ?? "").trim().toLowerCase() === "vivek.abek@gmail.com";
-}
-
 function prettyRole(profile?: ProfileLite | null): string {
   const r = String(profile?.role ?? "").trim().toLowerCase();
 
@@ -49,34 +48,6 @@ function prettyRole(profile?: ProfileLite | null): string {
   }
 
   return "Buyer";
-}
-
-function dashboardHrefFor(profile?: ProfileLite | null): string {
-  const r = String(profile?.role ?? "").trim().toLowerCase();
-
-  if (r === "master_admin") return "/admin/dashboard";
-  if (r === "blog_admin") return "/admin/blog";
-  if (r === "banker" || r === "finance_banker") return "/dashboard/banker";
-  if (r === "investor") return "/dashboard/investor";
-
-  // Hub Vendor uses the unified role dashboard as its dashboard entry.
-  // Workspace, settings and vendor work tools remain available from there.
-  if (r === "hub_vendor") {
-    return "/dashboard";
-  }
-
-  if (
-    r === "vendor" ||
-    r === "builder" ||
-    profile?.is_vendor === true
-  ) {
-    return "/dashboard/vendor";
-  }
-
-  if (r === "blogger") return "/blog/my";
-  if (r === "buyer") return "/dashboard/buyer";
-
-  return "/dashboard/buyer";
 }
 
 function isBusinessRole(role?: string | null) {
@@ -117,8 +88,44 @@ export default function AuthButtons() {
 
       const profile = ((roleRes as any)?.data ?? null) as ProfileLite | null;
 
-      setRoleLabel(prettyRole(profile));
-      setDashboardHref(dashboardHrefFor(profile));
+      /*
+       * CRS-6B2
+       *
+       * Header destination and displayed constitutional identity
+       * come from the same Canonical Identity projection used by
+       * post-login and /dashboard.
+       *
+       * profiles.role remains available below only for the
+       * registration-compatibility gate.
+       */
+      try {
+        const canonicalIdentity =
+          await resolveCanonicalIdentity(
+            supabase,
+            {
+              id: userId,
+              user_metadata: {},
+            }
+          );
+
+        setRoleLabel(
+          canonicalIdentity.primaryRole ||
+          "3Bigha Member"
+        );
+
+        setDashboardHref(
+          canonicalIdentity.workspaceProjection.defaultPath ||
+          "/dashboard/workspace"
+        );
+      } catch (identityError) {
+        console.warn(
+          "AUTH_BUTTONS_CANONICAL_IDENTITY_FALLBACK",
+          identityError
+        );
+
+        setRoleLabel(prettyRole(profile));
+        setDashboardHref("/dashboard");
+      }
 
       const onboardingReady =
         profile?.onboarding_version === 2 &&
@@ -296,8 +303,10 @@ export default function AuthButtons() {
   }
 
   const email = session.user.email ?? null;
-  const displayRole = isMasterAdminEmail(email) ? "Master Admin" : (roleLabel || "Buyer");
-  const displayDashboardHref = isMasterAdminEmail(email) ? "/admin/dashboard" : dashboardHref;
+  const displayRole =
+    roleLabel || "3Bigha Member";
+  const displayDashboardHref =
+    dashboardHref || "/dashboard";
 
   return (
     <>

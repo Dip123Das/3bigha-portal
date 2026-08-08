@@ -4,6 +4,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import {
+  getHandoffIdFromLocation,
+  loadCostInventoryHandoff,
+  confirmCostInventoryHandoff,
+  type CostInventoryHandoffPrefill,
+} from "@/lib/cost-execution/handoff-prefill";
 
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
@@ -207,6 +213,7 @@ export default function BuilderAddUnitWizardPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [costHandoff, setCostHandoff] = useState<CostInventoryHandoffPrefill | null>(null);
   const [globalError, setGlobalError] = useState("");
 
   const [flash, setFlash] = useState<Flash>(null);
@@ -234,6 +241,56 @@ export default function BuilderAddUnitWizardPage() {
 
   // Wizard fields
   const [kind, setKind] = useState<PropertyKind>("flat");
+
+  useEffect(() => {
+    const handoffId = getHandoffIdFromLocation();
+    if (!handoffId) return;
+
+    void (async () => {
+      try {
+        const handoff = await loadCostInventoryHandoff(
+          supabase,
+          handoffId,
+          "builder_property_unit_inventory"
+        );
+
+        setCostHandoff(handoff);
+
+        const payload = handoff.payload;
+        if (payload.outputName) {
+          setCustomTitle(String(payload.outputName));
+        }
+        if (payload.completedQuantity != null) {
+          setQuantity(
+            String(
+              Math.max(
+                1,
+                Math.floor(Number(payload.completedQuantity) || 1)
+              )
+            )
+          );
+        }
+
+        const outputType = String(payload.outputType || "");
+        if (outputType === "land_plot") {
+          setTypeLand();
+        } else if (outputType === "house" || outputType === "villa") {
+          setTypeHouses();
+          setHouseVariant(outputType === "villa" ? "duplex" : "house");
+        } else {
+          setTypeHouses();
+          setHouseVariant("flat");
+        }
+      } catch (error: any) {
+        setGlobalError(
+          error?.message ||
+          "Could not load completed-project handoff."
+        );
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase]);
+
 
   // Step-1 selectors
   const [listingPurpose, setListingPurpose] = useState<ListingPurpose>("sell");
@@ -1171,6 +1228,15 @@ if (priceNum !== null) {
         } catch (e: any) {
           flashError(`Unit created, but media upload failed — ${friendlyDbError(e)}`);
         }
+      }
+
+      if (costHandoff && createdUnitIds.length > 0) {
+        await confirmCostInventoryHandoff({
+          supabase,
+          handoff: costHandoff,
+          destinationRecordIds: createdUnitIds,
+          transferredQuantity: createdUnitIds.length,
+        });
       }
 
       flashSuccess(`✅ Created ${createdUnitIds.length} unit(s). Redirecting to Units list...`);

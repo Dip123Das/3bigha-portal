@@ -4,9 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import {
-  getDefaultPostLoginPath,
-  resolveAccessForUser,
-} from "@/lib/access/resolveAccess";
+  resolveCanonicalIdentity,
+} from "@/lib/identity/resolveCanonicalIdentity";
 import {
   resolveRegistrationState,
   type RegistrationStateInput,
@@ -54,7 +53,7 @@ function registrationQuery(options: {
   const query = new URLSearchParams();
 
   if (options.business) {
-    query.set("returnTo", options.next || "/dashboard/vendor");
+    query.set("returnTo", options.next || "/dashboard/workspace");
     query.set("registration", "1");
   } else if (options.next) {
     query.set("next", options.next);
@@ -346,7 +345,7 @@ export default function PostLoginPageClient() {
 
           case "BUSINESS_PROFILE_REQUIRED": {
             const query = registrationQuery({
-              next: next || "/dashboard/vendor",
+              next: next || "/dashboard/workspace",
               role,
               business: true,
             });
@@ -356,7 +355,7 @@ export default function PostLoginPageClient() {
           }
 
           case "BUSINESS_PROGRESSIVE_READY": {
-            hardRedirect(next || "/dashboard/vendor");
+            hardRedirect(next || "/dashboard/workspace");
             return;
           }
 
@@ -385,29 +384,42 @@ export default function PostLoginPageClient() {
 
         setMsg("Preparing your unified workspace…");
 
-        let redirectTo = next || "/dashboard";
+        let redirectTo = next || "/dashboard/workspace";
 
         try {
-          const access = await Promise.race([
-            resolveAccessForUser(supabase, user.id, user.email ?? null),
+          const canonicalIdentity = await Promise.race([
+            resolveCanonicalIdentity(
+              supabase,
+              user
+            ),
             new Promise<never>((_, reject) =>
               setTimeout(
                 () =>
-                  reject(new Error("Access resolution timed out after 3000ms")),
-                3000
+                  reject(
+                    new Error(
+                      "Canonical identity routing timed out after 5000ms"
+                    )
+                  ),
+                5000
               )
             ),
           ]);
 
           if (!alive) return;
 
-          redirectTo = next || getDefaultPostLoginPath(access);
-        } catch (accessError) {
+          redirectTo =
+            next ||
+            canonicalIdentity.workspaceProjection.defaultPath;
+        } catch (identityError) {
           console.error(
-            "POST_LOGIN_STATE_ACCESS_FALLBACK",
-            accessError
+            "POST_LOGIN_CANONICAL_IDENTITY_FALLBACK",
+            identityError
           );
-          redirectTo = next || "/";
+
+          // Registration gating already succeeded.
+          // Fail safely into the unified workspace rather than
+          // inventing another role-based destination.
+          redirectTo = next || "/dashboard/workspace";
         }
 
         hardRedirect(redirectTo);

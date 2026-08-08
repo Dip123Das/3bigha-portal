@@ -727,7 +727,7 @@ const aiDealUpgradeTarget =
         .maybeSingle(),
       supabase
         .from("business_profiles")
-        .select("nature_of_business,business_profile_complete,is_complete,registration_complete,selfie_media_json,selfie_capture_status,business_media_json,automated_verification_json")
+        .select("business_profile_complete,is_complete,registration_complete,selfie_media_json,selfie_capture_status,business_media_json,automated_verification_json")
         .eq("user_id", session.user.id)
         .maybeSingle(),
     ]);
@@ -788,39 +788,33 @@ const aiDealUpgradeTarget =
       Boolean(resolvedSelfie) && registrationIdentityVerified
     );
 
-    const profileNature = Array.isArray((profileAccess as any)?.nature_of_business)
-      ? ((profileAccess as any).nature_of_business as string[])
-      : [];
-
-    const profileCapabilities = profileNature
-      .map((item) => {
-        if (item === "property") return "property_owner";
-        if (item === "builder") return "property_builder";
-        if (item === "materials") return "materials";
-        if (item === "services") return "services";
-        if (item === "rentals") return "rentals";
-        if (item === "blog") return "blog_author";
-        if (item === "investor") return "investor";
-        return null;
-      })
-      .filter(Boolean) as VendorCapabilityKey[];
-
-    const mergedCapabilities = Array.from(
-      new Set([...access.vendorCapabilities, ...profileCapabilities])
-    );
+    /*
+     * CRS-6B1
+     *
+     * Runtime capability authority belongs to resolveAccessForUser().
+     * The dashboard must not reconstruct grants from
+     * business_profiles.nature_of_business.
+     */
+    const resolvedCapabilities =
+      Array.from(
+        new Set(access.vendorCapabilities)
+      );
 
     const v =
       access.isAdmin ||
       access.isVendor ||
       access.isHubVendor ||
-      mergedCapabilities.length > 0 ||
+      resolvedCapabilities.length > 0 ||
       (profileAccess as any)?.business_profile_complete === true ||
       (profileAccess as any)?.is_complete === true ||
       (profileAccess as any)?.registration_complete === true;
 
     setIsVendor(v);
-    setVendorCapabilities(mergedCapabilities);
-    setVendorHasFullAccess(access.isAdmin || access.vendorHasFullAccess || mergedCapabilities.length >= 4);
+    setVendorCapabilities(resolvedCapabilities);
+    setVendorHasFullAccess(
+      access.isAdmin ||
+      access.vendorHasFullAccess
+    );
 
     if (!v) {
       setVendorComplete(null);
