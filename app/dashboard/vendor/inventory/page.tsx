@@ -17,6 +17,7 @@ import InventoryTransactionHistoryPanel from "@/components/inventory/InventoryTr
 import InventoryReconciliationPanel from "@/components/inventory/InventoryReconciliationPanel";
 import InventoryVarianceIntelligencePanel from "@/components/inventory/InventoryVarianceIntelligencePanel";
 import InventoryLocationTransferPanel from "@/components/inventory/InventoryLocationTransferPanel";
+import InventoryLocationIntegrityPanel from "@/components/inventory/InventoryLocationIntegrityPanel";
 import {
   ErpActionCard,
   ErpActionGrid,
@@ -313,6 +314,11 @@ export default function VendorInventoryPage() {
         <InventoryLocationTransferPanel
           materials={inventoryRows}
           onTransferred={() => load()}
+        />
+
+        <InventoryLocationIntegrityPanel
+          materials={inventoryRows}
+          onReconciled={() => load()}
         />
 
         <InventoryTransactionHistoryPanel
