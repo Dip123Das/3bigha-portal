@@ -7,6 +7,7 @@ import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ActionButton } from "@/components/ui/ActionButton";
 import RegistrationMasterSections from "./RegistrationMasterSections";
+import OperatingCapabilityMasterSections from "./OperatingCapabilityMasterSections";
 
 type IdentityRow = {
   id: string; identity_key: string; label: string; family_key: string;
@@ -116,6 +117,7 @@ export default function IdentityMasterAdminPage() {
     </form>
 
     <RegistrationMasterSections identities={rows} />
+    <OperatingCapabilityMasterSections identities={rows} />
 
     <section className="catalogue">
       <div className="filters"><input placeholder="Search identity, alias or description" value={query} onChange={(e) => setQuery(e.target.value)} /><select value={family} onChange={(e) => setFamily(e.target.value)}><option value="">All families</option>{families.map((x) => <option key={x}>{x}</option>)}</select></div>
