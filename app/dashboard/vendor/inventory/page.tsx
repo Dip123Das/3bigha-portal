@@ -15,6 +15,7 @@ import VendorWorkMenu from "@/components/vendor-erp/VendorWorkMenu";
 import InventoryTransactionPanel from "@/components/inventory/InventoryTransactionPanel";
 import InventoryTransactionHistoryPanel from "@/components/inventory/InventoryTransactionHistoryPanel";
 import InventoryReconciliationPanel from "@/components/inventory/InventoryReconciliationPanel";
+import InventoryVarianceIntelligencePanel from "@/components/inventory/InventoryVarianceIntelligencePanel";
 import {
   ErpActionCard,
   ErpActionGrid,
@@ -302,6 +303,10 @@ export default function VendorInventoryPage() {
         <InventoryReconciliationPanel
           materials={inventoryRows}
           onReconciled={() => load()}
+        />
+
+        <InventoryVarianceIntelligencePanel
+          materials={inventoryRows}
         />
 
         <InventoryTransactionHistoryPanel
