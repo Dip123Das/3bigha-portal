@@ -408,57 +408,37 @@ export default function VendorBillingPage() {
           .insert(detailedItems);
 
       if (itemError) throw itemError;
-
-      const inventoryItems = normalizedItems.filter(
-        (item) => item.item_type === "inventory"
+      const inventoryItems = normalizedItems.filter(
+        (item) => item.item_type === "inventory" && item.source_id
       );
 
-      for (const item of inventoryItems) {
+      for (let index = 0; index < inventoryItems.length; index += 1) {
+        const item = inventoryItems[index];
 
-        const material = materials.find(
-          (m) =>
-            getMaterialName(m).toLowerCase() ===
-            item.item_name.toLowerCase()
+        const { error: stockError } = await supabase.rpc(
+          "post_bos_material_inventory_transaction",
+          {
+            target_material_listing_id: item.source_id,
+            target_transaction_type: "sale",
+            target_quantity: item.quantity,
+            target_unit: item.unit || null,
+            target_unit_cost: null,
+            target_source_module: "billing",
+            target_source_reference_type: "inventory_bill",
+            target_source_reference_id: String(billId),
+            target_idempotency_key:
+              `billing-sale:${billId}:${item.source_id}:${index}`,
+            target_note: `ERP billing ${billNo}`,
+            target_metadata: {
+              bill_no: billNo,
+              bill_type: billType,
+              item_name: item.item_name,
+              selling_rate: item.rate,
+            },
+          }
         );
 
-        if (!material) continue;
-
-        const inventory = getInventory(material);
-
-        if (!inventory) continue;
-
-        const currentStock = asNumber(
-          inventory.current_stock
-        );
-
-        const updatedStock =
-          currentStock - item.quantity;
-
-        const updatedAttributes = {
-          ...(material.attributes || {}),
-          inventory: {
-            ...(inventory || {}),
-            current_stock: updatedStock,
-          },
-        };
-
-        await supabase
-          .from("material_listings")
-          .update({
-            attributes: updatedAttributes,
-          })
-          .eq("id", material.id);
-
-        await supabase
-          .from("inventory_stock_movements")
-          .insert({
-            vendor_user_id: userId,
-            material_listing_id: material.id,
-            movement_type: billType === "online" ? "online_order" : "offline_bill",
-            quantity: -item.quantity,
-            unit: item.unit,
-            note: `ERP billing ${billNo}`,
-          });
+        if (stockError) throw stockError;
       }
 
       await supabase

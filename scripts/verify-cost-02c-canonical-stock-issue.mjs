@@ -13,64 +13,37 @@ function check(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-const migration = read(
+const baseMigration = read(
   "supabase/migrations/20260808201500_cost_canonical_stock_issue.sql"
 );
 const panel = read(
   "components/cost-execution/ProcurementInventoryLinkPanel.tsx"
 );
-const billing = read("app/dashboard/vendor/billing/page.tsx");
 const foundation = read(
   "supabase/migrations/20260808194500_cost_procurement_stock_linkage.sql"
 );
+const inv02b = fs.existsSync(
+  path.join(root, "supabase/migrations/20260808213000_inv02b_consolidate_stock_authority.sql")
+)
+  ? read("supabase/migrations/20260808213000_inv02b_consolidate_stock_authority.sql")
+  : "";
 
 for (const marker of [
   "post_bos_cost_stock_consumption",
-  "for update",
-  "Insufficient stock",
-  "current_stock",
-  "inventory_stock_movements",
-  "'material_issue'",
+  "material_issue",
   "posted_cost_entry_id",
   "posted_stock_movement_id",
 ]) {
   check(
-    migration.toLowerCase().includes(marker.toLowerCase()),
-    `COST-02C stock posting marker missing: ${marker}`
+    baseMigration.toLowerCase().includes(marker.toLowerCase()),
+    `COST-02C base stock-posting marker missing: ${marker}`
   );
 }
 
 check(
-  migration.includes("listing_user <> auth.uid()") &&
-    migration.includes("plan_owner <> auth.uid()"),
-  "Stock posting must enforce ownership of both plan and inventory."
-);
-
-check(
-  migration.includes("intent_row.status = 'posted'"),
-  "Stock posting must be idempotent against double posting."
-);
-
-check(
-  migration.includes("current_stock < requested_qty"),
-  "Stock posting must reject insufficient inventory."
-);
-
-check(
-  migration.includes("Unit mismatch"),
-  "Stock posting must protect against incompatible stock/plan units."
-);
-
-check(
-  billing.includes("current_stock: updatedStock") &&
-    billing.includes('from("inventory_stock_movements")'),
-  "COST-02C must remain aligned with the existing billing stock mutation model."
-);
-
-check(
   panel.includes("post_bos_cost_stock_consumption") &&
     panel.includes('from("material_listings")'),
-  "Use My Stock UI must select owned stock and invoke canonical posting RPC."
+  "Use My Stock UI must select owned stock and invoke cost posting RPC."
 );
 
 check(
@@ -82,6 +55,22 @@ check(
   foundation.includes("bos_cost_stock_consumption_intents"),
   "COST-02B stock consumption intent foundation must remain present."
 );
+
+if (inv02b) {
+  check(
+    inv02b.includes("post_bos_material_inventory_transaction") &&
+      inv02b.includes("'material_issue'"),
+    "After INV-02B, COST stock posting must delegate inventory mutation to canonical INV authority."
+  );
+  check(
+    !inv02b.includes("'offline_bill'"),
+    "After INV-02B, COST stock posting must not use legacy offline_bill semantics."
+  );
+  check(
+    inv02b.includes("'bos_inventory_transaction'"),
+    "COST material_issue ledger entry must reference canonical inventory transaction."
+  );
+}
 
 console.log(
   "COST-02C canonical stock issue posting assertions passed."

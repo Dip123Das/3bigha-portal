@@ -5,9 +5,7 @@ const root = process.cwd();
 
 function read(rel) {
   const file = path.join(root, rel);
-  if (!fs.existsSync(file)) {
-    throw new Error(`Missing: ${rel}`);
-  }
+  if (!fs.existsSync(file)) throw new Error(`Missing: ${rel}`);
   return fs.readFileSync(file, "utf8");
 }
 
@@ -20,9 +18,11 @@ const migration = read(
 );
 const types = read("lib/inventory/transaction-types.ts");
 const billing = read("app/dashboard/vendor/billing/page.tsx");
-const costIssue = read(
-  "supabase/migrations/20260808201500_cost_canonical_stock_issue.sql"
-);
+const inv02b = fs.existsSync(
+  path.join(root, "supabase/migrations/20260808213000_inv02b_consolidate_stock_authority.sql")
+)
+  ? read("supabase/migrations/20260808213000_inv02b_consolidate_stock_authority.sql")
+  : "";
 
 for (const marker of [
   "bos_inventory_transaction_types",
@@ -42,27 +42,21 @@ for (const marker of [
   "stock_adjustment_in",
   "stock_adjustment_out",
 ]) {
-  check(
-    migration.includes(marker),
-    `INV-02A ledger marker missing: ${marker}`
-  );
+  check(migration.includes(marker), `INV-02A ledger marker missing: ${marker}`);
 }
 
 check(
-  migration.includes("for update") &&
-    migration.includes("next_stock < 0"),
+  migration.includes("for update") && migration.includes("next_stock < 0"),
   "Canonical posting must lock stock and reject negative balance."
 );
 
 check(
-  migration.includes("idempotency_key") &&
-    migration.includes("already_posted"),
+  migration.includes("idempotency_key") && migration.includes("already_posted"),
   "Canonical posting must provide idempotency."
 );
 
 check(
-  migration.includes("vendor_user_id") &&
-    migration.includes("auth.uid()"),
+  migration.includes("vendor_user_id") && migration.includes("auth.uid()"),
   "Canonical posting must enforce material inventory ownership."
 );
 
@@ -78,17 +72,20 @@ check(
   "Shared transaction vocabulary is missing."
 );
 
-check(
-  billing.includes("current_stock: updatedStock") &&
-    billing.includes("inventory_stock_movements"),
-  "Verifier expected current billing mutation path was not found."
-);
-
-check(
-  costIssue.includes("'offline_bill'") &&
-    costIssue.includes("'material_issue'"),
-  "Verifier expected COST-02C legacy movement compatibility bridge was not found."
-);
+if (inv02b) {
+  check(
+    billing.includes("post_bos_material_inventory_transaction"),
+    "After INV-02B, billing must use the canonical inventory transaction RPC."
+  );
+  check(
+    !billing.includes("current_stock: updatedStock"),
+    "After INV-02B, billing must not directly mutate current_stock."
+  );
+  check(
+    !billing.includes("inventory_stock_movements"),
+    "After INV-02B, billing must not write legacy stock movements."
+  );
+}
 
 console.log(
   "INV-02A unified inventory transaction ledger foundation assertions passed."
