@@ -3,6 +3,12 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  getHandoffIdFromLocation,
+  loadCostInventoryHandoff,
+  confirmCostInventoryHandoff,
+  type CostInventoryHandoffPrefill,
+} from "@/lib/cost-execution/handoff-prefill";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import {
   loadVendorTaxonomyExtensions,
@@ -194,10 +200,48 @@ export default function MaterialsAddPage() {
   const [loadingAttrs, setLoadingAttrs] = useState(false);
 
   const [saving, setSaving] = useState(false);
+  const [costHandoff, setCostHandoff] = useState<CostInventoryHandoffPrefill | null>(null);
   const [aiLoading, setAiLoading] = useState<string | null>(null);
   const [aiBuyerType, setAiBuyerType] = useState<"home_owner" | "contractor" | "mason" | "vendor">("home_owner");
 
   useEffect(() => {
+  const handoffId = getHandoffIdFromLocation();
+  if (!handoffId) return;
+
+  void (async () => {
+    try {
+      const handoff = await loadCostInventoryHandoff(
+        supabase,
+        handoffId,
+        "seller_material_inventory"
+      );
+
+      setCostHandoff(handoff);
+      setInventoryEnabled(true);
+
+      const payload = handoff.payload;
+      if (payload.outputName) setTitle(String(payload.outputName));
+      if (payload.completedQuantity != null) {
+        setOpeningStock(String(payload.completedQuantity));
+      }
+      if (payload.unitProductionCost != null) {
+        setPurchasePrice(String(payload.unitProductionCost));
+      }
+
+      setDescription((current) =>
+        current ||
+        "Finished production transferred from the 3BOS Cost Register. Review all product and marketplace details before publishing."
+      );
+    } catch (error: any) {
+      setErrorMsg(
+        error?.message ||
+        "Could not load finished-production handoff."
+      );
+    }
+  })();
+}, [supabase]);
+
+useEffect(() => {
   let alive = true;
 
   async function loadVendorData() {
@@ -1065,7 +1109,7 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
         .select("id", { count: "exact", head: true })
         .eq("vendor_user_id", user.id);
 
-      const { error: insErr } = await supabase.from("material_listings").insert({
+      const { data: createdMaterial, error: insErr } = await supabase.from("material_listings").insert({
         vendor_user_id: user.id,
         title: title.trim(),
         local_name: localName.trim() ? localName.trim() : null,
@@ -1115,7 +1159,7 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
         geo_place_id: geography?.geo_place_id || null,
 
         status: "draft",
-      });
+      }).select("id").single();
 
       if (insErr) throw insErr;
 
@@ -1133,6 +1177,19 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
           },
         });
       }
+
+if (costHandoff && createdMaterial?.id) {
+  await confirmCostInventoryHandoff({
+    supabase,
+    handoff: costHandoff,
+    destinationRecordIds: [String(createdMaterial.id)],
+    transferredQuantity: Number(
+      costHandoff.payload.completedQuantity ||
+      openingStock ||
+      0
+    ),
+  });
+}
 
 // ---------- Save reusable operational memory ----------
 try {

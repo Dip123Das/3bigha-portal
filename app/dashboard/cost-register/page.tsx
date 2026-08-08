@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import UniversalDashboardShell from "@/components/operational/UniversalDashboardShell";
 import CostRegisterCapabilityGate from "@/components/cost-execution/CostRegisterCapabilityGate";
+import FinishedOutputHandoffPanel from "@/components/cost-execution/FinishedOutputHandoffPanel";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import {
   humanCostEntryExamples,
@@ -105,6 +106,7 @@ export default function CostRegisterWorkspacePage() {
   const [selectedPlanId, setSelectedPlanId] = useState("");
   const [centres, setCentres] = useState<CostCentre[]>([]);
   const [entries, setEntries] = useState<CostEntry[]>([]);
+  const [outputs, setOutputs] = useState<any[]>([]);
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [customValues, setCustomValues] = useState<Record<string, Record<string, unknown>>>({});
 
@@ -180,7 +182,7 @@ export default function CostRegisterWorkspacePage() {
       return;
     }
 
-    const [centreResult, entryResult, fieldResult] = await Promise.all([
+    const [centreResult, entryResult, fieldResult, outputResult] = await Promise.all([
       supabase
         .from("bos_cost_centres")
         .select("id,plan_id,label,centre_type")
@@ -197,15 +199,21 @@ export default function CostRegisterWorkspacePage() {
         .select("id,plan_id,field_key,label,field_type,is_required,is_active,sort_order,options")
         .or(`plan_id.eq.${planId},plan_id.is.null`)
         .order("sort_order"),
+      supabase
+        .from("bos_cost_outputs")
+        .select("id,plan_id,output_type,output_name,completed_quantity,allocated_cost,unit_production_cost,completion_status,target_inventory_type,target_inventory_reference_id")
+        .eq("plan_id", planId)
+        .order("created_at"),
     ]);
 
-    const firstError = centreResult.error || entryResult.error || fieldResult.error;
+    const firstError = centreResult.error || entryResult.error || fieldResult.error || outputResult.error;
     if (firstError) throw firstError;
 
     const nextEntries = (entryResult.data || []) as CostEntry[];
     setCentres((centreResult.data || []) as CostCentre[]);
     setEntries(nextEntries);
     setCustomFields((fieldResult.data || []) as CustomField[]);
+    setOutputs((outputResult.data || []) as any[]);
 
     if (nextEntries.length > 0) {
       const entryIds = nextEntries.map((entry) => entry.id);
@@ -694,6 +702,18 @@ export default function CostRegisterWorkspacePage() {
                 </tbody>
               </table>
             </section>
+
+            <FinishedOutputHandoffPanel
+              mode={selectedPlan.operating_mode}
+              planId={selectedPlan.id}
+              projectId={
+                selectedPlan.operating_mode === "project"
+                  ? String((selectedPlan as any).source_entity_id || "")
+                  : null
+              }
+              outputs={outputs}
+              onChanged={() => loadPlanDetail(selectedPlan.id)}
+            />
           </>
         ) : (
           <section style={{ padding: 20, borderRadius: 18, border: "1px dashed #cbd5e1", color: "#64748b" }}>
