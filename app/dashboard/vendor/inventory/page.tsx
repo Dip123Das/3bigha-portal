@@ -12,6 +12,7 @@ import { ActionButton } from "@/components/ui/ActionButton";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import VendorWorkMenu from "@/components/vendor-erp/VendorWorkMenu";
+import InventoryTransactionPanel from "@/components/inventory/InventoryTransactionPanel";
 import {
   ErpActionCard,
   ErpActionGrid,
@@ -290,6 +291,11 @@ export default function VendorInventoryPage() {
             </ActionButton>
           </div>
         </div>
+
+        <InventoryTransactionPanel
+          materials={inventoryRows}
+          onPosted={() => load()}
+        />
 
         <ErpPanel
           title="Stock Overview"
