@@ -8,6 +8,9 @@ import {
 import {
   loadIdentityProjectionSet,
 } from "@/lib/identity/loadIdentityProjections";
+import {
+  loadMemberCanonicalIdentityKeys,
+} from "@/lib/identity/loadMemberCanonicalIdentityKeys";
 
 export type CanonicalVerificationState =
   | "not_started"
@@ -307,15 +310,16 @@ export async function resolveCanonicalIdentity(
     business.individual_identities
   );
 
+  const memberIdentitySources =
+    await loadMemberCanonicalIdentityKeys(
+      supabase,
+      user.id
+    );
+
   const identityProjection =
     await loadIdentityProjectionSet(
       supabase,
-      Array.from(
-        new Set([
-          ...businessIdentity,
-          ...individualIdentity,
-        ])
-      )
+      memberIdentitySources.allIdentityKeys
     );
 
   const canonicalDefaultPath =

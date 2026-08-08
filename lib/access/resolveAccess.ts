@@ -3,6 +3,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   loadIdentityProjectionSet,
 } from "@/lib/identity/loadIdentityProjections";
+import {
+  loadMemberCanonicalIdentityKeys,
+} from "@/lib/identity/loadMemberCanonicalIdentityKeys";
 
 export type PortalRole =
   | "guest"
@@ -207,29 +210,16 @@ export async function resolveAccessForUser(
       const existingGrantRows = (grantsCheckRes as any)?.data ?? [];
 
       if (Array.isArray(existingGrantRows) && existingGrantRows.length === 0) {
-        const selectedIdentityKeys = Array.from(
-          new Set([
-            ...(
-              Array.isArray(
-                businessProfile?.business_identities
-              )
-                ? businessProfile.business_identities
-                : []
-            ),
-            ...(
-              Array.isArray(
-                businessProfile?.individual_identities
-              )
-                ? businessProfile.individual_identities
-                : []
-            ),
-          ])
-        );
+        const memberIdentitySources =
+          await loadMemberCanonicalIdentityKeys(
+            supabase,
+            userId
+          );
 
         const identityProjection =
           await loadIdentityProjectionSet(
             supabase,
-            selectedIdentityKeys
+            memberIdentitySources.allIdentityKeys
           );
 
         const autoModules =
