@@ -609,10 +609,23 @@ export default function BusinessOnboardingPageClient() {
     identityLabel,
   } = useRegistrationMasterData();
 
-  const rawReturnTo = sp.get("returnTo") || "/dashboard/vendor";
-  const streamlinedRegistration = sp.get("registration") === "1";
+  /*
+   * CRS-6B2
+   *
+   * Business Registration does not decide a vendor dashboard.
+   * An explicit caller returnTo remains honoured, while the
+   * constitutional default returns through the unified workspace.
+   */
+  const rawReturnTo =
+    sp.get("returnTo") || "/dashboard/workspace";
+
+  const streamlinedRegistration =
+    sp.get("registration") === "1";
+
   const returnTo =
-    rawReturnTo === "/dashboard" ? "/dashboard/vendor" : rawReturnTo;
+    rawReturnTo === "/dashboard"
+      ? "/dashboard/workspace"
+      : rawReturnTo;
   const roleFromQuery = (sp.get("role") || "").trim().toLowerCase();
   const preselectedBusinessIdentityKey = (
     sp.get("businessIdentity") || ""
