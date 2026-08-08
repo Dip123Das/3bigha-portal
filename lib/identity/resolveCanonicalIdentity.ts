@@ -11,6 +11,10 @@ import {
 import {
   loadMemberCanonicalIdentityKeys,
 } from "@/lib/identity/loadMemberCanonicalIdentityKeys";
+import {
+  loadOperatingCapabilityProjection,
+  type OperatingCapabilityProjection,
+} from "@/lib/identity/loadOperatingCapabilityProjection";
 
 export type CanonicalVerificationState =
   | "not_started"
@@ -55,6 +59,7 @@ export type CanonicalIdentityProjection = {
     unifiedPath: string;
     capabilities: VendorCapabilityKey[];
   };
+  operatingProjection: OperatingCapabilityProjection;
   marketplaceProjection: {
     visible: boolean;
     businessName: string;
@@ -325,11 +330,19 @@ export async function resolveCanonicalIdentity(
       user.id
     );
 
-  const identityProjection =
-    await loadIdentityProjectionSet(
+  const [
+    identityProjection,
+    operatingProjection,
+  ] = await Promise.all([
+    loadIdentityProjectionSet(
       supabase,
       memberIdentitySources.allIdentityKeys
-    );
+    ),
+    loadOperatingCapabilityProjection(
+      supabase,
+      memberIdentitySources.allIdentityKeys
+    ),
+  ]);
 
   const canonicalDefaultPath =
     identityProjection.dashboardPaths.length === 1
@@ -405,6 +418,7 @@ export async function resolveCanonicalIdentity(
       unifiedPath: canonicalUnifiedPath,
       capabilities: access.vendorCapabilities,
     },
+    operatingProjection,
     marketplaceProjection: {
       visible: verifiedBusiness && Boolean(businessName),
       businessName,
