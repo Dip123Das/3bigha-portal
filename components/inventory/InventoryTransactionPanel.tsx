@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
@@ -9,6 +9,22 @@ type MaterialStockRow = {
   title: string | null;
   local_name: string | null;
   attributes: any;
+};
+
+type LocationRow = {
+  id: string;
+  location_code: string;
+  location_name: string;
+  godown_no: string | null;
+  room_no: string | null;
+  rack_no: string | null;
+};
+
+type AllocationRow = {
+  material_listing_id: string;
+  location_id: string;
+  quantity: number | string;
+  unit: string | null;
 };
 
 type MovementType =
@@ -24,41 +40,49 @@ const MOVEMENTS: Array<{
   value: MovementType;
   label: string;
   hint: string;
+  direction: "in" | "out";
 }> = [
   {
     value: "purchase_receipt",
     label: "Purchase / Stock Received",
     hint: "Add stock received from purchase or procurement.",
+    direction: "in",
   },
   {
     value: "customer_return",
     label: "Customer Return",
     hint: "Add goods returned by a customer.",
+    direction: "in",
   },
   {
     value: "material_return",
     label: "Material Returned",
     hint: "Add unused material returned from a project or production job.",
+    direction: "in",
   },
   {
     value: "damage",
     label: "Damaged Stock",
     hint: "Reduce stock because items were damaged.",
+    direction: "out",
   },
   {
     value: "loss",
     label: "Lost / Missing Stock",
     hint: "Reduce stock because items were lost or missing.",
+    direction: "out",
   },
   {
     value: "stock_adjustment_in",
     label: "Stock Correction +",
     hint: "Human-approved positive stock correction.",
+    direction: "in",
   },
   {
     value: "stock_adjustment_out",
     label: "Stock Correction −",
     hint: "Human-approved negative stock correction.",
+    direction: "out",
   },
 ];
 
@@ -70,6 +94,22 @@ function titleOf(item: MaterialStockRow) {
   );
 }
 
+function locationLabel(row: LocationRow) {
+  return [
+    row.location_name,
+    row.godown_no ? `Godown ${row.godown_no}` : null,
+    row.room_no ? `Room ${row.room_no}` : null,
+    row.rack_no ? `Rack ${row.rack_no}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+function num(value: unknown) {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export default function InventoryTransactionPanel({
   materials,
   onPosted,
@@ -78,14 +118,45 @@ export default function InventoryTransactionPanel({
   onPosted?: () => void | Promise<void>;
 }) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
+  const [locations, setLocations] = useState<LocationRow[]>([]);
+  const [allocations, setAllocations] = useState<AllocationRow[]>([]);
+
   const [materialId, setMaterialId] = useState("");
   const [movementType, setMovementType] =
     useState<MovementType>("purchase_receipt");
+  const [locationId, setLocationId] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unitCost, setUnitCost] = useState("");
   const [note, setNote] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+
+  async function loadLocations() {
+    const [locationResult, allocationResult] = await Promise.all([
+      supabase
+        .from("bos_inventory_locations")
+        .select(
+          "id,location_code,location_name,godown_no,room_no,rack_no"
+        )
+        .eq("is_active", true)
+        .order("location_name"),
+      supabase
+        .from("bos_material_location_allocations")
+        .select("material_listing_id,location_id,quantity,unit"),
+    ]);
+
+    if (locationResult.error || allocationResult.error) return;
+
+    setLocations((locationResult.data || []) as LocationRow[]);
+    setAllocations(
+      (allocationResult.data || []) as AllocationRow[]
+    );
+  }
+
+  useEffect(() => {
+    void loadLocations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const selected = materials.find(
     (item) => item.id === materialId
@@ -93,6 +164,19 @@ export default function InventoryTransactionPanel({
   const inventory = selected?.attributes?.inventory || {};
   const stockUnit = String(inventory.stock_unit || "");
   const currentStock = Number(inventory.current_stock || 0);
+  const movement =
+    MOVEMENTS.find((item) => item.value === movementType) ||
+    MOVEMENTS[0];
+
+  const locationAllocation = allocations.find(
+    (item) =>
+      item.material_listing_id === materialId &&
+      item.location_id === locationId
+  );
+
+  const selectedLocationStock = num(
+    locationAllocation?.quantity
+  );
 
   async function postMovement() {
     if (!materialId) {
@@ -106,14 +190,36 @@ export default function InventoryTransactionPanel({
       return;
     }
 
-    const movement =
-      MOVEMENTS.find((item) => item.value === movementType) ||
-      MOVEMENTS[0];
+    if (locations.length > 0 && !locationId) {
+      setMessage(
+        "Choose the physical location for this stock movement."
+      );
+      return;
+    }
+
+    if (
+      movement.direction === "out" &&
+      locationId &&
+      selectedLocationStock < qty
+    ) {
+      setMessage(
+        `Selected location has only ${selectedLocationStock} ${
+          stockUnit || "unit"
+        }.`
+      );
+      return;
+    }
+
+    const locationText = locationId
+      ? locationLabel(
+          locations.find((item) => item.id === locationId)!
+        )
+      : "Unallocated stock";
 
     const confirmed = window.confirm(
       `${movement.label}: ${qty} ${stockUnit || "unit"} for ${titleOf(
         selected!
-      )}? Current stock: ${currentStock}.`
+      )} at ${locationText}? Current total stock: ${currentStock}.`
     );
     if (!confirmed) return;
 
@@ -144,6 +250,7 @@ export default function InventoryTransactionPanel({
           target_metadata: {
             human_confirmed: true,
             previous_visible_stock: currentStock,
+            ...(locationId ? { location_id: locationId } : {}),
           },
         }
       );
@@ -151,14 +258,19 @@ export default function InventoryTransactionPanel({
       if (error) throw error;
 
       setMessage(
-        `Stock updated successfully. New stock: ${
+        `Stock updated successfully. New total stock: ${
           data?.stock_after ?? "updated"
-        }.`
+        }.${
+          data?.location_quantity_after != null
+            ? ` Location stock: ${data.location_quantity_after}.`
+            : ""
+        }`
       );
 
       setQuantity("");
       setUnitCost("");
       setNote("");
+      await loadLocations();
       await onPosted?.();
     } catch (error: any) {
       setMessage(
@@ -192,7 +304,7 @@ export default function InventoryTransactionPanel({
       </div>
 
       <h2 style={{ margin: "6px 0 0", fontSize: 20 }}>
-        Update stock with a reason
+        Update stock with a reason and location
       </h2>
 
       <p
@@ -204,9 +316,9 @@ export default function InventoryTransactionPanel({
           fontSize: 13,
         }}
       >
-        Use this for stock received, returns, damage, loss or a
-        physical stock correction. Every update goes through the
-        canonical 3BOS inventory transaction ledger.
+        Stock receipts, returns, damage, loss and corrections can
+        now be tied to the exact godown, room or rack. Total stock
+        still changes only through the canonical inventory ledger.
       </p>
 
       <div
@@ -222,6 +334,7 @@ export default function InventoryTransactionPanel({
           value={materialId}
           onChange={(event) => {
             setMaterialId(event.target.value);
+            setLocationId("");
             setMessage("");
           }}
           style={inputStyle}
@@ -245,11 +358,39 @@ export default function InventoryTransactionPanel({
           }
           style={inputStyle}
         >
-          {MOVEMENTS.map((movement) => (
-            <option key={movement.value} value={movement.value}>
-              {movement.label}
+          {MOVEMENTS.map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
             </option>
           ))}
+        </select>
+
+        <select
+          value={locationId}
+          onChange={(event) => setLocationId(event.target.value)}
+          style={inputStyle}
+        >
+          <option value="">
+            {locations.length > 0
+              ? "Choose physical location…"
+              : "No locations created yet"}
+          </option>
+          {locations.map((location) => {
+            const allocation = allocations.find(
+              (item) =>
+                item.material_listing_id === materialId &&
+                item.location_id === location.id
+            );
+
+            return (
+              <option key={location.id} value={location.id}>
+                {locationLabel(location)}
+                {materialId
+                  ? ` · ${num(allocation?.quantity)} ${stockUnit}`
+                  : ""}
+              </option>
+            );
+          })}
         </select>
 
         <input
@@ -289,6 +430,20 @@ export default function InventoryTransactionPanel({
         </button>
       </div>
 
+      {locationId && materialId ? (
+        <div
+          style={{
+            marginTop: 8,
+            fontSize: 12,
+            color: "#475569",
+            fontWeight: 800,
+          }}
+        >
+          Selected location stock: {selectedLocationStock}{" "}
+          {stockUnit}
+        </div>
+      ) : null}
+
       <div
         style={{
           marginTop: 8,
@@ -296,9 +451,7 @@ export default function InventoryTransactionPanel({
           color: "#64748b",
         }}
       >
-        {MOVEMENTS.find(
-          (movement) => movement.value === movementType
-        )?.hint}
+        {movement.hint}
       </div>
 
       {message ? (
