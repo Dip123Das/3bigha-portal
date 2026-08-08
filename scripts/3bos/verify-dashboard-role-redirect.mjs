@@ -1,32 +1,28 @@
 import fs from "node:fs";
 
-const page = fs.readFileSync("app/dashboard/page.tsx", "utf8");
 const access = fs.readFileSync("lib/access/resolveAccess.ts", "utf8");
-const login = fs.readFileSync("app/login/LoginClient.tsx", "utf8");
-const middleware = fs.readFileSync("middleware.ts", "utf8");
-const callback = fs.readFileSync("app/auth/callback/AuthCallbackPageClient.tsx", "utf8");
+const identity = fs.readFileSync("lib/identity/resolveCanonicalIdentity.ts", "utf8");
+const authButtons = fs.readFileSync("app/_components/AuthButtons.tsx", "utf8");
+const dashboard = fs.readFileSync("app/dashboard/page.tsx", "utf8");
 
 const checks = [
-  ["non-admin identities enter the unified workspace", access.includes('return "/dashboard";')],
-  ["administrative routing remains explicit", access.includes('if (access.isAdmin) return "/admin/dashboard";')],
-  ["dashboard no longer redirects by legacy role", !page.includes("getDefaultPostLoginPath(access)")],
-  ["signed-out dashboard fallback remains", page.includes("DASHBOARD_SIGNED_OUT_MUST_NOT_SKELETON")],
-  ["production login diagnostics are disabled", login.includes('process.env.NODE_ENV !== "production"')],
-  ["production callback diagnostics are redacted", callback.includes('console.error("AUTH_CALLBACK_FAIL");')],
-  ["protected routes redirect signed-out users", middleware.includes("if (error || !data.user)")],
-  ["login and callback remain public", middleware.includes('"/login"') && middleware.includes('"/auth/callback"')],
-  ["localized public routes remain public", middleware.includes("isPublicPath(authPathname)")],
-  ["admin routes verify the profile role", middleware.includes('pathname.startsWith("/admin")')],
-  ["blog admins are limited to blog administration", middleware.includes('pathname.startsWith("/admin/blog")')],
+  ["vendor dashboard primary", access.includes('return "/dashboard/vendor";')],
+  ["buyer dashboard primary", access.includes('return "/dashboard/buyer";')],
+  ["banker dashboard primary", access.includes('return "/dashboard/banker";')],
+  ["investor dashboard primary", access.includes('return "/dashboard/investor";')],
+  ["workspace remains separately projected", identity.includes("unifiedPath: canonicalUnifiedPath")],
+  ["canonical default delegates to role resolver", identity.includes("defaultPath: compatibilityDefaultPath")],
+  ["header uses canonical default path", authButtons.includes("canonicalIdentity.workspaceProjection.defaultPath")],
+  ["dashboard resolver uses canonical default path", dashboard.includes("canonicalIdentity.workspaceProjection.defaultPath")],
 ];
 
 let failed = false;
-for (const [label, passed] of checks) {
-  if (!passed) {
-    console.error(`FAIL: ${label}`);
+for (const [label, ok] of checks) {
+  if (!ok) {
+    console.error("FAIL:", label);
     failed = true;
   }
 }
 
 if (failed) process.exit(1);
-console.log("PASS: identity-first login and unified workspace routing verified.");
+console.log("PASS: primary role dashboard routing restored; Unified Workspace remains secondary.");

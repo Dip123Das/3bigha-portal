@@ -301,7 +301,28 @@ export function getDefaultPostLoginPath(access: AccessContext): string {
   if (access.isAdmin) return "/admin/dashboard";
   if (access.isBlogAdmin) return "/admin/blog";
 
-  // Every non-administrative identity enters one workspace. The active 3BOS
-  // identity/work context selects the relevant tools inside that workspace.
-  return "/dashboard/workspace";
+  // My Dashboard must resolve to the person's primary role dashboard.
+  // Unified Workspace remains a secondary work-area chooser.
+  if (access.role === "banker" || access.role === "finance_banker") {
+    return "/dashboard/banker";
+  }
+
+  if (access.role === "investor") {
+    return "/dashboard/investor";
+  }
+
+  if (access.isBuilder || access.isHubVendor || access.isVendor) {
+    return "/dashboard/vendor";
+  }
+
+  if (access.role === "blogger") {
+    return "/blog/my";
+  }
+
+  if (access.isBuyer) {
+    return "/dashboard/buyer";
+  }
+
+  // Neutral signed-in accounts use the existing buyer dashboard fallback.
+  return "/dashboard/buyer";
 }

@@ -344,12 +344,8 @@ export async function resolveCanonicalIdentity(
     ),
   ]);
 
-  const canonicalDefaultPath =
-    identityProjection.dashboardPaths.length === 1
-      ? identityProjection.dashboardPaths[0]
-      : identityProjection.unifiedWorkspacePaths[0] ||
-        "/dashboard/workspace";
-
+  // Canonical identity projects capabilities/workspaces, but must not
+  // replace the member's primary role dashboard.
   const canonicalUnifiedPath =
     identityProjection.unifiedWorkspacePaths[0] ||
     "/dashboard/workspace";
@@ -411,10 +407,7 @@ export async function resolveCanonicalIdentity(
     ),
     completionStatus: resolveCompletion(profile, business),
     workspaceProjection: {
-      defaultPath:
-        hasCanonicalIdentity
-          ? canonicalDefaultPath
-          : compatibilityDefaultPath,
+      defaultPath: compatibilityDefaultPath,
       unifiedPath: canonicalUnifiedPath,
       capabilities: access.vendorCapabilities,
     },
