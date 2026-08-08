@@ -24,6 +24,7 @@ type ReservationRow = {
   material_listing_id: string;
   reserved_quantity: number | string;
   released_quantity: number | string;
+  consumed_quantity: number | string;
   unit: string | null;
   status: string;
   source_module: string | null;
@@ -85,7 +86,7 @@ export default function InventoryReservationPanel({
       supabase
         .from("bos_material_inventory_reservations")
         .select(
-          "id,material_listing_id,reserved_quantity,released_quantity,unit,status,source_module,source_reference_type,source_reference_id,note,expires_at,created_at"
+          "id,material_listing_id,reserved_quantity,released_quantity,consumed_quantity,unit,status,source_module,source_reference_type,source_reference_id,note,expires_at,created_at"
         )
         .order("created_at", { ascending: false })
         .limit(200),
@@ -194,7 +195,8 @@ export default function InventoryReservationPanel({
   async function release(reservation: ReservationRow) {
     const remaining =
       num(reservation.reserved_quantity) -
-      num(reservation.released_quantity);
+      num(reservation.released_quantity) -
+      num(reservation.consumed_quantity);
 
     const material = materialById.get(
       reservation.material_listing_id
@@ -244,6 +246,48 @@ export default function InventoryReservationPanel({
     (sum, row) => sum + num(row.available_to_sell),
     0
   );
+
+  const expiredPending = reservations.filter(
+    (reservation) =>
+      reservation.status === "active" &&
+      Boolean(reservation.expires_at) &&
+      new Date(String(reservation.expires_at)).getTime() <= Date.now()
+  );
+
+  async function finalizeExpired() {
+    if (expiredPending.length === 0) {
+      setMessage("No expired reservation requires finalization.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Finalize ${expiredPending.length} expired reservation(s)? This only releases expired commitments and will NOT change physical stock.`
+    );
+    if (!confirmed) return;
+
+    setBusy(true);
+    setMessage("");
+
+    try {
+      const { data, error } = await supabase.rpc(
+        "finalize_bos_expired_material_reservations",
+        { target_limit: 100 }
+      );
+
+      if (error) throw error;
+
+      setMessage(
+        `Expired reservations finalized: ${data?.finalized_count ?? 0}. Physical stock unchanged.`
+      );
+      await load();
+    } catch (error: any) {
+      setMessage(
+        error?.message || "Could not finalize expired reservations."
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <section
@@ -299,6 +343,10 @@ export default function InventoryReservationPanel({
         <Metric
           label="Available to Sell"
           value={numberText(totalAvailable)}
+        />
+        <Metric
+          label="Expired Pending Finalize"
+          value={String(expiredPending.length)}
         />
       </div>
 
@@ -404,6 +452,19 @@ export default function InventoryReservationPanel({
         ) : null}
       </div>
 
+      {expiredPending.length > 0 ? (
+        <div style={{ marginTop: 10 }}>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void finalizeExpired()}
+            style={secondaryButton}
+          >
+            Finalize Expired Reservations
+          </button>
+        </div>
+      ) : null}
+
       {message ? (
         <div role="status" style={messageStyle}>
           {message}
@@ -447,8 +508,12 @@ export default function InventoryReservationPanel({
           </thead>
 
           <tbody>
-            {reservations.filter((r) => r.status === "active").length ===
-            0 ? (
+            {reservations.filter(
+              (r) =>
+                r.status === "active" &&
+                (!r.expires_at ||
+                  new Date(r.expires_at).getTime() > Date.now())
+            ).length === 0 ? (
               <tr>
                 <td colSpan={7} style={emptyStyle}>
                   No active reservation.
@@ -456,7 +521,12 @@ export default function InventoryReservationPanel({
               </tr>
             ) : (
               reservations
-                .filter((reservation) => reservation.status === "active")
+                .filter(
+                  (reservation) =>
+                    reservation.status === "active" &&
+                    (!reservation.expires_at ||
+                      new Date(reservation.expires_at).getTime() > Date.now())
+                )
                 .map((reservation) => (
                   <tr key={reservation.id}>
                     <td style={tdStyle}>
@@ -476,7 +546,8 @@ export default function InventoryReservationPanel({
                     <td style={tdStyle}>
                       {numberText(
                         num(reservation.reserved_quantity) -
-                          num(reservation.released_quantity)
+                          num(reservation.released_quantity) -
+                          num(reservation.consumed_quantity)
                       )}{" "}
                       {reservation.unit || ""}
                     </td>
