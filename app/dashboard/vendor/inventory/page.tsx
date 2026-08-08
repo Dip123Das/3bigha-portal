@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import VendorWorkMenu from "@/components/vendor-erp/VendorWorkMenu";
 import InventoryTransactionPanel from "@/components/inventory/InventoryTransactionPanel";
+import InventoryTransactionHistoryPanel from "@/components/inventory/InventoryTransactionHistoryPanel";
 import {
   ErpActionCard,
   ErpActionGrid,
@@ -295,6 +296,10 @@ export default function VendorInventoryPage() {
         <InventoryTransactionPanel
           materials={inventoryRows}
           onPosted={() => load()}
+        />
+
+        <InventoryTransactionHistoryPanel
+          materials={inventoryRows}
         />
 
         <ErpPanel
