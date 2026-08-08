@@ -1,12 +1,16 @@
 // app/rfq/page.tsx
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import AddressEngine, { type AddressEngineValue } from "@/components/geography/AddressEngine";
 import { addressEngineToBusinessPayload } from "@/lib/geography/addressAdapters";
+import {
+  clearProcurementPrefillFromBrowser,
+  readProcurementPrefillFromBrowser,
+} from "@/lib/cost-execution/procurement-linkage";
 
 type ItemRow = {
   material_name: string;
@@ -49,6 +53,7 @@ export default function RfqNewPage() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [loading, setLoading] = useState(false);
+  const [costProcurementHandoffId, setCostProcurementHandoffId] = useState<string | null>(null);
   const [err, setErr] = useState<string>("");
 
   // ✅ This legacy page is “materials RFQ”
@@ -74,6 +79,37 @@ export default function RfqNewPage() {
 
   const [items, setItems] = useState<ItemRow[]>([{ material_name: "", qty: "", unit: "", notes: "" }]);
   const [files, setFiles] = useState<File[]>([]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("source") !== "cost_plan") return;
+
+    const handoffId = params.get("handoff");
+    const prefill = readProcurementPrefillFromBrowser();
+    if (!prefill) return;
+
+    setCostProcurementHandoffId(handoffId);
+
+    if (prefill.title) {
+      setTitle(String(prefill.title));
+    }
+    if (prefill.description) {
+      setDescription(String(prefill.description));
+    }
+    if (Array.isArray(prefill.items) && prefill.items.length > 0) {
+      setItems(
+        prefill.items.map((item: any) => ({
+          material_name: String(item.material_name || ""),
+          qty:
+            item.qty === null || item.qty === undefined
+              ? ""
+              : String(item.qty),
+          unit: String(item.unit || ""),
+          notes: String(item.notes || ""),
+        }))
+      );
+    }
+  }, []);
 
   function addItem() {
     setItems((prev) => [...prev, { material_name: "", qty: "", unit: "", notes: "" }]);
@@ -221,6 +257,21 @@ export default function RfqNewPage() {
 
       const out = await res.json().catch(() => ({} as any));
       if (!res.ok || !out?.ok) throw new Error(out?.error || "RFQ create failed.");
+
+      if (costProcurementHandoffId && authData.user?.id) {
+        await supabase
+          .from("bos_cost_procurement_handoffs")
+          .update({
+            status: "submitted",
+            rfq_id: out.rfqId,
+            submitted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", costProcurementHandoffId)
+          .eq("user_id", authData.user.id);
+
+        clearProcurementPrefillFromBrowser();
+      }
 
       showPopup(`✅ RFQ submitted successfully!\nRFQ ID: ${out.rfqId}`, "success");
 

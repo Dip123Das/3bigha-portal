@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import ProcurementInventoryLinkPanel from "@/components/cost-execution/ProcurementInventoryLinkPanel";
 import {
   calculatePlanLineVariance,
   defaultActualEntryTypeForPlanLine,
@@ -852,6 +853,11 @@ export default function PlanningConsumptionControlPanel({
                       >
                         Record actual
                       </button>
+
+                      <ProcurementInventoryLinkPanel
+                        planId={planId}
+                        line={line}
+                      />
                     </td>
                   </tr>
                 );
