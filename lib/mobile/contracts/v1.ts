@@ -133,6 +133,19 @@ export type MobileBootstrap = {
   };
 };
 
+export type MobileDashboardMetric = {
+  key: string;
+  label: string;
+  value: number | null;
+  webPath: string;
+};
+
+export type MobileDashboardAggregate = {
+  dashboard: MobileDashboardKey;
+  generatedAt: string;
+  metrics: MobileDashboardMetric[];
+};
+
 export function mobileSuccess<T>(data: T): MobileApiSuccess<T> {
   return {
     ok: true,
