@@ -15,7 +15,20 @@
           "configureAndroidBackup": true,
           "faceIDPermission": "Allow 3Bigha to protect your signed-in session."
         }
-      ]
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow 3Bigha to capture your live selfie and work or workplace evidence."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow 3Bigha to verify the live operating location you submit during registration."
+        }
+      ],
+      "expo-document-picker"
     ],
     "experiments": {
       "typedRoutes": true
@@ -34,7 +47,7 @@
     },
     "extra": {
       "architecture": "canonical-native-foundation",
-      "mobSprint": "MOB-03"
+      "mobSprint": "MOB-04"
     }
   }
 }
