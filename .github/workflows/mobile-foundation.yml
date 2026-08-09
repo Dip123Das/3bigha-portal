@@ -1,0 +1,38 @@
+name: Mobile foundation
+
+on:
+  pull_request:
+    paths:
+      - "apps/mobile/**"
+      - "scripts/verify-mob-01-foundation.mjs"
+      - ".github/workflows/mobile-foundation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/mobile/**"
+      - "scripts/verify-mob-01-foundation.mjs"
+      - ".github/workflows/mobile-foundation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-native-foundation:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run bundle:android
+      - run: npm run bundle:ios
+      - name: Verify canonical native boundary
+        working-directory: .
+        run: node scripts/verify-mob-01-foundation.mjs
