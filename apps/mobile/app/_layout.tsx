@@ -5,21 +5,24 @@ import { colors } from "@/theme/tokens";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { NotificationResponseProvider } from "@/features/notifications/NotificationResponseProvider";
 import { AppRecoveryBoundary } from "@/features/recovery/AppRecoveryBoundary";
+import { AppPrivacyShield } from "@/features/privacy/AppPrivacyShield";
 
 export default function RootLayout() {
   return (
     <AppRecoveryBoundary>
-    <AuthProvider>
-      <NotificationResponseProvider>
-        <StatusBar style="dark" />
-        <Stack
-          screenOptions={{
-            contentStyle: { backgroundColor: colors.canvas },
-            headerShown: false,
-          }}
-        />
-      </NotificationResponseProvider>
-    </AuthProvider>
+      <AppPrivacyShield>
+        <AuthProvider>
+          <NotificationResponseProvider>
+            <StatusBar style="dark" />
+            <Stack
+              screenOptions={{
+                contentStyle: { backgroundColor: colors.canvas },
+                headerShown: false,
+              }}
+            />
+          </NotificationResponseProvider>
+        </AuthProvider>
+      </AppPrivacyShield>
     </AppRecoveryBoundary>
   );
 }

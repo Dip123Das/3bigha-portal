@@ -38,7 +38,7 @@ are public client configuration, but no service-role key or signing credential
 belongs in the repository.
 
 Before requesting a signed build, run `npm run config:check`, the mobile
-typecheck, both platform exports and the MOB-01 through MOB-15 verifiers.
+typecheck, both platform exports and the MOB-01 through MOB-16 verifiers.
 Signing credentials, Apple/Google account access, physical-device validation
 and store submission remain controlled release operations.
 
@@ -67,6 +67,11 @@ MOB-15 validates every native authentication callback against the exact
 3Bigha scheme and route before a one-time PKCE code exchange. Callback URLs and
 authorization codes are never logged or persisted, and a new sign-in attempt
 deliberately resets the in-memory consumption gate.
+
+MOB-16 replaces the entire rendered app with a privacy-safe surface whenever
+the operating system marks it inactive or backgrounded. Recent-app snapshots
+therefore contain no session, identity, verification, notification or business
+content, while returning to the app preserves the existing authenticated tree.
 
 ## Local authentication configuration
 
