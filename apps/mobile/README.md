@@ -38,9 +38,14 @@ are public client configuration, but no service-role key or signing credential
 belongs in the repository.
 
 Before requesting a signed build, run `npm run config:check`, the mobile
-typecheck, both platform exports and the MOB-01 through MOB-10 verifiers.
+typecheck, both platform exports and the MOB-01 through MOB-11 verifiers.
 Signing credentials, Apple/Google account access, physical-device validation
 and store submission remain controlled release operations.
+
+MOB-11 provides a human-controlled release-health surface. Preview and
+production builds use their EAS channel and application-version runtime to
+accept only compatible updates. Update checks and downloads never block sign-in
+or work, and Expo's anti-bricking recovery remains enabled.
 
 ## Local authentication configuration
 

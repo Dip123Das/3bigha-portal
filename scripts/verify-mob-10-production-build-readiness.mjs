@@ -17,7 +17,7 @@ assert(app.icon === "./assets/icon.png", "canonical application icon is missing"
 assert(app.android?.adaptiveIcon?.foregroundImage === "./assets/adaptive-icon.png", "adaptive icon is missing");
 assert(fs.existsSync("apps/mobile/assets/icon.png"), "application icon asset is absent");
 assert(fs.existsSync("apps/mobile/assets/adaptive-icon.png"), "adaptive icon asset is absent");
-assert(app.extra?.mobSprint === "MOB-10", "resolved milestone marker is stale");
+assert(/^MOB-(?:1[0-9]|[2-9][0-9])$/.test(app.extra?.mobSprint || ""), "resolved milestone marker predates MOB-10");
 assert(eas.build?.development && eas.build?.preview && eas.build?.production, "all build profiles are required");
 assert(eas.build.production.environment === "production", "production must use the production EAS environment");
 assert(eas.build.production.autoIncrement === true, "store build numbers must be monotonic");

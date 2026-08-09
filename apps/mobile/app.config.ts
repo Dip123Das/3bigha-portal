@@ -15,6 +15,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     updates: {
       ...config.updates,
       fallbackToCacheTimeout: 0,
+      checkAutomatically: "ON_ERROR_RECOVERY",
+      ...(projectId ? { url: `https://u.expo.dev/${projectId}` } : {}),
     },
     extra: {
       ...config.extra,
