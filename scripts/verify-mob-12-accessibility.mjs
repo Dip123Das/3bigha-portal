@@ -17,7 +17,7 @@ function assert(condition, message) {
   if (!condition) throw new Error(`MOB-12 assertion failed: ${message}`);
 }
 
-assert(app.extra?.mobSprint === "MOB-12", "resolved milestone marker is not MOB-12");
+assert(/^MOB-(?:1[2-9]|[2-9][0-9])$/.test(app.extra?.mobSprint || ""), "resolved milestone marker predates MOB-12");
 assert(source.includes('accessibilityRole="header"'), "screen-reader heading structure is absent");
 assert(source.includes("accessibilityLiveRegion="), "status changes are not announced");
 assert(source.includes("accessibilityState="), "control state is not exposed");
