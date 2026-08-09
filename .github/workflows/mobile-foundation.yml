@@ -8,6 +8,7 @@ on:
       - "scripts/verify-mob-02-contract-layer.mjs"
       - "scripts/verify-mob-03-native-auth.mjs"
       - "scripts/verify-mob-04-native-onboarding.mjs"
+      - "scripts/verify-mob-05-native-dashboards.mjs"
       - ".github/workflows/mobile-foundation.yml"
   push:
     branches: [main]
@@ -17,6 +18,7 @@ on:
       - "scripts/verify-mob-02-contract-layer.mjs"
       - "scripts/verify-mob-03-native-auth.mjs"
       - "scripts/verify-mob-04-native-onboarding.mjs"
+      - "scripts/verify-mob-05-native-dashboards.mjs"
       - ".github/workflows/mobile-foundation.yml"
 
 permissions:
@@ -46,3 +48,4 @@ jobs:
           node scripts/verify-mob-02-contract-layer.mjs
           node scripts/verify-mob-03-native-auth.mjs
           node scripts/verify-mob-04-native-onboarding.mjs
+          node scripts/verify-mob-05-native-dashboards.mjs

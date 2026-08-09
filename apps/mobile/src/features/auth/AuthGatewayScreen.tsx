@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { getNativeSupabase } from "@/lib/auth/supabase";
 import { OnboardingScreen } from "@/features/onboarding/OnboardingScreen";
+import { DashboardGateway } from "@/features/dashboard/DashboardGateway";
 import { colors, radii, spacing, typography } from "@/theme/tokens";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -170,7 +171,7 @@ export function AuthGatewayScreen() {
 }
 
 function SignedInSession({ session }: { session: Session }) {
-  return <OnboardingScreen session={session} />;
+  return <DashboardGateway session={session} onboarding={<OnboardingScreen session={session} />} />;
 }
 
 function Brand() {
