@@ -1,0 +1,35 @@
+{
+  "name": "@3bigha/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "^20.19.4 || ^22.13.0 || ^24.3.0 || >=25.0.0"
+  },
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "typecheck": "tsc --noEmit",
+    "bundle:android": "expo export --platform android --output-dir dist/android",
+    "bundle:ios": "expo export --platform ios --output-dir dist/ios"
+  },
+  "dependencies": {
+    "expo": "~57.0.11",
+    "expo-constants": "~57.0.9",
+    "expo-linking": "~57.0.5",
+    "expo-router": "~57.0.11",
+    "expo-status-bar": "~57.0.1",
+    "expo-system-ui": "~57.0.2",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-web": "~0.21.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3"
+  }
+}
