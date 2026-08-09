@@ -28,3 +28,9 @@ npm run bundle:ios
 
 For local native development, use `npm run android` on an Android development
 machine or `npm run ios` on macOS after configuring the platform toolchain.
+
+## Local authentication configuration
+
+Copy `.env.example` to `.env.local` and provide the public Supabase URL,
+anonymous key and canonical 3Bigha API origin. Never place the Supabase
+service-role key or another server secret in the mobile environment.
