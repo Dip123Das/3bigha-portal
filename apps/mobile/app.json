@@ -30,7 +30,8 @@
         }
       ],
       "expo-document-picker",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-updates"
     ],
     "experiments": {
       "typedRoutes": true
@@ -57,7 +58,7 @@
     },
     "extra": {
       "architecture": "canonical-native-foundation",
-      "mobSprint": "MOB-10"
+      "mobSprint": "MOB-11"
     }
   }
 }

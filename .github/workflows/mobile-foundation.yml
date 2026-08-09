@@ -14,6 +14,7 @@ on:
       - "scripts/verify-mob-08-offline-device-mutations.mjs"
       - "scripts/verify-mob-09-notification-routing.mjs"
       - "scripts/verify-mob-10-production-build-readiness.mjs"
+      - "scripts/verify-mob-11-release-health.mjs"
       - ".github/workflows/mobile-foundation.yml"
   push:
     branches: [main]
@@ -29,6 +30,7 @@ on:
       - "scripts/verify-mob-08-offline-device-mutations.mjs"
       - "scripts/verify-mob-09-notification-routing.mjs"
       - "scripts/verify-mob-10-production-build-readiness.mjs"
+      - "scripts/verify-mob-11-release-health.mjs"
       - ".github/workflows/mobile-foundation.yml"
 
 permissions:
@@ -64,3 +66,4 @@ jobs:
           node scripts/verify-mob-08-offline-device-mutations.mjs
           node scripts/verify-mob-09-notification-routing.mjs
           node scripts/verify-mob-10-production-build-readiness.mjs
+          node scripts/verify-mob-11-release-health.mjs
