@@ -11,7 +11,7 @@ const assert = (condition, message) => {
   if (!condition) throw new Error(`MOB-11 assertion failed: ${message}`);
 };
 
-assert(app.extra?.mobSprint === "MOB-11", "resolved milestone marker is stale");
+assert(/^MOB-(?:1[1-9]|[2-9][0-9])$/.test(app.extra?.mobSprint || ""), "resolved milestone marker predates MOB-11");
 assert(app.plugins?.includes("expo-updates"), "native update plugin is missing");
 assert(packageJson.dependencies?.["expo-updates"], "native update runtime is missing");
 assert(dynamicConfig.includes("https://u.expo.dev/${projectId}"), "project-scoped update URL is missing");
