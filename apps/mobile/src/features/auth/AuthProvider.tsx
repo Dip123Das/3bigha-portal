@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { getNativeSupabase } from "@/lib/auth/supabase";
+import { consumeNativeAuthCallback } from "@/lib/auth/callback";
 
 type AuthState = {
   session: Session | null;
@@ -25,8 +26,7 @@ const AuthContext = createContext<AuthState | null>(null);
 async function completeAuthCallback(url: string) {
   const supabase = getNativeSupabase();
   if (!supabase) return;
-  const code = new URL(url).searchParams.get("code");
-  if (!code) return;
+  const code = consumeNativeAuthCallback(url);
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) throw error;
 }
