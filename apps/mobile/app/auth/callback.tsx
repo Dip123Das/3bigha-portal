@@ -1,5 +1,5 @@
 import { AuthGatewayScreen } from "@/features/auth/AuthGatewayScreen";
 
-export default function IndexRoute() {
+export default function AuthCallbackRoute() {
   return <AuthGatewayScreen />;
 }

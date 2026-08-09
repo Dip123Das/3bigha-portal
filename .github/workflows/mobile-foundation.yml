@@ -5,12 +5,16 @@ on:
     paths:
       - "apps/mobile/**"
       - "scripts/verify-mob-01-foundation.mjs"
+      - "scripts/verify-mob-02-contract-layer.mjs"
+      - "scripts/verify-mob-03-native-auth.mjs"
       - ".github/workflows/mobile-foundation.yml"
   push:
     branches: [main]
     paths:
       - "apps/mobile/**"
       - "scripts/verify-mob-01-foundation.mjs"
+      - "scripts/verify-mob-02-contract-layer.mjs"
+      - "scripts/verify-mob-03-native-auth.mjs"
       - ".github/workflows/mobile-foundation.yml"
 
 permissions:
@@ -35,4 +39,7 @@ jobs:
       - run: npm run bundle:ios
       - name: Verify canonical native boundary
         working-directory: .
-        run: node scripts/verify-mob-01-foundation.mjs
+        run: |
+          node scripts/verify-mob-01-foundation.mjs
+          node scripts/verify-mob-02-contract-layer.mjs
+          node scripts/verify-mob-03-native-auth.mjs
