@@ -38,7 +38,7 @@ are public client configuration, but no service-role key or signing credential
 belongs in the repository.
 
 Before requesting a signed build, run `npm run config:check`, the mobile
-typecheck, both platform exports and the MOB-01 through MOB-13 verifiers.
+typecheck, both platform exports and the MOB-01 through MOB-14 verifiers.
 Signing credentials, Apple/Google account access, physical-device validation
 and store submission remain controlled release operations.
 
@@ -57,6 +57,11 @@ MOB-13 contains unexpected native render failures behind a human-readable safe
 recovery screen. Retry and deliberate reload choices preserve the current
 session, while the boundary neither displays nor stores personal data, tokens,
 raw exception messages or stack traces.
+
+MOB-14 routes canonical mobile API traffic through one bounded request layer.
+Personal responses are never cached; stalled requests time out; malformed and
+unavailable responses use privacy-safe failure categories; and mutations are
+never replayed automatically.
 
 ## Local authentication configuration
 
