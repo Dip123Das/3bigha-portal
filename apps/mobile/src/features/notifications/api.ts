@@ -2,6 +2,10 @@ import type { Session } from "@supabase/supabase-js";
 
 export type PushDeviceState = { registered: boolean; enabled: boolean; lastSeenAt?: string | null };
 
+export class PushDeviceApiError extends Error {
+  constructor(message: string, readonly retryable: boolean) { super(message); }
+}
+
 function origin() {
   const value = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "");
   if (!value) throw new Error("The approved 3Bigha API URL is not configured.");
@@ -10,18 +14,23 @@ function origin() {
 
 async function decode(response: Response) {
   const body = await response.json().catch(() => null);
-  if (!response.ok || !body?.ok) throw new Error(body?.error?.message || "Notification settings could not be updated.");
+  if (!response.ok || !body?.ok) throw new PushDeviceApiError(body?.error?.message || "Notification settings could not be updated.", response.status >= 500 || response.status === 429);
   return body.data as PushDeviceState;
 }
 
+async function request(input: RequestInfo | URL, init?: RequestInit) {
+  try { return await fetch(input, init); }
+  catch { throw new PushDeviceApiError("This change will be completed when your internet connection returns.", true); }
+}
+
 export function loadPushDevice(session: Session, deviceId: string) {
-  return fetch(`${origin()}/api/v1/mobile/push-device?deviceId=${encodeURIComponent(deviceId)}`, { headers: { Authorization: `Bearer ${session.access_token}` } }).then(decode);
+  return request(`${origin()}/api/v1/mobile/push-device?deviceId=${encodeURIComponent(deviceId)}`, { headers: { Authorization: `Bearer ${session.access_token}` } }).then(decode);
 }
 
 export function registerPushDevice(session: Session, input: Record<string, string>) {
-  return fetch(`${origin()}/api/v1/mobile/push-device`, { method: "PUT", headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify(input) }).then(decode);
+  return request(`${origin()}/api/v1/mobile/push-device`, { method: "PUT", headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify(input) }).then(decode);
 }
 
 export function disablePushDevice(session: Session, deviceId: string) {
-  return fetch(`${origin()}/api/v1/mobile/push-device`, { method: "DELETE", headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ deviceId }) }).then(decode);
+  return request(`${origin()}/api/v1/mobile/push-device`, { method: "DELETE", headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ deviceId }) }).then(decode);
 }

@@ -11,6 +11,7 @@ on:
       - "scripts/verify-mob-05-native-dashboards.mjs"
       - "scripts/verify-mob-06-dashboard-aggregates.mjs"
       - "scripts/verify-mob-07-push-device-lifecycle.mjs"
+      - "scripts/verify-mob-08-offline-device-mutations.mjs"
       - ".github/workflows/mobile-foundation.yml"
   push:
     branches: [main]
@@ -23,6 +24,7 @@ on:
       - "scripts/verify-mob-05-native-dashboards.mjs"
       - "scripts/verify-mob-06-dashboard-aggregates.mjs"
       - "scripts/verify-mob-07-push-device-lifecycle.mjs"
+      - "scripts/verify-mob-08-offline-device-mutations.mjs"
       - ".github/workflows/mobile-foundation.yml"
 
 permissions:
@@ -55,3 +57,4 @@ jobs:
           node scripts/verify-mob-05-native-dashboards.mjs
           node scripts/verify-mob-06-dashboard-aggregates.mjs
           node scripts/verify-mob-07-push-device-lifecycle.mjs
+          node scripts/verify-mob-08-offline-device-mutations.mjs
