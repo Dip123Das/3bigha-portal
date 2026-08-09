@@ -10,6 +10,7 @@ const packageFile = read("apps/mobile/package.json");
 const authClient = read("apps/mobile/src/lib/auth/supabase.ts");
 const provider = read("apps/mobile/src/features/auth/AuthProvider.tsx");
 const screen = read("apps/mobile/src/features/auth/AuthGatewayScreen.tsx");
+const authenticatedApi = read("apps/mobile/src/features/onboarding/api.ts");
 
 assert.match(appConfig, /"scheme": "threebigha"/);
 assert.match(appConfig, /expo-secure-store/);
@@ -33,8 +34,8 @@ assert.match(screen, /signInWithOtp/);
 assert.match(screen, /verifyOtp/);
 assert.match(screen, /signInWithOAuth/);
 assert.match(screen, /provider: "google"/);
-assert.match(screen, /Authorization: `Bearer \$\{session\.access_token\}`/);
-assert.match(screen, /signOut\(\{ scope: "local" \}\)/);
+assert.match(authenticatedApi, /Authorization: `Bearer \$\{session\.access_token\}`/);
+assert.match(read("apps/mobile/src/features/onboarding/OnboardingScreen.tsx"), /signOut\(\{ scope: "local" \}\)/);
 assert.doesNotMatch(screen, /console\.(log|debug|info).*token/i);
 
 for (const source of [authClient, provider, screen]) {

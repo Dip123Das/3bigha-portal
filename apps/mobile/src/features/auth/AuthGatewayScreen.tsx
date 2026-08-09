@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { getNativeSupabase } from "@/lib/auth/supabase";
+import { OnboardingScreen } from "@/features/onboarding/OnboardingScreen";
 import { colors, radii, spacing, typography } from "@/theme/tokens";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -169,57 +170,7 @@ export function AuthGatewayScreen() {
 }
 
 function SignedInSession({ session }: { session: Session }) {
-  const [busy, setBusy] = useState(false);
-  const [bootstrapState, setBootstrapState] = useState<"checking" | "verified" | "unavailable">("checking");
-
-  useEffect(() => {
-    const apiUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "");
-    if (!apiUrl) {
-      setBootstrapState("unavailable");
-      return;
-    }
-    const controller = new AbortController();
-    void fetch(`${apiUrl}/api/v1/mobile/bootstrap`, {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-      signal: controller.signal,
-    }).then((response) => {
-      setBootstrapState(response.ok ? "verified" : "unavailable");
-    }).catch(() => {
-      if (!controller.signal.aborted) setBootstrapState("unavailable");
-    });
-    return () => controller.abort();
-  }, [session.access_token]);
-
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.signedInPage}>
-        <Brand />
-        <View style={styles.successCard}>
-          <Text style={styles.eyebrow}>SECURE SESSION ACTIVE</Text>
-          <Text style={styles.title}>Welcome to 3Bigha</Text>
-          <Text style={styles.body}>{session.user.email ?? session.user.phone ?? "Your verified account"}</Text>
-          <Text style={styles.support}>
-            {bootstrapState === "verified"
-              ? "Your session has been accepted by the canonical 3Bigha backend."
-              : bootstrapState === "checking"
-                ? "Confirming your session with the canonical 3Bigha backend…"
-                : "You are signed in on this device. Backend confirmation will retry when the service is configured and available."}
-          </Text>
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          disabled={busy}
-          onPress={() => {
-            setBusy(true);
-            void getNativeSupabase()?.auth.signOut({ scope: "local" }).finally(() => setBusy(false));
-          }}
-          style={styles.secondaryButton}
-        >
-          <Text style={styles.secondaryButtonText}>{busy ? "Signing out…" : "Sign out on this device"}</Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
-  );
+  return <OnboardingScreen session={session} />;
 }
 
 function Brand() {

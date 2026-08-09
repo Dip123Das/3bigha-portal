@@ -67,7 +67,7 @@ export async function buildMobileBootstrap(
     accountStatus: String(profile.account_status || "active"),
     basicComplete,
     onboardingReady:
-      profile.onboarding_completed === true && profile.onboarding_version === 2,
+      profile.onboarding_completed === true && Number(profile.onboarding_version || 0) >= 2,
     isBusinessRole,
     hasVendorCapabilities: canonical.permissionProjection.vendorCapabilities.length > 0,
     businessProfileComplete:

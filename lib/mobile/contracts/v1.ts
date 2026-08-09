@@ -27,6 +27,58 @@ export type MobileApiErrorCode =
   | "CONFIGURATION_ERROR"
   | "BOOTSTRAP_FAILED";
 
+export type MobileOnboardingPath = "customer" | "business" | "individual_professional";
+
+export type MobileIdentityOption = {
+  key: string;
+  label: string;
+  localLabel: string | null;
+  family: string;
+  description: string | null;
+  requiresBusinessOnboarding: boolean;
+  requiresVerification: boolean;
+};
+
+export type MobileEvidenceAsset = {
+  id: string;
+  bucket: "vendor-media";
+  path: string;
+  url: string;
+  name: string;
+  size: number;
+  mimeType: string;
+  kind: "image" | "document";
+  captureSource: "live_camera" | "file_upload";
+  captureTimestamp: string;
+  evidenceCategory: string;
+};
+
+export type MobileOnboardingState = {
+  path: MobileOnboardingPath | null;
+  identityOptions: MobileIdentityOption[];
+  selectedIdentityKeys: string[];
+  primaryIdentityKey: string | null;
+  profile: { fullName: string; phone: string; state: string; district: string; pincode: string };
+  business: {
+    businessName: string;
+    businessType: string;
+    natureOfBusiness: string[];
+    state: string;
+    district: string;
+    city: string;
+    pincode: string;
+    locationStatus: string;
+    approvalStatus: string;
+    registrationComplete: boolean;
+  };
+  evidence: {
+    selfieCaptured: boolean;
+    workPhotoCount: number;
+    documentCount: number;
+  };
+  verification: { status: string; reasons: string[]; canActivateDashboard: boolean };
+};
+
 export type MobileApiSuccess<T> = {
   ok: true;
   apiVersion: typeof MOBILE_API_VERSION;
