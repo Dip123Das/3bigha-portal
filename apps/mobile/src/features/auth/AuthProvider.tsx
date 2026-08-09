@@ -4,6 +4,7 @@ import { AppState } from "react-native";
 import {
   createContext,
   type PropsWithChildren,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -18,6 +19,9 @@ type AuthState = {
   ready: boolean;
   configurationMissing: boolean;
   callbackError: string | null;
+  foregroundReady: boolean;
+  foregroundError: boolean;
+  retryForegroundValidation(): void;
   clearCallbackError(): void;
 };
 
@@ -36,6 +40,27 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(!supabase);
   const [callbackError, setCallbackError] = useState<string | null>(null);
+  const [foregroundReady, setForegroundReady] = useState(!supabase);
+  const [foregroundError, setForegroundError] = useState(false);
+
+  const validateForegroundSession = useCallback(async () => {
+    if (!supabase) return;
+    setForegroundReady(false);
+    setForegroundError(false);
+    const { data: saved, error: savedError } = await supabase.auth.getSession();
+    if (savedError) { setForegroundError(true); return; }
+    if (!saved.session) { setSession(null); setForegroundReady(true); return; }
+    const { data, error } = await supabase.auth.refreshSession(saved.session);
+    if (!error && data.session) { setSession(data.session); setForegroundReady(true); return; }
+    const status = typeof error?.status === "number" ? error.status : 0;
+    if (status === 400 || status === 401 || status === 403) {
+      await supabase.auth.signOut({ scope: "local" });
+      setSession(null);
+      setForegroundReady(true);
+      return;
+    }
+    setForegroundError(true);
+  }, [supabase]);
 
   useEffect(() => {
     if (!supabase) return;
@@ -46,6 +71,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
       if (error) setCallbackError("Your saved session could not be restored. Please sign in again.");
       setSession(data.session ?? null);
       setReady(true);
+      if (!data.session) setForegroundReady(true);
+      else void validateForegroundSession();
     });
 
     const authSubscription = supabase.auth.onAuthStateChange((_event, nextSession) => {
@@ -64,8 +91,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
     });
 
     const appStateSubscription = AppState.addEventListener("change", (state) => {
-      if (state === "active") supabase.auth.startAutoRefresh();
-      else supabase.auth.stopAutoRefresh();
+      if (state === "active") {
+        supabase.auth.startAutoRefresh();
+        void validateForegroundSession();
+      } else {
+        supabase.auth.stopAutoRefresh();
+        setForegroundReady(false);
+        setForegroundError(false);
+      }
     });
     if (AppState.currentState === "active") supabase.auth.startAutoRefresh();
 
@@ -76,15 +109,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
       linkSubscription.remove();
       appStateSubscription.remove();
     };
-  }, [supabase]);
+  }, [supabase, validateForegroundSession]);
 
   const value = useMemo<AuthState>(() => ({
     session,
     ready,
     configurationMissing: !supabase,
     callbackError,
+    foregroundReady,
+    foregroundError,
+    retryForegroundValidation: () => { void validateForegroundSession(); },
     clearCallbackError: () => setCallbackError(null),
-  }), [callbackError, ready, session, supabase]);
+  }), [callbackError, foregroundError, foregroundReady, ready, session, supabase, validateForegroundSession]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
