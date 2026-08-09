@@ -29,6 +29,19 @@ npm run bundle:ios
 For local native development, use `npm run android` on an Android development
 machine or `npm run ios` on macOS after configuring the platform toolchain.
 
+## Production build contract
+
+MOB-10 adds explicit EAS development, internal-preview and production build
+profiles. Configure `EXPO_PROJECT_ID` with the linked Expo project's UUID and
+store the three `EXPO_PUBLIC_*` values in the matching EAS environment. They
+are public client configuration, but no service-role key or signing credential
+belongs in the repository.
+
+Before requesting a signed build, run `npm run config:check`, the mobile
+typecheck, both platform exports and the MOB-01 through MOB-10 verifiers.
+Signing credentials, Apple/Google account access, physical-device validation
+and store submission remain controlled release operations.
+
 ## Local authentication configuration
 
 Copy `.env.example` to `.env.local` and provide the public Supabase URL,
