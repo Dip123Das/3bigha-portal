@@ -22,6 +22,12 @@ export type MobileBootstrap = {
   capabilities: { legacy: string[]; operating: string[]; groups: Record<string, string[]> };
 };
 
+export type MobileDashboardAggregate = {
+  dashboard: MobileDashboardKey;
+  generatedAt: string;
+  metrics: Array<{ key: string; label: string; value: number | null; webPath: string }>;
+};
+
 function apiOrigin() {
   const value = process.env.EXPO_PUBLIC_API_URL?.replace(/\/$/, "");
   if (!value) throw new Error("The approved 3Bigha API URL is not configured.");
@@ -41,4 +47,11 @@ export async function loadMobileBootstrap(session: Session): Promise<MobileBoots
     throw new Error(body?.error?.message || "Your workspace could not be prepared.");
   }
   return body.data as MobileBootstrap;
+}
+
+export async function loadDashboardAggregate(session: Session): Promise<MobileDashboardAggregate> {
+  const response = await fetch(`${apiOrigin()}/api/v1/mobile/dashboard`, { headers: { Authorization: `Bearer ${session.access_token}` } });
+  const body = await response.json().catch(() => null);
+  if (!response.ok || !body?.ok) throw new Error(body?.error?.message || "Your work summary could not be prepared.");
+  return body.data as MobileDashboardAggregate;
 }
