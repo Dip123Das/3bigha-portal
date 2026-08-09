@@ -38,7 +38,7 @@ are public client configuration, but no service-role key or signing credential
 belongs in the repository.
 
 Before requesting a signed build, run `npm run config:check`, the mobile
-typecheck, both platform exports and the MOB-01 through MOB-12 verifiers.
+typecheck, both platform exports and the MOB-01 through MOB-13 verifiers.
 Signing credentials, Apple/Google account access, physical-device validation
 and store submission remain controlled release operations.
 
@@ -52,6 +52,11 @@ carry explicit roles, labels and state; important status changes use live
 announcements; headings provide screen-reader structure; and controls retain
 usable touch targets and dynamic text scaling. Physical TalkBack, VoiceOver,
 large-text and switch-control checks remain release-device gates.
+
+MOB-13 contains unexpected native render failures behind a human-readable safe
+recovery screen. Retry and deliberate reload choices preserve the current
+session, while the boundary neither displays nor stores personal data, tokens,
+raw exception messages or stack traces.
 
 ## Local authentication configuration
 

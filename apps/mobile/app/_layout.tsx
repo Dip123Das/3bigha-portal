@@ -4,9 +4,11 @@ import { StatusBar } from "expo-status-bar";
 import { colors } from "@/theme/tokens";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { NotificationResponseProvider } from "@/features/notifications/NotificationResponseProvider";
+import { AppRecoveryBoundary } from "@/features/recovery/AppRecoveryBoundary";
 
 export default function RootLayout() {
   return (
+    <AppRecoveryBoundary>
     <AuthProvider>
       <NotificationResponseProvider>
         <StatusBar style="dark" />
@@ -18,5 +20,6 @@ export default function RootLayout() {
         />
       </NotificationResponseProvider>
     </AuthProvider>
+    </AppRecoveryBoundary>
   );
 }
