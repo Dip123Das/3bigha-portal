@@ -17,6 +17,7 @@ on:
       - "scripts/verify-mob-11-release-health.mjs"
       - "scripts/verify-mob-12-accessibility.mjs"
       - "scripts/verify-mob-13-failure-containment.mjs"
+      - "scripts/verify-mob-14-network-resilience.mjs"
       - ".github/workflows/mobile-foundation.yml"
   push:
     branches: [main]
@@ -35,6 +36,7 @@ on:
       - "scripts/verify-mob-11-release-health.mjs"
       - "scripts/verify-mob-12-accessibility.mjs"
       - "scripts/verify-mob-13-failure-containment.mjs"
+      - "scripts/verify-mob-14-network-resilience.mjs"
       - ".github/workflows/mobile-foundation.yml"
 
 permissions:
@@ -73,3 +75,4 @@ jobs:
           node scripts/verify-mob-11-release-health.mjs
           node scripts/verify-mob-12-accessibility.mjs
           node scripts/verify-mob-13-failure-containment.mjs
+          node scripts/verify-mob-14-network-resilience.mjs
