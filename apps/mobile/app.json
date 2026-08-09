@@ -28,7 +28,8 @@
           "locationWhenInUsePermission": "Allow 3Bigha to verify the live operating location you submit during registration."
         }
       ],
-      "expo-document-picker"
+      "expo-document-picker",
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true
@@ -47,7 +48,7 @@
     },
     "extra": {
       "architecture": "canonical-native-foundation",
-      "mobSprint": "MOB-06"
+      "mobSprint": "MOB-07"
     }
   }
 }

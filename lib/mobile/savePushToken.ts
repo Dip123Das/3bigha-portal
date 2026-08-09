@@ -33,7 +33,17 @@ export async function savePushToken({
     return;
   }
 
-  await admin
+  if (deviceId) {
+    const { error: retirementError } = await admin
+      .from("user_push_tokens")
+      .update({ notification_enabled: false, updated_at: new Date().toISOString() })
+      .eq("user_id", userId)
+      .eq("device_id", deviceId)
+      .neq("fcm_token", token);
+    if (retirementError) throw retirementError;
+  }
+
+  const { error } = await admin
     .from("user_push_tokens")
     .upsert(
       {
@@ -56,4 +66,26 @@ export async function savePushToken({
         onConflict: "fcm_token",
       }
     );
+
+  if (error) throw error;
+}
+
+export async function getPushDeviceState(userId: string, deviceId: string) {
+  const { data, error } = await admin
+    .from("user_push_tokens")
+    .select("notification_enabled,last_seen_at,platform,device_name,app_version")
+    .eq("user_id", userId)
+    .eq("device_id", deviceId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function disablePushDevice(userId: string, deviceId: string) {
+  const { error } = await admin
+    .from("user_push_tokens")
+    .update({ notification_enabled: false, updated_at: new Date().toISOString() })
+    .eq("user_id", userId)
+    .eq("device_id", deviceId);
+  if (error) throw error;
 }
