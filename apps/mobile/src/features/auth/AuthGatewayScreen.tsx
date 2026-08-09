@@ -64,7 +64,7 @@ export function AuthGatewayScreen() {
   };
 
   if (!ready) {
-    return <SafeAreaView style={styles.center}><ActivityIndicator color={colors.brand} size="large" /></SafeAreaView>;
+    return <SafeAreaView accessibilityLabel="Restoring your secure session" accessibilityRole="progressbar" style={styles.center}><ActivityIndicator color={colors.brand} size="large" /><Text accessibilityLiveRegion="polite" style={styles.body}>Restoring your secure session…</Text></SafeAreaView>;
   }
 
   if (session) {
@@ -78,14 +78,14 @@ export function AuthGatewayScreen() {
           <Brand />
           <View style={styles.intro}>
             <Text style={styles.eyebrow}>ONE SECURE 3BIGHA IDENTITY</Text>
-            <Text style={styles.title}>Sign in simply. Continue with dignity.</Text>
+            <Text accessibilityRole="header" style={styles.title}>Sign in simply. Continue with dignity.</Text>
             <Text style={styles.body}>Use the same account as the 3Bigha portal. We never create a separate mobile identity.</Text>
           </View>
 
           <View style={styles.card}>
             <View style={styles.tabs}>
               {(["email", "phone"] as const).map((item) => (
-                <Pressable key={item} onPress={() => { setMethod(item); setMessage(null); }} style={[styles.tab, method === item && styles.activeTab]}>
+                <Pressable accessibilityLabel={item === "email" ? "Sign in with email" : "Sign in with phone OTP"} accessibilityRole="tab" accessibilityState={{ selected: method === item }} key={item} onPress={() => { setMethod(item); setMessage(null); }} style={[styles.tab, method === item && styles.activeTab]}>
                   <Text style={[styles.tabText, method === item && styles.activeTabText]}>{item === "email" ? "Email" : "Phone OTP"}</Text>
                 </Pressable>
               ))}
@@ -94,9 +94,9 @@ export function AuthGatewayScreen() {
             {method === "email" ? (
               <>
                 <Text style={styles.label}>Email address</Text>
-                <TextInput autoCapitalize="none" autoComplete="email" inputMode="email" onChangeText={setEmail} placeholder="you@example.com" style={styles.input} value={email} />
+                <TextInput accessibilityLabel="Email address" autoCapitalize="none" autoComplete="email" inputMode="email" onChangeText={setEmail} placeholder="you@example.com" style={styles.input} value={email} />
                 <Pressable
-                  disabled={busy || configurationMissing}
+                  accessibilityLabel="Send secure sign-in link" accessibilityRole="button" accessibilityState={{ busy, disabled: busy || configurationMissing }} disabled={busy || configurationMissing}
                   onPress={() => void run(async () => {
                     if (!email.trim()) throw new Error("Please enter your email address.");
                     const { error } = await supabaseOrThrow().auth.signInWithOtp({
@@ -114,10 +114,10 @@ export function AuthGatewayScreen() {
             ) : (
               <>
                 <Text style={styles.label}>Mobile number with country code</Text>
-                <TextInput autoComplete="tel" inputMode="tel" onChangeText={setPhone} placeholder="+91 98765 43210" style={styles.input} value={phone} />
-                {phoneCodeSent && <TextInput inputMode="numeric" maxLength={8} onChangeText={setOtp} placeholder="Enter OTP" style={styles.input} value={otp} />}
+                <TextInput accessibilityLabel="Mobile number with country code" autoComplete="tel" inputMode="tel" onChangeText={setPhone} placeholder="+91 98765 43210" style={styles.input} value={phone} />
+                {phoneCodeSent && <TextInput accessibilityLabel="One-time password" inputMode="numeric" maxLength={8} onChangeText={setOtp} placeholder="Enter OTP" style={styles.input} value={otp} />}
                 <Pressable
-                  disabled={busy || configurationMissing}
+                  accessibilityLabel={phoneCodeSent ? "Verify OTP and sign in" : "Send OTP"} accessibilityRole="button" accessibilityState={{ busy, disabled: busy || configurationMissing }} disabled={busy || configurationMissing}
                   onPress={() => void run(async () => {
                     if (!phoneCodeSent) {
                       const { error } = await supabaseOrThrow().auth.signInWithOtp({ phone: phone.replace(/\s/g, "") });
@@ -139,7 +139,7 @@ export function AuthGatewayScreen() {
 
             <View style={styles.divider}><View style={styles.dividerLine} /><Text style={styles.dividerText}>OR</Text><View style={styles.dividerLine} /></View>
             <Pressable
-              disabled={busy || configurationMissing}
+              accessibilityLabel="Continue with Google" accessibilityRole="button" accessibilityState={{ busy, disabled: busy || configurationMissing }} disabled={busy || configurationMissing}
               onPress={() => void run(async () => {
                 const supabase = supabaseOrThrow();
                 const { data, error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo, skipBrowserRedirect: true } });
@@ -158,7 +158,7 @@ export function AuthGatewayScreen() {
             </Pressable>
 
             {(callbackError || message || configurationMissing) && (
-              <Text accessibilityRole="alert" style={[styles.message, configurationMissing && styles.error]}>
+              <Text accessibilityLiveRegion="assertive" accessibilityRole="alert" style={[styles.message, configurationMissing && styles.error]}>
                 {configurationMissing ? "Authentication configuration is missing. Add the approved Expo public Supabase URL and anonymous key." : callbackError ?? message}
               </Text>
             )}

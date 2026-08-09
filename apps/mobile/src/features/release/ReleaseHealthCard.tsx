@@ -59,16 +59,16 @@ export function ReleaseHealthCard() {
 
   return <View style={styles.card}>
     <Text style={styles.kicker}>APP HEALTH</Text>
-    <Text style={styles.title}>Release and updates</Text>
+    <Text accessibilityRole="header" style={styles.title}>Release and updates</Text>
     <Text style={styles.meta}>Version {version} · {channel}</Text>
-    {message ? <Text accessibilityRole="alert" style={state === "error" ? styles.warning : styles.body}>{message}</Text> : <Text style={styles.body}>Check for a compatible update without interrupting your work.</Text>}
+    {message ? <Text accessibilityLiveRegion="polite" accessibilityRole={state === "error" ? "alert" : undefined} style={state === "error" ? styles.warning : styles.body}>{message}</Text> : <Text style={styles.body}>Check for a compatible update without interrupting your work.</Text>}
     {state === "available" ? <Action label="Download update" disabled={busy} onPress={() => void download()} /> : state === "ready" ? <Action label="Restart and apply" disabled={busy} onPress={() => void restart()} /> : <Action label={busy ? "Please wait…" : "Check for updates"} disabled={busy} onPress={() => void check()} />}
     <Text style={styles.note}>Updates cannot change your identity, permissions or server-owned business data.</Text>
   </View>;
 }
 
 function Action({ label, disabled, onPress }: { label: string; disabled: boolean; onPress(): void }) {
-  return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={[styles.action, disabled && styles.disabled]}><Text style={styles.actionText}>{label}</Text></Pressable>;
+  return <Pressable accessibilityLabel={label} accessibilityRole="button" accessibilityState={{ disabled, busy: disabled }} disabled={disabled} hitSlop={8} onPress={onPress} style={[styles.action, disabled && styles.disabled]}><Text style={styles.actionText}>{label}</Text></Pressable>;
 }
 
 const styles = StyleSheet.create({
