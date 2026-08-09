@@ -1,4 +1,3 @@
-import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import type { Session } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
@@ -17,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { getNativeSupabase } from "@/lib/auth/supabase";
+import { consumeNativeAuthCallback, nativeAuthCallbackUrl, resetNativeAuthCallbackGate } from "@/lib/auth/callback";
 import { OnboardingScreen } from "@/features/onboarding/OnboardingScreen";
 import { DashboardGateway } from "@/features/dashboard/DashboardGateway";
 import { colors, radii, spacing, typography } from "@/theme/tokens";
@@ -42,7 +42,7 @@ export function AuthGatewayScreen() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const redirectTo = Linking.createURL("auth/callback");
+  const redirectTo = nativeAuthCallbackUrl();
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -99,6 +99,7 @@ export function AuthGatewayScreen() {
                   accessibilityLabel="Send secure sign-in link" accessibilityRole="button" accessibilityState={{ busy, disabled: busy || configurationMissing }} disabled={busy || configurationMissing}
                   onPress={() => void run(async () => {
                     if (!email.trim()) throw new Error("Please enter your email address.");
+                    resetNativeAuthCallbackGate();
                     const { error } = await supabaseOrThrow().auth.signInWithOtp({
                       email: email.trim(),
                       options: { emailRedirectTo: redirectTo, shouldCreateUser: true },
@@ -142,13 +143,13 @@ export function AuthGatewayScreen() {
               accessibilityLabel="Continue with Google" accessibilityRole="button" accessibilityState={{ busy, disabled: busy || configurationMissing }} disabled={busy || configurationMissing}
               onPress={() => void run(async () => {
                 const supabase = supabaseOrThrow();
+                resetNativeAuthCallbackGate();
                 const { data, error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo, skipBrowserRedirect: true } });
                 if (error) throw error;
                 if (!data.url) throw new Error("Google sign-in could not be started.");
                 const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
                 if (result.type !== "success") return;
-                const code = new URL(result.url).searchParams.get("code");
-                if (!code) throw new Error("Google sign-in did not return a secure code.");
+                const code = consumeNativeAuthCallback(result.url);
                 const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
                 if (exchangeError) throw exchangeError;
               })}
