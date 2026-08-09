@@ -45,6 +45,10 @@ export type AccessContext = {
   vendorHasFullAccess: boolean;
 };
 
+type CompatibilityGrantRepairResult = {
+  insertedModules: VendorCapabilityKey[];
+};
+
 function normalizeRole(raw: unknown): PortalRole | null {
   const v = String(raw ?? "").trim().toLowerCase();
 
@@ -188,62 +192,6 @@ export async function resolveAccessForUser(
     }
   }
 
-  // AUTO-HEAL:
-  // vendor_module_grants remains the compatibility storage contract,
-  // but its values are rebuilt from canonical identity_master
-  // projection rather than role / portal_use_reason branches.
-  if (
-    profile?.onboarding_completed === true &&
-    profile?.onboarding_version === 2
-  ) {
-    try {
-      const grantsCheckRes = await withTimeout(
-        supabase
-          .from("vendor_module_grants")
-          .select("module_key")
-          .eq("user_id", userId)
-          .eq("is_active", true),
-        3000,
-        "vendor_module_grants auto-heal lookup"
-      );
-
-      const existingGrantRows = (grantsCheckRes as any)?.data ?? [];
-
-      if (Array.isArray(existingGrantRows) && existingGrantRows.length === 0) {
-        const memberIdentitySources =
-          await loadMemberCanonicalIdentityKeys(
-            supabase,
-            userId
-          );
-
-        const identityProjection =
-          await loadIdentityProjectionSet(
-            supabase,
-            memberIdentitySources.allIdentityKeys
-          );
-
-        const autoModules =
-          identityProjection.compatibilityModules;
-
-        if (autoModules.length > 0) {
-          await withTimeout(
-            supabase.from("vendor_module_grants").insert(
-              autoModules.map((module_key) => ({
-                user_id: userId,
-                module_key,
-                is_active: true,
-              }))
-            ),
-            3000,
-            "vendor_module_grants auto-heal insert"
-          );
-        }
-      }
-    } catch (e) {
-      console.error("RESOLVE_ACCESS_AUTO_HEAL_ERROR", e);
-    }
-  }
-
   if (isVendor || isBuilder || isHubVendor || role === "blogger") {
     const grantsSettled = await Promise.allSettled([
       withTimeout(
@@ -295,6 +243,74 @@ export async function resolveAccessForUser(
     vendorCapabilities,
     vendorHasFullAccess,
   };
+}
+
+/**
+ * Server-only compatibility repair.
+ *
+ * Access resolution is intentionally read-only. Callers at a trusted server
+ * boundary may invoke this repair before resolving access for legacy members.
+ * The inserted values still come exclusively from canonical identity_master.
+ */
+export async function repairCompatibilityGrantsForUser(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<CompatibilityGrantRepairResult> {
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("onboarding_completed,onboarding_version")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (profileError) {
+    throw new Error(`Compatibility profile lookup failed: ${profileError.message}`);
+  }
+
+  if (
+    profile?.onboarding_completed !== true ||
+    profile?.onboarding_version !== 2
+  ) {
+    return { insertedModules: [] };
+  }
+
+  const { data: existingRows, error: grantsError } = await supabase
+    .from("vendor_module_grants")
+    .select("module_key")
+    .eq("user_id", userId)
+    .eq("is_active", true);
+
+  if (grantsError) {
+    throw new Error(`Compatibility grants lookup failed: ${grantsError.message}`);
+  }
+
+  if ((existingRows || []).length > 0) {
+    return { insertedModules: [] };
+  }
+
+  const identitySources = await loadMemberCanonicalIdentityKeys(supabase, userId);
+  const identityProjection = await loadIdentityProjectionSet(
+    supabase,
+    identitySources.allIdentityKeys
+  );
+  const modules = uniqueCapabilities(identityProjection.compatibilityModules);
+
+  if (!modules.length) return { insertedModules: [] };
+
+  const { error: insertError } = await supabase
+    .from("vendor_module_grants")
+    .insert(
+      modules.map((module_key) => ({
+        user_id: userId,
+        module_key,
+        is_active: true,
+      }))
+    );
+
+  if (insertError) {
+    throw new Error(`Compatibility grants repair failed: ${insertError.message}`);
+  }
+
+  return { insertedModules: modules };
 }
 
 export function getDefaultPostLoginPath(access: AccessContext): string {
