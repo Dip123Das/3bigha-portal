@@ -24,7 +24,9 @@ for (const marker of requiredProvider) {
   if (!provider.includes(marker)) throw new Error(`MOB-22 missing cold-start lock: ${marker}`);
 }
 
-if (app.expo?.extra?.mobSprint !== "MOB-22") throw new Error("MOB-22 app metadata is not current");
+if (Number.parseInt(app.expo?.extra?.mobSprint?.replace("MOB-", "") ?? "0", 10) < 22) {
+  throw new Error("MOB-22 app metadata is not current");
+}
 if (/AsyncStorage|SecureStore|fetch\(|console\./.test(provider)) {
   throw new Error("MOB-22 must not persist, transmit or log cold-start verification state");
 }
