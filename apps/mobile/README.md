@@ -38,7 +38,7 @@ are public client configuration, but no service-role key or signing credential
 belongs in the repository.
 
 Before requesting a signed build, run `npm run config:check`, the mobile
-typecheck, both platform exports and the MOB-01 through MOB-20 verifiers.
+typecheck, both platform exports and `npm run verify:foundation`.
 Signing credentials, Apple/Google account access, physical-device validation
 and store submission remain controlled release operations.
 
@@ -110,6 +110,15 @@ authenticated app remains continuously active. Mounted work stays behind the
 existing privacy shield during each check; canonical rejection signs out
 locally, while temporary failure remains fail-closed with a human-controlled
 retry. The interval creates no mobile authentication authority.
+
+MOB-24 closes the numbered Mobile Foundation series. Its consolidated verifier
+runs every MOB-01 through MOB-24 source contract in order and rejects a missing,
+duplicate or unapproved later milestone. Source verification is complete only
+with root and native TypeScript, resolved Expo configuration, Android and iOS
+exports, and the web production build. Signed-build, physical-device and store
+operations remain release gates; they are not represented as completed source
+work. MOB-25 must not be created without separate approval of a material new
+requirement.
 
 ## Local authentication configuration
 

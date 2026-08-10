@@ -5,7 +5,7 @@ const auth = readFileSync("apps/mobile/src/features/auth/AuthProvider.tsx", "utf
 const config = JSON.parse(readFileSync("apps/mobile/app.json", "utf8"));
 const workflow = readFileSync(".github/workflows/mobile-foundation.yml", "utf8");
 
-assert.equal(config.expo.extra.mobSprint, "MOB-23");
+assert(Number.parseInt(config.expo.extra.mobSprint.replace("MOB-", ""), 10) >= 23);
 assert.match(auth, /ACTIVE_SESSION_REVALIDATION_INTERVAL_MS = 5 \* 60_000/);
 assert.match(auth, /if \(!supabase \|\| !session\) return/);
 assert.match(auth, /AppState\.currentState !== "active"/);

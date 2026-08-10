@@ -27,6 +27,9 @@ on:
       - "scripts/verify-mob-21-foreground-inactivity-lock.mjs"
       - "scripts/verify-mob-22-cold-start-session-lock.mjs"
       - "scripts/verify-mob-23-active-session-revalidation.mjs"
+      - "scripts/verify-mob-24-release-readiness.mjs"
+      - "scripts/verify-mobile-foundation.mjs"
+      - "docs/mobile/MOB-24-mobile-foundation-closure.md"
       - ".github/workflows/mobile-foundation.yml"
   push:
     branches: [main]
@@ -55,6 +58,9 @@ on:
       - "scripts/verify-mob-21-foreground-inactivity-lock.mjs"
       - "scripts/verify-mob-22-cold-start-session-lock.mjs"
       - "scripts/verify-mob-23-active-session-revalidation.mjs"
+      - "scripts/verify-mob-24-release-readiness.mjs"
+      - "scripts/verify-mobile-foundation.mjs"
+      - "docs/mobile/MOB-24-mobile-foundation-closure.md"
       - ".github/workflows/mobile-foundation.yml"
 
 permissions:
@@ -75,31 +81,8 @@ jobs:
           cache-dependency-path: apps/mobile/package-lock.json
       - run: npm ci
       - run: npm run typecheck
+      - run: npm run config:check
       - run: npm run bundle:android
       - run: npm run bundle:ios
       - name: Verify canonical native boundary
-        working-directory: .
-        run: |
-          node scripts/verify-mob-01-foundation.mjs
-          node scripts/verify-mob-02-contract-layer.mjs
-          node scripts/verify-mob-03-native-auth.mjs
-          node scripts/verify-mob-04-native-onboarding.mjs
-          node scripts/verify-mob-05-native-dashboards.mjs
-          node scripts/verify-mob-06-dashboard-aggregates.mjs
-          node scripts/verify-mob-07-push-device-lifecycle.mjs
-          node scripts/verify-mob-08-offline-device-mutations.mjs
-          node scripts/verify-mob-09-notification-routing.mjs
-          node scripts/verify-mob-10-production-build-readiness.mjs
-          node scripts/verify-mob-11-release-health.mjs
-          node scripts/verify-mob-12-accessibility.mjs
-          node scripts/verify-mob-13-failure-containment.mjs
-          node scripts/verify-mob-14-network-resilience.mjs
-          node scripts/verify-mob-15-auth-deep-link-integrity.mjs
-          node scripts/verify-mob-16-background-privacy.mjs
-          node scripts/verify-mob-17-foreground-session.mjs
-          node scripts/verify-mob-18-device-reauthentication.mjs
-          node scripts/verify-mob-19-screen-capture-protection.mjs
-          node scripts/verify-mob-20-reinstall-session-boundary.mjs
-          node scripts/verify-mob-21-foreground-inactivity-lock.mjs
-          node scripts/verify-mob-22-cold-start-session-lock.mjs
-          node scripts/verify-mob-23-active-session-revalidation.mjs
+        run: npm run verify:foundation
