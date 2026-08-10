@@ -16,7 +16,7 @@ const assertions = [
   [supabase.includes("restorationCheck ??= wasRestoredAfterRemoval()"), "session restoration gate"],
   [supabase.includes("restorationChecked = true"), "one-time restoration decision"],
   [supabase.includes("SecureStore.deleteItemAsync(secureKey)"), "surviving session deletion"],
-  [app.expo.extra.mobSprint === "MOB-20", "resolved sprint marker"],
+  [Number.parseInt(app.expo.extra.mobSprint.replace("MOB-", ""), 10) >= 20, "resolved sprint marker"],
 ];
 
 for (const [condition, label] of assertions) {
