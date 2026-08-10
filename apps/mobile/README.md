@@ -95,6 +95,11 @@ material survives, the old Supabase session is deleted before restoration and
 the fresh installation starts signed out. Normal upgrades retain both markers
 and preserve the session.
 
+MOB-21 hides authenticated work after five minutes without local touch activity
+while the app remains in the foreground. The existing operating-system device
+verification must succeed before the mounted application tree is revealed again;
+no interaction history is persisted or transmitted.
+
 ## Local authentication configuration
 
 Copy `.env.example` to `.env.local` and provide the public Supabase URL,

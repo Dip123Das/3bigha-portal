@@ -8,7 +8,7 @@ import { colors, radii, spacing, typography } from "@/theme/tokens";
 export function AppPrivacyShield({ children }: PropsWithChildren) {
   const [active, setActive] = useState(AppState.currentState === "active");
   const { foregroundReady, foregroundError, retryForegroundValidation } = useAuth();
-  const { deviceReady, deviceError, retryDeviceAuthentication, signOutSafely } = useDeviceReauthentication();
+  const { deviceReady, deviceError, retryDeviceAuthentication, signOutSafely, registerLocalInteraction } = useDeviceReauthentication();
   const privateState = !active || !foregroundReady || !deviceReady;
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export function AppPrivacyShield({ children }: PropsWithChildren) {
 
   return (
     <View style={styles.root}>
-      <View accessibilityElementsHidden={privateState} importantForAccessibility={privateState ? "no-hide-descendants" : "auto"} style={styles.content}>
+      <View accessibilityElementsHidden={privateState} importantForAccessibility={privateState ? "no-hide-descendants" : "auto"} onTouchStart={registerLocalInteraction} style={styles.content}>
         {children}
       </View>
       {privateState && (

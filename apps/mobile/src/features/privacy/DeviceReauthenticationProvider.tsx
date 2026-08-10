@@ -15,12 +15,14 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { getNativeSupabase } from "@/lib/auth/supabase";
 
 const REAUTHENTICATION_INTERVAL_MS = 60_000;
+const FOREGROUND_INACTIVITY_INTERVAL_MS = 5 * 60_000;
 
 type DeviceReauthenticationState = {
   deviceReady: boolean;
   deviceError: boolean;
   retryDeviceAuthentication(): void;
   signOutSafely(): void;
+  registerLocalInteraction(): void;
 };
 
 const DeviceReauthenticationContext = createContext<DeviceReauthenticationState | null>(null);
@@ -28,9 +30,15 @@ const DeviceReauthenticationContext = createContext<DeviceReauthenticationState 
 export function DeviceReauthenticationProvider({ children }: PropsWithChildren) {
   const { session } = useAuth();
   const backgroundedAt = useRef<number | null>(null);
+  const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const attempt = useRef(0);
   const [deviceReady, setDeviceReady] = useState(true);
   const [deviceError, setDeviceError] = useState(false);
+
+  const clearInactivityTimer = useCallback(() => {
+    if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+    inactivityTimer.current = null;
+  }, []);
 
   const authenticateReturningPerson = useCallback(async () => {
     const currentAttempt = ++attempt.current;
@@ -50,6 +58,19 @@ export function DeviceReauthenticationProvider({ children }: PropsWithChildren) 
     setDeviceError(true);
   }, []);
 
+  const armInactivityTimer = useCallback(() => {
+    clearInactivityTimer();
+    if (!session || AppState.currentState !== "active") return;
+    inactivityTimer.current = setTimeout(() => {
+      inactivityTimer.current = null;
+      void authenticateReturningPerson();
+    }, FOREGROUND_INACTIVITY_INTERVAL_MS);
+  }, [authenticateReturningPerson, clearInactivityTimer, session]);
+
+  const registerLocalInteraction = useCallback(() => {
+    if (deviceReady && !deviceError) armInactivityTimer();
+  }, [armInactivityTimer, deviceError, deviceReady]);
+
   const signOutSafely = useCallback(() => {
     const supabase = getNativeSupabase();
     attempt.current += 1;
@@ -60,16 +81,20 @@ export function DeviceReauthenticationProvider({ children }: PropsWithChildren) 
 
   useEffect(() => {
     if (!session) {
+      clearInactivityTimer();
       attempt.current += 1;
       backgroundedAt.current = null;
       setDeviceError(false);
       setDeviceReady(true);
+    } else if (deviceReady) {
+      armInactivityTimer();
     }
-  }, [session]);
+  }, [armInactivityTimer, clearInactivityTimer, deviceReady, session]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
       if (state !== "active") {
+        clearInactivityTimer();
         if (backgroundedAt.current === null) backgroundedAt.current = Date.now();
         if (session) setDeviceReady(false);
         return;
@@ -80,19 +105,24 @@ export function DeviceReauthenticationProvider({ children }: PropsWithChildren) 
       if (!session || awaySince === null || Date.now() - awaySince < REAUTHENTICATION_INTERVAL_MS) {
         setDeviceError(false);
         setDeviceReady(true);
+        armInactivityTimer();
         return;
       }
       void authenticateReturningPerson();
     });
-    return () => subscription.remove();
-  }, [authenticateReturningPerson, session]);
+    return () => {
+      subscription.remove();
+      clearInactivityTimer();
+    };
+  }, [armInactivityTimer, authenticateReturningPerson, clearInactivityTimer, session]);
 
   const value = useMemo<DeviceReauthenticationState>(() => ({
     deviceReady,
     deviceError,
     retryDeviceAuthentication: () => { void authenticateReturningPerson(); },
     signOutSafely,
-  }), [authenticateReturningPerson, deviceError, deviceReady, signOutSafely]);
+    registerLocalInteraction,
+  }), [authenticateReturningPerson, deviceError, deviceReady, registerLocalInteraction, signOutSafely]);
 
   return <DeviceReauthenticationContext.Provider value={value}>{children}</DeviceReauthenticationContext.Provider>;
 }
