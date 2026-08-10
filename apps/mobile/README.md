@@ -38,7 +38,7 @@ are public client configuration, but no service-role key or signing credential
 belongs in the repository.
 
 Before requesting a signed build, run `npm run config:check`, the mobile
-typecheck, both platform exports and the MOB-01 through MOB-17 verifiers.
+typecheck, both platform exports and the MOB-01 through MOB-18 verifiers.
 Signing credentials, Apple/Google account access, physical-device validation
 and store submission remain controlled release operations.
 
@@ -77,6 +77,12 @@ MOB-17 keeps that privacy surface in place while a returning authenticated
 session is refreshed against canonical Supabase authority. Invalid sessions
 fall back to the existing signed-out gateway; temporary failures keep work
 hidden and provide a deliberate retry without exposing cached business data.
+
+MOB-18 keeps the same shield in place after an extended background interval
+until the operating system verifies the returning person using enrolled
+biometrics or the device's secure fallback. 3Bigha receives only the result,
+stores no biometric material, and offers safe retry or local sign-out without
+turning device authentication into identity or business authority.
 
 ## Local authentication configuration
 

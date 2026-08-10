@@ -18,6 +18,12 @@
         }
       ],
       [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow 3Bigha to verify that it is you before showing your work."
+        }
+      ],
+      [
         "expo-camera",
         {
           "cameraPermission": "Allow 3Bigha to capture your live selfie and work or workplace evidence."
@@ -58,7 +64,7 @@
     },
     "extra": {
       "architecture": "canonical-native-foundation",
-      "mobSprint": "MOB-17"
+      "mobSprint": "MOB-18"
     }
   }
 }
