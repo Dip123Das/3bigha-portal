@@ -8,6 +8,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -27,6 +28,7 @@ type AuthState = {
 };
 
 const AuthContext = createContext<AuthState | null>(null);
+const ACTIVE_SESSION_REVALIDATION_INTERVAL_MS = 5 * 60_000;
 
 async function completeAuthCallback(url: string) {
   const supabase = getNativeSupabase();
@@ -44,25 +46,65 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [callbackError, setCallbackError] = useState<string | null>(null);
   const [foregroundReady, setForegroundReady] = useState(!supabase);
   const [foregroundError, setForegroundError] = useState(false);
+  const foregroundValidation = useRef<Promise<void> | null>(null);
 
   const validateForegroundSession = useCallback(async () => {
     if (!supabase) return;
-    setForegroundReady(false);
-    setForegroundError(false);
-    const { data: saved, error: savedError } = await supabase.auth.getSession();
-    if (savedError) { setForegroundError(true); return; }
-    if (!saved.session) { setSession(null); setForegroundReady(true); return; }
-    const { data, error } = await supabase.auth.refreshSession(saved.session);
-    if (!error && data.session) { setSession(data.session); setForegroundReady(true); return; }
-    const status = typeof error?.status === "number" ? error.status : 0;
-    if (status === 400 || status === 401 || status === 403) {
-      await supabase.auth.signOut({ scope: "local" });
-      setSession(null);
-      setForegroundReady(true);
-      return;
+    if (foregroundValidation.current) return foregroundValidation.current;
+    const validation = (async () => {
+      setForegroundReady(false);
+      setForegroundError(false);
+      const { data: saved, error: savedError } = await supabase.auth.getSession();
+      if (savedError) { setForegroundError(true); return; }
+      if (!saved.session) { setSession(null); setForegroundReady(true); return; }
+      const { data, error } = await supabase.auth.refreshSession(saved.session);
+      if (!error && data.session) { setSession(data.session); setForegroundReady(true); return; }
+      const status = typeof error?.status === "number" ? error.status : 0;
+      if (status === 400 || status === 401 || status === 403) {
+        await supabase.auth.signOut({ scope: "local" });
+        setSession(null);
+        setForegroundReady(true);
+        return;
+      }
+      setForegroundError(true);
+    })();
+    foregroundValidation.current = validation;
+    try {
+      await validation;
+    } finally {
+      if (foregroundValidation.current === validation) foregroundValidation.current = null;
     }
-    setForegroundError(true);
   }, [supabase]);
+
+  useEffect(() => {
+    if (!supabase || !session) return;
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const clearTimer = () => {
+      if (timer) clearTimeout(timer);
+      timer = null;
+    };
+    const armTimer = () => {
+      clearTimer();
+      if (!active || AppState.currentState !== "active") return;
+      timer = setTimeout(() => {
+        timer = null;
+        void validateForegroundSession().finally(() => {
+          if (active) armTimer();
+        });
+      }, ACTIVE_SESSION_REVALIDATION_INTERVAL_MS);
+    };
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") armTimer();
+      else clearTimer();
+    });
+    armTimer();
+    return () => {
+      active = false;
+      clearTimer();
+      subscription.remove();
+    };
+  }, [session, supabase, validateForegroundSession]);
 
   useEffect(() => {
     if (!supabase) return;

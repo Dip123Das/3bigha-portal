@@ -105,6 +105,12 @@ existing privacy shield until operating-system device verification succeeds.
 A new sign-in completed after a signed-out start remains uninterrupted, and
 the cold-start decision is held only in memory for that process.
 
+MOB-23 revalidates the canonical Supabase session every five minutes while an
+authenticated app remains continuously active. Mounted work stays behind the
+existing privacy shield during each check; canonical rejection signs out
+locally, while temporary failure remains fail-closed with a human-controlled
+retry. The interval creates no mobile authentication authority.
+
 ## Local authentication configuration
 
 Copy `.env.example` to `.env.local` and provide the public Supabase URL,
