@@ -17,7 +17,7 @@ for (const marker of requiredProvider) {
 if (!shield.includes("onTouchStart={registerLocalInteraction}")) {
   throw new Error("MOB-21 root privacy shield does not observe local touch activity");
 }
-if (app.expo?.extra?.mobSprint !== "MOB-21") throw new Error("MOB-21 app metadata is not current");
+if (Number.parseInt(app.expo?.extra?.mobSprint?.replace("MOB-", "") ?? "0", 10) < 21) throw new Error("MOB-21 app metadata is not current");
 if (/AsyncStorage|SecureStore|fetch\(|console\./.test(provider)) {
   throw new Error("MOB-21 must not persist, transmit or log interaction activity");
 }

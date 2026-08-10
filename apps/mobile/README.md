@@ -100,6 +100,11 @@ while the app remains in the foreground. The existing operating-system device
 verification must succeed before the mounted application tree is revealed again;
 no interaction history is persisted or transmitted.
 
+MOB-22 keeps a session restored during a new application process behind the
+existing privacy shield until operating-system device verification succeeds.
+A new sign-in completed after a signed-out start remains uninterrupted, and
+the cold-start decision is held only in memory for that process.
+
 ## Local authentication configuration
 
 Copy `.env.example` to `.env.local` and provide the public Supabase URL,
