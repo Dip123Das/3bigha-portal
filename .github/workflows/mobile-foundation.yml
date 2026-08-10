@@ -21,6 +21,7 @@ on:
       - "scripts/verify-mob-15-auth-deep-link-integrity.mjs"
       - "scripts/verify-mob-16-background-privacy.mjs"
       - "scripts/verify-mob-17-foreground-session.mjs"
+      - "scripts/verify-mob-18-device-reauthentication.mjs"
       - ".github/workflows/mobile-foundation.yml"
   push:
     branches: [main]
@@ -43,6 +44,7 @@ on:
       - "scripts/verify-mob-15-auth-deep-link-integrity.mjs"
       - "scripts/verify-mob-16-background-privacy.mjs"
       - "scripts/verify-mob-17-foreground-session.mjs"
+      - "scripts/verify-mob-18-device-reauthentication.mjs"
       - ".github/workflows/mobile-foundation.yml"
 
 permissions:
@@ -85,3 +87,4 @@ jobs:
           node scripts/verify-mob-15-auth-deep-link-integrity.mjs
           node scripts/verify-mob-16-background-privacy.mjs
           node scripts/verify-mob-17-foreground-session.mjs
+          node scripts/verify-mob-18-device-reauthentication.mjs
