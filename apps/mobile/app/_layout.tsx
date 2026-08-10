@@ -10,8 +10,8 @@ import { AppPrivacyShield } from "@/features/privacy/AppPrivacyShield";
 export default function RootLayout() {
   return (
     <AppRecoveryBoundary>
-      <AppPrivacyShield>
-        <AuthProvider>
+      <AuthProvider>
+        <AppPrivacyShield>
           <NotificationResponseProvider>
             <StatusBar style="dark" />
             <Stack
@@ -21,8 +21,8 @@ export default function RootLayout() {
               }}
             />
           </NotificationResponseProvider>
-        </AuthProvider>
-      </AppPrivacyShield>
+        </AppPrivacyShield>
+      </AuthProvider>
     </AppRecoveryBoundary>
   );
 }

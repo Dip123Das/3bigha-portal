@@ -38,7 +38,7 @@ are public client configuration, but no service-role key or signing credential
 belongs in the repository.
 
 Before requesting a signed build, run `npm run config:check`, the mobile
-typecheck, both platform exports and the MOB-01 through MOB-16 verifiers.
+typecheck, both platform exports and the MOB-01 through MOB-17 verifiers.
 Signing credentials, Apple/Google account access, physical-device validation
 and store submission remain controlled release operations.
 
@@ -72,6 +72,11 @@ MOB-16 replaces the entire rendered app with a privacy-safe surface whenever
 the operating system marks it inactive or backgrounded. Recent-app snapshots
 therefore contain no session, identity, verification, notification or business
 content, while returning to the app preserves the existing authenticated tree.
+
+MOB-17 keeps that privacy surface in place while a returning authenticated
+session is refreshed against canonical Supabase authority. Invalid sessions
+fall back to the existing signed-out gateway; temporary failures keep work
+hidden and provide a deliberate retry without exposing cached business data.
 
 ## Local authentication configuration
 
