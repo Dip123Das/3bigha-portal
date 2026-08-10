@@ -38,7 +38,7 @@ are public client configuration, but no service-role key or signing credential
 belongs in the repository.
 
 Before requesting a signed build, run `npm run config:check`, the mobile
-typecheck, both platform exports and the MOB-01 through MOB-18 verifiers.
+typecheck, both platform exports and the MOB-01 through MOB-19 verifiers.
 Signing credentials, Apple/Google account access, physical-device validation
 and store submission remain controlled release operations.
 
@@ -83,6 +83,11 @@ until the operating system verifies the returning person using enrolled
 biometrics or the device's secure fallback. 3Bigha receives only the result,
 stores no biometric material, and offers safe retry or local sign-out without
 turning device authentication into identity or business authority.
+
+MOB-19 applies the operating system's screen-capture protection across the
+entire mounted native tree. Authenticated work and identity onboarding cannot
+be copied through ordinary screenshots or screen recording while the app is
+open. The guard stores and transmits nothing and is only a disclosure control.
 
 ## Local authentication configuration
 

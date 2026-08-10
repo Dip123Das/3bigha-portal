@@ -7,25 +7,28 @@ import { NotificationResponseProvider } from "@/features/notifications/Notificat
 import { AppRecoveryBoundary } from "@/features/recovery/AppRecoveryBoundary";
 import { AppPrivacyShield } from "@/features/privacy/AppPrivacyShield";
 import { DeviceReauthenticationProvider } from "@/features/privacy/DeviceReauthenticationProvider";
+import { ScreenCaptureProtection } from "@/features/privacy/ScreenCaptureProtection";
 
 export default function RootLayout() {
   return (
     <AppRecoveryBoundary>
-      <AuthProvider>
-        <DeviceReauthenticationProvider>
-          <AppPrivacyShield>
-            <NotificationResponseProvider>
-              <StatusBar style="dark" />
-              <Stack
-                screenOptions={{
-                  contentStyle: { backgroundColor: colors.canvas },
-                  headerShown: false,
-                }}
-              />
-            </NotificationResponseProvider>
-          </AppPrivacyShield>
-        </DeviceReauthenticationProvider>
-      </AuthProvider>
+      <ScreenCaptureProtection>
+        <AuthProvider>
+          <DeviceReauthenticationProvider>
+            <AppPrivacyShield>
+              <NotificationResponseProvider>
+                <StatusBar style="dark" />
+                <Stack
+                  screenOptions={{
+                    contentStyle: { backgroundColor: colors.canvas },
+                    headerShown: false,
+                  }}
+                />
+              </NotificationResponseProvider>
+            </AppPrivacyShield>
+          </DeviceReauthenticationProvider>
+        </AuthProvider>
+      </ScreenCaptureProtection>
     </AppRecoveryBoundary>
   );
 }
