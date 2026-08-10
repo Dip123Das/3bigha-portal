@@ -38,7 +38,7 @@ are public client configuration, but no service-role key or signing credential
 belongs in the repository.
 
 Before requesting a signed build, run `npm run config:check`, the mobile
-typecheck, both platform exports and the MOB-01 through MOB-19 verifiers.
+typecheck, both platform exports and the MOB-01 through MOB-20 verifiers.
 Signing credentials, Apple/Google account access, physical-device validation
 and store submission remain controlled release operations.
 
@@ -88,6 +88,12 @@ MOB-19 applies the operating system's screen-capture protection across the
 entire mounted native tree. Authenticated work and identity onboarding cannot
 be copied through ordinary screenshots or screen recording while the app is
 open. The guard stores and transmits nothing and is only a disclosure control.
+
+MOB-20 pairs encrypted native session storage with a non-secret installation
+sentinel. If ordinary app storage has been removed while encrypted Keychain
+material survives, the old Supabase session is deleted before restoration and
+the fresh installation starts signed out. Normal upgrades retain both markers
+and preserve the session.
 
 ## Local authentication configuration
 

@@ -4,12 +4,26 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
+import { wasRestoredAfterRemoval } from "@/lib/auth/installation";
+
 const SESSION_KEY_PREFIX = "3bigha.auth.";
+let restorationCheck: Promise<boolean> | null = null;
+let restorationChecked = false;
 
 const secureSessionStorage = {
   async getItem(key: string) {
     if (Platform.OS === "web") return globalThis.localStorage?.getItem(key) ?? null;
-    return SecureStore.getItemAsync(`${SESSION_KEY_PREFIX}${key}`);
+    const secureKey = `${SESSION_KEY_PREFIX}${key}`;
+    if (!restorationChecked) {
+      restorationCheck ??= wasRestoredAfterRemoval();
+      if (await restorationCheck) {
+        await SecureStore.deleteItemAsync(secureKey);
+        restorationChecked = true;
+        return null;
+      }
+      restorationChecked = true;
+    }
+    return SecureStore.getItemAsync(secureKey);
   },
   async setItem(key: string, value: string) {
     if (Platform.OS === "web") return globalThis.localStorage?.setItem(key, value);

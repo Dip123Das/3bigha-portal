@@ -16,6 +16,7 @@
     "bundle:ios": "expo export --platform ios --output-dir dist/ios"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-community/netinfo": "^11.5.2",
     "@supabase/supabase-js": "^2.112.2",
     "expo": "~57.0.11",
