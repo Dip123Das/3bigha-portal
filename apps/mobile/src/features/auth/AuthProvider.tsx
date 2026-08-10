@@ -17,6 +17,7 @@ import { consumeNativeAuthCallback } from "@/lib/auth/callback";
 type AuthState = {
   session: Session | null;
   ready: boolean;
+  initialSessionRestored: boolean | null;
   configurationMissing: boolean;
   callbackError: string | null;
   foregroundReady: boolean;
@@ -39,6 +40,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const supabase = getNativeSupabase();
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(!supabase);
+  const [initialSessionRestored, setInitialSessionRestored] = useState<boolean | null>(supabase ? null : false);
   const [callbackError, setCallbackError] = useState<string | null>(null);
   const [foregroundReady, setForegroundReady] = useState(!supabase);
   const [foregroundError, setForegroundError] = useState(false);
@@ -69,6 +71,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     void supabase.auth.getSession().then(({ data, error }) => {
       if (!active) return;
       if (error) setCallbackError("Your saved session could not be restored. Please sign in again.");
+      setInitialSessionRestored(Boolean(data.session));
       setSession(data.session ?? null);
       setReady(true);
       if (!data.session) setForegroundReady(true);
@@ -114,13 +117,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const value = useMemo<AuthState>(() => ({
     session,
     ready,
+    initialSessionRestored,
     configurationMissing: !supabase,
     callbackError,
     foregroundReady,
     foregroundError,
     retryForegroundValidation: () => { void validateForegroundSession(); },
     clearCallbackError: () => setCallbackError(null),
-  }), [callbackError, foregroundError, foregroundReady, ready, session, supabase, validateForegroundSession]);
+  }), [callbackError, foregroundError, foregroundReady, initialSessionRestored, ready, session, supabase, validateForegroundSession]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

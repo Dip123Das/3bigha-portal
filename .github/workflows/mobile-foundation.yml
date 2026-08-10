@@ -25,6 +25,7 @@ on:
       - "scripts/verify-mob-19-screen-capture-protection.mjs"
       - "scripts/verify-mob-20-reinstall-session-boundary.mjs"
       - "scripts/verify-mob-21-foreground-inactivity-lock.mjs"
+      - "scripts/verify-mob-22-cold-start-session-lock.mjs"
       - ".github/workflows/mobile-foundation.yml"
   push:
     branches: [main]
@@ -51,6 +52,7 @@ on:
       - "scripts/verify-mob-19-screen-capture-protection.mjs"
       - "scripts/verify-mob-20-reinstall-session-boundary.mjs"
       - "scripts/verify-mob-21-foreground-inactivity-lock.mjs"
+      - "scripts/verify-mob-22-cold-start-session-lock.mjs"
       - ".github/workflows/mobile-foundation.yml"
 
 permissions:
@@ -97,3 +99,4 @@ jobs:
           node scripts/verify-mob-19-screen-capture-protection.mjs
           node scripts/verify-mob-20-reinstall-session-boundary.mjs
           node scripts/verify-mob-21-foreground-inactivity-lock.mjs
+          node scripts/verify-mob-22-cold-start-session-lock.mjs

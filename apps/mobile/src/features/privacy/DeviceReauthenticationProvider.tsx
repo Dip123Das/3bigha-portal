@@ -28,11 +28,12 @@ type DeviceReauthenticationState = {
 const DeviceReauthenticationContext = createContext<DeviceReauthenticationState | null>(null);
 
 export function DeviceReauthenticationProvider({ children }: PropsWithChildren) {
-  const { session } = useAuth();
+  const { session, ready, initialSessionRestored } = useAuth();
   const backgroundedAt = useRef<number | null>(null);
   const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const attempt = useRef(0);
-  const [deviceReady, setDeviceReady] = useState(true);
+  const coldStartHandled = useRef(false);
+  const [deviceReady, setDeviceReady] = useState(false);
   const [deviceError, setDeviceError] = useState(false);
 
   const clearInactivityTimer = useCallback(() => {
@@ -80,16 +81,26 @@ export function DeviceReauthenticationProvider({ children }: PropsWithChildren) 
   }, []);
 
   useEffect(() => {
+    if (!ready || initialSessionRestored === null || coldStartHandled.current) return;
+    coldStartHandled.current = true;
+    if (session && initialSessionRestored) {
+      void authenticateReturningPerson();
+      return;
+    }
+    setDeviceReady(true);
+  }, [authenticateReturningPerson, initialSessionRestored, ready, session]);
+
+  useEffect(() => {
     if (!session) {
       clearInactivityTimer();
       attempt.current += 1;
       backgroundedAt.current = null;
       setDeviceError(false);
-      setDeviceReady(true);
+      if (ready) setDeviceReady(true);
     } else if (deviceReady) {
       armInactivityTimer();
     }
-  }, [armInactivityTimer, clearInactivityTimer, deviceReady, session]);
+  }, [armInactivityTimer, clearInactivityTimer, deviceReady, ready, session]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
