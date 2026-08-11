@@ -7,7 +7,6 @@
     "orientation": "default",
     "scheme": "threebigha",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "plugins": [
       "expo-router",
       [

@@ -31,7 +31,14 @@ if (appConfig.expo.ios?.bundleIdentifier !== "com.threebigha.mobile") {
   failures.push("iOS bundle identifier is not canonical.");
 }
 
-if (appConfig.expo.newArchEnabled !== true) {
+const expoSdkMajor = Number.parseInt(
+  String(mobilePackage.dependencies?.expo ?? "").match(/\d+/)?.[0] ?? "",
+  10,
+);
+
+if (Number.isFinite(expoSdkMajor) === false) {
+  failures.push("Expo SDK version cannot be determined.");
+} else if (expoSdkMajor < 55 && appConfig.expo.newArchEnabled !== true) {
   failures.push("React Native New Architecture is not enabled.");
 }
 
