@@ -26,7 +26,8 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow 3Bigha to capture your live selfie and work or workplace evidence."
+          "cameraPermission": "Allow 3Bigha to capture your live selfie and work or workplace evidence.",
+          "recordAudioAndroid": false
         }
       ],
       [
@@ -54,6 +55,9 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
         "POST_NOTIFICATIONS"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "ios": {
