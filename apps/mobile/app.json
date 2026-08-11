@@ -64,7 +64,13 @@
     },
     "extra": {
       "architecture": "canonical-native-foundation",
-      "mobSprint": "MOB-24"
-    }
+      "mobSprint": "MOB-24",
+      "releaseChannel": "development",
+      "router": {},
+      "eas": {
+        "projectId": "752e26b7-53a9-4cb8-a4ea-356d621e8ec7"
+      }
+    },
+    "owner": "dip123dass-team"
   }
 }

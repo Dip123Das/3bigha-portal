@@ -1,6 +1,6 @@
 import fs from "node:fs";
 
-const read = (path) => fs.readFileSync(path, "utf8");
+const read = (path) => fs.readFileSync(path, "utf8").replace(/\r\n/g, "\n");
 const app = JSON.parse(read("apps/mobile/app.json")).expo;
 const layout = read("apps/mobile/app/_layout.tsx");
 const provider = read("apps/mobile/src/features/privacy/DeviceReauthenticationProvider.tsx");
