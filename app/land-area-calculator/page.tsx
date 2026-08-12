@@ -23,7 +23,7 @@ import {
   sqftToHectare,
   sqftToSqm,
   trapeziumAreaToSqft,
-  triangleAreaToSqft,
+  triangleThreeSideAreaToSqft,
   type AreaShape,
 } from "@/lib/measurement/area";
 import {
@@ -38,7 +38,7 @@ type InputUnit = "feet" | "meter";
 
 const shapeOptions: Array<{ value: AreaShape; label: string }> = [
   { value: "rectangle", label: "Rectangle" },
-  { value: "average-rectangle", label: "Uneven" },
+  { value: "average-rectangle", label: "4-Side Plot" },
   { value: "triangle", label: "Triangle" },
   { value: "circle", label: "Circle" },
   { value: "trapezium", label: "Trapezium" },
@@ -98,7 +98,9 @@ export default function LandAreaCalculatorPage() {
   const [lengthTwo, setLengthTwo] = useState(38);
   const [breadthOne, setBreadthOne] = useState(31);
   const [breadthTwo, setBreadthTwo] = useState(29);
-  const [base, setBase] = useState(40);
+  const [triangleSideA, setTriangleSideA] = useState(40);
+  const [triangleSideB, setTriangleSideB] = useState(30);
+  const [triangleSideC, setTriangleSideC] = useState(50);
   const [height, setHeight] = useState(30);
   const [radius, setRadius] = useState(20);
   const [parallelA, setParallelA] = useState(40);
@@ -350,7 +352,12 @@ export default function LandAreaCalculatorPage() {
       shape === "average-rectangle"
         ? averageRectangleAreaToSqft(lengthOne, lengthTwo, breadthOne, breadthTwo, unit)
         : shape === "triangle"
-        ? triangleAreaToSqft(base, height, unit)
+        ? triangleThreeSideAreaToSqft(
+            triangleSideA,
+            triangleSideB,
+            triangleSideC,
+            unit
+          )
         : shape === "circle"
         ? circleAreaToSqft(radius, unit)
         : shape === "trapezium"
@@ -401,7 +408,9 @@ export default function LandAreaCalculatorPage() {
     lengthTwo,
     breadthOne,
     breadthTwo,
-    base,
+    triangleSideA,
+    triangleSideB,
+    triangleSideC,
     height,
     radius,
     parallelA,
@@ -740,38 +749,59 @@ export default function LandAreaCalculatorPage() {
             ) : null}
 
             {shape === "average-rectangle" ? (
-              <div className="grid gap-3 sm:grid-cols-5">
-                <label className="text-sm font-semibold text-slate-700">
-                  Length Side 1
-                  <input type="number" min="0" value={lengthOne} onChange={(e) => setLengthOne(Number(e.target.value))} className="mt-2 w-full rounded-xl border px-3 py-3 text-base" />
-                </label>
-                <label className="text-sm font-semibold text-slate-700">
-                  Length Side 2
-                  <input type="number" min="0" value={lengthTwo} onChange={(e) => setLengthTwo(Number(e.target.value))} className="mt-2 w-full rounded-xl border px-3 py-3 text-base" />
-                </label>
-                <label className="text-sm font-semibold text-slate-700">
-                  Breadth Side 1
-                  <input type="number" min="0" value={breadthOne} onChange={(e) => setBreadthOne(Number(e.target.value))} className="mt-2 w-full rounded-xl border px-3 py-3 text-base" />
-                </label>
-                <label className="text-sm font-semibold text-slate-700">
-                  Breadth Side 2
-                  <input type="number" min="0" value={breadthTwo} onChange={(e) => setBreadthTwo(Number(e.target.value))} className="mt-2 w-full rounded-xl border px-3 py-3 text-base" />
-                </label>
-                <UnitSelect unit={unit} setUnit={setUnit} />
+              <div>
+                <p className="measurement-field-hint">
+                  Enter the four outer boundaries of the plot. Opposite sides are averaged for a practical area estimate.
+                </p>
+                <div className="grid gap-3 sm:grid-cols-5">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Front Side
+                    <input type="number" min="0" value={lengthOne} onChange={(e) => setLengthOne(Number(e.target.value))} className="mt-2 w-full rounded-xl border px-3 py-3 text-base" />
+                  </label>
+                  <label className="text-sm font-semibold text-slate-700">
+                    Back Side
+                    <input type="number" min="0" value={lengthTwo} onChange={(e) => setLengthTwo(Number(e.target.value))} className="mt-2 w-full rounded-xl border px-3 py-3 text-base" />
+                  </label>
+                  <label className="text-sm font-semibold text-slate-700">
+                    Left Side
+                    <input type="number" min="0" value={breadthOne} onChange={(e) => setBreadthOne(Number(e.target.value))} className="mt-2 w-full rounded-xl border px-3 py-3 text-base" />
+                  </label>
+                  <label className="text-sm font-semibold text-slate-700">
+                    Right Side
+                    <input type="number" min="0" value={breadthTwo} onChange={(e) => setBreadthTwo(Number(e.target.value))} className="mt-2 w-full rounded-xl border px-3 py-3 text-base" />
+                  </label>
+                  <UnitSelect unit={unit} setUnit={setUnit} />
+                </div>
               </div>
             ) : null}
 
             {shape === "triangle" ? (
-              <div className="grid gap-3 sm:grid-cols-3">
-                <label className="text-sm font-semibold text-slate-700">
-                  Base
-                  <input type="number" min="0" value={base} onChange={(e) => setBase(Number(e.target.value))} className="mt-2 w-full rounded-xl border px-3 py-3 text-base" />
-                </label>
-                <label className="text-sm font-semibold text-slate-700">
-                  Height
-                  <input type="number" min="0" value={height} onChange={(e) => setHeight(Number(e.target.value))} className="mt-2 w-full rounded-xl border px-3 py-3 text-base" />
-                </label>
-                <UnitSelect unit={unit} setUnit={setUnit} />
+              <div>
+                <p className="measurement-field-hint">
+                  Measure all three boundary lines. No perpendicular height measurement is needed.
+                </p>
+                <div className="grid gap-3 sm:grid-cols-4">
+                  <label className="text-sm font-semibold text-slate-700">
+                    Side A
+                    <input type="number" min="0" value={triangleSideA} onChange={(e) => setTriangleSideA(Number(e.target.value))} className="mt-2 w-full rounded-xl border px-3 py-3 text-base" />
+                  </label>
+                  <label className="text-sm font-semibold text-slate-700">
+                    Side B
+                    <input type="number" min="0" value={triangleSideB} onChange={(e) => setTriangleSideB(Number(e.target.value))} className="mt-2 w-full rounded-xl border px-3 py-3 text-base" />
+                  </label>
+                  <label className="text-sm font-semibold text-slate-700">
+                    Side C
+                    <input type="number" min="0" value={triangleSideC} onChange={(e) => setTriangleSideC(Number(e.target.value))} className="mt-2 w-full rounded-xl border px-3 py-3 text-base" />
+                  </label>
+                  <UnitSelect unit={unit} setUnit={setUnit} />
+                </div>
+                {triangleSideA + triangleSideB <= triangleSideC ||
+                triangleSideA + triangleSideC <= triangleSideB ||
+                triangleSideB + triangleSideC <= triangleSideA ? (
+                  <p className="measurement-error" role="alert">
+                    These three measurements cannot form a triangle. Each side must be shorter than the other two sides combined.
+                  </p>
+                ) : null}
               </div>
             ) : null}
 
@@ -1448,23 +1478,23 @@ function MeasurementGuide({
   const guide =
     shape === "average-rectangle"
       ? {
-          title: "Measure both length sides and both breadth sides",
+          title: "Measure all four outer boundary lines",
           text:
-            "Used when a rectangular-looking plot is slightly uneven and opposite sides are not equal.",
-          formula: "Area = Average Length × Average Breadth",
+            "Used when a four-sided, rectangular-looking plot has unequal opposite boundaries.",
+          formula: "Area = Average of Front & Back × Average of Left & Right",
           example:
-            "Example: Lengths 42 ft & 38 ft → Avg 40 ft; Breadths 31 ft & 29 ft → Avg 30 ft; Area = 1200 sqft",
+            "Example: Front 42 ft, Back 38 ft → Avg 40 ft; Left 31 ft, Right 29 ft → Avg 30 ft; Area = 1200 sqft",
           usage:
             "Best for village plots, roadside land, old boundary lands and building roofs where sides are almost rectangular but not exactly equal.",
         }
       : shape === "triangle"
       ? {
-          title: "Measure base and height",
+          title: "Measure all three boundary lines",
           text:
-            "Used for corner land, triangular roof sections, staircase areas or uneven plot edges.",
-          formula: "Area = Base × Height ÷ 2",
+            "Used when all three sides are easy to measure but a perpendicular height is difficult to mark.",
+          formula: "Heron's formula: √[s × (s − A) × (s − B) × (s − C)]",
           example:
-            "Example: Base = 20 ft and Height = 15 ft → Area = 150 sqft",
+            "Example: Sides 30 ft, 40 ft and 50 ft → Area = 600 sqft",
           usage:
             "Best for triangular corners, roof cuts, roadside land edges and angled construction sections.",
         }
@@ -1632,10 +1662,7 @@ function ShapePath({
   if (shape === "triangle") {
 
   return (
-      <>
-        <polygon points={`${width / 2},10 ${width - 18},${height - 10} 18,${height - 10}`} fill="none" stroke={stroke} strokeWidth="4" />
-        {large ? <line x1={width / 2} y1="14" x2={width / 2} y2={height - 10} stroke={stroke} strokeDasharray="5 5" strokeWidth="2" /> : null}
-      </>
+      <polygon points={`${width / 2},10 ${width - 18},${height - 10} 18,${height - 10}`} fill="none" stroke={stroke} strokeWidth="4" />
     );
   }
 

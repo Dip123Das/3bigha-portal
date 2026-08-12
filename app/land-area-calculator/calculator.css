@@ -21,6 +21,8 @@
 .mobile-result-strip { display: none; }
 .location-disclosure summary { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
 .location-summary-value { max-width: 48%; overflow: hidden; color: #047857; font-size: .7rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.measurement-field-hint { margin: 0 0 .65rem; border-left: 3px solid #10b981; border-radius: .35rem; background: #f0fdf4; padding: .55rem .7rem; color: #475569; font-size: .75rem; line-height: 1.45; }
+.measurement-error { margin-top: .65rem; border-radius: .65rem; background: #fff1f2; padding: .6rem .75rem; color: #be123c; font-size: .75rem; font-weight: 650; line-height: 1.45; }
 
 @media (min-width: 1024px) {
   .calculator-results-panel { position: sticky; top: 1rem; }

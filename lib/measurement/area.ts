@@ -55,6 +55,29 @@ export function triangleAreaToSqft(base: number, height: number, unit: InputUnit
   return toSqft((safe(base) * safe(height)) / 2, unit);
 }
 
+export function triangleThreeSideAreaToSqft(
+  sideA: number,
+  sideB: number,
+  sideC: number,
+  unit: InputUnit
+) {
+  const a = safe(sideA);
+  const b = safe(sideB);
+  const c = safe(sideC);
+
+  if (a + b <= c || a + c <= b || b + c <= a) return 0;
+
+  const semiPerimeter = (a + b + c) / 2;
+  const area = Math.sqrt(
+    semiPerimeter *
+      (semiPerimeter - a) *
+      (semiPerimeter - b) *
+      (semiPerimeter - c)
+  );
+
+  return toSqft(area, unit);
+}
+
 export function circleAreaToSqft(radius: number, unit: InputUnit) {
   return toSqft(Math.PI * Math.pow(safe(radius), 2), unit);
 }
