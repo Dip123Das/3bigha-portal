@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import GeoSelector, { type GeoSelection } from "@/components/geography/GeoSelector";
 import ConstructionIntelligencePanel from "@/components/construction/ConstructionIntelligencePanel";
 import ProjectWorkflowHub from "@/components/project/ProjectWorkflowHub";
+import "./calculator.css";
 import {
   saveProjectWorkflow,
 } from "@/lib/project/projectWorkflowMemory";
@@ -34,6 +35,16 @@ import {
 
 type CalculatorMode = "land" | "building";
 type InputUnit = "feet" | "meter";
+
+const shapeOptions: Array<{ value: AreaShape; label: string }> = [
+  { value: "rectangle", label: "Rectangle" },
+  { value: "average-rectangle", label: "Uneven" },
+  { value: "triangle", label: "Triangle" },
+  { value: "circle", label: "Circle" },
+  { value: "trapezium", label: "Trapezium" },
+  { value: "irregular", label: "Irregular" },
+  { value: "polygon", label: "Draw Plot" },
+];
 
 type ConverterUnitOption = {
   key: string;
@@ -558,8 +569,8 @@ export default function LandAreaCalculatorPage() {
   const propertyAddHref = `/property/add?${areaWorkflowParams.toString()}`;
 
   return (
-    <main className="w-full px-4 py-6">
-      <section className="rounded-3xl border bg-white p-5 shadow-sm md:p-7">
+    <main className="land-calculator-shell w-full px-4 py-6">
+      <section className="land-calculator-surface rounded-3xl border bg-white p-5 shadow-sm md:p-7">
         <div className="mb-5">
           <p className="text-sm font-semibold text-emerald-700">3bigha Calculator</p>
           <h1 className="mt-2 text-2xl font-bold text-slate-950 md:text-4xl">
@@ -674,8 +685,8 @@ export default function LandAreaCalculatorPage() {
           </div>
         </details>
 
-        <div className="grid items-start gap-4 lg:grid-cols-[0.9fr_1.35fr]">
-          <div className="rounded-2xl border bg-slate-50 p-4">
+        <div className="calculator-workspace grid items-start gap-4 lg:grid-cols-[0.9fr_1.35fr]">
+          <div className="calculator-input-panel rounded-2xl border bg-slate-50 p-4">
             <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl bg-white p-1">
               <button
                 type="button"
@@ -698,22 +709,18 @@ export default function LandAreaCalculatorPage() {
             </div>
 
             <div className="mb-4">
-              <label className="text-sm font-semibold text-slate-700">
-                Select Shape / Measurement Type
-                <select
-                  value={shape}
-                  onChange={(e) => setShape(e.target.value as AreaShape)}
-                  className="mt-2 w-full rounded-2xl border bg-white px-4 py-3 text-base font-black text-slate-950"
-                >
-                  <option value="rectangle">Rectangle</option>
-                  <option value="average-rectangle">Average Rectangle</option>
-                  <option value="triangle">Triangle</option>
-                  <option value="circle">Circle</option>
-                  <option value="trapezium">Trapezium</option>
-                  <option value="irregular">Irregular</option>
-                  <option value="polygon">Polygon</option>
-                </select>
-              </label>
+              <div className="text-sm font-semibold text-slate-700">Select Plot Shape</div>
+              <div className="shape-choice-grid mt-2" role="radiogroup" aria-label="Plot shape">
+                {shapeOptions.map((option) => {
+                  const active = shape === option.value;
+                  return (
+                    <button key={option.value} type="button" role="radio" aria-checked={active} onClick={() => setShape(option.value)} className={`shape-choice ${active ? "shape-choice-active" : ""}`}>
+                      <ShapeMiniSvg shape={option.value} active={active} />
+                      <span>{option.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <MeasurementGuide shape={shape} mode={mode} />
@@ -1051,8 +1058,18 @@ export default function LandAreaCalculatorPage() {
               </div>
             ) : null}
 
+            <div className="mobile-result-strip" aria-live="polite">
+              <div><span>Calculated area</span><strong>{formatNumber(roundArea(result.squareFeet))} sqft</strong></div>
+              <div><span>Square meter</span><strong>{formatNumber(roundArea(result.squareMeter))} sqm</strong></div>
+            </div>
+
             {mode === "land" ? (
-              <div className="mt-4">
+              <details className="location-disclosure mt-4 rounded-2xl border border-emerald-100 bg-emerald-50">
+                <summary className="cursor-pointer px-4 py-3 text-sm font-black text-slate-900">
+                  <span>📍 Add location for local land units</span>
+                  <span className="location-summary-value">{district}, {state}</span>
+                </summary>
+                <div className="px-3 pb-3">
                 <GeoSelector
                   includeSubdivision
                   includeBlock
@@ -1066,7 +1083,8 @@ export default function LandAreaCalculatorPage() {
                   {" "}
                   {[district, state].filter(Boolean).join(", ")}
                 </div>
-              </div>
+                </div>
+              </details>
             ) : null}
 
             <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
@@ -1087,7 +1105,7 @@ export default function LandAreaCalculatorPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border bg-white p-4">
+          <div className="calculator-results-panel rounded-2xl border bg-white p-4">
                         <div className="grid gap-4 xl:grid-cols-2">
               <div className="h-full rounded-2xl border border-slate-100 bg-white p-4">
                 <h2 className="text-lg font-bold text-slate-950">Universal Area</h2>
@@ -1506,8 +1524,20 @@ function MeasurementGuide({
         };
 
   return (
-    <div className="mb-4 rounded-2xl border border-emerald-100 bg-white p-4">
-      <div className="grid gap-4 sm:grid-cols-[120px_1fr]">
+    <details className="measurement-guide mb-4 rounded-2xl border border-emerald-100 bg-white">
+      <summary className="cursor-pointer list-none p-3">
+        <div className="flex items-center gap-3">
+          <div className="guide-shape flex shrink-0 items-center justify-center rounded-xl bg-emerald-50 p-2">
+            <ShapeMiniSvg shape={shape} active />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-bold text-slate-950">{guide.title}</div>
+            <div className="mt-0.5 text-xs text-slate-500">Formula, example and best use</div>
+          </div>
+          <span className="guide-chevron text-emerald-700" aria-hidden="true">⌄</span>
+        </div>
+      </summary>
+      <div className="grid gap-4 border-t border-emerald-100 p-4 sm:grid-cols-[120px_1fr]">
         <div className="flex items-center justify-center rounded-2xl bg-emerald-50 p-3">
           <ShapeLargeSvg shape={shape} />
         </div>
@@ -1549,7 +1579,7 @@ function MeasurementGuide({
           </p>
         </div>
       </div>
-    </div>
+    </details>
   );
 }
 
