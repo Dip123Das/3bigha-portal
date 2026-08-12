@@ -79,43 +79,66 @@ export default function ConstitutionalHero({
             </a>
           </div>
 
-          <div className="heroVisualStage" aria-hidden="true">
-            <div className="heroSkyline heroSkylineBack" />
-            <div className="heroSkyline heroSkylineFront" />
+          <nav className="heroVisualStage" aria-label="Explore 3Bigha">
+            <div className="heroSkyline heroSkylineBack" aria-hidden="true" />
+            <div className="heroSkyline heroSkylineFront" aria-hidden="true" />
 
-            <div className="heroCapability heroCapabilityProperty">
-              <span>⌂</span>
+            <a
+              className="heroCapability heroCapabilityProperty"
+              href="/property"
+            >
+              <span aria-hidden="true">⌂</span>
               Property
-            </div>
+            </a>
 
-            <div className="heroCapability heroCapabilityMaterials">
-              <span>▦</span>
+            <a
+              className="heroCapability heroCapabilityMaterials"
+              href="/materials"
+            >
+              <span aria-hidden="true">▦</span>
               Materials
-            </div>
+            </a>
 
-            <div className="heroCapability heroCapabilityServices">
-              <span>⚒</span>
+            <a
+              className="heroCapability heroCapabilityServices"
+              href="/services"
+            >
+              <span aria-hidden="true">⚒</span>
               Services
-            </div>
+            </a>
 
-            <div className="heroCapability heroCapabilityRentals">
-              <span>▣</span>
+            <a
+              className="heroCapability heroCapabilityRentals"
+              href="/rentals"
+            >
+              <span aria-hidden="true">▣</span>
               Rentals
-            </div>
+            </a>
 
-            <div className="heroCapability heroCapabilityEquipment">
-              <span>◈</span>
+            <a
+              className="heroCapability heroCapabilityEquipment"
+              href="/rentals"
+              aria-label="Equipment rentals"
+            >
+              <span aria-hidden="true">◈</span>
               Equipment
-            </div>
+            </a>
 
-            <div className="heroCapability heroCapabilityMore">
-              <span>⊙</span>
+            <a
+              className="heroCapability heroCapabilityMore"
+              href="/search"
+            >
+              <span aria-hidden="true">⊙</span>
               More
-            </div>
+            </a>
 
-            <div className="heroPlatformGlow" />
+            <div className="heroPlatformGlow" aria-hidden="true" />
 
-            <div className="heroPlatform">
+            <a
+              className="heroPlatform"
+              href="/"
+              aria-label="3Bigha home"
+            >
               <div className="heroPlatformTop">
                 <div className="heroBrandMark">
                   <span className="heroBrandSymbol">3</span>
@@ -129,8 +152,8 @@ export default function ConstitutionalHero({
               <div className="heroPlatformRing heroPlatformRingOne" />
               <div className="heroPlatformRing heroPlatformRingTwo" />
               <div className="heroPlatformRing heroPlatformRingThree" />
-            </div>
-          </div>
+            </a>
+          </nav>
         </div>
 
         <div className="searchCard">
