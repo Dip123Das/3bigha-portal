@@ -3225,3 +3225,711 @@
     padding: clamp(22px, 2vw, 30px);
   }
 }
+/* =========================================================
+   H03 — PREMIUM HOMEPAGE VISUAL POLISH
+   Human First. AI Second. Precision Always.
+
+   Presentation-only refinement:
+   - richer section rhythm
+   - premium card depth
+   - stronger hero atmosphere
+   - improved listings, search and CTAs
+   - accessible motion
+   - preserves existing responsive structure
+   ========================================================= */
+
+/* ---------- Canvas and visual rhythm ---------- */
+
+.homePage {
+  --h03-blue: #3155d9;
+  --h03-blue-deep: #1e3a8a;
+  --h03-violet: #7048e8;
+  --h03-purple: #7c3aed;
+  --h03-ink: #111827;
+  --h03-muted: #667085;
+  --h03-line: rgba(53, 66, 125, 0.11);
+  --h03-line-active: rgba(73, 91, 211, 0.25);
+  --h03-shadow-soft:
+    0 2px 4px rgba(27, 37, 84, 0.025),
+    0 16px 40px rgba(38, 49, 109, 0.07);
+  --h03-shadow-medium:
+    0 4px 10px rgba(27, 37, 84, 0.035),
+    0 24px 58px rgba(38, 49, 109, 0.115);
+  --h03-shadow-large:
+    0 10px 30px rgba(36, 47, 112, 0.08),
+    0 38px 110px rgba(52, 59, 137, 0.16);
+
+  background:
+    radial-gradient(circle at 5% 3%, rgba(74, 99, 222, 0.13), transparent 25%),
+    radial-gradient(circle at 95% 12%, rgba(124, 72, 232, 0.11), transparent 24%),
+    linear-gradient(180deg, #f7f9ff 0%, #ffffff 28%, #f9faff 100%);
+}
+
+.homePage > .sahajJourneySection,
+.homePage > .contentSection,
+.homePage > .manageBusinessSection,
+.homePage > .homeBottomGrid,
+.homePage > .cleanTrustSection,
+.homePage > .cleanStartBanner {
+  position: relative;
+}
+
+/* Gentle alternating section surfaces */
+.homePage > .sahajJourneySection,
+.homePage > .contentSection:nth-of-type(even) {
+  background:
+    radial-gradient(circle at 6% 15%, rgba(70, 94, 215, 0.045), transparent 25%),
+    linear-gradient(180deg, rgba(248, 250, 255, 0.72), rgba(255, 255, 255, 0.35));
+}
+
+.homePage > .contentSection:nth-of-type(odd) {
+  background:
+    radial-gradient(circle at 94% 20%, rgba(119, 82, 219, 0.04), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(248, 249, 255, 0.55));
+}
+
+.homePage > .sahajJourneySection,
+.homePage > .contentSection {
+  padding-top: clamp(22px, 2.6vw, 42px);
+  padding-bottom: clamp(22px, 2.6vw, 42px);
+}
+
+/* ---------- Hero atmosphere ---------- */
+
+.homePage .constitutionalHero {
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.homePage .constitutionalHero::before {
+  content: "";
+  position: absolute;
+  inset: -15% auto auto -8%;
+  width: clamp(300px, 38vw, 660px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      rgba(83, 108, 232, 0.18) 0%,
+      rgba(83, 108, 232, 0.07) 38%,
+      transparent 70%
+    );
+  filter: blur(10px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.homePage .constitutionalHero::after {
+  content: "";
+  position: absolute;
+  right: -12%;
+  bottom: -38%;
+  width: clamp(380px, 48vw, 820px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      rgba(124, 72, 232, 0.18) 0%,
+      rgba(124, 72, 232, 0.06) 42%,
+      transparent 72%
+    );
+  filter: blur(12px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.homePage .constitutionalHero .heroGrid {
+  position: relative;
+  border: 1px solid rgba(73, 91, 211, 0.11);
+  border-radius: clamp(24px, 2.5vw, 38px);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.95),
+      rgba(247, 248, 255, 0.87)
+    );
+  box-shadow: var(--h03-shadow-large);
+  backdrop-filter: blur(22px);
+}
+
+.homePage .heroCopy {
+  position: relative;
+}
+
+.homePage .heroCopy::after {
+  content: "";
+  position: absolute;
+  left: clamp(22px, 3vw, 48px);
+  right: 10%;
+  bottom: 0;
+  height: 1px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(69, 90, 211, 0.28),
+      rgba(112, 72, 232, 0.08),
+      transparent
+    );
+}
+
+.homePage .heroCopy h1 {
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.75);
+}
+
+.homePage .heroCopy h1 span {
+  background:
+    linear-gradient(
+      120deg,
+      #244bc5 0%,
+      #435fdc 48%,
+      #7346dc 100%
+    );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.homePage .heroManageBusiness {
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 12px 30px rgba(37, 58, 145, 0.21),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.homePage .heroManageBusiness::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      105deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.22) 48%,
+      transparent 64%
+    );
+  transform: translateX(-130%);
+  transition: transform 600ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .homePage .heroManageBusiness:hover::after {
+    transform: translateX(130%);
+  }
+}
+
+/* Hero visual treatment without changing its structure */
+.homePage .heroVisualStage {
+  position: relative;
+  filter:
+    drop-shadow(0 24px 36px rgba(49, 64, 148, 0.14))
+    saturate(1.05);
+}
+
+.homePage .heroVisualStage::before {
+  content: "";
+  position: absolute;
+  inset: 12% 8%;
+  z-index: -1;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.96) 0%,
+      rgba(229, 233, 255, 0.74) 42%,
+      rgba(188, 198, 249, 0.14) 66%,
+      transparent 74%
+    );
+  box-shadow:
+    0 30px 90px rgba(67, 84, 179, 0.18),
+    inset 0 0 70px rgba(255, 255, 255, 0.8);
+}
+
+/* ---------- Search command surface ---------- */
+
+.homePage .constitutionalHero .searchCard {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(73, 91, 211, 0.15);
+  background:
+    radial-gradient(circle at 90% 0%, rgba(113, 75, 224, 0.08), transparent 28%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.99), rgba(247, 249, 255, 0.96));
+  box-shadow:
+    0 4px 12px rgba(40, 51, 111, 0.05),
+    0 28px 80px rgba(53, 62, 143, 0.15);
+}
+
+.homePage .constitutionalHero .searchCard::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--h03-blue),
+      #5067df 46%,
+      var(--h03-violet)
+    );
+}
+
+.homePage .searchTabs {
+  padding: 5px;
+  border: 1px solid rgba(73, 91, 211, 0.1);
+  border-radius: 16px;
+  background: rgba(241, 244, 255, 0.72);
+}
+
+.homePage .searchTabs button {
+  min-height: 44px;
+  border-radius: 12px;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.homePage .searchTabs button.active {
+  background: #ffffff;
+  color: var(--h03-blue);
+  box-shadow:
+    0 2px 8px rgba(42, 55, 123, 0.07),
+    0 8px 22px rgba(51, 70, 170, 0.09);
+}
+
+.homePage .searchCard textarea {
+  border: 1px solid rgba(73, 91, 211, 0.14);
+  background:
+    linear-gradient(180deg, #ffffff, #fbfcff);
+  box-shadow:
+    inset 0 1px 2px rgba(34, 44, 95, 0.025);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.homePage .searchCard textarea:focus {
+  border-color: rgba(65, 86, 211, 0.46);
+  background: #ffffff;
+  box-shadow:
+    0 0 0 4px rgba(65, 86, 211, 0.08),
+    0 12px 30px rgba(47, 61, 139, 0.06);
+}
+
+.homePage .typeChips button {
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.homePage .typeChips button.active {
+  border-color: rgba(63, 86, 212, 0.24);
+  background:
+    linear-gradient(180deg, #f0f3ff, #e9edff);
+  box-shadow: 0 7px 18px rgba(52, 70, 168, 0.08);
+}
+
+/* ---------- Unified premium cards ---------- */
+
+.homePage :is(
+  .sahajJourneyCard,
+  .listingCard,
+  .categoryCard,
+  .discoveryRailCard,
+  .toolCard,
+  .bottomPanel
+) {
+  position: relative;
+  overflow: hidden;
+  border-color: var(--h03-line);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.99),
+      rgba(249, 250, 255, 0.93)
+    );
+  box-shadow: var(--h03-shadow-soft);
+}
+
+.homePage :is(
+  .sahajJourneyCard,
+  .listingCard,
+  .categoryCard,
+  .discoveryRailCard,
+  .toolCard,
+  .bottomPanel
+)::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(91, 109, 221, 0.25),
+      transparent
+    );
+  opacity: 0.7;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .homePage :is(
+    .sahajJourneyCard,
+    .listingCard,
+    .categoryCard,
+    .discoveryRailCard,
+    .toolCard,
+    .bottomPanel
+  ):hover {
+    transform: translateY(-6px);
+    border-color: var(--h03-line-active);
+    background: #ffffff;
+    box-shadow: var(--h03-shadow-medium);
+  }
+}
+
+/* ---------- Journey and category icons ---------- */
+
+.homePage .sahajJourneyIcon,
+.homePage .categoryIcon,
+.homePage .toolCard > b {
+  border: 1px solid rgba(71, 91, 211, 0.1);
+  background:
+    radial-gradient(circle at 28% 22%, #ffffff, transparent 32%),
+    linear-gradient(145deg, #f1f4ff, #e8ecff);
+  box-shadow:
+    0 8px 20px rgba(53, 72, 172, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.homePage .categoryCard {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(106, 79, 219, 0.055), transparent 34%),
+    linear-gradient(145deg, #ffffff, #fafbff);
+}
+
+.homePage .categoryCard strong {
+  color: #16825e;
+}
+
+/* ---------- Featured listings ---------- */
+
+.homePage .premiumListingsGrid {
+  gap: clamp(12px, 1.4vw, 20px);
+}
+
+.homePage .listingCard {
+  border-radius: 20px;
+}
+
+.homePage .listingCard::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--h03-blue),
+      var(--h03-violet)
+    );
+  opacity: 0.72;
+}
+
+.homePage .listingCard img {
+  transition:
+    transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 300ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .homePage .listingCard:hover img {
+    transform: scale(1.045);
+    filter: saturate(1.06) contrast(1.02);
+  }
+}
+
+/* ---------- Discovery and utility ---------- */
+
+.homePage .discoveryRailCard {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(61, 88, 219, 0.08), transparent 38%),
+    linear-gradient(145deg, #ffffff, #f7f9ff);
+}
+
+.homePage .utilitySection {
+  border-color: rgba(65, 84, 191, 0.1);
+  background:
+    radial-gradient(circle at 4% 10%, rgba(68, 94, 219, 0.055), transparent 26%),
+    linear-gradient(145deg, #ffffff, #fafbff);
+  box-shadow: var(--h03-shadow-soft);
+}
+
+.homePage .rfqMiniCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    radial-gradient(circle at 94% 15%, rgba(190, 167, 255, 0.32), transparent 28%),
+    linear-gradient(135deg, #18358f 0%, #3c4cc2 48%, #7540dd 100%);
+  box-shadow:
+    0 24px 66px rgba(56, 62, 163, 0.24);
+}
+
+.homePage .rfqMiniCard::after {
+  content: "";
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  right: -74px;
+  bottom: -96px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 0 0 28px rgba(255, 255, 255, 0.035),
+    0 0 0 58px rgba(255, 255, 255, 0.025);
+  pointer-events: none;
+}
+
+/* ---------- Business command and CTA surfaces ---------- */
+
+.homePage .aiBusinessCommand,
+.homePage .cleanTrustSection,
+.homePage .cleanStartBanner {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  background:
+    radial-gradient(circle at 92% 10%, rgba(186, 160, 255, 0.32), transparent 27%),
+    radial-gradient(circle at 8% 100%, rgba(52, 121, 255, 0.25), transparent 32%),
+    linear-gradient(135deg, #17358f 0%, #3f4bc6 47%, #7540dd 100%);
+  box-shadow:
+    0 12px 28px rgba(44, 53, 137, 0.13),
+    0 34px 90px rgba(66, 55, 164, 0.22);
+}
+
+.homePage .aiBusinessCommand::before,
+.homePage .cleanTrustSection::before,
+.homePage .cleanStartBanner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image:
+    linear-gradient(120deg, rgba(0, 0, 0, 0.72), transparent 78%);
+}
+
+.homePage .aiBusinessActions a,
+.homePage .cleanStartBanner a {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 12px 28px rgba(18, 28, 91, 0.16);
+}
+
+/* ---------- Footer refinement ---------- */
+
+.homePage .cleanHomeFooter {
+  border-color: rgba(62, 79, 166, 0.09);
+  background:
+    radial-gradient(circle at 5% 0%, rgba(67, 92, 211, 0.055), transparent 25%),
+    linear-gradient(180deg, #ffffff, #f8f9ff);
+  box-shadow:
+    0 -1px 0 rgba(62, 79, 166, 0.04),
+    0 20px 60px rgba(38, 49, 109, 0.055);
+}
+
+/* ---------- Motion and accessibility ---------- */
+
+.homePage :is(a, button) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .homePage .searchTabs button:hover,
+  .homePage .typeChips button:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homePage *,
+  .homePage *::before,
+  .homePage *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* ---------- Laptop safety ---------- */
+
+@media (min-width: 1081px) and (max-width: 1320px) {
+  .homePage .constitutionalHero .heroGrid {
+    overflow: hidden;
+  }
+
+  .homePage .heroVisualStage {
+    transform: scale(0.84);
+    transform-origin: center;
+  }
+
+  .homePage .constitutionalHero .searchCard {
+    min-width: 0;
+  }
+}
+
+/* ---------- Tablet ---------- */
+
+@media (min-width: 769px) and (max-width: 1080px) {
+  .homePage > .sahajJourneySection,
+  .homePage > .contentSection {
+    padding-top: 28px;
+    padding-bottom: 28px;
+  }
+
+  .homePage .constitutionalHero .heroGrid {
+    border-radius: 28px;
+  }
+}
+
+/* ---------- Mobile polish ---------- */
+
+@media (max-width: 768px) {
+  .homePage {
+    --h03-shadow-soft:
+      0 2px 4px rgba(27, 37, 84, 0.02),
+      0 12px 30px rgba(38, 49, 109, 0.065);
+  }
+
+  .homePage > .sahajJourneySection,
+  .homePage > .contentSection {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+
+  .homePage .constitutionalHero .heroGrid {
+    border-radius: 24px;
+    box-shadow:
+      0 4px 14px rgba(37, 47, 106, 0.05),
+      0 24px 70px rgba(50, 60, 139, 0.12);
+  }
+
+  .homePage .heroCopy::after {
+    left: 18px;
+    right: 18px;
+  }
+
+  .homePage .heroVisualStage {
+    filter:
+      drop-shadow(0 18px 28px rgba(49, 64, 148, 0.13))
+      saturate(1.04);
+  }
+
+  .homePage .constitutionalHero .searchCard {
+    box-shadow:
+      0 3px 10px rgba(40, 51, 111, 0.04),
+      0 20px 54px rgba(53, 62, 143, 0.12);
+  }
+
+  .homePage :is(
+    .sahajJourneyCard,
+    .listingCard,
+    .categoryCard,
+    .discoveryRailCard,
+    .toolCard,
+    .bottomPanel
+  ) {
+    border-radius: 18px;
+  }
+
+  .homePage .aiBusinessCommand,
+  .homePage .cleanTrustSection,
+  .homePage .cleanStartBanner {
+    box-shadow:
+      0 10px 26px rgba(44, 53, 137, 0.12),
+      0 24px 58px rgba(66, 55, 164, 0.18);
+  }
+}
+
+/* =========================================================
+   H03-2 — CTA CONTRAST AND READABILITY CORRECTION
+   ========================================================= */
+
+.homePage .cleanTrustSection,
+.homePage .cleanTrustSection h2,
+.homePage .cleanTrustSection h3,
+.homePage .cleanTrustSection strong {
+  color: #ffffff !important;
+}
+
+.homePage .cleanTrustSection > p,
+.homePage .cleanTrustSection small {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+.homePage .cleanTrustGrid > * {
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.13),
+      rgba(255, 255, 255, 0.075)
+    ) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 14px 32px rgba(23, 28, 96, 0.12) !important;
+  backdrop-filter: blur(12px);
+}
+
+.homePage .cleanTrustGrid > * p,
+.homePage .cleanTrustGrid > * span,
+.homePage .cleanTrustGrid > * small {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.homePage .cleanTrustGrid > * strong,
+.homePage .cleanTrustGrid > * b {
+  color: #ffffff !important;
+}
+
+.homePage .cleanStartBanner,
+.homePage .cleanStartBanner h2,
+.homePage .cleanStartBanner h3,
+.homePage .cleanStartBanner strong {
+  color: #ffffff !important;
+}
+
+.homePage .cleanStartBanner p,
+.homePage .cleanStartBanner span {
+  color: rgba(255, 255, 255, 0.83) !important;
+}
+
+.homePage .aiBusinessCommand p,
+.homePage .aiBusinessCommand span {
+  color: rgba(255, 255, 255, 0.84) !important;
+}
+
+@media (max-width: 768px) {
+  .homePage .cleanTrustGrid > * {
+    padding: 17px !important;
+  }
+
+  .homePage .cleanTrustSection h2 {
+    line-height: 1.06 !important;
+  }
+}
