@@ -1,5 +1,8 @@
 "use client";
 
+import HeroBusinessOSArtwork from "./HeroBusinessOSArtwork";
+import "./hero-business-os.css";
+
 type SearchScope =
   | "property"
   | "materials"
@@ -79,81 +82,9 @@ export default function ConstitutionalHero({
             </a>
           </div>
 
-          <nav className="heroVisualStage" aria-label="Explore 3Bigha">
-            <div className="heroSkyline heroSkylineBack" aria-hidden="true" />
-            <div className="heroSkyline heroSkylineFront" aria-hidden="true" />
-
-            <a
-              className="heroCapability heroCapabilityProperty"
-              href="/property"
-            >
-              <span aria-hidden="true">⌂</span>
-              Property
-            </a>
-
-            <a
-              className="heroCapability heroCapabilityMaterials"
-              href="/materials"
-            >
-              <span aria-hidden="true">▦</span>
-              Materials
-            </a>
-
-            <a
-              className="heroCapability heroCapabilityServices"
-              href="/services"
-            >
-              <span aria-hidden="true">⚒</span>
-              Services
-            </a>
-
-            <a
-              className="heroCapability heroCapabilityRentals"
-              href="/rentals"
-            >
-              <span aria-hidden="true">▣</span>
-              Rentals
-            </a>
-
-            <a
-              className="heroCapability heroCapabilityEquipment"
-              href="/rentals"
-              aria-label="Equipment rentals"
-            >
-              <span aria-hidden="true">◈</span>
-              Equipment
-            </a>
-
-            <a
-              className="heroCapability heroCapabilityMore"
-              href="/search"
-            >
-              <span aria-hidden="true">⊙</span>
-              More
-            </a>
-
-            <div className="heroPlatformGlow" aria-hidden="true" />
-
-            <a
-              className="heroPlatform"
-              href="/"
-              aria-label="3Bigha home"
-            >
-              <div className="heroPlatformTop">
-                <div className="heroBrandMark">
-                  <span className="heroBrandSymbol">3</span>
-                  <div>
-                    <strong>3Bigha</strong>
-                    <small>Business Operating System</small>
-                  </div>
-                </div>
-              </div>
-
-              <div className="heroPlatformRing heroPlatformRingOne" />
-              <div className="heroPlatformRing heroPlatformRingTwo" />
-              <div className="heroPlatformRing heroPlatformRingThree" />
-            </a>
-          </nav>
+          <div className="heroVisualStage">
+            <HeroBusinessOSArtwork />
+          </div>
         </div>
 
         <div className="searchCard">

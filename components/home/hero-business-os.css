@@ -1,0 +1,514 @@
+.heroVisualStage {
+  min-width: 0;
+}
+
+.h04Artwork {
+  position: relative;
+  width: min(100%, 720px);
+  aspect-ratio: 1.17;
+  margin: 0 auto;
+  isolation: isolate;
+  font-family: inherit;
+}
+
+.h04ConnectionMap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.h04Links path {
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 7 10;
+  animation: h04Flow 10s linear infinite;
+}
+
+.h04PulsePoints circle {
+  fill: #ffffff;
+  stroke: rgba(74, 94, 210, 0.6);
+  stroke-width: 3;
+  filter: drop-shadow(0 3px 7px rgba(49, 74, 190, 0.32));
+}
+
+.h04CoreHalo {
+  filter:
+    drop-shadow(0 24px 42px rgba(47, 64, 157, 0.17))
+    drop-shadow(0 4px 14px rgba(69, 88, 202, 0.12));
+}
+
+.h04ModuleNode {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 154px;
+  padding: 11px 13px;
+  border: 1px solid rgba(61, 82, 190, 0.13);
+  border-radius: 17px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.97),
+      rgba(247, 248, 255, 0.9)
+    );
+  box-shadow:
+    0 3px 8px rgba(44, 55, 119, 0.045),
+    0 15px 32px rgba(48, 61, 145, 0.105);
+  color: #172033;
+  text-decoration: none;
+  backdrop-filter: blur(16px);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.h04ModuleNode:hover {
+  transform: translateY(-4px);
+  border-color: rgba(67, 88, 211, 0.3);
+  box-shadow:
+    0 5px 14px rgba(44, 55, 119, 0.07),
+    0 22px 44px rgba(48, 61, 145, 0.16);
+}
+
+.h04ModuleIcon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(66, 88, 211, 0.12);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 28% 20%, #ffffff, transparent 35%),
+    linear-gradient(145deg, #eef1ff, #e1e7ff);
+  color: #3656d3;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 7px 18px rgba(47, 68, 173, 0.1);
+}
+
+.h04ModuleIcon svg,
+.h04OperationalRail svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.h04ModuleText {
+  min-width: 0;
+}
+
+.h04ModuleText strong,
+.h04ModuleText small {
+  display: block;
+}
+
+.h04ModuleText strong {
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 850;
+}
+
+.h04ModuleText small {
+  margin-top: 3px;
+  color: #768097;
+  font-size: 9px;
+  line-height: 1.25;
+  font-weight: 650;
+}
+
+.h04Property {
+  top: 8%;
+  left: 5%;
+}
+
+.h04Materials {
+  top: 8%;
+  right: 4%;
+}
+
+.h04Services {
+  top: 42%;
+  left: -1%;
+}
+
+.h04Rentals {
+  top: 42%;
+  right: -1%;
+}
+
+.h04Rfq {
+  left: 7%;
+  bottom: 5%;
+}
+
+.h04Workspace {
+  right: 5%;
+  bottom: 5%;
+}
+
+.h04Core {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  width: 255px;
+  height: 255px;
+  padding: 35px 25px 26px;
+  transform: translate(-50%, -50%);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(78, 94, 193, 0.15);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 22%, #ffffff 0%, transparent 29%),
+    linear-gradient(145deg, #ffffff 5%, #eef1ff 58%, #dfe4ff 100%);
+  box-shadow:
+    inset 0 0 0 12px rgba(255, 255, 255, 0.45),
+    inset 0 -22px 46px rgba(83, 99, 207, 0.08),
+    0 28px 70px rgba(46, 61, 159, 0.19);
+}
+
+.h04CoreOrbit {
+  position: absolute;
+  inset: -16px;
+  border: 1px solid rgba(73, 92, 204, 0.14);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.h04OrbitOne::before,
+.h04OrbitTwo::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4864dc;
+  box-shadow: 0 0 0 6px rgba(72, 100, 220, 0.1);
+}
+
+.h04OrbitOne {
+  animation: h04Orbit 17s linear infinite;
+}
+
+.h04OrbitTwo {
+  inset: -31px;
+  border-style: dashed;
+  animation: h04OrbitReverse 28s linear infinite;
+}
+
+.h04CoreBrand {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #111827;
+  text-decoration: none;
+}
+
+.h04CoreLogo {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #3457db, #7542df);
+  color: #ffffff;
+  font-size: 23px;
+  font-weight: 950;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 12px 24px rgba(64, 71, 183, 0.22);
+}
+
+.h04CoreBrand strong,
+.h04CoreBrand small {
+  display: block;
+}
+
+.h04CoreBrand strong {
+  font-size: 23px;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.h04CoreBrand small {
+  margin-top: 4px;
+  color: #69738a;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.h04CoreStatus {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 18px;
+  color: #586279;
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.h04CoreStatus > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #16a36f;
+  box-shadow: 0 0 0 5px rgba(22, 163, 111, 0.1);
+}
+
+.h04OperationalRail {
+  display: flex;
+  gap: 6px;
+  margin-top: 17px;
+}
+
+.h04OperationalRail a {
+  display: flex;
+  min-width: 56px;
+  padding: 7px 5px;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(72, 91, 198, 0.1);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.66);
+  color: #415ac9;
+  text-decoration: none;
+}
+
+.h04OperationalRail svg {
+  width: 15px;
+  height: 15px;
+}
+
+.h04OperationalRail span {
+  color: #626d83;
+  font-size: 7px;
+  font-weight: 750;
+}
+
+.h04Assistant {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: -1%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 190px;
+  padding: 10px 13px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(37, 57, 149, 0.94),
+      rgba(105, 61, 207, 0.94)
+    );
+  color: #ffffff;
+  box-shadow:
+    0 14px 32px rgba(46, 50, 142, 0.22);
+}
+
+.h04AssistantSpark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 16px;
+}
+
+.h04Assistant strong,
+.h04Assistant small {
+  display: block;
+}
+
+.h04Assistant strong {
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.h04Assistant small {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 8px;
+}
+
+@keyframes h04Flow {
+  to {
+    stroke-dashoffset: -85;
+  }
+}
+
+@keyframes h04Orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes h04OrbitReverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@media (max-width: 1320px) and (min-width: 1081px) {
+  .h04Artwork {
+    transform: scale(0.96);
+  }
+
+  .h04ModuleNode {
+    min-width: 140px;
+    padding: 9px 10px;
+  }
+}
+
+@media (max-width: 1080px) {
+  .h04Artwork {
+    width: min(100%, 650px);
+  }
+}
+
+@media (max-width: 768px) {
+  .h04Artwork {
+    width: min(100%, 480px);
+    aspect-ratio: 0.96;
+    margin-top: -4px;
+  }
+
+  .h04ConnectionMap {
+    transform: scale(0.95);
+  }
+
+  .h04Core {
+    width: 210px;
+    height: 210px;
+    padding: 28px 20px 22px;
+  }
+
+  .h04CoreLogo {
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
+    font-size: 20px;
+  }
+
+  .h04CoreBrand strong {
+    font-size: 19px;
+  }
+
+  .h04OperationalRail {
+    margin-top: 13px;
+  }
+
+  .h04OperationalRail a {
+    min-width: 49px;
+    padding: 6px 4px;
+  }
+
+  .h04ModuleNode {
+    min-width: 117px;
+    max-width: 126px;
+    gap: 7px;
+    padding: 8px;
+    border-radius: 14px;
+  }
+
+  .h04ModuleIcon {
+    width: 31px;
+    height: 31px;
+    flex-basis: 31px;
+    border-radius: 10px;
+  }
+
+  .h04ModuleIcon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .h04ModuleText strong {
+    font-size: 10px;
+  }
+
+  .h04ModuleText small {
+    display: none;
+  }
+
+  .h04Property {
+    top: 7%;
+    left: 1%;
+  }
+
+  .h04Materials {
+    top: 7%;
+    right: 1%;
+  }
+
+  .h04Services {
+    top: 39%;
+    left: -2%;
+  }
+
+  .h04Rentals {
+    top: 39%;
+    right: -2%;
+  }
+
+  .h04Rfq {
+    left: 1%;
+    bottom: 9%;
+  }
+
+  .h04Workspace {
+    right: 1%;
+    bottom: 9%;
+  }
+
+  .h04Assistant {
+    bottom: 0;
+    min-width: 170px;
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 420px) {
+  .h04Artwork {
+    transform: scale(0.96);
+  }
+
+  .h04ModuleNode {
+    min-width: 108px;
+    max-width: 116px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .h04Links path,
+  .h04OrbitOne,
+  .h04OrbitTwo {
+    animation: none;
+  }
+}
