@@ -3181,3 +3181,47 @@
     padding: 26px 20px;
   }
 }
+
+/* =========================================================
+   HVR-1E — LAPTOP-SAFE HERO RESPONSIVENESS
+   Keep the premium desktop composition fluid before the
+   existing stacked-tablet breakpoint takes over.
+   ========================================================= */
+@media (min-width: 1081px) and (max-width: 1320px) {
+  .homePage .constitutionalHero .heroGrid {
+    grid-template-columns:
+      minmax(0, 1.42fr)
+      minmax(350px, 0.98fr);
+  }
+
+  .homePage .heroExperience {
+    grid-template-columns:
+      minmax(300px, 0.95fr)
+      minmax(300px, 1.05fr);
+  }
+
+  .homePage .heroCopy {
+    padding:
+      clamp(38px, 3.2vw, 52px)
+      clamp(22px, 2.2vw, 32px);
+  }
+
+  .homePage .heroCopy h1 {
+    font-size: clamp(48px, 4.6vw, 64px);
+  }
+
+  .homePage .heroCopy .constitutionalHeroLead {
+    font-size: clamp(14px, 1.25vw, 16px);
+  }
+
+  .homePage .heroVisualStage {
+    min-width: 0;
+    transform: scale(0.84);
+    transform-origin: center;
+  }
+
+  .homePage .constitutionalHero .searchCard {
+    margin: 20px 20px 20px 0;
+    padding: clamp(22px, 2vw, 30px);
+  }
+}
