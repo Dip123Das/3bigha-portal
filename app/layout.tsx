@@ -7,6 +7,7 @@ import MasterAdminDebugTools from "@/components/admin/MasterAdminDebugTools";
 import "./globals.css";
 import "./ui-kit.css";
 import "./home.css";
+import "./home-h05.css";
 import { createMetadata } from "@/lib/seo/metadata";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
