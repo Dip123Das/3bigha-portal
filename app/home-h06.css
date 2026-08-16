@@ -1,0 +1,615 @@
+/* =========================================================
+   HOMEPAGE H06 — PREMIUM VISUAL FINISH
+   Final presentation layer for the 3Bigha homepage.
+
+   No business logic, route, API, SEO or content changes.
+   ========================================================= */
+
+.homePage {
+  --h06-display:
+    clamp(42px, 4.8vw, 72px);
+  --h06-section:
+    clamp(26px, 2.6vw, 42px);
+  --h06-card-title:
+    clamp(15px, 1.05vw, 18px);
+  --h06-body:
+    clamp(13px, 0.92vw, 15px);
+  --h06-caption:
+    clamp(10px, 0.72vw, 12px);
+
+  --h06-ink: #101828;
+  --h06-ink-soft: #344054;
+  --h06-muted: #667085;
+  --h06-muted-light: #98a2b3;
+
+  --h06-blue: #3155d9;
+  --h06-blue-deep: #193a9a;
+  --h06-indigo: #4f5ee3;
+  --h06-purple: #7541df;
+  --h06-cyan: #2c8ddd;
+
+  --h06-radius-sm: 14px;
+  --h06-radius-md: 20px;
+  --h06-radius-lg: 28px;
+  --h06-radius-xl: 36px;
+
+  --h06-shadow-card:
+    0 1px 2px rgba(16, 24, 40, 0.025),
+    0 10px 28px rgba(37, 50, 110, 0.065),
+    0 28px 70px rgba(37, 50, 110, 0.045);
+
+  --h06-shadow-card-hover:
+    0 4px 10px rgba(16, 24, 40, 0.035),
+    0 22px 52px rgba(37, 50, 110, 0.12),
+    0 42px 100px rgba(64, 65, 160, 0.075);
+
+  --h06-border:
+    rgba(54, 68, 134, 0.105);
+
+  --h06-border-strong:
+    rgba(58, 78, 193, 0.22);
+
+  color: var(--h06-ink);
+}
+
+/* =========================================================
+   TYPOGRAPHY
+   ========================================================= */
+
+.homePage .heroCopy h1 {
+  max-width: 9.2ch;
+  font-size: var(--h06-display);
+  line-height: 0.94;
+  letter-spacing: -0.065em;
+  font-weight: 900;
+}
+
+.homePage .constitutionalHeroLead {
+  max-width: 46ch;
+  font-size: clamp(14px, 1vw, 17px);
+  line-height: 1.68;
+  color: var(--h06-ink-soft);
+}
+
+.homePage .constitutionalHeroPromise {
+  max-width: 47ch;
+  font-size: clamp(13px, 0.9vw, 15px);
+  line-height: 1.62;
+  color: #475467;
+}
+
+.homePage .sectionHead h2,
+.homePage .cleanTrustSection h2 {
+  font-size: var(--h06-section);
+  line-height: 1.03;
+  letter-spacing: -0.052em;
+  font-weight: 900;
+}
+
+.homePage .sectionHead p {
+  max-width: 64ch;
+  font-size: var(--h06-body);
+  line-height: 1.65;
+  color: var(--h06-muted);
+}
+
+.homePage :is(
+  .sahajJourneyCard,
+  .categoryCard,
+  .discoveryRailCard,
+  .toolCard,
+  .bottomPanel
+) h3,
+.homePage :is(
+  .sahajJourneyCard,
+  .categoryCard,
+  .discoveryRailCard,
+  .toolCard,
+  .bottomPanel
+) strong {
+  color: var(--h06-ink);
+  font-size: var(--h06-card-title);
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  font-weight: 820;
+}
+
+.homePage :is(
+  .sahajJourneyCard,
+  .categoryCard,
+  .discoveryRailCard,
+  .toolCard,
+  .bottomPanel
+) p {
+  font-size: var(--h06-caption);
+  line-height: 1.58;
+  color: var(--h06-muted);
+}
+
+/* =========================================================
+   SECTION COLOUR RHYTHM
+   ========================================================= */
+
+.homePage > .contentSection,
+.homePage > .sahajJourneySection {
+  position: relative;
+  isolation: isolate;
+}
+
+.homePage > .contentSection:nth-of-type(4n + 1) {
+  background:
+    radial-gradient(
+      circle at 92% 5%,
+      rgba(70, 95, 221, 0.055),
+      transparent 30%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.88),
+      rgba(248, 250, 255, 0.72)
+    );
+}
+
+.homePage > .contentSection:nth-of-type(4n + 2) {
+  background:
+    radial-gradient(
+      circle at 7% 10%,
+      rgba(117, 65, 223, 0.05),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(250, 248, 255, 0.62),
+      rgba(255, 255, 255, 0.88)
+    );
+}
+
+.homePage > .contentSection:nth-of-type(4n + 3) {
+  background:
+    radial-gradient(
+      circle at 94% 14%,
+      rgba(44, 141, 221, 0.045),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(248, 252, 255, 0.68),
+      rgba(255, 255, 255, 0.9)
+    );
+}
+
+/* =========================================================
+   PREMIUM SURFACES
+   ========================================================= */
+
+.homePage :is(
+  .sahajJourneyCard,
+  .listingCard,
+  .categoryCard,
+  .discoveryRailCard,
+  .toolCard,
+  .bottomPanel
+) {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--h06-border);
+  background:
+    radial-gradient(
+      circle at 96% 0%,
+      rgba(83, 101, 218, 0.055),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.995),
+      rgba(249, 250, 255, 0.955)
+    );
+  box-shadow: var(--h06-shadow-card);
+}
+
+.homePage :is(
+  .sahajJourneyCard,
+  .listingCard,
+  .categoryCard,
+  .discoveryRailCard,
+  .toolCard,
+  .bottomPanel
+)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.75),
+      transparent 28%,
+      transparent 72%,
+      rgba(103, 79, 221, 0.028)
+    );
+  opacity: 0.85;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .homePage :is(
+    .sahajJourneyCard,
+    .listingCard,
+    .categoryCard,
+    .discoveryRailCard,
+    .toolCard,
+    .bottomPanel
+  ):hover {
+    border-color: var(--h06-border-strong);
+    background:
+      radial-gradient(
+        circle at 96% 0%,
+        rgba(83, 101, 218, 0.09),
+        transparent 38%
+      ),
+      #ffffff;
+    box-shadow: var(--h06-shadow-card-hover);
+  }
+}
+
+/* =========================================================
+   ICON SYSTEM NORMALISATION
+   ========================================================= */
+
+.homePage :is(
+  .sahajJourneyIcon,
+  .categoryIcon,
+  .toolCard > b
+) {
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(63, 84, 205, 0.11);
+  background:
+    radial-gradient(
+      circle at 30% 20%,
+      #ffffff,
+      transparent 38%
+    ),
+    linear-gradient(
+      145deg,
+      #f2f4ff,
+      #e8ecff
+    );
+  color: var(--h06-blue);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 9px 22px rgba(52, 72, 174, 0.105);
+}
+
+/* =========================================================
+   SEARCH COMMAND CENTRE
+   ========================================================= */
+
+.homePage .constitutionalHero .searchCard {
+  border-radius: var(--h06-radius-lg);
+  border-color: rgba(62, 82, 199, 0.15);
+  background:
+    radial-gradient(
+      circle at 94% 4%,
+      rgba(117, 65, 223, 0.075),
+      transparent 30%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.995),
+      rgba(247, 249, 255, 0.97)
+    );
+  box-shadow:
+    0 4px 10px rgba(29, 44, 105, 0.035),
+    0 24px 64px rgba(45, 56, 140, 0.135);
+}
+
+.homePage .searchCardIdentity > span {
+  font-size: clamp(17px, 1.35vw, 22px);
+  letter-spacing: -0.035em;
+  font-weight: 860;
+}
+
+.homePage .searchTabs {
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(239, 242, 255, 0.88),
+      rgba(246, 247, 255, 0.96)
+    );
+}
+
+.homePage .searchCard textarea {
+  border-radius: 17px;
+  min-height: 120px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.homePage .primaryAction {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  background:
+    linear-gradient(
+      120deg,
+      var(--h06-blue-deep),
+      var(--h06-indigo) 53%,
+      var(--h06-purple)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    0 12px 30px rgba(54, 66, 180, 0.24);
+}
+
+.homePage .primaryAction::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      110deg,
+      transparent 28%,
+      rgba(255, 255, 255, 0.22) 48%,
+      transparent 68%
+    );
+  transform: translateX(-135%);
+  transition: transform 650ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .homePage .primaryAction:hover::after {
+    transform: translateX(135%);
+  }
+}
+
+/* =========================================================
+   FEATURED LISTINGS
+   ========================================================= */
+
+.homePage .listingCard {
+  min-height: 170px;
+  padding: clamp(15px, 1.4vw, 22px);
+  border-radius: var(--h06-radius-md);
+}
+
+.homePage .listingCard > :first-child {
+  color: var(--h06-muted);
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.homePage .listingCard strong {
+  display: block;
+  margin-top: 5px;
+  font-size: clamp(15px, 1.15vw, 19px);
+  line-height: 1.24;
+}
+
+.homePage .listingCard b,
+.homePage .listingCard .price {
+  color: #101f52;
+  font-size: clamp(18px, 1.45vw, 25px);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  font-weight: 900;
+}
+
+.homePage .listingCard::after {
+  height: 4px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--h06-blue),
+      var(--h06-cyan) 45%,
+      var(--h06-purple)
+    );
+}
+
+/* =========================================================
+   CATEGORY SHOWCASE
+   ========================================================= */
+
+.homePage .categoryCard {
+  border-radius: var(--h06-radius-lg);
+  padding: clamp(20px, 2vw, 30px);
+}
+
+.homePage .categoryCard strong {
+  display: block;
+  margin-top: 16px;
+}
+
+.homePage .categoryCard p {
+  margin-top: 8px;
+  max-width: 34ch;
+}
+
+.homePage .categoryCard a {
+  margin-top: auto;
+  font-weight: 760;
+}
+
+/* =========================================================
+   CTA SYSTEM
+   ========================================================= */
+
+.homePage :is(
+  .aiBusinessCommand,
+  .rfqMiniCard,
+  .cleanTrustSection,
+  .cleanStartBanner
+) {
+  border-radius: var(--h06-radius-lg);
+  background:
+    radial-gradient(
+      circle at 88% 8%,
+      rgba(191, 166, 255, 0.34),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 6% 100%,
+      rgba(48, 122, 255, 0.24),
+      transparent 34%
+    ),
+    linear-gradient(
+      135deg,
+      #16358f 0%,
+      #344dc4 43%,
+      #7441df 100%
+    );
+  box-shadow:
+    0 14px 32px rgba(42, 50, 135, 0.15),
+    0 36px 100px rgba(69, 56, 166, 0.22);
+}
+
+.homePage .cleanTrustGrid > * {
+  border-radius: var(--h06-radius-md);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 14px 34px rgba(24, 29, 102, 0.14);
+}
+
+.homePage :is(
+  .aiBusinessActions a,
+  .cleanStartBanner a,
+  .heroManageBusiness
+) {
+  min-height: 46px;
+  padding-inline: 22px;
+  border-radius: 14px;
+  font-weight: 820;
+  letter-spacing: -0.015em;
+}
+
+/* =========================================================
+   PREMIUM FOOTER
+   ========================================================= */
+
+.homePage .cleanHomeFooter {
+  position: relative;
+  border-radius: var(--h06-radius-xl) var(--h06-radius-xl) 0 0;
+  background:
+    radial-gradient(
+      circle at 5% 0%,
+      rgba(67, 92, 211, 0.085),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 95% 4%,
+      rgba(117, 65, 223, 0.065),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #f6f8ff
+    );
+  box-shadow:
+    0 -1px 0 rgba(61, 78, 173, 0.06),
+    0 -20px 70px rgba(42, 54, 124, 0.055);
+}
+
+.homePage .cleanHomeFooter::after {
+  content: "Human First. AI Second. Precision Always.";
+  position: absolute;
+  right: clamp(18px, 4vw, 56px);
+  bottom: clamp(16px, 2vw, 28px);
+  color: rgba(49, 69, 163, 0.42);
+  font-size: 10px;
+  font-weight: 780;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.homePage .cleanHomeFooter h3 {
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.homePage .cleanHomeFooter a {
+  color: #4b556f;
+  line-height: 1.75;
+}
+
+/* =========================================================
+   MOBILE REFINEMENT
+   ========================================================= */
+
+@media (max-width: 768px) {
+  .homePage .heroCopy h1 {
+    max-width: 8.7ch;
+    font-size: clamp(42px, 12vw, 56px);
+    line-height: 0.96;
+  }
+
+  .homePage .constitutionalHeroLead,
+  .homePage .constitutionalHeroPromise {
+    line-height: 1.58;
+  }
+
+  .homePage .sectionHead h2,
+  .homePage .cleanTrustSection h2 {
+    font-size: clamp(25px, 8vw, 34px);
+  }
+
+  .homePage .constitutionalHero .searchCard {
+    border-radius: 22px;
+  }
+
+  .homePage .searchCard textarea {
+    min-height: 108px;
+  }
+
+  .homePage :is(
+    .sahajJourneyCard,
+    .listingCard,
+    .categoryCard,
+    .discoveryRailCard,
+    .toolCard,
+    .bottomPanel
+  ) {
+    border-radius: 18px;
+  }
+
+  .homePage .listingCard {
+    min-height: 0;
+    padding: 16px;
+  }
+
+  .homePage .categoryCard {
+    padding: 18px;
+  }
+
+  .homePage .cleanTrustGrid {
+    gap: 12px !important;
+  }
+
+  .homePage .cleanHomeFooter {
+    border-radius: 26px 26px 0 0;
+  }
+
+  .homePage .cleanHomeFooter::after {
+    position: static;
+    display: block;
+    margin-top: 24px;
+    padding: 0 16px 18px;
+    text-align: center;
+  }
+}
+
+/* =========================================================
+   MOTION SAFETY
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .homePage *,
+  .homePage *::before,
+  .homePage *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
