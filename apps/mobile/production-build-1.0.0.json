@@ -1,0 +1,57 @@
+{
+  "id": "2e6b978c-5a9f-45f1-9286-2fd555ac5da7",
+  "status": "FINISHED",
+  "platform": "ANDROID",
+  "artifacts": {
+    "buildUrl": "https://expo.dev/artifacts/eas/w1yF4YzXYqHuogdfYhGP2Chnbt1dFDvgw_16nH1izpI.aab",
+    "applicationArchiveUrl": "https://expo.dev/artifacts/eas/w1yF4YzXYqHuogdfYhGP2Chnbt1dFDvgw_16nH1izpI.aab"
+  },
+  "fingerprint": {
+    "id": "01a0057d-1c11-7536-992a-e381c50b9b65",
+    "hash": "fe7d660af814a569214fee01fd9a740d761404ea"
+  },
+  "initiatingActor": {
+    "id": "8cfa4357-db39-424e-8b50-a343d6700899",
+    "displayName": "dip123das"
+  },
+  "logFiles": [
+    "https://storage.googleapis.com/eas-workflows-production/logs/752e26b7-53a9-4cb8-a4ea-356d621e8ec7/2e6b978c-5a9f-45f1-9286-2fd555ac5da7/2026-08-15T12%3A54%3A44Z-21019a79-67fa-47e4-bedd-b5566d3f2767.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260815%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260815T164347Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=878412e3ccbd8ffc5482294f2dbca9797876da2bcb048e173dfc7bf4faf5f5ffb7a9c56eba3cac64742fcd764ba6b0ab77a72d597fc3af498fe459d513da7f5d81ecb33594074d4b65af4281ac3203192b58520e02fa13de30fcae06f0f091817450f5bfffd086faffed2a0ab447dd8cb7c97c8c74226344cefc6e8a9a7f4ff58509a8f10f88996363d937af57de33e9965f54a971745b98fed042e2c8bbb4b0669c36983e21dbfeb8f458d946a6d7f3f9ebe4266c522da8b73d59261866d98f531057e61542438de53e4510d796e3c0ff03ec9daf53c51dfabc31c3fcb6e85dbae2b8ec9f08ca9b4c79d50835dd58cfb13242c5f3cebc269f34915feccb949f"
+  ],
+  "app": {
+    "id": "752e26b7-53a9-4cb8-a4ea-356d621e8ec7",
+    "name": "3bigha-mobile",
+    "slug": "3bigha-mobile",
+    "ownerAccount": {
+      "id": "8c9de9e1-7a79-49ac-8293-e5efa69b81e6",
+      "name": "dip123dass-team"
+    }
+  },
+  "updateChannel": {
+    "id": "019ff0ac-4adf-7404-a987-545f7fb8d4f2",
+    "name": "production"
+  },
+  "distribution": "STORE",
+  "buildProfile": "production",
+  "appIdentifier": "com.threebigha.mobile",
+  "sdkVersion": "57.0.0",
+  "appVersion": "1.0.0",
+  "appBuildVersion": "3",
+  "runtime": {
+    "id": "019ff014-53a2-7c5f-a46f-12f6d6b80192",
+    "version": "1.0.0"
+  },
+  "gitCommitHash": "51087ea02d8b3e69e3182bbaef6618b6b6a566a9",
+  "gitCommitMessage": "Align mobile dependencies with Expo SDK 57",
+  "priority": "NORMAL_PLUS",
+  "createdAt": "2026-08-15T12:54:40.359Z",
+  "updatedAt": "2026-08-15T13:15:20.743Z",
+  "message": "3Bigha Android 1.0.0 production release",
+  "completedAt": "2026-08-15T13:15:20.514Z",
+  "expirationDate": "2026-09-14T12:54:40.391Z",
+  "isForIosSimulator": false,
+  "metrics": {
+    "buildWaitTime": 3769,
+    "buildQueueTime": 4660,
+    "buildDuration": 1231726
+  }
+}
