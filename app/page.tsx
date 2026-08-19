@@ -406,14 +406,14 @@ export default function HomePage() {
         onToggleSahajNeeds={() => toggleMobileSection("sahajNeeds")}
       />
 
-      <SahajJourney
-        expanded={mobileSectionOpen("sahajNeeds")}
-      />
-
       <FeaturedListings
         featuredItems={featuredItems}
         recentDiscovery={recentDiscovery}
         mobileExpanded={Boolean(mobileExpandedSections.featured)}
+      />
+
+      <SahajJourney
+        expanded={mobileSectionOpen("sahajNeeds")}
       />
 
       <section className="contentSection manageBusinessSection">
