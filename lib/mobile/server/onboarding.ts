@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import type { MobileEvidenceAsset, MobileOnboardingPath, MobileOnboardingState } from "@/lib/mobile/contracts/v1";
@@ -148,13 +150,42 @@ export async function uploadMobileEvidence(supabase: SupabaseClient, user: User,
   const bytes = Buffer.from(match[2], "base64");
   if (!bytes.length || bytes.length > 8 * 1024 * 1024) throw new MobileOnboardingError(413, "FILE_SIZE", "Evidence files must be no larger than 8 MB.");
   const mimeType = match[1];
-  if (category === "business_document" ? !["application/pdf", "image/jpeg", "image/png"].includes(mimeType) : !mimeType.startsWith("image/")) throw new MobileOnboardingError(400, "FILE_TYPE", "Use a supported image or PDF document.");
-  const ext = mimeType === "application/pdf" ? "pdf" : mimeType.includes("png") ? "png" : "jpg";
-  const path = `${user.id}/registration/${category}-${Date.now()}.${ext}`;
-  const { error } = await supabase.storage.from("vendor-media").upload(path, bytes, { contentType: mimeType, upsert: false });
+  const supportedImageTypes = ["image/jpeg", "image/png", "image/webp"];
+  const supportedDocumentTypes = [...supportedImageTypes, "application/pdf"];
+  const allowedMimeTypes = category === "business_document" ? supportedDocumentTypes : supportedImageTypes;
+  if (!allowedMimeTypes.includes(mimeType)) throw new MobileOnboardingError(400, "FILE_TYPE", "Use a supported JPEG, PNG, WebP or PDF file.");
+
+  const ext = mimeType === "application/pdf" ? "pdf" : mimeType.includes("png") ? "png" : mimeType.includes("webp") ? "webp" : "jpg";
+  const evidenceId = crypto.randomUUID();
+  const captureTimestamp = new Date().toISOString();
+  const path = `${user.id}/registration/${evidenceId}/${category}.${ext}`;
+  const sha256 = createHash("sha256").update(bytes).digest("hex");
+
+  const { error } = await supabase.storage
+    .from("registration-evidence")
+    .upload(path, bytes, {
+      contentType: mimeType,
+      upsert: false,
+      cacheControl: "0",
+    });
   if (error) throw error;
-  const { data } = supabase.storage.from("vendor-media").getPublicUrl(path);
-  return { id: crypto.randomUUID(), bucket: "vendor-media", path, url: data.publicUrl, name: clean(input.name) || `${category}.${ext}`, size: bytes.length, mimeType, kind: category === "business_document" ? "document" : "image", captureSource: category === "business_document" ? "file_upload" : "live_camera", captureTimestamp: new Date().toISOString(), evidenceCategory: category };
+
+  const serverReceivedAt = new Date().toISOString();
+  return {
+    id: evidenceId,
+    bucket: "registration-evidence",
+    path,
+    url: null,
+    name: clean(input.name) || `${category}.${ext}`,
+    size: bytes.length,
+    mimeType,
+    sha256,
+    kind: category === "business_document" ? "document" : "image",
+    captureSource: category === "business_document" ? "file_upload" : "live_camera",
+    captureTimestamp,
+    serverReceivedAt,
+    evidenceCategory: category,
+  };
 }
 
 export async function attachMobileEvidence(supabase: SupabaseClient, user: User, asset: MobileEvidenceAsset) {

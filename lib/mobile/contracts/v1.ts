@@ -41,15 +41,21 @@ export type MobileIdentityOption = {
 
 export type MobileEvidenceAsset = {
   id: string;
-  bucket: "vendor-media";
+  bucket: "registration-evidence";
   path: string;
-  url: string;
+  /**
+   * Registration evidence is private. Review UIs must request a short-lived
+   * signed URL from an authorised server endpoint.
+   */
+  url: null;
   name: string;
   size: number;
   mimeType: string;
+  sha256: string;
   kind: "image" | "document";
   captureSource: "live_camera" | "file_upload";
   captureTimestamp: string;
+  serverReceivedAt: string;
   evidenceCategory: string;
 };
 
