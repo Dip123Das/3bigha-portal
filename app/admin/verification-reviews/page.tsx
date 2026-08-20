@@ -54,6 +54,83 @@ function stateLabel(value: string) {
   return "Not available";
 }
 
+type EvidenceAsset = {
+  bucket?: string;
+  path?: string;
+  name?: string;
+  mimeType?: string;
+  evidenceCategory?: string;
+  captureTimestamp?: string;
+  evidenceBindingSha256?: string;
+  captureMetadata?: {
+    latitude?: number;
+    longitude?: number;
+    accuracy?: number;
+  } | null;
+};
+
+function asEvidenceArray(value: unknown): EvidenceAsset[] {
+  if (Array.isArray(value)) {
+    return value.filter(
+      (item): item is EvidenceAsset =>
+        Boolean(item) && typeof item === "object"
+    );
+  }
+
+  if (value && typeof value === "object") {
+    return [value as EvidenceAsset];
+  }
+
+  return [];
+}
+
+function collectEvidenceAssets(
+  business: Record<string, unknown>
+) {
+  const unique = new Map<string, EvidenceAsset>();
+
+  for (const asset of [
+    ...asEvidenceArray(business.selfie_media_json),
+    ...asEvidenceArray(business.workplace_media_json),
+    ...asEvidenceArray(business.business_media_json),
+  ]) {
+    const path = String(asset.path || "").trim();
+
+    if (
+      asset.bucket === "registration-evidence" &&
+      path
+    ) {
+      unique.set(path, asset);
+    }
+  }
+
+  return [...unique.values()];
+}
+
+function evidenceLabel(asset: EvidenceAsset) {
+  const category = String(
+    asset.evidenceCategory || ""
+  );
+
+  if (category === "selfie") {
+    return "Live business-board selfie";
+  }
+
+  if (category === "work_photo_one") {
+    return "Workplace evidence 1";
+  }
+
+  if (category === "work_photo_two") {
+    return "Workplace evidence 2";
+  }
+
+  if (category === "business_document") {
+    return "Business registration document";
+  }
+
+  return asset.name || "Registration evidence";
+}
+
 function stateStyle(value: string) {
   if (value === "confirmed") {
     return {
@@ -159,7 +236,16 @@ export default async function VerificationReviewsPage({
           admin
             .from("business_profiles")
             .select(
-              "user_id,business_name,subscription_plan,subscription_status"
+              [
+                "user_id",
+                "business_name",
+                "subscription_plan",
+                "subscription_status",
+                "selfie_media_json",
+                "workplace_media_json",
+                "business_media_json",
+                "automated_verification_json",
+              ].join(",")
             )
             .in("user_id", userIds),
         ])
@@ -264,6 +350,25 @@ export default async function VerificationReviewsPage({
       {}
     : {};
 
+  const evidenceAssets =
+    selected
+      ? collectEvidenceAssets(
+          selectedBusiness
+        )
+      : [];
+
+  const trustIntelligence =
+    selectedBusiness
+      ?.automated_verification_json
+      ?.trustIntelligence &&
+    typeof selectedBusiness
+      .automated_verification_json
+      .trustIntelligence === "object"
+      ? selectedBusiness
+          .automated_verification_json
+          .trustIntelligence
+      : null;
+
   const result =
     selected?.result_json &&
     typeof selected.result_json ===
@@ -358,14 +463,13 @@ export default async function VerificationReviewsPage({
         }}
       >
         <strong>
-          Read-only review stage:
+          Secure read-only review:
         </strong>{" "}
-        secure certificate viewing has not
-        yet been connected to the canonical
-        business-proof storage source.
-        Human approval is intentionally
-        disabled until that evidence can be
-        opened securely.
+        private registration evidence is
+        opened through master-admin-only,
+        short-lived signed links. Human
+        approval remains intentionally
+        disabled in this milestone.
       </div>
 
       <form
@@ -681,6 +785,287 @@ export default async function VerificationReviewsPage({
                     "No verification summary was recorded."
                   )}
                 </p>
+              </article>
+
+              <article
+                style={{
+                  padding: 18,
+                  border:
+                    "1px solid #e2e8f0",
+                  borderRadius: 14,
+                  background: "white",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent:
+                      "space-between",
+                    alignItems: "flex-start",
+                    gap: 12,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    <h3
+                      style={{
+                        margin: "0 0 6px",
+                      }}
+                    >
+                      Secure registration evidence
+                    </h3>
+                    <p
+                      style={{
+                        margin: 0,
+                        color: "#64748b",
+                      }}
+                    >
+                      Each evidence link is
+                      master-admin-only and expires
+                      after two minutes.
+                    </p>
+                  </div>
+
+                  {trustIntelligence ? (
+                    <div
+                      style={{
+                        padding: "8px 10px",
+                        border:
+                          "1px solid #bfdbfe",
+                        borderRadius: 10,
+                        background: "#eff6ff",
+                        color: "#1e3a8a",
+                        fontWeight: 900,
+                      }}
+                    >
+                      Trust score{" "}
+                      {Math.round(
+                        Number(
+                          trustIntelligence
+                            .overallTrust || 0
+                        )
+                      )}
+                      /100
+                    </div>
+                  ) : null}
+                </div>
+
+                {evidenceAssets.length ? (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(250px, 1fr))",
+                      gap: 12,
+                      marginTop: 16,
+                    }}
+                  >
+                    {evidenceAssets.map(
+                      (asset) => {
+                        const path = String(
+                          asset.path || ""
+                        );
+                        const href =
+                          "/api/admin/registration-evidence/view" +
+                          `?user_id=${encodeURIComponent(
+                            selected.user_id
+                          )}` +
+                          `&path=${encodeURIComponent(
+                            path
+                          )}`;
+                        const isImage =
+                          String(
+                            asset.mimeType || ""
+                          ).startsWith("image/");
+
+                        return (
+                          <div
+                            key={path}
+                            style={{
+                              padding: 12,
+                              border:
+                                "1px solid #e2e8f0",
+                              borderRadius: 12,
+                              background: "#f8fafc",
+                            }}
+                          >
+                            {isImage ? (
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                <img
+                                  src={href}
+                                  alt={evidenceLabel(
+                                    asset
+                                  )}
+                                  style={{
+                                    width: "100%",
+                                    height: 180,
+                                    objectFit:
+                                      "cover",
+                                    borderRadius: 9,
+                                    border:
+                                      "1px solid #cbd5e1",
+                                    background:
+                                      "white",
+                                  }}
+                                />
+                              </a>
+                            ) : (
+                              <div
+                                style={{
+                                  minHeight: 120,
+                                  display: "grid",
+                                  placeItems:
+                                    "center",
+                                  borderRadius: 9,
+                                  border:
+                                    "1px solid #cbd5e1",
+                                  background:
+                                    "white",
+                                  fontWeight: 900,
+                                  color: "#475569",
+                                }}
+                              >
+                                Secure document
+                              </div>
+                            )}
+
+                            <div
+                              style={{
+                                marginTop: 10,
+                                fontWeight: 900,
+                              }}
+                            >
+                              {evidenceLabel(
+                                asset
+                              )}
+                            </div>
+
+                            <div
+                              style={{
+                                marginTop: 5,
+                                fontSize: 13,
+                                color: "#64748b",
+                              }}
+                            >
+                              Captured:{" "}
+                              {displayDate(
+                                asset.captureTimestamp
+                              )}
+                            </div>
+
+                            {asset.captureMetadata ? (
+                              <div
+                                style={{
+                                  marginTop: 5,
+                                  fontSize: 13,
+                                  color: "#64748b",
+                                }}
+                              >
+                                GPS:{" "}
+                                {Number.isFinite(
+                                  Number(
+                                    asset
+                                      .captureMetadata
+                                      .latitude
+                                  )
+                                ) &&
+                                Number.isFinite(
+                                  Number(
+                                    asset
+                                      .captureMetadata
+                                      .longitude
+                                  )
+                                )
+                                  ? `${Number(
+                                      asset
+                                        .captureMetadata
+                                        .latitude
+                                    ).toFixed(
+                                      6
+                                    )}, ${Number(
+                                      asset
+                                        .captureMetadata
+                                        .longitude
+                                    ).toFixed(
+                                      6
+                                    )}`
+                                  : "Not available"}
+                                {" · Accuracy ±"}
+                                {Math.round(
+                                  Number(
+                                    asset
+                                      .captureMetadata
+                                      .accuracy || 0
+                                  )
+                                )}
+                                m
+                              </div>
+                            ) : null}
+
+                            <div
+                              style={{
+                                marginTop: 5,
+                                fontSize: 13,
+                                color:
+                                  asset.evidenceBindingSha256
+                                    ? "#166534"
+                                    : "#92400e",
+                                fontWeight: 800,
+                              }}
+                            >
+                              {asset.evidenceBindingSha256
+                                ? "Cryptographically bound"
+                                : "Legacy evidence metadata"}
+                            </div>
+
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{
+                                display:
+                                  "inline-block",
+                                marginTop: 10,
+                                padding:
+                                  "8px 10px",
+                                border:
+                                  "1px solid #2563eb",
+                                borderRadius: 9,
+                                color: "#1d4ed8",
+                                background:
+                                  "white",
+                                textDecoration:
+                                  "none",
+                                fontWeight: 900,
+                              }}
+                            >
+                              Open securely
+                            </a>
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      marginTop: 14,
+                      padding: 14,
+                      border:
+                        "1px solid #fde68a",
+                      borderRadius: 10,
+                      background: "#fffbeb",
+                      color: "#92400e",
+                    }}
+                  >
+                    No private REG-EV evidence
+                    is attached to this case.
+                  </div>
+                )}
               </article>
 
               {documents.map(
