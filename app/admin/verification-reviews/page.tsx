@@ -107,6 +107,44 @@ function collectEvidenceAssets(
   return [...unique.values()];
 }
 
+function decisionLabel(value: unknown) {
+  const action = String(value || "");
+
+  if (action === "admin_registration_approved") {
+    return "Approved by administrator";
+  }
+
+  if (
+    action ===
+    "admin_registration_correction_requested"
+  ) {
+    return "Correction requested";
+  }
+
+  if (
+    action ===
+    "admin_registration_manual_review_required"
+  ) {
+    return "Manual review required";
+  }
+
+  if (action === "admin_registration_rejected") {
+    return "Registration rejected";
+  }
+
+  return action
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) =>
+      letter.toUpperCase()
+    );
+}
+
+function trustLabel(value: string) {
+  return value
+    .replace(/Trust$/, "")
+    .replace(/([a-z])([A-Z])/g, "$1 $2");
+}
+
 function evidenceLabel(asset: EvidenceAsset) {
   const category = String(
     asset.evidenceCategory || ""
@@ -189,6 +227,12 @@ export default async function VerificationReviewsPage({
   const selectedCaseId = one(
     searchParams?.case
   );
+  const decisionState = one(
+    searchParams?.decision
+  );
+  const decisionMessage = one(
+    searchParams?.message
+  );
 
   const { admin } = access;
 
@@ -230,7 +274,19 @@ export default async function VerificationReviewsPage({
           admin
             .from("profiles")
             .select(
-              "id,email,full_name,role,requested_role,approval_status"
+              [
+                "id",
+                "email",
+                "full_name",
+                "role",
+                "requested_role",
+                "approval_status",
+                "registration_verification_status",
+                "registration_verification_score",
+                "registration_verification_reasons",
+                "admin_review_reason",
+                "dashboard_activation_status",
+              ].join(",")
             )
             .in("id", userIds),
           admin
@@ -390,6 +446,61 @@ export default async function VerificationReviewsPage({
       )
     : [];
 
+  const eventsRes = selected
+    ? await admin
+        .from(
+          "registration_verification_events"
+        )
+        .select(
+          [
+            "id",
+            "event_type",
+            "previous_status",
+            "next_status",
+            "score",
+            "reasons",
+            "evidence_snapshot",
+            "decision_source",
+            "decided_by",
+            "created_at",
+          ].join(",")
+        )
+        .eq("user_id", selected.user_id)
+        .order("created_at", {
+          ascending: false,
+        })
+        .limit(100)
+    : { data: [], error: null };
+
+  const decisionEvents =
+    eventsRes.data || [];
+
+  const reviewerIds = [
+    ...new Set(
+      decisionEvents
+        .map((event: any) =>
+          String(event.decided_by || "")
+        )
+        .filter(Boolean)
+    ),
+  ];
+
+  const reviewersRes = reviewerIds.length
+    ? await admin
+        .from("profiles")
+        .select("id,full_name,email")
+        .in("id", reviewerIds)
+    : { data: [], error: null };
+
+  const reviewers = new Map(
+    (reviewersRes.data || []).map(
+      (reviewer: any) => [
+        reviewer.id,
+        reviewer,
+      ]
+    )
+  );
+
   const fieldStyle = {
     padding: "9px 11px",
     border: "1px solid #cbd5e1",
@@ -451,6 +562,31 @@ export default async function VerificationReviewsPage({
           Member administration
         </Link>
       </div>
+
+      {decisionMessage ? (
+        <div
+          style={{
+            padding: 14,
+            marginBottom: 14,
+            border:
+              decisionState === "success"
+                ? "1px solid #86efac"
+                : "1px solid #fca5a5",
+            borderRadius: 12,
+            background:
+              decisionState === "success"
+                ? "#f0fdf4"
+                : "#fef2f2",
+            color:
+              decisionState === "success"
+                ? "#166534"
+                : "#991b1b",
+            fontWeight: 800,
+          }}
+        >
+          {decisionMessage}
+        </div>
+      ) : null}
 
       <div
         style={{
@@ -785,6 +921,349 @@ export default async function VerificationReviewsPage({
                     "No verification summary was recorded."
                   )}
                 </p>
+              </article>
+
+              {trustIntelligence ? (
+                <article
+                  style={{
+                    padding: 18,
+                    border:
+                      "1px solid #bfdbfe",
+                    borderRadius: 14,
+                    background: "#eff6ff",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent:
+                        "space-between",
+                      gap: 14,
+                      alignItems: "flex-start",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div>
+                      <h3
+                        style={{
+                          margin: "0 0 6px",
+                        }}
+                      >
+                        Business Trust Intelligence
+                      </h3>
+                      <div
+                        style={{
+                          color: "#475569",
+                        }}
+                      >
+                        Advisory intelligence supports
+                        the reviewer. The human decision
+                        remains authoritative.
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: 28,
+                        fontWeight: 950,
+                        color: "#1d4ed8",
+                      }}
+                    >
+                      {Math.round(
+                        Number(
+                          trustIntelligence
+                            .overallTrust || 0
+                        )
+                      )}
+                      /100
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(150px, 1fr))",
+                      gap: 10,
+                      marginTop: 16,
+                    }}
+                  >
+                    {[
+                      "identityTrust",
+                      "locationTrust",
+                      "evidenceTrust",
+                      "captureIntegrityTrust",
+                      "businessActivityTrust",
+                    ].map((key) => (
+                      <div
+                        key={key}
+                        style={{
+                          padding: 12,
+                          border:
+                            "1px solid #bfdbfe",
+                          borderRadius: 10,
+                          background: "white",
+                        }}
+                      >
+                        <div
+                          style={{
+                            color: "#64748b",
+                            fontSize: 12,
+                            fontWeight: 800,
+                          }}
+                        >
+                          {trustLabel(key)}
+                        </div>
+                        <div
+                          style={{
+                            marginTop: 4,
+                            fontSize: 22,
+                            fontWeight: 950,
+                          }}
+                        >
+                          {Math.round(
+                            Number(
+                              trustIntelligence[
+                                key
+                              ] || 0
+                            )
+                          )}
+                          /100
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      flexWrap: "wrap",
+                      marginTop: 14,
+                    }}
+                  >
+                    <strong>
+                      Risk:{" "}
+                      {String(
+                        trustIntelligence.riskLevel ||
+                          "Not available"
+                      )}
+                    </strong>
+                    <strong>
+                      Recommendation:{" "}
+                      {String(
+                        trustIntelligence
+                          .recommendedAction ||
+                          "Not available"
+                      ).replaceAll("_", " ")}
+                    </strong>
+                  </div>
+
+                  {Array.isArray(
+                    trustIntelligence.explanations
+                  ) ? (
+                    <ul
+                      style={{
+                        marginBottom: 0,
+                        color: "#334155",
+                      }}
+                    >
+                      {trustIntelligence.explanations.map(
+                        (
+                          explanation: unknown,
+                          index: number
+                        ) => (
+                          <li key={index}>
+                            {String(explanation)}
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  ) : null}
+                </article>
+              ) : null}
+
+              <article
+                style={{
+                  padding: 18,
+                  border:
+                    "1px solid #cbd5e1",
+                  borderRadius: 14,
+                  background: "white",
+                }}
+              >
+                <h3
+                  style={{
+                    margin: "0 0 6px",
+                  }}
+                >
+                  Human registration decision
+                </h3>
+
+                <p
+                  style={{
+                    marginTop: 0,
+                    color: "#64748b",
+                  }}
+                >
+                  Review every private evidence item
+                  before deciding. A reason of at
+                  least 10 characters is mandatory,
+                  and every action is permanently
+                  recorded.
+                </p>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fit, minmax(180px, 1fr))",
+                    gap: 10,
+                    marginBottom: 14,
+                  }}
+                >
+                  <div>
+                    <strong>Current status</strong>
+                    <div>
+                      {String(
+                        selectedProfile
+                          .registration_verification_status ||
+                          "draft"
+                      ).replaceAll("_", " ")}
+                    </div>
+                  </div>
+                  <div>
+                    <strong>Approval</strong>
+                    <div>
+                      {String(
+                        selectedProfile
+                          .approval_status ||
+                          "pending"
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <strong>Dashboard</strong>
+                    <div>
+                      {String(
+                        selectedProfile
+                          .dashboard_activation_status ||
+                          "not_ready"
+                      ).replaceAll("_", " ")}
+                    </div>
+                  </div>
+                </div>
+
+                <form
+                  method="post"
+                  action="/api/admin/registration-review/decision"
+                >
+                  <input
+                    type="hidden"
+                    name="user_id"
+                    value={selected.user_id}
+                  />
+                  <input
+                    type="hidden"
+                    name="case_id"
+                    value={selected.id}
+                  />
+
+                  <label
+                    style={{
+                      display: "grid",
+                      gap: 6,
+                      fontWeight: 900,
+                    }}
+                  >
+                    Review reason
+                    <textarea
+                      name="reason"
+                      required
+                      minLength={10}
+                      rows={4}
+                      placeholder="Record what you verified and why this decision is appropriate."
+                      style={{
+                        ...fieldStyle,
+                        resize: "vertical",
+                        font: "inherit",
+                      }}
+                    />
+                  </label>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 10,
+                      marginTop: 12,
+                    }}
+                  >
+                    <button
+                      type="submit"
+                      name="action"
+                      value="approve"
+                      style={{
+                        ...fieldStyle,
+                        border:
+                          "1px solid #16a34a",
+                        background: "#16a34a",
+                        color: "white",
+                        fontWeight: 900,
+                      }}
+                    >
+                      Approve registration
+                    </button>
+
+                    <button
+                      type="submit"
+                      name="action"
+                      value="request_correction"
+                      style={{
+                        ...fieldStyle,
+                        border:
+                          "1px solid #d97706",
+                        background: "#fffbeb",
+                        color: "#92400e",
+                        fontWeight: 900,
+                      }}
+                    >
+                      Request correction
+                    </button>
+
+                    <button
+                      type="submit"
+                      name="action"
+                      value="manual_review"
+                      style={{
+                        ...fieldStyle,
+                        border:
+                          "1px solid #2563eb",
+                        background: "#eff6ff",
+                        color: "#1d4ed8",
+                        fontWeight: 900,
+                      }}
+                    >
+                      Keep in manual review
+                    </button>
+
+                    <button
+                      type="submit"
+                      name="action"
+                      value="reject"
+                      style={{
+                        ...fieldStyle,
+                        border:
+                          "1px solid #dc2626",
+                        background: "#dc2626",
+                        color: "white",
+                        fontWeight: 900,
+                      }}
+                    >
+                      Reject registration
+                    </button>
+                  </div>
+                </form>
               </article>
 
               <article
@@ -1313,6 +1792,145 @@ export default async function VerificationReviewsPage({
                   );
                 }
               )}
+
+              <article
+                style={{
+                  padding: 18,
+                  border:
+                    "1px solid #e2e8f0",
+                  borderRadius: 14,
+                  background: "white",
+                }}
+              >
+                <h3
+                  style={{
+                    marginTop: 0,
+                  }}
+                >
+                  Registration decision timeline
+                </h3>
+
+                {eventsRes.error ? (
+                  <div
+                    style={{
+                      color: "#991b1b",
+                    }}
+                  >
+                    Decision events could not be
+                    loaded.
+                  </div>
+                ) : decisionEvents.length ? (
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: 10,
+                    }}
+                  >
+                    {decisionEvents.map(
+                      (event: any) => {
+                        const reviewer: any =
+                          reviewers.get(
+                            event.decided_by
+                          ) || {};
+                        const snapshot =
+                          event.evidence_snapshot &&
+                          typeof event
+                            .evidence_snapshot ===
+                            "object"
+                            ? event.evidence_snapshot
+                            : {};
+
+                        return (
+                          <div
+                            key={event.id}
+                            style={{
+                              padding: 12,
+                              border:
+                                "1px solid #e2e8f0",
+                              borderRadius: 10,
+                              background: "#f8fafc",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontWeight: 950,
+                              }}
+                            >
+                              {decisionLabel(
+                                event.event_type
+                              )}
+                            </div>
+
+                            <div
+                              style={{
+                                marginTop: 4,
+                                color: "#475569",
+                              }}
+                            >
+                              {String(
+                                event.previous_status ||
+                                  "unknown"
+                              ).replaceAll("_", " ")}
+                              {" → "}
+                              {String(
+                                event.next_status ||
+                                  "unknown"
+                              ).replaceAll("_", " ")}
+                            </div>
+
+                            {snapshot.review_reason ? (
+                              <div
+                                style={{
+                                  marginTop: 6,
+                                }}
+                              >
+                                Reason:{" "}
+                                <strong>
+                                  {String(
+                                    snapshot.review_reason
+                                  )}
+                                </strong>
+                              </div>
+                            ) : null}
+
+                            <div
+                              style={{
+                                marginTop: 6,
+                                fontSize: 13,
+                                color: "#64748b",
+                              }}
+                            >
+                              {displayDate(
+                                event.created_at
+                              )}
+                              {" · "}
+                              {event.decided_by
+                                ? reviewer.full_name ||
+                                  reviewer.email ||
+                                  "Master administrator"
+                                : "Automated system"}
+                              {" · "}
+                              {String(
+                                event.decision_source ||
+                                  "system"
+                              )}
+                            </div>
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      color: "#64748b",
+                    }}
+                  >
+                    No registration decision events
+                    have been recorded yet.
+                  </div>
+                )}
+              </article>
 
               <article
                 style={{
