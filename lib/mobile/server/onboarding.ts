@@ -140,6 +140,64 @@ export async function verifyMobileLocation(supabase: SupabaseClient, user: User,
   if (error) throw error;
 }
 
+type LiveCaptureMetadata = NonNullable<MobileEvidenceAsset["captureMetadata"]>;
+
+function finiteOrNull(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function validateLiveCaptureMetadata(input: any): LiveCaptureMetadata {
+  if (!input || typeof input !== "object") throw new MobileOnboardingError(400, "CAPTURE_METADATA_REQUIRED", "Fresh GPS and time metadata are required for live evidence.");
+  const latitude = Number(input.latitude), longitude = Number(input.longitude), accuracy = Number(input.accuracy), locationAgeMs = Number(input.locationAgeMs), utcOffsetMinutes = Number(input.utcOffsetMinutes);
+  const locationTimestamp = clean(input.locationTimestamp, 60), cameraOpenedAt = clean(input.cameraOpenedAt, 60), deviceCapturedAt = clean(input.deviceCapturedAt, 60);
+  const timezone = clean(input.timezone, 80), platform = clean(input.platform, 20), cameraFacing = clean(input.cameraFacing, 10);
+  if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90 || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) throw new MobileOnboardingError(400, "INVALID_CAPTURE_LOCATION", "The live evidence location is invalid.");
+  if (!Number.isFinite(accuracy) || accuracy <= 0 || accuracy > 100) throw new MobileOnboardingError(400, "CAPTURE_ACCURACY", "Live evidence requires GPS accuracy of 100 metres or better.");
+  if ([locationTimestamp, cameraOpenedAt, deviceCapturedAt].some((value) => !value || Number.isNaN(Date.parse(value)))) throw new MobileOnboardingError(400, "INVALID_CAPTURE_TIME", "Valid capture timestamps are required.");
+
+  const locationTimeMs = Date.parse(locationTimestamp);
+  const cameraOpenedTimeMs = Date.parse(cameraOpenedAt);
+  const deviceCapturedTimeMs = Date.parse(deviceCapturedAt);
+  const calculatedLocationAgeMs = deviceCapturedTimeMs - locationTimeMs;
+
+  if (
+    locationTimeMs > cameraOpenedTimeMs
+    || cameraOpenedTimeMs > deviceCapturedTimeMs
+    || calculatedLocationAgeMs < 0
+    || calculatedLocationAgeMs > 60_000
+  ) throw new MobileOnboardingError(400, "INVALID_CAPTURE_SEQUENCE", "The verified capture timeline is invalid or stale.");
+
+  if (
+    !Number.isFinite(locationAgeMs)
+    || Math.abs(locationAgeMs - calculatedLocationAgeMs) > 2_000
+  ) throw new MobileOnboardingError(400, "CAPTURE_AGE_MISMATCH", "The submitted GPS age does not match the capture timeline.");
+
+  if (Math.abs(Date.now() - deviceCapturedTimeMs) > 5 * 60_000) throw new MobileOnboardingError(400, "STALE_CAPTURE_TIME", "The live capture time is outside the accepted verification window.");
+  if (input.mocked === true) throw new MobileOnboardingError(400, "MOCK_LOCATION", "Mock-location evidence cannot be accepted.");
+  if (!timezone || !["android", "ios"].includes(platform) || !Number.isFinite(utcOffsetMinutes) || !["front", "back"].includes(cameraFacing)) throw new MobileOnboardingError(400, "INVALID_CAPTURE_CONTEXT", "Complete capture context is required.");
+
+  return {
+    latitude,
+    longitude,
+    accuracy,
+    altitude: finiteOrNull(input.altitude),
+    altitudeAccuracy: finiteOrNull(input.altitudeAccuracy),
+    heading: finiteOrNull(input.heading),
+    speed: finiteOrNull(input.speed),
+    locationTimestamp: new Date(locationTimeMs).toISOString(),
+    locationAgeMs: calculatedLocationAgeMs,
+    mocked: typeof input.mocked === "boolean" ? input.mocked : null,
+    cameraOpenedAt: new Date(cameraOpenedTimeMs).toISOString(),
+    deviceCapturedAt: new Date(deviceCapturedTimeMs).toISOString(),
+    timezone,
+    utcOffsetMinutes,
+    platform,
+    cameraFacing: cameraFacing as "front" | "back",
+  };
+}
+
 export async function uploadMobileEvidence(supabase: SupabaseClient, user: User, input: any): Promise<MobileEvidenceAsset> {
   assertNoProtectedInput(input);
   const category = clean(input.category);
@@ -155,11 +213,13 @@ export async function uploadMobileEvidence(supabase: SupabaseClient, user: User,
   const allowedMimeTypes = category === "business_document" ? supportedDocumentTypes : supportedImageTypes;
   if (!allowedMimeTypes.includes(mimeType)) throw new MobileOnboardingError(400, "FILE_TYPE", "Use a supported JPEG, PNG, WebP or PDF file.");
 
+  const captureMetadata = category === "business_document" ? null : validateLiveCaptureMetadata(input.captureMetadata);
   const ext = mimeType === "application/pdf" ? "pdf" : mimeType.includes("png") ? "png" : mimeType.includes("webp") ? "webp" : "jpg";
   const evidenceId = crypto.randomUUID();
   const captureTimestamp = new Date().toISOString();
   const path = `${user.id}/registration/${evidenceId}/${category}.${ext}`;
   const sha256 = createHash("sha256").update(bytes).digest("hex");
+  const evidenceBindingSha256 = createHash("sha256").update(bytes).update("\n").update(JSON.stringify(captureMetadata ?? {})).digest("hex");
 
   const { error } = await supabase.storage
     .from("registration-evidence")
@@ -180,6 +240,8 @@ export async function uploadMobileEvidence(supabase: SupabaseClient, user: User,
     size: bytes.length,
     mimeType,
     sha256,
+    evidenceBindingSha256,
+    captureMetadata,
     kind: category === "business_document" ? "document" : "image",
     captureSource: category === "business_document" ? "file_upload" : "live_camera",
     captureTimestamp,

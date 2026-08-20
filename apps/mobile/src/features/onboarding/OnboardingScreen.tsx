@@ -4,7 +4,7 @@ import { readAsStringAsync } from "expo-file-system/legacy";
 import * as Location from "expo-location";
 import type { Session } from "@supabase/supabase-js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { getNativeSupabase } from "@/lib/auth/supabase";
@@ -12,6 +12,18 @@ import { colors, radii, spacing, typography } from "@/theme/tokens";
 import { loadOnboarding, performOnboardingAction, type MobileOnboardingPath, type MobileOnboardingState } from "./api";
 
 type CaptureCategory = "selfie" | "work_photo_one" | "work_photo_two";
+type VerifiedCaptureLocation = {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  altitude: number | null;
+  altitudeAccuracy: number | null;
+  heading: number | null;
+  speed: number | null;
+  locationTimestamp: string;
+  locationAgeMs: number;
+  mocked: boolean | null;
+};
 type Form = { fullName: string; phone: string; state: string; district: string; pincode: string; businessName: string; businessType: string; nature: string; city: string };
 
 export function OnboardingScreen({ session }: { session: Session }) {
@@ -22,6 +34,8 @@ export function OnboardingScreen({ session }: { session: Session }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [capture, setCapture] = useState<CaptureCategory | null>(null);
+  const [captureLocation, setCaptureLocation] = useState<VerifiedCaptureLocation | null>(null);
+  const [captureOpenedAt, setCaptureOpenedAt] = useState<string | null>(null);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const camera = useRef<CameraView>(null);
 
@@ -72,19 +86,56 @@ export function OnboardingScreen({ session }: { session: Session }) {
   }
 
   async function openCamera(category: CaptureCategory) {
-    const permission = cameraPermission?.granted ? cameraPermission : await requestCameraPermission();
-    if (!permission.granted) return setMessage("Camera permission is required for live evidence.");
-    setCapture(category);
+    setBusy(true); setMessage(null);
+    try {
+      const cameraAccess = cameraPermission?.granted ? cameraPermission : await requestCameraPermission();
+      if (!cameraAccess.granted) throw new Error("Camera permission is required for live evidence.");
+      const locationAccess = await Location.requestForegroundPermissionsAsync();
+      if (locationAccess.status !== "granted") throw new Error("Precise location is required for verified live evidence.");
+      if (!(await Location.hasServicesEnabledAsync())) throw new Error("Turn on device location services before opening the verified camera.");
+      const point = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest, mayShowUserSettingsDialog: true });
+      const accuracy = point.coords.accuracy;
+      if (accuracy == null || accuracy > 100) throw new Error("A GPS accuracy of 100 metres or better is required. Move to an open area and try again.");
+      const locationAgeMs = Math.max(0, Date.now() - point.timestamp);
+      if (locationAgeMs > 30_000) throw new Error("The GPS reading became stale. Open the camera again.");
+      setCaptureLocation({
+        latitude: point.coords.latitude, longitude: point.coords.longitude, accuracy,
+        altitude: point.coords.altitude, altitudeAccuracy: point.coords.altitudeAccuracy,
+        heading: point.coords.heading, speed: point.coords.speed,
+        locationTimestamp: new Date(point.timestamp).toISOString(), locationAgeMs,
+        mocked: typeof point.mocked === "boolean" ? point.mocked : null,
+      });
+      setCaptureOpenedAt(new Date().toISOString());
+      setCapture(category);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Verified live capture could not be prepared.");
+    } finally { setBusy(false); }
   }
 
   async function takeLivePhoto() {
-    if (!capture || !camera.current) return;
+    if (!capture || !camera.current || !captureLocation || !captureOpenedAt) return;
     setBusy(true);
     try {
+      const preCaptureLocationAgeMs = Math.max(0, Date.now() - Date.parse(captureLocation.locationTimestamp));
+      if (preCaptureLocationAgeMs > 60_000) throw new Error("The GPS reading is no longer fresh. Reopen the verified camera.");
+
       const photo = await camera.current.takePictureAsync({ base64: true, quality: 0.68 });
       if (!photo?.base64) throw new Error("The live photo could not be prepared.");
-      setState(await performOnboardingAction(session, "upload_evidence", { category: capture, captureSource: "live_camera", name: `${capture}.jpg`, dataUrl: `data:image/jpeg;base64,${photo.base64}` }));
-      setCapture(null); setMessage("Live-camera evidence saved for verification.");
+
+      const deviceCapturedAt = new Date().toISOString();
+      const locationAgeMs = Math.max(0, Date.parse(deviceCapturedAt) - Date.parse(captureLocation.locationTimestamp));
+      const captureMetadata = {
+        ...captureLocation, locationAgeMs, cameraOpenedAt: captureOpenedAt, deviceCapturedAt,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+        utcOffsetMinutes: -new Date().getTimezoneOffset(), platform: Platform.OS,
+        cameraFacing: capture === "selfie" ? "front" : "back",
+      };
+      setState(await performOnboardingAction(session, "upload_evidence", {
+        category: capture, captureSource: "live_camera", name: `${capture}.jpg`,
+        dataUrl: `data:image/jpeg;base64,${photo.base64}`, captureMetadata,
+      }));
+      setCapture(null); setCaptureLocation(null); setCaptureOpenedAt(null);
+      setMessage("GPS-bound live evidence saved for verification.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "The live photo could not be saved."); }
     finally { setBusy(false); }
   }
@@ -103,7 +154,7 @@ export function OnboardingScreen({ session }: { session: Session }) {
   }
 
   if (!state) return <SafeAreaView accessibilityLabel="Preparing your canonical identity" accessibilityRole="progressbar" style={styles.center}><ActivityIndicator color={colors.brand} size="large" /><Text accessibilityLiveRegion="polite" style={styles.muted}>Preparing your canonical identity…</Text></SafeAreaView>;
-  if (capture) return <SafeAreaView style={styles.cameraPage}><CameraView accessibilityLabel="Live camera preview" ref={camera} facing={capture === "selfie" ? "front" : "back"} style={styles.camera} /><View style={styles.cameraControls}><Pressable accessibilityLabel="Cancel live photo" accessibilityRole="button" hitSlop={8} onPress={() => setCapture(null)} style={styles.secondary}><Text style={styles.secondaryText}>Cancel</Text></Pressable><Pressable accessibilityLabel="Capture live photo" accessibilityRole="button" accessibilityState={{ busy, disabled: busy }} disabled={busy} onPress={() => void takeLivePhoto()} style={styles.primary}><Text style={styles.primaryText}>{busy ? "Saving…" : "Capture live photo"}</Text></Pressable></View></SafeAreaView>;
+  if (capture) return <SafeAreaView style={styles.cameraPage}><CameraView accessibilityLabel="Verified live camera preview" ref={camera} facing={capture === "selfie" ? "front" : "back"} style={styles.camera} />{captureLocation && <View style={styles.verificationOverlay}><Text style={styles.verificationTitle}>LIVE VERIFIED CAPTURE</Text><Text style={styles.verificationText}>{new Date().toLocaleString()}</Text><Text style={styles.verificationText}>{captureLocation.latitude.toFixed(6)}, {captureLocation.longitude.toFixed(6)}</Text><Text style={styles.verificationText}>GPS accuracy ±{Math.round(captureLocation.accuracy)} m</Text>{captureLocation.mocked === true && <Text style={styles.verificationWarning}>Mock location detected</Text>}</View>}<View style={styles.cameraControls}><Pressable accessibilityLabel="Cancel live photo" accessibilityRole="button" hitSlop={8} onPress={() => { setCapture(null); setCaptureLocation(null); setCaptureOpenedAt(null); }} style={styles.secondary}><Text style={styles.secondaryText}>Cancel</Text></Pressable><Pressable accessibilityLabel="Capture GPS-bound live photo" accessibilityRole="button" accessibilityState={{ busy, disabled: busy || !captureLocation }} disabled={busy || !captureLocation} onPress={() => void takeLivePhoto()} style={styles.primary}><Text style={styles.primaryText}>{busy ? "Saving…" : "Capture verified photo"}</Text></Pressable></View></SafeAreaView>;
 
   return <SafeAreaView style={styles.safe}><ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
     <Text style={styles.brand}>3Bigha · Business Operating System</Text>
@@ -126,4 +177,4 @@ function Field({ label, value, onChange }: { label: string; value: string; onCha
 function Choice({ active, label, onPress }: { active: boolean; label: string; onPress(): void }) { return <Pressable accessibilityLabel={label} accessibilityRole="radio" accessibilityState={{ checked: active, selected: active }} hitSlop={6} onPress={onPress} style={[styles.choice, active && styles.choiceActive]}><Text style={[styles.choiceText, active && styles.choiceTextActive]}>{label}</Text></Pressable>; }
 function Button({ busy, label, onPress, secondary = false }: { busy: boolean; label: string; onPress(): void; secondary?: boolean }) { return <Pressable accessibilityLabel={label} accessibilityRole="button" accessibilityState={{ busy, disabled: busy }} disabled={busy} onPress={onPress} style={secondary ? styles.secondary : styles.primary}><Text style={secondary ? styles.secondaryText : styles.primaryText}>{busy ? "Please wait…" : label}</Text></Pressable>; }
 
-const styles = StyleSheet.create({ safe: { flex: 1, backgroundColor: colors.canvas }, center: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.md, backgroundColor: colors.canvas }, page: { padding: spacing.lg, gap: spacing.md, maxWidth: 760, width: "100%", alignSelf: "center" }, brand: { color: colors.ink, fontWeight: "800", fontSize: 18 }, eyebrow: { color: colors.brand, fontWeight: "800", fontSize: typography.micro, letterSpacing: 1.1, marginTop: spacing.md }, title: { color: colors.ink, fontSize: 32, lineHeight: 39, fontWeight: "800" }, body: { color: colors.muted, fontSize: typography.body, lineHeight: 24 }, card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radii.lg, padding: spacing.lg, gap: spacing.sm }, sectionTitle: { color: colors.ink, fontWeight: "800", fontSize: 19, marginBottom: spacing.xs }, label: { color: colors.ink, fontWeight: "700", fontSize: typography.caption, marginTop: spacing.xs }, input: { borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, color: colors.ink, backgroundColor: colors.canvas }, row: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs }, options: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, maxHeight: 220 }, choice: { borderWidth: 1, borderColor: colors.border, borderRadius: radii.pill, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }, choiceActive: { backgroundColor: colors.brand, borderColor: colors.brand }, choiceText: { color: colors.ink, fontWeight: "700", fontSize: typography.caption }, choiceTextActive: { color: colors.onBrand }, primary: { backgroundColor: colors.brand, borderRadius: radii.md, padding: spacing.md, alignItems: "center", marginTop: spacing.xs }, primaryText: { color: colors.onBrand, fontWeight: "800" }, secondary: { backgroundColor: colors.canvas, borderColor: colors.brand, borderWidth: 1, borderRadius: radii.md, padding: spacing.md, alignItems: "center", marginTop: spacing.xs }, secondaryText: { color: colors.brand, fontWeight: "800" }, muted: { color: colors.muted, lineHeight: 20 }, status: { color: colors.brand, fontSize: 22, fontWeight: "800", textTransform: "capitalize" }, reason: { color: colors.ink }, message: { color: colors.brand, fontWeight: "700", padding: spacing.md, backgroundColor: colors.accentSoft, borderRadius: radii.md }, signout: { color: colors.muted, textAlign: "center", textDecorationLine: "underline", padding: spacing.lg }, cameraPage: { flex: 1, backgroundColor: "#000" }, camera: { flex: 1 }, cameraControls: { padding: spacing.lg, flexDirection: "row", gap: spacing.md, backgroundColor: "#000" } });
+const styles = StyleSheet.create({ safe: { flex: 1, backgroundColor: colors.canvas }, center: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.md, backgroundColor: colors.canvas }, page: { padding: spacing.lg, gap: spacing.md, maxWidth: 760, width: "100%", alignSelf: "center" }, brand: { color: colors.ink, fontWeight: "800", fontSize: 18 }, eyebrow: { color: colors.brand, fontWeight: "800", fontSize: typography.micro, letterSpacing: 1.1, marginTop: spacing.md }, title: { color: colors.ink, fontSize: 32, lineHeight: 39, fontWeight: "800" }, body: { color: colors.muted, fontSize: typography.body, lineHeight: 24 }, card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radii.lg, padding: spacing.lg, gap: spacing.sm }, sectionTitle: { color: colors.ink, fontWeight: "800", fontSize: 19, marginBottom: spacing.xs }, label: { color: colors.ink, fontWeight: "700", fontSize: typography.caption, marginTop: spacing.xs }, input: { borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, color: colors.ink, backgroundColor: colors.canvas }, row: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs }, options: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, maxHeight: 220 }, choice: { borderWidth: 1, borderColor: colors.border, borderRadius: radii.pill, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }, choiceActive: { backgroundColor: colors.brand, borderColor: colors.brand }, choiceText: { color: colors.ink, fontWeight: "700", fontSize: typography.caption }, choiceTextActive: { color: colors.onBrand }, primary: { backgroundColor: colors.brand, borderRadius: radii.md, padding: spacing.md, alignItems: "center", marginTop: spacing.xs }, primaryText: { color: colors.onBrand, fontWeight: "800" }, secondary: { backgroundColor: colors.canvas, borderColor: colors.brand, borderWidth: 1, borderRadius: radii.md, padding: spacing.md, alignItems: "center", marginTop: spacing.xs }, secondaryText: { color: colors.brand, fontWeight: "800" }, muted: { color: colors.muted, lineHeight: 20 }, status: { color: colors.brand, fontSize: 22, fontWeight: "800", textTransform: "capitalize" }, reason: { color: colors.ink }, message: { color: colors.brand, fontWeight: "700", padding: spacing.md, backgroundColor: colors.accentSoft, borderRadius: radii.md }, signout: { color: colors.muted, textAlign: "center", textDecorationLine: "underline", padding: spacing.lg }, cameraPage: { flex: 1, backgroundColor: "#000" }, camera: { flex: 1 }, verificationOverlay: { position: "absolute", left: spacing.md, right: spacing.md, top: spacing.lg, backgroundColor: "rgba(0,0,0,0.72)", borderRadius: radii.md, padding: spacing.md, gap: 3 }, verificationTitle: { color: "#fff", fontWeight: "900", letterSpacing: 0.8 }, verificationText: { color: "#fff", fontSize: typography.caption }, verificationWarning: { color: "#fff", fontWeight: "900" }, cameraControls: { padding: spacing.lg, flexDirection: "row", gap: spacing.md, backgroundColor: "#000" } });

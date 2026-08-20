@@ -56,6 +56,15 @@ export type MobileEvidenceAsset = {
   captureSource: "live_camera" | "file_upload";
   captureTimestamp: string;
   serverReceivedAt: string;
+  evidenceBindingSha256: string;
+  captureMetadata: {
+    latitude: number; longitude: number; accuracy: number;
+    altitude: number | null; altitudeAccuracy: number | null;
+    heading: number | null; speed: number | null;
+    locationTimestamp: string; locationAgeMs: number; mocked: boolean | null;
+    cameraOpenedAt: string; deviceCapturedAt: string; timezone: string;
+    utcOffsetMinutes: number; platform: string; cameraFacing: "front" | "back";
+  } | null;
   evidenceCategory: string;
 };
 
