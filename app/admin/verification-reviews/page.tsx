@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
+import RegistrationAiReviewPanel from "./RegistrationAiReviewPanel";
 import {
   buildReviewFieldRows,
   reviewStatusLabel,
@@ -1082,6 +1083,11 @@ export default async function VerificationReviewsPage({
                   ) : null}
                 </article>
               ) : null}
+
+              <RegistrationAiReviewPanel
+                userId={selected.user_id}
+                caseId={selected.id}
+              />
 
               <article
                 style={{
