@@ -19,6 +19,20 @@ type VerificationRpcResult = {
   decision_source?: string;
 };
 
+type TrustIntelligenceResult = {
+  policyVersion?: string;
+  overallTrust?: number;
+  identityTrust?: number;
+  locationTrust?: number;
+  evidenceTrust?: number;
+  captureIntegrityTrust?: number;
+  businessActivityTrust?: number;
+  riskLevel?: string;
+  recommendedAction?: string;
+  explanations?: unknown[];
+  evaluatedAt?: string;
+};
+
 function errorResponse(
   message: string,
   status: number,
@@ -160,6 +174,30 @@ export async function POST() {
     }
 
     const result = normalizeResult(data);
+
+    const { data: trustData, error: trustError } =
+      await supabase.rpc(
+        "evaluate_registration_trust_intelligence"
+      );
+
+    if (trustError) {
+      console.error(
+        "REGISTRATION_TRUST_INTELLIGENCE_RPC_FAILED",
+        {
+          userId: user.id,
+          code: trustError.code,
+          message: trustError.message,
+          details: trustError.details,
+          hint: trustError.hint,
+        }
+      );
+    }
+
+    const trustIntelligence =
+      trustData && typeof trustData === "object"
+        ? trustData as TrustIntelligenceResult
+        : null;
+
     const decision = String(
       result.status || ""
     )
@@ -231,6 +269,10 @@ export async function POST() {
           result.decision_source ||
             "automated_registration_verification_v1"
         ),
+
+      trustIntelligence,
+      trustIntelligenceAvailable:
+        trustIntelligence !== null,
     };
 
     return NextResponse.json(
