@@ -37,6 +37,7 @@ type MarketplaceItem = {
   href: string;
   badge: string;
   image?: string | null;
+  ownerUserId?: string | null;
 };
 
 function moneyINR(value: any) {
@@ -277,7 +278,7 @@ export default function HomePage() {
 
         const materialsReq = supabase
           .from("material_listings")
-          .select("id,title,local_name,description,packaging_unit,attributes,created_at,is_active,is_public,status,published_at")
+          .select("id,title,local_name,description,packaging_unit,attributes,created_at,is_active,is_public,status,published_at,vendor_user_id")
           .eq("is_active", true)
           .or("is_public.eq.true,published_at.not.is.null,status.ilike.published,status.ilike.active")
           .order("created_at", { ascending: false })
@@ -285,7 +286,7 @@ export default function HomePage() {
 
         const servicesReq = supabase
           .from("v_service_listings")
-          .select("provider_service_id,provider_name,custom_category,custom_service,service_description,city,district,min_price,max_price,service_is_active,provider_service_created_at")
+          .select("provider_service_id,provider_id,provider_name,custom_category,custom_service,service_description,city,district,min_price,max_price,service_is_active,provider_service_created_at")
           .eq("service_is_active", true)
           .order("provider_service_created_at", { ascending: false })
           .limit(2);
@@ -306,6 +307,39 @@ export default function HomePage() {
 
         if (!alive) return;
 
+        const rentalOwnerIds = ((rentalsRes.data || []) as any[])
+          .map((r) => String(r.id || ""))
+          .filter(Boolean);
+
+        let rentalOwnerMap = new Map<string, string | null>();
+
+        if (rentalOwnerIds.length > 0) {
+          try {
+            const rentalOwnerRes = await supabase
+              .from("rental_listings")
+              .select("id,vendor_user_id")
+              .in("id", rentalOwnerIds);
+
+            if (
+              !rentalOwnerRes.error &&
+              Array.isArray(rentalOwnerRes.data)
+            ) {
+              rentalOwnerMap = new Map(
+                rentalOwnerRes.data.map((row: any) => [
+                  String(row.id),
+                  row.vendor_user_id == null
+                    ? null
+                    : String(row.vendor_user_id),
+                ])
+              );
+            }
+          } catch {
+            rentalOwnerMap = new Map();
+          }
+        }
+
+        if (!alive) return;
+
         const propertyItems: MarketplaceItem[] = ((propertyRes?.data || []) as any[]).map((p) => ({
           id: String(p.id),
           module: "Property",
@@ -316,6 +350,10 @@ export default function HomePage() {
           href: `/property/${encodeURIComponent(String(p.slug || p.id))}`,
           badge: "Property",
           image: firstPhotoUrl(p.photos),
+          ownerUserId:
+            p.owner_id ??
+            p.owner_user_id ??
+            null,
         }));
 
         const materialItems: MarketplaceItem[] = ((materialsRes.data || []) as any[]).map((m) => {
@@ -330,6 +368,7 @@ export default function HomePage() {
             href: `/materials/${encodeURIComponent(String(m.id))}`,
             badge: "Material",
             image: null,
+            ownerUserId: m.vendor_user_id ?? null,
           };
         });
 
@@ -343,6 +382,7 @@ export default function HomePage() {
           href: "/services",
           badge: "Service",
           image: null,
+          ownerUserId: s.provider_id ?? null,
         }));
 
         const rentalItems: MarketplaceItem[] = ((rentalsRes.data || []) as any[]).map((r) => ({
@@ -355,6 +395,8 @@ export default function HomePage() {
           href: `/rentals/${encodeURIComponent(String(r.id))}`,
           badge: "Rental",
           image: firstPhotoUrl(r.photos),
+          ownerUserId:
+            rentalOwnerMap.get(String(r.id)) ?? null,
         }));
 
         const live = [...propertyItems, ...materialItems, ...serviceItems, ...rentalItems].slice(0, 5);

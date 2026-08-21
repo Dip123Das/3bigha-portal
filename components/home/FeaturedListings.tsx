@@ -1,3 +1,11 @@
+"use client";
+
+import {
+  MarketplaceIdentityHeader,
+  useMarketplaceTrust,
+} from "@/components/trust";
+import { getMarketplaceIdentityFromMap } from "@/lib/trust";
+
 type DiscoveryMemoryItem = {
   id: string;
   module: "property" | "materials" | "services" | "rentals";
@@ -18,6 +26,7 @@ type MarketplaceItem = {
   href: string;
   badge: string;
   image?: string | null;
+  ownerUserId?: string | null;
 };
 
 type FeaturedListingsProps = {
@@ -53,6 +62,13 @@ export default function FeaturedListings({
   recentDiscovery,
   mobileExpanded,
 }: FeaturedListingsProps) {
+  const ownerUserIds = featuredItems.map(
+    (item) => item.ownerUserId
+  );
+
+  const { trustByUserId } =
+    useMarketplaceTrust(ownerUserIds);
+
   return (
     <section className="contentSection">
       <div className="sectionHead">
@@ -88,7 +104,40 @@ export default function FeaturedListings({
           mobileExpanded ? "isMobileExpanded" : ""
         }`}
       >
-        {featuredItems.map((item) => (
+        {featuredItems.map((item) => {
+          const module =
+            item.module === "Property"
+              ? "property"
+              : item.module === "Material"
+              ? "materials"
+              : item.module === "Service"
+              ? "services"
+              : "rentals";
+
+          const marketplaceIdentity =
+            item.ownerUserId
+              ? getMarketplaceIdentityFromMap(
+                  {
+                    module,
+                    ownerUserId: item.ownerUserId,
+                    displayName:
+                      module === "property"
+                        ? "Property owner"
+                        : module === "materials"
+                        ? "Material vendor"
+                        : module === "services"
+                        ? "Service provider"
+                        : "Rental provider",
+                    subject:
+                      module === "services"
+                        ? "individual_professional"
+                        : "business",
+                  },
+                  trustByUserId
+                )
+              : null;
+
+          return (
           <a
             href={item.href}
             className="listingCard"
@@ -106,12 +155,22 @@ export default function FeaturedListings({
 
             <div className="listingBody">
               <h3>{item.title}</h3>
+
+              {marketplaceIdentity ? (
+                <MarketplaceIdentityHeader
+                  identity={marketplaceIdentity}
+                  compact
+                  showName={false}
+                />
+              ) : null}
+
               <p>📍 {item.subtitle}</p>
               <strong>{item.price}</strong>
               <small>{item.meta}</small>
             </div>
           </a>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

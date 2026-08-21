@@ -13,6 +13,11 @@ import { Card, CardBody } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionSkeleton, CardSkeleton } from "@/components/ui/Skeleton";
 import { OperationalEmptyState } from "@/components/ui/OperationalEmptyState";
+import {
+  MarketplaceIdentityHeader,
+  useMarketplaceTrust,
+} from "@/components/trust";
+import { getMarketplaceIdentityFromMap } from "@/lib/trust";
 import { parseAiSearchIntent } from "@/lib/search/ai-search-intent";
 import { getAiSearchContent } from "@/lib/search/ai-search-content";
 import { getSearchKeywordClusters } from "@/lib/search/search-keyword-clusters";
@@ -150,6 +155,8 @@ type ResultRow = {
 
   _aiScore?: number;
   _aiReason?: string;
+
+  _ownerUserId?: string | null;
 };
 
 type AiRecommendation = {
@@ -796,6 +803,15 @@ function SearchPageInner() {
   const [aiBusy, setAiBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [rows, setRows] = useState<ResultRow[]>([]);
+
+  const searchOwnerUserIds = useMemo(
+    () => rows.map((row) => row._ownerUserId),
+    [rows]
+  );
+
+  const { trustByUserId } =
+    useMarketplaceTrust(searchOwnerUserIds);
+
   const [recentDiscovery, setRecentDiscovery] = useState<DiscoveryMemoryItem[]>([]);
   const [recentProcurementSearches, setRecentProcurementSearches] = useState<
     ProcurementSearchMemory[]
@@ -1112,11 +1128,19 @@ if (want.includes("property")) {
     ])
     .join(",");
 
-  const r = await supabase
-    .from("v_property_listings_with_inventory")
-    .select("id,title,locality,city,district,state,price,status,listing_intent")
-    .or(or)
-    .limit(40);
+  const r = await trySelectAny(
+    supabase,
+    "v_property_listings_with_inventory",
+    [
+      "id,title,locality,city,district,state,price,status,listing_intent,owner_id,owner_user_id",
+      "id,title,locality,city,district,state,price,status,listing_intent,owner_id",
+      "id,title,locality,city,district,state,price,status,listing_intent",
+    ],
+    {
+      or,
+      limit: 40,
+    }
+  );
 
   if (r.error) throw r.error;
 
@@ -1139,6 +1163,10 @@ if (want.includes("property")) {
       _intent: intent || null,
       _lat: null,
       _lng: null,
+      _ownerUserId:
+        safeText(x.owner_id) ||
+        safeText(x.owner_user_id) ||
+        null,
     });
   }
 }
@@ -1147,7 +1175,7 @@ if (want.includes("property")) {
         if (want.includes("materials")) {
           const r = await supabase
             .from("material_listings")
-            .select("id,title,local_name,description,attributes,packaging_unit,is_public,is_active")
+            .select("id,title,local_name,description,attributes,packaging_unit,is_public,is_active,vendor_user_id")
             .eq("is_public", true)
             .eq("is_active", true)
             .or([`title.ilike.%${term}%`, `local_name.ilike.%${term}%`, `description.ilike.%${term}%`].join(","))
@@ -1171,6 +1199,7 @@ if (want.includes("property")) {
               subtitle: brand || null,
               meta: meta || null,
               href: `/materials/${encodeURIComponent(String(x.id))}`,
+              _ownerUserId: safeText(x.vendor_user_id) || null,
             });
           }
         }
@@ -1194,6 +1223,7 @@ if (want.includes("services")) {
     .select(
       [
         "provider_service_id",
+        "provider_id",
         "provider_name",
         "custom_category",
         "custom_subcategory",
@@ -1240,6 +1270,7 @@ if (want.includes("services")) {
       subtitle: area || null,
       meta: meta || null,
       href: `/services/${encodeURIComponent(id)}`,
+      _ownerUserId: safeText(x.provider_id) || null,
     });
   }
 }
@@ -1254,11 +1285,18 @@ if (want.includes("rentals")) {
     `state.ilike.%${term}%`,
   ].join(",");
 
-  const r = await supabase
-    .from("rental_listings_public")
-    .select("id,title,description,city,district,state")
-    .or(or)
-    .limit(30);
+  const r = await trySelectAny(
+    supabase,
+    "rental_listings_public",
+    [
+      "id,title,description,city,district,state,vendor_user_id",
+      "id,title,description,city,district,state",
+    ],
+    {
+      or,
+      limit: 30,
+    }
+  );
 
   if (r.error) throw r.error;
 
@@ -1275,6 +1313,7 @@ if (want.includes("rentals")) {
       href: `/rentals/${encodeURIComponent(String(x.id))}`,
       _lat: null,
       _lng: null,
+      _ownerUserId: safeText(x.vendor_user_id) || null,
     });
   }
 }
@@ -3342,6 +3381,29 @@ if (want.includes("rentals")) {
                   </div>
 
                   {groupRows.map((r) => {
+              const marketplaceIdentity =
+                r.module !== "blog" && r._ownerUserId
+                  ? getMarketplaceIdentityFromMap(
+                      {
+                        module: r.module,
+                        ownerUserId: r._ownerUserId,
+                        displayName:
+                          r.module === "services"
+                            ? "Service provider"
+                            : r.module === "property"
+                            ? "Property owner"
+                            : r.module === "materials"
+                            ? "Material vendor"
+                            : "Rental provider",
+                        subject:
+                          r.module === "services"
+                            ? "individual_professional"
+                            : "business",
+                      },
+                      trustByUserId
+                    )
+                  : null;
+
               const workflowCards = getSearchWorkflowCards({
                 query: qFromUrl,
                 module: r.module,
@@ -3403,6 +3465,17 @@ if (want.includes("rentals")) {
                         <div style={{ marginTop: 4, fontWeight: 800, fontSize: 16.5, color: "#020617", lineHeight: 1.32 }}>
                           {r.title}
                         </div>
+
+                        {marketplaceIdentity ? (
+                          <div style={{ marginTop: 5 }}>
+                            <MarketplaceIdentityHeader
+                              identity={marketplaceIdentity}
+                              compact
+                              showName={false}
+                            />
+                          </div>
+                        ) : null}
+
                         {r.subtitle ? (
                           <div
                             style={{
