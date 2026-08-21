@@ -154,6 +154,9 @@ export default async function VerificationOperationsPage() {
         </div>
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <Link href="/admin/verification-workbench">
+            Reviewer workbench
+          </Link>
           <Link href="/admin/verification-notifications">
             Registration notifications
           </Link>
