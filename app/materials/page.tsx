@@ -16,6 +16,11 @@ import { FilterBar, type FilterBarItem } from "@/components/ui/FilterBar";
 import { Grid } from "@/components/ui/Grid";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import {
+  MarketplaceIdentityHeader,
+  useMarketplaceTrust,
+} from "@/components/trust";
+import { getMarketplaceIdentityFromMap } from "@/lib/trust";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
 import JsonLd from "@/components/seo/JsonLd";
@@ -248,6 +253,16 @@ export default function MaterialsPage() {
   const [listings, setListings] = useState<ListingRow[]>([]);
   const [pgMap, setPgMap] = useState<Map<string, PgRow>>(new Map());
   const [allTypes, setAllTypes] = useState<TypeRow[]>([]);
+
+  const vendorUserIds = useMemo(
+    () => listings.map((listing) => listing.vendor_user_id),
+    [listings]
+  );
+
+  const { trustByUserId } = useMarketplaceTrust(
+    vendorUserIds,
+    { subject: "business" }
+  );
 
   const [typeSlug, setTypeSlug] = useState<string>("all");
 
@@ -662,12 +677,31 @@ export default function MaterialsPage() {
                     const priceText =
                       price != null ? `${moneyINR(price)}${l.packaging_unit ? ` / ${l.packaging_unit}` : ""}` : "";
 
+                    const marketplaceIdentity =
+                      getMarketplaceIdentityFromMap(
+                        {
+                          module: "materials",
+                          ownerUserId: l.vendor_user_id,
+                          displayName: "Material vendor",
+                          subject: "business",
+                        },
+                        trustByUserId
+                      );
+
                     return (
                       <Card key={l.id}>
                         <CardBody>
                           <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
                             <h3 style={{ margin: 0, lineHeight: 1.2 }}>{title}</h3>
                             <Badge>{badge}</Badge>
+                          </div>
+
+                          <div style={{ marginTop: 8 }}>
+                            <MarketplaceIdentityHeader
+                              identity={marketplaceIdentity}
+                              compact
+                              showName={false}
+                            />
                           </div>
 
                           <p style={{ margin: "10px 0 0", color: "#5b6472" }}>{desc}</p>

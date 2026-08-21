@@ -18,3 +18,8 @@ export {
   type TrustByUserId,
   type UseMarketplaceTrustOptions,
 } from "./useMarketplaceTrust";
+
+export {
+  default as MarketplaceIdentityHeader,
+  type MarketplaceIdentityHeaderProps,
+} from "./MarketplaceIdentityHeader";
