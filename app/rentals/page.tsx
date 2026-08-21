@@ -14,6 +14,11 @@ import { FilterBar, type FilterBarItem } from "@/components/ui/FilterBar";
 import { Grid } from "@/components/ui/Grid";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import {
+  MarketplaceIdentityHeader,
+  useMarketplaceTrust,
+} from "@/components/trust";
+import { getMarketplaceIdentityFromMap } from "@/lib/trust";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
 import JsonLd from "@/components/seo/JsonLd";
@@ -291,6 +296,16 @@ export default function RentalsPublicPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
+
+  const vendorUserIds = useMemo(
+    () => rows.map((row) => row.vendor_user_id),
+    [rows]
+  );
+
+  const { trustByUserId } = useMarketplaceTrust(
+    vendorUserIds,
+    { subject: "business" }
+  );
 
   const [taxLoading, setTaxLoading] = useState(true);
   const [taxErr, setTaxErr] = useState<string | null>(null);
@@ -817,6 +832,17 @@ export default function RentalsPublicPage() {
                   const hasDeposit = r.security_deposit != null && Number(r.security_deposit) > 0;
                   const isHotRentalLead = hasRate && Boolean(r.city || r.locality);
 
+                  const marketplaceIdentity =
+                    getMarketplaceIdentityFromMap(
+                      {
+                        module: "rentals",
+                        ownerUserId: r.vendor_user_id,
+                        displayName: "Rental provider",
+                        subject: "business",
+                      },
+                      trustByUserId
+                    );
+
                   return (
                     <Card key={r.id}>
                       <CardBody>
@@ -839,6 +865,14 @@ export default function RentalsPublicPage() {
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
                           <h3 style={{ margin: 0, lineHeight: 1.2 }}>{title}</h3>
                           <Badge>{String(r.status ?? "published").toLowerCase()}</Badge>
+                        </div>
+
+                        <div style={{ marginTop: 10 }}>
+                          <MarketplaceIdentityHeader
+                            identity={marketplaceIdentity}
+                            compact
+                            showName={false}
+                          />
                         </div>
 
                         <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
