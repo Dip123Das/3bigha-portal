@@ -12,3 +12,9 @@ export {
   default as TrustSummaryCard,
   type TrustSummaryCardProps,
 } from "./TrustSummaryCard";
+
+export {
+  useMarketplaceTrust,
+  type TrustByUserId,
+  type UseMarketplaceTrustOptions,
+} from "./useMarketplaceTrust";

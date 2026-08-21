@@ -7,6 +7,11 @@ export {
   type LoadCanonicalTrustOptions,
 } from "./loadCanonicalTrust";
 
+export {
+  loadCanonicalTrustBulk,
+  type LoadCanonicalTrustBulkOptions,
+} from "./loadCanonicalTrustBulk";
+
 export type {
   CanonicalTrustCertificate,
   CanonicalTrustInput,
