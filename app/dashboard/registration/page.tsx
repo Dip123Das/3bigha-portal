@@ -943,6 +943,58 @@ export default function RegistrationCentrePage() {
         </div>
       </section>
 
+      {["auto_verified", "admin_verified"].includes(status) ? (
+        <section
+          style={{
+            marginTop: 18,
+            padding: 18,
+            border: "1px solid #bbf7d0",
+            borderRadius: 16,
+            background: "#f0fdf4",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 14,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <h2 style={{ margin: 0 }}>
+                Verification certificate
+              </h2>
+              <p
+                style={{
+                  margin: "6px 0 0",
+                  color: "#166534",
+                }}
+              >
+                Your verified registration is eligible for
+                a permanent 3Bigha Verification ID and a
+                printable certificate.
+              </p>
+            </div>
+
+            <Link
+              href="/dashboard/registration/certificate"
+              style={{
+                padding: "10px 14px",
+                borderRadius: 10,
+                background: "#166534",
+                color: "white",
+                textDecoration: "none",
+                fontWeight: 900,
+              }}
+            >
+              Open certificate
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
       <section
         style={{
           marginTop: 18,
