@@ -5,6 +5,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import { resolveCanonicalTrust } from "@/lib/trust";
+import {
+  RegistrationVerificationBadge,
+  TrustSummaryCard,
+  TrustStatusChip,
+} from "@/components/trust";
 
 type ProfileRow = {
   full_name?: string | null;
@@ -427,6 +433,15 @@ export default function RegistrationCentrePage() {
     profile?.admin_review_reason
   );
 
+  const canonicalTrust = resolveCanonicalTrust({
+    userId: "current-member",
+    subject: "business",
+    profile: profile as Record<string, unknown> | null,
+    businessProfile:
+      businessEvidence as Record<string, unknown> | null,
+    certificate: null,
+  });
+
   if (loading) {
     return (
       <main style={{ padding: 24 }}>
@@ -547,13 +562,24 @@ export default function RegistrationCentrePage() {
             >
               Current status
             </div>
-            <h2
+            <div
               style={{
                 margin: "6px 0",
+                display: "flex",
+                gap: 8,
+                flexWrap: "wrap",
+                alignItems: "center",
               }}
             >
-              {statusCopy.title}
-            </h2>
+              <h2 style={{ margin: 0 }}>
+                {statusCopy.title}
+              </h2>
+              <TrustStatusChip trust={canonicalTrust} />
+              <RegistrationVerificationBadge
+                trust={canonicalTrust}
+                compact
+              />
+            </div>
             <p
               style={{
                 margin: 0,
@@ -869,6 +895,14 @@ export default function RegistrationCentrePage() {
           })}
         </div>
       </section>
+
+      <div style={{ marginTop: 18 }}>
+        <TrustSummaryCard
+          trust={canonicalTrust}
+          title="Canonical trust summary"
+          description="This summary uses the shared trust resolver. Subscription level, location verification, profile completion or an AI result alone cannot create the verified badge."
+        />
+      </div>
 
       <section
         style={{
