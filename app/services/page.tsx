@@ -14,6 +14,11 @@ import { FilterBar, FilterBarItem } from "@/components/ui/FilterBar";
 import { Grid } from "@/components/ui/Grid";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import {
+  MarketplaceIdentityHeader,
+  useMarketplaceTrust,
+} from "@/components/trust";
+import { getMarketplaceIdentityFromMap } from "@/lib/trust";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
 import JsonLd from "@/components/seo/JsonLd";
@@ -283,6 +288,16 @@ export default function ServicesPage() {
   const [rows, setRows] = useState<ServiceRow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadErr, setLoadErr] = useState<string | null>(null);
+
+  const providerIds = useMemo(
+    () => rows.map((row) => row.provider_id),
+    [rows]
+  );
+
+  const { trustByUserId } = useMarketplaceTrust(
+    providerIds,
+    { subject: "individual_professional" }
+  );
 
   useEffect(() => {
     safeClearExpiredSupabaseSessions();
@@ -658,12 +673,36 @@ export default function ServicesPage() {
                           }`
                         : "";
 
+                    const marketplaceIdentity =
+                      getMarketplaceIdentityFromMap(
+                        {
+                          module: "services",
+                          ownerUserId: r.provider_id,
+                          displayName:
+                            r.provider_name || "Service provider",
+                          profileHref: r.provider_slug
+                            ? `/services/providers/${encodeURIComponent(
+                                r.provider_slug
+                              )}`
+                            : null,
+                          subject: "individual_professional",
+                        },
+                        trustByUserId
+                      );
+
                     return (
                       <Card key={r.provider_service_id}>
                         <CardBody>
                           <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
                             <h3 style={{ margin: 0, lineHeight: 1.2 }}>{name}</h3>
                             <Badge>{badge}</Badge>
+                          </div>
+
+                          <div style={{ marginTop: 10 }}>
+                            <MarketplaceIdentityHeader
+                              identity={marketplaceIdentity}
+                              compact
+                            />
                           </div>
 
                           <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
