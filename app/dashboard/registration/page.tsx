@@ -34,6 +34,14 @@ type EventRow = {
   created_at?: string | null;
 };
 
+type BusinessEvidenceRow = {
+  selfie_capture_status?: string | null;
+  workplace_evidence_status?: string | null;
+  selfie_media_json?: unknown;
+  workplace_media_json?: unknown;
+  automated_verification_json?: unknown;
+};
+
 function clean(value: unknown) {
   return String(value || "").trim();
 }
@@ -57,6 +65,98 @@ function displayDate(value: unknown) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
+}
+
+function mediaCount(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.length;
+  }
+
+  if (value && typeof value === "object") {
+    return Object.keys(value as Record<string, unknown>).length
+      ? 1
+      : 0;
+  }
+
+  return 0;
+}
+
+function evidenceTone(status: string) {
+  if (["verified", "captured", "submitted", "not_required"].includes(status)) {
+    return {
+      border: "#bbf7d0",
+      background: "#f0fdf4",
+      color: "#166534",
+    };
+  }
+
+  if (["correction_required", "missing"].includes(status)) {
+    return {
+      border: "#fde68a",
+      background: "#fffbeb",
+      color: "#92400e",
+    };
+  }
+
+  return {
+    border: "#cbd5e1",
+    background: "#f8fafc",
+    color: "#475569",
+  };
+}
+
+function publicEventTitle(event: EventRow) {
+  const type = clean(event.event_type);
+
+  if (type.includes("correction")) {
+    return "Correction requested";
+  }
+
+  if (type.includes("admin") && type.includes("verified")) {
+    return "Registration verified by administrator";
+  }
+
+  if (type.includes("auto") && type.includes("verified")) {
+    return "Registration verified";
+  }
+
+  if (type.includes("review")) {
+    return "Registration moved to human review";
+  }
+
+  if (type.includes("evidence")) {
+    return "Registration evidence updated";
+  }
+
+  if (type.includes("restricted")) {
+    return "Registration access restricted";
+  }
+
+  return titleCase(event.next_status || event.event_type || "Registration updated");
+}
+
+function publicEventDetail(event: EventRow) {
+  const next = clean(event.next_status);
+
+  switch (next) {
+    case "draft":
+      return "Your registration draft was saved.";
+    case "evidence_incomplete":
+      return "More registration evidence is required.";
+    case "automated_verification_pending":
+      return "Your submitted evidence entered verification.";
+    case "admin_review_required":
+      return "A human administrator will review your registration.";
+    case "correction_required":
+      return "A correction is required before verification can continue.";
+    case "auto_verified":
+    case "admin_verified":
+      return "Your registration was verified successfully.";
+    case "restricted":
+      return "Your registration requires administrator attention.";
+    default:
+      return "Your registration status was updated.";
+  }
 }
 
 function resolveProgress(status: string) {
@@ -171,6 +271,8 @@ export default function RegistrationCentrePage() {
     useState<CaseRow | null>(null);
   const [events, setEvents] =
     useState<EventRow[]>([]);
+  const [businessEvidence, setBusinessEvidence] =
+    useState<BusinessEvidenceRow | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -196,8 +298,12 @@ export default function RegistrationCentrePage() {
           return;
         }
 
-        const [profileRes, caseRes, eventsRes] =
-          await Promise.all([
+        const [
+          profileRes,
+          caseRes,
+          eventsRes,
+          evidenceRes,
+        ] = await Promise.all([
             supabase
               .from("profiles")
               .select(
@@ -239,6 +345,19 @@ export default function RegistrationCentrePage() {
                 ascending: false,
               })
               .limit(50),
+            supabase
+              .from("business_profiles")
+              .select(
+                [
+                  "selfie_capture_status",
+                  "workplace_evidence_status",
+                  "selfie_media_json",
+                  "workplace_media_json",
+                  "automated_verification_json",
+                ].join(",")
+              )
+              .eq("user_id", user.id)
+              .maybeSingle(),
           ]);
 
         if (profileRes.error) {
@@ -253,6 +372,10 @@ export default function RegistrationCentrePage() {
           throw eventsRes.error;
         }
 
+        if (evidenceRes.error) {
+          throw evidenceRes.error;
+        }
+
         if (!active) {
           return;
         }
@@ -265,6 +388,9 @@ export default function RegistrationCentrePage() {
         );
         setEvents(
           (eventsRes.data || []) as EventRow[]
+        );
+        setBusinessEvidence(
+          (evidenceRes.data || null) as BusinessEvidenceRow | null
         );
       } catch (cause) {
         if (!active) {
@@ -577,15 +703,172 @@ export default function RegistrationCentrePage() {
           </h2>
           <p
             style={{
-              marginBottom: 0,
+              marginBottom: 12,
               color: "#78350f",
             }}
           >
             {correctionReason ||
               "Please review your submitted information and update the requested evidence."}
           </p>
+          <Link
+            href="/onboarding/business?returnTo=%2Fdashboard%2Fregistration&registration=1"
+            style={{
+              display: "inline-block",
+              padding: "9px 12px",
+              borderRadius: 9,
+              background: "#92400e",
+              color: "white",
+              textDecoration: "none",
+              fontWeight: 850,
+            }}
+          >
+            Update requested information
+          </Link>
         </section>
       ) : null}
+
+      <section
+        style={{
+          marginTop: 18,
+          padding: 18,
+          border: "1px solid #e2e8f0",
+          borderRadius: 16,
+          background: "white",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 14,
+            flexWrap: "wrap",
+            alignItems: "flex-start",
+          }}
+        >
+          <div>
+            <h2 style={{ margin: 0 }}>
+              Submitted evidence
+            </h2>
+            <p
+              style={{
+                margin: "6px 0 0",
+                color: "#64748b",
+              }}
+            >
+              Applicant-safe evidence summary. Private file paths and
+              internal review data are not displayed.
+            </p>
+          </div>
+
+          <Link
+            href="/onboarding/business?returnTo=%2Fdashboard%2Fregistration&registration=1"
+          >
+            Review submitted information
+          </Link>
+        </div>
+
+        <div
+          style={{
+            marginTop: 14,
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: 12,
+          }}
+        >
+          {[
+            {
+              label: "Live selfie",
+              status: clean(
+                businessEvidence?.selfie_capture_status || "missing"
+              ),
+              count: mediaCount(
+                businessEvidence?.selfie_media_json
+              ),
+              detail:
+                "Identity-presence evidence captured during registration.",
+            },
+            {
+              label: "Workplace evidence",
+              status: clean(
+                businessEvidence?.workplace_evidence_status || "missing"
+              ),
+              count: mediaCount(
+                businessEvidence?.workplace_media_json
+              ),
+              detail:
+                "Photos or media showing the declared business workplace.",
+            },
+            {
+              label: "Automated evidence check",
+              status:
+                mediaCount(
+                  businessEvidence?.automated_verification_json
+                ) > 0
+                  ? "completed"
+                  : "pending",
+              count: mediaCount(
+                businessEvidence?.automated_verification_json
+              ),
+              detail:
+                "Structured verification result recorded for the submitted evidence.",
+            },
+          ].map((item) => {
+            const tone = evidenceTone(item.status);
+
+            return (
+              <article
+                key={item.label}
+                style={{
+                  padding: 14,
+                  border: `1px solid ${tone.border}`,
+                  borderRadius: 12,
+                  background: tone.background,
+                }}
+              >
+                <div
+                  style={{
+                    color: "#64748b",
+                    fontSize: 12,
+                    fontWeight: 850,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {item.label}
+                </div>
+                <div
+                  style={{
+                    marginTop: 5,
+                    color: tone.color,
+                    fontSize: 18,
+                    fontWeight: 950,
+                  }}
+                >
+                  {titleCase(item.status)}
+                </div>
+                <div
+                  style={{
+                    marginTop: 4,
+                    color: "#475569",
+                    fontSize: 13,
+                  }}
+                >
+                  {item.detail}
+                </div>
+                <div
+                  style={{
+                    marginTop: 8,
+                    color: "#64748b",
+                    fontSize: 12,
+                  }}
+                >
+                  Recorded item count: {item.count}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
 
       <section
         style={{
@@ -617,10 +900,7 @@ export default function RegistrationCentrePage() {
               }}
             >
               <strong>
-                {titleCase(
-                  event.event_type ||
-                    event.next_status
-                )}
+                {publicEventTitle(event)}
               </strong>
               <div
                 style={{
@@ -629,13 +909,7 @@ export default function RegistrationCentrePage() {
                   fontSize: 13,
                 }}
               >
-                {titleCase(
-                  event.previous_status || "start"
-                )}{" "}
-                →{" "}
-                {titleCase(
-                  event.next_status || status
-                )}
+                {publicEventDetail(event)}
               </div>
               <div
                 style={{
