@@ -11,6 +11,11 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Grid } from "@/components/ui/Grid";
 import { Badge } from "@/components/ui/Badge";
+import {
+  MarketplaceIdentityHeader,
+  useMarketplaceTrust,
+} from "@/components/trust";
+import { getMarketplaceIdentityFromMap } from "@/lib/trust";
 
 import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
 import JsonLd from "@/components/seo/JsonLd";
@@ -343,6 +348,21 @@ export default function PropertyPublicListPage() {
   const [err, setErr] = useState<string | null>(null);
 
   const [listings, setListings] = useState<ListingRow[]>([]);
+
+  const propertyOwnerIds = useMemo(
+    () =>
+      listings.map(
+        (listing) =>
+          listing.owner_id ??
+          listing.owner_user_id ??
+          null
+      ),
+    [listings]
+  );
+
+  const { trustByUserId } =
+    useMarketplaceTrust(propertyOwnerIds);
+
   const [discoveryMemory, setDiscoveryMemory] = useState<DiscoveryMemoryItem[]>([]);
   const [typeMap, setTypeMap] = useState<TypeMap>({});
   const [subtypeMap, setSubtypeMap] = useState<SubtypeMap>({});
@@ -980,6 +1000,16 @@ export default function PropertyPublicListPage() {
                 const vendorUserId =
                   p.owner_id ?? p.owner_user_id ?? null;
 
+                const marketplaceIdentity =
+                  getMarketplaceIdentityFromMap(
+                    {
+                      module: "property",
+                      ownerUserId: vendorUserId,
+                      displayName: "Property owner",
+                    },
+                    trustByUserId
+                  );
+
                 const investmentIntel = buildPropertyInvestmentIntel({
                   price: finalPrice,
                   propertyType: typeName,
@@ -1004,7 +1034,14 @@ export default function PropertyPublicListPage() {
                       </div>
 
                       <div style={{ fontWeight: 900, marginBottom: 6 }}>{title}</div>
-                      <div style={{ opacity: 0.8 }}>
+
+                      <MarketplaceIdentityHeader
+                        identity={marketplaceIdentity}
+                        compact
+                        showName={false}
+                      />
+
+                      <div style={{ opacity: 0.8, marginTop: 6 }}>
                         {place} • {priceText}
                       </div>
 
