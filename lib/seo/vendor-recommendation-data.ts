@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { VendorRecommendationInput } from "@/lib/seo/vendor-recommendation-engine";
+import { loadCanonicalTrustBulk } from "@/lib/trust";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -124,20 +125,33 @@ export async function getVendorRecommendationCandidates(
 
   if (error || !data) return [];
 
-  return data
-    .filter((row: any) => {
-      const vendorId = row.user_id || row.id;
-      return vendorId && vendorId !== currentVendorId;
-    })
+  const candidateRows = data.filter((row: any) => {
+    const vendorId = row.user_id || row.id;
+    return vendorId && vendorId !== currentVendorId;
+  });
+
+  const canonicalTrustByUserId =
+    await loadCanonicalTrustBulk(
+      supabase,
+      candidateRows
+        .map((row: any) => String(row.user_id || ""))
+        .filter(Boolean),
+      { subject: "business" }
+    );
+
+  return candidateRows
+    .filter((row: any) => Boolean(row.user_id || row.id))
     .map((row: any) => {
       const vendorId = row.user_id || row.id;
       const boostExpiresAt = row.boost_expires_at
         ? new Date(row.boost_expires_at).getTime()
         : 0;
 
+      const canonicalTrust =
+        canonicalTrustByUserId.get(String(row.user_id || ""));
+
       const isVerified =
-        row.approval_status === "approved" ||
-        row.subscription_status === "active";
+        canonicalTrust?.mayDisplayVerifiedBadge === true;
 
       const expertise = inferExpertise(row);
 

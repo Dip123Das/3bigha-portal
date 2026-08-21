@@ -17,7 +17,7 @@ const fallbackVendors: VendorRecommendationInput[] = [
     leaderboardScore: 82,
     authorityScore: 80,
     conversionRate: 24,
-    isVerified: true,
+    isVerified: false,
     boostActive: false,
   },
   {
@@ -35,7 +35,7 @@ const fallbackVendors: VendorRecommendationInput[] = [
     leaderboardScore: 79,
     authorityScore: 77,
     conversionRate: 21,
-    isVerified: true,
+    isVerified: false,
     boostActive: true,
   },
   {
@@ -53,7 +53,7 @@ const fallbackVendors: VendorRecommendationInput[] = [
     leaderboardScore: 84,
     authorityScore: 83,
     conversionRate: 26,
-    isVerified: true,
+    isVerified: false,
     boostActive: false,
   },
 ];

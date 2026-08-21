@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
 
 import {
   buildMarketplaceDiscovery,
@@ -7,7 +8,13 @@ import {
 
 import { getMarketplaceDiscoveryVendors } from "@/lib/seo/marketplace-discovery-data";
 import { buildProcurementKnowledgeGraph } from "@/lib/seo/procurement-knowledge-graph";
-import { buildVendorTrustReputation } from "@/lib/vendors/vendor-trust-reputation";
+import {
+  MarketplaceIdentityHeader,
+} from "@/components/trust";
+import {
+  getMarketplaceIdentityFromMap,
+  loadCanonicalTrustBulk,
+} from "@/lib/trust";
 
 export const dynamic = "force-dynamic";
 
@@ -20,11 +27,34 @@ type SearchParams = {
   module?: string;
 };
 
-function vendorTrustLabel(score: number) {
-  if (score >= 85) return "AI Trusted";
+function vendorMatchLabel(score: number) {
+  if (score >= 85) return "Excellent Match";
   if (score >= 70) return "Strong Match";
   if (score >= 55) return "Good Fit";
   return "Discovery Match";
+}
+
+function createServerSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key) return null;
+
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value
+  );
 }
 
 function responseProbability(score: number) {
@@ -79,6 +109,17 @@ export default async function VendorDiscoveryPage({
 
   const topVendor = rankedVendors[0] || null;
 
+  const supabase = createServerSupabase();
+  const canonicalTrustByUserId = supabase
+    ? await loadCanonicalTrustBulk(
+        supabase,
+        rankedVendors
+          .map((vendor) => String(vendor.vendorId || ""))
+          .filter(isUuid),
+        { subject: "business" }
+      )
+    : new Map();
+
   return (
     <main className="w-full px-4 py-10">
       <section className="rounded-2xl border p-6">
@@ -131,7 +172,7 @@ export default async function VendorDiscoveryPage({
             <div className="text-sm text-blue-200">AI Decision</div>
             <div className="mt-1 font-semibold">
               {topVendor
-                ? `${vendorTrustLabel(topVendor.recommendationScore)}: ${topVendor.businessName}`
+                ? `${vendorMatchLabel(topVendor.recommendationScore)}: ${topVendor.businessName}`
                 : "Compare top trusted vendors"}
             </div>
           </div>
@@ -149,8 +190,8 @@ export default async function VendorDiscoveryPage({
 
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           <div className="rounded-2xl border border-white/15 bg-white/10 p-4">
-            <div className="text-sm font-bold text-blue-200">Trust Engine</div>
-            <div className="mt-2 text-lg font-black text-white">AI Verified Matching</div>
+            <div className="text-sm font-bold text-blue-200">Registration Trust</div>
+            <div className="mt-2 text-lg font-black text-white">Canonical verification only</div>
           </div>
 
           <div className="rounded-2xl border border-white/15 bg-white/10 p-4">
@@ -177,7 +218,7 @@ export default async function VendorDiscoveryPage({
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-gray-600">
               <li>Compare the top recommended vendors before finalizing.</li>
               <li>Share quantity, delivery location and expected timeline.</li>
-              <li>Prefer verified vendors with stronger marketplace signals.</li>
+              <li>Check registration verification separately from marketplace ranking.</li>
               <li>Create an RFQ if you want multiple competitive quotes.</li>
             </ul>
           </div>
@@ -206,15 +247,18 @@ export default async function VendorDiscoveryPage({
       <section className="mt-8 grid gap-5 md:grid-cols-3">
         {rankedVendors.map((vendor, index) => {
           const score = vendor.recommendationScore;
-          const trust = buildVendorTrustReputation({
-            isVerified: true,
-            city: vendor.city,
-            locality: vendor.locality,
-            district: vendor.district,
-            reputationScore: score,
-            recommendationScore: score,
-            riskScore: score >= 70 ? 10 : score >= 55 ? 25 : 40,
-          });
+
+          const marketplaceIdentity =
+            getMarketplaceIdentityFromMap(
+              {
+                module: "vendor",
+                ownerUserId: vendor.vendorId,
+                displayName: vendor.businessName,
+                profileHref: `/vendor/${vendor.slug}`,
+                subject: "business",
+              },
+              canonicalTrustByUserId
+            );
 
           return (
             <div
@@ -229,6 +273,14 @@ export default async function VendorDiscoveryPage({
 
                   <div className="mt-2 text-lg font-bold text-slate-950">
                     {vendor.businessName}
+                  </div>
+
+                  <div className="mt-2">
+                    <MarketplaceIdentityHeader
+                      identity={marketplaceIdentity}
+                      compact
+                      showName={false}
+                    />
                   </div>
                 </div>
 
@@ -245,10 +297,7 @@ export default async function VendorDiscoveryPage({
 
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">
-                  ✅ {vendorTrustLabel(score)}
-                </span>
-                <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-amber-700">
-                  ⭐ {trust.label} • {trust.score}/100
+                  🎯 {vendorMatchLabel(score)}
                 </span>
                 <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-black text-orange-700">
                   ⚡ {responseProbability(score)}
@@ -261,17 +310,6 @@ export default async function VendorDiscoveryPage({
               <p className="mt-4 text-sm leading-6 text-gray-600">
                 {vendor.recommendationReason}
               </p>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                {trust.badges.slice(0, 4).map((badge) => (
-                  <span
-                    key={badge}
-                    className="rounded-full border bg-white px-3 py-1 text-xs font-bold text-gray-700"
-                  >
-                    {badge}
-                  </span>
-                ))}
-              </div>
 
               <div className="mt-5 grid gap-2">
                 <Link
