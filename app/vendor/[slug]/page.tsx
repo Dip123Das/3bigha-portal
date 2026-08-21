@@ -1,6 +1,11 @@
 import { Metadata } from "next";
 import Script from "next/script";
 import Link from "next/link";
+
+import {
+  RegistrationVerificationBadge,
+  TrustStatusChip,
+} from "@/components/trust";
 import { buildVendorTrustSignals } from "@/lib/seo/vendor-trust-signals";
 import { buildRelatedVendorEntities } from "@/lib/seo/vendor-related-entities";
 import { getVendorAuthorityDataBySlug } from "@/lib/seo/vendor-authority-data";
@@ -91,7 +96,9 @@ export default async function VendorAuthorityPage({
 
     trustSignals: [
       "RFQ Active",
-      "Marketplace Verified",
+      ...(vendorData?.trust.mayDisplayVerifiedBadge
+        ? ["Registration Verified"]
+        : []),
       "Fast Response",
     ],
 
@@ -115,7 +122,7 @@ export default async function VendorAuthorityPage({
     state: vendorData?.state || "West Bengal",
     category: summary.categories[0] || "Marketplace Vendor",
     subscriptionPlan: vendorData?.subscriptionPlan || "Gold",
-    isVerified: vendorData?.isVerified ?? true,
+    isVerified: vendorData?.trust.mayDisplayVerifiedBadge === true,
     boostActive: vendorData?.boostActive ?? true,
     reputationScore: reputation.reputationScore,
     authorityScore: summary.authorityScore,
@@ -146,12 +153,12 @@ export default async function VendorAuthorityPage({
     leaderboardScore: leaderboard.leaderboardScore,
     authorityScore: summary.authorityScore,
     conversionRate: reputation.conversionRate,
-    isVerified: vendorData?.isVerified ?? true,
+    isVerified: vendorData?.trust.mayDisplayVerifiedBadge === true,
     boostActive: vendorData?.boostActive ?? true,
   });
 
     const aiTrustReputation = buildVendorTrustReputation({
-    isVerified: vendorData?.isVerified ?? true,
+    isVerified: vendorData?.trust.mayDisplayVerifiedBadge === true,
     approvalStatus: undefined,
     city: vendorData?.city,
     locality: vendorData?.locality,
@@ -184,7 +191,7 @@ export default async function VendorAuthorityPage({
       leaderboardScore: leaderboard.leaderboardScore,
       authorityScore: summary.authorityScore,
       conversionRate: reputation.conversionRate,
-      isVerified: vendorData?.isVerified ?? true,
+      isVerified: vendorData?.trust.mayDisplayVerifiedBadge === true,
       boostActive: vendorData?.boostActive ?? true,
     },
     candidateVendors: recommendationCandidates,
@@ -193,7 +200,7 @@ export default async function VendorAuthorityPage({
   const trust = buildVendorTrustSignals({
     subscriptionPlan: vendorData?.subscriptionPlan || "Gold",
 
-    isVerified: vendorData?.isVerified ?? true,
+    isVerified: vendorData?.trust.mayDisplayVerifiedBadge === true,
 
     responseRate: 92,
 
@@ -255,9 +262,20 @@ const relatedEntities = buildRelatedVendorEntities({
 
       <main className="w-full px-4 py-10">
         <div className="rounded-2xl border p-6">
-          <h1 className="text-3xl font-bold">
-            {summary.vendorName}
-          </h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-3xl font-bold">
+              {summary.vendorName}
+            </h1>
+
+            {vendorData?.trust ? (
+              <>
+                <TrustStatusChip trust={vendorData.trust} />
+                <RegistrationVerificationBadge
+                  trust={vendorData.trust}
+                />
+              </>
+            ) : null}
+          </div>
 
           <p className="mt-3 text-gray-600">
             {summary.summary}
@@ -297,7 +315,7 @@ const relatedEntities = buildRelatedVendorEntities({
 
             <div className="rounded-2xl border bg-amber-50 p-4">
               <div className="text-sm font-bold text-amber-700">
-                AI Vendor Trust
+                Marketplace performance insight
               </div>
 
               <div className="mt-1 text-3xl font-black text-slate-900">
@@ -310,6 +328,12 @@ const relatedEntities = buildRelatedVendorEntities({
 
               <p className="mt-2 text-xs leading-5 text-gray-600">
                 {aiTrustReputation.reason}
+              </p>
+
+              <p className="mt-2 text-xs leading-5 text-gray-500">
+                Performance insights do not replace registration
+                verification. The verified badge above is controlled
+                only by canonical registration trust.
               </p>
             </div>
           </div>

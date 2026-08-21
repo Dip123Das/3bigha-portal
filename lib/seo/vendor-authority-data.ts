@@ -1,5 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
+import {
+  loadCanonicalTrust,
+  type CanonicalTrustModel,
+} from "@/lib/trust";
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -38,6 +43,7 @@ export type VendorAuthorityData = {
   subscriptionStatus: string | null;
   boostActive: boolean;
   isVerified: boolean;
+  trust: CanonicalTrustModel;
 };
 
 function normalizeSlug(value: string) {
@@ -105,8 +111,17 @@ export async function getVendorAuthorityDataBySlug(
     ? new Date(matched.boost_expires_at).getTime()
     : 0;
 
+  const vendorId = matched.user_id || matched.id;
+  const trust = await loadCanonicalTrust(
+    supabase,
+    vendorId,
+    {
+      subject: "business",
+    }
+  );
+
   return {
-    vendorId: matched.user_id || matched.id,
+    vendorId,
     businessName: matched.business_name || "3Bigha Vendor",
     slug,
     city: matched.city || null,
@@ -128,8 +143,7 @@ export async function getVendorAuthorityDataBySlug(
     subscriptionPlan: matched.subscription_plan || null,
     subscriptionStatus: matched.subscription_status || null,
     boostActive: boostExpiresAt > Date.now(),
-    isVerified:
-      matched.approval_status === "approved" ||
-      matched.subscription_status === "active",
+    isVerified: trust.mayDisplayVerifiedBadge,
+    trust,
   };
 }
