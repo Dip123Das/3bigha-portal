@@ -4,7 +4,9 @@ import OpenAI from "openai";
 import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import {
+  buildDeterministicDemandIntelligence,
   buildDeterministicInventoryIntelligence,
+  type InventoryDemandIntelligenceRow,
   type InventoryIntelligenceRow,
 } from "@/lib/inventory/intelligence";
 
@@ -42,33 +44,45 @@ export async function GET() {
   const supabase = getSupabaseServerClient(cookies());
 
   const {
-    data: { session },
-    error: sessionError,
-  } = await supabase.auth.getSession();
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-  if (sessionError) {
+  if (userError) {
     return NextResponse.json(
-      { ok: false, error: sessionError.message },
+      { ok: false, error: userError.message },
       { status: 401 },
     );
   }
 
-  if (!session?.user?.id) {
+  if (!user?.id) {
     return NextResponse.json(
       { ok: false, error: "Not authenticated" },
       { status: 401 },
     );
   }
 
-  const userId = session.user.id;
+  const userId = user.id;
 
-  const [intelligenceRes, billsRes, dispatchRes, vehiclesRes] =
-    await Promise.all([
+  const [
+    intelligenceRes,
+    demandIntelligenceRes,
+    billsRes,
+    dispatchRes,
+    vehiclesRes,
+  ] = await Promise.all([
       supabase
         .from("bos_material_inventory_intelligence")
         .select("*")
         .eq("user_id", userId)
         .order("risk_score", { ascending: false })
+        .limit(500),
+
+      supabase
+        .from("bos_material_inventory_demand_intelligence")
+        .select("*")
+        .eq("user_id", userId)
+        .order("forecast_confidence_score", { ascending: false })
         .limit(500),
 
       supabase
@@ -99,19 +113,29 @@ export async function GET() {
         .limit(100),
     ]);
 
-  if (intelligenceRes.error) {
+  if (intelligenceRes.error || demandIntelligenceRes.error) {
     return NextResponse.json(
-      { ok: false, error: intelligenceRes.error.message },
+      {
+        ok: false,
+        error:
+          intelligenceRes.error?.message ||
+          demandIntelligenceRes.error?.message ||
+          "Inventory intelligence query failed.",
+      },
       { status: 500 },
     );
   }
 
   const rows = (intelligenceRes.data || []) as InventoryIntelligenceRow[];
+  const demandRows = (demandIntelligenceRes.data ||
+    []) as InventoryDemandIntelligenceRow[];
   const bills = (billsRes.data || []) as BillRow[];
   const dispatches = (dispatchRes.data || []) as DispatchRow[];
   const vehicles = (vehiclesRes.data || []) as VehicleRow[];
 
   const deterministic = buildDeterministicInventoryIntelligence(rows);
+  const demandIntelligence =
+    buildDeterministicDemandIntelligence(demandRows);
 
   const billingInsight =
     bills.length === 0
@@ -136,6 +160,7 @@ export async function GET() {
 
   const canonicalResponse = {
     ...deterministic,
+    demandIntelligence,
     billingInsight,
     dispatchInsight,
     fleetInsight,
@@ -175,6 +200,10 @@ export async function GET() {
               reorderSuggestions:
                 deterministic.reorderSuggestions.slice(0, 20),
               locationDrift: deterministic.locationDrift.slice(0, 20),
+              demandForecast: demandIntelligence.totals,
+              procurementPriority: demandIntelligence.counts,
+              replenishmentItems:
+                demandIntelligence.replenishmentItems.slice(0, 20),
             },
             recent_bills: bills.slice(0, 30),
             recent_dispatches: dispatches.slice(0, 30),

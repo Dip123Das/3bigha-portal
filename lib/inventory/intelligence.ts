@@ -246,3 +246,264 @@ export function buildDeterministicInventoryIntelligence(
     nextActions,
   };
 }
+
+export type InventoryDemandIntelligenceRow = {
+  user_id: string;
+  material_listing_id: string;
+  material_name: string | null;
+  sku: string | null;
+  unit: string | null;
+
+  on_hand_stock: number | string | null;
+  reserved_stock: number | string | null;
+  available_to_sell: number | string | null;
+  reorder_level: number | string | null;
+  purchase_price: number | string | null;
+  selling_price: number | string | null;
+
+  demand_7d: number | string | null;
+  demand_30d: number | string | null;
+  demand_90d: number | string | null;
+
+  outbound_events_7d: number | string | null;
+  outbound_events_30d: number | string | null;
+  outbound_events_90d: number | string | null;
+
+  reserved_demand_7d: number | string | null;
+  reserved_demand_30d: number | string | null;
+  reserved_demand_90d: number | string | null;
+
+  reservation_events_7d: number | string | null;
+  reservation_events_30d: number | string | null;
+  reservation_events_90d: number | string | null;
+
+  first_outbound_at: string | null;
+  last_outbound_at: string | null;
+  history_days: number | string | null;
+
+  average_daily_demand_7d: number | string | null;
+  average_daily_demand_30d: number | string | null;
+  average_daily_demand_90d: number | string | null;
+  weighted_average_daily_demand: number | string | null;
+
+  forecast_demand_7d: number | string | null;
+  forecast_demand_30d: number | string | null;
+  forecast_demand_90d: number | string | null;
+
+  demand_trend: "increasing" | "stable" | "falling" | "no_demand";
+  stock_runway_days: number | string | null;
+  predicted_depletion_date: string | null;
+  reservation_pressure_percent: number | string | null;
+
+  forecast_confidence_score: number | string | null;
+  forecast_confidence: "low" | "medium" | "high";
+
+  procurement_priority:
+    | "immediate"
+    | "within_7_days"
+    | "within_15_days"
+    | "within_30_days"
+    | "monitor";
+
+  suggested_replenishment_quantity: number | string | null;
+  suggested_reorder_date: string | null;
+
+  stock_status:
+    | "out_of_stock"
+    | "fully_reserved"
+    | "low_stock"
+    | "healthy";
+
+  risk_score: number | string | null;
+  risk_level: "low" | "medium" | "high";
+};
+
+export function buildDeterministicDemandIntelligence(
+  rows: InventoryDemandIntelligenceRow[],
+) {
+  const items = rows.map((row) => ({
+    materialListingId: row.material_listing_id,
+    item: row.material_name || row.sku || "Inventory item",
+    sku: row.sku,
+    unit: row.unit || "",
+
+    onHandStock: asNumber(row.on_hand_stock),
+    reservedStock: asNumber(row.reserved_stock),
+    availableToSell: asNumber(row.available_to_sell),
+    reorderLevel: asNumber(row.reorder_level),
+    purchasePrice: asNumber(row.purchase_price),
+    sellingPrice: asNumber(row.selling_price),
+
+    demand7d: asNumber(row.demand_7d),
+    demand30d: asNumber(row.demand_30d),
+    demand90d: asNumber(row.demand_90d),
+
+    outboundEvents7d: asNumber(row.outbound_events_7d),
+    outboundEvents30d: asNumber(row.outbound_events_30d),
+    outboundEvents90d: asNumber(row.outbound_events_90d),
+
+    reservedDemand7d: asNumber(row.reserved_demand_7d),
+    reservedDemand30d: asNumber(row.reserved_demand_30d),
+    reservedDemand90d: asNumber(row.reserved_demand_90d),
+
+    reservationEvents7d: asNumber(row.reservation_events_7d),
+    reservationEvents30d: asNumber(row.reservation_events_30d),
+    reservationEvents90d: asNumber(row.reservation_events_90d),
+
+    firstOutboundAt: row.first_outbound_at,
+    lastOutboundAt: row.last_outbound_at,
+    historyDays: asNumber(row.history_days),
+
+    averageDailyDemand7d: asNumber(row.average_daily_demand_7d),
+    averageDailyDemand30d: asNumber(row.average_daily_demand_30d),
+    averageDailyDemand90d: asNumber(row.average_daily_demand_90d),
+    weightedAverageDailyDemand: asNumber(
+      row.weighted_average_daily_demand,
+    ),
+
+    forecastDemand7d: asNumber(row.forecast_demand_7d),
+    forecastDemand30d: asNumber(row.forecast_demand_30d),
+    forecastDemand90d: asNumber(row.forecast_demand_90d),
+
+    demandTrend: row.demand_trend,
+    stockRunwayDays:
+      row.stock_runway_days == null
+        ? null
+        : asNumber(row.stock_runway_days),
+    predictedDepletionDate: row.predicted_depletion_date,
+    reservationPressurePercent: asNumber(
+      row.reservation_pressure_percent,
+    ),
+
+    forecastConfidenceScore: asNumber(
+      row.forecast_confidence_score,
+    ),
+    forecastConfidence: row.forecast_confidence,
+    procurementPriority: row.procurement_priority,
+
+    suggestedReplenishmentQuantity: asNumber(
+      row.suggested_replenishment_quantity,
+    ),
+    suggestedReorderDate: row.suggested_reorder_date,
+
+    stockStatus: row.stock_status,
+    riskScore: asNumber(row.risk_score),
+    riskLevel: row.risk_level,
+  }));
+
+  const totals = items.reduce(
+    (summary, item) => {
+      summary.forecastDemand7d += item.forecastDemand7d;
+      summary.forecastDemand30d += item.forecastDemand30d;
+      summary.forecastDemand90d += item.forecastDemand90d;
+      summary.suggestedReplenishmentQuantity +=
+        item.suggestedReplenishmentQuantity;
+      summary.estimatedReplenishmentCost +=
+        item.suggestedReplenishmentQuantity * item.purchasePrice;
+      return summary;
+    },
+    {
+      forecastDemand7d: 0,
+      forecastDemand30d: 0,
+      forecastDemand90d: 0,
+      suggestedReplenishmentQuantity: 0,
+      estimatedReplenishmentCost: 0,
+    },
+  );
+
+  const priorityWeight = {
+    immediate: 5,
+    within_7_days: 4,
+    within_15_days: 3,
+    within_30_days: 2,
+    monitor: 1,
+  } as const;
+
+  const replenishmentItems = items
+    .filter(
+      (item) =>
+        item.suggestedReplenishmentQuantity > 0 ||
+        item.procurementPriority !== "monitor",
+    )
+    .sort((a, b) => {
+      const priorityDifference =
+        priorityWeight[b.procurementPriority] -
+        priorityWeight[a.procurementPriority];
+
+      if (priorityDifference !== 0) return priorityDifference;
+
+      return (
+        b.suggestedReplenishmentQuantity -
+        a.suggestedReplenishmentQuantity
+      );
+    });
+
+  const runwayItems = items.filter(
+    (
+      item,
+    ): item is typeof item & {
+      stockRunwayDays: number;
+    } => item.stockRunwayDays !== null,
+  );
+
+  const minimumStockRunwayDays =
+    runwayItems.length === 0
+      ? null
+      : Math.min(...runwayItems.map((item) => item.stockRunwayDays));
+
+  const averageForecastConfidence =
+    items.length === 0
+      ? 0
+      : round(
+          items.reduce(
+            (sum, item) => sum + item.forecastConfidenceScore,
+            0,
+          ) / items.length,
+          1,
+        );
+
+  const counts = {
+    immediate: items.filter(
+      (item) => item.procurementPriority === "immediate",
+    ).length,
+    within7Days: items.filter(
+      (item) => item.procurementPriority === "within_7_days",
+    ).length,
+    within15Days: items.filter(
+      (item) => item.procurementPriority === "within_15_days",
+    ).length,
+    within30Days: items.filter(
+      (item) => item.procurementPriority === "within_30_days",
+    ).length,
+    monitor: items.filter(
+      (item) => item.procurementPriority === "monitor",
+    ).length,
+    increasingDemand: items.filter(
+      (item) => item.demandTrend === "increasing",
+    ).length,
+    noDemandHistory: items.filter(
+      (item) => item.demandTrend === "no_demand",
+    ).length,
+  };
+
+  return {
+    source: "canonical_demand_intelligence",
+    generatedAt: new Date().toISOString(),
+    totals: {
+      forecastDemand7d: round(totals.forecastDemand7d),
+      forecastDemand30d: round(totals.forecastDemand30d),
+      forecastDemand90d: round(totals.forecastDemand90d),
+      suggestedReplenishmentQuantity: round(
+        totals.suggestedReplenishmentQuantity,
+      ),
+      estimatedReplenishmentCost: round(
+        totals.estimatedReplenishmentCost,
+      ),
+      minimumStockRunwayDays,
+      averageForecastConfidence,
+    },
+    counts,
+    items,
+    replenishmentItems,
+  };
+}
