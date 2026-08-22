@@ -73,6 +73,82 @@ type IntelligenceCounts = {
   mediumRisk: number;
 };
 
+type DemandTrend = "increasing" | "stable" | "falling" | "no_demand";
+
+type ProcurementPriority =
+  | "immediate"
+  | "within_7_days"
+  | "within_15_days"
+  | "within_30_days"
+  | "monitor";
+
+type ForecastConfidence = "low" | "medium" | "high";
+
+type DemandIntelligenceItem = {
+  materialListingId: string;
+  item: string;
+  sku: string | null;
+  unit: string;
+  onHandStock: number;
+  reservedStock: number;
+  availableToSell: number;
+  reorderLevel: number;
+  purchasePrice: number;
+  sellingPrice: number;
+  demand7d: number;
+  demand30d: number;
+  demand90d: number;
+  weightedAverageDailyDemand: number;
+  forecastDemand7d: number;
+  forecastDemand30d: number;
+  forecastDemand90d: number;
+  demandTrend: DemandTrend;
+  stockRunwayDays: number | null;
+  predictedDepletionDate: string | null;
+  reservationPressurePercent: number;
+  forecastConfidenceScore: number;
+  forecastConfidence: ForecastConfidence;
+  procurementPriority: ProcurementPriority;
+  suggestedReplenishmentQuantity: number;
+  suggestedReorderDate: string | null;
+  stockStatus:
+    | "out_of_stock"
+    | "fully_reserved"
+    | "low_stock"
+    | "healthy";
+  riskScore: number;
+  riskLevel: RiskLevel;
+};
+
+type DemandIntelligenceTotals = {
+  forecastDemand7d: number;
+  forecastDemand30d: number;
+  forecastDemand90d: number;
+  suggestedReplenishmentQuantity: number;
+  estimatedReplenishmentCost: number;
+  minimumStockRunwayDays: number | null;
+  averageForecastConfidence: number;
+};
+
+type DemandIntelligenceCounts = {
+  immediate: number;
+  within7Days: number;
+  within15Days: number;
+  within30Days: number;
+  monitor: number;
+  increasingDemand: number;
+  noDemandHistory: number;
+};
+
+type DemandIntelligence = {
+  source: string;
+  generatedAt: string;
+  totals: DemandIntelligenceTotals;
+  counts: DemandIntelligenceCounts;
+  items: DemandIntelligenceItem[];
+  replenishmentItems: DemandIntelligenceItem[];
+};
+
 type IntelligenceResponse = {
   ok?: boolean;
   source?: string;
@@ -93,6 +169,7 @@ type IntelligenceResponse = {
   reorderSuggestions?: IntelligenceItem[];
   locationDrift?: IntelligenceItem[];
   highRisk?: IntelligenceItem[];
+  demandIntelligence?: DemandIntelligence;
   billingInsight?: string;
   dispatchInsight?: string;
   fleetInsight?: string;
@@ -218,6 +295,7 @@ export default function InventoryIntelligencePage() {
   const reorderSuggestions = data?.reorderSuggestions || [];
   const locationDrift = data?.locationDrift || [];
   const nextActions = data?.nextActions || [];
+  const demandIntelligence = data?.demandIntelligence;
 
   const priorityItems = useMemo(
     () =>
@@ -277,6 +355,10 @@ export default function InventoryIntelligencePage() {
               totals={totals}
               counts={counts}
               nextActions={nextActions}
+            />
+
+            <ForecastReplenishmentControlCenter
+              demandIntelligence={demandIntelligence}
             />
 
             <ErpPanel
@@ -830,6 +912,411 @@ export default function InventoryIntelligencePage() {
     </main>
   );
 }
+
+
+function ForecastReplenishmentControlCenter({
+  demandIntelligence,
+}: {
+  demandIntelligence: DemandIntelligence | undefined;
+}) {
+  if (!demandIntelligence) {
+    return (
+      <Card>
+        <CardBody>
+          <div style={{ fontSize: 18, fontWeight: 950 }}>
+            Forecast & Replenishment
+          </div>
+          <div
+            style={{
+              marginTop: 8,
+              color: "#64748b",
+              fontSize: 13,
+              fontWeight: 800,
+              lineHeight: 1.55,
+            }}
+          >
+            Demand forecasting is not available yet. Continue posting
+            canonical stock movements to build reliable demand history.
+          </div>
+        </CardBody>
+      </Card>
+    );
+  }
+
+  const { totals, counts, replenishmentItems, items } =
+    demandIntelligence;
+
+  const fallingDemand = items.filter(
+    (item) => item.demandTrend === "falling",
+  ).length;
+
+  const stableDemand = items.filter(
+    (item) => item.demandTrend === "stable",
+  ).length;
+
+  const estimatedItemCost = (item: DemandIntelligenceItem) =>
+    item.suggestedReplenishmentQuantity * item.purchasePrice;
+
+  return (
+    <section
+      aria-labelledby="forecast-replenishment-control-center"
+      style={{
+        borderRadius: 22,
+        border: "1px solid rgba(5,150,105,0.2)",
+        background:
+          "linear-gradient(135deg, #ecfdf5 0%, #ffffff 52%, #eff6ff 100%)",
+        boxShadow: "0 18px 42px rgba(15,23,42,0.07)",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          padding: 16,
+          background:
+            "linear-gradient(135deg, #064e3b 0%, #047857 52%, #0369a1 100%)",
+          color: "#ffffff",
+        }}
+      >
+        <div
+          id="forecast-replenishment-control-center"
+          style={{ fontSize: 20, fontWeight: 950 }}
+        >
+          Forecast & Replenishment Control Center
+        </div>
+
+        <div
+          style={{
+            marginTop: 5,
+            color: "#d1fae5",
+            fontSize: 12,
+            fontWeight: 800,
+            lineHeight: 1.5,
+          }}
+        >
+          Deterministic demand forecasting, stock runway and procurement
+          priorities calculated from canonical inventory history.
+        </div>
+      </div>
+
+      <div style={{ padding: 16, display: "grid", gap: 14 }}>
+        <ErpKpiGrid>
+          <ErpKpiCard
+            label="Forecast — 7 Days"
+            value={formatNumber(totals.forecastDemand7d)}
+            helper="Expected short-term demand"
+            tone="blue"
+          />
+
+          <ErpKpiCard
+            label="Forecast — 30 Days"
+            value={formatNumber(totals.forecastDemand30d)}
+            helper="Expected monthly demand"
+            tone="green"
+          />
+
+          <ErpKpiCard
+            label="Forecast — 90 Days"
+            value={formatNumber(totals.forecastDemand90d)}
+            helper="Expected quarterly demand"
+            tone="blue"
+          />
+
+          <ErpKpiCard
+            label="Replenishment Cost"
+            value={formatCurrency(totals.estimatedReplenishmentCost)}
+            helper={`${formatNumber(
+              totals.suggestedReplenishmentQuantity,
+            )} total suggested quantity`}
+            tone="orange"
+          />
+
+          <ErpKpiCard
+            label="Minimum Stock Runway"
+            value={
+              totals.minimumStockRunwayDays == null
+                ? "No demand"
+                : `${formatNumber(
+                    totals.minimumStockRunwayDays,
+                  )} days`
+            }
+            helper="Earliest predicted stock depletion"
+            tone={
+              totals.minimumStockRunwayDays != null &&
+              totals.minimumStockRunwayDays <= 7
+                ? "red"
+                : "green"
+            }
+          />
+
+          <ErpKpiCard
+            label="Forecast Confidence"
+            value={`${formatNumber(
+              totals.averageForecastConfidence,
+            )}%`}
+            helper="Average deterministic confidence"
+            tone={
+              totals.averageForecastConfidence >= 70
+                ? "green"
+                : totals.averageForecastConfidence >= 40
+                  ? "orange"
+                  : "red"
+            }
+          />
+
+          <ErpKpiCard
+            label="Immediate Procurement"
+            value={counts.immediate}
+            helper={`${counts.within7Days} required within 7 days`}
+            tone={counts.immediate > 0 ? "red" : "green"}
+          />
+
+          <ErpKpiCard
+            label="Replenishment Items"
+            value={replenishmentItems.length}
+            helper={`${counts.within15Days} within 15 days · ${counts.within30Days} within 30 days`}
+            tone={replenishmentItems.length > 0 ? "orange" : "green"}
+          />
+        </ErpKpiGrid>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: 10,
+          }}
+        >
+          <SignalTile
+            label="Increasing Demand"
+            value={counts.increasingDemand}
+            helper="Recent demand is accelerating"
+            tone="#047857"
+          />
+
+          <SignalTile
+            label="Stable Demand"
+            value={stableDemand}
+            helper="Demand remains consistent"
+            tone="#0369a1"
+          />
+
+          <SignalTile
+            label="Falling Demand"
+            value={fallingDemand}
+            helper="Recent demand is reducing"
+            tone="#a16207"
+          />
+
+          <SignalTile
+            label="Insufficient History"
+            value={counts.noDemandHistory}
+            helper="More canonical transactions required"
+            tone="#7c3aed"
+          />
+        </div>
+
+        <div>
+          <div style={{ fontSize: 17, fontWeight: 950 }}>
+            Replenishment Priority
+          </div>
+
+          <div
+            style={{
+              marginTop: 5,
+              color: "#64748b",
+              fontSize: 12,
+              fontWeight: 800,
+              lineHeight: 1.5,
+            }}
+          >
+            Highest-priority procurement requirements ordered by urgency
+            and suggested quantity.
+          </div>
+
+          {replenishmentItems.length === 0 ? (
+            <div
+              style={{
+                marginTop: 12,
+                border: "1px solid #bbf7d0",
+                borderRadius: 12,
+                padding: 12,
+                background: "#f0fdf4",
+                color: "#047857",
+                fontSize: 13,
+                fontWeight: 850,
+              }}
+            >
+              No forecast-driven replenishment is currently required.
+            </div>
+          ) : (
+            <div
+              style={{
+                marginTop: 12,
+                overflowX: "auto",
+                border: "1px solid #dbeafe",
+                borderRadius: 14,
+                background: "#ffffff",
+              }}
+            >
+              <table
+                style={{
+                  width: "100%",
+                  minWidth: 1080,
+                  borderCollapse: "collapse",
+                }}
+              >
+                <thead>
+                  <tr style={{ background: "#f8fafc" }}>
+                    {[
+                      "Material",
+                      "Available",
+                      "Forecast 30d",
+                      "Runway",
+                      "Suggested Qty",
+                      "Estimated Cost",
+                      "Reorder Date",
+                      "Priority",
+                      "Confidence",
+                      "Risk",
+                    ].map((heading) => (
+                      <th
+                        key={heading}
+                        style={{
+                          padding: "11px 10px",
+                          textAlign: "left",
+                          borderBottom: "1px solid #e2e8f0",
+                          color: "#475569",
+                          fontSize: 11,
+                          fontWeight: 950,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {heading}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {replenishmentItems.slice(0, 30).map((item) => (
+                    <tr key={item.materialListingId}>
+                      <td
+                        style={{
+                          padding: "12px 10px",
+                          borderBottom: "1px solid #f1f5f9",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 950,
+                            color: "#0f172a",
+                          }}
+                        >
+                          {item.item}
+                        </div>
+                        <div
+                          style={{
+                            marginTop: 3,
+                            fontSize: 11,
+                            fontWeight: 800,
+                            color: "#64748b",
+                          }}
+                        >
+                          {item.sku || "No SKU"}
+                        </div>
+                      </td>
+
+                      <td style={forecastCellStyle}>
+                        {formatNumber(item.availableToSell)} {item.unit}
+                      </td>
+
+                      <td style={forecastCellStyle}>
+                        {formatNumber(item.forecastDemand30d)}{" "}
+                        {item.unit}
+                      </td>
+
+                      <td style={forecastCellStyle}>
+                        {item.stockRunwayDays == null
+                          ? "No demand"
+                          : `${formatNumber(
+                              item.stockRunwayDays,
+                            )} days`}
+                      </td>
+
+                      <td style={forecastCellStyle}>
+                        {formatNumber(
+                          item.suggestedReplenishmentQuantity,
+                        )}{" "}
+                        {item.unit}
+                      </td>
+
+                      <td style={forecastCellStyle}>
+                        {formatCurrency(estimatedItemCost(item))}
+                      </td>
+
+                      <td style={forecastCellStyle}>
+                        {item.suggestedReorderDate
+                          ? new Date(
+                              item.suggestedReorderDate,
+                            ).toLocaleDateString("en-IN")
+                          : "Monitor"}
+                      </td>
+
+                      <td style={forecastCellStyle}>
+                        <Badge>
+                          {humanize(item.procurementPriority)}
+                        </Badge>
+                      </td>
+
+                      <td style={forecastCellStyle}>
+                        {humanize(item.forecastConfidence)} ·{" "}
+                        {formatNumber(
+                          item.forecastConfidenceScore,
+                        )}
+                        %
+                      </td>
+
+                      <td style={forecastCellStyle}>
+                        <Badge>{humanize(item.riskLevel)}</Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div
+          style={{
+            padding: 12,
+            borderRadius: 12,
+            border: "1px solid #dbeafe",
+            background: "#eff6ff",
+            color: "#1e3a8a",
+            fontSize: 12,
+            fontWeight: 850,
+            lineHeight: 1.55,
+          }}
+        >
+          Forecast quantities, runway, confidence, priority and
+          replenishment values are deterministic. AI may explain these
+          results but cannot replace or recalculate them.
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const forecastCellStyle = {
+  padding: "12px 10px",
+  borderBottom: "1px solid #f1f5f9",
+  color: "#334155",
+  fontSize: 12,
+  fontWeight: 850,
+  whiteSpace: "nowrap",
+} as const;
 
 function InventoryOperationsControlCenter({
   healthScore,
