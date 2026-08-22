@@ -265,8 +265,24 @@ const inventoryIntelligence = read(
 );
 
 assert(
-  inventoryIntelligence.includes('.from("inventory_stock_movements")'),
-  "legacy movement compatibility read must remain explicit",
+  inventoryIntelligence.includes(
+    '.from("bos_material_inventory_intelligence")',
+  ),
+  "canonical inventory intelligence view must remain explicit",
+);
+
+assert(
+  inventoryIntelligence.includes(
+    "buildDeterministicInventoryIntelligence",
+  ),
+  "shared deterministic inventory engine must remain explicit",
+);
+
+assert(
+  !inventoryIntelligence.includes(
+    "inventory_stock_movements",
+  ),
+  "legacy inventory movement table must not be referenced",
 );
 
 assert(
