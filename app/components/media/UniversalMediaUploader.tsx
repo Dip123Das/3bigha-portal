@@ -8,20 +8,17 @@ import React, {
 } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import {
-  MEDIA_BUCKET_BY_MODULE,
   UNIVERSAL_MEDIA_LIMITS,
   type UniversalMediaModule,
   type UploadedMediaAsset,
 } from "@/lib/media/media-config";
 import {
-  analyzeImageQuality,
-  compressImageIfNeeded,
   formatMediaSize,
-  getMediaKind,
-  safeMediaFileName,
-  validateUniversalMediaFile,
   type MediaQualityWarning,
 } from "@/lib/media/media-utils";
+import {
+  executeStandardMediaUpload,
+} from "@/lib/media/upload-engine";
 
 type UniversalMediaUploaderProps = {
   module: UniversalMediaModule;
@@ -344,124 +341,80 @@ export default function UniversalMediaUploader({
     uploadMetadata: Record<string, unknown> = {}
   ) {
     const incoming = Array.from(files || []);
-    if (!incoming.length || uploading) return;
+
+    if (!incoming.length || uploading) {
+      return;
+    }
 
     setMessage("");
     setProgressText("");
     setQualityWarnings([]);
 
-    if (value.length + incoming.length > maxFiles) {
-      setMessage(`Maximum ${maxFiles} files allowed. Please remove some files first.`);
+    if (
+      value.length + incoming.length >
+      maxFiles
+    ) {
+      setMessage(
+        `Maximum ${maxFiles} files allowed. Please remove some files first.`
+      );
       return;
     }
 
     setUploading(true);
 
     try {
-      const bucket = MEDIA_BUCKET_BY_MODULE[module];
-      const uploaded: UploadedMediaAsset[] = [];
-      const rejected: string[] = [];
-      const baseFolder =
-        folder?.trim() || `${module}/${new Date().getFullYear()}/${Date.now()}`;
-
-      for (let index = 0; index < incoming.length; index++) {
-        const originalFile = incoming[index];
-        setProgressText(`Checking ${index + 1} of ${incoming.length}...`);
-
-        const validationError = validateUniversalMediaFile(originalFile);
-        if (validationError) {
-          rejected.push(`${originalFile.name}: ${validationError}`);
-          continue;
-        }
-
-        const kind = getMediaKind(originalFile);
-        if (!kind) {
-          rejected.push(`${originalFile.name}: Unsupported file type.`);
-          continue;
-        }
-
-        if (kind === "image" && !allowImages) {
-          rejected.push(`${originalFile.name}: Images are not allowed here.`);
-          continue;
-        }
-
-        if (kind === "video" && !allowVideos) {
-          rejected.push(`${originalFile.name}: Videos are not allowed here.`);
-          continue;
-        }
-
-        if (kind === "document" && !allowDocuments) {
-          rejected.push(`${originalFile.name}: Documents are not allowed here.`);
-          continue;
-        }
-
-        if (kind === "image") {
-          setProgressText(`AI checking image quality ${index + 1} of ${incoming.length}...`);
-
-          const report = await analyzeImageQuality(originalFile);
-          if (report?.warnings?.length) {
-            setQualityWarnings((prev) => [...prev, ...report.warnings]);
-          }
-        }
-
-        setProgressText(
-          kind === "image"
-            ? `Optimizing image ${index + 1} of ${incoming.length}...`
-            : `Preparing ${index + 1} of ${incoming.length}...`
-        );
-
-        const file =
-          kind === "image"
-            ? await compressImageIfNeeded(originalFile)
-            : originalFile;
-
-        const safeName = safeMediaFileName(file.name);
-        const objectPath = `${baseFolder}/${Date.now()}_${index}_${safeName}`;
-
-        setProgressText(`Uploading ${index + 1} of ${incoming.length}...`);
-
-        const { error } = await supabase.storage.from(bucket).upload(objectPath, file, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: file.type || undefined,
+      const result =
+        await executeStandardMediaUpload({
+          supabase,
+          module,
+          files: incoming,
+          folder,
+          allowImages,
+          allowVideos,
+          allowDocuments,
+          uploadMetadata,
+          onProgress(progress) {
+            setProgressText(progress.message);
+          },
+          onQualityWarnings(warnings) {
+            setQualityWarnings((previous) => [
+              ...previous,
+              ...warnings,
+            ]);
+          },
         });
 
-        if (error) {
-          rejected.push(`${file.name}: ${error.message}`);
-          continue;
-        }
-
-        const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath);
-
-        uploaded.push({
-          id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-          url: data.publicUrl,
-          bucket,
-          path: objectPath,
-          name: file.name,
-          size: file.size,
-          mimeType: file.type,
-          kind,
-          ...uploadMetadata,
-        } as UploadedMediaAsset);
+      if (result.uploaded.length) {
+        onChange([
+          ...value,
+          ...result.uploaded,
+        ]);
       }
 
-      if (uploaded.length) {
-        onChange([...value, ...uploaded]);
-      }
-
-      if (uploaded.length && rejected.length) {
-        setMessage(`Uploaded ${uploaded.length} file(s). ${rejected.length} file(s) skipped.`);
-      } else if (uploaded.length) {
-        setMessage(`Uploaded ${uploaded.length} file(s) successfully.`);
-      } else if (rejected.length) {
-        setMessage(rejected[0]);
+      if (
+        result.uploaded.length &&
+        result.rejected.length
+      ) {
+        setMessage(
+          `Uploaded ${result.uploaded.length} file(s). ${result.rejected.length} file(s) skipped.`
+        );
+      } else if (result.uploaded.length) {
+        setMessage(
+          `Uploaded ${result.uploaded.length} file(s) successfully.`
+        );
+      } else if (result.rejected.length) {
+        setMessage(result.rejected[0]);
       } else {
         setMessage("No file uploaded.");
       }
-    } catch (e: any) {
-      console.error(e);
-      setMessage(e?.message || "Upload failed.");
+    } catch (error) {
+      console.error(error);
+
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Upload failed."
+      );
     } finally {
       setUploading(false);
       setProgressText("");
