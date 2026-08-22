@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { Container } from "@/components/layout/Container";
@@ -914,6 +915,39 @@ export default function InventoryIntelligencePage() {
 }
 
 
+function getReplenishmentReason(
+  item: DemandIntelligenceItem,
+) {
+  if (item.stockStatus === "out_of_stock") {
+    return item.forecastConfidenceScore <= 0
+      ? "Immediate because current sellable stock is zero. Demand history is still insufficient, so confirm actual customer demand before finalising quantity."
+      : "Immediate because current sellable stock is zero and forecast demand requires replenishment.";
+  }
+
+  if (item.stockStatus === "fully_reserved") {
+    return "Current stock is fully committed, leaving no quantity available for new orders.";
+  }
+
+  if (item.availableToSell <= item.reorderLevel) {
+    return "Available stock is at or below the configured reorder level.";
+  }
+
+  if (item.demandTrend === "increasing") {
+    return "Recent demand is increasing and projected consumption may reduce stock below the safe level.";
+  }
+
+  if (
+    item.stockRunwayDays != null &&
+    item.stockRunwayDays <= 30
+  ) {
+    return `Projected stock runway is only ${formatNumber(
+      item.stockRunwayDays,
+    )} days.`;
+  }
+
+  return "The deterministic replenishment engine identified a future stock requirement.";
+}
+
 function ForecastReplenishmentControlCenter({
   demandIntelligence,
 }: {
@@ -926,6 +960,7 @@ function ForecastReplenishmentControlCenter({
           <div style={{ fontSize: 18, fontWeight: 950 }}>
             Forecast & Replenishment
           </div>
+
           <div
             style={{
               marginTop: 8,
@@ -937,6 +972,20 @@ function ForecastReplenishmentControlCenter({
           >
             Demand forecasting is not available yet. Continue posting
             canonical stock movements to build reliable demand history.
+          </div>
+
+          <div
+            style={{
+              marginTop: 12,
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+            }}
+          >
+            <InventoryActionLink
+              href="/dashboard/vendor/inventory"
+              label="Open Inventory"
+            />
           </div>
         </CardBody>
       </Card>
@@ -954,8 +1003,27 @@ function ForecastReplenishmentControlCenter({
     (item) => item.demandTrend === "stable",
   ).length;
 
-  const estimatedItemCost = (item: DemandIntelligenceItem) =>
-    item.suggestedReplenishmentQuantity * item.purchasePrice;
+  const insufficientHistory =
+    counts.noDemandHistory > 0 ||
+    totals.averageForecastConfidence <= 0;
+
+  const confidenceValue = insufficientHistory
+    ? "Insufficient history"
+    : `${formatNumber(
+        totals.averageForecastConfidence,
+      )}%`;
+
+  const generatedLabel = demandIntelligence.generatedAt
+    ? new Date(
+        demandIntelligence.generatedAt,
+      ).toLocaleString("en-IN")
+    : "Not available";
+
+  const estimatedItemCost = (
+    item: DemandIntelligenceItem,
+  ) =>
+    item.suggestedReplenishmentQuantity *
+    item.purchasePrice;
 
   return (
     <section
@@ -996,6 +1064,42 @@ function ForecastReplenishmentControlCenter({
           Deterministic demand forecasting, stock runway and procurement
           priorities calculated from canonical inventory history.
         </div>
+
+        <div
+          style={{
+            marginTop: 10,
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{
+              padding: "6px 9px",
+              borderRadius: 999,
+              background: "rgba(255,255,255,0.14)",
+              color: "#ffffff",
+              fontSize: 11,
+              fontWeight: 900,
+            }}
+          >
+            Source: {humanize(demandIntelligence.source)}
+          </span>
+
+          <span
+            style={{
+              padding: "6px 9px",
+              borderRadius: 999,
+              background: "rgba(255,255,255,0.14)",
+              color: "#ffffff",
+              fontSize: 11,
+              fontWeight: 900,
+            }}
+          >
+            Updated: {generatedLabel}
+          </span>
+        </div>
       </div>
 
       <div style={{ padding: 16, display: "grid", gap: 14 }}>
@@ -1023,7 +1127,9 @@ function ForecastReplenishmentControlCenter({
 
           <ErpKpiCard
             label="Replenishment Cost"
-            value={formatCurrency(totals.estimatedReplenishmentCost)}
+            value={formatCurrency(
+              totals.estimatedReplenishmentCost,
+            )}
             helper={`${formatNumber(
               totals.suggestedReplenishmentQuantity,
             )} total suggested quantity`}
@@ -1034,7 +1140,9 @@ function ForecastReplenishmentControlCenter({
             label="Minimum Stock Runway"
             value={
               totals.minimumStockRunwayDays == null
-                ? "No demand"
+                ? insufficientHistory
+                  ? "Insufficient history"
+                  : "No active demand"
                 : `${formatNumber(
                     totals.minimumStockRunwayDays,
                   )} days`
@@ -1044,22 +1152,28 @@ function ForecastReplenishmentControlCenter({
               totals.minimumStockRunwayDays != null &&
               totals.minimumStockRunwayDays <= 7
                 ? "red"
-                : "green"
+                : insufficientHistory
+                  ? "orange"
+                  : "green"
             }
           />
 
           <ErpKpiCard
             label="Forecast Confidence"
-            value={`${formatNumber(
-              totals.averageForecastConfidence,
-            )}%`}
-            helper="Average deterministic confidence"
+            value={confidenceValue}
+            helper={
+              insufficientHistory
+                ? "Post more canonical transactions"
+                : "Average deterministic confidence"
+            }
             tone={
-              totals.averageForecastConfidence >= 70
-                ? "green"
-                : totals.averageForecastConfidence >= 40
-                  ? "orange"
-                  : "red"
+              insufficientHistory
+                ? "orange"
+                : totals.averageForecastConfidence >= 70
+                  ? "green"
+                  : totals.averageForecastConfidence >= 40
+                    ? "orange"
+                    : "red"
             }
           />
 
@@ -1074,7 +1188,11 @@ function ForecastReplenishmentControlCenter({
             label="Replenishment Items"
             value={replenishmentItems.length}
             helper={`${counts.within15Days} within 15 days · ${counts.within30Days} within 30 days`}
-            tone={replenishmentItems.length > 0 ? "orange" : "green"}
+            tone={
+              replenishmentItems.length > 0
+                ? "orange"
+                : "green"
+            }
           />
         </ErpKpiGrid>
 
@@ -1115,6 +1233,26 @@ function ForecastReplenishmentControlCenter({
           />
         </div>
 
+        {insufficientHistory ? (
+          <div
+            style={{
+              border: "1px solid #fde68a",
+              borderRadius: 14,
+              padding: 12,
+              background: "#fffbeb",
+              color: "#92400e",
+              fontSize: 12,
+              fontWeight: 850,
+              lineHeight: 1.55,
+            }}
+          >
+            Forecast confidence is limited because sufficient transaction
+            history is not yet available. Immediate priority may still be
+            valid when an item is already out of stock, fully reserved or
+            below its configured reorder level.
+          </div>
+        ) : null}
+
         <div>
           <div style={{ fontSize: 17, fontWeight: 950 }}>
             Replenishment Priority
@@ -1152,138 +1290,183 @@ function ForecastReplenishmentControlCenter({
             <div
               style={{
                 marginTop: 12,
-                overflowX: "auto",
-                border: "1px solid #dbeafe",
-                borderRadius: 14,
-                background: "#ffffff",
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: 12,
               }}
             >
-              <table
-                style={{
-                  width: "100%",
-                  minWidth: 1080,
-                  borderCollapse: "collapse",
-                }}
-              >
-                <thead>
-                  <tr style={{ background: "#f8fafc" }}>
-                    {[
-                      "Material",
-                      "Available",
-                      "Forecast 30d",
-                      "Runway",
-                      "Suggested Qty",
-                      "Estimated Cost",
-                      "Reorder Date",
-                      "Priority",
-                      "Confidence",
-                      "Risk",
-                    ].map((heading) => (
-                      <th
-                        key={heading}
-                        style={{
-                          padding: "11px 10px",
-                          textAlign: "left",
-                          borderBottom: "1px solid #e2e8f0",
-                          color: "#475569",
-                          fontSize: 11,
-                          fontWeight: 950,
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {heading}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {replenishmentItems.slice(0, 30).map((item) => (
-                    <tr key={item.materialListingId}>
-                      <td
-                        style={{
-                          padding: "12px 10px",
-                          borderBottom: "1px solid #f1f5f9",
-                        }}
-                      >
+              {replenishmentItems
+                .slice(0, 30)
+                .map((item) => (
+                  <article
+                    key={item.materialListingId}
+                    style={{
+                      border: "1px solid #dbeafe",
+                      borderRadius: 16,
+                      padding: 14,
+                      background: "#ffffff",
+                      boxShadow:
+                        "0 8px 22px rgba(15,23,42,0.05)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: 10,
+                        alignItems: "flex-start",
+                      }}
+                    >
+                      <div>
                         <div
                           style={{
-                            fontSize: 13,
+                            fontSize: 15,
                             fontWeight: 950,
                             color: "#0f172a",
                           }}
                         >
                           {item.item}
                         </div>
+
                         <div
                           style={{
                             marginTop: 3,
+                            color: "#64748b",
                             fontSize: 11,
                             fontWeight: 800,
-                            color: "#64748b",
                           }}
                         >
-                          {item.sku || "No SKU"}
+                          {item.sku || "No SKU"} · {item.unit}
                         </div>
-                      </td>
+                      </div>
 
-                      <td style={forecastCellStyle}>
-                        {formatNumber(item.availableToSell)} {item.unit}
-                      </td>
+                      <Badge>
+                        {humanize(item.procurementPriority)}
+                      </Badge>
+                    </div>
 
-                      <td style={forecastCellStyle}>
-                        {formatNumber(item.forecastDemand30d)}{" "}
-                        {item.unit}
-                      </td>
+                    <div
+                      style={{
+                        marginTop: 12,
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(2, minmax(0, 1fr))",
+                        gap: 8,
+                      }}
+                    >
+                      <ReplenishmentFact
+                        label="Available"
+                        value={`${formatNumber(
+                          item.availableToSell,
+                        )} ${item.unit}`}
+                      />
 
-                      <td style={forecastCellStyle}>
-                        {item.stockRunwayDays == null
-                          ? "No demand"
-                          : `${formatNumber(
-                              item.stockRunwayDays,
-                            )} days`}
-                      </td>
+                      <ReplenishmentFact
+                        label="Forecast 30d"
+                        value={`${formatNumber(
+                          item.forecastDemand30d,
+                        )} ${item.unit}`}
+                      />
 
-                      <td style={forecastCellStyle}>
-                        {formatNumber(
+                      <ReplenishmentFact
+                        label="Stock Runway"
+                        value={
+                          item.stockRunwayDays == null
+                            ? item.forecastConfidenceScore <= 0
+                              ? "Insufficient history"
+                              : "No active demand"
+                            : `${formatNumber(
+                                item.stockRunwayDays,
+                              )} days`
+                        }
+                      />
+
+                      <ReplenishmentFact
+                        label="Suggested Qty"
+                        value={`${formatNumber(
                           item.suggestedReplenishmentQuantity,
-                        )}{" "}
-                        {item.unit}
-                      </td>
+                        )} ${item.unit}`}
+                      />
 
-                      <td style={forecastCellStyle}>
-                        {formatCurrency(estimatedItemCost(item))}
-                      </td>
-
-                      <td style={forecastCellStyle}>
-                        {item.suggestedReorderDate
-                          ? new Date(
-                              item.suggestedReorderDate,
-                            ).toLocaleDateString("en-IN")
-                          : "Monitor"}
-                      </td>
-
-                      <td style={forecastCellStyle}>
-                        <Badge>
-                          {humanize(item.procurementPriority)}
-                        </Badge>
-                      </td>
-
-                      <td style={forecastCellStyle}>
-                        {humanize(item.forecastConfidence)} ·{" "}
-                        {formatNumber(
-                          item.forecastConfidenceScore,
+                      <ReplenishmentFact
+                        label="Estimated Cost"
+                        value={formatCurrency(
+                          estimatedItemCost(item),
                         )}
-                        %
-                      </td>
+                      />
 
-                      <td style={forecastCellStyle}>
-                        <Badge>{humanize(item.riskLevel)}</Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      <ReplenishmentFact
+                        label="Reorder Date"
+                        value={
+                          item.suggestedReorderDate
+                            ? new Date(
+                                item.suggestedReorderDate,
+                              ).toLocaleDateString("en-IN")
+                            : "Monitor"
+                        }
+                      />
+
+                      <ReplenishmentFact
+                        label="Confidence"
+                        value={
+                          item.forecastConfidenceScore <= 0
+                            ? "Insufficient history"
+                            : `${humanize(
+                                item.forecastConfidence,
+                              )} · ${formatNumber(
+                                item.forecastConfidenceScore,
+                              )}%`
+                        }
+                      />
+
+                      <ReplenishmentFact
+                        label="Risk"
+                        value={humanize(item.riskLevel)}
+                      />
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 12,
+                        padding: 10,
+                        borderRadius: 12,
+                        background: "#f8fafc",
+                        color: "#334155",
+                        fontSize: 12,
+                        fontWeight: 800,
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      <strong>Why this is recommended:</strong>{" "}
+                      {getReplenishmentReason(item)}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: 12,
+                        display: "flex",
+                        gap: 8,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <InventoryActionLink
+                        href="/rfq/general/new"
+                        label="Create RFQ"
+                      />
+
+                      <InventoryActionLink
+                        href="/dashboard/procurement-os"
+                        label="Open Procurement"
+                      />
+
+                      <InventoryActionLink
+                        href="/dashboard/vendor/inventory"
+                        label="Review Inventory"
+                      />
+                    </div>
+                  </article>
+                ))}
             </div>
           )}
         </div>
@@ -1309,14 +1492,78 @@ function ForecastReplenishmentControlCenter({
   );
 }
 
-const forecastCellStyle = {
-  padding: "12px 10px",
-  borderBottom: "1px solid #f1f5f9",
-  color: "#334155",
-  fontSize: 12,
-  fontWeight: 850,
-  whiteSpace: "nowrap",
-} as const;
+function ReplenishmentFact({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div
+      style={{
+        border: "1px solid #e2e8f0",
+        borderRadius: 11,
+        padding: 9,
+        background: "#ffffff",
+      }}
+    >
+      <div
+        style={{
+          color: "#64748b",
+          fontSize: 10,
+          fontWeight: 900,
+          textTransform: "uppercase",
+          letterSpacing: "0.04em",
+        }}
+      >
+        {label}
+      </div>
+
+      <div
+        style={{
+          marginTop: 4,
+          color: "#0f172a",
+          fontSize: 12,
+          fontWeight: 950,
+          lineHeight: 1.35,
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function InventoryActionLink({
+  href,
+  label,
+}: {
+  href: string;
+  label: string;
+}) {
+  return (
+    <Link
+      href={href}
+      style={{
+        minHeight: 36,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 12px",
+        borderRadius: 10,
+        border: "1px solid #bfdbfe",
+        background: "#eff6ff",
+        color: "#1d4ed8",
+        fontSize: 11,
+        fontWeight: 950,
+        textDecoration: "none",
+      }}
+    >
+      {label}
+    </Link>
+  );
+}
 
 function InventoryOperationsControlCenter({
   healthScore,
@@ -1506,40 +1753,6 @@ function InventoryOperationsControlCenter({
           </div>
         </div>
 
-        <div>
-          <ControlCenterHeading
-            title="Forecast & Replenishment"
-            subtitle="Deterministic forecasting will activate in INV-INT-03B"
-          />
-
-          <div
-            style={{
-              marginTop: 10,
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: 9,
-            }}
-          >
-            <ForecastPlaceholder
-              label="7-Day Demand"
-              description="Short-term depletion forecast"
-            />
-            <ForecastPlaceholder
-              label="30-Day Demand"
-              description="Monthly demand projection"
-            />
-            <ForecastPlaceholder
-              label="90-Day Demand"
-              description="Planning-horizon forecast"
-            />
-            <ForecastPlaceholder
-              label="Lead-Time Risk"
-              description="Supplier and replenishment exposure"
-            />
-          </div>
-        </div>
-
         <div
           style={{
             borderRadius: 16,
@@ -1686,59 +1899,6 @@ function ControlCenterMetric({
         }}
       >
         {helper}
-      </div>
-    </div>
-  );
-}
-
-function ForecastPlaceholder({
-  label,
-  description,
-}: {
-  label: string;
-  description: string;
-}) {
-  return (
-    <div
-      style={{
-        minHeight: 92,
-        borderRadius: 14,
-        border: "1px dashed #94a3b8",
-        background: "#f8fafc",
-        padding: 12,
-      }}
-    >
-      <div
-        style={{
-          color: "#334155",
-          fontSize: 12,
-          fontWeight: 950,
-        }}
-      >
-        {label}
-      </div>
-
-      <div
-        style={{
-          marginTop: 6,
-          color: "#64748b",
-          fontSize: 11,
-          fontWeight: 800,
-          lineHeight: 1.4,
-        }}
-      >
-        {description}
-      </div>
-
-      <div
-        style={{
-          marginTop: 7,
-          color: "#1d4ed8",
-          fontSize: 10,
-          fontWeight: 950,
-        }}
-      >
-        INV-INT-03B
       </div>
     </div>
   );

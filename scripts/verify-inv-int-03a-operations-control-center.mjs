@@ -48,21 +48,16 @@ for (const metric of [
   );
 }
 
-for (const forecast of [
-  "7-Day Demand",
-  "30-Day Demand",
-  "90-Day Demand",
-  "Lead-Time Risk",
-]) {
-  assert(
-    page.includes(forecast),
-    `forecast placeholder is missing: ${forecast}`,
-  );
-}
+assert(
+  !page.includes(
+    'subtitle="Deterministic forecasting will activate in INV-INT-03B"',
+  ),
+  "obsolete forecast placeholder section must not remain",
+);
 
 assert(
-  page.includes("INV-INT-03B"),
-  "forecast placeholders must identify their implementation phase",
+  page.includes("Forecast & Replenishment Control Center"),
+  "live forecast and replenishment control center is missing",
 );
 
 assert(

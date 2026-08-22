@@ -96,12 +96,19 @@ for (const label of [
 }
 
 assert(
-  dashboard.includes('overflowX: "auto"'),
-  "replenishment table must be horizontally responsive",
+  dashboard.includes(
+    '"repeat(auto-fit, minmax(280px, 1fr))"',
+  ),
+  "responsive replenishment card layout is missing",
 );
 
 assert(
-  dashboard.includes("replenishmentItems.slice(0, 30)"),
+  dashboard.includes("replenishmentItems"),
+  "replenishment priority items must be rendered",
+);
+
+assert(
+  dashboard.includes(".slice(0, 30)"),
   "replenishment priority list must be bounded",
 );
 
