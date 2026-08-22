@@ -271,6 +271,14 @@ export default function InventoryIntelligencePage() {
           <EmptyState message="No inventory intelligence is available." />
         ) : (
           <div style={{ display: "grid", gap: 14 }}>
+            <InventoryOperationsControlCenter
+              healthScore={data.healthScore ?? 100}
+              riskLevel={data.riskLevel}
+              totals={totals}
+              counts={counts}
+              nextActions={nextActions}
+            />
+
             <ErpPanel
               title="Inventory Health Control"
               subtitle="Deterministic metrics derived from canonical stock, reservations, transaction ledger and location allocations."
@@ -820,6 +828,432 @@ export default function InventoryIntelligencePage() {
         )}
       </Container>
     </main>
+  );
+}
+
+function InventoryOperationsControlCenter({
+  healthScore,
+  riskLevel,
+  totals,
+  counts,
+  nextActions,
+}: {
+  healthScore: number;
+  riskLevel: RiskLevel | undefined;
+  totals: IntelligenceTotals;
+  counts: IntelligenceCounts;
+  nextActions: string[];
+}) {
+  const criticalAlerts =
+    counts.highRisk + counts.outOfStock + counts.locationDrift;
+
+  const warehouseStatus =
+    counts.locationDrift > 0 ? "Reconcile" : "Balanced";
+
+  const topPriority =
+    nextActions[0] ||
+    "Continue canonical stock posting and monitor inventory health.";
+
+  return (
+    <section
+      aria-labelledby="inventory-operations-control-center"
+      style={{
+        borderRadius: 22,
+        border: "1px solid rgba(30,64,175,0.18)",
+        background:
+          "linear-gradient(135deg, #eff6ff 0%, #ffffff 48%, #eef2ff 100%)",
+        boxShadow: "0 18px 42px rgba(15,23,42,0.08)",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          padding: 16,
+          background:
+            "linear-gradient(135deg, #0f172a 0%, #172554 55%, #1d4ed8 100%)",
+          color: "#ffffff",
+        }}
+      >
+        <div
+          id="inventory-operations-control-center"
+          style={{
+            fontSize: 20,
+            fontWeight: 950,
+          }}
+        >
+          Inventory Operations Control Center
+        </div>
+
+        <div
+          style={{
+            marginTop: 5,
+            color: "#dbeafe",
+            fontSize: 12,
+            fontWeight: 800,
+            lineHeight: 1.5,
+          }}
+        >
+          Current stock health, availability, replenishment priorities and
+          warehouse integrity from canonical inventory records.
+        </div>
+      </div>
+
+      <div style={{ padding: 14, display: "grid", gap: 14 }}>
+        <div>
+          <ControlCenterHeading
+            title="Executive Status"
+            subtitle="What requires attention now"
+          />
+
+          <div
+            style={{
+              marginTop: 10,
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(150px, 1fr))",
+              gap: 9,
+            }}
+          >
+            <ControlCenterMetric
+              label="Inventory Health"
+              value={`${healthScore}/100`}
+              helper={humanize(riskLevel || "low")}
+              tone={
+                riskLevel === "high"
+                  ? "red"
+                  : riskLevel === "medium"
+                    ? "orange"
+                    : "green"
+              }
+            />
+
+            <ControlCenterMetric
+              label="Available to Sell"
+              value={formatNumber(totals.availableToSell)}
+              helper={`${formatNumber(totals.reserved)} reserved`}
+              tone="blue"
+            />
+
+            <ControlCenterMetric
+              label="Critical Alerts"
+              value={criticalAlerts}
+              helper={`${counts.highRisk} high risk`}
+              tone={criticalAlerts > 0 ? "red" : "green"}
+            />
+
+            <ControlCenterMetric
+              label="Reorder Queue"
+              value={counts.reorderSuggestions}
+              helper={`${counts.outOfStock} out of stock`}
+              tone={
+                counts.reorderSuggestions > 0 ? "orange" : "green"
+              }
+            />
+
+            <ControlCenterMetric
+              label="Reservation Load"
+              value={`${formatNumber(
+                totals.reservationCoverage,
+              )}%`}
+              helper={`${counts.fullyReserved} fully reserved`}
+              tone={
+                totals.reservationCoverage >= 80
+                  ? "red"
+                  : totals.reservationCoverage >= 50
+                    ? "orange"
+                    : "blue"
+              }
+            />
+
+            <ControlCenterMetric
+              label="Warehouse Status"
+              value={warehouseStatus}
+              helper={`${counts.locationDrift} allocation drift`}
+              tone={counts.locationDrift > 0 ? "orange" : "green"}
+            />
+          </div>
+        </div>
+
+        <div>
+          <ControlCenterHeading
+            title="Recent Stock Operations"
+            subtitle="Canonical 30-day movement and availability position"
+          />
+
+          <div
+            style={{
+              marginTop: 10,
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: 9,
+            }}
+          >
+            <ControlCenterMetric
+              label="Goods Received"
+              value={formatNumber(totals.stockIn30d)}
+              helper="Stock in · last 30 days"
+              tone="green"
+            />
+
+            <ControlCenterMetric
+              label="Goods Issued"
+              value={formatNumber(totals.stockOut30d)}
+              helper="Stock out · last 30 days"
+              tone="blue"
+            />
+
+            <ControlCenterMetric
+              label="Reserved Quantity"
+              value={formatNumber(totals.reserved)}
+              helper="Active commitments"
+              tone="violet"
+            />
+
+            <ControlCenterMetric
+              label="Physical Stock"
+              value={formatNumber(totals.onHand)}
+              helper={`${totals.itemCount} inventory item(s)`}
+              tone="slate"
+            />
+          </div>
+        </div>
+
+        <div>
+          <ControlCenterHeading
+            title="Forecast & Replenishment"
+            subtitle="Deterministic forecasting will activate in INV-INT-03B"
+          />
+
+          <div
+            style={{
+              marginTop: 10,
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 9,
+            }}
+          >
+            <ForecastPlaceholder
+              label="7-Day Demand"
+              description="Short-term depletion forecast"
+            />
+            <ForecastPlaceholder
+              label="30-Day Demand"
+              description="Monthly demand projection"
+            />
+            <ForecastPlaceholder
+              label="90-Day Demand"
+              description="Planning-horizon forecast"
+            />
+            <ForecastPlaceholder
+              label="Lead-Time Risk"
+              description="Supplier and replenishment exposure"
+            />
+          </div>
+        </div>
+
+        <div
+          style={{
+            borderRadius: 16,
+            border: "1px solid #c7d2fe",
+            background: "#eef2ff",
+            padding: 13,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 950,
+              color: "#3730a3",
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+            }}
+          >
+            Supervisor Priority
+          </div>
+
+          <div
+            style={{
+              marginTop: 7,
+              color: "#1e293b",
+              fontSize: 14,
+              fontWeight: 900,
+              lineHeight: 1.55,
+            }}
+          >
+            {topPriority}
+          </div>
+
+          <div
+            style={{
+              marginTop: 7,
+              color: "#64748b",
+              fontSize: 11,
+              fontWeight: 800,
+              lineHeight: 1.5,
+            }}
+          >
+            The priority is derived from deterministic inventory conditions.
+            AI may explain the verified result but cannot change quantities,
+            classifications or replenishment calculations.
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ControlCenterHeading({
+  title,
+  subtitle,
+}: {
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div>
+      <div
+        style={{
+          fontSize: 15,
+          fontWeight: 950,
+          color: "#0f172a",
+        }}
+      >
+        {title}
+      </div>
+      <div
+        style={{
+          marginTop: 3,
+          color: "#64748b",
+          fontSize: 11,
+          fontWeight: 800,
+        }}
+      >
+        {subtitle}
+      </div>
+    </div>
+  );
+}
+
+function ControlCenterMetric({
+  label,
+  value,
+  helper,
+  tone,
+}: {
+  label: string;
+  value: string | number;
+  helper: string;
+  tone: "blue" | "green" | "orange" | "red" | "violet" | "slate";
+}) {
+  const tones = {
+    blue: ["#eff6ff", "#bfdbfe", "#1d4ed8"],
+    green: ["#ecfdf5", "#bbf7d0", "#047857"],
+    orange: ["#fff7ed", "#fed7aa", "#c2410c"],
+    red: ["#fef2f2", "#fecaca", "#b91c1c"],
+    violet: ["#f5f3ff", "#ddd6fe", "#6d28d9"],
+    slate: ["#f8fafc", "#e2e8f0", "#334155"],
+  } as const;
+
+  const [background, border, color] = tones[tone];
+
+  return (
+    <div
+      style={{
+        minHeight: 96,
+        borderRadius: 14,
+        border: `1px solid ${border}`,
+        background,
+        padding: 12,
+      }}
+    >
+      <div
+        style={{
+          color,
+          fontSize: 11,
+          fontWeight: 950,
+        }}
+      >
+        {label}
+      </div>
+
+      <div
+        style={{
+          marginTop: 7,
+          color: "#0f172a",
+          fontSize: 20,
+          fontWeight: 950,
+          lineHeight: 1,
+        }}
+      >
+        {value}
+      </div>
+
+      <div
+        style={{
+          marginTop: 7,
+          color: "#64748b",
+          fontSize: 10,
+          fontWeight: 800,
+        }}
+      >
+        {helper}
+      </div>
+    </div>
+  );
+}
+
+function ForecastPlaceholder({
+  label,
+  description,
+}: {
+  label: string;
+  description: string;
+}) {
+  return (
+    <div
+      style={{
+        minHeight: 92,
+        borderRadius: 14,
+        border: "1px dashed #94a3b8",
+        background: "#f8fafc",
+        padding: 12,
+      }}
+    >
+      <div
+        style={{
+          color: "#334155",
+          fontSize: 12,
+          fontWeight: 950,
+        }}
+      >
+        {label}
+      </div>
+
+      <div
+        style={{
+          marginTop: 6,
+          color: "#64748b",
+          fontSize: 11,
+          fontWeight: 800,
+          lineHeight: 1.4,
+        }}
+      >
+        {description}
+      </div>
+
+      <div
+        style={{
+          marginTop: 7,
+          color: "#1d4ed8",
+          fontSize: 10,
+          fontWeight: 950,
+        }}
+      >
+        INV-INT-03B
+      </div>
+    </div>
   );
 }
 
