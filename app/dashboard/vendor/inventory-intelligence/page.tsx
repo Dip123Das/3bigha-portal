@@ -306,6 +306,13 @@ export default function InventoryIntelligencePage() {
     [items],
   );
 
+  const lastRefreshLabel = data?.generatedAt
+    ? new Date(data.generatedAt).toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
+    : "Not refreshed yet";
+
   return (
     <main>
       <Container>
@@ -318,28 +325,96 @@ export default function InventoryIntelligencePage() {
 
         <div
           style={{
-            display: "flex",
-            justifyContent: "flex-end",
             marginBottom: 14,
+            padding: 12,
+            borderRadius: 16,
+            border: "1px solid #dbeafe",
+            background:
+              "linear-gradient(135deg, #eff6ff 0%, #ffffff 55%, #f5f3ff 100%)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
           }}
         >
-          <button
-            type="button"
-            disabled={loading}
-            onClick={() => void load()}
+          <div>
+            <div
+              style={{
+                color: "#475569",
+                fontSize: 10,
+                fontWeight: 950,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+              }}
+            >
+              Last Intelligence Refresh
+            </div>
+
+            <div
+              style={{
+                marginTop: 4,
+                color: "#0f172a",
+                fontSize: 13,
+                fontWeight: 950,
+              }}
+            >
+              {lastRefreshLabel}
+            </div>
+          </div>
+
+          <div
             style={{
-              minHeight: 40,
-              padding: "0 16px",
-              borderRadius: 12,
-              border: "1px solid rgba(15,23,42,0.14)",
-              background: loading ? "#f1f5f9" : "#ffffff",
-              color: "#0f172a",
-              fontWeight: 900,
-              cursor: loading ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              flexWrap: "wrap",
             }}
           >
-            {loading ? "Refreshing…" : "Refresh Intelligence"}
-          </button>
+            <InventoryActionLink
+              href="/dashboard/vendor/inventory"
+              label="Inventory"
+            />
+
+            <InventoryActionLink
+              href="/rfq/general/new"
+              label="Create RFQ"
+            />
+
+            <InventoryActionLink
+              href="/dashboard/procurement-os"
+              label="Procurement"
+            />
+
+            <InventoryActionLink
+              href="/dashboard/vendor/billing"
+              label="Billing"
+            />
+
+            <InventoryActionLink
+              href="/dashboard/vendor/dispatch"
+              label="Dispatch"
+            />
+
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => void load()}
+              style={{
+                minHeight: 36,
+                padding: "0 14px",
+                borderRadius: 10,
+                border: "1px solid #1d4ed8",
+                background: loading ? "#e2e8f0" : "#1d4ed8",
+                color: loading ? "#64748b" : "#ffffff",
+                fontSize: 11,
+                fontWeight: 950,
+                cursor: loading ? "not-allowed" : "pointer",
+              }}
+            >
+              {loading ? "Refreshing…" : "Refresh Intelligence"}
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -368,33 +443,41 @@ export default function InventoryIntelligencePage() {
               tone={panelRiskTone(data.riskLevel)}
             >
               <ErpKpiGrid>
-                <ErpKpiCard
-                  label="Health Score"
-                  value={`${data.healthScore ?? 100}/100`}
-                  helper="Higher is healthier"
-                  tone={kpiRiskTone(data.riskLevel)}
-                />
+                <OperationalKpiLink href="/dashboard/vendor/inventory">
+                  <ErpKpiCard
+                    label="Health Score"
+                    value={`${data.healthScore ?? 100}/100`}
+                    helper="Open inventory health"
+                    tone={kpiRiskTone(data.riskLevel)}
+                  />
+                </OperationalKpiLink>
 
-                <ErpKpiCard
-                  label="Risk Level"
-                  value={humanize(data.riskLevel)}
-                  helper={`${counts.highRisk} high-risk item(s)`}
-                  tone={kpiRiskTone(data.riskLevel)}
-                />
+                <OperationalKpiLink href="/dashboard/vendor/inventory">
+                  <ErpKpiCard
+                    label="Risk Level"
+                    value={humanize(data.riskLevel)}
+                    helper={`${counts.highRisk} high-risk item(s)`}
+                    tone={kpiRiskTone(data.riskLevel)}
+                  />
+                </OperationalKpiLink>
 
-                <ErpKpiCard
-                  label="Available to Sell"
-                  value={formatNumber(totals.availableToSell)}
-                  helper={`${formatNumber(totals.reserved)} reserved`}
-                  tone="blue"
-                />
+                <OperationalKpiLink href="/dashboard/vendor/inventory">
+                  <ErpKpiCard
+                    label="Available to Sell"
+                    value={formatNumber(totals.availableToSell)}
+                    helper={`${formatNumber(totals.reserved)} reserved`}
+                    tone="blue"
+                  />
+                </OperationalKpiLink>
 
-                <ErpKpiCard
-                  label="Stock Attention"
-                  value={counts.lowStock}
-                  helper={`${counts.outOfStock} out of stock`}
-                  tone="red"
-                />
+                <OperationalKpiLink href="/dashboard/procurement-os">
+                  <ErpKpiCard
+                    label="Stock Attention"
+                    value={counts.lowStock}
+                    helper={`${counts.outOfStock} out of stock`}
+                    tone="red"
+                  />
+                </OperationalKpiLink>
               </ErpKpiGrid>
 
               <div
@@ -445,7 +528,7 @@ export default function InventoryIntelligencePage() {
                     marginTop: 12,
                     display: "grid",
                     gridTemplateColumns:
-                      "repeat(auto-fit, minmax(170px, 1fr))",
+                      "repeat(auto-fit, minmax(145px, 1fr))",
                     gap: 10,
                   }}
                 >
@@ -480,6 +563,14 @@ export default function InventoryIntelligencePage() {
                     helper="Items needing reconciliation"
                   />
                 </div>
+
+                {totals.stockIn30d === 0 &&
+                totals.stockOut30d === 0 ? (
+                  <InventoryStateNote
+                    tone="blue"
+                    message="No inward or outward stock movement has been recorded during the last 30 days."
+                  />
+                ) : null}
               </CardBody>
             </Card>
 
@@ -494,7 +585,7 @@ export default function InventoryIntelligencePage() {
                     marginTop: 12,
                     display: "grid",
                     gridTemplateColumns:
-                      "repeat(auto-fit, minmax(185px, 1fr))",
+                      "repeat(auto-fit, minmax(150px, 1fr))",
                     gap: 10,
                   }}
                 >
@@ -535,6 +626,16 @@ export default function InventoryIntelligencePage() {
                     tone="#9f1239"
                   />
                 </div>
+
+                {counts.lowStock === 0 &&
+                counts.fullyReserved === 0 &&
+                counts.deadStock === 0 &&
+                counts.locationDrift === 0 ? (
+                  <InventoryStateNote
+                    tone="green"
+                    message="No immediate stock, reservation, ageing or warehouse reconciliation risks were detected."
+                  />
+                ) : null}
               </CardBody>
             </Card>
 
@@ -549,7 +650,7 @@ export default function InventoryIntelligencePage() {
                     marginTop: 12,
                     display: "grid",
                     gridTemplateColumns:
-                      "repeat(auto-fit, minmax(220px, 1fr))",
+                      "repeat(auto-fit, minmax(180px, 1fr))",
                     gap: 10,
                   }}
                 >
@@ -1531,6 +1632,69 @@ function ReplenishmentFact({
       >
         {value}
       </div>
+    </div>
+  );
+}
+
+function OperationalKpiLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-label="Open related inventory operation"
+      style={{
+        display: "block",
+        color: "inherit",
+        textDecoration: "none",
+        borderRadius: 14,
+        transition: "transform 160ms ease, box-shadow 160ms ease",
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function InventoryStateNote({
+  message,
+  tone,
+}: {
+  message: string;
+  tone: "green" | "blue";
+}) {
+  const palette =
+    tone === "green"
+      ? {
+          border: "#bbf7d0",
+          background: "#f0fdf4",
+          color: "#047857",
+        }
+      : {
+          border: "#bfdbfe",
+          background: "#eff6ff",
+          color: "#1d4ed8",
+        };
+
+  return (
+    <div
+      style={{
+        marginTop: 12,
+        padding: 10,
+        borderRadius: 12,
+        border: `1px solid ${palette.border}`,
+        background: palette.background,
+        color: palette.color,
+        fontSize: 12,
+        fontWeight: 850,
+        lineHeight: 1.5,
+      }}
+    >
+      {message}
     </div>
   );
 }
