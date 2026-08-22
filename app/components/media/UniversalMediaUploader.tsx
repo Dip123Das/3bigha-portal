@@ -17,8 +17,13 @@ import {
   type MediaQualityWarning,
 } from "@/lib/media/media-utils";
 import {
-  executeStandardMediaUpload,
+  executeMediaUpload,
 } from "@/lib/media/upload-engine";
+
+import type {
+  MediaUploadStrategyKey,
+  TrustedUploadContext,
+} from "@/lib/media/upload-strategy";
 
 type UniversalMediaUploaderProps = {
   module: UniversalMediaModule;
@@ -39,6 +44,8 @@ type UniversalMediaUploaderProps = {
   outputPreset?: "square_1080";
   requirePreparation?: boolean;
   assetMetadata?: Record<string, unknown>;
+  uploadStrategy?: MediaUploadStrategyKey;
+  trustedUploadContext?: TrustedUploadContext;
 };
 
 export default function UniversalMediaUploader({
@@ -60,6 +67,8 @@ export default function UniversalMediaUploader({
   outputPreset = "square_1080",
   requirePreparation = false,
   assetMetadata = {},
+  uploadStrategy,
+  trustedUploadContext,
 }: UniversalMediaUploaderProps) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -364,25 +373,29 @@ export default function UniversalMediaUploader({
 
     try {
       const result =
-        await executeStandardMediaUpload({
-          supabase,
-          module,
-          files: incoming,
-          folder,
-          allowImages,
-          allowVideos,
-          allowDocuments,
-          uploadMetadata,
-          onProgress(progress) {
-            setProgressText(progress.message);
+        await executeMediaUpload(
+          {
+            supabase,
+            module,
+            files: incoming,
+            folder,
+            allowImages,
+            allowVideos,
+            allowDocuments,
+            uploadMetadata,
+            trusted: trustedUploadContext,
+            onProgress(progress) {
+              setProgressText(progress.message);
+            },
+            onQualityWarnings(warnings) {
+              setQualityWarnings((previous) => [
+                ...previous,
+                ...warnings,
+              ]);
+            },
           },
-          onQualityWarnings(warnings) {
-            setQualityWarnings((previous) => [
-              ...previous,
-              ...warnings,
-            ]);
-          },
-        });
+          uploadStrategy
+        );
 
       if (result.uploaded.length) {
         onChange([
