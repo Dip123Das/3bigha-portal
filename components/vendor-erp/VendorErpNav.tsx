@@ -3,59 +3,64 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const groups = [
+const primaryItems = [
+  { label: "Dashboard", href: "/dashboard/vendor", icon: "🏠" },
+  { label: "Inventory", href: "/dashboard/vendor/inventory", icon: "📦" },
   {
-    title: "Operations",
-    items: [
-      { label: "Dashboard", href: "/dashboard/vendor", icon: "🏠" },
-      { label: "Inventory", href: "/dashboard/vendor/inventory", icon: "📦" },
-      { label: "Billing", href: "/dashboard/vendor/billing", icon: "🧾" },
-      { label: "Fleet", href: "/dashboard/vendor/fleet", icon: "🚚" },
-      { label: "Dispatch", href: "/dashboard/vendor/dispatch", icon: "📍" },
-    ],
+    label: "Intelligence",
+    href: "/dashboard/vendor/inventory-intelligence",
+    icon: "📊",
+  },
+  { label: "Billing", href: "/dashboard/vendor/billing", icon: "🧾" },
+  { label: "Dispatch", href: "/dashboard/vendor/dispatch", icon: "📍" },
+  { label: "Fleet", href: "/dashboard/vendor/fleet", icon: "🚚" },
+  { label: "Buyer RFQs", href: "/dashboard/vendor/rfqs", icon: "📨" },
+  { label: "Inbox", href: "/dashboard/inbox-v2", icon: "📥" },
+];
+
+const secondaryItems = [
+  { label: "Materials", href: "/materials/my", icon: "🏗️" },
+  { label: "Services", href: "/services/my", icon: "🛠️" },
+  { label: "Rentals", href: "/rentals/my", icon: "🚜" },
+  { label: "Property", href: "/property/my", icon: "🏡" },
+  {
+    label: "Business Profile",
+    href: "/onboarding/business",
+    icon: "🏢",
   },
   {
-    title: "Marketplace",
-    items: [
-      { label: "Buyer RFQs", href: "/dashboard/vendor/rfqs", icon: "📨" },
-      { label: "Buyer Enquiries", href: "/dashboard/vendor/enquiries", icon: "💬" },
-      { label: "Inbox", href: "/dashboard/inbox-v2", icon: "📥" },
-      { label: "Property", href: "/property/my", icon: "🏡" },
-      { label: "Builder Projects", href: "/property/builder/projects", icon: "🏢" },
-      { label: "Materials", href: "/materials/my", icon: "🏗️" },
-      { label: "Services", href: "/services/my", icon: "🛠️" },
-      { label: "Rentals", href: "/rentals/my", icon: "🚜" },
-    ],
+    label: "Subscription",
+    href: "/dashboard/subscription",
+    icon: "💳",
   },
   {
-    title: "Business",
-    items: [
-      { label: "Business Profile", href: "/onboarding/business", icon: "🏢" },
-      { label: "Subscription", href: "/dashboard/subscription", icon: "💳" },
-      { label: "Boost Visibility", href: "/dashboard/subscription/boost", icon: "🚀" },
-    ],
-  },
-  {
-    title: "AI",
-    items: [
-      { label: "Supervisor", href: "/dashboard/vendor/inventory-intelligence", icon: "📌" },
-      { label: "Notifications", href: "/dashboard/vendor/notifications", icon: "🔔" },
-    ],
+    label: "Notifications",
+    href: "/dashboard/vendor/notifications",
+    icon: "🔔",
   },
 ];
+
+function isActive(pathname: string, href: string) {
+  return (
+    pathname === href ||
+    (href !== "/dashboard/vendor" && pathname.startsWith(href))
+  );
+}
 
 export function VendorErpNav() {
   const pathname = usePathname();
 
   return (
-    <div
+    <nav
+      aria-label="3Bigha Vendor ERP"
       style={{
         marginBottom: 16,
-        borderRadius: 22,
+        borderRadius: 20,
         border: "1px solid rgba(15,23,42,0.08)",
-        background: "#ffffff",
-        padding: 14,
-        boxShadow: "0 18px 46px rgba(15,23,42,0.18)",
+        background:
+          "linear-gradient(135deg, #0f172a 0%, #172554 55%, #1d4ed8 100%)",
+        padding: 12,
+        boxShadow: "0 16px 38px rgba(15,23,42,0.16)",
       }}
     >
       <div
@@ -63,17 +68,30 @@ export function VendorErpNav() {
           display: "flex",
           justifyContent: "space-between",
           gap: 12,
-          flexWrap: "wrap",
           alignItems: "center",
-          marginBottom: 12,
+          flexWrap: "wrap",
         }}
       >
         <div>
-          <div style={{ color: "#ffffff", fontSize: 18, fontWeight: 800 }}>
+          <div
+            style={{
+              color: "#ffffff",
+              fontSize: 16,
+              fontWeight: 950,
+            }}
+          >
             3Bigha Vendor ERP
           </div>
-          <div style={{ marginTop: 3, color: "#bfdbfe", fontSize: 12, fontWeight: 800 }}>
-            Operations • Marketplace • Business • AI
+
+          <div
+            style={{
+              marginTop: 3,
+              color: "#bfdbfe",
+              fontSize: 11,
+              fontWeight: 800,
+            }}
+          >
+            Operations, marketplace and business controls
           </div>
         </div>
 
@@ -83,78 +101,118 @@ export function VendorErpNav() {
             borderRadius: 12,
             background: "#ffffff",
             color: "#1d4ed8",
-            padding: "9px 13px",
+            padding: "8px 12px",
             fontSize: 12,
-            fontWeight: 800,
+            fontWeight: 900,
             textDecoration: "none",
+            whiteSpace: "nowrap",
           }}
         >
-          🤖 Supervisor
+          📊 Inventory Control
         </Link>
       </div>
 
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
-          gap: 10,
+          marginTop: 12,
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 8,
         }}
       >
-        {groups.map((group) => (
-          <div
-            key={group.title}
-            style={{
-              borderRadius: 18,
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              padding: 10,
-            }}
-          >
-            <div
+        {primaryItems.map((item) => {
+          const active = isActive(pathname, item.href);
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
               style={{
-                color: "#bfdbfe",
-                fontSize: 11,
-                fontWeight: 800,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                marginBottom: 8,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                minHeight: 38,
+                borderRadius: 12,
+                padding: "8px 11px",
+                background: active
+                  ? "#ffffff"
+                  : "rgba(255,255,255,0.10)",
+                border: active
+                  ? "1px solid #ffffff"
+                  : "1px solid rgba(255,255,255,0.14)",
+                color: active ? "#0f172a" : "#ffffff",
+                textDecoration: "none",
+                fontSize: 12,
+                fontWeight: 900,
               }}
             >
-              {group.title}
-            </div>
-
-            <div style={{ display: "grid", gap: 7 }}>
-              {group.items.map((item) => {
-                const active =
-                  pathname === item.href ||
-                  (item.href !== "/dashboard/vendor" && pathname.startsWith(item.href));
-
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      borderRadius: 13,
-                      padding: "9px 10px",
-                      background: active ? "#ffffff" : "rgba(255,255,255,0.08)",
-                      color: active ? "#0f172a" : "#ffffff",
-                      textDecoration: "none",
-                      fontSize: 13,
-                      fontWeight: 950,
-                    }}
-                  >
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+              <span aria-hidden="true">{item.icon}</span>
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </div>
-    </div>
+
+      <details
+        style={{
+          marginTop: 10,
+          borderTop: "1px solid rgba(255,255,255,0.14)",
+          paddingTop: 9,
+        }}
+      >
+        <summary
+          style={{
+            cursor: "pointer",
+            color: "#dbeafe",
+            fontSize: 12,
+            fontWeight: 900,
+            listStylePosition: "inside",
+          }}
+        >
+          More business tools
+        </summary>
+
+        <div
+          style={{
+            marginTop: 9,
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+          }}
+        >
+          {secondaryItems.map((item) => {
+            const active = isActive(pathname, item.href);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 7,
+                  minHeight: 36,
+                  borderRadius: 11,
+                  padding: "7px 10px",
+                  background: active
+                    ? "#ffffff"
+                    : "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  color: active ? "#0f172a" : "#ffffff",
+                  textDecoration: "none",
+                  fontSize: 12,
+                  fontWeight: 850,
+                }}
+              >
+                <span aria-hidden="true">{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </details>
+    </nav>
   );
 }
