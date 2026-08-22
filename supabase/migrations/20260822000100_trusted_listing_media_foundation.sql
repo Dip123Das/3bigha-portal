@@ -340,17 +340,10 @@ create policy listing_evidence_private_select_own
     and (storage.foldername(name))[1] = auth.uid()::text
   );
 
-drop policy if exists listing_evidence_private_delete_own
-  on storage.objects;
-
-create policy listing_evidence_private_delete_own
-  on storage.objects
-  for delete
-  to authenticated
-  using (
-    bucket_id = 'listing-evidence-private'
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
+-- No authenticated UPDATE or DELETE policy is intentionally provided.
+-- Retakes create new immutable evidence objects. Superseding, retention and
+-- cleanup are performed through authenticated server-side service-role flows
+-- with ownership checks and moderation audit events.
 
 create or replace function public.set_trusted_media_updated_at()
 returns trigger
