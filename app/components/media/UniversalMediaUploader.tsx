@@ -1,11 +1,6 @@
 "use client";
 
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import {
   MEDIA_BUCKET_BY_MODULE,
@@ -22,6 +17,22 @@ import {
   validateUniversalMediaFile,
   type MediaQualityWarning,
 } from "@/lib/media/media-utils";
+
+type TrustedUploadProgress = {
+  required: number;
+  completed: number;
+  galleryUnlocked: boolean;
+};
+
+type TrustedUploadStatus =
+  | "idle"
+  | "waiting_gps"
+  | "session_created"
+  | "camera_ready"
+  | "captured"
+  | "uploading"
+  | "verified"
+  | "complete";
 
 type UniversalMediaUploaderProps = {
   module: UniversalMediaModule;
@@ -42,6 +53,9 @@ type UniversalMediaUploaderProps = {
   outputPreset?: "square_1080";
   requirePreparation?: boolean;
   assetMetadata?: Record<string, unknown>;
+  uploadStrategy?: "standard" | "trusted";
+  mandatoryTrustedCaptures?: number;
+  showTrustedBanner?: boolean;
 };
 
 export default function UniversalMediaUploader({
@@ -63,31 +77,44 @@ export default function UniversalMediaUploader({
   outputPreset = "square_1080",
   requirePreparation = false,
   assetMetadata = {},
+  uploadStrategy = "standard",
+  mandatoryTrustedCaptures = 1,
+  showTrustedBanner = true,
 }: UniversalMediaUploaderProps) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
-  const documentInputRef =
-    useRef<HTMLInputElement | null>(null);
-  const inlineVideoRef =
-    useRef<HTMLVideoElement | null>(null);
-  const inlineCanvasRef =
-    useRef<HTMLCanvasElement | null>(null);
-  const inlineStreamRef =
-    useRef<MediaStream | null>(null);
+  const documentInputRef = useRef<HTMLInputElement | null>(null);
+  const inlineVideoRef = useRef<HTMLVideoElement | null>(null);
+  const inlineCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const inlineStreamRef = useRef<MediaStream | null>(null);
 
   const [uploading, setUploading] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [cameraStarting, setCameraStarting] =
-    useState(false);
+  const [cameraStarting, setCameraStarting] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [message, setMessage] = useState("");
   const [progressText, setProgressText] = useState("");
-  const [qualityWarnings, setQualityWarnings] = useState<MediaQualityWarning[]>([]);
+  const [qualityWarnings, setQualityWarnings] = useState<MediaQualityWarning[]>(
+    [],
+  );
   const [capturedPhoto, setCapturedPhoto] = useState<File | null>(null);
   const [capturedPreviewUrl, setCapturedPreviewUrl] = useState("");
   const [capturedAt, setCapturedAt] = useState("");
+
+  const trustedMode =
+  uploadStrategy === "trusted";
+
+  const [trustedStatus, setTrustedStatus] =
+    useState<TrustedUploadStatus>("idle");
+
+  const [trustedProgress, setTrustedProgress] =
+    useState<TrustedUploadProgress>({
+      required: mandatoryTrustedCaptures,
+      completed: 0,
+      galleryUnlocked: false,
+    });
 
   function stopInlineCamera() {
     const stream = inlineStreamRef.current;
@@ -142,8 +169,7 @@ export default function UniversalMediaUploader({
     await uploadFiles([file], {
       ...assetMetadata,
       captureSource: "live_camera",
-      captureTimestamp:
-        capturedAt || new Date().toISOString(),
+      captureTimestamp: capturedAt || new Date().toISOString(),
       outputPreset,
       preparedBeforeUpload: true,
       preparationRequired: requirePreparation,
@@ -161,7 +187,7 @@ export default function UniversalMediaUploader({
       !navigator.mediaDevices?.getUserMedia
     ) {
       setCameraError(
-        "This browser cannot open a live camera preview. Open this page in the latest Chrome browser and tap Start Live Camera."
+        "This browser cannot open a live camera preview. Open this page in the latest Chrome browser and tap Start Live Camera.",
       );
       return;
     }
@@ -173,21 +199,20 @@ export default function UniversalMediaUploader({
     try {
       stopInlineCamera();
 
-      const stream =
-        await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            facingMode: {
-              ideal: cameraFacing,
-            },
-            width: {
-              ideal: cameraFacing === "user" ? 1080 : 1920,
-            },
-            height: {
-              ideal: 1080,
-            },
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: {
+            ideal: cameraFacing,
           },
-        });
+          width: {
+            ideal: cameraFacing === "user" ? 1080 : 1920,
+          },
+          height: {
+            ideal: 1080,
+          },
+        },
+      });
 
       inlineStreamRef.current = stream;
       setCameraOpen(true);
@@ -206,35 +231,29 @@ export default function UniversalMediaUploader({
           await video.play();
         } catch {
           setCameraError(
-            "The camera opened but the preview could not start. Close the camera and tap Start Live Camera again."
+            "The camera opened but the preview could not start. Close the camera and tap Start Live Camera again.",
           );
         }
       }, 30);
     } catch (error) {
       stopInlineCamera();
 
-      const errorName =
-        error instanceof DOMException
-          ? error.name
-          : "";
+      const errorName = error instanceof DOMException ? error.name : "";
 
-      if (
-        errorName === "NotAllowedError" ||
-        errorName === "SecurityError"
-      ) {
+      if (errorName === "NotAllowedError" || errorName === "SecurityError") {
         setCameraError(
-          "Camera access was not granted. Tap Start Live Camera again and choose Allow when your browser asks for camera permission."
+          "Camera access was not granted. Tap Start Live Camera again and choose Allow when your browser asks for camera permission.",
         );
       } else if (
         errorName === "NotFoundError" ||
         errorName === "DevicesNotFoundError"
       ) {
         setCameraError(
-          "No usable camera was detected on this device. Continue this selfie step from a mobile phone with a camera."
+          "No usable camera was detected on this device. Continue this selfie step from a mobile phone with a camera.",
         );
       } else {
         setCameraError(
-          "The live camera could not start. Close and reopen this page in Chrome, then tap Start Live Camera and choose Allow."
+          "The live camera could not start. Close and reopen this page in Chrome, then tap Start Live Camera and choose Allow.",
         );
       }
     }
@@ -244,29 +263,21 @@ export default function UniversalMediaUploader({
     const video = inlineVideoRef.current;
     const canvas = inlineCanvasRef.current;
 
-    if (
-      !video ||
-      !canvas ||
-      video.videoWidth <= 0 ||
-      video.videoHeight <= 0
-    ) {
+    if (!video || !canvas || video.videoWidth <= 0 || video.videoHeight <= 0) {
       setCameraError(
-        "The camera preview is not ready yet. Wait a moment and try again."
+        "The camera preview is not ready yet. Wait a moment and try again.",
       );
       return;
     }
 
-    const sourceSize = Math.min(
-      video.videoWidth,
-      video.videoHeight
-    );
+    const sourceSize = Math.min(video.videoWidth, video.videoHeight);
     const sourceX = Math.max(
       0,
-      Math.floor((video.videoWidth - sourceSize) / 2)
+      Math.floor((video.videoWidth - sourceSize) / 2),
     );
     const sourceY = Math.max(
       0,
-      Math.floor((video.videoHeight - sourceSize) / 2)
+      Math.floor((video.videoHeight - sourceSize) / 2),
     );
     const outputSize = Math.min(1080, sourceSize);
 
@@ -276,9 +287,7 @@ export default function UniversalMediaUploader({
     const context = canvas.getContext("2d");
 
     if (!context) {
-      setCameraError(
-        "The selfie could not be captured on this browser."
-      );
+      setCameraError("The selfie could not be captured on this browser.");
       return;
     }
 
@@ -291,34 +300,22 @@ export default function UniversalMediaUploader({
       0,
       0,
       outputSize,
-      outputSize
+      outputSize,
     );
 
-    const blob = await new Promise<Blob | null>(
-      (resolve) => {
-        canvas.toBlob(
-          resolve,
-          "image/jpeg",
-          0.9
-        );
-      }
-    );
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/jpeg", 0.9);
+    });
 
     if (!blob) {
-      setCameraError(
-        "The selfie could not be prepared for upload."
-      );
+      setCameraError("The selfie could not be prepared for upload.");
       return;
     }
 
-    const file = new File(
-      [blob],
-      `live-selfie-${Date.now()}.jpg`,
-      {
-        type: "image/jpeg",
-        lastModified: Date.now(),
-      }
-    );
+    const file = new File([blob], `live-selfie-${Date.now()}.jpg`, {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    });
 
     stopInlineCamera();
 
@@ -341,7 +338,7 @@ export default function UniversalMediaUploader({
 
   async function uploadFiles(
     files: FileList | File[],
-    uploadMetadata: Record<string, unknown> = {}
+    uploadMetadata: Record<string, unknown> = {},
   ) {
     const incoming = Array.from(files || []);
     if (!incoming.length || uploading) return;
@@ -351,7 +348,9 @@ export default function UniversalMediaUploader({
     setQualityWarnings([]);
 
     if (value.length + incoming.length > maxFiles) {
-      setMessage(`Maximum ${maxFiles} files allowed. Please remove some files first.`);
+      setMessage(
+        `Maximum ${maxFiles} files allowed. Please remove some files first.`,
+      );
       return;
     }
 
@@ -391,12 +390,16 @@ export default function UniversalMediaUploader({
         }
 
         if (kind === "document" && !allowDocuments) {
-          rejected.push(`${originalFile.name}: Documents are not allowed here.`);
+          rejected.push(
+            `${originalFile.name}: Documents are not allowed here.`,
+          );
           continue;
         }
 
         if (kind === "image") {
-          setProgressText(`AI checking image quality ${index + 1} of ${incoming.length}...`);
+          setProgressText(
+            `AI checking image quality ${index + 1} of ${incoming.length}...`,
+          );
 
           const report = await analyzeImageQuality(originalFile);
           if (report?.warnings?.length) {
@@ -407,7 +410,7 @@ export default function UniversalMediaUploader({
         setProgressText(
           kind === "image"
             ? `Optimizing image ${index + 1} of ${incoming.length}...`
-            : `Preparing ${index + 1} of ${incoming.length}...`
+            : `Preparing ${index + 1} of ${incoming.length}...`,
         );
 
         const file =
@@ -420,11 +423,13 @@ export default function UniversalMediaUploader({
 
         setProgressText(`Uploading ${index + 1} of ${incoming.length}...`);
 
-        const { error } = await supabase.storage.from(bucket).upload(objectPath, file, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: file.type || undefined,
-        });
+        const { error } = await supabase.storage
+          .from(bucket)
+          .upload(objectPath, file, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: file.type || undefined,
+          });
 
         if (error) {
           rejected.push(`${file.name}: ${error.message}`);
@@ -451,7 +456,9 @@ export default function UniversalMediaUploader({
       }
 
       if (uploaded.length && rejected.length) {
-        setMessage(`Uploaded ${uploaded.length} file(s). ${rejected.length} file(s) skipped.`);
+        setMessage(
+          `Uploaded ${uploaded.length} file(s). ${rejected.length} file(s) skipped.`,
+        );
       } else if (uploaded.length) {
         setMessage(`Uploaded ${uploaded.length} file(s) successfully.`);
       } else if (rejected.length) {
@@ -487,13 +494,27 @@ export default function UniversalMediaUploader({
         boxShadow: "0 10px 24px rgba(15,23,42,0.04)",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 10,
+          flexWrap: "wrap",
+        }}
+      >
         <div>
           <div style={{ fontWeight: 950, color: "#111827", fontSize: 15 }}>
             {label}
           </div>
 
-          <div style={{ marginTop: 5, color: "#64748b", fontSize: 13, lineHeight: 1.5 }}>
+          <div
+            style={{
+              marginTop: 5,
+              color: "#64748b",
+              fontSize: 13,
+              lineHeight: 1.5,
+            }}
+          >
             {helperText}
           </div>
         </div>
@@ -514,9 +535,7 @@ export default function UniversalMediaUploader({
         </div>
       </div>
 
-      {inlineCamera &&
-      allowImages &&
-      remainingSlots > 0 ? (
+      {inlineCamera && allowImages && remainingSlots > 0 ? (
         <div
           style={{
             marginTop: 12,
@@ -543,9 +562,8 @@ export default function UniversalMediaUploader({
               lineHeight: 1.55,
             }}
           >
-            Allow camera access, keep your face and
-            business signboard visible, then capture
-            and upload the selfie.
+            Allow camera access, keep your face and business signboard visible,
+            then capture and upload the selfie.
           </div>
 
           {capturedPreviewUrl ? (
@@ -577,8 +595,7 @@ export default function UniversalMediaUploader({
                 style={{
                   marginTop: 10,
                   display: "grid",
-                  gridTemplateColumns:
-                    "repeat(auto-fit, minmax(150px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
                   gap: 8,
                 }}
               >
@@ -609,22 +626,16 @@ export default function UniversalMediaUploader({
             <button
               type="button"
               disabled={uploading || cameraStarting}
-              onClick={() =>
-                void startInlineCamera()
-              }
+              onClick={() => void startInlineCamera()}
               style={{
-                ...buttonStyle(
-                  uploading || cameraStarting
-                ),
+                ...buttonStyle(uploading || cameraStarting),
                 marginTop: 10,
                 width: "100%",
                 background: "#1d4ed8",
                 color: "#ffffff",
               }}
             >
-              {cameraStarting
-                ? "Opening Camera..."
-                : "📷 Start Live Camera"}
+              {cameraStarting ? "Opening Camera..." : "📷 Start Live Camera"}
             </button>
           ) : (
             <div style={{ marginTop: 10 }}>
@@ -651,9 +662,7 @@ export default function UniversalMediaUploader({
                     objectFit: "cover",
                     background: "#0f172a",
                     transform:
-                      cameraFacing === "user"
-                        ? "scaleX(-1)"
-                        : undefined,
+                      cameraFacing === "user" ? "scaleX(-1)" : undefined,
                   }}
                 />
 
@@ -690,32 +699,27 @@ export default function UniversalMediaUploader({
                         fontWeight: 850,
                       }}
                     >
-                      Keep your full face inside the guide and look at the camera.
+                      Keep your full face inside the guide and look at the
+                      camera.
                     </div>
                   </>
                 ) : null}
               </div>
 
-              <canvas
-                ref={inlineCanvasRef}
-                hidden
-              />
+              <canvas ref={inlineCanvasRef} hidden />
 
               <div
                 style={{
                   marginTop: 10,
                   display: "grid",
-                  gridTemplateColumns:
-                    "repeat(auto-fit, minmax(150px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
                   gap: 8,
                 }}
               >
                 <button
                   type="button"
                   disabled={uploading}
-                  onClick={() =>
-                    void captureInlinePhoto()
-                  }
+                  onClick={() => void captureInlinePhoto()}
                   style={{
                     ...buttonStyle(uploading),
                     background: "#16a34a",
@@ -762,8 +766,7 @@ export default function UniversalMediaUploader({
         style={{
           marginTop: 12,
           display: "grid",
-          gridTemplateColumns:
-            "repeat(auto-fit, minmax(130px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
           gap: 10,
         }}
       >
@@ -875,9 +878,10 @@ export default function UniversalMediaUploader({
           lineHeight: 1.5,
         }}
       >
-        <b>AI media guidance:</b> Use daylight, keep the object/property centered,
-        avoid blur, show front view, side view, defects, measurements and surrounding access road.
-        Short videos should be steady and under the size limit.
+        <b>AI media guidance:</b> Use daylight, keep the object/property
+        centered, avoid blur, show front view, side view, defects, measurements
+        and surrounding access road. Short videos should be steady and under the
+        size limit.
       </div>
 
       {qualityWarnings.length ? (
@@ -899,7 +903,10 @@ export default function UniversalMediaUploader({
           </div>
 
           {qualityWarnings.slice(0, 4).map((warning, index) => (
-            <div key={`${warning.type}-${index}`} style={{ marginTop: index ? 4 : 0 }}>
+            <div
+              key={`${warning.type}-${index}`}
+              style={{ marginTop: index ? 4 : 0 }}
+            >
               • {warning.message}
             </div>
           ))}
@@ -989,18 +996,27 @@ export default function UniversalMediaUploader({
                   className="registration-document-link"
                   aria-label={`Open ${asset.name}`}
                 >
-                  <span>
-                    📄 Open PDF
-                  </span>
+                  <span>📄 Open PDF</span>
                 </a>
               )}
 
               <div style={{ padding: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 900, color: "#111827" }}>
-                  {asset.name.length > 26 ? `${asset.name.slice(0, 26)}...` : asset.name}
+                <div
+                  style={{ fontSize: 12, fontWeight: 900, color: "#111827" }}
+                >
+                  {asset.name.length > 26
+                    ? `${asset.name.slice(0, 26)}...`
+                    : asset.name}
                 </div>
 
-                <div style={{ marginTop: 3, fontSize: 11, color: "#64748b", fontWeight: 800 }}>
+                <div
+                  style={{
+                    marginTop: 3,
+                    fontSize: 11,
+                    color: "#64748b",
+                    fontWeight: 800,
+                  }}
+                >
                   {asset.kind} • {formatMediaSize(asset.size)}
                 </div>
 
