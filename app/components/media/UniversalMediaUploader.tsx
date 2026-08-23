@@ -1225,6 +1225,57 @@ export default function UniversalMediaUploader({
                 background: "#fff",
               }}
             >
+              {trustedMode ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 6,
+                    padding: "8px 8px 0",
+                    background: "#ffffff",
+                  }}
+                >
+                  {[
+                    {
+                      label: "LIVE",
+                      bg: "#dcfce7",
+                      fg: "#166534",
+                    },
+                    {
+                      label: "GPS Pending",
+                      bg: "#fef3c7",
+                      fg: "#92400e",
+                    },
+                    {
+                      label: "AI Pending",
+                      bg: "#fef3c7",
+                      fg: "#92400e",
+                    },
+                    {
+                      label: "TRUSTED",
+                      bg: "#dbeafe",
+                      fg: "#1d4ed8",
+                    },
+                  ].map((badge) => (
+                    <span
+                      key={badge.label}
+                      style={{
+                        padding: "3px 8px",
+                        borderRadius: 999,
+                        background: badge.bg,
+                        color: badge.fg,
+                        fontSize: 10,
+                        fontWeight: 900,
+                        letterSpacing: 0.3,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {badge.label}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
               {asset.kind === "image" ? (
                 <img
                   src={asset.url}
