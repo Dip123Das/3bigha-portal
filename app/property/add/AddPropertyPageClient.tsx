@@ -5685,11 +5685,21 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                   value={mediaAssets}
                   onChange={setMediaAssets}
                   label="Property photos / videos"
-                  helperText="Take clear property photos, upload images, or record a short video. First uploaded media becomes cover image."
+                  helperText="Capture two live GPS-verified overview photos first. After verification, additional gallery photos and videos can be uploaded."
                   allowImages
                   allowVideos
                   allowDocuments={false}
                   maxFiles={15}
+
+                  uploadStrategy="trusted"
+
+                  mandatoryTrustedCaptures={2}
+
+                  inlineCamera
+
+                  cameraFacing="environment"
+
+                  cameraOnly={false}
                 />
 
                 <details style={{ marginTop: 14 }}>
