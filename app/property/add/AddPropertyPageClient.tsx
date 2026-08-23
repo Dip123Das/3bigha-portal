@@ -3,7 +3,9 @@
 import type { GeoSelection } from "@/components/geography/GeoSelector";
 import AddressEngine from "@/components/geography/AddressEngine";
 
-
+import {
+  validateTrustedPublication,
+} from "@/lib/media/trusted-publication-gate";
 
 import type React from "react";
 
@@ -3653,8 +3655,27 @@ async function submitForReviewSupabase() {
       });
     }
 
+    setSaveMsg("Checking trusted media...");
+
+    const trustedResult =
+      await validateTrustedPublication(
+        "property",
+        mediaAssets.length,
+      );
+
+    if (!trustedResult.ok) {
+      setSaveMsg(
+        `❌ ${trustedResult.message}`,
+      );
+      return;
+    }
+
     setSaveMsg("Submitting for review...");
-    const finalRes = await callSubmitForReviewApi(currentListingId);
+
+    const finalRes =
+      await callSubmitForReviewApi(
+        currentListingId,
+      );
 
     console.log("Final submit API result:", finalRes);
 
