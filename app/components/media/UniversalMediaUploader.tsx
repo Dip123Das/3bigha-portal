@@ -133,6 +133,26 @@ export default function UniversalMediaUploader({
   const [gpsMessage, setGpsMessage] =
     useState("");
 
+  const [captureSession, setCaptureSession] =
+    useState<{
+      sessionId: string | null;
+      startedAt: string | null;
+      completedAt: string | null;
+      captureNumber: number;
+      status:
+        | "idle"
+        | "created"
+        | "capturing"
+        | "uploaded"
+        | "completed";
+    }>({
+      sessionId: null,
+      startedAt: null,
+      completedAt: null,
+      captureNumber: 0,
+      status: "idle",
+    });
+
   function transitionTrustedState(next: TrustedUploadStatus) {
   setTrustedStatus((current) => {
     if (current === next) return current;
@@ -168,6 +188,22 @@ function incrementTrustedCapture() {
   });
 }
 
+function createCaptureSession() {
+  const sessionId =
+    crypto.randomUUID();
+
+  setCaptureSession({
+    sessionId,
+    startedAt:
+      new Date().toISOString(),
+    completedAt: null,
+    captureNumber:
+      trustedProgress.completed + 1,
+    status: "created",
+  });
+
+  return sessionId;
+}
 async function acquireGpsLocation() {
   if (!navigator.geolocation) {
     setGpsStatus("failed");
@@ -304,6 +340,13 @@ async function acquireGpsLocation() {
       if (!ok) {
         return;
       }
+    }
+    if (trustedMode) {
+      createCaptureSession();
+
+      transitionTrustedState(
+        "session_created",
+      );
     }
     setCameraStarting(true);
       if (trustedMode) {
@@ -447,7 +490,14 @@ async function acquireGpsLocation() {
     if (capturedPreviewUrl) {
       URL.revokeObjectURL(capturedPreviewUrl);
     }
-
+    if (trustedMode) {
+    setCaptureSession(
+      (current) => ({
+        ...current,
+        status: "capturing",
+      }),
+    );
+  }
     setCapturedPhoto(file);
       if (trustedMode) {
     transitionTrustedState("captured");
@@ -592,6 +642,11 @@ try {
         incrementTrustedCapture();
 
         transitionTrustedState("verified");
+
+        setCaptureSession((current) => ({
+          ...current,
+          status: "uploaded",
+        }));
       }
 
       if (uploaded.length && rejected.length) {
@@ -615,6 +670,12 @@ try {
 
         if (completed >= trustedProgress.required) {
           transitionTrustedState("complete");
+
+          setCaptureSession((current) => ({
+            ...current,
+            status: "completed",
+            completedAt: new Date().toISOString(),
+          }));
         } else {
           transitionTrustedState("verified");
         }
@@ -804,6 +865,72 @@ try {
                   m
                 </div>
               ) : null}
+              <div
+              style={{
+                marginTop: 10,
+                padding: 10,
+                borderRadius: 10,
+                border: "1px solid #cbd5e1",
+                background: "#f8fafc",
+                color: "#334155",
+                fontSize: 12,
+                lineHeight: 1.6,
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 950,
+                  color: "#0f172a",
+                }}
+              >
+                Capture Session
+              </div>
+
+              <div style={{ marginTop: 5 }}>
+                Session:{" "}
+                <b>
+                  {captureSession.sessionId
+                    ? captureSession.sessionId.slice(0, 12)
+                    : "Not created"}
+                </b>
+              </div>
+
+              <div>
+                Capture number:{" "}
+                <b>{captureSession.captureNumber || "—"}</b>
+              </div>
+
+              <div>
+                Status:{" "}
+                <b>
+                  {captureSession.status
+                    .replace(/_/g, " ")
+                    .toUpperCase()}
+                </b>
+              </div>
+
+              {captureSession.startedAt ? (
+                <div>
+                  Started:{" "}
+                  <b>
+                    {new Date(
+                      captureSession.startedAt,
+                    ).toLocaleString()}
+                  </b>
+                </div>
+              ) : null}
+
+              {captureSession.completedAt ? (
+                <div>
+                  Completed:{" "}
+                  <b>
+                    {new Date(
+                      captureSession.completedAt,
+                    ).toLocaleString()}
+                  </b>
+                </div>
+              ) : null}
+            </div>
             </div>
           </div>
         </div>
