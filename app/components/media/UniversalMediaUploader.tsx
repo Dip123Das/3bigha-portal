@@ -1393,6 +1393,37 @@ try {
           </>
         ) : null}
 
+        {trustedMode &&
+          inlineCamera &&
+          allowImages &&
+          !cameraOnly ? (
+            <button
+              type="button"
+              disabled={
+                uploading ||
+                remainingSlots <= 0 ||
+                !trustedGalleryReady
+              }
+              onClick={() =>
+                imageInputRef.current?.click()
+              }
+              style={buttonStyle(
+                uploading ||
+                  remainingSlots <= 0 ||
+                  !trustedGalleryReady,
+              )}
+              title={
+                trustedGalleryReady
+                  ? "Upload additional gallery photos"
+                  : "Complete all mandatory live captures first"
+              }
+            >
+              {trustedGalleryReady
+                ? "🖼 Add Gallery Photos"
+                : "🔒 Gallery Photos Locked"}
+            </button>
+          ) : null}
+
         {allowVideos ? (
           <button
             type="button"
