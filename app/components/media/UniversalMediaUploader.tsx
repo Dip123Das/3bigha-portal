@@ -483,6 +483,21 @@ export default function UniversalMediaUploader({
   const usedSlots = value.length;
   const remainingSlots = Math.max(0, maxFiles - usedSlots);
 
+  const trustedRequired = Math.max(
+    1,
+    trustedProgress.required,
+  );
+  const trustedCompleted = Math.min(
+    trustedRequired,
+    Math.max(0, trustedProgress.completed),
+  );
+  const trustedCompletionPercent = Math.round(
+    (trustedCompleted / trustedRequired) * 100,
+  );
+  const trustedGalleryReady =
+    trustedProgress.galleryUnlocked ||
+    trustedCompleted >= trustedRequired;
+
   return (
     <div
       style={{
@@ -578,6 +593,163 @@ export default function UniversalMediaUploader({
           >
             Complete the mandatory live captures before
             gallery uploads are unlocked.
+          </div>
+        </div>
+      ) : null}
+
+      {trustedMode ? (
+        <div
+          style={{
+            marginBottom: 14,
+            border: "1px solid #e2e8f0",
+            borderRadius: 16,
+            padding: 14,
+            background: "#ffffff",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  color: "#0f172a",
+                  fontSize: 14,
+                  fontWeight: 950,
+                }}
+              >
+                Mandatory Live Captures
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  color: "#64748b",
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                }}
+              >
+                Capture the actual listing through the
+                live camera before adding gallery media.
+              </div>
+            </div>
+
+            <div
+              style={{
+                border: trustedGalleryReady
+                  ? "1px solid #bbf7d0"
+                  : "1px solid #fde68a",
+                borderRadius: 999,
+                padding: "6px 10px",
+                background: trustedGalleryReady
+                  ? "#f0fdf4"
+                  : "#fffbeb",
+                color: trustedGalleryReady
+                  ? "#166534"
+                  : "#92400e",
+                fontSize: 12,
+                fontWeight: 950,
+              }}
+            >
+              {trustedCompleted}/{trustedRequired} completed
+            </div>
+          </div>
+
+          <div
+            aria-label={`${trustedCompletionPercent}% of mandatory trusted captures completed`}
+            style={{
+              marginTop: 12,
+              height: 10,
+              overflow: "hidden",
+              borderRadius: 999,
+              background: "#e2e8f0",
+            }}
+          >
+            <div
+              style={{
+                width: `${trustedCompletionPercent}%`,
+                height: "100%",
+                borderRadius: 999,
+                background: trustedGalleryReady
+                  ? "#16a34a"
+                  : "#2563eb",
+                transition: "width 180ms ease",
+              }}
+            />
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              display: "grid",
+              gridTemplateColumns: `repeat(${trustedRequired}, minmax(28px, 1fr))`,
+              gap: 7,
+            }}
+          >
+            {Array.from(
+              { length: trustedRequired },
+              (_, index) => {
+                const completed =
+                  index < trustedCompleted;
+
+                return (
+                  <div
+                    key={`trusted-capture-${index + 1}`}
+                    style={{
+                      minHeight: 34,
+                      display: "grid",
+                      placeItems: "center",
+                      border: completed
+                        ? "1px solid #86efac"
+                        : "1px solid #cbd5e1",
+                      borderRadius: 10,
+                      background: completed
+                        ? "#f0fdf4"
+                        : "#f8fafc",
+                      color: completed
+                        ? "#166534"
+                        : "#64748b",
+                      fontSize: 12,
+                      fontWeight: 950,
+                    }}
+                  >
+                    {completed
+                      ? `✓ ${index + 1}`
+                      : index + 1}
+                  </div>
+                );
+              },
+            )}
+          </div>
+
+          <div
+            style={{
+              marginTop: 12,
+              border: trustedGalleryReady
+                ? "1px solid #bbf7d0"
+                : "1px solid #fed7aa",
+              borderRadius: 12,
+              padding: "10px 11px",
+              background: trustedGalleryReady
+                ? "#f0fdf4"
+                : "#fff7ed",
+              color: trustedGalleryReady
+                ? "#166534"
+                : "#9a3412",
+              fontSize: 12,
+              fontWeight: 850,
+              lineHeight: 1.5,
+            }}
+          >
+            {trustedGalleryReady
+              ? "✓ Mandatory live captures are complete. Gallery upload is ready."
+              : "🔒 Gallery upload will unlock after all mandatory live captures are completed."}
           </div>
         </div>
       ) : null}
