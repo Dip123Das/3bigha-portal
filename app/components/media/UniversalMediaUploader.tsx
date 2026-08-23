@@ -494,6 +494,94 @@ export default function UniversalMediaUploader({
         boxShadow: "0 10px 24px rgba(15,23,42,0.04)",
       }}
     >
+      {trustedMode && showTrustedBanner ? (
+        <div
+          style={{
+            marginBottom: 14,
+            border: "1px solid #bfdbfe",
+            borderRadius: 16,
+            padding: 14,
+            background:
+              "linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              color: "#1e3a8a",
+              fontSize: 15,
+              fontWeight: 950,
+            }}
+          >
+            <span aria-hidden="true">🔒</span>
+            Trusted Listing Mode
+          </div>
+
+          <div
+            style={{
+              marginTop: 7,
+              color: "#475569",
+              fontSize: 13,
+              lineHeight: 1.6,
+            }}
+          >
+            Live camera evidence, GPS verification,
+            capture date and time, and AI checks help
+            buyers trust this listing.
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(145px, 1fr))",
+              gap: 8,
+            }}
+          >
+            {[
+              "Live camera required",
+              "GPS verification",
+              "Date and time recorded",
+              "AI review prepared",
+            ].map((item) => (
+              <div
+                key={item}
+                style={{
+                  border: "1px solid #dbeafe",
+                  borderRadius: 10,
+                  padding: "8px 9px",
+                  background: "#ffffff",
+                  color: "#1e3a8a",
+                  fontSize: 12,
+                  fontWeight: 850,
+                }}
+              >
+                ✓ {item}
+              </div>
+            ))}
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              borderRadius: 10,
+              padding: "8px 10px",
+              background: "#fff7ed",
+              color: "#9a3412",
+              fontSize: 12,
+              fontWeight: 850,
+              lineHeight: 1.5,
+            }}
+          >
+            Complete the mandatory live captures before
+            gallery uploads are unlocked.
+          </div>
+        </div>
+      ) : null}
+
       <div
         style={{
           display: "flex",
