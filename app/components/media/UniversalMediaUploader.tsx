@@ -116,6 +116,41 @@ export default function UniversalMediaUploader({
       galleryUnlocked: false,
     });
 
+  function transitionTrustedState(next: TrustedUploadStatus) {
+  setTrustedStatus((current) => {
+    if (current === next) return current;
+    return next;
+  });
+}
+
+function updateTrustedProgress(
+  updater:
+    | TrustedUploadProgress
+    | ((current: TrustedUploadProgress) => TrustedUploadProgress),
+) {
+  setTrustedProgress((current) =>
+    typeof updater === "function"
+      ? updater(current)
+      : updater,
+  );
+}
+
+function incrementTrustedCapture() {
+  updateTrustedProgress((current) => {
+    const completed = Math.min(
+      current.required,
+      current.completed + 1,
+    );
+
+    return {
+      ...current,
+      completed,
+      galleryUnlocked:
+        completed >= current.required,
+    };
+  });
+}
+
   function stopInlineCamera() {
     const stream = inlineStreamRef.current;
 
@@ -194,6 +229,9 @@ export default function UniversalMediaUploader({
 
     setCameraError("");
     setCameraStarting(true);
+      if (trustedMode) {
+      transitionTrustedState("camera_ready");
+    }
     clearCapturedPhoto();
 
     try {
@@ -324,6 +362,9 @@ export default function UniversalMediaUploader({
     }
 
     setCapturedPhoto(file);
+      if (trustedMode) {
+    transitionTrustedState("captured");
+  }
     setCapturedAt(new Date().toISOString());
     setCapturedPreviewUrl(URL.createObjectURL(file));
   }
@@ -355,10 +396,15 @@ export default function UniversalMediaUploader({
     }
 
     setUploading(true);
+      if (trustedMode) {
+    transitionTrustedState("uploading");
+  }
 
-    try {
+    let uploaded: UploadedMediaAsset[] = [];
+
+try {
       const bucket = MEDIA_BUCKET_BY_MODULE[module];
-      const uploaded: UploadedMediaAsset[] = [];
+      uploaded = [];
       const rejected: string[] = [];
       const baseFolder =
         folder?.trim() || `${module}/${new Date().getFullYear()}/${Date.now()}`;
@@ -455,6 +501,12 @@ export default function UniversalMediaUploader({
         onChange([...value, ...uploaded]);
       }
 
+      if (trustedMode && uploaded.length) {
+        incrementTrustedCapture();
+
+        transitionTrustedState("verified");
+      }
+
       if (uploaded.length && rejected.length) {
         setMessage(
           `Uploaded ${uploaded.length} file(s). ${rejected.length} file(s) skipped.`,
@@ -470,6 +522,17 @@ export default function UniversalMediaUploader({
       console.error(e);
       setMessage(e?.message || "Upload failed.");
     } finally {
+      if (trustedMode) {
+        const completed =
+          trustedProgress.completed + uploaded.length;
+
+        if (completed >= trustedProgress.required) {
+          transitionTrustedState("complete");
+        } else {
+          transitionTrustedState("verified");
+        }
+      }
+
       setUploading(false);
       setProgressText("");
     }
@@ -532,6 +595,26 @@ export default function UniversalMediaUploader({
           >
             <span aria-hidden="true">🔒</span>
             Trusted Listing Mode
+            <div
+  style={{
+    marginTop: 6,
+    fontSize: 12,
+    color: "#64748b",
+    fontWeight: 800,
+  }}
+>
+  Status :
+  <span
+    style={{
+      marginLeft: 6,
+      color: "#2563eb",
+    }}
+  >
+    {trustedStatus
+      .replace(/_/g, " ")
+      .toUpperCase()}
+  </span>
+</div>
           </div>
 
           <div
@@ -1242,20 +1325,53 @@ export default function UniversalMediaUploader({
                       fg: "#166534",
                     },
                     {
-                      label: "GPS Pending",
-                      bg: "#fef3c7",
-                      fg: "#92400e",
-                    },
+                      label:
+                        trustedStatus === "verified" ||
+                        trustedStatus === "complete"
+                          ? "GPS VERIFIED"
+                          : "GPS PENDING",
+
+                      bg:
+                        trustedStatus === "verified" ||
+                        trustedStatus === "complete"
+                          ? "#dcfce7"
+                          : "#fef3c7",
+
+                      fg:
+                        trustedStatus === "verified" ||
+                        trustedStatus === "complete"
+                          ? "#166534"
+                          : "#92400e",
+                  },
                     {
-                      label: "AI Pending",
-                      bg: "#fef3c7",
-                      fg: "#92400e",
-                    },
+                      label:
+                        trustedStatus === "verified" ||
+                        trustedStatus === "complete"
+                          ? "AI VERIFIED"
+                          : "AI PENDING",
+
+                      bg:
+                        trustedStatus === "verified" ||
+                        trustedStatus === "complete"
+                          ? "#dcfce7"
+                          : "#fef3c7",
+
+                      fg:
+                        trustedStatus === "verified" ||
+                        trustedStatus === "complete"
+                          ? "#166534"
+                          : "#92400e",
+                  },
                     {
-                      label: "TRUSTED",
+                      label:
+                        trustedStatus === "complete"
+                          ? "COMPLETE"
+                          : "TRUSTED",
+
                       bg: "#dbeafe",
+
                       fg: "#1d4ed8",
-                    },
+                  },
                   ].map((badge) => (
                     <span
                       key={badge.label}
