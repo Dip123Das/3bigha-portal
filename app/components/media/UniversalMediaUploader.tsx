@@ -116,6 +116,23 @@ export default function UniversalMediaUploader({
       galleryUnlocked: false,
     });
 
+  const [gpsStatus, setGpsStatus] = useState<
+    "idle" |
+    "requesting" |
+    "success" |
+    "failed"
+  >("idle");
+
+  const [gpsCoordinates, setGpsCoordinates] =
+    useState<{
+      latitude: number;
+      longitude: number;
+      accuracy: number;
+    } | null>(null);
+
+  const [gpsMessage, setGpsMessage] =
+    useState("");
+
   function transitionTrustedState(next: TrustedUploadStatus) {
   setTrustedStatus((current) => {
     if (current === next) return current;
@@ -148,6 +165,58 @@ function incrementTrustedCapture() {
       galleryUnlocked:
         completed >= current.required,
     };
+  });
+}
+
+async function acquireGpsLocation() {
+  if (!navigator.geolocation) {
+    setGpsStatus("failed");
+    setGpsMessage(
+      "GPS is not supported on this device.",
+    );
+    return false;
+  }
+
+  setGpsStatus("requesting");
+  setGpsMessage(
+    "Acquiring GPS location...",
+  );
+
+  return new Promise<boolean>((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setGpsCoordinates({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        });
+
+        setGpsStatus("success");
+        setGpsMessage(
+          "GPS acquired successfully.",
+        );
+
+        transitionTrustedState(
+          "waiting_gps",
+        );
+
+        resolve(true);
+      },
+
+      () => {
+        setGpsStatus("failed");
+        setGpsMessage(
+          "Unable to obtain GPS location.",
+        );
+        resolve(false);
+      },
+
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    );
   });
 }
 
@@ -228,6 +297,14 @@ function incrementTrustedCapture() {
     }
 
     setCameraError("");
+    if (trustedMode) {
+      const ok =
+        await acquireGpsLocation();
+
+      if (!ok) {
+        return;
+      }
+    }
     setCameraStarting(true);
       if (trustedMode) {
       transitionTrustedState("camera_ready");
@@ -298,6 +375,16 @@ function incrementTrustedCapture() {
   }
 
   async function captureInlinePhoto() {
+    if (
+      trustedMode &&
+      gpsStatus !== "success"
+    ) {
+      setCameraError(
+        "GPS verification is required before capturing a trusted photo.",
+      );
+
+      return;
+    }
     const video = inlineVideoRef.current;
     const canvas = inlineCanvasRef.current;
 
@@ -676,6 +763,48 @@ try {
           >
             Complete the mandatory live captures before
             gallery uploads are unlocked.
+            <div
+              style={{
+                marginTop: 10,
+                padding: 10,
+                borderRadius: 10,
+                border: "1px solid #dbeafe",
+                background: "#ffffff",
+                fontSize: 12,
+                fontWeight: 800,
+                color: "#334155",
+              }}
+            >
+              <div>
+                GPS Status :
+                {" "}
+                <b>{gpsStatus.toUpperCase()}</b>
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                }}
+              >
+                {gpsMessage || "GPS not acquired."}
+              </div>
+
+              {gpsCoordinates ? (
+                <div
+                  style={{
+                    marginTop: 4,
+                    fontSize: 11,
+                  }}
+                >
+                  Accuracy :
+                  {" "}
+                  {Math.round(
+                    gpsCoordinates.accuracy,
+                  )}
+                  m
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : null}
