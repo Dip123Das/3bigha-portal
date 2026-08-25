@@ -1138,7 +1138,17 @@ export default function BuilderAddProjectPage() {
               allowVideos
               allowDocuments
               maxFiles={20}
-            />
+            
+                  uploadStrategy="trusted"
+
+                  mandatoryTrustedCaptures={2}
+
+                  inlineCamera
+
+                  cameraFacing="environment"
+
+                  cameraOnly={false}
+/>
 
             <div style={{ height: 18 }} />
             <div style={{ fontWeight: 900, marginBottom: 10 }}>Location & address</div>

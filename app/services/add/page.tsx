@@ -2482,7 +2482,17 @@ function TurnkeyToggle() {
                             allowVideos
                             allowDocuments={false}
                             maxFiles={10}
-                          />
+                          
+                  uploadStrategy="trusted"
+
+                  mandatoryTrustedCaptures={1}
+
+                  inlineCamera
+
+                  cameraFacing="environment"
+
+                  cameraOnly={false}
+/>
                         </div>
                         </div>
 

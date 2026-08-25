@@ -1765,7 +1765,17 @@ router.push("/materials");
                   allowVideos
                   allowDocuments={false}
                   maxFiles={12}
-                />
+                
+                  uploadStrategy="trusted"
+
+                  mandatoryTrustedCaptures={1}
+
+                  inlineCamera
+
+                  cameraFacing="environment"
+
+                  cameraOnly={false}
+/>
 
                 <details style={{ marginTop: 10 }}>
                   <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 900, color: "#374151" }}>
