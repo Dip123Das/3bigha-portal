@@ -63,6 +63,8 @@ type BuilderProjectInsert = {
   launch_date?: string | null; // YYYY-MM-DD
   possession_date?: string | null; // YYYY-MM-DD
 
+  trusted_media_json?: UploadedMediaAsset[];
+
   status?: string | null;
 };
 
@@ -699,6 +701,12 @@ export default function BuilderAddProjectPage() {
         rera_id: reraId.trim() ? reraId.trim() : null,
         launch_date: parseDateYYYYMMDD(launchDate) ?? null,
         possession_date: parseDateYYYYMMDD(possessionDate) ?? null,
+
+        trusted_media_json: mediaAssets.map(
+          (asset) => ({
+            ...asset,
+          }),
+        ),
 
         status: "draft",
       };
