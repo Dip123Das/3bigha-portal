@@ -2492,16 +2492,11 @@ useEffect(() => {
     },
 
     media: mediaAssets.length
-      ? mediaAssets.map((asset) => ({
-          id: asset.id,
-          url: asset.url,
-          bucket: asset.bucket,
-          path: asset.path,
-          name: asset.name,
-          size: asset.size,
-          mimeType: asset.mimeType,
-          kind: asset.kind,
-        }))
+      ? mediaAssets.map(
+          (asset) => ({
+            ...asset,
+          }),
+        )
       : cleanedMedia,
 
     
