@@ -2,84 +2,10 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import {
-  buildTrustedPublicationContext,
-  validateTrustedPublication,
-} from "@/lib/media/trusted-publication-gate";
+  evaluateTrustedPublication,
+} from "@/lib/media/trusted-publication-server";
 
 export const dynamic = "force-dynamic";
-
-function extractPersistedMediaAssets(mediaJson: unknown): unknown[] {
-  if (Array.isArray(mediaJson)) {
-    return mediaJson.filter(
-      (asset) =>
-        asset !== null &&
-        typeof asset === "object" &&
-        !Array.isArray(asset),
-    );
-  }
-
-  if (
-    mediaJson &&
-    typeof mediaJson === "object" &&
-    !Array.isArray(mediaJson)
-  ) {
-    const record =
-      mediaJson as Record<string, unknown>;
-
-    const candidates = [
-      record.media,
-      record.media_assets,
-      record.assets,
-      record.items,
-    ];
-
-    for (const candidate of candidates) {
-      if (Array.isArray(candidate)) {
-        return candidate.filter(
-          (asset) =>
-            asset !== null &&
-            typeof asset === "object" &&
-            !Array.isArray(asset),
-        );
-      }
-    }
-  }
-
-  return [];
-}
-
-function hasExplicitAiFailure(
-  mediaAssets: unknown[],
-): boolean {
-  const blockedStatuses = new Set([
-    "failed",
-    "rejected",
-    "mismatch",
-  ]);
-
-  return mediaAssets.some((asset) => {
-    if (
-      !asset ||
-      typeof asset !== "object" ||
-      Array.isArray(asset)
-    ) {
-      return false;
-    }
-
-    const record =
-      asset as Record<string, unknown>;
-
-    const status = String(
-      record.aiVerificationStatus ??
-        record.ai_verification_status ??
-        "",
-    )
-      .trim()
-      .toLowerCase();
-
-    return blockedStatuses.has(status);
-  });
-}
 
 export async function POST(req: Request) {
   try {
@@ -226,99 +152,64 @@ export async function POST(req: Request) {
       });
     }
 
-    const persistedMedia =
-      extractPersistedMediaAssets(
-        existing.data.media_json,
-      );
-
     /*
-     * Build the context entirely from persisted
-     * evidence. Client-supplied booleans are never
-     * trusted by this endpoint.
+     * Canonical server-side Trusted Listing Media
+     * authority. Evidence comes only from the
+     * persisted listing.
      */
-    const trustedContext =
-      buildTrustedPublicationContext(
-        persistedMedia as any[],
-      );
-
-    const trustedResult =
-      await validateTrustedPublication(
+    const trustedDecision =
+      await evaluateTrustedPublication(
         "property",
-        trustedContext,
+        existing.data.media_json,
       );
 
     console.log(
       "[submit-for-review] trusted-media",
       {
         listingId,
-        persistedAssets:
-          persistedMedia.length,
         requiredCaptures:
-          trustedResult.requiredCaptures,
+          trustedDecision.requiredCaptures,
         completedCaptures:
-          trustedResult.completedCaptures,
+          trustedDecision.completedCaptures,
         gpsVerified:
-          trustedContext.gpsVerified,
+          trustedDecision.gpsVerified,
         provenanceVerified:
-          trustedContext.provenanceVerified,
+          trustedDecision.provenanceVerified,
         captureSessionCompleted:
-          trustedContext.captureSessionCompleted,
+          trustedDecision.captureSessionCompleted,
         aiVerificationStatus:
-          trustedContext.aiVerificationStatus,
-        ok: trustedResult.ok,
+          trustedDecision.aiVerificationStatus,
+        explicitAiFailure:
+          trustedDecision.explicitAiFailure,
+        ok: trustedDecision.ok,
       },
     );
 
-    if (!trustedResult.ok) {
+    if (!trustedDecision.ok) {
       return NextResponse.json(
         {
           error: {
             code:
+              trustedDecision.code ||
               "TRUSTED_MEDIA_REQUIRED",
             message:
-              trustedResult.message ||
+              trustedDecision.message ||
               "Trusted media verification is incomplete.",
             trustedPublication: {
               module: "property",
               requiredCaptures:
-                trustedResult.requiredCaptures,
+                trustedDecision.requiredCaptures,
               completedCaptures:
-                trustedResult.completedCaptures,
+                trustedDecision.completedCaptures,
               gpsVerified:
-                trustedContext.gpsVerified,
+                trustedDecision.gpsVerified,
               provenanceVerified:
-                trustedContext.provenanceVerified,
+                trustedDecision.provenanceVerified,
               captureSessionCompleted:
-                trustedContext.captureSessionCompleted,
+                trustedDecision.captureSessionCompleted,
               aiVerificationStatus:
-                trustedContext.aiVerificationStatus,
+                trustedDecision.aiVerificationStatus,
             },
-          },
-        },
-        { status: 409 },
-      );
-    }
-
-    /*
-     * Until the AI media-matching service becomes
-     * mandatory, pending/not-started AI review does
-     * not block submission.
-     *
-     * But an explicit negative AI decision must
-     * never be ignored.
-     */
-    if (
-      hasExplicitAiFailure(
-        persistedMedia,
-      )
-    ) {
-      return NextResponse.json(
-        {
-          error: {
-            code:
-              "TRUSTED_MEDIA_AI_MISMATCH",
-            message:
-              "AI media verification detected a significant mismatch. Correct the listing details or upload genuine media before submitting for review.",
           },
         },
         { status: 409 },
@@ -374,9 +265,9 @@ export async function POST(req: Request) {
       trustedPublication: {
         module: "property",
         requiredCaptures:
-          trustedResult.requiredCaptures,
+          trustedDecision.requiredCaptures,
         completedCaptures:
-          trustedResult.completedCaptures,
+          trustedDecision.completedCaptures,
         serverVerified: true,
       },
     });
