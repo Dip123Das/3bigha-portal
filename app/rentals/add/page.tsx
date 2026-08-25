@@ -21,6 +21,10 @@ import {
 import { ensureBusinessProfileComplete } from "@/lib/ensureBusinessProfileComplete";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import {
+  buildTrustedPublicationContext,
+  TRUSTED_PUBLICATION_POLICY,
+} from "@/lib/media/trusted-publication-gate";
 import { trackVendorConversionClient } from "@/components/marketplace/vendor-conversion-client";
 
 type Cat = {
@@ -148,6 +152,26 @@ export default function AddRentalPage() {
 
   const [photosText, setPhotosText] = useState("");
   const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
+
+  const trustedReadiness = useMemo(
+    () =>
+      buildTrustedPublicationContext(
+        mediaAssets,
+      ),
+    [mediaAssets],
+  );
+
+  const rentalRequiredCaptures =
+    TRUSTED_PUBLICATION_POLICY
+      .rentals
+      .requiredCaptures;
+
+  const rentalPublicationReady =
+    trustedReadiness.completedCaptures >=
+      rentalRequiredCaptures &&
+    trustedReadiness.gpsVerified === true &&
+    trustedReadiness.provenanceVerified === true &&
+    trustedReadiness.captureSessionCompleted === true;
 
   // UX
   const [saving, setSaving] = useState(false);
@@ -665,17 +689,34 @@ export default function AddRentalPage() {
       geo_place_id: geography?.geo_place_id || null,
 
       photos: [
-        ...mediaAssets.map((asset) => ({
-          url: asset.url,
-          kind: asset.kind,
-          bucket: asset.bucket,
-          path: asset.path,
-          name: asset.name,
-          size: asset.size,
-          mimeType: asset.mimeType,
-        })),
+        ...mediaAssets.map(
+          (asset) => ({
+            ...asset,
+          }),
+        ),
         ...safeJsonPhotosFromText(photosText),
       ],
+
+      trusted_publication: {
+        module: "rentals",
+        required_captures:
+          rentalRequiredCaptures,
+        completed_captures:
+          trustedReadiness.completedCaptures,
+        gps_verified:
+          trustedReadiness.gpsVerified === true,
+        provenance_verified:
+          trustedReadiness.provenanceVerified === true,
+        capture_session_completed:
+          trustedReadiness.captureSessionCompleted === true,
+        ai_verification_status:
+          trustedReadiness.aiVerificationStatus ??
+          "not_started",
+        publication_ready:
+          rentalPublicationReady,
+        evaluated_at:
+          new Date().toISOString(),
+      },
 
       status: "draft",
       is_active: true,
@@ -1203,28 +1244,119 @@ export default function AddRentalPage() {
               </div>
             </Section>
 
-            <Section title="5) Photos / Videos (optional)" open={openPhotos} setOpen={setOpenPhotos}>
+            <Section title="5) Trusted Photos / Videos" open={openPhotos} setOpen={setOpenPhotos}>
               <UniversalMediaUploader
                 module="rentals"
                 value={mediaAssets}
                 onChange={setMediaAssets}
                 label="Rental item photos / videos"
-                helperText="Take equipment, room, vehicle, machine, property or site photos. You can also record a short video showing condition and availability."
+                helperText="Capture one genuine live GPS-backed photo of the actual rental item, property, room, vehicle, machine or equipment first. Additional gallery media is available after the mandatory capture."
                 allowImages
                 allowVideos
                 allowDocuments={false}
                 maxFiles={12}
-              
-                  uploadStrategy="trusted"
+                uploadStrategy="trusted"
+                mandatoryTrustedCaptures={1}
+                inlineCamera
+                cameraFacing="environment"
+                cameraOnly={false}
+              />
 
-                  mandatoryTrustedCaptures={1}
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: 14,
+                  borderRadius: 12,
+                  border: rentalPublicationReady
+                    ? "1px solid #bbf7d0"
+                    : "1px solid #fed7aa",
+                  background: rentalPublicationReady
+                    ? "#f0fdf4"
+                    : "#fff7ed",
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: 900,
+                    color: rentalPublicationReady
+                      ? "#166534"
+                      : "#9a3412",
+                  }}
+                >
+                  Rental Trusted Publication Readiness
+                </div>
 
-                  inlineCamera
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fit, minmax(180px, 1fr))",
+                    gap: 8,
+                    marginTop: 10,
+                    fontSize: 13,
+                  }}
+                >
+                  <div>
+                    Mandatory live captures:{" "}
+                    <b>
+                      {trustedReadiness.completedCaptures}/
+                      {rentalRequiredCaptures}
+                    </b>
+                  </div>
 
-                  cameraFacing="environment"
+                  <div>
+                    GPS:{" "}
+                    <b>
+                      {trustedReadiness.gpsVerified
+                        ? "Verified"
+                        : "Pending"}
+                    </b>
+                  </div>
 
-                  cameraOnly={false}
-/>
+                  <div>
+                    Live provenance:{" "}
+                    <b>
+                      {trustedReadiness.provenanceVerified
+                        ? "Verified"
+                        : "Pending"}
+                    </b>
+                  </div>
+
+                  <div>
+                    Capture session:{" "}
+                    <b>
+                      {trustedReadiness.captureSessionCompleted
+                        ? "Completed"
+                        : "Pending"}
+                    </b>
+                  </div>
+
+                  <div>
+                    AI media review:{" "}
+                    <b>
+                      {trustedReadiness.aiVerificationStatus ===
+                      "verified"
+                        ? "Verified"
+                        : "Pending"}
+                    </b>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 12,
+                    fontWeight: 900,
+                    lineHeight: 1.5,
+                    color: rentalPublicationReady
+                      ? "#166534"
+                      : "#9a3412",
+                  }}
+                >
+                  {rentalPublicationReady
+                    ? "✓ Mandatory trusted evidence completed. This rental draft is ready for the future publication gate."
+                    : "Draft saving remains available. Complete one genuine live GPS-backed rental capture before publication."}
+                </div>
+              </div>
 
               <details style={{ marginTop: 12 }}>
                 <summary style={{ cursor: "pointer", fontWeight: 900, color: "#374151" }}>
