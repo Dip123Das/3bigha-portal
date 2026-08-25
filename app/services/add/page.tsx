@@ -11,6 +11,11 @@ import {
 } from "@/lib/vendors/vendorListingMemory";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import {
+  buildTrustedPublicationContext,
+  TRUSTED_PUBLICATION_POLICY,
+  validateTrustedPublication,
+} from "@/lib/media/trusted-publication-gate";
 
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
@@ -1007,6 +1012,26 @@ function TurnkeyToggle() {
     activeDraftKey,
   ]);
 
+  const activeServiceReadiness = useMemo(
+    () =>
+      buildTrustedPublicationContext(
+        activeDraft?.media_assets ?? [],
+      ),
+    [activeDraft?.media_assets],
+  );
+
+  const serviceRequiredCaptures =
+    TRUSTED_PUBLICATION_POLICY
+      .services
+      .requiredCaptures;
+
+  const activeServicePublicationReady =
+    activeServiceReadiness.completedCaptures >=
+      serviceRequiredCaptures &&
+    activeServiceReadiness.gpsVerified === true &&
+    activeServiceReadiness.provenanceVerified === true &&
+    activeServiceReadiness.captureSessionCompleted === true;
+
   function draftTitle(d: ServiceDraft) {
     const base =
       d.pickMode === "catalog"
@@ -1134,6 +1159,45 @@ function TurnkeyToggle() {
       return;
     }
 
+    if (
+      record_status === "published" &&
+      dedupedDrafts.length > 0
+    ) {
+      const blockedServices: string[] = [];
+
+      for (const draft of dedupedDrafts) {
+        const trustedResult =
+          await validateTrustedPublication(
+            "services",
+            draft.media_assets ?? [],
+          );
+
+        if (!trustedResult.ok) {
+          blockedServices.push(
+            `${buildTitle(draft)}: ${
+              trustedResult.message ||
+              "Trusted media verification failed."
+            }`,
+          );
+        }
+      }
+
+      if (blockedServices.length > 0) {
+        const message = [
+          "Publication blocked. Complete the mandatory trusted live capture for every service:",
+          "",
+          ...blockedServices.map(
+            (item, index) =>
+              `${index + 1}. ${item}`,
+          ),
+        ].join("\n");
+
+        setErr(message);
+        alert(message);
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       let geography: any = null;
@@ -1188,6 +1252,18 @@ function TurnkeyToggle() {
 
         const { min_price, max_price } = decideMinMaxPrice(d);
 
+        const serviceTrustedReadiness =
+          buildTrustedPublicationContext(
+            d.media_assets ?? [],
+          );
+
+        const servicePublicationReady =
+          serviceTrustedReadiness.completedCaptures >=
+            serviceRequiredCaptures &&
+          serviceTrustedReadiness.gpsVerified === true &&
+          serviceTrustedReadiness.provenanceVerified === true &&
+          serviceTrustedReadiness.captureSessionCompleted === true;
+
         const payload: any = {
           provider_id: providerId,
           record_status,
@@ -1215,6 +1291,34 @@ function TurnkeyToggle() {
           geo_subdivision_id: geography?.geo_subdivision_id || null,
           geo_block_id: geography?.geo_block_id || null,
           geo_place_id: geography?.geo_place_id || null,
+
+          media_assets:
+            (d.media_assets ?? []).map(
+              (asset) => ({
+                ...asset,
+              }),
+            ),
+
+          trusted_publication: {
+            module: "services",
+            required_captures:
+              serviceRequiredCaptures,
+            completed_captures:
+              serviceTrustedReadiness.completedCaptures,
+            gps_verified:
+              serviceTrustedReadiness.gpsVerified === true,
+            provenance_verified:
+              serviceTrustedReadiness.provenanceVerified === true,
+            capture_session_completed:
+              serviceTrustedReadiness.captureSessionCompleted === true,
+            ai_verification_status:
+              serviceTrustedReadiness.aiVerificationStatus ??
+              "not_started",
+            publication_ready:
+              servicePublicationReady,
+            evaluated_at:
+              new Date().toISOString(),
+          },
         };
 
         try {
@@ -2475,24 +2579,119 @@ function TurnkeyToggle() {
                           <UniversalMediaUploader
                             module="services"
                             value={activeDraft.media_assets || []}
-                            onChange={(assets) => setDraft(activeDraft.key, { media_assets: assets })}
+                            onChange={(assets) =>
+                              setDraft(activeDraft.key, {
+                                media_assets: assets,
+                              })
+                            }
                             label="Service work photos / videos"
-                            helperText="Upload work photos, before/after images, certificates, team photos, tools, or a short work-site video."
+                            helperText="Capture one genuine live GPS-backed photo of your actual work, team, tools, equipment or work site first. Additional gallery photos and videos are available after the mandatory capture."
                             allowImages
                             allowVideos
                             allowDocuments={false}
                             maxFiles={10}
-                          
-                  uploadStrategy="trusted"
+                            uploadStrategy="trusted"
+                            mandatoryTrustedCaptures={1}
+                            inlineCamera
+                            cameraFacing="environment"
+                            cameraOnly={false}
+                          />
 
-                  mandatoryTrustedCaptures={1}
+                          <div
+                            style={{
+                              marginTop: 12,
+                              padding: 14,
+                              borderRadius: 12,
+                              border: activeServicePublicationReady
+                                ? "1px solid #bbf7d0"
+                                : "1px solid #fed7aa",
+                              background: activeServicePublicationReady
+                                ? "#f0fdf4"
+                                : "#fff7ed",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontWeight: 900,
+                                color: activeServicePublicationReady
+                                  ? "#166534"
+                                  : "#9a3412",
+                              }}
+                            >
+                              Service Trusted Publication Readiness
+                            </div>
 
-                  inlineCamera
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns:
+                                  "repeat(auto-fit, minmax(180px, 1fr))",
+                                gap: 8,
+                                marginTop: 10,
+                                fontSize: 13,
+                              }}
+                            >
+                              <div>
+                                Mandatory live captures:{" "}
+                                <b>
+                                  {activeServiceReadiness.completedCaptures}/
+                                  {serviceRequiredCaptures}
+                                </b>
+                              </div>
 
-                  cameraFacing="environment"
+                              <div>
+                                GPS:{" "}
+                                <b>
+                                  {activeServiceReadiness.gpsVerified
+                                    ? "Verified"
+                                    : "Pending"}
+                                </b>
+                              </div>
 
-                  cameraOnly={false}
-/>
+                              <div>
+                                Live provenance:{" "}
+                                <b>
+                                  {activeServiceReadiness.provenanceVerified
+                                    ? "Verified"
+                                    : "Pending"}
+                                </b>
+                              </div>
+
+                              <div>
+                                Capture session:{" "}
+                                <b>
+                                  {activeServiceReadiness.captureSessionCompleted
+                                    ? "Completed"
+                                    : "Pending"}
+                                </b>
+                              </div>
+
+                              <div>
+                                AI media review:{" "}
+                                <b>
+                                  {activeServiceReadiness.aiVerificationStatus ===
+                                  "verified"
+                                    ? "Verified"
+                                    : "Pending"}
+                                </b>
+                              </div>
+                            </div>
+
+                            <div
+                              style={{
+                                marginTop: 12,
+                                fontWeight: 900,
+                                lineHeight: 1.5,
+                                color: activeServicePublicationReady
+                                  ? "#166534"
+                                  : "#9a3412",
+                              }}
+                            >
+                              {activeServicePublicationReady
+                                ? "✓ Mandatory trusted evidence completed. This service can pass the trusted publication gate."
+                                : "Draft saving remains available. Publish Now requires one genuine live GPS-backed service capture for this service."}
+                            </div>
+                          </div>
                         </div>
                         </div>
 
