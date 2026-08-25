@@ -34,6 +34,38 @@ type TrustedUploadStatus =
   | "verified"
   | "complete";
 
+type TrustedAssetMetadata = {
+  captureSource?: unknown;
+  captureTimestamp?: unknown;
+  gpsVerified?: unknown;
+  gpsLatitude?: unknown;
+  gpsLongitude?: unknown;
+  gpsAccuracy?: unknown;
+  captureSessionId?: unknown;
+  captureSessionStartedAt?: unknown;
+  captureSessionCompleted?: unknown;
+  captureSessionCompletedAt?: unknown;
+  provenanceStatus?: unknown;
+  aiVerificationStatus?: unknown;
+  mandatoryTrustedCapture?: unknown;
+};
+
+function isTrustedLiveEvidenceAsset(
+  asset: UploadedMediaAsset,
+): boolean {
+  const metadata =
+    asset as UploadedMediaAsset &
+      TrustedAssetMetadata;
+
+  return (
+    metadata.captureSource === "live_camera" &&
+    metadata.gpsVerified === true &&
+    metadata.captureSessionCompleted === true &&
+    metadata.provenanceStatus === "verified" &&
+    metadata.mandatoryTrustedCapture === true
+  );
+}
+
 type UniversalMediaUploaderProps = {
   module: UniversalMediaModule;
   value: UploadedMediaAsset[];
@@ -116,6 +148,23 @@ export default function UniversalMediaUploader({
       galleryUnlocked: false,
     });
 
+  const trustedLiveEvidenceAssets = useMemo(
+    () =>
+      value.filter(
+        isTrustedLiveEvidenceAsset,
+      ),
+    [value],
+  );
+
+  const trustedCompletedFromAssets =
+    Math.min(
+      Math.max(
+        1,
+        mandatoryTrustedCaptures,
+      ),
+      trustedLiveEvidenceAssets.length,
+    );
+
   const [gpsStatus, setGpsStatus] = useState<
     "idle" |
     "requesting" |
@@ -153,38 +202,52 @@ export default function UniversalMediaUploader({
       status: "idle",
     });
 
+  useEffect(() => {
+    const required = Math.max(
+      1,
+      mandatoryTrustedCaptures,
+    );
+
+    const completed = Math.min(
+      required,
+      trustedLiveEvidenceAssets.length,
+    );
+
+    setTrustedProgress({
+      required,
+      completed,
+      galleryUnlocked:
+        completed >= required,
+    });
+
+    if (!trustedMode) return;
+
+    if (completed >= required) {
+      setTrustedStatus("complete");
+      return;
+    }
+
+    if (completed > 0) {
+      setTrustedStatus("verified");
+      return;
+    }
+
+    setTrustedStatus((current) =>
+      current === "complete" ||
+      current === "verified"
+        ? "idle"
+        : current,
+    );
+  }, [
+    mandatoryTrustedCaptures,
+    trustedLiveEvidenceAssets.length,
+    trustedMode,
+  ]);
+
   function transitionTrustedState(next: TrustedUploadStatus) {
   setTrustedStatus((current) => {
     if (current === next) return current;
     return next;
-  });
-}
-
-function updateTrustedProgress(
-  updater:
-    | TrustedUploadProgress
-    | ((current: TrustedUploadProgress) => TrustedUploadProgress),
-) {
-  setTrustedProgress((current) =>
-    typeof updater === "function"
-      ? updater(current)
-      : updater,
-  );
-}
-
-function incrementTrustedCapture() {
-  updateTrustedProgress((current) => {
-    const completed = Math.min(
-      current.required,
-      current.completed + 1,
-    );
-
-    return {
-      ...current,
-      completed,
-      galleryUnlocked:
-        completed >= current.required,
-    };
   });
 }
 
@@ -198,7 +261,7 @@ function createCaptureSession() {
       new Date().toISOString(),
     completedAt: null,
     captureNumber:
-      trustedProgress.completed + 1,
+      trustedCompletedFromAssets + 1,
     status: "created",
   });
 
@@ -218,6 +281,10 @@ async function acquireGpsLocation() {
     "Acquiring GPS location...",
   );
 
+  transitionTrustedState(
+    "waiting_gps",
+  );
+
   return new Promise<boolean>((resolve) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -230,10 +297,6 @@ async function acquireGpsLocation() {
         setGpsStatus("success");
         setGpsMessage(
           "GPS acquired successfully.",
-        );
-
-        transitionTrustedState(
-          "waiting_gps",
         );
 
         resolve(true);
@@ -306,13 +369,71 @@ async function acquireGpsLocation() {
 
     const file = capturedPhoto;
     clearCapturedPhoto();
+    const captureTimestamp =
+      capturedAt ||
+      new Date().toISOString();
+
     await uploadFiles([file], {
       ...assetMetadata,
+
       captureSource: "live_camera",
-      captureTimestamp: capturedAt || new Date().toISOString(),
+      captureTimestamp,
+
       outputPreset,
       preparedBeforeUpload: true,
-      preparationRequired: requirePreparation,
+      preparationRequired:
+        requirePreparation,
+
+      mandatoryTrustedCapture:
+        trustedMode,
+
+      gpsVerified:
+        trustedMode
+          ? gpsStatus === "success"
+          : undefined,
+
+      gpsLatitude:
+        trustedMode
+          ? gpsCoordinates?.latitude
+          : undefined,
+
+      gpsLongitude:
+        trustedMode
+          ? gpsCoordinates?.longitude
+          : undefined,
+
+      gpsAccuracy:
+        trustedMode
+          ? gpsCoordinates?.accuracy
+          : undefined,
+
+      captureSessionId:
+        trustedMode
+          ? captureSession.sessionId
+          : undefined,
+
+      captureSessionStartedAt:
+        trustedMode
+          ? captureSession.startedAt
+          : undefined,
+
+      captureSessionCompleted:
+        trustedMode,
+
+      captureSessionCompletedAt:
+        trustedMode
+          ? captureTimestamp
+          : undefined,
+
+      provenanceStatus:
+        trustedMode
+          ? "verified"
+          : undefined,
+
+      aiVerificationStatus:
+        trustedMode
+          ? "pending"
+          : undefined,
     });
   }
 
@@ -638,15 +759,25 @@ try {
         onChange([...value, ...uploaded]);
       }
 
-      if (trustedMode && uploaded.length) {
-        incrementTrustedCapture();
+      const trustedUploads =
+        uploaded.filter(
+          isTrustedLiveEvidenceAsset,
+        );
 
-        transitionTrustedState("verified");
+      if (
+        trustedMode &&
+        trustedUploads.length
+      ) {
+        transitionTrustedState(
+          "verified",
+        );
 
-        setCaptureSession((current) => ({
-          ...current,
-          status: "uploaded",
-        }));
+        setCaptureSession(
+          (current) => ({
+            ...current,
+            status: "uploaded",
+          }),
+        );
       }
 
       if (uploaded.length && rejected.length) {
@@ -665,10 +796,27 @@ try {
       setMessage(e?.message || "Upload failed.");
     } finally {
       if (trustedMode) {
-        const completed =
-          trustedProgress.completed + uploaded.length;
+        const newlyAcceptedTrustedCaptures =
+          uploaded.filter(
+            isTrustedLiveEvidenceAsset,
+          ).length;
 
-        if (completed >= trustedProgress.required) {
+        const completed = Math.min(
+          Math.max(
+            1,
+            mandatoryTrustedCaptures,
+          ),
+          trustedLiveEvidenceAssets.length +
+            newlyAcceptedTrustedCaptures,
+        );
+
+        if (
+          completed >=
+          Math.max(
+            1,
+            mandatoryTrustedCaptures,
+          )
+        ) {
           transitionTrustedState("complete");
 
           setCaptureSession((current) => ({
@@ -696,12 +844,11 @@ try {
 
   const trustedRequired = Math.max(
     1,
-    trustedProgress.required,
+    mandatoryTrustedCaptures,
   );
-  const trustedCompleted = Math.min(
-    trustedRequired,
-    Math.max(0, trustedProgress.completed),
-  );
+
+  const trustedCompleted =
+    trustedCompletedFromAssets;
   const trustedCompletionPercent = Math.round(
     (trustedCompleted / trustedRequired) * 100,
   );
