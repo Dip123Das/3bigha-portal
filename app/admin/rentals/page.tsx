@@ -135,19 +135,53 @@ export default function AdminRentalsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checking, isAdmin]);
 
-  async function setStatus(id: string, status: "approved" | "rejected" | "pending") {
+  async function setStatus(
+    id: string,
+    status: "approved" | "rejected" | "pending",
+  ) {
     setError(null);
 
-    const patch: any = { status };
+    try {
+      const response = await fetch(
+        "/api/admin/rentals/decision",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            listingId: id,
+            decision: status,
+          }),
+        },
+      );
 
-    // mirror property: set published_at on approve
-    if (status === "approved") patch.published_at = new Date().toISOString();
-    if (status === "pending") patch.published_at = null;
+      const result = await response
+        .json()
+        .catch(() => null);
 
-    const { error } = await supabase.from("rental_listings").update(patch).eq("id", id);
-    if (error) return setError(error.message);
+      if (!response.ok || !result?.ok) {
+        const trustedMessage =
+          result?.trustedPublication?.message;
 
-    await load();
+        throw new Error(
+          trustedMessage ||
+            result?.error?.message ||
+            (typeof result?.error === "string"
+              ? result.error
+              : null) ||
+            "Unable to update rental listing.",
+        );
+      }
+
+      await load();
+    } catch (error: any) {
+      setError(
+        error?.message ||
+          "Unable to update rental listing.",
+      );
+    }
   }
 
   if (checking) {
