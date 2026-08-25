@@ -91,17 +91,30 @@ export default function MaterialsMyPage() {
         return;
       }
 
-      const { error: updateErr } = await supabase
-        .from("material_listings")
-        .update({
-          status: "pending",
-          is_public: false,
-          published_at: null,
-        })
-        .eq("id", listingId)
-        .eq("vendor_user_id", user.id);
+      const res = await fetch(
+        "/api/materials/submit-for-review",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            listingId,
+          }),
+        },
+      );
 
-      if (updateErr) throw updateErr;
+      const json = await res
+        .json()
+        .catch(() => null);
+
+      if (!res.ok || !json?.ok) {
+        throw new Error(
+          json?.error?.message ||
+            "Submit for review failed.",
+        );
+      }
 
       await load(user.id);
     } catch (e: any) {
