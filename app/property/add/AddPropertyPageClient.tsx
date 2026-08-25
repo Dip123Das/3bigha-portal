@@ -3655,22 +3655,40 @@ async function submitForReviewSupabase() {
       });
     }
 
-    setSaveMsg("Checking trusted media...");
+    setSaveMsg(
+      "Checking trusted live GPS evidence...",
+    );
 
     const trustedResult =
       await validateTrustedPublication(
         "property",
-        mediaAssets.length,
+        mediaAssets,
       );
 
     if (!trustedResult.ok) {
       setSaveMsg(
-        `❌ ${trustedResult.message}`,
+        `❌ ${
+          trustedResult.message ||
+          "Trusted media verification failed."
+        }`,
       );
       return;
     }
 
-    setSaveMsg("Submitting for review...");
+    if (
+      trustedResult.warnings.length > 0
+    ) {
+      console.warn(
+        "Property trusted publication warnings:",
+        trustedResult.warnings,
+      );
+    }
+
+    setSaveMsg(
+      trustedResult.aiVerificationPending
+        ? "Trusted captures verified. AI media review is pending; submitting for review..."
+        : "Trusted captures verified. Submitting for review...",
+    );
 
     const finalRes =
       await callSubmitForReviewApi(
