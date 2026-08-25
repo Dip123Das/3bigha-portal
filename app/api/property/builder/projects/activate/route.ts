@@ -63,6 +63,7 @@ export async function POST(req: Request) {
         id,
         builder_profile_id,
         status,
+        is_active,
         trusted_media_json,
         builder_profiles!inner (
           id,
@@ -112,7 +113,8 @@ export async function POST(req: Request) {
     if (
       String(existing.data.status || "")
         .trim()
-        .toLowerCase() === "active"
+        .toLowerCase() === "active" &&
+      existing.data.is_active === true
     ) {
       return NextResponse.json({
         ok: true,
@@ -194,6 +196,7 @@ export async function POST(req: Request) {
       .from("builder_projects")
       .update({
         status: "active",
+        is_active: true,
         updated_at: new Date().toISOString(),
       } as any)
       .eq("id", projectId)

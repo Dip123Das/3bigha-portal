@@ -201,6 +201,7 @@ export default function PropertyProjectPublicDetailPage() {
         .select("id,name,slug,description,city,district,state,status,updated_at")
         .eq("slug", slug)
         .eq("status", "active")
+        .eq("is_active", true)
         .maybeSingle();
 
       if (!alive) return;

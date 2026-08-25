@@ -200,7 +200,13 @@ export default function AdminBuilderProjectsMasterPage() {
     const country = (window.prompt("Country (optional):", "India") ?? "").trim() || null;
     const description = (window.prompt("Description (optional):", "") ?? "").trim() || null;
 
-    const is_active = window.confirm("Set project as ACTIVE?\n\nOK = active, Cancel = inactive");
+    /*
+     * Trusted Listing Media publication invariant:
+     * projects are created inactive. Public activation
+     * must pass through the server-side trusted-media
+     * activation authority.
+     */
+    const is_active = false;
 
     const { data: sess } = await supabase.auth.getSession();
     const owner_user_id = sess.session?.user?.id ?? null;
@@ -237,11 +243,24 @@ export default function AdminBuilderProjectsMasterPage() {
     const country = (window.prompt("Country (optional):", p.country ?? "India") ?? "").trim() || null;
     const description = (window.prompt("Description (optional):", p.description ?? "") ?? "").trim() || null;
 
-    const is_active = window.confirm("Set project as ACTIVE?\n\nOK = active, Cancel = inactive");
-
+    /*
+     * Admin editing must never promote an inactive
+     * project to public-active state. Existing active
+     * projects remain active while their metadata is
+     * edited. Activation itself belongs exclusively
+     * to the trusted server authority.
+     */
     const { error } = await supabase
       .from("builder_projects")
-      .update({ name, slug, city, district, state, country, description, is_active })
+      .update({
+        name,
+        slug,
+        city,
+        district,
+        state,
+        country,
+        description,
+      })
       .eq("id", p.id);
 
     if (error) return setErr(error.message);
