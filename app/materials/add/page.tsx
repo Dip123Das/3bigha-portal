@@ -25,6 +25,10 @@ import {
 } from "@/lib/vendors/vendorSmartSuggestions";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import {
+  buildTrustedPublicationContext,
+  TRUSTED_PUBLICATION_POLICY,
+} from "@/lib/media/trusted-publication-gate";
 import { trackVendorConversionClient } from "@/components/marketplace/vendor-conversion-client";
 
 type Kind = "type" | "category" | "subcategory" | "product_group";
@@ -158,6 +162,26 @@ export default function MaterialsAddPage() {
   const [photoLinksText, setPhotoLinksText] = useState("");
   const [videoLinksText, setVideoLinksText] = useState("");
   const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
+
+  const trustedReadiness = useMemo(
+    () =>
+      buildTrustedPublicationContext(
+        mediaAssets,
+      ),
+    [mediaAssets],
+  );
+
+  const materialRequiredCaptures =
+    TRUSTED_PUBLICATION_POLICY
+      .materials
+      .requiredCaptures;
+
+  const materialPublicationReady =
+    trustedReadiness.completedCaptures >=
+      materialRequiredCaptures &&
+    trustedReadiness.gpsVerified === true &&
+    trustedReadiness.provenanceVerified === true &&
+    trustedReadiness.captureSessionCompleted === true;
 
   // Inventory foundation
   const [inventoryEnabled, setInventoryEnabled] = useState(true);
@@ -1055,16 +1079,11 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
       const media_links = {
         photos: Array.from(new Set([...uploadedPhotos, ...parseLinks(photoLinksText)])),
         videos: Array.from(new Set([...uploadedVideos, ...parseLinks(videoLinksText)])),
-        media_assets: mediaAssets.map((asset) => ({
-          id: asset.id,
-          url: asset.url,
-          bucket: asset.bucket,
-          path: asset.path,
-          name: asset.name,
-          size: asset.size,
-          mimeType: asset.mimeType,
-          kind: asset.kind,
-        })),
+        media_assets: mediaAssets.map(
+          (asset) => ({
+            ...asset,
+          }),
+        ),
       };
 
       let geography: any = null;
@@ -1122,6 +1141,27 @@ ${attrLines.length ? attrLines.join("\n") : "No attributes entered yet."}
 
         attributes: {
           ...attributes_payload,
+
+          trusted_publication: {
+            module: "materials",
+            required_captures:
+              materialRequiredCaptures,
+            completed_captures:
+              trustedReadiness.completedCaptures,
+            gps_verified:
+              trustedReadiness.gpsVerified === true,
+            provenance_verified:
+              trustedReadiness.provenanceVerified === true,
+            capture_session_completed:
+              trustedReadiness.captureSessionCompleted === true,
+            ai_verification_status:
+              trustedReadiness.aiVerificationStatus ??
+              "not_started",
+            publication_ready:
+              materialPublicationReady,
+            evaluated_at:
+              new Date().toISOString(),
+          },
           vendor_private_product_group: isVendorProductGroup
             ? {
                 id: productGroupId.replace("vendor-", ""),
@@ -1760,22 +1800,113 @@ router.push("/materials");
                   value={mediaAssets}
                   onChange={setMediaAssets}
                   label="Material photos / videos"
-                  helperText="Take product photos, upload clear images, or record a short video showing stock, quality, size, packaging or site delivery."
+                  helperText="Capture one genuine live GPS-backed photo of the actual material or available stock first. Gallery photos and videos are available after the mandatory capture."
                   allowImages
                   allowVideos
                   allowDocuments={false}
                   maxFiles={12}
-                
                   uploadStrategy="trusted"
-
                   mandatoryTrustedCaptures={1}
-
                   inlineCamera
-
                   cameraFacing="environment"
-
                   cameraOnly={false}
-/>
+                />
+
+                <div
+                  style={{
+                    marginTop: 12,
+                    padding: 14,
+                    borderRadius: 12,
+                    border: materialPublicationReady
+                      ? "1px solid #bbf7d0"
+                      : "1px solid #fed7aa",
+                    background: materialPublicationReady
+                      ? "#f0fdf4"
+                      : "#fff7ed",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 900,
+                      color: materialPublicationReady
+                        ? "#166534"
+                        : "#9a3412",
+                    }}
+                  >
+                    Material Trusted Publication Readiness
+                  </div>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(180px, 1fr))",
+                      gap: 8,
+                      marginTop: 10,
+                      fontSize: 13,
+                    }}
+                  >
+                    <div>
+                      Mandatory live captures:{" "}
+                      <b>
+                        {trustedReadiness.completedCaptures}/
+                        {materialRequiredCaptures}
+                      </b>
+                    </div>
+
+                    <div>
+                      GPS:{" "}
+                      <b>
+                        {trustedReadiness.gpsVerified
+                          ? "Verified"
+                          : "Pending"}
+                      </b>
+                    </div>
+
+                    <div>
+                      Live provenance:{" "}
+                      <b>
+                        {trustedReadiness.provenanceVerified
+                          ? "Verified"
+                          : "Pending"}
+                      </b>
+                    </div>
+
+                    <div>
+                      Capture session:{" "}
+                      <b>
+                        {trustedReadiness.captureSessionCompleted
+                          ? "Completed"
+                          : "Pending"}
+                      </b>
+                    </div>
+
+                    <div>
+                      AI media review:{" "}
+                      <b>
+                        {trustedReadiness.aiVerificationStatus ===
+                        "verified"
+                          ? "Verified"
+                          : "Pending"}
+                      </b>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 12,
+                      fontWeight: 900,
+                      lineHeight: 1.5,
+                      color: materialPublicationReady
+                        ? "#166534"
+                        : "#9a3412",
+                    }}
+                  >
+                    {materialPublicationReady
+                      ? "✓ Mandatory trusted evidence completed. This material draft is ready for the future publication gate."
+                      : "Draft saving remains available. Complete one genuine live GPS-backed material capture before publication."}
+                  </div>
+                </div>
 
                 <details style={{ marginTop: 10 }}>
                   <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 900, color: "#374151" }}>
