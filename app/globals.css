@@ -4797,3 +4797,58 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     appearance: none !important;
   }
 }
+
+/* =========================================================
+   HDR-02B — Keep laptop account menu above sub-navigation
+   ========================================================= */
+
+@media (min-width: 981px) and (max-width: 1600px) {
+  .topHeader {
+    position: relative !important;
+    overflow: visible !important;
+    z-index: 500 !important;
+  }
+
+  .topHeaderInner {
+    position: relative !important;
+    overflow: visible !important;
+    z-index: 520 !important;
+  }
+
+  .topActions,
+  .desktopAuthSlot,
+  .desktopAuthSlot .mobileAccountMenu {
+    position: relative !important;
+    overflow: visible !important;
+    z-index: 540 !important;
+  }
+
+  .desktopAuthSlot .mobileAccountPanel {
+    z-index: 10000 !important;
+  }
+
+  /*
+   * This row is rendered after the main header and was
+   * covering the opened account panel.
+   */
+  .topSubBar,
+  .topSubBarInner,
+  .topSubLinks {
+    position: relative !important;
+    z-index: 100 !important;
+  }
+
+  .rfqToggle,
+  .rfqToggleBtn {
+    position: relative !important;
+    z-index: 110 !important;
+  }
+
+  /*
+   * An opened RFQ panel may still rise above normal content,
+   * but the closed toggle row must stay under the account menu.
+   */
+  .rfqTogglePanel {
+    z-index: 9000 !important;
+  }
+}
