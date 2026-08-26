@@ -4520,3 +4520,162 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     max-height: calc(100dvh - 72px) !important;
   }
 }
+
+/* =========================================================
+   HDR-02 — Laptop desktop header responsive refinement
+
+   On medium desktop/laptop widths, replace the three wide
+   account controls with the existing compact account menu.
+   Large desktop and mobile layouts remain unchanged.
+   ========================================================= */
+
+@media (min-width: 981px) and (max-width: 1600px) {
+  .topHeader {
+    overflow: visible !important;
+  }
+
+  .topHeaderInner {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: clamp(5px, 0.65vw, 10px) !important;
+    padding-left: clamp(10px, 1.2vw, 18px) !important;
+    padding-right: clamp(10px, 1.2vw, 18px) !important;
+    overflow: visible !important;
+  }
+
+  .topHeaderInner > .topBrand.desktopHeaderOnly {
+    flex: 0 0 auto !important;
+    min-width: 72px !important;
+    max-width: 96px !important;
+  }
+
+  .topHeaderInner .siteLogoFull {
+    width: clamp(72px, 6.4vw, 96px) !important;
+    max-width: 96px !important;
+  }
+
+  .topSearchQuick {
+    flex: 1 1 260px !important;
+    min-width: 160px !important;
+    max-width: none !important;
+  }
+
+  .topLanguageSelector {
+    flex: 0 0 auto !important;
+  }
+
+  .topActions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    gap: 5px !important;
+    overflow: visible !important;
+  }
+
+  .topActions .topBtn {
+    white-space: nowrap !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .desktopAuthSlot {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+  }
+
+  /*
+   * Hide the three wide controls:
+   * email, My Dashboard and Logout.
+   * Their functionality remains available in the compact menu.
+   */
+  .desktopAuthSlot .desktopAccountBtn {
+    display: none !important;
+  }
+
+  /*
+   * Reuse the existing authenticated account dropdown.
+   * It already contains role, email, dashboard and logout.
+   */
+  .desktopAuthSlot .mobileAccountMenu {
+    display: block !important;
+    position: relative !important;
+    margin: 0 !important;
+  }
+
+  .desktopAuthSlot .mobileAccountMainBtn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    max-width: 150px !important;
+    padding: 9px 11px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    cursor: pointer !important;
+  }
+
+  .desktopAuthSlot .mobileAccountPanel {
+    position: absolute !important;
+    top: calc(100% + 9px) !important;
+    right: 0 !important;
+    left: auto !important;
+    bottom: auto !important;
+
+    width: min(320px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - 92px) !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+
+    z-index: 10120 !important;
+  }
+
+  .desktopAuthSlot .mobileAccountPanel a,
+  .desktopAuthSlot .mobileAccountPanel button {
+    width: 100% !important;
+  }
+}
+
+/*
+ * Tighter spacing for common 13–14 inch laptop widths.
+ */
+@media (min-width: 981px) and (max-width: 1280px) {
+  .topHeaderInner {
+    gap: 4px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .topHeaderInner > .topBrand.desktopHeaderOnly {
+    max-width: 78px !important;
+  }
+
+  .topHeaderInner .siteLogoFull {
+    width: 74px !important;
+  }
+
+  .topSearchQuick {
+    min-width: 130px !important;
+  }
+
+  .topActions .topBtn {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 12px !important;
+  }
+
+  .desktopAuthSlot .mobileAccountMainBtn {
+    max-width: 122px !important;
+    font-size: 12px !important;
+  }
+}
