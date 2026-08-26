@@ -146,65 +146,51 @@ export default function AdminPropertyDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checking, isAdmin, validId]);
 
-  async function setStatus(status: "approved" | "rejected" | "pending") {
+  async function setStatus(
+    status: "approved" | "rejected" | "pending",
+  ) {
     if (!row) return;
 
     setError(null);
     setActing(true);
 
     try {
-      const { data: sess } = await supabase.auth.getSession();
-      const adminId = sess.session?.user?.id ?? null;
+      const response = await fetch(
+        "/api/admin/property/decision",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            listingId: row.id,
+            decision: status,
+          }),
+        },
+      );
 
-      const patch: any = { status };
+      const result = await response
+        .json()
+        .catch(() => null);
 
-      if (status === "approved") {
-        const note = window.prompt("Admin note (optional):", row.admin_note ?? "") ?? "";
-        patch.admin_note = note.trim() || null;
-        patch.rejected_reason = null;
-        patch.decision_at = new Date().toISOString();
-        patch.approved_by = adminId;
-        patch.rejected_by = null;
-        patch.published_at = new Date().toISOString();
-      }
-
-      if (status === "rejected") {
-        const reason = window.prompt("Rejected reason (required):", row.rejected_reason ?? "") ?? "";
-        if (!reason.trim()) {
-          setError("Rejected reason is required.");
-          return;
-        }
-        const note = window.prompt("Admin note (optional):", row.admin_note ?? "") ?? "";
-        patch.rejected_reason = reason.trim();
-        patch.admin_note = note.trim() || null;
-        patch.decision_at = new Date().toISOString();
-        patch.rejected_by = adminId;
-        patch.approved_by = null;
-        patch.published_at = null;
-      }
-
-      if (status === "pending") {
-        patch.published_at = null;
-        patch.admin_note = null;
-        patch.rejected_reason = null;
-        patch.decision_at = null;
-        patch.approved_by = null;
-        patch.rejected_by = null;
-      }
-
-      const { error } = await supabase.from("property_listings").update(patch).eq("id", row.id);
-      if (error) {
-        setError(error.message);
-        return;
+      if (!response.ok || !result?.ok) {
+        throw new Error(
+          result?.trustedPublication?.message ||
+            result?.error?.message ||
+            (typeof result?.error === "string"
+              ? result.error
+              : null) ||
+            "Unable to update property listing.",
+        );
       }
 
       await load();
-
-      if (status === "approved") setActionNote("✅ Listing approved & published successfully.");
-      if (status === "rejected") setActionNote("✅ Listing rejected successfully.");
-      if (status === "pending") setActionNote("✅ Listing sent back to pending.");
-    } finally {
-      setActing(false);
+    } catch (error: any) {
+      setError(
+        error?.message ||
+          "Unable to update property listing.",
+      );
     }
   }
 

@@ -74,6 +74,14 @@ function canArchive(status: RecordStatus) {
   return status !== "archived";
 }
 
+/**
+ * Initial lifecycle state for a newly created service work order.
+ *
+ * This belongs to service_work_orders operational execution only.
+ * It does not approve or publish provider_services or service_listings.
+ */
+const SERVICE_WORK_INITIAL_STATUS = "approved" as const;
+
 export default function MyServicesPage() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
@@ -227,7 +235,8 @@ export default function MyServicesPage() {
             Number(workAdvance || 0) || 0,
           assigned_team:
             workTeam.trim() || null,
-          work_status: "approved",
+          work_status:
+            SERVICE_WORK_INITIAL_STATUS,
         });
 
       if (error) throw error;
@@ -323,19 +332,63 @@ export default function MyServicesPage() {
     setActingId(id);
     setErr(null);
 
-    const { error } = await supabase
-      .from("provider_services")
-      .update({ record_status: next })
-      .eq("id", id);
+    try {
+      if (next === "published") {
+        const response = await fetch(
+          "/api/services/submit-for-review",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+              serviceId: id,
+            }),
+          },
+        );
 
-    if (error) {
-      setErr(error.message);
+        const result = await response
+          .json()
+          .catch(() => null);
+
+        if (!response.ok || !result?.ok) {
+          throw new Error(
+            result?.error?.trustedPublication?.message ||
+              result?.error?.message ||
+              (typeof result?.error === "string"
+                ? result.error
+                : null) ||
+              "Unable to submit service for review.",
+          );
+        }
+      } else {
+        /*
+         * Pause and Archive are vendor lifecycle
+         * controls, not publication approvals.
+         */
+        const { error } = await supabase
+          .from("provider_services")
+          .update({
+            record_status: next,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", id);
+
+        if (error) {
+          throw error;
+        }
+      }
+
+      await load();
+    } catch (error: any) {
+      setErr(
+        error?.message ||
+          "Unable to update service.",
+      );
+    } finally {
       setActingId(null);
-      return;
     }
-
-    await load();
-    setActingId(null);
   }
 
 
@@ -732,7 +785,7 @@ export default function MyServicesPage() {
                           onClick={() => setStatus(r.id, "published")}
                           disabled={actingId === r.id}
                         >
-                          {actingId === r.id ? "Publishing..." : "Publish"}
+                          {actingId === r.id ? "Submitting..." : "Submit for Review"}
                         </ActionButton>
                       ) : null}
 

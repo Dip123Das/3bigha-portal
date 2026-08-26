@@ -3,6 +3,17 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { ComponentProps } from "react";
+import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
+import {
+  buildTrustedPublicationContext,
+  TRUSTED_PUBLICATION_POLICY,
+} from "@/lib/media/trusted-publication-gate";
+
+type TurnkeyMediaAsset =
+  ComponentProps<
+    typeof UniversalMediaUploader
+  >["value"][number];
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
 import { Container } from "@/components/layout/Container";
@@ -358,6 +369,25 @@ export default function AddTurnkeyPage() {
   const [drafts, setDrafts] = useState<VendorTurnkeyDraft[]>([]);
   const [activeKey, setActiveKey] = useState<string>("");
   const [openScopeCode, setOpenScopeCode] = useState<string>("");
+  const [turnkeyMediaAssets, setTurnkeyMediaAssets] =
+    useState<TurnkeyMediaAsset[]>([]);
+
+  const turnkeyRequiredCaptures =
+    TRUSTED_PUBLICATION_POLICY
+      .services
+      .requiredCaptures;
+
+  const turnkeyTrustedReadiness =
+    buildTrustedPublicationContext(
+      turnkeyMediaAssets,
+    );
+
+  const turnkeyPublicationReady =
+    turnkeyTrustedReadiness.completedCaptures >=
+      turnkeyRequiredCaptures &&
+    turnkeyTrustedReadiness.gpsVerified === true &&
+    turnkeyTrustedReadiness.provenanceVerified === true &&
+    turnkeyTrustedReadiness.captureSessionCompleted === true;
 
   async function ensureProviderId(): Promise<string | null> {
     const { data: pid, error } = await supabase.rpc("upsert_service_provider_for_me");
@@ -521,6 +551,16 @@ setActiveKey(ds[0]?.key ?? "");
     }
 
     const enabled = drafts.filter((d) => d.enabled && !!d.template_code);
+
+    if (
+      record_status === "published" &&
+      !turnkeyPublicationReady
+    ) {
+      setErr(
+        `Complete ${turnkeyRequiredCaptures} mandatory live GPS capture before publishing Turnkey packages.`,
+      );
+      return;
+    }
     if (enabled.length === 0) {
       alert("Please enable at least one turnkey package.");
       return;
@@ -545,9 +585,15 @@ setActiveKey(ds[0]?.key ?? "");
         const payload: any = {
           provider_id: providerId,
           template_code: d.template_code, // NOTE: your provider_turnkey_packages must have template_code OR we will remap later
-          record_status,
 
-          is_active: true,
+          /*
+           * The browser always persists a draft.
+           * The server submission endpoint owns
+           * the transition to pending.
+           */
+          record_status: "draft",
+
+          is_active: false,
           currency: d.currency || "INR",
           rate_unit: "per_sqft",
           rate_per_unit: typeof d.vendor_rate_per_sqft === "number" ? d.vendor_rate_per_sqft : null,
@@ -565,19 +611,104 @@ setActiveKey(ds[0]?.key ?? "");
           inclusions: d.inclusions?.trim() ? d.inclusions.trim() : null,
           exclusions: d.exclusions?.trim() ? d.exclusions.trim() : null,
           notes: d.notes?.trim() ? d.notes.trim() : null,
+
+          media_assets:
+            turnkeyMediaAssets.map(
+              (asset) => ({
+                ...asset,
+              }),
+            ),
+
+          trusted_publication: {
+            module: "turnkey",
+            required_captures:
+              turnkeyRequiredCaptures,
+            completed_captures:
+              turnkeyTrustedReadiness.completedCaptures,
+            gps_verified:
+              turnkeyTrustedReadiness.gpsVerified === true,
+            provenance_verified:
+              turnkeyTrustedReadiness.provenanceVerified === true,
+            capture_session_completed:
+              turnkeyTrustedReadiness.captureSessionCompleted === true,
+            ai_verification_status:
+              turnkeyTrustedReadiness.aiVerificationStatus ??
+              "not_started",
+            publication_ready:
+              turnkeyPublicationReady,
+            evaluated_at:
+              new Date().toISOString(),
+          },
         };
 
-        const { error } = await supabase
+        const {
+          data: savedPackage,
+          error,
+        } = await supabase
           .from("provider_turnkey_packages")
-          .upsert(payload, { onConflict: "provider_id,template_code" });
+          .upsert(
+            payload,
+            {
+              onConflict:
+                "provider_id,template_code",
+            },
+          )
+          .select("id")
+          .single();
 
         if (error) {
           setErr(error.message);
           throw error;
         }
+
+        if (!savedPackage?.id) {
+          throw new Error(
+            `Turnkey package ${d.template_code} was saved but its ID was not returned.`,
+          );
+        }
+
+        if (record_status === "published") {
+          const response = await fetch(
+            "/api/turnkey/submit-for-review",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+              credentials: "same-origin",
+              body: JSON.stringify({
+                packageId:
+                  savedPackage.id,
+              }),
+            },
+          );
+
+          const result = await response
+            .json()
+            .catch(() => null);
+
+          if (!response.ok || !result?.ok) {
+            throw new Error(
+              result?.error
+                ?.trustedPublication
+                ?.message ||
+                result?.error?.message ||
+                (typeof result?.error ===
+                "string"
+                  ? result.error
+                  : null) ||
+                `Unable to submit Turnkey package ${d.template_code} for review.`,
+            );
+          }
+        }
       }
 
-      alert(record_status === "published" ? "Turnkey packages published!" : "Turnkey packages saved as draft!");
+      alert(
+        record_status === "published"
+          ? "Turnkey packages submitted for review!"
+          : "Turnkey packages saved as draft!",
+      );
       router.push("/services/my");
     } catch (e: any) {
       setErr(e?.message || "Save failed.");
@@ -1445,6 +1576,98 @@ setActiveKey(ds[0]?.key ?? "");
           </div>
         ) : null}
 
+        <div style={{ marginTop: 14 }}>
+          <Card>
+            <CardBody>
+              <div
+                style={{
+                  fontWeight: 900,
+                  fontSize: 16,
+                  marginBottom: 8,
+                }}
+              >
+                Trusted Turnkey Work Evidence
+              </div>
+
+              <div
+                style={{
+                  color: "#5b6472",
+                  fontSize: 13,
+                  marginBottom: 12,
+                  lineHeight: 1.5,
+                }}
+              >
+                Capture one genuine GPS-backed live
+                photo of your actual construction
+                work, team, equipment, project site,
+                or completed project. Gallery media
+                may be added after the mandatory
+                live capture.
+              </div>
+
+              <UniversalMediaUploader
+                module="services"
+                value={turnkeyMediaAssets}
+                onChange={setTurnkeyMediaAssets}
+                label="Turnkey construction work photos / videos"
+                helperText="One genuine live GPS-backed construction photo is mandatory before publication."
+                allowImages
+                allowVideos
+                allowDocuments={false}
+                maxFiles={12}
+                uploadStrategy="trusted"
+                mandatoryTrustedCaptures={1}
+                inlineCamera
+                cameraFacing="environment"
+                cameraOnly={false}
+              />
+
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: 14,
+                  borderRadius: 12,
+                  border: turnkeyPublicationReady
+                    ? "1px solid #bbf7d0"
+                    : "1px solid #fed7aa",
+                  background: turnkeyPublicationReady
+                    ? "#f0fdf4"
+                    : "#fff7ed",
+                  color: turnkeyPublicationReady
+                    ? "#166534"
+                    : "#9a3412",
+                  fontWeight: 800,
+                  lineHeight: 1.5,
+                }}
+              >
+                Mandatory live captures:{" "}
+                {
+                  turnkeyTrustedReadiness
+                    .completedCaptures
+                }
+                /{turnkeyRequiredCaptures}
+                {" · "}
+                GPS:{" "}
+                {turnkeyTrustedReadiness.gpsVerified
+                  ? "Verified"
+                  : "Pending"}
+                {" · "}
+                Provenance:{" "}
+                {turnkeyTrustedReadiness
+                  .provenanceVerified
+                  ? "Verified"
+                  : "Pending"}
+                {" · "}
+                Capture session:{" "}
+                {turnkeyTrustedReadiness
+                  .captureSessionCompleted
+                  ? "Completed"
+                  : "Pending"}
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+
         {/* STEP 3 */}
         {step === 3 ? (
           <div style={{ marginTop: 14 }}>
@@ -1591,7 +1814,7 @@ setActiveKey(ds[0]?.key ?? "");
                         opacity: saving || enabledCount() === 0 ? 0.6 : 1,
                       }}
                     >
-                      {saving ? "Publishing..." : "Publish"}
+                      {saving ? "Submitting..." : "Submit for Review"}
                     </button>
                   </div>
                 </div>

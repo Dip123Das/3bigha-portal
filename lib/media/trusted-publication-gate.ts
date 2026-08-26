@@ -9,6 +9,21 @@ export type TrustedPublicationModule =
   | "rentals"
   | "services";
 
+export type TrustedPropertyListingKind =
+  | "standalone"
+  | "builder_unit";
+
+export type TrustedPublicationOptions = {
+  requireAiVerified?: boolean;
+
+  /**
+   * Property is the marketplace module.
+   * Builder inventory units are a Property variant,
+   * not a separate marketplace module.
+   */
+  listingKind?: TrustedPropertyListingKind;
+};
+
 export type TrustedAiVerificationStatus =
   | "not_started"
   | "pending"
@@ -238,9 +253,7 @@ function getAiStatusFromAssets(
 export function buildTrustedPublicationContext(
   mediaAssets:
     readonly UploadedMediaAsset[],
-  options?: {
-    requireAiVerified?: boolean;
-  },
+  options?: TrustedPublicationOptions,
 ): TrustedPublicationContext {
   const trustedAssets =
     mediaAssets.filter(
@@ -349,13 +362,14 @@ export async function validateTrustedPublication(
     | TrustedPublicationContext
     | readonly UploadedMediaAsset[],
 
-  options?: {
-    requireAiVerified?: boolean;
-  },
+  options?: TrustedPublicationOptions,
 ): Promise<TrustedPublicationResult> {
   const requiredCaptures =
-    TRUSTED_PUBLICATION_POLICY[module]
-      .requiredCaptures;
+    module === "property" &&
+    options?.listingKind === "builder_unit"
+      ? 1
+      : TRUSTED_PUBLICATION_POLICY[module]
+          .requiredCaptures;
 
   const context =
     isMediaAssetArray(input)

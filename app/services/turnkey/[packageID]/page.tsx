@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import TrustedListingMediaBadge from "@/components/trust/TrustedListingMediaBadge";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
@@ -198,8 +199,19 @@ export default function TurnkeyPackageDetailsPage({ params }: { params: { packag
           ) : !row ? (
             <EmptyState message="Package not found." />
           ) : (
-            <Card>
-              <CardBody>
+            <div
+              style={{
+                display: "grid",
+                gap: 12,
+              }}
+            >
+              <TrustedListingMediaBadge
+                media={(row as any).media_assets}
+                module="services"
+              />
+
+              <Card>
+                <CardBody>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
                   <div>
                     <h2 style={{ margin: 0 }}>
@@ -306,6 +318,7 @@ export default function TurnkeyPackageDetailsPage({ params }: { params: { packag
                 </div>
               </CardFooter>
             </Card>
+            </div>
           )}
         </div>
       </Container>

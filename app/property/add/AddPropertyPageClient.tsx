@@ -3934,67 +3934,72 @@ async function upsertPropertyInvestmentOpportunity(args: {
   }
 }
 
-async function syncBuilderInventoryForListing(args: {
-  listingId: string;
-  projectId: string;
-  unitId: string;
-  title: string;
-  price: number;
-}) {
-  const unit = builderUnits.find((u) => u.id === args.unitId);
-  if (!unit?.unit_code) {
-    throw new Error("Please select a valid builder unit.");
+async function syncBuilderInventoryForListing(
+  args: {
+    listingId: string;
+    projectId: string;
+    unitId: string;
+    title: string;
+    price: number;
+  },
+) {
+  const unit =
+    builderUnits.find(
+      (candidate) =>
+        candidate.id ===
+        args.unitId,
+    );
+
+  if (!unit?.id) {
+    throw new Error(
+      "Please select a valid builder unit.",
+    );
   }
 
-  const unitCode = String(unit.unit_code);
-  setSelectedBuilderUnitCode(unitCode);
+  const response = await fetch(
+    "/api/builder-units/link-listing",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+      credentials:
+        "same-origin",
+      cache: "no-store",
+      body: JSON.stringify({
+        unitId: args.unitId,
+        listingId:
+          args.listingId,
+      }),
+    },
+  );
 
-  const existing = await supabase
-    .from("inventory_items")
-    .select("id,listing_id,project_id,unit_code")
-    .eq("project_id", args.projectId)
-    .eq("unit_code", unitCode)
-    .limit(1)
-    .maybeSingle();
+  const result = await response
+    .json()
+    .catch(() => null);
 
-  if (existing.error) throw existing.error;
-
-  if (existing.data?.id) {
-    const existingListingId = existing.data.listing_id ? String(existing.data.listing_id) : null;
-    if (existingListingId && existingListingId !== args.listingId) {
-      throw new Error(`Selected unit ${unitCode} is already linked to another listing.`);
-    }
-
-    const upd = await supabase
-      .from("inventory_items")
-      .update({
-        listing_id: args.listingId,
-        title: args.title,
-        price: args.price,
-        availability_status: "available",
-      } as any)
-      .eq("id", existing.data.id)
-      .select("id")
-      .single();
-
-    if (upd.error) throw upd.error;
-    return;
+  if (
+    !response.ok ||
+    !result?.ok
+  ) {
+    throw new Error(
+      result?.error?.message ||
+        result?.trustedPublication
+          ?.message ||
+        (typeof result?.error ===
+        "string"
+          ? result.error
+          : null) ||
+        "Builder Unit linkage failed.",
+    );
   }
 
-  const ins = await supabase
-    .from("inventory_items")
-    .insert({
-      project_id: args.projectId,
-      listing_id: args.listingId,
-      unit_code: unitCode,
-      title: args.title,
-      price: args.price,
-      availability_status: "available",
-    } as any)
-    .select("id")
-    .single();
-
-  if (ins.error) throw ins.error;
+  if (unit.unit_code) {
+    setSelectedBuilderUnitCode(
+      String(unit.unit_code),
+    );
+  }
 }
 
 async function loadAmenitiesMasterAndDefaults() {

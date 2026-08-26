@@ -396,7 +396,10 @@ function getMissingColumnName(message: string): string | null {
   return null;
 }
 
-async function insertProviderServiceSafe(supabase: any, payload: Record<string, any>) {
+async function insertProviderServiceSafe(
+  supabase: any,
+  payload: Record<string, any>,
+): Promise<{ id: string }> {
   let attemptPayload = { ...payload };
 
   for (let i = 0; i < 8; i++) {
@@ -405,9 +408,25 @@ async function insertProviderServiceSafe(supabase: any, payload: Record<string, 
       .select("id", { count: "exact", head: true })
       .eq("user_id", attemptPayload.user_id);
 
-    const { error } = await supabase.from("provider_services").insert(attemptPayload);
+    void existingServiceCount;
 
-    if (!error) return;
+    const { data, error } = await supabase
+      .from("provider_services")
+      .insert(attemptPayload)
+      .select("id")
+      .single();
+
+    if (!error && data?.id) {
+      return {
+        id: String(data.id),
+      };
+    }
+
+    if (!error) {
+      throw new Error(
+        "Service was saved but its ID was not returned.",
+      );
+    }
 
     const msg = String(error.message || "");
     const missing = getMissingColumnName(msg);
@@ -421,7 +440,9 @@ async function insertProviderServiceSafe(supabase: any, payload: Record<string, 
     attemptPayload = nextPayload;
   }
 
-  throw new Error("Failed to save provider service after removing missing schema columns.");
+  throw new Error(
+    "Failed to save provider service after removing missing schema columns.",
+  );
 }
 
 function parseOptionalNumber(v: string): number | undefined {
@@ -1266,8 +1287,19 @@ function TurnkeyToggle() {
 
         const payload: any = {
           provider_id: providerId,
-          record_status,
-          is_active: true,
+
+          /*
+           * Browser creation always persists a
+           * draft. Publication requests are sent
+           * through the server authority below.
+           */
+          record_status:
+            record_status === "published"
+              ? "draft"
+              : record_status,
+
+          is_active:
+            record_status !== "published",
 
           service_id: d.pickMode === "catalog" ? d.service_id : null,
 
@@ -1322,7 +1354,47 @@ function TurnkeyToggle() {
         };
 
         try {
-          await insertProviderServiceSafe(supabase, payload);
+          const createdService =
+            await insertProviderServiceSafe(
+              supabase,
+              payload,
+            );
+
+          if (record_status === "published") {
+            const response = await fetch(
+              "/api/services/submit-for-review",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+                credentials: "same-origin",
+                body: JSON.stringify({
+                  serviceId:
+                    createdService.id,
+                }),
+              },
+            );
+
+            const result = await response
+              .json()
+              .catch(() => null);
+
+            if (!response.ok || !result?.ok) {
+              throw new Error(
+                result?.error
+                  ?.trustedPublication
+                  ?.message ||
+                  result?.error?.message ||
+                  (typeof result?.error ===
+                  "string"
+                    ? result.error
+                    : null) ||
+                  "Unable to submit service for review.",
+              );
+            }
+          }
 
       try {
         await saveVendorListingMemory({
@@ -1368,7 +1440,14 @@ function TurnkeyToggle() {
           const payload: any = {
             provider_id: providerId,
             template_code: t.template_code,
-            record_status,
+
+            /*
+             * Turnkey publication requires its
+             * dedicated trusted-media wizard and
+             * server submission authority.
+             */
+            record_status: "draft",
+
             currency: t.currency || "INR",
             rate_unit: "per_sqft",
             rate_per_unit: typeof t.vendor_rate_per_sqft === "number" ? t.vendor_rate_per_sqft : null,
@@ -1392,7 +1471,13 @@ function TurnkeyToggle() {
       setBulkSelectedServiceIds(new Set());
       setStep(1);
 
-      alert(record_status === "published" ? "Published successfully!" : "Saved as draft!");
+      alert(
+        record_status === "published"
+          ? includeTurnkey
+            ? "General services submitted for review. Turnkey packages were saved as drafts; complete their trusted work evidence from the Turnkey wizard."
+            : "Services submitted for review!"
+          : "Saved as draft!",
+      );
     } catch (e: any) {
       console.error(e);
       setErr(e?.message || "Save failed.");
@@ -3086,7 +3171,7 @@ function TurnkeyToggle() {
                           opacity: saving ? 0.6 : 1,
                         }}
                       >
-                        {saving ? "Publishing..." : "Publish Now"}
+                        {saving ? "Submitting..." : "Submit for Review"}
                       </button>
                     </div>
                   </div>
