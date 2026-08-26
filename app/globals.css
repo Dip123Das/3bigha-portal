@@ -4884,3 +4884,110 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     max-height: calc(100dvh - 104px) !important;
   }
 }
+
+/* =========================================================
+   HDR-02D — Body-level account menu portal
+   Permanently escapes all header stacking and clipping layers.
+   ========================================================= */
+
+.mobileAccountPanelPortal {
+  position: fixed;
+
+  display: grid;
+  gap: 8px;
+
+  width: min(320px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+
+  padding: 14px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.99);
+  color: #0f172a;
+
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.20),
+    0 4px 14px rgba(15, 23, 42, 0.10);
+
+  backdrop-filter: blur(18px);
+
+  z-index: 2147483647;
+}
+
+.mobileAccountPanelPortal
+  .mobileAccountPanelRole {
+  display: block;
+  margin: 0;
+
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.mobileAccountPanelPortal
+  .mobileAccountPanelEmail {
+  display: block;
+
+  margin: -2px 0 5px;
+  padding-bottom: 10px;
+
+  overflow: hidden;
+
+  border-bottom:
+    1px solid rgba(15, 23, 42, 0.09);
+
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobileAccountPanelPortal a,
+.mobileAccountPanelPortal button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  border-radius: 11px;
+
+  background: #ffffff;
+  color: #0f172a;
+
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.3;
+  text-align: left;
+  text-decoration: none;
+
+  cursor: pointer;
+}
+
+.mobileAccountPanelPortal a:hover {
+  border-color: rgba(37, 99, 235, 0.24);
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.mobileAccountPanelPortal button:hover {
+  border-color: rgba(220, 38, 38, 0.22);
+  background: #fff1f2;
+  color: #b91c1c;
+}
