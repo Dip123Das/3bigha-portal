@@ -3,20 +3,22 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import {
-  MEDIA_BUCKET_BY_MODULE,
   UNIVERSAL_MEDIA_LIMITS,
   type UniversalMediaModule,
   type UploadedMediaAsset,
 } from "@/lib/media/media-config";
 import {
-  analyzeImageQuality,
-  compressImageIfNeeded,
   formatMediaSize,
-  getMediaKind,
-  safeMediaFileName,
-  validateUniversalMediaFile,
   type MediaQualityWarning,
 } from "@/lib/media/media-utils";
+import { executeMediaUpload } from "@/lib/media/upload-engine";
+import type {
+  TrustedUploadContext,
+} from "@/lib/media/upload-strategy";
+import type {
+  TrustedMediaEntityType,
+  TrustedMediaEvidenceRole,
+} from "@/lib/trusted-media/trusted-media-types";
 
 type TrustedUploadProgress = {
   required: number;
@@ -49,6 +51,36 @@ type TrustedAssetMetadata = {
   aiVerificationStatus?: unknown;
   mandatoryTrustedCapture?: unknown;
 };
+
+type TrustedGpsCoordinates = {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+};
+
+function trustedEntityForModule(
+  module: UniversalMediaModule,
+): {
+  entityType: TrustedMediaEntityType;
+  evidenceRole: TrustedMediaEvidenceRole;
+} | null {
+  if (module === "property") {
+    return { entityType: "property", evidenceRole: "property_overview" };
+  }
+  if (module === "project") {
+    return { entityType: "builder_project", evidenceRole: "project_overview" };
+  }
+  if (module === "materials") {
+    return { entityType: "material", evidenceRole: "material_overview" };
+  }
+  if (module === "rentals") {
+    return { entityType: "rental", evidenceRole: "rental_asset_overview" };
+  }
+  if (module === "services") {
+    return { entityType: "service", evidenceRole: "service_work_evidence" };
+  }
+  return null;
+}
 
 function isTrustedLiveEvidenceAsset(
   asset: UploadedMediaAsset,
@@ -121,6 +153,7 @@ export default function UniversalMediaUploader({
   const inlineVideoRef = useRef<HTMLVideoElement | null>(null);
   const inlineCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const inlineStreamRef = useRef<MediaStream | null>(null);
+  const trustedDraftTokenRef = useRef<string | null>(null);
 
   const [uploading, setUploading] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -173,11 +206,7 @@ export default function UniversalMediaUploader({
   >("idle");
 
   const [gpsCoordinates, setGpsCoordinates] =
-    useState<{
-      latitude: number;
-      longitude: number;
-      accuracy: number;
-    } | null>(null);
+    useState<TrustedGpsCoordinates | null>(null);
 
   const [gpsMessage, setGpsMessage] =
     useState("");
@@ -185,6 +214,7 @@ export default function UniversalMediaUploader({
   const [captureSession, setCaptureSession] =
     useState<{
       sessionId: string | null;
+      nonce: string | null;
       startedAt: string | null;
       completedAt: string | null;
       captureNumber: number;
@@ -196,6 +226,7 @@ export default function UniversalMediaUploader({
         | "completed";
     }>({
       sessionId: null,
+      nonce: null,
       startedAt: null,
       completedAt: null,
       captureNumber: 0,
@@ -251,21 +282,74 @@ export default function UniversalMediaUploader({
   });
 }
 
-function createCaptureSession() {
-  const sessionId =
-    crypto.randomUUID();
+async function createCaptureSession(
+  coordinates: TrustedGpsCoordinates,
+) {
+  const trustedEntity = trustedEntityForModule(module);
+  if (!trustedEntity) {
+    setCameraError("Trusted live capture is not supported for this media type.");
+    return false;
+  }
+
+  trustedDraftTokenRef.current ??= crypto.randomUUID();
+  const startedAt = new Date().toISOString();
+
+  const createResponse = await fetch("/api/trusted-media/capture-session", {
+    method: "POST",
+    credentials: "include",
+    cache: "no-store",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      entityType: trustedEntity.entityType,
+      draftToken: trustedDraftTokenRef.current,
+      platform: "web",
+    }),
+  });
+  const created = await createResponse.json().catch(() => null);
+  const sessionId = created?.session?.id;
+  const nonce = created?.nonce;
+
+  if (!createResponse.ok || !sessionId || !nonce) {
+    setCameraError(created?.error || "Unable to start a secure capture session.");
+    return false;
+  }
+
+  const locationResponse = await fetch(
+    `/api/trusted-media/capture-session/${sessionId}/location`,
+    {
+      method: "POST",
+      credentials: "include",
+      cache: "no-store",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nonce,
+        location: {
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
+          accuracyMetres: coordinates.accuracy,
+          capturedAt: startedAt,
+          provider: "browser_geolocation",
+        },
+      }),
+    },
+  );
+  const located = await locationResponse.json().catch(() => null);
+
+  if (!locationResponse.ok || !located?.ok) {
+    setCameraError(located?.error || "Unable to secure the GPS evidence.");
+    return false;
+  }
 
   setCaptureSession({
     sessionId,
-    startedAt:
-      new Date().toISOString(),
+    nonce,
+    startedAt,
     completedAt: null,
-    captureNumber:
-      trustedCompletedFromAssets + 1,
+    captureNumber: trustedCompletedFromAssets + 1,
     status: "created",
   });
 
-  return sessionId;
+  return true;
 }
 async function acquireGpsLocation() {
   if (!navigator.geolocation) {
@@ -273,7 +357,7 @@ async function acquireGpsLocation() {
     setGpsMessage(
       "GPS is not supported on this device.",
     );
-    return false;
+    return null;
   }
 
   setGpsStatus("requesting");
@@ -285,21 +369,22 @@ async function acquireGpsLocation() {
     "waiting_gps",
   );
 
-  return new Promise<boolean>((resolve) => {
+  return new Promise<TrustedGpsCoordinates | null>((resolve) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setGpsCoordinates({
+        const coordinates = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           accuracy: position.coords.accuracy,
-        });
+        };
+        setGpsCoordinates(coordinates);
 
         setGpsStatus("success");
         setGpsMessage(
           "GPS acquired successfully.",
         );
 
-        resolve(true);
+        resolve(coordinates);
       },
 
       () => {
@@ -307,7 +392,7 @@ async function acquireGpsLocation() {
         setGpsMessage(
           "Unable to obtain GPS location.",
         );
-        resolve(false);
+        resolve(null);
       },
 
       {
@@ -455,15 +540,19 @@ async function acquireGpsLocation() {
 
     setCameraError("");
     if (trustedMode) {
-      const ok =
+      const coordinates =
         await acquireGpsLocation();
 
-      if (!ok) {
+      if (!coordinates) {
         return;
       }
-    }
-    if (trustedMode) {
-      createCaptureSession();
+
+      const sessionReady =
+        await createCaptureSession(coordinates);
+
+      if (!sessionReady) {
+        return;
+      }
 
       transitionTrustedState(
         "session_created",
@@ -661,99 +750,66 @@ async function acquireGpsLocation() {
     let uploaded: UploadedMediaAsset[] = [];
 
 try {
-      const bucket = MEDIA_BUCKET_BY_MODULE[module];
-      uploaded = [];
-      const rejected: string[] = [];
-      const baseFolder =
-        folder?.trim() || `${module}/${new Date().getFullYear()}/${Date.now()}`;
+      const isTrustedCapture =
+        trustedMode && uploadMetadata.captureSource === "live_camera";
+      const trustedEntity = isTrustedCapture
+        ? trustedEntityForModule(module)
+        : null;
 
-      for (let index = 0; index < incoming.length; index++) {
-        const originalFile = incoming[index];
-        setProgressText(`Checking ${index + 1} of ${incoming.length}...`);
-
-        const validationError = validateUniversalMediaFile(originalFile);
-        if (validationError) {
-          rejected.push(`${originalFile.name}: ${validationError}`);
-          continue;
-        }
-
-        const kind = getMediaKind(originalFile);
-        if (!kind) {
-          rejected.push(`${originalFile.name}: Unsupported file type.`);
-          continue;
-        }
-
-        if (kind === "image" && !allowImages) {
-          rejected.push(`${originalFile.name}: Images are not allowed here.`);
-          continue;
-        }
-
-        if (kind === "video" && !allowVideos) {
-          rejected.push(`${originalFile.name}: Videos are not allowed here.`);
-          continue;
-        }
-
-        if (kind === "document" && !allowDocuments) {
-          rejected.push(
-            `${originalFile.name}: Documents are not allowed here.`,
+      let trustedContext: TrustedUploadContext | undefined;
+      if (isTrustedCapture) {
+        if (
+          !trustedEntity ||
+          !captureSession.sessionId ||
+          !captureSession.nonce ||
+          !trustedDraftTokenRef.current
+        ) {
+          throw new Error(
+            "The secure capture session is incomplete. Please retake the live photo.",
           );
-          continue;
         }
 
-        if (kind === "image") {
-          setProgressText(
-            `AI checking image quality ${index + 1} of ${incoming.length}...`,
-          );
-
-          const report = await analyzeImageQuality(originalFile);
-          if (report?.warnings?.length) {
-            setQualityWarnings((prev) => [...prev, ...report.warnings]);
-          }
-        }
-
-        setProgressText(
-          kind === "image"
-            ? `Optimizing image ${index + 1} of ${incoming.length}...`
-            : `Preparing ${index + 1} of ${incoming.length}...`,
-        );
-
-        const file =
-          kind === "image"
-            ? await compressImageIfNeeded(originalFile)
-            : originalFile;
-
-        const safeName = safeMediaFileName(file.name);
-        const objectPath = `${baseFolder}/${Date.now()}_${index}_${safeName}`;
-
-        setProgressText(`Uploading ${index + 1} of ${incoming.length}...`);
-
-        const { error } = await supabase.storage
-          .from(bucket)
-          .upload(objectPath, file, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: file.type || undefined,
-          });
-
-        if (error) {
-          rejected.push(`${file.name}: ${error.message}`);
-          continue;
-        }
-
-        const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath);
-
-        uploaded.push({
-          id: `${Date.now()}_${Math.random().toString(16).slice(2)}`,
-          url: data.publicUrl,
-          bucket,
-          path: objectPath,
-          name: file.name,
-          size: file.size,
-          mimeType: file.type,
-          kind,
-          ...uploadMetadata,
-        } as UploadedMediaAsset);
+        trustedContext = {
+          sessionId: captureSession.sessionId,
+          nonce: captureSession.nonce,
+          entityType: trustedEntity.entityType,
+          draftToken: trustedDraftTokenRef.current,
+          evidenceRole: trustedEntity.evidenceRole,
+          isMandatoryEvidence: true,
+          originType: "trusted_web",
+          capturedAtClient: String(
+            uploadMetadata.captureTimestamp || new Date().toISOString(),
+          ),
+          sortOrder: trustedCompletedFromAssets,
+        };
       }
+
+      const result = await executeMediaUpload(
+        {
+          supabase,
+          module,
+          files: incoming,
+          folder,
+          allowImages,
+          allowVideos,
+          allowDocuments,
+          uploadMetadata,
+          trusted: trustedContext,
+          onProgress(progress) {
+            setProgressText(progress.message);
+          },
+          onQualityWarnings(warnings) {
+            setQualityWarnings((previous) => [
+              ...previous,
+              ...warnings,
+            ]);
+          },
+        },
+        isTrustedCapture ? "trusted" : "standard",
+      );
+
+      uploaded = result.uploaded;
+      const rejected = result.rejected;
 
       if (uploaded.length) {
         onChange([...value, ...uploaded]);
