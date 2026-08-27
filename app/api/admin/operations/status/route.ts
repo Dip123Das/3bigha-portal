@@ -1,43 +1,9 @@
 import { NextResponse } from "next/server";
 import { execSync } from "child_process";
-import { createClient } from "@supabase/supabase-js";
+import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function getSupabaseAdmin() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
-
-async function requireMasterAdmin(req: Request) {
-  const supabase = getSupabaseAdmin();
-  const authHeader = req.headers.get("authorization");
-
-  if (!authHeader) return { error: "Unauthorized" };
-
-  const token = authHeader.replace("Bearer ", "");
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser(token);
-
-  if (!user) return { error: "Invalid user" };
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (profile?.role !== "master_admin") {
-    return { error: "Master admin required" };
-  }
-
-  return { error: null };
-}
 
 function run(cmd: string) {
   try {
@@ -54,11 +20,11 @@ function run(cmd: string) {
 export async function GET(req: Request) {
   const auth = await requireMasterAdmin(req);
 
-  if (auth.error) {
-    return NextResponse.json({ ok: false, error: auth.error }, { status: 403 });
+  if ("error" in auth) {
+    return NextResponse.json({ ok: false, error: auth.error }, { status: auth.status });
   }
 
-  const supabase = getSupabaseAdmin();
+  const supabase = auth.admin;
 
   async function count(table: string) {
     const { count } = await supabase

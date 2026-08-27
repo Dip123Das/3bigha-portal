@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
 
 export const dynamic = "force-dynamic";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 function slugify(value: string) {
   return String(value || "")
@@ -18,6 +14,7 @@ function slugify(value: string) {
 }
 
 async function findBySlug(
+  supabase: SupabaseClient,
   table: string,
   slug: string,
   extra: Record<string, string | null> = {}
@@ -35,6 +32,14 @@ async function findBySlug(
 }
 
 export async function POST(request: Request) {
+  const access = await requireMasterAdmin(request);
+  if ("error" in access) {
+    return NextResponse.json(
+      { ok: false, error: access.error },
+      { status: access.status }
+    );
+  }
+  const supabase = access.admin;
   const body = await request.json();
 
   const type = String(body.type || "");
@@ -59,7 +64,7 @@ export async function POST(request: Request) {
 
     const countryId = countryRow.data?.id || null;
 
-    const existing = await findBySlug("geo_states", slug);
+    const existing = await findBySlug(supabase, "geo_states", slug);
 
     const payload = {
       country_id: countryId,
@@ -96,7 +101,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: "state_id required" }, { status: 400 });
     }
 
-    const existing = await findBySlug("geo_districts", slug, { state_id: stateId });
+    const existing = await findBySlug(supabase, "geo_districts", slug, { state_id: stateId });
 
     const payload = {
       state_id: stateId,
@@ -133,7 +138,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: "district_id required" }, { status: 400 });
     }
 
-    const existing = await findBySlug("geo_subdivisions", slug, { district_id: districtId });
+    const existing = await findBySlug(supabase, "geo_subdivisions", slug, { district_id: districtId });
 
     const payload = {
       district_id: districtId,
@@ -172,7 +177,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: "district_id required" }, { status: 400 });
     }
 
-    const existing = await findBySlug("geo_blocks", slug, { district_id: districtId });
+    const existing = await findBySlug(supabase, "geo_blocks", slug, { district_id: districtId });
 
     const payload = {
       district_id: districtId,
@@ -213,7 +218,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: "district_id required" }, { status: 400 });
     }
 
-    const existing = await findBySlug("geo_places", slug, { district_id: districtId });
+    const existing = await findBySlug(supabase, "geo_places", slug, { district_id: districtId });
 
     const payload = {
       district_id: districtId,

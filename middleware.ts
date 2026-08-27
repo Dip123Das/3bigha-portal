@@ -1,5 +1,9 @@
 // middleware.ts
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  adminRoleCanAccessPath,
+  isAdminRole,
+} from "@/lib/admin/access-policy";
 
 const LOCALES = [
   "en",
@@ -220,8 +224,7 @@ export async function middleware(req: NextRequest) {
     authPathname.startsWith("/dashboard/");
 
   const isAdministrativeIdentity =
-    accessProfile?.role === "master_admin" ||
-    accessProfile?.role === "blog_admin";
+    isAdminRole(accessProfile?.role);
 
   if (isDashboardRoute && !isAdministrativeIdentity) {
     const returnTo =
@@ -322,11 +325,10 @@ export async function middleware(req: NextRequest) {
   }
 
   if (pathname.startsWith("/admin")) {
-    const profile = accessProfile;
-
-    const canAccessAdminRoute =
-      profile?.role === "master_admin" ||
-      (profile?.role === "blog_admin" && pathname.startsWith("/admin/blog"));
+    const canAccessAdminRoute = adminRoleCanAccessPath(
+      accessProfile?.role,
+      authPathname
+    );
 
     if (!canAccessAdminRoute) {
       const dashboardUrl = req.nextUrl.clone();

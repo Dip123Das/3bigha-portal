@@ -1,56 +1,7 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
 
 export const runtime = "nodejs";
-
-function getSupabaseAdmin() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error(
-      "Server missing env vars: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY"
-    );
-  }
-
-  return createClient(supabaseUrl, serviceRoleKey);
-}
-
-async function requireMasterAdmin(req: Request) {
-  const supabase = getSupabaseAdmin();
-  const authHeader = req.headers.get("authorization");
-
-  if (!authHeader) {
-    return { user: null, error: "Unauthorized. Please login again." };
-  }
-
-  const token = authHeader.replace("Bearer ", "");
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser(token);
-
-  if (userError || !user) {
-    return { user: null, error: "Invalid or expired login session." };
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (profileError) {
-    return { user: null, error: profileError.message };
-  }
-
-  if (profile?.role !== "master_admin") {
-    return { user: null, error: "Master admin required." };
-  }
-
-  return { user, error: null };
-}
 
 function extractText(payload: any) {
   if (typeof payload?.output_text === "string") return payload.output_text;
@@ -65,12 +16,12 @@ function extractText(payload: any) {
 
 export async function POST(req: Request) {
   try {
-    const supabase = getSupabaseAdmin();
     const auth = await requireMasterAdmin(req);
 
-    if (auth.error || !auth.user) {
-      return NextResponse.json({ error: auth.error }, { status: 403 });
+    if ("error" in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
+    const supabase = auth.admin;
 
     const apiKey = process.env.OPENAI_API_KEY;
 

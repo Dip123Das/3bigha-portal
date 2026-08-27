@@ -1,14 +1,10 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
 
 export const dynamic = "force-dynamic";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-async function countTable(table: string) {
+async function countTable(supabase: SupabaseClient, table: string) {
   const { count, error } = await supabase
     .from(table)
     .select("*", { count: "exact", head: true });
@@ -20,7 +16,7 @@ async function countTable(table: string) {
   };
 }
 
-async function sampleTable(table: string) {
+async function sampleTable(supabase: SupabaseClient, table: string) {
   const { data, error } = await supabase
     .from(table)
     .select("name,slug")
@@ -34,7 +30,15 @@ async function sampleTable(table: string) {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const access = await requireMasterAdmin(request);
+  if ("error" in access) {
+    return NextResponse.json(
+      { ok: false, error: access.error },
+      { status: access.status }
+    );
+  }
+  const supabase = access.admin;
   const tables = [
     "geo_countries",
     "geo_states",
@@ -44,8 +48,8 @@ export async function GET() {
     "geo_places",
   ];
 
-  const counts = await Promise.all(tables.map(countTable));
-  const samples = await Promise.all(tables.map(sampleTable));
+  const counts = await Promise.all(tables.map((table) => countTable(supabase, table)));
+  const samples = await Promise.all(tables.map((table) => sampleTable(supabase, table)));
 
   return NextResponse.json({
     ok: true,
