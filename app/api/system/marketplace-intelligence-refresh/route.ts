@@ -4,6 +4,10 @@ import {
   aggregateMarketplaceIntelligence,
 } from "@/lib/marketplace/intelligence/services/marketplace-intelligence-aggregator";
 
+// This operational endpoint performs live aggregation and must never execute
+// during static generation.
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const result =

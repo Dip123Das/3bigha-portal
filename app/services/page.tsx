@@ -271,8 +271,6 @@ function safeClearExpiredSupabaseSessions() {
   }
 }
 
-export const revalidate = 300;
-
 export default function ServicesPage() {
   const supabaseAnon = useMemo(() => {
     if (typeof window === "undefined") return null;
