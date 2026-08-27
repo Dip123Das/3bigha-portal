@@ -92,6 +92,7 @@ export default function PropertyProjectsPublicPage() {
           .from("builder_projects")
           .select("id,name,slug,city,district,state,pincode,status,updated_at")
           .eq("status", "active")
+          .eq("is_active", true)
           .order("name", { ascending: true });
 
         if (!alive) return;

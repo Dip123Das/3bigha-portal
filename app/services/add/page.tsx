@@ -11,6 +11,11 @@ import {
 } from "@/lib/vendors/vendorListingMemory";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import {
+  buildTrustedPublicationContext,
+  TRUSTED_PUBLICATION_POLICY,
+  validateTrustedPublication,
+} from "@/lib/media/trusted-publication-gate";
 
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
@@ -391,7 +396,10 @@ function getMissingColumnName(message: string): string | null {
   return null;
 }
 
-async function insertProviderServiceSafe(supabase: any, payload: Record<string, any>) {
+async function insertProviderServiceSafe(
+  supabase: any,
+  payload: Record<string, any>,
+): Promise<{ id: string }> {
   let attemptPayload = { ...payload };
 
   for (let i = 0; i < 8; i++) {
@@ -400,9 +408,25 @@ async function insertProviderServiceSafe(supabase: any, payload: Record<string, 
       .select("id", { count: "exact", head: true })
       .eq("user_id", attemptPayload.user_id);
 
-    const { error } = await supabase.from("provider_services").insert(attemptPayload);
+    void existingServiceCount;
 
-    if (!error) return;
+    const { data, error } = await supabase
+      .from("provider_services")
+      .insert(attemptPayload)
+      .select("id")
+      .single();
+
+    if (!error && data?.id) {
+      return {
+        id: String(data.id),
+      };
+    }
+
+    if (!error) {
+      throw new Error(
+        "Service was saved but its ID was not returned.",
+      );
+    }
 
     const msg = String(error.message || "");
     const missing = getMissingColumnName(msg);
@@ -416,7 +440,9 @@ async function insertProviderServiceSafe(supabase: any, payload: Record<string, 
     attemptPayload = nextPayload;
   }
 
-  throw new Error("Failed to save provider service after removing missing schema columns.");
+  throw new Error(
+    "Failed to save provider service after removing missing schema columns.",
+  );
 }
 
 function parseOptionalNumber(v: string): number | undefined {
@@ -1007,6 +1033,26 @@ function TurnkeyToggle() {
     activeDraftKey,
   ]);
 
+  const activeServiceReadiness = useMemo(
+    () =>
+      buildTrustedPublicationContext(
+        activeDraft?.media_assets ?? [],
+      ),
+    [activeDraft?.media_assets],
+  );
+
+  const serviceRequiredCaptures =
+    TRUSTED_PUBLICATION_POLICY
+      .services
+      .requiredCaptures;
+
+  const activeServicePublicationReady =
+    activeServiceReadiness.completedCaptures >=
+      serviceRequiredCaptures &&
+    activeServiceReadiness.gpsVerified === true &&
+    activeServiceReadiness.provenanceVerified === true &&
+    activeServiceReadiness.captureSessionCompleted === true;
+
   function draftTitle(d: ServiceDraft) {
     const base =
       d.pickMode === "catalog"
@@ -1134,6 +1180,45 @@ function TurnkeyToggle() {
       return;
     }
 
+    if (
+      record_status === "published" &&
+      dedupedDrafts.length > 0
+    ) {
+      const blockedServices: string[] = [];
+
+      for (const draft of dedupedDrafts) {
+        const trustedResult =
+          await validateTrustedPublication(
+            "services",
+            draft.media_assets ?? [],
+          );
+
+        if (!trustedResult.ok) {
+          blockedServices.push(
+            `${buildTitle(draft)}: ${
+              trustedResult.message ||
+              "Trusted media verification failed."
+            }`,
+          );
+        }
+      }
+
+      if (blockedServices.length > 0) {
+        const message = [
+          "Publication blocked. Complete the mandatory trusted live capture for every service:",
+          "",
+          ...blockedServices.map(
+            (item, index) =>
+              `${index + 1}. ${item}`,
+          ),
+        ].join("\n");
+
+        setErr(message);
+        alert(message);
+        return;
+      }
+    }
+
     setSaving(true);
     try {
       let geography: any = null;
@@ -1188,10 +1273,33 @@ function TurnkeyToggle() {
 
         const { min_price, max_price } = decideMinMaxPrice(d);
 
+        const serviceTrustedReadiness =
+          buildTrustedPublicationContext(
+            d.media_assets ?? [],
+          );
+
+        const servicePublicationReady =
+          serviceTrustedReadiness.completedCaptures >=
+            serviceRequiredCaptures &&
+          serviceTrustedReadiness.gpsVerified === true &&
+          serviceTrustedReadiness.provenanceVerified === true &&
+          serviceTrustedReadiness.captureSessionCompleted === true;
+
         const payload: any = {
           provider_id: providerId,
-          record_status,
-          is_active: true,
+
+          /*
+           * Browser creation always persists a
+           * draft. Publication requests are sent
+           * through the server authority below.
+           */
+          record_status:
+            record_status === "published"
+              ? "draft"
+              : record_status,
+
+          is_active:
+            record_status !== "published",
 
           service_id: d.pickMode === "catalog" ? d.service_id : null,
 
@@ -1215,10 +1323,78 @@ function TurnkeyToggle() {
           geo_subdivision_id: geography?.geo_subdivision_id || null,
           geo_block_id: geography?.geo_block_id || null,
           geo_place_id: geography?.geo_place_id || null,
+
+          media_assets:
+            (d.media_assets ?? []).map(
+              (asset) => ({
+                ...asset,
+              }),
+            ),
+
+          trusted_publication: {
+            module: "services",
+            required_captures:
+              serviceRequiredCaptures,
+            completed_captures:
+              serviceTrustedReadiness.completedCaptures,
+            gps_verified:
+              serviceTrustedReadiness.gpsVerified === true,
+            provenance_verified:
+              serviceTrustedReadiness.provenanceVerified === true,
+            capture_session_completed:
+              serviceTrustedReadiness.captureSessionCompleted === true,
+            ai_verification_status:
+              serviceTrustedReadiness.aiVerificationStatus ??
+              "not_started",
+            publication_ready:
+              servicePublicationReady,
+            evaluated_at:
+              new Date().toISOString(),
+          },
         };
 
         try {
-          await insertProviderServiceSafe(supabase, payload);
+          const createdService =
+            await insertProviderServiceSafe(
+              supabase,
+              payload,
+            );
+
+          if (record_status === "published") {
+            const response = await fetch(
+              "/api/services/submit-for-review",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+                credentials: "same-origin",
+                body: JSON.stringify({
+                  serviceId:
+                    createdService.id,
+                }),
+              },
+            );
+
+            const result = await response
+              .json()
+              .catch(() => null);
+
+            if (!response.ok || !result?.ok) {
+              throw new Error(
+                result?.error
+                  ?.trustedPublication
+                  ?.message ||
+                  result?.error?.message ||
+                  (typeof result?.error ===
+                  "string"
+                    ? result.error
+                    : null) ||
+                  "Unable to submit service for review.",
+              );
+            }
+          }
 
       try {
         await saveVendorListingMemory({
@@ -1264,7 +1440,14 @@ function TurnkeyToggle() {
           const payload: any = {
             provider_id: providerId,
             template_code: t.template_code,
-            record_status,
+
+            /*
+             * Turnkey publication requires its
+             * dedicated trusted-media wizard and
+             * server submission authority.
+             */
+            record_status: "draft",
+
             currency: t.currency || "INR",
             rate_unit: "per_sqft",
             rate_per_unit: typeof t.vendor_rate_per_sqft === "number" ? t.vendor_rate_per_sqft : null,
@@ -1288,7 +1471,13 @@ function TurnkeyToggle() {
       setBulkSelectedServiceIds(new Set());
       setStep(1);
 
-      alert(record_status === "published" ? "Published successfully!" : "Saved as draft!");
+      alert(
+        record_status === "published"
+          ? includeTurnkey
+            ? "General services submitted for review. Turnkey packages were saved as drafts; complete their trusted work evidence from the Turnkey wizard."
+            : "Services submitted for review!"
+          : "Saved as draft!",
+      );
     } catch (e: any) {
       console.error(e);
       setErr(e?.message || "Save failed.");
@@ -2475,14 +2664,119 @@ function TurnkeyToggle() {
                           <UniversalMediaUploader
                             module="services"
                             value={activeDraft.media_assets || []}
-                            onChange={(assets) => setDraft(activeDraft.key, { media_assets: assets })}
+                            onChange={(assets) =>
+                              setDraft(activeDraft.key, {
+                                media_assets: assets,
+                              })
+                            }
                             label="Service work photos / videos"
-                            helperText="Upload work photos, before/after images, certificates, team photos, tools, or a short work-site video."
+                            helperText="Capture one genuine live GPS-backed photo of your actual work, team, tools, equipment or work site first. Additional gallery photos and videos are available after the mandatory capture."
                             allowImages
                             allowVideos
                             allowDocuments={false}
                             maxFiles={10}
+                            uploadStrategy="trusted"
+                            mandatoryTrustedCaptures={1}
+                            inlineCamera
+                            cameraFacing="environment"
+                            cameraOnly={false}
                           />
+
+                          <div
+                            style={{
+                              marginTop: 12,
+                              padding: 14,
+                              borderRadius: 12,
+                              border: activeServicePublicationReady
+                                ? "1px solid #bbf7d0"
+                                : "1px solid #fed7aa",
+                              background: activeServicePublicationReady
+                                ? "#f0fdf4"
+                                : "#fff7ed",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontWeight: 900,
+                                color: activeServicePublicationReady
+                                  ? "#166534"
+                                  : "#9a3412",
+                              }}
+                            >
+                              Service Trusted Publication Readiness
+                            </div>
+
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns:
+                                  "repeat(auto-fit, minmax(180px, 1fr))",
+                                gap: 8,
+                                marginTop: 10,
+                                fontSize: 13,
+                              }}
+                            >
+                              <div>
+                                Mandatory live captures:{" "}
+                                <b>
+                                  {activeServiceReadiness.completedCaptures}/
+                                  {serviceRequiredCaptures}
+                                </b>
+                              </div>
+
+                              <div>
+                                GPS:{" "}
+                                <b>
+                                  {activeServiceReadiness.gpsVerified
+                                    ? "Verified"
+                                    : "Pending"}
+                                </b>
+                              </div>
+
+                              <div>
+                                Live provenance:{" "}
+                                <b>
+                                  {activeServiceReadiness.provenanceVerified
+                                    ? "Verified"
+                                    : "Pending"}
+                                </b>
+                              </div>
+
+                              <div>
+                                Capture session:{" "}
+                                <b>
+                                  {activeServiceReadiness.captureSessionCompleted
+                                    ? "Completed"
+                                    : "Pending"}
+                                </b>
+                              </div>
+
+                              <div>
+                                AI media review:{" "}
+                                <b>
+                                  {activeServiceReadiness.aiVerificationStatus ===
+                                  "verified"
+                                    ? "Verified"
+                                    : "Pending"}
+                                </b>
+                              </div>
+                            </div>
+
+                            <div
+                              style={{
+                                marginTop: 12,
+                                fontWeight: 900,
+                                lineHeight: 1.5,
+                                color: activeServicePublicationReady
+                                  ? "#166534"
+                                  : "#9a3412",
+                              }}
+                            >
+                              {activeServicePublicationReady
+                                ? "✓ Mandatory trusted evidence completed. This service can pass the trusted publication gate."
+                                : "Draft saving remains available. Publish Now requires one genuine live GPS-backed service capture for this service."}
+                            </div>
+                          </div>
                         </div>
                         </div>
 
@@ -2877,7 +3171,7 @@ function TurnkeyToggle() {
                           opacity: saving ? 0.6 : 1,
                         }}
                       >
-                        {saving ? "Publishing..." : "Publish Now"}
+                        {saving ? "Submitting..." : "Submit for Review"}
                       </button>
                     </div>
                   </div>

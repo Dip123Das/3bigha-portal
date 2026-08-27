@@ -11,6 +11,15 @@ import {
   type CostInventoryHandoffPrefill,
 } from "@/lib/cost-execution/handoff-prefill";
 
+import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
+import type {
+  UploadedMediaAsset,
+} from "@/lib/media/media-config";
+import {
+  buildTrustedPublicationContext,
+  validateTrustedPublication,
+} from "@/lib/media/trusted-publication-gate";
+
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { Card, CardBody } from "@/components/ui/Card";
@@ -496,6 +505,16 @@ const [unitCodePadDigits, setUnitCodePadDigits] = useState<string>("2");
 // =====================================================
 const [unitPhotos, setUnitPhotos] = useState<File[]>([]);
 const [unitVideo, setUnitVideo] = useState<File | null>(null);
+
+/*
+ * Canonical Trusted Listing Media for one
+ * individually created Builder inventory unit.
+ *
+ * Bulk-created unit shells remain Trust Pending
+ * and receive their own evidence later.
+ */
+const [unitMediaAssets, setUnitMediaAssets] =
+  useState<UploadedMediaAsset[]>([]);
 
 // =====================================================
 // Amenities helpers (RESTORE - required by page)
@@ -1082,6 +1101,64 @@ const emiPreview = useMemo(() => {
         return;
       }
       const qty = Math.max(1, Math.min(200, Number(quantity || "1") || 1));
+
+      /*
+       * TRUST RULE
+       *
+       * One individually created Builder Unit
+       * requires exactly one genuine live GPS capture.
+       *
+       * Bulk-created units remain internal Trust
+       * Pending shells. A single capture must never
+       * be copied to several different units.
+       */
+      let builderUnitTrustedResult:
+        | Awaited<
+            ReturnType<
+              typeof validateTrustedPublication
+            >
+          >
+        | null = null;
+
+      let builderUnitTrustedContext:
+        | ReturnType<
+            typeof buildTrustedPublicationContext
+          >
+        | null = null;
+
+      if (qty === 1) {
+        builderUnitTrustedResult =
+          await validateTrustedPublication(
+            "property",
+            unitMediaAssets,
+            {
+              listingKind: "builder_unit",
+            },
+          );
+
+        if (!builderUnitTrustedResult.ok) {
+          flashError(
+            builderUnitTrustedResult.message ||
+              "Capture one genuine live GPS photo of this unit before creating it.",
+          );
+          return;
+        }
+
+        builderUnitTrustedContext =
+          buildTrustedPublicationContext(
+            unitMediaAssets,
+          );
+      }
+
+      if (
+        qty > 1 &&
+        unitMediaAssets.length > 0
+      ) {
+        flashError(
+          "Trusted live evidence belongs to one specific unit and cannot be copied across bulk-created units. Remove the current capture or set Quantity to 1.",
+        );
+        return;
+      }
       if (kind === "flat") {
   const perFloor = Math.max(0, Number(flatsPerFloor || "0") || 0);
   const startIdx = Math.max(1, Number(flatStartIndex || "1") || 1);
@@ -1145,6 +1222,68 @@ const emiPreview = useMemo(() => {
         const unitPayload: any = {
           project_id: projectId,
           builder_project_id: projectId, // safe if exists; fallback will remove if not
+
+          /*
+           * Unit-specific Trusted Listing Media.
+           * Project-level evidence is deliberately
+           * not inherited by the unit.
+           */
+          trusted_media_json:
+            qty === 1
+              ? unitMediaAssets.map(
+                  (asset) => ({
+                    ...asset,
+                  }),
+                )
+              : [],
+
+          trusted_publication:
+            qty === 1 &&
+            builderUnitTrustedResult?.ok &&
+            builderUnitTrustedContext
+              ? {
+                  module: "property",
+                  listingKind:
+                    "builder_unit",
+                  requiredCaptures: 1,
+                  completedCaptures:
+                    builderUnitTrustedContext
+                      .completedCaptures,
+                  gpsVerified:
+                    builderUnitTrustedContext
+                      .gpsVerified === true,
+                  provenanceVerified:
+                    builderUnitTrustedContext
+                      .provenanceVerified === true,
+                  captureSessionCompleted:
+                    builderUnitTrustedContext
+                      .captureSessionCompleted === true,
+                  aiVerificationStatus:
+                    builderUnitTrustedContext
+                      .aiVerificationStatus ??
+                    "not_started",
+                  serverCompatible: true,
+                }
+              : {
+                  module: "property",
+                  listingKind:
+                    "builder_unit",
+                  requiredCaptures: 1,
+                  completedCaptures: 0,
+                  gpsVerified: false,
+                  provenanceVerified: false,
+                  captureSessionCompleted:
+                    false,
+                  aiVerificationStatus:
+                    "not_started",
+                  serverCompatible: true,
+                },
+
+          trust_status:
+            qty === 1 &&
+            builderUnitTrustedResult?.ok
+              ? "verified"
+              : "pending",
           catalog_id: selectedCatalogId,
           builder_profile_id: builder?.id || null,
           owner_user_id: userId || null,
@@ -2144,27 +2283,109 @@ if (priceNum !== null) {
   </div>
 )}
 
-              <div style={{ fontWeight: 900, marginBottom: 10 }}>7) Unit Media (Photos / Video)</div>
+              <div style={{ fontWeight: 900, marginBottom: 10 }}>
+                7) Trusted Unit Media
+              </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div>
-                  <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Unit photos (multiple)</div>
-                  <input type="file" accept="image/*" multiple onChange={(e) => setUnitPhotos(Array.from(e.target.files ?? []))} disabled={saving} />
-                  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>Recommended: 5–20 photos.</div>
+              <div
+                style={{
+                  marginBottom: 12,
+                  border:
+                    "1px solid rgba(22, 101, 52, 0.20)",
+                  background: "#f0fdf4",
+                  borderRadius: 12,
+                  padding: 12,
+                  fontSize: 13,
+                  lineHeight: 1.55,
+                  color: "#14532d",
+                }}
+              >
+                <div
+                  style={{
+                    fontWeight: 900,
+                    marginBottom: 4,
+                  }}
+                >
+                  One live GPS photo is mandatory for an individual unit
                 </div>
 
                 <div>
-                  <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Unit video (single, optional)</div>
-                  <input type="file" accept="video/*" onChange={(e) => setUnitVideo((e.target.files?.[0] as any) ?? null)} disabled={saving} />
-                  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>Recommended: 30–120 seconds.</div>
+                  Capture the actual flat, house, duplex or plot.
+                  Gallery photos and video may be added after the
+                  mandatory live capture.
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 6,
+                    fontWeight: 800,
+                  }}
+                >
+                  A project photo cannot be reused as proof for several units.
                 </div>
               </div>
 
-              <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
-                Note: Media uploads to Supabase Storage bucket: <b>builder-unit-media</b>. For media upload, create <b>1 unit at a time</b>.
-              </div>
+              {Math.max(
+                1,
+                Math.min(
+                  200,
+                  Number(quantity || "1") || 1,
+                ),
+              ) > 1 ? (
+                <div
+                  style={{
+                    border:
+                      "1px solid rgba(180, 83, 9, 0.24)",
+                    background: "#fffbeb",
+                    color: "#92400e",
+                    borderRadius: 12,
+                    padding: 12,
+                    fontSize: 13,
+                    lineHeight: 1.55,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontWeight: 900,
+                      marginBottom: 4,
+                    }}
+                  >
+                    Bulk creation: units will be Trust Pending
+                  </div>
 
-              <div style={{ height: 16 }} />
+                  <div>
+                    Create the inventory shells now. Afterwards,
+                    open each individual unit and capture its own
+                    live GPS photo before linking or publishing it.
+                  </div>
+                </div>
+              ) : (
+                <UniversalMediaUploader
+                  module="property"
+                  value={unitMediaAssets}
+                  onChange={setUnitMediaAssets}
+                  label="Builder unit photos / video"
+                  helperText="Capture one genuine live GPS-backed photo of this specific unit first. Additional gallery photos and videos are allowed after verification."
+                  allowImages
+                  allowVideos
+                  allowDocuments={false}
+                  maxFiles={15}
+                  uploadStrategy="trusted"
+                  mandatoryTrustedCaptures={1}
+                  inlineCamera
+                  cameraFacing="environment"
+                  cameraOnly={false}
+                  folder={`builder-units/${projectId}`}
+                  assetMetadata={{
+                    evidenceCategory:
+                      "builder_inventory_unit",
+                    listingKind:
+                      "builder_unit",
+                    builderProjectId:
+                      projectId,
+                  }}
+                />
+              )}
 
               <div style={{ fontWeight: 900, marginBottom: 10 }}>8) Amenities (defaults from project)</div>
 

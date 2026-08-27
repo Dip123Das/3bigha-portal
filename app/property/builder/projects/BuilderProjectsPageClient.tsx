@@ -289,6 +289,70 @@ function BuilderProjectsPageInner() {
     return (res.data ?? null) as BuilderProjectRow | null;
   }
 
+  async function activateProject(projectId: string) {
+    setSavingProjectId(projectId);
+    setGlobalError("");
+
+    try {
+      const res = await fetch(
+        "/api/property/builder/projects/activate",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            projectId,
+          }),
+        },
+      );
+
+      const json = await res
+        .json()
+        .catch(() => null);
+
+      if (!res.ok || !json?.ok) {
+        const message =
+          json?.error?.message ||
+          "Project activation failed.";
+
+        throw new Error(message);
+      }
+
+      const freshRow =
+        await refreshSingleProjectRow(
+          projectId,
+        );
+
+      if (!freshRow?.id) {
+        throw new Error(
+          "Project activated but could not be reloaded.",
+        );
+      }
+
+      setRows((prev) =>
+        prev.map((row) =>
+          row.id === projectId
+            ? freshRow
+            : row,
+        ),
+      );
+
+      flashSuccess(
+        "Project activated. Trusted media was verified by the server.",
+      );
+    } catch (e: any) {
+      const msg =
+        `Could not activate project — ${friendlyDbError(e)}`;
+
+      setGlobalError(msg);
+      flashError(msg);
+    } finally {
+      setSavingProjectId("");
+    }
+  }
+
   async function attachInvestmentPlan(projectId: string, planId: string) {
   setSavingProjectId(projectId);
   setGlobalError("");
@@ -548,6 +612,19 @@ function BuilderProjectsPageInner() {
 
                             <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>
                               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                {String(r.status || "draft").toLowerCase() !== "active" ? (
+                                  <ActionButton
+                                    onClick={() => activateProject(r.id)}
+                                    disabled={savingProjectId === r.id}
+                                  >
+                                    {savingProjectId === r.id
+                                      ? "Verifying…"
+                                      : "Activate Project"}
+                                  </ActionButton>
+                                ) : (
+                                  <Badge>Trusted • Active</Badge>
+                                )}
+
                                 <ActionButton onClick={() => openUnits(r.id)}>Units</ActionButton>
 
                                 {/* ✅ NEW BUTTON (as you wanted in screenshot) */}

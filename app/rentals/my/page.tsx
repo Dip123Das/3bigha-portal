@@ -113,6 +113,7 @@ export default function RentalsMyPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
+  const [submittingId, setSubmittingId] = useState<string | null>(null);
 
   const [assets, setAssets] = useState<RentalAssetRow[]>([]);
   const [bookings, setBookings] = useState<RentalBookingRow[]>([]);
@@ -461,6 +462,49 @@ export default function RentalsMyPage() {
     loadMine(userId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, userId]);
+
+  async function submitForReview(listingId: string) {
+    if (!userId || submittingId) return;
+
+    setSubmittingId(listingId);
+    setErr(null);
+
+    try {
+      const res = await fetch(
+        "/api/rentals/submit-for-review",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            listingId,
+          }),
+        },
+      );
+
+      const json = await res
+        .json()
+        .catch(() => null);
+
+      if (!res.ok || !json?.ok) {
+        throw new Error(
+          json?.error?.message ||
+            "Failed to submit rental for review.",
+        );
+      }
+
+      await loadMine(userId);
+    } catch (e: any) {
+      setErr(
+        e?.message ||
+          "Failed to submit rental for review.",
+      );
+    } finally {
+      setSubmittingId(null);
+    }
+  }
 
   const statuses = useMemo(() => {
     const set = new Set<string>();
@@ -873,10 +917,41 @@ export default function RentalsMyPage() {
                 </CardBody>
 
                 <CardFooter>
-                  <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 12 }}>
+                  <div style={{ maxWidth: "100%", overflowX: "hidden", display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
                     <Link href={`/rentals/${r.id}`} style={{ maxWidth: "100%", overflowX: "hidden", fontWeight: 800 }}>
                       Public view →
                     </Link>
+
+                    {String(r.status ?? "draft").toLowerCase() === "draft" ? (
+                      <button
+                        type="button"
+                        onClick={() => submitForReview(r.id)}
+                        disabled={submittingId !== null}
+                        style={{
+                          maxWidth: "100%",
+                          overflowX: "hidden",
+                          minHeight: 38,
+                          padding: "0 14px",
+                          borderRadius: 10,
+                          border: "none",
+                          background: "#0f172a",
+                          color: "#fff",
+                          fontWeight: 900,
+                          cursor:
+                            submittingId !== null
+                              ? "not-allowed"
+                              : "pointer",
+                          opacity:
+                            submittingId !== null
+                              ? 0.65
+                              : 1,
+                        }}
+                      >
+                        {submittingId === r.id
+                          ? "Verifying Trusted Media..."
+                          : "Submit for Review"}
+                      </button>
+                    ) : null}
                   </div>
                 </CardFooter>
               </Card>

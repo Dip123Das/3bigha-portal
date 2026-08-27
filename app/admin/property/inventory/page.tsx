@@ -857,59 +857,101 @@ try {
     flashSuccess(`${getRowLabel(row)}: Changes reset.`);
   }
 
-  async function applyLink(row: InventoryRow) {
+  async function applyLink(
+    row: InventoryRow,
+  ) {
     const id = row.id;
-    const nextListingId = String(draftLinkListingId[id] ?? "").trim() || null;
 
-    setRowError((prev) => ({ ...prev, [id]: "" }));
-    setLinkWorkingRow((prev) => ({ ...prev, [id]: true }));
+    const nextListingId =
+      String(
+        draftLinkListingId[id] ?? "",
+      ).trim() || null;
+
+    setRowError((prev) => ({
+      ...prev,
+      [id]: "",
+    }));
+
+    setLinkWorkingRow((prev) => ({
+      ...prev,
+      [id]: true,
+    }));
+
     setGlobalError("");
     setBulkMessage("");
 
-    // Always clear any existing source rows for this unit (one unit -> one listing)
-    const delOld = await runWithJwtRetry(() => supabase.from(SOURCES_TABLE).delete().eq("unit_id", id));
-    if (delOld.error) {
-      const msg = friendlyDbError(delOld.error);
-      setRowError((prev) => ({ ...prev, [id]: msg }));
-      setLinkWorkingRow((prev) => ({ ...prev, [id]: false }));
-      flashError(`${getRowLabel(row)}: Unlink old failed — ${msg}`);
-      return;
-    }
-
-    if (nextListingId) {
-      // Link this unit to property listing via property_listing_sources
-      const insRes = await runWithJwtRetry(() =>
-        supabase
-          .from(SOURCES_TABLE)
-          .upsert(
-            {
-              property_id: nextListingId,
-              source_kind: "builder_inventory",
-              project_id: selectedProjectId,
-              unit_id: id,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "property_id" }
-          )
-          .select("id")
-          .maybeSingle()
+    try {
+      const response = await fetch(
+        "/api/builder-units/link-listing",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          credentials:
+            "same-origin",
+          cache: "no-store",
+          body: JSON.stringify({
+            unitId: id,
+            listingId:
+              nextListingId,
+          }),
+        },
       );
 
-      if (insRes.error) {
-        const msg = friendlyDbError(insRes.error);
-        setRowError((prev) => ({ ...prev, [id]: msg }));
-        setLinkWorkingRow((prev) => ({ ...prev, [id]: false }));
-        flashError(`${getRowLabel(row)}: Link failed — ${msg}`);
-        return;
+      const result = await response
+        .json()
+        .catch(() => null);
+
+      if (
+        !response.ok ||
+        !result?.ok
+      ) {
+        throw new Error(
+          result?.error?.message ||
+            result?.trustedPublication
+              ?.message ||
+            (typeof result?.error ===
+            "string"
+              ? result.error
+              : null) ||
+            "Unable to update the Builder Unit listing link.",
+        );
       }
+
+      if (nextListingId) {
+        flashSuccess(
+          `${getRowLabel(row)}: Linked successfully after server trust verification.`,
+        );
+      } else {
+        flashSuccess(
+          `${getRowLabel(row)}: Listing cleared.`,
+        );
+      }
+
+      setRefreshTick(
+        (value) => value + 1,
+      );
+    } catch (error: any) {
+      const message =
+        error?.message ||
+        "Unable to update the Builder Unit listing link.";
+
+      setRowError((prev) => ({
+        ...prev,
+        [id]: message,
+      }));
+
+      flashError(
+        `${getRowLabel(row)}: ${message}`,
+      );
+    } finally {
+      setLinkWorkingRow((prev) => ({
+        ...prev,
+        [id]: false,
+      }));
     }
-
-    setLinkWorkingRow((prev) => ({ ...prev, [id]: false }));
-
-    if (nextListingId) flashSuccess(`${getRowLabel(row)}: Linked successfully.`);
-    else flashSuccess(`${getRowLabel(row)}: Listing cleared.`);
-
-    setRefreshTick((x) => x + 1);
   }
 
   async function unlinkRow(row: InventoryRow) {

@@ -156,28 +156,46 @@ export default function AdminServicesPage() {
     setActingId(id);
     setErr(null);
 
-    const patch: any = { status: next };
+    try {
+      const response = await fetch(
+        "/api/admin/services/decision",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            listingId: id,
+            decision: next,
+          }),
+        },
+      );
 
-    // approval should set published_at (same as other modules)
-    if (next === "approved") {
-      patch.published_at = new Date().toISOString();
-    }
+      const result = await response
+        .json()
+        .catch(() => null);
 
-    // if moving away from approved, keep published_at as-is (audit-friendly)
+      if (!response.ok || !result?.ok) {
+        throw new Error(
+          result?.trustedPublication?.message ||
+            result?.error?.message ||
+            (typeof result?.error === "string"
+              ? result.error
+              : null) ||
+            "Unable to update service listing.",
+        );
+      }
 
-    const { error } = await supabase
-      .from("service_listings")
-      .update(patch)
-      .eq("id", id);
-
-    if (error) {
-      setErr(error.message);
+      await loadRoleAndData();
+    } catch (error: any) {
+      setErr(
+        error?.message ||
+          "Unable to update service listing.",
+      );
+    } finally {
       setActingId(null);
-      return;
     }
-
-    await loadRoleAndData();
-    setActingId(null);
   }
 
   if (loading) {

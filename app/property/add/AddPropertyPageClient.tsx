@@ -3,7 +3,9 @@
 import type { GeoSelection } from "@/components/geography/GeoSelector";
 import AddressEngine from "@/components/geography/AddressEngine";
 
-
+import {
+  validateTrustedPublication,
+} from "@/lib/media/trusted-publication-gate";
 
 import type React from "react";
 
@@ -2490,16 +2492,11 @@ useEffect(() => {
     },
 
     media: mediaAssets.length
-      ? mediaAssets.map((asset) => ({
-          id: asset.id,
-          url: asset.url,
-          bucket: asset.bucket,
-          path: asset.path,
-          name: asset.name,
-          size: asset.size,
-          mimeType: asset.mimeType,
-          kind: asset.kind,
-        }))
+      ? mediaAssets.map(
+          (asset) => ({
+            ...asset,
+          }),
+        )
       : cleanedMedia,
 
     
@@ -3653,8 +3650,45 @@ async function submitForReviewSupabase() {
       });
     }
 
-    setSaveMsg("Submitting for review...");
-    const finalRes = await callSubmitForReviewApi(currentListingId);
+    setSaveMsg(
+      "Checking trusted live GPS evidence...",
+    );
+
+    const trustedResult =
+      await validateTrustedPublication(
+        "property",
+        mediaAssets,
+      );
+
+    if (!trustedResult.ok) {
+      setSaveMsg(
+        `❌ ${
+          trustedResult.message ||
+          "Trusted media verification failed."
+        }`,
+      );
+      return;
+    }
+
+    if (
+      trustedResult.warnings.length > 0
+    ) {
+      console.warn(
+        "Property trusted publication warnings:",
+        trustedResult.warnings,
+      );
+    }
+
+    setSaveMsg(
+      trustedResult.aiVerificationPending
+        ? "Trusted captures verified. AI media review is pending; submitting for review..."
+        : "Trusted captures verified. Submitting for review...",
+    );
+
+    const finalRes =
+      await callSubmitForReviewApi(
+        currentListingId,
+      );
 
     console.log("Final submit API result:", finalRes);
 
@@ -3900,67 +3934,72 @@ async function upsertPropertyInvestmentOpportunity(args: {
   }
 }
 
-async function syncBuilderInventoryForListing(args: {
-  listingId: string;
-  projectId: string;
-  unitId: string;
-  title: string;
-  price: number;
-}) {
-  const unit = builderUnits.find((u) => u.id === args.unitId);
-  if (!unit?.unit_code) {
-    throw new Error("Please select a valid builder unit.");
+async function syncBuilderInventoryForListing(
+  args: {
+    listingId: string;
+    projectId: string;
+    unitId: string;
+    title: string;
+    price: number;
+  },
+) {
+  const unit =
+    builderUnits.find(
+      (candidate) =>
+        candidate.id ===
+        args.unitId,
+    );
+
+  if (!unit?.id) {
+    throw new Error(
+      "Please select a valid builder unit.",
+    );
   }
 
-  const unitCode = String(unit.unit_code);
-  setSelectedBuilderUnitCode(unitCode);
+  const response = await fetch(
+    "/api/builder-units/link-listing",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+      },
+      credentials:
+        "same-origin",
+      cache: "no-store",
+      body: JSON.stringify({
+        unitId: args.unitId,
+        listingId:
+          args.listingId,
+      }),
+    },
+  );
 
-  const existing = await supabase
-    .from("inventory_items")
-    .select("id,listing_id,project_id,unit_code")
-    .eq("project_id", args.projectId)
-    .eq("unit_code", unitCode)
-    .limit(1)
-    .maybeSingle();
+  const result = await response
+    .json()
+    .catch(() => null);
 
-  if (existing.error) throw existing.error;
-
-  if (existing.data?.id) {
-    const existingListingId = existing.data.listing_id ? String(existing.data.listing_id) : null;
-    if (existingListingId && existingListingId !== args.listingId) {
-      throw new Error(`Selected unit ${unitCode} is already linked to another listing.`);
-    }
-
-    const upd = await supabase
-      .from("inventory_items")
-      .update({
-        listing_id: args.listingId,
-        title: args.title,
-        price: args.price,
-        availability_status: "available",
-      } as any)
-      .eq("id", existing.data.id)
-      .select("id")
-      .single();
-
-    if (upd.error) throw upd.error;
-    return;
+  if (
+    !response.ok ||
+    !result?.ok
+  ) {
+    throw new Error(
+      result?.error?.message ||
+        result?.trustedPublication
+          ?.message ||
+        (typeof result?.error ===
+        "string"
+          ? result.error
+          : null) ||
+        "Builder Unit linkage failed.",
+    );
   }
 
-  const ins = await supabase
-    .from("inventory_items")
-    .insert({
-      project_id: args.projectId,
-      listing_id: args.listingId,
-      unit_code: unitCode,
-      title: args.title,
-      price: args.price,
-      availability_status: "available",
-    } as any)
-    .select("id")
-    .single();
-
-  if (ins.error) throw ins.error;
+  if (unit.unit_code) {
+    setSelectedBuilderUnitCode(
+      String(unit.unit_code),
+    );
+  }
 }
 
 async function loadAmenitiesMasterAndDefaults() {
@@ -5685,11 +5724,21 @@ if (postcode && !postalCode.trim()) setPostalCode(String(postcode));
                   value={mediaAssets}
                   onChange={setMediaAssets}
                   label="Property photos / videos"
-                  helperText="Take clear property photos, upload images, or record a short video. First uploaded media becomes cover image."
+                  helperText="Capture two live GPS-verified overview photos first. After verification, additional gallery photos and videos can be uploaded."
                   allowImages
                   allowVideos
                   allowDocuments={false}
                   maxFiles={15}
+
+                  uploadStrategy="trusted"
+
+                  mandatoryTrustedCaptures={2}
+
+                  inlineCamera
+
+                  cameraFacing="environment"
+
+                  cameraOnly={false}
                 />
 
                 <details style={{ marginTop: 14 }}>

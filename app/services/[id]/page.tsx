@@ -1,4 +1,5 @@
 import Link from "next/link";
+import TrustedListingMediaBadge from "@/components/trust/TrustedListingMediaBadge";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import JsonLd from "@/components/seo/JsonLd";
@@ -334,7 +335,12 @@ export default async function ServiceDetailsPage({ params }: PageProps) {
               letterSpacing: "0.08em",
             }}
           >
-            Verified Service Listing
+            Service Listing
+
+            <TrustedListingMediaBadge
+              media={(row as any).photos}
+              module="services"
+            />
           </div>
 
           <h1

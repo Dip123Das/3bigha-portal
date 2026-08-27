@@ -167,25 +167,50 @@ export default function AdminServiceDetailPage() {
 
   async function setStatus(next: Status) {
     if (!row) return;
+
     setActing(next);
     setErr(null);
 
-    const patch: any = { status: next };
+    try {
+      const response = await fetch(
+        "/api/admin/services/decision",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            listingId: row.id,
+            decision: next,
+          }),
+        },
+      );
 
-    if (next === "approved") {
-      patch.published_at = new Date().toISOString();
-    }
+      const result = await response
+        .json()
+        .catch(() => null);
 
-    const { error } = await supabase.from("service_listings").update(patch).eq("id", row.id);
+      if (!response.ok || !result?.ok) {
+        throw new Error(
+          result?.trustedPublication?.message ||
+            result?.error?.message ||
+            (typeof result?.error === "string"
+              ? result.error
+              : null) ||
+            "Unable to update service listing.",
+        );
+      }
 
-    if (error) {
-      setErr(error.message);
+      await load();
+    } catch (error: any) {
+      setErr(
+        error?.message ||
+          "Unable to update service listing.",
+      );
+    } finally {
       setActing(null);
-      return;
     }
-
-    await load();
-    setActing(null);
   }
 
   if (loading) {

@@ -4453,3 +4453,541 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
     border-radius: 14px !important;
   }
 }
+
+/* =========================================================
+   HDR-01 Phase 1 — Laptop-safe desktop header dropdowns
+   Keeps existing desktop/mobile architecture unchanged.
+   Ensures Dashboard, Workspace and Requirement menus remain
+   fully visible on short-height laptop screens.
+   ========================================================= */
+
+@media (min-width: 981px) {
+  .rfqTogglePanel {
+    position: fixed !important;
+
+    top: clamp(82px, 13vh, 128px) !important;
+    right: clamp(12px, 2vw, 28px) !important;
+    bottom: auto !important;
+    left: auto !important;
+
+    width: min(430px, calc(100vw - 32px)) !important;
+    max-width: calc(100vw - 32px) !important;
+
+    max-height: calc(100dvh - 104px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+
+    z-index: 10095 !important;
+
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
+  }
+
+  .rfqTogglePanel[role="dialog"] {
+    isolation: isolate;
+  }
+
+  .rfqTogglePanel button,
+  .rfqTogglePanel a {
+    scroll-margin-block: 12px;
+  }
+}
+
+/*
+ * Compact only the vertical spacing when a desktop/laptop
+ * viewport has limited height. Width behaviour is unchanged.
+ */
+@media (min-width: 981px) and (max-height: 820px) {
+  .rfqTogglePanel {
+    top: 76px !important;
+    max-height: calc(100dvh - 88px) !important;
+  }
+
+  .rfqToggleTitle {
+    margin-bottom: 6px !important;
+  }
+
+  .rfqTogglePanel p {
+    margin-top: 5px !important;
+    margin-bottom: 7px !important;
+  }
+}
+
+@media (min-width: 981px) and (max-height: 680px) {
+  .rfqTogglePanel {
+    top: 64px !important;
+    max-height: calc(100dvh - 72px) !important;
+  }
+}
+
+/* =========================================================
+   HDR-02 — Laptop desktop header responsive refinement
+
+   On medium desktop/laptop widths, replace the three wide
+   account controls with the existing compact account menu.
+   Large desktop and mobile layouts remain unchanged.
+   ========================================================= */
+
+@media (min-width: 981px) and (max-width: 1600px) {
+  .topHeader {
+    overflow: visible !important;
+  }
+
+  .topHeaderInner {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: clamp(5px, 0.65vw, 10px) !important;
+    padding-left: clamp(10px, 1.2vw, 18px) !important;
+    padding-right: clamp(10px, 1.2vw, 18px) !important;
+    overflow: visible !important;
+  }
+
+  .topHeaderInner > .topBrand.desktopHeaderOnly {
+    flex: 0 0 auto !important;
+    min-width: 72px !important;
+    max-width: 96px !important;
+  }
+
+  .topHeaderInner .siteLogoFull {
+    width: clamp(72px, 6.4vw, 96px) !important;
+    max-width: 96px !important;
+  }
+
+  .topSearchQuick {
+    flex: 1 1 260px !important;
+    min-width: 160px !important;
+    max-width: none !important;
+  }
+
+  .topLanguageSelector {
+    flex: 0 0 auto !important;
+  }
+
+  .topActions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    gap: 5px !important;
+    overflow: visible !important;
+  }
+
+  .topActions .topBtn {
+    white-space: nowrap !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .desktopAuthSlot {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+  }
+
+  /*
+   * Hide the three wide controls:
+   * email, My Dashboard and Logout.
+   * Their functionality remains available in the compact menu.
+   */
+  .desktopAuthSlot .desktopAccountBtn {
+    display: none !important;
+  }
+
+  /*
+   * Reuse the existing authenticated account dropdown.
+   * It already contains role, email, dashboard and logout.
+   */
+  .desktopAuthSlot .mobileAccountMenu {
+    display: block !important;
+    position: relative !important;
+    margin: 0 !important;
+  }
+
+  .desktopAuthSlot .mobileAccountMainBtn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    max-width: 150px !important;
+    padding: 9px 11px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    cursor: pointer !important;
+  }
+
+  .desktopAuthSlot .mobileAccountPanel {
+    position: absolute !important;
+    top: calc(100% + 9px) !important;
+    right: 0 !important;
+    left: auto !important;
+    bottom: auto !important;
+
+    width: min(320px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - 92px) !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+
+    z-index: 10120 !important;
+  }
+
+  .desktopAuthSlot .mobileAccountPanel a,
+  .desktopAuthSlot .mobileAccountPanel button {
+    width: 100% !important;
+  }
+}
+
+/*
+ * Tighter spacing for common 13–14 inch laptop widths.
+ */
+@media (min-width: 981px) and (max-width: 1280px) {
+  .topHeaderInner {
+    gap: 4px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .topHeaderInner > .topBrand.desktopHeaderOnly {
+    max-width: 78px !important;
+  }
+
+  .topHeaderInner .siteLogoFull {
+    width: 74px !important;
+  }
+
+  .topSearchQuick {
+    min-width: 130px !important;
+  }
+
+  .topActions .topBtn {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 12px !important;
+  }
+
+  .desktopAuthSlot .mobileAccountMainBtn {
+    max-width: 122px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* =========================================================
+   HDR-02A — Laptop account dropdown visual completion
+   Styles the existing account menu when reused on desktop.
+   ========================================================= */
+
+@media (min-width: 981px) and (max-width: 1600px) {
+  .topHeader,
+  .topHeaderInner,
+  .topActions,
+  .desktopAuthSlot {
+    position: relative;
+    z-index: 120;
+  }
+
+  .desktopAuthSlot .mobileAccountMenu {
+    list-style: none !important;
+  }
+
+  .desktopAuthSlot .mobileAccountMenu > summary {
+    list-style: none !important;
+  }
+
+  .desktopAuthSlot .mobileAccountMenu > summary::-webkit-details-marker {
+    display: none !important;
+  }
+
+  .desktopAuthSlot .mobileAccountPanel {
+    display: none;
+
+    padding: 14px !important;
+    border: 1px solid rgba(15, 23, 42, 0.12) !important;
+    border-radius: 16px !important;
+
+    background: rgba(255, 255, 255, 0.99) !important;
+    color: #0f172a !important;
+
+    box-shadow:
+      0 24px 60px rgba(15, 23, 42, 0.18),
+      0 4px 14px rgba(15, 23, 42, 0.08) !important;
+
+    backdrop-filter: blur(18px);
+  }
+
+  .desktopAuthSlot .mobileAccountMenu[open] .mobileAccountPanel {
+    display: grid !important;
+    gap: 8px !important;
+  }
+
+  .desktopAuthSlot .mobileAccountPanelRole {
+    display: block !important;
+    margin: 0 !important;
+
+    color: #0f172a !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    line-height: 1.35 !important;
+  }
+
+  .desktopAuthSlot .mobileAccountPanelEmail {
+    display: block !important;
+    margin: -2px 0 5px !important;
+    padding-bottom: 10px !important;
+
+    border-bottom: 1px solid rgba(15, 23, 42, 0.09) !important;
+
+    color: #64748b !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .desktopAuthSlot .mobileAccountPanel a,
+  .desktopAuthSlot .mobileAccountPanel button {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+
+    min-height: 42px !important;
+    padding: 10px 12px !important;
+
+    border: 1px solid rgba(15, 23, 42, 0.09) !important;
+    border-radius: 11px !important;
+
+    background: #ffffff !important;
+    color: #0f172a !important;
+
+    font: inherit !important;
+    font-size: 13px !important;
+    font-weight: 850 !important;
+    line-height: 1.3 !important;
+    text-align: left !important;
+    text-decoration: none !important;
+
+    cursor: pointer !important;
+  }
+
+  .desktopAuthSlot .mobileAccountPanel a:hover {
+    border-color: rgba(37, 99, 235, 0.24) !important;
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+  }
+
+  .desktopAuthSlot .mobileAccountPanel button:hover {
+    border-color: rgba(220, 38, 38, 0.22) !important;
+    background: #fff1f2 !important;
+    color: #b91c1c !important;
+  }
+
+  .desktopAuthSlot .mobileAccountPanel button {
+    appearance: none !important;
+  }
+}
+
+/* =========================================================
+   HDR-02B — Keep laptop account menu above sub-navigation
+   ========================================================= */
+
+@media (min-width: 981px) and (max-width: 1600px) {
+  .topHeader {
+    position: relative !important;
+    overflow: visible !important;
+    z-index: 500 !important;
+  }
+
+  .topHeaderInner {
+    position: relative !important;
+    overflow: visible !important;
+    z-index: 520 !important;
+  }
+
+  .topActions,
+  .desktopAuthSlot,
+  .desktopAuthSlot .mobileAccountMenu {
+    position: relative !important;
+    overflow: visible !important;
+    z-index: 540 !important;
+  }
+
+  .desktopAuthSlot .mobileAccountPanel {
+    z-index: 10000 !important;
+  }
+
+  /*
+   * This row is rendered after the main header and was
+   * covering the opened account panel.
+   */
+  .topSubBar,
+  .topSubBarInner,
+  .topSubLinks {
+    position: relative !important;
+    z-index: 100 !important;
+  }
+
+  .rfqToggle,
+  .rfqToggleBtn {
+    position: relative !important;
+    z-index: 110 !important;
+  }
+
+  /*
+   * An opened RFQ panel may still rise above normal content,
+   * but the closed toggle row must stay under the account menu.
+   */
+  .rfqTogglePanel {
+    z-index: 9000 !important;
+  }
+}
+
+/* =========================================================
+   HDR-02C — Keep laptop account menu below all header rows
+   Avoids overlap with the white secondary navigation bar.
+   ========================================================= */
+
+@media (min-width: 981px) and (max-width: 1600px) {
+  .desktopAuthSlot .mobileAccountPanel {
+    position: fixed !important;
+
+    top: 102px !important;
+    right: 12px !important;
+    bottom: auto !important;
+    left: auto !important;
+
+    width: min(320px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - 116px) !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+
+    z-index: 2147483000 !important;
+  }
+}
+
+@media (min-width: 981px) and (max-height: 720px) {
+  .desktopAuthSlot .mobileAccountPanel {
+    top: 92px !important;
+    max-height: calc(100dvh - 104px) !important;
+  }
+}
+
+/* =========================================================
+   HDR-02D — Body-level account menu portal
+   Permanently escapes all header stacking and clipping layers.
+   ========================================================= */
+
+.mobileAccountPanelPortal {
+  position: fixed;
+
+  display: grid;
+  gap: 8px;
+
+  width: min(320px, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+
+  padding: 14px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.99);
+  color: #0f172a;
+
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.20),
+    0 4px 14px rgba(15, 23, 42, 0.10);
+
+  backdrop-filter: blur(18px);
+
+  z-index: 2147483647;
+}
+
+.mobileAccountPanelPortal
+  .mobileAccountPanelRole {
+  display: block;
+  margin: 0;
+
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.mobileAccountPanelPortal
+  .mobileAccountPanelEmail {
+  display: block;
+
+  margin: -2px 0 5px;
+  padding-bottom: 10px;
+
+  overflow: hidden;
+
+  border-bottom:
+    1px solid rgba(15, 23, 42, 0.09);
+
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobileAccountPanelPortal a,
+.mobileAccountPanelPortal button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  border-radius: 11px;
+
+  background: #ffffff;
+  color: #0f172a;
+
+  font: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.3;
+  text-align: left;
+  text-decoration: none;
+
+  cursor: pointer;
+}
+
+.mobileAccountPanelPortal a:hover {
+  border-color: rgba(37, 99, 235, 0.24);
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.mobileAccountPanelPortal button:hover {
+  border-color: rgba(220, 38, 38, 0.22);
+  background: #fff1f2;
+  color: #b91c1c;
+}

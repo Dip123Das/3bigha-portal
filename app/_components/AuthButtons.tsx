@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import {
@@ -64,6 +70,18 @@ export default function AuthButtons() {
   const [roleLabel, setRoleLabel] = useState<string>("");
   const [dashboardHref, setDashboardHref] = useState<string>("/dashboard");
   const [loading, setLoading] = useState(true);
+
+  const accountMenuRef =
+    useRef<HTMLDetailsElement | null>(null);
+
+  const [accountMenuOpen, setAccountMenuOpen] =
+    useState(false);
+
+  const [accountMenuPosition, setAccountMenuPosition] =
+    useState({
+      top: 72,
+      right: 12,
+    });
 
   async function loadProfileAndGuard(userId: string | null | undefined) {
     if (!userId) {
@@ -274,6 +292,12 @@ export default function AuthButtons() {
   }, [router, supabase, pathname]);
 
   async function handleLogout() {
+    setAccountMenuOpen(false);
+
+    if (accountMenuRef.current) {
+      accountMenuRef.current.open = false;
+    }
+
     try {
       setSession(null);
       setRoleLabel("");
@@ -285,6 +309,125 @@ export default function AuthButtons() {
       router.refresh();
     }
   }
+
+  function handleAccountMenuToggle(
+    event: React.SyntheticEvent<HTMLDetailsElement>,
+  ) {
+    const details = event.currentTarget;
+    const isOpen = details.open;
+
+    setAccountMenuOpen(isOpen);
+
+    if (!isOpen) {
+      return;
+    }
+
+    const summary =
+      details.querySelector("summary");
+
+    if (!(summary instanceof HTMLElement)) {
+      return;
+    }
+
+    const rect =
+      summary.getBoundingClientRect();
+
+    setAccountMenuPosition({
+      top: Math.max(
+        12,
+        Math.round(rect.bottom + 8),
+      ),
+      right: Math.max(
+        12,
+        Math.round(
+          window.innerWidth - rect.right,
+        ),
+      ),
+    });
+  }
+
+  useEffect(() => {
+    if (!accountMenuOpen) {
+      return;
+    }
+
+    function closeAccountMenu(
+      event: MouseEvent,
+    ) {
+      const target =
+        event.target as Node | null;
+
+      const clickedTrigger =
+        Boolean(
+          target &&
+          accountMenuRef.current?.contains(
+            target,
+          ),
+        );
+
+      const portal =
+        document.querySelector(
+          "[data-account-menu-portal='true']",
+        );
+
+      const clickedPortal =
+        Boolean(
+          target &&
+          portal?.contains(target),
+        );
+
+      if (
+        clickedTrigger ||
+        clickedPortal
+      ) {
+        return;
+      }
+
+      setAccountMenuOpen(false);
+
+      if (accountMenuRef.current) {
+        accountMenuRef.current.open =
+          false;
+      }
+    }
+
+    function closeOnEscape(
+      event: KeyboardEvent,
+    ) {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      setAccountMenuOpen(false);
+
+      if (accountMenuRef.current) {
+        accountMenuRef.current.open =
+          false;
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      closeAccountMenu,
+    );
+
+    document.addEventListener(
+      "keydown",
+      closeOnEscape,
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        closeAccountMenu,
+      );
+
+      document.removeEventListener(
+        "keydown",
+        closeOnEscape,
+      );
+    };
+  }, [accountMenuOpen]);
 
   if (loading) {
     return (
@@ -310,27 +453,81 @@ export default function AuthButtons() {
 
   return (
     <>
-      <details className="mobileAccountMenu">
+      <details
+        ref={accountMenuRef}
+        className="mobileAccountMenu"
+        onToggle={
+          handleAccountMenuToggle
+        }
+      >
         <summary
           className="topBtn topBtnGhost mobileAccountMainBtn"
           title={email ?? undefined}
         >
-          {displayRole} <span aria-hidden="true">▾</span>
+          {displayRole}{" "}
+          <span aria-hidden="true">
+            ▾
+          </span>
         </summary>
-
-        <div className="mobileAccountPanel">
-          <div className="mobileAccountPanelRole">{displayRole}</div>
-          <div className="mobileAccountPanelEmail">{shortEmail(email)}</div>
-          <Link href={displayDashboardHref}>
-            <span>My Dashboard</span>
-            <span aria-hidden="true">→</span>
-          </Link>
-          <button type="button" onClick={handleLogout}>
-            <span>Logout</span>
-            <span aria-hidden="true">→</span>
-          </button>
-        </div>
       </details>
+
+      {accountMenuOpen &&
+      typeof document !== "undefined"
+        ? createPortal(
+            <div
+              className="mobileAccountPanelPortal"
+              data-account-menu-portal="true"
+              role="dialog"
+              aria-label="Account menu"
+              style={{
+                top:
+                  accountMenuPosition.top,
+                right:
+                  accountMenuPosition.right,
+              }}
+            >
+              <div className="mobileAccountPanelRole">
+                {displayRole}
+              </div>
+
+              <div className="mobileAccountPanelEmail">
+                {shortEmail(email)}
+              </div>
+
+              <Link
+                href={displayDashboardHref}
+                onClick={() => {
+                  setAccountMenuOpen(
+                    false,
+                  );
+
+                  if (
+                    accountMenuRef.current
+                  ) {
+                    accountMenuRef.current.open =
+                      false;
+                  }
+                }}
+              >
+                <span>My Dashboard</span>
+                <span aria-hidden="true">
+                  →
+                </span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+              >
+                <span>Logout</span>
+                <span aria-hidden="true">
+                  →
+                </span>
+              </button>
+            </div>,
+            document.body,
+          )
+        : null}
 
       <span
         className="topBtn topBtnGhost desktopAccountBtn desktopHeaderOnly"

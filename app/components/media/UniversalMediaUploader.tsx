@@ -1,11 +1,6 @@
 "use client";
 
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import {
   MEDIA_BUCKET_BY_MODULE,
@@ -22,6 +17,54 @@ import {
   validateUniversalMediaFile,
   type MediaQualityWarning,
 } from "@/lib/media/media-utils";
+
+type TrustedUploadProgress = {
+  required: number;
+  completed: number;
+  galleryUnlocked: boolean;
+};
+
+type TrustedUploadStatus =
+  | "idle"
+  | "waiting_gps"
+  | "session_created"
+  | "camera_ready"
+  | "captured"
+  | "uploading"
+  | "verified"
+  | "complete";
+
+type TrustedAssetMetadata = {
+  captureSource?: unknown;
+  captureTimestamp?: unknown;
+  gpsVerified?: unknown;
+  gpsLatitude?: unknown;
+  gpsLongitude?: unknown;
+  gpsAccuracy?: unknown;
+  captureSessionId?: unknown;
+  captureSessionStartedAt?: unknown;
+  captureSessionCompleted?: unknown;
+  captureSessionCompletedAt?: unknown;
+  provenanceStatus?: unknown;
+  aiVerificationStatus?: unknown;
+  mandatoryTrustedCapture?: unknown;
+};
+
+function isTrustedLiveEvidenceAsset(
+  asset: UploadedMediaAsset,
+): boolean {
+  const metadata =
+    asset as UploadedMediaAsset &
+      TrustedAssetMetadata;
+
+  return (
+    metadata.captureSource === "live_camera" &&
+    metadata.gpsVerified === true &&
+    metadata.captureSessionCompleted === true &&
+    metadata.provenanceStatus === "verified" &&
+    metadata.mandatoryTrustedCapture === true
+  );
+}
 
 type UniversalMediaUploaderProps = {
   module: UniversalMediaModule;
@@ -42,6 +85,9 @@ type UniversalMediaUploaderProps = {
   outputPreset?: "square_1080";
   requirePreparation?: boolean;
   assetMetadata?: Record<string, unknown>;
+  uploadStrategy?: "standard" | "trusted";
+  mandatoryTrustedCaptures?: number;
+  showTrustedBanner?: boolean;
 };
 
 export default function UniversalMediaUploader({
@@ -63,31 +109,215 @@ export default function UniversalMediaUploader({
   outputPreset = "square_1080",
   requirePreparation = false,
   assetMetadata = {},
+  uploadStrategy = "standard",
+  mandatoryTrustedCaptures = 1,
+  showTrustedBanner = true,
 }: UniversalMediaUploaderProps) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
-  const documentInputRef =
-    useRef<HTMLInputElement | null>(null);
-  const inlineVideoRef =
-    useRef<HTMLVideoElement | null>(null);
-  const inlineCanvasRef =
-    useRef<HTMLCanvasElement | null>(null);
-  const inlineStreamRef =
-    useRef<MediaStream | null>(null);
+  const documentInputRef = useRef<HTMLInputElement | null>(null);
+  const inlineVideoRef = useRef<HTMLVideoElement | null>(null);
+  const inlineCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const inlineStreamRef = useRef<MediaStream | null>(null);
 
   const [uploading, setUploading] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
-  const [cameraStarting, setCameraStarting] =
-    useState(false);
+  const [cameraStarting, setCameraStarting] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [message, setMessage] = useState("");
   const [progressText, setProgressText] = useState("");
-  const [qualityWarnings, setQualityWarnings] = useState<MediaQualityWarning[]>([]);
+  const [qualityWarnings, setQualityWarnings] = useState<MediaQualityWarning[]>(
+    [],
+  );
   const [capturedPhoto, setCapturedPhoto] = useState<File | null>(null);
   const [capturedPreviewUrl, setCapturedPreviewUrl] = useState("");
   const [capturedAt, setCapturedAt] = useState("");
+
+  const trustedMode =
+  uploadStrategy === "trusted";
+
+  const [trustedStatus, setTrustedStatus] =
+    useState<TrustedUploadStatus>("idle");
+
+  const [trustedProgress, setTrustedProgress] =
+    useState<TrustedUploadProgress>({
+      required: mandatoryTrustedCaptures,
+      completed: 0,
+      galleryUnlocked: false,
+    });
+
+  const trustedLiveEvidenceAssets = useMemo(
+    () =>
+      value.filter(
+        isTrustedLiveEvidenceAsset,
+      ),
+    [value],
+  );
+
+  const trustedCompletedFromAssets =
+    Math.min(
+      Math.max(
+        1,
+        mandatoryTrustedCaptures,
+      ),
+      trustedLiveEvidenceAssets.length,
+    );
+
+  const [gpsStatus, setGpsStatus] = useState<
+    "idle" |
+    "requesting" |
+    "success" |
+    "failed"
+  >("idle");
+
+  const [gpsCoordinates, setGpsCoordinates] =
+    useState<{
+      latitude: number;
+      longitude: number;
+      accuracy: number;
+    } | null>(null);
+
+  const [gpsMessage, setGpsMessage] =
+    useState("");
+
+  const [captureSession, setCaptureSession] =
+    useState<{
+      sessionId: string | null;
+      startedAt: string | null;
+      completedAt: string | null;
+      captureNumber: number;
+      status:
+        | "idle"
+        | "created"
+        | "capturing"
+        | "uploaded"
+        | "completed";
+    }>({
+      sessionId: null,
+      startedAt: null,
+      completedAt: null,
+      captureNumber: 0,
+      status: "idle",
+    });
+
+  useEffect(() => {
+    const required = Math.max(
+      1,
+      mandatoryTrustedCaptures,
+    );
+
+    const completed = Math.min(
+      required,
+      trustedLiveEvidenceAssets.length,
+    );
+
+    setTrustedProgress({
+      required,
+      completed,
+      galleryUnlocked:
+        completed >= required,
+    });
+
+    if (!trustedMode) return;
+
+    if (completed >= required) {
+      setTrustedStatus("complete");
+      return;
+    }
+
+    if (completed > 0) {
+      setTrustedStatus("verified");
+      return;
+    }
+
+    setTrustedStatus((current) =>
+      current === "complete" ||
+      current === "verified"
+        ? "idle"
+        : current,
+    );
+  }, [
+    mandatoryTrustedCaptures,
+    trustedLiveEvidenceAssets.length,
+    trustedMode,
+  ]);
+
+  function transitionTrustedState(next: TrustedUploadStatus) {
+  setTrustedStatus((current) => {
+    if (current === next) return current;
+    return next;
+  });
+}
+
+function createCaptureSession() {
+  const sessionId =
+    crypto.randomUUID();
+
+  setCaptureSession({
+    sessionId,
+    startedAt:
+      new Date().toISOString(),
+    completedAt: null,
+    captureNumber:
+      trustedCompletedFromAssets + 1,
+    status: "created",
+  });
+
+  return sessionId;
+}
+async function acquireGpsLocation() {
+  if (!navigator.geolocation) {
+    setGpsStatus("failed");
+    setGpsMessage(
+      "GPS is not supported on this device.",
+    );
+    return false;
+  }
+
+  setGpsStatus("requesting");
+  setGpsMessage(
+    "Acquiring GPS location...",
+  );
+
+  transitionTrustedState(
+    "waiting_gps",
+  );
+
+  return new Promise<boolean>((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setGpsCoordinates({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        });
+
+        setGpsStatus("success");
+        setGpsMessage(
+          "GPS acquired successfully.",
+        );
+
+        resolve(true);
+      },
+
+      () => {
+        setGpsStatus("failed");
+        setGpsMessage(
+          "Unable to obtain GPS location.",
+        );
+        resolve(false);
+      },
+
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    );
+  });
+}
 
   function stopInlineCamera() {
     const stream = inlineStreamRef.current;
@@ -139,14 +369,71 @@ export default function UniversalMediaUploader({
 
     const file = capturedPhoto;
     clearCapturedPhoto();
+    const captureTimestamp =
+      capturedAt ||
+      new Date().toISOString();
+
     await uploadFiles([file], {
       ...assetMetadata,
+
       captureSource: "live_camera",
-      captureTimestamp:
-        capturedAt || new Date().toISOString(),
+      captureTimestamp,
+
       outputPreset,
       preparedBeforeUpload: true,
-      preparationRequired: requirePreparation,
+      preparationRequired:
+        requirePreparation,
+
+      mandatoryTrustedCapture:
+        trustedMode,
+
+      gpsVerified:
+        trustedMode
+          ? gpsStatus === "success"
+          : undefined,
+
+      gpsLatitude:
+        trustedMode
+          ? gpsCoordinates?.latitude
+          : undefined,
+
+      gpsLongitude:
+        trustedMode
+          ? gpsCoordinates?.longitude
+          : undefined,
+
+      gpsAccuracy:
+        trustedMode
+          ? gpsCoordinates?.accuracy
+          : undefined,
+
+      captureSessionId:
+        trustedMode
+          ? captureSession.sessionId
+          : undefined,
+
+      captureSessionStartedAt:
+        trustedMode
+          ? captureSession.startedAt
+          : undefined,
+
+      captureSessionCompleted:
+        trustedMode,
+
+      captureSessionCompletedAt:
+        trustedMode
+          ? captureTimestamp
+          : undefined,
+
+      provenanceStatus:
+        trustedMode
+          ? "verified"
+          : undefined,
+
+      aiVerificationStatus:
+        trustedMode
+          ? "pending"
+          : undefined,
     });
   }
 
@@ -161,33 +448,50 @@ export default function UniversalMediaUploader({
       !navigator.mediaDevices?.getUserMedia
     ) {
       setCameraError(
-        "This browser cannot open a live camera preview. Open this page in the latest Chrome browser and tap Start Live Camera."
+        "This browser cannot open a live camera preview. Open this page in the latest Chrome browser and tap Start Live Camera.",
       );
       return;
     }
 
     setCameraError("");
+    if (trustedMode) {
+      const ok =
+        await acquireGpsLocation();
+
+      if (!ok) {
+        return;
+      }
+    }
+    if (trustedMode) {
+      createCaptureSession();
+
+      transitionTrustedState(
+        "session_created",
+      );
+    }
     setCameraStarting(true);
+      if (trustedMode) {
+      transitionTrustedState("camera_ready");
+    }
     clearCapturedPhoto();
 
     try {
       stopInlineCamera();
 
-      const stream =
-        await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            facingMode: {
-              ideal: cameraFacing,
-            },
-            width: {
-              ideal: cameraFacing === "user" ? 1080 : 1920,
-            },
-            height: {
-              ideal: 1080,
-            },
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: {
+            ideal: cameraFacing,
           },
-        });
+          width: {
+            ideal: cameraFacing === "user" ? 1080 : 1920,
+          },
+          height: {
+            ideal: 1080,
+          },
+        },
+      });
 
       inlineStreamRef.current = stream;
       setCameraOpen(true);
@@ -206,67 +510,63 @@ export default function UniversalMediaUploader({
           await video.play();
         } catch {
           setCameraError(
-            "The camera opened but the preview could not start. Close the camera and tap Start Live Camera again."
+            "The camera opened but the preview could not start. Close the camera and tap Start Live Camera again.",
           );
         }
       }, 30);
     } catch (error) {
       stopInlineCamera();
 
-      const errorName =
-        error instanceof DOMException
-          ? error.name
-          : "";
+      const errorName = error instanceof DOMException ? error.name : "";
 
-      if (
-        errorName === "NotAllowedError" ||
-        errorName === "SecurityError"
-      ) {
+      if (errorName === "NotAllowedError" || errorName === "SecurityError") {
         setCameraError(
-          "Camera access was not granted. Tap Start Live Camera again and choose Allow when your browser asks for camera permission."
+          "Camera access was not granted. Tap Start Live Camera again and choose Allow when your browser asks for camera permission.",
         );
       } else if (
         errorName === "NotFoundError" ||
         errorName === "DevicesNotFoundError"
       ) {
         setCameraError(
-          "No usable camera was detected on this device. Continue this selfie step from a mobile phone with a camera."
+          "No usable camera was detected on this device. Continue this selfie step from a mobile phone with a camera.",
         );
       } else {
         setCameraError(
-          "The live camera could not start. Close and reopen this page in Chrome, then tap Start Live Camera and choose Allow."
+          "The live camera could not start. Close and reopen this page in Chrome, then tap Start Live Camera and choose Allow.",
         );
       }
     }
   }
 
   async function captureInlinePhoto() {
+    if (
+      trustedMode &&
+      gpsStatus !== "success"
+    ) {
+      setCameraError(
+        "GPS verification is required before capturing a trusted photo.",
+      );
+
+      return;
+    }
     const video = inlineVideoRef.current;
     const canvas = inlineCanvasRef.current;
 
-    if (
-      !video ||
-      !canvas ||
-      video.videoWidth <= 0 ||
-      video.videoHeight <= 0
-    ) {
+    if (!video || !canvas || video.videoWidth <= 0 || video.videoHeight <= 0) {
       setCameraError(
-        "The camera preview is not ready yet. Wait a moment and try again."
+        "The camera preview is not ready yet. Wait a moment and try again.",
       );
       return;
     }
 
-    const sourceSize = Math.min(
-      video.videoWidth,
-      video.videoHeight
-    );
+    const sourceSize = Math.min(video.videoWidth, video.videoHeight);
     const sourceX = Math.max(
       0,
-      Math.floor((video.videoWidth - sourceSize) / 2)
+      Math.floor((video.videoWidth - sourceSize) / 2),
     );
     const sourceY = Math.max(
       0,
-      Math.floor((video.videoHeight - sourceSize) / 2)
+      Math.floor((video.videoHeight - sourceSize) / 2),
     );
     const outputSize = Math.min(1080, sourceSize);
 
@@ -276,9 +576,7 @@ export default function UniversalMediaUploader({
     const context = canvas.getContext("2d");
 
     if (!context) {
-      setCameraError(
-        "The selfie could not be captured on this browser."
-      );
+      setCameraError("The selfie could not be captured on this browser.");
       return;
     }
 
@@ -291,42 +589,40 @@ export default function UniversalMediaUploader({
       0,
       0,
       outputSize,
-      outputSize
+      outputSize,
     );
 
-    const blob = await new Promise<Blob | null>(
-      (resolve) => {
-        canvas.toBlob(
-          resolve,
-          "image/jpeg",
-          0.9
-        );
-      }
-    );
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/jpeg", 0.9);
+    });
 
     if (!blob) {
-      setCameraError(
-        "The selfie could not be prepared for upload."
-      );
+      setCameraError("The selfie could not be prepared for upload.");
       return;
     }
 
-    const file = new File(
-      [blob],
-      `live-selfie-${Date.now()}.jpg`,
-      {
-        type: "image/jpeg",
-        lastModified: Date.now(),
-      }
-    );
+    const file = new File([blob], `live-selfie-${Date.now()}.jpg`, {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    });
 
     stopInlineCamera();
 
     if (capturedPreviewUrl) {
       URL.revokeObjectURL(capturedPreviewUrl);
     }
-
+    if (trustedMode) {
+    setCaptureSession(
+      (current) => ({
+        ...current,
+        status: "capturing",
+      }),
+    );
+  }
     setCapturedPhoto(file);
+      if (trustedMode) {
+    transitionTrustedState("captured");
+  }
     setCapturedAt(new Date().toISOString());
     setCapturedPreviewUrl(URL.createObjectURL(file));
   }
@@ -341,7 +637,7 @@ export default function UniversalMediaUploader({
 
   async function uploadFiles(
     files: FileList | File[],
-    uploadMetadata: Record<string, unknown> = {}
+    uploadMetadata: Record<string, unknown> = {},
   ) {
     const incoming = Array.from(files || []);
     if (!incoming.length || uploading) return;
@@ -351,15 +647,22 @@ export default function UniversalMediaUploader({
     setQualityWarnings([]);
 
     if (value.length + incoming.length > maxFiles) {
-      setMessage(`Maximum ${maxFiles} files allowed. Please remove some files first.`);
+      setMessage(
+        `Maximum ${maxFiles} files allowed. Please remove some files first.`,
+      );
       return;
     }
 
     setUploading(true);
+      if (trustedMode) {
+    transitionTrustedState("uploading");
+  }
 
-    try {
+    let uploaded: UploadedMediaAsset[] = [];
+
+try {
       const bucket = MEDIA_BUCKET_BY_MODULE[module];
-      const uploaded: UploadedMediaAsset[] = [];
+      uploaded = [];
       const rejected: string[] = [];
       const baseFolder =
         folder?.trim() || `${module}/${new Date().getFullYear()}/${Date.now()}`;
@@ -391,12 +694,16 @@ export default function UniversalMediaUploader({
         }
 
         if (kind === "document" && !allowDocuments) {
-          rejected.push(`${originalFile.name}: Documents are not allowed here.`);
+          rejected.push(
+            `${originalFile.name}: Documents are not allowed here.`,
+          );
           continue;
         }
 
         if (kind === "image") {
-          setProgressText(`AI checking image quality ${index + 1} of ${incoming.length}...`);
+          setProgressText(
+            `AI checking image quality ${index + 1} of ${incoming.length}...`,
+          );
 
           const report = await analyzeImageQuality(originalFile);
           if (report?.warnings?.length) {
@@ -407,7 +714,7 @@ export default function UniversalMediaUploader({
         setProgressText(
           kind === "image"
             ? `Optimizing image ${index + 1} of ${incoming.length}...`
-            : `Preparing ${index + 1} of ${incoming.length}...`
+            : `Preparing ${index + 1} of ${incoming.length}...`,
         );
 
         const file =
@@ -420,11 +727,13 @@ export default function UniversalMediaUploader({
 
         setProgressText(`Uploading ${index + 1} of ${incoming.length}...`);
 
-        const { error } = await supabase.storage.from(bucket).upload(objectPath, file, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: file.type || undefined,
-        });
+        const { error } = await supabase.storage
+          .from(bucket)
+          .upload(objectPath, file, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: file.type || undefined,
+          });
 
         if (error) {
           rejected.push(`${file.name}: ${error.message}`);
@@ -450,8 +759,31 @@ export default function UniversalMediaUploader({
         onChange([...value, ...uploaded]);
       }
 
+      const trustedUploads =
+        uploaded.filter(
+          isTrustedLiveEvidenceAsset,
+        );
+
+      if (
+        trustedMode &&
+        trustedUploads.length
+      ) {
+        transitionTrustedState(
+          "verified",
+        );
+
+        setCaptureSession(
+          (current) => ({
+            ...current,
+            status: "uploaded",
+          }),
+        );
+      }
+
       if (uploaded.length && rejected.length) {
-        setMessage(`Uploaded ${uploaded.length} file(s). ${rejected.length} file(s) skipped.`);
+        setMessage(
+          `Uploaded ${uploaded.length} file(s). ${rejected.length} file(s) skipped.`,
+        );
       } else if (uploaded.length) {
         setMessage(`Uploaded ${uploaded.length} file(s) successfully.`);
       } else if (rejected.length) {
@@ -463,6 +795,40 @@ export default function UniversalMediaUploader({
       console.error(e);
       setMessage(e?.message || "Upload failed.");
     } finally {
+      if (trustedMode) {
+        const newlyAcceptedTrustedCaptures =
+          uploaded.filter(
+            isTrustedLiveEvidenceAsset,
+          ).length;
+
+        const completed = Math.min(
+          Math.max(
+            1,
+            mandatoryTrustedCaptures,
+          ),
+          trustedLiveEvidenceAssets.length +
+            newlyAcceptedTrustedCaptures,
+        );
+
+        if (
+          completed >=
+          Math.max(
+            1,
+            mandatoryTrustedCaptures,
+          )
+        ) {
+          transitionTrustedState("complete");
+
+          setCaptureSession((current) => ({
+            ...current,
+            status: "completed",
+            completedAt: new Date().toISOString(),
+          }));
+        } else {
+          transitionTrustedState("verified");
+        }
+      }
+
       setUploading(false);
       setProgressText("");
     }
@@ -476,6 +842,20 @@ export default function UniversalMediaUploader({
   const usedSlots = value.length;
   const remainingSlots = Math.max(0, maxFiles - usedSlots);
 
+  const trustedRequired = Math.max(
+    1,
+    mandatoryTrustedCaptures,
+  );
+
+  const trustedCompleted =
+    trustedCompletedFromAssets;
+  const trustedCompletionPercent = Math.round(
+    (trustedCompleted / trustedRequired) * 100,
+  );
+  const trustedGalleryReady =
+    trustedProgress.galleryUnlocked ||
+    trustedCompleted >= trustedRequired;
+
   return (
     <div
       style={{
@@ -487,13 +867,400 @@ export default function UniversalMediaUploader({
         boxShadow: "0 10px 24px rgba(15,23,42,0.04)",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+      {trustedMode && showTrustedBanner ? (
+        <div
+          style={{
+            marginBottom: 14,
+            border: "1px solid #bfdbfe",
+            borderRadius: 16,
+            padding: 14,
+            background:
+              "linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              color: "#1e3a8a",
+              fontSize: 15,
+              fontWeight: 950,
+            }}
+          >
+            <span aria-hidden="true">🔒</span>
+            Trusted Listing Mode
+            <div
+  style={{
+    marginTop: 6,
+    fontSize: 12,
+    color: "#64748b",
+    fontWeight: 800,
+  }}
+>
+  Status :
+  <span
+    style={{
+      marginLeft: 6,
+      color: "#2563eb",
+    }}
+  >
+    {trustedStatus
+      .replace(/_/g, " ")
+      .toUpperCase()}
+  </span>
+</div>
+          </div>
+
+          <div
+            style={{
+              marginTop: 7,
+              color: "#475569",
+              fontSize: 13,
+              lineHeight: 1.6,
+            }}
+          >
+            Live camera evidence, GPS verification,
+            capture date and time, and AI checks help
+            buyers trust this listing.
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(145px, 1fr))",
+              gap: 8,
+            }}
+          >
+            {[
+              "Live camera required",
+              "GPS verification",
+              "Date and time recorded",
+              "AI review prepared",
+            ].map((item) => (
+              <div
+                key={item}
+                style={{
+                  border: "1px solid #dbeafe",
+                  borderRadius: 10,
+                  padding: "8px 9px",
+                  background: "#ffffff",
+                  color: "#1e3a8a",
+                  fontSize: 12,
+                  fontWeight: 850,
+                }}
+              >
+                ✓ {item}
+              </div>
+            ))}
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              borderRadius: 10,
+              padding: "8px 10px",
+              background: "#fff7ed",
+              color: "#9a3412",
+              fontSize: 12,
+              fontWeight: 850,
+              lineHeight: 1.5,
+            }}
+          >
+            Complete the mandatory live captures before
+            gallery uploads are unlocked.
+            <div
+              style={{
+                marginTop: 10,
+                padding: 10,
+                borderRadius: 10,
+                border: "1px solid #dbeafe",
+                background: "#ffffff",
+                fontSize: 12,
+                fontWeight: 800,
+                color: "#334155",
+              }}
+            >
+              <div>
+                GPS Status :
+                {" "}
+                <b>{gpsStatus.toUpperCase()}</b>
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                }}
+              >
+                {gpsMessage || "GPS not acquired."}
+              </div>
+
+              {gpsCoordinates ? (
+                <div
+                  style={{
+                    marginTop: 4,
+                    fontSize: 11,
+                  }}
+                >
+                  Accuracy :
+                  {" "}
+                  {Math.round(
+                    gpsCoordinates.accuracy,
+                  )}
+                  m
+                </div>
+              ) : null}
+              <div
+              style={{
+                marginTop: 10,
+                padding: 10,
+                borderRadius: 10,
+                border: "1px solid #cbd5e1",
+                background: "#f8fafc",
+                color: "#334155",
+                fontSize: 12,
+                lineHeight: 1.6,
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 950,
+                  color: "#0f172a",
+                }}
+              >
+                Capture Session
+              </div>
+
+              <div style={{ marginTop: 5 }}>
+                Session:{" "}
+                <b>
+                  {captureSession.sessionId
+                    ? captureSession.sessionId.slice(0, 12)
+                    : "Not created"}
+                </b>
+              </div>
+
+              <div>
+                Capture number:{" "}
+                <b>{captureSession.captureNumber || "—"}</b>
+              </div>
+
+              <div>
+                Status:{" "}
+                <b>
+                  {captureSession.status
+                    .replace(/_/g, " ")
+                    .toUpperCase()}
+                </b>
+              </div>
+
+              {captureSession.startedAt ? (
+                <div>
+                  Started:{" "}
+                  <b>
+                    {new Date(
+                      captureSession.startedAt,
+                    ).toLocaleString()}
+                  </b>
+                </div>
+              ) : null}
+
+              {captureSession.completedAt ? (
+                <div>
+                  Completed:{" "}
+                  <b>
+                    {new Date(
+                      captureSession.completedAt,
+                    ).toLocaleString()}
+                  </b>
+                </div>
+              ) : null}
+            </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {trustedMode ? (
+        <div
+          style={{
+            marginBottom: 14,
+            border: "1px solid #e2e8f0",
+            borderRadius: 16,
+            padding: 14,
+            background: "#ffffff",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  color: "#0f172a",
+                  fontSize: 14,
+                  fontWeight: 950,
+                }}
+              >
+                Mandatory Live Captures
+              </div>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  color: "#64748b",
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                }}
+              >
+                Capture the actual listing through the
+                live camera before adding gallery media.
+              </div>
+            </div>
+
+            <div
+              style={{
+                border: trustedGalleryReady
+                  ? "1px solid #bbf7d0"
+                  : "1px solid #fde68a",
+                borderRadius: 999,
+                padding: "6px 10px",
+                background: trustedGalleryReady
+                  ? "#f0fdf4"
+                  : "#fffbeb",
+                color: trustedGalleryReady
+                  ? "#166534"
+                  : "#92400e",
+                fontSize: 12,
+                fontWeight: 950,
+              }}
+            >
+              {trustedCompleted}/{trustedRequired} completed
+            </div>
+          </div>
+
+          <div
+            aria-label={`${trustedCompletionPercent}% of mandatory trusted captures completed`}
+            style={{
+              marginTop: 12,
+              height: 10,
+              overflow: "hidden",
+              borderRadius: 999,
+              background: "#e2e8f0",
+            }}
+          >
+            <div
+              style={{
+                width: `${trustedCompletionPercent}%`,
+                height: "100%",
+                borderRadius: 999,
+                background: trustedGalleryReady
+                  ? "#16a34a"
+                  : "#2563eb",
+                transition: "width 180ms ease",
+              }}
+            />
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              display: "grid",
+              gridTemplateColumns: `repeat(${trustedRequired}, minmax(28px, 1fr))`,
+              gap: 7,
+            }}
+          >
+            {Array.from(
+              { length: trustedRequired },
+              (_, index) => {
+                const completed =
+                  index < trustedCompleted;
+
+                return (
+                  <div
+                    key={`trusted-capture-${index + 1}`}
+                    style={{
+                      minHeight: 34,
+                      display: "grid",
+                      placeItems: "center",
+                      border: completed
+                        ? "1px solid #86efac"
+                        : "1px solid #cbd5e1",
+                      borderRadius: 10,
+                      background: completed
+                        ? "#f0fdf4"
+                        : "#f8fafc",
+                      color: completed
+                        ? "#166534"
+                        : "#64748b",
+                      fontSize: 12,
+                      fontWeight: 950,
+                    }}
+                  >
+                    {completed
+                      ? `✓ ${index + 1}`
+                      : index + 1}
+                  </div>
+                );
+              },
+            )}
+          </div>
+
+          <div
+            style={{
+              marginTop: 12,
+              border: trustedGalleryReady
+                ? "1px solid #bbf7d0"
+                : "1px solid #fed7aa",
+              borderRadius: 12,
+              padding: "10px 11px",
+              background: trustedGalleryReady
+                ? "#f0fdf4"
+                : "#fff7ed",
+              color: trustedGalleryReady
+                ? "#166534"
+                : "#9a3412",
+              fontSize: 12,
+              fontWeight: 850,
+              lineHeight: 1.5,
+            }}
+          >
+            {trustedGalleryReady
+              ? "✓ Mandatory live captures are complete. Gallery upload is ready."
+              : "🔒 Gallery upload will unlock after all mandatory live captures are completed."}
+          </div>
+        </div>
+      ) : null}
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 10,
+          flexWrap: "wrap",
+        }}
+      >
         <div>
           <div style={{ fontWeight: 950, color: "#111827", fontSize: 15 }}>
             {label}
           </div>
 
-          <div style={{ marginTop: 5, color: "#64748b", fontSize: 13, lineHeight: 1.5 }}>
+          <div
+            style={{
+              marginTop: 5,
+              color: "#64748b",
+              fontSize: 13,
+              lineHeight: 1.5,
+            }}
+          >
             {helperText}
           </div>
         </div>
@@ -514,9 +1281,7 @@ export default function UniversalMediaUploader({
         </div>
       </div>
 
-      {inlineCamera &&
-      allowImages &&
-      remainingSlots > 0 ? (
+      {inlineCamera && allowImages && remainingSlots > 0 ? (
         <div
           style={{
             marginTop: 12,
@@ -543,9 +1308,8 @@ export default function UniversalMediaUploader({
               lineHeight: 1.55,
             }}
           >
-            Allow camera access, keep your face and
-            business signboard visible, then capture
-            and upload the selfie.
+            Allow camera access, keep your face and business signboard visible,
+            then capture and upload the selfie.
           </div>
 
           {capturedPreviewUrl ? (
@@ -577,8 +1341,7 @@ export default function UniversalMediaUploader({
                 style={{
                   marginTop: 10,
                   display: "grid",
-                  gridTemplateColumns:
-                    "repeat(auto-fit, minmax(150px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
                   gap: 8,
                 }}
               >
@@ -609,22 +1372,16 @@ export default function UniversalMediaUploader({
             <button
               type="button"
               disabled={uploading || cameraStarting}
-              onClick={() =>
-                void startInlineCamera()
-              }
+              onClick={() => void startInlineCamera()}
               style={{
-                ...buttonStyle(
-                  uploading || cameraStarting
-                ),
+                ...buttonStyle(uploading || cameraStarting),
                 marginTop: 10,
                 width: "100%",
                 background: "#1d4ed8",
                 color: "#ffffff",
               }}
             >
-              {cameraStarting
-                ? "Opening Camera..."
-                : "📷 Start Live Camera"}
+              {cameraStarting ? "Opening Camera..." : "📷 Start Live Camera"}
             </button>
           ) : (
             <div style={{ marginTop: 10 }}>
@@ -651,9 +1408,7 @@ export default function UniversalMediaUploader({
                     objectFit: "cover",
                     background: "#0f172a",
                     transform:
-                      cameraFacing === "user"
-                        ? "scaleX(-1)"
-                        : undefined,
+                      cameraFacing === "user" ? "scaleX(-1)" : undefined,
                   }}
                 />
 
@@ -690,32 +1445,27 @@ export default function UniversalMediaUploader({
                         fontWeight: 850,
                       }}
                     >
-                      Keep your full face inside the guide and look at the camera.
+                      Keep your full face inside the guide and look at the
+                      camera.
                     </div>
                   </>
                 ) : null}
               </div>
 
-              <canvas
-                ref={inlineCanvasRef}
-                hidden
-              />
+              <canvas ref={inlineCanvasRef} hidden />
 
               <div
                 style={{
                   marginTop: 10,
                   display: "grid",
-                  gridTemplateColumns:
-                    "repeat(auto-fit, minmax(150px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
                   gap: 8,
                 }}
               >
                 <button
                   type="button"
                   disabled={uploading}
-                  onClick={() =>
-                    void captureInlinePhoto()
-                  }
+                  onClick={() => void captureInlinePhoto()}
                   style={{
                     ...buttonStyle(uploading),
                     background: "#16a34a",
@@ -762,8 +1512,7 @@ export default function UniversalMediaUploader({
         style={{
           marginTop: 12,
           display: "grid",
-          gridTemplateColumns:
-            "repeat(auto-fit, minmax(130px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
           gap: 10,
         }}
       >
@@ -790,6 +1539,37 @@ export default function UniversalMediaUploader({
             ) : null}
           </>
         ) : null}
+
+        {trustedMode &&
+          inlineCamera &&
+          allowImages &&
+          !cameraOnly ? (
+            <button
+              type="button"
+              disabled={
+                uploading ||
+                remainingSlots <= 0 ||
+                !trustedGalleryReady
+              }
+              onClick={() =>
+                imageInputRef.current?.click()
+              }
+              style={buttonStyle(
+                uploading ||
+                  remainingSlots <= 0 ||
+                  !trustedGalleryReady,
+              )}
+              title={
+                trustedGalleryReady
+                  ? "Upload additional gallery photos"
+                  : "Complete all mandatory live captures first"
+              }
+            >
+              {trustedGalleryReady
+                ? "🖼 Add Gallery Photos"
+                : "🔒 Gallery Photos Locked"}
+            </button>
+          ) : null}
 
         {allowVideos ? (
           <button
@@ -875,9 +1655,10 @@ export default function UniversalMediaUploader({
           lineHeight: 1.5,
         }}
       >
-        <b>AI media guidance:</b> Use daylight, keep the object/property centered,
-        avoid blur, show front view, side view, defects, measurements and surrounding access road.
-        Short videos should be steady and under the size limit.
+        <b>AI media guidance:</b> Use daylight, keep the object/property
+        centered, avoid blur, show front view, side view, defects, measurements
+        and surrounding access road. Short videos should be steady and under the
+        size limit.
       </div>
 
       {qualityWarnings.length ? (
@@ -899,7 +1680,10 @@ export default function UniversalMediaUploader({
           </div>
 
           {qualityWarnings.slice(0, 4).map((warning, index) => (
-            <div key={`${warning.type}-${index}`} style={{ marginTop: index ? 4 : 0 }}>
+            <div
+              key={`${warning.type}-${index}`}
+              style={{ marginTop: index ? 4 : 0 }}
+            >
               • {warning.message}
             </div>
           ))}
@@ -958,6 +1742,90 @@ export default function UniversalMediaUploader({
                 background: "#fff",
               }}
             >
+              {trustedMode ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 6,
+                    padding: "8px 8px 0",
+                    background: "#ffffff",
+                  }}
+                >
+                  {[
+                    {
+                      label: "LIVE",
+                      bg: "#dcfce7",
+                      fg: "#166534",
+                    },
+                    {
+                      label:
+                        trustedStatus === "verified" ||
+                        trustedStatus === "complete"
+                          ? "GPS VERIFIED"
+                          : "GPS PENDING",
+
+                      bg:
+                        trustedStatus === "verified" ||
+                        trustedStatus === "complete"
+                          ? "#dcfce7"
+                          : "#fef3c7",
+
+                      fg:
+                        trustedStatus === "verified" ||
+                        trustedStatus === "complete"
+                          ? "#166534"
+                          : "#92400e",
+                  },
+                    {
+                      label:
+                        trustedStatus === "verified" ||
+                        trustedStatus === "complete"
+                          ? "AI VERIFIED"
+                          : "AI PENDING",
+
+                      bg:
+                        trustedStatus === "verified" ||
+                        trustedStatus === "complete"
+                          ? "#dcfce7"
+                          : "#fef3c7",
+
+                      fg:
+                        trustedStatus === "verified" ||
+                        trustedStatus === "complete"
+                          ? "#166534"
+                          : "#92400e",
+                  },
+                    {
+                      label:
+                        trustedStatus === "complete"
+                          ? "COMPLETE"
+                          : "TRUSTED",
+
+                      bg: "#dbeafe",
+
+                      fg: "#1d4ed8",
+                  },
+                  ].map((badge) => (
+                    <span
+                      key={badge.label}
+                      style={{
+                        padding: "3px 8px",
+                        borderRadius: 999,
+                        background: badge.bg,
+                        color: badge.fg,
+                        fontSize: 10,
+                        fontWeight: 900,
+                        letterSpacing: 0.3,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {badge.label}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
               {asset.kind === "image" ? (
                 <img
                   src={asset.url}
@@ -989,18 +1857,27 @@ export default function UniversalMediaUploader({
                   className="registration-document-link"
                   aria-label={`Open ${asset.name}`}
                 >
-                  <span>
-                    📄 Open PDF
-                  </span>
+                  <span>📄 Open PDF</span>
                 </a>
               )}
 
               <div style={{ padding: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 900, color: "#111827" }}>
-                  {asset.name.length > 26 ? `${asset.name.slice(0, 26)}...` : asset.name}
+                <div
+                  style={{ fontSize: 12, fontWeight: 900, color: "#111827" }}
+                >
+                  {asset.name.length > 26
+                    ? `${asset.name.slice(0, 26)}...`
+                    : asset.name}
                 </div>
 
-                <div style={{ marginTop: 3, fontSize: 11, color: "#64748b", fontWeight: 800 }}>
+                <div
+                  style={{
+                    marginTop: 3,
+                    fontSize: 11,
+                    color: "#64748b",
+                    fontWeight: 800,
+                  }}
+                >
                   {asset.kind} • {formatMediaSize(asset.size)}
                 </div>
 

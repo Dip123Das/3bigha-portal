@@ -15,6 +15,10 @@ import {
 } from "@/lib/vendors/vendorListingMemory";
 import UniversalMediaUploader from "@/app/components/media/UniversalMediaUploader";
 import type { UploadedMediaAsset } from "@/lib/media/media-config";
+import {
+  buildTrustedPublicationContext,
+  TRUSTED_PUBLICATION_POLICY,
+} from "@/lib/media/trusted-publication-gate";
 
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
@@ -58,6 +62,8 @@ type BuilderProjectInsert = {
   rera_id?: string | null;
   launch_date?: string | null; // YYYY-MM-DD
   possession_date?: string | null; // YYYY-MM-DD
+
+  trusted_media_json?: UploadedMediaAsset[];
 
   status?: string | null;
 };
@@ -190,6 +196,26 @@ export default function BuilderAddProjectPage() {
 
   // ✅ project media inputs
   const [mediaAssets, setMediaAssets] = useState<UploadedMediaAsset[]>([]);
+
+  const trustedReadiness = useMemo(
+    () =>
+      buildTrustedPublicationContext(
+        mediaAssets,
+      ),
+    [mediaAssets],
+  );
+
+  const builderRequiredCaptures =
+    TRUSTED_PUBLICATION_POLICY
+      .builder_project
+      .requiredCaptures;
+
+  const builderPublicationReady =
+    trustedReadiness.completedCaptures >=
+      builderRequiredCaptures &&
+    trustedReadiness.gpsVerified === true &&
+    trustedReadiness.provenanceVerified === true &&
+    trustedReadiness.captureSessionCompleted === true;
 
   // ✅ amenities master + selected
   const [amenities, setAmenities] = useState<AmenityRow[]>([]);
@@ -676,6 +702,12 @@ export default function BuilderAddProjectPage() {
         launch_date: parseDateYYYYMMDD(launchDate) ?? null,
         possession_date: parseDateYYYYMMDD(possessionDate) ?? null,
 
+        trusted_media_json: mediaAssets.map(
+          (asset) => ({
+            ...asset,
+          }),
+        ),
+
         status: "draft",
       };
 
@@ -1133,12 +1165,113 @@ export default function BuilderAddProjectPage() {
               value={mediaAssets}
               onChange={setMediaAssets}
               label="Project photos / videos / brochure"
-              helperText="Upload project gallery photos, construction progress images, aerial views, entrance photos, site videos, floorplan images, brochure PDFs or approval documents."
+              helperText="Capture two live GPS-backed overview photos first. After completing them, upload project gallery photos, construction progress images, aerial views, entrance photos, site videos, floorplan images, brochure PDFs or approval documents."
               allowImages
               allowVideos
               allowDocuments
               maxFiles={20}
+              uploadStrategy="trusted"
+              mandatoryTrustedCaptures={2}
+              inlineCamera
+              cameraFacing="environment"
+              cameraOnly={false}
             />
+
+            <div
+              style={{
+                marginTop: 12,
+                padding: 14,
+                borderRadius: 12,
+                border: builderPublicationReady
+                  ? "1px solid #bbf7d0"
+                  : "1px solid #fed7aa",
+                background: builderPublicationReady
+                  ? "#f0fdf4"
+                  : "#fff7ed",
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 900,
+                  color: builderPublicationReady
+                    ? "#166534"
+                    : "#9a3412",
+                }}
+              >
+                Trusted Publication Readiness
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "repeat(auto-fit, minmax(180px, 1fr))",
+                  gap: 8,
+                  marginTop: 10,
+                  fontSize: 13,
+                }}
+              >
+                <div>
+                  Mandatory live captures:{" "}
+                  <b>
+                    {trustedReadiness.completedCaptures}/
+                    {builderRequiredCaptures}
+                  </b>
+                </div>
+
+                <div>
+                  GPS:{" "}
+                  <b>
+                    {trustedReadiness.gpsVerified
+                      ? "Verified"
+                      : "Pending"}
+                  </b>
+                </div>
+
+                <div>
+                  Live provenance:{" "}
+                  <b>
+                    {trustedReadiness.provenanceVerified
+                      ? "Verified"
+                      : "Pending"}
+                  </b>
+                </div>
+
+                <div>
+                  Capture session:{" "}
+                  <b>
+                    {trustedReadiness.captureSessionCompleted
+                      ? "Completed"
+                      : "Pending"}
+                  </b>
+                </div>
+
+                <div>
+                  AI media review:{" "}
+                  <b>
+                    {trustedReadiness.aiVerificationStatus ===
+                    "verified"
+                      ? "Verified"
+                      : "Pending"}
+                  </b>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: 12,
+                  fontWeight: 900,
+                  lineHeight: 1.5,
+                  color: builderPublicationReady
+                    ? "#166534"
+                    : "#9a3412",
+                }}
+              >
+                {builderPublicationReady
+                  ? "✓ Mandatory trusted evidence completed. This draft is ready for the future publication gate."
+                  : "Draft saving remains available. Complete two genuine live GPS-backed overview captures before publication."}
+              </div>
+            </div>
 
             <div style={{ height: 18 }} />
             <div style={{ fontWeight: 900, marginBottom: 10 }}>Location & address</div>
