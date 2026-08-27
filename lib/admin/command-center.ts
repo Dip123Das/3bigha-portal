@@ -53,6 +53,7 @@ const MODULES: CommandModule[] = [
   { title: "Verification Reviews", description: "Trust decisions, AI briefs and cross-verification.", href: "/admin/verification-reviews", group: "Trust", capability: "admin:registration" },
   { title: "Skilled Professional Reviews", description: "Identity, selfie and work-evidence decisions.", href: "/admin/individual-professional-reviews", group: "Trust", capability: "admin:registration" },
   { title: "Property Control", description: "Property and builder-project moderation.", href: "/admin/property", group: "Marketplace", capability: "admin:property" },
+  { title: "Marketplace Control Center", description: "Cross-module supply, publication queues and promotion governance.", href: "/admin/marketplace-control", group: "Marketplace", capability: "admin:marketplace" },
   { title: "Materials Control", description: "Material listing review and publication.", href: "/admin/materials", group: "Marketplace", capability: "admin:materials" },
   { title: "Services Control", description: "Service and turnkey package moderation.", href: "/admin/services", group: "Marketplace", capability: "admin:services" },
   { title: "Rentals Control", description: "Rental inventory review and publication.", href: "/admin/rentals", group: "Marketplace", capability: "admin:rentals" },
