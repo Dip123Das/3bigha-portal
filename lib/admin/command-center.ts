@@ -46,6 +46,7 @@ type CountFilter =
 type CountResult = { value: number | null; issue?: string };
 
 const MODULES: CommandModule[] = [
+  { title: "Trust & Verification Center", description: "Trust queues, evidence integrity, fraud signals and SLA control.", href: "/admin/verification-operations", group: "Trust", capability: "admin:registration" },
   { title: "Member Administration", description: "Accounts, roles, permissions and security status.", href: "/admin/users", group: "Trust", capability: "admin:users" },
   { title: "Verification Workbench", description: "Business registration evidence and reviewer workflow.", href: "/admin/verification-workbench", group: "Trust", capability: "admin:registration" },
   { title: "Verification Reviews", description: "Trust decisions, AI briefs and cross-verification.", href: "/admin/verification-reviews", group: "Trust", capability: "admin:registration" },
