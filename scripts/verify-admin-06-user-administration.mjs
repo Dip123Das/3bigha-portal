@@ -1,0 +1,13 @@
+import fs from "node:fs";
+const read=path=>fs.readFileSync(path,"utf8");
+const assert=(condition,message)=>{if(!condition)throw new Error(`ADMIN-06 verification failed: ${message}`)};
+const page=read("app/admin/users/page.tsx"),route=read("app/api/auth/security-event/route.ts"),migration=read("supabase/migrations/20260827000200_user_security_event_authority.sql"),callback=read("app/auth/callback/AuthCallbackPageClient.tsx"),login=read("app/login/LoginClient.tsx");
+assert(page.includes("requireMasterAdmin"),"canonical admin authority must remain");
+for(const table of ["user_security_events","admin_account_action_audit","member_role_transition_audit"])assert(page.includes(table),`${table} must feed Member 360`);
+assert(page.includes('["security","Security"'),"security workspace must exist");
+assert(route.includes("authenticatedUser.id")&&!route.includes("body?.userId"),"user ID must be server-derived");
+assert(migration.includes("security definer")&&migration.includes("to service_role"),"event writes must be service-controlled");
+assert(migration.includes("interval '5 seconds'"),"duplicate events must be throttled");
+assert(callback.includes('provider==="google"?"google":"email_magic_link"'),"callback auth methods must be recorded");
+assert(login.includes('authMethod:"phone_otp"'),"phone OTP login must be recorded");
+console.log("ADMIN-06 user-administration architecture assertions passed.");

@@ -478,6 +478,7 @@ export default function LoginClient() {
       if (error) {
         setMsg({ type: "error", text: error.message });
       } else {
+        await fetch("/api/auth/security-event", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({eventType:"login_success",authMethod:"phone_otp",clientPlatform:"web"})}).catch(()=>null);
         setMsg({ type: "success", text: "Logged in! Redirecting…" });
         if (shouldAutoRedirectWhenSession) {
           router.replace(buildPostLoginRedirectTo(nextWithOpen));

@@ -63,7 +63,7 @@ export default function AuthCallbackPageClient() {
 
         if (!alive) return;
 
-        const { error } = exchangeRes as Awaited<
+        const { data, error } = exchangeRes as Awaited<
           ReturnType<typeof supabase.auth.exchangeCodeForSession>
         >;
 
@@ -98,6 +98,9 @@ export default function AuthCallbackPageClient() {
         }
 
         if (isDevelopment) console.log("AUTH_CALLBACK_SUCCESS");
+
+        const provider = String(data.user?.app_metadata?.provider || "");
+        await fetch("/api/auth/security-event", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({eventType:"login_success",authMethod:provider==="google"?"google":"email_magic_link",clientPlatform:"web"})}).catch(()=>null);
 
         setMsg("Signed in. Redirecting…");
         router.replace(`/auth/post-login${next ? `?next=${encodeURIComponent(next)}` : ""}`);

@@ -74,6 +74,8 @@
 .detail[data-workspace="verification"] .verificationWorkspace{display:block}
 .detail[data-workspace="subscription"] .detailGrid>.panel{display:none}
 .detail[data-workspace="subscription"] .subscriptionWorkspace,.detail[data-workspace="subscription"] .controlsWorkspace{display:block;grid-column:1/-1}
+.detail[data-workspace="security"] .detailGrid>.panel{display:none}
+.detail[data-workspace="security"] .securityWorkspace{display:block}
 .detail[data-workspace="timeline"] .detailGrid>.panel{display:none}
 .detail[data-workspace="timeline"] .timelineWorkspace{display:block;grid-column:1/-1}
 .detail[data-workspace="controls"] .detailGrid>.panel{display:none}
@@ -150,6 +152,7 @@
 .detail[data-workspace="verification"] .detailGrid > .verificationWorkspace,
 .detail[data-workspace="subscription"] .detailGrid > .subscriptionWorkspace,
 .detail[data-workspace="subscription"] .detailGrid > .controlsWorkspace,
+.detail[data-workspace="security"] .detailGrid > .securityWorkspace,
 .detail[data-workspace="timeline"] .detailGrid > .timelineWorkspace,
 .detail[data-workspace="controls"] .detailGrid > .controlsWorkspace{
   display:block !important;
@@ -159,10 +162,12 @@
 .detail[data-workspace="business"] .detailGrid,
 .detail[data-workspace="geography"] .detailGrid,
 .detail[data-workspace="subscription"] .detailGrid,
+.detail[data-workspace="security"] .detailGrid,
 .detail[data-workspace="timeline"] .detailGrid,
 .detail[data-workspace="controls"] .detailGrid{
   grid-template-columns:1fr;
 }
+.historyNote{margin:0 0 10px;padding:8px;border-radius:7px;background:#eff6ff;color:#1e3a8a;font-size:10px;line-height:1.45}
 
 .detail[data-workspace="verification"] .detailGrid{
   grid-template-columns:repeat(2,minmax(0,1fr));
