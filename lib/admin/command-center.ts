@@ -61,6 +61,7 @@ const MODULES: CommandModule[] = [
   { title: "Price Verification", description: "Review vendor-submitted market prices.", href: "/admin/dashboard/price-updates", group: "Marketplace", capability: "admin:marketplace" },
   { title: "Marketplace Intelligence", description: "Demand, supply, liquidity and shortage signals.", href: "/admin/dashboard/marketplace-intelligence", group: "Intelligence", capability: "admin:marketplace" },
   { title: "RFQ Intelligence Center", description: "Live RFQs, vendor response, quote and buyer behaviour analytics.", href: "/admin/rfq-intelligence", group: "Intelligence", capability: "admin:marketplace" },
+  { title: "Inventory & Vendor Operations", description: "Cross-vendor stock, reconciliation, billing, dispatch and fleet integrity.", href: "/admin/inventory-operations", group: "Intelligence", capability: "admin:marketplace" },
   { title: "Vendor Control", description: "Visibility, boost and ranking governance.", href: "/admin/dashboard/vendor-control", group: "Intelligence", capability: "admin:marketplace" },
   { title: "Vendor Recruitment", description: "Regional supply-gap acquisition priorities.", href: "/admin/dashboard/vendor-recruitment", group: "Intelligence", capability: "admin:marketplace" },
   { title: "Finance Leads", description: "Loan leads, assignment and conversion workflow.", href: "/admin/dashboard/finance-leads", group: "Revenue", capability: "admin:configuration" },
