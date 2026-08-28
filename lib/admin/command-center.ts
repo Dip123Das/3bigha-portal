@@ -74,6 +74,7 @@ const MODULES: CommandModule[] = [
   { title: "Support, Complaints & Appeals", description: "SLA triage, escalations, risk signals and appeal-coverage governance.", href: "/admin/support-operations", group: "Platform", capability: "admin:configuration" },
   { title: "Geography Control", description: "LGD geography, resolver and coverage governance.", href: "/admin/dashboard/geography", group: "Platform", capability: "admin:geography" },
   { title: "Master Data", description: "Canonical taxonomies, identities and measurement.", href: "/admin/dashboard/master-data", group: "Platform", capability: "admin:configuration" },
+  { title: "Platform Configuration & Governance", description: "Configuration ownership, integration readiness, registries and governance gaps.", href: "/admin/platform-governance", group: "Platform", capability: "admin:configuration" },
   { title: "SEO Control", description: "Indexing, sitemap and regional discovery.", href: "/admin/dashboard/seo", group: "Platform", capability: "admin:configuration" },
   { title: "Production Operations", description: "VPS, PM2, deployments and service health.", href: "/admin/dashboard/operations", group: "Platform", capability: "admin:operations" },
 ];
