@@ -71,6 +71,7 @@ const MODULES: CommandModule[] = [
   { title: "Billing, Subscription & Revenue", description: "Settled payments, entitlements, renewals and revenue-governance coverage.", href: "/admin/revenue-control", group: "Revenue", capability: "admin:configuration" },
   { title: "Investment Control", description: "Investment plans and opportunities.", href: "/admin/dashboard/investment", group: "Revenue", capability: "admin:investment" },
   { title: "Support Desk", description: "Complaints, tickets, appeals and resolution.", href: "/admin/dashboard/support", group: "Platform", capability: "admin:configuration" },
+  { title: "Support, Complaints & Appeals", description: "SLA triage, escalations, risk signals and appeal-coverage governance.", href: "/admin/support-operations", group: "Platform", capability: "admin:configuration" },
   { title: "Geography Control", description: "LGD geography, resolver and coverage governance.", href: "/admin/dashboard/geography", group: "Platform", capability: "admin:geography" },
   { title: "Master Data", description: "Canonical taxonomies, identities and measurement.", href: "/admin/dashboard/master-data", group: "Platform", capability: "admin:configuration" },
   { title: "SEO Control", description: "Indexing, sitemap and regional discovery.", href: "/admin/dashboard/seo", group: "Platform", capability: "admin:configuration" },
