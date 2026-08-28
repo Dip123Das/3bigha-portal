@@ -67,6 +67,7 @@ const MODULES: CommandModule[] = [
   { title: "Vendor Recruitment", description: "Regional supply-gap acquisition priorities.", href: "/admin/dashboard/vendor-recruitment", group: "Intelligence", capability: "admin:marketplace" },
   { title: "Finance Leads", description: "Loan leads, assignment and conversion workflow.", href: "/admin/dashboard/finance-leads", group: "Revenue", capability: "admin:configuration" },
   { title: "Banker Verification", description: "Banker KYC and lender-offer governance.", href: "/admin/dashboard/banker-verification", group: "Revenue", capability: "admin:configuration" },
+  { title: "Billing, Subscription & Revenue", description: "Settled payments, entitlements, renewals and revenue-governance coverage.", href: "/admin/revenue-control", group: "Revenue", capability: "admin:configuration" },
   { title: "Investment Control", description: "Investment plans and opportunities.", href: "/admin/dashboard/investment", group: "Revenue", capability: "admin:investment" },
   { title: "Support Desk", description: "Complaints, tickets, appeals and resolution.", href: "/admin/dashboard/support", group: "Platform", capability: "admin:configuration" },
   { title: "Geography Control", description: "LGD geography, resolver and coverage governance.", href: "/admin/dashboard/geography", group: "Platform", capability: "admin:geography" },
