@@ -76,6 +76,7 @@ const MODULES: CommandModule[] = [
   { title: "Master Data", description: "Canonical taxonomies, identities and measurement.", href: "/admin/dashboard/master-data", group: "Platform", capability: "admin:configuration" },
   { title: "Platform Configuration & Governance", description: "Configuration ownership, integration readiness, registries and governance gaps.", href: "/admin/platform-governance", group: "Platform", capability: "admin:configuration" },
   { title: "Observability, Scale & Reliability", description: "Operational evidence, background jobs, data signals, SLO coverage and recovery gaps.", href: "/admin/reliability", group: "Platform", capability: "admin:operations" },
+  { title: "Enterprise Security & Compliance", description: "Privileged access, scheduler protection, security evidence, privacy and compliance gaps.", href: "/admin/security-compliance", group: "Platform", capability: "admin:configuration" },
   { title: "SEO Control", description: "Indexing, sitemap and regional discovery.", href: "/admin/dashboard/seo", group: "Platform", capability: "admin:configuration" },
   { title: "Production Operations", description: "VPS, PM2, deployments and service health.", href: "/admin/dashboard/operations", group: "Platform", capability: "admin:operations" },
 ];

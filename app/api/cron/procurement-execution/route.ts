@@ -5,6 +5,7 @@ import {
   calculateProcurementUrgency,
   notifyProcurementUrgency,
 } from "@/lib/mobile/procurementUrgency";
+import { authorizeInternalJobRequest } from "@/lib/security/internal-job-authorization";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,19 +19,6 @@ function getSupabaseAdmin() {
   }
 
   return createClient(url, key, { auth: { persistSession: false } });
-}
-
-function isCronAuthorized(req: Request) {
-  const configured = process.env.CRON_SECRET;
-  if (!configured) return true;
-
-  const auth = req.headers.get("authorization") || "";
-  const token = auth.replace("Bearer ", "").trim();
-
-  const url = new URL(req.url);
-  const querySecret = url.searchParams.get("secret") || "";
-
-  return token === configured || querySecret === configured;
 }
 
 function parseMs(v?: string | null) {
@@ -140,11 +128,9 @@ async function insertVendorNotificationIfMissing({
 }
 
 export async function GET(req: Request) {
+  const denied = authorizeInternalJobRequest(req);
+  if (denied) return denied;
   try {
-    if (!isCronAuthorized(req)) {
-      return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
-    }
-
     const supabase = getSupabaseAdmin();
 
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
