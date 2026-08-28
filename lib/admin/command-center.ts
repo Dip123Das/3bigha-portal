@@ -58,6 +58,7 @@ const MODULES: CommandModule[] = [
   { title: "Services Control", description: "Service and turnkey package moderation.", href: "/admin/services", group: "Marketplace", capability: "admin:services" },
   { title: "Rentals Control", description: "Rental inventory review and publication.", href: "/admin/rentals", group: "Marketplace", capability: "admin:rentals" },
   { title: "Blog Publishing", description: "Editorial moderation and publishing.", href: "/admin/blog", group: "Marketplace", capability: "admin:blog" },
+  { title: "Content & Communications", description: "Publishing, SEO, notification and channel-delivery governance.", href: "/admin/content-communications", group: "Marketplace", capability: "admin:blog" },
   { title: "Price Verification", description: "Review vendor-submitted market prices.", href: "/admin/dashboard/price-updates", group: "Marketplace", capability: "admin:marketplace" },
   { title: "Marketplace Intelligence", description: "Demand, supply, liquidity and shortage signals.", href: "/admin/dashboard/marketplace-intelligence", group: "Intelligence", capability: "admin:marketplace" },
   { title: "RFQ Intelligence Center", description: "Live RFQs, vendor response, quote and buyer behaviour analytics.", href: "/admin/rfq-intelligence", group: "Intelligence", capability: "admin:marketplace" },
