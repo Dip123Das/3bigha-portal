@@ -1,3 +1,5 @@
+begin;
+
 -- 3Bigha Trusted Listing Media Foundation
 -- Additive and non-destructive.
 -- Human First. AI Second. Evidence Always. Trust by Design.
@@ -411,3 +413,5 @@ comment on table public.listing_media_verifications is
 
 comment on table public.listing_moderation_events is
   'Append-only moderation and trusted-media decision audit events.';
+
+commit;

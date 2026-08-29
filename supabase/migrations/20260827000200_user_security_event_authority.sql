@@ -1,3 +1,5 @@
+begin;
+
 -- ADMIN-06: durable user authentication events. Supabase Auth remains authoritative.
 create table if not exists public.user_security_events (
   id uuid primary key default gen_random_uuid(),
@@ -33,3 +35,5 @@ end; $$;
 revoke all on function public.record_authenticated_security_event(uuid,text,text,text,text,jsonb) from public,anon,authenticated;
 grant execute on function public.record_authenticated_security_event(uuid,text,text,text,text,jsonb) to service_role;
 comment on table public.user_security_events is 'Durable Admin BOS security timeline; trusted application-service writes only.';
+
+commit;

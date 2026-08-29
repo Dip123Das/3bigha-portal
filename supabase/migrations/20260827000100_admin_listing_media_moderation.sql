@@ -1,3 +1,5 @@
+begin;
+
 -- ADMIN-04: atomic human resolution over the existing Trusted Listing Media authority.
 create or replace function public.admin_resolve_listing_media_verification(p_verification_id uuid,p_actor_user_id uuid,p_resolution_type text,p_notes text)
 returns public.listing_media_verifications language plpgsql security definer set search_path=public,auth,pg_catalog as $$
@@ -20,3 +22,5 @@ end; $$;
 revoke all on function public.admin_resolve_listing_media_verification(uuid,uuid,text,text) from public,anon,authenticated;
 grant execute on function public.admin_resolve_listing_media_verification(uuid,uuid,text,text) to service_role;
 create index if not exists idx_listing_media_assets_duplicate_hash_review on public.listing_media_assets(sha256,owner_user_id,listing_entity_type) where sha256 is not null and deleted_at is null;
+
+commit;

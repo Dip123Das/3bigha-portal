@@ -14,7 +14,7 @@ const provenGates = [
   "ADMIN-01 through ADMIN-15 architecture assertions pass.",
   "Trusted Listing Media authority assertions pass.",
   "TypeScript compiles without errors.",
-  "Next.js 14.2.35 production build completes with 326 routes.",
+  "Next.js 14.2.35 production build completes with 327 routes.",
   "The release branch is a linear descendant of the audited main baseline.",
   "All cron and system refresh routes use the shared fail-closed scheduler boundary.",
 ] as const;
@@ -66,7 +66,7 @@ export default async function AdminReleaseReadinessPage() {
           ["Admin phases", "01–16", "Closure sequence"],
           ["Auditable commits", 25, "Including this closure phase"],
           ["Additive migrations", migrations.length, "Not applied by this phase"],
-          ["Build routes", 326, "Latest verified production build"],
+          ["Build routes", 327, "Latest verified production build"],
           ["Required environment", `${configured}/${environment.length}`, "Presence only"],
           ["Release decision", "Pending", "Human approval required"],
         ].map(([label, value, detail]) => <article key={String(label)} style={panel}><small>{label}</small><strong style={{ display: "block", fontSize: 27 }}>{value}</strong><span>{detail}</span></article>)}

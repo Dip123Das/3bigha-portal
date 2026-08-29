@@ -9,7 +9,7 @@ This document is the handoff contract for merging and deploying the Admin BOS br
 - ADMIN-01 through ADMIN-16 source assertions pass.
 - Trusted Listing Media authority assertions pass.
 - TypeScript passes.
-- Next.js 14.2.35 production build passes with 326 routes.
+- Next.js 14.2.35 production build passes with 327 routes.
 - The branch is a linear descendant of the audited `main` baseline.
 - Twelve cron/system refresh routes share a header-only, fail-closed scheduler boundary.
 
