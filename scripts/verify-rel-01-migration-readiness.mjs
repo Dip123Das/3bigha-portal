@@ -37,6 +37,17 @@ assert(security.includes("enable row level security") && security.includes("auth
 assert(security.includes("revoke all") && security.includes("to service_role"), "security-event write boundary missing");
 
 const runbook = fs.readFileSync("docs/admin/REL-01-MIGRATION-REHEARSAL.md", "utf8");
-for (const marker of ["isolated disposable-database rehearsal passed", "production-like snapshot rehearsal pending", "Structural verification queries", "Failure and rollback boundary", "Evidence required to close REL-01", "087161e"]) assert(runbook.includes(marker), `runbook marker missing: ${marker}`);
+for (const marker of [
+  "isolated and production-like snapshot rehearsals passed",
+  "disposable clone retention closure pending",
+  "hzrbbwsqbeyjlctualfn",
+  "Auth user count remained 30",
+  "all fixed synthetic row counts and metadata counts were zero",
+  "Production impact",
+  "Structural verification queries",
+  "Failure and rollback boundary",
+  "Evidence required to close REL-01",
+  "087161e",
+]) assert(runbook.includes(marker), `runbook marker missing: ${marker}`);
 
-console.log("REL-01 isolated Supabase rehearsal assertions passed; production-like snapshot rehearsal remains pending.");
+console.log("REL-01 isolated and production-like Supabase rehearsal assertions passed; disposable clone retention closure remains pending.");

@@ -1,6 +1,6 @@
 # REL-01 — Admin BOS Migration Rehearsal
 
-Status: **isolated disposable-database rehearsal passed; production-like snapshot rehearsal pending**.
+Status: **isolated and production-like snapshot rehearsals passed; disposable clone retention closure pending**.
 
 The migrations were exercised through the Supabase SQL Editor in a separate
 Free-plan project. No production project, credentials or data were used.
@@ -12,9 +12,9 @@ Free-plan project. No production project, credentials or data were used.
 3. `20260827000200_user_security_event_authority.sql`
 
 All three files are additive and have explicit `begin;` / `commit;` boundaries.
-They applied successfully to the isolated project and reapplied idempotently.
-They must still be exercised against a disposable database restored from a
-recent production-like snapshot before production deployment approval.
+They applied successfully to both the isolated project and a disposable clone
+restored from the latest production backup. They also reapplied idempotently in
+both environments. Production deployment remains a separate approval gate.
 
 ## Isolated rehearsal evidence — 2026-08-29
 
@@ -41,8 +41,42 @@ Commit `087161e` adds narrowly scoped authenticated grants and static assertions
 no client `UPDATE` or `DELETE` privilege was introduced.
 
 This was intentionally a blank isolated Supabase environment, not a restored
-production-like snapshot. Compatibility with existing production tables and
-realistic row volumes therefore remains a separate approval gate.
+production-like snapshot. Its result is complemented by the snapshot rehearsal
+below.
+
+## Production-like snapshot rehearsal evidence — 2026-08-29
+
+| Evidence | Result |
+| --- | --- |
+| Application baseline | `94327e5f` |
+| Source project | `3bigha-portal` (`lynnvmqzdxqhhpkxuzvt`); read-only backup source |
+| Source backup | Physical backup completed 2026-08-29 02:14:39 UTC |
+| Disposable clone | `3bigha-rel01-production-like-rehearsal` (`hzrbbwsqbeyjlctualfn`) |
+| Organization / region | `Swarnabhumi` — Pro; South Asia (Mumbai), `ap-south-1` |
+| Clone restore start | 2026-08-29 17:00:08 UTC |
+| Restore state | Healthy before migration execution |
+| Baseline identities | 30 Auth users; identity values were not copied into rehearsal evidence |
+| Prerequisites | Profiles and existing property, material, service and rental authorities present |
+| Migration baseline | All five additive Admin BOS tables absent; affected policy count zero |
+| Migration order | All three timestamped files applied successfully |
+| Reapply | All migrations reapplied successfully without errors |
+| Structural checks | Five tables present with RLS; private 8 MB image evidence bucket confirmed |
+| Privilege checks | Owner grants bounded; client updates denied; privileged functions service-only |
+| Functional checks | Owner evidence access, admin moderation access and unrelated-user isolation passed |
+| Command checks | Atomic moderation decision and five-second security-event retry throttle passed |
+| Anonymous access | All five affected tables denied |
+| Cleanup | Transaction rolled back; all fixed synthetic row counts and metadata counts were zero |
+| Identity preservation | Auth user count remained 30 after migration and functional testing |
+| Storage limitation | Database metadata restored; Supabase restore excluded Storage object bytes by design |
+| Production impact | None; no query or migration was executed against the source project |
+| Temporary cost | Supabase displayed $0 compute plus $0.50/month additional disk for the clone |
+| Retention | Clone deletion requires explicit destructive-action approval and remains pending |
+
+The production-like rehearsal validates compatibility with the restored schema,
+policies, functions, representative row volume and copied Auth identities. Test
+data used fixed synthetic identifiers inside one transaction and was rolled
+back. No personal identity value, credential, API key or copied row content is
+recorded in this repository.
 
 ## Before rehearsal
 
@@ -63,7 +97,7 @@ realistic row volumes therefore remains a separate approval gate.
 6. Test authenticated owner access, unrelated-user denial, anonymous denial and service-role server flows.
 7. Test trusted capture creation, location attachment, completion, private evidence upload, publication gate, moderation decision and security-event recording.
 8. Record execution time, errors, query output and the responsible reviewer.
-9. Destroy the disposable environment and its copied personal data according to the approved retention process.
+9. Destroy the disposable environment and its copied personal data after explicit approval, according to the approved retention process.
 
 ## Structural verification queries
 
