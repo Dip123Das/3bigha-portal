@@ -37,6 +37,6 @@ assert(security.includes("enable row level security") && security.includes("auth
 assert(security.includes("revoke all") && security.includes("to service_role"), "security-event write boundary missing");
 
 const runbook = fs.readFileSync("docs/admin/REL-01-MIGRATION-REHEARSAL.md", "utf8");
-for (const marker of ["disposable-database rehearsal pending", "production-like database snapshot", "Structural verification queries", "Failure and rollback boundary", "Evidence required to close REL-01"]) assert(runbook.includes(marker), `runbook marker missing: ${marker}`);
+for (const marker of ["isolated disposable-database rehearsal passed", "production-like snapshot rehearsal pending", "Structural verification queries", "Failure and rollback boundary", "Evidence required to close REL-01", "087161e"]) assert(runbook.includes(marker), `runbook marker missing: ${marker}`);
 
-console.log("REL-01 static migration readiness assertions passed; database rehearsal remains pending.");
+console.log("REL-01 isolated Supabase rehearsal assertions passed; production-like snapshot rehearsal remains pending.");

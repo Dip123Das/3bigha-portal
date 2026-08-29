@@ -1,8 +1,9 @@
 # REL-01 — Admin BOS Migration Rehearsal
 
-Status: **static migration review passed; disposable-database rehearsal pending**.
+Status: **isolated disposable-database rehearsal passed; production-like snapshot rehearsal pending**.
 
-This workspace did not contain Supabase CLI, Docker or `psql`, so no database was contacted and no rehearsal result is claimed.
+The migrations were exercised through the Supabase SQL Editor in a separate
+Free-plan project. No production project, credentials or data were used.
 
 ## Reviewed migration order
 
@@ -10,7 +11,38 @@ This workspace did not contain Supabase CLI, Docker or `psql`, so no database wa
 2. `20260827000100_admin_listing_media_moderation.sql`
 3. `20260827000200_user_security_event_authority.sql`
 
-All three files are additive and now have explicit `begin;` / `commit;` boundaries. They must still be executed against a disposable database restored from a recent production-like snapshot.
+All three files are additive and have explicit `begin;` / `commit;` boundaries.
+They applied successfully to the isolated project and reapplied idempotently.
+They must still be exercised against a disposable database restored from a
+recent production-like snapshot before production deployment approval.
+
+## Isolated rehearsal evidence — 2026-08-29
+
+| Evidence | Result |
+| --- | --- |
+| Application baseline | `c1c38094` |
+| Privilege remediation | `087161e` |
+| Supabase organization | `3Bigha Admin BOS Rehearsal` — Free plan |
+| Supabase project | `3bigha-admin-bos-rel01-rehearsal` (`rtrmjoltwbnuhytwoscg`) |
+| Region | South Asia (Mumbai), `ap-south-1` |
+| Completion time | 2026-08-29 16:50 UTC |
+| Migration order | All three timestamped files applied successfully |
+| Reapply | All migrations remained idempotent |
+| Structural checks | Five tables present; RLS enabled; private evidence bucket confirmed |
+| Privilege checks | `anon` and `authenticated` denied privileged functions; `service_role` allowed |
+| Functional checks | Owner access, cross-owner denial, unrelated-user denial and anonymous denial passed |
+| Command checks | Atomic moderation decision and security-event retry throttling passed |
+| Cleanup | Synthetic users, profile authority and all synthetic rows rolled back; zero remained |
+| Production impact | None |
+
+The rehearsal exposed one portability defect: Trusted Listing Media policies
+did not have explicit table grants when automatic table exposure was disabled.
+Commit `087161e` adds narrowly scoped authenticated grants and static assertions;
+no client `UPDATE` or `DELETE` privilege was introduced.
+
+This was intentionally a blank isolated Supabase environment, not a restored
+production-like snapshot. Compatibility with existing production tables and
+realistic row volumes therefore remains a separate approval gate.
 
 ## Before rehearsal
 
