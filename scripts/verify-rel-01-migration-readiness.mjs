@@ -21,6 +21,12 @@ for (const table of ["trusted_capture_sessions", "listing_media_assets", "listin
 }
 assert(foundation.includes("listing-evidence-private") && foundation.includes("public = excluded.public"), "private evidence bucket contract missing");
 assert(foundation.includes("No authenticated UPDATE or DELETE policy is intentionally provided"), "immutable evidence policy missing");
+for (const grant of [
+  "grant select, insert on table public.trusted_capture_sessions to authenticated",
+  "grant select, insert on table public.listing_media_assets to authenticated",
+  "grant select on table public.listing_media_verifications to authenticated",
+  "grant select on table public.listing_moderation_events to authenticated",
+]) assert(foundation.includes(grant), `explicit authenticated privilege missing: ${grant}`);
 
 const moderation = sources[1].sql;
 assert(moderation.includes("security definer") && moderation.includes("for update"), "atomic moderation authority missing");

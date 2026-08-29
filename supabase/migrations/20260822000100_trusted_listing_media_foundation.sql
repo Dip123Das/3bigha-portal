@@ -235,6 +235,21 @@ alter table public.listing_media_assets enable row level security;
 alter table public.listing_media_verifications enable row level security;
 alter table public.listing_moderation_events enable row level security;
 
+-- Do not depend on project-level default privileges. Client access remains
+-- bounded by the ownership policies below, while all provenance mutations,
+-- verification writes and moderation writes stay server-authoritative.
+revoke all on table public.trusted_capture_sessions from anon, authenticated;
+grant select, insert on table public.trusted_capture_sessions to authenticated;
+
+revoke all on table public.listing_media_assets from anon, authenticated;
+grant select, insert on table public.listing_media_assets to authenticated;
+
+revoke all on table public.listing_media_verifications from anon, authenticated;
+grant select on table public.listing_media_verifications to authenticated;
+
+revoke all on table public.listing_moderation_events from anon, authenticated;
+grant select on table public.listing_moderation_events to authenticated;
+
 drop policy if exists trusted_capture_sessions_select_own
   on public.trusted_capture_sessions;
 
