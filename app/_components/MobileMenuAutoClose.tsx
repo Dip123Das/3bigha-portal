@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 
 export default function MobileMenuAutoClose() {
   const pathname = usePathname();
-  const isAdminRoute = pathname.startsWith("/admin");
 
   useEffect(() => {
     let closeTimer: number | null = null;
@@ -245,11 +244,5 @@ export default function MobileMenuAutoClose() {
       ?.style.removeProperty("--threebigha-header-menu-space");
   }, [pathname]);
 
-  return isAdminRoute ? (
-    <style jsx global>{`
-      .topSubBar {
-        display: none !important;
-      }
-    `}</style>
-  ) : null;
+  return null;
 }
