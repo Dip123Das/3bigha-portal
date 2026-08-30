@@ -58,9 +58,11 @@ const PUBLIC_PATH_PREFIXES = [
   "/refund-cancellation-policy",
 ];
 
+const PUBLIC_ASSET_PATTERN =
+  /\.(?:avif|bmp|css|eot|gif|ico|jpe?g|js|json|map|otf|png|svg|ttf|txt|webmanifest|webp|woff2?)$/i;
+
 function isPublicPath(pathname: string) {
   if (
-    pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/admin") ||
@@ -69,6 +71,13 @@ function isPublicPath(pathname: string) {
     pathname.startsWith("/inbox")
   ) {
     return false;
+  }
+
+  if (
+    pathname.startsWith("/_next") ||
+    PUBLIC_ASSET_PATTERN.test(pathname)
+  ) {
+    return true;
   }
 
   return PUBLIC_PATH_PREFIXES.some(

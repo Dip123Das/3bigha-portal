@@ -47,6 +47,15 @@ assert(
   "middleware must use the canonical admin path policy",
 );
 assert(
+  middleware.includes("PUBLIC_ASSET_PATTERN.test(pathname)"),
+  "public static assets must not be redirected through authentication",
+);
+assert(
+  middleware.indexOf('pathname.startsWith("/admin")') <
+    middleware.indexOf("PUBLIC_ASSET_PATTERN.test(pathname)"),
+  "protected admin routes must take precedence over public asset detection",
+);
+assert(
   resolver.includes('import "server-only"'),
   "privileged admin resolver must remain server-only",
 );
