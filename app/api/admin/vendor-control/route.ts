@@ -1,51 +1,17 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function getSupabaseAdmin() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
-
-async function requireMasterAdmin(req: Request) {
-  const supabase = getSupabaseAdmin();
-  const authHeader = req.headers.get("authorization");
-
-  if (!authHeader) return { supabase, user: null, error: "Unauthorized" };
-
-  const token = authHeader.replace("Bearer ", "");
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser(token);
-
-  if (!user) return { supabase, user: null, error: "Invalid user" };
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (profile?.role !== "master_admin") {
-    return { supabase, user: null, error: "Master admin required" };
-  }
-
-  return { supabase, user, error: null };
-}
-
 export async function GET(req: Request) {
   const auth = await requireMasterAdmin(req);
 
-  if (auth.error) {
-    return NextResponse.json({ error: auth.error }, { status: 403 });
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
-  const { data, error } = await auth.supabase
+  const { data, error } = await auth.admin
     .from("business_profiles")
     .select("user_id,business_name,phone,city,district,subscription_plan,subscription_status,boost_priority,boost_expires_at,ai_visibility_status,ai_visibility_reason,ai_revenue_score,updated_at")
     .order("updated_at", { ascending: false })
@@ -91,8 +57,8 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   const auth = await requireMasterAdmin(req);
 
-  if (auth.error) {
-    return NextResponse.json({ error: auth.error }, { status: 403 });
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
   const body = await req.json();
@@ -106,7 +72,7 @@ export async function PATCH(req: Request) {
   if (action === "founding_vendor") {
     const expiresAt = new Date("2026-07-15T23:59:59+05:30").toISOString();
 
-    const { error } = await auth.supabase
+    const { error } = await auth.admin
       .from("business_profiles")
       .update({
         subscription_plan: "founding_vendor",
@@ -123,7 +89,7 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    await auth.supabase.from("vendor_notifications").insert({
+    await auth.admin.from("vendor_notifications").insert({
       user_id: vendorUserId,
       type: "founding_vendor_approved",
       title: "Founding Vendor access approved",
@@ -160,7 +126,7 @@ export async function PATCH(req: Request) {
             boost_expires_at: expiresAt,
           };
 
-    const { error } = await auth.supabase
+    const { error } = await auth.admin
       .from("business_profiles")
       .update(updatePayload)
       .eq("user_id", vendorUserId);
@@ -169,7 +135,7 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    await auth.supabase.from("vendor_notifications").insert({
+    await auth.admin.from("vendor_notifications").insert({
       user_id: vendorUserId,
       type: action === "boost" ? "admin_boost" : "admin_boost_reset",
       title: action === "boost" ? "Admin boost activated" : "Boost reset",

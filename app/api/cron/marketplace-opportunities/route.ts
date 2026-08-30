@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateAutonomousMarketplaceOpportunities } from "@/lib/marketplace/mos";
+import { authorizeInternalJobRequest } from "@/lib/security/internal-job-authorization";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +21,9 @@ function getSupabaseAdmin() {
   });
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const denied = authorizeInternalJobRequest(request);
+  if (denied) return denied;
   try {
     const supabase = getSupabaseAdmin();
 

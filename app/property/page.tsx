@@ -323,8 +323,6 @@ function chipStyle(active: boolean) {
   };
 }
 
-export const revalidate = 300;
-
 export default function PropertyPublicListPage() {
   // ✅ ONLY public client here (no session, no JWT refresh)
   const [supabase, setSupabase] = useState<ReturnType<typeof getSupabasePublicBrowser> | null>(null);

@@ -236,8 +236,6 @@ function safeClearExpiredSupabaseSessions() {
   } catch {}
 }
 
-export const revalidate = 300;
-
 export default function MaterialsPage() {
   const router = useRouter();
   const supabaseAnon = useMemo(() => {

@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
 
 export const dynamic = "force-dynamic";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export async function GET() {
+export async function GET(request: Request) {
+  const access = await requireMasterAdmin(request);
+  if ("error" in access) {
+    return NextResponse.json(
+      { ok: false, error: access.error },
+      { status: access.status }
+    );
+  }
+  const supabase = access.admin;
   const [
     states,
     districts,

@@ -285,8 +285,6 @@ function safeClearExpiredSupabaseSessions() {
   } catch {}
 }
 
-export const revalidate = 300;
-
 export default function RentalsPublicPage() {
   const supabaseAnon = useMemo(() => {
     if (typeof window === "undefined") return null;

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { authorizeInternalJobRequest } from "@/lib/security/internal-job-authorization";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -261,26 +262,9 @@ async function sendGupshupWhatsApp({
 }
 
 export async function GET(req: Request) {
+  const denied = authorizeInternalJobRequest(req);
+  if (denied) return denied;
   try {
-    const cronSecret = process.env.CRON_SECRET;
-    const authHeader = req.headers.get("authorization") || "";
-    const vercelCron = req.headers.get("x-vercel-cron");
-    const url = new URL(req.url);
-    const queryKey = url.searchParams.get("key") || "";
-    const token = authHeader.replace("Bearer ", "").trim();
-
-    if (
-      cronSecret &&
-      token !== cronSecret &&
-      queryKey !== cronSecret &&
-      !vercelCron
-    ) {
-      return NextResponse.json(
-        { ok: false, error: "Unauthorized cron request." },
-        { status: 401 }
-      );
-    }
-
     const supabase = getSupabaseAdmin();
     const cutoff = new Date(Date.now() - 30 * 60 * 1000).toISOString();
 

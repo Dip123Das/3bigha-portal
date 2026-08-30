@@ -1,308 +1,95 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-
 import { requireMasterAdmin } from "@/lib/admin/requireMasterAdmin";
+import { loadTrustCommandCenter } from "@/lib/admin/trust-command-center";
+import styles from "./TrustCommandCenter.module.css";
 
 export const dynamic = "force-dynamic";
 
-function ageHours(value: unknown) {
-  const time = new Date(String(value || "")).getTime();
-  return Number.isFinite(time)
-    ? Math.max(0, Math.floor((Date.now() - time) / 3_600_000))
-    : 0;
-}
-
-function card(label: string, value: number, note: string) {
-  return (
-    <div
-      style={{
-        padding: 16,
-        border: "1px solid #cbd5e1",
-        borderRadius: 14,
-        background: "white",
-      }}
-    >
-      <div style={{ fontSize: 12, color: "#64748b", fontWeight: 850 }}>
-        {label}
-      </div>
-      <div style={{ marginTop: 5, fontSize: 30, fontWeight: 950 }}>
-        {value}
-      </div>
-      <div style={{ marginTop: 4, fontSize: 13, color: "#475569" }}>
-        {note}
-      </div>
-    </div>
-  );
-}
+const format = (value: number | null) => value === null ? "—" : new Intl.NumberFormat("en-IN").format(value);
+const clean = (value: string) => value.replaceAll("_", " ");
 
 export default async function VerificationOperationsPage() {
   const access = await requireMasterAdmin();
-
   if ("error" in access) {
-    if (access.status === 401) {
-      redirect("/login?next=/admin/verification-operations");
-    }
-
-    return <main style={{ padding: 24 }}>Access denied</main>;
+    if (access.status === 401) redirect("/login?next=/admin/verification-operations");
+    return <main className={styles.denied}>Master administrator access is required.</main>;
   }
 
-  const { admin } = access;
-  const since = new Date(
-    Date.now() - 7 * 24 * 60 * 60 * 1000
-  ).toISOString();
-
-  const [casesRes, eventsRes, docsRes, crossRes] = await Promise.all([
-    admin
-      .from("registration_verification_cases")
-      .select("id,user_id,status,created_at")
-      .order("created_at", { ascending: false })
-      .limit(1000),
-    admin
-      .from("registration_verification_events")
-      .select("id,event_type,decided_by,created_at")
-      .gte("created_at", since)
-      .order("created_at", { ascending: false })
-      .limit(2000),
-    admin
-      .from("registration_document_intelligence")
-      .select("id,status")
-      .limit(1000),
-    admin
-      .from("registration_cross_verification")
-      .select("id,status,recommended_action")
-      .limit(1000),
-  ]);
-
-  const loadError =
-    casesRes.error || eventsRes.error || docsRes.error || crossRes.error;
-
-  if (loadError) {
-    return (
-      <main style={{ padding: 24 }}>
-        <h1>Registration Operations</h1>
-        <pre>{loadError.message}</pre>
-      </main>
-    );
-  }
-
-  const latestByUser = new Map<string, any>();
-
-  for (const item of casesRes.data || []) {
-    if (!latestByUser.has(item.user_id)) {
-      latestByUser.set(item.user_id, item);
-    }
-  }
-
-  const closed = new Set([
-    "auto_verified",
-    "admin_verified",
-    "restricted",
-    "rejected",
-  ]);
-
-  const pending = [...latestByUser.values()].filter(
-    (item: any) => !closed.has(item.status)
-  );
-  const pending24 = pending.filter(
-    (item: any) => ageHours(item.created_at) >= 24
-  );
-  const pending72 = pending.filter(
-    (item: any) => ageHours(item.created_at) >= 72
-  );
-  const docsReview = (docsRes.data || []).filter(
-    (item: any) => item.status === "needs_manual_review"
-  );
-  const crossReview = (crossRes.data || []).filter(
-    (item: any) => item.status === "needs_manual_review"
-  );
-  const decisions = (eventsRes.data || []).filter(
-    (item: any) =>
-      String(item.event_type || "").startsWith("admin_registration_")
-  );
-  const reviewers = new Set(
-    decisions.map((item: any) => item.decided_by).filter(Boolean)
-  );
+  const command = await loadTrustCommandCenter(access.admin);
+  const totalQueue = command.queues.reduce((sum, item) => sum + (item.count ?? 0), 0);
 
   return (
-    <main style={{ padding: 24, width: "100%" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 16,
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <div
-            style={{
-              color: "#0f766e",
-              fontWeight: 950,
-              fontSize: 12,
-              letterSpacing: 0.6,
-            }}
-          >
-            REG-OPS-01
-          </div>
-          <h1 style={{ margin: "5px 0 6px" }}>
-            Registration Operations
-          </h1>
-          <p style={{ margin: 0, color: "#475569" }}>
-            Human queue health, SLA monitoring, reviewer activity,
-            and operational alerts. No new AI scoring.
-          </p>
+    <main className={styles.page}>
+      <div className={styles.shell}>
+        <header className={styles.header}>
+          <div><span>ADMIN-03 · Trust operations</span><h1>Trust & Verification Center</h1><p>One operating view for registration, identity, GPS evidence, AI mismatches, fraud investigation and account restrictions.</p></div>
+          <div className={styles.headerStatus}><i /><div><strong>Human authority active</strong><small>{format(totalQueue)} review signals</small></div></div>
+        </header>
+
+        <nav className={styles.nav} aria-label="Trust center navigation">
+          <Link className={styles.active} href="/admin/verification-operations">Trust center</Link>
+          <Link href="/admin/verification-workbench">Team queue</Link>
+          <Link href="/admin/verification-reviews">Business reviews</Link>
+          <Link href="/admin/individual-professional-reviews">Skilled workers</Link>
+          <Link href="/admin/verification-notifications">Fraud alerts</Link>
+          <Link href="/admin/users">Suspensions</Link>
+          <Link href="/admin/dashboard">Admin command</Link>
+        </nav>
+
+        <section className={styles.metrics} aria-label="Trust metrics">
+          {command.metrics.map((item) => <article key={item.label} className={styles[item.tone]}><span>{item.label}</span><strong>{format(item.value)}</strong><small>{item.detail}</small></article>)}
+        </section>
+
+        <div className={styles.workspace}>
+          <section className={styles.panel}>
+            <div className={styles.sectionTitle}><div><span>Operational queues</span><h2>Decisions requiring attention</h2></div><small>Source workflows remain authoritative</small></div>
+            <div className={styles.queueGrid}>
+              {command.queues.map((item) => (
+                <Link key={item.label} href={item.href} className={styles.queueCard}>
+                  <i className={styles[item.priority]} /><div><strong>{item.label}</strong><p>{item.detail}</p></div><b>{format(item.count)}</b><span>Open →</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          <aside className={styles.governance}>
+            <span>Trust doctrine</span><h2>Evidence before decision</h2>
+            <p>AI confidence is advisory. Administrators must review canonical records and preserve the existing decision trail.</p>
+            <ol>
+              <li><b>Validate provenance</b><small>Confirm identity, device capture, GPS and timestamps.</small></li>
+              <li><b>Compare declarations</b><small>Review documents, media, business claims and mismatch signals.</small></li>
+              <li><b>Apply proportionate action</b><small>Approve, request correction, restrict, suspend or escalate.</small></li>
+              <li><b>Record accountability</b><small>Every material human decision must retain its reason and actor.</small></li>
+            </ol>
+          </aside>
         </div>
 
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <Link href="/admin/verification-workbench">
-            Reviewer workbench
-          </Link>
-          <Link href="/admin/verification-notifications">
-            Registration notifications
-          </Link>
-          <Link href="/admin/verification-reviews">
-            Open review workspace
-          </Link>
-        </div>
+        <section className={styles.panel}>
+          <div className={styles.sectionTitle}><div><span>SLA command</span><h2>Oldest unresolved registrations</h2></div><small>{format(command.recentDecisionCount)} decisions · {format(command.activeReviewerCount)} active reviewers in 7 days</small></div>
+          {command.oldestCases.length ? (
+            <div className={styles.caseTable} role="table" aria-label="Oldest verification cases">
+              <div className={styles.tableHead} role="row"><span>Status</span><span>Age</span><span>Priority</span><span>Ownership</span><span>Action</span></div>
+              {command.oldestCases.map((item) => (
+                <div key={item.id} className={styles.tableRow} role="row">
+                  <strong>{clean(item.status)}</strong><span>{item.ageHours}h</span><span>{clean(item.priority)}</span><span>{item.assigned ? "Assigned" : "Unassigned"}</span><Link href={item.href}>Review →</Link>
+                </div>
+              ))}
+            </div>
+          ) : <div className={styles.clearState}>No unresolved registration case is currently in the queue.</div>}
+        </section>
+
+        <section className={styles.actionMap}>
+          <div><span>Approve or correct</span><p>Use the existing registration or skilled-worker review page.</p></div>
+          <div><span>Investigate fraud</span><p>Open alerts, evidence and cross-verification before action.</p></div>
+          <div><span>Suspend or restrict</span><p>Use Member Administration; self-action and master-admin changes remain blocked.</p></div>
+          <div><span>Manual AI override</span><p>Override only in the authoritative review workflow with a recorded rationale.</p></div>
+        </section>
+
+        {command.issues.length ? <details className={styles.notice}><summary>Partial data notice ({command.issues.length})</summary><p>Unavailable values are shown as “—”; no trust metric has been estimated.</p><ul>{command.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul></details> : null}
+
+        <footer className={styles.footer}><span>Snapshot {new Date(command.generatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST</span><span>Read-only command layer · Existing workflows preserved</span></footer>
       </div>
-
-      <section
-        style={{
-          marginTop: 20,
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-          gap: 12,
-        }}
-      >
-        {card("Pending cases", pending.length, "Latest unresolved registrations")}
-        {card("Pending 24+ hours", pending24.length, "Approaching SLA breach")}
-        {card("Pending 72+ hours", pending72.length, "Requires escalation")}
-        {card("Document review needed", docsReview.length, "Low-confidence extraction")}
-        {card("Cross-check review needed", crossReview.length, "Mismatch or duplicate risk")}
-        {card("Human decisions in 7 days", decisions.length, "Recorded admin decisions")}
-        {card("Active reviewers", reviewers.size, "Reviewers with recent decisions")}
-      </section>
-
-      <section
-        style={{
-          marginTop: 22,
-          padding: 18,
-          border: "1px solid #e2e8f0",
-          borderRadius: 14,
-          background: "white",
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>Operational alerts</h2>
-
-        {pending72.length ? (
-          <p style={{ color: "#991b1b", fontWeight: 850 }}>
-            {pending72.length} registration case(s) have been pending
-            for at least 72 hours.
-          </p>
-        ) : null}
-
-        {pending24.length ? (
-          <p style={{ color: "#92400e", fontWeight: 850 }}>
-            {pending24.length} registration case(s) have been pending
-            for at least 24 hours.
-          </p>
-        ) : null}
-
-        {docsReview.length ? (
-          <p style={{ color: "#92400e", fontWeight: 850 }}>
-            {docsReview.length} document intelligence result(s) require
-            human review.
-          </p>
-        ) : null}
-
-        {crossReview.length ? (
-          <p style={{ color: "#92400e", fontWeight: 850 }}>
-            {crossReview.length} cross-verification result(s) require
-            human review.
-          </p>
-        ) : null}
-
-        {!pending24.length &&
-        !pending72.length &&
-        !docsReview.length &&
-        !crossReview.length ? (
-          <p style={{ color: "#166534", fontWeight: 850 }}>
-            No active registration operations alert.
-          </p>
-        ) : null}
-      </section>
-
-      <section
-        style={{
-          marginTop: 22,
-          padding: 18,
-          border: "1px solid #e2e8f0",
-          borderRadius: 14,
-          background: "white",
-          overflowX: "auto",
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>Oldest pending cases</h2>
-
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            minWidth: 620,
-          }}
-        >
-          <thead>
-            <tr>
-              {["Status", "Age", "Action"].map((label) => (
-                <th
-                  key={label}
-                  style={{
-                    textAlign: "left",
-                    padding: 9,
-                    borderBottom: "1px solid #cbd5e1",
-                  }}
-                >
-                  {label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {[...pending]
-              .sort(
-                (left: any, right: any) =>
-                  ageHours(right.created_at) -
-                  ageHours(left.created_at)
-              )
-              .slice(0, 20)
-              .map((item: any) => (
-                <tr key={item.id}>
-                  <td style={{ padding: 9, borderBottom: "1px solid #e2e8f0" }}>
-                    {String(item.status || "").replaceAll("_", " ")}
-                  </td>
-                  <td style={{ padding: 9, borderBottom: "1px solid #e2e8f0" }}>
-                    {ageHours(item.created_at)}h
-                  </td>
-                  <td style={{ padding: 9, borderBottom: "1px solid #e2e8f0" }}>
-                    <Link
-                      href={`/admin/verification-reviews?case=${encodeURIComponent(
-                        item.id
-                      )}`}
-                    >
-                      Review
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </section>
-
-      <p style={{ marginTop: 18, color: "#64748b", fontSize: 13 }}>
-        This dashboard is read-only, uses capped operational queries,
-        and does not change registration, evidence, approval,
-        dashboard, or subscription state.
-      </p>
     </main>
   );
 }

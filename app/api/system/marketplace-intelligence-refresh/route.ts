@@ -3,8 +3,15 @@ import { NextResponse } from "next/server";
 import {
   aggregateMarketplaceIntelligence,
 } from "@/lib/marketplace/intelligence/services/marketplace-intelligence-aggregator";
+import { authorizeInternalJobRequest } from "@/lib/security/internal-job-authorization";
 
-export async function GET() {
+// This operational endpoint performs live aggregation and must never execute
+// during static generation.
+export const dynamic = "force-dynamic";
+
+export async function GET(request: Request) {
+  const denied = authorizeInternalJobRequest(request);
+  if (denied) return denied;
   try {
     const result =
       await aggregateMarketplaceIntelligence();

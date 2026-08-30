@@ -26,14 +26,17 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
   if("error"in access){if(access.status===401)redirect("/login?next=/admin/users");return <main className={styles.page}>Access denied</main>}
   const{user,admin:supabase}=access;
 
-  const[profilesRes,businessRes,statesRes,districtsRes,authUsersRes]=await Promise.all([
+  const[profilesRes,businessRes,statesRes,districtsRes,authUsersRes,securityEventsRes,accountActionsRes,roleTransitionsRes]=await Promise.all([
     supabase.from("profiles").select("id,email,full_name,role,requested_role,approval_status,account_status,account_status_reason,created_at,geo_state_id,geo_district_id").order("created_at",{ascending:false}),
     supabase.from("business_profiles").select("user_id,business_name,subscription_plan,subscription_status,subscription_expires_at,geo_state_id,geo_district_id"),
     supabase.from("geo_states").select("id,name").order("name"),
     supabase.from("geo_districts").select("id,state_id,name").order("name"),
     supabase.auth.admin.listUsers({page:1,perPage:1000}),
+    supabase.from("user_security_events").select("id,user_id,event_type,auth_method,client_platform,occurred_at").order("occurred_at",{ascending:false}).limit(5000),
+    supabase.from("admin_account_action_audit").select("id,target_user_id,action,reason,created_at").order("created_at",{ascending:false}).limit(3000),
+    supabase.from("member_role_transition_audit").select("id,user_id,previous_role,new_role,changed_at").order("changed_at",{ascending:false}).limit(3000),
   ]);
-  const loadError=profilesRes.error||businessRes.error||statesRes.error||districtsRes.error||authUsersRes.error;
+  const loadError=profilesRes.error||businessRes.error||statesRes.error||districtsRes.error||authUsersRes.error||securityEventsRes.error||accountActionsRes.error||roleTransitionsRes.error;
   if(loadError)return <main className={styles.page}><h1>Member Administration</h1><pre>{loadError.message}</pre></main>;
 
   const businessByUser=new Map((businessRes.data||[]).map((r:any)=>[r.user_id,r]));
@@ -49,7 +52,7 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
   });
 
   const q=one(searchParams?.q).trim().toLowerCase(),identity=one(searchParams?.identity),role=one(searchParams?.role),approval=one(searchParams?.approval),account=one(searchParams?.account),plan=one(searchParams?.plan),state=one(searchParams?.state);
-  const workspaceOptions=["overview","identity","business","geography","verification","subscription","timeline","controls"] as const;
+  const workspaceOptions=["overview","identity","business","geography","verification","subscription","security","timeline","controls"] as const;
   const requestedWorkspace=one(searchParams?.workspace);
   const activeWorkspace=workspaceOptions.includes(requestedWorkspace as (typeof workspaceOptions)[number])?requestedWorkspace:"overview";
   const filtered=all.filter(({profile,business,complimentary,group,stateId})=>{
@@ -66,6 +69,7 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
   const restricted=all.length-active;
   const complimentaryCount=all.filter(({complimentary})=>complimentary?.active).length;
   const highest=all.filter(({business,complimentary})=>["gold_vendor","platinum_vendor"].includes(complimentary?.active?complimentary.plan:business.subscription_plan||"")).length;
+  const groupCount=(name:string)=>all.filter(({group})=>group===name).length;
 
   const success=one(searchParams?.success),error=one(searchParams?.error);
   const preserve=new URLSearchParams();
@@ -83,6 +87,7 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
       <a href="/admin/users?account=deactivated"><span>Restricted</span><strong>{restricted}</strong><small>Review restricted accounts</small></a>
       <a href="/admin/users"><span>Complimentary</span><strong>{complimentaryCount}</strong><small>Review granted access</small></a>
       <a href="/admin/users?plan=platinum_vendor"><span>Gold / Platinum</span><strong>{highest}</strong><small>Highest current plans</small></a>
+      {["Buyer","Seller / Vendor","Builder / Property","Professional / Service"].map(group=><a key={group} href={`/admin/users?identity=${encodeURIComponent(group)}`}><span>{group}</span><strong>{groupCount(group)}</strong><small>Filter this identity group</small></a>)}
     </section>
     <form method="get" className={styles.filters}>{activeWorkspace!=="overview"?<input type="hidden" name="workspace" value={activeWorkspace}/>:null}
       <input className={styles.field} name="q" defaultValue={one(searchParams?.q)} placeholder="Search name, email, business or role"/>
@@ -116,6 +121,11 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
         const emailVerified=Boolean(authUser?.email_confirmed_at);
         const phoneVerified=Boolean(authUser?.phone_confirmed_at);
         const authCreated=authUser?.created_at||profile.created_at||null;
+        const providers=Array.from(new Set([...(Array.isArray(authUser?.app_metadata?.providers)?authUser.app_metadata.providers:[]),...(Array.isArray(authUser?.identities)?authUser.identities.map((identity:any)=>identity.provider):[])].filter(Boolean))).map(String);
+        const securityEvents=(securityEventsRes.data||[]).filter((event:any)=>event.user_id===profile.id);
+        const accountActions=(accountActionsRes.data||[]).filter((event:any)=>event.target_user_id===profile.id);
+        const roleTransitions=(roleTransitionsRes.data||[]).filter((event:any)=>event.user_id===profile.id);
+        const operationalTimeline=[...securityEvents.map((event:any)=>({id:`security-${event.id}`,at:event.occurred_at,label:`${clean(event.event_type)} · ${clean(event.auth_method||"unknown method")} · ${clean(event.client_platform)}`})),...accountActions.map((event:any)=>({id:`account-${event.id}`,at:event.created_at,label:`Account ${clean(event.action)}${event.reason?` · ${event.reason}`:""}`})),...roleTransitions.map((event:any)=>({id:`role-${event.id}`,at:event.changed_at,label:`Role changed from ${clean(event.previous_role)} to ${clean(event.new_role)}`}))].sort((a,b)=>new Date(b.at).getTime()-new Date(a.at).getTime()).slice(0,30);
         const readinessWeights=[
           [Boolean(profile.full_name),10],
           [Boolean(profile.email),10],
@@ -177,6 +187,7 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
                 ["geography","LGD Geography","Recorded administrative location"],
                 ["verification","Verification","Login, contact and readiness records"],
                 ["subscription","Subscription","Plan, grant and expiry details"],
+                ["security","Security","Authentication providers and security events"],
                 ["timeline","Timeline","Recorded account milestones"],
                 ["controls","Founder Controls","Approval, restriction and complimentary access"],
               ].map(([key,label,description])=><a key={key} href={workspaceHref(key,profile.id)} className={activeWorkspace===key?styles.workspaceTabActive:styles.workspaceTab} aria-current={activeWorkspace===key?"page":undefined} data-member-workspace={key}><strong>{label}</strong><span>{description}</span></a>)}
@@ -195,7 +206,9 @@ export default async function AdminUsersPage({searchParams}:{searchParams?:Param
             <article id="location-panel" data-workspace-panel="geography" className={`${styles.panel} ${styles.geographyWorkspace}`}><h3>LGD Geography</h3><div className={styles.kv}><span>Country</span><strong>India</strong></div><div className={styles.kv}><span>State</span><strong>{stateNames.get(stateId)||"Not recorded"}</strong></div><div className={styles.kv}><span>District</span><strong>{districtNames.get(districtId)||"Not recorded"}</strong></div></article>
             <article data-workspace-panel="verification" className={`${styles.panel} ${styles.verificationWorkspace}`}><h3>Login & verification</h3><div className={styles.kv}><span>Email verified</span><strong>{emailVerified?"Yes":"No"}</strong></div><div className={styles.kv}><span>Phone verified</span><strong>{phoneVerified?"Yes":"No"}</strong></div><div className={styles.kv}><span>Last login</span><strong>{lastLogin?new Date(lastLogin).toLocaleString("en-IN"):"No login recorded"}</strong></div><div className={styles.kv}><span>Auth account created</span><strong>{authCreated?new Date(authCreated).toLocaleString("en-IN"):"Not recorded"}</strong></div></article>
             <article data-workspace-panel="verification" className={`${styles.panel} ${styles.panelWide} ${styles.verificationWorkspace}`}><h3>Readiness breakdown</h3><div className={styles.readinessGrid}>{readinessItems.map(([label,complete,weight])=><div key={String(label)} className={complete?styles.readinessComplete:styles.readinessMissing}><span>{complete?"✓":"!"}</span><strong>{label}</strong><small>{complete?`Recorded · ${weight}%`:`Missing · ${weight}%`}</small></div>)}</div></article>
-            <article data-workspace-panel="timeline" className={`${styles.panel} ${styles.panelWide} ${styles.timelineWorkspace}`}><h3>Member timeline</h3><div className={styles.timeline}><div><i/><span>Account created {profile.created_at?new Date(profile.created_at).toLocaleString("en-IN"):"date unavailable"}</span></div><div><i/><span>Identity status: {clean(profile.approval_status)}</span></div>{complimentary?.active?<div><i/><span>Complimentary {clean(complimentary.plan)} granted {complimentary.granted_at?new Date(complimentary.granted_at).toLocaleString("en-IN"):""} · Reason: {complimentary.reason||"Not recorded"}</span></div>:null}</div></article>
+            <article data-workspace-panel="security" className={`${styles.panel} ${styles.securityWorkspace}`}><h3>Authentication security</h3><div className={styles.kv}><span>Providers</span><strong>{providers.length?providers.map(clean).join(", "):"Not recorded"}</strong></div><div className={styles.kv}><span>Last Supabase sign-in</span><strong>{lastLogin?new Date(lastLogin).toLocaleString("en-IN"):"No login recorded"}</strong></div><div className={styles.kv}><span>Auth ban until</span><strong>{authUser?.banned_until?new Date(authUser.banned_until).toLocaleString("en-IN"):"Not banned"}</strong></div><div className={styles.kv}><span>Durable events</span><strong>{securityEvents.length}</strong></div></article>
+            <article data-workspace-panel="security" className={`${styles.panel} ${styles.panelWide} ${styles.securityWorkspace}`}><h3>Recent sign-in events</h3><p className={styles.historyNote}>Durable web sign-in history begins with ADMIN-06 deployment. Earlier activity remains represented by Supabase last-sign-in data.</p><div className={styles.timeline}>{securityEvents.length?securityEvents.slice(0,20).map((event:any)=><div key={event.id}><i/><span><strong>{clean(event.event_type)}</strong> · {clean(event.auth_method||"unknown method")} · {clean(event.client_platform)} · {new Date(event.occurred_at).toLocaleString("en-IN")}</span></div>):<div><i/><span>No durable security event recorded yet.</span></div>}</div></article>
+            <article data-workspace-panel="timeline" className={`${styles.panel} ${styles.panelWide} ${styles.timelineWorkspace}`}><h3>Member timeline</h3><div className={styles.timeline}><div><i/><span>Account created {profile.created_at?new Date(profile.created_at).toLocaleString("en-IN"):"date unavailable"}</span></div><div><i/><span>Identity status: {clean(profile.approval_status)}</span></div>{complimentary?.active?<div><i/><span>Complimentary {clean(complimentary.plan)} granted {complimentary.granted_at?new Date(complimentary.granted_at).toLocaleString("en-IN"):""} · Reason: {complimentary.reason||"Not recorded"}</span></div>:null}{operationalTimeline.map(event=><div key={event.id}><i/><span>{event.label} · {new Date(event.at).toLocaleString("en-IN")}</span></div>)}</div></article>
             <article id="founder-controls" data-workspace-panel="controls" className={`${styles.panel} ${styles.panelFull} ${styles.controlsWorkspace}`}><h3>Founder controls</h3><div className={styles.actions}>
               {isPending?<div className={styles.inlineForm}><form action="/api/admin/approve-user" method="post"><input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="role" value={profile.requested_role||""}/><button className={styles.approve}>Approve identity</button></form><form action="/api/admin/reject-user" method="post" className={styles.inlineForm}><input type="hidden" name="user_id" value={profile.id}/><input name="reason" placeholder="Rejection reason" required/><button className={styles.reject}>Reject</button></form></div>:null}
               {profile.id!==user.id&&profile.role!=="master_admin"?<form action="/api/admin/account-status" method="post" className={styles.inlineForm}><input type="hidden" name="user_id" value={profile.id}/><input type="hidden" name="action" value={isActive?"deactivate":"activate"}/>{isActive?<><select name="restriction_mode" defaultValue="suspend"><option value="suspend">Temporary suspension</option><option value="re_register">Require re-registration</option><option value="permanent">Permanent block</option></select><select name="reason_code" defaultValue="other"><option value="policy_violation">Policy violation</option><option value="suspicious_activity">Suspicious activity</option><option value="verification_failed">Verification failed</option><option value="payment_issue">Payment issue</option><option value="duplicate_account">Duplicate account</option><option value="other">Other</option></select><input name="custom_reason" placeholder="Internal reason" required/></>:<input name="reason" placeholder="Reactivation note"/>}<button className={isActive?styles.danger:styles.approve}>{isActive?"Restrict":"Reactivate"}</button></form>:null}
