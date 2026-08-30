@@ -138,6 +138,7 @@ export default function GlobalAiCopilot() {
   const isHomepage = pathname === "/";
   const isRfqJourney = pathname.startsWith("/rfq");
   const isDashboardHome = pathname === "/dashboard";
+  const isAdminRoute = pathname.startsWith("/admin");
   const isQuietJourney = isHomepage || isRfqJourney;
   const aiContext = useThreeBOSAiContext();
   const [open, setOpen] = useState(false);
@@ -180,7 +181,7 @@ export default function GlobalAiCopilot() {
     setOpen(false);
   }, [pathname]);
 
-  if (isDashboardHome) return null;
+  if (isDashboardHome || isAdminRoute) return null;
 
 
 

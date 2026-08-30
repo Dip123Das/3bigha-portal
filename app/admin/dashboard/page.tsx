@@ -65,7 +65,10 @@ export default async function AdminDashboardPage() {
 
         <nav className={styles.commandNav} aria-label="Admin command navigation">
           <Link href="/admin/dashboard" className={styles.activeNav}>Command</Link>
-          <Link href={command.queues[0]?.href ?? "/admin/dashboard"}>Work queue</Link>
+          <Link href={command.queues[0]?.href ?? "/admin/dashboard"} className={ux.navWithCount}>
+            <span>Work queue</span>
+            <b aria-label={`${formatNumber(actionable)} items requiring action`}>{formatNumber(actionable)}</b>
+          </Link>
           {role === "master_admin" ? <Link href="/admin/dashboard/marketplace-intelligence">Intelligence</Link> : null}
           {role === "master_admin" ? <Link href="/admin/dashboard/operations">Platform health</Link> : null}
           <Link href="/">Public platform</Link>
