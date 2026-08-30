@@ -9,6 +9,7 @@ export default function MobileMenuAutoClose() {
 
   useEffect(() => {
     let closeTimer: number | null = null;
+    let layoutFrame: number | null = null;
 
     function isDesktop() {
       return window.matchMedia("(min-width: 981px)").matches;
@@ -49,6 +50,51 @@ export default function MobileMenuAutoClose() {
         window.clearTimeout(closeTimer);
         closeTimer = null;
       }
+    }
+
+    function clearHeaderMenuSpace() {
+      if (layoutFrame !== null) {
+        window.cancelAnimationFrame(layoutFrame);
+        layoutFrame = null;
+      }
+
+      document
+        .querySelector<HTMLElement>(".topHeader")
+        ?.style.removeProperty("--threebigha-header-menu-space");
+    }
+
+    function syncHeaderMenuSpace() {
+      clearHeaderMenuSpace();
+      if (!isDesktop()) return;
+
+      layoutFrame = window.requestAnimationFrame(() => {
+        layoutFrame = null;
+
+        const header = document.querySelector<HTMLElement>(".topHeader");
+        if (!header) return;
+
+        const panels = Array.from(
+          document.querySelectorAll<HTMLElement>(
+            "details.rfqToggle[open] .rfqTogglePanel, details.postMenu[open] .postMenuPanel, details.megaMenuItem[open] .megaMenuPanel"
+          )
+        ).filter((panel) => panel.getClientRects().length > 0);
+
+        if (panels.length === 0) return;
+
+        const headerBottom = header.getBoundingClientRect().bottom;
+        const panelBottom = Math.max(
+          ...panels.map((panel) => panel.getBoundingClientRect().bottom)
+        );
+        const reservedHeight = Math.max(
+          0,
+          Math.ceil(panelBottom - headerBottom + 12)
+        );
+
+        header.style.setProperty(
+          "--threebigha-header-menu-space",
+          `${reservedHeight}px`
+        );
+      });
     }
 
     function positionDesktopPanel(menu: HTMLDetailsElement) {
@@ -157,7 +203,13 @@ export default function MobileMenuAutoClose() {
 
     function onResize() {
       closeAll();
+      clearHeaderMenuSpace();
     }
+
+    const managedDetails = getManagedDetails();
+    managedDetails.forEach((menu) =>
+      menu.addEventListener("toggle", syncHeaderMenuSpace)
+    );
 
     document.addEventListener("pointerover", onPointerOver);
     document.addEventListener("pointerout", onPointerOut);
@@ -168,6 +220,10 @@ export default function MobileMenuAutoClose() {
 
     return () => {
       clearCloseTimer();
+      clearHeaderMenuSpace();
+      managedDetails.forEach((menu) =>
+        menu.removeEventListener("toggle", syncHeaderMenuSpace)
+      );
       document.removeEventListener("pointerover", onPointerOver);
       document.removeEventListener("pointerout", onPointerOut);
       document.removeEventListener("click", onClick);
@@ -184,6 +240,9 @@ export default function MobileMenuAutoClose() {
     all.forEach((el) => {
       el.open = false;
     });
+    document
+      .querySelector<HTMLElement>(".topHeader")
+      ?.style.removeProperty("--threebigha-header-menu-space");
   }, [pathname]);
 
   return isAdminRoute ? (

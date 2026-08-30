@@ -4992,35 +4992,10 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   color: #b91c1c;
 }
 
-/* =========================================================
-   HDR-03 — Non-overlapping desktop workspace menus
-
-   Keep the three public work menus in normal document flow.
-   Opening a menu expands the header and moves page content
-   down instead of placing the panel over the active page.
-   ========================================================= */
-
+/* HDR-03 — reserve only the measured height of an open header menu. */
 @media (min-width: 981px) {
-  .topSubBarInner,
-  .topSubLinks {
-    align-items: flex-start !important;
-  }
-
-  .topSubLinks {
-    justify-content: flex-end;
-  }
-
-  .rfqToggle[open] {
-    width: min(430px, calc(100vw - 32px));
-  }
-
-  .rfqTogglePanel {
-    position: static !important;
-    inset: auto !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    max-height: min(70dvh, 560px) !important;
-    margin-top: 8px;
-    transform: none !important;
+  .topHeader {
+    margin-bottom: var(--threebigha-header-menu-space, 0px) !important;
+    transition: margin-bottom 160ms ease;
   }
 }

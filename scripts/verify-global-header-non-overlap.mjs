@@ -1,19 +1,24 @@
 import fs from "node:fs";
 
 const styles = fs.readFileSync("app/globals.css", "utf8");
-const marker = "HDR-03 — Non-overlapping desktop workspace menus";
-const contract = styles.slice(styles.indexOf(marker));
+const controller = fs.readFileSync("app/_components/MobileMenuAutoClose.tsx", "utf8");
 
-if (!contract.includes(".rfqToggle[open]")) {
-  throw new Error("Header non-overlap verification failed: open-menu layout contract is missing");
+if (!styles.includes("--threebigha-header-menu-space")) {
+  throw new Error("Header non-overlap verification failed: measured layout space is missing");
 }
 
-if (!contract.includes("position: static !important")) {
-  throw new Error("Header non-overlap verification failed: workspace panels still leave document flow");
+for (const selector of ["rfqTogglePanel", "postMenuPanel", "megaMenuPanel"]) {
+  if (!controller.includes(selector)) {
+    throw new Error(`Header non-overlap verification failed: ${selector} is not measured`);
+  }
 }
 
-if (!contract.includes("width: min(430px, calc(100vw - 32px))")) {
-  throw new Error("Header non-overlap verification failed: laptop-safe panel width is missing");
+if (!controller.includes("panelBottom - headerBottom + 12")) {
+  throw new Error("Header non-overlap verification failed: exact panel clearance is missing");
+}
+
+if (!controller.includes('addEventListener("toggle", syncHeaderMenuSpace)')) {
+  throw new Error("Header non-overlap verification failed: menu toggle synchronization is missing");
 }
 
 console.log("Global header non-overlap assertions passed.");
