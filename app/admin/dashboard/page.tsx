@@ -4,7 +4,10 @@ import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import { isAdminRole } from "@/lib/admin/access-policy";
 import { loadAdminCommandCenter } from "@/lib/admin/command-center";
+import { Activity, AlertTriangle, ArrowRight, Building2, Clock3, Layers3, ShieldCheck, TrendingUp, Users, type LucideIcon } from "lucide-react";
+import AdminModuleExplorer from "./AdminModuleExplorer";
 import styles from "./AdminCommandCenter.module.css";
+import ux from "./AdminCommandCenterUX.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +18,15 @@ function formatNumber(value: number | null) {
 function roleLabel(role: string) {
   return role.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
+
+const metricIcons: Record<string, LucideIcon> = {
+  "Platform users": Users,
+  "30-day growth": TrendingUp,
+  "Verified businesses": Building2,
+  "Marketplace supply": Layers3,
+  "RFQ activity": Activity,
+  "Active subscriptions": ShieldCheck,
+};
 
 export default async function AdminDashboardPage() {
   const cookieStore = await cookies();
@@ -32,7 +44,6 @@ export default async function AdminDashboardPage() {
   if (!isAdminRole(role) || accountStatus !== "active") redirect("/");
 
   const command = await loadAdminCommandCenter(supabase, role);
-  const moduleGroups = ["Trust", "Marketplace", "Intelligence", "Revenue", "Platform"] as const;
   const actionable = command.queues.reduce((total, item) => total + (item.count ?? 0), 0);
 
   return (
@@ -72,7 +83,8 @@ export default async function AdminDashboardPage() {
           <div className={styles.metricGrid}>
             {command.metrics.map((item) => (
               <Link key={item.label} href={item.href} className={`${styles.metricCard} ${styles[item.tone]}`}>
-                <span>{item.label}</span><strong>{formatNumber(item.value)}</strong><small>{item.detail}</small>
+                <div className={ux.metricLabel}>{(() => { const Icon = metricIcons[item.label] ?? Activity; return <Icon size={17} aria-hidden="true" />; })()}<span>{item.label}</span></div>
+                <strong>{formatNumber(item.value)}</strong><small>{item.detail}</small>
               </Link>
             ))}
           </div>
@@ -83,10 +95,11 @@ export default async function AdminDashboardPage() {
             <div className={styles.sectionHeading}><div><span>Work first</span><h2>Priority queues</h2></div><p>Open the next operational decision</p></div>
             <div className={styles.queueList}>
               {command.queues.map((item) => (
-                <Link key={item.label} href={item.href} className={styles.queueItem}>
+                <Link key={item.label} href={item.href} className={`${styles.queueItem} ${ux.queueItemEnhanced}`}>
                   <span className={`${styles.priority} ${styles[item.priority]}`} />
+                  <span className={ux.queueIcon}>{item.priority === "urgent" ? <AlertTriangle size={17} aria-hidden="true" /> : item.priority === "attention" ? <Clock3 size={17} aria-hidden="true" /> : <ShieldCheck size={17} aria-hidden="true" />}</span>
                   <div><strong>{item.label}</strong><small>{item.detail}</small></div>
-                  <b>{formatNumber(item.count)}</b><span className={styles.arrow}>→</span>
+                  <b>{formatNumber(item.count)}</b><span className={styles.arrow}><ArrowRight size={16} aria-hidden="true" /></span>
                 </Link>
               ))}
             </div>
@@ -105,25 +118,8 @@ export default async function AdminDashboardPage() {
         </div>
 
         <section className={styles.section}>
-          <div className={styles.sectionHeading}><div><span>Operating system</span><h2>Control domains</h2></div><p>Only modules authorised for your role are shown</p></div>
-          <div className={styles.domainStack}>
-            {moduleGroups.map((group) => {
-              const modules = command.modules.filter((item) => item.group === group);
-              if (!modules.length) return null;
-              return (
-                <section key={group} className={styles.domainGroup}>
-                  <h3>{group}</h3>
-                  <div className={styles.moduleGrid}>
-                    {modules.map((item) => (
-                      <Link key={item.href} href={item.href} className={styles.moduleCard}>
-                        <span>{item.title}</span><p>{item.description}</p><b>Open workspace →</b>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
+          <div className={styles.sectionHeading}><div><span>Operating system</span><h2>Find your workspace</h2></div><p>Search or filter the modules authorised for your role</p></div>
+          <AdminModuleExplorer modules={command.modules} />
         </section>
 
         {command.dataIssues.length ? (

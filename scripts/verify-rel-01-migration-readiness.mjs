@@ -39,7 +39,7 @@ assert(security.includes("revoke all") && security.includes("to service_role"), 
 const runbook = fs.readFileSync("docs/admin/REL-01-MIGRATION-REHEARSAL.md", "utf8");
 for (const marker of [
   "isolated and production-like snapshot rehearsals passed",
-  "disposable clone retention closure pending",
+  "disposable clone deleted",
   "hzrbbwsqbeyjlctualfn",
   "Auth user count remained 30",
   "all fixed synthetic row counts and metadata counts were zero",
@@ -50,4 +50,4 @@ for (const marker of [
   "087161e",
 ]) assert(runbook.includes(marker), `runbook marker missing: ${marker}`);
 
-console.log("REL-01 isolated and production-like Supabase rehearsal assertions passed; disposable clone retention closure remains pending.");
+console.log("REL-01 isolated and production-like Supabase rehearsal assertions passed; disposable clone deletion recorded.");

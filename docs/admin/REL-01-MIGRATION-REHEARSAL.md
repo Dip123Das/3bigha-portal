@@ -1,6 +1,6 @@
 # REL-01 — Admin BOS Migration Rehearsal
 
-Status: **isolated and production-like snapshot rehearsals passed; disposable clone retention closure pending**.
+Status: **isolated and production-like snapshot rehearsals passed; disposable clone deleted**.
 
 The migrations were exercised through the Supabase SQL Editor in a separate
 Free-plan project. No production project, credentials or data were used.
@@ -70,7 +70,7 @@ below.
 | Storage limitation | Database metadata restored; Supabase restore excluded Storage object bytes by design |
 | Production impact | None; no query or migration was executed against the source project |
 | Temporary cost | Supabase displayed $0 compute plus $0.50/month additional disk for the clone |
-| Retention | Clone deletion requires explicit destructive-action approval and remains pending |
+| Retention | Clone permanently deleted after explicit approval on 2026-08-30; production project remained available |
 
 The production-like rehearsal validates compatibility with the restored schema,
 policies, functions, representative row volume and copied Auth identities. Test
