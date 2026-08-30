@@ -195,7 +195,7 @@ export default function GlobalHeaderClient() {
         {/* Brand */}
         <div className="brandPro">
           <Link href="/" className="brandLink">
-            <Image src="/logo.png" alt="3Bigha" width={82} height={38} priority style={{objectFit:"contain"}} />
+            <Image src="/logo.png" alt="3Bigha" width={82} height={38} priority unoptimized style={{objectFit:"contain"}} />
             <div className="brandTagline">Real Estate Platform</div>
           </Link>
         </div>

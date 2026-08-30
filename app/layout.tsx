@@ -159,6 +159,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     alt="3bigha.com AI-powered property construction materials and vendor marketplace logo"
                     width={360}
                     height={120}
+                    unoptimized
                     style={{
                       width: "100%",
                       height: "100%",
@@ -199,6 +200,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     alt="3bigha.com AI-powered property construction materials and vendor marketplace logo"
                     width={360}
                     height={120}
+                    unoptimized
                     style={{
                       width: "100%",
                       height: "100%",

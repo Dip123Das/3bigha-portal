@@ -365,7 +365,7 @@ export default function TopHeaderClient() {
         {/* Brand */}
         <div className="topBrand">
           <Link className="topBrandLink" href="/">
-            <Image src="/logo.png" alt="3Bigha" width={82} height={38} priority style={{objectFit:"contain"}} />
+            <Image src="/logo.png" alt="3Bigha" width={82} height={38} priority unoptimized style={{objectFit:"contain"}} />
             <div className="topBrandTagline">Real Estate &amp; Construction Ecosystem</div>
           </Link>
         </div>
