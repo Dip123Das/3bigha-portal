@@ -37,7 +37,7 @@ import MobilePushRuntime from "@/components/mobile/MobilePushRuntime";
 import MobileForegroundNotifications from "@/components/mobile/MobileForegroundNotifications";
 import MobileOperationalDock from "@/components/mobile/MobileOperationalDock";
 
-export const metadata = createMetadata({
+const baseMetadata = createMetadata({
   title:
     "3bigha.com | India's Human-First Business Operating System",
 
@@ -79,6 +79,26 @@ export const metadata = createMetadata({
   ],
 });
 
+export const metadata: Metadata = {
+  ...baseMetadata,
+  icons: {
+    icon: [
+      { url: "/favicon.ico?v=3" },
+      { url: "/favicon-32x32.png?v=3", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png?v=3", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      {
+        url: "/apple-touch-icon.png?v=3",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+    shortcut: ["/favicon.ico?v=3"],
+  },
+  manifest: "/site.webmanifest",
+};
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -86,26 +106,6 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   themeColor: "#0b57d0",
 };
-
-export const icons: Metadata["icons"] = {
-  icon: [
-    { url: "/favicon.ico?v=3" },
-    { url: "/favicon-32x32.png?v=3", sizes: "32x32", type: "image/png" },
-    { url: "/favicon-16x16.png?v=3", sizes: "16x16", type: "image/png" },
-  ],
-
-  apple: [
-    {
-      url: "/apple-touch-icon.png?v=3",
-      sizes: "180x180",
-      type: "image/png",
-    },
-  ],
-
-  shortcut: ["/favicon.ico?v=3"],
-};
-
-export const manifest = "/site.webmanifest";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
