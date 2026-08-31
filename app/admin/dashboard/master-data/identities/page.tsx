@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import MasterDescriptionAi, { MasterEditNavigation } from "./MasterDataAssistants";
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ActionButton } from "@/components/ui/ActionButton";
@@ -106,7 +107,8 @@ export default function IdentityMasterAdminPage() {
     <div className="top"><ActionButton href="/admin/dashboard/master-data" variant="secondary">← Master Data</ActionButton><span>{rows.length} identities · {rows.filter((r) => r.is_active).length} active</span></div>
     {message && <div className="message" role="status">{message}</div>}
 
-    <form className="panel" onSubmit={save}>
+    <MasterEditNavigation />
+    <form id="identity-master-form" className="panel" onSubmit={save}>
       <h2>{editingId ? "Edit identity" : "Add a new identity"}</h2>
       <p>Add a reusable work category, not an individual member or company. Example: Civil Contractor. Search the catalogue below before adding a duplicate. Identity, provider form, engagement model and operating capabilities are managed separately.</p>
       <div className="message" role="status" aria-live="polite">
@@ -139,6 +141,15 @@ export default function IdentityMasterAdminPage() {
         <label>Workspace label *<input required value={form.workspace_label} onChange={(e) => changeAiField("workspace_label", e.target.value)} /><small className="identity-field-help">Enter the workspace title members should see. Example: Civil Contractor Workspace. You can customise the suggested title.</small></label>
         <label>Display order<input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })} /><small className="identity-field-help">Lower numbers appear first. Example: 100 appears before 200. Use whole numbers and leave gaps for future entries.</small></label>
         <label className="wide">Plain-language description *<textarea required value={form.description} onChange={(e) => changeAiField("description", e.target.value)} /><small className="identity-field-help">Explain the work in a simple sentence. Example: Carries out civil construction work for buildings and sites.</small></label>
+          <div className="wide">
+            <MasterDescriptionAi
+              kind="identity"
+              context={{ name: form.label, key: form.identity_key, family: form.family_key, stage: form.lifecycle_stage }}
+              currentValue={form.description}
+              disabled={busy || aiBusy}
+              onApply={value => changeAiField("description", value)}
+            />
+          </div>
         <label>Provider forms (comma separated)<input value={form.provider_forms} onChange={(e) => setForm({ ...form, provider_forms: e.target.value })} /><small className="identity-field-help">Comma-separated system keys for how the provider operates. Current form example: individual, firm, company. Preserve established keys.</small></label>
         <label>Engagement models (comma separated)<input value={form.engagement_models} onChange={(e) => setForm({ ...form, engagement_models: e.target.value })} /><small className="identity-field-help">Comma-separated system keys for how work is engaged. Current form example: direct_service, contract. Preserve established keys.</small></label>
         <label>Aliases / regional search words<input value={form.aliases} onChange={(e) => setForm({ ...form, aliases: e.target.value })} /><small className="identity-field-help">Alternative names people may search for, separated by commas. Example: civil works contractor, building contractor. These are search terms, not extra identities.</small></label>

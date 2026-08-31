@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import MasterDescriptionAi from "./MasterDataAssistants";
 
 type IdentityOption = {
   id: string;
@@ -328,7 +329,7 @@ export default function OperatingCapabilityMasterSections({
 
           <label className="wide">
             Plain-language description
-            <input
+            <textarea rows={3} style={{ display: "block", width: "100%", boxSizing: "border-box", marginTop: 6, padding: 10, border: "1px solid #cbd5e1", borderRadius: 9, font: "inherit" }}
               value={capabilityForm.description}
               onChange={(e) =>
                 setCapabilityForm({
@@ -338,6 +339,15 @@ export default function OperatingCapabilityMasterSections({
               }
             />
           </label>
+          <div className="wide">
+            <MasterDescriptionAi
+              kind="operating_capability"
+              context={{ name: capabilityForm.label, key: capabilityForm.capability_key, group: capabilityForm.capability_group }}
+              currentValue={capabilityForm.description}
+              disabled={busy}
+              onApply={value => setCapabilityForm(current => ({ ...current, description: value }))}
+            />
+          </div>
 
           <label className="wide">
             Existing production route

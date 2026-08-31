@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import MasterDescriptionAi from "./MasterDataAssistants";
 import { useSectorAi } from "./useSectorAi";
 import MappingAiAssistant from "./MappingAiAssistant";
 
@@ -735,7 +736,7 @@ export default function RegistrationMasterSections({
 
           <label className="wide">
             Description
-            <input
+            <textarea rows={3} style={{ display: "block", width: "100%", boxSizing: "border-box", marginTop: 6, padding: 10, border: "1px solid #cbd5e1", borderRadius: 9, font: "inherit" }}
               value={legalForm.description}
               onChange={(e) =>
                 setLegalForm({
@@ -745,6 +746,15 @@ export default function RegistrationMasterSections({
               }
             />
           <small>Explain this choice simply. Example for Sole Proprietorship: A business owned by one individual.</small></label>
+          <div className="wide">
+            <MasterDescriptionAi
+              kind="legal_constitution"
+              context={{ name: legalForm.label, key: legalForm.key }}
+              currentValue={legalForm.description}
+              disabled={busy}
+              onApply={value => setLegalForm(current => ({ ...current, description: value }))}
+            />
+          </div>
 
           <label className="check" style={{ flexWrap: "wrap" }}>
             <input
@@ -890,6 +900,15 @@ export default function RegistrationMasterSections({
               onChange={(e) => sectorAi.changeField("description", e.target.value)}
             />
           <small>Explain which activities belong in this sector. Review the AI draft and adjust the wording before saving.</small></label>
+          <div className="wide">
+            <MasterDescriptionAi
+              kind="business_sector"
+              context={{ name: sectorForm.title, key: sectorForm.key }}
+              currentValue={sectorForm.description}
+              disabled={busy || sectorAi.aiBusy}
+              onApply={value => sectorAi.changeField("description", value)}
+            />
+          </div>
 
           <label className="check" style={{ flexWrap: "wrap" }}>
             <input
@@ -1290,6 +1309,15 @@ export default function RegistrationMasterSections({
               }
             />
           <small>Explain the choice to the user. Example: Choose this if you regularly supply or deploy workers or organised work teams.</small></label>
+          <div className="wide">
+            <MasterDescriptionAi
+              kind="redirect_rule"
+              context={{ name: redirectForm.display_text, key: redirectForm.trigger_key, targetIdentity: redirectForm.target_business_identity_key }}
+              currentValue={redirectForm.description}
+              disabled={busy}
+              onApply={value => setRedirectForm(current => ({ ...current, description: value }))}
+            />
+          </div>
 
           <label className="wide">
             Constitutional / business reason
