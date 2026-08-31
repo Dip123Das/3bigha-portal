@@ -90,28 +90,28 @@ export default function IdentityMasterAdminPage() {
 
     <form className="panel" onSubmit={save}>
       <h2>{editingId ? "Edit identity" : "Add a new identity"}</h2>
-      <p>Use one clear work identity. Do not put “individual”, “Pvt. Ltd.” or “turnkey” in every title—those are managed separately below.</p>
+      <p>Add a reusable work category, not an individual member or company. Example: Civil Contractor. Search the catalogue below before adding a duplicate. Identity, provider form, engagement model and operating capabilities are managed separately.</p>
       <div className="grid">
-        <label>Identity name *<input required value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value, workspace_label: form.workspace_label || `${e.target.value} Workspace`, identity_key: editingId ? form.identity_key : slug(e.target.value) })} /></label>
-        <label>Permanent key *<input required value={form.identity_key} disabled={Boolean(editingId)} onChange={(e) => setForm({ ...form, identity_key: slug(e.target.value) })} /></label>
-        <label>Family *<select value={form.family_key} onChange={(e) => setForm({ ...form, family_key: e.target.value })}>{families.map((x) => <option key={x}>{x}</option>)}</select></label>
-        <label>Lifecycle stage *<select value={form.lifecycle_stage} onChange={(e) => setForm({ ...form, lifecycle_stage: e.target.value })}>{stages.map((x) => <option key={x}>{x}</option>)}</select></label>
-        <label>Workspace label *<input required value={form.workspace_label} onChange={(e) => setForm({ ...form, workspace_label: e.target.value })} /></label>
-        <label>Display order<input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })} /></label>
-        <label className="wide">Plain-language description *<textarea required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
-        <label>Provider forms (comma separated)<input value={form.provider_forms} onChange={(e) => setForm({ ...form, provider_forms: e.target.value })} /></label>
-        <label>Engagement models (comma separated)<input value={form.engagement_models} onChange={(e) => setForm({ ...form, engagement_models: e.target.value })} /></label>
-        <label>Aliases / regional search words<input value={form.aliases} onChange={(e) => setForm({ ...form, aliases: e.target.value })} /></label>
-        <label>Legacy modules<input value={form.legacy_modules} onChange={(e) => setForm({ ...form, legacy_modules: e.target.value })} /></label>
-        <label className="wide">Registration scopes<input value={form.registration_scopes} onChange={(e) => setForm({ ...form, registration_scopes: e.target.value })} placeholder="business_identity, business_personal_role, individual_skill" /></label>
+        <label>Identity name *<input required value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value, workspace_label: !editingId && (!form.workspace_label || form.workspace_label === `${form.label} Workspace`) ? (e.target.value.trim() ? `${e.target.value} Workspace` : "") : form.workspace_label, identity_key: editingId ? form.identity_key : slug(e.target.value) })} /><small className="identity-field-help">Enter the type of work, not a member or company name. Example: Civil Contractor.</small></label>
+        <label>Permanent key *<input required value={form.identity_key} disabled={Boolean(editingId)} onChange={(e) => setForm({ ...form, identity_key: slug(e.target.value) })} /><small className="identity-field-help">Permanent system identifier. Example: civil_contractor. Generated from the name; check it before saving. Existing keys stay locked.</small></label>
+        <label>Family *<select value={form.family_key} onChange={(e) => setForm({ ...form, family_key: e.target.value })}>{families.map((x) => <option key={x}>{x}</option>)}</select><small className="identity-field-help">Choose the broad work group. Example: construction for Civil Contractor. This grouping does not itself grant operating tools.</small></label>
+        <label>Lifecycle stage *<select value={form.lifecycle_stage} onChange={(e) => setForm({ ...form, lifecycle_stage: e.target.value })}>{stages.map((x) => <option key={x}>{x}</option>)}</select><small className="identity-field-help">Choose the main stage where this identity works. Example: execution for Civil Contractor; planning for a planning role.</small></label>
+        <label>Workspace label *<input required value={form.workspace_label} onChange={(e) => setForm({ ...form, workspace_label: e.target.value })} /><small className="identity-field-help">Enter the workspace title members should see. Example: Civil Contractor Workspace. You can customise the suggested title.</small></label>
+        <label>Display order<input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })} /><small className="identity-field-help">Lower numbers appear first. Example: 100 appears before 200. Use whole numbers and leave gaps for future entries.</small></label>
+        <label className="wide">Plain-language description *<textarea required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /><small className="identity-field-help">Explain the work in a simple sentence. Example: Carries out civil construction work for buildings and sites.</small></label>
+        <label>Provider forms (comma separated)<input value={form.provider_forms} onChange={(e) => setForm({ ...form, provider_forms: e.target.value })} /><small className="identity-field-help">Comma-separated system keys for how the provider operates. Current form example: individual, firm, company. Preserve established keys.</small></label>
+        <label>Engagement models (comma separated)<input value={form.engagement_models} onChange={(e) => setForm({ ...form, engagement_models: e.target.value })} /><small className="identity-field-help">Comma-separated system keys for how work is engaged. Current form example: direct_service, contract. Preserve established keys.</small></label>
+        <label>Aliases / regional search words<input value={form.aliases} onChange={(e) => setForm({ ...form, aliases: e.target.value })} /><small className="identity-field-help">Alternative names people may search for, separated by commas. Example: civil works contractor, building contractor. These are search terms, not extra identities.</small></label>
+        <label>Legacy modules<input value={form.legacy_modules} onChange={(e) => setForm({ ...form, legacy_modules: e.target.value })} /><small className="identity-field-help">Compatibility setting for existing modules. This form defaults to services. Preserve existing values unless their downstream use has been checked.</small></label>
+        <label className="wide">Registration scopes<input value={form.registration_scopes} onChange={(e) => setForm({ ...form, registration_scopes: e.target.value })} placeholder="business_identity, business_personal_role, individual_skill" /><small className="identity-field-help">Controls which registration lists include this identity. Supported scopes shown here: business_identity, business_personal_role, individual_skill. Separate applicable scopes with commas; leaving this blank excludes it from the corresponding lists on this page.</small></label>
       </div>
       <div className="checks">
-        <label><input type="checkbox" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} /> Main choice</label>
-        <label><input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} /> Active</label>
-        <label><input type="checkbox" checked={form.requires_business_onboarding} onChange={(e) => setForm({ ...form, requires_business_onboarding: e.target.checked })} /> Business onboarding</label>
-        <label><input type="checkbox" checked={form.requires_professional_verification} onChange={(e) => setForm({ ...form, requires_professional_verification: e.target.checked })} /> Verification required</label>
-        <label><input type="checkbox" checked={form.lifetime_free_candidate} onChange={(e) => setForm({ ...form, lifetime_free_candidate: e.target.checked })} /> Lifetime Free eligibility candidate</label>
-        <label><input type="checkbox" checked={form.redirect_to_business} onChange={(e) => setForm({ ...form, redirect_to_business: e.target.checked })} /> Redirect to Business Registration</label>
+        <label><input type="checkbox" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} /> Main choice<small className="identity-field-help">Marks this identity as a main choice. Use selectively; it does not grant operating capabilities.</small></label>
+        <label><input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} /> Active<small className="identity-field-help">Controls the identity's active status. Review its registration and capability mappings before changing an existing identity.</small></label>
+        <label><input type="checkbox" checked={form.requires_business_onboarding} onChange={(e) => setForm({ ...form, requires_business_onboarding: e.target.checked })} /> Business onboarding<small className="identity-field-help">Business-onboarding requirement flag. Preserve existing settings until the registration flow has been checked.</small></label>
+        <label><input type="checkbox" checked={form.requires_professional_verification} onChange={(e) => setForm({ ...form, requires_professional_verification: e.target.checked })} /> Verification required<small className="identity-field-help">Professional-verification requirement flag. Select according to the approved verification policy; this does not verify a member by itself.</small></label>
+        <label><input type="checkbox" checked={form.lifetime_free_candidate} onChange={(e) => setForm({ ...form, lifetime_free_candidate: e.target.checked })} /> Lifetime Free eligibility candidate<small className="identity-field-help">Eligibility candidate only. This flag is not, by itself, confirmation that a member receives a free subscription.</small></label>
+        <label><input type="checkbox" checked={form.redirect_to_business} onChange={(e) => setForm({ ...form, redirect_to_business: e.target.checked })} /> Redirect to Business Registration<small className="identity-field-help">Business-registration redirect flag. Review it with the Registration Redirect Rules below; do not change it independently without checking the intended journey.</small></label>
       </div>
       <div className="actions"><button disabled={busy}>{busy ? "Saving…" : editingId ? "Save changes" : "Add identity"}</button>{editingId && <button type="button" className="secondary" onClick={() => { setEditingId(null); setForm(emptyForm); }}>Cancel</button>}</div>
     </form>
@@ -127,6 +127,23 @@ export default function IdentityMasterAdminPage() {
       </article>)}</div>
     </section>
     <style jsx>{`
+      .identity-field-help {
+        display: block;
+        margin-top: 6px;
+        color: #475569;
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 1.5;
+      }
+      .checks label {
+        flex-wrap: wrap;
+        align-content: flex-start;
+        flex: 1 1 260px;
+      }
+      .checks .identity-field-help {
+        flex-basis: 100%;
+      }
+
       .top,.actions,.checks,.filters,.rowActions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.top{justify-content:space-between;margin:12px 0 18px}.message{padding:12px;border:1px solid #93c5fd;background:#eff6ff;border-radius:10px;margin-bottom:14px}.panel,.catalogue{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:18px;margin-bottom:20px}.panel h2{margin:0 0 4px}.panel p{color:#64748b;margin:0 0 16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.wide{grid-column:1/-1}label{font-weight:800;font-size:13px}input,select,textarea{display:block;width:100%;margin-top:6px;border:1px solid #cbd5e1;border-radius:9px;padding:10px;background:white}textarea{min-height:76px}.checks{margin:16px 0}.checks label{display:flex;align-items:center;gap:6px}.checks input{width:auto;margin:0}button{border:0;border-radius:9px;padding:10px 14px;background:#2563eb;color:white;font-weight:800;cursor:pointer}.secondary{background:white;color:#334155;border:1px solid #cbd5e1}.filters{margin-bottom:12px}.filters input{flex:1;min-width:240px}.filters select{width:auto}.rows{display:grid;gap:10px}.rows article{display:flex;justify-content:space-between;gap:16px;border:1px solid #e2e8f0;border-radius:12px;padding:14px}.rows article.inactive{opacity:.58;background:#f8fafc}.rows strong,.rows small{display:block}.rows small{color:#64748b;margin-top:4px}.rows p{margin:6px 0;color:#334155}.rowActions{align-self:center;flex-shrink:0}@media(max-width:640px){.rows article{display:block}.rowActions{margin-top:12px}.filters select{width:100%}}
     `}</style>
   </Container>;
