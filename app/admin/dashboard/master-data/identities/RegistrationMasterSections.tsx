@@ -78,6 +78,8 @@ export default function RegistrationMasterSections({
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const [editingLegalKey, setEditingLegalKey] = useState<string | null>(null);
+
   const [legalForm, setLegalForm] = useState({
     key: "",
     label: "",
@@ -195,25 +197,8 @@ export default function RegistrationMasterSections({
       .includes(q);
   });
 
-  async function saveLegal(event: React.FormEvent) {
-    event.preventDefault();
-    setBusy(true);
-    setMessage("");
-
-    const payload = {
-      ...legalForm,
-      key: slug(legalForm.key || legalForm.label),
-      label: legalForm.label.trim(),
-      description: legalForm.description.trim() || null,
-    };
-
-    const { error } = await supabase
-      .from("registration_legal_constitutions")
-      .upsert(payload, { onConflict: "key" });
-
-    setBusy(false);
-    if (error) return setMessage(error.message);
-
+  function resetLegalForm() {
+    setEditingLegalKey(null);
     setLegalForm({
       key: "",
       label: "",
@@ -221,8 +206,65 @@ export default function RegistrationMasterSections({
       sort_order: 1000,
       is_active: true,
     });
-    setMessage("Legal constitution saved.");
-    await load();
+  }
+
+  async function saveLegal(event: React.FormEvent) {
+    event.preventDefault();
+    if (busy) return;
+    setMessage("");
+
+    const label = legalForm.label.trim();
+    const key = editingLegalKey || slug(legalForm.key || label);
+
+    if (!label || !key) {
+      setMessage("Enter a constitution name and a valid permanent key using English letters or numbers.");
+      return;
+    }
+
+    if (!Number.isSafeInteger(legalForm.sort_order)) {
+      setMessage("Display order must be a whole number.");
+      return;
+    }
+
+    if (!editingLegalKey && legalRows.some((row) => row.key === key)) {
+      setMessage("This permanent key already exists. Use Edit beside the existing entry, or choose a different key for a different constitution.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const values = {
+        label,
+        description: legalForm.description.trim() || null,
+        sort_order: legalForm.sort_order,
+        is_active: legalForm.is_active,
+      };
+
+      const request = editingLegalKey
+        ? supabase.from("registration_legal_constitutions")
+            .update(values).eq("key", editingLegalKey)
+        : supabase.from("registration_legal_constitutions")
+            .insert({ ...values, key });
+
+      const { data, error } = await request.select("key").single();
+      if (error) throw error;
+      if (!data) throw new Error("No saved entry returned. Refresh and check the catalogue before retrying.");
+
+      const wasEditing = Boolean(editingLegalKey);
+      resetLegalForm();
+      setMessage(wasEditing ? "Legal constitution updated." : "Legal constitution added.");
+
+      try {
+        await load();
+      } catch {
+        setMessage("Saved successfully, but the list could not refresh. Reload this page before making another change.");
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message :
+        (error as { message?: string })?.message || "Could not save the constitution.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function saveSector(event: React.FormEvent) {
@@ -408,6 +450,14 @@ export default function RegistrationMasterSections({
 
       <details open>
         <summary>Legal Constitutions</summary>
+        <p className="note">
+          Manage the legal form of a business, not its trade or company name.
+          Examples include Sole Proprietorship, Partnership Firm and Private
+          Limited Company. Check the existing list before adding an entry.
+        </p>
+        <p><strong>
+          {editingLegalKey ? "Editing an existing constitution" : "Add a legal constitution"}
+        </strong></p>
         <form className="formGrid" onSubmit={saveLegal}>
           <label>
             Name *
@@ -418,18 +468,17 @@ export default function RegistrationMasterSections({
                 setLegalForm({
                   ...legalForm,
                   label: e.target.value,
-                  key:
-                    legalForm.key ||
-                    slug(e.target.value),
+
                 })
               }
             />
-          </label>
+          <small>Enter the legal form. Example: Sole Proprietorship. Do not enter a particular business or company name.</small></label>
 
           <label>
             Permanent key
             <input
-              value={legalForm.key}
+              value={legalForm.key || slug(legalForm.label)}
+              disabled={busy || Boolean(editingLegalKey)}
               onChange={(e) =>
                 setLegalForm({
                   ...legalForm,
@@ -437,7 +486,7 @@ export default function RegistrationMasterSections({
                 })
               }
             />
-          </label>
+          <small>Permanent system identifier. Example: sole_proprietorship. Suggested from the name until customised; locked when editing.</small></label>
 
           <label>
             Display order
@@ -451,7 +500,7 @@ export default function RegistrationMasterSections({
                 })
               }
             />
-          </label>
+          <small>Lower numbers appear first. Example: 100 appears before 200. Use whole numbers and leave gaps for future entries.</small></label>
 
           <label className="wide">
             Description
@@ -464,9 +513,9 @@ export default function RegistrationMasterSections({
                 })
               }
             />
-          </label>
+          <small>Explain this choice simply. Example for Sole Proprietorship: A business owned by one individual.</small></label>
 
-          <label className="check">
+          <label className="check" style={{ flexWrap: "wrap" }}>
             <input
               type="checkbox"
               checked={legalForm.is_active}
@@ -478,9 +527,17 @@ export default function RegistrationMasterSections({
               }
             />
             Active
-          </label>
+          <small style={{ flexBasis: "100%" }}>Marks this catalogue entry as active. Review registration usage before deactivating an existing option. This does not delete the entry.</small></label>
 
-          <button disabled={busy}>Save constitution</button>
+          <button disabled={busy}>
+            {busy ? "Saving…" : editingLegalKey ? "Save changes" : "Add constitution"}
+          </button>
+          {editingLegalKey && (
+            <button type="button" className="secondary" disabled={busy}
+              onClick={() => { resetLegalForm(); setMessage(""); }}>
+              Cancel editing
+            </button>
+          )}
         </form>
 
         <div className="compactRows">
@@ -496,15 +553,18 @@ export default function RegistrationMasterSections({
                 <button
                   type="button"
                   className="secondary"
-                  onClick={() =>
+                  disabled={busy}
+                  onClick={() => {
+                    setEditingLegalKey(row.key);
+                    setMessage("");
                     setLegalForm({
                       key: row.key,
                       label: row.label,
                       description: row.description || "",
                       sort_order: row.sort_order,
                       is_active: row.is_active,
-                    })
-                  }
+                    });
+                  }}
                 >
                   Edit
                 </button>
