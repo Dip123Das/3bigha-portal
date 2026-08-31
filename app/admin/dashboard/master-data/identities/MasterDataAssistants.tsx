@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import styles from "./MasterDataAssistants.module.css";
 
 type Props = {
   kind: string;
@@ -99,7 +100,7 @@ export default function MasterDescriptionAi(props: Props) {
       padding: 14, border: "1px solid #93c5fd", borderRadius: 10,
       background: "#eff6ff", color: "#172033", lineHeight: 1.6,
     }}>
-      <button type="button"
+      <button className={styles.button} type="button"
         disabled={busy || props.disabled || (props.context.name || "").trim().length < 3}
         onClick={() => void generate()}>
         {busy ? "Writing description…" : "Generate AI description"}
@@ -124,7 +125,7 @@ export default function MasterDescriptionAi(props: Props) {
             />
           </label>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 10 }}>
-            <button type="button" disabled={props.disabled || !draft.trim()}
+            <button className={styles.button} type="button" disabled={props.disabled || !draft.trim()}
               onClick={() => {
                 if (props.currentValue.trim() &&
                     !window.confirm("Replace the form description with this reviewed draft? Nothing will be saved yet.")) return;
@@ -133,7 +134,7 @@ export default function MasterDescriptionAi(props: Props) {
               }}>
               Apply reviewed description
             </button>
-            <button type="button" onClick={() => {
+            <button className={styles.button} type="button" onClick={() => {
               setDraft(null);
               setMessage("Draft dismissed. Your description was not changed.");
             }}>

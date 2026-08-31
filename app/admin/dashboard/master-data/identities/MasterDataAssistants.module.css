@@ -1,0 +1,27 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #1d4ed8;
+  border-radius: 9px;
+  background: #1d4ed8;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.button:hover:not(:disabled) {
+  background: #1e40af;
+}
+.button:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
+}
+.button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
