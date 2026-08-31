@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 import { useSectorAi } from "./useSectorAi";
+import MappingAiAssistant from "./MappingAiAssistant";
 
 type IdentityOption = {
   id: string;
@@ -108,6 +109,9 @@ export default function RegistrationMasterSections({
       row.key === slug(sectorForm.key || sectorForm.title)
     )
   );
+
+  const [editingMapping, setEditingMapping] = useState<MappingRow | null>(null);
+  const mappingModules = ["property", "materials", "services", "rentals", "blog"];
 
   const [mappingForm, setMappingForm] = useState({
     identity_key: "",
@@ -344,33 +348,8 @@ export default function RegistrationMasterSections({
     }
   }
 
-  async function saveMapping(event: React.FormEvent) {
-    event.preventDefault();
-
-    if (!mappingForm.identity_key || !mappingForm.sector_key) {
-      setMessage("Choose both an identity and a business sector.");
-      return;
-    }
-
-    setBusy(true);
-    setMessage("");
-
-    const { error } = await supabase
-      .from("registration_identity_sector_map")
-      .upsert(
-        {
-          identity_key: mappingForm.identity_key,
-          sector_key: mappingForm.sector_key,
-          nature_modules: csv(mappingForm.nature_modules),
-          sort_order: mappingForm.sort_order,
-          is_active: mappingForm.is_active,
-        },
-        { onConflict: "identity_key,sector_key" }
-      );
-
-    setBusy(false);
-    if (error) return setMessage(error.message);
-
+  function resetMappingForm() {
+    setEditingMapping(null);
     setMappingForm({
       identity_key: "",
       sector_key: "",
@@ -378,8 +357,113 @@ export default function RegistrationMasterSections({
       sort_order: 1000,
       is_active: true,
     });
-    setMessage("Identity-to-sector mapping saved.");
-    await load();
+  }
+
+  function changeMappingModule(module: string, checked: boolean) {
+    setMappingForm(current => {
+      const selected = new Set(csv(current.nature_modules));
+      if (checked) selected.add(module);
+      else selected.delete(module);
+      return { ...current, nature_modules: Array.from(selected).join(", ") };
+    });
+  }
+
+  async function saveMapping(event: React.FormEvent) {
+    event.preventDefault();
+    if (busy) return;
+    setMessage("");
+
+    const identityKey = editingMapping?.identity_key || mappingForm.identity_key;
+    const sectorKey = editingMapping?.sector_key || mappingForm.sector_key;
+    const modules = Array.from(new Set(csv(mappingForm.nature_modules)));
+
+    if (!identityKey || !sectorKey) {
+      setMessage("Choose both a business identity and a sector.");
+      return;
+    }
+
+    if (!Number.isSafeInteger(mappingForm.sort_order)) {
+      setMessage("Display order must be a whole number.");
+      return;
+    }
+
+    const identity = identities.find(row => row.identity_key === identityKey);
+    const sector = sectorRows.find(row => row.key === sectorKey);
+
+    if (!identity || !sector) {
+      setMessage("The identity or sector is unavailable. Refresh the page before saving.");
+      return;
+    }
+
+    if ((!editingMapping || mappingForm.is_active) &&
+        (!identity.is_active ||
+         !(identity.registration_scopes || []).includes("business_identity") ||
+         !sector.is_active)) {
+      setMessage("New or active mappings require an active business identity and an active sector.");
+      return;
+    }
+
+    // Preserve existing unrecognised values during maintenance.
+    // They cannot be introduced into a new mapping.
+    const originalModules = editingMapping?.nature_modules || [];
+    const unexpected = modules.filter(module =>
+      !mappingModules.includes(module) && !originalModules.includes(module)
+    );
+
+    if (unexpected.length) {
+      setMessage("Unsupported marketplace modules: " + unexpected.join(", "));
+      return;
+    }
+
+    if (!editingMapping && mappingRows.some(row =>
+      row.identity_key === identityKey && row.sector_key === sectorKey
+    )) {
+      setMessage("This identity-to-sector mapping already exists. Use its Edit button.");
+      return;
+    }
+
+    if (mappingForm.is_active && modules.length === 0 &&
+        !window.confirm(
+          "This active mapping has no marketplace modules. It will contribute no activities to registration. Save it anyway?"
+        )) return;
+
+    setBusy(true);
+    try {
+      const values = {
+        nature_modules: modules,
+        sort_order: mappingForm.sort_order,
+        is_active: mappingForm.is_active,
+      };
+
+      const request = editingMapping
+        ? supabase.from("registration_identity_sector_map")
+            .update(values)
+            .eq("identity_key", editingMapping.identity_key)
+            .eq("sector_key", editingMapping.sector_key)
+        : supabase.from("registration_identity_sector_map")
+            .insert({ identity_key: identityKey, sector_key: sectorKey, ...values });
+
+      const { data, error } = await request
+        .select("identity_key,sector_key").single();
+
+      if (error) throw error;
+      if (!data) throw new Error("No saved mapping returned. Refresh and check before retrying.");
+
+      const wasEditing = Boolean(editingMapping);
+      resetMappingForm();
+      setMessage(wasEditing ? "Identity-to-sector mapping updated." : "Identity-to-sector mapping added.");
+
+      try {
+        await load();
+      } catch {
+        setMessage("Mapping saved, but the list could not refresh. Reload before making another change.");
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message :
+        (error as { message?: string })?.message || "Could not save the mapping.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function saveRedirect(event: React.FormEvent) {
@@ -784,13 +868,64 @@ export default function RegistrationMasterSections({
 
       <details>
         <summary>Business Identity ↔ Sector Mapping</summary>
+        <p className="note">
+          Connect a work identity to a business sector and its marketplace activities.
+          Example: Civil Contractor → Construction &amp; Infrastructure → Services.
+          A work identity may belong to more than one sector; add a separate mapping
+          for each appropriate sector.
+        </p>
+        <p className="note">
+          Registration uses these mappings to show identity choices and combine
+          marketplace activities. This form does not grant administrator permissions
+          or 3BOS operating capabilities.
+        </p>
+        <p><strong>{editingMapping ? "Edit existing mapping" : "Add identity-to-sector mapping"}</strong></p>
 
+        {!editingMapping && (
+          <MappingAiAssistant
+            identityKey={mappingForm.identity_key}
+            sectorKey={mappingForm.sector_key}
+            modulesValue={mappingForm.nature_modules}
+            disabled={busy}
+            onApply={draft => {
+              const identity = identities.find(row =>
+                row.identity_key === mappingForm.identity_key
+              );
+              const sector = sectorRows.find(row => row.key === draft.sector_key);
+
+              if (!identity?.is_active ||
+                  !(identity.registration_scopes || []).includes("business_identity") ||
+                  !sector?.is_active ||
+                  !draft.nature_modules.length ||
+                  !draft.nature_modules.every(module => mappingModules.includes(module))) {
+                setMessage("The suggested mapping is no longer valid. Refresh and review the master data.");
+                return;
+              }
+
+              if (mappingRows.some(row =>
+                row.identity_key === mappingForm.identity_key &&
+                row.sector_key === draft.sector_key
+              )) {
+                setMessage("This mapping already exists. Use its Edit button.");
+                return;
+              }
+
+              setMappingForm(current => ({
+                ...current,
+                sector_key: draft.sector_key,
+                nature_modules: draft.nature_modules.join(", "),
+              }));
+              setMessage("AI suggestion applied to the form only. Review the sector and activities, then click Add mapping if correct.");
+            }}
+          />
+        )}
         <form className="formGrid" onSubmit={saveMapping}>
           <label>
             Business identity *
             <select
               required
               value={mappingForm.identity_key}
+              disabled={Boolean(editingMapping) || busy}
               onChange={(e) =>
                 setMappingForm({
                   ...mappingForm,
@@ -799,7 +934,10 @@ export default function RegistrationMasterSections({
               }
             >
               <option value="">Choose identity</option>
-              {activeBusinessIdentities.map((identity) => (
+              {identities.filter(identity =>
+                activeBusinessIdentities.some(active => active.identity_key === identity.identity_key) ||
+                identity.identity_key === editingMapping?.identity_key
+              ).map((identity) => (
                 <option
                   key={identity.identity_key}
                   value={identity.identity_key}
@@ -808,13 +946,14 @@ export default function RegistrationMasterSections({
                 </option>
               ))}
             </select>
-          </label>
+          <small>Choose an active identity that is enabled for business registration. Example: Civil Contractor. Identity and sector are locked during editing.</small></label>
 
           <label>
             Sector *
             <select
               required
               value={mappingForm.sector_key}
+              disabled={Boolean(editingMapping) || busy}
               onChange={(e) =>
                 setMappingForm({
                   ...mappingForm,
@@ -823,27 +962,43 @@ export default function RegistrationMasterSections({
               }
             >
               <option value="">Choose sector</option>
-              {sectorRows.map((sector) => (
+              {sectorRows.filter(sector =>
+                sector.is_active || sector.key === editingMapping?.sector_key
+              ).map((sector) => (
                 <option key={sector.key} value={sector.key}>
                   {sector.title}
                 </option>
               ))}
             </select>
-          </label>
+          <small>Choose the relevant existing sector. Example: Construction & Infrastructure. To connect this identity to another sector, add a separate mapping.</small></label>
 
-          <label>
-            Marketplace modules
-            <input
-              placeholder="materials, services, rentals, property"
-              value={mappingForm.nature_modules}
-              onChange={(e) =>
-                setMappingForm({
-                  ...mappingForm,
-                  nature_modules: e.target.value,
-                })
-              }
-            />
-          </label>
+          <fieldset style={{ gridColumn: "1 / -1", border: "1px solid #cbd5e1", borderRadius: 10, padding: 14 }}>
+            <legend>Marketplace activities</legend>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+              {mappingModules.map(module => (
+                <label key={module} className="check">
+                  <input type="checkbox"
+                    disabled={busy}
+                    checked={csv(mappingForm.nature_modules).includes(module)}
+                    onChange={event => changeMappingModule(module, event.target.checked)} />
+                  {module === "blog" ? "Blog / publishing" :
+                    module.charAt(0).toUpperCase() + module.slice(1)}
+                </label>
+              ))}
+            </div>
+            <p className="note" style={{ marginBottom: 0 }}>
+              Select only relevant activities. Example: Civil Contractor → Services;
+              Builder / Developer → Property and Services; Blogger → Blog / publishing.
+              More than one activity may apply. The Property key is property.
+            </p>
+            {csv(mappingForm.nature_modules).filter(module => !mappingModules.includes(module)).map(module => (
+              <label key={module} className="check" style={{ marginTop: 10 }}>
+                <input type="checkbox" checked disabled={busy}
+                  onChange={event => changeMappingModule(module, event.target.checked)} />
+                Existing unrecognised value: {module}. Preserved unless you deliberately remove it.
+              </label>
+            ))}
+          </fieldset>
 
           <label>
             Display order
@@ -857,9 +1012,9 @@ export default function RegistrationMasterSections({
                 })
               }
             />
-          </label>
+          <small>Controls this mapping's order in sector-based registration choices. Lower numbers appear first; use whole numbers.</small></label>
 
-          <label className="check">
+          <label className="check" style={{ flexWrap: "wrap" }}>
             <input
               type="checkbox"
               checked={mappingForm.is_active}
@@ -871,9 +1026,17 @@ export default function RegistrationMasterSections({
               }
             />
             Active
-          </label>
+          <small style={{ flexBasis: "100%" }}>Active mappings are loaded by registration. Deactivating removes this mapping from that active set; it does not delete existing member profiles.</small></label>
 
-          <button disabled={busy}>Save mapping</button>
+          <button disabled={busy}>
+            {busy ? "Saving…" : editingMapping ? "Save changes" : "Add mapping"}
+          </button>
+          {editingMapping && (
+            <button type="button" className="secondary" disabled={busy}
+              onClick={() => { resetMappingForm(); setMessage(""); }}>
+              Cancel editing
+            </button>
+          )}
         </form>
 
         <div className="compactRows">
@@ -903,15 +1066,18 @@ export default function RegistrationMasterSections({
                 <button
                   type="button"
                   className="secondary"
-                  onClick={() =>
+                  disabled={busy}
+                  onClick={() => {
+                    setEditingMapping({ ...row, nature_modules: [...(row.nature_modules || [])] });
+                    setMessage("");
                     setMappingForm({
                       identity_key: row.identity_key,
                       sector_key: row.sector_key,
                       nature_modules: row.nature_modules.join(", "),
                       sort_order: row.sort_order,
                       is_active: row.is_active,
-                    })
-                  }
+                    });
+                  }}
                 >
                   Edit
                 </button>
