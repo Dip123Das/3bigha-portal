@@ -466,59 +466,161 @@ export default function RegistrationMasterSections({
     }
   }
 
-  async function saveRedirect(event: React.FormEvent) {
-    event.preventDefault();
-    setBusy(true);
-    setMessage("");
-
-    const payload = {
-      trigger_key: slug(
-        redirectForm.trigger_key || redirectForm.display_text
-      ),
-      display_text: redirectForm.display_text.trim(),
-      description: redirectForm.description.trim() || null,
-      target_registration_path:
-        redirectForm.target_registration_path.trim(),
-      redirect_after_selection:
-        redirectForm.redirect_after_selection,
-      business_reason:
-        redirectForm.business_reason.trim() || null,
-      target_business_identity_key:
-        redirectForm.target_business_identity_key || null,
-      sort_order: redirectForm.sort_order,
-      is_active: redirectForm.is_active,
-    };
-
-    const request = redirectForm.id
-      ? supabase
-          .from("registration_redirect_rules")
-          .update(payload)
-          .eq("id", redirectForm.id)
-      : supabase
-          .from("registration_redirect_rules")
-          .insert(payload);
-
-    const { error } = await request;
-
-    setBusy(false);
-    if (error) return setMessage(error.message);
-
+  function resetRedirectForm() {
     setRedirectForm({
       id: null,
       trigger_key: "",
       display_text: "",
       description: "",
-      target_registration_path:
-        "/onboarding/business?registration=1",
+      target_registration_path: "/onboarding/business?registration=1",
       redirect_after_selection: true,
       business_reason: "",
       target_business_identity_key: "",
       sort_order: 1000,
       is_active: true,
     });
+  }
 
-    setMessage("Registration redirect rule saved.");
-    await load();
+  function previewRedirectRule() {
+    const path = redirectForm.target_registration_path.trim();
+    const key = redirectForm.trigger_key || slug(redirectForm.display_text);
+
+    try {
+      if (!path.startsWith("/") || path.startsWith("//") ||
+          /[\\\\\\s]/.test(path)) {
+        throw new Error("Use a relative Business Registration path without spaces or backslashes.");
+      }
+
+      const target = new URL(path, "https://3bigha.invalid");
+
+      if (target.origin !== "https://3bigha.invalid" ||
+          target.pathname !== "/onboarding/business" ||
+          target.hash) {
+        throw new Error("Use /onboarding/business?registration=1. Other destinations require a separate workflow review.");
+      }
+
+      for (const [name, value] of target.searchParams.entries()) {
+        if (name !== "registration" || value !== "1") {
+          throw new Error("Only registration=1 belongs in this path. The trigger and business identity are added automatically.");
+        }
+      }
+
+      if (target.searchParams.getAll("registration").length > 1) {
+        throw new Error("Include registration=1 only once.");
+      }
+
+      target.searchParams.set("registration", "1");
+      target.searchParams.set("redirectTrigger", key);
+
+      if (redirectForm.target_business_identity_key) {
+        target.searchParams.set("businessIdentity", redirectForm.target_business_identity_key);
+      }
+
+      return { target: target.pathname + target.search, error: "" };
+    } catch (error) {
+      return {
+        target: "",
+        error: error instanceof Error ? error.message : "Invalid registration destination.",
+      };
+    }
+  }
+
+  async function saveRedirect(event: React.FormEvent) {
+    event.preventDefault();
+    if (busy) return;
+    setMessage("");
+
+    const editing = redirectForm.id !== null;
+    const original = editing
+      ? redirectRows.find(row => row.id === redirectForm.id)
+      : null;
+
+    if (editing && !original) {
+      setMessage("The original rule is unavailable. Refresh before saving.");
+      return;
+    }
+
+    const key = original?.trigger_key ||
+      slug(redirectForm.trigger_key || redirectForm.display_text);
+    const displayText = redirectForm.display_text.trim();
+
+    if (!key || !displayText) {
+      setMessage("Enter display text and a valid trigger key.");
+      return;
+    }
+
+    if (!Number.isSafeInteger(redirectForm.sort_order)) {
+      setMessage("Display order must be a whole number.");
+      return;
+    }
+
+    if (redirectRows.some(row =>
+      row.id !== redirectForm.id && row.trigger_key === key
+    )) {
+      setMessage("This trigger key already exists. Use Edit beside the existing rule.");
+      return;
+    }
+
+    const preview = previewRedirectRule();
+    if (preview.error) {
+      setMessage(preview.error);
+      return;
+    }
+
+    if (redirectForm.target_business_identity_key) {
+      const target = identities.find(row =>
+        row.identity_key === redirectForm.target_business_identity_key
+      );
+      if (!target) {
+        setMessage("The target identity no longer exists. Choose a valid identity or No preselection.");
+        return;
+      }
+
+      if (redirectForm.is_active && redirectForm.redirect_after_selection &&
+          (!target.is_active ||
+           !(target.registration_scopes || []).includes("business_identity"))) {
+        setMessage("An active redirect requires an active business-registration identity, or No preselection.");
+        return;
+      }
+    }
+
+    setBusy(true);
+    try {
+      const values = {
+        display_text: displayText,
+        description: redirectForm.description.trim() || null,
+        target_registration_path: redirectForm.target_registration_path.trim(),
+        redirect_after_selection: redirectForm.redirect_after_selection,
+        business_reason: redirectForm.business_reason.trim() || null,
+        target_business_identity_key: redirectForm.target_business_identity_key || null,
+        sort_order: redirectForm.sort_order,
+        is_active: redirectForm.is_active,
+      };
+
+      const request = editing
+        ? supabase.from("registration_redirect_rules")
+            .update(values).eq("id", redirectForm.id)
+        : supabase.from("registration_redirect_rules")
+            .insert({ ...values, trigger_key: key });
+
+      const { data, error } = await request.select("id").single();
+      if (error) throw error;
+      if (!data) throw new Error("No saved rule returned. Refresh and check before retrying.");
+
+      resetRedirectForm();
+      setMessage(editing ? "Registration redirect rule updated." : "Registration redirect rule added.");
+
+      try {
+        await load();
+      } catch {
+        setMessage("Rule saved, but the list could not refresh. Reload before making another change.");
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message :
+        (error as { message?: string })?.message || "Could not save the redirect rule.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function toggle(
@@ -1089,6 +1191,12 @@ export default function RegistrationMasterSections({
 
       <details>
         <summary>Business Redirect Rules</summary>
+        <p className="note">
+          Use these rules when an activity belongs in Business Registration
+          rather than the individual-professional journey.
+          Example: Supplies workers → Business Registration → Labour Contractor.
+        </p>
+        <p><strong>{redirectForm.id !== null ? "Edit redirect rule" : "Add redirect rule"}</strong></p>
 
         <div className="searchRow">
           <input
@@ -1109,19 +1217,18 @@ export default function RegistrationMasterSections({
                 setRedirectForm({
                   ...redirectForm,
                   display_text: e.target.value,
-                  trigger_key:
-                    redirectForm.trigger_key ||
-                    slug(e.target.value),
+
                 })
               }
             />
-          </label>
+          <small>Short choice shown to the user. Example: Supplies workers. Describe the activity clearly.</small></label>
 
           <label>
             Trigger key *
             <input
               required
-              value={redirectForm.trigger_key}
+              value={redirectForm.trigger_key || slug(redirectForm.display_text)}
+              disabled={redirectForm.id !== null || busy}
               onChange={(e) =>
                 setRedirectForm({
                   ...redirectForm,
@@ -1129,7 +1236,7 @@ export default function RegistrationMasterSections({
                 })
               }
             />
-          </label>
+          <small>Permanent identifier. Example: supplies_workers. Suggested from the display text until customised; locked when editing.</small></label>
 
           <label>
             Target registration path *
@@ -1143,7 +1250,7 @@ export default function RegistrationMasterSections({
                 })
               }
             />
-          </label>
+          <small>Supported destination: /onboarding/business?registration=1. Do not paste a full website URL or add identity parameters here.</small></label>
 
           <label>
             Target business identity
@@ -1157,7 +1264,10 @@ export default function RegistrationMasterSections({
               }
             >
               <option value="">No preselection</option>
-              {activeBusinessIdentities.map((identity) => (
+              {identities.filter(identity =>
+                activeBusinessIdentities.some(active => active.identity_key === identity.identity_key) ||
+                identity.identity_key === redirectForm.target_business_identity_key
+              ).map((identity) => (
                 <option
                   key={identity.identity_key}
                   value={identity.identity_key}
@@ -1166,7 +1276,7 @@ export default function RegistrationMasterSections({
                 </option>
               ))}
             </select>
-          </label>
+          <small>Optional identity to preselect in Business Registration. Example: Labour Contractor. Choose No preselection when the user should choose.</small></label>
 
           <label className="wide">
             User-facing description
@@ -1179,7 +1289,7 @@ export default function RegistrationMasterSections({
                 })
               }
             />
-          </label>
+          <small>Explain the choice to the user. Example: Choose this if you regularly supply or deploy workers or organised work teams.</small></label>
 
           <label className="wide">
             Constitutional / business reason
@@ -1192,7 +1302,7 @@ export default function RegistrationMasterSections({
                 })
               }
             />
-          </label>
+          <small>Explain why the business pathway applies. This reason is stored in the user's registration metadata; do not put confidential internal notes here.</small></label>
 
           <label>
             Display order
@@ -1206,9 +1316,9 @@ export default function RegistrationMasterSections({
                 })
               }
             />
-          </label>
+          <small>Lower numbers appear first. Example: 10 appears before 20. Use whole numbers and leave gaps for later rules.</small></label>
 
-          <label className="check">
+          <label className="check" style={{ flexWrap: "wrap" }}>
             <input
               type="checkbox"
               checked={redirectForm.redirect_after_selection}
@@ -1220,9 +1330,9 @@ export default function RegistrationMasterSections({
               }
             />
             Redirect immediately
-          </label>
+          <small style={{ flexBasis: "100%" }}>When checked, selection saves available progress and opens Business Registration. When unchecked, this handler returns without saving progress or redirecting; it does not schedule a later redirect.</small></label>
 
-          <label className="check">
+          <label className="check" style={{ flexWrap: "wrap" }}>
             <input
               type="checkbox"
               checked={redirectForm.is_active}
@@ -1234,11 +1344,34 @@ export default function RegistrationMasterSections({
               }
             />
             Active
-          </label>
+          <small style={{ flexBasis: "100%" }}>Active rules are loaded by registration. An inactive rule is excluded from that active list. Deactivation does not delete the rule.</small></label>
 
+          <div className="wide" style={{ padding: 14, border: "1px solid #93c5fd", borderRadius: 10, background: "#eff6ff" }}>
+            <strong>Rule preview</strong>
+            <p style={{ margin: "6px 0" }}>
+              User choice: {redirectForm.display_text.trim() || "Enter display text above"}.
+            </p>
+            <p style={{ margin: "6px 0" }}>
+              {!redirectForm.is_active
+                ? "Inactive: this rule is excluded from the active registration rules."
+                : redirectForm.redirect_after_selection
+                  ? "Active: selecting this choice saves available progress and opens Business Registration."
+                  : "Active but redirect disabled: selecting this choice performs no redirect in the current handler."}
+            </p>
+            {previewRedirectRule().error
+              ? <p style={{ color: "#b91c1c" }}>{previewRedirectRule().error}</p>
+              : <code style={{ display: "block", overflowWrap: "anywhere" }}>{previewRedirectRule().target}</code>}
+            <small>Preview only. It does not navigate, save progress or create a rule.</small>
+          </div>
           <button disabled={busy}>
-            {redirectForm.id ? "Save rule changes" : "Add redirect rule"}
+            {busy ? "Saving…" : redirectForm.id !== null ? "Save rule changes" : "Add redirect rule"}
           </button>
+          {redirectForm.id !== null && (
+            <button type="button" className="secondary" disabled={busy}
+              onClick={() => { resetRedirectForm(); setMessage(""); }}>
+              Cancel editing
+            </button>
+          )}
         </form>
 
         <div className="compactRows">
@@ -1259,6 +1392,7 @@ export default function RegistrationMasterSections({
                 <button
                   type="button"
                   className="secondary"
+                  disabled={busy}
                   onClick={() =>
                     setRedirectForm({
                       id: row.id,
@@ -1283,6 +1417,7 @@ export default function RegistrationMasterSections({
                 <button
                   type="button"
                   className="secondary"
+                  disabled={busy}
                   onClick={() =>
                     void toggle(
                       "registration_redirect_rules",
