@@ -48,6 +48,11 @@ export default function OperatingCapabilityMasterSections({
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const [editingCapabilityKey, setEditingCapabilityKey] =
+    useState<string | null>(null);
+  const [editingMapping, setEditingMapping] =
+    useState<CapabilityMappingRow | null>(null);
+
   const [capabilityForm, setCapabilityForm] = useState({
     capability_key: "",
     label: "",
@@ -96,39 +101,8 @@ export default function OperatingCapabilityMasterSections({
     );
   }, [load]);
 
-  async function saveCapability(event: React.FormEvent) {
-    event.preventDefault();
-    setBusy(true);
-    setMessage("");
-
-    const { data: auth } = await supabase.auth.getUser();
-    const payload = {
-      capability_key: slug(
-        capabilityForm.capability_key || capabilityForm.label
-      ),
-      label: capabilityForm.label.trim(),
-      capability_group: slug(capabilityForm.capability_group) || "business",
-      description: capabilityForm.description.trim() || null,
-      default_path: capabilityForm.default_path.trim() || null,
-      sort_order: capabilityForm.sort_order,
-      is_active: capabilityForm.is_active,
-      updated_at: new Date().toISOString(),
-      updated_by: auth.user?.id || null,
-    };
-
-    const { error } = await supabase
-      .from("bos_operating_capabilities")
-      .upsert(
-        {
-          ...payload,
-          created_by: auth.user?.id || null,
-        },
-        { onConflict: "capability_key" }
-      );
-
-    setBusy(false);
-    if (error) return setMessage(error.message);
-
+  function resetCapabilityForm() {
+    setEditingCapabilityKey(null);
     setCapabilityForm({
       capability_key: "",
       label: "",
@@ -138,49 +112,227 @@ export default function OperatingCapabilityMasterSections({
       sort_order: 1000,
       is_active: true,
     });
-    setMessage("3BOS operating capability saved.");
-    await load();
   }
 
-  async function saveMapping(event: React.FormEvent) {
-    event.preventDefault();
-
-    if (!mappingForm.identity_key || !mappingForm.capability_key) {
-      setMessage("Choose both an identity and a 3BOS capability.");
-      return;
-    }
-
-    setBusy(true);
-    setMessage("");
-
-    const { data: auth } = await supabase.auth.getUser();
-
-    const { error } = await supabase
-      .from("identity_bos_operating_capabilities")
-      .upsert(
-        {
-          identity_key: mappingForm.identity_key,
-          capability_key: mappingForm.capability_key,
-          sort_order: mappingForm.sort_order,
-          is_active: mappingForm.is_active,
-          updated_at: new Date().toISOString(),
-          updated_by: auth.user?.id || null,
-          created_by: auth.user?.id || null,
-        },
-        { onConflict: "identity_key,capability_key" }
-      );
-
-    setBusy(false);
-    if (error) return setMessage(error.message);
-
+  function resetMappingForm() {
+    setEditingMapping(null);
     setMappingForm({
       identity_key: "",
       capability_key: "",
       sort_order: 1000,
       is_active: true,
     });
-    setMessage("Identity-to-3BOS capability mapping saved.");
-    await load();
+  }
+
+  function validateProductionPath(value: string) {
+    const path = value.trim();
+    if (!path) return "";
+
+    try {
+      if (!path.startsWith("/") || path.startsWith("//") ||
+          /[\\\\\\s]/.test(path)) {
+        return "Use an internal relative route beginning with / and containing no spaces or backslashes.";
+      }
+
+      const target = new URL(path, "https://3bigha.invalid");
+      if (target.origin !== "https://3bigha.invalid" || target.hash) {
+        return "Use an internal 3Bigha route without a domain or fragment.";
+      }
+      if (!target.pathname.startsWith("/dashboard/") &&
+          !target.pathname.startsWith("/vendor/")) {
+        return "Capability routes must currently begin with /dashboard/ or /vendor/. Leave blank if no production page exists.";
+      }
+      return "";
+    } catch {
+      return "Enter a valid internal route or leave it blank.";
+    }
+  }
+
+  async function saveCapability(event: React.FormEvent) {
+    event.preventDefault();
+    if (busy) return;
+    setMessage("");
+
+    const label = capabilityForm.label.trim();
+    const key = editingCapabilityKey ||
+      slug(capabilityForm.capability_key || label);
+    const group = slug(capabilityForm.capability_group);
+    const path = capabilityForm.default_path.trim();
+
+    if (!label || !key || !group) {
+      setMessage("Enter a capability name, permanent key and capability group.");
+      return;
+    }
+    if (!Number.isSafeInteger(capabilityForm.sort_order)) {
+      setMessage("Display order must be a whole number.");
+      return;
+    }
+
+    const duplicate = capabilities.find(row =>
+      row.capability_key !== editingCapabilityKey &&
+      (row.capability_key === key ||
+       row.label.trim().toLowerCase() === label.toLowerCase())
+    );
+    if (duplicate) {
+      setMessage("A capability with this name or permanent key already exists. Use its Edit button.");
+      return;
+    }
+
+    const pathError = validateProductionPath(path);
+    if (pathError) {
+      setMessage(pathError);
+      return;
+    }
+
+    const original = editingCapabilityKey
+      ? capabilities.find(row => row.capability_key === editingCapabilityKey)
+      : null;
+
+    if (editingCapabilityKey && !original) {
+      setMessage("The original capability is unavailable. Refresh before saving.");
+      return;
+    }
+
+    if (path && path !== (original?.default_path || "") &&
+        !window.confirm(
+          "Have you verified that this exact production route exists and is accessible to the intended vendor? Choose Cancel if it has not been verified."
+        )) return;
+
+    setBusy(true);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) throw new Error("Your session has expired. Sign in again.");
+
+      const values = {
+        label,
+        capability_group: group,
+        description: capabilityForm.description.trim() || null,
+        default_path: path || null,
+        sort_order: capabilityForm.sort_order,
+        is_active: capabilityForm.is_active,
+        updated_at: new Date().toISOString(),
+        updated_by: auth.user.id,
+      };
+
+      const request = editingCapabilityKey
+        ? supabase.from("bos_operating_capabilities")
+            .update(values).eq("capability_key", editingCapabilityKey)
+        : supabase.from("bos_operating_capabilities")
+            .insert({
+              capability_key: key,
+              ...values,
+              created_by: auth.user.id,
+            });
+
+      const { data, error } = await request.select("capability_key").single();
+      if (error) throw error;
+      if (!data) throw new Error("No saved capability returned. Refresh before retrying.");
+
+      const wasEditing = Boolean(editingCapabilityKey);
+      resetCapabilityForm();
+      setMessage(wasEditing ? "Operating capability updated." : "Operating capability added.");
+
+      try {
+        await load();
+      } catch {
+        setMessage("Capability saved, but the list could not refresh. Reload before making another change.");
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message :
+        (error as { message?: string })?.message || "Could not save the capability.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveMapping(event: React.FormEvent) {
+    event.preventDefault();
+    if (busy) return;
+    setMessage("");
+
+    const identityKey = editingMapping?.identity_key ||
+      mappingForm.identity_key;
+    const capabilityKey = editingMapping?.capability_key ||
+      mappingForm.capability_key;
+
+    if (!identityKey || !capabilityKey) {
+      setMessage("Choose both an identity and a 3BOS capability.");
+      return;
+    }
+    if (!Number.isSafeInteger(mappingForm.sort_order)) {
+      setMessage("Display order must be a whole number.");
+      return;
+    }
+
+    const identity = identities.find(row => row.identity_key === identityKey);
+    const capability = capabilities.find(row =>
+      row.capability_key === capabilityKey
+    );
+
+    if (!identity || !capability) {
+      setMessage("The selected identity or capability is unavailable. Refresh before saving.");
+      return;
+    }
+
+    if (mappingForm.is_active && (!identity.is_active || !capability.is_active)) {
+      setMessage("An active mapping requires both an active identity and an active capability.");
+      return;
+    }
+
+    if (!editingMapping && mappings.some(row =>
+      row.identity_key === identityKey &&
+      row.capability_key === capabilityKey
+    )) {
+      setMessage("This capability mapping already exists. Use its Edit button.");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) throw new Error("Your session has expired. Sign in again.");
+
+      const values = {
+        sort_order: mappingForm.sort_order,
+        is_active: mappingForm.is_active,
+        updated_at: new Date().toISOString(),
+        updated_by: auth.user.id,
+      };
+
+      const request = editingMapping
+        ? supabase.from("identity_bos_operating_capabilities")
+            .update(values)
+            .eq("identity_key", editingMapping.identity_key)
+            .eq("capability_key", editingMapping.capability_key)
+        : supabase.from("identity_bos_operating_capabilities")
+            .insert({
+              identity_key: identityKey,
+              capability_key: capabilityKey,
+              ...values,
+              created_by: auth.user.id,
+            });
+
+      const { data, error } = await request
+        .select("identity_key,capability_key").single();
+
+      if (error) throw error;
+      if (!data) throw new Error("No saved mapping returned. Refresh before retrying.");
+
+      const wasEditing = Boolean(editingMapping);
+      resetMappingForm();
+      setMessage(wasEditing ? "Capability mapping updated." : "Capability mapping added.");
+
+      try {
+        await load();
+      } catch {
+        setMessage("Mapping saved, but the list could not refresh. Reload before making another change.");
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message :
+        (error as { message?: string })?.message || "Could not save the capability mapping.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function toggleCapability(row: CapabilityRow) {
@@ -223,7 +375,7 @@ export default function OperatingCapabilityMasterSections({
     capabilities.find((capability) => capability.capability_key === key)?.label ||
     key;
 
-  const groupedMappings = activeBusinessIdentities
+  const groupedMappings = identities
     .map((identity) => ({
       identity,
       mappings: mappings.filter(
@@ -261,13 +413,19 @@ export default function OperatingCapabilityMasterSections({
         />
         <Stat label="Identity mappings" value={mappings.length} />
         <Stat
-          label="Mapped business identities"
+          label="Mapped identities"
           value={groupedMappings.length}
         />
       </div>
 
       <details open>
         <summary>Operating Capabilities</summary>
+        <p className="note">
+          Define an internal 3BOS tool once, then map it explicitly to appropriate
+          business identities. Example: Inventory belongs to the commerce group.
+          Creating a capability does not grant it to any identity.
+        </p>
+        <p><strong>{editingCapabilityKey ? "Edit operating capability" : "Add operating capability"}</strong></p>
         <form className="formGrid" onSubmit={saveCapability}>
           <label>
             Capability name *
@@ -278,17 +436,17 @@ export default function OperatingCapabilityMasterSections({
                 setCapabilityForm({
                   ...capabilityForm,
                   label: e.target.value,
-                  capability_key:
-                    capabilityForm.capability_key || slug(e.target.value),
+
                 })
               }
             />
-          </label>
+          <small>Name the internal tool in plain language. Example: Inventory or Project Costing.</small></label>
 
           <label>
             Permanent key
             <input
-              value={capabilityForm.capability_key}
+              value={capabilityForm.capability_key || slug(capabilityForm.label)}
+              disabled={Boolean(editingCapabilityKey) || busy}
               onChange={(e) =>
                 setCapabilityForm({
                   ...capabilityForm,
@@ -296,12 +454,13 @@ export default function OperatingCapabilityMasterSections({
                 })
               }
             />
-          </label>
+          <small>Permanent system identifier. Example: inventory_operations. Suggested from the name and locked during editing.</small></label>
 
           <label>
             Capability group *
             <input
               required
+              list="capability-group-suggestions"
               value={capabilityForm.capability_group}
               onChange={(e) =>
                 setCapabilityForm({
@@ -311,7 +470,12 @@ export default function OperatingCapabilityMasterSections({
               }
               placeholder="commerce, production, project"
             />
-          </label>
+            <datalist id="capability-group-suggestions">
+              <option value="commerce" />
+              <option value="production" />
+              <option value="project" />
+            </datalist>
+          <small>Groups related tools in the runtime projection. Existing examples: commerce, production and project. Use a stable lowercase group.</small></label>
 
           <label>
             Display order
@@ -325,7 +489,7 @@ export default function OperatingCapabilityMasterSections({
                 })
               }
             />
-          </label>
+          <small>Lower numbers appear first within runtime projections and admin lists. Use whole numbers and leave gaps.</small></label>
 
           <label className="wide">
             Plain-language description
@@ -338,7 +502,7 @@ export default function OperatingCapabilityMasterSections({
                 })
               }
             />
-          </label>
+          <small>Explain what the internal tool enables. Use the AI assistant below for a reviewable draft.</small></label>
           <div className="wide">
             <MasterDescriptionAi
               kind="operating_capability"
@@ -365,9 +529,9 @@ export default function OperatingCapabilityMasterSections({
               Leave blank until a real production page exists. This prevents
               dead navigation.
             </small>
-          </label>
+          <small>Optional verified production route opened for this capability. Leave blank until the exact live page exists.</small></label>
 
-          <label className="check">
+          <label className="check" style={{ flexWrap: "wrap" }}>
             <input
               type="checkbox"
               checked={capabilityForm.is_active}
@@ -379,9 +543,17 @@ export default function OperatingCapabilityMasterSections({
               }
             />
             Active
-          </label>
+          <small style={{ flexBasis: "100%" }}>Only active capabilities can appear in the runtime projection. Deactivation also makes active mappings ineffective without deleting them.</small></label>
 
-          <button disabled={busy}>Save capability</button>
+          <button disabled={busy}>
+            {busy ? "Saving…" : editingCapabilityKey ? "Save changes" : "Add capability"}
+          </button>
+          {editingCapabilityKey && (
+            <button type="button" className="secondary" disabled={busy}
+              onClick={() => { resetCapabilityForm(); setMessage(""); }}>
+              Cancel editing
+            </button>
+          )}
         </form>
 
         <div className="compactRows">
@@ -402,7 +574,10 @@ export default function OperatingCapabilityMasterSections({
                 <button
                   type="button"
                   className="secondary"
-                  onClick={() =>
+                  disabled={busy}
+                  onClick={() => {
+                    setEditingCapabilityKey(row.capability_key);
+                    setMessage("");
                     setCapabilityForm({
                       capability_key: row.capability_key,
                       label: row.label,
@@ -411,8 +586,8 @@ export default function OperatingCapabilityMasterSections({
                       default_path: row.default_path || "",
                       sort_order: row.sort_order,
                       is_active: row.is_active,
-                    })
-                  }
+                    });
+                  }}
                 >
                   Edit
                 </button>
@@ -432,9 +607,12 @@ export default function OperatingCapabilityMasterSections({
       <details open>
         <summary>Identity → 3BOS Operating Capabilities</summary>
         <p className="note">
-          Map capabilities explicitly. Do not infer capability from identity
-          spelling, family or marketplace module.
+          Map capabilities explicitly. Do not infer them from identity spelling,
+          family or marketplace modules. Example: Manufacturer → Inventory,
+          Product Costing, Bill of Materials and Production Operations.
+          Each mapping is an auditable operating-tool decision.
         </p>
+        <p><strong>{editingMapping ? "Edit capability mapping" : "Add capability mapping"}</strong></p>
 
         <form className="formGrid" onSubmit={saveMapping}>
           <label>
@@ -442,6 +620,7 @@ export default function OperatingCapabilityMasterSections({
             <select
               required
               value={mappingForm.identity_key}
+              disabled={Boolean(editingMapping) || busy}
               onChange={(e) =>
                 setMappingForm({
                   ...mappingForm,
@@ -450,7 +629,10 @@ export default function OperatingCapabilityMasterSections({
               }
             >
               <option value="">Choose identity</option>
-              {activeBusinessIdentities.map((identity) => (
+              {identities.filter(identity =>
+                activeBusinessIdentities.some(active => active.identity_key === identity.identity_key) ||
+                identity.identity_key === editingMapping?.identity_key
+              ).map((identity) => (
                 <option
                   key={identity.identity_key}
                   value={identity.identity_key}
@@ -459,13 +641,14 @@ export default function OperatingCapabilityMasterSections({
                 </option>
               ))}
             </select>
-          </label>
+          <small>Choose the business identity that should receive the internal tool. The identity is locked during editing.</small></label>
 
           <label>
             3BOS capability *
             <select
               required
               value={mappingForm.capability_key}
+              disabled={Boolean(editingMapping) || busy}
               onChange={(e) =>
                 setMappingForm({
                   ...mappingForm,
@@ -475,7 +658,10 @@ export default function OperatingCapabilityMasterSections({
             >
               <option value="">Choose capability</option>
               {capabilities
-                .filter((row) => row.is_active)
+                .filter((row) =>
+                  row.is_active ||
+                  row.capability_key === editingMapping?.capability_key
+                )
                 .map((row) => (
                   <option
                     key={row.capability_key}
@@ -485,7 +671,7 @@ export default function OperatingCapabilityMasterSections({
                   </option>
                 ))}
             </select>
-          </label>
+          <small>Choose one active operating capability. Add a separate mapping for every additional tool.</small></label>
 
           <label>
             Order
@@ -499,9 +685,9 @@ export default function OperatingCapabilityMasterSections({
                 })
               }
             />
-          </label>
+          <small>Controls this identity's capability order in the runtime projection. Lower whole numbers appear first.</small></label>
 
-          <label className="check">
+          <label className="check" style={{ flexWrap: "wrap" }}>
             <input
               type="checkbox"
               checked={mappingForm.is_active}
@@ -513,35 +699,64 @@ export default function OperatingCapabilityMasterSections({
               }
             />
             Active
-          </label>
+          <small style={{ flexBasis: "100%" }}>Only active mappings are loaded by the runtime projection. Deactivation preserves the record but removes effective access.</small></label>
 
-          <button disabled={busy}>Save mapping</button>
+          <button disabled={busy}>
+            {busy ? "Saving…" : editingMapping ? "Save changes" : "Add mapping"}
+          </button>
+          {editingMapping && (
+            <button type="button" className="secondary" disabled={busy}
+              onClick={() => { resetMappingForm(); setMessage(""); }}>
+              Cancel editing
+            </button>
+          )}
         </form>
 
         <div className="identityGroups">
           {groupedMappings.map(({ identity, mappings: identityMappings }) => (
-            <article key={identity.identity_key}>
+            <article key={identity.identity_key}
+              className={!identity.is_active ? "muted" : ""}>
               <header>
                 <strong>{identity.label}</strong>
-                <small>{identity.identity_key}</small>
+                <small>
+                  {identity.identity_key}
+                  {!identity.is_active ? " · inactive identity" : ""}
+                </small>
               </header>
 
-              <div className="chips">
-                {identityMappings.map((mapping) => (
-                  <button
-                    key={`${mapping.identity_key}:${mapping.capability_key}`}
-                    type="button"
-                    className={mapping.is_active ? "chip" : "chip inactive"}
-                    onClick={() => void toggleMapping(mapping)}
-                    title={
-                      mapping.is_active
-                        ? "Click to deactivate"
-                        : "Click to activate"
-                    }
-                  >
-                    {capabilityLabel(mapping.capability_key)}
-                  </button>
-                ))}
+              <div className="compactRows">
+                {identityMappings.map(mapping => {
+                  const capability = capabilities.find(row =>
+                    row.capability_key === mapping.capability_key
+                  );
+
+                  return (
+                    <div key={mapping.identity_key + ":" + mapping.capability_key}
+                      className={!mapping.is_active ? "muted" : ""}>
+                      <span>
+                        <strong>{capability?.label || mapping.capability_key}</strong>
+                        <small>
+                          {mapping.capability_key} · order {mapping.sort_order}
+                          {!capability?.is_active ? " · inactive capability" : ""}
+                          {!mapping.is_active ? " · inactive mapping" : ""}
+                        </small>
+                      </span>
+                      <button type="button" className="secondary" disabled={busy}
+                        onClick={() => {
+                          setEditingMapping({ ...mapping });
+                          setMessage("");
+                          setMappingForm({
+                            identity_key: mapping.identity_key,
+                            capability_key: mapping.capability_key,
+                            sort_order: mapping.sort_order,
+                            is_active: mapping.is_active,
+                          });
+                        }}>
+                        Edit
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </article>
           ))}
