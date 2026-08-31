@@ -8,6 +8,8 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ActionButton } from "@/components/ui/ActionButton";
 import RegistrationMasterSections from "./RegistrationMasterSections";
 import OperatingCapabilityMasterSections from "./OperatingCapabilityMasterSections";
+import { useIdentityAi } from "./useIdentityAi";
+import { identityFamilies as families, identityStages as stages } from "@/lib/admin/identity-ai-options";
 
 type IdentityRow = {
   id: string; identity_key: string; label: string; family_key: string;
@@ -19,8 +21,8 @@ type IdentityRow = {
   is_featured: boolean; is_active: boolean; sort_order: number;
 };
 
-const families = ["customer","property_real_estate","construction","materials_supply","equipment_rental","professional","skilled_workforce","logistics","finance_investment","legal_compliance","knowledge_media","agriculture_rural","government_public"];
-const stages = ["need","land","transaction","planning","approval","development","site_preparation","foundation","structure","envelope","services","finishing","interiors","external_works","procurement","equipment","execution","handover","maintenance","finance","logistics","manufacturing","operations"];
+
+
 const emptyForm = { identity_key: "", label: "", family_key: "construction", lifecycle_stage: "execution", workspace_label: "", description: "", provider_forms: "individual, firm, company", engagement_models: "direct_service, contract", aliases: "", legacy_role: "vendor", legacy_modules: "services", registration_scopes: "", lifetime_free_candidate: false, redirect_to_business: false, requires_business_onboarding: true, requires_professional_verification: false, is_featured: false, is_active: true, sort_order: 1000 };
 
 const list = (value: string) => value.split(",").map((item) => item.trim()).filter(Boolean);
@@ -37,6 +39,16 @@ export default function IdentityMasterAdminPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const { aiBusy, aiMessage, changeAiField, regenerateDescription } =
+    useIdentityAi(form, setForm, editingId);
+
+  const possibleDuplicates = rows.filter(row =>
+    row.id !== editingId && (
+      row.label.trim().toLowerCase() === form.label.trim().toLowerCase() ||
+      (Boolean(form.identity_key.trim()) &&
+        row.identity_key === form.identity_key.trim())
+    )
+  );
 
   const load = useCallback(async () => {
     const { data: auth } = await supabase.auth.getUser();
@@ -63,7 +75,13 @@ export default function IdentityMasterAdminPage() {
   }
 
   async function save(event: React.FormEvent) {
-    event.preventDefault(); setBusy(true); setMessage("");
+    event.preventDefault();
+    if (busy || aiBusy) return;
+    if (!editingId && possibleDuplicates.length) {
+      setMessage("An identity with this name or permanent key already exists. Review the catalogue and use Edit.");
+      return;
+    }
+    setBusy(true); setMessage("");
     const { data: auth } = await supabase.auth.getUser();
     const payload = { ...form, identity_key: slug(form.identity_key || form.label), provider_forms: list(form.provider_forms), engagement_models: list(form.engagement_models), aliases: list(form.aliases), legacy_modules: list(form.legacy_modules), registration_scopes: list(form.registration_scopes), updated_by: auth.user?.id || null, ...(editingId ? {} : { created_by: auth.user?.id || null }) };
     const request = editingId ? supabase.from("identity_master").update(payload).eq("id", editingId) : supabase.from("identity_master").insert(payload);
@@ -91,14 +109,36 @@ export default function IdentityMasterAdminPage() {
     <form className="panel" onSubmit={save}>
       <h2>{editingId ? "Edit identity" : "Add a new identity"}</h2>
       <p>Add a reusable work category, not an individual member or company. Example: Civil Contractor. Search the catalogue below before adding a duplicate. Identity, provider form, engagement model and operating capabilities are managed separately.</p>
+      <div className="message" role="status" aria-live="polite">
+        <strong>AI identity assistant</strong>
+        <div>{aiMessage}</div>
+        {!editingId && (
+          <button type="button" className="secondary"
+            style={{ marginTop: 10 }}
+            disabled={aiBusy || busy || form.label.trim().length < 3}
+            onClick={regenerateDescription}>
+            {aiBusy ? "Preparing suggestions…" : "Retry AI / regenerate description"}
+          </button>
+        )}
+        <small style={{ display: "block", marginTop: 8 }}>
+          AI suggests catalogue wording only. Review every field before saving.
+          Registration scopes, verification and subscription settings are not changed by AI.
+        </small>
+      </div>
+      {possibleDuplicates.length > 0 && (
+        <div className="message" role="status">
+          Possible existing identity: {possibleDuplicates.map(row => row.label).join(", ")}.
+          Check the catalogue and use Edit rather than adding a duplicate.
+        </div>
+      )}
       <div className="grid">
-        <label>Identity name *<input required value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value, workspace_label: !editingId && (!form.workspace_label || form.workspace_label === `${form.label} Workspace`) ? (e.target.value.trim() ? `${e.target.value} Workspace` : "") : form.workspace_label, identity_key: editingId ? form.identity_key : slug(e.target.value) })} /><small className="identity-field-help">Enter the type of work, not a member or company name. Example: Civil Contractor.</small></label>
-        <label>Permanent key *<input required value={form.identity_key} disabled={Boolean(editingId)} onChange={(e) => setForm({ ...form, identity_key: slug(e.target.value) })} /><small className="identity-field-help">Permanent system identifier. Example: civil_contractor. Generated from the name; check it before saving. Existing keys stay locked.</small></label>
-        <label>Family *<select value={form.family_key} onChange={(e) => setForm({ ...form, family_key: e.target.value })}>{families.map((x) => <option key={x}>{x}</option>)}</select><small className="identity-field-help">Choose the broad work group. Example: construction for Civil Contractor. This grouping does not itself grant operating tools.</small></label>
-        <label>Lifecycle stage *<select value={form.lifecycle_stage} onChange={(e) => setForm({ ...form, lifecycle_stage: e.target.value })}>{stages.map((x) => <option key={x}>{x}</option>)}</select><small className="identity-field-help">Choose the main stage where this identity works. Example: execution for Civil Contractor; planning for a planning role.</small></label>
-        <label>Workspace label *<input required value={form.workspace_label} onChange={(e) => setForm({ ...form, workspace_label: e.target.value })} /><small className="identity-field-help">Enter the workspace title members should see. Example: Civil Contractor Workspace. You can customise the suggested title.</small></label>
+        <label>Identity name *<input required value={form.label} onChange={(e) => changeAiField("label", e.target.value)} /><small className="identity-field-help">Enter the type of work, not a member or company name. Example: Civil Contractor.</small></label>
+        <label>Permanent key *<input required value={form.identity_key} disabled={Boolean(editingId)} onChange={(e) => changeAiField("identity_key", slug(e.target.value))} /><small className="identity-field-help">Permanent system identifier. Example: civil_contractor. Generated from the name; check it before saving. Existing keys stay locked.</small></label>
+        <label>Family *<select required value={form.family_key} onChange={(e) => changeAiField("family_key", e.target.value)}><option value="">Choose family</option>{families.map((x) => <option key={x}>{x}</option>)}</select><small className="identity-field-help">Choose the broad work group. Example: construction for Civil Contractor. This grouping does not itself grant operating tools.</small></label>
+        <label>Lifecycle stage *<select required value={form.lifecycle_stage} onChange={(e) => changeAiField("lifecycle_stage", e.target.value)}><option value="">Choose lifecycle stage</option>{stages.map((x) => <option key={x}>{x}</option>)}</select><small className="identity-field-help">Choose the main stage where this identity works. Example: execution for Civil Contractor; planning for a planning role.</small></label>
+        <label>Workspace label *<input required value={form.workspace_label} onChange={(e) => changeAiField("workspace_label", e.target.value)} /><small className="identity-field-help">Enter the workspace title members should see. Example: Civil Contractor Workspace. You can customise the suggested title.</small></label>
         <label>Display order<input type="number" value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })} /><small className="identity-field-help">Lower numbers appear first. Example: 100 appears before 200. Use whole numbers and leave gaps for future entries.</small></label>
-        <label className="wide">Plain-language description *<textarea required value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /><small className="identity-field-help">Explain the work in a simple sentence. Example: Carries out civil construction work for buildings and sites.</small></label>
+        <label className="wide">Plain-language description *<textarea required value={form.description} onChange={(e) => changeAiField("description", e.target.value)} /><small className="identity-field-help">Explain the work in a simple sentence. Example: Carries out civil construction work for buildings and sites.</small></label>
         <label>Provider forms (comma separated)<input value={form.provider_forms} onChange={(e) => setForm({ ...form, provider_forms: e.target.value })} /><small className="identity-field-help">Comma-separated system keys for how the provider operates. Current form example: individual, firm, company. Preserve established keys.</small></label>
         <label>Engagement models (comma separated)<input value={form.engagement_models} onChange={(e) => setForm({ ...form, engagement_models: e.target.value })} /><small className="identity-field-help">Comma-separated system keys for how work is engaged. Current form example: direct_service, contract. Preserve established keys.</small></label>
         <label>Aliases / regional search words<input value={form.aliases} onChange={(e) => setForm({ ...form, aliases: e.target.value })} /><small className="identity-field-help">Alternative names people may search for, separated by commas. Example: civil works contractor, building contractor. These are search terms, not extra identities.</small></label>
@@ -113,7 +153,7 @@ export default function IdentityMasterAdminPage() {
         <label><input type="checkbox" checked={form.lifetime_free_candidate} onChange={(e) => setForm({ ...form, lifetime_free_candidate: e.target.checked })} /> Lifetime Free eligibility candidate<small className="identity-field-help">Eligibility candidate only. This flag is not, by itself, confirmation that a member receives a free subscription.</small></label>
         <label><input type="checkbox" checked={form.redirect_to_business} onChange={(e) => setForm({ ...form, redirect_to_business: e.target.checked })} /> Redirect to Business Registration<small className="identity-field-help">Business-registration redirect flag. Review it with the Registration Redirect Rules below; do not change it independently without checking the intended journey.</small></label>
       </div>
-      <div className="actions"><button disabled={busy}>{busy ? "Saving…" : editingId ? "Save changes" : "Add identity"}</button>{editingId && <button type="button" className="secondary" onClick={() => { setEditingId(null); setForm(emptyForm); }}>Cancel</button>}</div>
+      <div className="actions"><button disabled={busy || aiBusy}>{busy ? "Saving…" : editingId ? "Save changes" : "Add identity"}</button>{editingId && <button type="button" className="secondary" onClick={() => { setEditingId(null); setForm(emptyForm); }}>Cancel</button>}</div>
     </form>
 
     <RegistrationMasterSections identities={rows} />
