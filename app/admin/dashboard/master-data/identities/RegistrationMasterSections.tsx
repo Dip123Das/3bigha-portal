@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import { useSectorAi } from "./useSectorAi";
 
 type IdentityOption = {
   id: string;
@@ -88,6 +89,8 @@ export default function RegistrationMasterSections({
     is_active: true,
   });
 
+  const [editingSectorKey, setEditingSectorKey] = useState<string | null>(null);
+
   const [sectorForm, setSectorForm] = useState({
     key: "",
     title: "",
@@ -96,6 +99,15 @@ export default function RegistrationMasterSections({
     sort_order: 1000,
     is_active: true,
   });
+
+  const sectorAi = useSectorAi(sectorForm, setSectorForm, editingSectorKey);
+
+  const sectorDuplicates = sectorRows.filter(row =>
+    row.key !== editingSectorKey && (
+      row.title.trim().toLowerCase() === sectorForm.title.trim().toLowerCase() ||
+      row.key === slug(sectorForm.key || sectorForm.title)
+    )
+  );
 
   const [mappingForm, setMappingForm] = useState({
     identity_key: "",
@@ -267,36 +279,69 @@ export default function RegistrationMasterSections({
     }
   }
 
+  function resetSectorForm() {
+    setEditingSectorKey(null);
+    setSectorForm({
+      key: "", title: "", description: "", symbol: "",
+      sort_order: 1000, is_active: true,
+    });
+  }
+
   async function saveSector(event: React.FormEvent) {
     event.preventDefault();
-    setBusy(true);
+    if (busy || sectorAi.aiBusy) return;
     setMessage("");
 
-    const payload = {
-      ...sectorForm,
-      key: slug(sectorForm.key || sectorForm.title),
-      title: sectorForm.title.trim(),
-      description: sectorForm.description.trim() || null,
-      symbol: sectorForm.symbol.trim() || null,
-    };
+    const title = sectorForm.title.trim();
+    const key = editingSectorKey || slug(sectorForm.key || title);
+    if (!title || !key) {
+      setMessage("Enter a sector title and a valid permanent key.");
+      return;
+    }
+    if (!Number.isSafeInteger(sectorForm.sort_order)) {
+      setMessage("Display order must be a whole number.");
+      return;
+    }
+    if (sectorDuplicates.length) {
+      setMessage("A sector with this title or key already exists. Use Edit beside the existing entry.");
+      return;
+    }
 
-    const { error } = await supabase
-      .from("registration_business_sectors")
-      .upsert(payload, { onConflict: "key" });
+    setBusy(true);
+    try {
+      const values = {
+        title,
+        description: sectorForm.description.trim() || null,
+        symbol: sectorForm.symbol.trim() || null,
+        sort_order: sectorForm.sort_order,
+        is_active: sectorForm.is_active,
+      };
 
-    setBusy(false);
-    if (error) return setMessage(error.message);
+      const request = editingSectorKey
+        ? supabase.from("registration_business_sectors")
+            .update(values).eq("key", editingSectorKey)
+        : supabase.from("registration_business_sectors")
+            .insert({ ...values, key });
 
-    setSectorForm({
-      key: "",
-      title: "",
-      description: "",
-      symbol: "",
-      sort_order: 1000,
-      is_active: true,
-    });
-    setMessage("Business sector saved.");
-    await load();
+      const { data, error } = await request.select("key").single();
+      if (error) throw error;
+      if (!data) throw new Error("No saved sector returned. Refresh and check before retrying.");
+
+      const wasEditing = Boolean(editingSectorKey);
+      resetSectorForm();
+      setMessage(wasEditing ? "Business sector updated." : "Business sector added.");
+
+      try {
+        await load();
+      } catch {
+        setMessage("Sector saved, but the list could not refresh. Reload before making another change.");
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message :
+        (error as { message?: string })?.message || "Could not save the sector.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function saveMapping(event: React.FormEvent) {
@@ -590,49 +635,53 @@ export default function RegistrationMasterSections({
 
       <details>
         <summary>Business Sectors</summary>
+        <p className="note">
+          Group businesses by their main activities. Sectors are separate from
+          legal constitutions and work identities. Check the existing entries first.
+        </p>
+        <div className="masterMessage" role="status" aria-live="polite">
+          <strong>{editingSectorKey ? "Edit business sector" : "AI sector assistant"}</strong>
+          <div>{sectorAi.aiMessage}</div>
+          {!editingSectorKey && (
+            <button type="button" className="secondary" style={{ marginTop: 10 }}
+              disabled={busy || sectorAi.aiBusy || sectorForm.title.trim().length < 3}
+              onClick={sectorAi.regenerate}>
+              {sectorAi.aiBusy ? "Preparing suggestions…" : "Retry AI / regenerate description"}
+            </button>
+          )}
+        </div>
+        {sectorDuplicates.length > 0 && (
+          <p className="note">
+            Possible existing sector: {sectorDuplicates.map(row => row.title).join(", ")}.
+            Use Edit rather than adding a duplicate.
+          </p>
+        )}
         <form className="formGrid" onSubmit={saveSector}>
           <label>
             Sector title *
             <input
               required
               value={sectorForm.title}
-              onChange={(e) =>
-                setSectorForm({
-                  ...sectorForm,
-                  title: e.target.value,
-                  key:
-                    sectorForm.key ||
-                    slug(e.target.value),
-                })
-              }
+              onChange={(e) => sectorAi.changeField("title", e.target.value)}
             />
-          </label>
+          <small>Enter a broad business activity, such as Construction or Equipment Rental. Do not enter a company name or legal constitution.</small></label>
 
           <label>
             Permanent key
             <input
               value={sectorForm.key}
-              onChange={(e) =>
-                setSectorForm({
-                  ...sectorForm,
-                  key: slug(e.target.value),
-                })
-              }
+              disabled={Boolean(editingSectorKey) || busy}
+              onChange={(e) => sectorAi.changeField("key", slug(e.target.value))}
             />
-          </label>
+          <small>Permanent system identifier. Example: construction. AI can suggest it; existing keys remain locked while editing.</small></label>
 
           <label>
             Symbol
             <input
               value={sectorForm.symbol}
-              onChange={(e) =>
-                setSectorForm({
-                  ...sectorForm,
-                  symbol: e.target.value,
-                })
-              }
+              onChange={(e) => sectorAi.changeField("symbol", e.target.value)}
             />
-          </label>
+          <small>Optional display symbol, such as a suitable emoji. Leave blank if no symbol is needed.</small></label>
 
           <label>
             Display order
@@ -646,22 +695,17 @@ export default function RegistrationMasterSections({
                 })
               }
             />
-          </label>
+          <small>Lower numbers appear first. Example: 100 appears before 200. Use whole numbers and leave gaps for future entries.</small></label>
 
           <label className="wide">
             Description
-            <input
+            <textarea rows={3} style={{ width: "100%", marginTop: 6, padding: 10, border: "1px solid #cbd5e1", borderRadius: 9, font: "inherit" }}
               value={sectorForm.description}
-              onChange={(e) =>
-                setSectorForm({
-                  ...sectorForm,
-                  description: e.target.value,
-                })
-              }
+              onChange={(e) => sectorAi.changeField("description", e.target.value)}
             />
-          </label>
+          <small>Explain which activities belong in this sector. Review the AI draft and adjust the wording before saving.</small></label>
 
-          <label className="check">
+          <label className="check" style={{ flexWrap: "wrap" }}>
             <input
               type="checkbox"
               checked={sectorForm.is_active}
@@ -673,9 +717,17 @@ export default function RegistrationMasterSections({
               }
             />
             Active
-          </label>
+          <small style={{ flexBasis: "100%" }}>Marks this sector as active. Review its registration usage and identity mappings before deactivating it. This does not delete the sector.</small></label>
 
-          <button disabled={busy}>Save sector</button>
+          <button disabled={busy || sectorAi.aiBusy}>
+            {busy ? "Saving…" : editingSectorKey ? "Save changes" : "Add sector"}
+          </button>
+          {editingSectorKey && (
+            <button type="button" className="secondary" disabled={busy}
+              onClick={() => { resetSectorForm(); setMessage(""); }}>
+              Cancel editing
+            </button>
+          )}
         </form>
 
         <div className="compactRows">
@@ -694,7 +746,10 @@ export default function RegistrationMasterSections({
                 <button
                   type="button"
                   className="secondary"
-                  onClick={() =>
+                  disabled={busy || sectorAi.aiBusy}
+                  onClick={() => {
+                    setEditingSectorKey(row.key);
+                    setMessage("");
                     setSectorForm({
                       key: row.key,
                       title: row.title,
@@ -702,8 +757,8 @@ export default function RegistrationMasterSections({
                       symbol: row.symbol || "",
                       sort_order: row.sort_order,
                       is_active: row.is_active,
-                    })
-                  }
+                    });
+                  }}
                 >
                   Edit
                 </button>
