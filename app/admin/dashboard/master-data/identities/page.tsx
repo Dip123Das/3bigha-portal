@@ -40,6 +40,9 @@ export default function IdentityMasterAdminPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [activeWorkspace, setActiveWorkspace] = useState<
+    "identities" | "registration" | "capabilities"
+  >("identities");
   const { aiBusy, aiMessage, changeAiField, regenerateDescription } =
     useIdentityAi(form, setForm, editingId);
 
@@ -70,6 +73,7 @@ export default function IdentityMasterAdminPage() {
   });
 
   function edit(row: IdentityRow) {
+    setActiveWorkspace("identities");
     setEditingId(row.id);
     setForm({ ...row, provider_forms: row.provider_forms.join(", "), engagement_models: row.engagement_models.join(", "), aliases: row.aliases.join(", "), legacy_modules: row.legacy_modules.join(", "), registration_scopes: (row.registration_scopes || []).join(", ") } as typeof emptyForm);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -107,7 +111,60 @@ export default function IdentityMasterAdminPage() {
     <div className="top"><ActionButton href="/admin/dashboard/master-data" variant="secondary">← Master Data</ActionButton><span>{rows.length} identities · {rows.filter((r) => r.is_active).length} active</span></div>
     {message && <div className="message" role="status">{message}</div>}
 
+    <section className="masterWorkspaceChooser" aria-labelledby="master-workspace-heading">
+      <div className="masterWorkspaceHeading">
+        <div>
+          <small>REGISTRATION OPERATING SYSTEM</small>
+          <h2 id="master-workspace-heading">Choose a control category</h2>
+          <p>
+            Open only the group you are working on. Existing records, permissions,
+            AI assistance and registration behaviour remain unchanged.
+          </p>
+        </div>
+      </div>
+
+      <div className="masterWorkspaceNav" role="tablist" aria-label="Constitutional registration controls">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeWorkspace === "identities"}
+          className={activeWorkspace === "identities" ? "active" : ""}
+          onClick={() => setActiveWorkspace("identities")}
+        >
+          <span>01</span>
+          <strong>Identity Catalogue</strong>
+          <small>Add, edit, search and activate reusable identities.</small>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeWorkspace === "registration"}
+          className={activeWorkspace === "registration" ? "active" : ""}
+          onClick={() => setActiveWorkspace("registration")}
+        >
+          <span>02</span>
+          <strong>Business Registration Controls</strong>
+          <small>Manage constitutions, sectors, mappings, redirects and previews.</small>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeWorkspace === "capabilities"}
+          className={activeWorkspace === "capabilities" ? "active" : ""}
+          onClick={() => setActiveWorkspace("capabilities")}
+        >
+          <span>03</span>
+          <strong>3BOS Operating Access</strong>
+          <small>Define operating capabilities and map them to identities.</small>
+        </button>
+      </div>
+    </section>
+
     <MasterEditNavigation />
+
+    {activeWorkspace === "identities" && (
     <form id="identity-master-form" className="panel" onSubmit={save}>
       <h2>{editingId ? "Edit identity" : "Add a new identity"}</h2>
       <p>Add a reusable work category, not an individual member or company. Example: Civil Contractor. Search the catalogue below before adding a duplicate. Identity, provider form, engagement model and operating capabilities are managed separately.</p>
@@ -166,10 +223,37 @@ export default function IdentityMasterAdminPage() {
       </div>
       <div className="actions"><button disabled={busy || aiBusy}>{busy ? "Saving…" : editingId ? "Save changes" : "Add identity"}</button>{editingId && <button type="button" className="secondary" onClick={() => { setEditingId(null); setForm(emptyForm); }}>Cancel</button>}</div>
     </form>
+    )}
 
-    <RegistrationMasterSections identities={rows} />
-    <OperatingCapabilityMasterSections identities={rows} />
+    {activeWorkspace === "registration" && (
+      <div className="workspaceContent" role="tabpanel">
+        <div className="workspaceIntroduction">
+          <small>BUSINESS REGISTRATION</small>
+          <h2>Registration Controls</h2>
+          <p>
+            Manage legal constitutions, business sectors, identity mappings,
+            redirect journeys and registration previews.
+          </p>
+        </div>
+        <RegistrationMasterSections identities={rows} />
+      </div>
+    )}
 
+    {activeWorkspace === "capabilities" && (
+      <div className="workspaceContent" role="tabpanel">
+        <div className="workspaceIntroduction">
+          <small>3BOS OPERATING ACCESS</small>
+          <h2>Capabilities and Identity Access</h2>
+          <p>
+            Define internal operating tools and explicitly assign them to
+            the appropriate business identities.
+          </p>
+        </div>
+        <OperatingCapabilityMasterSections identities={rows} />
+      </div>
+    )}
+
+    {activeWorkspace === "identities" && (
     <section className="catalogue">
       <div className="filters"><input placeholder="Search identity, alias or description" value={query} onChange={(e) => setQuery(e.target.value)} /><select value={family} onChange={(e) => setFamily(e.target.value)}><option value="">All families</option>{families.map((x) => <option key={x}>{x}</option>)}</select></div>
       <div className="rows">{visible.map((row) => <article key={row.id} className={!row.is_active ? "inactive" : ""}>
@@ -177,7 +261,109 @@ export default function IdentityMasterAdminPage() {
         <div className="rowActions"><button type="button" onClick={() => edit(row)}>Edit</button><button type="button" className="secondary" onClick={() => toggle(row)}>{row.is_active ? "Deactivate" : "Activate"}</button></div>
       </article>)}</div>
     </section>
+    )}
+
     <style jsx>{`
+      .masterWorkspaceChooser {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 18px;
+        margin-bottom: 20px;
+      }
+
+      .masterWorkspaceHeading small,
+      .workspaceIntroduction > small {
+        color: #047857;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: .12em;
+      }
+
+      .masterWorkspaceHeading h2,
+      .workspaceIntroduction h2 {
+        margin: 5px 0;
+      }
+
+      .masterWorkspaceHeading p,
+      .workspaceIntroduction p {
+        margin: 0;
+        color: #64748b;
+        line-height: 1.6;
+      }
+
+      .masterWorkspaceNav {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .masterWorkspaceNav button {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 4px 10px;
+        min-height: 118px;
+        padding: 16px;
+        text-align: left;
+        align-content: center;
+        background: #fff;
+        color: #172033;
+        border: 1px solid #dbe3ec;
+        border-radius: 15px;
+        box-shadow: none;
+      }
+
+      .masterWorkspaceNav button:hover {
+        border-color: #60a5fa;
+        background: #f8fbff;
+      }
+
+      .masterWorkspaceNav button.active {
+        border-color: #2563eb;
+        background: #eff6ff;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, .1);
+      }
+
+      .masterWorkspaceNav button > span {
+        grid-row: 1 / 3;
+        color: #2563eb;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .masterWorkspaceNav button strong {
+        font-size: 15px;
+      }
+
+      .masterWorkspaceNav button small {
+        color: #64748b;
+        font-weight: 500;
+        line-height: 1.45;
+      }
+
+      .workspaceContent {
+        margin-bottom: 20px;
+      }
+
+      .workspaceIntroduction {
+        padding: 18px;
+        margin-bottom: 14px;
+        border: 1px solid #bfdbfe;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #eff6ff, #fff);
+      }
+
+      @media(max-width: 850px) {
+        .masterWorkspaceNav {
+          grid-template-columns: 1fr;
+        }
+
+        .masterWorkspaceNav button {
+          min-height: 96px;
+        }
+      }
+
       .identity-field-help {
         display: block;
         margin-top: 6px;
