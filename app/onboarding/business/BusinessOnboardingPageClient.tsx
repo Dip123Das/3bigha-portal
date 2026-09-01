@@ -1509,7 +1509,13 @@ async function fetchCompleteness(uid: string) {
   const isCompleteUI = localCompletion.isComplete;
   const scoreUI = clampPct(localCompletion.score);
   const missingUI = localCompletion.missing;
-  const registrationCompleteUI = vc?.registration_complete ?? false;
+  /*
+   * A legacy registration_complete flag cannot override the current
+   * constitutional requirements shown on this page.
+   */
+  const registrationCompleteUI = Boolean(
+    vc?.registration_complete && isCompleteUI
+  );
 
   const legalProofAssets = mediaAssets.filter((asset) =>
     String(asset.path || "").includes("/legal-proof/")
