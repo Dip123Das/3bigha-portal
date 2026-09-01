@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 const kinds = [
   "identity", "legal_constitution", "business_sector",
-  "redirect_rule", "operating_capability",
+  "redirect_rule", "operating_capability", "property_type", "property_subtype",
 ];
 const recent = new Map<string, number>();
 
@@ -94,6 +94,10 @@ export async function POST(request: Request) {
         "For a legal constitution, give only a basic neutral ownership or organisational description.",
         "For a redirect rule, explain the activity to the user. Do not choose a destination or change redirect policy.",
         "For an operating capability, describe the tool's purpose without claiming it already exists or that access is granted.",
+        "For a property type, explain the broad class of properties that belongs under it and distinguish it from other broad types.",
+        "For a property subtype, explain the specific property form or permitted use and how an administrator should classify it.",
+        "Do not invent property rights, approvals, title status, building permissions, investment returns or legal compliance.",
+        "Do not suggest changing or reusing a permanent taxonomy key.",
         "If the context is ambiguous, ask a short clarification question instead of guessing.",
         "Do not return or modify any other master-data fields.",
       ].join("\n"),

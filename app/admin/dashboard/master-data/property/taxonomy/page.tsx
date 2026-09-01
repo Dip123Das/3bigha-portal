@@ -1,7 +1,6 @@
-// app/admin/dashboard/master-data/property/taxonomy/page.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
@@ -14,41 +13,47 @@ import { EmptyState } from "@/components/ui/EmptyState";
 type TypeRow = {
   id: string;
   name: string;
-  slug: string | null;
-  sort_order: number | null;
+  slug: string;
+  description: string | null;
+  sort_order: number;
+  is_active: boolean;
+  listing_count: number;
+  subtype_count: number;
 };
 
 type SubtypeRow = {
   id: string;
   type_id: string;
   name: string;
-  slug: string | null;
-  sort_order: number | null;
+  slug: string;
+  description: string | null;
+  sort_order: number;
+  is_active: boolean;
+  listing_count: number;
+  mapping_count: number;
 };
 
-function isMaster(role: string | null | undefined) {
-  return role === "master_admin";
-}
+type Kind = "type" | "subtype";
+type Mode = "browse" | "add" | "edit";
 
-async function requireMasterAdmin(
-  supabase: ReturnType<typeof getSupabaseBrowser>
-) {
-  const { data } = await supabase.auth.getSession();
-  const session = data.session;
-  if (!session) return { ok: false };
+type FormState = {
+  name: string;
+  slug: string;
+  description: string;
+  sort_order: string;
+  is_active: boolean;
+};
 
-  const { data: prof } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", session.user.id)
-    .maybeSingle();
+const emptyForm: FormState = {
+  name: "",
+  slug: "",
+  description: "",
+  sort_order: "1000",
+  is_active: true,
+};
 
-  const role = (prof as any)?.role ?? null;
-  return { ok: isMaster(role) };
-}
-
-function slugify(input: string) {
-  return (input || "")
+function slugify(value: string) {
+  return String(value || "")
     .trim()
     .toLowerCase()
     .replace(/&/g, "and")
@@ -56,573 +61,611 @@ function slugify(input: string) {
     .replace(/(^-|-$)+/g, "");
 }
 
-function safeNum(x: string) {
-  const t = (x ?? "").trim();
-  if (!t) return null;
-  const n = Number(t);
-  return Number.isFinite(n) ? n : null;
-}
+const panel: React.CSSProperties = {
+  border: "1px solid rgba(15,23,42,0.10)",
+  borderRadius: 14,
+  padding: 16,
+  background: "#fff",
+};
+
+const field: React.CSSProperties = {
+  width: "100%",
+  minHeight: 44,
+  border: "1px solid rgba(15,23,42,0.16)",
+  borderRadius: 10,
+  padding: "10px 12px",
+  background: "#fff",
+};
 
 export default function PropertyTaxonomyMasterPage() {
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowser(), []);
-
-  const [checking, setChecking] = useState(true);
-  const [allowed, setAllowed] = useState(false);
+  const editorRef = useRef<HTMLDivElement | null>(null);
 
   const [types, setTypes] = useState<TypeRow[]>([]);
   const [subtypes, setSubtypes] = useState<SubtypeRow[]>([]);
-  const [typeId, setTypeId] = useState<string>("");
+  const [selectedTypeId, setSelectedTypeId] = useState("");
+  const [mode, setMode] = useState<Mode>("browse");
+  const [kind, setKind] = useState<Kind>("type");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [permanentSlug, setPermanentSlug] = useState("");
+  const [form, setForm] = useState<FormState>(emptyForm);
 
   const [loading, setLoading] = useState(true);
-  const [subLoading, setSubLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
-  // TYPE form
-  const [typeFormOpen, setTypeFormOpen] = useState(false);
-  const [typeMode, setTypeMode] = useState<"add" | "edit">("add");
-  const [editingTypeId, setEditingTypeId] = useState<string | null>(null);
-  const [typeForm, setTypeForm] = useState({
-    name: "",
-    slug: "",
-    slugTouched: false,
-    sort_order: "",
-  });
+  const selectedType =
+    types.find((row) => row.id === selectedTypeId) || null;
 
-  // SUBTYPE form
-  const [subFormOpen, setSubFormOpen] = useState(false);
-  const [subMode, setSubMode] = useState<"add" | "edit">("add");
-  const [editingSubtypeId, setEditingSubtypeId] = useState<string | null>(null);
-  const [subForm, setSubForm] = useState({
-    name: "",
-    slug: "",
-    slugTouched: false,
-    sort_order: "",
-  });
+  const selectedSubtypes = subtypes.filter(
+    (row) => row.type_id === selectedTypeId
+  );
 
-  /* ---------- AUTH ---------- */
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      const a = await requireMasterAdmin(supabase);
-      if (!alive) return;
-      if (!a.ok) {
-        router.replace("/admin/dashboard");
-        return;
-      }
-      setAllowed(true);
-      setChecking(false);
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [router, supabase]);
-
-  /* ---------- LOAD ---------- */
-  async function loadTypes() {
-    const res = await supabase
-      .from("property_types")
-      .select("id,name,slug,sort_order")
-      .order("sort_order", { ascending: true, nullsFirst: false })
-      .order("name", { ascending: true });
-
-    if (res.error) throw res.error;
-    setTypes((res.data ?? []) as any);
+  async function accessToken() {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token || "";
   }
 
-  async function loadSubtypes(tid: string) {
-    if (!tid) {
-      setSubtypes([]);
+  async function requestApi(
+    method: "GET" | "POST" | "PATCH",
+    body?: Record<string, unknown>
+  ) {
+    const token = await accessToken();
+
+    if (!token) {
+      router.replace("/admin/dashboard");
+      throw new Error("Please sign in again.");
+    }
+
+    const response = await fetch("/api/admin/property-taxonomy", {
+      method,
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: {
+        ...(body ? { "Content-Type": "application/json" } : {}),
+        Authorization: `Bearer ${token}`,
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        router.replace("/admin/dashboard");
+      }
+      throw new Error(result.error || "Property taxonomy request failed.");
+    }
+
+    return result;
+  }
+
+  async function load() {
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await requestApi("GET");
+      const nextTypes = (result.types || []) as TypeRow[];
+      const nextSubtypes = (result.subtypes || []) as SubtypeRow[];
+
+      setTypes(nextTypes);
+      setSubtypes(nextSubtypes);
+      setSelectedTypeId((current) => {
+        if (nextTypes.some((row) => row.id === current)) return current;
+        return nextTypes.find((row) => row.is_active)?.id || nextTypes[0]?.id || "";
+      });
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Unable to load taxonomy.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function showEditor() {
+    window.setTimeout(() => {
+      editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      editorRef.current?.querySelector<HTMLInputElement>("input")?.focus();
+    }, 0);
+  }
+
+  function openAdd(nextKind: Kind) {
+    setError("");
+    setMessage("");
+    setMode("add");
+    setKind(nextKind);
+    setEditingId(null);
+    setPermanentSlug("");
+    setForm(emptyForm);
+    showEditor();
+  }
+
+  function openEdit(nextKind: Kind, row: TypeRow | SubtypeRow) {
+    setError("");
+    setMessage("");
+    setMode("edit");
+    setKind(nextKind);
+    setEditingId(row.id);
+    setPermanentSlug(row.slug);
+    setForm({
+      name: row.name,
+      slug: row.slug,
+      description: row.description || "",
+      sort_order: String(row.sort_order),
+      is_active: row.is_active,
+    });
+
+    if (nextKind === "subtype") {
+      setSelectedTypeId((row as SubtypeRow).type_id);
+    }
+
+    showEditor();
+  }
+
+  function cancelEditor() {
+    setMode("browse");
+    setEditingId(null);
+    setPermanentSlug("");
+    setForm(emptyForm);
+    setError("");
+    setMessage("");
+  }
+
+  async function save() {
+    if (saving) return;
+
+    const name = form.name.trim();
+    if (name.length < 2) {
+      setError("Enter a clear name containing at least two characters.");
       return;
     }
 
-    setSubLoading(true);
-    const res = await supabase
-      .from("property_subtypes")
-      .select("id,type_id,name,slug,sort_order")
-      .eq("type_id", tid)
-      .order("sort_order", { ascending: true, nullsFirst: false })
-      .order("name", { ascending: true });
-    setSubLoading(false);
+    if (kind === "subtype" && !selectedTypeId) {
+      setError("Select the parent property type.");
+      return;
+    }
 
-    if (res.error) throw res.error;
-    setSubtypes((res.data ?? []) as any);
-  }
+    setSaving(true);
+    setError("");
+    setMessage("");
 
-  async function boot() {
-    setLoading(true);
-    setErr(null);
     try {
-      await loadTypes();
-      setLoading(false);
-    } catch (e: any) {
-      setErr(e?.message ?? "Failed to load taxonomy");
-      setLoading(false);
+      const common = {
+        kind,
+        name,
+        description: form.description.trim(),
+        sort_order: form.sort_order,
+        is_active: form.is_active,
+      };
+
+      if (mode === "add") {
+        await requestApi("POST", {
+          ...common,
+          slug: form.slug.trim() || slugify(name),
+          ...(kind === "subtype" ? { type_id: selectedTypeId } : {}),
+        });
+        setMessage(`${kind === "type" ? "Property type" : "Subtype"} created.`);
+      } else {
+        await requestApi("PATCH", {
+          ...common,
+          id: editingId,
+        });
+        setMessage(`${kind === "type" ? "Property type" : "Subtype"} updated.`);
+      }
+
+      await load();
+      setMode("browse");
+      setEditingId(null);
+      setPermanentSlug("");
+      setForm(emptyForm);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Save failed.");
+    } finally {
+      setSaving(false);
     }
   }
 
-  useEffect(() => {
-    if (!checking && allowed) boot();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checking, allowed]);
+  async function toggleStatus(kindToChange: Kind, row: TypeRow | SubtypeRow) {
+    const action = row.is_active ? "deactivate" : "activate";
+    const impact =
+      kindToChange === "type"
+        ? `${(row as TypeRow).listing_count} listing(s) and ${(row as TypeRow).subtype_count} subtype(s)`
+        : `${(row as SubtypeRow).listing_count} listing(s) and ${(row as SubtypeRow).mapping_count} attribute mapping(s)`;
 
-  useEffect(() => {
-    setErr(null);
-    loadSubtypes(typeId).catch((e: any) =>
-      setErr(e?.message ?? "Failed to load subtypes")
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typeId]);
-
-  const selectedType = useMemo(
-    () => types.find((t) => t.id === typeId) ?? null,
-    [types, typeId]
-  );
-
-  /* ---------- TYPE FORM ---------- */
-  function openAddType() {
-    setErr(null);
-    setTypeMode("add");
-    setEditingTypeId(null);
-    setTypeForm({
-      name: "",
-      slug: "",
-      slugTouched: false,
-      sort_order: "",
-    });
-    setTypeFormOpen(true);
-  }
-
-  function openEditType(t: TypeRow) {
-    setErr(null);
-    setTypeMode("edit");
-    setEditingTypeId(t.id);
-    setTypeForm({
-      name: t.name ?? "",
-      slug: t.slug ?? "",
-      slugTouched: true,
-      sort_order: t.sort_order == null ? "" : String(t.sort_order),
-    });
-    setTypeFormOpen(true);
-  }
-
-  // auto-slug for type
-  useEffect(() => {
-    if (!typeFormOpen) return;
-    if (typeForm.slugTouched) return;
-    setTypeForm((p) => ({ ...p, slug: slugify(p.name) }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typeForm.name]);
-
-  async function saveType() {
-    setErr(null);
-    const name = typeForm.name.trim();
-    const slug = slugify(typeForm.slug.trim() || name);
-    if (!name) return setErr("Type name is required.");
-    if (!slug) return setErr("Type slug is required.");
-    const sort_order = safeNum(typeForm.sort_order);
-
-    const payload = { name, slug, sort_order };
-
-    if (typeMode === "add") {
-      const { error } = await supabase.from("property_types").insert(payload);
-      if (error) return setErr(error.message);
-    } else {
-      if (!editingTypeId) return setErr("Missing type id.");
-      const { error } = await supabase
-        .from("property_types")
-        .update(payload)
-        .eq("id", editingTypeId);
-      if (error) return setErr(error.message);
+    if (
+      !window.confirm(
+        `${action === "deactivate" ? "Deactivate" : "Activate"} "${row.name}"?\n\nCurrent impact: ${impact}.\n\nExisting records will be preserved.`
+      )
+    ) {
+      return;
     }
 
-    setTypeFormOpen(false);
-    await loadTypes();
-  }
+    setSaving(true);
+    setError("");
+    setMessage("");
 
-  async function removeType(t: TypeRow) {
-    setErr(null);
-    const yes = window.confirm(
-      `Delete type "${t.name}"?\n(Subtypes may block deletion if FK exists.)`
-    );
-    if (!yes) return;
+    try {
+      await requestApi("PATCH", {
+        kind: kindToChange,
+        id: row.id,
+        name: row.name,
+        description: row.description || "",
+        sort_order: row.sort_order,
+        is_active: !row.is_active,
+      });
 
-    const { error } = await supabase.from("property_types").delete().eq("id", t.id);
-    if (error) return setErr(error.message);
-
-    if (typeId === t.id) setTypeId("");
-    await loadTypes();
-  }
-
-  /* ---------- SUBTYPE FORM ---------- */
-  function openAddSubtype() {
-    setErr(null);
-    if (!typeId) return setErr("Select a type first.");
-
-    setSubMode("add");
-    setEditingSubtypeId(null);
-    setSubForm({
-      name: "",
-      slug: "",
-      slugTouched: false,
-      sort_order: "",
-    });
-    setSubFormOpen(true);
-  }
-
-  function openEditSubtype(s: SubtypeRow) {
-    setErr(null);
-    setSubMode("edit");
-    setEditingSubtypeId(s.id);
-    setSubForm({
-      name: s.name ?? "",
-      slug: s.slug ?? "",
-      slugTouched: true,
-      sort_order: s.sort_order == null ? "" : String(s.sort_order),
-    });
-    setSubFormOpen(true);
-  }
-
-  // auto-slug for subtype
-  useEffect(() => {
-    if (!subFormOpen) return;
-    if (subForm.slugTouched) return;
-    setSubForm((p) => ({ ...p, slug: slugify(p.name) }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subForm.name]);
-
-  async function saveSubtype() {
-    setErr(null);
-    if (!typeId) return setErr("Select a type first.");
-
-    const name = subForm.name.trim();
-    const slug = slugify(subForm.slug.trim() || name);
-    if (!name) return setErr("Subtype name is required.");
-    if (!slug) return setErr("Subtype slug is required.");
-
-    const sort_order = safeNum(subForm.sort_order);
-    const payload = { type_id: typeId, name, slug, sort_order };
-
-    if (subMode === "add") {
-      const { error } = await supabase.from("property_subtypes").insert(payload);
-      if (error) return setErr(error.message);
-    } else {
-      if (!editingSubtypeId) return setErr("Missing subtype id.");
-      const { error } = await supabase
-        .from("property_subtypes")
-        .update({ name, slug, sort_order })
-        .eq("id", editingSubtypeId);
-      if (error) return setErr(error.message);
+      setMessage(`"${row.name}" is now ${row.is_active ? "inactive" : "active"}.`);
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Status change failed.");
+    } finally {
+      setSaving(false);
     }
-
-    setSubFormOpen(false);
-    await loadSubtypes(typeId);
-  }
-
-  async function removeSubtype(s: SubtypeRow) {
-    setErr(null);
-    const yes = window.confirm(`Delete subtype "${s.name}"?`);
-    if (!yes) return;
-
-    const { error } = await supabase.from("property_subtypes").delete().eq("id", s.id);
-    if (error) return setErr(error.message);
-
-    await loadSubtypes(typeId);
-  }
-
-  /* ---------- RENDER ---------- */
-  if (checking) {
-    return (
-      <Container>
-        <SectionHeader title="Property · Taxonomy" subtitle="Checking access…" />
-      </Container>
-    );
-  }
-
-  if (!allowed) {
-    return (
-      <Container>
-        <SectionHeader title="Property · Taxonomy" subtitle="Access denied" />
-        <EmptyState message="master_admin access required." />
-      </Container>
-    );
   }
 
   return (
     <Container>
       <SectionHeader
         title="Property · Taxonomy"
-        subtitle="Manage Types and Subtypes (property_types, property_subtypes)"
+        subtitle="Control the property types and subtypes used by listings, filters and attribute mappings."
       />
 
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
         <ActionButton href="/admin/dashboard/master-data" variant="secondary">
           ← Back
         </ActionButton>
-
         <ActionButton href="/admin/dashboard/master-data/property/attributes" variant="secondary">
           Attributes →
         </ActionButton>
-
         <ActionButton href="/admin/dashboard/master-data/property/mapping" variant="secondary">
           Mapping →
         </ActionButton>
-
         <ActionButton href="/admin/dashboard/master-data/property/values" variant="secondary">
           Values →
         </ActionButton>
+      </div>
 
-        <ActionButton variant="primary" onClick={openAddType}>
+      <div
+        style={{
+          ...panel,
+          marginBottom: 14,
+          background: "linear-gradient(135deg, #eff6ff, #ffffff)",
+        }}
+      >
+        <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 8 }}>
+          How Property Taxonomy works
+        </div>
+        <div style={{ lineHeight: 1.65, color: "#334155" }}>
+          <b>Type</b> is the broad classification, such as “Land / Plot” or
+          “House(s)”. <b>Subtype</b> is the specific property, such as
+          “Residential”, “Flat / Apartment” or “Office Space”. Subtypes connect
+          to Attributes, Mapping and Values, which control the questions shown
+          while listing a property.
+        </div>
+        <ul style={{ margin: "10px 0 0", paddingLeft: 20, lineHeight: 1.65 }}>
+          <li>Permanent keys are created once and locked during editing.</li>
+          <li>Deactivate an entry to stop future use without deleting history.</li>
+          <li>Review listing and mapping counts before changing a name or status.</li>
+          <li>Use clear singular classifications and avoid duplicate meanings.</li>
+        </ul>
+      </div>
+
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+        <ActionButton
+          variant={mode === "browse" ? "primary" : "secondary"}
+          onClick={cancelEditor}
+        >
+          Browse Taxonomy
+        </ActionButton>
+        <ActionButton variant="primary" onClick={() => openAdd("type")}>
           + Add Type
+        </ActionButton>
+        <ActionButton
+          variant="primary"
+          onClick={() => openAdd("subtype")}
+          disabled={!selectedTypeId}
+        >
+          + Add Subtype
         </ActionButton>
       </div>
 
-      {err ? (
-        <div style={{ color: "crimson", fontWeight: 900, marginBottom: 10 }}>{err}</div>
+      {error ? (
+        <div style={{ color: "#b91c1c", fontWeight: 800, marginBottom: 12 }}>
+          {error}
+        </div>
+      ) : null}
+
+      {message ? (
+        <div style={{ color: "#166534", fontWeight: 800, marginBottom: 12 }}>
+          {message}
+        </div>
       ) : null}
 
       {loading ? (
-        <EmptyState message="Loading taxonomy…" />
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "start" }}>
-          {/* TYPES */}
-          <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 12, background: "#fff" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-              <div style={{ fontWeight: 900 }}>Property Types</div>
+        <EmptyState message="Loading property taxonomy…" />
+      ) : mode === "browse" ? (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.15fr)",
+            gap: 14,
+            alignItems: "start",
+          }}
+        >
+          <section style={panel}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 18 }}>Property Types</div>
+                <div style={{ color: "#64748b", marginTop: 3 }}>
+                  Select a type to inspect its subtypes.
+                </div>
+              </div>
               <Badge>{types.length}</Badge>
             </div>
 
-            {types.length === 0 ? (
-              <div style={{ opacity: 0.7, marginTop: 10 }}>No types yet.</div>
-            ) : (
-              <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
-                {types.map((t) => {
-                  const selected = typeId === t.id;
-                  return (
-                    <div
-                      key={t.id}
-                      style={{
-                        border: "1px solid rgba(0,0,0,0.10)",
-                        borderRadius: 12,
-                        padding: 10,
-                        background: selected ? "rgba(37,99,235,0.06)" : "rgba(0,0,0,0.02)",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => setTypeId(t.id)}
-                    >
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 6 }}>
-                        {selected ? <Badge>selected</Badge> : null}
-                        {t.sort_order != null ? <Badge>sort: {t.sort_order}</Badge> : <Badge>sort: —</Badge>}
-                        {t.slug ? <Badge>{t.slug}</Badge> : <Badge>slug: —</Badge>}
-                      </div>
+            <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+              {types.map((row) => {
+                const selected = row.id === selectedTypeId;
 
-                      <div style={{ fontWeight: 900 }}>{t.name}</div>
-
-                      <div style={{ marginTop: 8, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                        <ActionButton
-                          variant="secondary"
-                          onClick={(e: any) => {
-                            e.stopPropagation();
-                            openEditType(t);
-                          }}
-                        >
-                          Edit
-                        </ActionButton>
-
-                        <ActionButton
-                          variant="secondary"
-                          onClick={(e: any) => {
-                            e.stopPropagation();
-                            removeType(t);
-                          }}
-                        >
-                          Delete
-                        </ActionButton>
-                      </div>
+                return (
+                  <article
+                    key={row.id}
+                    onClick={() => setSelectedTypeId(row.id)}
+                    style={{
+                      border: selected ? "2px solid #2563eb" : "1px solid #e2e8f0",
+                      borderRadius: 12,
+                      padding: 12,
+                      cursor: "pointer",
+                      background: selected ? "#eff6ff" : "#fff",
+                      opacity: row.is_active ? 1 : 0.72,
+                    }}
+                  >
+                    <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+                      <Badge>{row.is_active ? "Active" : "Inactive"}</Badge>
+                      <Badge>Key: {row.slug}</Badge>
+                      <Badge>Order: {row.sort_order}</Badge>
+                      <Badge>{row.listing_count} listings</Badge>
+                      <Badge>{row.subtype_count} subtypes</Badge>
                     </div>
-                  );
-                })}
-              </div>
-            )}
 
-            {/* TYPE FORM */}
-            {typeFormOpen ? (
-              <div style={{ marginTop: 14, border: "2px solid #2563eb", borderRadius: 12, padding: 12 }}>
-                <div style={{ fontWeight: 900, marginBottom: 10 }}>
-                  {typeMode === "add" ? "Add Type" : "Edit Type"}
-                </div>
+                    <div style={{ fontWeight: 900, fontSize: 17, marginTop: 9 }}>
+                      {row.name}
+                    </div>
 
-                <div style={{ display: "grid", gap: 10 }}>
-                  <input
-                    placeholder='Type name (e.g. "Residential")'
-                    value={typeForm.name}
-                    onChange={(e) => setTypeForm((p) => ({ ...p, name: e.target.value }))}
-                    style={{ height: 42, borderRadius: 10, border: "1px solid rgba(0,0,0,0.14)", padding: "0 12px" }}
-                  />
+                    <div style={{ color: "#475569", marginTop: 5, lineHeight: 1.5 }}>
+                      {row.description || "No administrator description yet."}
+                    </div>
 
-                  <input
-                    placeholder="Slug (auto-generated if empty)"
-                    value={typeForm.slug}
-                    onChange={(e) =>
-                      setTypeForm((p) => ({ ...p, slugTouched: true, slug: e.target.value }))
-                    }
-                    style={{ height: 42, borderRadius: 10, border: "1px solid rgba(0,0,0,0.14)", padding: "0 12px" }}
-                  />
+                    <div
+                      style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <ActionButton variant="secondary" onClick={() => openEdit("type", row)}>
+                        Edit
+                      </ActionButton>
+                      <ActionButton
+                        variant={row.is_active ? "danger" : "secondary"}
+                        onClick={() => void toggleStatus("type", row)}
+                        disabled={saving}
+                      >
+                        {row.is_active ? "Deactivate" : "Activate"}
+                      </ActionButton>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
 
-                  <input
-                    placeholder="Sort order (optional)"
-                    value={typeForm.sort_order}
-                    onChange={(e) => setTypeForm((p) => ({ ...p, sort_order: e.target.value }))}
-                    inputMode="numeric"
-                    style={{ height: 42, borderRadius: 10, border: "1px solid rgba(0,0,0,0.14)", padding: "0 12px" }}
-                  />
-
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                    <ActionButton variant="secondary" onClick={() => setTypeFormOpen(false)}>
-                      Cancel
-                    </ActionButton>
-                    <ActionButton variant="primary" onClick={saveType}>
-                      Save
-                    </ActionButton>
-                  </div>
+          <section style={panel}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 18 }}>Subtypes</div>
+                <div style={{ color: "#64748b", marginTop: 3 }}>
+                  {selectedType
+                    ? `Specific classifications under ${selectedType.name}.`
+                    : "Select a property type."}
                 </div>
               </div>
-            ) : null}
-          </div>
-
-          {/* SUBTYPES */}
-          <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 12, background: "#fff" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-              <div style={{ fontWeight: 900 }}>Subtypes</div>
-              <Badge>{subtypes.length}</Badge>
+              <Badge>{selectedSubtypes.length}</Badge>
             </div>
 
-            <div style={{ marginTop: 10 }}>
-              <div style={{ fontWeight: 900, marginBottom: 6 }}>Selected type</div>
+            {!selectedType ? (
+              <EmptyState message="Select a property type to inspect its subtypes." />
+            ) : selectedSubtypes.length === 0 ? (
+              <div style={{ marginTop: 14 }}>
+                <EmptyState message="This type has no subtypes. Keep it inactive until valid subtypes are added." />
+              </div>
+            ) : (
+              <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+                {selectedSubtypes.map((row) => (
+                  <article
+                    key={row.id}
+                    style={{
+                      border: "1px solid #e2e8f0",
+                      borderRadius: 12,
+                      padding: 12,
+                      opacity: row.is_active ? 1 : 0.72,
+                    }}
+                  >
+                    <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+                      <Badge>{row.is_active ? "Active" : "Inactive"}</Badge>
+                      <Badge>Key: {row.slug}</Badge>
+                      <Badge>Order: {row.sort_order}</Badge>
+                      <Badge>{row.listing_count} listings</Badge>
+                      <Badge>{row.mapping_count} mappings</Badge>
+                    </div>
+
+                    <div style={{ fontWeight: 900, fontSize: 16, marginTop: 9 }}>
+                      {row.name}
+                    </div>
+
+                    <div style={{ color: "#475569", marginTop: 5, lineHeight: 1.5 }}>
+                      {row.description || "No administrator description yet."}
+                    </div>
+
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+                      <ActionButton variant="secondary" onClick={() => openEdit("subtype", row)}>
+                        Edit
+                      </ActionButton>
+                      <ActionButton
+                        variant={row.is_active ? "danger" : "secondary"}
+                        onClick={() => void toggleStatus("subtype", row)}
+                        disabled={saving}
+                      >
+                        {row.is_active ? "Deactivate" : "Activate"}
+                      </ActionButton>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      ) : (
+        <section ref={editorRef} style={{ ...panel, border: "2px solid #2563eb" }}>
+          <div style={{ fontWeight: 900, fontSize: 20 }}>
+            {mode === "add" ? "Add" : "Edit"}{" "}
+            {kind === "type" ? "Property Type" : "Property Subtype"}
+          </div>
+
+          <div style={{ color: "#475569", marginTop: 5, lineHeight: 1.5 }}>
+            Review every field before saving. AI assistance for descriptions will
+            be added after this secure editor is verified.
+          </div>
+
+          {kind === "subtype" ? (
+            <label style={{ display: "grid", gap: 6, marginTop: 16 }}>
+              <b>Parent property type</b>
               <select
-                value={typeId}
-                onChange={(e) => {
-                  setTypeId(e.target.value);
-                  setSubFormOpen(false);
-                }}
-                style={{
-                  width: "100%",
-                  height: 42,
-                  borderRadius: 10,
-                  border: "1px solid rgba(0,0,0,0.14)",
-                  padding: "0 10px",
-                }}
+                value={selectedTypeId}
+                onChange={(event) => setSelectedTypeId(event.target.value)}
+                disabled={mode === "edit"}
+                style={field}
               >
                 <option value="">— Select type —</option>
-                {types.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
+                {types.map((row) => (
+                  <option key={row.id} value={row.id}>
+                    {row.name} {row.is_active ? "" : "(Inactive)"}
                   </option>
                 ))}
               </select>
-              <div style={{ marginTop: 8, fontSize: 12, opacity: 0.75 }}>
-                {selectedType ? (
-                  <>
-                    Managing subtypes for: <b>{selectedType.name}</b>
-                  </>
-                ) : (
-                  "Choose a type to view/create subtypes."
-                )}
-              </div>
-            </div>
+              <small>
+                The parent is locked during editing to prevent accidental remapping.
+              </small>
+            </label>
+          ) : null}
 
-            <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <ActionButton variant="primary" onClick={openAddSubtype} disabled={!typeId}>
-                + Add Subtype
-              </ActionButton>
-              {subLoading ? <Badge>loading…</Badge> : null}
-            </div>
+          <label style={{ display: "grid", gap: 6, marginTop: 16 }}>
+            <b>Display name</b>
+            <input
+              value={form.name}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  name: event.target.value,
+                  ...(mode === "add"
+                    ? { slug: slugify(event.target.value) }
+                    : {}),
+                }))
+              }
+              placeholder={kind === "type" ? "Example: Land / Plot" : "Example: Flat / Apartment"}
+              style={field}
+              maxLength={120}
+            />
+          </label>
 
-            {!typeId ? (
-              <div style={{ opacity: 0.7, marginTop: 12 }}>Select a type to manage its subtypes.</div>
-            ) : subtypes.length === 0 ? (
-              <div style={{ opacity: 0.7, marginTop: 12 }}>No subtypes yet.</div>
-            ) : (
-              <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-                {subtypes.map((s) => (
-                  <div
-                    key={s.id}
-                    style={{
-                      border: "1px solid rgba(0,0,0,0.10)",
-                      borderRadius: 12,
-                      padding: 10,
-                      background: "rgba(0,0,0,0.02)",
-                    }}
-                  >
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 6 }}>
-                      {s.sort_order != null ? <Badge>sort: {s.sort_order}</Badge> : <Badge>sort: —</Badge>}
-                      {s.slug ? <Badge>{s.slug}</Badge> : <Badge>slug: —</Badge>}
-                    </div>
+          <label style={{ display: "grid", gap: 6, marginTop: 16 }}>
+            <b>Permanent key</b>
+            <input
+              value={mode === "edit" ? permanentSlug : form.slug}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, slug: slugify(event.target.value) }))
+              }
+              disabled={mode === "edit"}
+              placeholder="Generated from the display name"
+              style={{ ...field, background: mode === "edit" ? "#f1f5f9" : "#fff" }}
+              maxLength={120}
+            />
+            <small>
+              {mode === "edit"
+                ? "Locked permanently because listings and integrations may depend on it."
+                : "Use lowercase letters, numbers and hyphens. It becomes locked after creation."}
+            </small>
+          </label>
 
-                    <div style={{ fontWeight: 900 }}>{s.name}</div>
+          <label style={{ display: "grid", gap: 6, marginTop: 16 }}>
+            <b>Administrator description</b>
+            <textarea
+              value={form.description}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, description: event.target.value }))
+              }
+              placeholder="Explain what belongs in this classification and how it differs from nearby choices."
+              style={{ ...field, minHeight: 110, resize: "vertical" }}
+              maxLength={600}
+            />
+            <small>{form.description.length}/600 characters. Human review is required.</small>
+          </label>
 
-                    <div style={{ marginTop: 8, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      <ActionButton variant="secondary" onClick={() => openEditSubtype(s)}>
-                        Edit
-                      </ActionButton>
-                      <ActionButton variant="secondary" onClick={() => removeSubtype(s)}>
-                        Delete
-                      </ActionButton>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+          <label style={{ display: "grid", gap: 6, marginTop: 16 }}>
+            <b>Sort order</b>
+            <input
+              value={form.sort_order}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, sort_order: event.target.value }))
+              }
+              inputMode="numeric"
+              placeholder="Example: 100"
+              style={field}
+            />
+            <small>Lower numbers appear first. Leave space between groups for future additions.</small>
+          </label>
 
-            {/* SUBTYPE FORM */}
-            {subFormOpen ? (
-              <div style={{ marginTop: 14, border: "2px solid #2563eb", borderRadius: 12, padding: 12 }}>
-                <div style={{ fontWeight: 900, marginBottom: 10 }}>
-                  {subMode === "add" ? "Add Subtype" : "Edit Subtype"}
-                </div>
+          <label
+            style={{
+              display: "flex",
+              gap: 10,
+              alignItems: "flex-start",
+              marginTop: 16,
+              padding: 12,
+              border: "1px solid #e2e8f0",
+              borderRadius: 10,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={form.is_active}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, is_active: event.target.checked }))
+              }
+            />
+            <span>
+              <b>Active</b>
+              <br />
+              <small>
+                Active entries may be offered in listing workflows. Inactive entries
+                remain available for historical records and administration.
+              </small>
+            </span>
+          </label>
 
-                <div style={{ display: "grid", gap: 10 }}>
-                  <input
-                    placeholder='Subtype name (e.g. "Apartment")'
-                    value={subForm.name}
-                    onChange={(e) => setSubForm((p) => ({ ...p, name: e.target.value }))}
-                    style={{ height: 42, borderRadius: 10, border: "1px solid rgba(0,0,0,0.14)", padding: "0 12px" }}
-                  />
-
-                  <input
-                    placeholder="Slug (auto-generated if empty)"
-                    value={subForm.slug}
-                    onChange={(e) =>
-                      setSubForm((p) => ({ ...p, slugTouched: true, slug: e.target.value }))
-                    }
-                    style={{ height: 42, borderRadius: 10, border: "1px solid rgba(0,0,0,0.14)", padding: "0 12px" }}
-                  />
-
-                  <input
-                    placeholder="Sort order (optional)"
-                    value={subForm.sort_order}
-                    onChange={(e) => setSubForm((p) => ({ ...p, sort_order: e.target.value }))}
-                    inputMode="numeric"
-                    style={{ height: 42, borderRadius: 10, border: "1px solid rgba(0,0,0,0.14)", padding: "0 12px" }}
-                  />
-
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                    <ActionButton variant="secondary" onClick={() => setSubFormOpen(false)}>
-                      Cancel
-                    </ActionButton>
-                    <ActionButton variant="primary" onClick={saveSubtype}>
-                      Save
-                    </ActionButton>
-                  </div>
-                </div>
-
-                <div style={{ marginTop: 10, fontSize: 12, opacity: 0.75 }}>
-                  Type: <b>{selectedType?.name ?? "—"}</b>
-                </div>
-              </div>
-            ) : null}
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 18 }}>
+            <ActionButton variant="secondary" onClick={cancelEditor} disabled={saving}>
+              Cancel
+            </ActionButton>
+            <ActionButton variant="primary" onClick={() => void save()} disabled={saving}>
+              {saving ? "Saving…" : "Review and Save"}
+            </ActionButton>
           </div>
-        </div>
+        </section>
       )}
     </Container>
   );
