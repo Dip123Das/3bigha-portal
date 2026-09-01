@@ -31,6 +31,7 @@ type CompletionProfileRow = {
 
 type CompletionBusinessRow = {
   user_id: string;
+  business_type: string | null;
   nature_of_business: string[] | null;
   business_identities: string[] | null;
   individual_identities: string[] | null;
@@ -200,6 +201,7 @@ export async function POST() {
         .select(
           [
             "user_id",
+            "business_type",
             "nature_of_business",
             "business_identities",
             "individual_identities",
@@ -283,6 +285,157 @@ export async function POST() {
         "This account cannot complete registration in its current state.",
         403,
         "ACCOUNT_RESTRICTED"
+      );
+    }
+
+    const constitutionKey = String(
+      business.business_type || ""
+    ).trim();
+
+    const selectedBusinessIdentityKeys = Array.from(
+      new Set(
+        (Array.isArray(business.business_identities)
+          ? business.business_identities
+          : []
+        )
+          .map((key) => String(key || "").trim())
+          .filter(Boolean)
+      )
+    );
+
+    if (!constitutionKey) {
+      return errorResponse(
+        "Please select your Legal Constitution.",
+        409,
+        "CONSTITUTION_REQUIRED"
+      );
+    }
+
+    if (!selectedBusinessIdentityKeys.length) {
+      return errorResponse(
+        "Please select at least one Business Identity.",
+        409,
+        "BUSINESS_IDENTITY_REQUIRED"
+      );
+    }
+
+    const [
+      constitutionResult,
+      identityResult,
+      mappingResult,
+    ] = await Promise.all([
+      supabase
+        .from("registration_legal_constitutions")
+        .select("key")
+        .eq("key", constitutionKey)
+        .eq("is_active", true)
+        .maybeSingle(),
+
+      supabase
+        .from("identity_master")
+        .select("identity_key,registration_scopes")
+        .in("identity_key", selectedBusinessIdentityKeys)
+        .eq("is_active", true),
+
+      supabase
+        .from("registration_identity_sector_map")
+        .select("identity_key,sector_key,nature_modules")
+        .in("identity_key", selectedBusinessIdentityKeys)
+        .eq("is_active", true),
+    ]);
+
+    const masterError =
+      constitutionResult.error ||
+      identityResult.error ||
+      mappingResult.error;
+
+    if (masterError) {
+      console.error(
+        "REGISTRATION_MASTER_VALIDATION_FAILED",
+        masterError
+      );
+
+      return errorResponse(
+        "Registration master data could not be validated. Please try again.",
+        500,
+        "REGISTRATION_MASTER_VALIDATION_FAILED"
+      );
+    }
+
+    if (!constitutionResult.data) {
+      return errorResponse(
+        "Select an active Legal Constitution from Business Registration.",
+        409,
+        "INVALID_CONSTITUTION"
+      );
+    }
+
+    const validBusinessIdentityKeys = new Set(
+      (identityResult.data || [])
+        .filter((row: any) =>
+          Array.isArray(row.registration_scopes) &&
+          row.registration_scopes.includes("business_identity")
+        )
+        .map((row: any) => row.identity_key)
+    );
+
+    const hasInvalidIdentity =
+      selectedBusinessIdentityKeys.some(
+        (key) => !validBusinessIdentityKeys.has(key)
+      );
+
+    if (hasInvalidIdentity) {
+      return errorResponse(
+        "One or more selected Business Identities are inactive or invalid. Review Business Identity.",
+        409,
+        "INVALID_BUSINESS_IDENTITY"
+      );
+    }
+
+    const activeMappings = mappingResult.data || [];
+    const mappedIdentityKeys = new Set(
+      activeMappings.map((row: any) => row.identity_key)
+    );
+
+    const hasUnmappedIdentity =
+      selectedBusinessIdentityKeys.some(
+        (key) => !mappedIdentityKeys.has(key)
+      );
+
+    if (hasUnmappedIdentity) {
+      return errorResponse(
+        "Every Business Identity must have an active Business Sector mapping.",
+        409,
+        "BUSINESS_SECTOR_MAPPING_REQUIRED"
+      );
+    }
+
+    const mappedNature = Array.from(
+      new Set(
+        activeMappings.flatMap((row: any) =>
+          Array.isArray(row.nature_modules)
+            ? row.nature_modules
+            : []
+        )
+      )
+    );
+
+    const selectedNature = Array.isArray(
+      business.nature_of_business
+    )
+      ? business.nature_of_business
+      : [];
+
+    if (
+      !mappedNature.length ||
+      mappedNature.some(
+        (module) => !selectedNature.includes(module)
+      )
+    ) {
+      return errorResponse(
+        "Nature of Business must be derived from the selected Business Identities and Sector mappings. Review Business Identity.",
+        409,
+        "NATURE_MAPPING_REQUIRED"
       );
     }
 

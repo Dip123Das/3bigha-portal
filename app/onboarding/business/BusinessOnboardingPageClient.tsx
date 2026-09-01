@@ -370,8 +370,18 @@ function safeArr(v: any): string[] {
   return Array.isArray(v) ? v.filter(Boolean) : [];
 }
 
-function computeCompletion(bp: Partial<BusinessProfile>) {
+function computeCompletion(
+  bp: Partial<BusinessProfile>,
+  activeLegalConstitutionKeys: string[] = []
+) {
   const nature = safeArr(bp.nature_of_business);
+  const businessIdentities = safeArr(bp.business_identities);
+  const legalConstitutionKey = String(bp.business_type || "").trim();
+  const activeLegalKeys = new Set(activeLegalConstitutionKeys);
+  const constitutionOk =
+    activeLegalKeys.size > 0 &&
+    activeLegalKeys.has(legalConstitutionKey);
+  const businessIdentityOk = businessIdentities.length > 0;
   const hasBlog = nature.includes("blog");
   const hasNonBlogBusiness = nature.some((x) =>
     ["property", "materials", "services", "rentals"].includes(x)
@@ -400,6 +410,12 @@ function computeCompletion(bp: Partial<BusinessProfile>) {
   const authorOk = !hasBlog ? true : authorNameOk;
 
   const missing: string[] = [];
+  if (!constitutionOk) {
+    missing.push("Select a valid Legal Constitution");
+  }
+  if (!businessIdentityOk) {
+    missing.push("Select at least one Business Identity");
+  }
   if (!natureOk) missing.push("Select at least one Nature of Business");
   if (!identityOk) {
     missing.push(isPureBlogOnly ? "Author Display Name" : "Business Name");
@@ -413,6 +429,8 @@ function computeCompletion(bp: Partial<BusinessProfile>) {
   }
 
   const checks = [
+    constitutionOk,
+    businessIdentityOk,
     natureOk,
     identityOk,
     contactOk,
@@ -619,8 +637,13 @@ export default function BusinessOnboardingPageClient() {
   const rawReturnTo =
     sp.get("returnTo") || "/dashboard/workspace";
 
-  const streamlinedRegistration =
-    sp.get("registration") === "1";
+  /*
+   * A constitutional identity is mandatory for every Business
+   * Registration journey. The registration=1 entry point must not
+   * hide Legal Constitution, Business Sector, Business Identity
+   * or Contact controls.
+   */
+  const streamlinedRegistration = false;
 
   const returnTo =
     rawReturnTo === "/dashboard"
@@ -1482,7 +1505,7 @@ async function fetchCompleteness(uid: string) {
     hasUploadedLegalCertificate,
   ]);
 
-  const localCompletion = computeCompletion(bp);
+  const localCompletion = computeCompletion(bp, legalConstitutions.map((option) => option.key));
   const isCompleteUI = localCompletion.isComplete;
   const scoreUI = clampPct(localCompletion.score);
   const missingUI = localCompletion.missing;
@@ -1501,7 +1524,11 @@ async function fetchCompleteness(uid: string) {
   );
 
   const identityReady = Boolean(
-    nature.length > 0 &&
+    legalConstitutions.some(
+      (option) => option.key === String(bp.business_type || "").trim()
+    ) &&
+      safeArr(bp.business_identities).length > 0 &&
+      nature.length > 0 &&
       String(bp.contact_person || "").trim() &&
       (
         String(bp.business_name || "").trim() ||
@@ -2026,7 +2053,7 @@ async function fetchCompleteness(uid: string) {
     );
     if (!authOk) return { ok: false };
 
-    const { isComplete, score, missing } = computeCompletion(bp);
+    const { isComplete, score, missing } = computeCompletion(bp, legalConstitutions.map((option) => option.key));
 
     const payload: any = {
       ...bp,
@@ -3093,7 +3120,7 @@ async function fetchCompleteness(uid: string) {
           setField("pan", value);
         }}
       />
-        
+
 
 
         {!streamlinedRegistration ? <section id="sec-contact" style={{ padding: 12, border: "1px solid #ddd", borderRadius: 8 }}>
