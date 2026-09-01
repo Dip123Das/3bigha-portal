@@ -39,8 +39,10 @@ const slug = (value: string) =>
 
 export default function OperatingCapabilityMasterSections({
   identities,
+  activeSection,
 }: {
   identities: IdentityOption[];
+  activeSection: "capabilities" | "mappings";
 }) {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
   const [capabilities, setCapabilities] = useState<CapabilityRow[]>([]);
@@ -418,6 +420,7 @@ export default function OperatingCapabilityMasterSections({
         />
       </div>
 
+      {activeSection === "capabilities" && (
       <details open>
         <summary>Operating Capabilities</summary>
         <p className="note">
@@ -603,7 +606,9 @@ export default function OperatingCapabilityMasterSections({
           ))}
         </div>
       </details>
+      )}
 
+      {activeSection === "mappings" && (
       <details open>
         <summary>Identity → 3BOS Operating Capabilities</summary>
         <p className="note">
@@ -762,6 +767,7 @@ export default function OperatingCapabilityMasterSections({
           ))}
         </div>
       </details>
+      )}
 
       <style jsx>{`
         .operatingMaster {

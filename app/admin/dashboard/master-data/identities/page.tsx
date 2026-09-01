@@ -43,6 +43,14 @@ export default function IdentityMasterAdminPage() {
   const [activeWorkspace, setActiveWorkspace] = useState<
     "identities" | "registration" | "capabilities"
   >("identities");
+
+  const [identityWorkspaceView, setIdentityWorkspaceView] = useState<
+    "editor" | "catalogue"
+  >("editor");
+
+  const [capabilityWorkspaceView, setCapabilityWorkspaceView] = useState<
+    "capabilities" | "mappings"
+  >("capabilities");
   const { aiBusy, aiMessage, changeAiField, regenerateDescription } =
     useIdentityAi(form, setForm, editingId);
 
@@ -74,6 +82,7 @@ export default function IdentityMasterAdminPage() {
 
   function edit(row: IdentityRow) {
     setActiveWorkspace("identities");
+    setIdentityWorkspaceView("editor");
     setEditingId(row.id);
     setForm({ ...row, provider_forms: row.provider_forms.join(", "), engagement_models: row.engagement_models.join(", "), aliases: row.aliases.join(", "), legacy_modules: row.legacy_modules.join(", "), registration_scopes: (row.registration_scopes || []).join(", ") } as typeof emptyForm);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -129,7 +138,10 @@ export default function IdentityMasterAdminPage() {
           role="tab"
           aria-selected={activeWorkspace === "identities"}
           className={activeWorkspace === "identities" ? "active" : ""}
-          onClick={() => setActiveWorkspace("identities")}
+          onClick={() => {
+            setActiveWorkspace("identities");
+            setIdentityWorkspaceView("editor");
+          }}
         >
           <span>01</span>
           <strong>Identity Catalogue</strong>
@@ -153,7 +165,10 @@ export default function IdentityMasterAdminPage() {
           role="tab"
           aria-selected={activeWorkspace === "capabilities"}
           className={activeWorkspace === "capabilities" ? "active" : ""}
-          onClick={() => setActiveWorkspace("capabilities")}
+          onClick={() => {
+            setActiveWorkspace("capabilities");
+            setCapabilityWorkspaceView("capabilities");
+          }}
         >
           <span>03</span>
           <strong>3BOS Operating Access</strong>
@@ -165,6 +180,31 @@ export default function IdentityMasterAdminPage() {
     <MasterEditNavigation />
 
     {activeWorkspace === "identities" && (
+      <nav className="secondaryWorkspaceNav" aria-label="Identity catalogue sections">
+        <button
+          type="button"
+          className={identityWorkspaceView === "editor" ? "active" : ""}
+          aria-pressed={identityWorkspaceView === "editor"}
+          onClick={() => setIdentityWorkspaceView("editor")}
+        >
+          <strong>{editingId ? "Edit Identity" : "Add Identity"}</strong>
+          <small>Create a new identity or continue the selected edit.</small>
+        </button>
+
+        <button
+          type="button"
+          className={identityWorkspaceView === "catalogue" ? "active" : ""}
+          aria-pressed={identityWorkspaceView === "catalogue"}
+          onClick={() => setIdentityWorkspaceView("catalogue")}
+        >
+          <strong>Browse Identities</strong>
+          <small>Search, review and select from all {rows.length} identities.</small>
+        </button>
+      </nav>
+    )}
+
+    {activeWorkspace === "identities" &&
+      identityWorkspaceView === "editor" && (
     <form id="identity-master-form" className="panel" onSubmit={save}>
       <h2>{editingId ? "Edit identity" : "Add a new identity"}</h2>
       <p>Add a reusable work category, not an individual member or company. Example: Civil Contractor. Search the catalogue below before adding a duplicate. Identity, provider form, engagement model and operating capabilities are managed separately.</p>
@@ -249,11 +289,37 @@ export default function IdentityMasterAdminPage() {
             the appropriate business identities.
           </p>
         </div>
-        <OperatingCapabilityMasterSections identities={rows} />
+        <nav className="secondaryWorkspaceNav" aria-label="3BOS operating access sections">
+          <button
+            type="button"
+            className={capabilityWorkspaceView === "capabilities" ? "active" : ""}
+            aria-pressed={capabilityWorkspaceView === "capabilities"}
+            onClick={() => setCapabilityWorkspaceView("capabilities")}
+          >
+            <strong>Operating Capabilities</strong>
+            <small>Define and maintain the internal 3BOS tools.</small>
+          </button>
+
+          <button
+            type="button"
+            className={capabilityWorkspaceView === "mappings" ? "active" : ""}
+            aria-pressed={capabilityWorkspaceView === "mappings"}
+            onClick={() => setCapabilityWorkspaceView("mappings")}
+          >
+            <strong>Identity Mappings</strong>
+            <small>Assign appropriate capabilities to business identities.</small>
+          </button>
+        </nav>
+
+        <OperatingCapabilityMasterSections
+          identities={rows}
+          activeSection={capabilityWorkspaceView}
+        />
       </div>
     )}
 
-    {activeWorkspace === "identities" && (
+    {activeWorkspace === "identities" &&
+      identityWorkspaceView === "catalogue" && (
     <section className="catalogue">
       <div className="filters"><input placeholder="Search identity, alias or description" value={query} onChange={(e) => setQuery(e.target.value)} /><select value={family} onChange={(e) => setFamily(e.target.value)}><option value="">All families</option>{families.map((x) => <option key={x}>{x}</option>)}</select></div>
       <div className="rows">{visible.map((row) => <article key={row.id} className={!row.is_active ? "inactive" : ""}>
@@ -346,6 +412,47 @@ export default function IdentityMasterAdminPage() {
         margin-bottom: 20px;
       }
 
+      .secondaryWorkspaceNav {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        padding: 8px;
+        margin-bottom: 16px;
+        border: 1px solid #dbe3ec;
+        border-radius: 15px;
+        background: #f8fafc;
+      }
+
+      .secondaryWorkspaceNav button {
+        display: grid;
+        gap: 5px;
+        min-height: 82px;
+        padding: 14px 16px;
+        text-align: left;
+        color: #172033;
+        background: #fff;
+        border: 1px solid transparent;
+        border-radius: 11px;
+        box-shadow: none;
+      }
+
+      .secondaryWorkspaceNav button:hover {
+        border-color: #93c5fd;
+      }
+
+      .secondaryWorkspaceNav button.active {
+        color: #1d4ed8;
+        border-color: #2563eb;
+        background: #eff6ff;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, .08);
+      }
+
+      .secondaryWorkspaceNav button small {
+        color: #64748b;
+        font-weight: 500;
+        line-height: 1.45;
+      }
+
       .workspaceIntroduction {
         padding: 18px;
         margin-bottom: 14px;
@@ -355,7 +462,8 @@ export default function IdentityMasterAdminPage() {
       }
 
       @media(max-width: 850px) {
-        .masterWorkspaceNav {
+        .masterWorkspaceNav,
+        .secondaryWorkspaceNav {
           grid-template-columns: 1fr;
         }
 
