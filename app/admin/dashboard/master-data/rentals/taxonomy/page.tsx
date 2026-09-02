@@ -1,7 +1,11 @@
-// app/admin/dashboard/master-data/rentals/taxonomy/page.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
@@ -11,7 +15,13 @@ import { ActionButton } from "@/components/ui/ActionButton";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 
-type Kind = "type" | "category" | "subcategory" | "product_group";
+type Kind =
+  | "type"
+  | "category"
+  | "subcategory"
+  | "product_group";
+
+type Mode = "browse" | "add" | "edit";
 
 type TaxonRow = {
   id: string;
@@ -19,884 +29,1562 @@ type TaxonRow = {
   kind: Kind;
   name: string;
   slug: string;
+  description: string | null;
   sort_order: number | null;
   is_active: boolean;
   source: string | null;
+  child_count: number;
+  active_child_count: number;
+  descendant_count: number;
+  mapping_count: number;
+  direct_listing_count: number;
 };
 
-const TAXON_TABLE = "rental_taxons" as const;
-const ADMIN_ROLE = "rentals_admin" as const;
+type Summary = {
+  total_taxons: number;
+  active_taxons: number;
+  inactive_taxons: number;
+  type_count: number;
+  category_count: number;
+  subcategory_count: number;
+  product_group_count: number;
+  legacy_listing_count: number;
+  legacy_category_count: number;
+  legacy_subcategory_count: number;
+  legacy_equipment_count: number;
+};
 
-function slugify(input: string) {
-  return input
+type FormState = {
+  name: string;
+  slug: string;
+  description: string;
+  sort_order: string;
+  is_active: boolean;
+};
+
+const emptyForm: FormState = {
+  name: "",
+  slug: "",
+  description: "",
+  sort_order: "1000",
+  is_active: true,
+};
+
+const levelNames: Record<Kind, string> = {
+  type: "Type",
+  category: "Category",
+  subcategory: "Subcategory",
+  product_group: "Product Group",
+};
+
+const childKind: Partial<Record<Kind, Kind>> = {
+  type: "category",
+  category: "subcategory",
+  subcategory: "product_group",
+};
+
+const panel: React.CSSProperties = {
+  border: "1px solid rgba(15,23,42,0.10)",
+  borderRadius: 14,
+  padding: 16,
+  background: "#fff",
+};
+
+const field: React.CSSProperties = {
+  width: "100%",
+  minHeight: 44,
+  border: "1px solid rgba(15,23,42,0.16)",
+  borderRadius: 10,
+  padding: "10px 12px",
+  background: "#fff",
+};
+
+function slugify(value: string) {
+  return String(value || "")
     .trim()
     .toLowerCase()
     .replace(/&/g, "and")
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+    .replace(/(^-|-$)+/g, "");
 }
 
-function isMaster(role: string | null | undefined) {
-  return role === "master_admin";
-}
-function isModuleAdmin(role: string | null | undefined) {
-  return role === ADMIN_ROLE;
-}
-
-function looksLikeMissingColumn(err: any, col: string) {
-  const msg = String(err?.message || "");
-  return msg.toLowerCase().includes("does not exist") && msg.toLowerCase().includes(col.toLowerCase());
-}
-
-function looksLikeMissingRelation(err: any, rel: string) {
-  const msg = String(err?.message || "");
-  return msg.toLowerCase().includes("does not exist") && msg.toLowerCase().includes(rel.toLowerCase());
-}
-
-async function requireModuleAdmin(supabase: ReturnType<typeof getSupabaseBrowser>) {
-  const { data: auth } = await supabase.auth.getUser();
-  const user = auth?.user;
-  if (!user) return { ok: false, role: null as string | null, email: null as string | null };
-
-  const { data: prof, error: profErr } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (profErr) throw profErr;
-
-  const role = ((prof as any)?.role ?? null) as string | null;
-  const ok = isMaster(role) || isModuleAdmin(role);
-  return { ok, role, email: user.email ?? null };
-}
-
-async function fetchTaxons(supabase: ReturnType<typeof getSupabaseBrowser>, kind: Kind, parentId: string | null) {
-  let q = supabase
-    .from(TAXON_TABLE)
-    .select("id,parent_id,kind,name,slug,sort_order,is_active,source")
-    .eq("kind", kind)
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true, nullsFirst: true })
-    .order("name", { ascending: true });
-
-  if (parentId === null) q = q.is("parent_id", null);
-  else q = q.eq("parent_id", parentId);
-
-  const { data, error } = await q;
-  if (error) throw error;
-  return (data || []) as TaxonRow[];
-}
-
-// Soft-disable if is_active exists, otherwise hard delete
-async function softDeleteTaxon(supabase: ReturnType<typeof getSupabaseBrowser>, id: string) {
-  const r1 = await supabase.from(TAXON_TABLE).update({ is_active: false }).eq("id", id);
-  if (!r1.error) return;
-
-  if (looksLikeMissingColumn(r1.error, "is_active")) {
-    const r2 = await supabase.from(TAXON_TABLE).delete().eq("id", id);
-    if (r2.error) throw r2.error;
-    return;
-  }
-
-  throw r1.error;
-}
-
-function CardBox(props: { title: string; subtitle?: string; right?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <section className="mtx-card">
-      <div className="mtx-cardHead">
-        <div>
-          <div className="mtx-title">{props.title}</div>
-          {props.subtitle ? <div className="mtx-subtitle">{props.subtitle}</div> : null}
-        </div>
-        {props.right ? <div className="mtx-right">{props.right}</div> : null}
-      </div>
-      <div className="mtx-cardBody">{props.children}</div>
-    </section>
+function sortTaxons(rows: TaxonRow[]) {
+  return [...rows].sort(
+    (left, right) =>
+      (left.sort_order ?? 1000000) -
+        (right.sort_order ?? 1000000) ||
+      left.name.localeCompare(right.name)
   );
 }
 
-export default function RentalsTaxonomyAdmin() {
+export default function RentalTaxonomyMasterPage() {
   const router = useRouter();
-  const supabase = useMemo(() => getSupabaseBrowser(), []);
+  const supabase = useMemo(
+    () => getSupabaseBrowser(),
+    []
+  );
+  const editorRef = useRef<HTMLDivElement | null>(null);
+
+  const [taxons, setTaxons] = useState<TaxonRow[]>([]);
+  const [summary, setSummary] = useState<Summary | null>(
+    null
+  );
+
+  const [selectedTypeId, setSelectedTypeId] =
+    useState("");
+  const [selectedCategoryId, setSelectedCategoryId] =
+    useState("");
+  const [
+    selectedSubcategoryId,
+    setSelectedSubcategoryId,
+  ] = useState("");
+
+  const [viewKind, setViewKind] =
+    useState<Kind>("type");
+  const [mode, setMode] = useState<Mode>("browse");
+  const [editingId, setEditingId] =
+    useState<string | null>(null);
+  const [editingKind, setEditingKind] =
+    useState<Kind>("type");
+  const [permanentSlug, setPermanentSlug] =
+    useState("");
+  const [permanentParent, setPermanentParent] =
+    useState("");
+  const [form, setForm] =
+    useState<FormState>(emptyForm);
 
   const [loading, setLoading] = useState(true);
-  const [allowed, setAllowed] = useState(false);
-  const [role, setRole] = useState<string | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [aiBusy, setAiBusy] = useState<
+    "names" | "description" | null
+  >(null);
+  const [aiMessage, setAiMessage] = useState("");
+  const [aiSuggestions, setAiSuggestions] = useState<
+    string[]
+  >([]);
 
-  // lists
-  const [types, setTypes] = useState<TaxonRow[]>([]);
-  const [categories, setCategories] = useState<TaxonRow[]>([]);
-  const [subcategories, setSubcategories] = useState<TaxonRow[]>([]);
-  const [productGroups, setProductGroups] = useState<TaxonRow[]>([]);
+  const types = useMemo(
+    () =>
+      sortTaxons(
+        taxons.filter((row) => row.kind === "type")
+      ),
+    [taxons]
+  );
 
-  // selection
-  const [typeId, setTypeId] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [subcategoryId, setSubcategoryId] = useState("");
+  const categories = useMemo(
+    () =>
+      sortTaxons(
+        taxons.filter(
+          (row) =>
+            row.kind === "category" &&
+            row.parent_id === selectedTypeId
+        )
+      ),
+    [taxons, selectedTypeId]
+  );
 
-  const selectedType = types.find((t) => t.id === typeId) || null;
-  const selectedCategory = categories.find((c) => c.id === categoryId) || null;
-  const selectedSubcategory = subcategories.find((s) => s.id === subcategoryId) || null;
+  const subcategories = useMemo(
+    () =>
+      sortTaxons(
+        taxons.filter(
+          (row) =>
+            row.kind === "subcategory" &&
+            row.parent_id === selectedCategoryId
+        )
+      ),
+    [taxons, selectedCategoryId]
+  );
 
-  // create forms
-  const [newName, setNewName] = useState("");
-  const [newSlug, setNewSlug] = useState("");
-  const [newSort, setNewSort] = useState<number>(1);
-  const [newSource, setNewSource] = useState<string>("admin");
+  const productGroups = useMemo(
+    () =>
+      sortTaxons(
+        taxons.filter(
+          (row) =>
+            row.kind === "product_group" &&
+            row.parent_id === selectedSubcategoryId
+        )
+      ),
+    [taxons, selectedSubcategoryId]
+  );
 
-  const currentKind: Kind = !typeId ? "type" : !categoryId ? "category" : !subcategoryId ? "subcategory" : "product_group";
-  const parentForCurrent =
-    currentKind === "type" ? null : currentKind === "category" ? typeId : currentKind === "subcategory" ? categoryId : subcategoryId;
+  const selectedType =
+    types.find((row) => row.id === selectedTypeId) ||
+    null;
 
-  const titleForCurrent =
-    currentKind === "type"
-      ? "Types"
-      : currentKind === "category"
-      ? `Categories under: ${selectedType?.name ?? "—"}`
-      : currentKind === "subcategory"
-      ? `Subcategories under: ${selectedCategory?.name ?? "—"}`
-      : `Product Groups under: ${selectedSubcategory?.name ?? "—"}`;
+  const selectedCategory =
+    categories.find(
+      (row) => row.id === selectedCategoryId
+    ) || null;
 
-  // boot
-  useEffect(() => {
-    let alive = true;
+  const selectedSubcategory =
+    subcategories.find(
+      (row) => row.id === selectedSubcategoryId
+    ) || null;
 
-    (async () => {
-      try {
-        setLoading(true);
-        setMsg(null);
+  const visibleRows = useMemo(() => {
+    if (viewKind === "type") return types;
+    if (viewKind === "category") return categories;
+    if (viewKind === "subcategory") {
+      return subcategories;
+    }
+    return productGroups;
+  }, [
+    viewKind,
+    types,
+    categories,
+    subcategories,
+    productGroups,
+  ]);
 
-        const a = await requireModuleAdmin(supabase);
-        if (!alive) return;
+  async function accessToken() {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token || "";
+  }
 
-        setAllowed(a.ok);
-        setRole(a.role);
-        setEmail(a.email);
+  async function requestApi(
+    method: "GET" | "POST" | "PATCH",
+    body?: Record<string, unknown>
+  ) {
+    const token = await accessToken();
 
-        if (!a.ok) {
-          setLoading(false);
-          router.replace("/admin/dashboard");
-          return;
+    if (!token) {
+      router.replace("/admin/dashboard");
+      throw new Error("Please sign in again.");
+    }
+
+    const response = await fetch(
+      "/api/admin/rental-taxonomy",
+      {
+        method,
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: {
+          ...(body
+            ? { "Content-Type": "application/json" }
+            : {}),
+          Authorization: `Bearer ${token}`,
+        },
+        ...(body
+          ? { body: JSON.stringify(body) }
+          : {}),
+      }
+    );
+
+    const result = await response
+      .json()
+      .catch(() => ({}));
+
+    if (!response.ok) {
+      if (
+        response.status === 401 ||
+        response.status === 403
+      ) {
+        router.replace("/admin/dashboard");
+      }
+
+      throw new Error(
+        result.error ||
+          "Rental Taxonomy request failed."
+      );
+    }
+
+    return result;
+  }
+
+  async function load() {
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await requestApi("GET");
+      const nextTaxons =
+        (result.taxons || []) as TaxonRow[];
+
+      setTaxons(nextTaxons);
+      setSummary((result.summary || null) as Summary | null);
+
+      setSelectedTypeId((current) => {
+        if (
+          nextTaxons.some(
+            (row) =>
+              row.id === current &&
+              row.kind === "type"
+          )
+        ) {
+          return current;
         }
 
-        const t = await fetchTaxons(supabase, "type", null);
-        if (!alive) return;
-
-        setTypes(t);
-        setLoading(false);
-      } catch (e: any) {
-        console.error(e);
-        if (!alive) return;
-
-        const m =
-          e?.message ||
-          (looksLikeMissingRelation(e, TAXON_TABLE)
-            ? "Rentals taxonomy table not found in DB yet. Create rental_taxons first."
-            : "Failed to load.");
-
-        setMsg(m);
-        setLoading(false);
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, [router, supabase]);
-
-  // cascade
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setCategories([]);
-      setSubcategories([]);
-      setProductGroups([]);
-      setCategoryId("");
-      setSubcategoryId("");
-
-      if (!typeId) return;
-
-      try {
-        const c = await fetchTaxons(supabase, "category", typeId);
-        if (!alive) return;
-        setCategories(c);
-      } catch (e: any) {
-        if (!alive) return;
-        setMsg(e?.message || "Failed to load categories.");
-      }
-    })();
-    return () => void (alive = false);
-  }, [typeId, supabase]);
-
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setSubcategories([]);
-      setProductGroups([]);
-      setSubcategoryId("");
-
-      if (!categoryId) return;
-
-      try {
-        const s = await fetchTaxons(supabase, "subcategory", categoryId);
-        if (!alive) return;
-        setSubcategories(s);
-      } catch (e: any) {
-        if (!alive) return;
-        setMsg(e?.message || "Failed to load subcategories.");
-      }
-    })();
-    return () => void (alive = false);
-  }, [categoryId, supabase]);
-
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setProductGroups([]);
-      if (!subcategoryId) return;
-
-      try {
-        const p = await fetchTaxons(supabase, "product_group", subcategoryId);
-        if (!alive) return;
-        setProductGroups(p);
-      } catch (e: any) {
-        if (!alive) return;
-        setMsg(e?.message || "Failed to load product groups.");
-      }
-    })();
-    return () => void (alive = false);
-  }, [subcategoryId, supabase]);
-
-  async function refreshCurrentLists() {
-    // refresh based on selection depth
-    const t = await fetchTaxons(supabase, "type", null);
-    setTypes(t);
-
-    if (typeId) setCategories(await fetchTaxons(supabase, "category", typeId));
-    if (categoryId) setSubcategories(await fetchTaxons(supabase, "subcategory", categoryId));
-    if (subcategoryId) setProductGroups(await fetchTaxons(supabase, "product_group", subcategoryId));
-  }
-
-  async function onCreate() {
-    setMsg(null);
-    const name = newName.trim();
-    if (!name) return;
-
-    const slug = (newSlug.trim() || slugify(name)).toLowerCase();
-    if (!slug) return;
-
-    if (currentKind !== "type" && !parentForCurrent) {
-      return setMsg("Select parent first (Type / Category / Subcategory).");
-    }
-
-    setBusy(true);
-    try {
-      const { data: auth } = await supabase.auth.getUser();
-      const userId = auth?.user?.id ?? null;
-
-      const payload1: any = {
-        parent_id: parentForCurrent,
-        kind: currentKind,
-        name,
-        slug,
-        sort_order: newSort,
-        source: newSource || null,
-        is_active: true,
-        created_by: userId,
-      };
-
-      let { error } = await supabase.from(TAXON_TABLE).insert(payload1);
-
-      // remove is_active if column doesn't exist
-      if (error && looksLikeMissingColumn(error, "is_active")) {
-        const payload2: any = {
-          parent_id: parentForCurrent,
-          kind: currentKind,
-          name,
-          slug,
-          sort_order: newSort,
-          source: newSource || null,
-          created_by: userId,
-        };
-        const retry = await supabase.from(TAXON_TABLE).insert(payload2);
-        error = retry.error;
-      }
-
-      // remove created_by if column doesn't exist
-      if (error && looksLikeMissingColumn(error, "created_by")) {
-        const payload3: any = {
-          parent_id: parentForCurrent,
-          kind: currentKind,
-          name,
-          slug,
-          sort_order: newSort,
-          source: newSource || null,
-          is_active: true,
-        };
-        const retry2 = await supabase.from(TAXON_TABLE).insert(payload3);
-        error = retry2.error;
-      }
-
-      if (error) throw error;
-
-      setNewName("");
-      setNewSlug("");
-      setNewSort(1);
-      setNewSource("admin");
-      await refreshCurrentLists();
-      setMsg("Created ✅");
-    } catch (e: any) {
-      console.error(e);
-      setMsg(e?.message || "Create failed.");
+        return (
+          nextTaxons.find(
+            (row) =>
+              row.kind === "type" && row.is_active
+          )?.id ||
+          nextTaxons.find(
+            (row) => row.kind === "type"
+          )?.id ||
+          ""
+        );
+      });
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Unable to load Rental Taxonomy."
+      );
     } finally {
-      setBusy(false);
+      setLoading(false);
     }
   }
 
-  async function onRemove(row: TaxonRow) {
-    setMsg(null);
-    setBusy(true);
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (
+      selectedCategoryId &&
+      !categories.some(
+        (row) => row.id === selectedCategoryId
+      )
+    ) {
+      setSelectedCategoryId("");
+      setSelectedSubcategoryId("");
+    }
+  }, [categories, selectedCategoryId]);
+
+  useEffect(() => {
+    if (
+      selectedSubcategoryId &&
+      !subcategories.some(
+        (row) => row.id === selectedSubcategoryId
+      )
+    ) {
+      setSelectedSubcategoryId("");
+    }
+  }, [subcategories, selectedSubcategoryId]);
+
+  function parentForKind(kind: Kind) {
+    if (kind === "category") return selectedType;
+    if (kind === "subcategory") {
+      return selectedCategory;
+    }
+    if (kind === "product_group") {
+      return selectedSubcategory;
+    }
+    return null;
+  }
+
+  function parentIdForKind(kind: Kind) {
+    return parentForKind(kind)?.id || null;
+  }
+
+  function parentPathForKind(kind: Kind) {
+    const parts: string[] = [];
+
+    if (
+      kind === "category" ||
+      kind === "subcategory" ||
+      kind === "product_group"
+    ) {
+      if (selectedType) parts.push(selectedType.name);
+    }
+
+    if (
+      kind === "subcategory" ||
+      kind === "product_group"
+    ) {
+      if (selectedCategory) {
+        parts.push(selectedCategory.name);
+      }
+    }
+
+    if (kind === "product_group") {
+      if (selectedSubcategory) {
+        parts.push(selectedSubcategory.name);
+      }
+    }
+
+    return parts.join(" → ");
+  }
+
+  function showEditor() {
+    window.setTimeout(() => {
+      editorRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      editorRef.current
+        ?.querySelector<HTMLInputElement>("input")
+        ?.focus();
+    }, 0);
+  }
+
+  function resetEditor() {
+    setMode("browse");
+    setEditingId(null);
+    setEditingKind("type");
+    setPermanentSlug("");
+    setPermanentParent("");
+    setForm(emptyForm);
+    setAiBusy(null);
+    setAiMessage("");
+    setAiSuggestions([]);
+  }
+
+  function openAdd(kind: Kind) {
+    const parent = parentForKind(kind);
+
+    if (kind !== "type" && !parent) {
+      setError(
+        `Select the parent ${levelNames[
+          kind === "category"
+            ? "type"
+            : kind === "subcategory"
+              ? "category"
+              : "subcategory"
+        ].toLowerCase()} first.`
+      );
+      return;
+    }
+
+    setError("");
+    setMessage("");
+    setAiMessage("");
+    setAiSuggestions([]);
+    setMode("add");
+    setEditingId(null);
+    setEditingKind(kind);
+    setPermanentSlug("");
+    setPermanentParent(parentPathForKind(kind));
+    setForm(emptyForm);
+    showEditor();
+  }
+
+  function openEdit(row: TaxonRow) {
+    setError("");
+    setMessage("");
+    setAiMessage("");
+    setAiSuggestions([]);
+    setMode("edit");
+    setEditingId(row.id);
+    setEditingKind(row.kind);
+    setPermanentSlug(row.slug);
+
+    const parent = row.parent_id
+      ? taxons.find(
+          (candidate) =>
+            candidate.id === row.parent_id
+        )
+      : null;
+
+    setPermanentParent(parent?.name || "Top level");
+    setForm({
+      name: row.name,
+      slug: row.slug,
+      description: row.description || "",
+      sort_order: String(row.sort_order ?? 1000),
+      is_active: row.is_active,
+    });
+    showEditor();
+  }
+
+  function drillInto(row: TaxonRow) {
+    if (row.kind === "type") {
+      setSelectedTypeId(row.id);
+      setSelectedCategoryId("");
+      setSelectedSubcategoryId("");
+      setViewKind("category");
+    } else if (row.kind === "category") {
+      setSelectedCategoryId(row.id);
+      setSelectedSubcategoryId("");
+      setViewKind("subcategory");
+    } else if (row.kind === "subcategory") {
+      setSelectedSubcategoryId(row.id);
+      setViewKind("product_group");
+    }
+
+    resetEditor();
+    setError("");
+    setMessage("");
+  }
+
+  function goToLevel(kind: Kind) {
+    setViewKind(kind);
+
+    if (kind === "type") {
+      setSelectedCategoryId("");
+      setSelectedSubcategoryId("");
+    } else if (kind === "category") {
+      setSelectedCategoryId("");
+      setSelectedSubcategoryId("");
+    } else if (kind === "subcategory") {
+      setSelectedSubcategoryId("");
+    }
+
+    resetEditor();
+  }
+
+  async function requestAi(
+    task: "name_suggestions" | "description"
+  ) {
+    if (aiBusy) return;
+
+    if (
+      task === "description" &&
+      form.name.trim().length < 3
+    ) {
+      setAiMessage(
+        "Enter or select a clear display name first."
+      );
+      return;
+    }
+
+    const parent = parentForKind(editingKind);
+
+    if (editingKind !== "type" && !parent && mode === "add") {
+      setAiMessage(
+        "Select the required parent entry first."
+      );
+      return;
+    }
+
+    setAiBusy(
+      task === "name_suggestions"
+        ? "names"
+        : "description"
+    );
+    setAiMessage("");
+
+    if (task === "name_suggestions") {
+      setAiSuggestions([]);
+    }
+
     try {
-      await softDeleteTaxon(supabase, row.id);
+      const token = await accessToken();
 
-      // if removing selected item, clear downstream selections
-      if (row.id === typeId) {
-        setTypeId("");
-        setCategoryId("");
-        setSubcategoryId("");
-        setCategories([]);
-        setSubcategories([]);
-        setProductGroups([]);
-      }
-      if (row.id === categoryId) {
-        setCategoryId("");
-        setSubcategoryId("");
-        setSubcategories([]);
-        setProductGroups([]);
-      }
-      if (row.id === subcategoryId) {
-        setSubcategoryId("");
-        setProductGroups([]);
+      if (!token) {
+        router.replace("/admin/dashboard");
+        throw new Error("Please sign in again.");
       }
 
-      await refreshCurrentLists();
-      setMsg("Removed ✅");
-    } catch (e: any) {
-      console.error(e);
-      setMsg(e?.message || "Remove failed.");
+      const siblingParentId =
+        mode === "edit"
+          ? taxons.find(
+              (row) => row.id === editingId
+            )?.parent_id || null
+          : parentIdForKind(editingKind);
+
+      const existingNames = taxons
+        .filter(
+          (row) =>
+            row.kind === editingKind &&
+            row.parent_id === siblingParentId
+        )
+        .map((row) => row.name);
+
+      const response = await fetch(
+        "/api/admin/master-description",
+        {
+          method: "POST",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            task,
+            kind: `rental_${editingKind}`,
+            context: {
+              name: form.name.trim(),
+              family:
+                mode === "edit"
+                  ? permanentParent
+                  : parentPathForKind(editingKind),
+              key:
+                mode === "edit"
+                  ? permanentSlug
+                  : form.slug,
+            },
+            existing: form.description,
+            existingNames,
+          }),
+        }
+      );
+
+      const result = await response
+        .json()
+        .catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          result.error ||
+            "AI assistance is unavailable."
+        );
+      }
+
+      if (result.needs_clarification) {
+        setAiMessage(
+          result.question ||
+            "Please make the classification more specific."
+        );
+        return;
+      }
+
+      if (task === "name_suggestions") {
+        const suggestions = Array.isArray(
+          result.suggestions
+        )
+          ? result.suggestions
+              .filter(
+                (value: unknown): value is string =>
+                  typeof value === "string"
+              )
+              .map((value: string) => value.trim())
+              .filter(Boolean)
+              .slice(0, 5)
+          : [];
+
+        if (!suggestions.length) {
+          throw new Error(
+            "AI did not return usable suggestions."
+          );
+        }
+
+        setAiSuggestions(suggestions);
+        setAiMessage(
+          "AI suggestions are advisory. Select one or enter your own name."
+        );
+      } else if (
+        typeof result.description === "string"
+      ) {
+        setForm((current) => ({
+          ...current,
+          description: result.description.slice(0, 600),
+        }));
+        setAiMessage(
+          "AI draft inserted. Review and edit it before saving."
+        );
+      } else {
+        throw new Error(
+          "AI did not return a usable description."
+        );
+      }
+    } catch (caught) {
+      setAiMessage(
+        caught instanceof Error
+          ? caught.message
+          : "AI assistance is unavailable."
+      );
     } finally {
-      setBusy(false);
+      setAiBusy(null);
     }
   }
 
-  if (loading) {
-    return (
-      <Container>
-        <SectionHeader title="Rentals → Taxonomy" subtitle="Loading..." />
-      </Container>
+  function applyAiSuggestion(name: string) {
+    setForm((current) => ({
+      ...current,
+      name,
+      ...(mode === "add"
+        ? { slug: slugify(name) }
+        : {}),
+    }));
+    setAiSuggestions([]);
+    setAiMessage(
+      "Suggestion selected. Review it before saving."
     );
   }
 
-  if (!allowed) {
-    return (
-      <Container>
-        <SectionHeader title="Rentals → Taxonomy" subtitle="Admin access required" />
-        <EmptyState message="Access denied." />
-      </Container>
-    );
+  async function save() {
+    if (saving) return;
+
+    const name = form.name.trim();
+
+    if (name.length < 2) {
+      setError(
+        "Enter a clear name containing at least two characters."
+      );
+      return;
+    }
+
+    const parentId =
+      mode === "add"
+        ? parentIdForKind(editingKind)
+        : null;
+
+    if (mode === "add" && editingKind !== "type" && !parentId) {
+      setError(
+        "Select the required parent taxonomy entry."
+      );
+      return;
+    }
+
+    const reviewLines = [
+      `Action: ${mode === "add" ? "Create" : "Update"}`,
+      `Level: ${levelNames[editingKind]}`,
+      `Name: ${name}`,
+      `Permanent key: ${
+        mode === "add"
+          ? form.slug.trim() || slugify(name)
+          : permanentSlug
+      }`,
+      `Parent: ${
+        editingKind === "type"
+          ? "Top level"
+          : permanentParent ||
+            parentPathForKind(editingKind)
+      }`,
+      `Status: ${
+        form.is_active ? "Active" : "Inactive"
+      }`,
+      "",
+      "Please confirm that you reviewed this administrator-controlled record.",
+    ];
+
+    if (!window.confirm(reviewLines.join("\n"))) {
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+      if (mode === "add") {
+        await requestApi("POST", {
+          kind: editingKind,
+          parent_id: parentId,
+          name,
+          slug:
+            form.slug.trim() || slugify(name),
+          description: form.description.trim(),
+          sort_order: form.sort_order,
+          is_active: form.is_active,
+        });
+      } else {
+        await requestApi("PATCH", {
+          id: editingId,
+          name,
+          description: form.description.trim(),
+          sort_order: form.sort_order,
+          is_active: form.is_active,
+        });
+      }
+
+      setMessage(
+        `${levelNames[editingKind]} ${
+          mode === "add" ? "created" : "updated"
+        }.`
+      );
+
+      resetEditor();
+      await load();
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Save failed."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function toggleStatus(row: TaxonRow) {
+    const action = row.is_active
+      ? "Deactivate"
+      : "Reactivate";
+
+    const impact = [
+      `Direct children: ${row.child_count}`,
+      `Active children: ${row.active_child_count}`,
+      `All descendants: ${row.descendant_count}`,
+      `Attribute mappings: ${row.mapping_count}`,
+      `Direct taxonomy-linked listings: ${row.direct_listing_count}`,
+      `Legacy listings preserved separately: ${
+        summary?.legacy_listing_count || 0
+      }`,
+    ];
+
+    if (
+      !window.confirm(
+        `${action} "${row.name}"?\n\n${impact.join(
+          "\n"
+        )}\n\nNo historical record will be deleted.`
+      )
+    ) {
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+    setMessage("");
+
+    try {
+      await requestApi("PATCH", {
+        id: row.id,
+        name: row.name,
+        description: row.description || "",
+        sort_order: String(row.sort_order ?? 1000),
+        is_active: !row.is_active,
+      });
+
+      setMessage(
+        `"${row.name}" is now ${
+          row.is_active ? "inactive" : "active"
+        }.`
+      );
+      await load();
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Lifecycle change failed."
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
     <Container>
-      <div className="mtx-page">
-        <SectionHeader
-          title="Rentals → Taxonomy"
-          subtitle={`Manage Types → Categories → Subcategories → Product Groups (role: ${role ?? "—"})`}
-        />
+      <SectionHeader
+        title="Rentals · Taxonomy"
+        subtitle="Control the four-level rental classification used by public filters, pricing intelligence and future attribute mappings."
+      />
 
-        <div className="mtx-topbar">
-          <div className="mtx-actions">
-            <ActionButton href="/admin/dashboard/master-data" variant="secondary">
-              ← Back to Master Data
-            </ActionButton>
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          flexWrap: "wrap",
+          marginBottom: 14,
+        }}
+      >
+        <ActionButton
+          href="/admin/dashboard/master-data"
+          variant="secondary"
+        >
+          ← Back
+        </ActionButton>
 
-            <ActionButton href="/admin/dashboard/master-data/rentals/taxonomy" variant="secondary">
-              Taxonomy
-            </ActionButton>
-            <ActionButton href="/admin/dashboard/master-data/rentals/mapping" variant="secondary">
-              Mapping
-            </ActionButton>
-            <ActionButton href="/admin/dashboard/master-data/rentals/attributes" variant="secondary">
-              Attributes
-            </ActionButton>
-            <ActionButton href="/admin/dashboard/master-data/rentals/values" variant="secondary">
-              Values
-            </ActionButton>
-          </div>
+        <ActionButton
+          href="/admin/dashboard/master-data/rentals/attributes"
+          variant="secondary"
+        >
+          Attributes →
+        </ActionButton>
 
-          <div className="mtx-status">{msg ? <Badge>{msg}</Badge> : null}</div>
-        </div>
+        <ActionButton
+          href="/admin/dashboard/master-data/rentals/values"
+          variant="secondary"
+        >
+          Values →
+        </ActionButton>
 
-        <div className="mtx-grid2">
-          <CardBox
-            title="Select hierarchy"
-            subtitle="Pick Type → Category → Subcategory (then manage Product Groups)"
-            right={
-              <div className="mtx-chipCol">
-                <span className="mtx-chip">{email ?? "—"}</span>
-                <span className="mtx-chip subtle">role: {role ?? "—"}</span>
+        <ActionButton
+          href="/admin/dashboard/master-data/rentals/mapping"
+          variant="secondary"
+        >
+          Mapping →
+        </ActionButton>
+      </div>
+
+      {summary ? (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit,minmax(145px,1fr))",
+            gap: 10,
+            marginBottom: 14,
+          }}
+        >
+          {[
+            ["All taxons", summary.total_taxons],
+            ["Active", summary.active_taxons],
+            ["Inactive", summary.inactive_taxons],
+            ["Types", summary.type_count],
+            ["Categories", summary.category_count],
+            ["Subcategories", summary.subcategory_count],
+            ["Product groups", summary.product_group_count],
+            [
+              "Legacy listings",
+              summary.legacy_listing_count,
+            ],
+          ].map(([label, value]) => (
+            <div key={String(label)} style={panel}>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "#64748b",
+                }}
+              >
+                {label}
               </div>
-            }
+              <div
+                style={{
+                  fontSize: 24,
+                  fontWeight: 800,
+                  marginTop: 4,
+                }}
+              >
+                {value}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div
+        style={{
+          ...panel,
+          marginBottom: 14,
+          background: "#f8fafc",
+        }}
+      >
+        <b>Compatibility protection</b>
+        <p style={{ margin: "6px 0 0" }}>
+          The existing {summary?.legacy_listing_count || 0}{" "}
+          rental listings continue using the preserved legacy
+          catalogue of{" "}
+          {summary?.legacy_category_count || 0} categories,{" "}
+          {summary?.legacy_subcategory_count || 0}{" "}
+          subcategories and{" "}
+          {summary?.legacy_equipment_count || 0} equipment
+          records. Rental Taxonomy administration never deletes
+          or rewrites those records.
+        </p>
+      </div>
+
+      {error ? (
+        <div
+          style={{
+            ...panel,
+            borderColor: "#fecaca",
+            background: "#fef2f2",
+            color: "#991b1b",
+            marginBottom: 14,
+          }}
+        >
+          {error}
+        </div>
+      ) : null}
+
+      {message ? (
+        <div
+          style={{
+            ...panel,
+            borderColor: "#bbf7d0",
+            background: "#f0fdf4",
+            color: "#166534",
+            marginBottom: 14,
+          }}
+        >
+          {message}
+        </div>
+      ) : null}
+
+      <div
+        style={{
+          ...panel,
+          marginBottom: 14,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => goToLevel("type")}
+            style={{
+              ...field,
+              width: "auto",
+              cursor: "pointer",
+              fontWeight:
+                viewKind === "type" ? 800 : 500,
+            }}
           >
-            <div className="mtx-form">
-              <label className="mtx-field">
-                <span>Type</span>
-                <select value={typeId} onChange={(e) => setTypeId(e.target.value)}>
-                  <option value="">— Select Type —</option>
-                  {types.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name} ({t.slug})
-                    </option>
-                  ))}
-                </select>
-              </label>
+            Types
+          </button>
 
-              <label className="mtx-field">
-                <span>Category</span>
-                <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} disabled={!typeId}>
-                  <option value="">{typeId ? "— Select Category —" : "Select a Type first"}</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.slug})
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="mtx-field">
-                <span>Subcategory</span>
-                <select value={subcategoryId} onChange={(e) => setSubcategoryId(e.target.value)} disabled={!categoryId}>
-                  <option value="">{categoryId ? "— Select Subcategory —" : "Select a Category first"}</option>
-                  {subcategories.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} ({s.slug})
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="mtx-selection">
-                <div className="mtx-selectionHead">Current selection</div>
-                <div className="mtx-pillRow">
-                  <span className="mtx-pill">{selectedType ? `Type: ${selectedType.slug}` : "Type: —"}</span>
-                  <span className="mtx-pill">{selectedCategory ? `Category: ${selectedCategory.slug}` : "Category: —"}</span>
-                  <span className="mtx-pill">
-                    {selectedSubcategory ? `Subcategory: ${selectedSubcategory.slug}` : "Subcategory: —"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mtx-footnote" style={{ textAlign: "left", marginTop: 0 }}>
-                Tip: To add Product Groups, select a Subcategory first.
-              </div>
-            </div>
-          </CardBox>
-
-          <CardBox title={`Create ${currentKind}`} subtitle={titleForCurrent} right={<Badge>{TAXON_TABLE}</Badge>}>
-            <div className="mtx-form">
-              <div className="mtx-footnote" style={{ textAlign: "left", marginTop: 0 }}>
-                Parent:{" "}
-                <b>
-                  {currentKind === "type"
-                    ? "None"
-                    : currentKind === "category"
-                    ? selectedType?.name ?? "Select a Type"
-                    : currentKind === "subcategory"
-                    ? selectedCategory?.name ?? "Select a Category"
-                    : selectedSubcategory?.name ?? "Select a Subcategory"}
-                </b>
-              </div>
-
-              <div className="mtx-twoCol">
-                <label className="mtx-field">
-                  <span>Name</span>
-                  <input
-                    value={newName}
-                    onChange={(e) => {
-                      setNewName(e.target.value);
-                      if (!newSlug.trim()) setNewSlug(slugify(e.target.value));
-                    }}
-                    placeholder={`e.g., ${currentKind === "type" ? "Vehicles" : currentKind === "category" ? "Cars" : currentKind === "subcategory" ? "SUV" : "Compact SUV"}`}
-                  />
-                </label>
-
-                <label className="mtx-field">
-                  <span>Slug</span>
-                  <input value={newSlug} onChange={(e) => setNewSlug(e.target.value)} placeholder="auto-generated" />
-                </label>
-              </div>
-
-              <div className="mtx-twoCol">
-                <label className="mtx-field">
-                  <span>Sort order</span>
-                  <input
-                    type="number"
-                    value={newSort}
-                    onChange={(e) => setNewSort(parseInt(e.target.value || "1", 10))}
-                  />
-                </label>
-
-                <label className="mtx-field">
-                  <span>Source</span>
-                  <input value={newSource} onChange={(e) => setNewSource(e.target.value)} placeholder="admin / seed / import" />
-                </label>
-              </div>
-
-              <button className="mtx-primaryBtn" type="button" onClick={onCreate} disabled={busy || !newName.trim()}>
-                {busy ? "Saving..." : `Create ${currentKind}`}
+          {selectedType ? (
+            <>
+              <span>→</span>
+              <button
+                type="button"
+                onClick={() => goToLevel("category")}
+                style={{
+                  ...field,
+                  width: "auto",
+                  cursor: "pointer",
+                  fontWeight:
+                    viewKind === "category" ? 800 : 500,
+                }}
+              >
+                {selectedType.name}
               </button>
+            </>
+          ) : null}
 
-              <div className="mtx-footnote" style={{ textAlign: "left" }}>
-                Note: Slugs must be unique per your DB constraint (often unique on kind+parent+slug or global unique).
-              </div>
-            </div>
-          </CardBox>
-        </div>
+          {selectedCategory ? (
+            <>
+              <span>→</span>
+              <button
+                type="button"
+                onClick={() =>
+                  goToLevel("subcategory")
+                }
+                style={{
+                  ...field,
+                  width: "auto",
+                  cursor: "pointer",
+                  fontWeight:
+                    viewKind === "subcategory"
+                      ? 800
+                      : 500,
+                }}
+              >
+                {selectedCategory.name}
+              </button>
+            </>
+          ) : null}
 
-        <div className="mtx-grid2 mtx-mt">
-          <CardBox title="Types" subtitle="Top level (kind=type)">
-            {types.length === 0 ? (
-              <div className="mtx-empty">No types yet.</div>
-            ) : (
-              <div className="mtx-list">
-                {types.map((r) => (
-                  <div key={r.id} className="mtx-row">
-                    <div className="mtx-rowText">
-                      <div className="mtx-rowName">{r.name}</div>
-                      <div className="mtx-rowSlug">
-                        {r.slug} • sort: {r.sort_order ?? "-"} • source: {r.source ?? "-"}
-                      </div>
-                    </div>
-                    <button className="mtx-ghostBtn" onClick={() => onRemove(r)} disabled={busy}>
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardBox>
-
-          <CardBox title="Categories" subtitle={selectedType ? `Under: ${selectedType.name}` : "Select a Type"}>
-            {!selectedType ? (
-              <div className="mtx-empty">Select a Type first.</div>
-            ) : categories.length === 0 ? (
-              <div className="mtx-empty">No categories yet.</div>
-            ) : (
-              <div className="mtx-list">
-                {categories.map((r) => (
-                  <div key={r.id} className="mtx-row">
-                    <div className="mtx-rowText">
-                      <div className="mtx-rowName">{r.name}</div>
-                      <div className="mtx-rowSlug">
-                        {r.slug} • sort: {r.sort_order ?? "-"} • source: {r.source ?? "-"}
-                      </div>
-                    </div>
-                    <button className="mtx-ghostBtn" onClick={() => onRemove(r)} disabled={busy}>
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardBox>
-
-          <CardBox title="Subcategories" subtitle={selectedCategory ? `Under: ${selectedCategory.name}` : "Select a Category"}>
-            {!selectedCategory ? (
-              <div className="mtx-empty">Select a Category first.</div>
-            ) : subcategories.length === 0 ? (
-              <div className="mtx-empty">No subcategories yet.</div>
-            ) : (
-              <div className="mtx-list">
-                {subcategories.map((r) => (
-                  <div key={r.id} className="mtx-row">
-                    <div className="mtx-rowText">
-                      <div className="mtx-rowName">{r.name}</div>
-                      <div className="mtx-rowSlug">
-                        {r.slug} • sort: {r.sort_order ?? "-"} • source: {r.source ?? "-"}
-                      </div>
-                    </div>
-                    <button className="mtx-ghostBtn" onClick={() => onRemove(r)} disabled={busy}>
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardBox>
-
-          <CardBox title="Product Groups" subtitle={selectedSubcategory ? `Under: ${selectedSubcategory.name}` : "Select a Subcategory"}>
-            {!selectedSubcategory ? (
-              <div className="mtx-empty">Select a Subcategory first.</div>
-            ) : productGroups.length === 0 ? (
-              <div className="mtx-empty">No product groups yet.</div>
-            ) : (
-              <div className="mtx-list">
-                {productGroups.map((r) => (
-                  <div key={r.id} className="mtx-row">
-                    <div className="mtx-rowText">
-                      <div className="mtx-rowName">{r.name}</div>
-                      <div className="mtx-rowSlug">
-                        {r.slug} • sort: {r.sort_order ?? "-"} • source: {r.source ?? "-"}
-                      </div>
-                    </div>
-                    <button className="mtx-ghostBtn" onClick={() => onRemove(r)} disabled={busy}>
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardBox>
+          {selectedSubcategory ? (
+            <>
+              <span>→</span>
+              <button
+                type="button"
+                onClick={() =>
+                  setViewKind("product_group")
+                }
+                style={{
+                  ...field,
+                  width: "auto",
+                  cursor: "pointer",
+                  fontWeight:
+                    viewKind === "product_group"
+                      ? 800
+                      : 500,
+                }}
+              >
+                {selectedSubcategory.name}
+              </button>
+            </>
+          ) : null}
         </div>
       </div>
 
-      {/* SAME CSS */}
-      <style jsx>{`
-        .mtx-topbar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          flex-wrap: wrap;
-          margin: 12px 0 16px;
-        }
-        .mtx-actions {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
-        .mtx-status {
-          display: flex;
-          justify-content: flex-end;
-          min-height: 24px;
-        }
+      <div style={panel}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+            alignItems: "center",
+            marginBottom: 12,
+          }}
+        >
+          <div>
+            <h2 style={{ margin: 0 }}>
+              {levelNames[viewKind]}s
+            </h2>
+            <small>
+              Active and inactive historical records are shown.
+            </small>
+          </div>
 
-        .mtx-grid2 {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 14px;
-        }
-        @media (min-width: 980px) {
-          .mtx-grid2 {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
-        .mtx-mt {
-          margin-top: 14px;
-        }
+          <button
+            type="button"
+            onClick={() => openAdd(viewKind)}
+            disabled={
+              saving ||
+              (viewKind !== "type" &&
+                !parentForKind(viewKind))
+            }
+            style={{
+              ...field,
+              width: "auto",
+              cursor: "pointer",
+              fontWeight: 800,
+            }}
+          >
+            + Add {levelNames[viewKind]}
+          </button>
+        </div>
 
-        .mtx-card {
-          background: #fff;
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          border-radius: 14px;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-          overflow: hidden;
-        }
-        .mtx-cardHead {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 12px;
-          padding: 14px 14px 10px;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-        }
-        .mtx-cardBody {
-          padding: 14px;
-        }
+        {loading ? (
+          <EmptyState message="Loading Rental Taxonomy…" />
+        ) : visibleRows.length === 0 ? (
+          <EmptyState
+            message={`No ${levelNames[
+              viewKind
+            ].toLowerCase()} records found for this selection.`}
+          />
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gap: 10,
+            }}
+          >
+            {visibleRows.map((row) => (
+              <div
+                key={row.id}
+                style={{
+                  border:
+                    "1px solid rgba(15,23,42,0.10)",
+                  borderRadius: 12,
+                  padding: 14,
+                  background: row.is_active
+                    ? "#fff"
+                    : "#f8fafc",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div style={{ flex: "1 1 280px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 8,
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                      }}
+                    >
+                      <b>{row.name}</b>
+                      <Badge>
+                        {row.is_active
+                          ? "Active"
+                          : "Inactive"}
+                      </Badge>
+                      <Badge>{row.kind}</Badge>
+                    </div>
 
-        .mtx-title {
-          font-size: 15px;
-          font-weight: 800;
-        }
-        .mtx-subtitle {
-          margin-top: 4px;
-          font-size: 13px;
-          opacity: 0.75;
-          line-height: 1.35;
-        }
-        .mtx-right {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          justify-content: flex-end;
-          align-items: center;
-        }
+                    <div
+                      style={{
+                        marginTop: 5,
+                        color: "#475569",
+                        fontSize: 13,
+                      }}
+                    >
+                      Permanent key:{" "}
+                      <code>{row.slug}</code>
+                    </div>
 
-        .mtx-chipCol {
-          display: grid;
-          gap: 6px;
-          justify-items: end;
-        }
-        .mtx-chip {
-          font-size: 12px;
-          padding: 6px 10px;
-          border-radius: 999px;
-          border: 1px solid rgba(0, 0, 0, 0.12);
-          background: rgba(0, 0, 0, 0.02);
-          white-space: nowrap;
-        }
-        .mtx-chip.subtle {
-          opacity: 0.7;
-        }
+                    <p
+                      style={{
+                        margin: "8px 0 0",
+                        color: "#334155",
+                      }}
+                    >
+                      {row.description ||
+                        "No administrator description yet."}
+                    </p>
 
-        .mtx-form {
-          display: grid;
-          gap: 12px;
-        }
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 10,
+                        flexWrap: "wrap",
+                        marginTop: 8,
+                        fontSize: 12,
+                        color: "#64748b",
+                      }}
+                    >
+                      <span>
+                        Sort: {row.sort_order ?? "—"}
+                      </span>
+                      <span>
+                        Children: {row.child_count}
+                      </span>
+                      <span>
+                        Active children:{" "}
+                        {row.active_child_count}
+                      </span>
+                      <span>
+                        Descendants:{" "}
+                        {row.descendant_count}
+                      </span>
+                      <span>
+                        Mappings: {row.mapping_count}
+                      </span>
+                      <span>
+                        Direct listings:{" "}
+                        {row.direct_listing_count}
+                      </span>
+                    </div>
+                  </div>
 
-        .mtx-field {
-          display: grid;
-          gap: 6px;
-        }
-        .mtx-field > span {
-          font-size: 12px;
-          opacity: 0.75;
-        }
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 8,
+                      flexWrap: "wrap",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    {childKind[row.kind] ? (
+                      <button
+                        type="button"
+                        onClick={() => drillInto(row)}
+                        style={{
+                          ...field,
+                          width: "auto",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Open{" "}
+                        {levelNames[
+                          childKind[row.kind] as Kind
+                        ]}
+                        s
+                      </button>
+                    ) : null}
 
-        .mtx-field select,
-        .mtx-field input {
-          width: 100%;
-          max-width: 100%;
-          min-width: 0;
-          height: 42px;
-          padding: 10px 12px;
-          border-radius: 10px;
-          border: 1px solid rgba(0, 0, 0, 0.18);
-          background: #fff;
-          font-size: 14px;
-          outline: none;
-        }
-        .mtx-field select:disabled,
-        .mtx-field input:disabled {
-          background: rgba(0, 0, 0, 0.03);
-          opacity: 0.7;
-        }
-        .mtx-field select:focus,
-        .mtx-field input:focus {
-          border-color: rgba(0, 0, 0, 0.35);
-          box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06);
-        }
+                    <button
+                      type="button"
+                      onClick={() => openEdit(row)}
+                      style={{
+                        ...field,
+                        width: "auto",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Edit
+                    </button>
 
-        .mtx-twoCol {
-          display: grid;
-          gap: 12px;
-          grid-template-columns: 1fr;
-        }
-        @media (min-width: 760px) {
-          .mtx-twoCol {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void toggleStatus(row)
+                      }
+                      disabled={saving}
+                      style={{
+                        ...field,
+                        width: "auto",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {row.is_active
+                        ? "Deactivate"
+                        : "Reactivate"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
-        .mtx-primaryBtn {
-          height: 44px;
-          border-radius: 12px;
-          border: 1px solid rgba(0, 0, 0, 0.18);
-          background: #111;
-          color: #fff;
-          font-weight: 900;
-          cursor: pointer;
-        }
-        .mtx-primaryBtn:disabled {
-          background: rgba(0, 0, 0, 0.08);
-          color: rgba(0, 0, 0, 0.35);
-          cursor: not-allowed;
-        }
+      {mode !== "browse" ? (
+        <div
+          ref={editorRef}
+          style={{
+            ...panel,
+            marginTop: 14,
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>
+            {mode === "add" ? "Add" : "Edit"}{" "}
+            {levelNames[editingKind]}
+          </h2>
 
-        .mtx-ghostBtn {
-          height: 40px;
-          border-radius: 12px;
-          border: 1px solid rgba(0, 0, 0, 0.18);
-          background: #fff;
-          font-weight: 800;
-          cursor: pointer;
-        }
-        .mtx-ghostBtn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
+          <div
+            style={{
+              ...panel,
+              background: "#fffbeb",
+              borderColor: "#fde68a",
+              marginBottom: 14,
+            }}
+          >
+            AI may suggest names and draft descriptions, but
+            it cannot save database records. A master
+            administrator must review and confirm every save.
+          </div>
 
-        .mtx-list {
-          display: grid;
-          gap: 10px;
-        }
-        .mtx-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 10px;
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          border-radius: 12px;
-          padding: 10px 12px;
-          background: rgba(0, 0, 0, 0.01);
-        }
-        .mtx-rowText {
-          display: grid;
-          gap: 4px;
-          min-width: 0;
-        }
-        .mtx-rowName {
-          font-weight: 900;
-          font-size: 13px;
-          word-break: break-word;
-        }
-        .mtx-rowSlug {
-          font-size: 12px;
-          opacity: 0.75;
-          word-break: break-word;
-        }
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit,minmax(240px,1fr))",
+              gap: 12,
+            }}
+          >
+            <label>
+              <b>Display name</b>
+              <input
+                value={form.name}
+                onChange={(event) => {
+                  const name = event.target.value;
+                  setForm((current) => ({
+                    ...current,
+                    name,
+                    ...(mode === "add" &&
+                    !current.slug
+                      ? { slug: slugify(name) }
+                      : {}),
+                  }));
+                }}
+                style={field}
+                maxLength={120}
+              />
+            </label>
 
-        .mtx-empty {
-          font-size: 13px;
-          opacity: 0.7;
-          padding: 4px 0;
-        }
+            <label>
+              <b>Permanent key</b>
+              <input
+                value={
+                  mode === "edit"
+                    ? permanentSlug
+                    : form.slug
+                }
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    slug: slugify(event.target.value),
+                  }))
+                }
+                style={{
+                  ...field,
+                  background:
+                    mode === "edit"
+                      ? "#f1f5f9"
+                      : "#fff",
+                }}
+                maxLength={120}
+                disabled={mode === "edit"}
+              />
+              <small>
+                Locked permanently after creation.
+              </small>
+            </label>
 
-        .mtx-selection {
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          border-radius: 12px;
-          padding: 10px 12px;
-          background: rgba(0, 0, 0, 0.01);
-        }
-        .mtx-selectionHead {
-          font-size: 12px;
-          font-weight: 900;
-          opacity: 0.7;
-          margin-bottom: 8px;
-        }
-        .mtx-pillRow {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-        .mtx-pill {
-          font-size: 12px;
-          font-weight: 900;
-          padding: 6px 10px;
-          border-radius: 999px;
-          border: 1px solid rgba(0, 0, 0, 0.12);
-          background: #fff;
-          white-space: nowrap;
-        }
+            <label>
+              <b>Parent relationship</b>
+              <input
+                value={
+                  editingKind === "type"
+                    ? "Top level"
+                    : mode === "edit"
+                      ? permanentParent
+                      : parentPathForKind(editingKind)
+                }
+                style={{
+                  ...field,
+                  background: "#f1f5f9",
+                }}
+                disabled
+              />
+              <small>
+                Locked permanently after creation.
+              </small>
+            </label>
 
-        .mtx-footnote {
-          margin-top: 12px;
-          font-size: 13px;
-          opacity: 0.7;
-          text-align: right;
-        }
-      `}</style>
+            <label>
+              <b>Sort order</b>
+              <input
+                type="number"
+                min={0}
+                max={1000000}
+                value={form.sort_order}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    sort_order: event.target.value,
+                  }))
+                }
+                style={field}
+              />
+            </label>
+          </div>
+
+          <div style={{ marginTop: 14 }}>
+            <button
+              type="button"
+              onClick={() =>
+                void requestAi("name_suggestions")
+              }
+              disabled={Boolean(aiBusy)}
+              style={{
+                ...field,
+                width: "auto",
+                cursor: "pointer",
+              }}
+            >
+              {aiBusy === "names"
+                ? "AI is suggesting…"
+                : `Suggest ${levelNames[
+                    editingKind
+                  ]} Names with AI`}
+            </button>
+          </div>
+
+          {aiSuggestions.length ? (
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                flexWrap: "wrap",
+                marginTop: 10,
+              }}
+            >
+              {aiSuggestions.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() =>
+                    applyAiSuggestion(suggestion)
+                  }
+                  style={{
+                    ...field,
+                    width: "auto",
+                    cursor: "pointer",
+                  }}
+                >
+                  Use “{suggestion}”
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          <label
+            style={{
+              display: "block",
+              marginTop: 14,
+            }}
+          >
+            <b>Administrator description</b>
+            <textarea
+              value={form.description}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  description: event.target.value,
+                }))
+              }
+              maxLength={600}
+              rows={5}
+              style={{
+                ...field,
+                resize: "vertical",
+              }}
+            />
+            <small>
+              {form.description.length}/600 characters.
+              Human review is required.
+            </small>
+          </label>
+
+          <div style={{ marginTop: 10 }}>
+            <button
+              type="button"
+              onClick={() =>
+                void requestAi("description")
+              }
+              disabled={Boolean(aiBusy)}
+              style={{
+                ...field,
+                width: "auto",
+                cursor: "pointer",
+              }}
+            >
+              {aiBusy === "description"
+                ? "AI is drafting…"
+                : form.description.trim()
+                  ? "Improve Description with AI"
+                  : "Draft Description with AI"}
+            </button>
+          </div>
+
+          {aiMessage ? (
+            <p
+              style={{
+                marginBottom: 0,
+                color: "#475569",
+              }}
+            >
+              {aiMessage}
+            </p>
+          ) : null}
+
+          <label
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              marginTop: 14,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={form.is_active}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  is_active: event.target.checked,
+                }))
+              }
+            />
+            Active
+          </label>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+              marginTop: 16,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => void save()}
+              disabled={saving}
+              style={{
+                ...field,
+                width: "auto",
+                cursor: "pointer",
+                fontWeight: 800,
+              }}
+            >
+              {saving
+                ? "Saving…"
+                : "Review and Save"}
+            </button>
+
+            <button
+              type="button"
+              onClick={resetEditor}
+              disabled={saving}
+              style={{
+                ...field,
+                width: "auto",
+                cursor: "pointer",
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : null}
     </Container>
   );
 }
