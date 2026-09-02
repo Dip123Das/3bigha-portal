@@ -43,7 +43,6 @@ function SegmentedToggle(props: {
   valuesHref?: string;
   mappingHref?: string;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
 
   const isTaxonomy = pathname === props.taxonomyHref || pathname.startsWith(props.taxonomyHref + "/");
@@ -62,7 +61,7 @@ function SegmentedToggle(props: {
       <button
         type="button"
         className={`segBtn ${isTaxonomy ? "active" : ""}`}
-        onClick={() => router.push(props.taxonomyHref)}
+        onClick={() => window.location.assign(props.taxonomyHref)}
       >
         Taxonomy
       </button>
@@ -70,7 +69,7 @@ function SegmentedToggle(props: {
       <button
         type="button"
         className={`segBtn ${isAttributes ? "active" : ""}`}
-        onClick={() => router.push(props.attributesHref)}
+        onClick={() => window.location.assign(props.attributesHref)}
       >
         Attributes
       </button>
@@ -79,7 +78,7 @@ function SegmentedToggle(props: {
         <button
           type="button"
           className={`segBtn ${isValues ? "active" : ""}`}
-          onClick={() => router.push(props.valuesHref!)}
+          onClick={() => window.location.assign(props.valuesHref!)}
         >
           Values
         </button>
@@ -89,7 +88,7 @@ function SegmentedToggle(props: {
         <button
           type="button"
           className={`segBtn ${isMapping ? "active" : ""}`}
-          onClick={() => router.push(props.mappingHref!)}
+          onClick={() => window.location.assign(props.mappingHref!)}
         >
           Mapping
         </button>
@@ -200,6 +199,8 @@ export default function MasterDataEntryCentrePage() {
           <SegmentedToggle
             taxonomyHref="/admin/dashboard/master-data/rentals/taxonomy"
             attributesHref="/admin/dashboard/master-data/rentals/attributes"
+            valuesHref="/admin/dashboard/master-data/rentals/values"
+            mappingHref="/admin/dashboard/master-data/rentals/mapping"
           />
         </CardShell>
       </div>
