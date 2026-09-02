@@ -2090,8 +2090,9 @@ useEffect(() => {
       // 1) Load mapped attributes for subtype
       const mres = await supabase
         .from("property_subtype_attributes")
-        .select("attribute_id, sort_order, is_required, property_attributes(id,name,slug,input_type,unit,sort_order,is_active)")
-        .eq("subtype_id", subtypeId);
+        .select("attribute_id, sort_order, is_required, property_attributes!inner(id,name,slug,input_type,unit,sort_order,is_active)")
+        .eq("subtype_id", subtypeId)
+        .eq("property_attributes.is_active", true);
 
       if (!alive) return;
 
@@ -2156,55 +2157,100 @@ if (listingId) {
 
   if (!alive) return;
 
-  if (!lres.error) {
-    (lres.data as ListingAttrRow[] | null)?.forEach((row) => {
-      const aid = String(row.attribute_id ?? "");
-      if (!aid || !(aid in init)) return;
+  if (lres.error) throw lres.error;
 
-      init[aid] = {
-        value_text: row.value_text ?? "",
-        value_number: row.value_number == null ? "" : String(row.value_number),
-        value_bool: row.value_bool == null ? null : !!row.value_bool,
-        value_ids: Array.isArray(row.value_ids) ? row.value_ids : [],
-      };
-    });
-  }
+  (lres.data as ListingAttrRow[] | null)?.forEach((row) => {
+    const aid = String(row.attribute_id ?? "");
+    if (!aid || !(aid in init)) return;
+
+    init[aid] = {
+      value_text: row.value_text ?? "",
+      value_number:
+        row.value_number == null ? "" : String(row.value_number),
+      value_bool:
+        row.value_bool == null ? null : !!row.value_bool,
+      value_ids: Array.isArray(row.value_ids)
+        ? row.value_ids
+        : [],
+    };
+  });
 }
 
 setDbAttrValues(init);
 
-      // 3) Load select options for those attributes (best effort)
+      // 3) Load active values allowed for this subtype.
       const selectAttrIds = defs
-        .filter((d) => d.input_type === "single_select" || d.input_type === "multi_select")
+        .filter(
+          (d) =>
+            d.input_type === "single_select" ||
+            d.input_type === "multi_select"
+        )
         .map((d) => d.id);
 
       if (selectAttrIds.length > 0) {
         const ores = await supabase
-        .from("property_subtype_attribute_values")
-        .select("id,attribute_id,value,slug,sort_order,is_active")
-        .eq("subtype_id", subtypeId)
-        .in("attribute_id", selectAttrIds)
-        .order("sort_order", { ascending: true });
+          .from("property_subtype_attribute_values")
+          .select(
+            "attribute_id,value_id,property_attribute_values!property_subtype_attribute_values_value_id_fkey(id,attribute_id,value,slug,sort_order,is_active)"
+          )
+          .eq("subtype_id", subtypeId)
+          .in("attribute_id", selectAttrIds);
 
         if (!alive) return;
+        if (ores.error) throw ores.error;
 
-        if (!ores.error) {
-          const grouped: Record<string, AttrValueRow[]> = {};
-          (ores.data ?? []).forEach((x: any) => {
-            const aid = String(x.attribute_id ?? "");
-            if (!aid) return;
-            if (!grouped[aid]) grouped[aid] = [];
-            grouped[aid].push({
-              id: String(x.id),
-              attribute_id: aid,
-              value: String(x.value ?? ""),
-              slug: x.slug == null ? null : String(x.slug),
-              sort_order: x.sort_order == null ? null : Number(x.sort_order),
-              is_active: x.is_active == null ? null : Boolean(x.is_active),
-            });
+        const grouped: Record<string, AttrValueRow[]> = {};
+
+        (ores.data ?? []).forEach((junction: any) => {
+          const aid = String(junction.attribute_id ?? "");
+          const option = junction.property_attribute_values;
+
+          if (
+            !aid ||
+            !option?.id ||
+            option.is_active === false ||
+            String(option.attribute_id ?? "") !== aid
+          ) {
+            return;
+          }
+
+          if (!grouped[aid]) grouped[aid] = [];
+
+          grouped[aid].push({
+            id: String(option.id),
+            attribute_id: aid,
+            value: String(option.value ?? ""),
+            slug:
+              option.slug == null
+                ? null
+                : String(option.slug),
+            sort_order:
+              option.sort_order == null
+                ? null
+                : Number(option.sort_order),
+            is_active:
+              option.is_active == null
+                ? null
+                : Boolean(option.is_active),
           });
-          setDbAttrOptions(grouped);
+        });
+
+        for (const options of Object.values(grouped)) {
+          options.sort((a, b) => {
+            const ao =
+              a.sort_order == null
+                ? Number.MAX_SAFE_INTEGER
+                : a.sort_order;
+            const bo =
+              b.sort_order == null
+                ? Number.MAX_SAFE_INTEGER
+                : b.sort_order;
+
+            return ao - bo || a.value.localeCompare(b.value);
+          });
         }
+
+        setDbAttrOptions(grouped);
       }
     } catch (e: any) {
       setDbAttrErr(e?.message || "Failed to load DB attributes.");
@@ -2907,14 +2953,19 @@ function computeSlug() {
       });
     }
 
-    await supabase
+    const deletion = await supabase
       .from("property_listing_attributes")
       .delete()
       .eq("listing_id", listing_id);
 
+    if (deletion.error) throw deletion.error;
+
     if (rows.length > 0) {
-      const ins = await supabase.from("property_listing_attributes").insert(rows as any);
-      if (ins.error) throw ins.error;
+      const insertion = await supabase
+        .from("property_listing_attributes")
+        .insert(rows as any);
+
+      if (insertion.error) throw insertion.error;
     }
   }
 
@@ -3275,13 +3326,18 @@ const extraUpdate: Record<string, any> = {
           });
         }
         
-          // ✅ save DB attributes (best effort)
-            try {
-              await savePropertyListingAttributes(newId);
-              await saveRoomDetails(newId);
-            } catch (e: any) {
-              console.warn("Failed to save property_listing_attributes:", e?.message || e);
-            }
+          // Save mapped specifications; failures must remain visible.
+          await savePropertyListingAttributes(newId);
+
+          // Room details retain their existing best-effort behaviour.
+          try {
+            await saveRoomDetails(newId);
+          } catch (e: any) {
+            console.warn(
+              "Failed to save property_room_details:",
+              e?.message || e
+            );
+          }
 
           // ✅ save amenities (best effort)
           try {
@@ -3398,12 +3454,17 @@ const extraUpdate: Record<string, any> = {
           });
         }
 
-        // ✅ save DB attributes (best effort)
+        // Save mapped specifications; failures must remain visible.
+        await savePropertyListingAttributes(id);
+
+        // Room details retain their existing best-effort behaviour.
         try {
-          await savePropertyListingAttributes(id);
           await saveRoomDetails(id);
         } catch (e: any) {
-          console.warn("Failed to save property_listing_attributes:", e?.message || e);
+          console.warn(
+            "Failed to save property_room_details:",
+            e?.message || e
+          );
         }
 
         try {
@@ -3593,11 +3654,7 @@ async function submitForReviewSupabase() {
       }
 
       setSaveMsg("Saving specifications...");
-      try {
-        await savePropertyListingAttributes(currentListingId);
-      } catch (e: any) {
-        console.warn("Failed to save property_listing_attributes:", e?.message || e);
-      }
+      await savePropertyListingAttributes(currentListingId);
 
       setSaveMsg("Saving room details...");
       try {
