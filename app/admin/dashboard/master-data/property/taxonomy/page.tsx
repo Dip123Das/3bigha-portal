@@ -95,6 +95,9 @@ export default function PropertyTaxonomyMasterPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [aiBusy, setAiBusy] = useState<"names" | "description" | null>(null);
+  const [aiMessage, setAiMessage] = useState("");
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
 
   const selectedType =
     types.find((row) => row.id === selectedTypeId) || null;
@@ -179,6 +182,9 @@ export default function PropertyTaxonomyMasterPage() {
   function openAdd(nextKind: Kind) {
     setError("");
     setMessage("");
+    setAiMessage("");
+    setAiSuggestions([]);
+    setAiBusy(null);
     setMode("add");
     setKind(nextKind);
     setEditingId(null);
@@ -190,6 +196,9 @@ export default function PropertyTaxonomyMasterPage() {
   function openEdit(nextKind: Kind, row: TypeRow | SubtypeRow) {
     setError("");
     setMessage("");
+    setAiMessage("");
+    setAiSuggestions([]);
+    setAiBusy(null);
     setMode("edit");
     setKind(nextKind);
     setEditingId(row.id);
@@ -216,6 +225,125 @@ export default function PropertyTaxonomyMasterPage() {
     setForm(emptyForm);
     setError("");
     setMessage("");
+    setAiMessage("");
+    setAiSuggestions([]);
+    setAiBusy(null);
+  }
+
+  async function requestAi(task: "name_suggestions" | "description") {
+    if (aiBusy) return;
+
+    if (task === "description" && form.name.trim().length < 3) {
+      setAiMessage("Enter or select a clear display name first.");
+      return;
+    }
+
+    if (kind === "subtype" && !selectedTypeId) {
+      setAiMessage("Select the parent property type first.");
+      return;
+    }
+
+    setAiBusy(task === "name_suggestions" ? "names" : "description");
+    setAiMessage("");
+    if (task === "name_suggestions") setAiSuggestions([]);
+
+    try {
+      const token = await accessToken();
+      if (!token) {
+        router.replace("/admin/dashboard");
+        throw new Error("Please sign in again.");
+      }
+
+      const existingNames =
+        kind === "type"
+          ? types.map((row) => row.name)
+          : selectedSubtypes.map((row) => row.name);
+
+      const response = await fetch("/api/admin/master-description", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          task,
+          kind: kind === "type" ? "property_type" : "property_subtype",
+          context: {
+            name: form.name.trim(),
+            family: kind === "subtype" ? selectedType?.name || "" : "",
+            key: mode === "edit" ? permanentSlug : form.slug,
+          },
+          existing: form.description,
+          existingNames,
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(result.error || "AI assistance is unavailable.");
+      }
+
+      if (result.needs_clarification) {
+        setAiMessage(
+          result.question || "Please make the classification more specific."
+        );
+        return;
+      }
+
+      if (task === "name_suggestions") {
+        const suggestions = Array.isArray(result.suggestions)
+          ? result.suggestions
+              .filter((value: unknown): value is string =>
+                typeof value === "string"
+              )
+              .map((value: string) => value.trim())
+              .filter(Boolean)
+              .slice(0, 5)
+          : [];
+
+        if (!suggestions.length) {
+          throw new Error("AI did not return usable name suggestions.");
+        }
+
+        setAiSuggestions(suggestions);
+        setAiMessage(
+          "AI suggestions are advisory. Select one or enter your own name."
+        );
+      } else if (typeof result.description === "string") {
+        setForm((current) => ({
+          ...current,
+          description: result.description.slice(0, 600),
+        }));
+        setAiMessage(
+          "AI draft inserted. Review and edit it before saving."
+        );
+      } else {
+        throw new Error("AI did not return a usable description.");
+      }
+    } catch (caught) {
+      setAiMessage(
+        caught instanceof Error
+          ? caught.message
+          : "AI assistance is unavailable."
+      );
+    } finally {
+      setAiBusy(null);
+    }
+  }
+
+  function applyAiSuggestion(name: string) {
+    setForm((current) => ({
+      ...current,
+      name,
+      ...(mode === "add" ? { slug: slugify(name) } : {}),
+    }));
+    setAiSuggestions([]);
+    setAiMessage(
+      "Suggestion selected. Review the name and permanent key before saving."
+    );
   }
 
   async function save() {
@@ -537,8 +665,8 @@ export default function PropertyTaxonomyMasterPage() {
           </div>
 
           <div style={{ color: "#475569", marginTop: 5, lineHeight: 1.5 }}>
-            Review every field before saving. AI assistance for descriptions will
-            be added after this secure editor is verified.
+            AI may suggest names and draft descriptions, but it never saves or
+            changes taxonomy records. Review every field before saving.
           </div>
 
           {kind === "subtype" ? (
@@ -567,20 +695,60 @@ export default function PropertyTaxonomyMasterPage() {
             <b>Display name</b>
             <input
               value={form.name}
-              onChange={(event) =>
+              onChange={(event) => {
                 setForm((current) => ({
                   ...current,
                   name: event.target.value,
                   ...(mode === "add"
                     ? { slug: slugify(event.target.value) }
                     : {}),
-                }))
-              }
+                }));
+                setAiSuggestions([]);
+                setAiMessage("");
+              }}
               placeholder={kind === "type" ? "Example: Land / Plot" : "Example: Flat / Apartment"}
               style={field}
               maxLength={120}
             />
           </label>
+
+          {mode === "add" ? (
+            <div style={{ marginTop: 10 }}>
+              <ActionButton
+                variant="secondary"
+                size="sm"
+                onClick={() => void requestAi("name_suggestions")}
+                disabled={Boolean(aiBusy)}
+              >
+                {aiBusy === "names"
+                  ? "AI is suggesting…"
+                  : `Suggest ${kind === "type" ? "Type" : "Subtype"} Names with AI`}
+              </ActionButton>
+
+              {aiSuggestions.length ? (
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    flexWrap: "wrap",
+                    marginTop: 10,
+                  }}
+                >
+                  {aiSuggestions.map((suggestion) => (
+                    <ActionButton
+                      key={suggestion}
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => applyAiSuggestion(suggestion)}
+                      disabled={Boolean(aiBusy)}
+                    >
+                      Use “{suggestion}”
+                    </ActionButton>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           <label style={{ display: "grid", gap: 6, marginTop: 16 }}>
             <b>Permanent key</b>
@@ -605,15 +773,55 @@ export default function PropertyTaxonomyMasterPage() {
             <b>Administrator description</b>
             <textarea
               value={form.description}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, description: event.target.value }))
-              }
+              onChange={(event) => {
+                setForm((current) => ({
+                  ...current,
+                  description: event.target.value,
+                }));
+                setAiMessage("");
+              }}
               placeholder="Explain what belongs in this classification and how it differs from nearby choices."
               style={{ ...field, minHeight: 110, resize: "vertical" }}
               maxLength={600}
             />
             <small>{form.description.length}/600 characters. Human review is required.</small>
           </label>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              alignItems: "center",
+              flexWrap: "wrap",
+              marginTop: 10,
+            }}
+          >
+            <ActionButton
+              variant="secondary"
+              size="sm"
+              onClick={() => void requestAi("description")}
+              disabled={Boolean(aiBusy) || form.name.trim().length < 3}
+            >
+              {aiBusy === "description"
+                ? "AI is drafting…"
+                : form.description.trim()
+                  ? "Improve Description with AI"
+                  : "Draft Description with AI"}
+            </ActionButton>
+
+            {aiMessage ? (
+              <small
+                style={{
+                  color: aiMessage.toLowerCase().includes("unavailable")
+                    ? "#b91c1c"
+                    : "#475569",
+                  fontWeight: 700,
+                }}
+              >
+                {aiMessage}
+              </small>
+            ) : null}
+          </div>
 
           <label style={{ display: "grid", gap: 6, marginTop: 16 }}>
             <b>Sort order</b>
