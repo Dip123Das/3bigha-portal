@@ -9,7 +9,7 @@ const kinds = [
   "redirect_rule", "operating_capability", "property_type", "property_subtype",
   "property_attribute", "property_value",
   "rental_type", "rental_category", "rental_subcategory",
-  "rental_product_group",
+  "rental_product_group", "rental_attribute",
 ];
 const recent = new Map<string, number>();
 
@@ -154,7 +154,9 @@ export async function POST(request: Request) {
         "For a rental category, remain within the supplied parent rental type and explain the operational equipment family.",
         "For a rental subcategory, remain within the supplied parent category and explain the narrower use or work activity.",
         "For a rental product group, remain within the supplied parent subcategory and describe the specific rentable equipment group.",
+        "For a rental attribute, explain the reusable equipment, machinery, tool or temporary-facility specification that an administrator should collect from rental listings.",
         "Do not invent ownership, availability, capacity, safety certification, operator qualification, pricing, legal compliance or listing status.",
+        "For rental attributes, do not invent controlled values, units, mappings or listing answers, and never claim that an AI suggestion was saved.",
         "Do not invent property rights, approvals, title status, building permissions, investment returns or legal compliance.",
         "Do not suggest changing or reusing a permanent taxonomy key.",
         "For name suggestions, return 3 to 5 concise display names that are absent from the supplied existing names.",
