@@ -554,7 +554,7 @@ export default function RentalAttributesMasterPage() {
     <Container>
       <SectionHeader
         title="Rental · Attributes"
-        subtitle="Control reusable rental questions, answer formats and units used by subtype mappings and listing forms."
+        subtitle="Control reusable rental-equipment specifications, answer formats and units used by product-group mappings and rental listing forms."
       />
 
       <div
@@ -611,31 +611,33 @@ export default function RentalAttributesMasterPage() {
         </div>
 
         <p style={{ margin: "8px 0" }}>
-          An <b>attribute</b> is a reusable question, such as
-          “Bedrooms”, “Built-up Area” or “Furnishing Status”.
-          Attributes are mapped to the relevant rental subtypes.
+          An <b>attribute</b> is a reusable rental specification, such as
+          “Power Source”, “Load Capacity” or “Operator Required”.
+          Attributes are mapped to the relevant rental product groups.
           Select attributes receive their allowed choices from the
           Values page.
         </p>
 
         <ul style={{ margin: "8px 0", paddingLeft: 22 }}>
           <li>
-            Do not recreate core listing fields such as price,
-            ownership, possession, facing or electricity.
+            Do not recreate core rental-listing fields such as title,
+            equipment category, hire price, location, availability or
+            contact details.
           </li>
           <li>
             Permanent keys are created once and locked during editing.
           </li>
           <li>
-            Input type becomes locked after values, mappings or listing
-            answers exist.
+            The permanent key and input type are locked immediately after creation.
           </li>
           <li>
             Deactivate unused attributes instead of deleting history.
           </li>
           <li>
-            Use a unit only for numeric attributes—for example
-            <b> sq ft</b>, <b>ft</b>, <b>years</b> or <b>INR</b>.
+            Use a unit only for measurable numeric specifications—for
+            example <b>HP</b>, <b>kW</b>, <b>kg</b>,
+            <b>tonnes</b>, <b>metres</b>, <b>litres</b>,
+            <b>bar</b> or <b>hours</b>.
           </li>
         </ul>
       </div>
@@ -653,9 +655,17 @@ export default function RentalAttributesMasterPage() {
           onClick={() => {
             setEditorOpen(false);
             setEditingId(null);
+            setError(null);
+            setAiMessage(null);
+            setAiSuggestions([]);
+            setMessage(
+              attributes.length === 0
+                ? "No rental attributes have been created yet. Use “+ Add Attribute” to create the first reusable rental specification."
+                : `Showing ${attributes.length} rental attribute${attributes.length === 1 ? "" : "s"}.`
+            );
           }}
         >
-          Browse Attributes
+          Browse Attributes ({attributes.length})
         </ActionButton>
 
         <ActionButton variant="primary" onClick={openAdd}>
@@ -725,7 +735,7 @@ export default function RentalAttributesMasterPage() {
               <FieldLabel
                 title="Display name"
                 required
-                hint='Use a clear question label. Example: “Carpet Area”, “Bedrooms” or “Parking Type”.'
+                hint='Use a clear rental specification label. Example: “Power Source”, “Load Capacity” or “Operator Required”.'
               />
               <input
                 value={form.name}
@@ -742,7 +752,7 @@ export default function RentalAttributesMasterPage() {
                   }));
                 }}
                 style={controlStyle()}
-                placeholder="Example: Built-up Area"
+                placeholder="Example: Load Capacity"
               />
 
               <div
@@ -954,7 +964,7 @@ export default function RentalAttributesMasterPage() {
                     unitLocked
                       ? "Locked because existing listing answers depend on it."
                       : form.input_type === "number"
-                        ? "Optional. Examples: sq ft, ft, years or INR."
+                        ? "Optional for number attributes. Examples: HP, kW, kg, tonnes, metres, litres, bar or hours."
                         : "Units apply only to number attributes."
                   }
                 />
@@ -970,7 +980,7 @@ export default function RentalAttributesMasterPage() {
                   style={controlStyle(
                     form.input_type !== "number" || unitLocked
                   )}
-                  placeholder="Example: sq ft"
+                  placeholder="Example: kg"
                 />
               </div>
 
