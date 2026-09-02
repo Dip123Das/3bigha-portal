@@ -8,6 +8,8 @@ const kinds = [
   "identity", "legal_constitution", "business_sector",
   "redirect_rule", "operating_capability", "property_type", "property_subtype",
   "property_attribute", "property_value",
+  "rental_type", "rental_category", "rental_subcategory",
+  "rental_product_group",
 ];
 const recent = new Map<string, number>();
 
@@ -132,7 +134,7 @@ export async function POST(request: Request) {
       maxOutputTokens: 700,
       system: [
         task === "name_suggestions"
-          ? "Suggest clear property-taxonomy display names for 3Bigha."
+          ? "Suggest clear master-data taxonomy display names for 3Bigha."
           : task === "value_suggestions"
             ? "Suggest safe controlled option labels for a 3Bigha property attribute."
             : task === "attribute_suggestions"
@@ -148,10 +150,16 @@ export async function POST(request: Request) {
         "For an operating capability, describe the tool's purpose without claiming it already exists or that access is granted.",
         "For a property type, explain the broad class of properties that belongs under it and distinguish it from other broad types.",
         "For a property subtype, explain the specific property form or permitted use and how an administrator should classify it.",
+        "For a rental type, explain the broad family of rentable equipment, machinery, tools or temporary facilities that belongs under it.",
+        "For a rental category, remain within the supplied parent rental type and explain the operational equipment family.",
+        "For a rental subcategory, remain within the supplied parent category and explain the narrower use or work activity.",
+        "For a rental product group, remain within the supplied parent subcategory and describe the specific rentable equipment group.",
+        "Do not invent ownership, availability, capacity, safety certification, operator qualification, pricing, legal compliance or listing status.",
         "Do not invent property rights, approvals, title status, building permissions, investment returns or legal compliance.",
         "Do not suggest changing or reusing a permanent taxonomy key.",
         "For name suggestions, return 3 to 5 concise display names that are absent from the supplied existing names.",
         "For subtype suggestions, remain within the supplied parent property type.",
+        "For rental category, subcategory and product-group suggestions, remain strictly within the supplied parent hierarchy.",
         "Do not use vague duplicates, spelling variants or plural-only variants of existing names.",
         "If the context is ambiguous, ask a short clarification question instead of guessing.",
         "For a property attribute, suggest only reusable listing questions that are not already represented by existing names.",
