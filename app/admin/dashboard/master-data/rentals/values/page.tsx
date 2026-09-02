@@ -1,1066 +1,1210 @@
-// app/admin/dashboard/master-data/rentals/values/page.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
+import Link from "next/link";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+} from "react";
 
-import { Container } from "@/components/layout/Container";
-import { SectionHeader } from "@/components/layout/SectionHeader";
-import { ActionButton } from "@/components/ui/ActionButton";
-import { Badge } from "@/components/ui/Badge";
-import { EmptyState } from "@/components/ui/EmptyState";
-
-type Kind = "type" | "category" | "subcategory" | "product_group";
-
-type TaxonRow = {
+type Attribute = {
   id: string;
-  parent_id: string | null;
-  kind: Kind;
   name: string;
   slug: string;
-  sort_order: number | null;
+  input_type: "single_select" | "multi_select";
   is_active: boolean;
-  source: string | null;
+  sort_order: number;
+  value_count: number;
+  active_value_count: number;
 };
 
-type AttrInputType = "single_select" | "multi_select" | "text" | "number" | "boolean";
-
-type AttrRow = {
-  id: string;
-  name: string;
-  slug: string;
-  input_type: AttrInputType | string;
-  unit: string | null;
-  sort_order: number | null;
-  is_active?: boolean | null;
-};
-
-type AttrValueRow = {
+type RentalValue = {
   id: string;
   attribute_id: string;
   value: string;
-  sort_order: number | null;
-  is_active?: boolean | null;
-  product_group_id?: string | null;
+  slug: string;
+  description: string | null;
+  sort_order: number;
+  is_active: boolean;
+  mapping_count: number;
+  listing_answer_count: number;
+  dependency_count: number;
 };
 
-const TAXON_TABLE = "rental_taxons" as const;
-const ATTR_TABLE = "rental_attributes" as const;
-const VALUE_TABLE = "rental_attribute_values" as const;
+type Totals = {
+  attributes: number;
+  values: number;
+  active_values: number;
+  inactive_values: number;
+};
 
-const ADMIN_ROLE = "rentals_admin" as const;
+type ApiPayload = {
+  ok?: boolean;
+  error?: string;
+  requires_confirmation?: boolean;
+  attributes?: Attribute[];
+  values?: RentalValue[];
+  totals?: Totals;
+  suggestions?: unknown[];
+  description?: string;
+  data?: RentalValue;
+};
 
-function slugify(input: string) {
-  return input
+type EditorState = {
+  id: string | null;
+  attributeId: string;
+  value: string;
+  slug: string;
+  description: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+const emptyEditor: EditorState = {
+  id: null,
+  attributeId: "",
+  value: "",
+  slug: "",
+  description: "",
+  sortOrder: 1000,
+  isActive: true,
+};
+
+function slugify(value: string) {
+  return value
     .trim()
     .toLowerCase()
     .replace(/&/g, "and")
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+    .replace(/(^-|-$)+/g, "");
 }
 
-function isMaster(role: string | null | undefined) {
-  return role === "master_admin";
-}
-function isModuleAdmin(role: string | null | undefined) {
-  return role === ADMIN_ROLE;
-}
+async function readResponse(response: Response): Promise<ApiPayload> {
+  const payload = (await response.json().catch(() => ({}))) as ApiPayload;
 
-function looksLikeMissingColumn(err: any, col: string) {
-  const msg = String(err?.message || "");
-  return msg.toLowerCase().includes("does not exist") && msg.toLowerCase().includes(col.toLowerCase());
-}
-
-function looksLikeMissingRelation(err: any, rel: string) {
-  const msg = String(err?.message || "");
-  return msg.toLowerCase().includes("does not exist") && msg.toLowerCase().includes(rel.toLowerCase());
-}
-
-async function requireModuleAdmin(supabase: ReturnType<typeof getSupabaseBrowser>) {
-  const { data: auth } = await supabase.auth.getUser();
-  const user = auth?.user;
-  if (!user) return { ok: false, role: null as string | null, email: null as string | null };
-
-  const { data: prof, error: profErr } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (profErr) throw profErr;
-
-  const role = ((prof as any)?.role ?? null) as string | null;
-  const ok = isMaster(role) || isModuleAdmin(role);
-  return { ok, role, email: user.email ?? null };
-}
-
-async function fetchTaxons(supabase: ReturnType<typeof getSupabaseBrowser>, kind: Kind, parentId: string | null) {
-  let q = supabase
-    .from(TAXON_TABLE)
-    .select("id,parent_id,kind,name,slug,sort_order,is_active,source")
-    .eq("kind", kind)
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true, nullsFirst: true })
-    .order("name", { ascending: true });
-
-  if (parentId === null) q = q.is("parent_id", null);
-  else q = q.eq("parent_id", parentId);
-
-  const { data, error } = await q;
-  if (error) throw error;
-  return (data || []) as TaxonRow[];
-}
-
-async function fetchAttributes(supabase: ReturnType<typeof getSupabaseBrowser>) {
-  const withActive = await supabase
-    .from(ATTR_TABLE)
-    .select("id,name,slug,input_type,unit,sort_order,is_active")
-    .order("sort_order", { ascending: true, nullsFirst: true })
-    .order("name", { ascending: true });
-
-  if (!withActive.error) return (withActive.data || []) as AttrRow[];
-
-  if (looksLikeMissingRelation(withActive.error, ATTR_TABLE)) throw withActive.error;
-
-  if (looksLikeMissingColumn(withActive.error, "is_active")) {
-    const noActive = await supabase
-      .from(ATTR_TABLE)
-      .select("id,name,slug,input_type,unit,sort_order")
-      .order("sort_order", { ascending: true, nullsFirst: true })
-      .order("name", { ascending: true });
-
-    if (noActive.error) throw noActive.error;
-    return (noActive.data || []) as AttrRow[];
+  if (!response.ok) {
+    throw new Error(
+      payload.error || `Request failed with status ${response.status}.`
+    );
   }
 
-  throw withActive.error;
+  return payload;
 }
 
-/**
- * IMPORTANT:
- * Keep SELECT strings literal (no dynamic concat), otherwise TS may emit
- * ParserError<"Unexpected input: ,product_group_id">
- */
-async function fetchAttributeValues(
-  supabase: ReturnType<typeof getSupabaseBrowser>,
-  attributeId: string,
-  productGroupId: string | null,
-  supportsPgScopedValues: boolean,
-  wantPgScopedFilter: boolean
-) {
-  if (supportsPgScopedValues && wantPgScopedFilter) {
-    let q = supabase
-      .from(VALUE_TABLE)
-      .select("id,attribute_id,value,sort_order,is_active,product_group_id")
-      .eq("attribute_id", attributeId)
-      .order("sort_order", { ascending: true, nullsFirst: true })
-      .order("value", { ascending: true });
-
-    if (productGroupId === null) q = q.is("product_group_id", null);
-    else q = q.eq("product_group_id", productGroupId);
-
-    const r1 = await q;
-    if (!r1.error) return (r1.data || []) as AttrValueRow[];
-
-    if (looksLikeMissingRelation(r1.error, VALUE_TABLE)) throw r1.error;
-
-    if (looksLikeMissingColumn(r1.error, "is_active")) {
-      let q2 = supabase
-        .from(VALUE_TABLE)
-        .select("id,attribute_id,value,sort_order,product_group_id")
-        .eq("attribute_id", attributeId)
-        .order("sort_order", { ascending: true, nullsFirst: true })
-        .order("value", { ascending: true });
-
-      if (productGroupId === null) q2 = q2.is("product_group_id", null);
-      else q2 = q2.eq("product_group_id", productGroupId);
-
-      const r2 = await q2;
-      if (r2.error) throw r2.error;
-      return (r2.data || []) as AttrValueRow[];
-    }
-
-    throw r1.error;
-  }
-
-  const r1 = await supabase
-    .from(VALUE_TABLE)
-    .select("id,attribute_id,value,sort_order,is_active")
-    .eq("attribute_id", attributeId)
-    .order("sort_order", { ascending: true, nullsFirst: true })
-    .order("value", { ascending: true });
-
-  if (!r1.error) return (r1.data || []) as AttrValueRow[];
-  if (looksLikeMissingRelation(r1.error, VALUE_TABLE)) throw r1.error;
-
-  if (looksLikeMissingColumn(r1.error, "is_active")) {
-    const r2 = await supabase
-      .from(VALUE_TABLE)
-      .select("id,attribute_id,value,sort_order")
-      .eq("attribute_id", attributeId)
-      .order("sort_order", { ascending: true, nullsFirst: true })
-      .order("value", { ascending: true });
-
-    if (r2.error) throw r2.error;
-    return (r2.data || []) as AttrValueRow[];
-  }
-
-  throw r1.error;
-}
-
-function CardBox(props: { title: string; subtitle?: string; right?: React.ReactNode; children: React.ReactNode }) {
+function Metric(props: { label: string; value: number }) {
   return (
-    <section className="mtx-card">
-      <div className="mtx-cardHead">
-        <div>
-          <div className="mtx-title">{props.title}</div>
-          {props.subtitle ? <div className="mtx-subtitle">{props.subtitle}</div> : null}
-        </div>
-        {props.right ? <div className="mtx-right">{props.right}</div> : null}
-      </div>
-      <div className="mtx-cardBody">{props.children}</div>
-    </section>
+    <article style={styles.metric}>
+      <span style={styles.metricLabel}>{props.label}</span>
+      <strong style={styles.metricValue}>{props.value}</strong>
+    </article>
   );
 }
 
-export default function RentalsValuesAdmin() {
-  const router = useRouter();
-  const supabase = useMemo(() => getSupabaseBrowser(), []);
+function Button(props: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  type?: "button" | "submit";
+  disabled?: boolean;
+  primary?: boolean;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      type={props.type || "button"}
+      onClick={props.onClick}
+      disabled={props.disabled}
+      style={{
+        ...styles.button,
+        ...(props.primary ? styles.primaryButton : {}),
+        ...(props.danger ? styles.dangerButton : {}),
+        ...(props.disabled ? styles.disabledButton : {}),
+      }}
+    >
+      {props.children}
+    </button>
+  );
+}
+
+export default function RentalValuesPage() {
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [values, setValues] = useState<RentalValue[]>([]);
+  const [totals, setTotals] = useState<Totals>({
+    attributes: 0,
+    values: 0,
+    active_values: 0,
+    inactive_values: 0,
+  });
+
+  const [selectedAttributeId, setSelectedAttributeId] = useState("");
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editor, setEditor] = useState<EditorState>(emptyEditor);
+  const [reviewOpen, setReviewOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
-  const [allowed, setAllowed] = useState(false);
-  const [role, setRole] = useState<string | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
-
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [aiMessage, setAiMessage] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
-  // taxonomy select
-  const [types, setTypes] = useState<TaxonRow[]>([]);
-  const [categories, setCategories] = useState<TaxonRow[]>([]);
-  const [subcategories, setSubcategories] = useState<TaxonRow[]>([]);
-  const [productGroups, setProductGroups] = useState<TaxonRow[]>([]);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-  const [typeId, setTypeId] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [subcategoryId, setSubcategoryId] = useState("");
-  const [productGroupId, setProductGroupId] = useState("");
+    try {
+      const response = await fetch("/api/admin/rental-values", {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
 
-  // attributes + values
-  const [attributes, setAttributes] = useState<AttrRow[]>([]);
-  const [selectedAttrId, setSelectedAttrId] = useState<string>("");
+      const payload = await readResponse(response);
+      const nextAttributes = payload.attributes || [];
+      const nextValues = payload.values || [];
 
-  const [valuesMode, setValuesMode] = useState<"global" | "product_group">("global");
-  const [values, setValues] = useState<AttrValueRow[]>([]);
-  const [supportsPgScopedValues, setSupportsPgScopedValues] = useState<boolean>(false);
+      setAttributes(nextAttributes);
+      setValues(nextValues);
+      setTotals(
+        payload.totals || {
+          attributes: nextAttributes.length,
+          values: nextValues.length,
+          active_values: nextValues.filter((row) => row.is_active).length,
+          inactive_values: nextValues.filter((row) => !row.is_active).length,
+        }
+      );
 
-  // create value form
-  const [vValue, setVValue] = useState("");
-  const [vSort, setVSort] = useState<number>(1);
-
-  const selectedPG = productGroups.find((p) => p.id === productGroupId) || null;
-
-  // boot
-  useEffect(() => {
-    let alive = true;
-
-    (async () => {
-      try {
-        setLoading(true);
-        setMsg(null);
-
-        const a = await requireModuleAdmin(supabase);
-        if (!alive) return;
-
-        setAllowed(a.ok);
-        setRole(a.role);
-        setEmail(a.email);
-
-        if (!a.ok) {
-          setLoading(false);
-          router.replace("/admin/dashboard");
-          return;
+      setSelectedAttributeId((current) => {
+        if (current && nextAttributes.some((row) => row.id === current)) {
+          return current;
         }
 
-        // detect product_group_id
-        let pgScoped = false;
-        const probe = await supabase.from(VALUE_TABLE).select("id,product_group_id").limit(1);
-        if (!probe.error) pgScoped = true;
-        else if (looksLikeMissingColumn(probe.error, "product_group_id")) pgScoped = false;
-        else if (looksLikeMissingRelation(probe.error, VALUE_TABLE)) throw probe.error;
-        else pgScoped = false;
-
-        if (!alive) return;
-        setSupportsPgScopedValues(pgScoped);
-
-        const t = await fetchTaxons(supabase, "type", null);
-        const attrs = await fetchAttributes(supabase);
-
-        if (!alive) return;
-        setTypes(t);
-        setAttributes(attrs);
-
-        setLoading(false);
-      } catch (e: any) {
-        console.error(e);
-        if (!alive) return;
-
-        const m =
-          e?.message ||
-          (looksLikeMissingRelation(e, ATTR_TABLE) || looksLikeMissingRelation(e, VALUE_TABLE) || looksLikeMissingRelation(e, TAXON_TABLE)
-            ? "Rentals master tables not found in DB yet. Create the Rentals tables first (OPTION A SQL)."
-            : "Failed to load.");
-
-        setMsg(m);
-        setLoading(false);
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, [router, supabase]);
-
-  // cascade taxonomy
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setCategories([]);
-      setSubcategories([]);
-      setProductGroups([]);
-      setCategoryId("");
-      setSubcategoryId("");
-      setProductGroupId("");
-
-      if (!typeId) return;
-      try {
-        const c = await fetchTaxons(supabase, "category", typeId);
-        if (!alive) return;
-        setCategories(c);
-      } catch (e: any) {
-        if (!alive) return;
-        setMsg(e?.message || "Failed to load categories.");
-      }
-    })();
-    return () => void (alive = false);
-  }, [typeId, supabase]);
-
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setSubcategories([]);
-      setProductGroups([]);
-      setSubcategoryId("");
-      setProductGroupId("");
-
-      if (!categoryId) return;
-      try {
-        const s = await fetchTaxons(supabase, "subcategory", categoryId);
-        if (!alive) return;
-        setSubcategories(s);
-      } catch (e: any) {
-        if (!alive) return;
-        setMsg(e?.message || "Failed to load subcategories.");
-      }
-    })();
-    return () => void (alive = false);
-  }, [categoryId, supabase]);
-
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setProductGroups([]);
-      setProductGroupId("");
-
-      if (!subcategoryId) return;
-      try {
-        const p = await fetchTaxons(supabase, "product_group", subcategoryId);
-        if (!alive) return;
-        setProductGroups(p);
-      } catch (e: any) {
-        if (!alive) return;
-        setMsg(e?.message || "Failed to load product groups.");
-      }
-    })();
-    return () => void (alive = false);
-  }, [subcategoryId, supabase]);
-
-  // if DB doesn't support PG-scoped values, force global tab
-  useEffect(() => {
-    if (valuesMode === "product_group" && !supportsPgScopedValues) setValuesMode("global");
-  }, [valuesMode, supportsPgScopedValues]);
-
-  // load values
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setValues([]);
-      if (!selectedAttrId) return;
-
-      if (valuesMode === "product_group" && (!supportsPgScopedValues || !productGroupId)) return;
-
-      try {
-        if (supportsPgScopedValues) {
-          if (valuesMode === "global") {
-            const vg = await fetchAttributeValues(supabase, selectedAttrId, null, true, true);
-            if (!alive) return;
-            setValues(vg);
-          } else {
-            const vp = await fetchAttributeValues(supabase, selectedAttrId, productGroupId, true, true);
-            if (!alive) return;
-            setValues(vp);
-          }
-        } else {
-          const v = await fetchAttributeValues(supabase, selectedAttrId, null, false, false);
-          if (!alive) return;
-          setValues(v);
-        }
-      } catch (e: any) {
-        console.error(e);
-        if (!alive) return;
-
-        if (looksLikeMissingColumn(e, "product_group_id")) {
-          setSupportsPgScopedValues(false);
-          setValuesMode("global");
-          try {
-            const vg = await fetchAttributeValues(supabase, selectedAttrId, null, false, false);
-            if (!alive) return;
-            setValues(vg);
-          } catch (e2: any) {
-            if (!alive) return;
-            setMsg(e2?.message || "Failed to load values.");
-          }
-          return;
-        }
-
-        setMsg(e?.message || "Failed to load values.");
-      }
-    })();
-
-    return () => void (alive = false);
-  }, [selectedAttrId, valuesMode, productGroupId, supportsPgScopedValues, supabase]);
-
-  async function refreshValues() {
-    if (!selectedAttrId) return;
-    if (valuesMode === "product_group" && (!supportsPgScopedValues || !productGroupId)) return;
-
-    if (supportsPgScopedValues) {
-      if (valuesMode === "global") setValues(await fetchAttributeValues(supabase, selectedAttrId, null, true, true));
-      else setValues(await fetchAttributeValues(supabase, selectedAttrId, productGroupId, true, true));
-    } else {
-      setValues(await fetchAttributeValues(supabase, selectedAttrId, null, false, false));
+        return nextAttributes[0]?.id || "";
+      });
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Rental Values could not be loaded."
+      );
+    } finally {
+      setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const selectedAttribute = useMemo(
+    () =>
+      attributes.find((row) => row.id === selectedAttributeId) || null,
+    [attributes, selectedAttributeId]
+  );
+
+  const visibleValues = useMemo(
+    () =>
+      values.filter((row) => row.attribute_id === selectedAttributeId),
+    [values, selectedAttributeId]
+  );
+
+  function resetEditor(attributeId = selectedAttributeId) {
+    setEditor({
+      ...emptyEditor,
+      attributeId,
+    });
+    setSuggestions([]);
+    setAiMessage(null);
+    setReviewOpen(false);
   }
 
-  async function onCreateValue() {
-    setMsg(null);
-    if (!selectedAttrId) return setMsg("Select an attribute first.");
-
-    if (valuesMode === "product_group" && (!supportsPgScopedValues || !productGroupId)) {
-      return setMsg("Select a Product Group to add PG-specific values.");
+  function beginCreate() {
+    if (!selectedAttribute) {
+      setError(
+        "Create an active single-select or multi-select Rental Attribute first."
+      );
+      return;
     }
 
-    const value = vValue.trim();
-    if (!value) return;
+    if (!selectedAttribute.is_active) {
+      setError("Activate the parent Rental Attribute before adding values.");
+      return;
+    }
 
+    setError(null);
+    setMessage(null);
+    resetEditor(selectedAttribute.id);
+    setEditorOpen(true);
+  }
+
+  function beginEdit(row: RentalValue) {
+    setError(null);
+    setMessage(null);
+    setSuggestions([]);
+    setAiMessage(null);
+    setReviewOpen(false);
+    setEditorOpen(true);
+    setSelectedAttributeId(row.attribute_id);
+    setEditor({
+      id: row.id,
+      attributeId: row.attribute_id,
+      value: row.value,
+      slug: row.slug,
+      description: row.description || "",
+      sortOrder: row.sort_order,
+      isActive: row.is_active,
+    });
+  }
+
+  function requestReview(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+
+    const value = editor.value.trim();
+    const slug = editor.id ? editor.slug : slugify(editor.slug || value);
+
+    if (!editor.attributeId) {
+      setError("Select the parent Rental Attribute.");
+      return;
+    }
+
+    if (!value || value.length > 120) {
+      setError("Value label must contain 1 to 120 characters.");
+      return;
+    }
+
+    if (!slug || slug.length > 120) {
+      setError("A valid permanent key is required.");
+      return;
+    }
+
+    if (editor.description.trim().length > 600) {
+      setError("Description must not exceed 600 characters.");
+      return;
+    }
+
+    if (
+      !Number.isInteger(editor.sortOrder) ||
+      editor.sortOrder < 0 ||
+      editor.sortOrder > 1000000
+    ) {
+      setError("Sort order must be a whole number from 0 to 1000000.");
+      return;
+    }
+
+    setEditor((current) => ({
+      ...current,
+      value,
+      slug,
+      description: current.description.trim(),
+    }));
+    setReviewOpen(true);
+  }
+
+  async function saveValue() {
     setBusy(true);
+    setError(null);
+    setMessage(null);
+
     try {
-      const base: any = {
-        attribute_id: selectedAttrId,
-        value,
-        sort_order: vSort,
-        is_active: true,
+      const editing = Boolean(editor.id);
+      const body: Record<string, unknown> = {
+        value: editor.value,
+        description: editor.description,
+        sort_order: editor.sortOrder,
+        is_active: editor.isActive,
       };
 
-      if (supportsPgScopedValues && valuesMode === "product_group") {
-        base.product_group_id = productGroupId;
+      if (editing) {
+        body.id = editor.id;
+      } else {
+        body.attribute_id = editor.attributeId;
+        body.slug = editor.slug;
       }
 
-      let { error } = await supabase.from(VALUE_TABLE).insert(base);
+      const response = await fetch("/api/admin/rental-values", {
+        method: editing ? "PATCH" : "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
 
-      if (error && looksLikeMissingColumn(error, "is_active")) {
-        const base2: any = { attribute_id: selectedAttrId, value, sort_order: vSort };
-        if (supportsPgScopedValues && valuesMode === "product_group") base2.product_group_id = productGroupId;
-        const retry = await supabase.from(VALUE_TABLE).insert(base2);
-        error = retry.error;
-      }
+      const payload = await readResponse(response);
 
-      if (error && looksLikeMissingColumn(error, "product_group_id")) {
-        setSupportsPgScopedValues(false);
-        setValuesMode("global");
-        const base3: any = { attribute_id: selectedAttrId, value, sort_order: vSort, is_active: true };
-        const retry2 = await supabase.from(VALUE_TABLE).insert(base3);
-        error = retry2.error;
-      }
-
-      if (error) throw error;
-
-      setVValue("");
-      setVSort(1);
-      await refreshValues();
-      setMsg("Value created ✅");
-    } catch (e: any) {
-      console.error(e);
-      setMsg(e?.message || "Create value failed.");
+      setMessage(
+        editing
+          ? `Rental Value “${editor.value}” was updated.`
+          : `Rental Value “${editor.value}” was created.`
+      );
+      setReviewOpen(false);
+      setEditorOpen(false);
+      resetEditor();
+      await load();
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Rental Value could not be saved."
+      );
     } finally {
       setBusy(false);
     }
   }
 
-  async function onRemoveValue(row: AttrValueRow) {
-    setMsg(null);
+  async function changeLifecycle(row: RentalValue) {
+    const nextActive = !row.is_active;
+    const action = nextActive ? "activate" : "deactivate";
+
+    const confirmed = window.confirm(
+      `${action === "activate" ? "Activate" : "Deactivate"} “${row.value}”?\n\n` +
+        `Parent attribute: ${
+          attributes.find((item) => item.id === row.attribute_id)?.name ||
+          "Unknown"
+        }\n` +
+        `Mappings: ${row.mapping_count}\n` +
+        `Listing answers: ${row.listing_answer_count}\n` +
+        `Total dependencies: ${row.dependency_count}\n\n` +
+        `No historical record will be deleted.`
+    );
+
+    if (!confirmed) return;
+
     setBusy(true);
-    try {
-      let { error } = await supabase.from(VALUE_TABLE).update({ is_active: false }).eq("id", row.id);
-      if (error && looksLikeMissingColumn(error, "is_active")) {
-        const del = await supabase.from(VALUE_TABLE).delete().eq("id", row.id);
-        error = del.error;
-      }
-      if (error) throw error;
+    setError(null);
+    setMessage(null);
 
-      await refreshValues();
-      setMsg("Value removed ✅");
-    } catch (e: any) {
-      console.error(e);
-      setMsg(e?.message || "Remove value failed.");
+    try {
+      const response = await fetch("/api/admin/rental-values", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: row.id,
+          value: row.value,
+          description: row.description || "",
+          sort_order: row.sort_order,
+          is_active: nextActive,
+          confirm_lifecycle: true,
+        }),
+      });
+
+      await readResponse(response);
+      setMessage(
+        `Rental Value “${row.value}” was ${
+          nextActive ? "activated" : "deactivated"
+        }.`
+      );
+      await load();
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : `Rental Value could not be ${action}d.`
+      );
     } finally {
       setBusy(false);
     }
   }
 
-  if (loading) {
-    return (
-      <Container>
-        <SectionHeader title="Rentals → Values Manager" subtitle="Loading..." />
-      </Container>
-    );
+  async function suggestValues() {
+    if (!selectedAttribute) {
+      setError("Select a Rental Attribute first.");
+      return;
+    }
+
+    setAiBusy(true);
+    setError(null);
+    setAiMessage(null);
+    setSuggestions([]);
+
+    try {
+      const existingNames = visibleValues.map((row) => row.value);
+
+      const response = await fetch("/api/admin/master-description", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task: "value_suggestions",
+          kind: "rental_value",
+          existingNames,
+          context: {
+            name: editor.value || selectedAttribute.name,
+            parent_attribute: selectedAttribute.name,
+            parent_attribute_key: selectedAttribute.slug,
+            input_type: selectedAttribute.input_type,
+            existing_values: existingNames,
+            scope: "global reusable rental value",
+          },
+        }),
+      });
+
+      const payload = await readResponse(response);
+      const nextSuggestions = (payload.suggestions || [])
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .slice(0, 5);
+
+      setSuggestions(nextSuggestions);
+      setAiMessage(
+        nextSuggestions.length
+          ? "AI suggestions are advisory. Select one, review it and edit it before saving."
+          : "AI did not return a suitable controlled value."
+      );
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "AI suggestions could not be generated."
+      );
+    } finally {
+      setAiBusy(false);
+    }
   }
 
-  if (!allowed) {
-    return (
-      <Container>
-        <SectionHeader title="Rentals → Values Manager" subtitle="Admin access required" />
-        <EmptyState message="Access denied." />
-      </Container>
-    );
+  async function draftDescription() {
+    if (!editor.value.trim() || !selectedAttribute) {
+      setError("Enter a clear value label and select its parent attribute.");
+      return;
+    }
+
+    setAiBusy(true);
+    setError(null);
+    setAiMessage(null);
+
+    try {
+      const response = await fetch("/api/admin/master-description", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task: "description",
+          kind: "rental_value",
+          existing: editor.description,
+          context: {
+            name: editor.value,
+            parent_attribute: selectedAttribute.name,
+            parent_attribute_key: selectedAttribute.slug,
+            input_type: selectedAttribute.input_type,
+            scope: "controlled rental option",
+          },
+        }),
+      });
+
+      const payload = await readResponse(response);
+
+      if (!payload.description?.trim()) {
+        throw new Error("AI did not return a usable description.");
+      }
+
+      setEditor((current) => ({
+        ...current,
+        description: payload.description!.trim().slice(0, 600),
+      }));
+      setAiMessage(
+        "AI draft inserted. A master administrator must review and edit it before saving."
+      );
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "The AI description could not be drafted."
+      );
+    } finally {
+      setAiBusy(false);
+    }
   }
-
-  const valuesTitle =
-    valuesMode === "global"
-      ? supportsPgScopedValues
-        ? "Global values (shared)"
-        : "Values (global)"
-      : "Values for selected Product Group";
-
-  const valuesSubtitle =
-    valuesMode === "global"
-      ? supportsPgScopedValues
-        ? "Only product_group_id = NULL"
-        : "Applies everywhere"
-      : selectedPG
-      ? `Product Group: ${selectedPG.name}`
-      : "Select a Product Group first";
 
   return (
-    <Container>
-      <div className="mtx-page">
-        <SectionHeader
-          title="Rentals → Values Manager"
-          subtitle={`Manage Attribute Values (role: ${role ?? "—"})`}
-        />
+    <main style={styles.page}>
+      <section style={styles.hero}>
+        <h1 style={styles.heading}>Rental · Values</h1>
+        <p style={styles.lead}>
+          Control reusable choices for select-type rental-equipment
+          specifications. Values remain global under their parent attribute;
+          product-group applicability is controlled later through Rental
+          Mapping.
+        </p>
+      </section>
 
-        <div className="mtx-topbar">
-          <div className="mtx-actions">
-            <ActionButton href="/admin/dashboard/master-data" variant="secondary">
-              ← Back to Master Data
-            </ActionButton>
+      <nav style={styles.navigation}>
+        <Link href="/admin/dashboard/master-data" style={styles.linkButton}>
+          ← Back
+        </Link>
+        <Link
+          href="/admin/dashboard/master-data/rentals/taxonomy"
+          style={styles.linkButton}
+        >
+          Taxonomy →
+        </Link>
+        <Link
+          href="/admin/dashboard/master-data/rentals/attributes"
+          style={styles.linkButton}
+        >
+          Attributes →
+        </Link>
+        <Link
+          href="/admin/dashboard/master-data/rentals/mapping"
+          style={styles.linkButton}
+        >
+          Mapping →
+        </Link>
+      </nav>
 
-            <ActionButton href="/admin/dashboard/master-data/rentals/taxonomy" variant="secondary">
-              Taxonomy
-            </ActionButton>
-            <ActionButton href="/admin/dashboard/master-data/rentals/mapping" variant="secondary">
-              Mapping
-            </ActionButton>
-            <ActionButton href="/admin/dashboard/master-data/rentals/attributes" variant="secondary">
-              Attributes
-            </ActionButton>
-            <ActionButton href="/admin/dashboard/master-data/rentals/values" variant="secondary">
-              Values
-            </ActionButton>
+      <section style={styles.metrics}>
+        <Metric label="Select attributes" value={totals.attributes} />
+        <Metric label="All values" value={totals.values} />
+        <Metric label="Active" value={totals.active_values} />
+        <Metric label="Inactive" value={totals.inactive_values} />
+      </section>
+
+      <section style={styles.info}>
+        <h2 style={styles.subheading}>How Rental Values work</h2>
+        <p>
+          A value is one allowed answer under a single-select or multi-select
+          Rental Attribute. For example, <strong>Power Source</strong> may use
+          Diesel, Petrol, Electric or Battery; <strong>Operator
+          Availability</strong> may use Included, Optional or Not Available.
+        </p>
+        <ul>
+          <li>Values do not belong directly to a product group.</li>
+          <li>The permanent key and parent attribute lock after creation.</li>
+          <li>Descriptions and display labels remain administrator-reviewed.</li>
+          <li>Deactivate unused values instead of deleting history.</li>
+          <li>AI suggestions never save database records.</li>
+        </ul>
+      </section>
+
+      {error ? <div style={styles.error}>{error}</div> : null}
+      {message ? <div style={styles.success}>{message}</div> : null}
+
+      <section style={styles.panel}>
+        <div style={styles.panelHeader}>
+          <div>
+            <h2 style={styles.subheading}>Select parent Rental Attribute</h2>
+            <p style={styles.muted}>
+              Only single-select and multi-select attributes can have
+              controlled values.
+            </p>
           </div>
 
-          <div className="mtx-status">{msg ? <Badge>{msg}</Badge> : null}</div>
+          <Button
+            primary
+            onClick={beginCreate}
+            disabled={!selectedAttribute || busy}
+          >
+            + Add Value
+          </Button>
         </div>
 
-        <div className="mtx-grid2">
-          <CardBox
-            title="Scope"
-            subtitle="Pick Type → Category → Subcategory → Product Group (only needed for PG-specific values)"
-            right={
-              <div className="mtx-chipCol">
-                <span className="mtx-chip">{email ?? "—"}</span>
-                <span className="mtx-chip subtle">role: {role ?? "—"}</span>
-              </div>
-            }
+        <label style={styles.label}>
+          Parent attribute
+          <select
+            value={selectedAttributeId}
+            onChange={(event) => {
+              setSelectedAttributeId(event.target.value);
+              setEditorOpen(false);
+              setReviewOpen(false);
+              setSuggestions([]);
+              setAiMessage(null);
+              setError(null);
+              setMessage(null);
+            }}
+            style={styles.input}
+            disabled={loading || busy}
           >
-            <div className="mtx-form">
-              <label className="mtx-field">
-                <span>Type</span>
-                <select value={typeId} onChange={(e) => setTypeId(e.target.value)}>
-                  <option value="">— Select Type —</option>
-                  {types.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name} ({t.slug})
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <option value="">— Select Rental Attribute —</option>
+            {attributes.map((attribute) => (
+              <option key={attribute.id} value={attribute.id}>
+                {attribute.name} ·{" "}
+                {attribute.input_type === "single_select"
+                  ? "Single select"
+                  : "Multiple select"}
+                {!attribute.is_active ? " · Inactive" : ""}
+              </option>
+            ))}
+          </select>
+        </label>
 
-              <label className="mtx-field">
-                <span>Category</span>
-                <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} disabled={!typeId}>
-                  <option value="">{typeId ? "— Select Category —" : "Select a Type first"}</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.slug})
-                    </option>
-                  ))}
-                </select>
-              </label>
+        {selectedAttribute ? (
+          <div style={styles.attributeSummary}>
+            <strong>{selectedAttribute.name}</strong>
+            <span>Permanent key: {selectedAttribute.slug}</span>
+            <span>
+              Input type:{" "}
+              {selectedAttribute.input_type === "single_select"
+                ? "Single select"
+                : "Multiple select"}
+            </span>
+            <span>
+              Values: {selectedAttribute.value_count} · Active:{" "}
+              {selectedAttribute.active_value_count}
+            </span>
+          </div>
+        ) : (
+          <p style={styles.empty}>
+            No select-type Rental Attribute is available. Create Rental
+            Attributes before creating controlled values.
+          </p>
+        )}
+      </section>
 
-              <label className="mtx-field">
-                <span>Subcategory</span>
-                <select value={subcategoryId} onChange={(e) => setSubcategoryId(e.target.value)} disabled={!categoryId}>
-                  <option value="">{categoryId ? "— Select Subcategory —" : "Select a Category first"}</option>
-                  {subcategories.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} ({s.slug})
-                    </option>
-                  ))}
-                </select>
-              </label>
+      {editorOpen ? (
+        <section style={styles.editor}>
+          <h2 style={styles.subheading}>
+            {editor.id ? "Edit Rental Value" : "Add Rental Value"}
+          </h2>
+          <p style={styles.muted}>
+            Review every field before saving. This editor never deletes
+            connected rental history.
+          </p>
 
-              <label className="mtx-field">
-                <span>Product Group</span>
-                <select value={productGroupId} onChange={(e) => setProductGroupId(e.target.value)} disabled={!subcategoryId}>
-                  <option value="">{subcategoryId ? "— Select Product Group —" : "Select a Subcategory first"}</option>
-                  {productGroups.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} ({p.slug})
-                    </option>
-                  ))}
-                </select>
-              </label>
+          <div style={styles.notice}>
+            AI may suggest controlled rental options and draft descriptions,
+            but it cannot save database records. A master administrator must
+            review every save.
+          </div>
 
-              <div className="mtx-footnote" style={{ textAlign: "left" }}>
-                {supportsPgScopedValues ? (
-                  <span style={{ opacity: 0.8 }}>(PG-specific values supported)</span>
-                ) : (
-                  <span style={{ opacity: 0.8 }}>(Global values only)</span>
-                )}
-              </div>
-            </div>
-          </CardBox>
+          <form onSubmit={requestReview}>
+            <label style={styles.label}>
+              Parent Rental Attribute *
+              <input
+                value={selectedAttribute?.name || ""}
+                readOnly
+                style={styles.lockedInput}
+              />
+              <span style={styles.help}>
+                Locked permanently after creation.
+              </span>
+            </label>
 
-          <CardBox title="Select Attribute" subtitle={`Pick one attribute from ${ATTR_TABLE}`} right={<Badge>{ATTR_TABLE}</Badge>}>
-            <div className="mtx-form">
-              <label className="mtx-field">
-                <span>Attribute</span>
-                <select value={selectedAttrId} onChange={(e) => setSelectedAttrId(e.target.value)}>
-                  <option value="">— Select Attribute —</option>
-                  {attributes.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} ({a.input_type})
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <label style={styles.label}>
+              Value label *
+              <input
+                value={editor.value}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setEditor((current) => ({
+                    ...current,
+                    value,
+                    slug: current.id ? current.slug : slugify(value),
+                  }));
+                }}
+                placeholder='Example: "Diesel", "Electric" or "Operator Included"'
+                maxLength={120}
+                style={styles.input}
+              />
+            </label>
 
-              <div className="mtx-footnote" style={{ textAlign: "left", marginTop: 0 }}>
-                Tip: only <b>single_select</b> / <b>multi_select</b> really need values.
-              </div>
-            </div>
-          </CardBox>
-        </div>
-
-        <div className="mtx-grid2 mtx-mt">
-          <CardBox
-            title={valuesTitle}
-            subtitle={valuesSubtitle}
-            right={
-              <div className="mtx-right">
-                <div className="mtx-tabRow">
-                  <button
-                    className={`mtx-tab ${valuesMode === "global" ? "active" : ""}`}
-                    onClick={() => setValuesMode("global")}
-                    type="button"
-                  >
-                    Global values
-                  </button>
-                  <button
-                    className={`mtx-tab ${valuesMode === "product_group" ? "active" : ""}`}
-                    onClick={() => setValuesMode("product_group")}
-                    type="button"
-                    disabled={!supportsPgScopedValues}
-                    title={!supportsPgScopedValues ? "Enable PG-scoped values in DB (product_group_id column)." : ""}
-                  >
-                    Values for selected Product Group
-                  </button>
-                </div>
-              </div>
-            }
-          >
-            <div className="mtx-form">
-              <div className="mtx-footnote" style={{ textAlign: "left", marginTop: 0 }}>
-                {supportsPgScopedValues ? (
-                  valuesMode === "global" ? (
-                    <b>(product_group_id IS NULL)</b>
-                  ) : (
-                    <b>(product_group_id = selected PG)</b>
-                  )
-                ) : (
-                  <b>(global-only table)</b>
-                )}
-              </div>
-
-              <div className="mtx-twoCol">
-                <label className="mtx-field">
-                  <span>Value</span>
-                  <input
-                    value={vValue}
-                    onChange={(e) => setVValue(e.target.value)}
-                    placeholder="e.g., Petrol / Diesel / Electric"
-                    disabled={!selectedAttrId || (valuesMode === "product_group" && !productGroupId)}
-                  />
-                </label>
-
-                <label className="mtx-field">
-                  <span>Sort</span>
-                  <input
-                    type="number"
-                    value={vSort}
-                    onChange={(e) => setVSort(parseInt(e.target.value || "1", 10))}
-                    disabled={!selectedAttrId || (valuesMode === "product_group" && !productGroupId)}
-                  />
-                </label>
-              </div>
-
-              <button
-                className="mtx-primaryBtn"
-                type="button"
-                onClick={onCreateValue}
-                disabled={
-                  busy ||
-                  !selectedAttrId ||
-                  !vValue.trim() ||
-                  (valuesMode === "product_group" && (!supportsPgScopedValues || !productGroupId))
-                }
+            <div style={styles.actions}>
+              <Button
+                onClick={() => void suggestValues()}
+                disabled={aiBusy || busy}
               >
-                {busy ? "Saving..." : "Add Value"}
-              </button>
-
-              <div className="mtx-divider" />
-
-              <div className="mtx-title" style={{ fontSize: 14 }}>
-                Existing values
-              </div>
-
-              {!selectedAttrId ? (
-                <div className="mtx-empty">Select an attribute first.</div>
-              ) : valuesMode === "product_group" && !productGroupId ? (
-                <div className="mtx-empty">Select a Product Group to view/add PG-specific values.</div>
-              ) : values.length === 0 ? (
-                <div className="mtx-empty">No values yet.</div>
-              ) : (
-                <div className="mtx-list">
-                  {values.slice(0, 120).map((r) => (
-                    <div key={r.id} className="mtx-row">
-                      <div className="mtx-rowText">
-                        <div className="mtx-rowName">{r.value}</div>
-                        <div className="mtx-rowSlug">
-                          sort: {r.sort_order ?? "-"}
-                          {supportsPgScopedValues ? (
-                            <>
-                              {" "}
-                              • pg:{" "}
-                              {r.product_group_id ? (
-                                <span style={{ fontWeight: 700 }}>{r.product_group_id}</span>
-                              ) : (
-                                <span style={{ opacity: 0.75 }}>GLOBAL</span>
-                              )}
-                            </>
-                          ) : null}
-                        </div>
-                      </div>
-                      <button className="mtx-ghostBtn" onClick={() => onRemoveValue(r)} disabled={busy}>
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="mtx-footnote" style={{ textAlign: "left" }}>
-                Note: “Remove” soft-disables if <b>is_active</b> exists; otherwise it deletes the row.
-              </div>
+                {aiBusy ? "AI working…" : "Suggest Rental Values with AI"}
+              </Button>
             </div>
-          </CardBox>
 
-          <CardBox
-            title="Quick tips"
-            subtitle="Common patterns"
-            right={<Badge>{VALUE_TABLE}</Badge>}
-          >
-            <div className="mtx-form">
-              <div className="mtx-empty">
-                • Use <b>Global values</b> for shared enums (e.g., Fuel Type).
+            {suggestions.length ? (
+              <div style={styles.suggestions}>
+                {suggestions.map((suggestion) => (
+                  <button
+                    type="button"
+                    key={suggestion}
+                    style={styles.suggestion}
+                    onClick={() =>
+                      setEditor((current) => ({
+                        ...current,
+                        value: suggestion,
+                        slug: current.id
+                          ? current.slug
+                          : slugify(suggestion),
+                      }))
+                    }
+                  >
+                    {suggestion}
+                  </button>
+                ))}
               </div>
-              <div className="mtx-empty">
-                • Use <b>PG-specific values</b> only when different product groups need different options.
-              </div>
-              <div className="mtx-empty">
-                • Keep sort orders small: 1, 2, 3…
-              </div>
+            ) : null}
+
+            <label style={styles.label}>
+              Permanent key *
+              <input
+                value={editor.slug}
+                onChange={(event) =>
+                  setEditor((current) => ({
+                    ...current,
+                    slug: slugify(event.target.value),
+                  }))
+                }
+                readOnly={Boolean(editor.id)}
+                style={editor.id ? styles.lockedInput : styles.input}
+                maxLength={120}
+              />
+              <span style={styles.help}>
+                {editor.id
+                  ? "Locked permanently after creation."
+                  : "Generated from the value label. Use lowercase letters, numbers and hyphens."}
+              </span>
+            </label>
+
+            <label style={styles.label}>
+              Administrator description
+              <textarea
+                value={editor.description}
+                onChange={(event) =>
+                  setEditor((current) => ({
+                    ...current,
+                    description: event.target.value,
+                  }))
+                }
+                rows={5}
+                maxLength={600}
+                style={styles.textarea}
+                placeholder="Explain what this controlled rental option means and when administrators should use it."
+              />
+              <span style={styles.help}>
+                {editor.description.length}/600 characters. Human review is
+                required.
+              </span>
+            </label>
+
+            <div style={styles.actions}>
+              <Button
+                onClick={() => void draftDescription()}
+                disabled={aiBusy || busy || !editor.value.trim()}
+              >
+                {editor.description
+                  ? "Improve Description with AI"
+                  : "Draft Description with AI"}
+              </Button>
+              {aiMessage ? <span style={styles.aiMessage}>{aiMessage}</span> : null}
             </div>
-          </CardBox>
+
+            <label style={styles.label}>
+              Sort order *
+              <input
+                type="number"
+                min={0}
+                max={1000000}
+                step={1}
+                value={editor.sortOrder}
+                onChange={(event) =>
+                  setEditor((current) => ({
+                    ...current,
+                    sortOrder: Number(event.target.value),
+                  }))
+                }
+                style={styles.input}
+              />
+              <span style={styles.help}>
+                Lower numbers appear first. Leave gaps for future additions.
+              </span>
+            </label>
+
+            <label style={styles.checkboxRow}>
+              <input
+                type="checkbox"
+                checked={editor.isActive}
+                onChange={(event) =>
+                  setEditor((current) => ({
+                    ...current,
+                    isActive: event.target.checked,
+                  }))
+                }
+              />
+              <span>
+                <strong>Active</strong>
+                <br />
+                Active values may be used by future rental listing workflows.
+                Inactive values remain available for history.
+              </span>
+            </label>
+
+            <div style={styles.actionsRight}>
+              <Button
+                onClick={() => {
+                  setEditorOpen(false);
+                  resetEditor();
+                  setError(null);
+                }}
+                disabled={busy}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" primary disabled={busy || aiBusy}>
+                Review and Save
+              </Button>
+            </div>
+          </form>
+        </section>
+      ) : null}
+
+      {reviewOpen ? (
+        <section style={styles.review}>
+          <h2 style={styles.subheading}>Review Rental Value before saving</h2>
+          <p>
+            Confirm that this is a genuine controlled option for the selected
+            Rental Attribute. AI has no authority to approve or save it.
+          </p>
+
+          <dl style={styles.reviewGrid}>
+            <dt>Parent attribute</dt>
+            <dd>{selectedAttribute?.name || "Unknown"}</dd>
+            <dt>Value label</dt>
+            <dd>{editor.value}</dd>
+            <dt>Permanent key</dt>
+            <dd>{editor.slug}</dd>
+            <dt>Description</dt>
+            <dd>{editor.description || "No description supplied"}</dd>
+            <dt>Sort order</dt>
+            <dd>{editor.sortOrder}</dd>
+            <dt>Status</dt>
+            <dd>{editor.isActive ? "Active" : "Inactive"}</dd>
+          </dl>
+
+          <div style={styles.actionsRight}>
+            <Button onClick={() => setReviewOpen(false)} disabled={busy}>
+              Return to editor
+            </Button>
+            <Button primary onClick={() => void saveValue()} disabled={busy}>
+              {busy ? "Saving…" : "Confirm Human Review and Save"}
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
+      <section style={styles.panel}>
+        <div style={styles.panelHeader}>
+          <div>
+            <h2 style={styles.subheading}>
+              {selectedAttribute
+                ? `${selectedAttribute.name} Values`
+                : "Rental Values"}
+            </h2>
+            <p style={styles.muted}>
+              Active and inactive historical records are shown.
+            </p>
+          </div>
+          <span style={styles.countBadge}>{visibleValues.length}</span>
         </div>
-      </div>
 
-      {/* SAME CSS */}
-      <style jsx>{`
-        .mtx-topbar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          flex-wrap: wrap;
-          margin: 12px 0 16px;
-        }
-        .mtx-actions {
-          display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
-        .mtx-status {
-          display: flex;
-          justify-content: flex-end;
-          min-height: 24px;
-        }
-        .mtx-grid2 {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 14px;
-        }
-        .mtx-mt {
-          margin-top: 14px;
-        }
-        @media (min-width: 980px) {
-          .mtx-grid2 {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
+        {loading ? (
+          <p style={styles.empty}>Loading Rental Values…</p>
+        ) : visibleValues.length === 0 ? (
+          <p style={styles.empty}>
+            No controlled values exist for this Rental Attribute.
+          </p>
+        ) : (
+          <div style={styles.list}>
+            {visibleValues.map((row) => (
+              <article key={row.id} style={styles.row}>
+                <div style={styles.rowMain}>
+                  <div style={styles.rowTitle}>
+                    <strong>{row.value}</strong>
+                    <span
+                      style={
+                        row.is_active
+                          ? styles.activeBadge
+                          : styles.inactiveBadge
+                      }
+                    >
+                      {row.is_active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <span style={styles.muted}>
+                    Permanent key: {row.slug}
+                  </span>
+                  <p style={styles.description}>
+                    {row.description || "No administrator description yet."}
+                  </p>
+                  <span style={styles.muted}>
+                    Sort: {row.sort_order} · Mappings: {row.mapping_count} ·
+                    Listing answers: {row.listing_answer_count} · Dependencies:{" "}
+                    {row.dependency_count}
+                  </span>
+                </div>
 
-        .mtx-card {
-          background: #fff;
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          border-radius: 14px;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-          overflow: hidden;
-        }
-        .mtx-cardHead {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 12px;
-          padding: 14px 14px 10px;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-        }
-        .mtx-cardBody {
-          padding: 14px;
-        }
-
-        .mtx-title {
-          font-size: 15px;
-          font-weight: 800;
-        }
-        .mtx-subtitle {
-          margin-top: 4px;
-          font-size: 13px;
-          opacity: 0.75;
-          line-height: 1.35;
-        }
-        .mtx-right {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          justify-content: flex-end;
-          align-items: center;
-        }
-
-        .mtx-chipCol {
-          display: grid;
-          gap: 6px;
-          justify-items: end;
-        }
-        .mtx-chip {
-          font-size: 12px;
-          padding: 6px 10px;
-          border-radius: 999px;
-          border: 1px solid rgba(0, 0, 0, 0.12);
-          background: rgba(0, 0, 0, 0.02);
-          white-space: nowrap;
-        }
-        .mtx-chip.subtle {
-          opacity: 0.7;
-        }
-
-        .mtx-form {
-          display: grid;
-          gap: 12px;
-        }
-
-        .mtx-field {
-          display: grid;
-          gap: 6px;
-        }
-        .mtx-field > span {
-          font-size: 12px;
-          opacity: 0.75;
-        }
-
-        .mtx-field select,
-        .mtx-field input {
-          width: 100%;
-          max-width: 100%;
-          min-width: 0;
-          height: 42px;
-          padding: 10px 12px;
-          border-radius: 10px;
-          border: 1px solid rgba(0, 0, 0, 0.18);
-          background: #fff;
-          font-size: 14px;
-          outline: none;
-        }
-        .mtx-field select:disabled,
-        .mtx-field input:disabled {
-          background: rgba(0, 0, 0, 0.03);
-          opacity: 0.7;
-        }
-        .mtx-field select:focus,
-        .mtx-field input:focus {
-          border-color: rgba(0, 0, 0, 0.35);
-          box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06);
-        }
-
-        .mtx-twoCol {
-          display: grid;
-          gap: 12px;
-          grid-template-columns: 1fr;
-        }
-        @media (min-width: 760px) {
-          .mtx-twoCol {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
-
-        .mtx-primaryBtn {
-          height: 44px;
-          border-radius: 12px;
-          border: 1px solid rgba(0, 0, 0, 0.18);
-          background: #111;
-          color: #fff;
-          font-weight: 900;
-          cursor: pointer;
-        }
-        .mtx-primaryBtn:disabled {
-          background: rgba(0, 0, 0, 0.08);
-          color: rgba(0, 0, 0, 0.35);
-          cursor: not-allowed;
-        }
-
-        .mtx-ghostBtn {
-          height: 40px;
-          border-radius: 12px;
-          border: 1px solid rgba(0, 0, 0, 0.18);
-          background: #fff;
-          font-weight: 800;
-          cursor: pointer;
-        }
-        .mtx-ghostBtn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-
-        .mtx-divider {
-          height: 1px;
-          background: rgba(0, 0, 0, 0.06);
-          margin: 4px 0;
-        }
-
-        .mtx-tabRow {
-          display: inline-flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          justify-content: flex-end;
-        }
-        .mtx-tab {
-          height: 34px;
-          padding: 0 10px;
-          border-radius: 999px;
-          border: 1px solid rgba(0, 0, 0, 0.16);
-          background: #fff;
-          font-size: 12px;
-          font-weight: 800;
-          cursor: pointer;
-        }
-        .mtx-tab:disabled {
-          opacity: 0.45;
-          cursor: not-allowed;
-        }
-        .mtx-tab.active {
-          background: rgba(0, 0, 0, 0.08);
-          border-color: rgba(0, 0, 0, 0.22);
-        }
-
-        .mtx-list {
-          display: grid;
-          gap: 10px;
-        }
-        .mtx-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 10px;
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          border-radius: 12px;
-          padding: 10px 12px;
-          background: rgba(0, 0, 0, 0.01);
-        }
-        .mtx-rowText {
-          display: grid;
-          gap: 4px;
-          min-width: 0;
-        }
-        .mtx-rowName {
-          font-weight: 900;
-          font-size: 13px;
-          word-break: break-word;
-        }
-        .mtx-rowSlug {
-          font-size: 12px;
-          opacity: 0.75;
-          word-break: break-word;
-        }
-
-        .mtx-empty {
-          font-size: 13px;
-          opacity: 0.7;
-          padding: 4px 0;
-        }
-
-        .mtx-footnote {
-          margin-top: 12px;
-          font-size: 13px;
-          opacity: 0.7;
-          text-align: right;
-        }
-      `}</style>
-    </Container>
+                <div style={styles.actions}>
+                  <Button onClick={() => beginEdit(row)} disabled={busy}>
+                    Edit
+                  </Button>
+                  <Button
+                    danger={row.is_active}
+                    onClick={() => void changeLifecycle(row)}
+                    disabled={busy}
+                  >
+                    {row.is_active ? "Deactivate" : "Activate"}
+                  </Button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+    </main>
   );
 }
+
+const styles: Record<string, CSSProperties> = {
+  page: {
+    maxWidth: 1180,
+    margin: "0 auto",
+    padding: "28px 20px 60px",
+    color: "#172033",
+  },
+  hero: {
+    padding: 24,
+    border: "1px solid #dbe4ef",
+    borderRadius: 18,
+    background:
+      "linear-gradient(100deg, rgba(219,234,254,.9), rgba(255,255,255,.95))",
+  },
+  heading: { margin: 0, fontSize: 30 },
+  subheading: { margin: "0 0 8px", fontSize: 21 },
+  lead: { margin: "8px 0 0", lineHeight: 1.55 },
+  navigation: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    margin: "14px 0",
+  },
+  linkButton: {
+    padding: "9px 13px",
+    border: "1px solid #d8e0ea",
+    borderRadius: 9,
+    background: "#f8fafc",
+    color: "#172033",
+    textDecoration: "none",
+  },
+  metrics: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
+    gap: 10,
+    marginBottom: 14,
+  },
+  metric: {
+    padding: 16,
+    border: "1px solid #dfe5ec",
+    borderRadius: 12,
+    background: "#fff",
+  },
+  metricLabel: { display: "block", color: "#64748b", fontSize: 13 },
+  metricValue: { display: "block", fontSize: 27, marginTop: 5 },
+  info: {
+    padding: 20,
+    border: "1px solid #dbe4ef",
+    borderRadius: 14,
+    background: "#f8fbff",
+    lineHeight: 1.55,
+    marginBottom: 14,
+  },
+  panel: {
+    padding: 20,
+    border: "1px solid #dfe5ec",
+    borderRadius: 14,
+    background: "#fff",
+    marginBottom: 16,
+  },
+  editor: {
+    padding: 20,
+    border: "2px solid #2878d0",
+    borderRadius: 14,
+    background: "#fff",
+    marginBottom: 16,
+  },
+  review: {
+    padding: 20,
+    border: "2px solid #15803d",
+    borderRadius: 14,
+    background: "#f0fdf4",
+    marginBottom: 16,
+  },
+  panelHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+    flexWrap: "wrap",
+    marginBottom: 14,
+  },
+  notice: {
+    padding: 14,
+    margin: "14px 0",
+    background: "#fffbea",
+    border: "1px solid #f1df93",
+    borderRadius: 10,
+  },
+  label: {
+    display: "grid",
+    gap: 6,
+    fontWeight: 700,
+    marginBottom: 16,
+  },
+  input: {
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "11px 12px",
+    border: "1px solid #cfd8e3",
+    borderRadius: 9,
+    background: "#fff",
+    color: "#172033",
+    font: "inherit",
+  },
+  lockedInput: {
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "11px 12px",
+    border: "1px solid #cfd8e3",
+    borderRadius: 9,
+    background: "#eef2f7",
+    color: "#475569",
+    font: "inherit",
+  },
+  textarea: {
+    width: "100%",
+    boxSizing: "border-box",
+    padding: 12,
+    border: "1px solid #cfd8e3",
+    borderRadius: 9,
+    resize: "vertical",
+    font: "inherit",
+  },
+  help: { color: "#64748b", fontSize: 13, fontWeight: 400 },
+  muted: { color: "#64748b", fontSize: 14, margin: 0 },
+  attributeSummary: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 12,
+    padding: 13,
+    borderRadius: 10,
+    background: "#f8fafc",
+  },
+  actions: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  actionsRight: {
+    display: "flex",
+    justifyContent: "flex-end",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 16,
+  },
+  button: {
+    padding: "9px 13px",
+    border: "1px solid #cfd8e3",
+    borderRadius: 9,
+    background: "#fff",
+    color: "#172033",
+    cursor: "pointer",
+    fontWeight: 700,
+  },
+  primaryButton: {
+    background: "#0867c7",
+    borderColor: "#0867c7",
+    color: "#fff",
+  },
+  dangerButton: {
+    background: "#fff5f5",
+    borderColor: "#ef4444",
+    color: "#b91c1c",
+  },
+  disabledButton: { opacity: 0.55, cursor: "not-allowed" },
+  suggestions: { display: "grid", gap: 8, marginBottom: 16 },
+  suggestion: {
+    padding: 12,
+    textAlign: "left",
+    border: "1px solid #bfdbfe",
+    borderRadius: 9,
+    background: "#eff6ff",
+    color: "#172033",
+    cursor: "pointer",
+  },
+  aiMessage: { color: "#1d4ed8", fontSize: 13, fontWeight: 700 },
+  checkboxRow: {
+    display: "flex",
+    gap: 10,
+    padding: 13,
+    border: "1px solid #dfe5ec",
+    borderRadius: 10,
+  },
+  reviewGrid: {
+    display: "grid",
+    gridTemplateColumns: "minmax(150px,220px) 1fr",
+    gap: 10,
+    margin: "18px 0",
+  },
+  list: { display: "grid", gap: 10 },
+  row: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 16,
+    flexWrap: "wrap",
+    padding: 15,
+    border: "1px solid #dfe5ec",
+    borderRadius: 11,
+  },
+  rowMain: { flex: "1 1 600px" },
+  rowTitle: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+    marginBottom: 5,
+  },
+  description: { margin: "8px 0", lineHeight: 1.45 },
+  activeBadge: {
+    padding: "3px 7px",
+    borderRadius: 999,
+    background: "#dcfce7",
+    color: "#166534",
+    fontSize: 12,
+  },
+  inactiveBadge: {
+    padding: "3px 7px",
+    borderRadius: 999,
+    background: "#fee2e2",
+    color: "#991b1b",
+    fontSize: 12,
+  },
+  countBadge: {
+    minWidth: 30,
+    padding: "5px 9px",
+    borderRadius: 999,
+    textAlign: "center",
+    background: "#e2e8f0",
+    fontWeight: 800,
+  },
+  empty: {
+    padding: 22,
+    border: "1px dashed #cbd5e1",
+    borderRadius: 10,
+    textAlign: "center",
+    color: "#64748b",
+  },
+  error: {
+    padding: 13,
+    marginBottom: 14,
+    border: "1px solid #fecaca",
+    borderRadius: 10,
+    background: "#fef2f2",
+    color: "#991b1b",
+  },
+  success: {
+    padding: 13,
+    marginBottom: 14,
+    border: "1px solid #bbf7d0",
+    borderRadius: 10,
+    background: "#f0fdf4",
+    color: "#166534",
+  },
+};

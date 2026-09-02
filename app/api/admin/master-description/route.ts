@@ -9,7 +9,7 @@ const kinds = [
   "redirect_rule", "operating_capability", "property_type", "property_subtype",
   "property_attribute", "property_value",
   "rental_type", "rental_category", "rental_subcategory",
-  "rental_product_group", "rental_attribute",
+  "rental_product_group", "rental_attribute", "rental_value",
 ];
 const recent = new Map<string, number>();
 
@@ -136,7 +136,7 @@ export async function POST(request: Request) {
         task === "name_suggestions"
           ? "Suggest clear master-data taxonomy display names for 3Bigha."
           : task === "value_suggestions"
-            ? "Suggest safe controlled option labels for a 3Bigha property attribute."
+            ? "Suggest safe controlled option labels for the supplied 3Bigha property or rental attribute."
             : task === "attribute_suggestions"
               ? "Suggest safe reusable master-data attribute definitions for 3Bigha using the supplied kind and context."
               : "Draft a short plain-English description for a 3Bigha master-data entry.",
@@ -155,6 +155,7 @@ export async function POST(request: Request) {
         "For a rental subcategory, remain within the supplied parent category and explain the narrower use or work activity.",
         "For a rental product group, remain within the supplied parent subcategory and describe the specific rentable equipment group.",
         "For a rental attribute, explain the reusable equipment, machinery, tool or temporary-facility specification that an administrator should collect from rental listings.",
+        "For a rental value, explain one controlled selectable option under its supplied parent rental attribute using terminology appropriate to rental equipment, machinery, tools, vehicles or temporary facilities.",
         "When kind is rental_attribute, follow the rental-specific rules and examples below instead of the property-attribute examples.",
         "For rental attribute suggestions, propose specifications relevant to rentable machinery, equipment, tools, vehicles, work platforms, pumps, temporary facilities or related rental services.",
         "Use number input_type for measurable specifications such as power, capacity, pressure, flow rate, weight, reach, dimensions, runtime or fuel capacity, and suggest an accurate unit where appropriate.",
@@ -180,6 +181,10 @@ export async function POST(request: Request) {
         "For rental_attribute, do not recreate core fields such as listing title, taxonomy selection, hire price, location, availability dates, owner identity or contact information.",
         "Attribute suggestions must include a short reason so an administrator can review the choice.",
         "For a property value, describe the meaning of the controlled option under its supplied parent attribute.",
+        "When kind is rental_value, apply the rental-specific value rules instead of property-specific examples.",
+        "For rental value suggestions, remain strictly within the supplied parent rental attribute and return only genuine selectable rental-equipment or rental-service options.",
+        "Do not suggest measurements, prices, availability, addresses, contact details, free-form answers or product-group mappings as controlled rental values.",
+        "Do not invent equipment ownership, condition, certification, capacity, compliance, operator qualification or listing answers.",
         "For value suggestions, return 3 to 5 concise option labels appropriate for the supplied parent attribute.",
         "Value suggestions must be absent from the supplied existing names and must not be spelling or plural-only variants.",
         "Do not suggest a value outside the supplied parent attribute or alter the parent attribute.",
