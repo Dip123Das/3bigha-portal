@@ -2,8 +2,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
 
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
@@ -45,107 +43,61 @@ type PgAttrMapRow = {
   is_active?: boolean | null;
 };
 
-const TAXON_TABLE = "rental_taxons" as const;
-const ATTR_TABLE = "rental_attributes" as const;
-const MAP_TABLE = "rental_product_group_attributes" as const;
+const API_URL = "/api/admin/rental-mapping";
+const MAP_TABLE = "rental_product_group_attributes";
 
-const ADMIN_ROLE = "rentals_admin" as const;
+type ApiPayload = {
+  ok?: boolean;
+  error?: string;
+  role?: string | null;
+  email?: string | null;
+  taxons?: TaxonRow[];
+  attributes?: AttrRow[];
+  mappings?: PgAttrMapRow[];
+  data?: PgAttrMapRow;
+  action?: string;
+};
 
-function isMaster(role: string | null | undefined) {
-  return role === "master_admin";
-}
-function isModuleAdmin(role: string | null | undefined) {
-  return role === ADMIN_ROLE;
-}
+async function apiRequest(
+  method: "GET" | "POST" | "PATCH",
+  body?: Record<string, unknown>
+) {
+  const response = await fetch(API_URL, {
+    method,
+    credentials: "same-origin",
+    cache: "no-store",
+    headers: body
+      ? { "Content-Type": "application/json" }
+      : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
 
-function looksLikeMissingColumn(err: any, col: string) {
-  const msg = String(err?.message || "");
-  return msg.toLowerCase().includes("does not exist") && msg.toLowerCase().includes(col.toLowerCase());
-}
+  const payload =
+    (await response.json().catch(() => ({}))) as ApiPayload;
 
-function looksLikeMissingRelation(err: any, rel: string) {
-  const msg = String(err?.message || "");
-  return msg.toLowerCase().includes("does not exist") && msg.toLowerCase().includes(rel.toLowerCase());
-}
+  if (!response.ok) {
+    const error = new Error(
+      payload.error || "Rental Mapping request failed."
+    ) as Error & { status?: number };
 
-async function requireModuleAdmin(supabase: ReturnType<typeof getSupabaseBrowser>) {
-  const { data: auth } = await supabase.auth.getUser();
-  const user = auth?.user;
-  if (!user) return { ok: false, role: null as string | null, email: null as string | null };
-
-  const { data: prof, error: profErr } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (profErr) throw profErr;
-
-  const role = ((prof as any)?.role ?? null) as string | null;
-  const ok = isMaster(role) || isModuleAdmin(role);
-  return { ok, role, email: user.email ?? null };
-}
-
-async function fetchTaxons(supabase: ReturnType<typeof getSupabaseBrowser>, kind: Kind, parentId: string | null) {
-  let q = supabase
-    .from(TAXON_TABLE)
-    .select("id,parent_id,kind,name,slug,sort_order,is_active,source")
-    .eq("kind", kind)
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true, nullsFirst: true })
-    .order("name", { ascending: true });
-
-  if (parentId === null) q = q.is("parent_id", null);
-  else q = q.eq("parent_id", parentId);
-
-  const { data, error } = await q;
-  if (error) throw error;
-  return (data || []) as TaxonRow[];
-}
-
-async function fetchAttributes(supabase: ReturnType<typeof getSupabaseBrowser>) {
-  const withActive = await supabase
-    .from(ATTR_TABLE)
-    .select("id,name,slug,input_type,unit,sort_order,is_active")
-    .order("sort_order", { ascending: true, nullsFirst: true })
-    .order("name", { ascending: true });
-
-  if (!withActive.error) return (withActive.data || []) as AttrRow[];
-
-  if (looksLikeMissingRelation(withActive.error, ATTR_TABLE)) throw withActive.error;
-
-  if (looksLikeMissingColumn(withActive.error, "is_active")) {
-    const noActive = await supabase
-      .from(ATTR_TABLE)
-      .select("id,name,slug,input_type,unit,sort_order")
-      .order("sort_order", { ascending: true, nullsFirst: true })
-      .order("name", { ascending: true });
-
-    if (noActive.error) throw noActive.error;
-    return (noActive.data || []) as AttrRow[];
+    error.status = response.status;
+    throw error;
   }
 
-  throw withActive.error;
+  return payload;
 }
 
-async function tryFetchPgAttributeMap(supabase: ReturnType<typeof getSupabaseBrowser>, productGroupId: string) {
-  const withActive = await supabase
-    .from(MAP_TABLE)
-    .select("id,product_group_id,attribute_id,sort_order,is_required,is_active")
-    .eq("product_group_id", productGroupId)
-    .order("sort_order", { ascending: true, nullsFirst: true });
-
-  if (!withActive.error) return (withActive.data || []) as PgAttrMapRow[];
-
-  if (looksLikeMissingRelation(withActive.error, MAP_TABLE)) throw withActive.error;
-
-  if (looksLikeMissingColumn(withActive.error, "is_active")) {
-    const noActive = await supabase
-      .from(MAP_TABLE)
-      .select("id,product_group_id,attribute_id,sort_order,is_required")
-      .eq("product_group_id", productGroupId)
-      .order("sort_order", { ascending: true, nullsFirst: true });
-
-    if (noActive.error) throw noActive.error;
-    return (noActive.data || []) as PgAttrMapRow[];
-  }
-
-  throw withActive.error;
+function activeChildren(
+  taxons: TaxonRow[],
+  kind: Kind,
+  parentId: string | null
+) {
+  return taxons.filter(
+    (row) =>
+      row.kind === kind &&
+      row.parent_id === parentId &&
+      row.is_active
+  );
 }
 
 function CardBox(props: { title: string; subtitle?: string; right?: React.ReactNode; children: React.ReactNode }) {
@@ -164,86 +116,128 @@ function CardBox(props: { title: string; subtitle?: string; right?: React.ReactN
 }
 
 export default function RentalsMappingAdmin() {
-  const router = useRouter();
-  const supabase = useMemo(() => getSupabaseBrowser(), []);
-
   const [loading, setLoading] = useState(true);
-  const [allowed, setAllowed] = useState(false);
+  const [allowed, setAllowed] = useState(true);
   const [role, setRole] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
-
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
-  // taxonomy select
-  const [types, setTypes] = useState<TaxonRow[]>([]);
-  const [categories, setCategories] = useState<TaxonRow[]>([]);
-  const [subcategories, setSubcategories] = useState<TaxonRow[]>([]);
-  const [productGroups, setProductGroups] = useState<TaxonRow[]>([]);
+  const [taxons, setTaxons] = useState<TaxonRow[]>([]);
+  const [attributes, setAttributes] = useState<AttrRow[]>([]);
+  const [mappings, setMappings] = useState<PgAttrMapRow[]>([]);
 
   const [typeId, setTypeId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [subcategoryId, setSubcategoryId] = useState("");
   const [productGroupId, setProductGroupId] = useState("");
 
-  // attributes + mapping
-  const [attributes, setAttributes] = useState<AttrRow[]>([]);
-  const [mappingSupported, setMappingSupported] = useState<boolean | null>(null);
-  const [pgAttrMap, setPgAttrMap] = useState<PgAttrMapRow[]>([]);
+  const [mapAttrId, setMapAttrId] = useState("");
+  const [mapSort, setMapSort] = useState(1000);
+  const [mapRequired, setMapRequired] = useState(false);
 
-  // mapping form
-  const [mapAttrId, setMapAttrId] = useState<string>("");
-  const [mapSort, setMapSort] = useState<number>(1);
-  const [mapRequired, setMapRequired] = useState<boolean>(false);
+  const types = useMemo(
+    () => activeChildren(taxons, "type", null),
+    [taxons]
+  );
 
-  const selectedType = types.find((t) => t.id === typeId) || null;
-  const selectedCategory = categories.find((c) => c.id === categoryId) || null;
-  const selectedSubcategory = subcategories.find((s) => s.id === subcategoryId) || null;
-  const selectedPG = productGroups.find((p) => p.id === productGroupId) || null;
+  const categories = useMemo(
+    () => activeChildren(taxons, "category", typeId || null),
+    [taxons, typeId]
+  );
 
-  const mappedAttrIds = useMemo(() => new Set(pgAttrMap.map((m) => m.attribute_id)), [pgAttrMap]);
+  const subcategories = useMemo(
+    () =>
+      activeChildren(
+        taxons,
+        "subcategory",
+        categoryId || null
+      ),
+    [taxons, categoryId]
+  );
 
-  // boot
+  const productGroups = useMemo(
+    () =>
+      activeChildren(
+        taxons,
+        "product_group",
+        subcategoryId || null
+      ),
+    [taxons, subcategoryId]
+  );
+
+  const pgAttrMap = useMemo(
+    () =>
+      mappings.filter(
+        (row) => row.product_group_id === productGroupId
+      ),
+    [mappings, productGroupId]
+  );
+
+  const mappedAttrIds = useMemo(
+    () =>
+      new Set(
+        pgAttrMap
+          .filter((row) => row.is_active !== false)
+          .map((row) => row.attribute_id)
+      ),
+    [pgAttrMap]
+  );
+
+  const selectedType =
+    types.find((row) => row.id === typeId) || null;
+  const selectedCategory =
+    categories.find((row) => row.id === categoryId) || null;
+  const selectedSubcategory =
+    subcategories.find((row) => row.id === subcategoryId) || null;
+  const selectedPG =
+    productGroups.find((row) => row.id === productGroupId) || null;
+
+  const mappingSupported = true;
+
+  async function loadData(showLoading = false) {
+    if (showLoading) setLoading(true);
+
+    try {
+      const payload = await apiRequest("GET");
+
+      setAllowed(true);
+      setRole(payload.role || null);
+      setEmail(payload.email || null);
+      setTaxons(payload.taxons || []);
+      setAttributes(payload.attributes || []);
+      setMappings(payload.mappings || []);
+    } catch (error) {
+      const problem = error as Error & { status?: number };
+
+      if (
+        problem.status === 401 ||
+        problem.status === 403
+      ) {
+        setAllowed(false);
+      }
+
+      throw problem;
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  }
+
   useEffect(() => {
     let alive = true;
 
     (async () => {
       try {
-        setLoading(true);
         setMsg(null);
-
-        const a = await requireModuleAdmin(supabase);
+        await loadData(true);
+      } catch (error) {
         if (!alive) return;
 
-        setAllowed(a.ok);
-        setRole(a.role);
-        setEmail(a.email);
-
-        if (!a.ok) {
-          setLoading(false);
-          router.replace("/admin/dashboard");
-          return;
-        }
-
-        const t = await fetchTaxons(supabase, "type", null);
-        const attrs = await fetchAttributes(supabase);
-
-        if (!alive) return;
-        setTypes(t);
-        setAttributes(attrs);
-
-        setLoading(false);
-      } catch (e: any) {
-        console.error(e);
-        if (!alive) return;
-
-        const m =
-          e?.message ||
-          (looksLikeMissingRelation(e, ATTR_TABLE) || looksLikeMissingRelation(e, MAP_TABLE) || looksLikeMissingRelation(e, TAXON_TABLE)
-            ? "Rentals master tables not found in DB yet. Create the Rentals tables first."
-            : "Failed to load.");
-
-        setMsg(m);
+        const problem = error as Error;
+        setMsg(
+          problem.message ||
+            "Failed to load Rental Mapping."
+        );
         setLoading(false);
       }
     })();
@@ -251,182 +245,184 @@ export default function RentalsMappingAdmin() {
     return () => {
       alive = false;
     };
-  }, [router, supabase]);
-
-  // cascade taxonomy
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setCategories([]);
-      setSubcategories([]);
-      setProductGroups([]);
-      setCategoryId("");
-      setSubcategoryId("");
-      setProductGroupId("");
-
-      setPgAttrMap([]);
-      setMappingSupported(null);
-
-      if (!typeId) return;
-
-      try {
-        const c = await fetchTaxons(supabase, "category", typeId);
-        if (!alive) return;
-        setCategories(c);
-      } catch (e: any) {
-        if (!alive) return;
-        setMsg(e?.message || "Failed to load categories.");
-      }
-    })();
-    return () => void (alive = false);
-  }, [typeId, supabase]);
+  }, []);
 
   useEffect(() => {
-    let alive = true;
-    (async () => {
-      setSubcategories([]);
-      setProductGroups([]);
-      setSubcategoryId("");
-      setProductGroupId("");
-
-      setPgAttrMap([]);
-      setMappingSupported(null);
-
-      if (!categoryId) return;
-
-      try {
-        const s = await fetchTaxons(supabase, "subcategory", categoryId);
-        if (!alive) return;
-        setSubcategories(s);
-      } catch (e: any) {
-        if (!alive) return;
-        setMsg(e?.message || "Failed to load subcategories.");
-      }
-    })();
-    return () => void (alive = false);
-  }, [categoryId, supabase]);
+    setCategoryId("");
+    setSubcategoryId("");
+    setProductGroupId("");
+    setMapAttrId("");
+  }, [typeId]);
 
   useEffect(() => {
-    let alive = true;
-    (async () => {
-      setProductGroups([]);
-      setProductGroupId("");
+    setSubcategoryId("");
+    setProductGroupId("");
+    setMapAttrId("");
+  }, [categoryId]);
 
-      setPgAttrMap([]);
-      setMappingSupported(null);
-
-      if (!subcategoryId) return;
-
-      try {
-        const p = await fetchTaxons(supabase, "product_group", subcategoryId);
-        if (!alive) return;
-        setProductGroups(p);
-      } catch (e: any) {
-        if (!alive) return;
-        setMsg(e?.message || "Failed to load product groups.");
-      }
-    })();
-    return () => void (alive = false);
-  }, [subcategoryId, supabase]);
-
-  // load mapping when PG selected
   useEffect(() => {
-    let alive = true;
-    (async () => {
-      setPgAttrMap([]);
-      setMappingSupported(null);
+    setProductGroupId("");
+    setMapAttrId("");
+  }, [subcategoryId]);
 
-      if (!productGroupId) return;
-
-      try {
-        const m = await tryFetchPgAttributeMap(supabase, productGroupId);
-        if (!alive) return;
-        setPgAttrMap(m);
-        setMappingSupported(true);
-      } catch (e: any) {
-        // table missing / no access / RLS
-        if (!alive) return;
-        setMappingSupported(false);
-        // keep it quiet unless it’s a real error
-        if (!looksLikeMissingRelation(e, MAP_TABLE)) setMsg(e?.message || "Mapping not available.");
-      }
-    })();
-    return () => void (alive = false);
-  }, [productGroupId, supabase]);
-
-  async function refreshMap() {
-    if (!productGroupId) return;
-    const m = await tryFetchPgAttributeMap(supabase, productGroupId);
-    setPgAttrMap(m);
-  }
+  useEffect(() => {
+    setMapAttrId("");
+  }, [productGroupId]);
 
   async function onMap() {
     setMsg(null);
-    if (!productGroupId) return setMsg("Select a Product Group first.");
-    if (!mappingSupported) return setMsg(`Mapping table not found / not accessible: ${MAP_TABLE}`);
-    if (!mapAttrId) return setMsg("Select an attribute to map.");
+
+    if (!productGroupId) {
+      setMsg("Select a Product Group first.");
+      return;
+    }
+
+    if (!mapAttrId) {
+      setMsg("Select a Rental Attribute.");
+      return;
+    }
 
     if (mappedAttrIds.has(mapAttrId)) {
-      return setMsg("Already mapped. Choose another attribute.");
+      setMsg(
+        "This Rental Attribute is already actively mapped."
+      );
+      return;
     }
 
     setBusy(true);
+
     try {
-      const payload1: any = {
+      const payload = await apiRequest("POST", {
         product_group_id: productGroupId,
         attribute_id: mapAttrId,
         sort_order: mapSort,
         is_required: mapRequired,
-        is_active: true,
-      };
+      });
 
-      let { error } = await supabase.from(MAP_TABLE).insert(payload1);
-
-      if (error && looksLikeMissingColumn(error, "is_active")) {
-        const payload2: any = {
-          product_group_id: productGroupId,
-          attribute_id: mapAttrId,
-          sort_order: mapSort,
-          is_required: mapRequired,
-        };
-        const retry = await supabase.from(MAP_TABLE).insert(payload2);
-        error = retry.error;
-      }
-
-      if (error) throw error;
+      await loadData();
 
       setMapAttrId("");
-      setMapSort(1);
+      setMapSort(1000);
       setMapRequired(false);
 
-      await refreshMap();
-      setMsg("Mapped ✅");
-    } catch (e: any) {
-      console.error(e);
-      setMsg(e?.message || "Mapping failed.");
+      setMsg(
+        payload.action === "reactivated"
+          ? "Rental Mapping activated."
+          : "Rental Mapping created."
+      );
+    } catch (error) {
+      const problem = error as Error;
+      setMsg(
+        problem.message ||
+          "Rental Mapping could not be saved."
+      );
     } finally {
       setBusy(false);
     }
   }
 
-  async function onUnmap(row: PgAttrMapRow) {
+  async function onEditMapping(
+    row: PgAttrMapRow
+  ) {
     setMsg(null);
-    if (!mappingSupported) return;
+
+    const sortText = window.prompt(
+      "Enter the Rental Mapping sort order (0 to 1000000).",
+      String(row.sort_order ?? 1000)
+    );
+
+    if (sortText === null) return;
+
+    const sortOrder = Number(sortText);
+
+    if (
+      !Number.isInteger(sortOrder) ||
+      sortOrder < 0 ||
+      sortOrder > 1000000
+    ) {
+      setMsg(
+        "Sort order must be a whole number from 0 to 1000000."
+      );
+      return;
+    }
+
+    const requirementText = window.prompt(
+      "Enter required or optional.",
+      row.is_required ? "required" : "optional"
+    );
+
+    if (requirementText === null) return;
+
+    const requirement =
+      requirementText.trim().toLowerCase();
+
+    if (
+      requirement !== "required" &&
+      requirement !== "optional"
+    ) {
+      setMsg('Enter either "required" or "optional".');
+      return;
+    }
 
     setBusy(true);
-    try {
-      let { error } = await supabase.from(MAP_TABLE).update({ is_active: false }).eq("id", row.id);
-      if (error && looksLikeMissingColumn(error, "is_active")) {
-        const del = await supabase.from(MAP_TABLE).delete().eq("id", row.id);
-        error = del.error;
-      }
-      if (error) throw error;
 
-      await refreshMap();
-      setMsg("Unmapped ✅");
-    } catch (e: any) {
-      console.error(e);
-      setMsg(e?.message || "Unmap failed.");
+    try {
+      await apiRequest("PATCH", {
+        id: row.id,
+        sort_order: sortOrder,
+        is_required: requirement === "required",
+      });
+
+      await loadData();
+      setMsg("Rental Mapping settings updated.");
+    } catch (error) {
+      const problem = error as Error;
+      setMsg(
+        problem.message ||
+          "Rental Mapping could not be updated."
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onToggleMapping(
+    row: PgAttrMapRow
+  ) {
+    setMsg(null);
+
+    const activating = row.is_active === false;
+
+    if (!activating) {
+      const confirmed = window.confirm(
+        "Deactivate this Rental Mapping? No historical mapping record will be deleted."
+      );
+
+      if (!confirmed) return;
+    }
+
+    setBusy(true);
+
+    try {
+      await apiRequest("PATCH", {
+        id: row.id,
+        is_active: activating,
+        confirm: activating ? undefined : true,
+      });
+
+      await loadData();
+
+      setMsg(
+        activating
+          ? "Rental Mapping activated."
+          : "Rental Mapping deactivated. History was preserved."
+      );
+    } catch (error) {
+      const problem = error as Error;
+      setMsg(
+        problem.message ||
+          "Rental Mapping lifecycle could not be updated."
+      );
     } finally {
       setBusy(false);
     }
@@ -572,7 +568,7 @@ export default function RentalsMappingAdmin() {
                   <span>Attribute</span>
                   <select value={mapAttrId} onChange={(e) => setMapAttrId(e.target.value)} disabled={!productGroupId}>
                     <option value="">— Select Attribute —</option>
-                    {attributes.map((a) => (
+                    {attributes.filter((a) => a.is_active !== false).map((a) => (
                       <option key={a.id} value={a.id} disabled={mappedAttrIds.has(a.id)}>
                         {a.name} ({a.input_type}){mappedAttrIds.has(a.id) ? " — mapped" : ""}
                       </option>
@@ -603,13 +599,13 @@ export default function RentalsMappingAdmin() {
                 </div>
 
                 <button className="mtx-primaryBtn" type="button" onClick={onMap} disabled={busy || !mapAttrId || !productGroupId}>
-                  {busy ? "Saving..." : "Map"}
+                  {busy ? "Saving..." : "Review and Map"}
                 </button>
 
                 <div className="mtx-divider" />
 
                 <div className="mtx-title" style={{ fontSize: 14 }}>
-                  Mapped attributes (selected PG)
+                  Rental Attribute mappings (selected Product Group)
                 </div>
 
                 {pgAttrMap.length === 0 ? (
@@ -623,13 +619,30 @@ export default function RentalsMappingAdmin() {
                           <div className="mtx-rowText">
                             <div className="mtx-rowName">{a ? a.name : r.attribute_id}</div>
                             <div className="mtx-rowSlug">
-                              sort: {r.sort_order ?? "-"} • required: {r.is_required ? "yes" : "no"}
+                              status: {r.is_active === false ? "inactive" : "active"} • sort: {r.sort_order ?? "-"} • required: {r.is_required ? "yes" : "no"}
                               {a ? ` • type: ${a.input_type}` : ""}
                             </div>
                           </div>
-                          <button className="mtx-ghostBtn" onClick={() => onUnmap(r)} disabled={busy}>
-                            Unmap
-                          </button>
+                          <div className="mtx-right">
+                            <button
+                              className="mtx-ghostBtn"
+                              type="button"
+                              onClick={() => onEditMapping(r)}
+                              disabled={busy}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="mtx-ghostBtn"
+                              type="button"
+                              onClick={() => onToggleMapping(r)}
+                              disabled={busy}
+                            >
+                              {r.is_active === false
+                                ? "Activate"
+                                : "Deactivate"}
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -637,7 +650,7 @@ export default function RentalsMappingAdmin() {
                 )}
 
                 <div className="mtx-footnote" style={{ textAlign: "left" }}>
-                  Note: “Unmap” soft-disables if <b>is_active</b> exists; otherwise it deletes the row.
+                  Deactivation preserves the historical Rental Mapping. Product Group and Rental Attribute relationships remain permanently locked after creation.
                 </div>
               </div>
             )}
