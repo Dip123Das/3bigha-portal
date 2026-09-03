@@ -575,21 +575,21 @@ export default function RentalAttributesMasterPage() {
         </ActionButton>
 
         <ActionButton
-          href="/admin/dashboard/master-data/rental/taxonomy"
+          href="/admin/dashboard/master-data/rentals/taxonomy"
           variant="secondary"
         >
           Taxonomy →
         </ActionButton>
 
         <ActionButton
-          href="/admin/dashboard/master-data/rental/values"
+          href="/admin/dashboard/master-data/rentals/values"
           variant="secondary"
         >
           Values →
         </ActionButton>
 
         <ActionButton
-          href="/admin/dashboard/master-data/rental/mapping"
+          href="/admin/dashboard/master-data/rentals/mapping"
           variant="secondary"
         >
           Mapping →
@@ -1216,7 +1216,7 @@ export default function RentalAttributesMasterPage() {
                     {(attribute.input_type === "single_select" ||
                       attribute.input_type === "multi_select") ? (
                       <ActionButton
-                        href="/admin/dashboard/master-data/rental/values"
+                        href="/admin/dashboard/master-data/rentals/values"
                         variant="secondary"
                       >
                         Manage Values →
@@ -1224,7 +1224,7 @@ export default function RentalAttributesMasterPage() {
                     ) : null}
 
                     <ActionButton
-                      href="/admin/dashboard/master-data/rental/mapping"
+                      href="/admin/dashboard/master-data/rentals/mapping"
                       variant="secondary"
                     >
                       Manage Mapping →

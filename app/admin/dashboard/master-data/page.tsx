@@ -205,7 +205,7 @@ export default function MasterDataEntryCentrePage() {
         </CardShell>
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
         .md-top {
           display: flex;
           justify-content: space-between;
