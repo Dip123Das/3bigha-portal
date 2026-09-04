@@ -11,7 +11,7 @@ const kinds = [
   "rental_type", "rental_category", "rental_subcategory",
   "rental_product_group", "rental_attribute", "rental_value",
   "material_type", "material_category", "material_subcategory",
-  "material_product_group",
+  "material_product_group", "material_attribute",
 ];
 const recent = new Map<string, number>();
 
@@ -156,6 +156,17 @@ export async function POST(request: Request) {
         "For a material category, remain strictly within the supplied parent material type and explain the construction-material family.",
         "For a material subcategory, remain strictly within the supplied parent category and explain the narrower material classification.",
         "For a material product group, describe a reusable construction-material group that may be mapped to appropriate material subcategories.",
+        "For a material attribute, explain one reusable specification used to describe building or construction materials.",
+        "When kind is material_attribute, apply the Materials-specific rules below instead of Property or Rental attribute examples.",
+        "Materials Attribute suggestions must describe genuine specifications such as Grade, Material Type, Size, Thickness, Weight, Colour, Finish, Brand, Standard, Strength, Pack Size or Application.",
+        "Use number input_type only for measurable specifications such as thickness, weight, length, width, density, strength, volume or coverage.",
+        "For material_attribute, suggest a unit only for number input_type and use an accurate unit such as mm, cm, m, g, kg, MPa, kg/m3, litres or m2 when appropriate.",
+        "Use single_select or multi_select for controlled classifications such as grade, material type, colour, finish, brand, standard or application.",
+        "Use boolean only for a genuine yes-or-no material property such as pre-mixed or galvanized.",
+        "Use text only when the specification genuinely requires administrator-reviewed free-form wording.",
+        "Do not introduce Property fields, Rental equipment specifications, prices, stock, availability, ownership, addresses, contacts, taxonomy entries, controlled values, mappings or listing answers as Materials Attributes.",
+        "Do not invent certifications, standards compliance, laboratory results, strength results, performance claims or product availability.",
+        "Materials Attribute AI output is advisory only. It must never save a record and must be reviewed by an administrator before a separate save action.",
         "Materials suggestions must use genuine construction-material terminology such as cement, steel, bricks, sand, aggregates, pipes, electrical fittings, flooring, paints, glass, roofing, doors or windows.",
         "Do not introduce property classifications, rental equipment, prices, stock, availability, ownership, addresses, contacts or listing answers into Materials Taxonomy.",
         "Do not invent certifications, standards compliance, laboratory results, strength claims, performance claims or product availability.",

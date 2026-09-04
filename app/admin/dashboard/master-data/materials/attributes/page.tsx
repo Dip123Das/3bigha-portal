@@ -1,880 +1,441 @@
-// app/admin/dashboard/master-data/materials/attributes/page.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
-
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 
-type AttrInputType = "single_select" | "multi_select" | "text" | "number" | "boolean";
-type ValueTab = "global" | "product_group";
+type InputType = "text" | "number" | "boolean" | "single_select" | "multi_select";
 
-type AttrRow = {
+type Attribute = {
   id: string;
   name: string;
   slug: string;
-  input_type: AttrInputType;
+  description: string | null;
+  input_type: InputType;
   unit: string | null;
+  scope: string;
   sort_order: number;
   is_active: boolean;
-  scope?: "global" | "product_specific" | string; // newly added in DB (safe)
+  mapping_count: number;
+  value_count: number;
+  active_value_count: number;
+  historical_answer_count: number;
 };
 
-type AttrValueRow = {
-  id: string;
-  attribute_id: string;
-  value: string;
-  slug: string | null;
-  sort_order: number;
-  is_active: boolean;
-  product_group_id: string | null; // ✅ required for product-group specific values
-};
-
-type ProductGroupRow = {
-  id: string;
+type FormState = {
   name: string;
-  sort_order: number | null;
-  is_active: boolean | null;
+  slug: string;
+  description: string;
+  input_type: InputType;
+  unit: string;
+  sort_order: number;
 };
 
-function slugify(input: string) {
-  return input
+const emptyForm: FormState = {
+  name: "",
+  slug: "",
+  description: "",
+  input_type: "single_select",
+  unit: "",
+  sort_order: 1000,
+};
+
+const inputTypeLabels: Record<InputType, string> = {
+  single_select: "One controlled choice",
+  multi_select: "Multiple controlled choices",
+  number: "Measured number",
+  boolean: "Yes or No",
+  text: "Short written specification",
+};
+
+function slugify(value: string) {
+  return value
     .trim()
     .toLowerCase()
     .replace(/&/g, "and")
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+    .replace(/(^-|-$)+/g, "");
 }
 
-function isMaster(role: string | null | undefined) {
-  return role === "master_admin";
-}
-function isMaterialsAdmin(role: string | null | undefined) {
-  return role === "materials_admin";
-}
-
-async function requireMaterialsAdmin(supabase: ReturnType<typeof getSupabaseBrowser>) {
-  const { data: auth } = await supabase.auth.getUser();
-  const user = auth?.user;
-  if (!user) return { ok: false, role: null as string | null };
-
-  const { data: prof, error: profErr } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  if (profErr) throw profErr;
-
-  const role = ((prof as any)?.role ?? null) as string | null;
-  const ok = isMaster(role) || isMaterialsAdmin(role);
-  return { ok, role };
+function control(disabled = false): React.CSSProperties {
+  return {
+    width: "100%",
+    minHeight: 42,
+    padding: "9px 11px",
+    border: "1px solid #cbd5e1",
+    borderRadius: 10,
+    background: disabled ? "#f1f5f9" : "#fff",
+    color: "#0f172a",
+  };
 }
 
-async function fetchAttributes(supabase: ReturnType<typeof getSupabaseBrowser>) {
-  const { data, error } = await supabase
-    .from("material_attributes")
-    .select("id,name,slug,input_type,unit,sort_order,is_active,scope")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true })
-    .order("name", { ascending: true });
-
-  if (error) throw error;
-  return (data || []) as AttrRow[];
+function button(primary = false, danger = false): React.CSSProperties {
+  return {
+    minHeight: 38,
+    padding: "8px 12px",
+    borderRadius: 10,
+    border: danger ? "1px solid #fecaca" : "1px solid rgba(15,23,42,.16)",
+    background: danger ? "#fff1f2" : primary ? "#0f172a" : "#fff",
+    color: danger ? "#be123c" : primary ? "#fff" : "#0f172a",
+    fontWeight: 750,
+    cursor: "pointer",
+  };
 }
 
-async function fetchProductGroups(supabase: ReturnType<typeof getSupabaseBrowser>) {
-  const { data, error } = await supabase
-    .from("material_taxons")
-    .select("id,name,sort_order,is_active")
-    .eq("kind", "product_group")
-    .or("is_active.is.null,is_active.eq.true")
-    .order("sort_order", { ascending: true })
-    .order("name", { ascending: true });
-
-  if (error) throw error;
-
-  const rows = (data || []) as ProductGroupRow[];
-  return rows.filter((r) => r.is_active !== false);
+async function readJson(response: Response) {
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || body?.ok === false) {
+    throw new Error(body?.error || `Request failed with status ${response.status}.`);
+  }
+  return body;
 }
 
-async function fetchAttributeValuesAll(supabase: ReturnType<typeof getSupabaseBrowser>, attributeId: string) {
-  const { data, error } = await supabase
-    .from("material_attribute_values")
-    .select("id,attribute_id,value,slug,sort_order,is_active,product_group_id")
-    .eq("attribute_id", attributeId)
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true })
-    .order("value", { ascending: true });
-
-  if (error) throw error;
-  return (data || []) as AttrValueRow[];
-}
-
-function CardBox(props: { title: string; subtitle?: string; right?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <section className="mxa-card">
-      <div className="mxa-cardHead">
-        <div>
-          <div className="mxa-title">{props.title}</div>
-          {props.subtitle ? <div className="mxa-subtitle">{props.subtitle}</div> : null}
-        </div>
-        {props.right ? <div className="mxa-right">{props.right}</div> : null}
-      </div>
-      <div className="mxa-cardBody">{props.children}</div>
-    </section>
-  );
-}
-
-export default function MaterialsAttributesAdmin() {
-  const router = useRouter();
+export default function MaterialsAttributesPage() {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
-
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [loading, setLoading] = useState(true);
-  const [adminOk, setAdminOk] = useState(false);
-  const [role, setRole] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<FormState>(emptyForm);
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [showInactive, setShowInactive] = useState(false);
+  const [aiBusy, setAiBusy] = useState<"names" | "description" | null>(null);
+  const [aiMessage, setAiMessage] = useState("");
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
 
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  async function accessToken() {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) throw new Error("Please sign in again.");
+    return token;
+  }
 
-  const [attributes, setAttributes] = useState<AttrRow[]>([]);
-  const [selectedAttrId, setSelectedAttrId] = useState<string>("");
+  async function api(method: "GET" | "POST" | "PATCH", body?: unknown) {
+    const token = await accessToken();
+    const response = await fetch("/api/admin/material-attributes", {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(body ? { "Content-Type": "application/json" } : {}),
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+      cache: "no-store",
+    });
+    return readJson(response);
+  }
 
-  const [productGroups, setProductGroups] = useState<ProductGroupRow[]>([]);
-  const [selectedPgId, setSelectedPgId] = useState<string>(""); // used for “Values for selected Product Group” tab
-
-  const [valuesAll, setValuesAll] = useState<AttrValueRow[]>([]);
-  const [valueTab, setValueTab] = useState<ValueTab>("global");
-
-  // Create attribute form
-  const [aName, setAName] = useState("");
-  const [aSlug, setASlug] = useState("");
-  const [aInputType, setAInputType] = useState<AttrInputType>("single_select");
-  const [aUnit, setAUnit] = useState("");
-  const [aSort, setASort] = useState<number>(1);
-  const [aScope, setAScope] = useState<"global" | "product_specific">("global"); // ✅ uses your new scope column
-
-  // Create value form
-  const [vValue, setVValue] = useState("");
-  const [vSlug, setVSlug] = useState("");
-  const [vSort, setVSort] = useState<number>(1);
+  async function load() {
+    setLoading(true);
+    setError("");
+    try {
+      const result = await api("GET");
+      setAttributes(Array.isArray(result.attributes) ? result.attributes : []);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Materials Attributes could not be loaded.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    let alive = true;
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    (async () => {
-      try {
-        const a = await requireMaterialsAdmin(supabase);
-        if (!alive) return;
-
-        setAdminOk(a.ok);
-        setRole(a.role);
-
-        if (!a.ok) {
-          router.replace("/admin/dashboard");
-          return;
-        }
-
-        const [attrs, pgs] = await Promise.all([fetchAttributes(supabase), fetchProductGroups(supabase)]);
-        if (!alive) return;
-
-        setAttributes(attrs);
-        setProductGroups(pgs);
-        setLoading(false);
-      } catch (e: any) {
-        console.error(e);
-        if (!alive) return;
-        setMsg(e?.message || "Failed to load attributes.");
-        setLoading(false);
+  function updateForm<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setForm((current) => {
+      const next = { ...current, [key]: value };
+      if (key === "name" && !editingId && !slugTouched) {
+        next.slug = slugify(String(value));
       }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, [router, supabase]);
-
-  // Load ALL values for selected attribute (both global + product-group specific)
-  useEffect(() => {
-    let alive = true;
-
-    (async () => {
-      setValuesAll([]);
-      setMsg(null);
-
-      if (!selectedAttrId) return;
-
-      try {
-        const v = await fetchAttributeValuesAll(supabase, selectedAttrId);
-        if (!alive) return;
-        setValuesAll(v);
-      } catch (e: any) {
-        console.error(e);
-        if (!alive) return;
-        setMsg(e?.message || "Failed to load attribute values.");
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, [selectedAttrId, supabase]);
-
-  const selectedAttr = useMemo(() => attributes.find((a) => a.id === selectedAttrId) || null, [attributes, selectedAttrId]);
-
-  const selectedAttrIsSelect = useMemo(() => {
-    return selectedAttr?.input_type === "single_select" || selectedAttr?.input_type === "multi_select";
-  }, [selectedAttr]);
-
-  // ✅ Tab filters (NO hooks inside conditionals)
-  const valuesGlobal = useMemo(() => valuesAll.filter((v) => !v.product_group_id), [valuesAll]);
-  const valuesForSelectedPg = useMemo(() => {
-    if (!selectedPgId) return [];
-    return valuesAll.filter((v) => v.product_group_id === selectedPgId);
-  }, [valuesAll, selectedPgId]);
-
-  async function refreshAttributes() {
-    const attrs = await fetchAttributes(supabase);
-    setAttributes(attrs);
+      if (key === "input_type" && value !== "number") next.unit = "";
+      return next;
+    });
   }
 
-  async function refreshValues() {
-    if (!selectedAttrId) return;
-    const v = await fetchAttributeValuesAll(supabase, selectedAttrId);
-    setValuesAll(v);
+  function resetForm() {
+    setEditingId(null);
+    setForm(emptyForm);
+    setSlugTouched(false);
+    setAiSuggestions([]);
+    setAiMessage("");
+    setError("");
+    setMessage("");
   }
 
-  async function onCreateAttribute() {
-    setMsg(null);
-    const name = aName.trim();
-    if (!name) return;
+  function beginEdit(row: Attribute) {
+    setEditingId(row.id);
+    setForm({
+      name: row.name,
+      slug: row.slug,
+      description: row.description || "",
+      input_type: row.input_type,
+      unit: row.unit || "",
+      sort_order: row.sort_order,
+    });
+    setSlugTouched(true);
+    setAiSuggestions([]);
+    setAiMessage("");
+    setError("");
+    setMessage("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
-    const slug = (aSlug.trim() || slugify(name)).toLowerCase();
-
-    setBusy(true);
+  async function save() {
+    if (!form.name.trim()) return setError("Enter the Materials Attribute name.");
+    if (!editingId && form.input_type === "number" && !form.unit.trim()) {
+      return setError("Enter the accurate unit for this measured number.");
+    }
+    setSaving(true);
+    setError("");
+    setMessage("");
     try {
-      const { error } = await supabase.from("material_attributes").insert({
-        name,
-        slug,
-        input_type: aInputType,
-        unit: aUnit.trim() ? aUnit.trim() : null,
-        sort_order: Number.isFinite(aSort) ? aSort : 1,
-        is_active: true,
-        scope: aScope, // ✅ new column
+      if (editingId) {
+        const current = attributes.find((row) => row.id === editingId);
+        await api("PATCH", {
+          id: editingId,
+          name: form.name,
+          description: form.description,
+          sort_order: form.sort_order,
+          is_active: current?.is_active !== false,
+        });
+        setMessage("Materials Attribute changes saved after administrator review.");
+      } else {
+        await api("POST", {
+          name: form.name,
+          slug: form.slug,
+          description: form.description,
+          input_type: form.input_type,
+          unit: form.input_type === "number" ? form.unit : null,
+          sort_order: form.sort_order,
+        });
+        setMessage("Materials Attribute created after administrator review.");
+      }
+      setEditingId(null);
+      setForm(emptyForm);
+      setSlugTouched(false);
+      setAiSuggestions([]);
+      setAiMessage("");
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "The Materials Attribute could not be saved.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function toggle(row: Attribute) {
+    const nextActive = !row.is_active;
+    const action = nextActive ? "reactivate" : "deactivate";
+    const actionLabel = nextActive ? "Reactivate" : "Deactivate";
+    if (!window.confirm(`${actionLabel} ${row.name}?\n\nThe record and its history will remain preserved.`)) return;
+    setSaving(true);
+    setError("");
+    setMessage("");
+    try {
+      await api("PATCH", {
+        id: row.id,
+        name: row.name,
+        description: row.description || "",
+        sort_order: row.sort_order,
+        is_active: nextActive,
       });
-
-      if (error) throw error;
-
-      setAName("");
-      setASlug("");
-      setAUnit("");
-      setASort(1);
-      setAScope("global");
-
-      await refreshAttributes();
-      setMsg(`Attribute created ✅ ${name}`);
-    } catch (e: any) {
-      console.error(e);
-      setMsg(e?.message || "Create attribute failed.");
+      setMessage(`${row.name} ${nextActive ? "reactivated" : "deactivated"}.`);
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : `The attribute could not be ${action}d.`);
     } finally {
-      setBusy(false);
+      setSaving(false);
     }
   }
 
-  async function onDisableAttribute(row: AttrRow) {
-    setMsg(null);
-    setBusy(true);
+  async function requestAi(task: "name_suggestions" | "description") {
+    setAiBusy(task === "name_suggestions" ? "names" : "description");
+    setAiMessage("");
+    if (task === "name_suggestions") setAiSuggestions([]);
     try {
-      const { error } = await supabase.from("material_attributes").update({ is_active: false }).eq("id", row.id);
-      if (error) throw error;
-
-      if (selectedAttrId === row.id) {
-        setSelectedAttrId("");
-        setValuesAll([]);
-      }
-      await refreshAttributes();
-      setMsg("Attribute disabled.");
-    } catch (e: any) {
-      console.error(e);
-      setMsg(e?.message || "Disable attribute failed.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onCreateValue() {
-    setMsg(null);
-    if (!selectedAttrId) return setMsg("Select an attribute first.");
-    if (!selectedAttrIsSelect && selectedAttr?.input_type !== "boolean" && selectedAttr?.input_type !== "number" && selectedAttr?.input_type !== "text") {
-      // just safety; still allow values if user wants
-    }
-
-    const value = vValue.trim();
-    if (!value) return;
-
-    // ✅ Decide which bucket the new value goes into based on active tab
-    const product_group_id =
-      valueTab === "global" ? null : selectedPgId ? selectedPgId : null;
-
-    if (valueTab === "product_group" && !selectedPgId) {
-      setMsg("Select a Product Group first to add Product-Group-specific values.");
-      return;
-    }
-
-    setBusy(true);
-    try {
-      const { error } = await supabase.from("material_attribute_values").insert({
-        attribute_id: selectedAttrId,
-        value,
-        slug: vSlug.trim() ? vSlug.trim().toLowerCase() : null,
-        sort_order: Number.isFinite(vSort) ? vSort : 1,
-        is_active: true,
-        product_group_id,
+      const token = await accessToken();
+      const response = await fetch("/api/admin/master-description", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task,
+          kind: "material_attribute",
+          name: form.name,
+          context: {
+            name: form.name,
+            key: editingId ? form.slug : form.slug || slugify(form.name),
+            inputType: form.input_type,
+            unit: form.input_type === "number" ? form.unit : "",
+          },
+        }),
       });
-
-      if (error) throw error;
-
-      setVValue("");
-      setVSlug("");
-      setVSort(1);
-
-      await refreshValues();
-      setMsg(valueTab === "global" ? "Global value created ✅" : "Product-group value created ✅");
-    } catch (e: any) {
-      console.error(e);
-      setMsg(e?.message || "Create value failed.");
+      const result = await readJson(response);
+      if (task === "name_suggestions") {
+        const suggestions = Array.isArray(result.suggestions)
+          ? result.suggestions.filter((value: unknown): value is string => typeof value === "string").slice(0, 8)
+          : [];
+        if (!suggestions.length) throw new Error("AI did not return usable Materials Attribute suggestions.");
+        setAiSuggestions(suggestions);
+        setAiMessage("AI suggestions are advisory. Choose one only after checking it is a genuine reusable material specification.");
+      } else {
+        const description = typeof result.description === "string" ? result.description.trim() : "";
+        if (!description) throw new Error("AI did not return a usable description.");
+        updateForm("description", description);
+        setAiMessage("AI draft copied into the editable form. Review and correct it before saving.");
+      }
+    } catch (caught) {
+      setAiMessage(caught instanceof Error ? caught.message : "AI assistance is unavailable.");
     } finally {
-      setBusy(false);
+      setAiBusy(null);
     }
   }
 
-  async function onDisableValue(row: AttrValueRow) {
-    setMsg(null);
-    setBusy(true);
-    try {
-      const { error } = await supabase.from("material_attribute_values").update({ is_active: false }).eq("id", row.id);
-      if (error) throw error;
-
-      await refreshValues();
-      setMsg("Value disabled.");
-    } catch (e: any) {
-      console.error(e);
-      setMsg(e?.message || "Disable value failed.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  if (loading) {
-    return (
-      <Container>
-        <SectionHeader title="Materials → Attributes" subtitle="Loading..." />
-      </Container>
-    );
-  }
-
-  if (!adminOk) {
-    return (
-      <Container>
-        <SectionHeader title="Materials → Attributes" subtitle="Admin access required" />
-        <EmptyState message="Access denied." />
-      </Container>
-    );
-  }
+  const visibleAttributes = attributes.filter((row) => showInactive || row.is_active);
 
   return (
     <Container>
-      <div className="mxa-page">
+      <div style={{ display: "grid", gap: 14, paddingBottom: 36 }}>
         <SectionHeader
-          title="Materials → Attributes Manager"
-          subtitle={`Define variation fields (Brand, Grade, Diameter…) and their allowed values (role: ${role ?? "—"})`}
+          title="Materials → Attributes"
+          subtitle="Create reusable specifications for building and construction materials."
         />
 
-        <div className="mxa-topbar">
-          <div className="mxa-actions">
-            <ActionButton href="/admin/dashboard/master-data" variant="secondary">
-              ← Back to Master Data
-            </ActionButton>
-            <ActionButton href="/admin/dashboard/master-data/materials/taxonomy" variant="secondary">
-              Taxonomy Manager
-            </ActionButton>
-            <ActionButton href="/admin/dashboard/master-data/materials/mapping" variant="secondary">
-              Product → Variations Mapping
-            </ActionButton>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <ActionButton href="/admin/dashboard/master-data" variant="secondary">← Master Data</ActionButton>
+          <ActionButton href="/admin/dashboard/master-data/materials/taxonomy" variant="secondary">Taxonomy →</ActionButton>
+          <ActionButton href="/admin/dashboard/master-data/materials/values" variant="secondary">Values →</ActionButton>
+          <ActionButton href="/admin/dashboard/master-data/materials/mapping" variant="secondary">Mapping →</ActionButton>
+        </div>
+
+        <section className="ma-note">
+          <strong>How to use this page</strong>
+          <div>Create only a reusable material specification such as Grade, Thickness, Weight, Colour, Finish, Brand, Strength, Pack Size or Application.</div>
+          <div>Controlled choices belong on the separate Values page. Product Group relationships belong on the separate Mapping page.</div>
+        </section>
+
+        <section className="ma-card">
+          <h2>Step 1 — {editingId ? "Edit Materials Attribute" : "Add Materials Attribute"}</h2>
+          <p>Choose the answer type carefully. The permanent key, answer type and unit lock after creation.</p>
+
+          <div className="ma-grid">
+            <label>
+              <span>Attribute name</span>
+              <small>Example: Grade, Thickness, Colour, Finish or Application.</small>
+              <input style={control()} maxLength={120} value={form.name} onChange={(event) => updateForm("name", event.target.value)} />
+            </label>
+            <label>
+              <span>Answer type</span>
+              <small>Select how this material specification must be recorded.</small>
+              <select style={control(Boolean(editingId))} disabled={Boolean(editingId)} value={form.input_type} onChange={(event) => updateForm("input_type", event.target.value as InputType)}>
+                {(Object.keys(inputTypeLabels) as InputType[]).map((type) => <option key={type} value={type}>{inputTypeLabels[type]}</option>)}
+              </select>
+            </label>
           </div>
-          <div className="mxa-status">{msg ? <Badge>{msg}</Badge> : null}</div>
-        </div>
 
-        <div className="mxa-grid2">
-          <CardBox
-            title="Attributes"
-            subtitle="Select an attribute to manage its values."
-            right={<Badge>material_attributes</Badge>}
-          >
-            <div className="mxa-form">
-              <label className="mxa-field">
-                <span>Select Attribute</span>
-                <select value={selectedAttrId} onChange={(e) => setSelectedAttrId(e.target.value)}>
-                  <option value="">— Select Attribute —</option>
-                  {attributes.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} ({a.input_type}) — {a.slug}
-                      {a.scope ? ` • ${a.scope}` : ""}
-                    </option>
-                  ))}
-                </select>
+          {form.input_type === "number" ? (
+            <label style={{ display: "block", marginTop: 12 }}>
+              <span>Measurement unit</span>
+              <small>Required. Use the unit that accurately matches the specification, such as mm, kg, MPa, m² or litres.</small>
+              <input style={control(Boolean(editingId))} disabled={Boolean(editingId)} maxLength={30} value={form.unit} onChange={(event) => updateForm("unit", event.target.value)} />
+            </label>
+          ) : (
+            <div className="ma-hint">No unit is allowed for this answer type.</div>
+          )}
+
+          <label style={{ display: "block", marginTop: 12 }}>
+            <span>Administrator-reviewed description</span>
+            <small>Explain what the material specification records. Do not claim certification, compliance, test results or product availability.</small>
+            <textarea style={{ ...control(), minHeight: 100, resize: "vertical" }} maxLength={600} value={form.description} onChange={(event) => updateForm("description", event.target.value)} />
+          </label>
+
+          <details style={{ marginTop: 12 }}>
+            <summary><strong>Advanced details — normally no change is needed</strong></summary>
+            <div className="ma-grid" style={{ marginTop: 10 }}>
+              <label>
+                <span>Permanent key</span>
+                <small>Generated from the name and locked after creation.</small>
+                <input style={control(Boolean(editingId))} disabled={Boolean(editingId)} value={form.slug} onChange={(event) => { setSlugTouched(true); updateForm("slug", slugify(event.target.value)); }} />
               </label>
+              <label>
+                <span>Sort order</span>
+                <small>Lower numbers appear first.</small>
+                <input style={control()} type="number" min={0} max={1000000} value={form.sort_order} onChange={(event) => updateForm("sort_order", Number(event.target.value))} />
+              </label>
+            </div>
+          </details>
 
-              {selectedAttr ? (
-                <div className="mxa-hint">
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+            <button type="button" style={button()} disabled={Boolean(aiBusy) || saving} onClick={() => void requestAi("name_suggestions")}>{aiBusy === "names" ? "Generating…" : "Suggest attributes with AI"}</button>
+            <button type="button" style={button()} disabled={Boolean(aiBusy) || saving || !form.name.trim()} onClick={() => void requestAi("description")}>{aiBusy === "description" ? "Drafting…" : "Draft description with AI"}</button>
+            <button type="button" style={button(true)} disabled={saving} onClick={() => void save()}>{saving ? "Saving…" : editingId ? "Review and save changes" : "Review and create Materials Attribute"}</button>
+            {editingId ? <button type="button" style={button()} disabled={saving} onClick={resetForm}>Cancel edit</button> : null}
+          </div>
+
+          {aiMessage ? <div className="ma-ai">{aiMessage}</div> : null}
+          {aiSuggestions.length ? (
+            <div style={{ display: "flex", gap: 7, flexWrap: "wrap", marginTop: 8 }}>
+              {aiSuggestions.map((suggestion) => <button key={suggestion} type="button" style={button()} onClick={() => updateForm("name", suggestion)}>{suggestion}</button>)}
+            </div>
+          ) : null}
+          {error ? <div className="ma-error">{error}</div> : null}
+          {message ? <div className="ma-success">{message}</div> : null}
+        </section>
+
+        <section className="ma-card">
+          <div className="ma-heading">
+            <div>
+              <h2>Step 2 — Existing Materials Attributes</h2>
+              <p>{attributes.length} preserved record(s). Values and Product Group mappings are managed separately.</p>
+            </div>
+            <label style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              <input type="checkbox" checked={showInactive} onChange={(event) => setShowInactive(event.target.checked)} />
+              Show inactive
+            </label>
+          </div>
+
+          {loading ? <div className="ma-hint">Loading Materials Attributes…</div> : null}
+          {!loading && !visibleAttributes.length ? <EmptyState message="No Materials Attributes are available in this selection." /> : null}
+          {!loading ? (
+            <div style={{ display: "grid", gap: 9 }}>
+              {visibleAttributes.map((row) => (
+                <article key={row.id} className="ma-row" style={{ opacity: row.is_active ? 1 : 0.68 }}>
                   <div>
-                    <b>{selectedAttr.name}</b> • <span style={{ opacity: 0.8 }}>{selectedAttr.slug}</span>
-                  </div>
-                  <div style={{ marginTop: 6, opacity: 0.85 }}>
-                    type: <b>{selectedAttr.input_type}</b>
-                    {selectedAttr.unit ? (
-                      <>
-                        {" "}
-                        • unit: <b>{selectedAttr.unit}</b>
-                      </>
-                    ) : null}
-                    {selectedAttr.scope ? (
-                      <>
-                        {" "}
-                        • scope: <b>{selectedAttr.scope}</b>
-                      </>
-                    ) : null}
-                  </div>
-                </div>
-              ) : (
-                <div className="mxa-hint">
-                  Tip: create attributes like Brand, Grade, Diameter, Length, Weight, Application…
-                </div>
-              )}
-
-              {selectedAttr ? (
-                <button className="mxa-ghostBtn" type="button" onClick={() => onDisableAttribute(selectedAttr)} disabled={busy}>
-                  Disable selected attribute
-                </button>
-              ) : null}
-            </div>
-          </CardBox>
-
-          <CardBox title="Create Attribute" subtitle="Attributes decide which inputs appear per product." right={<Badge>slug required</Badge>}>
-            <div className="mxa-form">
-              <div className="mxa-twoCol">
-                <label className="mxa-field">
-                  <span>Name</span>
-                  <input
-                    value={aName}
-                    onChange={(e) => {
-                      setAName(e.target.value);
-                      if (!aSlug.trim()) setASlug(slugify(e.target.value));
-                    }}
-                    placeholder="e.g., Brand"
-                  />
-                </label>
-
-                <label className="mxa-field">
-                  <span>Slug (unique)</span>
-                  <input value={aSlug} onChange={(e) => setASlug(e.target.value)} placeholder="e.g., brand" />
-                </label>
-              </div>
-
-              <div className="mxa-twoCol">
-                <label className="mxa-field">
-                  <span>Input type</span>
-                  <select value={aInputType} onChange={(e) => setAInputType(e.target.value as AttrInputType)}>
-                    <option value="single_select">single_select</option>
-                    <option value="multi_select">multi_select</option>
-                    <option value="text">text</option>
-                    <option value="number">number</option>
-                    <option value="boolean">boolean</option>
-                  </select>
-                </label>
-
-                <label className="mxa-field">
-                  <span>Unit (optional)</span>
-                  <input value={aUnit} onChange={(e) => setAUnit(e.target.value)} placeholder="mm / ft / kg ..." />
-                </label>
-              </div>
-
-              <div className="mxa-twoCol">
-                <label className="mxa-field">
-                  <span>Scope</span>
-                  <select value={aScope} onChange={(e) => setAScope(e.target.value as any)}>
-                    <option value="global">global</option>
-                    <option value="product_specific">product_specific</option>
-                  </select>
-                </label>
-
-                <label className="mxa-field">
-                  <span>Sort order</span>
-                  <input type="number" value={aSort} onChange={(e) => setASort(parseInt(e.target.value || "1", 10))} />
-                </label>
-              </div>
-
-              <button className="mxa-primaryBtn" type="button" onClick={onCreateAttribute} disabled={busy || !aName.trim()}>
-                {busy ? "Saving..." : "Create attribute"}
-              </button>
-            </div>
-          </CardBox>
-        </div>
-
-        <div className="mxa-grid2 mxa-mt">
-          <CardBox
-            title="Attribute Values"
-            subtitle={
-              selectedAttr
-                ? selectedAttrIsSelect
-                  ? "Add allowed values. Use tabs for Global vs Product Group specific."
-                  : "This attribute is not a select type — values are optional."
-                : "Select an attribute first."
-            }
-            right={<Badge>material_attribute_values</Badge>}
-          >
-            {!selectedAttr ? (
-              <div className="mxa-empty">Select an attribute to manage values.</div>
-            ) : (
-              <>
-                {/* Tabs */}
-                <div className="mxa-tabs">
-                  <button
-                    type="button"
-                    className={`mxa-tab ${valueTab === "global" ? "active" : ""}`}
-                    onClick={() => setValueTab("global")}
-                  >
-                    Global values
-                  </button>
-                  <button
-                    type="button"
-                    className={`mxa-tab ${valueTab === "product_group" ? "active" : ""}`}
-                    onClick={() => setValueTab("product_group")}
-                  >
-                    Values for selected Product Group
-                  </button>
-                </div>
-
-                {valueTab === "product_group" ? (
-                  <div className="mxa-form" style={{ marginTop: 10 }}>
-                    <label className="mxa-field">
-                      <span>Select Product Group (for this tab)</span>
-                      <select value={selectedPgId} onChange={(e) => setSelectedPgId(e.target.value)}>
-                        <option value="">— Select Product Group —</option>
-                        {productGroups.map((pg) => (
-                          <option key={pg.id} value={pg.id}>
-                            {pg.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <div className="mxa-hint">
-                      This tab saves values with <b>product_group_id</b> set — vendors will only see these values when that Product Group is selected.
+                    <div style={{ display: "flex", gap: 7, flexWrap: "wrap", alignItems: "center" }}>
+                      <strong>{row.name}</strong>
+                      <Badge>{row.is_active ? "Active" : "Inactive"}</Badge>
+                      <Badge>{inputTypeLabels[row.input_type]}</Badge>
+                      {row.unit ? <Badge>{row.unit}</Badge> : null}
                     </div>
+                    <div className="ma-meta">{row.slug} · Mappings {row.mapping_count} · Values {row.value_count} · Historical answers {row.historical_answer_count}</div>
+                    {row.description ? <p>{row.description}</p> : null}
                   </div>
-                ) : (
-                  <div className="mxa-hint" style={{ marginTop: 10 }}>
-                    Global values are saved with <b>product_group_id = NULL</b> — they can be reused across multiple product groups (only if you want).
+                  <div style={{ display: "flex", gap: 7, alignItems: "flex-start", flexWrap: "wrap" }}>
+                    <button type="button" style={button()} disabled={saving} onClick={() => beginEdit(row)}>Edit</button>
+                    <button type="button" style={button(false, row.is_active)} disabled={saving} onClick={() => void toggle(row)}>{row.is_active ? "Deactivate" : "Reactivate"}</button>
                   </div>
-                )}
-
-                {/* Create value form */}
-                <div className="mxa-form" style={{ marginTop: 12 }}>
-                  <div className="mxa-twoCol">
-                    <label className="mxa-field">
-                      <span>Value</span>
-                      <input value={vValue} onChange={(e) => setVValue(e.target.value)} placeholder="e.g., UltraTech / Fe-500D / 20mm" />
-                    </label>
-                    <label className="mxa-field">
-                      <span>Value slug (optional)</span>
-                      <input value={vSlug} onChange={(e) => setVSlug(e.target.value)} placeholder="optional" />
-                    </label>
-                  </div>
-
-                  <label className="mxa-field">
-                    <span>Sort order</span>
-                    <input type="number" value={vSort} onChange={(e) => setVSort(parseInt(e.target.value || "1", 10))} />
-                  </label>
-
-                  <button
-                    className="mxa-primaryBtn"
-                    type="button"
-                    onClick={onCreateValue}
-                    disabled={busy || !vValue.trim() || (valueTab === "product_group" && !selectedPgId)}
-                    title={valueTab === "product_group" && !selectedPgId ? "Select a Product Group first" : ""}
-                  >
-                    {busy ? "Saving..." : valueTab === "global" ? "Add global value" : "Add product-group value"}
-                  </button>
-                </div>
-
-                {/* Values list */}
-                <div className="mxa-list mxa-mt">
-                  {valueTab === "global" ? (
-                    valuesGlobal.length === 0 ? (
-                      <div className="mxa-empty">No global values yet.</div>
-                    ) : (
-                      valuesGlobal.slice(0, 120).map((r) => (
-                        <div key={r.id} className="mxa-row">
-                          <div className="mxa-rowText">
-                            <div className="mxa-rowName">{r.value}</div>
-                            <div className="mxa-rowMeta">
-                              sort {r.sort_order} {r.slug ? `• slug ${r.slug}` : ""} • global
-                            </div>
-                          </div>
-                          <button className="mxa-ghostBtn" onClick={() => onDisableValue(r)} disabled={busy}>
-                            Disable
-                          </button>
-                        </div>
-                      ))
-                    )
-                  ) : !selectedPgId ? (
-                    <div className="mxa-empty">Select a Product Group to view its values.</div>
-                  ) : valuesForSelectedPg.length === 0 ? (
-                    <div className="mxa-empty">No values yet for this Product Group.</div>
-                  ) : (
-                    valuesForSelectedPg.slice(0, 120).map((r) => (
-                      <div key={r.id} className="mxa-row">
-                        <div className="mxa-rowText">
-                          <div className="mxa-rowName">{r.value}</div>
-                          <div className="mxa-rowMeta">
-                            sort {r.sort_order} {r.slug ? `• slug ${r.slug}` : ""} • product_group
-                          </div>
-                        </div>
-                        <button className="mxa-ghostBtn" onClick={() => onDisableValue(r)} disabled={busy}>
-                          Disable
-                        </button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </>
-            )}
-          </CardBox>
-
-          <CardBox title="Next step" subtitle="After creating values, map attributes to product groups." right={<Badge>per-product variations</Badge>}>
-            <div className="mxa-hint">
-              Go to <b>Product → Variations Mapping</b> and attach attributes to each Product Group.
-              <div style={{ marginTop: 8, opacity: 0.85 }}>
-                Example: <b>Cement</b> → Brand, Grade • <b>Aggregates</b> → Size, Washed, Moisture Content
-              </div>
+                </article>
+              ))}
             </div>
+          ) : null}
+        </section>
 
-            <div className="mxa-mt">
-              <ActionButton href="/admin/dashboard/master-data/materials/mapping">Open Mapping Page →</ActionButton>
-            </div>
-          </CardBox>
-        </div>
-
-        <style jsx>{`
-          .mxa-topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin: 12px 0 16px;
-          }
-          .mxa-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-          }
-          .mxa-status {
-            display: flex;
-            justify-content: flex-end;
-            min-height: 24px;
-          }
-
-          .mxa-grid2 {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 14px;
-          }
-          .mxa-mt {
-            margin-top: 14px;
-          }
-          @media (min-width: 980px) {
-            .mxa-grid2 {
-              grid-template-columns: 1fr 1fr;
-            }
-          }
-
-          .mxa-card {
-            background: #fff;
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            border-radius: 14px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-            overflow: hidden;
-          }
-          .mxa-cardHead {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 14px 14px 10px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-          }
-          .mxa-cardBody {
-            padding: 14px;
-          }
-
-          .mxa-title {
-            font-size: 15px;
-            font-weight: 800;
-          }
-          .mxa-subtitle {
-            margin-top: 4px;
-            font-size: 13px;
-            opacity: 0.75;
-            line-height: 1.35;
-          }
-          .mxa-right {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-          }
-
-          .mxa-form {
-            display: grid;
-            gap: 12px;
-          }
-
-          .mxa-field {
-            display: grid;
-            gap: 6px;
-          }
-          .mxa-field > span {
-            font-size: 12px;
-            opacity: 0.75;
-          }
-
-          .mxa-field select,
-          .mxa-field input {
-            width: 100%;
-            max-width: 100%;
-            min-width: 0;
-            height: 42px;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(0, 0, 0, 0.18);
-            background: #fff;
-            font-size: 14px;
-            outline: none;
-          }
-
-          .mxa-twoCol {
-            display: grid;
-            gap: 12px;
-            grid-template-columns: 1fr;
-          }
-          @media (min-width: 760px) {
-            .mxa-twoCol {
-              grid-template-columns: 1fr 1fr;
-            }
-          }
-
-          .mxa-primaryBtn {
-            height: 44px;
-            border-radius: 12px;
-            border: 1px solid rgba(0, 0, 0, 0.18);
-            background: #111;
-            color: #fff;
-            font-weight: 900;
-            cursor: pointer;
-          }
-          .mxa-primaryBtn:disabled {
-            background: rgba(0, 0, 0, 0.08);
-            color: rgba(0, 0, 0, 0.35);
-            cursor: not-allowed;
-          }
-
-          .mxa-hint {
-            border: 1px dashed rgba(0, 0, 0, 0.18);
-            background: rgba(0, 0, 0, 0.02);
-            border-radius: 12px;
-            padding: 10px 12px;
-            font-size: 13px;
-            opacity: 0.9;
-            line-height: 1.45;
-          }
-
-          .mxa-empty {
-            font-size: 14px;
-            opacity: 0.75;
-          }
-
-          .mxa-list {
-            display: grid;
-            gap: 10px;
-          }
-          .mxa-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            background: #fff;
-          }
-          .mxa-rowText {
-            min-width: 0;
-          }
-          .mxa-rowName {
-            font-weight: 800;
-            font-size: 14px;
-            line-height: 1.2;
-          }
-          .mxa-rowMeta {
-            margin-top: 4px;
-            font-size: 13px;
-            opacity: 0.7;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 520px;
-          }
-
-          .mxa-ghostBtn {
-            height: 36px;
-            padding: 0 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(0, 0, 0, 0.18);
-            background: rgba(0, 0, 0, 0.02);
-            font-weight: 800;
-            font-size: 12px;
-            cursor: pointer;
-            white-space: nowrap;
-          }
-          .mxa-ghostBtn:disabled {
-            opacity: 0.55;
-            cursor: not-allowed;
-          }
-
-          .mxa-tabs {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-          }
-          .mxa-tab {
-            height: 36px;
-            padding: 0 12px;
-            border-radius: 999px;
-            border: 1px solid rgba(0, 0, 0, 0.18);
-            background: rgba(0, 0, 0, 0.02);
-            font-weight: 900;
-            font-size: 12px;
-            cursor: pointer;
-          }
-          .mxa-tab.active {
-            background: #111;
-            color: #fff;
-            border-color: #111;
-          }
-        `}</style>
+        <section className="ma-note">
+          <strong>Human First. AI Second. Precision Always.</strong>
+          <div>AI suggestions never save automatically. An administrator must review every suggestion before using the separate save action.</div>
+          <div>Do not create pricing, stock, availability, ownership, addresses, contacts, listing answers or unsupported certifications as Materials Attributes.</div>
+        </section>
       </div>
+
+      <style jsx>{`
+        .ma-card,.ma-note{border:1px solid #e2e8f0;border-radius:14px;padding:14px;background:#fff}.ma-note{background:#eff6ff;color:#1e3a5f;display:grid;gap:5px;font-size:14px}.ma-card h2{font-size:18px;margin:0}.ma-card>p,.ma-heading p{color:#64748b;font-size:13px;margin:5px 0 12px}.ma-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ma-card label span{display:block;font-weight:750;font-size:14px;margin-bottom:3px}.ma-card label small{display:block;color:#64748b;font-size:12px;margin-bottom:6px}.ma-hint,.ma-ai,.ma-error,.ma-success{margin-top:10px;border-radius:9px;padding:9px 11px;font-size:13px}.ma-hint{background:#f8fafc;color:#475569}.ma-ai{background:#eff6ff;color:#1d4ed8}.ma-error{background:#fff1f2;color:#be123c}.ma-success{background:#ecfdf5;color:#047857}.ma-heading,.ma-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.ma-row{border:1px solid #e2e8f0;border-radius:12px;padding:12px}.ma-row p{font-size:14px;color:#334155;margin:7px 0 0}.ma-meta{font-size:12px;color:#64748b;margin-top:6px}@media(max-width:720px){.ma-grid{grid-template-columns:1fr}}
+      `}</style>
     </Container>
   );
 }
