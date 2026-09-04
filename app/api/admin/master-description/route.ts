@@ -10,6 +10,8 @@ const kinds = [
   "property_attribute", "property_value",
   "rental_type", "rental_category", "rental_subcategory",
   "rental_product_group", "rental_attribute", "rental_value",
+  "material_type", "material_category", "material_subcategory",
+  "material_product_group",
 ];
 const recent = new Map<string, number>();
 
@@ -150,6 +152,14 @@ export async function POST(request: Request) {
         "For an operating capability, describe the tool's purpose without claiming it already exists or that access is granted.",
         "For a property type, explain the broad class of properties that belongs under it and distinguish it from other broad types.",
         "For a property subtype, explain the specific property form or permitted use and how an administrator should classify it.",
+        "For a material type, explain the broad family of building or construction materials that belongs under it.",
+        "For a material category, remain strictly within the supplied parent material type and explain the construction-material family.",
+        "For a material subcategory, remain strictly within the supplied parent category and explain the narrower material classification.",
+        "For a material product group, describe a reusable construction-material group that may be mapped to appropriate material subcategories.",
+        "Materials suggestions must use genuine construction-material terminology such as cement, steel, bricks, sand, aggregates, pipes, electrical fittings, flooring, paints, glass, roofing, doors or windows.",
+        "Do not introduce property classifications, rental equipment, prices, stock, availability, ownership, addresses, contacts or listing answers into Materials Taxonomy.",
+        "Do not invent certifications, standards compliance, laboratory results, strength claims, performance claims or product availability.",
+        "AI Materials output is advisory only and must remain subject to administrator review before any separate save action.",
         "For a rental type, explain the broad family of rentable equipment, machinery, tools or temporary facilities that belongs under it.",
         "For a rental category, remain within the supplied parent rental type and explain the operational equipment family.",
         "For a rental subcategory, remain within the supplied parent category and explain the narrower use or work activity.",
@@ -169,6 +179,7 @@ export async function POST(request: Request) {
         "For name suggestions, return 3 to 5 concise display names that are absent from the supplied existing names.",
         "For subtype suggestions, remain within the supplied parent property type.",
         "For rental category, subcategory and product-group suggestions, remain strictly within the supplied parent hierarchy.",
+        "For material category and subcategory suggestions, remain strictly within the supplied parent Materials hierarchy.",
         "Do not use vague duplicates, spelling variants or plural-only variants of existing names.",
         "If the context is ambiguous, ask a short clarification question instead of guessing.",
         "For a property attribute, suggest only reusable listing questions that are not already represented by existing names.",
