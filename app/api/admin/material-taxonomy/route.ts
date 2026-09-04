@@ -138,7 +138,7 @@ export async function GET(request: Request) {
         .select("id,type_id,category_id,subcategory_id,product_group_id"),
       supabase
         .from("material_product_group_attributes")
-        .select("product_group_id,attribute_id,is_active"),
+        .select("product_group_id,attribute_id"),
       supabase
         .from("material_attribute_values")
         .select("product_group_id,attribute_id"),
@@ -178,7 +178,6 @@ export async function GET(request: Request) {
       (productGroupUsageCounts[mapping.product_group_id] || 0) + 1;
   }
   for (const mapping of attributeMappingResult.data || []) {
-    if (mapping.is_active === false) continue;
     attributeMappingCounts[mapping.product_group_id] =
       (attributeMappingCounts[mapping.product_group_id] || 0) + 1;
   }
