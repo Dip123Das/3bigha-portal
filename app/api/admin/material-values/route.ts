@@ -172,7 +172,7 @@ export async function GET(request: Request) {
         .order("sort_order", { ascending: true })
         .order("value", { ascending: true }),
       supabase
-        .from("property_listing_attribute_values")
+        .from("material_listing_attribute_values")
         .select("attribute_value_id"),
     ]);
 
@@ -322,7 +322,7 @@ export async function PATCH(request: Request) {
 
   if (existing.data.is_active && body.is_active === false) {
     const usage = await access.admin
-      .from("property_listing_attribute_values")
+      .from("material_listing_attribute_values")
       .select("attribute_value_id", { count: "exact", head: true })
       .eq("attribute_value_id", id);
     if (usage.error) return databaseError(usage.error);
