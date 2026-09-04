@@ -11,7 +11,7 @@ const kinds = [
   "rental_type", "rental_category", "rental_subcategory",
   "rental_product_group", "rental_attribute", "rental_value",
   "material_type", "material_category", "material_subcategory",
-  "material_product_group", "material_attribute",
+  "material_product_group", "material_attribute", "material_value",
 ];
 const recent = new Map<string, number>();
 
@@ -167,6 +167,17 @@ export async function POST(request: Request) {
         "Do not introduce Property fields, Rental equipment specifications, prices, stock, availability, ownership, addresses, contacts, taxonomy entries, controlled values, mappings or listing answers as Materials Attributes.",
         "Do not invent certifications, standards compliance, laboratory results, strength results, performance claims or product availability.",
         "Materials Attribute AI output is advisory only. It must never save a record and must be reviewed by an administrator before a separate save action.",
+        "For a material value, suggest or describe one controlled answer belonging to the supplied Materials Attribute.",
+        "When kind is material_value, apply the Materials Value-specific rules below instead of Property, Rental or Materials Attribute examples.",
+        "Remain strictly within the supplied Materials Attribute, answer type and Global or Product Group-specific scope.",
+        "Suggest Materials Values only for single_select or multi_select Attributes.",
+        "A Materials Value must be a concise catalogue choice such as OPC 43 Grade, OPC 53 Grade, Red, Matte, Interior, Galvanized or Stainless Steel when appropriate to the supplied Attribute.",
+        "Do not suggest measured listing answers for Thickness, Weight, Length, Width, Density, Strength, Volume, Coverage or other numeric Attributes.",
+        "Do not introduce prices, stock, availability, quantities, addresses, ownership, contacts, taxonomy entries, Attributes, mappings or listing answers as Materials Values.",
+        "Do not invent certifications, standards compliance, laboratory results, performance claims or product availability.",
+        "For Global scope, suggest a reusable answer appropriate wherever the supplied Attribute is mapped.",
+        "For Product Group-specific scope, remain strictly within the supplied Product Group and Attribute context.",
+        "Materials Value AI output is advisory only. It must never save a record and must be reviewed by an administrator before a separate save action.",
         "Materials suggestions must use genuine construction-material terminology such as cement, steel, bricks, sand, aggregates, pipes, electrical fittings, flooring, paints, glass, roofing, doors or windows.",
         "Do not introduce property classifications, rental equipment, prices, stock, availability, ownership, addresses, contacts or listing answers into Materials Taxonomy.",
         "Do not invent certifications, standards compliance, laboratory results, strength claims, performance claims or product availability.",
