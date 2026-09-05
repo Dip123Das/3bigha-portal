@@ -149,7 +149,7 @@ export async function GET(request: Request) {
   if ("error" in access) return reply({ ok: false, error: access.error }, access.status);
 
   const supabase = access.admin;
-  const [attributeResult, productGroupResult, mappingResult, valueResult, answerResult] =
+  const [attributeResult, productGroupResult, mappingResult, valueResult] =
     await Promise.all([
       supabase
         .from("material_attributes")
@@ -171,25 +171,15 @@ export async function GET(request: Request) {
         .select("id,attribute_id,product_group_id,value,slug,description,sort_order,is_active,source,created_at,updated_at")
         .order("sort_order", { ascending: true })
         .order("value", { ascending: true }),
-      supabase
-        .from("material_listing_attribute_values")
-        .select("attribute_value_id"),
     ]);
 
   const error =
     attributeResult.error ||
     productGroupResult.error ||
     mappingResult.error ||
-    valueResult.error ||
-    answerResult.error;
+    valueResult.error;
   if (error) return databaseError(error);
 
-  const usageCounts: Record<string, number> = {};
-  for (const answer of answerResult.data || []) {
-    if (!answer.attribute_value_id) continue;
-    usageCounts[answer.attribute_value_id] =
-      (usageCounts[answer.attribute_value_id] || 0) + 1;
-  }
 
   const values = (valueResult.data || []) as ValueRow[];
   return reply({
@@ -199,7 +189,7 @@ export async function GET(request: Request) {
     attribute_mappings: mappingResult.data || [],
     values: values.map((row) => ({
       ...row,
-      historical_answer_count: usageCounts[row.id] || 0,
+      historical_answer_count: 0,
     })),
     summary: {
       total_values: values.length,
@@ -320,20 +310,8 @@ export async function PATCH(request: Request) {
     if (context.error) return context.error;
   }
 
-  if (existing.data.is_active && body.is_active === false) {
-    const usage = await access.admin
-      .from("material_listing_attribute_values")
-      .select("attribute_value_id", { count: "exact", head: true })
-      .eq("attribute_value_id", id);
-    if (usage.error) return databaseError(usage.error);
-    if ((usage.count || 0) > 0) {
-      return reply(
-        { ok: false, error: `This Value is used by ${usage.count} historical listing answer(s) and cannot be deactivated.` },
-        409
-      );
-    }
-  }
-
+  // No Materials controlled-value answer table exists yet.
+  // The catalogue record remains preserved through lifecycle deactivation.
   const updated = await access.admin
     .from("material_attribute_values")
     .update({
