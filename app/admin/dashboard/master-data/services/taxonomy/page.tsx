@@ -1,901 +1,522 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
-
 import { Container } from "@/components/layout/Container";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { ActionButton } from "@/components/ui/ActionButton";
-import { Badge } from "@/components/ui/Badge";
-import { EmptyState } from "@/components/ui/EmptyState";
 
-// ✅ Matches your enum: category | subcategory | service
 type Kind = "category" | "subcategory" | "service";
 
-type TaxonRow = {
+type Taxon = {
   id: string;
   parent_id: string | null;
   kind: Kind;
   name: string;
   slug: string;
-  sort_order: number | null;
+  description: string | null;
+  sort_order: number;
+  is_active: boolean;
+  source: string;
+  child_count: number;
+  active_child_count: number;
+  descendant_count: number;
+  provider_service_count: number;
+  attribute_mapping_count: number;
+  attribute_value_count: number;
+};
+
+type FormState = {
+  kind: Kind;
+  parent_id: string;
+  name: string;
+  slug: string;
+  description: string;
+  sort_order: string;
   is_active: boolean;
 };
 
-const TAXON_TABLE = "service_taxons" as const;
-const ADMIN_ROLE = "services_admin" as const;
+const emptyForm: FormState = {
+  kind: "category",
+  parent_id: "",
+  name: "",
+  slug: "",
+  description: "",
+  sort_order: "1000",
+  is_active: true,
+};
 
-function slugify(input: string) {
-  return input
+const levels: Array<{
+  kind: Kind;
+  title: string;
+  purpose: string;
+  example: string;
+}> = [
+  {
+    kind: "category",
+    title: "Services Category",
+    purpose: "The broadest family used to organise professional, skilled and legal services.",
+    example: "Professional / Skilled Services or Legal Services",
+  },
+  {
+    kind: "subcategory",
+    title: "Services Subcategory",
+    purpose: "A narrower work or professional discipline belonging to one Category.",
+    example: "Surveying, Masonry, Electrical, Documentation or Advisory",
+  },
+  {
+    kind: "service",
+    title: "Service",
+    purpose: "The specific skill or professional service that a provider can select while listing.",
+    example: "Land Surveyor, Brick Mason, Electrician or Property Verification Lawyer",
+  },
+];
+
+const labels = Object.fromEntries(levels.map((level) => [level.kind, level.title])) as Record<Kind, string>;
+
+function slugify(value: string) {
+  return value
     .trim()
     .toLowerCase()
     .replace(/&/g, "and")
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+    .replace(/(^-|-$)+/g, "");
 }
 
-function isMaster(role: string | null | undefined) {
-  return role === "master_admin";
-}
-function isModuleAdmin(role: string | null | undefined) {
-  return role === ADMIN_ROLE;
-}
-
-async function requireModuleAdmin(supabase: ReturnType<typeof getSupabaseBrowser>) {
-  const { data: auth } = await supabase.auth.getUser();
-  const user = auth?.user;
-  if (!user) return { ok: false, role: null as string | null };
-
-  const { data: prof, error: profErr } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (profErr) throw profErr;
-
-  const role = ((prof as any)?.role ?? null) as string | null;
-  const ok = isMaster(role) || isModuleAdmin(role);
-  return { ok, role };
+function control(disabled = false): React.CSSProperties {
+  return {
+    width: "100%",
+    minHeight: 44,
+    padding: "10px 12px",
+    border: "1px solid rgba(15,23,42,.18)",
+    borderRadius: 10,
+    background: disabled ? "#f1f5f9" : "#fff",
+    color: "#0f172a",
+  };
 }
 
-async function fetchChildren(
-  supabase: ReturnType<typeof getSupabaseBrowser>,
-  kind: Kind,
-  parentId: string | null
-) {
-  const q = supabase
-    .from(TAXON_TABLE)
-    .select("id,parent_id,kind,name,slug,sort_order,is_active")
-    .eq("kind", kind)
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true, nullsFirst: true })
-    .order("name", { ascending: true });
-
-  if (parentId === null) q.is("parent_id", null);
-  else q.eq("parent_id", parentId);
-
-  const { data, error } = await q;
-  if (error) throw error;
-  return (data || []) as TaxonRow[];
+function button(primary = false, danger = false): React.CSSProperties {
+  return {
+    minHeight: 40,
+    padding: "9px 13px",
+    borderRadius: 10,
+    border: danger ? "1px solid #fecaca" : "1px solid rgba(15,23,42,.16)",
+    background: danger ? "#fff1f2" : primary ? "#0f172a" : "#fff",
+    color: danger ? "#be123c" : primary ? "#fff" : "#0f172a",
+    fontWeight: 750,
+    cursor: "pointer",
+  };
 }
 
-async function getNextSortOrder(
-  supabase: ReturnType<typeof getSupabaseBrowser>,
-  kind: Kind,
-  parentId: string | null
-): Promise<number> {
-  const q = supabase
-    .from(TAXON_TABLE)
-    .select("sort_order")
-    .eq("kind", kind)
-    .eq("is_active", true)
-    .order("sort_order", { ascending: false })
-    .limit(1);
-
-  if (parentId === null) q.is("parent_id", null);
-  else q.eq("parent_id", parentId);
-
-  const { data, error } = await q;
-  if (error) throw error;
-
-  const maxSort = (data?.[0]?.sort_order ?? 0) as number;
-  const next = Number.isFinite(maxSort) ? maxSort + 1 : 1;
-  return next <= 0 ? 1 : next;
+async function readJson(response: Response) {
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || body?.ok === false) {
+    throw new Error(body?.error || `Request failed with status ${response.status}.`);
+  }
+  return body;
 }
 
-function kindLabel(k: Kind) {
-  if (k === "category") return "Category";
-  if (k === "subcategory") return "Subcategory";
-  return "Service";
-}
-
-function CardBox(props: { title: string; subtitle?: string; right?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <section className="mtx-card">
-      <div className="mtx-cardHead">
-        <div>
-          <div className="mtx-title">{props.title}</div>
-          {props.subtitle ? <div className="mtx-subtitle">{props.subtitle}</div> : null}
-        </div>
-        {props.right ? <div className="mtx-right">{props.right}</div> : null}
-      </div>
-      <div className="mtx-cardBody">{props.children}</div>
-    </section>
-  );
-}
-
-export default function ServicesTaxonomyAdmin() {
-  const router = useRouter();
+export default function ServicesTaxonomyPage() {
   const supabase = useMemo(() => getSupabaseBrowser(), []);
-
+  const [taxons, setTaxons] = useState<Taxon[]>([]);
   const [loading, setLoading] = useState(true);
-  const [adminOk, setAdminOk] = useState(false);
-  const [role, setRole] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<FormState>(emptyForm);
+  const [serviceCategoryId, setServiceCategoryId] = useState("");
+  const [slugTouched, setSlugTouched] = useState(false);
+  const [aiBusy, setAiBusy] = useState<"names" | "description" | null>(null);
+  const [aiMessage, setAiMessage] = useState("");
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
 
-  const [categories, setCategories] = useState<TaxonRow[]>([]);
-  const [subcategories, setSubcategories] = useState<TaxonRow[]>([]);
-  const [services, setServices] = useState<TaxonRow[]>([]);
-
-  const [categoryId, setCategoryId] = useState<string>("");
-  const [subcategoryId, setSubcategoryId] = useState<string>("");
-
-  const [formKind, setFormKind] = useState<Kind>("category");
-  const [formName, setFormName] = useState("");
-  const [formSlug, setFormSlug] = useState("");
-  const [formSort, setFormSort] = useState<number>(1);
-
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-
-  const [lastCreated, setLastCreated] = useState<{ kind: Kind; name: string; slug: string; sort_order: number } | null>(
-    null
+  const activeLevel = levels.find((level) => level.kind === form.kind) || levels[0];
+  const categories = useMemo(() => taxons.filter((row) => row.kind === "category"), [taxons]);
+  const subcategories = useMemo(() => taxons.filter((row) => row.kind === "subcategory"), [taxons]);
+  const services = useMemo(() => taxons.filter((row) => row.kind === "service"), [taxons]);
+  const visibleSubcategories = useMemo(
+    () => subcategories.filter((row) => row.parent_id === serviceCategoryId),
+    [subcategories, serviceCategoryId]
   );
+  const visibleRows = useMemo(() => taxons.filter((row) => row.kind === form.kind), [taxons, form.kind]);
+  const taxonById = useMemo(() => new Map(taxons.map((row) => [row.id, row])), [taxons]);
 
-  const [sortTouched, setSortTouched] = useState(false);
+  async function accessToken() {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) throw new Error("Please sign in again.");
+    return token;
+  }
 
-  // boot
-  useEffect(() => {
-    let alive = true;
-
-    (async () => {
-      const a = await requireModuleAdmin(supabase);
-      if (!alive) return;
-
-      setAdminOk(a.ok);
-      setRole(a.role);
-
-      if (!a.ok) {
-        router.replace("/admin/dashboard");
-        return;
-      }
-
-      const cats = await fetchChildren(supabase, "category", null);
-      if (!alive) return;
-      setCategories(cats);
-      setLoading(false);
-    })().catch((e: any) => {
-      console.error(e);
-      setMsg(e?.message || "Failed to load taxonomy.");
-      setLoading(false);
+  async function api(method: "GET" | "POST" | "PATCH", body?: unknown) {
+    const token = await accessToken();
+    const response = await fetch("/api/admin/service-taxonomy", {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(body ? { "Content-Type": "application/json" } : {}),
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+      cache: "no-store",
     });
+    return readJson(response);
+  }
 
-    return () => {
-      alive = false;
-    };
-  }, [router, supabase]);
-
-  // load subcats
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setSubcategories([]);
-      setServices([]);
-      setSubcategoryId("");
-
-      if (!categoryId) return;
-      const s = await fetchChildren(supabase, "subcategory", categoryId);
-      if (!alive) return;
-      setSubcategories(s);
-    })().catch((e: any) => setMsg(e?.message || "Failed to load subcategories."));
-    return () => {
-      alive = false;
-    };
-  }, [categoryId, supabase]);
-
-  // load services
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setServices([]);
-      if (!subcategoryId) return;
-      const sv = await fetchChildren(supabase, "service", subcategoryId);
-      if (!alive) return;
-      setServices(sv);
-    })().catch((e: any) => setMsg(e?.message || "Failed to load services."));
-    return () => {
-      alive = false;
-    };
-  }, [subcategoryId, supabase]);
-
-  const selectedCategory = categories.find((x) => x.id === categoryId) || null;
-  const selectedSubcategory = subcategories.find((x) => x.id === subcategoryId) || null;
-
-  const inferredParentId = useMemo(() => {
-    if (formKind === "category") return null;
-    if (formKind === "subcategory") return categoryId || null;
-    return subcategoryId || null; // service -> subcategory
-  }, [formKind, categoryId, subcategoryId]);
-
-  const inferredParentLabel = useMemo(() => {
-    if (formKind === "category") return "No parent (top-level)";
-    if (formKind === "subcategory") return selectedCategory ? `Category: ${selectedCategory.name}` : "Pick a Category first";
-    return selectedSubcategory ? `Subcategory: ${selectedSubcategory.name}` : "Pick a Subcategory first";
-  }, [formKind, selectedCategory, selectedSubcategory]);
-
-  const canCreate = useMemo(() => {
-    if (!formName.trim()) return false;
-    if (formKind === "subcategory" && !categoryId) return false;
-    if (formKind === "service" && !subcategoryId) return false;
-    return true;
-  }, [formKind, formName, categoryId, subcategoryId]);
-
-  async function refresh(kind: Kind) {
-    if (kind === "category") setCategories(await fetchChildren(supabase, "category", null));
-    if (kind === "subcategory" && categoryId) setSubcategories(await fetchChildren(supabase, "subcategory", categoryId));
-    if (kind === "service" && subcategoryId) setServices(await fetchChildren(supabase, "service", subcategoryId));
+  async function load() {
+    setLoading(true);
+    setError("");
+    try {
+      const result = await api("GET");
+      setTaxons(Array.isArray(result.taxons) ? result.taxons : []);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Failed to load Services Taxonomy.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
-    let alive = true;
-    (async () => {
-      setSortTouched(false);
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-      if (formKind === "subcategory" && !categoryId) return;
-      if (formKind === "service" && !subcategoryId) return;
+  function updateForm<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
 
-      const next = await getNextSortOrder(supabase, formKind, inferredParentId);
-      if (!alive) return;
-      setFormSort(next);
-    })().catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, [formKind, inferredParentId, categoryId, subcategoryId, supabase]);
+  function resetAssistance() {
+    setAiSuggestions([]);
+    setAiMessage("");
+    setMessage("");
+    setError("");
+  }
 
-  async function onCreate() {
-    setMsg(null);
-    setLastCreated(null);
-    if (!canCreate) return;
+  function chooseLevel(kind: Kind) {
+    setEditingId(null);
+    setSlugTouched(false);
+    setServiceCategoryId("");
+    resetAssistance();
+    setForm({ ...emptyForm, kind });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
-    const name = formName.trim();
-    const slug = (formSlug.trim() || slugify(name)).toLowerCase();
+  function beginEdit(row: Taxon) {
+    setEditingId(row.id);
+    setSlugTouched(true);
+    resetAssistance();
+    if (row.kind === "service" && row.parent_id) {
+      setServiceCategoryId(taxonById.get(row.parent_id)?.parent_id || "");
+    } else {
+      setServiceCategoryId("");
+    }
+    setForm({
+      kind: row.kind,
+      parent_id: row.parent_id || "",
+      name: row.name,
+      slug: row.slug,
+      description: row.description || "",
+      sort_order: String(row.sort_order),
+      is_active: row.is_active,
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
-    setBusy(true);
+  function cancelEdit() {
+    chooseLevel(form.kind);
+  }
+
+  async function save() {
+    setError("");
+    setMessage("");
+    const name = form.name.trim();
+    const permanentKey = (form.slug.trim() || slugify(name)).trim();
+    if (name.length < 2) return setError(`Enter a clear ${activeLevel.title} name.`);
+    if (permanentKey.length < 2) return setError("The generated permanent key is not valid.");
+    if ((form.kind === "subcategory" || form.kind === "service") && !form.parent_id) {
+      return setError(form.kind === "subcategory" ? "Select the Services Category." : "Select the Services Subcategory.");
+    }
+    const parent = taxonById.get(form.parent_id);
+    const confirmed = window.confirm(
+      [
+        editingId ? `Save changes to “${name}”?` : `Create ${activeLevel.title} “${name}”?`,
+        parent ? `Parent: ${parent.name}` : "Parent: None (top-level)",
+        `Permanent key: ${permanentKey}`,
+        editingId
+          ? "The permanent key, level and parent will remain locked."
+          : "Check the name, parent and description before confirming.",
+      ].join("\n")
+    );
+    if (!confirmed) return;
+
+    setSaving(true);
     try {
-      const { data: auth } = await supabase.auth.getUser();
-      const userId = auth?.user?.id ?? null;
+      const payload = editingId
+        ? {
+            id: editingId,
+            name,
+            description: form.description,
+            sort_order: form.sort_order,
+            is_active: form.is_active,
+          }
+        : {
+            kind: form.kind,
+            parent_id: form.kind === "category" ? null : form.parent_id,
+            name,
+            slug: permanentKey,
+            description: form.description,
+            sort_order: form.sort_order,
+            is_active: form.is_active,
+          };
+      await api(editingId ? "PATCH" : "POST", payload);
+      setMessage(editingId ? "Services Taxonomy entry updated." : "Services Taxonomy entry created.");
+      setEditingId(null);
+      setSlugTouched(false);
+      setForm({ ...emptyForm, kind: form.kind });
+      setServiceCategoryId("");
+      setAiSuggestions([]);
+      setAiMessage("");
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Unable to save Services Taxonomy.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
-      const tryInsert = async (sort_order: number) => {
-        return await supabase.from(TAXON_TABLE).insert({
-          kind: formKind,
-          parent_id: inferredParentId,
-          name,
-          slug,
-          sort_order,
-          is_active: true,
-          created_by: userId,
-        });
-      };
-
-      let { error } = await tryInsert(formSort);
-
-      const isDupSort =
-        (error as any)?.code === "23505" ||
-        String((error as any)?.message || "").toLowerCase().includes("parent_kind_sort") ||
-        String((error as any)?.message || "").toLowerCase().includes("ux_");
-
-      if (error && isDupSort) {
-        const next = await getNextSortOrder(supabase, formKind, inferredParentId);
-        const retry = await tryInsert(next);
-        error = retry.error || null;
-        if (!error) setFormSort(next);
+  async function ai(task: "name_suggestions" | "description") {
+    setAiBusy(task === "name_suggestions" ? "names" : "description");
+    setAiMessage("");
+    try {
+      const token = await accessToken();
+      const parent = taxonById.get(form.parent_id);
+      const response = await fetch("/api/admin/master-description", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: form.kind === "service" ? "service" : `service_${form.kind}`,
+          task,
+          context: {
+            name: form.name,
+            key: form.slug,
+            family: parent?.name || "Top-level Services Category",
+          },
+          existing: form.description,
+          existingNames: visibleRows.map((row) => row.name),
+        }),
+      });
+      const result = await readJson(response);
+      if (result.needs_clarification) {
+        setAiMessage(result.question || "Please provide more specific Services context.");
+      } else if (task === "name_suggestions") {
+        setAiSuggestions(Array.isArray(result.suggestions) ? result.suggestions : []);
+        setAiMessage("Review a suggestion before placing it in the form. Nothing was saved.");
+      } else if (typeof result.description === "string") {
+        updateForm("description", result.description);
+        setAiMessage("Draft placed in the editable description field. Review it before saving.");
       }
-
-      if (error) throw error;
-
-      await refresh(formKind);
-
-      setLastCreated({ kind: formKind, name, slug, sort_order: formSort });
-      setMsg(`Created ✅ ${kindLabel(formKind)}: ${name}`);
-
-      setFormName("");
-      setFormSlug("");
-    } catch (e: any) {
-      console.error(e);
-      setMsg(e?.message || "Create failed.");
+    } catch (caught) {
+      setAiMessage(caught instanceof Error ? caught.message : "AI assistance is unavailable.");
     } finally {
-      setBusy(false);
+      setAiBusy(null);
     }
   }
 
-  async function onDisable(row: TaxonRow) {
-    setMsg(null);
-    setBusy(true);
-    try {
-      const { error } = await supabase.from(TAXON_TABLE).update({ is_active: false }).eq("id", row.id);
-      if (error) throw error;
-      await refresh(row.kind);
-      setMsg("Disabled (soft removed).");
-    } catch (e: any) {
-      console.error(e);
-      setMsg(e?.message || "Disable failed.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  if (loading) {
-    return (
-      <Container>
-        <SectionHeader title="Services Taxonomy" subtitle="Loading..." />
-      </Container>
-    );
-  }
-
-  if (!adminOk) {
-    return (
-      <Container>
-        <SectionHeader title="Services Taxonomy" subtitle="Admin access required" />
-        <EmptyState message="Access denied." />
-      </Container>
-    );
-  }
+  const parentOptions = form.kind === "subcategory" ? categories : form.kind === "service" ? visibleSubcategories : [];
 
   return (
     <Container>
-      <div className="mtx-page">
-        <SectionHeader
-          title="Services → Taxonomy Manager"
-          subtitle={`Category → Subcategory → Service (role: ${role ?? "—"})`}
-        />
-            <div className="mtx-topbar">
-          <div className="mtx-actions">
-            <ActionButton href="/admin/dashboard/master-data" variant="secondary">
-              ← Back to Master Data
-            </ActionButton>
+      <SectionHeader
+        eyebrow="Admin / Master Data / Services"
+        title="Services Taxonomy"
+        subtitle="Govern Categories, Subcategories and individual Services without deleting permanent catalogue identities."
+      />
 
-            {/* Mapping immediately after Taxonomy */}
-            <ActionButton href="/admin/dashboard/master-data/services/mapping" variant="secondary">
-              Mapping
-            </ActionButton>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+        <ActionButton href="/admin/dashboard/master-data/services/attributes" variant="secondary">Attributes</ActionButton>
+        <ActionButton href="/admin/dashboard/master-data/services/mapping" variant="secondary">Mapping</ActionButton>
+        <ActionButton href="/admin/dashboard/master-data" variant="secondary">Master Data</ActionButton>
+      </div>
 
-            <ActionButton href="/admin/dashboard/master-data/services/attributes" variant="secondary">
-              Attributes Manager
-            </ActionButton>
+      <div style={{ display: "grid", gap: 16 }}>
+        <section style={{ padding: 18, border: "1px solid #dbe3ee", borderRadius: 14, background: "#f8fafc" }}>
+          <strong>How to classify a Service</strong>
+          <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+            <div><b>1. Category:</b> broadest family, such as Professional / Skilled Services.</div>
+            <div><b>2. Subcategory:</b> discipline under that family, such as Surveying or Masonry.</div>
+            <div><b>3. Service:</b> selectable work, such as Land Surveyor or Brick Mason.</div>
+          </div>
+          <p style={{ marginBottom: 0 }}>
+            Names and descriptions may be improved later. Permanent keys, hierarchy levels and parent relationships lock after creation. Deactivate unused entries instead of deleting them.
+          </p>
+        </section>
+
+        <section style={{ padding: 18, border: "1px solid #dbe3ee", borderRadius: 14, background: "#fff" }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+            {levels.map((level) => (
+              <button key={level.kind} type="button" style={button(form.kind === level.kind)} onClick={() => chooseLevel(level.kind)}>
+                {level.title}
+              </button>
+            ))}
           </div>
 
-          <div className="mtx-status">{msg ? <Badge>{msg}</Badge> : null}</div>
-        </div>
+          <h2 style={{ margin: "0 0 4px" }}>{editingId ? `Edit ${activeLevel.title}` : `Add ${activeLevel.title}`}</h2>
+          <p style={{ marginTop: 0, color: "#475569" }}>{activeLevel.purpose} Example: {activeLevel.example}.</p>
 
-        <div className="mtx-grid2">
-          <CardBox
-            title="Select path"
-            subtitle="Choose Category → Subcategory to load Services."
-            right={
-              <div className="mtx-chipCol">
-                <span className="mtx-chip">Active only</span>
-                <span className="mtx-chip subtle">Sorted by order → name</span>
-              </div>
-            }
-          >
-            <div className="mtx-form">
-              <label className="mtx-field">
-                <span>Category</span>
-                <select
-                  value={categoryId}
-                  onChange={(e) => {
-                    setCategoryId(e.target.value);
-                    setMsg(null);
-                  }}
-                >
-                  <option value="">— Select Category —</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.slug})
-                    </option>
-                  ))}
-                </select>
-              </label>
+          {form.kind === "service" ? (
+            <label style={{ display: "grid", gap: 6, marginBottom: 12 }}>
+              <span>Services Category used to filter Subcategories</span>
+              <select
+                style={control(Boolean(editingId))}
+                value={serviceCategoryId}
+                disabled={Boolean(editingId)}
+                onChange={(event) => {
+                  setServiceCategoryId(event.target.value);
+                  updateForm("parent_id", "");
+                }}
+              >
+                <option value="">Select Category</option>
+                {categories.filter((row) => row.is_active).map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
+              </select>
+            </label>
+          ) : null}
 
-              <label className="mtx-field">
-                <span>Subcategory</span>
-                <select
-                  value={subcategoryId}
-                  onChange={(e) => {
-                    setSubcategoryId(e.target.value);
-                    setMsg(null);
-                  }}
-                  disabled={!categoryId}
-                >
-                  <option value="">{categoryId ? "— Select Subcategory —" : "Select a Category first"}</option>
-                  {subcategories.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} ({s.slug})
-                    </option>
-                  ))}
-                </select>
-              </label>
+          {form.kind !== "category" ? (
+            <label style={{ display: "grid", gap: 6, marginBottom: 12 }}>
+              <span>Permanent parent</span>
+              <select
+                style={control(Boolean(editingId))}
+                value={form.parent_id}
+                disabled={Boolean(editingId)}
+                onChange={(event) => updateForm("parent_id", event.target.value)}
+              >
+                <option value="">Select {form.kind === "subcategory" ? "Category" : "Subcategory"}</option>
+                {parentOptions.filter((row) => row.is_active).map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}
+              </select>
+            </label>
+          ) : null}
 
-              <label className="mtx-field">
-                <span>Services</span>
-                <select disabled={!subcategoryId}>
-                  <option value="">{subcategoryId ? `— Services (${services.length}) —` : "Select a Subcategory first"}</option>
-                  {services.map((sv) => (
-                    <option key={sv.id} value={sv.id}>
-                      {sv.name} ({sv.slug})
-                    </option>
-                  ))}
-                </select>
-              </label>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 }}>
+            <label style={{ display: "grid", gap: 6 }}>
+              <span>Display name</span>
+              <input
+                style={control()}
+                value={form.name}
+                maxLength={120}
+                onChange={(event) => {
+                  const name = event.target.value;
+                  updateForm("name", name);
+                  if (!editingId && !slugTouched) updateForm("slug", slugify(name));
+                }}
+              />
+            </label>
+            <label style={{ display: "grid", gap: 6 }}>
+              <span>Permanent key</span>
+              <input
+                style={control(Boolean(editingId))}
+                value={form.slug}
+                disabled={Boolean(editingId)}
+                maxLength={120}
+                onChange={(event) => {
+                  setSlugTouched(true);
+                  updateForm("slug", slugify(event.target.value));
+                }}
+              />
+            </label>
+            <label style={{ display: "grid", gap: 6 }}>
+              <span>Sort order</span>
+              <input style={control()} type="number" min={0} max={1000000} value={form.sort_order} onChange={(event) => updateForm("sort_order", event.target.value)} />
+            </label>
+          </div>
 
-              <div className="mtx-selection">
-                <div className="mtx-selectionHead">Current selection</div>
-                <div className="mtx-pillRow">
-                  <span className="mtx-pill">{selectedCategory ? `Category: ${selectedCategory.slug}` : "Category: —"}</span>
-                  <span className="mtx-pill">
-                    {selectedSubcategory ? `Subcategory: ${selectedSubcategory.slug}` : "Subcategory: —"}
-                  </span>
-                  <span className="mtx-pill">{`Services: ${subcategoryId ? services.length : 0}`}</span>
-                </div>
-              </div>
-            </div>
+          <label style={{ display: "grid", gap: 6, marginTop: 12 }}>
+            <span>Administrator description</span>
+            <textarea style={{ ...control(), minHeight: 100 }} maxLength={600} value={form.description} onChange={(event) => updateForm("description", event.target.value)} />
+          </label>
 
-            <div className="mtx-footnote">Tip: pick Category → Subcategory to load Services.</div>
-          </CardBox>
+          <label style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 12 }}>
+            <input type="checkbox" checked={form.is_active} onChange={(event) => updateForm("is_active", event.target.checked)} />
+            Active and selectable
+          </label>
 
-          <CardBox title="Create new node" subtitle={`Adds a row into ${TAXON_TABLE} (active).`} right={<Badge>{TAXON_TABLE}</Badge>}>
-            <div className="mtx-form">
-              <label className="mtx-field">
-                <span>Level</span>
-                <select value={formKind} onChange={(e) => setFormKind(e.target.value as Kind)}>
-                  <option value="category">Category</option>
-                  <option value="subcategory">Subcategory</option>
-                  <option value="service">Service</option>
-                </select>
-              </label>
-
-              <div className="mtx-parentBox">
-                <div className="mtx-parentTop">
-                  <div className="mtx-parentTitle">Parent</div>
-                  <div className="mtx-parentKind">{kindLabel(formKind)}</div>
-                </div>
-                <div className="mtx-parentValue">{inferredParentLabel}</div>
-              </div>
-
-              <div className="mtx-twoCol">
-                <label className="mtx-field">
-                  <span>Name</span>
-                  <input
-                    value={formName}
-                    onChange={(e) => {
-                      setFormName(e.target.value);
-                      if (!formSlug.trim()) setFormSlug(slugify(e.target.value));
-                    }}
-                    placeholder="e.g., Legal Services"
-                  />
-                </label>
-
-                <label className="mtx-field">
-                  <span>Slug</span>
-                  <input value={formSlug} onChange={(e) => setFormSlug(e.target.value)} placeholder="auto-generated" />
-                </label>
-              </div>
-
-              <div className="mtx-twoCol">
-                <label className="mtx-field">
-                  <span>Sort order (unique per parent)</span>
-                  <input
-                    type="number"
-                    value={formSort}
-                    onChange={(e) => {
-                      setSortTouched(true);
-                      setFormSort(parseInt(e.target.value || "1", 10));
-                    }}
-                  />
-                </label>
-
-                <div className="mtx-field">
-                  <span>Status</span>
-                  <div className="mtx-readonly">{busy ? "Saving…" : canCreate ? "Ready" : "Incomplete"}</div>
-                </div>
-              </div>
-
-              <button className="mtx-primaryBtn" type="button" onClick={onCreate} disabled={!canCreate || busy}>
-                {busy ? "Saving..." : "Create"}
+          <div style={{ marginTop: 14, padding: 14, borderRadius: 12, background: "#f8fafc" }}>
+            <strong>Optional AI assistance</strong>
+            <p style={{ margin: "6px 0 10px", color: "#475569" }}>AI only suggests wording. It cannot create, update or activate a catalogue record.</p>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button type="button" style={button()} disabled={Boolean(aiBusy) || Boolean(editingId)} onClick={() => void ai("name_suggestions")}>
+                {aiBusy === "names" ? "Suggesting…" : "Suggest names"}
               </button>
-
-              {lastCreated ? (
-                <div className="mtx-hint">
-                  <div>
-                    <b>Created ✅</b> {kindLabel(lastCreated.kind)}: <b>{lastCreated.name}</b>
-                  </div>
-                  <div style={{ marginTop: 6, opacity: 0.85 }}>
-                    slug: <b>{lastCreated.slug}</b> | sort: <b>{lastCreated.sort_order}</b>
-                  </div>
-                </div>
-              ) : null}
-
-              {!canCreate ? (
-                <div className="mtx-hint">
-                  {!formName.trim() ? <div>Enter a Name.</div> : null}
-                  {formKind === "subcategory" && !categoryId ? <div>Pick a Category to create a Subcategory.</div> : null}
-                  {formKind === "service" && !subcategoryId ? <div>Pick a Subcategory to create a Service.</div> : null}
-                </div>
-              ) : null}
-
-              {sortTouched ? (
-                <div className="mtx-footnote" style={{ textAlign: "left" }}>
-                  Note: you edited sort order manually. It must be unique under the same parent.
-                </div>
-              ) : null}
+              <button type="button" style={button()} disabled={Boolean(aiBusy) || form.name.trim().length < 3} onClick={() => void ai("description")}>
+                {aiBusy === "description" ? "Drafting…" : "Draft description"}
+              </button>
             </div>
-
-            <div className="mtx-footnote">Use Disable instead of delete so listings don’t break.</div>
-          </CardBox>
-        </div>
-
-        <div className="mtx-grid2 mtx-mt">
-          <CardBox title="Categories" subtitle="Top-level categories (parent_id is null)" right={<span className="mtx-count">{categories.length}</span>}>
-            {categories.length === 0 ? (
-              <div className="mtx-empty">No categories yet.</div>
-            ) : (
-              <div className="mtx-list">
-                {categories.slice(0, 25).map((r) => (
-                  <div key={r.id} className="mtx-row">
-                    <div className="mtx-rowText">
-                      <div className="mtx-rowName">{r.name}</div>
-                      <div className="mtx-rowSlug">
-                        {r.slug} {r.sort_order != null ? ` • sort ${r.sort_order}` : ""}
-                      </div>
-                    </div>
-                    <button className="mtx-ghostBtn" onClick={() => onDisable(r)} disabled={busy}>
-                      Disable
-                    </button>
-                  </div>
+            {aiSuggestions.length ? (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+                {aiSuggestions.map((suggestion) => (
+                  <button key={suggestion} type="button" style={button()} onClick={() => {
+                    updateForm("name", suggestion);
+                    if (!slugTouched) updateForm("slug", slugify(suggestion));
+                  }}>{suggestion}</button>
                 ))}
               </div>
-            )}
-          </CardBox>
+            ) : null}
+            {aiMessage ? <div style={{ marginTop: 8 }}>{aiMessage}</div> : null}
+          </div>
 
-          <CardBox
-            title="Services (current Subcategory)"
-            subtitle={selectedSubcategory ? `Subcategory: ${selectedSubcategory.name}` : "Select a Subcategory to view services."}
-            right={<span className="mtx-count">{services.length}</span>}
-          >
-            {services.length === 0 ? (
-              <div className="mtx-empty">No services here for this subcategory.</div>
-            ) : (
-              <div className="mtx-list">
-                {services.slice(0, 50).map((r) => (
-                  <div key={r.id} className="mtx-row">
-                    <div className="mtx-rowText">
-                      <div className="mtx-rowName">{r.name}</div>
-                      <div className="mtx-rowSlug">
-                        {r.slug} {r.sort_order != null ? ` • sort ${r.sort_order}` : ""}
+          {error ? <div style={{ marginTop: 12, color: "#b91c1c", fontWeight: 700 }}>{error}</div> : null}
+          {message ? <div style={{ marginTop: 12, color: "#166534", fontWeight: 700 }}>{message}</div> : null}
+
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
+            <button type="button" style={button(true)} disabled={saving} onClick={() => void save()}>{saving ? "Saving…" : editingId ? "Review and save" : "Review and create"}</button>
+            {editingId ? <button type="button" style={button()} disabled={saving} onClick={cancelEdit}>Cancel editing</button> : null}
+          </div>
+        </section>
+
+        <section style={{ padding: 18, border: "1px solid #dbe3ee", borderRadius: 14, background: "#fff" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+            <div>
+              <h2 style={{ margin: 0 }}>{labels[form.kind]} catalogue</h2>
+              <div style={{ color: "#64748b" }}>{visibleRows.length} record(s), including inactive history.</div>
+            </div>
+            <button type="button" style={button()} disabled={loading} onClick={() => void load()}>{loading ? "Loading…" : "Refresh"}</button>
+          </div>
+
+          {loading ? <p>Loading protected Services Taxonomy…</p> : visibleRows.length === 0 ? <p>No records at this level.</p> : (
+            <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+              {visibleRows.map((row) => {
+                const parent = row.parent_id ? taxonById.get(row.parent_id) : null;
+                return (
+                  <article key={row.id} style={{ padding: 14, border: "1px solid #e2e8f0", borderRadius: 12, opacity: row.is_active ? 1 : 0.68 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                      <div>
+                        <div style={{ fontWeight: 850 }}>{row.name}</div>
+                        <div style={{ color: "#64748b", fontSize: 13 }}>
+                          {parent ? `Parent: ${parent.name} · ` : ""}Key: {row.slug} · Sort: {row.sort_order}
+                        </div>
                       </div>
+                      <span style={{ fontWeight: 750, color: row.is_active ? "#166534" : "#9f1239" }}>{row.is_active ? "Active" : "Inactive"}</span>
                     </div>
-                    <button className="mtx-ghostBtn" onClick={() => onDisable(r)} disabled={busy}>
-                      Disable
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardBox>
+                    <p style={{ margin: "8px 0", color: "#334155" }}>{row.description || "No administrator description yet."}</p>
+                    <div style={{ fontSize: 13, color: "#64748b" }}>
+                      Children: {row.child_count} · Descendants: {row.descendant_count} · Providers: {row.provider_service_count} · Attribute mappings: {row.attribute_mapping_count} · Historical values: {row.attribute_value_count}
+                    </div>
+                    <button type="button" style={{ ...button(false, !row.is_active), marginTop: 10 }} onClick={() => beginEdit(row)}>Edit and manage lifecycle</button>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <section style={{ padding: 16, border: "1px solid #fed7aa", borderRadius: 14, background: "#fff7ed" }}>
+          <strong>Governance reminder</strong>
+          <p style={{ marginBottom: 0 }}>Do not create spelling-only duplicates. Keep familiar local professional terms when they help users, but use respectful display names. Review AI wording before the separate save action. Human First. AI Second. Precision Always.</p>
+        </section>
+
+        <div style={{ color: "#64748b", fontSize: 13 }}>
+          Current totals: {categories.length} Categories · {subcategories.length} Subcategories · {services.length} Services
         </div>
-
-        {/* ✅ SAME CSS STYLE SYSTEM AS MATERIALS */}
-        <style jsx>{`
-          .mtx-topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin: 12px 0 16px;
-          }
-          .mtx-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-          }
-          .mtx-status {
-            display: flex;
-            justify-content: flex-end;
-            min-height: 24px;
-          }
-
-          .mtx-grid2 {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 14px;
-          }
-          .mtx-mt {
-            margin-top: 14px;
-          }
-          @media (min-width: 980px) {
-            .mtx-grid2 {
-              grid-template-columns: 1fr 1fr;
-            }
-          }
-
-          .mtx-card {
-            background: #fff;
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            border-radius: 14px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-            overflow: hidden;
-          }
-          .mtx-cardHead {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 14px 14px 10px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-          }
-          .mtx-cardBody {
-            padding: 14px;
-          }
-
-          .mtx-title {
-            font-size: 15px;
-            font-weight: 800;
-          }
-          .mtx-subtitle {
-            margin-top: 4px;
-            font-size: 13px;
-            opacity: 0.75;
-            line-height: 1.35;
-          }
-          .mtx-right {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-          }
-
-          .mtx-chipCol {
-            display: grid;
-            gap: 6px;
-            justify-items: end;
-          }
-          .mtx-chip {
-            font-size: 12px;
-            padding: 6px 10px;
-            border-radius: 999px;
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            background: rgba(0, 0, 0, 0.02);
-            white-space: nowrap;
-          }
-          .mtx-chip.subtle {
-            opacity: 0.7;
-          }
-
-          .mtx-count {
-            display: inline-flex;
-            min-width: 34px;
-            height: 28px;
-            padding: 0 10px;
-            align-items: center;
-            justify-content: center;
-            border-radius: 999px;
-            background: rgba(0, 0, 0, 0.06);
-            font-weight: 800;
-            font-size: 13px;
-          }
-
-          .mtx-form {
-            display: grid;
-            gap: 12px;
-          }
-
-          .mtx-field {
-            display: grid;
-            gap: 6px;
-          }
-          .mtx-field > span {
-            font-size: 12px;
-            opacity: 0.75;
-          }
-
-          .mtx-field select,
-          .mtx-field input {
-            width: 100%;
-            max-width: 100%;
-            min-width: 0;
-            height: 42px;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(0, 0, 0, 0.18);
-            background: #fff;
-            font-size: 14px;
-            outline: none;
-          }
-          .mtx-field select:disabled,
-          .mtx-field input:disabled {
-            background: rgba(0, 0, 0, 0.03);
-            opacity: 0.7;
-          }
-          .mtx-field select:focus,
-          .mtx-field input:focus {
-            border-color: rgba(0, 0, 0, 0.35);
-            box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06);
-          }
-
-          .mtx-twoCol {
-            display: grid;
-            gap: 12px;
-            grid-template-columns: 1fr;
-          }
-          @media (min-width: 760px) {
-            .mtx-twoCol {
-              grid-template-columns: 1fr 1fr;
-            }
-          }
-
-          .mtx-readonly {
-            height: 42px;
-            display: flex;
-            align-items: center;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            background: rgba(0, 0, 0, 0.02);
-            font-size: 14px;
-          }
-
-          .mtx-primaryBtn {
-            height: 44px;
-            border-radius: 12px;
-            border: 1px solid rgba(0, 0, 0, 0.18);
-            background: #111;
-            color: #fff;
-            font-weight: 900;
-            cursor: pointer;
-          }
-          .mtx-primaryBtn:disabled {
-            background: rgba(0, 0, 0, 0.08);
-            color: rgba(0, 0, 0, 0.35);
-            cursor: not-allowed;
-          }
-
-          .mtx-hint {
-            border: 1px dashed rgba(0, 0, 0, 0.18);
-            background: rgba(0, 0, 0, 0.02);
-            border-radius: 12px;
-            padding: 10px 12px;
-            font-size: 13px;
-            opacity: 0.9;
-            line-height: 1.45;
-          }
-
-          .mtx-parentBox {
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            background: rgba(0, 0, 0, 0.02);
-            border-radius: 12px;
-            padding: 12px;
-          }
-          .mtx-parentTop {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-          }
-          .mtx-parentTitle {
-            font-size: 13px;
-            font-weight: 800;
-          }
-          .mtx-parentKind {
-            font-size: 12px;
-            opacity: 0.7;
-          }
-          .mtx-parentValue {
-            margin-top: 6px;
-            font-size: 13px;
-            opacity: 0.85;
-          }
-
-          .mtx-selection {
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            background: #fff;
-            border-radius: 12px;
-            padding: 12px;
-          }
-          .mtx-selectionHead {
-            font-size: 13px;
-            font-weight: 800;
-            opacity: 0.9;
-          }
-          .mtx-pillRow {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-          }
-          .mtx-pill {
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            background: rgba(0, 0, 0, 0.02);
-            border-radius: 999px;
-            padding: 6px 10px;
-            font-size: 12px;
-            white-space: nowrap;
-          }
-
-          .mtx-footnote {
-            margin-top: 12px;
-            font-size: 13px;
-            opacity: 0.7;
-            text-align: right;
-          }
-
-          .mtx-empty {
-            font-size: 14px;
-            opacity: 0.75;
-          }
-
-          .mtx-list {
-            display: grid;
-            gap: 10px;
-          }
-          .mtx-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            background: #fff;
-          }
-          .mtx-rowText {
-            min-width: 0;
-          }
-          .mtx-rowName {
-            font-weight: 800;
-            font-size: 14px;
-            line-height: 1.2;
-          }
-          .mtx-rowSlug {
-            margin-top: 4px;
-            font-size: 13px;
-            opacity: 0.7;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 520px;
-          }
-
-          .mtx-ghostBtn {
-            height: 36px;
-            padding: 0 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(0, 0, 0, 0.18);
-            background: rgba(0, 0, 0, 0.02);
-            font-weight: 800;
-            font-size: 12px;
-            cursor: pointer;
-            white-space: nowrap;
-          }
-          .mtx-ghostBtn:disabled {
-            opacity: 0.55;
-            cursor: not-allowed;
-          }
-        `}</style>
       </div>
     </Container>
   );
 }
-

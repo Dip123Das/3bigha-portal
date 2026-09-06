@@ -12,6 +12,7 @@ const kinds = [
   "rental_product_group", "rental_attribute", "rental_value",
   "material_type", "material_category", "material_subcategory",
   "material_product_group", "material_attribute", "material_value",
+  "service_category", "service_subcategory", "service",
 ];
 const recent = new Map<string, number>();
 
@@ -156,6 +157,12 @@ export async function POST(request: Request) {
         "For a material category, remain strictly within the supplied parent material type and explain the construction-material family.",
         "For a material subcategory, remain strictly within the supplied parent category and explain the narrower material classification.",
         "For a material product group, describe a reusable construction-material group that may be mapped to appropriate material subcategories.",
+        "For a service category, explain the broad professional, skilled-work or legal-service family that belongs under it.",
+        "For a service subcategory, remain strictly within the supplied parent Services Category and explain the narrower discipline or work family.",
+        "For a service, remain strictly within the supplied parent Services Subcategory and describe the specific work or professional service a provider may select.",
+        "Services suggestions must use respectful, familiar Indian professional and skilled-work terminology. Local terms such as Raj Mistri or Aamin may be retained when they help users understand the work.",
+        "Do not invent qualifications, licences, availability, prices, service areas, provider identity, legal authority, approval, certification or listing status.",
+        "AI Services Taxonomy output is advisory only. It must never save, activate, deactivate or change a catalogue record.",
         "For a material attribute, explain one reusable specification used to describe building or construction materials.",
         "When kind is material_attribute, apply the Materials-specific rules below instead of Property or Rental attribute examples.",
         "Materials Attribute suggestions must describe genuine specifications such as Grade, Material Type, Size, Thickness, Weight, Colour, Finish, Brand, Standard, Strength, Pack Size or Application.",
@@ -202,6 +209,7 @@ export async function POST(request: Request) {
         "For subtype suggestions, remain within the supplied parent property type.",
         "For rental category, subcategory and product-group suggestions, remain strictly within the supplied parent hierarchy.",
         "For material category and subcategory suggestions, remain strictly within the supplied parent Materials hierarchy.",
+        "For service subcategory and service suggestions, remain strictly within the supplied parent Services hierarchy.",
         "Do not use vague duplicates, spelling variants or plural-only variants of existing names.",
         "If the context is ambiguous, ask a short clarification question instead of guessing.",
         "For a property attribute, suggest only reusable listing questions that are not already represented by existing names.",
