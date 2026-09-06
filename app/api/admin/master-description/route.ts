@@ -12,7 +12,7 @@ const kinds = [
   "rental_product_group", "rental_attribute", "rental_value",
   "material_type", "material_category", "material_subcategory",
   "material_product_group", "material_attribute", "material_value",
-  "service_category", "service_subcategory", "service",
+  "service_category", "service_subcategory", "service", "service_attribute",
 ];
 const recent = new Map<string, number>();
 
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
 
     for (const key of [
       "name", "key", "family", "stage", "group",
-      "targetIdentity", "inputType", "unit",
+      "targetIdentity", "inputType", "unit", "scope",
       "parentAttribute",
     ]) {
       if (typeof supplied[key] === "string") {
@@ -163,6 +163,17 @@ export async function POST(request: Request) {
         "Services suggestions must use respectful, familiar Indian professional and skilled-work terminology. Local terms such as Raj Mistri or Aamin may be retained when they help users understand the work.",
         "Do not invent qualifications, licences, availability, prices, service areas, provider identity, legal authority, approval, certification or listing status.",
         "AI Services Taxonomy output is advisory only. It must never save, activate, deactivate or change a catalogue record.",
+        "For a service attribute, explain one reusable question that a service provider answers when creating or maintaining a Service listing.",
+        "When kind is service_attribute, apply the Services Attribute-specific rules below instead of Property, Rental or Materials examples.",
+        "Services Attribute suggestions must describe genuine reusable questions such as Experience, Service Mode, Response Time, Warranty Offered, Work Team Size, Languages Supported, Emergency Service or Site Visit Required.",
+        "Use number input_type only for measurable service details such as years of experience, response time, team size, number of visits, service radius or completion duration, with an accurate unit.",
+        "Use single_select or multi_select for controlled service classifications such as service mode, supported languages, visit type, work shift or warranty period.",
+        "Use boolean only for a genuine yes-or-no service detail such as emergency service offered, site visit required or warranty offered.",
+        "Use text only when the answer genuinely requires short provider-reviewed wording and cannot safely use a number, boolean or controlled choice.",
+        "For Global scope, suggest a question that remains meaningful wherever an administrator maps it. For Product Group-specific scope, keep the question specialised but reusable.",
+        "Do not introduce prices, availability, provider identity, addresses, contacts, qualifications, licences, taxonomy entries, controlled values, mappings or listing answers as Services Attributes.",
+        "Do not invent experience, qualifications, licences, availability, response time, team size, service area, warranty, compliance or listing status.",
+        "Services Attribute AI output is advisory only. It must never save a record and must be reviewed by an administrator before a separate save action.",
         "For a material attribute, explain one reusable specification used to describe building or construction materials.",
         "When kind is material_attribute, apply the Materials-specific rules below instead of Property or Rental attribute examples.",
         "Materials Attribute suggestions must describe genuine specifications such as Grade, Material Type, Size, Thickness, Weight, Colour, Finish, Brand, Standard, Strength, Pack Size or Application.",
