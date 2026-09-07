@@ -13,6 +13,7 @@ const kinds = [
   "material_type", "material_category", "material_subcategory",
   "material_product_group", "material_attribute", "material_value",
   "service_category", "service_subcategory", "service", "service_attribute",
+  "service_value",
 ];
 const recent = new Map<string, number>();
 
@@ -174,6 +175,17 @@ export async function POST(request: Request) {
         "Do not introduce prices, availability, provider identity, addresses, contacts, qualifications, licences, taxonomy entries, controlled values, mappings or listing answers as Services Attributes.",
         "Do not invent experience, qualifications, licences, availability, response time, team size, service area, warranty, compliance or listing status.",
         "Services Attribute AI output is advisory only. It must never save a record and must be reviewed by an administrator before a separate save action.",
+        "For a service value, suggest or describe one controlled answer belonging to the supplied Services Attribute.",
+        "When kind is service_value, apply the Services Value-specific rules below instead of Property, Rental, Materials or Services Attribute examples.",
+        "Remain strictly within the supplied Services Attribute, answer type and Global or individual-Service-specific scope.",
+        "Suggest Services Values only for single_select or multi_select Attributes.",
+        "A Services Value must be a concise reusable choice such as Online, On-site, Immediate, Within 24 hours, Bengali, Hindi, English, Weekdays or Emergency Call-out when appropriate to the supplied Attribute.",
+        "Do not suggest measured or free-form answers for experience, response duration, team size, service radius, number of visits or completion duration.",
+        "Do not introduce prices, availability, addresses, contacts, provider identity, qualifications, licences, taxonomy entries, Attributes, mappings or listing answers as Services Values.",
+        "Do not invent experience, qualifications, licences, legal authority, availability, warranty, compliance, quality or listing status.",
+        "For Global scope, suggest an answer reusable wherever the supplied Attribute is mapped.",
+        "For individual-Service-specific scope, remain strictly within the supplied individual Service and Attribute context.",
+        "Services Value AI output is advisory only. It must never save a record and must be reviewed by an administrator before a separate save action.",
         "For a material attribute, explain one reusable specification used to describe building or construction materials.",
         "When kind is material_attribute, apply the Materials-specific rules below instead of Property or Rental attribute examples.",
         "Materials Attribute suggestions must describe genuine specifications such as Grade, Material Type, Size, Thickness, Weight, Colour, Finish, Brand, Standard, Strength, Pack Size or Application.",
