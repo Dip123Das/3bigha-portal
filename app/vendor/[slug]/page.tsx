@@ -215,7 +215,7 @@ export default async function VendorAuthorityPage({
 
   const jsonLd = buildVendorAuthorityJsonLd({
     graph,
-    url: `https://www.3bigha.com/vendor/${params.slug}`,
+    url: `https://3bigha.com/vendor/${params.slug}`,
   });
 
 const internalLinks = buildVendorInternalLinks({

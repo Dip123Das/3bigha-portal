@@ -11,7 +11,7 @@ function cleanPhone(phone: string | null | undefined) {
 }
 
 function siteUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL || "https://www.3bigha.com";
+  return process.env.NEXT_PUBLIC_SITE_URL || "https://3bigha.com";
 }
 
 function statusText(status: string) {

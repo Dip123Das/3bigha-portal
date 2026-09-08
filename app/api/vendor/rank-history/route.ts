@@ -28,7 +28,7 @@ function buildWhatsAppText(message: string) {
     message,
     "",
     "Open your vendor dashboard to improve visibility:",
-    "https://www.3bigha.com/dashboard/vendor",
+    "https://3bigha.com/dashboard/vendor",
   ].join("\n");
 }
 

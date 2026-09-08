@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "Reserve your 3Bigha Founding Partner seat. One selected partner per business category in every district gets first-year free access and lifetime founder benefits, subject to approval.",
   alternates: {
-    canonical: "https://www.3bigha.com/founding-vendors",
+    canonical: "https://3bigha.com/founding-vendors",
   },
 };
 
@@ -185,7 +185,7 @@ export default function FoundingPartnersPage() {
         <p>
           📞 <a href="tel:+919614657110">+91 9614657110</a><br />
           ✉️ <a href="mailto:vivek.abek@gmail.com">vivek.abek@gmail.com</a><br />
-          🌐 <a href="https://www.3bigha.com">www.3bigha.com</a>
+          🌐 <a href="https://3bigha.com">www.3bigha.com</a>
         </p>
 
         <div className="foundingActions">

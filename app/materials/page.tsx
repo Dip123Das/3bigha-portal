@@ -497,8 +497,8 @@ export default function MaterialsPage() {
     <main>
       <JsonLd
         data={breadcrumbSchema([
-          { name: "Home", url: "https://www.3bigha.com" },
-          { name: "Materials", url: "https://www.3bigha.com/materials" },
+          { name: "Home", url: "https://3bigha.com" },
+          { name: "Materials", url: "https://3bigha.com/materials" },
         ])}
       />
 

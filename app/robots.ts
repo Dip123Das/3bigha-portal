@@ -43,9 +43,9 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: [
-      "https://www.3bigha.com/sitemap.xml",
-      "https://www.3bigha.com/seo-sitemap.xml",
-      "https://www.3bigha.com/seo-sitemap-categories.xml",
+      "https://3bigha.com/sitemap.xml",
+      "https://3bigha.com/seo-sitemap.xml",
+      "https://3bigha.com/seo-sitemap-categories.xml",
     ],
   };
 }

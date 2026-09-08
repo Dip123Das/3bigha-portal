@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     "Learn how 3bigha.com helps users search property, construction materials, services, rentals, RFQs, vendors and price intelligence through AI-powered marketplace workflows.",
   alternates: {
-    canonical: "https://www.3bigha.com/ai-search-guide",
+    canonical: "https://3bigha.com/ai-search-guide",
   },
   robots: {
     index: true,

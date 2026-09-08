@@ -583,8 +583,8 @@ export default function RentalsPublicPage() {
     <main>
       <JsonLd
         data={breadcrumbSchema([
-          { name: "Home", url: "https://www.3bigha.com" },
-          { name: "Rentals", url: "https://www.3bigha.com/rentals" },
+          { name: "Home", url: "https://3bigha.com" },
+          { name: "Rentals", url: "https://3bigha.com/rentals" },
         ])}
       />
 

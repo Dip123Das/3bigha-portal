@@ -6,7 +6,7 @@ export const siteConfig = {
   "3bigha.com is India's AI-powered real estate, construction, RFQ, materials, rentals and vendor marketplace platform. Search property, compare vendors, submit procurement RFQs, discover local services and track AI-powered price intelligence across regional marketplaces.",
 
   domain: "3bigha.com",
-  url: "https://www.3bigha.com",
+  url: "https://3bigha.com",
 
   ogImage: "/og-image.jpg",
 

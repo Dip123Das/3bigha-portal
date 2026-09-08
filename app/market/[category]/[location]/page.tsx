@@ -80,7 +80,7 @@ export async function generateMetadata({ params }: PageProps) {
   const title = `${category} in ${location} | 3Bigha Marketplace`;
   const description = `Find marketplace demand, vendor opportunities and local business signals for ${category} in ${location} on 3Bigha.`;
 
-  const canonical = `https://www.3bigha.com/market/${encodeURIComponent(
+  const canonical = `https://3bigha.com/market/${encodeURIComponent(
     params.category
   )}/${encodeURIComponent(params.location)}`;
 
@@ -138,7 +138,7 @@ export default async function MarketCategoryLocationPage({ params }: PageProps) 
     "@type": "CollectionPage",
     name: `${category} in ${location}`,
     description: `Marketplace demand and vendor opportunity page for ${category} in ${location}.`,
-    url: `https://www.3bigha.com/market/${encodeURIComponent(
+    url: `https://3bigha.com/market/${encodeURIComponent(
       params.category
     )}/${encodeURIComponent(params.location)}`,
     about: category,
@@ -146,7 +146,7 @@ export default async function MarketCategoryLocationPage({ params }: PageProps) 
     provider: {
       "@type": "Organization",
       name: "3Bigha",
-      url: "https://www.3bigha.com",
+      url: "https://3bigha.com",
     },
   };
 

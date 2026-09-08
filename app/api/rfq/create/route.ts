@@ -459,7 +459,7 @@ export async function POST(req: Request) {
               // If you want HARD fail, return jsonError(tErr.message, 500);
               console.warn("rfq_targets upsert failed:", tErr.message);
             } else {
-              const rfqLink = `https://www.3bigha.com/dashboard/vendor/rfqs/${rfqId}`;
+              const rfqLink = `https://3bigha.com/dashboard/vendor/rfqs/${rfqId}`;
 
               const whatsappText = encodeURIComponent(
                 `📢 New RFQ Received!\n\n${title}\n📍 ${locality}, ${city}\n\n👉 Open: ${rfqLink}`

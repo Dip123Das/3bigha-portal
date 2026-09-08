@@ -1784,8 +1784,8 @@ if (userData.user) {
     <main className="min-h-screen bg-[#f8faf7]">
       <JsonLd
         data={breadcrumbSchema([
-          { name: "Home", url: "https://www.3bigha.com" },
-          { name: "Price Today", url: "https://www.3bigha.com/price-today" },
+          { name: "Home", url: "https://3bigha.com" },
+          { name: "Price Today", url: "https://3bigha.com/price-today" },
         ])}
       />
 

@@ -735,8 +735,8 @@ export default function PropertyPublicListPage() {
 
       <JsonLd
         data={breadcrumbSchema([
-          { name: "Home", url: "https://www.3bigha.com" },
-          { name: "Property", url: "https://www.3bigha.com/property" },
+          { name: "Home", url: "https://3bigha.com" },
+          { name: "Property", url: "https://3bigha.com/property" },
         ])}
       />
 

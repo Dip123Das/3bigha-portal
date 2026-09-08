@@ -4595,7 +4595,7 @@ main,
   }
 
   header a[href="/"],
-  header a[href="https://www.3bigha.com"],
+  header a[href="https://3bigha.com"],
   header .logo,
   header .brand,
   .siteHeader .logo,
@@ -4657,7 +4657,7 @@ main,
   }
 
   header a[href="/"],
-  header a[href="https://www.3bigha.com"],
+  header a[href="https://3bigha.com"],
   header .logo,
   header .brand,
   .siteHeader .logo,

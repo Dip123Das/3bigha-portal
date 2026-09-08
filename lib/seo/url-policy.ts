@@ -1,6 +1,6 @@
 import { siteConfig } from "@/lib/seo/site";
 
-export const SITE_URL = siteConfig.url || "https://www.3bigha.com";
+export const SITE_URL = siteConfig.url || "https://3bigha.com";
 
 const TRACKING_PARAMS = [
   "fbclid",

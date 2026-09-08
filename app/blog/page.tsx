@@ -246,8 +246,8 @@ export default function BlogIndexPage() {
     <Container>
       <JsonLd
         data={breadcrumbSchema([
-          { name: "Home", url: "https://www.3bigha.com" },
-          { name: "Blog", url: "https://www.3bigha.com/blog" },
+          { name: "Home", url: "https://3bigha.com" },
+          { name: "Blog", url: "https://3bigha.com/blog" },
         ])}
       />
 

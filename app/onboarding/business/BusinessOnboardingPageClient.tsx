@@ -2187,7 +2187,7 @@ async function fetchCompleteness(uid: string) {
     }
 
     if (!window.isSecureContext) {
-      setMsg("Live location works only on HTTPS. Please open https://www.3bigha.com.");
+      setMsg("Live location works only on HTTPS. Please open https://3bigha.com.");
       return;
     }
 

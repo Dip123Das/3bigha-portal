@@ -88,7 +88,7 @@ export function aiMarketplaceSchema() {
     name: "3bigha.com",
     alternateName: ["3bigha", "3 bigha"],
 
-    url: "https://www.3bigha.com",
+    url: "https://3bigha.com",
 
     description:
       "AI-powered property, construction, RFQ, materials, rentals and vendor marketplace platform in India.",
@@ -97,7 +97,7 @@ export function aiMarketplaceSchema() {
       "@type": "SearchAction",
 
       target:
-        "https://www.3bigha.com/search?q={search_term_string}",
+        "https://3bigha.com/search?q={search_term_string}",
 
       "query-input": "required name=search_term_string",
     },

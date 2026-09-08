@@ -288,7 +288,7 @@ export async function GET(req: Request) {
     }
 
     const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL || "https://www.3bigha.com";
+      process.env.NEXT_PUBLIC_SITE_URL || "https://3bigha.com";
 
     let sent = 0;
     let skipped = 0;

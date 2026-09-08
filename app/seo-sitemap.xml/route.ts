@@ -8,7 +8,7 @@ import {
 export const runtime = "nodejs";
 
 function buildUrl(path: string) {
-  return `https://www.3bigha.com${path}`;
+  return `https://3bigha.com${path}`;
 }
 
 export async function GET() {

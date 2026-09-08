@@ -207,9 +207,9 @@ export default function AdminSeoPage() {
 
         <div style={{ display: "grid", gap: 10 }}>
           {[
-            "Open Google Search Console and add https://www.3bigha.com as a domain/property.",
+            "Open Google Search Console and add https://3bigha.com as a domain/property.",
             "Verify domain ownership through DNS or HTML verification.",
-            "Submit sitemap URL: https://www.3bigha.com/sitemap.xml",
+            "Submit sitemap URL: https://3bigha.com/sitemap.xml",
             "Inspect homepage URL and request indexing.",
             "Inspect state SEO page: /seo/property/west-bengal.",
             "Inspect district SEO page: /seo/property/west-bengal/cooch-behar.",

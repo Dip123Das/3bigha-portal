@@ -183,7 +183,7 @@ export async function generateMetadata({ params }: PageProps) {
     };
   }
 
-  const canonical = `https://www.3bigha.com/need/${encodeURIComponent(data.slug)}`;
+  const canonical = `https://3bigha.com/need/${encodeURIComponent(data.slug)}`;
 
   return {
     title: `${clean(data.seo_title)} | 3Bigha Vendor Demand`,
@@ -224,7 +224,7 @@ export default async function NeedSlugPage({ params }: PageProps) {
   const marketPath = marketPathFromNeedSlug(data.slug);
   const aiContent = generateDemandContent(requirement, location);
 
-  const canonicalUrl = `https://www.3bigha.com/need/${encodeURIComponent(data.slug)}`;
+  const canonicalUrl = `https://3bigha.com/need/${encodeURIComponent(data.slug)}`;
   const relatedLinks = buildRelatedNeedLinks(data.slug);
 
   const faqItems = [
@@ -258,15 +258,15 @@ export default async function NeedSlugPage({ params }: PageProps) {
       provider: {
         "@type": "Organization",
         name: "3Bigha",
-        url: "https://www.3bigha.com",
+        url: "https://3bigha.com",
       },
     },
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: "https://www.3bigha.com" },
-        { "@type": "ListItem", position: 2, name: "Need Vendors", item: "https://www.3bigha.com/need" },
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://3bigha.com" },
+        { "@type": "ListItem", position: 2, name: "Need Vendors", item: "https://3bigha.com/need" },
         { "@type": "ListItem", position: 3, name: title, item: canonicalUrl },
       ],
     },

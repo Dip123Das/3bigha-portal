@@ -41,7 +41,7 @@ export function createMetadata({
     .slice(0, 160);
 
   return {
-    metadataBase: new URL("https://www.3bigha.com"),
+    metadataBase: new URL("https://3bigha.com"),
 
     title: finalTitle,
     description: finalDescription,

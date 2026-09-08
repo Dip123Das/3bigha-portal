@@ -455,8 +455,8 @@ export default function ServicesPage() {
     <main>
       <JsonLd
         data={breadcrumbSchema([
-          { name: "Home", url: "https://www.3bigha.com" },
-          { name: "Services", url: "https://www.3bigha.com/services" },
+          { name: "Home", url: "https://3bigha.com" },
+          { name: "Services", url: "https://3bigha.com/services" },
         ])}
       />
 
