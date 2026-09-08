@@ -44,6 +44,15 @@ const PUBLIC_PATH_PREFIXES = [
   "/blog",
   "/search",
   "/seo",
+  "/location",
+  "/market",
+  "/market-rfq",
+  "/need",
+  "/founding-vendors",
+  "/ai-search-guide",
+  "/cost-calculator",
+  "/banking-finance-assistance",
+  "/banker/apply",
   "/price-today",
   "/investment",
   "/emi-calculator",
@@ -58,17 +67,61 @@ const PUBLIC_PATH_PREFIXES = [
   "/refund-cancellation-policy",
 ];
 
+const PRIVATE_PATH_PREFIXES = [
+  "/admin",
+  "/dashboard",
+  "/buyer",
+  "/inbox",
+  "/settings",
+  "/onboarding",
+  "/enquiries",
+  "/delivery-track",
+  "/payment",
+  "/checkout",
+  "/subscription",
+  "/thread",
+  "/chat",
+  "/rfq",
+  "/support",
+  "/vendor-inbox",
+  "/property/add",
+  "/property/edit",
+  "/property/inventory",
+  "/property/my",
+  "/property/builder/projects",
+  "/materials/add",
+  "/materials/my",
+  "/materials/rfq",
+  "/rentals/add",
+  "/rentals/my",
+  "/services/add",
+  "/services/my",
+  "/services/turnkey/add",
+  "/blog/my",
+];
+
+const PRIVATE_VENDOR_PATH_PREFIXES = [
+  "/vendor/inbox",
+  "/vendor/inbox-v2",
+  "/vendor/price-updates",
+];
+
 const PUBLIC_ASSET_PATTERN =
   /\.(?:avif|bmp|css|eot|gif|ico|jpe?g|js|json|map|otf|png|svg|ttf|txt|webmanifest|webp|woff2?)$/i;
 
+function matchesPathPrefix(pathname: string, prefix: string) {
+  return (
+    pathname === prefix ||
+    pathname.startsWith(prefix + "/")
+  );
+}
+
 function isPublicPath(pathname: string) {
   if (
-    pathname.startsWith("/api") ||
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/vendor") ||
-    pathname.startsWith("/buyer") ||
-    pathname.startsWith("/inbox")
+    matchesPathPrefix(pathname, "/api") ||
+    PRIVATE_PATH_PREFIXES.some((prefix) =>
+      matchesPathPrefix(pathname, prefix)
+    )
   ) {
     return false;
   }
@@ -80,10 +133,18 @@ function isPublicPath(pathname: string) {
     return true;
   }
 
+  if (pathname === "/vendor") {
+    return false;
+  }
+
+  if (matchesPathPrefix(pathname, "/vendor")) {
+    return !PRIVATE_VENDOR_PATH_PREFIXES.some((prefix) =>
+      matchesPathPrefix(pathname, prefix)
+    );
+  }
+
   return PUBLIC_PATH_PREFIXES.some(
-    (prefix) =>
-      pathname === prefix ||
-      pathname.startsWith(prefix + "/")
+    (prefix) => matchesPathPrefix(pathname, prefix)
   );
 }
 
