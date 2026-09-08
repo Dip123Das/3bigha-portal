@@ -19,6 +19,16 @@ const nextConfig = {
     ],
   },
 
+  async redirects() {
+    return [
+      {
+        source: "/cost-calculator",
+        destination: "/emi-calculator",
+        permanent: true,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {

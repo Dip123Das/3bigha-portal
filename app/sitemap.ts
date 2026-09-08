@@ -136,7 +136,6 @@ const staticRoutes = [
   "/price-today",
   "/emi-calculator",
   "/land-area-calculator",
-  "/cost-calculator",
   "/construction-cost",
   "/house-construction-cost",
   "/compare-rates",
@@ -178,7 +177,6 @@ const staticRoutes = [
         : [
             "/emi-calculator",
             "/land-area-calculator",
-                      "/cost-calculator",
             "/construction-cost",
             "/house-construction-cost",
             "/compare-rates",

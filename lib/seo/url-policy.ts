@@ -85,7 +85,6 @@ export function isIndexableStaticPath(path: string) {
     "/investment",
     "/emi-calculator",
     "/land-area-calculator",
-    "/cost-calculator",
     "/construction-cost",
     "/house-construction-cost",
     "/compare-rates",

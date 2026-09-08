@@ -18,7 +18,6 @@ export default function robots(): MetadataRoute.Robots {
           "/price-today",
           "/investment/",
           "/emi-calculator",
-          "/cost-calculator",
           "/construction-cost",
           "/house-construction-cost",
           "/compare-rates",
