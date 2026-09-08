@@ -51,6 +51,10 @@ const PUBLIC_PATH_PREFIXES = [
   "/founding-vendors",
   "/ai-search-guide",
   "/cost-calculator",
+  "/logout",
+  "/offline",
+  "/vendor-opportunities",
+  "/verify/registration",
   "/banking-finance-assistance",
   "/banker/apply",
   "/price-today",
@@ -68,6 +72,9 @@ const PUBLIC_PATH_PREFIXES = [
 ];
 
 const PRIVATE_PATH_PREFIXES = [
+  "/auth/post-login",
+  "/auth/register-role",
+  "/test",
   "/admin",
   "/dashboard",
   "/buyer",
@@ -143,9 +150,24 @@ function isPublicPath(pathname: string) {
     );
   }
 
-  return PUBLIC_PATH_PREFIXES.some(
-    (prefix) => matchesPathPrefix(pathname, prefix)
-  );
+  if (
+    PUBLIC_PATH_PREFIXES.some((prefix) =>
+      matchesPathPrefix(pathname, prefix)
+    )
+  ) {
+    return true;
+  }
+
+  /*
+   * Unknown URLs must reach the Next.js router so that
+   * missing pages return a genuine HTTP 404. Treating an
+   * unknown path as a private workspace would redirect
+   * crawlers to login and create soft-404 signals.
+   *
+   * Every real protected route must therefore remain
+   * explicitly classified above.
+   */
+  return true;
 }
 
 function getLocaleFromPath(pathname: string) {
