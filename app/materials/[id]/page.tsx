@@ -16,6 +16,7 @@ import { buildProcurementKnowledgeGraph } from "@/lib/seo/procurement-knowledge-
 import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/seo/schema";
 import { createMetadata } from "@/lib/seo/metadata";
+import { isSeoTestContent } from "@/lib/seo/url-policy";
 import { siteConfig } from "@/lib/seo/site";
 
 import {
@@ -135,6 +136,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
       `Explore ${title} on 3bigha.com. Compare building material vendors, price, availability and quality.`,
     path: `/materials/${encodeURIComponent(id)}`,
     image: "/og/materials.png",
+    noIndex: isSeoTestContent(
+      row as Record<string, unknown>
+    ),
     keywords: [
       title,
       "building material",

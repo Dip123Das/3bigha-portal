@@ -96,7 +96,30 @@ export function isIndexableStaticPath(path: string) {
   ].includes(p);
 }
 
+const SEO_TEST_CONTENT_PATTERN =
+  /\b(?:demo|test|dummy|placeholder|sample)\b/i;
+
+export function isSeoTestContent(
+  row: Record<string, unknown>
+) {
+  const searchable = [
+    row.title,
+    row.name,
+    row.local_name,
+    row.description,
+    row.excerpt,
+    row.content,
+  ]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean)
+    .join(" ");
+
+  return SEO_TEST_CONTENT_PATTERN.test(searchable);
+}
+
 export function hasSeoMinimumQuality(row: Record<string, any>) {
+  if (isSeoTestContent(row)) return false;
+
   const title = String(row.title || row.name || "").trim();
   const description = String(row.description || row.excerpt || row.content || "").trim();
   const place = [row.locality, row.city, row.district, row.state]

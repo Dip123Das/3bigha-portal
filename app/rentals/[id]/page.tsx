@@ -5,6 +5,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
 import { createMetadata } from "@/lib/seo/metadata";
+import { isSeoTestContent } from "@/lib/seo/url-policy";
 import RentalDetailClient, {
   type RentalPublicRow,
 } from "./RentalDetailClient";
@@ -211,6 +212,9 @@ export async function generateMetadata({
     image:
       firstPhoto(row.photos) ||
       "/og-image-new.jpg",
+    noIndex: isSeoTestContent(
+      row as unknown as Record<string, unknown>
+    ),
     keywords: [
       title,
       "rental listing",
