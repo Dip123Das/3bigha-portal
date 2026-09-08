@@ -55,10 +55,6 @@ const nextConfig = {
             key: "Permissions-Policy",
             value: "camera=(self), microphone=(), geolocation=(self)",
           },
-          {
-            key: "X-Robots-Tag",
-            value: "all",
-          },
         ],
       },
     ];

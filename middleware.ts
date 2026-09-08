@@ -180,7 +180,15 @@ function loginRedirect(req: NextRequest, pathname: string) {
   url.pathname = "/login";
   url.search = "";
   url.searchParams.set("next", pathname + req.nextUrl.search);
-  return NextResponse.redirect(url);
+
+  const response = NextResponse.redirect(url);
+
+  response.headers.set(
+    "X-Robots-Tag",
+    "noindex, nofollow, noarchive"
+  );
+
+  return response;
 }
 
 export async function middleware(req: NextRequest) {
@@ -241,6 +249,10 @@ export async function middleware(req: NextRequest) {
   res.headers.set(
     "Cache-Control",
     "private, no-store, no-cache, must-revalidate, max-age=0"
+  );
+  res.headers.set(
+    "X-Robots-Tag",
+    "noindex, nofollow, noarchive"
   );
   res.headers.set("Pragma", "no-cache");
   res.headers.set("Expires", "0");
