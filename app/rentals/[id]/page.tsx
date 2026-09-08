@@ -173,25 +173,13 @@ export async function generateMetadata({
   const id = decodeURIComponent(params.id || "");
 
   if (!validRentalId(id)) {
-    return createMetadata({
-      title: "Rental Listing Not Found",
-      description:
-        "This rental listing is not available on 3bigha.com.",
-      path: `/rentals/${encodeURIComponent(id)}`,
-      noIndex: true,
-    });
+    notFound();
   }
 
   const row = await getPublicRental(id);
 
   if (!row) {
-    return createMetadata({
-      title: "Rental Listing Not Found",
-      description:
-        "This rental listing could not be found on 3bigha.com.",
-      path: `/rentals/${encodeURIComponent(id)}`,
-      noIndex: true,
-    });
+    notFound();
   }
 
   const title =
