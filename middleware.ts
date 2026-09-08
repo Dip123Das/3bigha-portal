@@ -170,6 +170,132 @@ function isPublicPath(pathname: string) {
   return true;
 }
 
+const RENTAL_UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const RENTAL_RESERVED_SEGMENTS = new Set([
+  "add",
+  "my",
+  "catalog",
+]);
+
+function rentalDetailId(pathname: string) {
+  const match = pathname.match(
+    /^\/rentals\/([^/]+)$/
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  let segment: string;
+
+  try {
+    segment = decodeURIComponent(
+      match[1] || ""
+    ).trim();
+  } catch {
+    return "__invalid_rental_identifier__";
+  }
+
+  if (
+    !segment ||
+    RENTAL_RESERVED_SEGMENTS.has(
+      segment.toLowerCase()
+    )
+  ) {
+    return null;
+  }
+
+  return segment;
+}
+
+function rentalNotFoundResponse() {
+  return new NextResponse(
+    `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<title>Rental Listing Not Found | 3bigha.com</title>
+</head>
+<body>
+<main>
+<h1>Rental listing not found</h1>
+<p>This rental listing is unavailable or no longer public.</p>
+<a href="/rentals">Browse available rentals</a>
+</main>
+</body>
+</html>`,
+    {
+      status: 404,
+      headers: {
+        "Content-Type":
+          "text/html; charset=utf-8",
+        "Cache-Control":
+          "public, max-age=0, s-maxage=60",
+        "X-Robots-Tag":
+          "noindex, nofollow, noarchive",
+      },
+    }
+  );
+}
+
+async function publicRentalExists(
+  id: string
+): Promise<boolean | null> {
+  if (!RENTAL_UUID_PATTERN.test(id)) {
+    return false;
+  }
+
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !anonKey) {
+    return null;
+  }
+
+  try {
+    const endpoint = new URL(
+      "/rest/v1/rental_listings_public",
+      supabaseUrl
+    );
+
+    endpoint.searchParams.set("id", `eq.${id}`);
+    endpoint.searchParams.set("select", "id");
+    endpoint.searchParams.set("limit", "1");
+
+    const response = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+        Accept: "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const rows = await response.json();
+
+    return (
+      Array.isArray(rows) &&
+      rows.length > 0
+    );
+  } catch {
+    /*
+     * Fail open on infrastructure errors. The server
+     * page still supplies a noindex not-found result.
+     */
+    return null;
+  }
+}
+
 function getLocaleFromPath(pathname: string) {
   const first = pathname.split("/").filter(Boolean)[0];
   return LOCALES.includes(first) ? first : null;
@@ -236,6 +362,19 @@ export async function middleware(req: NextRequest) {
   const authPathname = locale
     ? pathname.replace(`/${locale}`, "") || "/"
     : pathname;
+
+  const requestedRentalId =
+    rentalDetailId(authPathname);
+
+  if (requestedRentalId) {
+    const exists = await publicRentalExists(
+      requestedRentalId
+    );
+
+    if (exists === false) {
+      return rentalNotFoundResponse();
+    }
+  }
 
   if (isPublicPath(authPathname)) {
     return res;
