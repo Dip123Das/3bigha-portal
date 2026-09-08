@@ -1,822 +1,261 @@
-// app/rentals/[id]/page.tsx
-"use client";
+import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
+import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
-import { getSupabaseBrowser } from "@/lib/supabaseBrowser";
-
-import { Container } from "@/components/layout/Container";
-import { SectionHeader } from "@/components/layout/SectionHeader";
-import { Card, CardBody, CardFooter } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-
-import SendEnquiryButton from "@/app/components/enquiry/SendEnquiryButton";
-import NearbyMarketplace from "@/components/geography/NearbyMarketplace";
-import ProcurementKnowledgeGraphBlock from "@/app/components/ai/ProcurementKnowledgeGraphBlock";
-import { buildProcurementKnowledgeGraph } from "@/lib/seo/procurement-knowledge-graph";
-import JsonLd from "@/components/seo/JsonLd";
-import { breadcrumbSchema } from "@/lib/seo/schema";
-import { siteConfig } from "@/lib/seo/site";
-
-import {
-  buildAiSeoContent,
-  buildFaqSchema,
-} from "@/lib/seo/ai-search-content";
-
-import { buildRelatedContent } from "@/lib/seo/related-content";
-import { buildRelatedListings } from "@/lib/seo/related-listings";
-import { buildRecommendations } from "@/lib/ai/recommendation-engine";
-import MemoryEventTracker from "@/app/components/ai/MemoryEventTracker";
-import MemoryLink from "@/app/components/ai/MemoryLink";
+import { createMetadata } from "@/lib/seo/metadata";
+import RentalDetailClient, {
+  type RentalPublicRow,
+} from "./RentalDetailClient";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-function isBadId(v?: string | null) {
-  const s = String(v ?? "").trim();
-  return !s || s === "id" || s === "[id]" || s === "<id>" || !UUID_RE.test(s);
+const PUBLIC_RENTAL_COLUMNS = [
+  "id",
+  "title",
+  "description",
+  "pricing_unit",
+  "rate",
+  "rate_unit_label",
+  "security_deposit",
+  "country",
+  "state",
+  "district",
+  "city",
+  "locality",
+  "status",
+  "updated_at",
+  "photos",
+  "latitude",
+  "longitude",
+].join(",");
+
+function validRentalId(value: string) {
+  return UUID_RE.test(String(value || "").trim());
 }
 
-type Row = {
-  id: string;
-  title: string | null;
-  description: string | null;
-  pricing_unit: string | null;
-  rate: number | null;
-  rate_unit_label?: string | null;
-  security_deposit: number | null;
-  country: string | null;
-  state: string | null;
-  district: string | null;
-  city: string | null;
-  locality: string | null;
-  status: string | null;
-  updated_at: string | null;
-  photos: any | null;
-  vendor_user_id: string | null;
-  latitude: number | null;
-  longitude: number | null;
-};
+function getPublicSupabase() {
+  const cookieStore = cookies();
+  const url =
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-function fmt(iso: string | null | undefined) {
-  if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleString();
-  } catch {
-    return String(iso);
+  if (!url || !anon) {
+    return null;
   }
+
+  return createServerClient(url, anon, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value;
+      },
+      set() {},
+      remove() {},
+    },
+  });
 }
 
-function fmtRate(rate: number | null, pricingUnit: string | null, rateUnitLabel?: string | null) {
-  if (rate == null) return "—";
-  const unit = rateUnitLabel || pricingUnit || "";
-  return `₹ ${rate}${unit ? `/${unit}` : ""}`;
-}
+async function getPublicRental(
+  id: string
+): Promise<RentalPublicRow | null> {
+  const supabase = getPublicSupabase();
 
-function normalizeRow(x: any): Row | null {
-  if (!x || typeof x !== "object") return null;
-  if (!x.id) return null;
+  if (!supabase) {
+    return null;
+  }
+
+  const result = await supabase
+    .from("rental_listings_public")
+    .select(PUBLIC_RENTAL_COLUMNS)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (result.error || !result.data) {
+    return null;
+  }
+
+  const publicRow =
+    result.data as unknown as RentalPublicRow;
+
+  let vendorUserId: string | null = null;
+
+  const serviceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  if (serviceKey && supabaseUrl) {
+    const administrativeClient = createClient(
+      supabaseUrl,
+      serviceKey,
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      }
+    );
+
+    const ownerResult = await administrativeClient
+      .from("rental_listings")
+      .select("vendor_user_id")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (
+      !ownerResult.error &&
+      ownerResult.data?.vendor_user_id
+    ) {
+      vendorUserId = String(
+        ownerResult.data.vendor_user_id
+      );
+    }
+  }
 
   return {
-    id: String(x.id),
-    title: x.title == null ? null : String(x.title),
-    description: x.description == null ? null : String(x.description),
-    pricing_unit: x.pricing_unit == null ? null : String(x.pricing_unit),
-    rate: x.rate == null ? null : Number(x.rate),
-    rate_unit_label: x.rate_unit_label == null ? null : String(x.rate_unit_label),
-    security_deposit: x.security_deposit == null ? null : Number(x.security_deposit),
-    country: x.country == null ? null : String(x.country),
-    state: x.state == null ? null : String(x.state),
-    district: x.district == null ? null : String(x.district),
-    city: x.city == null ? null : String(x.city),
-    locality: x.locality == null ? null : String(x.locality),
-    status: x.status == null ? null : String(x.status),
-    updated_at: x.updated_at == null ? null : String(x.updated_at),
-    photos: x.photos ?? null,
-    vendor_user_id: x.vendor_user_id == null ? null : String(x.vendor_user_id),
-    latitude: x.latitude == null ? null : Number(x.latitude),
-    longitude: x.longitude == null ? null : Number(x.longitude),
+    ...publicRow,
+    vendor_user_id: vendorUserId,
   };
 }
 
-function photoUrls(photos: any): string[] {
-  if (!photos) return [];
+function text(value: unknown) {
+  return String(value || "").trim();
+}
+
+function firstPhoto(photos: unknown) {
+  if (!photos) return null;
+
   if (Array.isArray(photos)) {
-    return photos
-      .map((p) => {
-        if (!p) return null;
-        if (typeof p === "string") return p;
-        if (typeof p === "object") return (p as any).url ?? (p as any).src ?? null;
-        return null;
-      })
-      .filter(Boolean)
-      .map((u) => String(u));
+    for (const photo of photos) {
+      if (typeof photo === "string" && photo.trim()) {
+        return photo.trim();
+      }
+
+      if (photo && typeof photo === "object") {
+        const candidate =
+          (photo as Record<string, unknown>).url ||
+          (photo as Record<string, unknown>).src;
+
+        if (
+          typeof candidate === "string" &&
+          candidate.trim()
+        ) {
+          return candidate.trim();
+        }
+      }
+    }
   }
+
   if (typeof photos === "object") {
-    const u = (photos as any).url ?? (photos as any).src ?? null;
-    return u ? [String(u)] : [];
+    const candidate =
+      (photos as Record<string, unknown>).url ||
+      (photos as Record<string, unknown>).src;
+
+    if (
+      typeof candidate === "string" &&
+      candidate.trim()
+    ) {
+      return candidate.trim();
+    }
   }
-  return [];
+
+  return null;
 }
 
-function MessageBox(props: { title: string; description?: string }) {
-  return (
-    <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 12, background: "rgba(0,0,0,0.02)" }}>
-      <div style={{ fontWeight: 800, marginBottom: 6 }}>{props.title}</div>
-      {props.description ? <div style={{ opacity: 0.8, lineHeight: 1.5 }}>{props.description}</div> : null}
-    </div>
-  );
-}
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  const id = decodeURIComponent(params.id || "");
 
-export default function RentalPublicDetailPage() {
-  const params = useParams<{ id: string }>();
-  const id = params?.id;
-  const supabase = useMemo(() => getSupabaseBrowser(), []);
+  if (!validRentalId(id)) {
+    return createMetadata({
+      title: "Rental Listing Not Found",
+      description:
+        "This rental listing is not available on 3bigha.com.",
+      path: `/rentals/${encodeURIComponent(id)}`,
+      noIndex: true,
+    });
+  }
 
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
-  const [row, setRow] = useState<Row | null>(null);
+  const row = await getPublicRental(id);
 
-  useEffect(() => {
-    if (!id) return;
+  if (!row) {
+    return createMetadata({
+      title: "Rental Listing Not Found",
+      description:
+        "This rental listing could not be found on 3bigha.com.",
+      path: `/rentals/${encodeURIComponent(id)}`,
+      noIndex: true,
+    });
+  }
 
-    if (isBadId(id)) {
-      setErr('Invalid rental id in URL.');
-      setRow(null);
-      setLoading(false);
-      return;
-    }
+  const title =
+    text(row.title) || "Rental Listing";
 
-    let alive = true;
+  const location = [
+    row.locality,
+    row.city,
+    row.district,
+    row.state,
+  ]
+    .map(text)
+    .filter(Boolean)
+    .join(", ");
 
-    async function load() {
-      setLoading(true);
-      setErr(null);
+  const description =
+    text(row.description).slice(0, 155) ||
+    [
+      `Explore ${title} for rent on 3bigha.com.`,
+      location ? `Available in ${location}.` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
 
-      const publicRes = await supabase
-        .from("rental_listings_public")
-        .select(
-          [
-            "id",
-            "title",
-            "description",
-            "pricing_unit",
-            "rate",
-            "rate_unit_label",
-            "security_deposit",
-            "country",
-            "state",
-            "district",
-            "city",
-            "locality",
-            "status",
-            "updated_at",
-            "photos",
-            "latitude",
-            "longitude",
-          ].join(",")
-        )
-        .eq("id", id)
-        .maybeSingle();
-
-      if (!alive) return;
-
-      if (publicRes.error) {
-        setErr(publicRes.error.message);
-        setRow(null);
-        setLoading(false);
-        return;
-      }
-
-      const publicData =
-        publicRes.data && typeof publicRes.data === "object" ? (publicRes.data as Record<string, any>) : null;
-
-      if (!publicData) {
-        setErr("This rental is not available (not public/published).");
-        setRow(null);
-        setLoading(false);
-        return;
-      }
-
-      let vendorUserId: string | null = null;
-
-      try {
-        const vendorRes = await supabase
-          .from("rental_listings")
-          .select("id,vendor_user_id")
-          .eq("id", id)
-          .maybeSingle();
-
-        if (!vendorRes.error && vendorRes.data?.vendor_user_id) {
-          vendorUserId = String(vendorRes.data.vendor_user_id);
-        }
-      } catch {
-        vendorUserId = null;
-      }
-
-      const merged = normalizeRow({
-        ...publicData,
-        vendor_user_id: vendorUserId,
-      });
-
-      if (!merged) {
-        setErr("This rental is not available (not public/published).");
-        setRow(null);
-        setLoading(false);
-        return;
-      }
-
-      setRow(merged);
-      setLoading(false);
-    }
-
-    load();
-
-    return () => {
-      alive = false;
-    };
-  }, [id, supabase]);
-
-  const urls = useMemo(() => photoUrls(row?.photos), [row?.photos]);
-  const cover = urls[0] ?? null;
-
-  const loc = useMemo(() => {
-    if (!row) return "—";
-    return [row.locality, row.city, row.district, row.state, row.country].filter(Boolean).join(", ") || "—";
-  }, [row]);
-
-  const priceText = row ? fmtRate(row.rate, row.pricing_unit, row.rate_unit_label) : "";
-
-  const title = row?.title?.trim() || "Rental Details";
-  const canonicalUrl = `${siteConfig.url}/rentals/${encodeURIComponent(id)}`;
-
-  const aiSeo = buildAiSeoContent({
-    module: "rentals",
-
+  return createMetadata({
     title,
-
-    category: "Rental",
-
-    type:
-      row?.pricing_unit ||
-      "Rental Service",
-
-    city: row?.city || "",
-    district: row?.district || "",
-    locality: row?.locality || "",
-
-    price: row?.rate || null,
-
-    listingType:
-      row?.pricing_unit || "Rental",
+    description,
+    path: `/rentals/${encodeURIComponent(id)}`,
+    image:
+      firstPhoto(row.photos) ||
+      "/og-image-new.jpg",
+    keywords: [
+      title,
+      "rental listing",
+      "equipment rental",
+      "machinery rental",
+      "property rental",
+      location,
+      "3bigha rentals",
+    ].filter(Boolean),
   });
+}
 
-  const faqSchema = buildFaqSchema(aiSeo.faq);
+export default async function RentalPublicDetailPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const id = decodeURIComponent(params.id || "");
 
-  const relatedContent = buildRelatedContent({
-  module: "rentals",
+  if (!validRentalId(id)) {
+    notFound();
+  }
 
-  title,
+  const row = await getPublicRental(id);
 
-  category: "Rental",
-
-  type:
-    row?.pricing_unit ||
-    "Rental Service",
-
-  city: row?.city || "",
-  district: row?.district || "",
-  locality: row?.locality || "",
-});
-
-const relatedRows: any[] = [];
-
-const relatedListings = buildRelatedListings({
-  module: "rentals",
-  currentId: id,
-  rows: relatedRows,
-  city: row?.city || "",
-  district: row?.district || "",
-  locality: row?.locality || "",
-  category: "Rental",
-});
-
-const aiRecommendations = buildRecommendations({
-  module: "rentals",
-  currentId: id,
-  rows: relatedRows,
-  city: row?.city || "",
-  district: row?.district || "",
-  locality: row?.locality || "",
-  category: "Rental",
-  type: row?.pricing_unit || "Rental Service",
-  minPrice: row?.rate ? Number(row.rate) * 0.7 : null,
-  maxPrice: row?.rate ? Number(row.rate) * 1.3 : null,
-  userIntent: "rental discovery",
-});
-
-  const rentalSchema = row
-    ? {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        name: title,
-        description:
-          row.description?.trim() ||
-          "Rental listing for construction, equipment, tools or property needs on 3bigha.com.",
-        url: canonicalUrl,
-        category: "Rental",
-        offers:
-          row.rate !== null
-            ? {
-                "@type": "Offer",
-                priceCurrency: "INR",
-                price: Number(row.rate),
-                availability: "https://schema.org/InStock",
-                url: canonicalUrl,
-              }
-            : undefined,
-      }
-    : null;
-
-    <div
-  style={{
-    marginTop: 14,
-    padding: 14,
-    borderRadius: 12,
-    background: "#f8fafc",
-    border: "1px solid #e2e8f0",
-  }}
->
-  <div
-    style={{
-      fontWeight: 900,
-      fontSize: 18,
-      marginBottom: 14,
-    }}
-  >
-    Related Rental Discovery
-  </div>
-
-  <div
-    style={{
-      display: "grid",
-      gap: 12,
-    }}
-  >
-    {relatedContent.map((item, index) => (
-      <Link
-        key={index}
-        href={item.href}
-        style={{
-          display: "block",
-          padding: 14,
-          borderRadius: 12,
-          background: "#fff",
-          border: "1px solid #e5e7eb",
-          textDecoration: "none",
-          color: "inherit",
-        }}
-      >
-        <div style={{ fontWeight: 900, marginBottom: 4 }}>
-          {item.label}
-        </div>
-
-        <div
-          style={{
-            fontSize: 13,
-            opacity: 0.75,
-            lineHeight: 1.5,
-          }}
-        >
-          {item.description}
-        </div>
-      </Link>
-    ))}
-  </div>
-</div>
-
-{relatedListings.length ? (
-  <div
-    style={{
-      marginTop: 14,
-      padding: 14,
-      borderRadius: 12,
-      background: "#fff",
-      border: "1px solid #e5e7eb",
-    }}
-  >
-    <div
-      style={{
-        fontWeight: 900,
-        fontSize: 18,
-        marginBottom: 14,
-      }}
-    >
-      Similar Rentals Nearby
-    </div>
-
-    <div style={{ display: "grid", gap: 12 }}>
-      {relatedListings.map((item) => (
-        <Link
-          key={item.id}
-          href={item.href}
-          style={{
-            display: "block",
-            padding: 14,
-            borderRadius: 12,
-            background: "#f8fafc",
-            border: "1px solid #e5e7eb",
-            textDecoration: "none",
-            color: "inherit",
-          }}
-        >
-          <div style={{ fontWeight: 900, marginBottom: 4 }}>
-            {item.title}
-          </div>
-
-          <div
-            style={{
-              fontSize: 13,
-              opacity: 0.75,
-              lineHeight: 1.5,
-            }}
-          >
-            {[item.location, item.priceText].filter(Boolean).join(" • ")}
-          </div>
-        </Link>
-      ))}
-    </div>
-  </div>
-) : null}
-
-{aiRecommendations.length ? (
-  <div
-    style={{
-      marginTop: 14,
-      padding: 14,
-      borderRadius: 12,
-      background: "#fff",
-      border: "1px solid #e5e7eb",
-    }}
-  >
-    <div
-      style={{
-        fontWeight: 900,
-        fontSize: 18,
-        marginBottom: 14,
-      }}
-    >
-      AI Recommended Rental Opportunities
-    </div>
-
-    <div style={{ display: "grid", gap: 12 }}>
-      {aiRecommendations.map((item) => (
-        <MemoryLink
-          key={item.id}
-          href={item.href}
-          module="rentals"
-          entityId={item.id}
-          entityTitle={item.title}
-          category="Rental"
-          type={item.type}
-          city={item.city}
-          district={item.district}
-          locality={item.locality}
-          source="rental_ai_recommendations"
-          score={item.score}
-          style={{
-            display: "block",
-            padding: 14,
-            borderRadius: 12,
-            background: "#f8fafc",
-            border: "1px solid #e5e7eb",
-            textDecoration: "none",
-            color: "inherit",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 12,
-              alignItems: "center",
-            }}
-          >
-            <div style={{ fontWeight: 900 }}>
-              {item.title}
-            </div>
-
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 800,
-                color: "#2563eb",
-              }}
-            >
-              AI Score {item.score}
-            </div>
-          </div>
-
-          <div
-            style={{
-              marginTop: 6,
-              fontSize: 13,
-              opacity: 0.8,
-              lineHeight: 1.5,
-            }}
-          >
-            {item.reason}
-          </div>
-
-          <div
-            style={{
-              marginTop: 6,
-              fontSize: 12,
-              opacity: 0.7,
-            }}
-          >
-            {[item.locality, item.city, item.district]
-              .filter(Boolean)
-              .join(", ")}
-          </div>
-        </MemoryLink>
-      ))}
-    </div>
-  </div>
-) : null}
+  if (!row) {
+    notFound();
+  }
 
   return (
-    <Container>
-      <JsonLd
-        data={[
-          breadcrumbSchema([
-            { name: "Home", url: siteConfig.url },
-            { name: "Rentals", url: `${siteConfig.url}/rentals` },
-            { name: title, url: canonicalUrl },
-          ]),
-          ...(rentalSchema ? [rentalSchema] : []),
-
-          faqSchema,
-        ]}
-      />
-
-      <MemoryEventTracker
-        eventType="listing_view"
-        module="rentals"
-        entityId={id}
-        entityTitle={title}
-        category="Rental"
-        type={row?.pricing_unit || "Rental Service"}
-        city={row?.city || ""}
-        district={row?.district || ""}
-        locality={row?.locality || ""}
-        metadata={{
-        source: "rental_detail_page",
-        price:
-          row?.rate ||
-          null,
-      }}
-      />
-
-      <SectionHeader title="Rental Details" subtitle="Public listing details" />
-
-      <div style={{ marginBottom: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <Link href="/rentals" style={{ fontWeight: 900, textDecoration: "none" }}>
-          ← Back to Rentals
-        </Link>
-      </div>
-
-      {err ? (
-        <MessageBox title="Could not load" description={err} />
-      ) : loading ? (
-        <MessageBox title="Loading..." description="Fetching rental details..." />
-      ) : !row ? (
-        <MessageBox title="Not found" description="No data returned." />
-      ) : (
-        <div className="rentGrid" style={{ display: "grid", gap: 14, gridTemplateColumns: "2fr 1fr", alignItems: "start" }}>
-          <Card>
-            <CardBody>
-              {cover ? (
-                <div style={{ marginBottom: 14 }}>
-                  <img
-                    src={cover}
-                    alt={row.title ?? "Rental"}
-                    style={{
-                      width: "100%",
-                      maxHeight: 420,
-                      objectFit: "cover",
-                      borderRadius: 12,
-                      border: "1px solid rgba(0,0,0,0.08)",
-                    }}
-                  />
-                </div>
-              ) : null}
-
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-                <Badge>{(row.status ?? "published").toLowerCase()}</Badge>
-                <Badge>Updated: {fmt(row.updated_at)}</Badge>
-                {row.pricing_unit ? <Badge>Unit: {row.pricing_unit}</Badge> : null}
-                {row.security_deposit != null ? <Badge>Deposit: ₹ {row.security_deposit}</Badge> : null}
-              </div>
-
-              <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 8 }}>{(row.title ?? "").trim() || "Untitled rental"}</div>
-
-              <div style={{ opacity: 0.85, marginBottom: 10 }}>
-                {loc} • {priceText}
-              </div>
-
-              {row.description ? (
-                <div
-                  style={{
-                    marginTop: 14,
-                    lineHeight: 1.65,
-                    opacity: 0.9,
-                    whiteSpace: "pre-wrap",
-                  }}
-                >
-                  {row.description}
-                </div>
-              ) : (
-                <div
-                  style={{
-                    marginTop: 14,
-                    opacity: 0.7,
-                  }}
-                >
-                  No description provided.
-                </div>
-              )}
-
-              <div
-                style={{
-                  marginTop: 14,
-                  padding: 14,
-                  borderRadius: 12,
-                  background: "#f8fafc",
-                  border: "1px solid #e2e8f0",
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: 900,
-                    fontSize: 18,
-                    marginBottom: 12,
-                  }}
-                >
-                  AI Rental Market Insight
-                </div>
-
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.7,
-                    marginBottom: 16,
-                  }}
-                >
-                  {aiSeo.summary}
-                </div>
-
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.7,
-                    marginBottom: 16,
-                  }}
-                >
-                  {aiSeo.investmentInsight}
-                </div>
-
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    lineHeight: 1.7,
-                  }}
-                >
-                  {aiSeo.demandInsight}
-                </div>
-              </div>
-
-              <div
-                style={{
-                  marginTop: 14,
-                  padding: 14,
-                  borderRadius: 12,
-                  background: "#fff",
-                  border: "1px solid #e5e7eb",
-                }}
-              >
-                <div
-                  style={{
-                    fontWeight: 900,
-                    fontSize: 18,
-                    marginBottom: 14,
-                  }}
-                >
-                  Frequently Asked Questions
-                </div>
-
-                <div
-                  style={{
-                    display: "grid",
-                    gap: 14,
-                  }}
-                >
-                  {aiSeo.faq.map((item, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        paddingBottom: 12,
-                        borderBottom: "1px solid #f1f5f9",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontWeight: 800,
-                          marginBottom: 6,
-                        }}
-                      >
-                        {item.question}
-                      </div>
-
-                      <div
-                        style={{
-                          opacity: 0.85,
-                          lineHeight: 1.6,
-                        }}
-                      >
-                        {item.answer}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-
-      <Card>
-        <CardBody>
-
-          {row.latitude !== null && row.longitude !== null ? (
-            <NearbyMarketplace
-              latitude={row.latitude}
-              longitude={row.longitude}
-              radiusKm={25}
-              limit={5}
-              title="Around this Rental"
-            />
-          ) : null}
-
-          <div style={{ fontWeight: 950, marginBottom: 8, marginTop: 18 }}>
-            Send Enquiry
-          </div>
-
-          {!row.vendor_user_id && (
-            <div style={{ fontSize:12, opacity:.6, marginBottom:8 }}>
-              Vendor account not linked to this rental.
-            </div>
-          )}
-
-          <SendEnquiryButton
-            module="rental"
-            refId={String(row.id)}
-            title={row.title ?? "Rental"}
-            priceText={priceText}
-            vendorUserId={row.vendor_user_id ?? null}
-            nextUrl={`/rentals/${encodeURIComponent(String(id))}`}
-          />
-
-          <Link
-            href={`/vendor/discovery?q=${encodeURIComponent(
-              row.title || "rental vendor"
-            )}`}
-            className="topBtn topBtnGhost"
-            style={{ textDecoration: "none", marginTop: 10 }}
-          >
-            AI Recommended Vendors →
-          </Link>
-
-          <ProcurementKnowledgeGraphBlock
-            graph={buildProcurementKnowledgeGraph({
-              title: row.title || "Rental",
-              module: "rentals",
-              category: "Rental Service",
-              city: row.city || "Cooch Behar",
-              district: row.district || "Cooch Behar",
-              locality: row.locality || "Khagrabari",
-            })}
-          />
-
-        </CardBody>
-      </Card>
-        </div>
-      )}
-
-      <style>{`
-        @media (max-width: 980px){
-          .rentGrid{ grid-template-columns: 1fr !important; }
-        }
-      `}</style>
-    </Container>
+    <RentalDetailClient
+      id={id}
+      initialRow={row}
+    />
   );
 }
