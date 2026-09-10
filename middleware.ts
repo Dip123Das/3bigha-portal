@@ -296,6 +296,142 @@ async function publicRentalExists(
   }
 }
 
+const PROPERTY_RESERVED_SEGMENTS = new Set([
+  "add",
+  "my",
+  "edit",
+  "inventory",
+  "projects",
+  "builder",
+]);
+
+function propertyDetailId(pathname: string) {
+  const match = pathname.match(
+    /^\/property\/([^/]+)$/
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  let segment: string;
+
+  try {
+    segment = decodeURIComponent(
+      match[1] || ""
+    ).trim();
+  } catch {
+    return "__invalid_property_identifier__";
+  }
+
+  if (
+    !segment ||
+    PROPERTY_RESERVED_SEGMENTS.has(
+      segment.toLowerCase()
+    )
+  ) {
+    return null;
+  }
+
+  return segment;
+}
+
+function propertyNotFoundResponse() {
+  return new NextResponse(
+    `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<title>Property Not Found | 3bigha.com</title>
+</head>
+<body>
+<main>
+<h1>Property not found</h1>
+<p>This property is unavailable or is not publicly published.</p>
+<a href="/property">Browse available properties</a>
+</main>
+</body>
+</html>`,
+    {
+      status: 404,
+      headers: {
+        "Content-Type":
+          "text/html; charset=utf-8",
+        "Cache-Control":
+          "public, max-age=0, s-maxage=60",
+        "X-Robots-Tag":
+          "noindex, nofollow, noarchive",
+      },
+    }
+  );
+}
+
+async function publicPropertyExists(
+  id: string
+): Promise<boolean | null> {
+  if (!RENTAL_UUID_PATTERN.test(id)) {
+    return false;
+  }
+
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  const anonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !anonKey) {
+    return null;
+  }
+
+  try {
+    const endpoint = new URL(
+      "/rest/v1/property_listings",
+      supabaseUrl
+    );
+
+    endpoint.searchParams.set("id", `eq.${id}`);
+    endpoint.searchParams.set(
+      "status",
+      "eq.published"
+    );
+    endpoint.searchParams.set(
+      "is_public",
+      "eq.true"
+    );
+    endpoint.searchParams.set("select", "id");
+    endpoint.searchParams.set("limit", "1");
+
+    const response = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+        Accept: "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const rows = await response.json();
+
+    return (
+      Array.isArray(rows) &&
+      rows.length > 0
+    );
+  } catch {
+    /*
+     * Fail open when the public-data service is
+     * unavailable. The server page retains its own
+     * publication filters and notFound gates.
+     */
+    return null;
+  }
+}
+
 function getLocaleFromPath(pathname: string) {
   const first = pathname.split("/").filter(Boolean)[0];
   return LOCALES.includes(first) ? first : null;
@@ -373,6 +509,19 @@ export async function middleware(req: NextRequest) {
 
     if (exists === false) {
       return rentalNotFoundResponse();
+    }
+  }
+
+  const requestedPropertyId =
+    propertyDetailId(authPathname);
+
+  if (requestedPropertyId) {
+    const exists = await publicPropertyExists(
+      requestedPropertyId
+    );
+
+    if (exists === false) {
+      return propertyNotFoundResponse();
     }
   }
 
