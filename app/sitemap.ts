@@ -221,8 +221,22 @@ const staticRoutes = [
       .limit(5000),
 
     supabase
-      .from("service_listings")
-      .select("id,title,description,updated_at,created_at")
+      .from("v_service_listings")
+      .select(
+        [
+          "id:provider_service_id",
+          "title:custom_service",
+          "description:service_description",
+          "name:provider_name",
+          "city",
+          "district",
+          "state",
+          "updated_at:provider_service_created_at",
+          "created_at:provider_service_created_at",
+        ].join(",")
+      )
+      .eq("service_is_active", true)
+      .eq("provider_status", "published")
       .limit(5000),
 
     supabase
@@ -280,7 +294,9 @@ const staticRoutes = [
   }
 
   if (serviceRes.status === "fulfilled" && !serviceRes.value.error) {
-    (serviceRes.value.data || []).forEach((row: SitemapRow) => {
+    (
+      (serviceRes.value.data || []) as unknown as SitemapRow[]
+    ).forEach((row) => {
       if (!isSafePublicId(row.id)) return;
       if (!hasSeoMinimumQuality(row as Record<string, any>)) return;
 

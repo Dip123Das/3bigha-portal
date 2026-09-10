@@ -6,6 +6,7 @@ import JsonLd from "@/components/seo/JsonLd";
 import NearbyMarketplace from "@/components/geography/NearbyMarketplace";
 import { siteConfig } from "@/lib/seo/site";
 import { breadcrumbSchema } from "@/lib/seo/schema";
+import { isSeoTestContent } from "@/lib/seo/url-policy";
 import {
   buildAiSeoContent,
   buildFaqSchema,
@@ -58,7 +59,7 @@ function getSupabase() {
 }
 
 function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value
   );
 }
@@ -138,6 +139,8 @@ async function getService(id: string) {
       ].join(",")
     )
     .eq("provider_service_id", id)
+    .eq("service_is_active", true)
+    .eq("provider_status", "published")
     .maybeSingle();
 
   if (error || !data) return null;
@@ -179,6 +182,11 @@ export async function generateMetadata({ params }: PageProps) {
 
   const name = getServiceName(row);
   const location = getLocation(row);
+  const noIndex = isSeoTestContent({
+    title: name,
+    name: row.provider_name,
+    description: row.service_description,
+  });
   const title = `${name}${location ? ` in ${location}` : ""} | 3Bigha`;
   const description =
     clean(row.service_description) ||
@@ -190,6 +198,16 @@ export async function generateMetadata({ params }: PageProps) {
     alternates: {
       canonical: `${siteConfig.url}/services/${encodeURIComponent(id)}`,
     },
+    robots: noIndex
+      ? {
+          index: false,
+          follow: true,
+          nocache: true,
+        }
+      : {
+          index: true,
+          follow: true,
+        },
     openGraph: {
       title,
       description,
