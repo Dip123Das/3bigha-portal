@@ -210,8 +210,10 @@ const staticRoutes = [
     investmentRes,
   ] = await Promise.allSettled([
     supabase
-      .from("property_listings_public")
+      .from("property_listings")
       .select("id,title,city,district,locality,state,description,updated_at,created_at,published_at")
+      .eq("status", "published")
+      .eq("is_public", true)
       .limit(5000),
 
     supabase

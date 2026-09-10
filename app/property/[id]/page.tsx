@@ -128,9 +128,11 @@ export async function generateMetadata({
   const supabase = getSupabaseServer();
 
   const metadataRes = await supabase
-    .from("property_listings_public")
+    .from("property_listings")
     .select("*")
     .eq("id", id)
+    .eq("status", "published")
+    .eq("is_public", true)
     .maybeSingle();
 
   const row =
@@ -247,9 +249,11 @@ export default async function PropertyPublicDetailPage({
   const supabase = getSupabaseServer();
 
   const propertyRes = await supabase
-    .from("property_listings_public")
+    .from("property_listings")
     .select("*")
     .eq("id", id)
+    .eq("status", "published")
+    .eq("is_public", true)
     .maybeSingle();
 
   const row =
@@ -288,9 +292,9 @@ export default async function PropertyPublicDetailPage({
     safeText(row.owner_id) ||
     null;
 
-  // Important:
-  // If the row came from property_listings_public, that view may not expose vendor_user_id.
-  // In that case, do one safe read from the base table only for vendor linkage fields.
+  // The public eligibility gate above has already required
+  // status = published and is_public = true. This secondary
+  // read retrieves linkage fields only after that gate passes.
   if (!resolvedVendorUserId) {
     const vendorRes = await supabase
       .from("property_listings")
@@ -313,7 +317,8 @@ export default async function PropertyPublicDetailPage({
   let resolvedInvestmentPlan: InvestmentPlanInfo | null = null;
     let resolvedInvestmentOpportunity: InvestmentOpportunityInfo | null = null;
 
-  // Read safe base listing fields when the public view may not expose them
+  // Retrieve investment linkage fields only after the
+  // public eligibility gate above has passed.
   if (
     !resolvedBuilderProjectId ||
     !safeText(row.investment_plan_master_id)
@@ -498,10 +503,12 @@ const relatedContent = buildRelatedContent({
 });
 
 const relatedRes = await supabase
-  .from("property_listings_public")
+  .from("property_listings")
   .select(
     "id,title,city,district,locality,property_type,category,listing_type,price,expected_price,updated_at,created_at"
   )
+  .eq("status", "published")
+  .eq("is_public", true)
   .neq("id", id)
   .or(
     [
