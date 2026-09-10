@@ -258,7 +258,22 @@ const staticRoutes = [
 
     supabase
       .from("investment_opportunities")
-      .select("slug,updated_at,created_at,published_at")
+      .select(
+        [
+          "slug",
+          "title",
+          "description",
+          "city",
+          "state",
+          "country",
+          "status",
+          "visibility",
+          "updated_at",
+          "created_at",
+        ].join(",")
+      )
+      .eq("status", "active")
+      .eq("visibility", "public")
       .limit(5000),
   ]);
 
@@ -347,12 +362,24 @@ const staticRoutes = [
     });
   }
 
-  if (investmentRes.status === "fulfilled" && !investmentRes.value.error) {
-    (investmentRes.value.data || []).forEach((row: SitemapRow) => {
+  if (
+    investmentRes.status === "fulfilled" &&
+    !investmentRes.value.error
+  ) {
+    (
+      (investmentRes.value.data || []) as unknown as (
+        SitemapRow & Record<string, unknown>
+      )[]
+    ).forEach((row) => {
       if (!row.slug) return;
+      if (!hasSeoMinimumQuality(row)) return;
 
       dynamicPages.push({
-        url: route(`/investment/opportunities/${safeId(row.slug)}`),
+        url: route(
+          `/investment/opportunities/${safeId(
+            row.slug
+          )}`
+        ),
         lastModified: lastModified(row),
         changeFrequency: "weekly",
         priority: 0.65,

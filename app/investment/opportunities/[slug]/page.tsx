@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import OpportunitySidebarClient from "./OpportunitySidebarClient";
+import { createMetadata } from "@/lib/seo/metadata";
+import { hasSeoMinimumQuality } from "@/lib/seo/url-policy";
 
 export const dynamic = "force-dynamic";
 export async function generateMetadata({
@@ -10,46 +12,56 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }) {
-  const slugOrId = decodeURIComponent(params.slug || "").trim();
-
-  const cookieStore = await cookies();
-  const supabase = getSupabaseServerClient(cookieStore);
-
-  const isUuid =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-      slugOrId
+  const opportunity =
+    await getOpportunityBySlugOrId(
+      params.slug
     );
 
-  let query = supabase
-    .from("investment_opportunities")
-    .select("title, description, cover_image_url")
-    .eq("visibility", "public")
-    .eq("status", "active");
-
-  if (isUuid) {
-    query = query.or(`slug.eq.${slugOrId},id.eq.${slugOrId}`);
-  } else {
-    query = query.eq("slug", slugOrId);
+  if (!opportunity) {
+    notFound();
   }
 
-  const { data } = await query.maybeSingle();
+  const title =
+    String(opportunity.title || "").trim() ||
+    "Investment Opportunity";
 
-  const title = data?.title || "Investment Opportunity | 3Bigha";
   const description =
-    data?.description ||
-    "Explore verified investment opportunities on 3Bigha.";
+    String(
+      opportunity.description || ""
+    ).trim() ||
+    "Explore this investment opportunity on 3BIGHA.";
 
-  return {
+  const canonicalIdentifier =
+    String(
+      opportunity.slug ||
+      opportunity.id
+    ).trim();
+
+  return createMetadata({
     title,
     description,
-    openGraph: {
+    path:
+      "/investment/opportunities/" +
+      encodeURIComponent(
+        canonicalIdentifier
+      ),
+    image:
+      opportunity.cover_image_url ||
+      "/og-image-new.jpg",
+    noIndex: !hasSeoMinimumQuality(
+      opportunity as unknown as Record<
+        string,
+        unknown
+      >
+    ),
+    keywords: [
       title,
-      description,
-      images: data?.cover_image_url
-        ? [data.cover_image_url]
-        : ["/og-image.jpg"],
-    },
-  };
+      "investment opportunity",
+      "property investment India",
+      "construction investment",
+      "3BIGHA investment",
+    ],
+  });
 }
 
 type OpportunityRow = {
