@@ -18,6 +18,7 @@ import JsonLd from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/seo/schema";
 import { createMetadata } from "@/lib/seo/metadata";
 import { siteConfig } from "@/lib/seo/site";
+import { isSeoTestContent } from "@/lib/seo/url-policy";
 
 import {
   buildAiSeoContent,
@@ -121,36 +122,24 @@ export async function generateMetadata({
   const id = decodeURIComponent(params.id || "");
 
   if (isBadId(id)) {
-    return createMetadata({
-      title: "Property Not Available",
-      description: "The requested property listing is not available on 3bigha.com.",
-      path: `/property/${encodeURIComponent(id)}`,
-      noIndex: true,
-    });
+    notFound();
   }
 
   const supabase = getSupabaseServer();
 
-  const tables = ["property_listings_public", "property_listings"];
+  const metadataRes = await supabase
+    .from("property_listings_public")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
 
-  let row: AnyRow | null = null;
-
-  for (const t of tables) {
-    const res = await supabase.from(t).select("*").eq("id", id).maybeSingle();
-
-    if (!res.error && res.data) {
-      row = res.data;
-      break;
-    }
-  }
+  const row =
+    !metadataRes.error && metadataRes.data
+      ? (metadataRes.data as AnyRow)
+      : null;
 
   if (!row) {
-    return createMetadata({
-      title: "Property Not Found",
-      description: "This property listing could not be found on 3bigha.com.",
-      path: `/property/${encodeURIComponent(id)}`,
-      noIndex: true,
-    });
+    notFound();
   }
 
   const title = safeText(row.title) || "Property Listing";
@@ -196,6 +185,10 @@ export async function generateMetadata({
     modifiedTime:
       row.updated_at ||
       undefined,
+
+    noIndex: isSeoTestContent(
+      row as Record<string, unknown>
+    ),
 
     keywords: [
       title,
@@ -253,19 +246,16 @@ export default async function PropertyPublicDetailPage({
 
   const supabase = getSupabaseServer();
 
-  const tables = ["property_listings_public", "property_listings"];
+  const propertyRes = await supabase
+    .from("property_listings_public")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
 
-  let row: AnyRow | null = null;
-  let sourceTable: string | null = null;
-
-  for (const t of tables) {
-    const res = await supabase.from(t).select("*").eq("id", id).maybeSingle();
-    if (!res.error && res.data) {
-      row = res.data;
-      sourceTable = t;
-      break;
-    }
-  }
+  const row =
+    !propertyRes.error && propertyRes.data
+      ? (propertyRes.data as AnyRow)
+      : null;
 
   if (!row) {
     notFound();
@@ -301,7 +291,7 @@ export default async function PropertyPublicDetailPage({
   // Important:
   // If the row came from property_listings_public, that view may not expose vendor_user_id.
   // In that case, do one safe read from the base table only for vendor linkage fields.
-  if (!resolvedVendorUserId && sourceTable === "property_listings_public") {
+  if (!resolvedVendorUserId) {
     const vendorRes = await supabase
       .from("property_listings")
       .select("vendor_user_id, owner_id")
@@ -325,8 +315,8 @@ export default async function PropertyPublicDetailPage({
 
   // Read safe base listing fields when the public view may not expose them
   if (
-    sourceTable === "property_listings_public" &&
-    (!resolvedBuilderProjectId || !safeText(row.investment_plan_master_id))
+    !resolvedBuilderProjectId ||
+    !safeText(row.investment_plan_master_id)
   ) {
     const baseListingRes = await supabase
       .from("property_listings")
