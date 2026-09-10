@@ -219,6 +219,7 @@ const staticRoutes = [
     supabase
       .from("material_listings")
       .select("id,title,description,local_name,updated_at,created_at")
+      .eq("status", "published")
       .eq("is_public", true)
       .eq("is_active", true)
       .limit(5000),

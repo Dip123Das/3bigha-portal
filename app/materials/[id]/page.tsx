@@ -92,7 +92,11 @@ function moneyINR(v: any) {
 }
 
 function isPublicRow(r: AnyRow) {
-  return r?.is_public === true && r?.is_active === true;
+  return (
+    r?.status === "published" &&
+    r?.is_public === true &&
+    r?.is_active === true
+  );
 }
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
@@ -111,8 +115,11 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
   const res = await supabase
     .from("material_listings")
-    .select("id,title,local_name,description")
+    .select("id,title,local_name,description,status,is_public,is_active")
     .eq("id", id)
+    .eq("status", "published")
+    .eq("is_public", true)
+    .eq("is_active", true)
     .maybeSingle();
 
   const row = (res.data ?? null) as AnyRow | null;
@@ -200,7 +207,14 @@ export default async function MaterialPublicDetailPage({ params }: { params: { i
     "geo_place_id",
   ].join(",");
 
-  const res = await supabase.from("material_listings").select(selectCols).eq("id", id).maybeSingle();
+  const res = await supabase
+    .from("material_listings")
+    .select(selectCols)
+    .eq("id", id)
+    .eq("status", "published")
+    .eq("is_public", true)
+    .eq("is_active", true)
+    .maybeSingle();
   const row = (res.data ?? null) as AnyRow | null;
 
   if (res.error || !row) {
