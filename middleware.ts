@@ -432,6 +432,142 @@ async function publicPropertyExists(
   }
 }
 
+const MATERIAL_RESERVED_SEGMENTS = new Set([
+  "add",
+  "my",
+  "rfq",
+]);
+
+function materialDetailId(pathname: string) {
+  const match = pathname.match(
+    /^\/materials\/([^/]+)$/
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  let segment: string;
+
+  try {
+    segment = decodeURIComponent(
+      match[1] || ""
+    ).trim();
+  } catch {
+    return "__invalid_material_identifier__";
+  }
+
+  if (
+    !segment ||
+    MATERIAL_RESERVED_SEGMENTS.has(
+      segment.toLowerCase()
+    )
+  ) {
+    return null;
+  }
+
+  return segment;
+}
+
+function materialNotFoundResponse() {
+  return new NextResponse(
+    `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<title>Material Listing Not Found | 3bigha.com</title>
+</head>
+<body>
+<main>
+<h1>Material listing not found</h1>
+<p>This material is unavailable or is not publicly published.</p>
+<a href="/materials">Browse available materials</a>
+</main>
+</body>
+</html>`,
+    {
+      status: 404,
+      headers: {
+        "Content-Type":
+          "text/html; charset=utf-8",
+        "Cache-Control":
+          "public, max-age=0, s-maxage=60",
+        "X-Robots-Tag":
+          "noindex, nofollow, noarchive",
+      },
+    }
+  );
+}
+
+async function publicMaterialExists(
+  id: string
+): Promise<boolean | null> {
+  if (!RENTAL_UUID_PATTERN.test(id)) {
+    return false;
+  }
+
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  const anonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !anonKey) {
+    return null;
+  }
+
+  try {
+    const endpoint = new URL(
+      "/rest/v1/material_listings",
+      supabaseUrl
+    );
+
+    endpoint.searchParams.set("id", `eq.${id}`);
+    endpoint.searchParams.set(
+      "status",
+      "eq.published"
+    );
+    endpoint.searchParams.set(
+      "is_public",
+      "eq.true"
+    );
+    endpoint.searchParams.set(
+      "is_active",
+      "eq.true"
+    );
+    endpoint.searchParams.set("select", "id");
+    endpoint.searchParams.set("limit", "1");
+
+    const response = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+        Accept: "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const rows = await response.json();
+
+    return (
+      Array.isArray(rows) &&
+      rows.length > 0
+    );
+  } catch {
+    /*
+     * Fail open on infrastructure errors. The server
+     * page retains the same three publication gates.
+     */
+    return null;
+  }
+}
+
 function getLocaleFromPath(pathname: string) {
   const first = pathname.split("/").filter(Boolean)[0];
   return LOCALES.includes(first) ? first : null;
@@ -522,6 +658,19 @@ export async function middleware(req: NextRequest) {
 
     if (exists === false) {
       return propertyNotFoundResponse();
+    }
+  }
+
+  const requestedMaterialId =
+    materialDetailId(authPathname);
+
+  if (requestedMaterialId) {
+    const exists = await publicMaterialExists(
+      requestedMaterialId
+    );
+
+    if (exists === false) {
+      return materialNotFoundResponse();
     }
   }
 
