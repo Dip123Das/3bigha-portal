@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { getSupabaseServerClient } from "@/lib/supabaseServer";
 import OpportunitySidebarClient from "./OpportunitySidebarClient";
+import JsonLd from "@/components/seo/JsonLd";
 import { createMetadata } from "@/lib/seo/metadata";
 import { hasSeoMinimumQuality } from "@/lib/seo/url-policy";
 
@@ -320,8 +321,96 @@ export default async function InvestmentOpportunityDetailPage({
   const location = getLocationText(opportunity);
   const builderSummary = await getBuilderSummary(opportunity.created_by_user_id);
 
+  const canonicalIdentifier =
+    String(
+      opportunity.slug ||
+      opportunity.id
+    ).trim();
+
+  const canonicalUrl =
+    "https://3bigha.com/investment/opportunities/" +
+    encodeURIComponent(canonicalIdentifier);
+
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": canonicalUrl + "#webpage",
+        url: canonicalUrl,
+        name: title,
+        description,
+        isPartOf: {
+          "@type": "WebSite",
+          "@id": "https://3bigha.com/#website",
+          url: "https://3bigha.com",
+          name: "3BIGHA",
+        },
+        breadcrumb: {
+          "@id": canonicalUrl + "#breadcrumb",
+        },
+        ...(opportunity.cover_image_url
+          ? {
+              primaryImageOfPage: {
+                "@type": "ImageObject",
+                url:
+                  opportunity.cover_image_url,
+              },
+            }
+          : {}),
+        ...(opportunity.created_at
+          ? {
+              datePublished:
+                opportunity.created_at,
+            }
+          : {}),
+        ...(opportunity.updated_at ||
+        opportunity.created_at
+          ? {
+              dateModified:
+                opportunity.updated_at ||
+                opportunity.created_at,
+            }
+          : {}),
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": canonicalUrl + "#breadcrumb",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "Home",
+            item: "https://3bigha.com",
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Investment",
+            item:
+              "https://3bigha.com/investment",
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: "Opportunities",
+            item:
+              "https://3bigha.com/investment/opportunities",
+          },
+          {
+            "@type": "ListItem",
+            position: 4,
+            name: title,
+            item: canonicalUrl,
+          },
+        ],
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100">
+      <JsonLd data={structuredData} />
       <section className="w-full px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
           <Link
