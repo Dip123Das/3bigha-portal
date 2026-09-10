@@ -1,3 +1,4 @@
+import { isIndexableBlogPost } from "@/lib/seo/blog-policy";
 import type { MetadataRoute } from "next";
 
 import { createClient } from "@supabase/supabase-js";
@@ -246,7 +247,9 @@ const staticRoutes = [
 
     supabase
       .from("blog_posts")
-      .select("slug,updated_at,created_at,published_at")
+      .select(
+        "slug,title,excerpt,content,status,updated_at,created_at,published_at"
+      )
       .eq("status", "published")
       .limit(5000),
 
@@ -324,8 +327,13 @@ const staticRoutes = [
   }
 
   if (blogRes.status === "fulfilled" && !blogRes.value.error) {
-    (blogRes.value.data || []).forEach((row: SitemapRow) => {
+    (
+      (blogRes.value.data || []) as unknown as (
+        SitemapRow & Record<string, unknown>
+      )[]
+    ).forEach((row) => {
       if (!row.slug) return;
+      if (!isIndexableBlogPost(row)) return;
 
       dynamicPages.push({
         url: route(`/blog/${safeId(row.slug)}`),

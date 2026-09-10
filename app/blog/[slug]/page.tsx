@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
 import { createMetadata } from "@/lib/seo/metadata";
+import { isIndexableBlogPost } from "@/lib/seo/blog-policy";
 import BlogPostClient, {
   type BlogRow,
 } from "./BlogPostClient";
@@ -134,6 +135,9 @@ export async function generateMetadata({
   return createMetadata({
     title,
     description: descriptionFor(post),
+    noIndex: !isIndexableBlogPost(
+      post as unknown as Record<string, unknown>
+    ),
     path:
       "/blog/" +
       encodeURIComponent(post.slug),
