@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-export function GET(request: Request) {
+export function GET() {
   return NextResponse.redirect(
-    new URL("/sitemap.xml", request.url),
+    "https://3bigha.com/sitemap.xml",
     308
   );
 }
