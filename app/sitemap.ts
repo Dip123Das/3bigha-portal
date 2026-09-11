@@ -39,21 +39,54 @@ async function getLocationHubRoutesFromDb() {
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseKey) return [];
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error(
+      "Location sitemap database environment is unavailable."
+    );
+  }
 
   const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: { persistSession: false },
   });
 
-  const { data, error } = await supabase
-    .from("geo_places")
-    .select("slug")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true })
-    .order("name", { ascending: true })
-    .limit(5000);
+  let data: Array<{
+    id: string;
+    slug: string;
+  }> | null = null;
 
-  if (error || !Array.isArray(data)) return [];
+  let lastError: {
+    message?: string;
+  } | null = null;
+
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const result = await supabase
+      .from("geo_places")
+      .select("id,slug")
+      .eq("is_active", true)
+      .order("id", { ascending: true })
+      .limit(1000);
+
+    if (
+      !result.error &&
+      Array.isArray(result.data)
+    ) {
+      data = result.data as Array<{
+        id: string;
+        slug: string;
+      }>;
+
+      break;
+    }
+
+    lastError = result.error;
+  }
+
+  if (!data) {
+    throw new Error(
+      "Location sitemap query failed after two attempts: " +
+        (lastError?.message || "unknown error")
+    );
+  }
 
   return Array.from(
     new Set(
@@ -111,10 +144,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "tufanganj",
   ];
 
-  const locationHubRoutes =
-    dbLocationHubRoutes.length > 0
-      ? dbLocationHubRoutes
-      : fallbackLocationSlugs.map((slug) => `/location/${slug}`);
+  const locationHubRoutes = Array.from(
+    new Set([
+      ...fallbackLocationSlugs.map(
+        (slug) => `/location/${slug}`
+      ),
+      ...dbLocationHubRoutes,
+    ])
+  );
 
   const vendorOpportunityRoutes = await getVendorOpportunityUrls();
   const publicRfqPages = await getPublicRfqSitemapEntries();
