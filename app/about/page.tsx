@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: "About Us | 3Bigha",
   description:
     "3Bigha is an AI-assisted real estate and construction workflow platform for property, materials, services, rentals, RFQ, local vendors and investment opportunities.",
+  alternates: {
+    canonical: "/about",
+  },
 };
 
 export default function AboutPage() {

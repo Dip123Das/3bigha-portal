@@ -1,3 +1,14 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Construction Cost Calculator | 3Bigha",
+  description:
+    "Estimate house construction costs, materials, timelines and budgets for cities across India.",
+  alternates: {
+    canonical: "/construction-cost",
+  },
+};
+
 import ProjectWorkflowHub from "@/components/project/ProjectWorkflowHub";
 import Link from "next/link";
 

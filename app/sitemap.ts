@@ -176,7 +176,6 @@ const staticRoutes = [
   "/land-area-calculator",
   "/construction-cost",
   "/house-construction-cost",
-  "/compare-rates",
   "/blog",
   "/investment",
   "/search",
@@ -217,8 +216,7 @@ const staticRoutes = [
             "/land-area-calculator",
             "/construction-cost",
             "/house-construction-cost",
-            "/compare-rates",
-          ].includes(path)
+                    ].includes(path)
         ? 0.86
         : 0.8,
   }));

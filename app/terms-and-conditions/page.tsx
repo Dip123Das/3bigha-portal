@@ -4,6 +4,9 @@ export const metadata: Metadata = {
   title: "Terms & Conditions | 3Bigha",
   description:
     "Terms and Conditions governing the use of 3Bigha platform including user responsibilities, services and limitations.",
+  alternates: {
+    canonical: "/terms-and-conditions",
+  },
 };
 
 export default function TermsPage() {

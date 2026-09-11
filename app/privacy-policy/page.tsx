@@ -4,6 +4,9 @@ export const metadata: Metadata = {
   title: "Privacy Policy | 3Bigha",
   description:
     "Privacy Policy of 3Bigha explaining how user data is collected, used, stored and protected.",
+  alternates: {
+    canonical: "/privacy-policy",
+  },
 };
 
 export default function PrivacyPolicyPage() {

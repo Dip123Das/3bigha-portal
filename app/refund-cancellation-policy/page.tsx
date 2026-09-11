@@ -4,6 +4,9 @@ export const metadata: Metadata = {
   title: "Refund & Cancellation Policy | 3Bigha",
   description:
     "Refund and Cancellation Policy of 3Bigha covering subscription, future payments and platform usage terms.",
+  alternates: {
+    canonical: "/refund-cancellation-policy",
+  },
 };
 
 export default function RefundPolicyPage() {

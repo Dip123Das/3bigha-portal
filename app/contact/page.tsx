@@ -4,6 +4,9 @@ export const metadata: Metadata = {
   title: "Contact Us | 3Bigha",
   description:
     "Contact 3Bigha for support, business onboarding, vendor registration, RFQ, property, materials, services, rentals and investment-related queries.",
+  alternates: {
+    canonical: "/contact",
+  },
 };
 
 export default function ContactPage() {
