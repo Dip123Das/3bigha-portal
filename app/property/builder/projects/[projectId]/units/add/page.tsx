@@ -16,7 +16,6 @@ import type {
   UploadedMediaAsset,
 } from "@/lib/media/media-config";
 import {
-  buildTrustedPublicationContext,
   validateTrustedPublication,
 } from "@/lib/media/trusted-publication-gate";
 
@@ -83,14 +82,6 @@ function parseNumber(input: string): number | null {
   const n = Number(s);
   if (!Number.isFinite(n)) return null;
   return n;
-}
-function slugifyLite(s: string) {
-  return String(s ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
 }
 function firstAlphaNum(s: string) {
   const m = String(s ?? "").trim().match(/[a-z0-9]/i);
@@ -345,6 +336,12 @@ export default function BuilderAddUnitWizardPage() {
   const [houseCarpetSqft, setHouseCarpetSqft] = useState<string>("");
   const [housePlotSqft, setHousePlotSqft] = useState<string>("");
 
+  // Transaction schedule boundaries (required for one exact unit).
+  const [boundaryNorth, setBoundaryNorth] = useState<string>("");
+  const [boundarySouth, setBoundarySouth] = useState<string>("");
+  const [boundaryEast, setBoundaryEast] = useState<string>("");
+  const [boundaryWest, setBoundaryWest] = useState<string>("");
+
   // Optional price
   const [price, setPrice] = useState<string>("");
 
@@ -499,12 +496,6 @@ useEffect(() => {
 
 const [unitCodeStartNo, setUnitCodeStartNo] = useState<string>("1");
 const [unitCodePadDigits, setUnitCodePadDigits] = useState<string>("2");
-
-// =====================================================
-// Unit Media (RESTORE - required by page)
-// =====================================================
-const [unitPhotos, setUnitPhotos] = useState<File[]>([]);
-const [unitVideo, setUnitVideo] = useState<File | null>(null);
 
 /*
  * Canonical Trusted Listing Media for one
@@ -851,19 +842,19 @@ const emiPreview = useMemo(() => {
     }
     setBuilder((bRes.data ?? null) as BuilderProfileRow | null);
 
-    const projRes = await supabase
-    .from("builder_projects")
-    .select("id,name,project_kind,city,district,state,status,investment_plan_master_id,formatted_address,short_address,geo_state_id,geo_district_id,geo_subdivision_id,geo_block_id,geo_place_id")
-    .eq("id", projectId)
-    .maybeSingle();
+    const projectResponse = await fetch(
+      `/api/property/builder/units?projectId=${encodeURIComponent(projectId)}`,
+      { cache: "no-store" },
+    );
+    const projectResult = await projectResponse.json().catch(() => null);
 
-    if (projRes.error) {
+    if (!projectResponse.ok || !projectResult?.ok) {
       setLoading(false);
-      setGlobalError(friendlyDbError(projRes.error));
+      setGlobalError(projectResult?.error?.message || "Unable to load the project.");
       return;
     }
 
-    const proj = (projRes.data ?? null) as BuilderProjectRow | null;
+    const proj = (projectResult.data?.project ?? null) as BuilderProjectRow | null;
       if (!proj?.id) {
         setLoading(false);
         setGlobalError("Project not found (or you do not have access).");
@@ -872,21 +863,7 @@ const emiPreview = useMemo(() => {
       setProject(proj);
       setProjectInvestmentPlanId(String(proj.investment_plan_master_id ?? ""));
 
-      const catRes = await supabase
-        .from("builder_project_catalogs")
-        .select("id,project_id,kind,name,slug,sort_order,is_active")
-        .eq("project_id", projectId)
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true, nullsFirst: false })
-        .order("name", { ascending: true });
-
-      if (catRes.error) {
-        setLoading(false);
-        setGlobalError(`Could not load project catalogs — ${friendlyDbError(catRes.error)}`);
-        return;
-      }
-
-      const catRows = (catRes.data ?? []) as CatalogRow[];
+      const catRows = (projectResult.data?.catalogs ?? []) as CatalogRow[];
       setCatalogs(catRows);
 
     const amRes = await supabase
@@ -942,154 +919,6 @@ const emiPreview = useMemo(() => {
     setSelectedCatalogId("");
   }, [kind, catalogs]);
 
-  async function saveUnitAmenities(unitId: string, amenityIds: string[]) {
-    const TABLE = "builder_inventory_unit_amenities";
-    const del = await supabase.from(TABLE).delete().eq("unit_id", unitId);
-    if (del.error) throw del.error;
-
-    if (!amenityIds.length) return;
-
-    const rows = amenityIds.map((amenity_id) => ({ unit_id: unitId, amenity_id }));
-    const ins = await supabase.from(TABLE).insert(rows);
-    if (ins.error) throw ins.error;
-  }
-
-  // ✅ robust extract (case-insensitive)
-  function parseMissingColumn(errMsg: string): string | null {
-    const msg = String(errMsg || "");
-
-    let m = msg.match(/column\s+"?([a-zA-Z0-9_]+)"?\s+of\s+relation/i);
-    if (m?.[1]) return m[1];
-
-    m = msg.match(/could\s+not\s+find\s+the\s+['"]([a-zA-Z0-9_]+)['"]\s+column\s+of\s+['"][a-zA-Z0-9_]+['"]\s+in\s+the\s+schema\s+cache/i);
-    if (m?.[1]) return m[1];
-
-    m = msg.match(/could\s+not\s+find\s+the\s+['"]([a-zA-Z0-9_]+)['"]\s+column/i);
-    if (m?.[1]) return m[1];
-
-    m = msg.match(/cannot\s+insert\s+into\s+column\s+"?([a-zA-Z0-9_]+)"?\s+of\s+view/i);
-    if (m?.[1]) return m[1];
-
-    return null;
-  }
-
-  function isViewInsertError(errMsg: string) {
-    const s = String(errMsg || "").toLowerCase();
-    return s.includes("of view") && s.includes("cannot insert");
-  }
-
-  async function insertWithFallback(table: string, base: Record<string, any>, idSelect = "id") {
-    let current = { ...base };
-    let lastErr: any = null;
-
-    for (let attempt = 0; attempt < 20; attempt++) {
-      const res = await supabase.from(table).insert(current).select(idSelect).maybeSingle();
-
-      if (!res.error) {
-        const id = String((res.data as any)?.id ?? "");
-        if (!id) throw new Error("Insert succeeded but id not returned.");
-        return { id };
-      }
-
-      lastErr = res.error;
-      const msg = friendlyDbError(res.error);
-      const col = parseMissingColumn(msg);
-
-      // if missing column, delete and retry
-      if (col && col in current) {
-        const next = { ...current };
-        delete (next as any)[col];
-        current = next;
-        continue;
-      }
-
-      // stop
-      throw res.error;
-    }
-
-    throw new Error(`Insert failed after multiple retries — ${friendlyDbError(lastErr)}`);
-  }
-
-  async function uploadUnitMedia(unitId: string) {
-    const BUCKET = "builder-unit-media";
-    if (!unitPhotos.length && !unitVideo) return;
-
-    const uploaded: { kind: "photo" | "video"; path: string; originalName: string }[] = [];
-
-    for (let i = 0; i < unitPhotos.length; i++) {
-      const f = unitPhotos[i];
-      const ext = (f.name.split(".").pop() || "jpg").toLowerCase();
-      const safeName = `${Date.now()}-${i + 1}-${slugifyLite(f.name)}.${ext}`;
-      const path = `${projectId}/${unitId}/photos/${safeName}`;
-
-      const up = await supabase.storage.from(BUCKET).upload(path, f, {
-        cacheControl: "3600",
-        upsert: true,
-        contentType: f.type || undefined,
-      });
-
-      if (up.error) throw up.error;
-      uploaded.push({ kind: "photo", path, originalName: f.name });
-    }
-
-    if (unitVideo) {
-      const f = unitVideo;
-      const ext = (f.name.split(".").pop() || "mp4").toLowerCase();
-      const safeName = `${Date.now()}-video-${slugifyLite(f.name)}.${ext}`;
-      const path = `${projectId}/${unitId}/video/${safeName}`;
-
-      const up = await supabase.storage.from(BUCKET).upload(path, f, {
-        cacheControl: "3600",
-        upsert: true,
-        contentType: f.type || undefined,
-      });
-
-      if (up.error) throw up.error;
-      uploaded.push({ kind: "video", path, originalName: f.name });
-    }
-
-    try {
-      const TABLE = "builder_inventory_unit_media";
-      const rows = uploaded.map((x, idx) => ({
-        unit_id: unitId,
-        media_kind: x.kind,
-        storage_path: x.path,
-        sort_order: idx + 1,
-        original_name: x.originalName,
-      }));
-
-      const ins = await supabase.from(TABLE).insert(rows);
-      if (ins.error) {
-        const msg = friendlyDbError(ins.error).toLowerCase();
-        const likelySchema =
-          msg.includes("does not exist") ||
-          msg.includes("schema cache") ||
-          msg.includes("could not find");
-        if (!likelySchema) {
-          flashError(`Media uploaded, but DB reference save failed — ${friendlyDbError(ins.error)}`);
-        }
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  async function uploadUnitMediaSafe(unitId: string) {
-    if (!unitPhotos.length && !unitVideo) return;
-
-    const timeoutMs = 15000;
-
-    await Promise.race([
-      uploadUnitMedia(unitId),
-      new Promise<void>((resolve) => {
-        setTimeout(() => {
-          flashError("Unit created, but media upload is taking too long. Please add media later from inventory/admin.");
-          resolve();
-        }, timeoutMs);
-      }),
-    ]);
-  }
-
   async function createUnits() {
     setGlobalError("");
     setSaving(true);
@@ -1101,6 +930,16 @@ const emiPreview = useMemo(() => {
         return;
       }
       const qty = Math.max(1, Math.min(200, Number(quantity || "1") || 1));
+
+      if (
+        qty === 1 &&
+        [boundaryNorth, boundarySouth, boundaryEast, boundaryWest].some(
+          (value) => !value.trim(),
+        )
+      ) {
+        flashError("North, South, East and West boundaries are mandatory for an individual unit.");
+        return;
+      }
 
       /*
        * TRUST RULE
@@ -1117,12 +956,6 @@ const emiPreview = useMemo(() => {
             ReturnType<
               typeof validateTrustedPublication
             >
-          >
-        | null = null;
-
-      let builderUnitTrustedContext:
-        | ReturnType<
-            typeof buildTrustedPublicationContext
           >
         | null = null;
 
@@ -1144,10 +977,6 @@ const emiPreview = useMemo(() => {
           return;
         }
 
-        builderUnitTrustedContext =
-          buildTrustedPublicationContext(
-            unitMediaAssets,
-          );
       }
 
       if (
@@ -1182,11 +1011,6 @@ const emiPreview = useMemo(() => {
     }
   }
 }
-      if (qty > 1 && (unitPhotos.length > 0 || unitVideo)) {
-        flashError("For media upload, please create 1 unit at a time (Quantity = 1).");
-        return;
-      }
-
       const titleBase = customTitle.trim() ? customTitle.trim() : buildAutoTitle();
       if (!titleBase) {
         flashError("Title is required.");
@@ -1212,23 +1036,59 @@ const emiPreview = useMemo(() => {
         }
       }
 
-      const createdUnitIds: string[] = [];
+      const authoritativeUnits = [];
 
       for (let i = 0; i < qty; i++) {
         const autoSuffix = qty > 1 ? ` #${i + 1}` : "";
         const rowTitle = `${titleBase}${autoSuffix}`.trim();
 
-        // ✅ IMPORTANT: Insert into BASE TABLE (units), NOT builder_inventory_items view
-        const unitPayload: any = {
-          project_id: projectId,
-          builder_project_id: projectId, // safe if exists; fallback will remove if not
-
-          /*
-           * Unit-specific Trusted Listing Media.
-           * Project-level evidence is deliberately
-           * not inherited by the unit.
-           */
-          trusted_media_json:
+        authoritativeUnits.push({
+          catalogId: selectedCatalogId,
+          title: rowTitle,
+          unitCode: codes[i] || null,
+          investmentPlanMasterId: projectInvestmentPlanId || null,
+          unitKind:
+            kind === "land_plot"
+              ? "plot"
+              : kind === "duplex"
+                ? "villa"
+                : kind,
+          bedroomCount:
+            kind === "flat" || kind === "house" || kind === "duplex"
+              ? parseNumber(bhk)
+              : null,
+          builtUpSqft:
+            kind === "flat"
+              ? parseNumber(builtUpSqft)
+              : kind === "house" || kind === "duplex"
+                ? parseNumber(houseBuiltUpSqft)
+                : null,
+          carpetSqft:
+            kind === "flat"
+              ? parseNumber(carpetSqft)
+              : kind === "house" || kind === "duplex"
+                ? parseNumber(houseCarpetSqft)
+                : null,
+          floorNo: kind === "flat" ? parseNumber(floor) : null,
+          tower: kind === "flat" ? tower.trim() || null : null,
+          facing: kind === "land_plot" ? plotFacing.trim() || null : null,
+          plotAreaSqft:
+            kind === "land_plot"
+              ? parseNumber(plotAreaSqft)
+              : kind === "house" || kind === "duplex"
+                ? parseNumber(housePlotSqft)
+                : null,
+          structureFloors:
+            kind === "house" || kind === "duplex"
+              ? parseNumber(houseFloors)
+              : null,
+          priceTotal: priceNum,
+          pricingKind: "total",
+          boundaryNorth: qty === 1 ? boundaryNorth.trim() : null,
+          boundarySouth: qty === 1 ? boundarySouth.trim() : null,
+          boundaryEast: qty === 1 ? boundaryEast.trim() : null,
+          boundaryWest: qty === 1 ? boundaryWest.trim() : null,
+          trustedMediaJson:
             qty === 1
               ? unitMediaAssets.map(
                   (asset) => ({
@@ -1236,137 +1096,29 @@ const emiPreview = useMemo(() => {
                   }),
                 )
               : [],
+        });
+      }
 
-          trusted_publication:
-            qty === 1 &&
-            builderUnitTrustedResult?.ok &&
-            builderUnitTrustedContext
-              ? {
-                  module: "property",
-                  listingKind:
-                    "builder_unit",
-                  requiredCaptures: 1,
-                  completedCaptures:
-                    builderUnitTrustedContext
-                      .completedCaptures,
-                  gpsVerified:
-                    builderUnitTrustedContext
-                      .gpsVerified === true,
-                  provenanceVerified:
-                    builderUnitTrustedContext
-                      .provenanceVerified === true,
-                  captureSessionCompleted:
-                    builderUnitTrustedContext
-                      .captureSessionCompleted === true,
-                  aiVerificationStatus:
-                    builderUnitTrustedContext
-                      .aiVerificationStatus ??
-                    "not_started",
-                  serverCompatible: true,
-                }
-              : {
-                  module: "property",
-                  listingKind:
-                    "builder_unit",
-                  requiredCaptures: 1,
-                  completedCaptures: 0,
-                  gpsVerified: false,
-                  provenanceVerified: false,
-                  captureSessionCompleted:
-                    false,
-                  aiVerificationStatus:
-                    "not_started",
-                  serverCompatible: true,
-                },
+      const response = await fetch("/api/property/builder/units", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          units: authoritativeUnits,
+          amenityIds: selectedAmenityIds,
+        }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error?.message || "The server could not create the units.");
+      }
 
-          trust_status:
-            qty === 1 &&
-            builderUnitTrustedResult?.ok
-              ? "verified"
-              : "pending",
-          catalog_id: selectedCatalogId,
-          builder_profile_id: builder?.id || null,
-          owner_user_id: userId || null,
+      const createdUnitIds = Array.isArray(result?.data?.createdUnitIds)
+        ? result.data.createdUnitIds.map(String)
+        : [];
 
-          title: rowTitle,
-          unit_code: codes[i] || null,
-          investment_plan_master_id: projectInvestmentPlanId || null,
-
-          listing_purpose: listingPurpose,
-          primary_type: primaryType,
-          property_kind: kind,
-          subcategory: subcategory,
-
-          bhk: kind === "flat" || kind === "house" || kind === "duplex" ? parseNumber(bhk) : null,
-
-          built_up_sqft:
-            kind === "flat"
-              ? parseNumber(builtUpSqft)
-              : kind === "house" || kind === "duplex"
-              ? parseNumber(houseBuiltUpSqft)
-              : null,
-
-          carpet_sqft:
-            kind === "flat"
-              ? parseNumber(carpetSqft)
-              : kind === "house" || kind === "duplex"
-              ? parseNumber(houseCarpetSqft)
-              : null,
-
-          floor: kind === "flat" ? parseNumber(floor) : null,
-          tower: kind === "flat" ? (tower.trim() || null) : null,
-
-          plot_area_sqft: kind === "land_plot" ? parseNumber(plotAreaSqft) : null,
-          plot_facing: kind === "land_plot" ? (plotFacing.trim() || null) : null,
-
-          house_floors: kind === "house" || kind === "duplex" ? parseNumber(houseFloors) : null,
-          house_plot_sqft: kind === "house" || kind === "duplex" ? parseNumber(housePlotSqft) : null,
-        };
-
-        // ✅ Try inserting into builder_inventory_units first
-        let unitId = "";
-        try {
-          const created = await insertWithFallback("builder_inventory_units", unitPayload);
-          unitId = created.id;
-        } catch (e: any) {
-          // Fallback attempt: if your base table name is different in DB
-          // (some projects use builder_inventory_items as real table, but yours is a view)
-          const msg = friendlyDbError(e);
-          if (isViewInsertError(msg)) {
-            throw new Error(
-              `Your builder_inventory_items is a VIEW. Please confirm base units table name (expected builder_inventory_units). Error: ${msg}`
-            );
-          }
-          throw e;
-        }
-
-        createdUnitIds.push(unitId);
-
-        // ✅ Optional: save price into pricing table (best effort)
-if (priceNum !== null) {
-  try {
-    await insertWithFallback("builder_inventory_pricing", {
-      unit_id: unitId,
-      pricing_kind: "total",
-      price_total: priceNum,
-      updated_at: new Date().toISOString(),
-    });
-  } catch {
-    // ignore silently (pricing table might be different)
-  }
-}
-
-        try {
-          await saveUnitAmenities(unitId, selectedAmenityIds);
-        } catch (e: any) {
-          flashError(`Unit created, but amenities save failed for one unit — ${friendlyDbError(e)}`);
-        }
-
-        try {
-          await uploadUnitMediaSafe(unitId);
-        } catch (e: any) {
-          flashError(`Unit created, but media upload failed — ${friendlyDbError(e)}`);
-        }
+      if (createdUnitIds.length !== qty) {
+        throw new Error("The server returned an unexpected unit count.");
       }
 
       if (costHandoff && createdUnitIds.length > 0) {
@@ -2284,7 +2036,37 @@ if (priceNum !== null) {
 )}
 
               <div style={{ fontWeight: 900, marginBottom: 10 }}>
-                7) Trusted Unit Media
+                7) Property Boundaries
+              </div>
+
+              {Math.max(1, Math.min(200, Number(quantity || "1") || 1)) > 1 ? (
+                <div style={{ marginBottom: 16, padding: 12, borderRadius: 12, background: "#fffbeb", color: "#92400e", fontSize: 13 }}>
+                  Bulk-created units remain incomplete inventory shells. Open each unit separately to confirm its four boundaries before transaction readiness.
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginBottom: 18 }}>
+                  {[
+                    ["North", boundaryNorth, setBoundaryNorth],
+                    ["South", boundarySouth, setBoundarySouth],
+                    ["East", boundaryEast, setBoundaryEast],
+                    ["West", boundaryWest, setBoundaryWest],
+                  ].map(([label, value, setter]) => (
+                    <label key={String(label)} style={{ display: "grid", gap: 6, fontSize: 13, fontWeight: 800 }}>
+                      {String(label)} boundary <span style={{ color: "#b91c1c" }}>*</span>
+                      <input
+                        value={String(value)}
+                        onChange={(event) => (setter as React.Dispatch<React.SetStateAction<string>>)(event.target.value)}
+                        placeholder={`Property adjoining on the ${String(label).toLowerCase()}`}
+                        disabled={saving}
+                        style={{ minHeight: 42, border: "1px solid #d1d5db", borderRadius: 10, padding: "8px 10px" }}
+                      />
+                    </label>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ fontWeight: 900, marginBottom: 10 }}>
+                8) Trusted Unit Media
               </div>
 
               <div
@@ -2387,7 +2169,7 @@ if (priceNum !== null) {
                 />
               )}
 
-              <div style={{ fontWeight: 900, marginBottom: 10 }}>8) Amenities (defaults from project)</div>
+              <div style={{ fontWeight: 900, marginBottom: 10 }}>9) Amenities (defaults from project)</div>
 
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 10 }}>
                 <ActionButton variant="secondary" onClick={() => setShowAmenities((v) => !v)} disabled={saving || amenitiesMaster.length === 0}>
