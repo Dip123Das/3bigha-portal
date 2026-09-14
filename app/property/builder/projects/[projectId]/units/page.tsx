@@ -408,6 +408,12 @@ export default function BuilderProjectUnitsPage() {
               Add Units / Property
             </ActionButton>
 
+            {project?.slug ? (
+              <Link href={`/property/projects/${encodeURIComponent(project.slug)}?preview=builder`}>
+                <ActionButton variant="secondary">Preview as Buyer</ActionButton>
+              </Link>
+            ) : null}
+
             <ActionButton onClick={openAdminInventory} disabled={!projectId} variant="secondary">
               Admin Inventory
             </ActionButton>
@@ -568,6 +574,15 @@ export default function BuilderProjectUnitsPage() {
 
                         return (
                           <tr key={u.id}>
+                            <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2", minWidth: 260 }}>
+                              <div style={{ fontWeight: 900 }}>{title}</div>
+                              <div style={{ fontSize: 12, opacity: 0.75 }}>{code}</div>
+                            </td>
+
+                            <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>
+                              <Badge>{u.status || "unknown"}</Badge>
+                            </td>
+
                             <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2", minWidth: 260 }}>
                               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                                 {u.investment_plan_master_id ? (
