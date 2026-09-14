@@ -27,9 +27,79 @@ export async function GET(request: NextRequest) {
       .eq("project_id", projectId).eq("is_active", true)
       .order("sort_order", { ascending: true, nullsFirst: false }).order("name");
     if (catalogs.error) return error("Unable to load project catalogues.", 500, "CATALOG_LOOKUP_FAILED");
-    return NextResponse.json({ ok: true, data: { project: project.data, catalogs: catalogs.data } }, { headers: { "Cache-Control": "no-store" } });
+    const templates = await admin.from("builder_project_catalog_unit_templates")
+      .select("catalog_id,template_data,amenity_ids,version,updated_at")
+      .eq("project_id", projectId);
+    if (templates.error) return error("Unable to load unit templates.", 500, "TEMPLATE_LOOKUP_FAILED");
+    const templateByCatalog = new Map((templates.data ?? []).map((row: any) => [String(row.catalog_id), row]));
+    const catalogsWithTemplates = (catalogs.data ?? []).map((catalog: any) => ({
+      ...catalog,
+      unit_template: templateByCatalog.get(String(catalog.id)) ?? null,
+    }));
+    return NextResponse.json({ ok: true, data: { project: project.data, catalogs: catalogsWithTemplates } }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return error("Unable to load builder project.", 500, "PROJECT_LOOKUP_FAILED");
+  }
+}
+
+const TEMPLATE_TEXT_KEYS = [
+  "listingPurpose", "primaryType", "kind", "subcategory", "bhk",
+  "builtUpSqft", "carpetSqft", "plotAreaSqft", "houseFloors",
+  "houseBuiltUpSqft", "houseCarpetSqft", "housePlotSqft", "tower",
+  "totalFloorsInTower", "facing", "plotFacing", "furnishing", "readyToMove",
+  "unitCodePrefix", "unitCodePadDigits",
+] as const;
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const supabase = getSupabaseServerClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user?.id) return error("Authentication required.", 401, "UNAUTHORIZED");
+    const body = await request.json().catch(() => null);
+    const projectId = text(body?.projectId);
+    const catalogId = text(body?.catalogId);
+    if (!UUID.test(projectId) || !UUID.test(catalogId)) {
+      return error("Valid project and catalogue IDs are required.", 400, "TEMPLATE_TARGET_INVALID");
+    }
+    const admin = getSupabaseAdmin();
+    const project = await admin.from("builder_projects")
+      .select("id,builder_profiles!inner(owner_user_id)")
+      .eq("id", projectId).eq("builder_profiles.owner_user_id", user.id).maybeSingle();
+    if (project.error || !project.data) return error("Project not found or you do not own it.", 403, "TEMPLATE_FORBIDDEN");
+    const catalog = await admin.from("builder_project_catalogs")
+      .select("id,project_id").eq("id", catalogId).eq("project_id", projectId).maybeSingle();
+    if (catalog.error || !catalog.data) return error("Catalogue does not belong to this project.", 400, "TEMPLATE_CATALOG_INVALID");
+
+    const templateData: Record<string, string> = {};
+    for (const key of TEMPLATE_TEXT_KEYS) {
+      const value = text(body?.templateData?.[key]);
+      if (value.length > 240) return error(`${key} is too long.`, 400, "TEMPLATE_VALUE_INVALID");
+      if (value) templateData[key] = value;
+    }
+    const amenityIds = Array.isArray(body?.amenityIds)
+      ? [...new Set(body.amenityIds.map(text).filter((id: string) => UUID.test(id)))]
+      : [];
+    if (amenityIds.length) {
+      const amenities = await admin.from("amenities_master").select("id").in("id", amenityIds).eq("is_active", true);
+      if (amenities.error || (amenities.data ?? []).length !== amenityIds.length) {
+        return error("One or more template amenities are invalid or inactive.", 400, "TEMPLATE_AMENITY_INVALID");
+      }
+    }
+    const existing = await admin.from("builder_project_catalog_unit_templates")
+      .select("version").eq("catalog_id", catalogId).maybeSingle();
+    const saved = await admin.from("builder_project_catalog_unit_templates").upsert({
+      catalog_id: catalogId,
+      project_id: projectId,
+      template_data: templateData,
+      amenity_ids: amenityIds,
+      version: Number(existing.data?.version ?? 0) + 1,
+      updated_by: user.id,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "catalog_id" }).select("catalog_id,template_data,amenity_ids,version,updated_at").single();
+    if (saved.error) return error(saved.error.message, 500, "TEMPLATE_SAVE_FAILED");
+    return NextResponse.json({ ok: true, data: saved.data }, { headers: { "Cache-Control": "no-store" } });
+  } catch (cause: any) {
+    return error(cause?.message || "Unable to save unit template.", 400, "TEMPLATE_REQUEST_INVALID");
   }
 }
 

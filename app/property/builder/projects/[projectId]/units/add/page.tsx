@@ -60,6 +60,13 @@ type CatalogRow = {
   slug: string;
   sort_order: number | null;
   is_active: boolean;
+  unit_template?: {
+    catalog_id: string;
+    template_data: Record<string, string>;
+    amenity_ids: string[];
+    version: number;
+    updated_at: string;
+  } | null;
 };
 
 type AmenityRow = {
@@ -213,6 +220,7 @@ export default function BuilderAddUnitWizardPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingTemplate, setSavingTemplate] = useState(false);
   const [costHandoff, setCostHandoff] = useState<CostInventoryHandoffPrefill | null>(null);
   const [globalError, setGlobalError] = useState("");
 
@@ -522,6 +530,71 @@ const amenitiesByCategory = useMemo(() => {
   }
   return Array.from(map.entries());
 }, [amenitiesMaster]);
+
+const selectedCatalog = useMemo(
+  () => catalogs.find((catalog) => catalog.id === selectedCatalogId) ?? null,
+  [catalogs, selectedCatalogId],
+);
+const selectedTemplate = selectedCatalog?.unit_template ?? null;
+
+function applyUnitTemplate(template: CatalogRow["unit_template"]) {
+  if (!template) return;
+  const value = template.template_data ?? {};
+  if (value.listingPurpose) setListingPurpose(value.listingPurpose as ListingPurpose);
+  if (value.primaryType) setPrimaryType(value.primaryType as PrimaryPropertyType);
+  if (value.kind) setKind(value.kind as PropertyKind);
+  if (value.subcategory) setSubcategory(value.subcategory as PropertySubcategory);
+  if (value.bhk) setBhk(value.bhk);
+  setBuiltUpSqft(value.builtUpSqft ?? "");
+  setCarpetSqft(value.carpetSqft ?? "");
+  setPlotAreaSqft(value.plotAreaSqft ?? "");
+  setHouseFloors(value.houseFloors ?? "1");
+  setHouseBuiltUpSqft(value.houseBuiltUpSqft ?? "");
+  setHouseCarpetSqft(value.houseCarpetSqft ?? "");
+  setHousePlotSqft(value.housePlotSqft ?? "");
+  setTower(value.tower ?? "");
+  setTotalFloorsInTower(value.totalFloorsInTower ?? "");
+  setFacing((value.facing ?? "") as Facing | "");
+  setPlotFacing(value.plotFacing ?? "");
+  setFurnishing((value.furnishing ?? "") as Furnishing | "");
+  setReadyToMove((value.readyToMove ?? "yes") as "yes" | "no");
+  setUnitCodePrefix(value.unitCodePrefix ?? "");
+  setUnitCodePrefixTouched(Boolean(value.unitCodePrefix));
+  setUnitCodePadDigits(value.unitCodePadDigits ?? "2");
+  setSelectedAmenityIds(Array.isArray(template.amenity_ids) ? template.amenity_ids : []);
+}
+
+async function saveCurrentUnitTemplate() {
+  if (!selectedCatalogId) {
+    flashError("Select the catalogue whose common unit details you want to save.");
+    return;
+  }
+  setSavingTemplate(true);
+  try {
+    const templateData = {
+      listingPurpose, primaryType, kind, subcategory, bhk, builtUpSqft,
+      carpetSqft, plotAreaSqft, houseFloors, houseBuiltUpSqft,
+      houseCarpetSqft, housePlotSqft, tower, totalFloorsInTower,
+      facing, plotFacing, furnishing, readyToMove, unitCodePrefix,
+      unitCodePadDigits,
+    };
+    const response = await fetch("/api/property/builder/units", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ projectId, catalogId: selectedCatalogId, templateData, amenityIds: selectedAmenityIds }),
+    });
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.ok) throw new Error(result?.error?.message || "The template could not be saved.");
+    setCatalogs((current) => current.map((catalog) => catalog.id === selectedCatalogId
+      ? { ...catalog, unit_template: result.data }
+      : catalog));
+    flashSuccess("Common unit-type details saved. Future units in this catalogue will be prefilled.");
+  } catch (cause: any) {
+    flashError(cause?.message || "The unit template could not be saved.");
+  } finally {
+    setSavingTemplate(false);
+  }
+}
 
 // =====================================================
 // Title + Unit codes (RESTORE - required by page)
@@ -919,6 +992,13 @@ const emiPreview = useMemo(() => {
     setSelectedCatalogId("");
   }, [kind, catalogs]);
 
+  useEffect(() => {
+    const template = catalogs.find((catalog) => catalog.id === selectedCatalogId)?.unit_template;
+    if (template) applyUnitTemplate(template);
+    // Apply only when the builder selects another catalogue. Editing a field must not reapply defaults.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCatalogId]);
+
   async function createUnits() {
     setGlobalError("");
     setSaving(true);
@@ -1249,6 +1329,14 @@ const emiPreview = useMemo(() => {
                   </div>
                 </div>
               ) : null}
+
+              <details open={!selectedTemplate} style={{ border: "1px solid #dbeafe", borderRadius: 12, padding: 12, marginBottom: 16 }}>
+                <summary style={{ cursor: "pointer", fontWeight: 900 }}>
+                  Common unit-type details {selectedTemplate ? `— saved template v${selectedTemplate.version}` : "— save once"}
+                </summary>
+                <div style={{ fontSize: 13, opacity: 0.78, margin: "8px 0 14px" }}>
+                  These values belong to this project catalogue and can prefill every new unit. Review them only when the unit type changes.
+                </div>
 
               <div style={{ fontWeight: 900, marginBottom: 10 }}>1) Listing Purpose</div>
 
@@ -1681,6 +1769,8 @@ const emiPreview = useMemo(() => {
 </div>
 
               <div style={{ height: 16 }} />
+
+              </details>
 
               <div style={{ fontWeight: 900, marginBottom: 10 }}>6) Unit Code / Unit No.</div>
 
@@ -2169,7 +2259,10 @@ const emiPreview = useMemo(() => {
                 />
               )}
 
-              <div style={{ fontWeight: 900, marginBottom: 10 }}>9) Amenities (defaults from project)</div>
+              <div style={{ fontWeight: 900, marginBottom: 10 }}>9) Unit Amenities</div>
+              <div style={{ fontSize: 12, opacity: 0.72, marginBottom: 10 }}>
+                Prefilled from the selected catalogue template or project defaults. Add or remove amenities for this exact unit before creation.
+              </div>
 
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 10 }}>
                 <ActionButton variant="secondary" onClick={() => setShowAmenities((v) => !v)} disabled={saving || amenitiesMaster.length === 0}>
@@ -2215,6 +2308,15 @@ const emiPreview = useMemo(() => {
                   ))}
                 </div>
               )}
+
+              <div style={{ marginTop: 14, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <ActionButton variant="secondary" onClick={saveCurrentUnitTemplate} disabled={saving || savingTemplate || !selectedCatalogId}>
+                  {savingTemplate ? "Saving common details…" : selectedTemplate ? "Update Common Details & Amenity Defaults" : "Save Common Details Once"}
+                </ActionButton>
+                <span style={{ fontSize: 12, opacity: 0.72 }}>
+                  Boundaries, exact photos/videos, legal coverage and availability are never stored in this template.
+                </span>
+              </div>
 
               <div style={{ height: 16 }} />
 
@@ -2281,7 +2383,7 @@ const emiPreview = useMemo(() => {
                 </select>
 
                 <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
-                  New units must belong to a project catalog so they appear correctly on the public project page.
+                  New units must belong to a project catalogue. A saved catalogue template automatically prefills its common details and default amenities.
                 </div>
               </div>
 
