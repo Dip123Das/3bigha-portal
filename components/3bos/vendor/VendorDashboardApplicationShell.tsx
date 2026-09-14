@@ -33,7 +33,7 @@ const menu: MenuItem[] = [
   { type: "route", label: "My RFQs", detail: "Bids & opportunities", href: "/dashboard/vendor/rfqs", icon: "▥", tone: "red" },
   { type: "route", label: "Messages", detail: "Conversations", href: "/dashboard/vendor/inbox", icon: "◫", tone: "green" },
   { type: "panel", label: "Analytics", detail: "Performance insights", panel: "pulse", icon: "▧", tone: "purple" },
-  { type: "route", label: "My Listings", detail: "Products & services", href: "/dashboard/vendor/master-data", icon: "▨", tone: "emerald" },
+  { type: "route", label: "My Listings", detail: "All business listings", href: "/dashboard/workspace", icon: "▨", tone: "emerald" },
   { type: "route", label: "Subscription", detail: "Plan & billing", href: "/dashboard/subscription", icon: "◇", tone: "pink" },
   { type: "route", label: "Team & Users", detail: "Manage access", href: "/dashboard/vendor/team", icon: "⌘", tone: "cyan" },
   { type: "route", label: "Help & Support", detail: "Get assistance", href: "/support/my", icon: "?", tone: "amber" },

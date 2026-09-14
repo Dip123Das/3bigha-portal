@@ -146,7 +146,7 @@ export default function VendorMasterDataPage() {
 
         const { data: bp, error } = await supabase
           .from("business_profiles")
-          .select("business_name,company_name,subscription_plan,subscription_status,approval_status,location_verification_status")
+          .select("business_name,subscription_plan,subscription_status,approval_status,location_verification_status")
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -173,7 +173,7 @@ export default function VendorMasterDataPage() {
               ? ""
               : "Custom product variations are available for paid and verified vendors only.",
           businessName:
-            String((bp as any)?.business_name || (bp as any)?.company_name || "") ||
+            String((bp as any)?.business_name || "") ||
             "Your Business",
           plan,
           status,

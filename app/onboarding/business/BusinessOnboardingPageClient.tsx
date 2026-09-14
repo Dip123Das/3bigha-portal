@@ -76,6 +76,12 @@ type BusinessMediaAsset = UploadedMediaAsset & {
   legalProofMeta?: LegalProofMeta;
 };
 
+type ComplimentarySubscription = {
+  active: boolean;
+  plan: string;
+  expires_at: string | null;
+};
+
 function normalizeLegalProofMeta(
   value: unknown
 ): LegalProofMeta | undefined {
@@ -691,6 +697,8 @@ export default function BusinessOnboardingPageClient() {
   const [msg, setMsg] = useState<string | null>(null);
 
   const [userId, setUserId] = useState<string | null>(null);
+  const [complimentarySubscription, setComplimentarySubscription] =
+    useState<ComplimentarySubscription | null>(null);
 
   const [bp, setBp] = useState<Partial<BusinessProfile>>({
     nature_of_business: [],
@@ -835,6 +843,31 @@ async function fetchCompleteness(uid: string) {
         }
 
         setUserId(uid);
+
+        const authenticatedUser =
+          sessionOrUser?.user ||
+          sessionOrUser?.data?.user ||
+          null;
+        const rawComplimentary = authenticatedUser?.app_metadata
+          ?.complimentary_subscription;
+        const complimentaryExpiry = String(
+          rawComplimentary?.expires_at || ""
+        ).trim();
+        const complimentaryActive = Boolean(
+          rawComplimentary?.active === true &&
+            (!complimentaryExpiry ||
+              new Date(complimentaryExpiry).getTime() > Date.now())
+        );
+
+        setComplimentarySubscription(
+          complimentaryActive
+            ? {
+                active: true,
+                plan: String(rawComplimentary?.plan || "").trim(),
+                expires_at: complimentaryExpiry || null,
+              }
+            : null
+        );
 
         const { data, error } = await supabase
           .from("business_profiles")
@@ -1551,6 +1584,7 @@ async function fetchCompleteness(uid: string) {
       (option) => option.key === String(bp.business_type || "").trim()
     ) &&
       safeArr(bp.business_identities).length > 0 &&
+      safeArr(bp.individual_identities).length > 0 &&
       nature.length > 0 &&
       String(bp.contact_person || "").trim() &&
       (
@@ -1561,6 +1595,40 @@ async function fetchCompleteness(uid: string) {
         String(bp.phone_primary || "").trim() ||
         String(bp.email_business || "").trim()
       )
+  );
+
+  const identityPendingItems = [
+    !legalConstitutions.some(
+      (option) => option.key === String(bp.business_type || "").trim()
+    )
+      ? { label: "Select your Legal Constitution", targetId: "sec-nature" }
+      : null,
+    nature.length === 0
+      ? { label: "Select at least one Business Sector", targetId: "sec-nature" }
+      : null,
+    safeArr(bp.business_identities).length === 0
+      ? { label: "Select what your organisation does", targetId: "sec-nature" }
+      : null,
+    safeArr(bp.individual_identities).length === 0
+      ? { label: "Select your Individual Identity", targetId: "sec-nature" }
+      : null,
+    !(
+      String(bp.business_name || "").trim() ||
+      String(bp.author_display_name || "").trim()
+    )
+      ? { label: "Enter your Business Name", targetId: "sec-identity" }
+      : null,
+    !String(bp.contact_person || "").trim()
+      ? { label: "Enter the Contact Person", targetId: "sec-contact" }
+      : null,
+    !(
+      String(bp.phone_primary || "").trim() ||
+      String(bp.email_business || "").trim()
+    )
+      ? { label: "Enter a business phone or email", targetId: "sec-contact" }
+      : null,
+  ].filter(
+    (item): item is { label: string; targetId: string } => item !== null
   );
 
   const addressReady =
@@ -1964,6 +2032,7 @@ async function fetchCompleteness(uid: string) {
     targetId: string
   ): BusinessIdentityJourneyStep["key"] {
     if (
+      targetId === "sec-nature" ||
       targetId === "sec-identity" ||
       targetId === "sec-contact"
     ) {
@@ -2427,8 +2496,12 @@ async function fetchCompleteness(uid: string) {
     setSaving(true);
     setMsg(null);
 
-    const subscriptionPatch =
-      selectedRegistrationPlan === "free"
+    const hasComplimentaryAccess =
+      complimentarySubscription?.active === true;
+
+    const subscriptionPatch = hasComplimentaryAccess
+      ? null
+      : selectedRegistrationPlan === "free"
         ? {
             subscription_plan: "free",
             subscription_status: "free",
@@ -2437,10 +2510,12 @@ async function fetchCompleteness(uid: string) {
             subscription_plan: selectedRegistrationPlan,
           };
 
-    const { error } = await supabase
-      .from("business_profiles")
-      .update(subscriptionPatch)
-      .eq("user_id", userId);
+    const { error } = subscriptionPatch
+      ? await supabase
+          .from("business_profiles")
+          .update(subscriptionPatch)
+          .eq("user_id", userId)
+      : { error: null };
 
     setSaving(false);
 
@@ -2452,12 +2527,14 @@ async function fetchCompleteness(uid: string) {
       return;
     }
 
-    setBp((previous) => ({
-      ...previous,
-      ...subscriptionPatch,
-    }));
+    if (subscriptionPatch) {
+      setBp((previous) => ({
+        ...previous,
+        ...subscriptionPatch,
+      }));
+    }
 
-    if (selectedRegistrationPlan === "free") {
+    if (hasComplimentaryAccess || selectedRegistrationPlan === "free") {
       await onFinishRegistration();
       return;
     }
@@ -3537,27 +3614,75 @@ async function fetchCompleteness(uid: string) {
 
             <div className="registration-final-checks">
               {[
-                ["Identity and contact", identityReady],
-                ["Official and live address", addressReady],
-                ["Personal and business story", aboutReady],
-                ["Service coverage", coverageReady],
-                ["Workplace evidence", practicalProofReady],
-                ["Live business-board selfie", liveSelfieReady],
-                ["AI business-proof verification", businessProofReady],
-              ].map(([label, complete]) => (
-                <div
+                ["Identity and contact", identityReady, "sec-identity"],
+                ["Official and live address", addressReady, "sec-address"],
+                ["Personal and business story", aboutReady, "sec-about-you"],
+                ["Service coverage", coverageReady, "sec-service-area"],
+                ["Workplace evidence", practicalProofReady, "sec-gallery"],
+                ["Live business-board selfie", liveSelfieReady, "sec-selfie"],
+                ["AI business-proof verification", businessProofReady, "sec-documents"],
+              ].map(([label, complete, explicitTarget]) => (
+                <button
+                  type="button"
                   key={String(label)}
                   className={
                     complete
                       ? "registration-final-check complete"
                       : "registration-final-check incomplete"
                   }
+                  onClick={() => {
+                    if (complete) return;
+                    const targetId = String(
+                      explicitTarget ||
+                        registrationReadinessChecks.find(
+                          (check) => check.label.startsWith(String(label))
+                        )?.targetId ||
+                        "sec-review"
+                    );
+                    openJourneyStep(journeyKeyForTarget(targetId), targetId);
+                  }}
+                  disabled={Boolean(complete)}
                 >
                   <span>{complete ? "✓" : "!"}</span>
                   <b>{String(label)}</b>
-                </div>
+                </button>
               ))}
             </div>
+
+            {identityPendingItems.length > 0 ? (
+              <div className="registration-final-section">
+                <div className="registration-final-eyebrow">
+                  Identity and contact corrections
+                </div>
+                <h3>Complete these exact items</h3>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {identityPendingItems.map((item) => (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() =>
+                        openJourneyStep(
+                          journeyKeyForTarget(item.targetId),
+                          item.targetId
+                        )
+                      }
+                      style={{
+                        padding: "12px 14px",
+                        border: "1px solid #fecaca",
+                        borderRadius: 12,
+                        background: "#fff7f7",
+                        color: "#991b1b",
+                        fontWeight: 850,
+                        textAlign: "left",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Fix: {item.label} →
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div className="registration-final-verification">
               <div>
@@ -3599,8 +3724,9 @@ async function fetchCompleteness(uid: string) {
                   <h3>Choose how you want to begin</h3>
 
                   <p>
-                    The Free plan activates immediately. Paid
-                    plans continue through SBI secure payment.
+                    {complimentarySubscription?.active
+                      ? `Your complimentary ${complimentarySubscription.plan.replaceAll("_", " ")} plan is active. No payment is required.`
+                      : "The Free plan activates immediately. Paid plans continue through SBI secure payment."}
                   </p>
                 </div>
               </div>
@@ -3657,10 +3783,10 @@ async function fetchCompleteness(uid: string) {
                           : "registration-plan-card"
                       }
                       onClick={() =>
-                        setSelectedRegistrationPlan(
-                          plan.key as RegistrationPlan
-                        )
+                        !complimentarySubscription?.active &&
+                        setSelectedRegistrationPlan(plan.key as RegistrationPlan)
                       }
+                      disabled={complimentarySubscription?.active === true}
                       aria-pressed={selected}
                     >
                       <div className="registration-plan-title-row">
@@ -3742,6 +3868,8 @@ async function fetchCompleteness(uid: string) {
             >
               {saving
                 ? "Please wait..."
+                : complimentarySubscription?.active
+                ? "Activate with Complimentary Access"
                 : selectedRegistrationPlan === "free"
                 ? "Activate My Dashboard"
                 : "Continue to SBI Secure Payment"}

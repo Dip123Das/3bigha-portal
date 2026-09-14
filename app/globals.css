@@ -4168,6 +4168,9 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   gap: 9px;
   padding: 12px;
   border-radius: 11px;
+  width: 100%;
+  font: inherit;
+  text-align: left;
 }
 
 .registration-final-check.complete {
@@ -4180,6 +4183,11 @@ body:has([data-finance-workflow="true"]) .floatingAiCopilot::after {
   border: 1px solid #fecaca;
   background: #fef2f2;
   color: #991b1b;
+  cursor: pointer;
+}
+
+.registration-final-check.complete:disabled {
+  opacity: 1;
 }
 
 .registration-final-check > span {
