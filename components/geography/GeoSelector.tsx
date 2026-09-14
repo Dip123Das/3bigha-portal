@@ -24,9 +24,18 @@ type GeoOption = {
   local_body_name?: string | null;
   ward_id?: string | null;
   ward_name?: string | null;
+  canonical_id?: string | null;
+  lgd_state_code?: string | null;
+  lgd_district_code?: string | null;
+  lgd_subdistrict_code?: string | null;
+  lgd_block_code?: string | null;
+  lgd_village_code?: string | null;
+  lgd_local_body_code?: string | null;
+  lgd_ward_code?: string | null;
 };
 
 export type GeoSelection = {
+  mode?: "rural" | "urban";
   state?: GeoOption | null;
   district?: GeoOption | null;
   subdivision?: GeoOption | null;
@@ -365,7 +374,13 @@ export default function GeoSelector({
 
   const resolved = resolveGeography(selection);
   const hierarchy = getNationalGeoHierarchy(selection.state?.slug || undefined);
-  const [geoMode, setGeoMode] = useState<"rural" | "urban">("rural");
+  const [geoMode, setGeoMode] = useState<"rural" | "urban">(
+    value?.mode || "rural"
+  );
+
+  useEffect(() => {
+    if (value?.mode) setGeoMode(value.mode);
+  }, [value?.mode]);
 
   function applyIntelligentSearch(option: GeoOption | null) {
     if (!option) return;
@@ -378,6 +393,7 @@ export default function GeoSelector({
     setGeoMode(isUrban ? "urban" : "rural");
 
     updateSelection({
+      mode: isUrban ? "urban" : "rural",
       state: option.state_id
         ? { id: option.state_id, name: option.state_name || "", slug: null }
         : null,
@@ -465,6 +481,7 @@ export default function GeoSelector({
           disabled={disabled}
           onChange={(state) =>
             updateSelection({
+              mode: geoMode,
               state,
               district: null,
               subdivision: null,
@@ -498,7 +515,7 @@ export default function GeoSelector({
             className={geoMode === "rural" ? "active" : ""}
             onClick={() => {
               setGeoMode("rural");
-              updateSelection({ ...selection, subdivision: null, block: null, place: null });
+              updateSelection({ ...selection, mode: "rural", subdivision: null, block: null, place: null });
             }}
             disabled={disabled || !selection.district}
           >
@@ -509,7 +526,7 @@ export default function GeoSelector({
             className={geoMode === "urban" ? "active" : ""}
             onClick={() => {
               setGeoMode("urban");
-              updateSelection({ ...selection, subdivision: null, block: null, place: null });
+              updateSelection({ ...selection, mode: "urban", subdivision: null, block: null, place: null });
             }}
             disabled={disabled || !selection.district}
           >

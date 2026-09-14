@@ -254,6 +254,23 @@ type BusinessProfile = {
   district: string | null;
   state: string | null;
   pincode: string | null;
+  geo_selection_mode: "rural" | "urban" | null;
+  lgd_state_code: number | null;
+  lgd_district_code: number | null;
+  lgd_subdistrict_code: number | null;
+  lgd_block_code: number | null;
+  lgd_village_code: number | null;
+  lgd_local_body_code: number | null;
+  lgd_ward_code: number | null;
+  premises_type: string | null;
+  house_plot_flat_no: string | null;
+  building_market_name: string | null;
+  street_road_locality: string | null;
+  geo_state_id: string | null;
+  geo_district_id: string | null;
+  geo_subdivision_id: string | null;
+  geo_block_id: string | null;
+  geo_place_id: string | null;
   rera_registration_no: string | null;
   rera_state: string | null;
   rera_expiry_date: string | null;
@@ -2093,35 +2110,40 @@ async function fetchCompleteness(uid: string) {
       vendor_document_verification_json: documentVerification,
     };
 
-    try {
-      const geoRes = await fetch("/api/admin/geography/resolve", {
+    if (payload.lgd_state_code || payload.lgd_district_code) {
+      try {
+        const geoRes = await fetch("/api/onboarding/geography/resolve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          state: payload.state,
-          district: payload.district,
-          city: payload.city,
-          locality:
-            payload.locality ||
-            payload.verified_locality ||
-            payload.address_line2 ||
-            payload.address_line1,
-          pincode: payload.pincode || payload.verified_postcode,
+          geo_selection_mode: payload.geo_selection_mode,
+          lgd_state_code: payload.lgd_state_code,
+          lgd_district_code: payload.lgd_district_code,
+          lgd_subdistrict_code: payload.lgd_subdistrict_code,
+          lgd_block_code: payload.lgd_block_code,
+          lgd_village_code: payload.lgd_village_code,
+          lgd_local_body_code: payload.lgd_local_body_code,
+          lgd_ward_code: payload.lgd_ward_code,
         }),
       });
 
-      const geoJson = await geoRes.json().catch(() => null);
-      const geography = geoJson?.result;
+        const geoJson = await geoRes.json().catch(() => null);
+        const geography = geoJson?.geography;
 
-      if (geography) {
-        payload.geo_state_id = geography.geo_state_id;
-        payload.geo_district_id = geography.geo_district_id;
-        payload.geo_subdivision_id = geography.geo_subdivision_id;
-        payload.geo_block_id = geography.geo_block_id;
-        payload.geo_place_id = geography.geo_place_id;
+        if (!geoRes.ok || !geoJson?.ok || !geography) {
+          setMsg(geoJson?.error || "The selected official geography could not be resolved safely.");
+          return { ok: false };
+        } else {
+          payload.geo_state_id = geography.geo_state_id;
+          payload.geo_district_id = geography.geo_district_id;
+          payload.geo_subdivision_id = geography.geo_subdivision_id;
+          payload.geo_block_id = geography.geo_block_id;
+          payload.geo_place_id = geography.geo_place_id;
+        }
+      } catch {
+        setMsg("The selected official geography could not be resolved safely.");
+        return { ok: false };
       }
-    } catch {
-      // Geography resolver is best-effort and must not block business onboarding.
     }
 
     Object.keys(payload).forEach((k) => {
@@ -2226,27 +2248,6 @@ async function fetchCompleteness(uid: string) {
             return;
           }
 
-          let geography: any = null;
-
-          try {
-            const geoRes = await fetch("/api/admin/geography/resolve", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                state: json.state || bp.state,
-                district: json.district || bp.district,
-                city: json.locality || bp.city,
-                locality: json.locality || bp.city,
-                pincode: json.postcode || bp.pincode,
-              }),
-            });
-
-            const geoJson = await geoRes.json().catch(() => null);
-            geography = geoJson?.result || null;
-          } catch {
-            geography = null;
-          }
-
           const nextBp = {
             ...bp,
             location_verification_status: "verified",
@@ -2260,16 +2261,16 @@ async function fetchCompleteness(uid: string) {
             state: json.state || bp.state || null,
             city: json.locality || bp.city || null,
             pincode: json.postcode || bp.pincode || null,
-            geo_state_id: geography?.geo_state_id || null,
-            geo_district_id: geography?.geo_district_id || null,
-            geo_subdivision_id: geography?.geo_subdivision_id || null,
-            geo_block_id: geography?.geo_block_id || null,
-            geo_place_id: geography?.geo_place_id || null,
+            geo_state_id: bp.geo_state_id || null,
+            geo_district_id: bp.geo_district_id || null,
+            geo_subdivision_id: bp.geo_subdivision_id || null,
+            geo_block_id: bp.geo_block_id || null,
+            geo_place_id: bp.geo_place_id || null,
           };
 
           setBp(nextBp);
 
-          const completion = computeCompletion(nextBp);
+          const completion = computeCompletion(nextBp, legalConstitutions.map((option) => option.key));
 
           const { error } = await supabase
             .from("business_profiles")
@@ -2285,11 +2286,11 @@ async function fetchCompleteness(uid: string) {
               state: json.state || bp.state || null,
               city: json.locality || bp.city || null,
               pincode: json.postcode || bp.pincode || null,
-              geo_state_id: geography?.geo_state_id || null,
-              geo_district_id: geography?.geo_district_id || null,
-              geo_subdivision_id: geography?.geo_subdivision_id || null,
-              geo_block_id: geography?.geo_block_id || null,
-              geo_place_id: geography?.geo_place_id || null,
+              geo_state_id: bp.geo_state_id || null,
+              geo_district_id: bp.geo_district_id || null,
+              geo_subdivision_id: bp.geo_subdivision_id || null,
+              geo_block_id: bp.geo_block_id || null,
+              geo_place_id: bp.geo_place_id || null,
               is_complete: completion.isComplete,
               completion_score: completion.score,
               missing_fields: completion.missing,
