@@ -51,6 +51,18 @@ type InventoryRow = {
   created_at: string | null;
   updated_at: string | null;
   investment_plan_master_id: string | null;
+  trust_status: string | null;
+  property_type_id: string | null;
+  property_subtype_id: string | null;
+  plot_area_sqft: number | null;
+  built_up_sqft: number | null;
+  carpet_sqft: number | null;
+  super_built_up_sqft: number | null;
+  boundary_north: string | null;
+  boundary_south: string | null;
+  boundary_east: string | null;
+  boundary_west: string | null;
+  builder_inventory_pricing?: { price_total: number | null } | { price_total: number | null }[] | null;
 };
 
 function friendlyDbError(err: any): string {
@@ -276,7 +288,19 @@ export default function BuilderProjectUnitsPage() {
               status,
               created_at,
               updated_at,
-              investment_plan_master_id
+              investment_plan_master_id,
+              trust_status,
+              property_type_id,
+              property_subtype_id,
+              plot_area_sqft,
+              built_up_sqft,
+              carpet_sqft,
+              super_built_up_sqft,
+              boundary_north,
+              boundary_south,
+              boundary_east,
+              boundary_west,
+              builder_inventory_pricing(price_total)
             `)
             .eq("project_id", projectId)
             .order("updated_at", { ascending: false }),
@@ -560,7 +584,7 @@ export default function BuilderProjectUnitsPage() {
                       <th style={{ padding: "10px 8px", borderBottom: "1px solid #eee" }}>Status</th>
                       <th style={{ padding: "10px 8px", borderBottom: "1px solid #eee" }}>Investment Plan</th>
                       <th style={{ padding: "10px 8px", borderBottom: "1px solid #eee" }}>Price</th>
-                      <th style={{ padding: "10px 8px", borderBottom: "1px solid #eee" }}>Listing</th>
+                      <th style={{ padding: "10px 8px", borderBottom: "1px solid #eee" }}>Readiness</th>
                       <th style={{ padding: "10px 8px", borderBottom: "1px solid #eee" }}>Updated</th>
                       <th style={{ padding: "10px 8px", borderBottom: "1px solid #eee", width: 320 }}>Actions</th>
                     </tr>
@@ -571,6 +595,14 @@ export default function BuilderProjectUnitsPage() {
                         const title = u.title?.trim() || "Unit";
                         const code = u.unit_code?.trim() || u.id.slice(0, 8);
                         const updated = u.updated_at ? new Date(u.updated_at).toLocaleString() : "—";
+                        const pricing = u.builder_inventory_pricing;
+                        const price = (Array.isArray(pricing) ? pricing[0]?.price_total : pricing?.price_total) ?? null;
+                        const hasArea = [u.plot_area_sqft, u.built_up_sqft, u.carpet_sqft, u.super_built_up_sqft]
+                          .some((value) => Number(value) > 0);
+                        const hasBoundaries = [u.boundary_north, u.boundary_south, u.boundary_east, u.boundary_west]
+                          .every((value) => Boolean(value?.trim()));
+                        const readyChecks = [Boolean(u.property_type_id), Boolean(u.property_subtype_id), Number(price) > 0, hasArea, hasBoundaries, u.trust_status === "verified"];
+                        const readyCount = readyChecks.filter(Boolean).length;
 
                         return (
                           <tr key={u.id}>
@@ -642,22 +674,29 @@ export default function BuilderProjectUnitsPage() {
                             </td>
 
                             <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>
-                              <span style={{ opacity: 0.7 }}>—</span>
+                              <span>{price == null ? "—" : `₹${Number(price).toLocaleString("en-IN")}`}</span>
                             </td>
 
                             <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>
-                              <span style={{ opacity: 0.7 }}>—</span>
+                              <div style={{ fontWeight: 800, color: readyCount === readyChecks.length ? "#047857" : "#9a3412" }}>
+                                {readyCount}/{readyChecks.length} complete
+                              </div>
+                              <div style={{ fontSize: 12, opacity: 0.7 }}>Trust: {u.trust_status || "pending"}</div>
                             </td>
 
                             <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>{updated}</td>
 
                             <td style={{ padding: "10px 8px", borderBottom: "1px solid #f2f2f2" }}>
                               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                                <Link href={`/property/builder/projects/${encodeURIComponent(projectId)}/units/${encodeURIComponent(u.id)}/complete`}>
+                                  <ActionButton>{readyCount === readyChecks.length ? "Review Unit" : "Complete Unit"}</ActionButton>
+                                </Link>
                                 <ActionButton
                                   onClick={() => {
                                     openAdminInventory();
                                     flashSuccess("Open Admin Inventory to edit unit pricing / availability / listing link.");
                                   }}
+                                  variant="secondary"
                                 >
                                   Edit in Admin
                                 </ActionButton>
