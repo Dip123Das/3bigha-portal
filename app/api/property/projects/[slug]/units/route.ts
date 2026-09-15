@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, context: { params: { slug: strin
       admin.from("builder_project_catalogs").select("id,project_id,kind,name,slug,sort_order,is_active")
         .eq("project_id", project.id).eq("is_active", true).order("sort_order", { ascending: true, nullsFirst: false }),
       admin.from("builder_inventory_units")
-        .select("id,project_id,catalog_id,unit_code,title,unit_kind,tower,block,floor_no,unit_no,facing,status,plot_area_sqft,built_up_sqft,carpet_sqft,super_built_up_sqft,dimension_length_ft,dimension_width_ft,boundary_north,boundary_south,boundary_east,boundary_west,trust_status,updated_at")
+        .select("id,project_id,catalog_id,unit_code,title,unit_kind,tower,block,floor_no,unit_no,facing,status,plot_area_sqft,built_up_sqft,carpet_sqft,super_built_up_sqft,dimension_length_ft,dimension_width_ft,boundary_north,boundary_south,boundary_east,boundary_west,land_vacancy_status,existing_structure_type,boundary_demarcation_type,trust_status,updated_at")
         .eq("project_id", project.id).order("unit_code", { ascending: true }),
     ]);
     if (catalogResult.error || unitResult.error) return fail("Project inventory could not be loaded.", 500, "INVENTORY_LOOKUP_FAILED");

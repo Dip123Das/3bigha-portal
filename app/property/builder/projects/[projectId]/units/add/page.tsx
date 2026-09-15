@@ -337,6 +337,9 @@ export default function BuilderAddUnitWizardPage() {
   // Plot fields
   const [plotAreaSqft, setPlotAreaSqft] = useState<string>("");
   const [plotFacing, setPlotFacing] = useState<string>("");
+  const [landVacancyStatus, setLandVacancyStatus] = useState<"fully_vacant" | "not_fully_vacant">("fully_vacant");
+  const [existingStructureType, setExistingStructureType] = useState<string>("none");
+  const [boundaryDemarcationType, setBoundaryDemarcationType] = useState<string>("none");
 
   // House fields
   const [houseFloors, setHouseFloors] = useState<string>("1");
@@ -1152,6 +1155,12 @@ const emiPreview = useMemo(() => {
           floorNo: kind === "flat" ? parseNumber(floor) : null,
           tower: kind === "flat" ? tower.trim() || null : null,
           facing: kind === "land_plot" ? plotFacing.trim() || null : null,
+          landVacancyStatus: kind === "land_plot" ? landVacancyStatus : null,
+          existingStructureType:
+            kind === "land_plot" && landVacancyStatus === "not_fully_vacant"
+              ? existingStructureType
+              : null,
+          boundaryDemarcationType: kind === "land_plot" ? boundaryDemarcationType : null,
           plotAreaSqft:
             kind === "land_plot"
               ? parseNumber(plotAreaSqft)
@@ -1329,6 +1338,22 @@ const emiPreview = useMemo(() => {
                   </div>
                 </div>
               ) : null}
+
+              <div style={{ marginBottom: 16, padding: 12, border: "1px solid #bfdbfe", borderRadius: 12, background: "#eff6ff" }}>
+                <div style={{ fontWeight: 900, marginBottom: 6 }}>Choose catalogue / reusable unit template</div>
+                <select
+                  value={selectedCatalogId}
+                  onChange={(e) => setSelectedCatalogId(e.target.value)}
+                  style={{ width: "100%", maxWidth: 520, padding: "10px 12px", borderRadius: 10, border: "1px solid #93c5fd", background: "white" }}
+                  disabled={saving}
+                >
+                  <option value="">Select catalogue</option>
+                  {catalogs.map((c) => <option key={c.id} value={c.id}>{c.name} [{c.kind}]</option>)}
+                </select>
+                <div style={{ fontSize: 12, opacity: 0.75, marginTop: 6 }}>
+                  Select this first. Saved common details and default amenities will be prefilled; only exact unit facts need to be entered below.
+                </div>
+              </div>
 
               <details open={!selectedTemplate} style={{ border: "1px solid #dbeafe", borderRadius: 12, padding: 12, marginBottom: 16 }}>
                 <summary style={{ cursor: "pointer", fontWeight: 900 }}>
@@ -1705,7 +1730,52 @@ const emiPreview = useMemo(() => {
 
               <div style={{ height: 14 }} />
 
-<div style={{ fontWeight: 900, marginBottom: 10 }}>5A) Additional Details</div>
+{kind === "land_plot" ? (
+  <>
+    <div style={{ fontWeight: 900, marginBottom: 10 }}>5A) Present Condition of This Land</div>
+    <div style={{ fontSize: 13, opacity: 0.75, marginBottom: 12 }}>
+      These are physical facts about this exact plot. They do not replace the four legal boundary descriptions below.
+    </div>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: 12 }}>
+      <label>
+        <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Is the land fully vacant?</div>
+        <select value={landVacancyStatus} onChange={(e) => setLandVacancyStatus(e.target.value as any)} style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd" }} disabled={saving}>
+          <option value="fully_vacant">Yes — fully vacant</option>
+          <option value="not_fully_vacant">No — structure or obstruction exists</option>
+        </select>
+      </label>
+      {landVacancyStatus === "not_fully_vacant" ? (
+        <label>
+          <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Existing structure / obstruction</div>
+          <select value={existingStructureType} onChange={(e) => setExistingStructureType(e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd" }} disabled={saving}>
+            <option value="none">No building — another obstruction</option>
+            <option value="dilapidated_pucca">Old dilapidated pucca house</option>
+            <option value="dilapidated_kachha">Old dilapidated kachha house</option>
+            <option value="usable_pucca">Usable pucca structure</option>
+            <option value="usable_kachha">Usable kachha structure</option>
+            <option value="temporary_shed">Temporary shed</option>
+            <option value="mixed">Mixed structures</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+      ) : null}
+      <label>
+        <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Physical boundary marking</div>
+        <select value={boundaryDemarcationType} onChange={(e) => setBoundaryDemarcationType(e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd" }} disabled={saving}>
+          <option value="full_boundary_wall">Full boundary wall</option>
+          <option value="partial_boundary_wall">Partial / half boundary wall</option>
+          <option value="guard_wall">Only guard / low wall</option>
+          <option value="corner_pillars">Only corner pillars</option>
+          <option value="fencing">Fencing</option>
+          <option value="none">No physical marking</option>
+          <option value="other">Other</option>
+        </select>
+      </label>
+    </div>
+  </>
+) : (
+<>
+<div style={{ fontWeight: 900, marginBottom: 10 }}>5A) Building Details</div>
 
 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
   <div>
@@ -1767,6 +1837,8 @@ const emiPreview = useMemo(() => {
     </select>
   </div>
 </div>
+</>
+)}
 
               <div style={{ height: 16 }} />
 
@@ -1897,9 +1969,9 @@ const emiPreview = useMemo(() => {
 
               <div style={{ height: 16 }} />
              {/* ============================= */}
-{/* 10) Detailed Room Configuration (Optional) */}
+{/* Detailed Room Configuration (buildings only) */}
 {/* ============================= */}
-
+{kind !== "land_plot" ? <>
 <div style={{ fontWeight: 900, marginBottom: 10 }}>7) Detailed Room Configuration (Optional)</div>
 
 <div style={{ marginBottom: 10 }}>
@@ -2124,9 +2196,10 @@ const emiPreview = useMemo(() => {
     Keep this OFF unless you want room-by-room measurements & photos (best for premium listings).
   </div>
 )}
+</> : null}
 
               <div style={{ fontWeight: 900, marginBottom: 10 }}>
-                7) Property Boundaries
+                8) Property Boundaries
               </div>
 
               {Math.max(1, Math.min(200, Number(quantity || "1") || 1)) > 1 ? (
@@ -2156,7 +2229,7 @@ const emiPreview = useMemo(() => {
               )}
 
               <div style={{ fontWeight: 900, marginBottom: 10 }}>
-                8) Trusted Unit Media
+                9) Trusted Unit Media
               </div>
 
               <div
@@ -2259,7 +2332,7 @@ const emiPreview = useMemo(() => {
                 />
               )}
 
-              <div style={{ fontWeight: 900, marginBottom: 10 }}>9) Unit Amenities</div>
+              <div style={{ fontWeight: 900, marginBottom: 10 }}>10) Unit Amenities</div>
               <div style={{ fontSize: 12, opacity: 0.72, marginBottom: 10 }}>
                 Prefilled from the selected catalogue template or project defaults. Add or remove amenities for this exact unit before creation.
               </div>
@@ -2320,7 +2393,7 @@ const emiPreview = useMemo(() => {
 
               <div style={{ height: 16 }} />
 
-              <div style={{ fontWeight: 900, marginBottom: 10 }}>9) Title, Quantity & Price</div>
+              <div style={{ fontWeight: 900, marginBottom: 10 }}>11) Title, Quantity & Price</div>
 
               <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 12 }}>
                 <div>
@@ -2356,34 +2429,6 @@ const emiPreview = useMemo(() => {
                     style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid #ddd" }}
                     disabled={saving}
                   />
-                </div>
-              </div>
-
-              <div style={{ marginTop: 14 }}>
-                <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Catalog</div>
-                <select
-                  value={selectedCatalogId}
-                  onChange={(e) => setSelectedCatalogId(e.target.value)}
-                  style={{
-                    width: "100%",
-                    maxWidth: 420,
-                    padding: "10px 12px",
-                    borderRadius: 10,
-                    border: "1px solid #ddd",
-                    background: "white",
-                  }}
-                  disabled={saving}
-                >
-                  <option value="">Select catalog</option>
-                  {catalogs.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} [{c.kind}]
-                    </option>
-                  ))}
-                </select>
-
-                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
-                  New units must belong to a project catalogue. A saved catalogue template automatically prefills its common details and default amenities.
                 </div>
               </div>
 

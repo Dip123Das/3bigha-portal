@@ -39,7 +39,7 @@ export default function CompleteBuilderUnitPage() {
     [subtypes, form.propertyTypeId],
   );
   const readiness = useMemo(() => {
-    const checks = [
+    const checks: Array<readonly [string, boolean]> = [
       ["Property type", Boolean(form.propertyTypeId)],
       ["Property subtype", Boolean(form.propertySubtypeId)],
       ["Positive price", Number(form.priceTotal) > 0],
@@ -48,8 +48,15 @@ export default function CompleteBuilderUnitPage() {
       ["South boundary", Boolean(text(form.boundarySouth).trim())],
       ["East boundary", Boolean(text(form.boundaryEast).trim())],
       ["West boundary", Boolean(text(form.boundaryWest).trim())],
-      ["Exact-unit Trusted Media", media.length > 0],
-    ] as const;
+    ];
+    if (form.unitKind === "plot") {
+      checks.push(
+        ["Land vacancy declared", Boolean(form.landVacancyStatus)],
+        ["Physical boundary marking declared", Boolean(form.boundaryDemarcationType)],
+        ["Existing structure declared", form.landVacancyStatus !== "not_fully_vacant" || Boolean(form.existingStructureType)],
+      );
+    }
+    checks.push(["Exact-unit Trusted Media", media.length > 0]);
     return { checks, complete: checks.every(([, complete]) => complete), done: checks.filter(([, complete]) => complete).length };
   }, [form, media]);
 
@@ -64,13 +71,15 @@ export default function CompleteBuilderUnitPage() {
       const unit = result.data.unit;
       setProject(unit.builder_project ?? null);
       setForm({
-        unitCode: unit.unit_code ?? "", title: unit.title ?? "", propertyTypeId: unit.property_type_id ?? "",
+        unitCode: unit.unit_code ?? "", title: unit.title ?? "", unitKind: unit.unit_kind ?? "", propertyTypeId: unit.property_type_id ?? "",
         propertySubtypeId: unit.property_subtype_id ?? "", tower: unit.tower ?? "", block: unit.block ?? "",
         floorNo: unit.floor_no ?? "", unitNo: unit.unit_no ?? "", facing: unit.facing ?? "",
         plotAreaSqft: unit.plot_area_sqft ?? "", builtUpSqft: unit.built_up_sqft ?? "", carpetSqft: unit.carpet_sqft ?? "",
         superBuiltUpSqft: unit.super_built_up_sqft ?? "", dimensionLengthFt: unit.dimension_length_ft ?? "",
         dimensionWidthFt: unit.dimension_width_ft ?? "", boundaryNorth: unit.boundary_north ?? "",
         boundarySouth: unit.boundary_south ?? "", boundaryEast: unit.boundary_east ?? "", boundaryWest: unit.boundary_west ?? "",
+        landVacancyStatus: unit.land_vacancy_status ?? "fully_vacant", existingStructureType: unit.existing_structure_type ?? "none",
+        boundaryDemarcationType: unit.boundary_demarcation_type ?? "none",
         availabilityNote: unit.availability_note ?? "", priceTotal: result.data.pricing?.price_total ?? "", trustStatus: unit.trust_status,
       });
       setMedia(Array.isArray(unit.trusted_media_json) ? unit.trusted_media_json : []);
@@ -126,6 +135,15 @@ export default function CompleteBuilderUnitPage() {
         </div>
       </CardBody></Card>
       <div style={{ height: 12 }} />
+      {form.unitKind === "plot" ? <><Card><CardBody>
+        <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 4 }}>Present condition of this land</div>
+        <div style={{ fontSize: 13, opacity: .75, marginBottom: 12 }}>Declare vacancy, any existing structure, and how this exact parcel is physically marked.</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 12 }}>
+          <label><div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6 }}>Is the land fully vacant? *</div><select value={form.landVacancyStatus ?? "fully_vacant"} onChange={(event) => setForm((current) => ({ ...current, landVacancyStatus: event.target.value, existingStructureType: event.target.value === "fully_vacant" ? "none" : current.existingStructureType }))} style={inputStyle}><option value="fully_vacant">Yes — fully vacant</option><option value="not_fully_vacant">No — a structure or occupation exists</option></select></label>
+          {form.landVacancyStatus === "not_fully_vacant" ? <label><div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6 }}>Existing structure *</div><select value={form.existingStructureType ?? "none"} onChange={(event) => update("existingStructureType", event.target.value)} style={inputStyle}><option value="none">Select structure</option><option value="dilapidated_pucca">Old/dilapidated pucca house</option><option value="dilapidated_kachha">Old/dilapidated kachha house</option><option value="usable_pucca">Usable pucca structure</option><option value="usable_kachha">Usable kachha structure</option><option value="temporary_shed">Temporary shed/structure</option><option value="mixed">Mixed structures</option><option value="other">Other structure</option></select></label> : null}
+          <label><div style={{ fontSize: 12, fontWeight: 800, marginBottom: 6 }}>Physical boundary marking *</div><select value={form.boundaryDemarcationType ?? "none"} onChange={(event) => update("boundaryDemarcationType", event.target.value)} style={inputStyle}><option value="none">No physical marking</option><option value="full_boundary_wall">Full boundary wall</option><option value="partial_boundary_wall">Partial/half boundary wall</option><option value="guard_wall">Guard wall only</option><option value="corner_pillars">Corner pillars only</option><option value="fencing">Fencing</option><option value="other">Other marking</option></select></label>
+        </div>
+      </CardBody></Card><div style={{ height: 12 }} /></> : null}
       <Card><CardBody>
         <div style={{ fontWeight: 900, fontSize: 18, marginBottom: 12 }}>Exact measurements and price</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 12 }}>

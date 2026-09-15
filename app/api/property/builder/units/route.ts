@@ -183,10 +183,21 @@ export async function POST(request: NextRequest) {
       if (!unitCode) throw new Error("Every unit requires a unit code.");
       if (unitCode.length > 120) throw new Error("Unit code cannot exceed 120 characters.");
       if (!UNIT_KINDS.has(unitKind)) throw new Error(`Unsupported unit kind: ${unitKind || "empty"}.`);
+      const landVacancyStatus = text(unit?.landVacancyStatus).toLowerCase();
+      const existingStructureType = text(unit?.existingStructureType).toLowerCase();
+      const boundaryDemarcationType = text(unit?.boundaryDemarcationType).toLowerCase();
+      if (unitKind === "plot") {
+        if (!["fully_vacant", "not_fully_vacant"].includes(landVacancyStatus)) throw new Error("Select whether the land is fully vacant.");
+        if (!["none", "dilapidated_pucca", "dilapidated_kachha", "usable_pucca", "usable_kachha", "temporary_shed", "mixed", "other"].includes(existingStructureType || "none")) throw new Error("Select the existing structure condition.");
+        if (!["full_boundary_wall", "partial_boundary_wall", "guard_wall", "corner_pillars", "fencing", "none", "other"].includes(boundaryDemarcationType)) throw new Error("Select how the land boundary is physically marked.");
+      }
       return {
         ...unit,
         unitCode,
         unitKind,
+        landVacancyStatus: unitKind === "plot" ? landVacancyStatus : null,
+        existingStructureType: unitKind === "plot" && landVacancyStatus === "not_fully_vacant" ? existingStructureType || "none" : null,
+        boundaryDemarcationType: unitKind === "plot" ? boundaryDemarcationType : null,
         title: text(unit?.title) || null,
         priceTotal: finitePositive(unit?.priceTotal, "Price"),
         plotAreaSqft: finitePositive(unit?.plotAreaSqft, "Plot area"),

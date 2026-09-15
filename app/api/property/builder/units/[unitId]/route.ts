@@ -17,7 +17,7 @@ async function ownerContext(unitId: string) {
   if (!UUID.test(unitId)) return { response: fail("Invalid unit ID.", 400, "UNIT_ID_INVALID") };
   const admin = getSupabaseAdmin();
   const unit = await admin.from("builder_inventory_units")
-    .select("id,project_id,catalog_id,unit_code,title,unit_kind,tower,block,floor_no,unit_no,facing,status,property_type_id,property_subtype_id,plot_area_sqft,built_up_sqft,carpet_sqft,super_built_up_sqft,dimension_length_ft,dimension_width_ft,boundary_north,boundary_south,boundary_east,boundary_west,availability_note,trusted_media_json,trusted_publication,trust_status,updated_at")
+    .select("id,project_id,catalog_id,unit_code,title,unit_kind,tower,block,floor_no,unit_no,facing,status,property_type_id,property_subtype_id,plot_area_sqft,built_up_sqft,carpet_sqft,super_built_up_sqft,dimension_length_ft,dimension_width_ft,boundary_north,boundary_south,boundary_east,boundary_west,land_vacancy_status,existing_structure_type,boundary_demarcation_type,availability_note,trusted_media_json,trusted_publication,trust_status,updated_at")
     .eq("id", unitId).maybeSingle();
   if (unit.error || !unit.data) return { response: fail("Unit not found.", 404, "UNIT_NOT_FOUND") };
   const project = await admin.from("builder_projects")
@@ -70,6 +70,19 @@ export async function PATCH(request: NextRequest, context: { params: { unitId: s
     const unit = body?.unit && typeof body.unit === "object" ? body.unit : {};
     const unitCode = clean(unit.unitCode);
     if (!unitCode || unitCode.length > 120) return fail("A valid unit code is required.", 400, "UNIT_CODE_INVALID");
+
+    const vacancyValues = new Set(["fully_vacant", "not_fully_vacant"]);
+    const structureValues = new Set(["none", "dilapidated_pucca", "dilapidated_kachha", "usable_pucca", "usable_kachha", "temporary_shed", "mixed", "other"]);
+    const demarcationValues = new Set(["full_boundary_wall", "partial_boundary_wall", "guard_wall", "corner_pillars", "fencing", "none", "other"]);
+    if (owned.unit.unit_kind === "plot") {
+      if (!vacancyValues.has(clean(unit.landVacancyStatus))) return fail("Select whether the land is fully vacant.", 400, "LAND_VACANCY_INVALID");
+      if (!structureValues.has(clean(unit.existingStructureType))) return fail("Select the existing structure condition.", 400, "LAND_STRUCTURE_INVALID");
+      if (!demarcationValues.has(clean(unit.boundaryDemarcationType))) return fail("Select how the land boundary is physically marked.", 400, "LAND_DEMARCATION_INVALID");
+    } else {
+      unit.landVacancyStatus = null;
+      unit.existingStructureType = null;
+      unit.boundaryDemarcationType = null;
+    }
 
     const amenityIds = Array.isArray(body?.amenityIds)
       ? [...new Set(body.amenityIds.map(clean).filter((id: string) => UUID.test(id)))]
