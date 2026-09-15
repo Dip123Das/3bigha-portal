@@ -540,7 +540,7 @@ const activeAmenityIds = useMemo(
 );
 
 const validSelectedAmenityIds = useMemo(
-  () => selectedAmenityIds.filter((id) => activeAmenityIds.has(id)),
+  () => Array.from(new Set(selectedAmenityIds.filter((id) => activeAmenityIds.has(id)))),
   [selectedAmenityIds, activeAmenityIds],
 );
 
