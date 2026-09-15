@@ -534,6 +534,16 @@ const amenitiesByCategory = useMemo(() => {
   return Array.from(map.entries());
 }, [amenitiesMaster]);
 
+const activeAmenityIds = useMemo(
+  () => new Set(amenitiesMaster.map((amenity) => amenity.id)),
+  [amenitiesMaster],
+);
+
+const validSelectedAmenityIds = useMemo(
+  () => selectedAmenityIds.filter((id) => activeAmenityIds.has(id)),
+  [selectedAmenityIds, activeAmenityIds],
+);
+
 const selectedCatalog = useMemo(
   () => catalogs.find((catalog) => catalog.id === selectedCatalogId) ?? null,
   [catalogs, selectedCatalogId],
@@ -564,7 +574,11 @@ function applyUnitTemplate(template: CatalogRow["unit_template"]) {
   setUnitCodePrefix(value.unitCodePrefix ?? "");
   setUnitCodePrefixTouched(Boolean(value.unitCodePrefix));
   setUnitCodePadDigits(value.unitCodePadDigits ?? "2");
-  setSelectedAmenityIds(Array.isArray(template.amenity_ids) ? template.amenity_ids : []);
+  setSelectedAmenityIds(
+    Array.isArray(template.amenity_ids)
+      ? template.amenity_ids.filter((id) => activeAmenityIds.has(id))
+      : [],
+  );
 }
 
 async function saveCurrentUnitTemplate() {
@@ -584,7 +598,7 @@ async function saveCurrentUnitTemplate() {
     const response = await fetch("/api/property/builder/units", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectId, catalogId: selectedCatalogId, templateData, amenityIds: selectedAmenityIds }),
+      body: JSON.stringify({ projectId, catalogId: selectedCatalogId, templateData, amenityIds: validSelectedAmenityIds }),
     });
     const result = await response.json().catch(() => null);
     if (!response.ok || !result?.ok) throw new Error(result?.error?.message || "The template could not be saved.");
@@ -962,7 +976,8 @@ const emiPreview = useMemo(() => {
       setSelectedAmenityIds([]);
     } else {
       const ids = (projAmenRes.data ?? []).map((x: any) => String(x.amenity_id));
-      setSelectedAmenityIds(ids);
+      const availableIds = new Set((amRes.data ?? []).map((amenity: any) => String(amenity.id)));
+      setSelectedAmenityIds(ids.filter((id: string) => availableIds.has(id)));
     }
 
     setLoading(false);
@@ -1194,7 +1209,7 @@ const emiPreview = useMemo(() => {
         body: JSON.stringify({
           projectId,
           units: authoritativeUnits,
-          amenityIds: selectedAmenityIds,
+          amenityIds: validSelectedAmenityIds,
         }),
       });
       const result = await response.json().catch(() => null);
@@ -1490,7 +1505,7 @@ const emiPreview = useMemo(() => {
 
               <div style={{ height: 14 }} />
 
-              <div style={{ fontWeight: 900, marginBottom: 10 }}>4) Subcategory</div>
+              <div style={{ fontWeight: 900, marginBottom: 10 }}>{kind === "land_plot" ? "3" : "4"}) Subcategory</div>
 
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 {(
@@ -1523,7 +1538,7 @@ const emiPreview = useMemo(() => {
 
               <div style={{ height: 14 }} />
 
-              <div style={{ fontWeight: 900, marginBottom: 10 }}>5) Fill Details</div>
+              <div style={{ fontWeight: 900, marginBottom: 10 }}>{kind === "land_plot" ? "4" : "5"}) Fill Details</div>
 
               {kind === "flat" ? (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
@@ -1732,7 +1747,7 @@ const emiPreview = useMemo(() => {
 
 {kind === "land_plot" ? (
   <>
-    <div style={{ fontWeight: 900, marginBottom: 10 }}>5A) Present Condition of This Land</div>
+    <div style={{ fontWeight: 900, marginBottom: 10 }}>5) Present Condition of This Land</div>
     <div style={{ fontSize: 13, opacity: 0.75, marginBottom: 12 }}>
       These are physical facts about this exact plot. They do not replace the four legal boundary descriptions below.
     </div>
@@ -2199,7 +2214,7 @@ const emiPreview = useMemo(() => {
 </> : null}
 
               <div style={{ fontWeight: 900, marginBottom: 10 }}>
-                8) Property Boundaries
+                {kind === "land_plot" ? "7" : "8"}) Property Boundaries
               </div>
 
               {Math.max(1, Math.min(200, Number(quantity || "1") || 1)) > 1 ? (
@@ -2229,7 +2244,7 @@ const emiPreview = useMemo(() => {
               )}
 
               <div style={{ fontWeight: 900, marginBottom: 10 }}>
-                9) Trusted Unit Media
+                {kind === "land_plot" ? "8" : "9"}) Trusted Unit Media
               </div>
 
               <div
@@ -2332,7 +2347,7 @@ const emiPreview = useMemo(() => {
                 />
               )}
 
-              <div style={{ fontWeight: 900, marginBottom: 10 }}>10) Unit Amenities</div>
+              <div style={{ fontWeight: 900, marginBottom: 10 }}>{kind === "land_plot" ? "9" : "10"}) Unit Amenities</div>
               <div style={{ fontSize: 12, opacity: 0.72, marginBottom: 10 }}>
                 Prefilled from the selected catalogue template or project defaults. Add or remove amenities for this exact unit before creation.
               </div>
@@ -2355,7 +2370,7 @@ const emiPreview = useMemo(() => {
                 </ActionButton>
 
                 <div style={{ fontSize: 12, opacity: 0.75 }}>
-                  Selected: <b>{selectedAmenityIds.length}</b> / {amenitiesMaster.length}
+                  Selected: <b>{validSelectedAmenityIds.length}</b> / {amenitiesMaster.length}
                 </div>
               </div>
 
@@ -2393,7 +2408,7 @@ const emiPreview = useMemo(() => {
 
               <div style={{ height: 16 }} />
 
-              <div style={{ fontWeight: 900, marginBottom: 10 }}>11) Title, Quantity & Price</div>
+              <div style={{ fontWeight: 900, marginBottom: 10 }}>{kind === "land_plot" ? "10" : "11"}) Title, Quantity & Price</div>
 
               <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: 12 }}>
                 <div>
