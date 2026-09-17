@@ -29,6 +29,56 @@ export type MobileDashboardAggregate = {
   metrics: Array<{ key: string; label: string; value: number | null; webPath: string }>;
 };
 
+export type MobilePropertyWorkspaceProject = {
+  id: string;
+  name: string;
+  slug: string;
+  projectKind: string;
+  status: string;
+  city: string;
+  district: string;
+  state: string;
+  totalUnits: number;
+  availableUnits: number;
+  reservedUnits: number;
+  soldUnits: number;
+  pricedUnits: number;
+  trustedUnits: number;
+  webPath: string;
+};
+
+export type MobilePropertyWorkspace = {
+  generatedAt: string;
+  access: {
+    canManageOwnerListings: boolean;
+    canManageBuilderProjects: boolean;
+  };
+  destinations: {
+    ownerListings: "/property/my";
+    builderProjects: "/property/builder/projects";
+    buyerProjects: "/property/projects";
+    buyerInventory: "/property/inventory";
+  };
+  owner: {
+    totalListings: number;
+    draftListings: number;
+    pendingListings: number;
+    approvedListings: number;
+    rejectedListings: number;
+  };
+  builder: {
+    totalProjects: number;
+    activeProjects: number;
+    totalUnits: number;
+    availableUnits: number;
+    reservedUnits: number;
+    soldUnits: number;
+    pricedUnits: number;
+    trustedUnits: number;
+    projects: MobilePropertyWorkspaceProject[];
+  };
+};
+
 export function canonicalWebUrl(path: string) {
   return canonicalApiUrl(path);
 }
@@ -39,4 +89,8 @@ export async function loadMobileBootstrap(session: Session): Promise<MobileBoots
 
 export async function loadDashboardAggregate(session: Session): Promise<MobileDashboardAggregate> {
   return mobileApiRequest(session, "/api/v1/mobile/dashboard", {}, "Your work summary could not be prepared.");
+}
+
+export async function loadPropertyWorkspace(session: Session): Promise<MobilePropertyWorkspace> {
+  return mobileApiRequest(session, "/api/v1/mobile/property-workspace", {}, "Your property workspace could not be prepared.");
 }

@@ -159,11 +159,17 @@ function navigationItemForModule(
       };
 
     case "property_owner":
+      return {
+        key: "property_owner",
+        label: "My Properties",
+        href: "/property/my",
+      };
+
     case "property_builder":
       return {
-        key: "property",
-        label: "Property",
-        href: "/dashboard/vendor/property",
+        key: "property_builder",
+        label: "Builder Projects",
+        href: "/property/builder/projects",
       };
 
     case "blog_author":

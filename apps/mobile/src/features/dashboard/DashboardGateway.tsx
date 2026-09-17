@@ -9,7 +9,7 @@ import { NotificationDeviceCard } from "@/features/notifications/NotificationDev
 import { useNotificationResponse } from "@/features/notifications/NotificationResponseProvider";
 import { ReleaseHealthCard } from "@/features/release/ReleaseHealthCard";
 import { colors, radii, spacing, typography } from "@/theme/tokens";
-import { canonicalWebUrl, loadDashboardAggregate, loadMobileBootstrap, type MobileBootstrap, type MobileDashboardAggregate, type MobileDashboardKey } from "./api";
+import { canonicalWebUrl, loadDashboardAggregate, loadMobileBootstrap, loadPropertyWorkspace, type MobileBootstrap, type MobileDashboardAggregate, type MobileDashboardKey, type MobilePropertyWorkspace } from "./api";
 
 const DASHBOARD_COPY: Record<MobileDashboardKey, { eyebrow: string; title: string; summary: string }> = {
   admin_home: { eyebrow: "PLATFORM STEWARDSHIP", title: "Administration", summary: "Review authorised platform operations from your canonical administrator identity." },
@@ -29,6 +29,7 @@ export function DashboardGateway({ session, onboarding }: { session: Session; on
   const notification = useNotificationResponse();
   const [data, setData] = useState<MobileBootstrap | null>(null);
   const [aggregate, setAggregate] = useState<MobileDashboardAggregate | null>(null);
+  const [propertyWorkspace, setPropertyWorkspace] = useState<MobilePropertyWorkspace | null>(null);
   const [selectedCapability, setSelectedCapability] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -38,8 +39,12 @@ export function DashboardGateway({ session, onboarding }: { session: Session; on
     try {
       const bootstrap = await loadMobileBootstrap(session);
       setData(bootstrap);
-      const summary = await loadDashboardAggregate(session).catch(() => null);
+      const [summary, property] = await Promise.all([
+        loadDashboardAggregate(session).catch(() => null),
+        loadPropertyWorkspace(session).catch(() => null),
+      ]);
       setAggregate(summary?.dashboard === bootstrap.navigation.primaryDashboard ? summary : null);
+      setPropertyWorkspace(property);
     }
     catch (error) { setMessage(error instanceof Error ? error.message : "Your workspace could not be prepared."); }
     finally { setBusy(false); }
@@ -69,6 +74,7 @@ export function DashboardGateway({ session, onboarding }: { session: Session; on
     <View style={styles.hero}><Text style={styles.eyebrow}>{copy.eyebrow}</Text><Text accessibilityRole="header" style={styles.heroTitle}>{copy.title}</Text><Text style={styles.heroBody}>{copy.summary}</Text><Text style={styles.welcome}>{data.person.displayName}{data.identity.businessName ? ` · ${data.identity.businessName}` : ""}</Text></View>
     {notification.action && <View accessibilityLiveRegion="assertive" accessibilityRole="alert" style={styles.notificationCard}><Text style={styles.notificationKicker}>IMPORTANT WORK UPDATE</Text><Text accessibilityRole="header" style={styles.sectionTitle}>{notification.action.title}</Text><Text style={styles.notificationBody}>{notification.action.body}</Text>{notification.action.webPath ? <Action label="Continue to the canonical workspace" onPress={() => { const path = notification.action?.webPath; notification.clear(); if (path) void Linking.openURL(canonicalWebUrl(path)); }} /> : <Text style={styles.muted}>This alert has no safe action link. Your refreshed dashboard remains available below.</Text>}<Pressable accessibilityLabel="Dismiss work update" accessibilityRole="button" hitSlop={8} onPress={notification.clear}><Text style={styles.dismiss}>Dismiss</Text></Pressable></View>}
     {aggregate && <View style={styles.card}><Text style={styles.kicker}>LIVE WORK SUMMARY</Text><Text accessibilityRole="header" style={styles.sectionTitle}>At a glance</Text><View style={styles.metrics}>{aggregate.metrics.map((item) => <Pressable accessibilityHint="Opens the canonical workspace" accessibilityLabel={`${item.label}: ${item.value === null ? "unavailable" : item.value}`} accessibilityRole="link" key={item.key} style={styles.metric} onPress={() => void Linking.openURL(canonicalWebUrl(item.webPath))}><Text style={styles.metricValue}>{item.value === null ? "—" : item.value}</Text><Text style={styles.metricLabel}>{item.label}</Text></Pressable>)}</View><Text style={styles.muted}>Counts come from your current authorised server view. Pull down to refresh.</Text></View>}
+    {propertyWorkspace && <PropertyWorkspaceCard workspace={propertyWorkspace} />}
     <NotificationDeviceCard session={session} />
     <ReleaseHealthCard />
     <View style={styles.card}><Text style={styles.kicker}>CONTINUE YOUR WORK</Text><Text style={styles.sectionTitle}>Your authorised destinations</Text>{data.navigation.items.map((item) => <Action key={item.key} label={item.label} onPress={() => void Linking.openURL(canonicalWebUrl(item.webPath))} secondary />)}<Action label="Open Unified Workspace" onPress={() => void Linking.openURL(canonicalWebUrl(data.navigation.unifiedWorkspacePath))} /></View>
@@ -77,6 +83,41 @@ export function DashboardGateway({ session, onboarding }: { session: Session; on
   </ScrollView></SafeAreaView>;
 }
 
+function PropertyWorkspaceCard({ workspace }: { workspace: MobilePropertyWorkspace }) {
+  return <View style={styles.card}>
+    <Text style={styles.kicker}>PROPERTY WORKSPACE</Text>
+    <Text accessibilityRole="header" style={styles.sectionTitle}>Property journeys</Text>
+    <Text style={styles.muted}>Live counts are read from your authorised server view. Management continues through the canonical protected workspace.</Text>
+    {workspace.access.canManageOwnerListings && <>
+      <Text style={styles.groupTitle}>Your property listings</Text>
+      <View style={styles.metrics}>
+        <WorkspaceMetric label="Total" value={workspace.owner.totalListings} />
+        <WorkspaceMetric label="Approved" value={workspace.owner.approvedListings} />
+        <WorkspaceMetric label="Pending" value={workspace.owner.pendingListings} />
+        <WorkspaceMetric label="Draft" value={workspace.owner.draftListings} />
+      </View>
+      <Action label="Manage My Properties" onPress={() => void Linking.openURL(canonicalWebUrl(workspace.destinations.ownerListings))} secondary />
+    </>}
+    {workspace.access.canManageBuilderProjects && <>
+      <Text style={styles.groupTitle}>Builder projects and units</Text>
+      <View style={styles.metrics}>
+        <WorkspaceMetric label="Projects" value={workspace.builder.totalProjects} />
+        <WorkspaceMetric label="Units" value={workspace.builder.totalUnits} />
+        <WorkspaceMetric label="Available" value={workspace.builder.availableUnits} />
+        <WorkspaceMetric label="Priced" value={workspace.builder.pricedUnits} />
+        <WorkspaceMetric label="Trusted" value={workspace.builder.trustedUnits} />
+      </View>
+      {workspace.builder.projects.slice(0, 5).map((project) => <View key={project.id} style={styles.group}><Text style={styles.groupTitle}>{project.name}</Text><Text style={styles.muted}>{[project.projectKind, project.city, project.district, project.state].filter(Boolean).join(" · ") || "Location not completed"} · {project.availableUnits}/{project.totalUnits} available · {project.pricedUnits} priced · {project.trustedUnits} trusted</Text><Action label={`Open ${project.name}`} onPress={() => void Linking.openURL(canonicalWebUrl(project.webPath))} secondary /></View>)}
+      <Action label="Manage Builder Projects" onPress={() => void Linking.openURL(canonicalWebUrl(workspace.destinations.builderProjects))} secondary />
+    </>}
+    <Text style={styles.groupTitle}>Explore property</Text>
+    <Action label="Browse Builder Projects" onPress={() => void Linking.openURL(canonicalWebUrl(workspace.destinations.buyerProjects))} secondary />
+    <Action label="Browse Available Units" onPress={() => void Linking.openURL(canonicalWebUrl(workspace.destinations.buyerInventory))} secondary />
+    <Text style={styles.muted}>Private legal papers, uploads, holds, reservations, bookings and agreements are not loaded into this read-only mobile summary.</Text>
+  </View>;
+}
+
+function WorkspaceMetric({ label, value }: { label: string; value: number }) { return <View accessibilityLabel={`${label}: ${value}`} style={styles.metric}><Text style={styles.metricValue}>{value}</Text><Text style={styles.metricLabel}>{label}</Text></View>; }
 function Capability({ value, onPress }: { value: string; onPress(value: string): void }) { const label = humanise(value); return <Pressable accessibilityHint="Shows capability details" accessibilityLabel={label} accessibilityRole="button" hitSlop={6} onPress={() => onPress(value)} style={styles.chip}><Text style={styles.chipText}>{label}</Text></Pressable>; }
 function Action({ label, onPress, secondary = false }: { label: string; onPress(): void; secondary?: boolean }) { return <Pressable accessibilityLabel={label} accessibilityRole={secondary ? "link" : "button"} hitSlop={6} onPress={onPress} style={[styles.action, secondary && styles.actionSecondary]}><Text style={[styles.actionText, secondary && styles.actionTextSecondary]}>{label}</Text><Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.arrow, secondary && styles.actionTextSecondary]}>›</Text></Pressable>; }
 

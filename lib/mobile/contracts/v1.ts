@@ -25,7 +25,8 @@ export type MobileApiErrorCode =
   | "AUTH_REQUIRED"
   | "INVALID_SESSION"
   | "CONFIGURATION_ERROR"
-  | "BOOTSTRAP_FAILED";
+  | "BOOTSTRAP_FAILED"
+  | "PROPERTY_WORKSPACE_FAILED";
 
 export type MobileOnboardingPath = "customer" | "business" | "individual_professional";
 
@@ -190,6 +191,56 @@ export type MobileDashboardAggregate = {
   dashboard: MobileDashboardKey;
   generatedAt: string;
   metrics: MobileDashboardMetric[];
+};
+
+export type MobilePropertyWorkspaceProject = {
+  id: string;
+  name: string;
+  slug: string;
+  projectKind: string;
+  status: string;
+  city: string;
+  district: string;
+  state: string;
+  totalUnits: number;
+  availableUnits: number;
+  reservedUnits: number;
+  soldUnits: number;
+  pricedUnits: number;
+  trustedUnits: number;
+  webPath: string;
+};
+
+export type MobilePropertyWorkspace = {
+  generatedAt: string;
+  access: {
+    canManageOwnerListings: boolean;
+    canManageBuilderProjects: boolean;
+  };
+  destinations: {
+    ownerListings: "/property/my";
+    builderProjects: "/property/builder/projects";
+    buyerProjects: "/property/projects";
+    buyerInventory: "/property/inventory";
+  };
+  owner: {
+    totalListings: number;
+    draftListings: number;
+    pendingListings: number;
+    approvedListings: number;
+    rejectedListings: number;
+  };
+  builder: {
+    totalProjects: number;
+    activeProjects: number;
+    totalUnits: number;
+    availableUnits: number;
+    reservedUnits: number;
+    soldUnits: number;
+    pricedUnits: number;
+    trustedUnits: number;
+    projects: MobilePropertyWorkspaceProject[];
+  };
 };
 
 export function mobileSuccess<T>(data: T): MobileApiSuccess<T> {
