@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const expectedFinalMilestone = 24;
+const expectedFinalMilestone = 26;
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const verifiers = readdirSync(join(repoRoot, "scripts"))
   .map((name) => ({ name, match: /^verify-mob-(\d{2})-.*\.mjs$/.exec(name) }))
@@ -30,4 +30,4 @@ for (const verifier of verifiers) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
-console.log("MOB-01 through MOB-24 Mobile Foundation regression suite passed.");
+console.log(`MOB-01 through MOB-${expectedFinalMilestone} Mobile Foundation regression suite passed.`);

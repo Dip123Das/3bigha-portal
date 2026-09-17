@@ -39,6 +39,31 @@ export type MobileIdentityOption = {
   requiresVerification: boolean;
 };
 
+export type MobileRegistrationLegalConstitution = {
+  key: string;
+  label: string;
+  description: string | null;
+};
+
+export type MobileRegistrationBusinessSector = {
+  key: string;
+  title: string;
+  description: string | null;
+  symbol: string | null;
+};
+
+export type MobileRegistrationSectorMapping = {
+  identityKey: string;
+  sectorKey: string;
+  natureModules: string[];
+};
+
+export type MobileRegistrationCatalogue = {
+  legalConstitutions: MobileRegistrationLegalConstitution[];
+  businessSectors: MobileRegistrationBusinessSector[];
+  sectorMappings: MobileRegistrationSectorMapping[];
+};
+
 export type MobileEvidenceAsset = {
   id: string;
   bucket: "registration-evidence";
@@ -70,6 +95,7 @@ export type MobileEvidenceAsset = {
 
 export type MobileOnboardingState = {
   path: MobileOnboardingPath | null;
+  catalogue: MobileRegistrationCatalogue;
   identityOptions: MobileIdentityOption[];
   selectedIdentityKeys: string[];
   primaryIdentityKey: string | null;
@@ -77,6 +103,8 @@ export type MobileOnboardingState = {
   business: {
     businessName: string;
     businessType: string;
+    businessIdentities: string[];
+    individualIdentities: string[];
     natureOfBusiness: string[];
     state: string;
     district: string;

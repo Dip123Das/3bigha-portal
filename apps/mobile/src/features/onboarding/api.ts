@@ -4,11 +4,16 @@ import { mobileApiRequest } from "@/lib/api/request";
 export type MobileOnboardingPath = "customer" | "business" | "individual_professional";
 export type MobileOnboardingState = {
   path: MobileOnboardingPath | null;
+  catalogue: {
+    legalConstitutions: Array<{ key: string; label: string; description: string | null }>;
+    businessSectors: Array<{ key: string; title: string; description: string | null; symbol: string | null }>;
+    sectorMappings: Array<{ identityKey: string; sectorKey: string; natureModules: string[] }>;
+  };
   identityOptions: Array<{ key: string; label: string; localLabel: string | null; family: string; description: string | null; requiresBusinessOnboarding: boolean; requiresVerification: boolean }>;
   selectedIdentityKeys: string[];
   primaryIdentityKey: string | null;
   profile: { fullName: string; phone: string; state: string; district: string; pincode: string };
-  business: { businessName: string; businessType: string; natureOfBusiness: string[]; state: string; district: string; city: string; pincode: string; locationStatus: string; approvalStatus: string; registrationComplete: boolean };
+  business: { businessName: string; businessType: string; businessIdentities: string[]; individualIdentities: string[]; natureOfBusiness: string[]; state: string; district: string; city: string; pincode: string; locationStatus: string; approvalStatus: string; registrationComplete: boolean };
   evidence: { selfieCaptured: boolean; workPhotoCount: number; documentCount: number };
   verification: { status: string; reasons: string[]; canActivateDashboard: boolean };
 };

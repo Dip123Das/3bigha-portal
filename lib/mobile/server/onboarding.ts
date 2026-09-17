@@ -44,12 +44,65 @@ async function catalogue(supabase: SupabaseClient) {
     }));
 }
 
+async function registrationCatalogue(supabase: SupabaseClient) {
+  const [legalResult, sectorResult, mappingResult] = await Promise.all([
+    supabase
+      .from("registration_legal_constitutions")
+      .select("key,label,description,sort_order")
+      .eq("is_active", true)
+      .order("sort_order")
+      .order("label"),
+    supabase
+      .from("registration_business_sectors")
+      .select("key,title,description,symbol,sort_order")
+      .eq("is_active", true)
+      .order("sort_order")
+      .order("title"),
+    supabase
+      .from("registration_identity_sector_map")
+      .select("identity_key,sector_key,nature_modules,sort_order")
+      .eq("is_active", true)
+      .order("sort_order"),
+  ]);
+
+  const error =
+    legalResult.error ||
+    sectorResult.error ||
+    mappingResult.error;
+
+  if (error) throw error;
+
+  return {
+    legalConstitutions: (legalResult.data ?? []).map((row: any) => ({
+      key: clean(row.key),
+      label: clean(row.label),
+      description: clean(row.description, 500) || null,
+    })),
+    businessSectors: (sectorResult.data ?? []).map((row: any) => ({
+      key: clean(row.key),
+      title: clean(row.title),
+      description: clean(row.description, 500) || null,
+      symbol: clean(row.symbol, 40) || null,
+    })),
+    sectorMappings: (mappingResult.data ?? []).map((row: any) => ({
+      identityKey: clean(row.identity_key),
+      sectorKey: clean(row.sector_key),
+      natureModules: Array.isArray(row.nature_modules)
+        ? row.nature_modules
+            .map((value: unknown) => clean(value))
+            .filter(Boolean)
+        : [],
+    })),
+  };
+}
+
 export async function loadMobileOnboarding(supabase: SupabaseClient, user: User): Promise<MobileOnboardingState> {
-  const [{ data: profile }, { data: business }, { data: professional }, options] = await Promise.all([
+  const [{ data: profile }, { data: business }, { data: professional }, options, registration] = await Promise.all([
     supabase.from("profiles").select("full_name,phone,state,city,pincode,onboarding_completed,onboarding_version").eq("id", user.id).maybeSingle(),
-    supabase.from("business_profiles").select("business_name,business_type,nature_of_business,state,district,city,pincode,location_verification_status,approval_status,registration_complete,business_media_json,selfie_media_json,automated_verification_json").eq("user_id", user.id).maybeSingle(),
+    supabase.from("business_profiles").select("business_name,business_type,business_identities,individual_identities,nature_of_business,state,district,city,pincode,location_verification_status,approval_status,registration_complete,business_media_json,selfie_media_json,automated_verification_json").eq("user_id", user.id).maybeSingle(),
     supabase.from("individual_professional_profiles").select("primary_skill_key,verified_selfie_json,work_photo_one_json,work_photo_two_json,verification_status,ai_result_json").eq("user_id", user.id).maybeSingle(),
     catalogue(supabase),
+    registrationCatalogue(supabase),
   ]);
   const meta = user.user_metadata ?? {};
   const selected = Array.isArray(meta.human_identities) ? meta.human_identities.map(String) : [];
@@ -57,12 +110,15 @@ export async function loadMobileOnboarding(supabase: SupabaseClient, user: User)
   const auto = ((business as any)?.automated_verification_json ?? (professional as any)?.ai_result_json ?? {}) as any;
   return {
     path: (["customer", "business", "individual_professional"] as const).includes(meta.registration_path) ? meta.registration_path : null,
+    catalogue: registration,
     identityOptions: options,
     selectedIdentityKeys: selected,
     primaryIdentityKey: clean(meta.primary_human_identity || (professional as any)?.primary_skill_key) || null,
     profile: { fullName: clean((profile as any)?.full_name), phone: clean((profile as any)?.phone), state: clean((profile as any)?.state), district: clean((profile as any)?.city), pincode: clean((profile as any)?.pincode) },
     business: {
       businessName: clean((business as any)?.business_name), businessType: clean((business as any)?.business_type),
+      businessIdentities: Array.isArray((business as any)?.business_identities) ? (business as any).business_identities.map(String) : [],
+      individualIdentities: Array.isArray((business as any)?.individual_identities) ? (business as any).individual_identities.map(String) : [],
       natureOfBusiness: Array.isArray((business as any)?.nature_of_business) ? (business as any).nature_of_business.map(String) : [],
       state: clean((business as any)?.state), district: clean((business as any)?.district), city: clean((business as any)?.city), pincode: clean((business as any)?.pincode),
       locationStatus: clean((business as any)?.location_verification_status || "not_started"), approvalStatus: clean((business as any)?.approval_status || "pending"),

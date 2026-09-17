@@ -44,7 +44,9 @@ work:
 - Complete TestFlight and Google Play internal testing, then submit the approved
   release candidates for review.
 
-The numbered Mobile Foundation is closed at MOB-24. MOB-25 must not be created
-unless a separately approved, material requirement justifies reopening the
-series. Later routine fixes and release operations do not create a new numbered
+The numbered Mobile Foundation was closed at MOB-24. At that point, MOB-25 was
+not to be created unless a separately approved, material requirement justified
+reopening the series. The series was subsequently reopened after the current
+website-parity and Play-readiness audit identified material native-app work.
+Later routine fixes and release operations still do not create a new numbered
 foundation milestone.
