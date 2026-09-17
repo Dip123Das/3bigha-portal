@@ -35,8 +35,11 @@ export type MobileIdentityOption = {
   localLabel: string | null;
   family: string;
   description: string | null;
+  registrationScopes: string[];
   requiresBusinessOnboarding: boolean;
   requiresVerification: boolean;
+  lifetimeFreeCandidate: boolean;
+  redirectToBusiness: boolean;
 };
 
 export type MobileRegistrationLegalConstitution = {

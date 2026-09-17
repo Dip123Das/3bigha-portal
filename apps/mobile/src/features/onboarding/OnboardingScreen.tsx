@@ -24,13 +24,16 @@ type VerifiedCaptureLocation = {
   locationAgeMs: number;
   mocked: boolean | null;
 };
-type Form = { fullName: string; phone: string; state: string; district: string; pincode: string; businessName: string; businessType: string; nature: string; city: string };
+type Form = { fullName: string; phone: string; state: string; district: string; pincode: string; businessName: string; businessType: string; city: string };
 
 export function OnboardingScreen({ session }: { session: Session }) {
   const [state, setState] = useState<MobileOnboardingState | null>(null);
   const [path, setPath] = useState<MobileOnboardingPath>("customer");
   const [identity, setIdentity] = useState("customer");
-  const [form, setForm] = useState<Form>({ fullName: "", phone: "", state: "", district: "", pincode: "", businessName: "", businessType: "vendor", nature: "materials", city: "" });
+  const [form, setForm] = useState<Form>({ fullName: "", phone: "", state: "", district: "", pincode: "", businessName: "", businessType: "", city: "" });
+  const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
+  const [businessIdentities, setBusinessIdentities] = useState<string[]>([]);
+  const [individualIdentities, setIndividualIdentities] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [capture, setCapture] = useState<CaptureCategory | null>(null);
@@ -44,16 +47,96 @@ export function OnboardingScreen({ session }: { session: Session }) {
     setState(next);
     if (next.path) setPath(next.path);
     if (next.primaryIdentityKey) setIdentity(next.primaryIdentityKey);
-    setForm((current) => ({ ...current, ...next.profile, businessName: next.business.businessName || current.businessName, businessType: next.business.businessType || current.businessType, nature: next.business.natureOfBusiness.join(", ") || current.nature, city: next.business.city || next.profile.district || current.city }));
+    setForm((current) => ({ ...current, ...next.profile, businessName: next.business.businessName || current.businessName, businessType: next.business.businessType || current.businessType, city: next.business.city || next.profile.district || current.city }));
+    setBusinessIdentities(next.business.businessIdentities);
+    setIndividualIdentities(next.business.individualIdentities);
+    setSelectedSectors(Array.from(new Set(
+      next.catalogue.sectorMappings
+        .filter((mapping) => next.business.businessIdentities.includes(mapping.identityKey))
+        .map((mapping) => mapping.sectorKey),
+    )));
   };
 
   useEffect(() => { void refresh().catch((error) => setMessage(error.message)); }, [session.access_token]);
 
   const options = useMemo(() => (state?.identityOptions ?? []).filter((item) => {
     if (path === "customer") return item.key === "customer";
-    if (path === "business") return item.requiresBusinessOnboarding || item.family === "organisation" || item.family === "constitutional";
-    return !item.requiresBusinessOnboarding && item.family === "individual" && item.key !== "customer";
+    if (path === "business") return item.registrationScopes.includes("business_identity");
+    return item.registrationScopes.includes("individual_skill") && item.lifetimeFreeCandidate && !item.redirectToBusiness;
   }), [path, state?.identityOptions]);
+
+  const businessIdentityOptions = useMemo(
+    () => (state?.identityOptions ?? []).filter((item) => item.registrationScopes.includes("business_identity")),
+    [state?.identityOptions],
+  );
+  const personalRoleOptions = useMemo(
+    () => (state?.identityOptions ?? []).filter((item) => item.registrationScopes.includes("business_personal_role")),
+    [state?.identityOptions],
+  );
+  const derivedNature = useMemo(() => Array.from(new Set(
+    (state?.catalogue.sectorMappings ?? [])
+      .filter((mapping) => businessIdentities.includes(mapping.identityKey))
+      .flatMap((mapping) => mapping.natureModules),
+  )), [businessIdentities, state?.catalogue.sectorMappings]);
+
+  function toggleValue(value: string, setter: React.Dispatch<React.SetStateAction<string[]>>) {
+    setter((current) => current.includes(value)
+      ? current.filter((item) => item !== value)
+      : [...current, value]);
+  }
+
+  function toggleSector(value: string) {
+    const next = selectedSectors.includes(value)
+      ? selectedSectors.filter((item) => item !== value)
+      : [...selectedSectors, value];
+    const visibleIdentityKeys = new Set(
+      (state?.catalogue.sectorMappings ?? [])
+        .filter((mapping) => next.includes(mapping.sectorKey))
+        .map((mapping) => mapping.identityKey),
+    );
+    if (path === "business" && businessIdentities.includes(identity) && !visibleIdentityKeys.has(identity)) {
+      setMessage("Choose another primary operating identity before removing its sector.");
+      return;
+    }
+    setSelectedSectors(next);
+    setBusinessIdentities((identities) =>
+      identities.filter((key) => visibleIdentityKeys.has(key)),
+    );
+  }
+
+  function toggleBusinessIdentity(key: string) {
+    if (key === identity && businessIdentities.includes(key)) {
+      setMessage("Choose another primary operating identity before removing this Business Identity.");
+      return;
+    }
+    toggleValue(key, setBusinessIdentities);
+  }
+
+  function chooseIdentity(key: string, selectedPath = path) {
+    setIdentity(key);
+    if (selectedPath !== "business") return;
+    setBusinessIdentities((current) =>
+      current.includes(key) ? current : [...current, key],
+    );
+    const sectors = (state?.catalogue.sectorMappings ?? [])
+      .filter((mapping) => mapping.identityKey === key)
+      .map((mapping) => mapping.sectorKey);
+    setSelectedSectors((current) =>
+      Array.from(new Set([...current, ...sectors])),
+    );
+  }
+
+  function choosePath(nextPath: MobileOnboardingPath) {
+    setPath(nextPath);
+    const first = state?.identityOptions.find((option) =>
+      nextPath === "customer"
+        ? option.key === "customer"
+        : nextPath === "business"
+          ? option.registrationScopes.includes("business_identity")
+          : option.registrationScopes.includes("individual_skill") && option.lifetimeFreeCandidate && !option.redirectToBusiness,
+    );
+    if (first) chooseIdentity(first.key, nextPath);
+  }
 
   async function run(action: string, payload: Record<string, unknown>, success: string) {
     setBusy(true); setMessage(null);
@@ -70,7 +153,7 @@ export function OnboardingScreen({ session }: { session: Session }) {
   }
 
   async function saveBusiness() {
-    await run("save_business", { businessName: form.businessName, businessType: form.businessType, natureOfBusiness: form.nature.split(",").map((v) => v.trim()).filter(Boolean), contactPerson: form.fullName, phone: form.phone, state: form.state, district: form.district, city: form.city, pincode: form.pincode }, "Business details and official LGD geography saved.");
+    await run("save_business", { businessName: form.businessName, businessType: form.businessType, businessIdentities, individualIdentities, contactPerson: form.fullName, phone: form.phone, state: form.state, district: form.district, city: form.city, pincode: form.pincode }, "Canonical business identity and official LGD geography saved.");
   }
 
   async function verifyLocation() {
@@ -160,11 +243,34 @@ export function OnboardingScreen({ session }: { session: Session }) {
     <Text style={styles.brand}>3Bigha · Business Operating System</Text>
     <Text style={styles.eyebrow}>MOB-04 · CANONICAL IDENTITY</Text><Text accessibilityRole="header" style={styles.title}>Tell us who you are—once.</Text><Text style={styles.body}>Your mobile registration uses the same identity, approval and verification authority as 3Bigha.com.</Text>
     <Section title="1. Your pathway">
-      <View style={styles.row}>{(["customer", "business", "individual_professional"] as const).map((item) => <Choice key={item} active={path === item} label={item === "individual_professional" ? "Skilled Professional" : item === "business" ? "Business" : "Customer"} onPress={() => { setPath(item); const first = state.identityOptions.find((option) => item === "customer" ? option.key === "customer" : item === "business" ? option.requiresBusinessOnboarding : !option.requiresBusinessOnboarding && option.family === "individual" && option.key !== "customer"); if (first) setIdentity(first.key); }} />)}</View>
-      <Text style={styles.label}>Identity from the live master register</Text><View style={styles.options}>{options.map((item) => <Choice key={item.key} active={identity === item.key} label={item.localLabel ? `${item.label} (${item.localLabel})` : item.label} onPress={() => setIdentity(item.key)} />)}</View>
+      <View style={styles.row}>{(["customer", "business", "individual_professional"] as const).map((item) => <Choice key={item} active={path === item} label={item === "individual_professional" ? "Skilled Professional" : item === "business" ? "Business" : "Customer"} onPress={() => choosePath(item)} />)}</View>
+      <Text style={styles.label}>{path === "business" ? "Primary operating identity" : "Identity from the live master register"}</Text><View style={styles.options}>{options.map((item) => <Choice key={item.key} active={identity === item.key} label={item.localLabel ? `${item.label} (${item.localLabel})` : item.label} onPress={() => chooseIdentity(item.key)} />)}</View>
     </Section>
     <Section title="2. Essential profile"><Field label="Original full name" value={form.fullName} onChange={(v) => setForm({ ...form, fullName: v })} /><Field label="Mobile number" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} /><Field label="State (official name)" value={form.state} onChange={(v) => setForm({ ...form, state: v })} /><Field label="District / City" value={form.district} onChange={(v) => setForm({ ...form, district: v })} /><Field label="PIN code" value={form.pincode} onChange={(v) => setForm({ ...form, pincode: v })} /><Button busy={busy} label="Declare identity and save profile" onPress={() => void declareAndSave()} /></Section>
-    {path === "business" && <Section title="3. Business and operating place"><Field label="Business name" value={form.businessName} onChange={(v) => setForm({ ...form, businessName: v })} /><Field label="Business type" value={form.businessType} onChange={(v) => setForm({ ...form, businessType: v })} /><Field label="Nature (comma separated)" value={form.nature} onChange={(v) => setForm({ ...form, nature: v })} /><Field label="Locality / City" value={form.city} onChange={(v) => setForm({ ...form, city: v })} /><Button busy={busy} label="Save business and resolve LGD location" onPress={() => void saveBusiness()} /><Button busy={busy} label="Verify live GPS location" onPress={() => void verifyLocation()} secondary /></Section>}
+    {path === "business" && <Section title="3. Business identity and operating place">
+      <Field label="Business name" value={form.businessName} onChange={(v) => setForm({ ...form, businessName: v })} />
+      <Text accessibilityRole="header" style={styles.sectionTitle}>Legal Constitution</Text>
+      <Text style={styles.muted}>Select how the organisation is legally constituted.</Text>
+      <View style={styles.options}>{state.catalogue.legalConstitutions.map((item) => <Choice key={item.key} active={form.businessType === item.key} label={item.label} onPress={() => setForm({ ...form, businessType: item.key })} />)}</View>
+      <Text accessibilityRole="header" style={styles.sectionTitle}>Business Sectors</Text>
+      <Text style={styles.muted}>Choose the sectors in which the organisation actually works.</Text>
+      <View style={styles.options}>{state.catalogue.businessSectors.map((item) => <MultiChoice key={item.key} active={selectedSectors.includes(item.key)} label={`${item.symbol ? `${item.symbol} ` : ""}${item.title}`} onPress={() => toggleSector(item.key)} />)}</View>
+      <Text accessibilityRole="header" style={styles.sectionTitle}>What does your organisation do?</Text>
+      {!selectedSectors.length && <Text style={styles.muted}>Select one or more sectors to show the relevant Business Identities.</Text>}
+      {selectedSectors.map((sectorKey) => {
+        const sector = state.catalogue.businessSectors.find((item) => item.key === sectorKey);
+        const mappedKeys = new Set(state.catalogue.sectorMappings.filter((mapping) => mapping.sectorKey === sectorKey).map((mapping) => mapping.identityKey));
+        const sectorOptions = businessIdentityOptions.filter((item) => mappedKeys.has(item.key));
+        return <View key={sectorKey}><Text style={styles.label}>{sector?.title ?? sectorKey}</Text><View style={styles.options}>{sectorOptions.map((item) => <MultiChoice key={`${sectorKey}-${item.key}`} active={businessIdentities.includes(item.key)} label={item.label} onPress={() => toggleBusinessIdentity(item.key)} />)}</View></View>;
+      })}
+      <Text accessibilityRole="header" style={styles.sectionTitle}>Your Individual Identity</Text>
+      <Text style={styles.muted}>Optionally select the roles you personally perform.</Text>
+      <View style={styles.options}>{personalRoleOptions.map((item) => <MultiChoice key={item.key} active={individualIdentities.includes(item.key)} label={item.label} onPress={() => toggleValue(item.key, setIndividualIdentities)} />)}</View>
+      <View style={styles.message}><Text style={styles.label}>Derived workspaces</Text><Text style={styles.muted}>{derivedNature.length ? derivedNature.map((item) => item.replace(/_/g, " ")).join(", ") : "Select at least one Business Identity."}</Text></View>
+      <Field label="Locality / City" value={form.city} onChange={(v) => setForm({ ...form, city: v })} />
+      <Button busy={busy} label="Save canonical business details" onPress={() => void saveBusiness()} />
+      <Button busy={busy} label="Verify live GPS location" onPress={() => void verifyLocation()} secondary />
+    </Section>}
     {path !== "customer" && <Section title={path === "business" ? "4. Proof and live evidence" : "3. Professional live evidence"}><Text style={styles.muted}>Gallery selection is disabled for the selfie and both work photographs.</Text><Button busy={busy} label={state.evidence.selfieCaptured ? "Retake live selfie" : "Capture live selfie"} onPress={() => void openCamera("selfie")} />{path === "individual_professional" && <><Button busy={busy} label="Capture work photograph 1" onPress={() => void openCamera("work_photo_one")} secondary /><Button busy={busy} label="Capture work photograph 2" onPress={() => void openCamera("work_photo_two")} secondary /></>}{path === "business" && <Button busy={busy} label="Upload business proof" onPress={() => void chooseDocument()} secondary />}</Section>}
     {path !== "customer" && <Section title="Verification status"><Text style={styles.status}>{state.verification.status.replace(/_/g, " ")}</Text><Text style={styles.muted}>{state.verification.canActivateDashboard ? "Your verified workspace can be activated." : "Your evidence is incomplete, pending automated checks, awaiting human review, or needs correction. Approval cannot be selected in the app."}</Text>{state.verification.reasons.map((reason) => <Text key={reason} style={styles.reason}>• {reason}</Text>)}<Button busy={busy} label="Submit for verification" onPress={() => void run("evaluate", {}, "Verification status refreshed.")} /></Section>}
     {message && <Text accessibilityLiveRegion="assertive" accessibilityRole="alert" style={styles.message}>{message}</Text>}
@@ -175,6 +281,7 @@ export function OnboardingScreen({ session }: { session: Session }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) { return <View style={styles.card}><Text accessibilityRole="header" style={styles.sectionTitle}>{title}</Text>{children}</View>; }
 function Field({ label, value, onChange }: { label: string; value: string; onChange(v: string): void }) { return <View><Text style={styles.label}>{label}</Text><TextInput accessibilityLabel={label} value={value} onChangeText={onChange} style={styles.input} /></View>; }
 function Choice({ active, label, onPress }: { active: boolean; label: string; onPress(): void }) { return <Pressable accessibilityLabel={label} accessibilityRole="radio" accessibilityState={{ checked: active, selected: active }} hitSlop={6} onPress={onPress} style={[styles.choice, active && styles.choiceActive]}><Text style={[styles.choiceText, active && styles.choiceTextActive]}>{label}</Text></Pressable>; }
+function MultiChoice({ active, label, onPress }: { active: boolean; label: string; onPress(): void }) { return <Pressable accessibilityLabel={label} accessibilityRole="checkbox" accessibilityState={{ checked: active }} hitSlop={6} onPress={onPress} style={[styles.choice, active && styles.choiceActive]}><Text style={[styles.choiceText, active && styles.choiceTextActive]}>{active ? "✓ " : ""}{label}</Text></Pressable>; }
 function Button({ busy, label, onPress, secondary = false }: { busy: boolean; label: string; onPress(): void; secondary?: boolean }) { return <Pressable accessibilityLabel={label} accessibilityRole="button" accessibilityState={{ busy, disabled: busy }} disabled={busy} onPress={onPress} style={secondary ? styles.secondary : styles.primary}><Text style={secondary ? styles.secondaryText : styles.primaryText}>{busy ? "Please wait…" : label}</Text></Pressable>; }
 
 const styles = StyleSheet.create({ safe: { flex: 1, backgroundColor: colors.canvas }, center: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.md, backgroundColor: colors.canvas }, page: { padding: spacing.lg, gap: spacing.md, maxWidth: 760, width: "100%", alignSelf: "center" }, brand: { color: colors.ink, fontWeight: "800", fontSize: 18 }, eyebrow: { color: colors.brand, fontWeight: "800", fontSize: typography.micro, letterSpacing: 1.1, marginTop: spacing.md }, title: { color: colors.ink, fontSize: 32, lineHeight: 39, fontWeight: "800" }, body: { color: colors.muted, fontSize: typography.body, lineHeight: 24 }, card: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: radii.lg, padding: spacing.lg, gap: spacing.sm }, sectionTitle: { color: colors.ink, fontWeight: "800", fontSize: 19, marginBottom: spacing.xs }, label: { color: colors.ink, fontWeight: "700", fontSize: typography.caption, marginTop: spacing.xs }, input: { borderWidth: 1, borderColor: colors.border, borderRadius: radii.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, color: colors.ink, backgroundColor: colors.canvas }, row: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs }, options: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, maxHeight: 220 }, choice: { borderWidth: 1, borderColor: colors.border, borderRadius: radii.pill, paddingHorizontal: spacing.md, paddingVertical: spacing.sm }, choiceActive: { backgroundColor: colors.brand, borderColor: colors.brand }, choiceText: { color: colors.ink, fontWeight: "700", fontSize: typography.caption }, choiceTextActive: { color: colors.onBrand }, primary: { backgroundColor: colors.brand, borderRadius: radii.md, padding: spacing.md, alignItems: "center", marginTop: spacing.xs }, primaryText: { color: colors.onBrand, fontWeight: "800" }, secondary: { backgroundColor: colors.canvas, borderColor: colors.brand, borderWidth: 1, borderRadius: radii.md, padding: spacing.md, alignItems: "center", marginTop: spacing.xs }, secondaryText: { color: colors.brand, fontWeight: "800" }, muted: { color: colors.muted, lineHeight: 20 }, status: { color: colors.brand, fontSize: 22, fontWeight: "800", textTransform: "capitalize" }, reason: { color: colors.ink }, message: { color: colors.brand, fontWeight: "700", padding: spacing.md, backgroundColor: colors.accentSoft, borderRadius: radii.md }, signout: { color: colors.muted, textAlign: "center", textDecorationLine: "underline", padding: spacing.lg }, cameraPage: { flex: 1, backgroundColor: "#000" }, camera: { flex: 1 }, verificationOverlay: { position: "absolute", left: spacing.md, right: spacing.md, top: spacing.lg, backgroundColor: "rgba(0,0,0,0.72)", borderRadius: radii.md, padding: spacing.md, gap: 3 }, verificationTitle: { color: "#fff", fontWeight: "900", letterSpacing: 0.8 }, verificationText: { color: "#fff", fontSize: typography.caption }, verificationWarning: { color: "#fff", fontWeight: "900" }, cameraControls: { padding: spacing.lg, flexDirection: "row", gap: spacing.md, backgroundColor: "#000" } });

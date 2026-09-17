@@ -18,6 +18,13 @@ function clean(value: unknown, max = 180) {
   return String(value ?? "").trim().slice(0, max);
 }
 
+function cleanKeys(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return Array.from(
+    new Set(value.map((item) => clean(item)).filter(Boolean)),
+  );
+}
+
 function assertNoProtectedInput(value: unknown) {
   if (!value || typeof value !== "object") return;
   for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
@@ -29,7 +36,7 @@ function assertNoProtectedInput(value: unknown) {
 async function catalogue(supabase: SupabaseClient) {
   const { data, error } = await supabase
     .from("identity_master")
-    .select("identity_key,label,local_label,identity_family,description,requires_business_onboarding,requires_verification,is_active,sort_order")
+    .select("identity_key,label,local_label,identity_family,description,registration_scopes,requires_business_onboarding,requires_verification,lifetime_free_candidate,redirect_to_business,is_active,sort_order")
     .eq("is_active", true)
     .order("sort_order")
     .order("label");
@@ -39,8 +46,13 @@ async function catalogue(supabase: SupabaseClient) {
     .map((row: any) => ({
       key: clean(row.identity_key), label: clean(row.label), localLabel: clean(row.local_label) || null,
       family: clean(row.identity_family || "individual"), description: clean(row.description, 500) || null,
+      registrationScopes: Array.isArray(row.registration_scopes)
+        ? row.registration_scopes.map((value: unknown) => clean(value)).filter(Boolean)
+        : [],
       requiresBusinessOnboarding: row.requires_business_onboarding === true,
       requiresVerification: row.requires_verification === true,
+      lifetimeFreeCandidate: row.lifetime_free_candidate === true,
+      redirectToBusiness: row.redirect_to_business === true,
     }));
 }
 
@@ -180,10 +192,68 @@ export async function saveMobileProfile(supabase: SupabaseClient, user: User, in
 
 export async function saveMobileBusiness(supabase: SupabaseClient, user: User, input: any) {
   assertNoProtectedInput(input);
-  const businessName = clean(input.businessName), state = clean(input.state), district = clean(input.district), city = clean(input.city), pincode = clean(input.pincode, 6);
-  if (!businessName || !state || !district || !city) throw new MobileOnboardingError(400, "INVALID_BUSINESS", "Enter the business name and complete operating address.");
+  const businessName = clean(input.businessName);
+  const businessType = clean(input.businessType);
+  const businessIdentities = cleanKeys(input.businessIdentities);
+  const individualIdentities = cleanKeys(input.individualIdentities);
+  const state = clean(input.state);
+  const district = clean(input.district);
+  const city = clean(input.city);
+  const pincode = clean(input.pincode, 6);
+
+  if (!businessName || !state || !district || !city || (pincode && !/^\d{6}$/.test(pincode))) {
+    throw new MobileOnboardingError(400, "INVALID_BUSINESS", "Enter the business name, complete operating address and a valid six-digit PIN.");
+  }
+  if (!businessType) {
+    throw new MobileOnboardingError(400, "CONSTITUTION_REQUIRED", "Select your Legal Constitution.");
+  }
+  if (!businessIdentities.length) {
+    throw new MobileOnboardingError(400, "BUSINESS_IDENTITY_REQUIRED", "Select at least one Business Identity.");
+  }
+
+  const [registration, identities] = await Promise.all([
+    registrationCatalogue(supabase),
+    catalogue(supabase),
+  ]);
+
+  if (!registration.legalConstitutions.some((item) => item.key === businessType)) {
+    throw new MobileOnboardingError(400, "INVALID_CONSTITUTION", "Select an active Legal Constitution from Business Registration.");
+  }
+
+  const identityIndex = new Map(identities.map((item) => [item.key, item]));
+  if (businessIdentities.some((key) => !identityIndex.get(key)?.registrationScopes.includes("business_identity"))) {
+    throw new MobileOnboardingError(400, "INVALID_BUSINESS_IDENTITY", "Choose active Business Identities from the current 3Bigha register.");
+  }
+  if (individualIdentities.some((key) => !identityIndex.get(key)?.registrationScopes.includes("business_personal_role"))) {
+    throw new MobileOnboardingError(400, "INVALID_INDIVIDUAL_IDENTITY", "Choose personal roles from the current 3Bigha register.");
+  }
+
+  const activeMappings = registration.sectorMappings.filter((mapping) =>
+    businessIdentities.includes(mapping.identityKey),
+  );
+  const mappedIdentityKeys = new Set(activeMappings.map((mapping) => mapping.identityKey));
+  if (businessIdentities.some((key) => !mappedIdentityKeys.has(key))) {
+    throw new MobileOnboardingError(400, "BUSINESS_SECTOR_MAPPING_REQUIRED", "Every Business Identity must have an active Business Sector mapping.");
+  }
+
+  const natureOfBusiness = Array.from(
+    new Set(activeMappings.flatMap((mapping) => mapping.natureModules)),
+  ).filter(Boolean);
+  if (!natureOfBusiness.length) {
+    throw new MobileOnboardingError(400, "NATURE_MAPPING_REQUIRED", "Selected Business Identities must resolve to at least one marketplace module.");
+  }
+
   const geography = await resolveLocation({ state, district, city, locality: city, pincode });
-  const payload = { user_id: user.id, business_name: businessName, company_name: businessName, business_type: clean(input.businessType), nature_of_business: Array.isArray(input.natureOfBusiness) ? input.natureOfBusiness.map((v: unknown) => clean(v)).filter(Boolean) : [], contact_person: clean(input.contactPerson), phone_primary: clean(input.phone), state, district, city, pincode: pincode || null, geo_state_id: geography.geo_state_id || null, geo_district_id: geography.geo_district_id || null, geo_subdivision_id: geography.geo_subdivision_id || null, geo_block_id: geography.geo_block_id || null, geo_place_id: geography.geo_place_id || null };
+  const payload = {
+    user_id: user.id, business_name: businessName, company_name: businessName,
+    business_type: businessType, business_identities: businessIdentities,
+    individual_identities: individualIdentities, nature_of_business: natureOfBusiness,
+    contact_person: clean(input.contactPerson), phone_primary: clean(input.phone),
+    state, district, city, pincode: pincode || null,
+    geo_state_id: geography.geo_state_id || null, geo_district_id: geography.geo_district_id || null,
+    geo_subdivision_id: geography.geo_subdivision_id || null, geo_block_id: geography.geo_block_id || null,
+    geo_place_id: geography.geo_place_id || null,
+  };
   const { error } = await supabase.from("business_profiles").upsert(payload, { onConflict: "user_id" });
   if (error) throw error;
 }

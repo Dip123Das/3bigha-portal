@@ -9,7 +9,7 @@ export type MobileOnboardingState = {
     businessSectors: Array<{ key: string; title: string; description: string | null; symbol: string | null }>;
     sectorMappings: Array<{ identityKey: string; sectorKey: string; natureModules: string[] }>;
   };
-  identityOptions: Array<{ key: string; label: string; localLabel: string | null; family: string; description: string | null; requiresBusinessOnboarding: boolean; requiresVerification: boolean }>;
+  identityOptions: Array<{ key: string; label: string; localLabel: string | null; family: string; description: string | null; registrationScopes: string[]; requiresBusinessOnboarding: boolean; requiresVerification: boolean; lifetimeFreeCandidate: boolean; redirectToBusiness: boolean }>;
   selectedIdentityKeys: string[];
   primaryIdentityKey: string | null;
   profile: { fullName: string; phone: string; state: string; district: string; pincode: string };
