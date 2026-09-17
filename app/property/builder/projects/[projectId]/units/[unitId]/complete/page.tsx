@@ -117,6 +117,7 @@ export default function CompleteBuilderUnitPage() {
     <SectionHeader title="Complete Exact Unit" subtitle="Complete the facts and evidence that belong only to this unit."
       right={<div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <Link href={`/property/builder/projects/${encodeURIComponent(projectId)}/units`}><ActionButton variant="secondary">Back to Units</ActionButton></Link>
+        <Link href={`/property/builder/projects/${encodeURIComponent(projectId)}/units/${encodeURIComponent(unitId)}/legal-documents`}><ActionButton variant="secondary">Private Legal Papers</ActionButton></Link>
         {project?.slug ? <Link href={`/property/projects/${encodeURIComponent(project.slug)}?preview=builder`}><ActionButton variant="secondary">Preview as Buyer</ActionButton></Link> : null}
       </div>} />
     {loading ? <Card><CardBody>Loading exact unit…</CardBody></Card> : error && !form.unitCode ? <Card><CardBody>{error}</CardBody></Card> : <>

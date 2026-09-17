@@ -695,6 +695,9 @@ export default function BuilderProjectUnitsPage() {
                                 <Link href={`/property/builder/projects/${encodeURIComponent(projectId)}/units/${encodeURIComponent(u.id)}/complete`}>
                                   <ActionButton>{readyCount === readyChecks.length ? "Review Unit" : "Complete Unit"}</ActionButton>
                                 </Link>
+                                <Link href={`/property/builder/projects/${encodeURIComponent(projectId)}/units/${encodeURIComponent(u.id)}/legal-documents`}>
+                                  <ActionButton variant="secondary">Legal Papers</ActionButton>
+                                </Link>
                                 <ActionButton
                                   onClick={() => {
                                     openAdminInventory();
