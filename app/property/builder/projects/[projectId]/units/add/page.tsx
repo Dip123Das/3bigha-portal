@@ -476,9 +476,6 @@ const [roomCounts, setRoomCounts] = useState<Record<RoomTypeKey, string>>({
   store: "0",
   servant: "0",
 });
-// If user manually edits bedroom count, stop auto-sync from BHK
-const [bedroomCountTouched, setBedroomCountTouched] = useState(false);
-
 // =====================================================
 // Unit Code strategy (RESTORE - required by page)
 // =====================================================
@@ -795,10 +792,9 @@ function updateRoomBlock(type: RoomTypeKey, idx: number, patch: Partial<RoomBloc
     return { ...prev, [type]: nextArr };
   });
 }
-// Auto-set Bedroom count from BHK (only when enabled and not manually overridden)
+// BHK is authoritative for bedrooms. Detailed room blocks must never contradict it.
 useEffect(() => {
   if (!enableRoomDetails) return;
-  if (bedroomCountTouched) return;
 
   const n = Math.max(0, Math.min(10, Number(bhk || "0") || 0));
   // only update if different (prevents loops)
@@ -806,7 +802,7 @@ useEffect(() => {
     setRoomCount("bedroom", String(n));
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-}, [bhk, enableRoomDetails, bedroomCountTouched]);
+}, [bhk, enableRoomDetails]);
 
 function areaSqft(length: string, width: string) {
   const L = Number(length || 0);
@@ -1028,6 +1024,18 @@ const emiPreview = useMemo(() => {
         return;
       }
       const qty = Math.max(1, Math.min(200, Number(quantity || "1") || 1));
+
+      if (enableRoomDetails && kind !== "land_plot") {
+        const bhkBedrooms = Math.max(0, Math.min(10, Number(bhk || "0") || 0));
+        const detailedBedrooms = clampCount(roomCounts.bedroom);
+
+        if (bhkBedrooms !== detailedBedrooms) {
+          flashError(
+            `Bedroom details must match the selected ${bhkBedrooms} BHK. Review the BHK selection and try again.`,
+          );
+          return;
+        }
+      }
 
       if (
         qty === 1 &&
@@ -2014,7 +2022,7 @@ const emiPreview = useMemo(() => {
                 <input
                   value={value}
                   onChange={(e) => {
-                    if (type === "bedroom") setBedroomCountTouched(true);
+                    if (type === "bedroom") return;
                     setRoomCount(type, e.target.value);
                   }}
                   placeholder="0"
@@ -2024,19 +2032,21 @@ const emiPreview = useMemo(() => {
                     borderRadius: 10,
                     border: "1px solid #ddd",
                   }}
-                  disabled={saving}
+                  disabled={saving || type === "bedroom"}
                 />
-                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>Auto-creates blocks</div>
+                <div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
+                  {type === "bedroom" ? "Automatically matches BHK" : "Auto-creates blocks"}
+                </div>
               </div>
 
               <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                 <button
                   type="button"
                   onClick={() => {
-                    if (type === "bedroom") setBedroomCountTouched(true);
+                    if (type === "bedroom") return;
                     removeOneRoom(type);
                   }}
-                  disabled={saving || n <= 0}
+                  disabled={saving || n <= 0 || type === "bedroom"}
                   style={{
                     height: 36,
                     padding: "0 10px",
@@ -2054,10 +2064,10 @@ const emiPreview = useMemo(() => {
                 <button
                   type="button"
                   onClick={() => {
-                    if (type === "bedroom") setBedroomCountTouched(true);
+                    if (type === "bedroom") return;
                     addOneRoom(type);
                   }}
-                  disabled={saving}
+                  disabled={saving || type === "bedroom"}
                   style={{
                     height: 36,
                     padding: "0 10px",

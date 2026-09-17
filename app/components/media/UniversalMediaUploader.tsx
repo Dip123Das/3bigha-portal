@@ -56,6 +56,7 @@ type TrustedGpsCoordinates = {
   latitude: number;
   longitude: number;
   accuracy: number;
+  capturedAt: string;
 };
 
 function trustedEntityForModule(
@@ -308,8 +309,11 @@ async function createCaptureSession(
   const created = await createResponse.json().catch(() => null);
   const sessionId = created?.session?.id;
   const nonce = created?.nonce;
+  const serverIssuedAt = created?.session?.issuedAt;
 
-  if (!createResponse.ok || !sessionId || !nonce) {
+  if (!createResponse.ok || !sessionId || !nonce || !serverIssuedAt) {
+    setGpsStatus("failed");
+    setGpsMessage("The secure GPS session could not be created. Please try again.");
     setCameraError(created?.error || "Unable to start a secure capture session.");
     return false;
   }
@@ -327,7 +331,9 @@ async function createCaptureSession(
           latitude: coordinates.latitude,
           longitude: coordinates.longitude,
           accuracyMetres: coordinates.accuracy,
-          capturedAt: startedAt,
+          // Use the server-issued session time so an incorrect device clock cannot
+          // make a genuinely fresh browser GPS reading appear stale.
+          capturedAt: serverIssuedAt,
           provider: "browser_geolocation",
         },
       }),
@@ -336,9 +342,14 @@ async function createCaptureSession(
   const located = await locationResponse.json().catch(() => null);
 
   if (!locationResponse.ok || !located?.ok) {
+    setGpsStatus("failed");
+    setGpsMessage(located?.error || "The fresh GPS reading could not be secured.");
     setCameraError(located?.error || "Unable to secure the GPS evidence.");
     return false;
   }
+
+  setGpsStatus("success");
+  setGpsMessage("Fresh GPS reading secured successfully.");
 
   setCaptureSession({
     sessionId,
@@ -372,16 +383,20 @@ async function acquireGpsLocation() {
   return new Promise<TrustedGpsCoordinates | null>((resolve) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        const capturedAt = new Date(position.timestamp).toISOString();
         const coordinates = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           accuracy: position.coords.accuracy,
+          capturedAt,
         };
         setGpsCoordinates(coordinates);
 
-        setGpsStatus("success");
+        // Browser coordinates have arrived, but trusted success is shown only
+        // after the server accepts them for this capture session.
+        setGpsStatus("requesting");
         setGpsMessage(
-          "GPS acquired successfully.",
+          "Fresh GPS reading received. Securing it for this capture...",
         );
 
         resolve(coordinates);
@@ -539,11 +554,13 @@ async function acquireGpsLocation() {
     }
 
     setCameraError("");
+    setCameraStarting(true);
     if (trustedMode) {
       const coordinates =
         await acquireGpsLocation();
 
       if (!coordinates) {
+        setCameraStarting(false);
         return;
       }
 
@@ -551,6 +568,7 @@ async function acquireGpsLocation() {
         await createCaptureSession(coordinates);
 
       if (!sessionReady) {
+        setCameraStarting(false);
         return;
       }
 
@@ -558,8 +576,7 @@ async function acquireGpsLocation() {
         "session_created",
       );
     }
-    setCameraStarting(true);
-      if (trustedMode) {
+    if (trustedMode) {
       transitionTrustedState("camera_ready");
     }
     clearCapturedPhoto();
@@ -1066,6 +1083,8 @@ try {
                     gpsCoordinates.accuracy,
                   )}
                   m
+                  <br />
+                  Reading time: {new Date(gpsCoordinates.capturedAt).toLocaleString()}
                 </div>
               ) : null}
               <div
