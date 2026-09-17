@@ -442,6 +442,10 @@ export default function BuilderProjectUnitsPage() {
               Admin Inventory
             </ActionButton>
 
+            <Link href={`/property/builder/projects/${encodeURIComponent(projectId)}/layout`}>
+              <ActionButton variant="secondary">Layout Editor</ActionButton>
+            </Link>
+
             <Link href="/property/builder/projects">
               <ActionButton variant="secondary">Back to Projects</ActionButton>
             </Link>

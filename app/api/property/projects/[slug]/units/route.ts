@@ -64,8 +64,22 @@ export async function GET(request: NextRequest, context: { params: { slug: strin
       }
     }
     const { builder_profile_id: _privateBuilderId, ...publicProject } = project;
+    const layoutResult = await admin.from("property_project_layouts")
+      .select("id,version,name,status,canvas_width,canvas_height")
+      .eq("project_id", project.id).eq("status", "published").maybeSingle();
+    if (layoutResult.error) return fail("Published project layout could not be loaded.", 500, "LAYOUT_LOOKUP_FAILED");
+    let publicLayout: any = null;
+    if (layoutResult.data) {
+      const placementResult = await admin.from("property_project_layout_units")
+        .select("unit_id,position_x,position_y,width,height,rotation,label_override")
+        .eq("layout_id", layoutResult.data.id);
+      if (placementResult.error) return fail("Published project layout could not be loaded.", 500, "LAYOUT_PLACEMENTS_FAILED");
+      const visibleIds = new Set(visibleUnits.map((unit) => unit.id));
+      publicLayout = { ...layoutResult.data, placements: (placementResult.data ?? []).filter((row) => visibleIds.has(row.unit_id)) };
+    }
     return NextResponse.json({ ok: true, data: {
       project: publicProject, catalogs: catalogResult.data ?? [], ownerPreview,
+      layout: publicLayout,
       units: visibleUnits.map((unit) => ({ ...unit, price: priceByUnit.get(unit.id) ?? null, listingId: listingByUnit.get(unit.id) ?? null })),
     } }, { headers: { "Cache-Control": "private, no-store" } });
   } catch {
