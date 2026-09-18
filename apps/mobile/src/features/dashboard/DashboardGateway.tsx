@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { getNativeSupabase } from "@/lib/auth/supabase";
 import { NotificationDeviceCard } from "@/features/notifications/NotificationDeviceCard";
 import { useNotificationResponse } from "@/features/notifications/NotificationResponseProvider";
+import { PropertyDiscoveryScreen } from "@/features/property/PropertyDiscoveryScreen";
 import { ReleaseHealthCard } from "@/features/release/ReleaseHealthCard";
 import { colors, radii, spacing, typography } from "@/theme/tokens";
 import { canonicalWebUrl, loadDashboardAggregate, loadMobileBootstrap, loadPropertyWorkspace, type MobileBootstrap, type MobileDashboardAggregate, type MobileDashboardKey, type MobilePropertyWorkspace } from "./api";
@@ -30,6 +31,7 @@ export function DashboardGateway({ session, onboarding }: { session: Session; on
   const [data, setData] = useState<MobileBootstrap | null>(null);
   const [aggregate, setAggregate] = useState<MobileDashboardAggregate | null>(null);
   const [propertyWorkspace, setPropertyWorkspace] = useState<MobilePropertyWorkspace | null>(null);
+  const [showPropertyDiscovery, setShowPropertyDiscovery] = useState(false);
   const [selectedCapability, setSelectedCapability] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -56,6 +58,7 @@ export function DashboardGateway({ session, onboarding }: { session: Session; on
   if (!data && !message) return <SafeAreaView accessibilityLabel="Preparing your workspace" accessibilityRole="progressbar" style={styles.center}><ActivityIndicator color={colors.brand} size="large" /><Text accessibilityLiveRegion="polite" style={styles.muted}>Preparing your workspace…</Text></SafeAreaView>;
   if (!data) return <SafeAreaView style={styles.center}><Text accessibilityRole="alert" style={styles.error}>{message}</Text><Action label="Try again" onPress={() => void refresh()} /></SafeAreaView>;
   if (data.registration.requiredAction !== "none") return <>{onboarding}</>;
+  if (showPropertyDiscovery) return <PropertyDiscoveryScreen session={session} onBack={() => setShowPropertyDiscovery(false)} />;
 
   const copy = DASHBOARD_COPY[data.navigation.primaryDashboard];
   const capabilityGroups = Object.entries(data.capabilities.groups).filter(([, values]) => values.length > 0);
@@ -74,7 +77,7 @@ export function DashboardGateway({ session, onboarding }: { session: Session; on
     <View style={styles.hero}><Text style={styles.eyebrow}>{copy.eyebrow}</Text><Text accessibilityRole="header" style={styles.heroTitle}>{copy.title}</Text><Text style={styles.heroBody}>{copy.summary}</Text><Text style={styles.welcome}>{data.person.displayName}{data.identity.businessName ? ` · ${data.identity.businessName}` : ""}</Text></View>
     {notification.action && <View accessibilityLiveRegion="assertive" accessibilityRole="alert" style={styles.notificationCard}><Text style={styles.notificationKicker}>IMPORTANT WORK UPDATE</Text><Text accessibilityRole="header" style={styles.sectionTitle}>{notification.action.title}</Text><Text style={styles.notificationBody}>{notification.action.body}</Text>{notification.action.webPath ? <Action label="Continue to the canonical workspace" onPress={() => { const path = notification.action?.webPath; notification.clear(); if (path) void Linking.openURL(canonicalWebUrl(path)); }} /> : <Text style={styles.muted}>This alert has no safe action link. Your refreshed dashboard remains available below.</Text>}<Pressable accessibilityLabel="Dismiss work update" accessibilityRole="button" hitSlop={8} onPress={notification.clear}><Text style={styles.dismiss}>Dismiss</Text></Pressable></View>}
     {aggregate && <View style={styles.card}><Text style={styles.kicker}>LIVE WORK SUMMARY</Text><Text accessibilityRole="header" style={styles.sectionTitle}>At a glance</Text><View style={styles.metrics}>{aggregate.metrics.map((item) => <Pressable accessibilityHint="Opens the canonical workspace" accessibilityLabel={`${item.label}: ${item.value === null ? "unavailable" : item.value}`} accessibilityRole="link" key={item.key} style={styles.metric} onPress={() => void Linking.openURL(canonicalWebUrl(item.webPath))}><Text style={styles.metricValue}>{item.value === null ? "—" : item.value}</Text><Text style={styles.metricLabel}>{item.label}</Text></Pressable>)}</View><Text style={styles.muted}>Counts come from your current authorised server view. Pull down to refresh.</Text></View>}
-    {propertyWorkspace && <PropertyWorkspaceCard workspace={propertyWorkspace} />}
+    {propertyWorkspace && <PropertyWorkspaceCard workspace={propertyWorkspace} onExplore={() => setShowPropertyDiscovery(true)} />}
     <NotificationDeviceCard session={session} />
     <ReleaseHealthCard />
     <View style={styles.card}><Text style={styles.kicker}>CONTINUE YOUR WORK</Text><Text style={styles.sectionTitle}>Your authorised destinations</Text>{data.navigation.items.map((item) => <Action key={item.key} label={item.label} onPress={() => void Linking.openURL(canonicalWebUrl(item.webPath))} secondary />)}<Action label="Open Unified Workspace" onPress={() => void Linking.openURL(canonicalWebUrl(data.navigation.unifiedWorkspacePath))} /></View>
@@ -83,7 +86,7 @@ export function DashboardGateway({ session, onboarding }: { session: Session; on
   </ScrollView></SafeAreaView>;
 }
 
-function PropertyWorkspaceCard({ workspace }: { workspace: MobilePropertyWorkspace }) {
+function PropertyWorkspaceCard({ workspace, onExplore }: { workspace: MobilePropertyWorkspace; onExplore(): void }) {
   return <View style={styles.card}>
     <Text style={styles.kicker}>PROPERTY WORKSPACE</Text>
     <Text accessibilityRole="header" style={styles.sectionTitle}>Property journeys</Text>
@@ -111,6 +114,7 @@ function PropertyWorkspaceCard({ workspace }: { workspace: MobilePropertyWorkspa
       <Action label="Manage Builder Projects" onPress={() => void Linking.openURL(canonicalWebUrl(workspace.destinations.builderProjects))} secondary />
     </>}
     <Text style={styles.groupTitle}>Explore property</Text>
+    <Action label="Explore Projects in App" onPress={onExplore} />
     <Action label="Browse Builder Projects" onPress={() => void Linking.openURL(canonicalWebUrl(workspace.destinations.buyerProjects))} secondary />
     <Action label="Browse Available Units" onPress={() => void Linking.openURL(canonicalWebUrl(workspace.destinations.buyerInventory))} secondary />
     <Text style={styles.muted}>Private legal papers, uploads, holds, reservations, bookings and agreements are not loaded into this read-only mobile summary.</Text>
