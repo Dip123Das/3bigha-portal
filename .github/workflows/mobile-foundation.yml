@@ -4,6 +4,11 @@ on:
   pull_request:
     paths:
       - "apps/mobile/**"
+      - "app/api/trusted-media/upload/route.ts"
+      - "app/api/v1/mobile/trusted-media/**"
+      - "lib/mobile/contracts/v1.ts"
+      - "lib/mobile/server/trusted-media.ts"
+      - "lib/trusted-media/**"
       - "scripts/verify-mob-01-foundation.mjs"
       - "scripts/verify-mob-02-contract-layer.mjs"
       - "scripts/verify-mob-03-native-auth.mjs"
@@ -32,6 +37,7 @@ on:
       - "scripts/verify-mob-26-registration-contract.mjs"
       - "scripts/verify-mob-27-role-journey-parity.mjs"
       - "scripts/verify-mob-28-property-discovery.mjs"
+      - "scripts/verify-mob-29-trusted-photo-gps.mjs"
       - "scripts/verify-mobile-foundation.mjs"
       - "docs/mobile/MOB-24-mobile-foundation-closure.md"
       - ".github/workflows/mobile-foundation.yml"
@@ -39,6 +45,11 @@ on:
     branches: [main]
     paths:
       - "apps/mobile/**"
+      - "app/api/trusted-media/upload/route.ts"
+      - "app/api/v1/mobile/trusted-media/**"
+      - "lib/mobile/contracts/v1.ts"
+      - "lib/mobile/server/trusted-media.ts"
+      - "lib/trusted-media/**"
       - "scripts/verify-mob-01-foundation.mjs"
       - "scripts/verify-mob-02-contract-layer.mjs"
       - "scripts/verify-mob-03-native-auth.mjs"
@@ -67,6 +78,7 @@ on:
       - "scripts/verify-mob-26-registration-contract.mjs"
       - "scripts/verify-mob-27-role-journey-parity.mjs"
       - "scripts/verify-mob-28-property-discovery.mjs"
+      - "scripts/verify-mob-29-trusted-photo-gps.mjs"
       - "scripts/verify-mobile-foundation.mjs"
       - "docs/mobile/MOB-24-mobile-foundation-closure.md"
       - ".github/workflows/mobile-foundation.yml"

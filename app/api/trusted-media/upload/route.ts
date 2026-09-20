@@ -1,6 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
 
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import sharp from "sharp";
 
@@ -10,7 +9,14 @@ import {
   type UploadedMediaAsset,
 } from "@/lib/media/media-config";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { getSupabaseServerClient } from "@/lib/supabaseServer";
+import {
+  MobileAuthError,
+  authenticateMobileRequest,
+} from "@/lib/mobile/server/auth";
+import {
+  MobileTrustedMediaTargetError,
+  requireOwnedProjectUnitTarget,
+} from "@/lib/mobile/server/trusted-media";
 import {
   completeTrustedCaptureSession,
   TrustedCaptureSessionError,
@@ -225,21 +231,21 @@ export async function POST(request: Request) {
   let registeredAssetId = "";
 
   try {
-    const cookieStore = await cookies();
+    let user;
 
-    const supabase = getSupabaseServerClient(cookieStore);
+    try {
+      const auth = await authenticateMobileRequest(request);
+      user = auth.user;
+    } catch (error) {
+      if (error instanceof MobileAuthError) {
+        return errorResponse(
+          error.message,
+          error.code === "CONFIGURATION_ERROR" ? 500 : 401,
+          error.code,
+        );
+      }
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user?.id) {
-      return errorResponse(
-        "You must be signed in to upload trusted evidence.",
-        401,
-        "UNAUTHENTICATED",
-      );
+      throw error;
     }
 
     authenticatedUserId = user.id;
@@ -260,6 +266,33 @@ export async function POST(request: Request) {
         400,
         "INVALID_CONTEXT",
       );
+    }
+
+    if (context.entityType === "project_unit") {
+      if (!context.entityId) {
+        return errorResponse(
+          "A project-unit capture target is required.",
+          400,
+          "ENTITY_REFERENCE_REQUIRED",
+        );
+      }
+
+      try {
+        await requireOwnedProjectUnitTarget(
+          user.id,
+          context.entityId,
+        );
+      } catch (error) {
+        if (error instanceof MobileTrustedMediaTargetError) {
+          return errorResponse(
+            error.message,
+            error.status,
+            error.code,
+          );
+        }
+
+        throw error;
+      }
     }
 
     if (!(fileEntry instanceof File)) {

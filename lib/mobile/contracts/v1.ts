@@ -27,7 +27,8 @@ export type MobileApiErrorCode =
   | "CONFIGURATION_ERROR"
   | "BOOTSTRAP_FAILED"
   | "PROPERTY_WORKSPACE_FAILED"
-  | "PROPERTY_DISCOVERY_FAILED";
+  | "PROPERTY_DISCOVERY_FAILED"
+  | "TRUSTED_MEDIA_FAILED";
 
 export type MobileOnboardingPath = "customer" | "business" | "individual_professional";
 
@@ -346,6 +347,104 @@ export type MobilePropertyDiscovery = {
   generatedAt: string;
   projects: MobilePropertyDiscoveryProject[];
   selectedProject: MobilePropertyProjectPreview | null;
+};
+
+export type MobileTrustedMediaEntityType = "project_unit";
+
+export type MobileTrustedMediaEvidenceRole =
+  | "unit_overview"
+  | "additional_live_capture";
+
+export type MobileTrustedCaptureIntegrityStatus =
+  | "pending"
+  | "accepted"
+  | "review_required"
+  | "rejected"
+  | "expired";
+
+export type MobileTrustedMediaTarget = {
+  entityType: MobileTrustedMediaEntityType;
+  entityId: string;
+  projectId: string;
+  projectName: string;
+  projectSlug: string;
+  unitCode: string | null;
+  title: string | null;
+  unitKind: string;
+  status: string;
+  trustStatus: string;
+  existingAssetCount: number;
+  requiredEvidenceRole: "unit_overview";
+};
+
+export type MobileTrustedMediaTargets = {
+  generatedAt: string;
+  targets: MobileTrustedMediaTarget[];
+};
+
+export type MobileTrustedLocationObservation = {
+  latitude: number;
+  longitude: number;
+  accuracyMetres: number;
+  altitudeMetres?: number | null;
+  capturedAt: string;
+  provider?: string | null;
+};
+
+export type MobileTrustedCaptureSession = {
+  id: string;
+  ownerUserId: string;
+  businessId?: string | null;
+  entityType: MobileTrustedMediaEntityType;
+  entityId: string;
+  evidencePolicyKey: string;
+  issuedAt: string;
+  expiresAt: string;
+  completedAt?: string | null;
+  platform: "android" | "ios";
+  appVersion?: string | null;
+  deviceSessionId?: string | null;
+  integrityStatus: MobileTrustedCaptureIntegrityStatus;
+  location?: MobileTrustedLocationObservation | null;
+  riskFlags: string[];
+};
+
+export type MobileTrustedCaptureStart = {
+  session: MobileTrustedCaptureSession;
+  nonce: string;
+  policy: {
+    minimumLiveImages: 1;
+    recommendedLiveImages: number;
+    maximumLiveImages: number;
+    maximumGpsAccuracyMetres: number;
+    reviewGpsAccuracyMetres: number;
+    galleryMaySatisfyMandatory: false;
+    requiredEvidenceRole: "unit_overview";
+  };
+};
+
+export type MobileTrustedMediaAsset = {
+  id: string;
+  trustedMediaAssetId: string;
+  url: string;
+  bucket: string;
+  path: string;
+  name: string;
+  size: number;
+  mimeType: "image/jpeg" | "image/png" | "image/webp";
+  kind: "image";
+  captureSource: "live_camera";
+  captureTimestamp: string;
+  captureSessionId: string;
+  evidenceRole: MobileTrustedMediaEvidenceRole;
+  provenanceStatus: string;
+  lifecycleStatus: string;
+  captureIntegrityStatus: MobileTrustedCaptureIntegrityStatus;
+};
+
+export type MobileTrustedMediaUploadResult = {
+  asset: MobileTrustedMediaAsset;
+  target: MobileTrustedMediaTarget;
 };
 
 export function mobileSuccess<T>(data: T): MobileApiSuccess<T> {
