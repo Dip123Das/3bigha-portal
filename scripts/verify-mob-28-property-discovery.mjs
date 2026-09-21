@@ -62,7 +62,7 @@ assert.match(screen, /accessibilityState=\{\{ selected:/);
 assert.match(screen, /Declared four-side boundaries/);
 assert.match(
   screen,
-  /Private legal papers, holds, bookings, payments and agreements are not loaded on this read-only screen\./,
+  /Private legal papers are never loaded into public discovery\./,
 );
 
 assert.match(

@@ -28,7 +28,8 @@ export type MobileApiErrorCode =
   | "BOOTSTRAP_FAILED"
   | "PROPERTY_WORKSPACE_FAILED"
   | "PROPERTY_DISCOVERY_FAILED"
-  | "TRUSTED_MEDIA_FAILED";
+  | "TRUSTED_MEDIA_FAILED"
+  | "PROPERTY_LEGAL_REVIEW_FAILED";
 
 export type MobileOnboardingPath = "customer" | "business" | "individual_professional";
 
@@ -347,6 +348,88 @@ export type MobilePropertyDiscovery = {
   generatedAt: string;
   projects: MobilePropertyDiscoveryProject[];
   selectedProject: MobilePropertyProjectPreview | null;
+};
+
+export type MobilePropertyLegalReviewStatus =
+  | "requested"
+  | "granted"
+  | "declined"
+  | "revoked"
+  | "expired";
+
+export type MobilePropertyLegalReviewRequest = {
+  id: string;
+  projectId: string;
+  unitId: string;
+  status: MobilePropertyLegalReviewStatus;
+  purpose: string;
+  consentVersion: string;
+  buyerConsentAt: string;
+  requestedAt: string;
+  decidedAt: string | null;
+  expiresAt: string | null;
+  revokedAt: string | null;
+  decisionNote: string | null;
+};
+
+export type MobilePropertyLegalReviewDocument = {
+  id: string;
+  documentType: string;
+  title: string;
+  originalFilename: string | null;
+  mimeType: string | null;
+  fileSizeBytes: number | null;
+  analysisStatus: string | null;
+  analysisConfidence: number | null;
+  summary: string | null;
+  warnings: string[];
+  createdAt: string;
+};
+
+export type MobilePropertyLegalReviewUnit = {
+  id: string;
+  projectId: string;
+  projectName: string;
+  projectSlug: string;
+  unitCode: string | null;
+  title: string | null;
+  unitKind: string;
+  status: MobilePropertyUnitStatus;
+  trustStatus: "verified";
+};
+
+export type MobilePropertyLegalReviewPermissions = {
+  actor: "buyer" | "owner";
+  canRequestReview: boolean;
+  canDecideReview: boolean;
+  canRevokeReview: boolean;
+  canViewDocuments: boolean;
+};
+
+export type MobilePropertyLegalReviewWorkspace = {
+  generatedAt: string;
+  unit: MobilePropertyLegalReviewUnit;
+  request: MobilePropertyLegalReviewRequest | null;
+  documents: MobilePropertyLegalReviewDocument[];
+  permissions: MobilePropertyLegalReviewPermissions;
+  policy: {
+    consentVersion: string;
+    accessExpires: boolean;
+    documentViewsAreAudited: true;
+    signedAccessIsShortLived: true;
+  };
+};
+
+export type MobilePropertyLegalReviewDecision = {
+  requestId: string;
+  status: "granted" | "declined" | "revoked";
+  decisionNote?: string | null;
+};
+
+export type MobilePropertyLegalDocumentAccess = {
+  documentId: string;
+  expiresAt: string;
+  accessUrl: string;
 };
 
 export type MobileTrustedMediaEntityType = "project_unit";

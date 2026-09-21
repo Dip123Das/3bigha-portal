@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors, radii, spacing, typography } from "@/theme/tokens";
+import { PropertyLegalReviewScreen } from "./PropertyLegalReviewScreen";
 import {
   loadPropertyDiscovery,
   type MobilePropertyDiscovery,
@@ -63,6 +64,7 @@ export function PropertyDiscoveryScreen({
   const [data, setData] = useState<MobilePropertyDiscovery | null>(null);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  const [reviewUnitId, setReviewUnitId] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -103,6 +105,16 @@ export function PropertyDiscoveryScreen({
   );
   const selectedUnit =
     preview?.units.find((unit) => unit.id === selectedUnitId) ?? null;
+
+  if (reviewUnitId) {
+    return (
+      <PropertyLegalReviewScreen
+        session={session}
+        unitId={reviewUnitId}
+        onBack={() => setReviewUnitId(null)}
+      />
+    );
+  }
 
   function goBack() {
     if (preview || selectedSlug) {
@@ -306,19 +318,30 @@ export function PropertyDiscoveryScreen({
               {units.length === 0 ? <Text style={styles.empty}>No verified unit matches this filter.</Text> : null}
             </View>
 
-            {selectedUnit ? <UnitDetail unit={selectedUnit} /> : null}
+            {selectedUnit ? (
+              <UnitDetail
+                unit={selectedUnit}
+                onLegalReview={() => setReviewUnitId(selectedUnit.id)}
+              />
+            ) : null}
           </>
         )}
 
         <Text style={styles.privacy}>
-          Private legal papers, holds, bookings, payments and agreements are not loaded on this read-only screen.
+          Private legal papers are never loaded into public discovery. Use the authenticated confidential-review workflow before proceeding toward booking. Holds, bookings, payments and agreements remain separate protected steps.
         </Text>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function UnitDetail({ unit }: { unit: MobilePropertyDiscoveryUnit }) {
+function UnitDetail({
+  unit,
+  onLegalReview,
+}: {
+  unit: MobilePropertyDiscoveryUnit;
+  onLegalReview(): void;
+}) {
   const palette = STATUS[unit.status];
   const facts = [
     ["Type", human(unit.unitKind)],
@@ -367,6 +390,10 @@ function UnitDetail({ unit }: { unit: MobilePropertyDiscoveryUnit }) {
         <Text style={styles.muted}>East: {unit.boundaryEast || "Pending"}</Text>
         <Text style={styles.muted}>West: {unit.boundaryWest || "Pending"}</Text>
       </View>
+      <Action
+        label="Review confidential legal papers"
+        onPress={onLegalReview}
+      />
     </View>
   );
 }
