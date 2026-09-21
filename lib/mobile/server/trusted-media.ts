@@ -29,6 +29,7 @@ export class MobileTrustedMediaTargetError extends Error {
       | "ASSET_INVALID"
       | "ASSET_FORBIDDEN"
       | "ASSET_REUSE_FORBIDDEN"
+      | "VIDEO_REQUIRES_PHOTO"
       | "ATTACHMENT_FAILED",
     message: string,
     readonly status: number,
@@ -258,6 +259,7 @@ export async function attachTrustedMediaAssetToProjectUnit(
           "public_derivative_path",
           "media_kind",
           "mime_type",
+          "duration_ms",
           "byte_size",
           "evidence_role",
           "capture_session_id",
@@ -295,7 +297,7 @@ export async function attachTrustedMediaAssetToProjectUnit(
   if (!assetResult.data) {
     throw new MobileTrustedMediaTargetError(
       "ASSET_FORBIDDEN",
-      "The trusted photo was not found or does not belong to this unit.",
+      "The trusted media asset was not found or does not belong to this unit.",
       403,
     );
   }
@@ -351,36 +353,84 @@ export async function attachTrustedMediaAssetToProjectUnit(
   }
 
   const asset = assetResult.data as Row;
+  const mediaKind =
+    clean(asset.media_kind) === "video"
+      ? "video"
+      : "image";
+  const isVideo = mediaKind === "video";
+  const evidenceRole =
+    clean(asset.evidence_role) || "unit_overview";
+
+  if (
+    (isVideo && evidenceRole !== "unit_walkthrough_video") ||
+    (!isVideo && evidenceRole === "unit_walkthrough_video")
+  ) {
+    throw new MobileTrustedMediaTargetError(
+      "ASSET_INVALID",
+      "Trusted-media kind and evidence role do not match.",
+      409,
+    );
+  }
+
+  const hasRequiredPhoto = currentAssets.some((current) => {
+    const kind = clean(current.kind);
+    const role = clean(
+      current.evidenceRole ?? current.evidence_role,
+    );
+
+    return kind === "image" && role === "unit_overview";
+  });
+
+  if (isVideo && !hasRequiredPhoto) {
+    throw new MobileTrustedMediaTargetError(
+      "VIDEO_REQUIRES_PHOTO",
+      "Capture and attach the required trusted unit photograph before adding a walkthrough video.",
+      409,
+    );
+  }
+
   const publicBucket = MEDIA_BUCKET_BY_MODULE.property;
   const publicPath = clean(asset.public_derivative_path);
-  const { data: publicUrlData } = admin.storage
-    .from(publicBucket)
-    .getPublicUrl(publicPath);
+  const publicUrl =
+    !isVideo && publicPath
+      ? admin.storage
+          .from(publicBucket)
+          .getPublicUrl(publicPath).data.publicUrl
+      : "";
+  const durationMs = isVideo
+    ? Number(asset.duration_ms) || null
+    : null;
 
   const persistedAsset = {
     id: clean(asset.id),
     trustedMediaAssetId: clean(asset.id),
-    url: publicUrlData.publicUrl,
-    bucket: publicBucket,
-    path: publicPath,
-    name: `trusted-${clean(asset.id)}.jpg`,
+    url: publicUrl,
+    bucket: isVideo ? "" : publicBucket,
+    path: isVideo ? "" : publicPath,
+    name: `trusted-${clean(asset.id)}.${isVideo ? "mp4" : "jpg"}`,
     size: Number(asset.byte_size) || 0,
-    mimeType: clean(asset.mime_type) || "image/jpeg",
-    kind: "image",
+    mimeType:
+      clean(asset.mime_type) ||
+      (isVideo ? "video/mp4" : "image/jpeg"),
+    kind: mediaKind,
+    durationMs,
     captureSource: "live_camera",
     captureTimestamp: clean(asset.captured_at_client),
     evidenceCategory: "trusted_listing_media",
-    evidencePurpose: clean(asset.evidence_role) || "unit_overview",
-    evidenceRole: clean(asset.evidence_role) || "unit_overview",
+    evidencePurpose: evidenceRole,
+    evidenceRole,
     captureSessionId: clean(asset.capture_session_id),
     provenanceStatus: clean(asset.provenance_status),
     lifecycleStatus: clean(asset.lifecycle_status),
   };
 
   const nextAssets = [...currentAssets, persistedAsset];
+  const publicationEvidence = isVideo
+    ? currentAssets
+    : nextAssets;
   const decision = await evaluateTrustedPublication(
     "property",
-    nextAssets,
+    publicationEvidence,
   );
 
   const trustStatus = decision.ok ? "verified" : "pending";
@@ -414,7 +464,7 @@ export async function attachTrustedMediaAssetToProjectUnit(
   if (updated.error || !updated.data) {
     throw new MobileTrustedMediaTargetError(
       "ATTACHMENT_FAILED",
-      "The unit changed while its trusted photo was being attached. Reload and try again.",
+      "The unit changed while trusted media was being attached. Reload and try again.",
       409,
     );
   }

@@ -140,19 +140,31 @@ assert.match(
   /canonicalApiUrl\("\/api\/trusted-media\/upload"\)/,
 );
 
+const photoFlowStart = screen.indexOf(
+  "async function captureAndUpload()",
+);
+const videoFlowStart = screen.indexOf(
+  "async function recordAndUploadVideo()",
+);
+assert.ok(photoFlowStart >= 0);
+assert.ok(videoFlowStart > photoFlowStart);
+const photoFlow = screen.slice(photoFlowStart, videoFlowStart);
+
 assert.match(screen, /export function TrustedMediaCaptureScreen/);
 assert.match(screen, /useCameraPermissions/);
 assert.match(screen, /Location\.Accuracy\.Highest/);
 assert.match(screen, /point\.mocked === true/);
 assert.match(screen, /locationAgeMs > 120_000/);
 assert.match(screen, /facing="back"/);
-assert.match(screen, /takePictureAsync/);
+assert.match(photoFlow, /takePictureAsync/);
+assert.match(photoFlow, /uploadTrustedUnitPhoto/);
+assert.match(photoFlow, /attachTrustedUnitPhoto/);
 assert.match(screen, /accessibilityRole="radio"/);
 assert.match(screen, /accessibilityLiveRegion="assertive"/);
 assert.match(screen, /Precise GPS is stored privately/);
-assert.match(screen, /public image does not disclose/);
+assert.match(screen, /Public photographs do not disclose/);
 assert.doesNotMatch(
-  screen,
+  photoFlow,
   /DocumentPicker|ImagePicker|launchImageLibrary|recordAsync/,
 );
 
@@ -188,7 +200,7 @@ assert.doesNotMatch(
 );
 assert.doesNotMatch(
   [client, screen].join("\n"),
-  /gallery_media|launchImageLibrary|recordAsync|mediaTypes.*video/i,
+  /gallery_media|launchImageLibrary|ImagePicker|DocumentPicker/i,
 );
 
 console.log(

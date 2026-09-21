@@ -353,7 +353,8 @@ export type MobileTrustedMediaEntityType = "project_unit";
 
 export type MobileTrustedMediaEvidenceRole =
   | "unit_overview"
-  | "additional_live_capture";
+  | "additional_live_capture"
+  | "unit_walkthrough_video";
 
 export type MobileTrustedCaptureIntegrityStatus =
   | "pending"
@@ -361,6 +362,20 @@ export type MobileTrustedCaptureIntegrityStatus =
   | "review_required"
   | "rejected"
   | "expired";
+
+export type MobileTrustedMediaKind = "image" | "video";
+
+export type MobileTrustedVideoPolicy = {
+  minimumDurationSeconds: 5;
+  maximumDurationSeconds: 45;
+  maximumBytes: 83886080;
+  allowedMimeTypes: readonly [
+    "video/mp4",
+    "video/quicktime",
+  ];
+  galleryMaySatisfyVideo: false;
+  recordsAudio: false;
+};
 
 export type MobileTrustedMediaTarget = {
   entityType: MobileTrustedMediaEntityType;
@@ -431,8 +446,14 @@ export type MobileTrustedMediaAsset = {
   path: string;
   name: string;
   size: number;
-  mimeType: "image/jpeg" | "image/png" | "image/webp";
-  kind: "image";
+  mimeType:
+    | "image/jpeg"
+    | "image/png"
+    | "image/webp"
+    | "video/mp4"
+    | "video/quicktime";
+  kind: MobileTrustedMediaKind;
+  durationMs?: number | null;
   captureSource: "live_camera";
   captureTimestamp: string;
   captureSessionId: string;

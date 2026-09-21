@@ -4,7 +4,9 @@ import { NextResponse } from "next/server";
 import sharp from "sharp";
 
 import {
+  ACCEPTED_VIDEO_TYPES,
   MEDIA_BUCKET_BY_MODULE,
+  UNIVERSAL_MEDIA_LIMITS,
   type UniversalMediaModule,
   type UploadedMediaAsset,
 } from "@/lib/media/media-config";
@@ -41,6 +43,8 @@ const ACCEPTED_IMAGE_TYPES = new Set([
   "image/webp",
 ]);
 
+const ACCEPTED_TRUSTED_VIDEO_TYPES = new Set(ACCEPTED_VIDEO_TYPES);
+
 const TRUSTED_ENTITY_TYPES = new Set<TrustedMediaEntityType>([
   "property",
   "builder_project",
@@ -61,6 +65,7 @@ const TRUSTED_EVIDENCE_ROLES = new Set<TrustedMediaEvidenceRole>([
   "rental_asset_overview",
   "service_work_evidence",
   "service_tools_or_premises",
+  "unit_walkthrough_video",
   "additional_live_capture",
   "gallery_media",
 ]);
@@ -82,6 +87,9 @@ type TrustedUploadContext = {
   capturedAtClient: string;
   sortOrder?: number;
   uploadMetadata?: Record<string, unknown>;
+  mediaKind?: "image" | "video";
+  durationMs?: number | null;
+  recordsAudio?: boolean;
 };
 
 type CaptureSessionRow = {
@@ -188,8 +196,42 @@ function validateContext(
 
   if (age > 15 * 60 * 1000 || age < -60_000) {
     throw new Error(
-      "The captured image timestamp is outside the trusted upload window.",
+      "The capture timestamp is outside the trusted upload window.",
     );
+  }
+
+  const mediaKind = context.mediaKind ?? "image";
+
+  if (mediaKind !== "image" && mediaKind !== "video") {
+    throw new Error("Trusted media kind is invalid.");
+  }
+
+  if (mediaKind === "video") {
+    if (context.evidenceRole !== "unit_walkthrough_video") {
+      throw new Error(
+        "Trusted video must use the unit walkthrough evidence role.",
+      );
+    }
+
+    if (
+      !Number.isFinite(context.durationMs) ||
+      Number(context.durationMs) < 5_000 ||
+      Number(context.durationMs) > 45_000
+    ) {
+      throw new Error(
+        "Trusted video duration must be between 5 and 45 seconds.",
+      );
+    }
+
+    if (context.recordsAudio !== false) {
+      throw new Error("Trusted property video must be recorded without audio.");
+    }
+
+    if (context.isMandatoryEvidence === true) {
+      throw new Error(
+        "Trusted video cannot replace the mandatory live photograph.",
+      );
+    }
   }
 }
 
@@ -297,26 +339,50 @@ export async function POST(request: Request) {
 
     if (!(fileEntry instanceof File)) {
       return errorResponse(
-        "A trusted evidence image is required.",
+        "A trusted evidence file is required.",
         400,
         "FILE_REQUIRED",
       );
     }
 
-    if (!ACCEPTED_IMAGE_TYPES.has(fileEntry.type)) {
-      return errorResponse(
-        "Trusted evidence must be a JPEG, PNG or WebP image.",
-        415,
-        "UNSUPPORTED_MEDIA_TYPE",
-      );
-    }
+    const mediaKind = context.mediaKind ?? "image";
+    const isVideo = mediaKind === "video";
 
-    if (fileEntry.size <= 0 || fileEntry.size > MAX_IMAGE_BYTES) {
-      return errorResponse(
-        "Trusted evidence must be smaller than 8 MB.",
-        413,
-        "FILE_SIZE_INVALID",
-      );
+    if (isVideo) {
+      if (!ACCEPTED_TRUSTED_VIDEO_TYPES.has(fileEntry.type)) {
+        return errorResponse(
+          "Trusted video must be MP4 or QuickTime.",
+          415,
+          "UNSUPPORTED_MEDIA_TYPE",
+        );
+      }
+
+      if (
+        fileEntry.size <= 0 ||
+        fileEntry.size > UNIVERSAL_MEDIA_LIMITS.maxVideoSize
+      ) {
+        return errorResponse(
+          "Trusted video must be smaller than 80 MB.",
+          413,
+          "FILE_SIZE_INVALID",
+        );
+      }
+    } else {
+      if (!ACCEPTED_IMAGE_TYPES.has(fileEntry.type)) {
+        return errorResponse(
+          "Trusted evidence must be a JPEG, PNG or WebP image.",
+          415,
+          "UNSUPPORTED_MEDIA_TYPE",
+        );
+      }
+
+      if (fileEntry.size <= 0 || fileEntry.size > MAX_IMAGE_BYTES) {
+        return errorResponse(
+          "Trusted evidence must be smaller than 8 MB.",
+          413,
+          "FILE_SIZE_INVALID",
+        );
+      }
     }
 
     const admin = getSupabaseAdmin();
@@ -445,13 +511,13 @@ export async function POST(request: Request) {
 
     const sha256 = createHash("sha256").update(originalBuffer).digest("hex");
 
-    const image = sharp(originalBuffer, {
-      failOn: "error",
-    });
+    const metadata = isVideo
+      ? null
+      : await sharp(originalBuffer, {
+          failOn: "error",
+        }).metadata();
 
-    const metadata = await image.metadata();
-
-    if (!metadata.width || !metadata.height) {
+    if (!isVideo && (!metadata?.width || !metadata.height)) {
       return errorResponse(
         "The uploaded image dimensions could not be verified.",
         422,
@@ -459,23 +525,27 @@ export async function POST(request: Request) {
       );
     }
 
-    const derivativeBuffer = await sharp(originalBuffer, {
-      failOn: "error",
-    })
-      .rotate()
-      .resize({
-        width: 1920,
-        height: 1920,
-        fit: "inside",
-        withoutEnlargement: true,
-      })
-      .jpeg({
-        quality: 84,
-        mozjpeg: true,
-      })
-      .toBuffer();
+    const derivativeBuffer = isVideo
+      ? null
+      : await sharp(originalBuffer, {
+          failOn: "error",
+        })
+          .rotate()
+          .resize({
+            width: 1920,
+            height: 1920,
+            fit: "inside",
+            withoutEnlargement: true,
+          })
+          .jpeg({
+            quality: 84,
+            mozjpeg: true,
+          })
+          .toBuffer();
 
-    publicBucket = MEDIA_BUCKET_BY_MODULE[context.module];
+    publicBucket = isVideo
+      ? ""
+      : MEDIA_BUCKET_BY_MODULE[context.module];
 
     const listingReference =
       context.entityId || context.draftToken || context.sessionId;
@@ -490,12 +560,14 @@ export async function POST(request: Request) {
       `${objectId}-original`,
     ].join("/");
 
-    publicObjectPath = [
-      safePathSegment(context.entityType),
-      safePathSegment(listingReference),
-      safePathSegment(context.evidenceRole),
-      `${objectId}.jpg`,
-    ].join("/");
+    publicObjectPath = isVideo
+      ? ""
+      : [
+          safePathSegment(context.entityType),
+          safePathSegment(listingReference),
+          safePathSegment(context.evidenceRole),
+          `${objectId}.jpg`,
+        ].join("/");
 
     await recordAuditEvent({
       entityType: context.entityType,
@@ -508,6 +580,9 @@ export async function POST(request: Request) {
         evidenceRole: context.evidenceRole,
         originalMimeType: fileEntry.type,
         originalByteSize: fileEntry.size,
+        mediaKind,
+        durationMs: isVideo ? context.durationMs : null,
+        recordsAudio: isVideo ? false : null,
       },
     });
 
@@ -523,16 +598,18 @@ export async function POST(request: Request) {
       throw privateUploadError;
     }
 
-    const { error: derivativeUploadError } = await admin.storage
-      .from(publicBucket)
-      .upload(publicObjectPath, derivativeBuffer, {
-        contentType: "image/jpeg",
-        cacheControl: "31536000",
-        upsert: false,
-      });
+    if (derivativeBuffer && publicBucket && publicObjectPath) {
+      const { error: derivativeUploadError } = await admin.storage
+        .from(publicBucket)
+        .upload(publicObjectPath, derivativeBuffer, {
+          contentType: "image/jpeg",
+          cacheControl: "31536000",
+          upsert: false,
+        });
 
-    if (derivativeUploadError) {
-      throw derivativeUploadError;
+      if (derivativeUploadError) {
+        throw derivativeUploadError;
+      }
     }
 
     const capturedAtServer = new Date().toISOString();
@@ -547,12 +624,13 @@ export async function POST(request: Request) {
         draft_token: context.draftToken ?? session.draft_token,
         bucket: PRIVATE_BUCKET,
         object_path: privateObjectPath,
-        public_derivative_path: publicObjectPath,
-        media_kind: "image",
+        public_derivative_path: isVideo ? null : publicObjectPath,
+        media_kind: mediaKind,
         mime_type: fileEntry.type,
         byte_size: fileEntry.size,
-        width: metadata.width,
-        height: metadata.height,
+        width: metadata?.width ?? null,
+        height: metadata?.height ?? null,
+        duration_ms: isVideo ? Number(context.durationMs) : null,
         sha256,
         origin_type: context.originType ?? "trusted_web",
         evidence_role: context.evidenceRole,
@@ -567,10 +645,13 @@ export async function POST(request: Request) {
         gps_captured_at: session.location_observed_at,
         location_public_precision: "hidden",
         provenance_status:
+          isVideo ||
           session.integrity_status === "review_required"
             ? "review_required"
             : "verified",
-        lifecycle_status: "finalised",
+        lifecycle_status: isVideo
+          ? "verification_pending"
+          : "finalised",
       })
       .select(["id", "provenance_status", "lifecycle_status"].join(","))
       .single();
@@ -610,19 +691,23 @@ export async function POST(request: Request) {
       },
     });
 
-    const { data: urlData } = admin.storage
-      .from(publicBucket)
-      .getPublicUrl(publicObjectPath);
+    const publicUrl =
+      publicBucket && publicObjectPath
+        ? admin.storage
+            .from(publicBucket)
+            .getPublicUrl(publicObjectPath).data.publicUrl
+        : "";
 
     const uploadedAsset = {
       id: registeredAssetId,
-      url: urlData.publicUrl,
-      bucket: publicBucket,
-      path: publicObjectPath,
+      url: publicUrl,
+      bucket: isVideo ? PRIVATE_BUCKET : publicBucket,
+      path: isVideo ? privateObjectPath : publicObjectPath,
       name: fileEntry.name,
       size: fileEntry.size,
       mimeType: fileEntry.type,
-      kind: "image",
+      kind: mediaKind,
+      durationMs: isVideo ? Number(context.durationMs) : null,
       captureSource: "live_camera",
       captureTimestamp: context.capturedAtClient,
       evidenceCategory: "trusted_listing_media",
@@ -631,7 +716,7 @@ export async function POST(request: Request) {
       captureSessionId: context.sessionId,
       privateEvidenceBucket: PRIVATE_BUCKET,
       privateEvidencePath: privateObjectPath,
-      publicDerivativePath: publicObjectPath,
+      publicDerivativePath: isVideo ? null : publicObjectPath,
       provenanceStatus: registeredAsset.provenance_status,
       lifecycleStatus: registeredAsset.lifecycle_status,
       captureIntegrityStatus: completedSession.integrityStatus,

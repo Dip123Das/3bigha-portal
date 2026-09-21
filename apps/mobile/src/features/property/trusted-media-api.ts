@@ -80,8 +80,14 @@ export type MobileTrustedMediaAsset = {
   path: string;
   name: string;
   size: number;
-  mimeType: "image/jpeg" | "image/png" | "image/webp";
-  kind: "image";
+  mimeType:
+    | "image/jpeg"
+    | "image/png"
+    | "image/webp"
+    | "video/mp4"
+    | "video/quicktime";
+  kind: "image" | "video";
+  durationMs?: number | null;
   captureSource: "live_camera";
   captureTimestamp: string;
   captureSessionId: string;
@@ -98,6 +104,15 @@ type NativePhoto = {
   capturedAt: string;
 };
 
+type NativeVideo = {
+  uri: string;
+  name: string;
+  mimeType: "video/mp4" | "video/quicktime";
+  capturedAt: string;
+  durationMs: number;
+  recordsAudio: false;
+};
+
 type UploadResponse = {
   ok?: boolean;
   asset?: MobileTrustedMediaAsset;
@@ -111,7 +126,7 @@ const JSON_HEADERS = {
 function errorMessage(body: UploadResponse | null) {
   if (typeof body?.error === "string") return body.error;
   if (body?.error?.message) return body.error.message;
-  return "The live trusted photo could not be uploaded safely.";
+  return "The live trusted media could not be uploaded safely.";
 }
 
 export function loadTrustedMediaTargets(
@@ -251,6 +266,101 @@ export async function uploadTrustedUnitPhoto(
   }
 }
 
+export async function uploadTrustedUnitVideo(
+  session: Session,
+  input: {
+    unitId: string;
+    capture: MobileTrustedCaptureStart;
+    video: NativeVideo;
+    uploadMetadata?: Record<string, unknown>;
+  },
+): Promise<MobileTrustedMediaAsset> {
+  const form = new FormData();
+  form.append(
+    "file",
+    {
+      uri: input.video.uri,
+      name: input.video.name,
+      type: input.video.mimeType,
+    } as unknown as Blob,
+  );
+  form.append(
+    "context",
+    JSON.stringify({
+      sessionId: input.capture.session.id,
+      nonce: input.capture.nonce,
+      module: "property",
+      entityType: "project_unit",
+      entityId: input.unitId,
+      evidenceRole: "unit_walkthrough_video",
+      isMandatoryEvidence: false,
+      originType: "trusted_native",
+      capturedAtClient: input.video.capturedAt,
+      mediaKind: "video",
+      durationMs: input.video.durationMs,
+      recordsAudio: input.video.recordsAudio,
+      uploadMetadata: input.uploadMetadata ?? {},
+    }),
+  );
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 120_000);
+
+  try {
+    const response = await fetch(
+      canonicalApiUrl("/api/trusted-media/upload"),
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          Accept: "application/json",
+          "Cache-Control": "no-store",
+        },
+        body: form,
+        signal: controller.signal,
+      },
+    );
+    const body = await response.json().catch(() => null) as
+      | UploadResponse
+      | null;
+
+    if (!response.ok || !body?.ok || !body.asset) {
+      throw new MobileRequestError(
+        errorMessage(body),
+        "service",
+        response.status === 408 ||
+          response.status === 429 ||
+          response.status >= 500,
+      );
+    }
+
+    if (
+      body.asset.kind !== "video" ||
+      body.asset.lifecycleStatus !== "verification_pending"
+    ) {
+      throw new MobileRequestError(
+        "The server did not preserve the private trusted-video boundary.",
+        "service",
+        false,
+      );
+    }
+
+    return body.asset;
+  } catch (error) {
+    if (error instanceof MobileRequestError) throw error;
+    const timedOut = controller.signal.aborted;
+    throw new MobileRequestError(
+      timedOut
+        ? "The trusted-video upload timed out. Please try again."
+        : "The trusted video could not reach 3Bigha. Check your connection and try again.",
+      timedOut ? "timeout" : "offline",
+      true,
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 export function attachTrustedUnitPhoto(
   session: Session,
   input: {
@@ -271,5 +381,28 @@ export function attachTrustedUnitPhoto(
       }),
     },
     "The trusted photo was uploaded but could not be attached to the project unit.",
+  );
+}
+
+export function attachTrustedUnitVideo(
+  session: Session,
+  input: {
+    sessionId: string;
+    unitId: string;
+    assetId: string;
+  },
+): Promise<MobileTrustedMediaTarget> {
+  return mobileApiRequest(
+    session,
+    `/api/v1/mobile/trusted-media/capture-session/${encodeURIComponent(input.sessionId)}/attach`,
+    {
+      method: "POST",
+      headers: JSON_HEADERS,
+      body: JSON.stringify({
+        unitId: input.unitId,
+        assetId: input.assetId,
+      }),
+    },
+    "The private walkthrough video was uploaded but could not be attached to the project unit.",
   );
 }

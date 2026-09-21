@@ -72,6 +72,7 @@ export type TrustedMediaEvidenceRole =
   | "construction_progress"
   | "project_surroundings"
   | "unit_overview"
+  | "unit_walkthrough_video"
   | "material_overview"
   | "rental_asset_overview"
   | "service_work_evidence"

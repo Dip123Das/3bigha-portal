@@ -20,20 +20,25 @@ import { getPushDeviceId } from "@/features/notifications/device";
 import { colors, radii, spacing, typography } from "@/theme/tokens";
 import {
   attachTrustedUnitPhoto,
+  attachTrustedUnitVideo,
   bindTrustedCaptureLocation,
   loadTrustedMediaTargets,
   startTrustedCaptureSession,
   uploadTrustedUnitPhoto,
+  uploadTrustedUnitVideo,
   type MobileTrustedCaptureStart,
   type MobileTrustedLocationObservation,
   type MobileTrustedMediaTarget,
 } from "./trusted-media-api";
+
+type CaptureMode = "photo" | "video";
 
 type PreparedCapture = {
   capture: MobileTrustedCaptureStart;
   location: MobileTrustedLocationObservation;
   target: MobileTrustedMediaTarget;
   openedAt: string;
+  mode: CaptureMode;
 };
 
 export function TrustedMediaCaptureScreen({
@@ -51,6 +56,7 @@ export function TrustedMediaCaptureScreen({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [prepared, setPrepared] = useState<PreparedCapture | null>(null);
   const [busy, setBusy] = useState(false);
+  const [recording, setRecording] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -81,6 +87,7 @@ export function TrustedMediaCaptureScreen({
 
   async function openVerifiedCamera(
     target: MobileTrustedMediaTarget,
+    mode: CaptureMode = "photo",
   ) {
     setBusy(true);
     setMessage(null);
@@ -174,6 +181,7 @@ export function TrustedMediaCaptureScreen({
         location,
         target,
         openedAt: new Date().toISOString(),
+        mode,
       });
     } catch (error) {
       setMessage(
@@ -266,17 +274,139 @@ export function TrustedMediaCaptureScreen({
     }
   }
 
+  async function recordAndUploadVideo() {
+    if (
+      !prepared ||
+      prepared.mode !== "video" ||
+      !camera.current ||
+      recording
+    ) return;
+
+    const startedAtMs = Date.now();
+    const capturedAt = new Date(startedAtMs).toISOString();
+    const locationAgeMs =
+      startedAtMs - Date.parse(prepared.location.capturedAt);
+
+    setMessage(null);
+    setRecording(true);
+
+    try {
+      if (prepared.target.existingAssetCount === 0) {
+        throw new Error(
+          "Capture and attach the required trusted unit photograph before recording a walkthrough video.",
+        );
+      }
+      if (locationAgeMs < 0 || locationAgeMs > 120_000) {
+        throw new Error(
+          "The GPS reading expired. Close the camera and begin again.",
+        );
+      }
+
+      const video = await camera.current.recordAsync({
+        maxDuration: 45,
+        maxFileSize: 80 * 1024 * 1024,
+        ...(Platform.OS === "ios"
+          ? { codec: "avc1" as const }
+          : {}),
+      });
+      const durationMs = Date.now() - startedAtMs;
+
+      if (!video?.uri) {
+        throw new Error(
+          "The camera did not return a live walkthrough video.",
+        );
+      }
+      if (durationMs < 5_000) {
+        throw new Error(
+          "The walkthrough video must be at least 5 seconds long.",
+        );
+      }
+      if (durationMs > 47_000) {
+        throw new Error(
+          "The walkthrough video exceeded the 45-second evidence limit.",
+        );
+      }
+
+      setBusy(true);
+      const mimeType =
+        Platform.OS === "ios"
+          ? "video/quicktime" as const
+          : "video/mp4" as const;
+      const extension =
+        mimeType === "video/quicktime" ? "mov" : "mp4";
+
+      const asset = await uploadTrustedUnitVideo(session, {
+        unitId: prepared.target.entityId,
+        capture: prepared.capture,
+        video: {
+          uri: video.uri,
+          name: `unit-walkthrough-${Date.now()}.${extension}`,
+          mimeType,
+          capturedAt,
+          durationMs,
+          recordsAudio: false,
+        },
+        uploadMetadata: {
+          cameraFacing: "back",
+          cameraOpenedAt: prepared.openedAt,
+          locationAgeMs,
+          timezone:
+            Intl.DateTimeFormat().resolvedOptions().timeZone ||
+            "UTC",
+          utcOffsetMinutes: -new Date().getTimezoneOffset(),
+          videoQuality: "720p",
+        },
+      });
+
+      const updated = await attachTrustedUnitVideo(session, {
+        sessionId: prepared.capture.session.id,
+        unitId: prepared.target.entityId,
+        assetId: asset.trustedMediaAssetId,
+      });
+
+      setPrepared(null);
+      setTargets((current) =>
+        current.map((target) =>
+          target.entityId === updated.entityId
+            ? updated
+            : target,
+        ),
+      );
+      setMessage(
+        "Private silent walkthrough video attached and submitted for verification.",
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "The trusted walkthrough video could not be saved.",
+      );
+    } finally {
+      setRecording(false);
+      setBusy(false);
+    }
+  }
+
+  function stopVideoRecording() {
+    camera.current?.stopRecording();
+  }
+
   if (prepared) {
     return <SafeAreaView style={styles.cameraPage}>
       <CameraView
         accessibilityLabel="Trusted rear-camera preview"
         facing="back"
+        mode={prepared.mode === "video" ? "video" : "picture"}
+        mute
         ref={camera}
         style={styles.camera}
+        videoQuality="720p"
       />
       <View style={styles.verificationOverlay}>
         <Text style={styles.verificationTitle}>
-          LIVE GPS-BOUND CAPTURE
+          {prepared.mode === "video"
+            ? "LIVE SILENT GPS-BOUND VIDEO"
+            : "LIVE GPS-BOUND PHOTO"}
         </Text>
         <Text style={styles.verificationText}>
           {prepared.target.projectName}
@@ -292,23 +422,52 @@ export function TrustedMediaCaptureScreen({
           Location is private and used only for evidence
           verification.
         </Text>
+        {prepared.mode === "video" && <Text
+          style={styles.verificationText}
+        >
+          Record 5–45 seconds. Audio is disabled. The original
+          video remains private and requires moderation.
+        </Text>}
+        {recording && <Text
+          accessibilityLiveRegion="assertive"
+          accessibilityRole="alert"
+          style={styles.verificationTitle}
+        >
+          Recording silent walkthrough…
+        </Text>}
       </View>
       <View style={styles.cameraControls}>
         <Button
-          disabled={busy}
+          disabled={busy || recording}
           label="Cancel"
           onPress={() => setPrepared(null)}
           secondary
         />
-        <Button
-          disabled={busy}
-          label={
-            busy
-              ? "Uploading securely…"
-              : "Capture and upload"
-          }
-          onPress={() => void captureAndUpload()}
-        />
+        {prepared.mode === "photo" ? <Button
+            disabled={busy}
+            label={
+              busy
+                ? "Uploading securely…"
+                : "Capture and upload photo"
+            }
+            onPress={() => void captureAndUpload()}
+          /> : <Button
+            disabled={busy}
+            label={
+              busy
+                ? "Uploading private video…"
+                : recording
+                  ? "Stop and upload"
+                  : "Record silent walkthrough"
+            }
+            onPress={() => {
+              if (recording) {
+                stopVideoRecording();
+              } else {
+                void recordAndUploadVideo();
+              }
+            }}
+          />}
       </View>
     </SafeAreaView>;
   }
@@ -339,18 +498,19 @@ export function TrustedMediaCaptureScreen({
 
       <View style={styles.hero}>
         <Text style={styles.eyebrow}>
-          MOB-29 · TRUSTED PROPERTY EVIDENCE
+          MOB-30 · TRUSTED PROPERTY EVIDENCE
         </Text>
         <Text
           accessibilityRole="header"
           style={styles.heroTitle}
         >
-          Capture the actual unit
+          Capture the actual unit securely
         </Text>
         <Text style={styles.heroBody}>
           Use the live rear camera and fresh GPS at the
-          property. Gallery photos, videos and private legal
-          papers are not accepted here.
+          property. Capture a required trusted photograph and
+          then an optional silent walkthrough video. Gallery
+          media and private legal papers are not accepted here.
         </Text>
       </View>
 
@@ -382,7 +542,7 @@ export function TrustedMediaCaptureScreen({
         </Text>
         <Text style={styles.muted}>
           Add builder inventory through the canonical property
-          workspace before capturing trusted unit photographs.
+          workspace before capturing trusted unit evidence.
         </Text>
       </View>}
 
@@ -427,7 +587,7 @@ export function TrustedMediaCaptureScreen({
               active && styles.targetBodyActive,
             ]}>
               {targetLabel(target)} ·{" "}
-              {target.existingAssetCount} trusted photo(s)
+              {target.existingAssetCount} trusted media asset(s)
             </Text>
             <Text style={[
               styles.targetBody,
@@ -438,15 +598,33 @@ export function TrustedMediaCaptureScreen({
           </Pressable>;
         })}
 
-        {selected && <Button
-          disabled={busy}
-          label={
-            selected.existingAssetCount === 0
-              ? "Start required live capture"
-              : "Add another live capture"
-          }
-          onPress={() => void openVerifiedCamera(selected)}
-        />}
+        {selected && <>
+          <Button
+            disabled={busy}
+            label={
+              selected.existingAssetCount === 0
+                ? "Capture required trusted photo"
+                : "Add another trusted photo"
+            }
+            onPress={() =>
+              void openVerifiedCamera(selected, "photo")
+            }
+          />
+          {selected.existingAssetCount > 0 && <Button
+            disabled={busy}
+            label="Record private silent walkthrough"
+            onPress={() =>
+              void openVerifiedCamera(selected, "video")
+            }
+            secondary
+          />}
+          {selected.existingAssetCount === 0 && <Text
+            style={styles.muted}
+          >
+            A trusted live photograph is required before a
+            walkthrough video can be attached.
+          </Text>}
+        </>}
       </View>}
 
       <View style={styles.card}>
@@ -458,10 +636,13 @@ export function TrustedMediaCaptureScreen({
         </Text>
         <Text style={styles.muted}>
           Precise GPS is stored privately in the canonical
-          capture session. The public image does not disclose
-          precise coordinates. Every photo is ownership-bound,
-          session-bound, immutable and submitted to the current
-          verification policy.
+          capture session. Public photographs do not disclose
+          precise coordinates. Walkthrough originals remain
+          private and are not automatically published. Every
+          photo and video is ownership-bound, session-bound,
+          immutable and submitted to the current verification
+          policy. Videos are recorded without audio and cannot
+          replace the required trusted photograph.
         </Text>
       </View>
     </ScrollView>
