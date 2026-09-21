@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const expectedFinalMilestone = 31;
+const expectedFinalMilestone = 32;
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const verifiers = readdirSync(join(repoRoot, "scripts"))
   .map((name) => ({ name, match: /^verify-mob-(\d{2})-.*\.mjs$/.exec(name) }))

@@ -22,6 +22,7 @@ import {
   type PropertyLegalReviewDocument,
   type PropertyLegalReviewWorkspace,
 } from "./legal-review-api";
+import { PropertyBookingHoldScreen } from "./PropertyBookingHoldScreen";
 
 function human(value: string | null | undefined) {
   return value
@@ -66,6 +67,7 @@ export function PropertyLegalReviewScreen({
   const [decisionNote, setDecisionNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [showBookingHold, setShowBookingHold] = useState(false);
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -173,6 +175,24 @@ export function PropertyLegalReviewScreen({
     }
   }
 
+  const canOpenBookingHold =
+    workspace?.permissions.actor === "buyer" &&
+    workspace.request?.status === "granted" &&
+    Boolean(
+      workspace.request.expiresAt &&
+        Date.parse(workspace.request.expiresAt) > Date.now(),
+    );
+
+  if (showBookingHold) {
+    return (
+      <PropertyBookingHoldScreen
+        onBack={() => setShowBookingHold(false)}
+        session={session}
+        unitId={unitId}
+      />
+    );
+  }
+
   if (!workspace && busy) {
     return (
       <SafeAreaView
@@ -247,6 +267,28 @@ export function PropertyLegalReviewScreen({
             </View>
 
             <RequestStatus workspace={workspace} />
+
+            {canOpenBookingHold ? (
+              <View style={styles.card}>
+                <Text accessibilityRole="header" style={styles.sectionTitle}>
+                  Temporary unit hold
+                </Text>
+                <Text style={styles.muted}>
+                  Your owner-granted legal review is active. You may
+                  now check live availability and, if still eligible,
+                  hold this exact unit for 15 minutes.
+                </Text>
+                <Text style={styles.warning}>
+                  This does not create a payment, agreement, sale,
+                  title, or ownership transfer.
+                </Text>
+                <Button
+                  disabled={busy}
+                  label="Continue to temporary unit hold"
+                  onPress={() => setShowBookingHold(true)}
+                />
+              </View>
+            ) : null}
 
             {workspace.permissions.canRequestReview ? (
               <View style={styles.card}>

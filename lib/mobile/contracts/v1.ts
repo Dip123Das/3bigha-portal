@@ -29,7 +29,8 @@ export type MobileApiErrorCode =
   | "PROPERTY_WORKSPACE_FAILED"
   | "PROPERTY_DISCOVERY_FAILED"
   | "TRUSTED_MEDIA_FAILED"
-  | "PROPERTY_LEGAL_REVIEW_FAILED";
+  | "PROPERTY_LEGAL_REVIEW_FAILED"
+  | "PROPERTY_BOOKING_HOLD_FAILED";
 
 export type MobileOnboardingPath = "customer" | "business" | "individual_professional";
 
@@ -430,6 +431,75 @@ export type MobilePropertyLegalDocumentAccess = {
   documentId: string;
   expiresAt: string;
   accessUrl: string;
+};
+
+export type MobilePropertyUnitHoldStatus =
+  | "active"
+  | "cancelled"
+  | "expired"
+  | "converted";
+
+export type MobilePropertyUnitHoldEligibilityReason =
+  | "eligible"
+  | "legal_review_required"
+  | "legal_review_expired"
+  | "unit_not_verified"
+  | "unit_not_transaction_ready"
+  | "unit_not_available"
+  | "unit_already_held"
+  | "self_hold_forbidden";
+
+export type MobilePropertyUnitHold = {
+  id: string;
+  unitId: string;
+  projectId: string;
+  legalReviewRequestId: string;
+  status: MobilePropertyUnitHoldStatus;
+  heldAt: string;
+  expiresAt: string;
+  releasedAt: string | null;
+  remainingSeconds: number;
+};
+
+export type MobilePropertyUnitHoldEligibility = {
+  eligible: boolean;
+  reason: MobilePropertyUnitHoldEligibilityReason;
+  legalReviewRequestId: string | null;
+};
+
+export type MobilePropertyUnitHoldPermissions = {
+  actor: "buyer" | "owner";
+  canAcquireHold: boolean;
+  canCancelHold: boolean;
+  canViewHold: boolean;
+};
+
+export type MobilePropertyUnitHoldWorkspace = {
+  generatedAt: string;
+  unit: MobilePropertyLegalReviewUnit;
+  eligibility: MobilePropertyUnitHoldEligibility;
+  hold: MobilePropertyUnitHold | null;
+  permissions: MobilePropertyUnitHoldPermissions;
+  policy: {
+    intentVersion: "property-unit-booking-intent-v1";
+    holdDurationSeconds: 900;
+    requiresGrantedLegalReview: true;
+    createsPayment: false;
+    createsAgreement: false;
+    transfersOwnership: false;
+  };
+};
+
+export type MobilePropertyUnitHoldAcquire = {
+  unitId: string;
+  legalReviewRequestId: string;
+  intentVersion: "property-unit-booking-intent-v1";
+  acknowledgedAt: string;
+};
+
+export type MobilePropertyUnitHoldCancellation = {
+  holdId: string;
+  reason?: string | null;
 };
 
 export type MobileTrustedMediaEntityType = "project_unit";
