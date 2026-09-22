@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors, radii, spacing, typography } from "@/theme/tokens";
+import { PropertyBookingApplicationScreen } from "./PropertyBookingApplicationScreen";
 import {
   createPropertyLegalDocumentAccess,
   decidePropertyLegalReview,
@@ -68,6 +69,8 @@ export function PropertyLegalReviewScreen({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [showBookingHold, setShowBookingHold] = useState(false);
+  const [showBookingApplication, setShowBookingApplication] =
+    useState(false);
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -183,6 +186,20 @@ export function PropertyLegalReviewScreen({
         Date.parse(workspace.request.expiresAt) > Date.now(),
     );
 
+  const canOpenOwnerBookingApplication =
+    workspace?.permissions.actor === "owner" &&
+    workspace.request !== null;
+
+  if (showBookingApplication) {
+    return (
+      <PropertyBookingApplicationScreen
+        onBack={() => setShowBookingApplication(false)}
+        session={session}
+        unitId={unitId}
+      />
+    );
+  }
+
   if (showBookingHold) {
     return (
       <PropertyBookingHoldScreen
@@ -267,6 +284,32 @@ export function PropertyLegalReviewScreen({
             </View>
 
             <RequestStatus workspace={workspace} />
+
+            {canOpenOwnerBookingApplication ? (
+              <View style={styles.card}>
+                <Text accessibilityRole="header" style={styles.sectionTitle}>
+                  Private booking application
+                </Text>
+                <Text style={styles.muted}>
+                  Review the authenticated buyer’s application for this
+                  exact unit. Application decisions remain available
+                  under their own protected lifecycle even if the earlier
+                  legal-review grant later ends.
+                </Text>
+                <Text style={styles.warning}>
+                  Accepting an application keeps the unit reserved. It
+                  creates no payment, agreement, sale, title, or
+                  ownership transfer.
+                </Text>
+                <Button
+                  disabled={busy}
+                  label="Review private booking application"
+                  onPress={() =>
+                    setShowBookingApplication(true)
+                  }
+                />
+              </View>
+            ) : null}
 
             {canOpenBookingHold ? (
               <View style={styles.card}>

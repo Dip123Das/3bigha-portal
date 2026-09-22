@@ -30,7 +30,8 @@ export type MobileApiErrorCode =
   | "PROPERTY_DISCOVERY_FAILED"
   | "TRUSTED_MEDIA_FAILED"
   | "PROPERTY_LEGAL_REVIEW_FAILED"
-  | "PROPERTY_BOOKING_HOLD_FAILED";
+  | "PROPERTY_BOOKING_HOLD_FAILED"
+  | "PROPERTY_BOOKING_APPLICATION_FAILED";
 
 export type MobileOnboardingPath = "customer" | "business" | "individual_professional";
 
@@ -502,6 +503,74 @@ export type MobilePropertyUnitHoldCancellation = {
   reason?: string | null;
 };
 
+export type MobilePropertyBookingApplicationStatus =
+  | "submitted"
+  | "accepted"
+  | "declined"
+  | "cancelled"
+  | "expired";
+
+export type MobilePropertyBookingApplication = {
+  id: string;
+  holdId: string;
+  unitId: string;
+  projectId: string;
+  legalReviewRequestId: string;
+  status: MobilePropertyBookingApplicationStatus;
+  buyerMessage: string | null;
+  submittedAt: string;
+  decisionDueAt: string;
+  ownerDecidedAt: string | null;
+  ownerDecisionNote: string | null;
+  acceptedUntil: string | null;
+  endedAt: string | null;
+  remainingDecisionSeconds: number;
+  remainingAcceptedSeconds: number;
+};
+
+export type MobilePropertyBookingApplicationPermissions = {
+  actor: "buyer" | "owner";
+  canSubmitApplication: boolean;
+  canCancelApplication: boolean;
+  canAcceptApplication: boolean;
+  canDeclineApplication: boolean;
+  canViewApplication: boolean;
+};
+
+export type MobilePropertyBookingApplicationWorkspace = {
+  generatedAt: string;
+  unit: MobilePropertyLegalReviewUnit;
+  hold: MobilePropertyUnitHold | null;
+  application: MobilePropertyBookingApplication | null;
+  permissions: MobilePropertyBookingApplicationPermissions;
+  policy: {
+    intentVersion: "property-unit-booking-application-v1";
+    ownerDecisionWindowSeconds: 172800;
+    acceptedNextStepWindowSeconds: 172800;
+    requiresActiveBuyerHold: true;
+    keepsInventoryReserved: true;
+    createsPayment: false;
+    createsAgreement: false;
+    marksInventorySold: false;
+    transfersOwnership: false;
+  };
+};
+
+export type MobilePropertyBookingApplicationSubmit = {
+  holdId: string;
+  intentVersion: "property-unit-booking-application-v1";
+  acknowledgedAt: string;
+  buyerMessage?: string | null;
+};
+
+export type MobilePropertyBookingApplicationDecision = {
+  decision: "accepted" | "declined";
+  decisionNote?: string | null;
+};
+
+export type MobilePropertyBookingApplicationCancellation = {
+  reason?: string | null;
+};
 export type MobileTrustedMediaEntityType = "project_unit";
 
 export type MobileTrustedMediaEvidenceRole =

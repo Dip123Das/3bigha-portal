@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors, radii, spacing, typography } from "@/theme/tokens";
+import { PropertyBookingApplicationScreen } from "./PropertyBookingApplicationScreen";
 import {
   acquirePropertyUnitHold,
   cancelPropertyUnitHold,
@@ -90,6 +91,8 @@ export function PropertyBookingHoldScreen({
   const [seconds, setSeconds] = useState(0);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [showBookingApplication, setShowBookingApplication] =
+    useState(false);
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -197,6 +200,16 @@ export function PropertyBookingHoldScreen({
     } finally {
       setBusy(false);
     }
+  }
+
+  if (showBookingApplication) {
+    return (
+      <PropertyBookingApplicationScreen
+        onBack={() => setShowBookingApplication(false)}
+        session={session}
+        unitId={unitId}
+      />
+    );
   }
 
   if (!workspace && busy) {
@@ -326,6 +339,21 @@ export function PropertyBookingHoldScreen({
                     The displayed hold time has ended. Refresh to confirm
                     canonical availability.
                   </Text>
+                ) : null}
+                {workspace.permissions.actor === "buyer" &&
+                (activeHold ||
+                  workspace.hold.status === "converted") ? (
+                  <Button
+                    disabled={busy}
+                    label={
+                      workspace.hold.status === "converted"
+                        ? "View private booking application"
+                        : "Continue to private booking application"
+                    }
+                    onPress={() =>
+                      setShowBookingApplication(true)
+                    }
+                  />
                 ) : null}
                 {activeHold &&
                 workspace.permissions.canCancelHold ? (
