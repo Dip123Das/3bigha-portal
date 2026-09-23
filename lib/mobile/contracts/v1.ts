@@ -31,7 +31,8 @@ export type MobileApiErrorCode =
   | "TRUSTED_MEDIA_FAILED"
   | "PROPERTY_LEGAL_REVIEW_FAILED"
   | "PROPERTY_BOOKING_HOLD_FAILED"
-  | "PROPERTY_BOOKING_APPLICATION_FAILED";
+  | "PROPERTY_BOOKING_APPLICATION_FAILED"
+  | "PROPERTY_BOOKING_ADVANCE_FAILED";
 
 export type MobileOnboardingPath = "customer" | "business" | "individual_professional";
 
@@ -571,6 +572,95 @@ export type MobilePropertyBookingApplicationDecision = {
 export type MobilePropertyBookingApplicationCancellation = {
   reason?: string | null;
 };
+export type MobilePropertyBookingAdvanceStatus =
+  | "owner_proposed"
+  | "buyer_confirmed"
+  | "gateway_configuration_pending"
+  | "gateway_order_created"
+  | "payment_pending"
+  | "paid"
+  | "failed"
+  | "expired"
+  | "cancelled"
+  | "review_required";
+
+export type MobilePropertyBookingAdvanceGatewayReadiness =
+  | "configuration_pending"
+  | "ready";
+
+export type MobilePropertyBookingAdvance = {
+  id: string;
+  applicationId: string;
+  holdId: string;
+  unitId: string;
+  projectId: string;
+  quotedPropertyPricePaise: number;
+  advanceAmountPaise: number;
+  currency: "INR";
+  provider: "sbi_payment_gateway";
+  pricingSource: "builder_inventory_pricing";
+  pricingSnapshotAt: string;
+  ownerTermsNote: string | null;
+  ownerProposedAt: string;
+  buyerConsentVersion: string | null;
+  buyerConsentedAt: string | null;
+  status: MobilePropertyBookingAdvanceStatus;
+  expiresAt: string;
+  cancelledAt: string | null;
+  remainingSeconds: number;
+};
+
+export type MobilePropertyBookingAdvancePermissions = {
+  actor: "buyer" | "owner";
+  canProposeAdvance: boolean;
+  canConfirmAdvance: boolean;
+  canCancelAdvance: boolean;
+  canViewAdvance: boolean;
+  canCreateGatewayOrder: false;
+};
+
+export type MobilePropertyBookingAdvanceWorkspace = {
+  generatedAt: string;
+  unit: MobilePropertyLegalReviewUnit;
+  application: MobilePropertyBookingApplication | null;
+  advance: MobilePropertyBookingAdvance | null;
+  permissions: MobilePropertyBookingAdvancePermissions;
+  gateway: {
+    provider: "sbi_payment_gateway";
+    readiness: MobilePropertyBookingAdvanceGatewayReadiness;
+    configured: boolean;
+  };
+  policy: {
+    consentVersion: "property-booking-advance-v1";
+    requiresAcceptedApplication: true;
+    requiresReservedInventory: true;
+    usesServerOwnedPropertyPrice: true;
+    createsGatewayOrder: false;
+    collectsMoney: false;
+    createsAgreement: false;
+    marksInventorySold: false;
+    transfersTitle: false;
+    transfersOwnership: false;
+  };
+};
+
+export type MobilePropertyBookingAdvanceProposal = {
+  applicationId: string;
+  advanceAmountPaise: number;
+  ownerTermsNote?: string | null;
+};
+
+export type MobilePropertyBookingAdvanceConfirmation = {
+  advanceRequestId: string;
+  consentVersion: "property-booking-advance-v1";
+  consentAccepted: true;
+};
+
+export type MobilePropertyBookingAdvanceCancellation = {
+  advanceRequestId: string;
+  reason?: string | null;
+};
+
 export type MobileTrustedMediaEntityType = "project_unit";
 
 export type MobileTrustedMediaEvidenceRole =

@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors, radii, spacing, typography } from "@/theme/tokens";
+import { PropertyBookingAdvanceScreen } from "./PropertyBookingAdvanceScreen";
 import {
   cancelPropertyBookingApplication,
   decidePropertyBookingApplication,
@@ -78,6 +79,8 @@ export function PropertyBookingApplicationScreen({
   const [clock, setClock] = useState(0);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [showBookingAdvance, setShowBookingAdvance] =
+    useState(false);
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -240,6 +243,16 @@ export function PropertyBookingApplicationScreen({
     }
   }
 
+  if (showBookingAdvance) {
+    return (
+      <PropertyBookingAdvanceScreen
+        onBack={() => setShowBookingAdvance(false)}
+        session={session}
+        unitId={unitId}
+      />
+    );
+  }
+
   if (!workspace && busy) {
     return (
       <SafeAreaView
@@ -384,6 +397,35 @@ export function PropertyBookingApplicationScreen({
                     the canonical application and inventory state.
                   </Text>
                 ) : null}
+              </View>
+            ) : null}
+
+            {application?.status === "accepted" &&
+            seconds > 0 ? (
+              <View style={styles.card}>
+                <Text accessibilityRole="header" style={styles.sectionTitle}>
+                  Private property-advance readiness
+                </Text>
+                <Text style={styles.muted}>
+                  {workspace.permissions.actor === "owner"
+                    ? "Set a protected advance proposal using the canonical server-owned property price."
+                    : "Review the owner’s protected advance proposal and record your acknowledgement."}
+                </Text>
+                <Text style={styles.warning}>
+                  This readiness step creates no gateway order,
+                  collects no money, creates no agreement, does not
+                  mark inventory sold, and transfers no title or
+                  ownership.
+                </Text>
+                <Button
+                  disabled={busy}
+                  label={
+                    workspace.permissions.actor === "owner"
+                      ? "Set private advance proposal"
+                      : "Review private advance readiness"
+                  }
+                  onPress={() => setShowBookingAdvance(true)}
+                />
               </View>
             ) : null}
 
