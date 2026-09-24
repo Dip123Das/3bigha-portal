@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { PropertyBookingAgreementAdvisoryDraftScreen } from "./PropertyBookingAgreementAdvisoryDraftScreen";
+
 import {
   cancelPropertyBookingAgreementReadiness,
   confirmPropertyBookingAgreementPartyInput,
@@ -152,6 +154,8 @@ export function PropertyBookingAgreementReadinessScreen({
   const [consentAccepted, setConsentAccepted] =
     useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [showAdvisoryDraft, setShowAdvisoryDraft] =
+    useState(false);
 
   function applyWorkspace(
     next: PropertyBookingAgreementWorkspace,
@@ -467,6 +471,16 @@ export function PropertyBookingAgreementReadinessScreen({
           ),
         )
       : 0;
+
+  if (showAdvisoryDraft && readiness) {
+    return (
+      <PropertyBookingAgreementAdvisoryDraftScreen
+        session={session}
+        readinessId={readiness.id}
+        onBack={() => setShowAdvisoryDraft(false)}
+      />
+    );
+  }
 
   if (!workspace && busy) {
     return (
@@ -922,21 +936,32 @@ export function PropertyBookingAgreementReadinessScreen({
               </View>
             ) : null}
 
-            {workspace.progress.readyForDraft ? (
+            {workspace.progress.readyForDraft ||
+            readiness?.status === "draft_generated" ? (
               <View style={styles.readyCard}>
                 <Text
                   accessibilityRole="header"
                   style={styles.readyTitle}
                 >
-                  Advisory drafting readiness reached
+                  Advisory drafting workspace
                 </Text>
                 <Text style={styles.readyText}>
                   Both parties confirmed their own particulars and
                   the owner confirmed the revalidated property
-                  schedule. No draft has been generated. Lawyer
-                  review, payment prerequisites and separate future
+                  schedule. You may now generate or review the
+                  private advisory draft. Qualified lawyer review,
+                  payment prerequisites and separate future
                   authorities remain mandatory.
                 </Text>
+                <Button
+                  disabled={busy}
+                  label={
+                    readiness?.status === "draft_generated"
+                      ? "Review private advisory draft"
+                      : "Open advisory drafting workspace"
+                  }
+                  onPress={() => setShowAdvisoryDraft(true)}
+                />
               </View>
             ) : null}
 

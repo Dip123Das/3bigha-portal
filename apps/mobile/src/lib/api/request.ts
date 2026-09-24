@@ -23,9 +23,9 @@ function failureMessage(kind: MobileRequestFailure) {
   return "3Bigha could not reach the service safely. Please try again shortly.";
 }
 
-export async function mobileApiRequest<T>(session: Session, path: string, init: RequestInit = {}, fallback = "This request could not be completed."): Promise<T> {
+export async function mobileApiRequest<T>(session: Session, path: string, init: RequestInit = {}, fallback = "This request could not be completed.", timeoutMs = REQUEST_TIMEOUT_MS): Promise<T> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const headers = new Headers(init.headers);
     headers.set("Authorization", `Bearer ${session.access_token}`);

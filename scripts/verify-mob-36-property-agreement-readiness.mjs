@@ -411,7 +411,7 @@ for (const value of [
   "Masked identity reference",
   "Confirm my submitted particulars",
   "Confirm canonical property schedule",
-  "Advisory drafting readiness reached",
+  "Advisory drafting workspace",
 ]) {
   assert.match(screen, new RegExp(value));
 }

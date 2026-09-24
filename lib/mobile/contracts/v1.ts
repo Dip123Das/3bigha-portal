@@ -893,6 +893,86 @@ export type MobilePropertyBookingAgreementCancellation = {
   reason?: string | null;
 };
 
+export type MobilePropertyBookingAgreementAdvisoryDraftStatus =
+  | "generation_pending"
+  | "generated"
+  | "lawyer_review_pending"
+  | "lawyer_changes_requested"
+  | "lawyer_approved"
+  | "superseded"
+  | "cancelled"
+  | "generation_failed";
+
+export type MobilePropertyBookingAgreementAdvisoryDraftContent = {
+  documentTitle: string;
+  advisoryNotice: string;
+  advisoryOnly: true;
+  lawyerReviewRequired: true;
+  parties: Record<string, unknown>;
+  propertySchedule: Record<string, unknown>;
+  financialTerms: Record<string, unknown>;
+  clauses: Array<Record<string, unknown>>;
+  lawyerReview: Record<string, unknown>;
+  [key: string]: unknown;
+};
+
+export type MobilePropertyBookingAgreementAdvisoryDraft = {
+  id: string;
+  readinessId: string;
+  applicationId: string;
+  unitId: string;
+  projectId: string;
+  version: number;
+  status: MobilePropertyBookingAgreementAdvisoryDraftStatus;
+  promptVersion: "property-agreement-ai-draft-v1";
+  draftFormat: "structured_json_v1";
+  draftContent:
+    | MobilePropertyBookingAgreementAdvisoryDraftContent
+    | null;
+  printableText: string | null;
+  draftContentSha256: string | null;
+  generationStartedAt: string | null;
+  generatedAt: string | null;
+  generationFailedAt: string | null;
+  generationFailureCode: string | null;
+  lawyerReviewRequired: true;
+  advisoryOnly: true;
+  legalEffectCreated: false;
+  signingAllowed: false;
+  registrationAllowed: false;
+  executionAllowed: false;
+  createsPayment: false;
+  marksInventorySold: false;
+  transfersTitle: false;
+  transfersOwnership: false;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MobilePropertyBookingAgreementAdvisoryDraftWorkspace = {
+  generatedAt: string;
+  readinessId: string;
+  draft: MobilePropertyBookingAgreementAdvisoryDraft | null;
+  policy: {
+    privateBoundPartyAccessOnly: true;
+    confirmedParticularsOnly: true;
+    maskedIdentityReferencesOnly: true;
+    confidentialSourceLocatorsExposed: false;
+    aiCredentialsExposed: false;
+    aiRequestReferenceExposed: false;
+    sourceSnapshotHashExposed: false;
+    advisoryOnly: true;
+    lawyerReviewRequired: true;
+    legalEffectCreated: false;
+    signingAllowed: false;
+    registrationAllowed: false;
+    executionAllowed: false;
+    createsPayment: false;
+    marksInventorySold: false;
+    transfersTitle: false;
+    transfersOwnership: false;
+  };
+};
 export type MobileTrustedMediaEntityType = "project_unit";
 
 export type MobileTrustedMediaEvidenceRole =
