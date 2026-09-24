@@ -32,7 +32,8 @@ export type MobileApiErrorCode =
   | "PROPERTY_LEGAL_REVIEW_FAILED"
   | "PROPERTY_BOOKING_HOLD_FAILED"
   | "PROPERTY_BOOKING_APPLICATION_FAILED"
-  | "PROPERTY_BOOKING_ADVANCE_FAILED";
+  | "PROPERTY_BOOKING_ADVANCE_FAILED"
+  | "PROPERTY_AGREEMENT_READINESS_FAILED";
 
 export type MobileOnboardingPath = "customer" | "business" | "individual_professional";
 
@@ -658,6 +659,237 @@ export type MobilePropertyBookingAdvanceConfirmation = {
 
 export type MobilePropertyBookingAdvanceCancellation = {
   advanceRequestId: string;
+  reason?: string | null;
+};
+
+export type MobilePropertyBookingAgreementReadinessStatus =
+  | "collecting_details"
+  | "ready_for_draft"
+  | "draft_generated"
+  | "parties_reviewing"
+  | "changes_requested"
+  | "approved_for_execution"
+  | "cancelled"
+  | "expired";
+
+export type MobilePropertyBookingAgreementPartyRole =
+  | "buyer"
+  | "owner";
+
+export type MobilePropertyBookingAgreementPartyStatus =
+  | "incomplete"
+  | "submitted"
+  | "confirmed"
+  | "changes_requested";
+
+export type MobilePropertyBookingAgreementIdentityDocumentType =
+  | "pan"
+  | "aadhaar"
+  | "voter_id"
+  | "passport"
+  | "driving_licence"
+  | "company_registration"
+  | "other";
+
+export type MobilePropertyBookingAgreementRelationType =
+  | "father"
+  | "mother"
+  | "spouse"
+  | "guardian"
+  | "authorized_representative";
+
+export type MobilePropertyBookingAgreementPrintPageSize =
+  | "A4"
+  | "LEGAL"
+  | "CUSTOM_STAMP_PAPER";
+
+export type MobilePropertyBookingAgreementPrintLayout = {
+  pageSize: MobilePropertyBookingAgreementPrintPageSize;
+  orientation: "portrait";
+  marginTopMm: number;
+  marginRightMm: number;
+  marginBottomMm: number;
+  marginLeftMm: number;
+  customPageWidthMm: number | null;
+  customPageHeightMm: number | null;
+};
+
+export type MobilePropertyBookingAgreementSchedule = {
+  unitCode: string;
+  unitTitle: string | null;
+  unitKind: string;
+  projectName: string | null;
+  quotedPropertyPricePaise: number;
+  currency: "INR";
+  plotAreaSqft: number | null;
+  builtUpSqft: number | null;
+  carpetSqft: number | null;
+  superBuiltUpSqft: number | null;
+  dimensionLengthFt: number | null;
+  dimensionWidthFt: number | null;
+  floorNumber: number | null;
+  unitNumber: string | null;
+  facing: string | null;
+  boundaryNorth: string;
+  boundarySouth: string;
+  boundaryEast: string;
+  boundaryWest: string;
+  boundaryDemarcation: string | null;
+  plotNumbers: string[];
+  deedNumbers: string[];
+  mutationNumbers: string[];
+  khatianNumbers: string[];
+  propertyAddress: string | null;
+  printLayout: MobilePropertyBookingAgreementPrintLayout;
+};
+
+export type MobilePropertyBookingAgreementPartyInput = {
+  role: MobilePropertyBookingAgreementPartyRole;
+  status: MobilePropertyBookingAgreementPartyStatus;
+  legalName: string | null;
+  relationType:
+    | MobilePropertyBookingAgreementRelationType
+    | null;
+  relationName: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  villageOrLocality: string | null;
+  postOffice: string | null;
+  policeStation: string | null;
+  blockOrMunicipality: string | null;
+  district: string | null;
+  state: string | null;
+  pincode: string | null;
+  identityDocumentType:
+    | MobilePropertyBookingAgreementIdentityDocumentType
+    | null;
+  identityMaskedReference: string | null;
+  authorityCapacity: string | null;
+  inputVersion: "property-agreement-party-input-v1";
+  consentAccepted: boolean;
+  consentAcceptedAt: string | null;
+  submittedAt: string | null;
+  confirmedAt: string | null;
+};
+
+export type MobilePropertyBookingAgreementReadiness = {
+  id: string;
+  applicationId: string;
+  holdId: string;
+  unitId: string;
+  projectId: string;
+  advanceRequestId: string | null;
+  status: MobilePropertyBookingAgreementReadinessStatus;
+  readinessVersion: "property-agreement-readiness-v1";
+  buyerDetailsConfirmedAt: string | null;
+  ownerDetailsConfirmedAt: string | null;
+  propertyScheduleConfirmedAt: string | null;
+  readyForDraftAt: string | null;
+  cancelledAt: string | null;
+  expiresAt: string | null;
+  remainingSeconds: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MobilePropertyBookingAgreementProgress = {
+  buyerDetailsSubmitted: boolean;
+  buyerDetailsConfirmed: boolean;
+  ownerDetailsSubmitted: boolean;
+  ownerDetailsConfirmed: boolean;
+  propertyScheduleConfirmed: boolean;
+  readyForDraft: boolean;
+};
+
+export type MobilePropertyBookingAgreementPermissions = {
+  actor: MobilePropertyBookingAgreementPartyRole;
+  canCreateReadiness: boolean;
+  canSubmitOwnDetails: boolean;
+  canConfirmOwnDetails: boolean;
+  canConfirmPropertySchedule: boolean;
+  canCancelReadiness: boolean;
+  canViewReadiness: boolean;
+  canGenerateAdvisoryDraft: false;
+  canApproveForExecution: false;
+  canExecuteAgreement: false;
+};
+
+export type MobilePropertyBookingAgreementWorkspace = {
+  generatedAt: string;
+  unit: MobilePropertyLegalReviewUnit;
+  application: MobilePropertyBookingApplication | null;
+  readiness:
+    | MobilePropertyBookingAgreementReadiness
+    | null;
+  schedule:
+    | MobilePropertyBookingAgreementSchedule
+    | null;
+  myPartyInput:
+    | MobilePropertyBookingAgreementPartyInput
+    | null;
+  progress: MobilePropertyBookingAgreementProgress;
+  permissions: MobilePropertyBookingAgreementPermissions;
+  policy: {
+    readinessVersion: "property-agreement-readiness-v1";
+    partyInputVersion: "property-agreement-party-input-v1";
+    requiresAcceptedApplication: true;
+    requiresReservedInventory: true;
+    requiresBothPartyConfirmations: true;
+    requiresAllFourBoundaries: true;
+    usesServerOwnedPropertyPrice: true;
+    legalProfileIdentifiersOnly: true;
+    confidentialDocumentsOpened: false;
+    aiDraftAdvisoryOnly: true;
+    lawyerReviewRequired: true;
+    paymentRequiredBeforeExecution: true;
+    generatesAgreement: false;
+    approvesAgreement: false;
+    executesAgreement: false;
+    createsPayment: false;
+    marksInventorySold: false;
+    transfersTitle: false;
+    transfersOwnership: false;
+  };
+};
+
+export type MobilePropertyBookingAgreementReadinessCreate = {
+  applicationId: string;
+};
+
+export type MobilePropertyBookingAgreementPartySubmission = {
+  readinessId: string;
+  legalName: string;
+  relationType?:
+    | MobilePropertyBookingAgreementRelationType
+    | null;
+  relationName?: string | null;
+  addressLine1: string;
+  addressLine2?: string | null;
+  villageOrLocality?: string | null;
+  postOffice?: string | null;
+  policeStation?: string | null;
+  blockOrMunicipality?: string | null;
+  district: string;
+  state: string;
+  pincode: string;
+  identityDocumentType:
+    MobilePropertyBookingAgreementIdentityDocumentType;
+  identityMaskedReference: string;
+  authorityCapacity?: string | null;
+  inputVersion: "property-agreement-party-input-v1";
+  consentAccepted: true;
+};
+
+export type MobilePropertyBookingAgreementPartyConfirmation = {
+  readinessId: string;
+};
+
+export type MobilePropertyBookingAgreementScheduleConfirmation = {
+  readinessId: string;
+};
+
+export type MobilePropertyBookingAgreementCancellation = {
+  readinessId: string;
   reason?: string | null;
 };
 

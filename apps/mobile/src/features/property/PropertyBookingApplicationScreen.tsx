@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors, radii, spacing, typography } from "@/theme/tokens";
 import { PropertyBookingAdvanceScreen } from "./PropertyBookingAdvanceScreen";
+import { PropertyBookingAgreementReadinessScreen } from "./PropertyBookingAgreementReadinessScreen";
 import {
   cancelPropertyBookingApplication,
   decidePropertyBookingApplication,
@@ -80,6 +81,8 @@ export function PropertyBookingApplicationScreen({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [showBookingAdvance, setShowBookingAdvance] =
+    useState(false);
+  const [showAgreementReadiness, setShowAgreementReadiness] =
     useState(false);
 
   const load = useCallback(async () => {
@@ -247,6 +250,16 @@ export function PropertyBookingApplicationScreen({
     return (
       <PropertyBookingAdvanceScreen
         onBack={() => setShowBookingAdvance(false)}
+        session={session}
+        unitId={unitId}
+      />
+    );
+  }
+
+  if (showAgreementReadiness) {
+    return (
+      <PropertyBookingAgreementReadinessScreen
+        onBack={() => setShowAgreementReadiness(false)}
         session={session}
         unitId={unitId}
       />
@@ -425,6 +438,37 @@ export function PropertyBookingApplicationScreen({
                       : "Review private advance readiness"
                   }
                   onPress={() => setShowBookingAdvance(true)}
+                />
+              </View>
+            ) : null}
+
+            {application?.status === "accepted" &&
+            seconds > 0 ? (
+              <View style={styles.card}>
+                <Text accessibilityRole="header" style={styles.sectionTitle}>
+                  Private agreement readiness
+                </Text>
+                <Text style={styles.muted}>
+                  Prepare structured party particulars and review
+                  the canonical server-owned property schedule.
+                  Each party can view and confirm only their own
+                  private particulars.
+                </Text>
+                <Text style={styles.warning}>
+                  This is advisory readiness only. It opens no
+                  confidential legal document, generates no
+                  agreement, performs no signature or registration,
+                  collects no payment, does not mark inventory sold,
+                  and transfers no title or ownership.
+                </Text>
+                <Button
+                  disabled={busy}
+                  label={
+                    workspace.permissions.actor === "owner"
+                      ? "Prepare private agreement readiness"
+                      : "Review private agreement readiness"
+                  }
+                  onPress={() => setShowAgreementReadiness(true)}
                 />
               </View>
             ) : null}
