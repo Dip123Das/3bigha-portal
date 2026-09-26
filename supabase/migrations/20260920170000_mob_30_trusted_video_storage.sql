@@ -18,7 +18,11 @@ where id = 'listing-evidence-private';
 
 do $$
 begin
-  if not found then
+  if not exists (
+    select 1
+    from storage.buckets
+    where id = 'listing-evidence-private'
+  ) then
     raise exception
       'MOB-30 requires the listing-evidence-private storage bucket';
   end if;
