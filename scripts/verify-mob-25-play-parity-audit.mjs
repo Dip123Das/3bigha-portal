@@ -9,7 +9,7 @@ const gradleVersions = read("apps/mobile/node_modules/react-native/gradle/libs.v
 const androidPermissions = new Set(config.expo.android.permissions ?? []);
 const blockedAndroidPermissions = new Set(config.expo.android.blockedPermissions ?? []);
 
-assert.equal(pkg.dependencies.expo, "~57.0.13");
+assert.equal(pkg.dependencies.expo, "~57.0.25");
 assert.equal(config.expo.name, "3Bigha");
 assert.equal(config.expo.android.package, "com.threebigha.mobile");
 assert.equal(config.expo.android.versionCode, 1);

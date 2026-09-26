@@ -36,28 +36,29 @@
         }
       ],
       "expo-document-picker",
+      "expo-web-browser",
       [
-      "expo-notifications",
-      {
-        "icon": "./assets/notification-icon.png",
-        "color": "#8B5E3C",
-        "defaultChannel": "default"
-      }
-    ],
-    [
-      "expo-splash-screen",
-      {
-        "backgroundColor": "#F5F2EA",
-        "image": "./assets/splash-icon.png",
-        "imageWidth": 180,
-        "resizeMode": "contain",
-        "dark": {
-          "backgroundColor": "#17140F",
-          "image": "./assets/splash-icon.png"
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#8B5E3C",
+          "defaultChannel": "default"
         }
-      }
-    ],
-    "expo-updates"
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F5F2EA",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "dark": {
+            "backgroundColor": "#17140F",
+            "image": "./assets/splash-icon.png"
+          }
+        }
+      ],
+      "expo-updates"
     ],
     "experiments": {
       "typedRoutes": true
