@@ -25,4 +25,19 @@ assert.match(bootstrap, /Number\(profile\.onboarding_version \|\| 0\) >= 2/);
 assert.match(config, /live selfie and work or workplace evidence/);
 assert.match(config, /live operating location/);
 
+{
+  const responsiveOnboardingSource = read("apps/mobile/src/features/onboarding/OnboardingScreen.tsx");
+
+  assert.ok(
+    !responsiveOnboardingSource.includes("maxHeight: 220"),
+    "Native onboarding option groups must expand naturally without a fixed maximum height.",
+  );
+  assert.ok(
+    responsiveOnboardingSource.includes('alignItems: "flex-start"') &&
+      responsiveOnboardingSource.includes('maxWidth: "100%"') &&
+      responsiveOnboardingSource.includes("flexShrink: 1"),
+    "Native onboarding choices must wrap within the available device width.",
+  );
+}
+
 console.log("MOB-04 native identity and onboarding assertions passed.");
