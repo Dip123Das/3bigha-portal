@@ -236,6 +236,30 @@ export function OnboardingScreen({ session }: { session: Session }) {
     finally { setBusy(false); }
   }
 
+  if (!state && message) return <SafeAreaView style={styles.center}>
+    <Text accessibilityRole="header" style={styles.sectionTitle}>Registration could not be loaded</Text>
+    <Text accessibilityLiveRegion="assertive" accessibilityRole="alert" style={styles.muted}>{message}</Text>
+    <Pressable
+      accessibilityLabel="Retry loading registration"
+      accessibilityRole="button"
+      onPress={() => {
+        setMessage(null);
+        void refresh().catch((error) =>
+          setMessage(error instanceof Error ? error.message : "Registration could not be loaded."),
+        );
+      }}
+      style={styles.primary}
+    >
+      <Text style={styles.primaryText}>Retry</Text>
+    </Pressable>
+    <Pressable
+      accessibilityLabel="Sign out on this device"
+      accessibilityRole="button"
+      onPress={() => void getNativeSupabase()?.auth.signOut({ scope: "local" })}
+    >
+      <Text style={styles.signout}>Sign out on this device</Text>
+    </Pressable>
+  </SafeAreaView>;
   if (!state) return <SafeAreaView accessibilityLabel="Preparing your canonical identity" accessibilityRole="progressbar" style={styles.center}><ActivityIndicator color={colors.brand} size="large" /><Text accessibilityLiveRegion="polite" style={styles.muted}>Preparing your canonical identity…</Text></SafeAreaView>;
   if (capture) return <SafeAreaView style={styles.cameraPage}><CameraView accessibilityLabel="Verified live camera preview" ref={camera} facing={capture === "selfie" ? "front" : "back"} style={styles.camera} />{captureLocation && <View style={styles.verificationOverlay}><Text style={styles.verificationTitle}>LIVE VERIFIED CAPTURE</Text><Text style={styles.verificationText}>{new Date().toLocaleString()}</Text><Text style={styles.verificationText}>{captureLocation.latitude.toFixed(6)}, {captureLocation.longitude.toFixed(6)}</Text><Text style={styles.verificationText}>GPS accuracy ±{Math.round(captureLocation.accuracy)} m</Text>{captureLocation.mocked === true && <Text style={styles.verificationWarning}>Mock location detected</Text>}</View>}<View style={styles.cameraControls}><Pressable accessibilityLabel="Cancel live photo" accessibilityRole="button" hitSlop={8} onPress={() => { setCapture(null); setCaptureLocation(null); setCaptureOpenedAt(null); }} style={styles.secondary}><Text style={styles.secondaryText}>Cancel</Text></Pressable><Pressable accessibilityLabel="Capture GPS-bound live photo" accessibilityRole="button" accessibilityState={{ busy, disabled: busy || !captureLocation }} disabled={busy || !captureLocation} onPress={() => void takeLivePhoto()} style={styles.primary}><Text style={styles.primaryText}>{busy ? "Saving…" : "Capture verified photo"}</Text></Pressable></View></SafeAreaView>;
 

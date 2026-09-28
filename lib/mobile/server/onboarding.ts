@@ -36,7 +36,7 @@ function assertNoProtectedInput(value: unknown) {
 async function catalogue(supabase: SupabaseClient) {
   const { data, error } = await supabase
     .from("identity_master")
-    .select("identity_key,label,local_label,identity_family,description,registration_scopes,requires_business_onboarding,requires_verification,lifetime_free_candidate,redirect_to_business,is_active,sort_order")
+    .select("identity_key,label,family_key,description,registration_scopes,requires_business_onboarding,requires_professional_verification,lifetime_free_candidate,redirect_to_business,is_active,sort_order")
     .eq("is_active", true)
     .order("sort_order")
     .order("label");
@@ -44,13 +44,13 @@ async function catalogue(supabase: SupabaseClient) {
   return (data ?? [])
     .filter((row: any) => !["master_admin", "multi_business_operator"].includes(clean(row.identity_key)))
     .map((row: any) => ({
-      key: clean(row.identity_key), label: clean(row.label), localLabel: clean(row.local_label) || null,
-      family: clean(row.identity_family || "individual"), description: clean(row.description, 500) || null,
+      key: clean(row.identity_key), label: clean(row.label), localLabel: null,
+      family: clean(row.family_key || "individual"), description: clean(row.description, 500) || null,
       registrationScopes: Array.isArray(row.registration_scopes)
         ? row.registration_scopes.map((value: unknown) => clean(value)).filter(Boolean)
         : [],
       requiresBusinessOnboarding: row.requires_business_onboarding === true,
-      requiresVerification: row.requires_verification === true,
+      requiresVerification: row.requires_professional_verification === true,
       lifetimeFreeCandidate: row.lifetime_free_candidate === true,
       redirectToBusiness: row.redirect_to_business === true,
     }));
