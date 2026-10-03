@@ -161,9 +161,9 @@ export function resolveRegistrationStatusPresentation(
     growthStep = {
       key: "growth",
       label: "Paid Growth features",
-      status: "Waiting for SBI Gateway",
+      status: "Waiting for secure payment",
       detail:
-        "Your selected Growth Plan is recorded, but SBI online payment is not available yet. No payment has been collected and no paid benefit has been activated.",
+        "Your selected Growth Plan is recorded, but online payment is not available yet. No payment has been collected and no paid benefit has been activated.",
       tone: "attention",
     };
   } else if (paymentWaiting) {
@@ -172,7 +172,7 @@ export function resolveRegistrationStatusPresentation(
       label: "Paid Growth features",
       status: "Payment pending",
       detail:
-        "Complete the secure SBI payment when you are ready. Essential Workspace access remains separate.",
+        "Complete the secure Razorpay payment when you are ready. Essential Workspace access remains separate.",
       tone: "attention",
     };
   } else {
@@ -181,7 +181,7 @@ export function resolveRegistrationStatusPresentation(
       label: "Paid Growth features",
       status: "Not active",
       detail:
-        "The selected paid Growth Plan has not yet been activated by verified SBI payment confirmation.",
+        "The selected paid Growth Plan has not yet been activated by verified payment confirmation.",
       tone: "neutral",
     };
   }

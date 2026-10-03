@@ -42,7 +42,7 @@ const checks = [
   ],
   [
     verification.includes(
-      "Enter the certificate number first"
+      "certificateNumberReady &&"
     ),
     "legal upload requires a certificate number first",
   ],
@@ -69,21 +69,21 @@ const checks = [
   ],
   [
     onboarding.includes(
-      "subscriptionAfterRegistrationUrl"
+      "await onFinishRegistration(subscriptionUrl)"
     ),
     "successful activation opens subscription plans",
   ],
   [
     subscription.includes(
-      "identityRecommendation"
+      "workspace.capabilities"
     ),
-    "subscription recommendation uses identity focus",
+    "paid costing offers respect operating identity capabilities",
   ],
   [
     subscription.includes(
-      "RECOMMENDED FOR YOU"
+      "Selected during registration"
     ),
-    "recommended package is visually identified",
+    "the package selected during registration is visually identified",
   ],
 ];
 

@@ -1,3 +1,4 @@
+import { razorpayReady } from "@/lib/payments/razorpay";
 import { redirect } from "next/navigation";
 
 import { THREE_BOS_AI_AGENTS } from "@/lib/3bos/ai-agents/registry";
@@ -56,7 +57,7 @@ export default async function PlatformGovernanceCenter() {
     ["Supabase public client", readiness([Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL), Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)])],
     ["Supabase privileged server", readiness([Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)])],
     ["OpenAI", readiness([Boolean(process.env.OPENAI_API_KEY)])],
-    ["SBI payment gateway", readiness([process.env.SBI_PAYMENT_GATEWAY_ENABLED === "true", Boolean(process.env.SBI_PAYMENT_GATEWAY_MERCHANT_ID), Boolean(process.env.SBI_PAYMENT_GATEWAY_REQUEST_URL)])],
+    ["Razorpay website checkout", readiness([razorpayReady()])],
     ["WhatsApp Cloud", readiness([Boolean(process.env.WHATSAPP_CLOUD_API_TOKEN), Boolean(process.env.WHATSAPP_PHONE_NUMBER_ID)])],
     ["Gupshup", readiness([Boolean(process.env.GUPSHUP_API_KEY), Boolean(process.env.GUPSHUP_SOURCE_NUMBER || process.env.GUPSHUP_SOURCE_PHONE)])],
     ["Firebase", readiness([Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)])],
