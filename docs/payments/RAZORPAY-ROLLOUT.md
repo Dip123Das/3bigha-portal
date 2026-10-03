@@ -16,9 +16,12 @@ Scope: website subscription purchases and optional property/manufacturing/constr
 
 ## Migrations, in order
 
-1. `supabase/migrations/20261003090000_razorpay_commercial_access.sql`
-2. `supabase/migrations/20261003091000_commercial_allowance_enforcement.sql`
-3. `supabase/migrations/20261003092000_cost_project_billing_link.sql`
+1. `supabase/migrations/20261003085000_commercial_construction_foundations.sql`
+2. `supabase/migrations/20261003090000_razorpay_commercial_access.sql`
+3. `supabase/migrations/20261003091000_commercial_allowance_enforcement.sql`
+4. `supabase/migrations/20261003092000_cost_project_billing_link.sql`
+
+The foundation migration creates construction projects and milestones only when absent, using the existing repository definitions and owner policies. The production schema export was missing both tables.
 
 Apply through the project's normal controlled migration process. These are forward migrations, not edits to historical SBI data. Back up production and compare its deployed revision/schema with the tested branch before applying. They require existing profiles/business profiles, Identity Master operating-capability tables, BOS cost tables, builder/property/source tables, and construction-project/milestone tables. The isolated tests use explicit minimal fixtures; they do not certify the entire deployed schema.
 
