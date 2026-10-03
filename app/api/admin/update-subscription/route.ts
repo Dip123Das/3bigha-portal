@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   return NextResponse.json(
     {
       error:
-        "Manual and cash subscription activation is disabled. A paid subscription may be activated only after verified SBI Payment Gateway confirmation.",
+        "Manual and cash subscription activation is disabled. A paid subscription may be activated only after verified payment confirmation.",
     },
     { status: 410 }
   );

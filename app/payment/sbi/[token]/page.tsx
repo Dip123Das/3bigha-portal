@@ -40,16 +40,16 @@ export default async function SbiPaymentLinkPage({
           </div>
         ) : SBI_INTEGRATION_READY ? (
           <div style={{ padding: 14, background: "#eff6ff", color: "#1e3a8a", borderRadius: 10 }}>
-            SBI Payment Gateway checkout will appear here after the bank-issued integration has been configured.
+            This is a historical SBI payment request. Website purchases now use the subscription workspace.
           </div>
         ) : (
           <div style={{ padding: 14, background: "#fffbeb", color: "#92400e", borderRadius: 10, fontWeight: 800 }}>
-            SBI Payment Gateway setup is pending. No payment has been collected, and this request cannot activate a subscription.
+            This historical request cannot collect payment or activate access. Open /dashboard/subscription for current purchases.
           </div>
         )}
 
         <p style={{ marginTop: 18, color: "#64748b", fontSize: 13 }}>
-          Payment status: {String(request.status).replaceAll("_", " ")}. 3Bigha accepts subscription payments only through its SBI Payment Gateway.
+          Payment status: {String(request.status).replaceAll("_", " ")}. This historical SBI request cannot be paid here. Create a current Razorpay purchase from your subscription workspace.
         </p>
       </section>
     </main>

@@ -20,10 +20,11 @@ export function getPlanBoost(row: any) {
 
   if (!isActive) return 0;
 
-  if (plan === "hub_vendor" || plan === "platinum") return 20;
-  if (plan === "premium_vendor" || plan === "gold") return 10;
-  if (plan === "basic_vendor" || plan === "silver") return 5;
+  if (plan === "platinum_vendor" || plan === "hub_vendor" || plan === "platinum") return 20;
+  if (plan === "gold_vendor" || plan === "premium_vendor" || plan === "gold") return 10;
+  if (plan === "silver_vendor" || plan === "silver") return 5;
 
+  if (plan === "basic_vendor") return 3;
   return 0;
 }
 

@@ -548,7 +548,7 @@ export default async function VerificationReviewsPage({
             proof information before any
             human decision. Identity
             approval, registration
-            activation and SBI subscription
+            activation and verified subscription
             activation remain separate.
           </p>
         </div>

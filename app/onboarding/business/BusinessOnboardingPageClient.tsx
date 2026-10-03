@@ -1,4 +1,5 @@
 "use client";
+import { SUBSCRIPTION_PLANS, priceLabel } from "@/lib/payments/catalogue";
 
 import type React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -2499,40 +2500,8 @@ async function fetchCompleteness(uid: string) {
     const hasComplimentaryAccess =
       complimentarySubscription?.active === true;
 
-    const subscriptionPatch = hasComplimentaryAccess
-      ? null
-      : selectedRegistrationPlan === "free"
-        ? {
-            subscription_plan: "free",
-            subscription_status: "free",
-          }
-        : {
-            subscription_plan: selectedRegistrationPlan,
-          };
-
-    const { error } = subscriptionPatch
-      ? await supabase
-          .from("business_profiles")
-          .update(subscriptionPatch)
-          .eq("user_id", userId)
-      : { error: null };
-
+    // A plan choice is purchase intent, never a paid entitlement. Do not overwrite current access.
     setSaving(false);
-
-    if (error) {
-      setMsg(
-        error.message ||
-          "Your subscription choice could not be saved."
-      );
-      return;
-    }
-
-    if (subscriptionPatch) {
-      setBp((previous) => ({
-        ...previous,
-        ...subscriptionPatch,
-      }));
-    }
 
     if (hasComplimentaryAccess || selectedRegistrationPlan === "free") {
       await onFinishRegistration();
@@ -2543,13 +2512,14 @@ async function fetchCompleteness(uid: string) {
       "/dashboard/subscription?" +
       new URLSearchParams({
         source: "registration",
+        plan: selectedRegistrationPlan,
         return: onboardingPath,
       }).toString();
 
-    router.push(subscriptionUrl);
+    await onFinishRegistration(subscriptionUrl);
   }
 
-  async function onFinishRegistration() {
+  async function onFinishRegistration(destination?: string) {
     if (!userId) return;
 
     if (!termsAccepted) {
@@ -2686,7 +2656,7 @@ async function fetchCompleteness(uid: string) {
         "✅ Registration complete. Your dashboard is active. Opening your workspace..."
       );
 
-      router.replace(returnTo);
+      router.replace(destination || returnTo);
       router.refresh();
       return;
     } catch (error) {
@@ -3726,7 +3696,7 @@ async function fetchCompleteness(uid: string) {
                   <p>
                     {complimentarySubscription?.active
                       ? `Your complimentary ${complimentarySubscription.plan.replaceAll("_", " ")} plan is active. No payment is required.`
-                      : "The Free plan activates immediately. Paid plans continue through SBI secure payment."}
+                      : "The Free plan activates immediately. Paid plans continue through Razorpay secure payment."}
                   </p>
                 </div>
               </div>
@@ -3743,31 +3713,31 @@ async function fetchCompleteness(uid: string) {
                   {
                     key: "basic_vendor",
                     title: "Basic",
-                    price: "₹299 / month",
+                    price: priceLabel(SUBSCRIPTION_PLANS.basic_vendor.amountPaise),
                     description:
-                      "Entry-level AI boost and improved marketplace visibility.",
+                      "Affordable business workspace with 3 plan points in marketplace matching.",
                   },
                   {
                     key: "silver_vendor",
                     title: "Silver",
-                    price: "₹499 / month",
+                    price: priceLabel(SUBSCRIPTION_PLANS.silver_vendor.amountPaise),
                     description:
-                      "Priority RFQ visibility and stronger workflow alerts.",
+                      "Business workspace with 5 plan points in marketplace matching.",
                   },
                   {
                     key: "gold_vendor",
                     title: "Gold",
-                    price: "₹999 / month",
+                    price: priceLabel(SUBSCRIPTION_PLANS.gold_vendor.amountPaise),
                     description:
-                      "Strong AI boost, premium ranking and priority opportunities.",
+                      "Business workspace with 10 plan points in marketplace matching.",
                     recommended: true,
                   },
                   {
                     key: "platinum_vendor",
                     title: "Platinum",
-                    price: "₹1,999 / month",
+                    price: priceLabel(SUBSCRIPTION_PLANS.platinum_vendor.amountPaise),
                     description:
-                      "Maximum visibility, AI boost and marketplace priority.",
+                      "Business workspace with 20 plan points in marketplace matching.",
                   },
                 ].map((plan) => {
                   const selected =
@@ -3872,7 +3842,7 @@ async function fetchCompleteness(uid: string) {
                 ? "Activate with Complimentary Access"
                 : selectedRegistrationPlan === "free"
                 ? "Activate My Dashboard"
-                : "Continue to SBI Secure Payment"}
+                : "Continue to Razorpay Secure Payment"}
             </button>
 
             {!registrationReadyUI ? (
@@ -3965,7 +3935,7 @@ async function fetchCompleteness(uid: string) {
                 targetId
               );
             }}
-            onFinish={onFinishRegistration}
+            onFinish={() => onFinishRegistration()}
             onOpenDashboard={() =>
               router.replace(returnTo)
             }

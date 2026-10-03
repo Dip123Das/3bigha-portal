@@ -7,7 +7,7 @@ export async function POST() {
   return NextResponse.json(
     {
       error:
-        "This legacy payment endpoint is retired. Use the SBI Payment Gateway subscription flow.",
+        "This legacy payment endpoint is retired. Use the Razorpay subscription flow.",
     },
     { status: 410 }
   );

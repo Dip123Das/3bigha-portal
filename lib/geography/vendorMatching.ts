@@ -1,3 +1,4 @@
+import { getPlanBoost } from "@/lib/marketplace/intelligence/vendor-core";
 import { computeMarketplaceRanking } from "@/lib/marketplace/marketplace-ranking";
 
 export type VendorMatchingInput = {
@@ -10,6 +11,8 @@ export type VendorMatchingInput = {
   boost_priority?: number | string | null;
   subscription_plan?: string | null;
   subscription_status?: string | null;
+  subscription_expires_at?: string | null;
+  location_verification_status?: string | null;
   reputation_score?: number | string | null;
   authority_score?: number | string | null;
   conversion_rate?: number | string | null;
@@ -72,17 +75,10 @@ export function isEligibleVendorProfile(vendor: VendorMatchingInput): boolean {
 export function vendorPriorityScore(vendor: NearbyVendorLike): number {
   const boostPriority = toNumber(vendor.boost_priority);
 
-  const subscriptionWeight =
-    vendor.subscription_status === "active"
-      ? vendor.subscription_plan === "premium"
-        ? 20
-        : 10
-      : 0;
-
   const ranking = computeMarketplaceRanking({
     distanceKm: vendor.distanceKm,
-    boostScore: boostPriority * 100,
-    verificationScore: subscriptionWeight,
+    boostScore: boostPriority * 100 + getPlanBoost(vendor) * 100,
+    verificationScore: vendor.location_verification_status === "verified" ? 100 : 0,
     reputationScore: toNumber(vendor.reputation_score),
     authorityScore: toNumber(vendor.authority_score),
     conversionRate: toNumber(vendor.conversion_rate),

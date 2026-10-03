@@ -1,3 +1,4 @@
+import { getPlanBoost } from "@/lib/marketplace/intelligence/vendor-core";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { buildVendorTrustReputation } from "@/lib/vendors/vendor-trust-reputation";
@@ -90,23 +91,6 @@ description=${clean(row.description).slice(0, 300)}
   }
 }
 
-function getPlanBoost(row: any) {
-  const plan = clean(row.subscription_plan).toLowerCase();
-  const status = clean(row.subscription_status).toLowerCase();
-  const expiresAt = clean(row.subscription_expires_at);
-
-  const isActive =
-    status === "active" &&
-    (!expiresAt || new Date(expiresAt).getTime() >= Date.now());
-
-  if (!isActive) return 0;
-
-  if (plan === "hub_vendor" || plan === "platinum") return 20;
-  if (plan === "premium_vendor" || plan === "gold") return 10;
-  if (plan === "basic_vendor" || plan === "silver") return 5;
-
-  return 0;
-}
 
 type VendorMatchInput = {
   module: string;

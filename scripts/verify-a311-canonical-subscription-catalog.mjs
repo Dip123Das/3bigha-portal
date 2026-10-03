@@ -17,19 +17,14 @@ const canonical = [
   ["platinum_vendor", "Platinum"],
 ];
 
+const catalogue = fs.readFileSync("lib/payments/catalogue.ts", "utf8");
 for (const [value, label] of canonical) {
-  if (!subscription.includes(`"${value}"`)) {
-    console.error(`FAIL: Canonical subscription source is missing ${value}.`);
-    process.exit(1);
+  if (!catalogue.includes(`${value}:`) || !route.includes(`"${value}"`)) {
+    throw new Error(`Missing canonical plan: ${label}`);
   }
-  if (!page.includes(`value="${value}"`)) {
-    console.error(`FAIL: Member Administration is missing ${label}.`);
-    process.exit(1);
-  }
-  if (!route.includes(`"${value}"`)) {
-    console.error(`FAIL: Grant API is missing ${value}.`);
-    process.exit(1);
-  }
+}
+if (!subscription.includes("SUBSCRIPTION_PLANS") || !page.includes("Object.entries(SUBSCRIPTION_PLANS)")) {
+  throw new Error("Customer and administration must use the shared catalogue.");
 }
 
 const form =
@@ -42,23 +37,9 @@ for (const legacy of ["growth", "enterprise", "lifetime", "starter", "profession
   }
 }
 
-if (!page.includes("Basic — ₹299/month")) {
-  console.error("FAIL: Basic price label is missing.");
-  process.exit(1);
+for (const amount of [9900, 19900, 29900, 49900]) {
+  if (!catalogue.includes(`amountPaise: ${amount}`)) throw new Error(`Missing approved amount: ${amount}`);
 }
-if (!page.includes("Silver — ₹499/month")) {
-  console.error("FAIL: Silver price label is missing.");
-  process.exit(1);
-}
-if (!page.includes("Gold — ₹999/month")) {
-  console.error("FAIL: Gold price label is missing.");
-  process.exit(1);
-}
-if (!page.includes("Platinum — ₹1,999/month")) {
-  console.error("FAIL: Platinum price label is missing.");
-  process.exit(1);
-}
-
 console.log("A-3.11 Canonical Subscription Catalogue Audit");
 console.log("==============================================");
 console.log("PASS: Member Administration uses the portal's real subscription catalogue.");

@@ -100,10 +100,10 @@ export function resolveGrowthJourney(
     return {
       state: "gateway_waiting",
       plan,
-      statusLabel: "Waiting for SBI Gateway",
+      statusLabel: "Waiting for secure payment",
       title: "Selected Growth Plan",
       detail:
-        "Your plan selection is recorded, but SBI online payment is not available yet. No payment has been collected and no paid benefit has been activated.",
+        "Your plan selection is recorded, but online payment is not available yet. No payment has been collected and no paid benefit has been activated.",
       tone: "attention",
       isPaidActive: false,
       isEssential: false,
@@ -117,7 +117,7 @@ export function resolveGrowthJourney(
       statusLabel: "Payment pending",
       title: "Selected Growth Plan",
       detail:
-        "Complete the secure SBI payment when you are ready. Your Essential Workspace remains available separately.",
+        "Complete the secure Razorpay payment when you are ready. Your Essential Workspace remains available separately.",
       tone: "attention",
       isPaidActive: false,
       isEssential: false,
@@ -130,7 +130,7 @@ export function resolveGrowthJourney(
     statusLabel: "Not active",
     title: "Selected Growth Plan",
     detail:
-      "This paid Growth Plan has not been activated by verified SBI payment confirmation.",
+      "This paid Growth Plan has not been activated by verified payment confirmation.",
     tone: "neutral",
     isPaidActive: false,
     isEssential: false,

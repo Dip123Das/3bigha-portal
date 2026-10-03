@@ -6,7 +6,8 @@
     "dev": "set NODE_OPTIONS=--dns-result-order=ipv4first && next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "lint": "next lint"
+    "lint": "next lint",
+    "verify:payments": "node scripts/payments/verify-commercial-core.cjs && node scripts/payments/verify-commercial-sql.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
@@ -35,6 +36,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@types/node": "^25.0.3",
     "@types/react": "19.2.7",
     "@types/react-dom": "^19.2.5",

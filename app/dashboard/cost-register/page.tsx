@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import Link from "next/link";
 import UniversalDashboardShell from "@/components/operational/UniversalDashboardShell";
 import CostRegisterCapabilityGate from "@/components/cost-execution/CostRegisterCapabilityGate";
 import FinishedOutputHandoffPanel from "@/components/cost-execution/FinishedOutputHandoffPanel";
@@ -160,7 +161,7 @@ export default function CostRegisterWorkspacePage() {
 
     const { data, error } = await supabase
       .from("bos_cost_plans")
-      .select("id,operating_mode,title,status,actual_total,estimated_total,target_output_quantity,target_output_unit")
+      .select("id,operating_mode,title,status,actual_total,estimated_total,target_output_quantity,target_output_unit,source_entity_id,source_entity_type")
       .eq("user_id", user.id)
       .order("updated_at", { ascending: false });
 
@@ -277,9 +278,9 @@ export default function CostRegisterWorkspacePage() {
       .from("bos_cost_plans")
       .insert({
         user_id: user.id,
-        operating_mode: planForm.operating_mode,
+        operating_mode: requestedMode ?? planForm.operating_mode,
         title,
-        status: "active",
+        status: "draft",
         target_output_quantity: Number(planForm.target_output_quantity || 0) || null,
         target_output_unit: planForm.target_output_unit.trim() || null,
       })
@@ -452,6 +453,8 @@ export default function CostRegisterWorkspacePage() {
 
         <section style={{ padding: 16, borderRadius: 18, border: "1px solid #e2e8f0", background: "#fff" }}>
           <h2 style={{ marginTop: 0 }}>1. Create or open a register</h2>
+          <p><Link href="/dashboard/subscription">Manage manufacturing and construction costing plans →</Link></p>
+          <p>New registers start as drafts. Buy the optional costing service, then activate the register before recording costs. Completed and archived records remain readable.</p>
           <form onSubmit={createPlan} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10 }}>
             <select
               value={requestedMode ?? planForm.operating_mode}
@@ -509,6 +512,7 @@ export default function CostRegisterWorkspacePage() {
           <>
             <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10 }}>
               <Metric label="Register" value={selectedPlan.title} />
+              <div><strong>Status: {selectedPlan.status}</strong><p><button type="button" style={primaryButton} onClick={async()=>{const {error}=await supabase.from("bos_cost_plans").update({status: "active"}).eq("id",selectedPlan.id);if(error)setMessage(error.message);else {await loadPlans();setMessage("Cost register activated.");}}}>Activate or reopen register</button></p><button type="button" style={secondaryButton} onClick={async()=>{const {error}=await supabase.from("bos_cost_plans").update({status:"archived"}).eq("id",selectedPlan.id);if(error)setMessage(error.message);else {await loadPlans();setMessage("Register archived. No automatic renewal is scheduled.");}}}>Archive register</button></div>
               <Metric label="Mode" value={selectedPlan.operating_mode === "product" ? "Manufacturing" : "Builder / Project"} />
               <Metric label="Estimated" value={money(selectedPlan.estimated_total)} />
               <Metric label="Actual spent" value={money(selectedPlan.actual_total)} />
@@ -713,7 +717,7 @@ export default function CostRegisterWorkspacePage() {
               mode={selectedPlan.operating_mode}
               planId={selectedPlan.id}
               projectId={
-                selectedPlan.operating_mode === "project"
+                selectedPlan.operating_mode === "project" && (selectedPlan as any).source_entity_type !== "construction_project"
                   ? String((selectedPlan as any).source_entity_id || "")
                   : null
               }
