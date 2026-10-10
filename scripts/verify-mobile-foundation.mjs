@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const expectedFinalMilestone = 37;
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const supplementalVerifiers = ["verify-native-vendor-workspace.mjs"];
 const verifiers = readdirSync(join(repoRoot, "scripts"))
   .map((name) => ({ name, match: /^verify-mob-(\d{2})-.*\.mjs$/.exec(name) }))
   .filter(({ match }) => match)
@@ -22,6 +23,16 @@ if (JSON.stringify(actual) !== JSON.stringify(expected)) {
 
 for (const verifier of verifiers) {
   const result = spawnSync(process.execPath, [`scripts/${verifier.name}`], {
+    cwd: repoRoot,
+    stdio: "inherit",
+  });
+
+  if (result.error) throw result.error;
+  if (result.status !== 0) process.exit(result.status ?? 1);
+}
+
+for (const verifier of supplementalVerifiers) {
+  const result = spawnSync(process.execPath, [`scripts/${verifier}`], {
     cwd: repoRoot,
     stdio: "inherit",
   });
