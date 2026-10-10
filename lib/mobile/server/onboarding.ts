@@ -110,8 +110,8 @@ async function registrationCatalogue(supabase: SupabaseClient) {
 
 export async function loadMobileOnboarding(supabase: SupabaseClient, user: User): Promise<MobileOnboardingState> {
   const [{ data: profile }, { data: business }, { data: professional }, options, registration] = await Promise.all([
-    supabase.from("profiles").select("full_name,phone,state,city,pincode,onboarding_completed,onboarding_version").eq("id", user.id).maybeSingle(),
-    supabase.from("business_profiles").select("business_name,business_type,business_identities,individual_identities,nature_of_business,state,district,city,pincode,location_verification_status,approval_status,registration_complete,business_media_json,selfie_media_json,automated_verification_json").eq("user_id", user.id).maybeSingle(),
+    supabase.from("profiles").select("full_name,phone,state,city,pincode,onboarding_completed,onboarding_version,approval_status").eq("id", user.id).maybeSingle(),
+    supabase.from("business_profiles").select("business_name,business_type,business_identities,individual_identities,nature_of_business,state,district,city,pincode,location_verification_status,registration_complete,business_media_json,selfie_media_json,automated_verification_json").eq("user_id", user.id).maybeSingle(),
     supabase.from("individual_professional_profiles").select("primary_skill_key,verified_selfie_json,work_photo_one_json,work_photo_two_json,verification_status,ai_result_json").eq("user_id", user.id).maybeSingle(),
     catalogue(supabase),
     registrationCatalogue(supabase),
@@ -133,7 +133,7 @@ export async function loadMobileOnboarding(supabase: SupabaseClient, user: User)
       individualIdentities: Array.isArray((business as any)?.individual_identities) ? (business as any).individual_identities.map(String) : [],
       natureOfBusiness: Array.isArray((business as any)?.nature_of_business) ? (business as any).nature_of_business.map(String) : [],
       state: clean((business as any)?.state), district: clean((business as any)?.district), city: clean((business as any)?.city), pincode: clean((business as any)?.pincode),
-      locationStatus: clean((business as any)?.location_verification_status || "not_started"), approvalStatus: clean((business as any)?.approval_status || "pending"),
+      locationStatus: clean((business as any)?.location_verification_status || "not_started"), approvalStatus: clean((profile as any)?.approval_status || "pending"),
       registrationComplete: (business as any)?.registration_complete === true,
     },
     evidence: {

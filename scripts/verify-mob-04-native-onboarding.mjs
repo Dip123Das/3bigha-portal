@@ -40,4 +40,20 @@ assert.match(config, /live operating location/);
   );
 }
 
+
+assert.match(
+  server,
+  /from\("profiles"\)\.select\("[^"]*approval_status[^"]*"\)/,
+  "Mobile onboarding approval must come from the canonical profiles record.",
+);
+assert.doesNotMatch(
+  server,
+  /from\("business_profiles"\)\.select\("[^"]*approval_status[^"]*"\)/,
+  "Mobile onboarding must not query nonexistent business_profiles.approval_status.",
+);
+assert.match(
+  server,
+  /approvalStatus:\s*clean\(\(profile as any\)\?\.approval_status \|\| "pending"\)/,
+  "Mobile onboarding must project approval from the canonical profile.",
+);
 console.log("MOB-04 native identity and onboarding assertions passed.");
