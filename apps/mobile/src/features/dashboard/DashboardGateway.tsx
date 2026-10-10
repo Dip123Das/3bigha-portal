@@ -9,6 +9,7 @@ import { NotificationDeviceCard } from "@/features/notifications/NotificationDev
 import { useNotificationResponse } from "@/features/notifications/NotificationResponseProvider";
 import { PropertyDiscoveryScreen } from "@/features/property/PropertyDiscoveryScreen";
 import { TrustedMediaCaptureScreen } from "@/features/property/TrustedMediaCaptureScreen";
+import { VendorRfqInboxScreen } from "@/features/vendor/VendorRfqInboxScreen";
 import { ReleaseHealthCard } from "@/features/release/ReleaseHealthCard";
 import { colors, radii, spacing, typography } from "@/theme/tokens";
 import { canonicalWebUrl, loadDashboardAggregate, loadMobileBootstrap, loadPropertyWorkspace, type MobileBootstrap, type MobileDashboardAggregate, type MobileDashboardKey, type MobilePropertyWorkspace } from "./api";
@@ -34,6 +35,7 @@ export function DashboardGateway({ session, onboarding }: { session: Session; on
   const [propertyWorkspace, setPropertyWorkspace] = useState<MobilePropertyWorkspace | null>(null);
   const [showPropertyDiscovery, setShowPropertyDiscovery] = useState(false);
   const [showTrustedCapture, setShowTrustedCapture] = useState(false);
+  const [showVendorRfqs, setShowVendorRfqs] = useState(false);
   const [selectedCapability, setSelectedCapability] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -62,6 +64,7 @@ export function DashboardGateway({ session, onboarding }: { session: Session; on
   if (data.registration.requiredAction !== "none") return <>{onboarding}</>;
   if (showPropertyDiscovery) return <PropertyDiscoveryScreen session={session} onBack={() => setShowPropertyDiscovery(false)} />;
   if (showTrustedCapture) return <TrustedMediaCaptureScreen session={session} onBack={() => setShowTrustedCapture(false)} />;
+  if (showVendorRfqs) return <VendorRfqInboxScreen session={session} onBack={() => setShowVendorRfqs(false)} />;
 
   const copy = DASHBOARD_COPY[data.navigation.primaryDashboard];
   const capabilityGroups = Object.entries(data.capabilities.groups).filter(([, values]) => values.length > 0);
@@ -79,7 +82,8 @@ export function DashboardGateway({ session, onboarding }: { session: Session; on
     <View style={styles.topline}><View><Text style={styles.brand}>3Bigha</Text><Text style={styles.brandSub}>Business Operating System</Text></View><Pressable accessibilityLabel="Sign out on this device" accessibilityRole="button" hitSlop={8} onPress={() => void getNativeSupabase()?.auth.signOut({ scope: "local" })}><Text style={styles.signout}>Sign out</Text></Pressable></View>
     <View style={styles.hero}><Text style={styles.eyebrow}>{copy.eyebrow}</Text><Text accessibilityRole="header" style={styles.heroTitle}>{copy.title}</Text><Text style={styles.heroBody}>{copy.summary}</Text><Text style={styles.welcome}>{data.person.displayName}{data.identity.businessName ? ` · ${data.identity.businessName}` : ""}</Text></View>
     {notification.action && <View accessibilityLiveRegion="assertive" accessibilityRole="alert" style={styles.notificationCard}><Text style={styles.notificationKicker}>IMPORTANT WORK UPDATE</Text><Text accessibilityRole="header" style={styles.sectionTitle}>{notification.action.title}</Text><Text style={styles.notificationBody}>{notification.action.body}</Text>{notification.action.webPath ? <Action label="Continue to the canonical workspace" onPress={() => { const path = notification.action?.webPath; notification.clear(); if (path) void Linking.openURL(canonicalWebUrl(path)); }} /> : <Text style={styles.muted}>This alert has no safe action link. Your refreshed dashboard remains available below.</Text>}<Pressable accessibilityLabel="Dismiss work update" accessibilityRole="button" hitSlop={8} onPress={notification.clear}><Text style={styles.dismiss}>Dismiss</Text></Pressable></View>}
-    {aggregate && <View style={styles.card}><Text style={styles.kicker}>LIVE WORK SUMMARY</Text><Text accessibilityRole="header" style={styles.sectionTitle}>At a glance</Text><View style={styles.metrics}>{aggregate.metrics.map((item) => <Pressable accessibilityHint="Opens the canonical workspace" accessibilityLabel={`${item.label}: ${item.value === null ? "unavailable" : item.value}`} accessibilityRole="link" key={item.key} style={styles.metric} onPress={() => void Linking.openURL(canonicalWebUrl(item.webPath))}><Text style={styles.metricValue}>{item.value === null ? "—" : item.value}</Text><Text style={styles.metricLabel}>{item.label}</Text></Pressable>)}</View><Text style={styles.muted}>Counts come from your current authorised server view. Pull down to refresh.</Text></View>}
+    {aggregate && <View style={styles.card}><Text style={styles.kicker}>LIVE WORK SUMMARY</Text><Text accessibilityRole="header" style={styles.sectionTitle}>At a glance</Text><View style={styles.metrics}>{aggregate.metrics.map((item) => { const nativeVendorRfq = data.navigation.primaryDashboard === "vendor_home" && item.key === "assigned_rfqs"; return <Pressable accessibilityHint={nativeVendorRfq ? "Opens assigned RFQs inside the app" : "Shows this work area"} accessibilityLabel={`${item.label}: ${item.value === null ? "unavailable" : item.value}`} accessibilityRole="button" key={item.key} style={styles.metric} onPress={() => { if (nativeVendorRfq) setShowVendorRfqs(true); else setMessage(`${item.label} is being moved into the native app. No browser was opened.`); }}><Text style={styles.metricValue}>{item.value === null ? "—" : item.value}</Text><Text style={styles.metricLabel}>{item.label}</Text></Pressable>; })}</View><Text style={styles.muted}>Counts come from your current authorised server view. Pull down to refresh.</Text></View>}
+    {message && <Text accessibilityRole="alert" style={styles.error}>{message}</Text>}
     {propertyWorkspace && <PropertyWorkspaceCard workspace={propertyWorkspace} onExplore={() => setShowPropertyDiscovery(true)} onTrustedCapture={() => setShowTrustedCapture(true)} />}
     <NotificationDeviceCard session={session} />
     <ReleaseHealthCard />
