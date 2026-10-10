@@ -1,6 +1,6 @@
 import type { Session } from "@supabase/supabase-js";
 
-import { canonicalApiUrl } from "@/lib/api/request";
+import { canonicalApiUrl, mobileApiRequest } from "@/lib/api/request";
 
 export type VendorRfqRow = {
   id: string;
@@ -87,4 +87,43 @@ export async function loadVendorRfqs(
       ),
     },
   };
+}
+
+export type VendorNotification = {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string | null;
+};
+
+export type VendorConversation = {
+  id: string;
+  rfqId: string;
+  rfqNumber: string | null;
+  counterpartName: string | null;
+  rfqStatus: string | null;
+  isClosed: boolean;
+  lastMessageBody: string | null;
+  lastMessageType: string | null;
+  lastMessageAt: string | null;
+  unreadCount: number;
+};
+
+export type VendorWorkspace = {
+  generatedAt: string;
+  notifications: VendorNotification[];
+  conversations: VendorConversation[];
+};
+
+export function loadVendorWorkspace(
+  session: Session,
+): Promise<VendorWorkspace> {
+  return mobileApiRequest<VendorWorkspace>(
+    session,
+    "/api/v1/mobile/vendor-workspace",
+    { method: "GET" },
+    "Your vendor notifications and conversations could not be loaded.",
+  );
 }

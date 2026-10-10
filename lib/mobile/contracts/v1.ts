@@ -33,6 +33,7 @@ export type MobileApiErrorCode =
   | "PROPERTY_BOOKING_HOLD_FAILED"
   | "PROPERTY_BOOKING_APPLICATION_FAILED"
   | "PROPERTY_BOOKING_ADVANCE_FAILED"
+  | "VENDOR_WORKSPACE_FAILED"
   | "PROPERTY_AGREEMENT_READINESS_FAILED";
 
 export type MobileOnboardingPath = "customer" | "business" | "individual_professional";
