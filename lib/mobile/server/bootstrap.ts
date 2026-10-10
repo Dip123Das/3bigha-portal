@@ -54,11 +54,13 @@ export async function buildMobileBootstrap(
       canonical.permissionProjection.isBuilder ||
       canonical.permissionProjection.isHubVendor
   );
-  const basicComplete = Boolean(
-    String(profile.display_name || profile.full_name || "").trim() &&
-      (String(profile.phone || "").trim() || user.email) &&
-      String(profile.state || business.state || "").trim()
-  );
+  const basicComplete =
+    canonical.completionStatus === "complete" ||
+    Boolean(
+      String(profile.display_name || profile.full_name || "").trim() &&
+        (String(profile.phone || "").trim() || user.email) &&
+        String(profile.state || business.state || "").trim()
+    );
   const locationVerified =
     business.location_verified === true ||
     String(business.location_verification_status || "").toLowerCase() === "verified";

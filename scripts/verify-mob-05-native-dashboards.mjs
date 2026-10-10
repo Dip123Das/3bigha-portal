@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync as readMob47BootstrapSource } from "node:fs";
 import fs from "node:fs";
 
 const read = (path) => fs.readFileSync(path, "utf8");
@@ -18,5 +19,24 @@ assert.match(api, /\/api\/v1\/mobile\/bootstrap/);
 assert.match(api, /mobileApiRequest/);
 assert.match(requestBoundary, /headers\.set\("Authorization", `Bearer \$\{session\.access_token\}`\)/);
 assert.match(auth, /DashboardGateway/);
+
+{
+  const mob47BootstrapSource = readMob47BootstrapSource(
+    "lib/mobile/server/bootstrap.ts",
+    "utf8",
+  );
+
+  assert.match(
+    mob47BootstrapSource,
+    /const basicComplete =\s*canonical\.completionStatus === "complete" \|\|\s*Boolean\(/,
+    "Completed canonical registrations must bypass missing legacy state fields.",
+  );
+
+  assert.match(
+    mob47BootstrapSource,
+    /String\(profile\.state \|\| business\.state \|\| ""\)\.trim\(\)/,
+    "Incomplete registrations must retain normal location validation.",
+  );
+}
 
 console.log("MOB-05 native role dashboard assertions passed.");
